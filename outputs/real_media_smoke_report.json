@@ -1,0 +1,925 @@
+{
+  "status": "needs_review",
+  "failures": [],
+  "timestamp_local": "2026-05-11",
+  "ffmpeg": {
+    "ffmpeg_path": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+    "ffprobe_path": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+    "dll_dir": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin"
+  },
+  "media_probe_count": 11,
+  "media_probes": [
+    {
+      "path": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+      "file_size_bytes": 22692314,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\trt_haber (1).mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"95.659773\"\n    }\n}",
+        "runtime_sec": 0.042
+      },
+      "duration_sec": 95.66,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\trt_haber (2).mp4",
+      "file_size_bytes": 22539033,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\trt_haber (2).mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"146.743673\"\n    }\n}",
+        "runtime_sec": 0.045
+      },
+      "duration_sec": 146.744,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\trt_haber (3).mp4",
+      "file_size_bytes": 13315248,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\trt_haber (3).mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"75.451791\"\n    }\n}",
+        "runtime_sec": 0.039
+      },
+      "duration_sec": 75.452,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\1.mp4",
+      "file_size_bytes": 46107936,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\1.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_type\": \"data\"\n        }\n    ],\n    \"format\": {\n        \"duration\": \"171.680000\"\n    }\n}",
+        "runtime_sec": 0.047
+      },
+      "duration_sec": 171.68,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_type": "data"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\2.mp4",
+      "file_size_bytes": 1169699840,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\2.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 854,\n            \"height\": 480\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"7535.488000\"\n    }\n}",
+        "runtime_sec": 0.261
+      },
+      "duration_sec": 7535.488,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 854,
+          "height": 480
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\3.mp4",
+      "file_size_bytes": 1475068802,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\3.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 854,\n            \"height\": 480\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"7416.576000\"\n    }\n}",
+        "runtime_sec": 0.256
+      },
+      "duration_sec": 7416.576,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 854,
+          "height": 480
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\4.mp4",
+      "file_size_bytes": 5488261850,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\4.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_type\": \"data\"\n        }\n    ],\n    \"format\": {\n        \"duration\": \"15711.840000\"\n    }\n}",
+        "runtime_sec": 0.531
+      },
+      "duration_sec": 15711.84,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_type": "data"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\5.mp4",
+      "file_size_bytes": 708242223,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\5.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"48000\",\n            \"channels\": 2\n        },\n        {\n            \"codec_type\": \"data\"\n        }\n    ],\n    \"format\": {\n        \"duration\": \"2436.040000\"\n    }\n}",
+        "runtime_sec": 0.08
+      },
+      "duration_sec": 2436.04,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2
+        },
+        {
+          "codec_type": "data"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\erd_test_video.mp4",
+      "file_size_bytes": 9057613,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\erd_test_video.mp4"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"h264\",\n            \"codec_type\": \"video\",\n            \"width\": 1280,\n            \"height\": 720\n        },\n        {\n            \"codec_name\": \"aac\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"195.296599\"\n    }\n}",
+        "runtime_sec": 0.041
+      },
+      "duration_sec": 195.297,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+      "file_size_bytes": 34435150,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\erd_test_sound.wav"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"pcm_s16le\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"195.210159\"\n    }\n}",
+        "runtime_sec": 0.053
+      },
+      "duration_sec": 195.21,
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "E:\\MITAS\\testklipler\\erd_test_sound_noisy_12dB.wav",
+      "file_size_bytes": 34435116,
+      "probe": {
+        "command": [
+          "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffprobe.exe",
+          "-v",
+          "error",
+          "-show_entries",
+          "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+          "-of",
+          "json",
+          "E:\\MITAS\\testklipler\\erd_test_sound_noisy_12dB.wav"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "output": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"pcm_s16le\",\n            \"codec_type\": \"audio\",\n            \"sample_rate\": \"44100\",\n            \"channels\": 2\n        }\n    ],\n    \"format\": {\n        \"duration\": \"195.210159\"\n    }\n}",
+        "runtime_sec": 0.054
+      },
+      "duration_sec": 195.21,
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "codec_type": "audio",
+          "sample_rate": "44100",
+          "channels": 2
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "asr_extracts": [
+    {
+      "command": [
+        "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        "0",
+        "-t",
+        "20",
+        "-i",
+        "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "",
+      "runtime_sec": 0.058,
+      "output_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+      "output_exists": true,
+      "output_size_bytes": 638798,
+      "wav_info": {
+        "channels": 1,
+        "sample_rate_hz": 16000,
+        "frames": 319360,
+        "sample_width_bytes": 2,
+        "duration_sec": 19.96
+      }
+    },
+    {
+      "command": [
+        "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        "0",
+        "-t",
+        "20",
+        "-i",
+        "E:\\MITAS\\testklipler\\1.mp4",
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "",
+      "runtime_sec": 0.066,
+      "output_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+      "output_exists": true,
+      "output_size_bytes": 640078,
+      "wav_info": {
+        "channels": 1,
+        "sample_rate_hz": 16000,
+        "frames": 320000,
+        "sample_width_bytes": 2,
+        "duration_sec": 20.0
+      }
+    },
+    {
+      "command": [
+        "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        "0",
+        "-t",
+        "20",
+        "-i",
+        "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "",
+      "runtime_sec": 0.065,
+      "output_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+      "output_exists": true,
+      "output_size_bytes": 640078,
+      "wav_info": {
+        "channels": 1,
+        "sample_rate_hz": 16000,
+        "frames": 320000,
+        "sample_width_bytes": 2,
+        "duration_sec": 20.0
+      }
+    }
+  ],
+  "asr": {
+    "command": [
+      "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+      "E:\\MITAS\\scripts\\real_media_smoke.py",
+      "--asr-worker",
+      "E:\\MITAS\\outputs\\real_media_smoke\\asr_clips_manifest.json",
+      "E:\\MITAS\\outputs\\real_media_smoke\\asr_result.json"
+    ],
+    "returncode": 3221226505,
+    "status": "passed_with_abnormal_exit",
+    "output": "",
+    "runtime_sec": 54.085,
+    "clips_manifest": "E:\\MITAS\\outputs\\real_media_smoke\\asr_clips_manifest.json",
+    "asr_output": "E:\\MITAS\\outputs\\real_media_smoke\\asr_result.json",
+    "result": {
+      "status": "passed",
+      "model_dir": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+      "device": "cuda",
+      "compute_type": "float16",
+      "network_guard": "HF_HUB_OFFLINE=1 and local_files_only=True",
+      "clips": [
+        {
+          "name": "news_trt_haber_1",
+          "source_path": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+          "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+          "duration_sec": 20,
+          "detected_language": "tr",
+          "language_probability": 1.0,
+          "segments_count": 3,
+          "text": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 7.46,
+              "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+            },
+            {
+              "start": 7.78,
+              "end": 11.1,
+              "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı."
+            },
+            {
+              "start": 14.34,
+              "end": 20.0,
+              "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+            }
+          ]
+        },
+        {
+          "name": "promo_1",
+          "source_path": "E:\\MITAS\\testklipler\\1.mp4",
+          "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+          "duration_sec": 20,
+          "detected_language": "tr",
+          "language_probability": 1.0,
+          "segments_count": 1,
+          "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+          "segments": [
+            {
+              "start": 0.0,
+              "end": 6.84,
+              "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor."
+            }
+          ]
+        },
+        {
+          "name": "wav_erd_test_sound",
+          "source_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+          "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+          "duration_sec": 20,
+          "detected_language": "tr",
+          "language_probability": 1.0,
+          "segments_count": 13,
+          "text": "İngilizce M. Premier Ne? Müdahale edin Premier Erdoğan'a Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika durduracağım.",
+          "segments": [
+            {
+              "start": 0.2,
+              "end": 1.24,
+              "text": "İngilizce"
+            },
+            {
+              "start": 1.24,
+              "end": 2.82,
+              "text": "M. Premier"
+            },
+            {
+              "start": 2.82,
+              "end": 3.28,
+              "text": "Ne?"
+            },
+            {
+              "start": 3.8,
+              "end": 6.38,
+              "text": "Müdahale edin Premier Erdoğan'a"
+            },
+            {
+              "start": 6.38,
+              "end": 6.96,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 6.96,
+              "end": 8.44,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 8.44,
+              "end": 9.4,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 9.4,
+              "end": 11.2,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 11.2,
+              "end": 13.2,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 13.2,
+              "end": 14.56,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 14.56,
+              "end": 14.68,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 14.68,
+              "end": 14.88,
+              "text": "Bir dakika"
+            },
+            {
+              "start": 14.88,
+              "end": 16.88,
+              "text": "Bir dakika durduracağım."
+            }
+          ]
+        }
+      ],
+      "runtime_sec": 29.508
+    }
+  },
+  "denoise": {
+    "extract": {
+      "command": [
+        "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        "0",
+        "-t",
+        "10",
+        "-i",
+        "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        "48000",
+        "-c:a",
+        "pcm_s16le",
+        "E:\\MITAS\\outputs\\real_media_smoke\\denoise_erd_test_sound_10s_48000hz_mono_denoise_input.wav"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "",
+      "runtime_sec": 0.06,
+      "output_path": "E:\\MITAS\\outputs\\real_media_smoke\\denoise_erd_test_sound_10s_48000hz_mono_denoise_input.wav",
+      "output_exists": true,
+      "output_size_bytes": 960078,
+      "wav_info": {
+        "channels": 1,
+        "sample_rate_hz": 48000,
+        "frames": 480000,
+        "sample_width_bytes": 2,
+        "duration_sec": 10.0
+      }
+    },
+    "enhance": {
+      "command": [
+        "E:\\MITAS\\venvs\\denoise\\Scripts\\deepFilter.exe",
+        "--model-base-dir",
+        "E:\\MITAS\\models\\denoise\\DeepFilterNet3",
+        "--output-dir",
+        "E:\\MITAS\\outputs\\real_media_smoke",
+        "--log-level",
+        "info",
+        "E:\\MITAS\\outputs\\real_media_smoke\\denoise_erd_test_sound_10s_48000hz_mono_denoise_input.wav"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "E:\\MITAS\\venvs\\denoise\\lib\\site-packages\\df\\io.py:9: UserWarning: `torchaudio.backend.common.AudioMetaData` has been moved to `torchaudio.AudioMetaData`. Please update the import path.\n  from torchaudio.backend.common import AudioMetaData\n2026-05-11 02:53:28 | INFO     | DF | Running on torch 2.8.0+cu126\n2026-05-11 02:53:28 | INFO     | DF | Running on host DESKTOP-JFEEDMB\n2026-05-11 02:53:28 | INFO     | DF | Git commit: 88650b2, branch: master\n2026-05-11 02:53:28 | INFO     | DF | Loading model settings of DeepFilterNet3\n2026-05-11 02:53:28 | INFO     | DF | Initializing model `deepfilternet3`\n2026-05-11 02:53:28 | INFO     | DF | Found checkpoint E:\\MITAS\\models\\denoise\\DeepFilterNet3\\checkpoints\\model_120.ckpt.best with epoch 120\n2026-05-11 02:53:28 | INFO     | DF | Running on device cuda:0\n2026-05-11 02:53:28 | INFO     | DF | Model loaded\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\df\\io.py:9: UserWarning: `torchaudio.backend.common.AudioMetaData` has been moved to `torchaudio.AudioMetaData`. Please update the import path.\n  from torchaudio.backend.common import AudioMetaData\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\df\\io.py:9: UserWarning: `torchaudio.backend.common.AudioMetaData` has been moved to `torchaudio.AudioMetaData`. Please update the import path.\n  from torchaudio.backend.common import AudioMetaData\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\df\\io.py:36: UserWarning: torchaudio._backend.utils.info has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. \n  info: AudioMetaData = ta.info(file, **ikwargs)\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\torchaudio\\_backend\\soundfile_backend.py:120: UserWarning: torchaudio._backend.common.AudioMetaData has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. \n  return AudioMetaData(\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\torchaudio\\_backend\\utils.py:213: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.load_with_torchcodec` under the hood. Some parameters like ``normalize``, ``format``, ``buffer_size``, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's decoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder.\n  warnings.warn(\n2026-05-11 02:53:33 | INFO     | DF | Enhanced noisy audio file 'denoise_erd_test_sound_10s_48000hz_mono_denoise_input.wav' in 2.44s (RT factor: 0.244)\nE:\\MITAS\\venvs\\denoise\\lib\\site-packages\\torchaudio\\_backend\\utils.py:337: UserWarning: In 2.9, this function's implementation will be changed to use torchaudio.save_with_torchcodec` under the hood. Some parameters like format, encoding, bits_per_sample, buffer_size, and ``backend`` will be ignored. We recommend that you port your code to rely directly on TorchCodec's encoder instead: https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.encoders.AudioEncoder\n  warnings.warn(",
+      "runtime_sec": 7.665
+    },
+    "output_path": "E:\\MITAS\\outputs\\real_media_smoke\\denoise_erd_test_sound_10s_48000hz_mono_denoise_input_DeepFilterNet3.wav",
+    "output_exists": true,
+    "input_rms": 0.04310498,
+    "output_rms": 0.03767335,
+    "output_wav_info": {
+      "channels": 1,
+      "sample_rate_hz": 48000,
+      "frames": 480000,
+      "sample_width_bytes": 2,
+      "duration_sec": 10.0
+    },
+    "status": "passed"
+  },
+  "runtime_sec": 63.766,
+  "notes": [
+    "Gerçek medya kullanıldı; synthetic noise bu koşumda üretilmedi.",
+    "ASR kısa kliplerde yerel large-v3 modeliyle HF_HUB_OFFLINE=1 altında çalıştırıldı.",
+    "Ham test medyaları Git'e alınmaz; bu rapor ve küçük smoke scripti izlenir.",
+    "ASR worker geçerli çıktı üretmesine rağmen CUDA/ctranslate2 kapanışında anormal exit verebilir; report.asr.status alanı ayrıca izlenir."
+  ]
+}

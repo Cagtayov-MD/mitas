@@ -1,0 +1,131 @@
+{
+  "status": "passed",
+  "model_dir": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "device": "cuda",
+  "compute_type": "float16",
+  "network_guard": "HF_HUB_OFFLINE=1 and local_files_only=True",
+  "clips": [
+    {
+      "name": "news_trt_haber_1",
+      "source_path": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+      "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+      "duration_sec": 20,
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 3,
+      "text": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 7.46,
+          "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+        },
+        {
+          "start": 7.78,
+          "end": 11.1,
+          "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı."
+        },
+        {
+          "start": 14.34,
+          "end": 20.0,
+          "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+        }
+      ]
+    },
+    {
+      "name": "promo_1",
+      "source_path": "E:\\MITAS\\testklipler\\1.mp4",
+      "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+      "duration_sec": 20,
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 1,
+      "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 6.84,
+          "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor."
+        }
+      ]
+    },
+    {
+      "name": "wav_erd_test_sound",
+      "source_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+      "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+      "duration_sec": 20,
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 13,
+      "text": "İngilizce M. Premier Ne? Müdahale edin Premier Erdoğan'a Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika Bir dakika durduracağım.",
+      "segments": [
+        {
+          "start": 0.2,
+          "end": 1.24,
+          "text": "İngilizce"
+        },
+        {
+          "start": 1.24,
+          "end": 2.82,
+          "text": "M. Premier"
+        },
+        {
+          "start": 2.82,
+          "end": 3.28,
+          "text": "Ne?"
+        },
+        {
+          "start": 3.8,
+          "end": 6.38,
+          "text": "Müdahale edin Premier Erdoğan'a"
+        },
+        {
+          "start": 6.38,
+          "end": 6.96,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 6.96,
+          "end": 8.44,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 8.44,
+          "end": 9.4,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 9.4,
+          "end": 11.2,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 11.2,
+          "end": 13.2,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 13.2,
+          "end": 14.56,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 14.56,
+          "end": 14.68,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 14.68,
+          "end": 14.88,
+          "text": "Bir dakika"
+        },
+        {
+          "start": 14.88,
+          "end": 16.88,
+          "text": "Bir dakika durduracağım."
+        }
+      ]
+    }
+  ],
+  "runtime_sec": 29.508
+}

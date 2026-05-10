@@ -1,0 +1,20 @@
+[
+  {
+    "name": "news_trt_haber_1",
+    "source_path": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+    "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+    "duration_sec": 20
+  },
+  {
+    "name": "promo_1",
+    "source_path": "E:\\MITAS\\testklipler\\1.mp4",
+    "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+    "duration_sec": 20
+  },
+  {
+    "name": "wav_erd_test_sound",
+    "source_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+    "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+    "duration_sec": 20
+  }
+]
