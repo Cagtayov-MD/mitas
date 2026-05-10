@@ -1,0 +1,19 @@
+{
+  "venv": "asr",
+  "python": "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+  "sample_path": "E:\\MITAS\\samples\\torchcodec_smoke.wav",
+  "ffmpeg_bin": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin",
+  "torchcodec_version": "0.11.1",
+  "status": "success",
+  "import_ok": true,
+  "decode_ok": true,
+  "shape": [
+    1,
+    160000
+  ],
+  "sample_rate": 16000,
+  "duration_seconds": 10.0,
+  "pts_seconds": 0.0,
+  "elapsed_seconds": 2.463919,
+  "api": "torchcodec.decoders.AudioDecoder(...).get_all_samples()"
+}

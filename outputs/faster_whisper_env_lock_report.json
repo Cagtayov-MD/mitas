@@ -1,0 +1,36 @@
+{
+  "target_venv": "E:\\MITAS\\venvs\\asr",
+  "freeze_file": "E:\\MITAS\\locks\\asr.faster_whisper.freeze.txt",
+  "inspect_file": "E:\\MITAS\\locks\\asr.faster_whisper.inspect.json",
+  "freeze_status": "passed",
+  "inspect_status": "passed",
+  "inspect_json_parse_status": "passed",
+  "pip_check_status": "passed",
+  "pip_check_output": "No broken requirements found.",
+  "faster_whisper_installed": true,
+  "faster_whisper_version": "1.2.1",
+  "ctranslate2_installed": true,
+  "ctranslate2_version": "4.7.1",
+  "ctranslate2_cuda_device_count": 1,
+  "ctranslate2_cuda_compute_types": [
+    "int8_float32",
+    "float32",
+    "bfloat16",
+    "int8_bfloat16",
+    "int8_float16",
+    "float16",
+    "int8"
+  ],
+  "ctranslate2_cpu_compute_types": [
+    "int8_float32",
+    "float32",
+    "int8"
+  ],
+  "model_instantiated": false,
+  "model_download_executed": false,
+  "audio_video_processed": false,
+  "benchmark_executed": false,
+  "smoke_errors": [],
+  "selected_as_engine_count": 0,
+  "status": "passed"
+}

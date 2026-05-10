@@ -1,0 +1,61 @@
+{
+  "wav_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+  "wav_filename": "erd_test_sound.wav",
+  "asr_segments_json": "E:\\MITAS\\outputs\\alignment_diagnosis_asr_segments.json",
+  "alignment_completed": true,
+  "torchcodec_invoked": false,
+  "torchcodec_imports": [],
+  "torchcodec_pulled_by": {
+    "method": "importlib.metadata reverse dependency tree (pipdeptree not installed)",
+    "direct_required_by": [
+      "pyannote-audio",
+      "whisperx"
+    ],
+    "tree": [
+      {
+        "package": "pyannote-audio",
+        "required_by": [
+          {
+            "package": "whisperx",
+            "required_by": []
+          }
+        ]
+      },
+      {
+        "package": "whisperx",
+        "required_by": []
+      }
+    ]
+  },
+  "error": null,
+  "runtime_sec": 6.648,
+  "notes": [],
+  "torchcodec_version": "0.7.0",
+  "asr_segments_count": 28,
+  "asr_model": "Systran/faster-whisper-small",
+  "asr_transcribed_clip_sec": 30.0,
+  "wav_duration_sec": 195.210159,
+  "manual_loader": "python wave + numpy mono mixdown + numpy.interp resample",
+  "manual_loader_sample_rate": 16000,
+  "manual_loader_shape": [
+    3123363
+  ],
+  "alignment_input_segments_count": 28,
+  "alignment_model_kind": "diagnostic in-process CTC model; no external alignment model download",
+  "aligned_segments_count": 28,
+  "word_segments_count": 54,
+  "sample_aligned_segment": {
+    "start": 0.133,
+    "end": 1.6,
+    "text": "Ben...",
+    "words": [
+      {
+        "word": "Ben...",
+        "start": 0.133,
+        "end": 1.6,
+        "score": 0.99
+      }
+    ]
+  },
+  "conclusion": "dormant_package_for_manual_waveform_alignment"
+}

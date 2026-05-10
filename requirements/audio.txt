@@ -1,0 +1,13 @@
+# MITAS requirements draft
+# Bu dosya taslaktır.
+# Bu sprintte pip install çalıştırılmayacaktır.
+# Ana motor seçimi değildir.
+# Benchmark sonrası sadeleştirilecektir.
+
+librosa
+soundfile
+pydub
+numpy
+# YAMNet placeholder: TensorFlow/model dağıtımı benchmark öncesi smoke ile doğrulanacak.
+# tensorflow placeholder: CPU/GPU ve Windows uyumluluğu ayrıca değerlendirilecek.
+# chromaprint/fpcalc external binary: pip paketi değil, sistem binary olarak yönetilecek.

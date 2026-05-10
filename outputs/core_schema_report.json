@@ -1,0 +1,39 @@
+{
+  "created_files": [
+    "core/__init__.py",
+    "core/schemas/__init__.py",
+    "core/schemas/common.py",
+    "core/schemas/media.py",
+    "core/schemas/timeline.py",
+    "core/schemas/evidence.py",
+    "core/schemas/candidate_relation.py",
+    "core/schemas/job_run.py",
+    "core/schemas/module_run.py",
+    "scripts/export_json_schema.py",
+    "schemas/media_item.schema.json",
+    "schemas/timeline_event.schema.json",
+    "schemas/evidence.schema.json",
+    "schemas/candidate_relation.schema.json",
+    "schemas/job_run.schema.json",
+    "schemas/module_run.schema.json",
+    "tests/test_schema_media.py",
+    "tests/test_schema_timeline.py",
+    "tests/test_schema_evidence.py",
+    "tests/test_schema_candidate_relation.py",
+    "tests/test_schema_job_run.py",
+    "tests/test_schema_module_run.py",
+    "outputs/core_schema_report.json"
+  ],
+  "pytest_ran": true,
+  "pytest_status": "passed",
+  "pytest_command": "E:\\MITAS\\venvs\\core\\Scripts\\python.exe -m pytest E:\\MITAS\\tests -v",
+  "schema_export_status": {
+    "status": "passed",
+    "command": "E:\\MITAS\\venvs\\core\\Scripts\\python.exe E:\\MITAS\\scripts\\export_json_schema.py"
+  },
+  "failed_tests": [],
+  "python_executable": "E:\\MITAS\\venvs\\core\\Scripts\\python.exe",
+  "pydantic_version": "2.13.4",
+  "pytest_version": "9.0.3",
+  "errors": []
+}

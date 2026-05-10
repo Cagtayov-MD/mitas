@@ -1,0 +1,39 @@
+{
+  "updated_sections": [
+    "Sprint 3.5 — Karar Özetleri"
+  ],
+  "inserted_decisions": [
+    "Profil listesi: film_dizi, haber, studio_program, muzik_eglence, spor_karsilasma, belgesel, stt",
+    "Demo profili kaldırıldı; demo ihtiyacı STT > stream_transcription > tracking_overlay altında yaşayacak",
+    "STT tracking overlay checkbox ile açılır, kullanıcı seçilen kişiyi takip ettirir, DB/enrollment/face bank/identity claim yapmaz",
+    "profile_defaults + runtime_overrides = resolved_config",
+    "Runtime override global modülü değil, seçilen profilin o job içindeki davranışını değiştirir",
+    "Hiçbir model benchmark öncesi production ana motor ilan edilmez",
+    "Model sıralamaları kesin kalite sıralaması değil test önceliğidir",
+    "OneOCR aktif kullanılan ve öncelikli test edilecek OCR adayıdır; production OCR benchmark sonucuna göre seçilir",
+    "Test Set Owner / Ground Truth Owner atanmadan benchmark sprinti başlamaz",
+    "P1 kapıları A-I bağımlılık zinciriyle yönetilir",
+    "v1 worker DB tabanlı single worker; RQ / Redis / Celery v2 ölçek adaylarıdır",
+    "Review UI MVP 4 alan: Face review, OCR/KJ review, Song performance review, Face Bank Management",
+    "Ana schema modellerinde schema_version zorunludur; başlangıç değeri 1.0",
+    "12 maddelik karar denetim checklist’i master plan süreç kuralıdır"
+  ],
+  "skipped_details": [
+    "Profil bazlı ayrıntılı modül davranışları ara dokümanda bırakıldı",
+    "STT tracking overlay mikro-akış metin detayları ara dokümanda bırakıldı",
+    "Test Set Owner ve Ground Truth Owner sorumluluk listeleri ara dokümanda bırakıldı",
+    "P1 kapılarının ayrıntılı gerekçeleri ara dokümanda bırakıldı",
+    "Performans bütçesi yorumları ve risk notları ara dokümanda bırakıldı",
+    "Checklist maddelerinin tam kullanım rehberi ara dokümanda bırakıldı",
+    "Model/eşik/benchmark/implementation detayları master özetine taşınmadı"
+  ],
+  "open_risks": [
+    "E:\\MITAS\\MITAS_Master_Plan_Denetimli_v5.md hedef dosyası işlem öncesinde mevcut değildi; yeni dosya Sprint 3.5 özet kararlarıyla oluşturuldu",
+    "Test Set Owner ve Ground Truth Owner henüz kişi/ekip olarak atanmadı",
+    "Profil routing kararları için owner atanmadı",
+    "Checklist bakım owner’ı atanmadı",
+    "Profil bazlı VRAM/runtime etkileri henüz ölçülmedi",
+    "Performans bütçesi henüz doğrulanmadı"
+  ],
+  "status": "updated_with_open_risks"
+}

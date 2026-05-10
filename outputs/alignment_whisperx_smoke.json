@@ -1,0 +1,97 @@
+{
+  "status": "success",
+  "wav_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+  "segments_path": "E:\\MITAS\\outputs\\alignment_diagnosis_asr_segments.json",
+  "raw_output_path": "E:\\MITAS\\outputs\\alignment_whisperx_raw_output.json",
+  "script_path": "E:\\MITAS\\scripts\\alignment_subprocess.py",
+  "language": "tr",
+  "device": "cuda",
+  "model_dir": "E:\\MITAS\\models\\alignment\\whisperx",
+  "input_segments_count": 28,
+  "aligned_segments_count": 28,
+  "word_segments_count": 54,
+  "average_boundary_drift_sec": 0.663,
+  "max_boundary_drift_sec": 1.717,
+  "word_boundary_violations_count": 0,
+  "word_boundary_violations": [],
+  "runtime_sec": 38.939,
+  "alignment_completed": true,
+  "sample_words": [
+    {
+      "word": "Ben...",
+      "start": 0.727,
+      "end": 1.051,
+      "score": 0.801
+    },
+    {
+      "word": "Prenser...",
+      "start": 2.566,
+      "end": 3.232,
+      "score": 0.708
+    },
+    {
+      "word": "İmdat'ın",
+      "start": 4.162,
+      "end": 5.051,
+      "score": 0.691
+    },
+    {
+      "word": "sorunları...",
+      "start": 5.071,
+      "end": 5.96,
+      "score": 0.572
+    },
+    {
+      "word": "1",
+      "start": 6.444,
+      "end": 6.525,
+      "score": 0.981
+    },
+    {
+      "word": "minit...",
+      "start": 6.626,
+      "end": 7.051,
+      "score": 0.762
+    },
+    {
+      "word": "1",
+      "start": 8.0,
+      "end": 8.04,
+      "score": 0.59
+    },
+    {
+      "word": "minit...",
+      "start": 8.081,
+      "end": 8.949,
+      "score": 0.812
+    },
+    {
+      "word": "1",
+      "start": 10.081,
+      "end": 10.101,
+      "score": 0.098
+    },
+    {
+      "word": "minit...",
+      "start": 10.283,
+      "end": 10.646,
+      "score": 0.673
+    },
+    {
+      "word": "1",
+      "start": 12.323,
+      "end": 12.404,
+      "score": 0.94
+    },
+    {
+      "word": "minit...",
+      "start": 12.424,
+      "end": 12.828,
+      "score": 0.658
+    }
+  ],
+  "notes": [
+    "This is a functional smoke, not a transcript quality test; ASR input was generated with cached faster-whisper-small on the first 30 seconds.",
+    "WAV was loaded manually as 16 kHz mono waveform to avoid torchcodec in alignment runtime."
+  ]
+}

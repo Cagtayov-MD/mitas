@@ -1,0 +1,649 @@
+{
+  "checked_venvs": [
+    {
+      "name": "core",
+      "path": "E:\\MITAS\\venvs\\core",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\core\\Scripts\\python.exe"
+    },
+    {
+      "name": "ocr",
+      "path": "E:\\MITAS\\venvs\\ocr",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\ocr\\Scripts\\python.exe"
+    },
+    {
+      "name": "asr",
+      "path": "E:\\MITAS\\venvs\\asr",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe"
+    },
+    {
+      "name": "face",
+      "path": "E:\\MITAS\\venvs\\face",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\face\\Scripts\\python.exe"
+    },
+    {
+      "name": "visual",
+      "path": "E:\\MITAS\\venvs\\visual",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\visual\\Scripts\\python.exe"
+    },
+    {
+      "name": "audio",
+      "path": "E:\\MITAS\\venvs\\audio",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\audio\\Scripts\\python.exe"
+    },
+    {
+      "name": "tag",
+      "path": "E:\\MITAS\\venvs\\tag",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\tag\\Scripts\\python.exe"
+    },
+    {
+      "name": "stt",
+      "path": "E:\\MITAS\\venvs\\stt",
+      "exists": true,
+      "python_exists": true,
+      "python_path": "E:\\MITAS\\venvs\\stt\\Scripts\\python.exe"
+    }
+  ],
+  "existing_venvs": [
+    "core",
+    "ocr",
+    "asr",
+    "face",
+    "visual",
+    "audio",
+    "tag",
+    "stt"
+  ],
+  "missing_venvs": [],
+  "python_versions": {
+    "core": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "ocr": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "asr": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "face": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "visual": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "audio": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "tag": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    },
+    "stt": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "Python 3.10.11"
+    }
+  },
+  "package_presence": {
+    "core": {
+      "package_count": 16,
+      "important_packages": {
+        "pydantic": "2.13.4",
+        "pytest": "9.0.3",
+        "PyYAML": "6.0.3",
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "ocr": {
+      "package_count": 5,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": null,
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "asr": {
+      "package_count": 64,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": "6.0.3",
+        "torch": "2.11.0+cu126",
+        "torchaudio": "2.11.0+cu126",
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": "4.7.1",
+        "easyocr": null,
+        "faster-whisper": "1.2.1",
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": "1.23.2",
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "face": {
+      "package_count": 5,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": null,
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "visual": {
+      "package_count": 5,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": null,
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "audio": {
+      "package_count": 28,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": null,
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "tag": {
+      "package_count": 10,
+      "important_packages": {
+        "pydantic": "2.13.4",
+        "pytest": null,
+        "PyYAML": "6.0.3",
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    },
+    "stt": {
+      "package_count": 7,
+      "important_packages": {
+        "pydantic": null,
+        "pytest": null,
+        "PyYAML": null,
+        "torch": null,
+        "torchaudio": null,
+        "torchvision": null,
+        "paddleocr": null,
+        "paddlepaddle": null,
+        "ctranslate2": null,
+        "easyocr": null,
+        "faster-whisper": null,
+        "whisperx": null,
+        "silero-vad": null,
+        "pyannote.audio": null,
+        "insightface": null,
+        "onnxruntime": null,
+        "onnxruntime-gpu": null,
+        "supervision": null,
+        "ultralytics": null,
+        "transformers": null
+      },
+      "status": "passed"
+    }
+  },
+  "torch_status": {
+    "core": {
+      "status": "missing"
+    },
+    "ocr": {
+      "status": "missing"
+    },
+    "asr": {
+      "status": "installed",
+      "torch_version": "2.11.0+cu126",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
+    },
+    "face": {
+      "status": "missing"
+    },
+    "visual": {
+      "status": "missing"
+    },
+    "audio": {
+      "status": "missing"
+    },
+    "tag": {
+      "status": "missing"
+    },
+    "stt": {
+      "status": "missing"
+    }
+  },
+  "cuda_status": {
+    "core": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "ocr": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "asr": {
+      "status": "installed",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
+    },
+    "face": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "visual": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "audio": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "tag": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    },
+    "stt": {
+      "status": "missing",
+      "cuda_available": null,
+      "cuda_device_count": null,
+      "cuda_device_name": null
+    }
+  },
+  "binary_tools": {
+    "fpcalc": {
+      "status": "missing",
+      "path": null
+    },
+    "chromaprint": {
+      "status": "missing",
+      "path": null
+    },
+    "tesseract": {
+      "status": "missing",
+      "path": null
+    }
+  },
+  "manifest_candidates_seen": {
+    "count": 24,
+    "items": [
+      {
+        "module_area": "OCR",
+        "candidate_name": "OneOCR"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "PaddleOCR"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "VITOS baseline"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "EasyOCR"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "Tesseract"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper large-v3"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper medium"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper distil-large-v3"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "WhisperX alignment"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "Silero VAD"
+      },
+      {
+        "module_area": "Diarization",
+        "candidate_name": "pyannote"
+      },
+      {
+        "module_area": "Diarization",
+        "candidate_name": "TBD fallback"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "YAMNet"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "basic energy/VAD baseline"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "music/speech detector TBD"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "SCRFD"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "ArcFace / InsightFace"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "ByteTrack tracker"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "YOLO-World"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "SigLIP"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "tag dictionary baseline"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "Chromaprint / fpcalc"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "local fingerprint DB"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "online lookup disabled by default"
+      }
+    ]
+  },
+  "manifest_candidates_with_tbd_smoke_command": {
+    "count": 9,
+    "items": [
+      {
+        "module_area": "OCR",
+        "candidate_name": "OneOCR",
+        "smoke_test_command": "TBD: verify local OneOCR runtime/import without download"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "VITOS baseline",
+        "smoke_test_command": "TBD: verify VITOS baseline availability"
+      },
+      {
+        "module_area": "Diarization",
+        "candidate_name": "TBD fallback",
+        "smoke_test_command": "TBD"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "YAMNet",
+        "smoke_test_command": "TBD: verify YAMNet runtime/import"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "basic energy/VAD baseline",
+        "smoke_test_command": "TBD: run no-model baseline import/check only"
+      },
+      {
+        "module_area": "Audio Activity",
+        "candidate_name": "music/speech detector TBD",
+        "smoke_test_command": "TBD"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "tag dictionary baseline",
+        "smoke_test_command": "TBD: validate dictionary file when created"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "local fingerprint DB",
+        "smoke_test_command": "TBD: verify local fingerprint DB schema when designed"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "online lookup disabled by default",
+        "smoke_test_command": "TBD: assert online lookup remains disabled"
+      }
+    ]
+  },
+  "manifest_candidates_ready_for_real_smoke": {
+    "count": 13,
+    "items": [
+      {
+        "module_area": "OCR",
+        "candidate_name": "PaddleOCR",
+        "reason": "venv ocr available"
+      },
+      {
+        "module_area": "OCR",
+        "candidate_name": "EasyOCR",
+        "reason": "venv ocr available"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper large-v3",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper medium",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "faster-whisper distil-large-v3",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "WhisperX alignment",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "ASR",
+        "candidate_name": "Silero VAD",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "Diarization",
+        "candidate_name": "pyannote",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "SCRFD",
+        "reason": "venv face available"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "ArcFace / InsightFace",
+        "reason": "venv face available"
+      },
+      {
+        "module_area": "Face",
+        "candidate_name": "ByteTrack tracker",
+        "reason": "venv face available"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "YOLO-World",
+        "reason": "venv tag available"
+      },
+      {
+        "module_area": "Visual Tag",
+        "candidate_name": "SigLIP",
+        "reason": "venv tag available"
+      }
+    ]
+  },
+  "manifest_module_area_counts": {
+    "ASR": 5,
+    "Audio Activity": 3,
+    "Diarization": 2,
+    "Face": 3,
+    "OCR": 5,
+    "Song Recognition": 3,
+    "Visual Tag": 3
+  },
+  "selected_as_engine_count": 0,
+  "status": "passed"
+}

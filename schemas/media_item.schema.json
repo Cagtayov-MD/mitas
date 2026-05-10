@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "file_path": {
+      "title": "File Path",
+      "type": "string"
+    },
+    "duration_sec": {
+      "ge": 0.0,
+      "title": "Duration Sec",
+      "type": "number"
+    },
+    "fps": {
+      "ge": 0.0,
+      "title": "Fps",
+      "type": "number"
+    },
+    "width": {
+      "minimum": 0,
+      "title": "Width",
+      "type": "integer"
+    },
+    "height": {
+      "minimum": 0,
+      "title": "Height",
+      "type": "integer"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "media_id",
+    "file_path",
+    "duration_sec",
+    "fps",
+    "width",
+    "height",
+    "created_at"
+  ],
+  "title": "MediaItem",
+  "type": "object"
+}

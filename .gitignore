@@ -1,0 +1,35 @@
+# Heavy/runtime directories
+venvs/
+cache/
+models/
+tmp/
+tools/
+testklipler/
+
+# Local assistant/session state
+.claude/
+.pytest_cache/
+
+# Python build/runtime noise
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Generated media/binary outputs
+outputs/**/*.wav
+outputs/**/*.mp3
+outputs/**/*.flac
+outputs/**/*.mp4
+outputs/**/*.mkv
+outputs/**/*.avi
+
+# OS/editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,11 @@
+# MITAS requirements draft
+# Bu dosya taslaktır.
+# Bu sprintte pip install çalıştırılmayacaktır.
+# Ana motor seçimi değildir.
+# Benchmark sonrası sadeleştirilecektir.
+
+pydantic
+rapidfuzz
+regex
+# zeyrek / Turkish morphology placeholder: Türkçe morfoloji adayı benchmark sonrası netleşecek.
+pyyaml

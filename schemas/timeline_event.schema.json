@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "EventStatus": {
+      "enum": [
+        "auto",
+        "needs_review",
+        "confirmed",
+        "rejected",
+        "ignored",
+        "failed",
+        "partial"
+      ],
+      "title": "EventStatus",
+      "type": "string"
+    },
+    "EventType": {
+      "enum": [
+        "asr_segment",
+        "screen_text",
+        "audio_activity",
+        "song_announcement",
+        "song_recognition_match",
+        "song_performance",
+        "face_track",
+        "face_cluster",
+        "visual_tag",
+        "credit_event",
+        "system_event"
+      ],
+      "title": "EventType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "event_type": {
+      "$ref": "#/$defs/EventType"
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Subtype"
+    },
+    "start_time": {
+      "ge": 0.0,
+      "title": "Start Time",
+      "type": "number"
+    },
+    "end_time": {
+      "ge": 0.0,
+      "title": "End Time",
+      "type": "number"
+    },
+    "confidence": {
+      "ge": 0.0,
+      "le": 1.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "status": {
+      "$ref": "#/$defs/EventStatus"
+    },
+    "source_module": {
+      "title": "Source Module",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "media_id",
+    "event_type",
+    "subtype",
+    "start_time",
+    "end_time",
+    "confidence",
+    "status",
+    "source_module",
+    "payload",
+    "evidence_ids",
+    "created_at"
+  ],
+  "title": "TimelineEvent",
+  "type": "object"
+}

@@ -1,0 +1,28 @@
+{
+  "nvidia_smi_found": true,
+  "nvidia_smi_path": "C:\\Windows\\system32\\nvidia-smi.EXE",
+  "gpu_count": 1,
+  "gpus": [
+    {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 3090",
+      "driver_version": "560.94",
+      "memory_total_mb": 24576,
+      "memory_used_mb": 1887,
+      "memory_free_mb": 22439
+    }
+  ],
+  "driver_versions": [
+    "560.94"
+  ],
+  "cuda_version_from_nvidia_smi": "12.6",
+  "total_vram_mb": 24576,
+  "free_vram_mb": 22439,
+  "recommended_next_cuda_track": "cuda_12_x_track_review_only",
+  "heavy_install_ready": "needs_review",
+  "warnings": [
+    "CUDA/driver görünürlüğü mevcut; PyTorch/ONNX/TensorFlow kurulum kararı bu sprintte verilmedi."
+  ],
+  "selected_as_engine_count": 0,
+  "status": "passed"
+}

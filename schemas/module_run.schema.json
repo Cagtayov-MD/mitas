@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "JobStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed",
+        "partial",
+        "cancelled",
+        "skipped"
+      ],
+      "title": "JobStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "module_run_id": {
+      "title": "Module Run Id",
+      "type": "string"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "module_name": {
+      "title": "Module Name",
+      "type": "string"
+    },
+    "module_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Module Version"
+    },
+    "model_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Model Name"
+    },
+    "model_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Model Version"
+    },
+    "status": {
+      "$ref": "#/$defs/JobStatus"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Started At"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completed At"
+    },
+    "runtime_sec": {
+      "anyOf": [
+        {
+          "ge": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Runtime Sec"
+    },
+    "gpu_used": {
+      "title": "Gpu Used",
+      "type": "boolean"
+    },
+    "vram_peak_mb": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Vram Peak Mb"
+    },
+    "error_msg": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error Msg"
+    },
+    "output_summary": {
+      "additionalProperties": true,
+      "title": "Output Summary",
+      "type": "object"
+    }
+  },
+  "required": [
+    "module_run_id",
+    "job_id",
+    "media_id",
+    "module_name",
+    "module_version",
+    "model_name",
+    "model_version",
+    "status",
+    "started_at",
+    "completed_at",
+    "runtime_sec",
+    "gpu_used",
+    "vram_peak_mb",
+    "error_msg",
+    "output_summary"
+  ],
+  "title": "ModuleRun",
+  "type": "object"
+}

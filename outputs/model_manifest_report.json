@@ -1,0 +1,21 @@
+{
+  "manifest_parse_status": "passed",
+  "candidate_count": 24,
+  "module_area_counts": {
+    "ASR": 5,
+    "Audio Activity": 3,
+    "Diarization": 2,
+    "Face": 3,
+    "OCR": 5,
+    "Song Recognition": 3,
+    "Visual Tag": 3
+  },
+  "selected_as_engine_count": 0,
+  "benchmark_required_count": 21,
+  "errors": [],
+  "parsed_files": [
+    "E:\\MITAS\\model_manifest.yaml"
+  ],
+  "status": "passed",
+  "pytest_status": "passed"
+}

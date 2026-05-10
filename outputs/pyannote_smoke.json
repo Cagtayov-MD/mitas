@@ -1,0 +1,7 @@
+{
+  "audio_file": "E:\\MITAS\\venvs\\asr\\Lib\\site-packages\\scipy\\io\\tests\\data\\test-44100Hz-le-1ch-4bytes.wav",
+  "source_type": "scipy_fallback",
+  "num_speakers": 0,
+  "speakers": [],
+  "segments": []
+}

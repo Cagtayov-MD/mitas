@@ -1,0 +1,61 @@
+version: 1
+name: MITAS Benchmark Registry
+sprint: "Sprint 3 — Benchmark / Test Set Planı"
+status: draft
+minimum_test_set:
+  total_hours: 20
+  categories:
+    - id: news_panel_kj
+      name: Haber / panel KJ
+      hours: 5
+      purpose: KJ, alt yazi, konusmaci ve ekran metni davranisini olcmek
+    - id: music_program
+      name: Muzik programi
+      hours: 5
+      purpose: Sarki anonsu, performans, ASR ve audio activity senaryolarini olcmek
+    - id: documentary_intertitle
+      name: Belgesel / intertitle
+      hours: 5
+      purpose: Ara baslik, anlatim, sahne baglami ve OCR davranisini olcmek
+    - id: film_credits
+      name: Film / jenerik
+      hours: 5
+      purpose: Jenerik, credit event, ekran metni ve uzun metin akislarini olcmek
+owners:
+  test_set_owner: TBD
+  ground_truth_owner: TBD
+owner_assignment_status: blocking
+benchmarks:
+  - benchmark_id: ocr_kj_v1
+    benchmark_name: OCR/KJ benchmark
+    module: ocr_kj
+    template: benchmark_templates/ocr_kj_benchmark.yaml
+    blocking_before_model_install: true
+    decision_status: planned
+  - benchmark_id: asr_v1
+    benchmark_name: ASR benchmark
+    module: asr
+    template: benchmark_templates/asr_benchmark.yaml
+    blocking_before_model_install: true
+    decision_status: planned
+  - benchmark_id: audio_activity_v1
+    benchmark_name: Audio Activity benchmark
+    module: audio_activity
+    template: benchmark_templates/audio_activity_benchmark.yaml
+    blocking_before_model_install: true
+    decision_status: planned
+  - benchmark_id: face_v1
+    benchmark_name: Face benchmark
+    module: face
+    template: benchmark_templates/face_benchmark.yaml
+    blocking_before_model_install: true
+    decision_status: planned
+  - benchmark_id: visual_tag_v1
+    benchmark_name: Visual Tag benchmark
+    module: visual_tag
+    template: benchmark_templates/visual_tag_benchmark.yaml
+    blocking_before_model_install: true
+    decision_status: planned
+notes:
+  - Model kurulumu veya benchmark kosumu bu sprintte yapilmadi.
+  - Test Set Owner ve Ground Truth Owner atamalari operasyonel benchmark kapanisi icin gereklidir.

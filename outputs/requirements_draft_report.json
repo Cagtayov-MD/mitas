@@ -1,0 +1,80 @@
+{
+  "created_files": [
+    "E:\\MITAS\\requirements\\ocr.txt",
+    "E:\\MITAS\\requirements\\asr.txt",
+    "E:\\MITAS\\requirements\\face.txt",
+    "E:\\MITAS\\requirements\\visual.txt",
+    "E:\\MITAS\\requirements\\audio.txt",
+    "E:\\MITAS\\requirements\\tag.txt",
+    "E:\\MITAS\\requirements\\stt.txt",
+    "E:\\MITAS\\docs\\MITAS_Requirements_Taslaklari_v1.md",
+    "E:\\MITAS\\outputs\\requirements_draft_report.json"
+  ],
+  "package_groups": {
+    "ocr": [
+      "oneocr placeholder",
+      "paddleocr placeholder",
+      "easyocr placeholder",
+      "pytesseract placeholder",
+      "opencv-python",
+      "pillow",
+      "numpy"
+    ],
+    "asr": [
+      "faster-whisper",
+      "whisperx placeholder",
+      "silero-vad",
+      "torch placeholder",
+      "torchaudio placeholder",
+      "soundfile",
+      "librosa",
+      "numpy"
+    ],
+    "face": [
+      "insightface",
+      "onnxruntime-gpu placeholder",
+      "opencv-python",
+      "numpy",
+      "pillow",
+      "bytetrack placeholder"
+    ],
+    "visual": [
+      "ultralytics / YOLO-World placeholder",
+      "transformers",
+      "torch placeholder",
+      "opencv-python",
+      "pillow",
+      "numpy"
+    ],
+    "audio": [
+      "librosa",
+      "soundfile",
+      "pydub",
+      "numpy",
+      "YAMNet placeholder",
+      "tensorflow placeholder",
+      "chromaprint/fpcalc external binary note"
+    ],
+    "tag": [
+      "pydantic",
+      "rapidfuzz",
+      "regex",
+      "zeyrek / Turkish morphology placeholder",
+      "pyyaml"
+    ],
+    "stt": [
+      "faster-whisper",
+      "soundfile",
+      "numpy",
+      "websockets",
+      "fastapi placeholder",
+      "uvicorn placeholder",
+      "torch placeholder"
+    ]
+  },
+  "placeholder_count": 19,
+  "install_executed": false,
+  "model_download_executed": false,
+  "selected_as_engine_count": 0,
+  "status": "passed"
+}

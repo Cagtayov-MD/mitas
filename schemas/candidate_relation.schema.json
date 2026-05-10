@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "EventStatus": {
+      "enum": [
+        "auto",
+        "needs_review",
+        "confirmed",
+        "rejected",
+        "ignored",
+        "failed",
+        "partial"
+      ],
+      "title": "EventStatus",
+      "type": "string"
+    },
+    "RelationType": {
+      "enum": [
+        "face_matches_kj_name_candidate",
+        "speaker_overlaps_face_candidate",
+        "kj_mentions_song_candidate",
+        "asr_supports_song_candidate",
+        "fingerprint_supports_song_candidate",
+        "screen_text_context_for_face",
+        "visual_tag_context_for_scene"
+      ],
+      "title": "RelationType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Candidate cross-module relation; never a confirmed identity by itself.",
+  "properties": {
+    "relation_id": {
+      "title": "Relation Id",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "entity_a_type": {
+      "title": "Entity A Type",
+      "type": "string"
+    },
+    "entity_a_id": {
+      "title": "Entity A Id",
+      "type": "string"
+    },
+    "entity_b_type": {
+      "title": "Entity B Type",
+      "type": "string"
+    },
+    "entity_b_id": {
+      "title": "Entity B Id",
+      "type": "string"
+    },
+    "relation_type": {
+      "$ref": "#/$defs/RelationType"
+    },
+    "confidence": {
+      "ge": 0.0,
+      "le": 1.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "source_signals": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Signals",
+      "type": "array"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/EventStatus"
+    },
+    "created_by_module": {
+      "title": "Created By Module",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "relation_id",
+    "media_id",
+    "entity_a_type",
+    "entity_a_id",
+    "entity_b_type",
+    "entity_b_id",
+    "relation_type",
+    "confidence",
+    "source_signals",
+    "evidence_ids",
+    "status",
+    "created_by_module",
+    "created_at"
+  ],
+  "title": "CandidateRelation",
+  "type": "object"
+}

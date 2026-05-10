@@ -1,0 +1,20 @@
+{
+  "created_dirs": [
+    "E:\\MITAS\\models\\asr\\faster-whisper",
+    "E:\\MITAS\\cache\\huggingface"
+  ],
+  "hf_home_plan": "E:\\MITAS\\cache\\huggingface",
+  "hf_hub_cache_plan": "E:\\MITAS\\cache\\huggingface\\hub",
+  "offline_guard_default": {
+    "HF_HUB_OFFLINE": "1 outside explicit model-load/download sprint",
+    "model_download_executed": false,
+    "model_instantiated": false
+  },
+  "first_model_load_candidate": "Systran/faster-whisper-tiny or small equivalent",
+  "model_download_executed": false,
+  "model_instantiated": false,
+  "audio_video_processed": false,
+  "benchmark_executed": false,
+  "selected_as_engine_count": 0,
+  "status": "passed"
+}

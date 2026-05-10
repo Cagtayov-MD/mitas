@@ -1,0 +1,237 @@
+{
+  "wav_path": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+  "model": "Systran/faster-whisper-small",
+  "local_files_only": true,
+  "transcribed_clip_sec": 30.0,
+  "language": "tr",
+  "language_probability": 1.0,
+  "duration": 195.2101875,
+  "segments": [
+    {
+      "id": 1,
+      "start": 0.0,
+      "end": 2.0,
+      "text": " Ben...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 2,
+      "start": 2.0,
+      "end": 4.0,
+      "text": " Prenser...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 3,
+      "start": 4.0,
+      "end": 6.0,
+      "text": " İmdat'ın sorunları...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 4,
+      "start": 6.0,
+      "end": 8.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 5,
+      "start": 8.0,
+      "end": 10.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 6,
+      "start": 10.0,
+      "end": 12.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 7,
+      "start": 12.0,
+      "end": 14.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 8,
+      "start": 14.0,
+      "end": 16.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 9,
+      "start": 16.0,
+      "end": 18.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 10,
+      "start": 18.0,
+      "end": 20.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 11,
+      "start": 20.0,
+      "end": 22.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 12,
+      "start": 22.0,
+      "end": 24.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 13,
+      "start": 24.0,
+      "end": 26.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 14,
+      "start": 26.0,
+      "end": 28.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.5940039184656036,
+      "no_speech_prob": 0.1898193359375
+    },
+    {
+      "id": 15,
+      "start": 28.0,
+      "end": 30.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 16,
+      "start": 30.0,
+      "end": 32.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 17,
+      "start": 32.0,
+      "end": 34.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 18,
+      "start": 34.0,
+      "end": 36.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 19,
+      "start": 36.0,
+      "end": 38.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 20,
+      "start": 38.0,
+      "end": 40.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 21,
+      "start": 40.0,
+      "end": 42.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 22,
+      "start": 42.0,
+      "end": 44.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 23,
+      "start": 44.0,
+      "end": 46.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 24,
+      "start": 46.0,
+      "end": 48.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 25,
+      "start": 48.0,
+      "end": 50.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 26,
+      "start": 50.0,
+      "end": 52.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 27,
+      "start": 52.0,
+      "end": 54.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    },
+    {
+      "id": 28,
+      "start": 54.0,
+      "end": 56.0,
+      "text": " 1 minit...",
+      "avg_logprob": -0.03035323521079019,
+      "no_speech_prob": 0.68017578125
+    }
+  ],
+  "segments_count": 28,
+  "runtime_sec": 3.619
+}

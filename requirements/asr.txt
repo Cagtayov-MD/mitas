@@ -1,0 +1,18 @@
+# MITAS requirements draft
+# Bu dosya taslaktır.
+# Bu sprintte pip install çalıştırılmayacaktır.
+# Ana motor seçimi değildir.
+# Benchmark sonrası sadeleştirilecektir.
+
+faster-whisper
+# WhisperX placeholder: alignment kullanımı benchmark ve uyumluluk sonrası netleşecek.
+silero-vad
+# torch placeholder: CUDA/CPU wheel seçimi ortam kararına bağlıdır.
+# torchaudio placeholder: torch sürümüyle kilitli seçilmelidir.
+soundfile
+librosa
+numpy
+fastapi==0.136.1
+uvicorn==0.46.0
+websockets==16.0
+onnxruntime==1.23.2

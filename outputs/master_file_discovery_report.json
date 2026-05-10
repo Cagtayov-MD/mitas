@@ -1,0 +1,102 @@
+{
+  "searched_root": "E:\\MITAS",
+  "matched_files": [
+    {
+      "path": "E:\\MITAS\\MITAS_Master_Plan_Denetimli_v5.md",
+      "name": "MITAS_Master_Plan_Denetimli_v5.md",
+      "size_bytes": 3217,
+      "created_at": "2026-05-09T17:14:49+03:00",
+      "last_write_at": "2026-05-09T17:14:49+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\MITAS_Uygulama_Plani_v1.md",
+      "name": "MITAS_Uygulama_Plani_v1.md",
+      "size_bytes": 13917,
+      "created_at": "2026-05-09T14:49:14+03:00",
+      "last_write_at": "2026-05-09T14:42:38+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\MITAS_3_5_Karar_Dokumanlari_Denetim_Raporu.md",
+      "name": "MITAS_3_5_Karar_Dokumanlari_Denetim_Raporu.md",
+      "size_bytes": 10275,
+      "created_at": "2026-05-09T17:06:31+03:00",
+      "last_write_at": "2026-05-09T17:06:31+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\MITAS_Benchmark_Plani_v1.md",
+      "name": "MITAS_Benchmark_Plani_v1.md",
+      "size_bytes": 4013,
+      "created_at": "2026-05-09T15:09:05+03:00",
+      "last_write_at": "2026-05-09T15:09:05+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\MITAS_Karar_Denetim_Checklist_v1.md",
+      "name": "MITAS_Karar_Denetim_Checklist_v1.md",
+      "size_bytes": 1849,
+      "created_at": "2026-05-09T17:02:04+03:00",
+      "last_write_at": "2026-05-09T17:02:04+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\MITAS_P1_Blocker_ve_Mimari_Duzeltmeler_v1.md",
+      "name": "MITAS_P1_Blocker_ve_Mimari_Duzeltmeler_v1.md",
+      "size_bytes": 6966,
+      "created_at": "2026-05-09T16:56:26+03:00",
+      "last_write_at": "2026-05-09T16:56:26+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\MITAS_Profile_Routing_Kaba_Kararlar_v1.md",
+      "name": "MITAS_Profile_Routing_Kaba_Kararlar_v1.md",
+      "size_bytes": 4543,
+      "created_at": "2026-05-09T16:53:40+03:00",
+      "last_write_at": "2026-05-09T16:53:40+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\SPRINT_1_CORE_SCHEMA_DONE.md",
+      "name": "SPRINT_1_CORE_SCHEMA_DONE.md",
+      "size_bytes": 1157,
+      "created_at": "2026-05-09T14:59:42+03:00",
+      "last_write_at": "2026-05-09T14:59:42+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\SPRINT_2_JOB_WORKER_DONE.md",
+      "name": "SPRINT_2_JOB_WORKER_DONE.md",
+      "size_bytes": 747,
+      "created_at": "2026-05-09T15:07:13+03:00",
+      "last_write_at": "2026-05-09T15:07:13+03:00"
+    },
+    {
+      "path": "E:\\MITAS\\docs\\SPRINT_3_BENCHMARK_PLAN_DONE.md",
+      "name": "SPRINT_3_BENCHMARK_PLAN_DONE.md",
+      "size_bytes": 1108,
+      "created_at": "2026-05-09T15:15:35+03:00",
+      "last_write_at": "2026-05-09T15:15:35+03:00"
+    }
+  ],
+  "likely_master_candidates": [
+    {
+      "path": "E:\\MITAS\\MITAS_Master_Plan_Denetimli_v5.md",
+      "confidence": "medium",
+      "reason": "Dosya adı hedef master plan ile birebir aynı; ancak işlem öncesinde yoktu ve son işlemde yeni oluşturuldu."
+    },
+    {
+      "path": "E:\\MITAS\\MITAS_Uygulama_Plani_v1.md",
+      "confidence": "low",
+      "reason": "Sprint planı ve uygulama planı içeriği taşıyor; gerçek master plan değil, master planı referans alan uygulama dokümanı."
+    }
+  ],
+  "newly_created_file": {
+    "path": "E:\\MITAS\\MITAS_Master_Plan_Denetimli_v5.md",
+    "is_newly_created_by_previous_step": true,
+    "evidence": "Önceki işlemde hedef dosya bulunamadı mesajı alındı; ardından dosya 2026-05-09T17:14:49+03:00 zamanında oluşturuldu. Aynı zamanda master_v5_sprint_3_5_update_report.json içinde bu durum open_risks altında yazıldı."
+  },
+  "risk_assessment": {
+    "summary": "E:\\MITAS içinde işlem öncesinden kalan gerçek MITAS_Master_Plan_Denetimli_v5.md bulunamadı. Mevcut v5 master dosyası önceki Sprint 3.5 özet ekleme adımında yeni oluşturulmuş görünüyor.",
+    "risk_level": "medium",
+    "risks": [
+      "Gerçek master plan E:\\MITAS dışında veya farklı adla başka bir klasörde olabilir.",
+      "Yeni oluşturulan v5 dosyası tam master plan değil; yalnızca Sprint 3.5 özet kararlarını içeriyor.",
+      "Eğer dışarıda gerçek master plan varsa Sprint 3.5 kararları bu yeni dosyada kalmış olur ve gerçek master plana entegre edilmemiş sayılır."
+    ]
+  },
+  "recommendation": "E:\\MITAS içinde başka güçlü master plan adayı bulunmadı. Şimdilik Sprint 3.5 kararları yeni oluşturulan E:\\MITAS\\MITAS_Master_Plan_Denetimli_v5.md dosyasında tutulabilir. Ancak gerçek master planın başka klasörde/adla bulunduğu doğrulanırsa, Sprint 3.5 özet kararları o gerçek master dosyaya entegre edilmeli; yeni oluşturulan dosya ise geçici/özet kaynak olarak değerlendirilmelidir."
+}

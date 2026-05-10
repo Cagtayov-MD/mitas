@@ -1,0 +1,22 @@
+{
+  "created_files": [
+    "core/jobs/__init__.py",
+    "core/jobs/repository.py",
+    "core/jobs/worker.py",
+    "core/jobs/step_runner.py",
+    "core/jobs/errors.py",
+    "tests/test_job_repository.py",
+    "tests/test_dummy_worker.py",
+    "tests/test_job_retry.py",
+    "tests/test_job_partial.py",
+    "outputs/job_worker_report.json"
+  ],
+  "pytest_status": "passed",
+  "pytest_command": "E:\\MITAS\\venvs\\core\\Scripts\\python.exe -m pytest E:\\MITAS\\tests -v",
+  "pytest_passed_count": 28,
+  "pytest_failed_count": 0,
+  "dummy_done_job_id": "job-done",
+  "dummy_failed_job_id": "job-failed",
+  "dummy_partial_job_id": "job-partial",
+  "errors": []
+}

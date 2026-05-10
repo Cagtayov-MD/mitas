@@ -1,0 +1,58 @@
+{
+  "status": "success",
+  "venv": "denoise",
+  "venv_path": "E:\\MITAS\\venvs\\denoise",
+  "python_requested": "3.11",
+  "python_used": "Python 3.10.11",
+  "python_selection_note": "Python 3.11 was requested/preferred, but only Python 3.10.11 is installed on this host; used Python 3.10 as the supported fallback instead of installing a new system Python.",
+  "deepfilternet_version": "0.5.6",
+  "deepfilterlib_version": "0.5.6",
+  "deepfilternet_requires_dist": [
+    "appdirs (>=1.4,<2.0)",
+    "deepfilterdataloader (==0.5.6) ; extra == \"train\"",
+    "deepfilterlib (==0.5.6)",
+    "icecream (>=2,<3) ; extra == \"train\"",
+    "loguru (>=0.5)",
+    "numpy (>=1.22,<2.0)",
+    "onnxruntime (>=1.15,<2.0) ; extra == \"dnsmos-local\"",
+    "packaging (>=23.0,<24.0)",
+    "pesq (>=0.0.3,<0.0.5) ; extra == \"eval\"",
+    "pystoi (>=0.3,<0.4) ; extra == \"eval\"",
+    "requests (>=2.27,<3.0)",
+    "scipy (>=1,<2) ; extra == \"eval\"",
+    "soundfile (>=0.10,<0.13) ; extra == \"soundfile\"",
+    "sympy (>=1.6)"
+  ],
+  "deepfilternet_torch_constraint": [],
+  "deepfilternet_numpy_constraint": [
+    "numpy (>=1.22,<2.0)"
+  ],
+  "torch_selection": "torch==2.8.0+cu126 and torchaudio==2.8.0+cu126",
+  "torch_selection_reason": "DeepFilterNet 0.5.6 metadata does not declare torch, but df.enhance imports torch and df.io imports torchaudio.backend.common. torchaudio 2.8.0+cu126 provides torchaudio.backend.common; asr's 2.11.0+cu126 does not.",
+  "installed_versions": {
+    "numpy": "1.26.4",
+    "torch": "2.8.0+cu126",
+    "torchaudio": "2.8.0+cu126",
+    "DeepFilterNet": "0.5.6",
+    "DeepFilterLib": "0.5.6",
+    "soundfile": "0.12.1",
+    "loguru": "0.7.3",
+    "packaging": "23.2"
+  },
+  "pip_check": "No broken requirements found.",
+  "lock_files": {
+    "freeze": "E:\\MITAS\\locks\\denoise.freeze.txt",
+    "inspect": "E:\\MITAS\\locks\\denoise.inspect.json"
+  },
+  "model_cache": {
+    "model": "DeepFilterNet3",
+    "path": "E:\\MITAS\\models\\denoise\\DeepFilterNet3",
+    "source_url": "https://github.com/Rikorose/DeepFilterNet/raw/main/models/DeepFilterNet3.zip",
+    "zip_path": "E:\\MITAS\\tmp\\denoise_model\\DeepFilterNet3.zip"
+  },
+  "notes": [
+    "No packages were changed in asr or alignment venvs.",
+    "DeepFilterNet package metadata has no torch requirement, but runtime imports require torch/torchaudio for df.enhance.",
+    "No librosa install was needed for this smoke."
+  ]
+}

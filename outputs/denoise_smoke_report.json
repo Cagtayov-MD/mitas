@@ -1,0 +1,29 @@
+{
+  "status": "success",
+  "input_source_wav": "E:\\MITAS\\testklipler\\erd_test_sound.wav",
+  "clean_wav": "E:\\MITAS\\outputs\\denoise_smoke\\erd_test_sound_first10_clean.wav",
+  "noisy_wav": "E:\\MITAS\\outputs\\denoise_smoke\\erd_test_sound_first10_snr12db_noisy.wav",
+  "denoised_wav": "E:\\MITAS\\outputs\\denoise_smoke\\erd_test_sound_first10_snr12db_noisy_DeepFilterNet3.wav",
+  "noise_type": "synthetic broadband white noise",
+  "target_snr_db": 12.0,
+  "actual_input_snr_db": 12.0,
+  "sample_rate_hz": 44100,
+  "channels": 2,
+  "duration_sec": 10.0,
+  "model_base_dir": "E:\\MITAS\\models\\denoise\\DeepFilterNet3",
+  "model_zip": "E:\\MITAS\\tmp\\denoise_model\\DeepFilterNet3.zip",
+  "model_zip_sha256": "49c52edc8947ae1f9bf50d81530beaf3a2c3245aeaf34b6f31ff535cd22284d2",
+  "device_log": "cuda:0",
+  "deepfilter_enhance_runtime_sec_from_log": 2.11,
+  "deepfilter_total_runtime_sec": 7.258,
+  "input_noisy_rms": 0.04444515,
+  "denoised_rms": 0.03663426,
+  "clean_rms": 0.04310582,
+  "snr_noisy_vs_clean_db": 12.0,
+  "snr_denoised_vs_clean_db": 10.689,
+  "notes": [
+    "Synthetic broadband noise injected at 12 dB SNR because no separate noisy TRT clip was provided.",
+    "DeepFilterNet CLI required elevated sandbox run because torch DataLoader multiprocessing Pipe was blocked in default sandbox.",
+    "DeepFilterNet emitted torchaudio deprecation warnings; pip check remains clean and smoke output was produced."
+  ]
+}

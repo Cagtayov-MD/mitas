@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-05-11T00:00:00+03:00",
+  "source_page": "https://www.gyan.dev/ffmpeg/builds/",
+  "download_url": "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z",
+  "archive_path": "E:\\MITAS\\tmp\\downloads\\ffmpeg-release-full-shared.7z",
+  "archive_sha256": "7a6c3e86f54b0dd3bceff31f81bf3b70397171fcf35d1a13b9ed9cbf1040fc18",
+  "upstream_sha256": "7a6c3e86f54b0dd3bceff31f81bf3b70397171fcf35d1a13b9ed9cbf1040fc18",
+  "old_location": "C:\\Users\\TRT03\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1-full_build\\bin\\ffmpeg.exe",
+  "old_version_first_line": "ffmpeg version 8.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "old_build_flavor": "static",
+  "old_enable_shared": false,
+  "old_enable_static": true,
+  "new_location": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe",
+  "new_bin": "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin",
+  "new_version_first_line": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "new_build_flavor": "full-shared",
+  "new_enable_shared": true,
+  "new_enable_static": false,
+  "user_path_contains_new": true,
+  "user_path_contains_old": false,
+  "refreshed_where_ffmpeg": [
+    "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\ffmpeg.exe"
+  ],
+  "refreshed_where_avutil": [
+    "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\avutil-60.dll"
+  ],
+  "refreshed_where_avcodec": [
+    "E:\\MITAS\\tools\\ffmpeg-shared\\ffmpeg-8.1.1-full_build-shared\\bin\\avcodec-62.dll"
+  ],
+  "shared_dlls": [
+    "avcodec-62.dll",
+    "avdevice-62.dll",
+    "avfilter-11.dll",
+    "avformat-62.dll",
+    "avutil-60.dll",
+    "swresample-6.dll",
+    "swscale-9.dll"
+  ],
+  "note": "Codex process inherited old PATH; verification uses refreshed User+Machine PATH, matching a newly opened terminal after User PATH update."
+}

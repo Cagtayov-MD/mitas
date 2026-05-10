@@ -1,0 +1,37 @@
+benchmark_id: asr_v1
+benchmark_name: ASR benchmark
+module: asr
+models_or_tools:
+  - faster-whisper large-v3
+  - distil-large-v3 fallback
+  - faster-whisper medium fallback
+  - WhisperX alignment
+test_video_set:
+  total_hours: 20
+  categories:
+    - news_panel_kj
+    - music_program
+    - documentary_intertitle
+    - film_credits
+ground_truth_owner: TBD
+metrics:
+  - wer
+  - timestamp_drift
+  - word_level_alignment_success
+  - runtime_per_minute
+  - vram_usage
+pass_fail_threshold:
+  wer_max: TBD
+  timestamp_drift_max_sec: TBD
+  word_level_alignment_success_min: TBD
+owner:
+  test_set_owner: TBD
+  responsible_person_or_team: TBD
+target_week: TBD
+decision_status: planned
+final_decision: TBD
+decision_date: null
+blocking_before_model_install: true
+notes:
+  - Ana motor adayi faster-whisper large-v3.
+  - Bu dosya plan sablonudur; ASR calistirma veya model kurulumu icermez.

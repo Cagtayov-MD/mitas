@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "model": "pyannote/speaker-diarization-3.1",
+  "device": "cuda",
+  "audio_file": "E:\\MITAS\\venvs\\asr\\Lib\\site-packages\\scipy\\io\\tests\\data\\test-44100Hz-le-1ch-4bytes.wav",
+  "source_type": "scipy_fallback",
+  "num_speakers": 0,
+  "speakers": [],
+  "segment_count": 0,
+  "runtime_seconds": 1.463,
+  "rttm_preview": []
+}

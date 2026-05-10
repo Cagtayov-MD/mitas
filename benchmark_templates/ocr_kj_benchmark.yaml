@@ -1,0 +1,39 @@
+benchmark_id: ocr_kj_v1
+benchmark_name: OCR/KJ benchmark
+module: ocr_kj
+models_or_tools:
+  - OneOCR
+  - PaddleOCR / PP-OCRv5 multilingual
+  - VITOS baseline
+  - EasyOCR
+  - Tesseract
+test_video_set:
+  total_hours: 20
+  categories:
+    - news_panel_kj
+    - music_program
+    - documentary_intertitle
+    - film_credits
+ground_truth_owner: TBD
+metrics:
+  - kj_line_accuracy
+  - turkish_character_accuracy
+  - roi_first_success_rate
+  - temporal_merge_success
+  - runtime_per_minute
+  - false_positive_rate
+pass_fail_threshold:
+  kj_line_accuracy: TBD
+  turkish_character_accuracy: TBD
+  false_positive_rate_max: TBD
+owner:
+  test_set_owner: TBD
+  responsible_person_or_team: TBD
+target_week: TBD
+decision_status: planned
+final_decision: TBD
+decision_date: null
+blocking_before_model_install: true
+notes:
+  - Oncelik sirasi OneOCR, PaddleOCR, VITOS baseline, EasyOCR, Tesseract.
+  - Bu dosya plan sablonudur; model kurulumu veya benchmark sonucu icermez.

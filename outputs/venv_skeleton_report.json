@@ -1,0 +1,39 @@
+{
+  "created_venvs": [
+    "ocr",
+    "asr",
+    "face",
+    "visual",
+    "audio",
+    "tag",
+    "stt"
+  ],
+  "existing_venvs": [
+    "core"
+  ],
+  "failed_venvs": [],
+  "python_versions": {
+    "core": "Python 3.10.11",
+    "stt": "Python 3.10.11",
+    "face": "Python 3.10.11",
+    "tag": "Python 3.10.11",
+    "asr": "Python 3.10.11",
+    "visual": "Python 3.10.11",
+    "ocr": "Python 3.10.11",
+    "audio": "Python 3.10.11"
+  },
+  "pip_versions": {
+    "core": "pip 26.1.1 from E:\\MITAS\\venvs\\core\\lib\\site-packages\\pip (python 3.10)\n",
+    "stt": "pip 23.0.1 from E:\\MITAS\\venvs\\stt\\lib\\site-packages\\pip (python 3.10)\n",
+    "face": "pip 23.0.1 from E:\\MITAS\\venvs\\face\\lib\\site-packages\\pip (python 3.10)\n",
+    "tag": "pip 23.0.1 from E:\\MITAS\\venvs\\tag\\lib\\site-packages\\pip (python 3.10)\n",
+    "asr": "pip 23.0.1 from E:\\MITAS\\venvs\\asr\\lib\\site-packages\\pip (python 3.10)\n",
+    "visual": "pip 23.0.1 from E:\\MITAS\\venvs\\visual\\lib\\site-packages\\pip (python 3.10)\n",
+    "ocr": "pip 23.0.1 from E:\\MITAS\\venvs\\ocr\\lib\\site-packages\\pip (python 3.10)\n",
+    "audio": "pip 23.0.1 from E:\\MITAS\\venvs\\audio\\lib\\site-packages\\pip (python 3.10)\n"
+  },
+  "model_packages_installed": false,
+  "selected_as_engine_count": 0,
+  "real_smoke_ready_count": 13,
+  "status": "passed"
+}

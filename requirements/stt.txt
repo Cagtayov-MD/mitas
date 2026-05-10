@@ -1,0 +1,16 @@
+# MITAS requirements draft
+# legacy_stt_venv
+# deprecated_as_primary_runtime
+# do_not_delete_yet
+#
+# STT artık ayrı ana venv/profil değildir.
+# Canlı transkript ASR > streaming_transcription alt modudur.
+# Birleşik çalışma ortamı: E:\MITAS\venvs\asr
+
+faster-whisper
+soundfile
+numpy
+websockets
+# fastapi placeholder: streaming servis ihtiyacı netleşince değerlendirilecek.
+# uvicorn placeholder: fastapi kullanımı kesinleşirse eklenecek.
+# torch placeholder: CUDA/CPU wheel seçimi ortam kararına bağlıdır.

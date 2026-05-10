@@ -1,0 +1,13 @@
+# MITAS requirements draft
+# Bu dosya taslaktır.
+# Bu sprintte pip install çalıştırılmayacaktır.
+# Ana motor seçimi değildir.
+# Benchmark sonrası sadeleştirilecektir.
+
+# OneOCR placeholder: kurum içi/harici runtime durumu ayrıca doğrulanacak.
+# PaddleOCR placeholder: benchmark sonrası sürüm ve CPU/GPU seçimi netleşecek.
+# EasyOCR placeholder: fallback adayı olarak benchmark edilecek.
+# pytesseract placeholder: Tesseract binary bağımlılığı ayrıca yönetilecek.
+opencv-python
+pillow
+numpy

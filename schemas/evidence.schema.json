@@ -1,0 +1,101 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "evidence_id": {
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "source_module": {
+      "title": "Source Module",
+      "type": "string"
+    },
+    "time_sec": {
+      "ge": 0.0,
+      "title": "Time Sec",
+      "type": "number"
+    },
+    "frame_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Frame Id"
+    },
+    "artifact_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Artifact Path"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Text"
+    },
+    "bbox": {
+      "anyOf": [
+        {
+          "items": {
+            "ge": 0.0,
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Bbox"
+    },
+    "confidence": {
+      "ge": 0.0,
+      "le": 1.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "media_id",
+    "source_module",
+    "time_sec",
+    "frame_id",
+    "artifact_path",
+    "text",
+    "bbox",
+    "confidence",
+    "metadata",
+    "created_at"
+  ],
+  "title": "Evidence",
+  "type": "object"
+}

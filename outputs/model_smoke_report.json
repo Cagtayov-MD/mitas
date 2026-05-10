@@ -1,0 +1,181 @@
+{
+  "run_mode": "dry_run",
+  "candidate_count": 24,
+  "planned_count": 24,
+  "executed_count": 0,
+  "passed_count": 0,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "timeout_count": 0,
+  "results": [
+    {
+      "module_area": "OCR",
+      "candidate_name": "OneOCR",
+      "venv": "ocr",
+      "smoke_test_command": "TBD: verify local OneOCR runtime/import without download",
+      "status": "planned"
+    },
+    {
+      "module_area": "OCR",
+      "candidate_name": "PaddleOCR",
+      "venv": "ocr",
+      "smoke_test_command": "python -c \"import paddleocr; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "OCR",
+      "candidate_name": "VITOS baseline",
+      "venv": "ocr",
+      "smoke_test_command": "TBD: verify VITOS baseline availability",
+      "status": "planned"
+    },
+    {
+      "module_area": "OCR",
+      "candidate_name": "EasyOCR",
+      "venv": "ocr",
+      "smoke_test_command": "python -c \"import easyocr; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "OCR",
+      "candidate_name": "Tesseract",
+      "venv": "system_or_ocr",
+      "smoke_test_command": "tesseract --version",
+      "status": "planned"
+    },
+    {
+      "module_area": "ASR",
+      "candidate_name": "faster-whisper large-v3",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import faster_whisper; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "ASR",
+      "candidate_name": "faster-whisper medium",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import faster_whisper; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "ASR",
+      "candidate_name": "faster-whisper distil-large-v3",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import faster_whisper; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "ASR",
+      "candidate_name": "WhisperX alignment",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import whisperx; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "ASR",
+      "candidate_name": "Silero VAD",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import silero_vad; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Diarization",
+      "candidate_name": "pyannote",
+      "venv": "asr",
+      "smoke_test_command": "python -c \"import pyannote.audio; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Diarization",
+      "candidate_name": "TBD fallback",
+      "venv": "asr",
+      "smoke_test_command": "TBD",
+      "status": "planned"
+    },
+    {
+      "module_area": "Audio Activity",
+      "candidate_name": "YAMNet",
+      "venv": "audio",
+      "smoke_test_command": "TBD: verify YAMNet runtime/import",
+      "status": "planned"
+    },
+    {
+      "module_area": "Audio Activity",
+      "candidate_name": "basic energy/VAD baseline",
+      "venv": "core_or_audio",
+      "smoke_test_command": "TBD: run no-model baseline import/check only",
+      "status": "planned"
+    },
+    {
+      "module_area": "Audio Activity",
+      "candidate_name": "music/speech detector TBD",
+      "venv": "audio",
+      "smoke_test_command": "TBD",
+      "status": "planned"
+    },
+    {
+      "module_area": "Face",
+      "candidate_name": "SCRFD",
+      "venv": "face",
+      "smoke_test_command": "python -c \"import insightface; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Face",
+      "candidate_name": "ArcFace / InsightFace",
+      "venv": "face",
+      "smoke_test_command": "python -c \"import insightface; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Face",
+      "candidate_name": "ByteTrack tracker",
+      "venv": "face",
+      "smoke_test_command": "python -c \"import supervision as sv; print(sv.ByteTrack)\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Visual Tag",
+      "candidate_name": "YOLO-World",
+      "venv": "tag",
+      "smoke_test_command": "python -c \"from ultralytics import YOLOWorld; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Visual Tag",
+      "candidate_name": "SigLIP",
+      "venv": "tag",
+      "smoke_test_command": "python -c \"import transformers; print('import_ok')\"",
+      "status": "planned"
+    },
+    {
+      "module_area": "Visual Tag",
+      "candidate_name": "tag dictionary baseline",
+      "venv": "core_or_tag",
+      "smoke_test_command": "TBD: validate dictionary file when created",
+      "status": "planned"
+    },
+    {
+      "module_area": "Song Recognition",
+      "candidate_name": "Chromaprint / fpcalc",
+      "venv": "system_or_audio",
+      "smoke_test_command": "fpcalc -version",
+      "status": "planned"
+    },
+    {
+      "module_area": "Song Recognition",
+      "candidate_name": "local fingerprint DB",
+      "venv": "core_or_audio",
+      "smoke_test_command": "TBD: verify local fingerprint DB schema when designed",
+      "status": "planned"
+    },
+    {
+      "module_area": "Song Recognition",
+      "candidate_name": "online lookup disabled by default",
+      "venv": "none",
+      "smoke_test_command": "TBD: assert online lookup remains disabled",
+      "status": "planned"
+    }
+  ],
+  "status": "passed"
+}

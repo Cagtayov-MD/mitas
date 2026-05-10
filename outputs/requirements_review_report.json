@@ -1,0 +1,60 @@
+{
+  "reviewed_files": [
+    "E:\\MITAS\\requirements\\ocr.txt",
+    "E:\\MITAS\\requirements\\asr.txt",
+    "E:\\MITAS\\requirements\\face.txt",
+    "E:\\MITAS\\requirements\\visual.txt",
+    "E:\\MITAS\\requirements\\audio.txt",
+    "E:\\MITAS\\requirements\\tag.txt",
+    "E:\\MITAS\\requirements\\stt.txt",
+    "E:\\MITAS\\model_manifest.yaml"
+  ],
+  "total_package_lines": 28,
+  "placeholder_count": 18,
+  "lightweight_count": 18,
+  "medium_count": 10,
+  "heavy_gpu_count": 9,
+  "external_binary_count": 2,
+  "install_executed": false,
+  "model_download_executed": false,
+  "selected_as_engine_count": 0,
+  "recommended_first_install_batch": [
+    {
+      "venv": "tag",
+      "packages": [
+        "pydantic",
+        "rapidfuzz",
+        "regex",
+        "pyyaml"
+      ],
+      "reason": "En hafif ve GPU bağımlılığı olmayan yardımcı paket grubu."
+    },
+    {
+      "venv": "audio",
+      "packages": [
+        "numpy",
+        "soundfile",
+        "pydub"
+      ],
+      "reason": "TensorFlow/YAMNet kurulmadan önce düşük riskli audio yardımcı paketleri."
+    },
+    {
+      "venv": "ocr",
+      "packages": [
+        "numpy",
+        "pillow"
+      ],
+      "reason": "OCR motorları kurulmadan önce temel görüntü yardımcı paketleri."
+    },
+    {
+      "venv": "stt",
+      "packages": [
+        "numpy",
+        "soundfile",
+        "websockets"
+      ],
+      "reason": "Streaming/model bağımlılığına geçmeden önce düşük riskli STT yardımcı paketleri."
+    }
+  ],
+  "status": "passed"
+}

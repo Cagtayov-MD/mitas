@@ -1,0 +1,23 @@
+{
+  "yaml_parse_status": "passed",
+  "parsed_files": [
+    "E:\\MITAS\\benchmark_registry.yaml",
+    "E:\\MITAS\\benchmark_templates\\ocr_kj_benchmark.yaml",
+    "E:\\MITAS\\benchmark_templates\\asr_benchmark.yaml",
+    "E:\\MITAS\\benchmark_templates\\audio_activity_benchmark.yaml",
+    "E:\\MITAS\\benchmark_templates\\face_benchmark.yaml",
+    "E:\\MITAS\\benchmark_templates\\visual_tag_benchmark.yaml"
+  ],
+  "failed_files": [],
+  "owners_status": "TBD_ALLOWED",
+  "blocking_status_present": true,
+  "errors": [],
+  "pytest_status": "passed",
+  "pytest_passed_count": 30,
+  "pytest_failed_count": 0,
+  "created_files": [
+    "scripts/validate_benchmark_yaml.py",
+    "tests/test_benchmark_yaml_parse.py",
+    "outputs/benchmark_plan_report.json"
+  ]
+}

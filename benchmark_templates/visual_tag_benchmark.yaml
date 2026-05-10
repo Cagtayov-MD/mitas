@@ -1,0 +1,35 @@
+benchmark_id: visual_tag_v1
+benchmark_name: Visual Tag benchmark
+module: visual_tag
+models_or_tools:
+  - YOLO-World
+  - SigLIP
+test_video_set:
+  total_hours: 20
+  categories:
+    - news_panel_kj
+    - music_program
+    - documentary_intertitle
+    - film_credits
+ground_truth_owner: TBD
+metrics:
+  - tag_precision
+  - tag_recall
+  - scene_level_voting_success
+  - false_positive_rate
+  - runtime_per_minute
+pass_fail_threshold:
+  tag_precision_min: TBD
+  tag_recall_min: TBD
+  false_positive_rate_max: TBD
+owner:
+  test_set_owner: TBD
+  responsible_person_or_team: TBD
+target_week: TBD
+decision_status: planned
+final_decision: TBD
+decision_date: null
+blocking_before_model_install: true
+notes:
+  - Kontrollu tag uretimi icin plan sablonudur.
+  - Bu dosya Visual Tag calistirma veya model kurulumu icermez.

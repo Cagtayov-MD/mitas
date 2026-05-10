@@ -1,0 +1,311 @@
+version: 1
+name: MITAS Model Manifest
+policy:
+  no_engine_selection_before_benchmark: true
+  all_candidates_selected_as_engine_false: true
+candidates:
+  - module_area: OCR
+    candidate_name: OneOCR
+    priority: 1
+    status: candidate
+    venv: ocr
+    install_state: external_or_not_installed_unverified
+    smoke_test_command: "TBD: verify local OneOCR runtime/import without download"
+    expected_outputs:
+      - import_or_runtime_detected
+      - version_or_capability_report
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Active and prioritized OCR test candidate; production OCR still depends on benchmark."
+  - module_area: OCR
+    candidate_name: PaddleOCR
+    priority: 2
+    status: candidate
+    venv: ocr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import paddleocr; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Strong parallel OCR candidate."
+  - module_area: OCR
+    candidate_name: VITOS baseline
+    priority: 3
+    status: baseline_candidate
+    venv: ocr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "TBD: verify VITOS baseline availability"
+    expected_outputs:
+      - baseline_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Existing reference point, not a production selection."
+  - module_area: OCR
+    candidate_name: EasyOCR
+    priority: 4
+    status: candidate
+    venv: ocr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import easyocr; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Fallback OCR candidate."
+  - module_area: OCR
+    candidate_name: Tesseract
+    priority: 5
+    status: candidate
+    venv: system_or_ocr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "tesseract --version"
+    expected_outputs:
+      - cli_available
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Classical OCR fallback candidate."
+  - module_area: ASR
+    candidate_name: faster-whisper large-v3
+    priority: 1
+    status: candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import faster_whisper; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "High-priority ASR candidate; not selected before benchmark."
+  - module_area: ASR
+    candidate_name: faster-whisper medium
+    priority: 2
+    status: fallback_candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import faster_whisper; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Potential runtime/VRAM fallback."
+  - module_area: ASR
+    candidate_name: faster-whisper distil-large-v3
+    priority: 3
+    status: fallback_candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import faster_whisper; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Potential faster ASR candidate."
+  - module_area: ASR
+    candidate_name: WhisperX alignment
+    priority: 4
+    status: alignment_candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import whisperx; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version_or_import_path
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Alignment/timestamp candidate, not primary ASR engine by itself."
+  - module_area: ASR
+    candidate_name: Silero VAD
+    priority: 5
+    status: vad_candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import silero_vad; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version_or_import_path
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "VAD support candidate."
+  - module_area: Diarization
+    candidate_name: pyannote
+    priority: 1
+    status: candidate
+    venv: asr
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import pyannote.audio; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Diarization candidate; may require token/model access in later sprint."
+  - module_area: Diarization
+    candidate_name: TBD fallback
+    priority: 2
+    status: placeholder_candidate
+    venv: asr
+    install_state: not_applicable
+    smoke_test_command: "TBD"
+    expected_outputs:
+      - fallback_defined
+    benchmark_required: false
+    selected_as_engine: false
+    notes: "Explicit placeholder until fallback candidate is named."
+  - module_area: Audio Activity
+    candidate_name: YAMNet
+    priority: 1
+    status: candidate
+    venv: audio
+    install_state: not_installed_or_unverified
+    smoke_test_command: "TBD: verify YAMNet runtime/import"
+    expected_outputs:
+      - import_ok
+      - version_or_model_info
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Speech/music/applause/silence candidate."
+  - module_area: Audio Activity
+    candidate_name: basic energy/VAD baseline
+    priority: 2
+    status: baseline_candidate
+    venv: core_or_audio
+    install_state: not_applicable
+    smoke_test_command: "TBD: run no-model baseline import/check only"
+    expected_outputs:
+      - baseline_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Simple baseline for comparison; no production selection."
+  - module_area: Audio Activity
+    candidate_name: music/speech detector TBD
+    priority: 3
+    status: placeholder_candidate
+    venv: audio
+    install_state: not_applicable
+    smoke_test_command: "TBD"
+    expected_outputs:
+      - detector_defined
+    benchmark_required: false
+    selected_as_engine: false
+    notes: "Explicit placeholder until detector candidate is named."
+  - module_area: Face
+    candidate_name: SCRFD
+    priority: 1
+    status: candidate
+    venv: face
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import insightface; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - detector_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Face detector candidate through InsightFace stack."
+  - module_area: Face
+    candidate_name: ArcFace / InsightFace
+    priority: 2
+    status: candidate
+    venv: face
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import insightface; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - recognition_model_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Embedding/recognition candidate; no identity claim before review/benchmark."
+  - module_area: Face
+    candidate_name: ByteTrack tracker
+    priority: 3
+    status: tracker_candidate
+    venv: face
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import supervision as sv; print(sv.ByteTrack)\""
+    expected_outputs:
+      - import_ok
+      - bytetrack_class_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Tracking candidate, not identity engine."
+  - module_area: Visual Tag
+    candidate_name: YOLO-World
+    priority: 1
+    status: candidate
+    venv: tag
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"from ultralytics import YOLOWorld; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - class_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Open-vocabulary detection/tag candidate."
+  - module_area: Visual Tag
+    candidate_name: SigLIP
+    priority: 2
+    status: candidate
+    venv: tag
+    install_state: not_installed_or_unverified
+    smoke_test_command: "python -c \"import transformers; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - model_class_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Image-text similarity/tag candidate."
+  - module_area: Visual Tag
+    candidate_name: tag dictionary baseline
+    priority: 3
+    status: baseline_candidate
+    venv: core_or_tag
+    install_state: not_applicable
+    smoke_test_command: "TBD: validate dictionary file when created"
+    expected_outputs:
+      - dictionary_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "No-model baseline for visual tag review."
+  - module_area: Song Recognition
+    candidate_name: Chromaprint / fpcalc
+    priority: 1
+    status: candidate
+    venv: system_or_audio
+    install_state: not_installed_or_unverified
+    smoke_test_command: "fpcalc -version"
+    expected_outputs:
+      - cli_available
+      - version
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Local fingerprint extraction candidate."
+  - module_area: Song Recognition
+    candidate_name: local fingerprint DB
+    priority: 2
+    status: candidate
+    venv: core_or_audio
+    install_state: not_applicable
+    smoke_test_command: "TBD: verify local fingerprint DB schema when designed"
+    expected_outputs:
+      - db_schema_available
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Local lookup candidate; schema/design later."
+  - module_area: Song Recognition
+    candidate_name: online lookup disabled by default
+    priority: 3
+    status: disabled_candidate
+    venv: none
+    install_state: disabled_by_default
+    smoke_test_command: "TBD: assert online lookup remains disabled"
+    expected_outputs:
+      - disabled_by_default
+    benchmark_required: false
+    selected_as_engine: false
+    notes: "Online lookup is not enabled by default."

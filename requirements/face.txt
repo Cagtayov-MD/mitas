@@ -1,0 +1,12 @@
+# MITAS requirements draft
+# Bu dosya taslaktır.
+# Bu sprintte pip install çalıştırılmayacaktır.
+# Ana motor seçimi değildir.
+# Benchmark sonrası sadeleştirilecektir.
+
+insightface
+# onnxruntime-gpu placeholder: CUDA provider uyumluluğu smoke test sonrası netleşecek.
+opencv-python
+numpy
+pillow
+# bytetrack placeholder: supervision/ByteTrack veya ayrı tracker paketi benchmark sonrası seçilecek.

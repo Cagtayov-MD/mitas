@@ -1,0 +1,33 @@
+benchmark_id: audio_activity_v1
+benchmark_name: Audio Activity benchmark
+module: audio_activity
+models_or_tools:
+  - speech_music_applause_silence_detector_candidate
+test_video_set:
+  total_hours: 20
+  categories:
+    - news_panel_kj
+    - music_program
+    - documentary_intertitle
+    - film_credits
+ground_truth_owner: TBD
+metrics:
+  - music_segment_precision
+  - music_segment_recall
+  - speech_music_boundary_error
+  - runtime_per_minute
+pass_fail_threshold:
+  music_segment_precision_min: TBD
+  music_segment_recall_min: TBD
+  speech_music_boundary_error_max_sec: TBD
+owner:
+  test_set_owner: TBD
+  responsible_person_or_team: TBD
+target_week: TBD
+decision_status: planned
+final_decision: TBD
+decision_date: null
+blocking_before_model_install: true
+notes:
+  - Speech, music, applause ve silence ayrimi icin plan sablonudur.
+  - Bu dosya audio analizi veya pipeline icermez.

@@ -1,0 +1,85 @@
+{
+  "asr_stt_merged": true,
+  "asr_venv": "E:\\MITAS\\venvs\\asr",
+  "stt_venv_status": [
+    "legacy_stt_venv",
+    "deprecated_as_primary_runtime",
+    "do_not_delete_yet"
+  ],
+  "asr_submodules": [
+    "file_transcription",
+    "streaming_transcription",
+    "vad",
+    "diarization",
+    "alignment"
+  ],
+  "service_packages_checked": {
+    "fastapi": {
+      "expected": "0.136.1",
+      "actual": "0.136.1",
+      "status": "passed"
+    },
+    "uvicorn": {
+      "expected": "0.46.0",
+      "actual": "0.46.0",
+      "status": "passed"
+    },
+    "websockets": {
+      "expected": "16.0",
+      "actual": "16.0",
+      "status": "passed"
+    },
+    "onnxruntime": {
+      "expected": "1.23.2",
+      "actual": "1.23.2",
+      "status": "passed"
+    }
+  },
+  "service_packages_installed_or_already_present": {
+    "fastapi": "installed",
+    "uvicorn": "installed",
+    "websockets": "installed",
+    "onnxruntime": "already_present"
+  },
+  "asr_import_status": "passed",
+  "asr_import_stdout": "OK\nnumpy 2.2.6\ntorch 2.11.0+cu126 True\ntorchaudio 2.11.0+cu126\nctranslate2 4.7.1",
+  "asr_import_stderr_summary": "warnings_present",
+  "asr_torch_version": "2.11.0+cu126",
+  "asr_torchaudio_version": "2.11.0+cu126",
+  "asr_cuda_available": true,
+  "forbidden_changes_detected": [],
+  "changed_docs_or_configs": [
+    "MITAS_Master_Plan_Denetimli_v5.md",
+    "docs/MITAS_ASR_STT_Birlestirme_Degerlendirmesi_v1.md",
+    "docs/MITAS_STT_ASR_Venv_Paket_Listesi_v1.md",
+    "docs/MITAS_Profile_Routing_Kaba_Kararlar_v1.md",
+    "docs/MITAS_3_5_Karar_Dokumanlari_Denetim_Raporu.md",
+    "docs/MITAS_P1_Blocker_ve_Mimari_Duzeltmeler_v1.md",
+    "docs/MITAS_Requirements_Taslaklari_v1.md",
+    "docs/MITAS_Requirements_Denetim_ve_Kurulum_Sirasi_v1.md",
+    "docs/MITAS_Kurulu_Paket_Envanteri_v1.md",
+    "docs/MITAS_Model_Env_Inventory_v1.md",
+    "docs/MITAS_Environment_Lock_Health_Check_v1.md",
+    "docs/MITAS_Lightweight_Paket_Kurulum_Raporu_v1.md",
+    "docs/MITAS_Pip_Dryrun_Raporlama_v1.md",
+    "requirements/asr.txt",
+    "requirements/stt.txt",
+    "scripts/inspect_model_envs.py",
+    "scripts/lock_and_check_envs.py",
+    "scripts/install_lightweight_packages.py",
+    "scripts/run_pip_dryrun_reports.py",
+    "tests/test_model_env_inventory_dry.py",
+    "tests/test_pip_dryrun_runner_dry.py",
+    "mutfak/03_GUNCEL_DURUM.md",
+    "mutfak/04_YOL_HARITASI.md",
+    "mutfak/05_AKTIF_GOREV.md",
+    "mutfak/06_KARARLAR_GUNLUGU.md",
+    "mutfak/07_REFERANS_HARITASI.md",
+    "venvs/stt/LEGACY_STT_VENV_STATUS.json"
+  ],
+  "status": "passed",
+  "error_message": null,
+  "asr_pip_check_status": "failed_pre_existing_warning",
+  "asr_pip_check_output": "deepfilternet 0.5.6 has requirement numpy<2.0,>=1.22, but you have numpy 2.2.6.",
+  "asr_pip_check_note": "Numpy was already 2.2.6 before the ASR/STT service package install and was not changed because DeepFilterNet numpy/torch/torchaudio changes are forbidden in this task."
+}

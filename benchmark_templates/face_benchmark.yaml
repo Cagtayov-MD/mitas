@@ -1,0 +1,42 @@
+benchmark_id: face_v1
+benchmark_name: Face benchmark
+module: face
+models_or_tools:
+  - SCRFD
+  - ArcFace
+  - HDBSCAN
+test_video_set:
+  total_hours: 20
+  categories:
+    - news_panel_kj
+    - music_program
+    - documentary_intertitle
+    - film_credits
+ground_truth_owner: TBD
+quality_gates:
+  min_face_height_px: 80
+  blur_laplacian_min: 100
+  pose_yaw_max_deg: 30
+  pose_pitch_max_deg: 25
+  min_track_duration_sec: 1.5
+  min_detector_confidence: 0.70
+metrics:
+  - false_match_rate
+  - missed_face_rate
+  - cluster_purity
+  - review_load
+  - runtime_per_minute
+pass_fail_threshold:
+  false_match_rate_max: TBD
+  missed_face_rate_max: TBD
+  cluster_purity_min: TBD
+owner:
+  test_set_owner: TBD
+  responsible_person_or_team: TBD
+target_week: TBD
+decision_status: planned
+final_decision: TBD
+decision_date: null
+blocking_before_model_install: true
+notes:
+  - Bu dosya face benchmark planidir; face analizi veya model kurulumu icermez.

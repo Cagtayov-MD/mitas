@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "JobStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed",
+        "partial",
+        "cancelled",
+        "skipped"
+      ],
+      "title": "JobStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "pipeline_name": {
+      "title": "Pipeline Name",
+      "type": "string"
+    },
+    "step_name": {
+      "title": "Step Name",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/JobStatus"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Started At"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completed At"
+    },
+    "retry_count": {
+      "minimum": 0,
+      "title": "Retry Count",
+      "type": "integer"
+    },
+    "error_msg": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error Msg"
+    },
+    "input_artifacts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Input Artifacts",
+      "type": "array"
+    },
+    "output_artifacts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Output Artifacts",
+      "type": "array"
+    },
+    "last_successful_step": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Successful Step"
+    }
+  },
+  "required": [
+    "job_id",
+    "media_id",
+    "pipeline_name",
+    "step_name",
+    "status",
+    "started_at",
+    "completed_at",
+    "retry_count",
+    "error_msg",
+    "input_artifacts",
+    "output_artifacts",
+    "last_successful_step"
+  ],
+  "title": "JobRun",
+  "type": "object"
+}
