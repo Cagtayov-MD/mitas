@@ -1,0 +1,44 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_fixed_03_05_quality\\4_03_05\\normalized\\4_03_05_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 3,
+    "speech_seconds": 3.2,
+    "speech_ratio": 0.026667,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 112.0,
+        "end": 112.9,
+        "duration": 0.9
+      },
+      {
+        "start": 113.0,
+        "end": 114.1,
+        "duration": 1.1
+      },
+      {
+        "start": 116.7,
+        "end": 117.9,
+        "duration": 1.2
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 103.7,
+      "end": 115.4,
+      "source_vad_index": 1
+    },
+    {
+      "index": 1,
+      "start": 115.4,
+      "end": 120.0,
+      "source_vad_index": 2
+    }
+  ],
+  "segments": []
+}

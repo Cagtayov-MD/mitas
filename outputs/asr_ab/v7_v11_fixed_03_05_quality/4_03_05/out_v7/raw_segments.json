@@ -1,0 +1,83 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_fixed_03_05_quality\\4_03_05\\normalized\\4_03_05_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 3,
+    "speech_seconds": 3.2,
+    "speech_ratio": 0.026667,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 112.0,
+        "end": 112.9,
+        "duration": 0.9
+      },
+      {
+        "start": 113.0,
+        "end": 114.1,
+        "duration": 1.1
+      },
+      {
+        "start": 116.7,
+        "end": 117.9,
+        "duration": 1.2
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 103.7,
+      "end": 115.4,
+      "source_vad_index": 1
+    },
+    {
+      "index": 1,
+      "start": 115.4,
+      "end": 120.0,
+      "source_vad_index": 2
+    }
+  ],
+  "segments": [
+    {
+      "start": 103.7,
+      "end": 115.4,
+      "duration": 11.7,
+      "text": "İzlediğiniz için teşekkür ederim.",
+      "language": "tr",
+      "avg_logprob": -0.19905598585804304,
+      "no_speech_prob": 0.595703125,
+      "compression_ratio": 0.8085106382978723,
+      "chunk_index": 0,
+      "chunk_start": 103.7,
+      "chunk_end": 115.4,
+      "source_vad_index": 1,
+      "kept": false,
+      "drop_reason": "stock_artifact:izlediğiniz için teşekkür ederim",
+      "flags": [
+        "stock_artifact"
+      ]
+    },
+    {
+      "start": 115.4,
+      "end": 117.6,
+      "duration": 2.2,
+      "text": "Ağabey, peşiniz göğe at.",
+      "language": "tr",
+      "avg_logprob": -1.1826171353459358,
+      "no_speech_prob": 0.49072265625,
+      "compression_ratio": 0.7567567567567568,
+      "chunk_index": 1,
+      "chunk_start": 115.4,
+      "chunk_end": 120.0,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "very_low_logprob_short_text",
+      "flags": [
+        "very_low_logprob"
+      ]
+    }
+  ]
+}

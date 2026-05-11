@@ -30,6 +30,7 @@ REQUIRED_VARIANT_FILES = (
     "clean_segments.json",
     "clean_transcript.txt",
     "filter_report.json",
+    "safety_report.json",
     "timing.json",
 )
 
@@ -40,6 +41,7 @@ class MediaJob:
     source: Path
     requested_start: float | None
     requested_end: float | None
+    window_mode: str
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,7 @@ class PreparedAudio:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-root", type=Path, default=OUTPUT_ROOT)
+    parser.add_argument("--window-mode", choices=("fixed_03_05", "midpoint_2min"), default="fixed_03_05")
     parser.add_argument("--ffmpeg", type=Path, default=DEFAULT_FFMPEG_EXE)
     parser.add_argument("--ffprobe", type=Path, default=DEFAULT_FFMPEG_EXE.with_name("ffprobe.exe"))
     parser.add_argument("--only-prepare", action="store_true")
@@ -66,14 +69,15 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     started = time.perf_counter()
-    jobs = build_jobs()
+    jobs = build_jobs(args.window_mode)
     if args.summarize_only:
         prepared = [resolve_existing_prepared_audio(job, args.out_root, ffprobe=args.ffprobe) for job in jobs]
     else:
         prepared = [prepare_audio(job, args.out_root, ffmpeg=args.ffmpeg, ffprobe=args.ffprobe) for job in jobs]
 
+    write_json(args.out_root / "prepared_manifest.json", [prepared_item_to_dict(item) for item in prepared])
+
     if args.only_prepare:
-        write_json(args.out_root / "prepared_manifest.json", [prepared_item_to_dict(item) for item in prepared])
         print(args.out_root / "prepared_manifest.json")
         return
 
@@ -103,25 +107,43 @@ def main() -> None:
     print(args.out_root / "batch_report.md")
 
 
-def build_jobs() -> list[MediaJob]:
+def build_jobs(window_mode: str = "fixed_03_05") -> list[MediaJob]:
     short_clip_names = ["1.mp4", "2.mp4", "3.mp4", "4.mp4", "5.mp4", "beyaz1.mp4"]
+    trt_clip_names = ["trt_haber (1).mp4", "trt_haber (2).mp4", "trt_haber (3).mp4"]
+    if window_mode == "midpoint_2min":
+        return [
+            MediaJob(
+                slug=f"{slug_from_name(name)}_mid_2min",
+                source=TEST_CLIP_DIR / name,
+                requested_start=None,
+                requested_end=None,
+                window_mode=window_mode,
+            )
+            for name in [*short_clip_names, *trt_clip_names]
+        ]
+
     jobs = [
         MediaJob(
             slug=f"{Path(name).stem}_03_05",
             source=TEST_CLIP_DIR / name,
             requested_start=REQUESTED_WINDOW_START,
             requested_end=REQUESTED_WINDOW_END,
+            window_mode=window_mode,
         )
         for name in short_clip_names
     ]
     jobs.extend(
         [
-            MediaJob(slug="trt_haber_1_full", source=TEST_CLIP_DIR / "trt_haber (1).mp4", requested_start=None, requested_end=None),
-            MediaJob(slug="trt_haber_2_full", source=TEST_CLIP_DIR / "trt_haber (2).mp4", requested_start=None, requested_end=None),
-            MediaJob(slug="trt_haber_3_full", source=TEST_CLIP_DIR / "trt_haber (3).mp4", requested_start=None, requested_end=None),
+            MediaJob(slug="trt_haber_1_full", source=TEST_CLIP_DIR / "trt_haber (1).mp4", requested_start=None, requested_end=None, window_mode=window_mode),
+            MediaJob(slug="trt_haber_2_full", source=TEST_CLIP_DIR / "trt_haber (2).mp4", requested_start=None, requested_end=None, window_mode=window_mode),
+            MediaJob(slug="trt_haber_3_full", source=TEST_CLIP_DIR / "trt_haber (3).mp4", requested_start=None, requested_end=None, window_mode=window_mode),
         ]
     )
     return jobs
+
+
+def slug_from_name(name: str) -> str:
+    return Path(name).stem.replace(" ", "_").replace("(", "").replace(")", "")
 
 
 def prepare_audio(job: MediaJob, output_root: Path, *, ffmpeg: Path, ffprobe: Path) -> PreparedAudio:
@@ -197,6 +219,7 @@ def prepared_item_to_dict(item: PreparedAudio) -> dict[str, Any]:
         "source": str(item.job.source),
         "requested_start": item.job.requested_start,
         "requested_end": item.job.requested_end,
+        "window_mode": item.job.window_mode,
         "output_path": str(item.output_path),
         "source_duration": item.source_duration,
         "audio_duration": item.audio_duration,
@@ -240,6 +263,11 @@ def run_variant_subprocess(module: str, audio_path: Path, output_root: Path, *, 
 
 
 def resolve_window(job: MediaJob, source_duration: float) -> tuple[float, float, str]:
+    if job.window_mode == "midpoint_2min":
+        start = max(0.0, source_duration / 2.0)
+        end = min(source_duration, start + 120.0)
+        mode = "midpoint_2min" if end - start >= 119.9 else "midpoint_2min_partial_to_end"
+        return start, end, mode
     if job.requested_start is None or job.requested_end is None:
         return 0.0, source_duration, "full_requested"
     if source_duration <= job.requested_start:
@@ -286,6 +314,7 @@ def read_variant_result(output_dir: Path) -> dict[str, Any]:
     transcript = (output_dir / "clean_transcript.txt").read_text(encoding="utf-8")
     timing = json.loads((output_dir / "timing.json").read_text(encoding="utf-8"))
     filter_report = json.loads((output_dir / "filter_report.json").read_text(encoding="utf-8"))
+    safety_report = json.loads((output_dir / "safety_report.json").read_text(encoding="utf-8"))
     clean_segments = json.loads((output_dir / "clean_segments.json").read_text(encoding="utf-8"))["segments"]
     bad_hits = {token: token.lower() in transcript.lower() for token in BAD_TOKENS}
     artifact_hits = {token: token.lower() in transcript.lower() for token in ARTIFACT_TOKENS}
@@ -295,6 +324,7 @@ def read_variant_result(output_dir: Path) -> dict[str, Any]:
         "transcript": transcript,
         "timing": timing,
         "filter_report": filter_report,
+        "safety_report": safety_report,
         "word_count": len(tokenize(transcript)),
         "char_count": len(transcript),
         "segment_count": len(clean_segments),
@@ -363,6 +393,15 @@ def write_markdown(path: Path, summary: dict[str, Any]) -> None:
                 )
     if not flagged:
         lines.append("- No artifact/repetition flags.")
+
+    lines.extend(["", "## Safety Decisions", ""])
+    for job in summary["jobs"]:
+        for variant in ("out_v7", "out_v11"):
+            safety = job["variants"][variant]["safety_report"]
+            lines.append(
+                f"- `{job['slug']}` / `{variant}`: safe=`{safety['safe']}`, "
+                f"failure=`{safety['failure_reason']}` diagnostics=`{safety['diagnostics']}`"
+            )
 
     if summary.get("run_warnings"):
         lines.extend(["", "## Run Warnings", ""])

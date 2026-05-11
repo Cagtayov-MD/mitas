@@ -1412,3 +1412,166 @@ Hayır. Bu adım yeni ASR koşusu yapmadı; mevcut JSON kanıtlarından rapor ü
 
 **Daha iyi olabilir miydi?**
 Evet. Sonraki adım bu rapor üzerinden manuel işaretleme yapıp hangi segmentlerin gerçekten konuşma, hangilerinin artifact olduğunu etiketlemek.
+
+## 2026-05-11 - Blok: ASR Kalite Kapısı ve v7/v11 Yeniden Test
+
+Bu blokta üç düzeltme tek pakette ele alındı:
+
+1. `no_speech_prob` tek başına drop sebebi olmaktan çıkarıldı.
+2. Stock subtitle / YouTube outro artifact filtresi merkezi hale getirildi.
+3. v11 ve diğer hızlı/kararsız decode yolları için repetition, uzun-token ve word-density safety guard'ları eklendi.
+
+Ek olarak iki pratik koruma daha eklendi:
+
+- Segment seviyesinde tekrar çöküşü ve uzun-token artifact'i temiz metne girmeden düşürülüyor.
+- Çok düşük logprob + çok kısa metin segmenti hard-drop ediliyor; 4.mp4 gibi seyrek/sessiz bölgelerde kalan anlamsız kısa hallucination'ları temizlemek için.
+
+### Kodda Yapılanlar
+
+1. Yeni dosya eklendi:
+
+```text
+E:\MITAS\core\pipelines\asr\quality.py
+```
+
+Bu dosyada şunlar toplandı:
+
+- `is_stock_artifact`
+- `detect_repetition_collapse`
+- `detect_word_density_anomaly`
+- `evaluate_segment`
+- `evaluate_result_safety`
+- `QualityConfig`
+- `SegmentQualityDecision`
+- `ResultSafetyDecision`
+
+Sebep: kalite kararlarını `transcribe.py` ve A/B scriptleri içinde dağınık tutarsak aynı hata iki yerde farklı davranır. Merkezi modül üretim wrapper'a da aynı mantığı taşıyacak.
+
+2. `core/pipelines/asr/transcribe.py` güncellendi.
+
+- `TranscriptSegment.flags` eklendi.
+- `TranscribeResult.safety` eklendi.
+- `TranscribeResult.quality_drops` eklendi.
+- `_apply_quality_gate` ile segmentler kalite modülünden geçiriliyor.
+
+Sebep: üretim wrapper gelmeden önce core transcribe sonucu, hangi segmentin neden düştüğünü ve bütün transcript'in safety durumunu taşımalı.
+
+3. `tools/asr_ab/common.py` güncellendi.
+
+- A/B varyantları artık aynı `evaluate_segment` ve `evaluate_result_safety` mantığını kullanıyor.
+- Her varyant `safety_report.json` yazıyor.
+- `filter_report.json` artık drop reason yanında flag dağılımını da koruyor.
+
+Sebep: A/B çıktısı ile core çıktısı aynı kalite mantığına bağlı olmalı.
+
+4. `tools/asr_ab/run_v7_v11_media_batch.py` güncellendi.
+
+- `--window-mode fixed_03_05`
+- `--window-mode midpoint_2min`
+- `prepared_manifest.json` her koşuda yazılıyor.
+- Raporlara safety kararları eklendi.
+
+Sebep: hem eski kabul kriterlerini hem de kullanıcının yeni "klibin tam ortası + 2 dakika" testini aynı script ile tekrarlanabilir hale getirmek.
+
+5. `tools/asr_ab/transcribe_v7.py` ve `tools/asr_ab/transcribe_v11.py` için `exit_after_write=True` açıldı.
+
+Sebep: Bazı CTranslate2/CUDA subprocess'leri tüm çıktı dosyalarını yazdıktan sonra Windows'ta native teardown sırasında `3221226505` ile kapanıyordu. Güvenli çıkışla final batch'lerde warning sayısı 0 oldu.
+
+6. Testler eklendi/güncellendi.
+
+```text
+E:\MITAS\tests\test_asr_quality.py
+E:\MITAS\tests\test_asr_transcribe.py
+```
+
+Yeni testler:
+
+- stock artifact tespiti
+- Türkçe büyük/küçük harf ve noktalama toleransı
+- `no_speech_prob=0.7` tek başına drop etmesin
+- repetition collapse
+- noktalama toleranslı repetition collapse
+- uzun token artifact
+- çok düşük logprob + kısa metin drop
+- result-level safety
+- `transcribe.py` kalite kapısını gerçekten çağırıyor mu
+
+### Gerçek Medya Koşuları
+
+Sabit pencere koşusu:
+
+```text
+E:\MITAS\outputs\asr_ab\v7_v11_fixed_03_05_quality\batch_report.md
+E:\MITAS\outputs\asr_ab\v7_v11_fixed_03_05_quality\batch_summary.json
+E:\MITAS\outputs\asr_ab\v7_v11_fixed_03_05_quality\full_transcripts.md
+E:\MITAS\outputs\asr_ab\v7_v11_fixed_03_05_quality\prepared_manifest.json
+```
+
+Orta nokta + 2 dakika koşusu:
+
+```text
+E:\MITAS\outputs\asr_ab\v7_v11_midpoint_2min_quality\batch_report.md
+E:\MITAS\outputs\asr_ab\v7_v11_midpoint_2min_quality\batch_summary.json
+E:\MITAS\outputs\asr_ab\v7_v11_midpoint_2min_quality\full_transcripts.md
+E:\MITAS\outputs\asr_ab\v7_v11_midpoint_2min_quality\prepared_manifest.json
+```
+
+### Kabul Kontrolleri
+
+Son doğrulama:
+
+```text
+tests/test_asr_quality.py + tests/test_asr_ab_chunks.py + tests/test_asr_transcribe.py
+29 passed
+```
+
+Dosya bazlı gerçek medya kontrolü:
+
+```text
+fixed_run_warning_count = 0
+midpoint_run_warning_count = 0
+beyaz1 v7 raw words = 292
+beyaz1 v7 clean words = 292
+2.mp4 v7 raw words = 154
+2.mp4 v7 clean words = 153
+2.mp4 v7 clean transcript içinde uzun tekrar loop yok
+2.mp4 v7 safety.safe = true
+2.mp4 v11 safety.safe = true
+trt_haber_1 v7/v11 clean transcript içinde "İzlediğiniz için teşekkür ederim" yok
+4.mp4 v11 clean transcript boş
+4.mp4 v11 clean transcript içinde "Altyazı M.K." yok
+midpoint_2min tüm v7/v11 safety kararları true
+```
+
+Önemli dürüst not:
+
+- İlk ara koşulardan birinde `beyaz1_03_05/out_v11` yüzlerce `Ben` tekrarına düşmüş ve safety bunu `repetition_collapse` olarak yakalamıştı.
+- Son temiz koşuda aynı collapse yeniden üremedi; `beyaz1_03_05/out_v11` artık `safe=true`.
+- Bu yüzden "beyaz1 v11 final koşuda mutlaka false olmalı" kriteri deterministik olarak doğrulanmadı. Guard'ın kendisi unit testlerle ve ara gerçek medya bulgusuyla doğrulandı; son clean batch'te model bu hatayı üretmedi.
+
+### Sonuç
+
+Bu paket üretim wrapper değildir; ama wrapper için gerekli kalite zemini tamamlandı.
+
+Şu an wrapper politikasına aday karar:
+
+```text
+1. Önce hızlı mod denenebilir: v11.
+2. safety.safe == false veya kalite drop'ları kritikse v7 fallback çalıştırılır.
+3. v7 de safety.safe == false ise sonuç "manual review / retry required" olarak işaretlenir.
+4. raw/verbatim, clean ve normalized katmanları wrapper'da ayrı ayrı saklanmalıdır.
+```
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Kalite mantığı `core/pipelines/asr/quality.py` altında toplandı; `transcribe.py` ve `tools/asr_ab/` aynı mantığı kullanıyor. Üretim wrapper yazılmadı.
+
+**Amaca hizmet ediyor mu?**
+Evet. `no_speech_prob` kaynaklı gerçek konuşma kaybı azaltıldı, stock artifact temizlendi, repetition/long-token hallucination temiz metinden düşürüldü ve result-level safety raporlandı.
+
+**Başka şeyi bozuyor mu?**
+Kontrol edildi. Mevcut chunk ve transcribe testleri geçti. A/B batch'lerde process warning sayısı 0. Dikkat: `TranscribeResult.segments` artık kalite sonrası clean segmentleri taşıyor; wrapper aşamasında raw/verbatim katman ayrıca saklanmalı.
+
+**Daha iyi olabilir miydi?**
+Evet. Hala referans transcript/WER yok. Sonraki sağlam adım küçük bir manuel referans seti çıkarıp v7/v11 için gerçek WER/CER ve missing-speech metriği hesaplamak. Ayrıca production wrapper'da "v11 unsafe -> v7 fallback -> v7 unsafe ise retry/manual review" politikası uygulanmalı.

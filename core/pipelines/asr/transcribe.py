@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 import subprocess
 import tempfile
 from typing import Any, Iterable, Sequence
 
 from core.pipelines.asr.normalize import PROJECT_ROOT, TARGET_CODEC_NAME, TARGET_SAMPLE_RATE, probe_audio_stream
+from core.pipelines.asr.quality import QualityConfig, ResultSafetyDecision, evaluate_result_safety, evaluate_segment
 from core.pipelines.asr.vad import VadSpeechSegment, read_wav_duration_seconds
 
 
@@ -48,6 +49,7 @@ class TranscriptSegment:
     avg_logprob: float
     no_speech_prob: float
     source_vad_index: int
+    flags: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -69,6 +71,8 @@ class TranscribeResult:
     segments: list[TranscriptSegment]
     transcript: str
     language_distribution: dict[str, int]
+    safety: ResultSafetyDecision | None = None
+    quality_drops: list[dict[str, Any]] = field(default_factory=list)
 
 
 def load_whisper_model(config: WhisperModelConfig | None = None) -> Any:
@@ -95,6 +99,7 @@ def transcribe_vad_segments(
     chunk_output_dir: str | Path | None = None,
     chunk_padding_seconds: float = DEFAULT_CHUNK_PADDING_SECONDS,
     ffmpeg_executable: str = "ffmpeg",
+    quality_config: QualityConfig | None = None,
 ) -> TranscribeResult:
     model_config = config or WhisperModelConfig()
     path = Path(audio_path)
@@ -123,6 +128,7 @@ def transcribe_vad_segments(
                 chunk_padding_seconds=chunk_padding_seconds,
                 chunk_dir=Path(temp_dir),
                 ffmpeg_executable=ffmpeg_executable,
+                quality_config=quality_config,
             )
 
     chunk_dir = Path(chunk_output_dir)
@@ -135,6 +141,7 @@ def transcribe_vad_segments(
         chunk_padding_seconds=chunk_padding_seconds,
         chunk_dir=chunk_dir,
         ffmpeg_executable=ffmpeg_executable,
+        quality_config=quality_config,
     )
 
 
@@ -147,6 +154,7 @@ def _transcribe_with_chunk_dir(
     chunk_padding_seconds: float,
     chunk_dir: Path,
     ffmpeg_executable: str,
+    quality_config: QualityConfig | None,
 ) -> TranscribeResult:
     transcript_segments: list[TranscriptSegment] = []
 
@@ -176,11 +184,19 @@ def _transcribe_with_chunk_dir(
             avg_logprob=segment.avg_logprob,
             no_speech_prob=segment.no_speech_prob,
             source_vad_index=segment.source_vad_index,
+            flags=segment.flags,
         )
         for index, segment in enumerate(sorted(transcript_segments, key=lambda item: (item.start, item.end)))
     ]
-    transcript = " ".join(segment.text for segment in indexed_segments).strip()
-    language_distribution = Counter(segment.language or "unknown" for segment in indexed_segments)
+    clean_segments, quality_drops = _apply_quality_gate(indexed_segments, quality_config=quality_config)
+    transcript = " ".join(segment.text for segment in clean_segments).strip()
+    language_distribution = Counter(segment.language or "unknown" for segment in clean_segments)
+    speech_seconds = sum(chunk.vad_segment.duration for chunk in chunks)
+    safety = evaluate_result_safety(
+        transcript_text=transcript,
+        word_count=len(transcript.split()),
+        speech_seconds=speech_seconds,
+    )
 
     return TranscribeResult(
         audio_path=audio_path,
@@ -190,10 +206,45 @@ def _transcribe_with_chunk_dir(
         multilingual=TRANSCRIBE_MULTILINGUAL,
         chunk_padding_seconds=chunk_padding_seconds,
         vad_segments_count=len(chunks),
-        segments=indexed_segments,
+        segments=clean_segments,
         transcript=transcript,
         language_distribution=dict(language_distribution),
+        safety=safety,
+        quality_drops=quality_drops,
     )
+
+
+def _apply_quality_gate(
+    raw_segments: list[TranscriptSegment],
+    *,
+    quality_config: QualityConfig | None = None,
+) -> tuple[list[TranscriptSegment], list[dict[str, Any]]]:
+    clean: list[TranscriptSegment] = []
+    drops: list[dict[str, Any]] = []
+
+    for segment in raw_segments:
+        decision = evaluate_segment(
+            text=segment.text,
+            no_speech_prob=segment.no_speech_prob,
+            avg_logprob=segment.avg_logprob,
+            language=segment.language,
+            config=quality_config,
+        )
+        if not decision.keep:
+            drops.append(
+                {
+                    "index": segment.index,
+                    "text": segment.text,
+                    "start": segment.start,
+                    "end": segment.end,
+                    "reason": decision.drop_reason,
+                    "flags": decision.flags,
+                }
+            )
+            continue
+        clean.append(replace(segment, flags=tuple(decision.flags)))
+
+    return clean, drops
 
 
 def extract_wav_chunk(
@@ -279,6 +330,7 @@ def _map_segments(
                 avg_logprob=float(getattr(raw_segment, "avg_logprob", 0.0) or 0.0),
                 no_speech_prob=float(getattr(raw_segment, "no_speech_prob", 0.0) or 0.0),
                 source_vad_index=chunk.source_vad_index,
+                flags=(),
             )
         )
 
@@ -297,6 +349,8 @@ def _empty_result(audio_path: Path, config: WhisperModelConfig, *, chunk_padding
         segments=[],
         transcript="",
         language_distribution={},
+        safety=evaluate_result_safety(transcript_text="", word_count=0, speech_seconds=0.0),
+        quality_drops=[],
     )
 
 

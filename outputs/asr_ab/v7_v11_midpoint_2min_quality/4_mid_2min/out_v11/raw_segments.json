@@ -1,0 +1,588 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_midpoint_2min_quality\\4_mid_2min\\normalized\\4_mid_2min_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 35,
+    "speech_seconds": 75.9,
+    "speech_ratio": 0.6325,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 0.5,
+        "end": 2.7,
+        "duration": 2.2
+      },
+      {
+        "start": 3.4,
+        "end": 5.5,
+        "duration": 2.1
+      },
+      {
+        "start": 6.0,
+        "end": 9.2,
+        "duration": 3.2
+      },
+      {
+        "start": 9.6,
+        "end": 12.3,
+        "duration": 2.7
+      },
+      {
+        "start": 12.9,
+        "end": 16.1,
+        "duration": 3.2
+      },
+      {
+        "start": 16.3,
+        "end": 17.6,
+        "duration": 1.3
+      },
+      {
+        "start": 18.1,
+        "end": 19.8,
+        "duration": 1.7
+      },
+      {
+        "start": 20.3,
+        "end": 25.4,
+        "duration": 5.1
+      },
+      {
+        "start": 25.5,
+        "end": 29.6,
+        "duration": 4.1
+      },
+      {
+        "start": 29.7,
+        "end": 32.1,
+        "duration": 2.4
+      },
+      {
+        "start": 32.4,
+        "end": 32.9,
+        "duration": 0.5
+      },
+      {
+        "start": 35.4,
+        "end": 37.7,
+        "duration": 2.3
+      },
+      {
+        "start": 38.9,
+        "end": 39.7,
+        "duration": 0.8
+      },
+      {
+        "start": 39.9,
+        "end": 41.4,
+        "duration": 1.5
+      },
+      {
+        "start": 48.7,
+        "end": 50.7,
+        "duration": 2.0
+      },
+      {
+        "start": 52.7,
+        "end": 54.0,
+        "duration": 1.3
+      },
+      {
+        "start": 54.5,
+        "end": 56.6,
+        "duration": 2.1
+      },
+      {
+        "start": 57.2,
+        "end": 59.2,
+        "duration": 2.0
+      },
+      {
+        "start": 59.6,
+        "end": 60.3,
+        "duration": 0.7
+      },
+      {
+        "start": 61.1,
+        "end": 62.9,
+        "duration": 1.8
+      },
+      {
+        "start": 64.7,
+        "end": 67.7,
+        "duration": 3.0
+      },
+      {
+        "start": 70.2,
+        "end": 72.3,
+        "duration": 2.1
+      },
+      {
+        "start": 72.8,
+        "end": 73.4,
+        "duration": 0.6
+      },
+      {
+        "start": 73.9,
+        "end": 78.5,
+        "duration": 4.6
+      },
+      {
+        "start": 80.7,
+        "end": 84.1,
+        "duration": 3.4
+      },
+      {
+        "start": 84.5,
+        "end": 87.7,
+        "duration": 3.2
+      },
+      {
+        "start": 88.5,
+        "end": 93.0,
+        "duration": 4.5
+      },
+      {
+        "start": 94.6,
+        "end": 95.2,
+        "duration": 0.6
+      },
+      {
+        "start": 95.4,
+        "end": 97.3,
+        "duration": 1.9
+      },
+      {
+        "start": 106.8,
+        "end": 109.0,
+        "duration": 2.2
+      },
+      {
+        "start": 109.5,
+        "end": 110.9,
+        "duration": 1.4
+      },
+      {
+        "start": 111.5,
+        "end": 113.4,
+        "duration": 1.9
+      },
+      {
+        "start": 114.7,
+        "end": 115.3,
+        "duration": 0.6
+      },
+      {
+        "start": 115.8,
+        "end": 117.5,
+        "duration": 1.7
+      },
+      {
+        "start": 118.8,
+        "end": 120.0,
+        "duration": 1.2
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 29.6,
+      "source_vad_index": 7
+    },
+    {
+      "index": 1,
+      "start": 29.6,
+      "end": 34.15,
+      "source_vad_index": 9
+    },
+    {
+      "index": 2,
+      "start": 34.15,
+      "end": 43.15,
+      "source_vad_index": 11
+    },
+    {
+      "index": 3,
+      "start": 43.15,
+      "end": 52.25,
+      "source_vad_index": 14
+    },
+    {
+      "index": 4,
+      "start": 52.25,
+      "end": 63.35,
+      "source_vad_index": 16
+    },
+    {
+      "index": 5,
+      "start": 63.35,
+      "end": 69.275,
+      "source_vad_index": 20
+    },
+    {
+      "index": 6,
+      "start": 69.275,
+      "end": 80.525,
+      "source_vad_index": 23
+    },
+    {
+      "index": 7,
+      "start": 80.525,
+      "end": 93.0,
+      "source_vad_index": 26
+    },
+    {
+      "index": 8,
+      "start": 93.0,
+      "end": 103.85,
+      "source_vad_index": 28
+    },
+    {
+      "index": 9,
+      "start": 103.85,
+      "end": 114.05,
+      "source_vad_index": 29
+    },
+    {
+      "index": 10,
+      "start": 114.05,
+      "end": 118.15,
+      "source_vad_index": 33
+    },
+    {
+      "index": 11,
+      "start": 118.15,
+      "end": 120.0,
+      "source_vad_index": 34
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 10.78,
+      "duration": 10.78,
+      "text": "Fena değil Martin Rooney bu arada ilk yüzde iyi çıktı ama şimdi biraz yavaşlamış vaziyette son metrelere gücünü saklıyor olabilir.",
+      "language": "tr",
+      "avg_logprob": -0.12396239867666736,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.487719298245614,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 29.6,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 10.98,
+      "end": 17.58,
+      "duration": 6.6,
+      "text": "Son 200 metrenin içine girdi şimdi sporcular son 100 metrede düzlükte daha iyi göreceğiz.",
+      "language": "tr",
+      "avg_logprob": -0.12396239867666736,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.487719298245614,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 29.6,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 18.18,
+      "end": 23.5,
+      "duration": 5.32,
+      "text": "Hollandalı Bonevacca hemen onun yanında Karsen Warholm Bonevacca onu geçti.",
+      "language": "tr",
+      "avg_logprob": -0.12396239867666736,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.487719298245614,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 29.6,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 23.5,
+      "end": 29.5,
+      "duration": 6.0,
+      "text": "Borli de onları zorlamakta. Warholm cevap verdi. Borli geliyor geriden Bonevacca hızını koruyamıyor.",
+      "language": "tr",
+      "avg_logprob": -0.12396239867666736,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.487719298245614,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 29.6,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 29.6,
+      "end": 31.62,
+      "duration": 2.02,
+      "text": "Varol mu ikinciliğe girme çabasında.",
+      "language": "tr",
+      "avg_logprob": -0.442187511920929,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.84,
+      "chunk_index": 1,
+      "chunk_start": 29.6,
+      "chunk_end": 34.15,
+      "source_vad_index": 9,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 32.44,
+      "end": 32.68,
+      "duration": 0.24,
+      "text": "Ve",
+      "language": "tr",
+      "avg_logprob": -0.442187511920929,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.84,
+      "chunk_index": 1,
+      "chunk_start": 29.6,
+      "chunk_end": 34.15,
+      "source_vad_index": 9,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 34.15,
+      "end": 37.31,
+      "duration": 3.16,
+      "text": "Bonevaccia dördüncü bitirdi.",
+      "language": "tr",
+      "avg_logprob": -0.3434244704743226,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8490566037735849,
+      "chunk_index": 2,
+      "chunk_start": 34.15,
+      "chunk_end": 43.15,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 38.97,
+      "end": 40.91,
+      "duration": 1.94,
+      "text": "Derece 44.91.",
+      "language": "tr",
+      "avg_logprob": -0.3434244704743226,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8490566037735849,
+      "chunk_index": 2,
+      "chunk_start": 34.15,
+      "chunk_end": 43.15,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 43.15,
+      "end": 50.53,
+      "duration": 7.38,
+      "text": "Gerçekten ilginç bir yarış izledik.",
+      "language": "tr",
+      "avg_logprob": -0.08923339890316129,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8125,
+      "chunk_index": 3,
+      "chunk_start": 43.15,
+      "chunk_end": 52.25,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 52.25,
+      "end": 56.35,
+      "duration": 4.1,
+      "text": "Hollandalı sporcu son metreleri iyi değerlendiremedi.",
+      "language": "tr",
+      "avg_logprob": -0.2067454268292683,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.0096153846153846,
+      "chunk_index": 4,
+      "chunk_start": 52.25,
+      "chunk_end": 63.35,
+      "source_vad_index": 16,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 57.33,
+      "end": 60.13,
+      "duration": 2.8,
+      "text": "Warhol 44.91 koşuyor.",
+      "language": "tr",
+      "avg_logprob": -0.2067454268292683,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.0096153846153846,
+      "chunk_index": 4,
+      "chunk_start": 52.25,
+      "chunk_end": 63.35,
+      "source_vad_index": 16,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 61.03,
+      "end": 62.67,
+      "duration": 1.64,
+      "text": "45 saniyenin altına indi.",
+      "language": "tr",
+      "avg_logprob": -0.2067454268292683,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.0096153846153846,
+      "chunk_index": 4,
+      "chunk_start": 52.25,
+      "chunk_end": 63.35,
+      "source_vad_index": 16,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 63.35,
+      "end": 67.43,
+      "duration": 4.08,
+      "text": "Evet Slovenya'dan Luka Janecic.",
+      "language": "tr",
+      "avg_logprob": -0.24623325041362218,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.7948717948717948,
+      "chunk_index": 5,
+      "chunk_start": 63.35,
+      "chunk_end": 69.275,
+      "source_vad_index": 20,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 69.275,
+      "end": 78.015,
+      "duration": 8.74,
+      "text": "Bu yıl 45.38 koşmuştu. O da 45 saniyenin altını koşuyor ve kendisi adına sezonun en iyi derecesini yapıyor.",
+      "language": "tr",
+      "avg_logprob": -0.0898951499869949,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.0648148148148149,
+      "chunk_index": 6,
+      "chunk_start": 69.275,
+      "chunk_end": 80.525,
+      "source_vad_index": 23,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 80.525,
+      "end": 92.865,
+      "duration": 12.34,
+      "text": "Bonevaçya 45-39 finalin dışında kalacak çünkü 45-14 ve 45-17 var ilk seriden ve İsrailli sporcu dördüncü olmasına rağmen Donald Blair Sanford.",
+      "language": "tr",
+      "avg_logprob": -0.12731185737921266,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.099290780141844,
+      "chunk_index": 7,
+      "chunk_start": 80.525,
+      "chunk_end": 93.0,
+      "source_vad_index": 26,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 93.0,
+      "end": 96.88,
+      "duration": 3.88,
+      "text": "O da final biletini alamıyor.",
+      "language": "tr",
+      "avg_logprob": -0.15309494733810425,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.7894736842105263,
+      "chunk_index": 8,
+      "chunk_start": 93.0,
+      "chunk_end": 103.85,
+      "source_vad_index": 28,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 103.85,
+      "end": 113.11,
+      "duration": 9.26,
+      "text": "Kevin Borley değerli seyirciler burada 45.07 ile final biletini almayı başardı.",
+      "language": "tr",
+      "avg_logprob": -0.14048032186649465,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.9431818181818182,
+      "chunk_index": 9,
+      "chunk_start": 103.85,
+      "chunk_end": 114.05,
+      "source_vad_index": 29,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 114.05,
+      "end": 117.25,
+      "duration": 3.2,
+      "text": "Diğer finalist ise ilk seriden.",
+      "language": "tr",
+      "avg_logprob": -0.16715495412548384,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8,
+      "chunk_index": 10,
+      "chunk_start": 114.05,
+      "chunk_end": 118.15,
+      "source_vad_index": 33,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 118.15,
+      "end": 119.95,
+      "duration": 1.8,
+      "text": "45-14 koşan.",
+      "language": "tr",
+      "avg_logprob": -0.2367621527777778,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.6190476190476191,
+      "chunk_index": 11,
+      "chunk_start": 118.15,
+      "chunk_end": 120.0,
+      "source_vad_index": 34,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

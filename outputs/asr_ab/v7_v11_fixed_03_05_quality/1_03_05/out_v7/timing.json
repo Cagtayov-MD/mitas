@@ -1,0 +1,13 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_fixed_03_05_quality\\1_03_05\\normalized\\1_03_05_16000hz_mono_s16.wav",
+  "load_vad_seconds": 4.459,
+  "load_model_seconds": 3.462,
+  "transcribe_seconds": 3.892,
+  "total_seconds": 12.002,
+  "model_call_count": 5,
+  "raw_segment_count": 7,
+  "clean_segment_count": 6
+}

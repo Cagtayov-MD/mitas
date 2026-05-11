@@ -48,6 +48,7 @@ def main() -> None:
         raw_path = output_dir / "raw_segments.json"
         clean_path = output_dir / "clean_segments.json"
         filter_path = output_dir / "filter_report.json"
+        safety_path = output_dir / "safety_report.json"
         timing_path = output_dir / "timing.json"
         if not transcript_path.exists():
             continue
@@ -56,6 +57,7 @@ def main() -> None:
         raw = json.loads(raw_path.read_text(encoding="utf-8"))
         clean = json.loads(clean_path.read_text(encoding="utf-8"))
         filter_report = json.loads(filter_path.read_text(encoding="utf-8"))
+        safety_report = json.loads(safety_path.read_text(encoding="utf-8")) if safety_path.exists() else None
         timing = json.loads(timing_path.read_text(encoding="utf-8"))
         bad_hits = {token: token.lower() in transcript.lower() for token in BAD_TOKENS}
         code_switch_hits = {token: token.lower() in transcript.lower() for token in CODE_SWITCH_TOKENS}
@@ -71,7 +73,10 @@ def main() -> None:
                 "clean_segments": len(clean["segments"]),
                 "dropped_segments": filter_report["dropped_segment_count"],
                 "drop_reasons": filter_report["drop_reasons"],
+                "flags": filter_report.get("flags", {}),
                 "languages_clean": filter_report["languages_clean"],
+                "safe": safety_report["safe"] if safety_report is not None else None,
+                "failure_reason": safety_report["failure_reason"] if safety_report is not None else None,
                 "bad_token_hits": bad_hits,
                 "bad_token_count": sum(1 for hit in bad_hits.values() if hit),
                 "code_switch_hits": code_switch_hits,
@@ -102,12 +107,12 @@ def write_markdown(path: Path, comparison: dict[str, object]) -> None:
         f"- Reference: `{comparison['reference_path']}`",
         f"- Output root: `{comparison['output_root']}`",
         "",
-        "| Variant | Raw | Clean | Dropped | Bad hits | Code-switch | Similarity | Word F1 | Calls | Total s | Drop reasons | Languages |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|",
+        "| Variant | Raw | Clean | Dropped | Safe | Bad hits | Code-switch | Similarity | Word F1 | Calls | Total s | Drop reasons | Flags | Languages |",
+        "|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---|---|---|",
     ]
     for row in rows:
         lines.append(
-            "| {variant} | {raw_segments} | {clean_segments} | {dropped_segments} | {bad_token_count} | {code_switch_count} | {reference_similarity:.4f} | {word_overlap_f1:.4f} | {model_call_count} | {total_seconds:.3f} | `{drop_reasons}` | `{languages_clean}` |".format(
+            "| {variant} | {raw_segments} | {clean_segments} | {dropped_segments} | {safe} | {bad_token_count} | {code_switch_count} | {reference_similarity:.4f} | {word_overlap_f1:.4f} | {model_call_count} | {total_seconds:.3f} | `{drop_reasons}` | `{flags}` | `{languages_clean}` |".format(
                 **row
             )
         )
@@ -134,6 +139,7 @@ def write_markdown(path: Path, comparison: dict[str, object]) -> None:
         lines.append("")
         lines.append(f"- Bad token hits: `{row['bad_token_hits']}`")
         lines.append(f"- Code-switch hits: `{row['code_switch_hits']}`")
+        lines.append(f"- Safety: safe=`{row['safe']}`, failure=`{row['failure_reason']}`")
         lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 

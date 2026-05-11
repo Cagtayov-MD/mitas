@@ -27,12 +27,13 @@ class _FakeInfo:
 
 
 class _FakeWhisperModel:
-    def __init__(self) -> None:
+    def __init__(self, segments: list[_FakeSegment] | None = None) -> None:
         self.calls: list[dict[str, Any]] = []
+        self.segments = segments or [_FakeSegment(0.1, 0.6, " Merhaba dünya ", -0.2, 0.01)]
 
     def transcribe(self, audio: str, **kwargs: Any) -> tuple[list[_FakeSegment], _FakeInfo]:
         self.calls.append({"audio": audio, **kwargs})
-        return ([_FakeSegment(0.1, 0.6, " Merhaba dünya ", -0.2, 0.01)], _FakeInfo("tr"))
+        return (self.segments, _FakeInfo("tr"))
 
 
 def test_transcribe_vad_segments_maps_offsets_and_forces_multilingual_true(tmp_path: Path) -> None:
@@ -88,6 +89,30 @@ def test_transcribe_vad_segments_empty_vad_returns_empty_without_model_call(tmp_
     assert result.segments == []
     assert result.transcript == ""
     assert result.language_distribution == {}
+
+
+def test_transcribe_vad_segments_applies_quality_gate(tmp_path: Path) -> None:
+    wav_path = tmp_path / "normalized.wav"
+    _write_silent_wav(wav_path, sample_rate=16_000, channels=1, seconds=2.0)
+    model = _FakeWhisperModel(
+        [
+            _FakeSegment(0.1, 0.4, "İzlediğiniz için teşekkür ederim", -0.2, 0.01, "tr"),
+            _FakeSegment(0.5, 1.0, "Evet ben söyledim", -0.4, 0.7, "tr"),
+        ]
+    )
+
+    result = transcribe_vad_segments(
+        wav_path,
+        [VadSpeechSegment(start=0.0, end=2.0, duration=2.0)],
+        model=model,
+        chunk_output_dir=tmp_path / "chunks",
+    )
+
+    assert result.transcript == "Evet ben söyledim"
+    assert result.quality_drops[0]["reason"].startswith("stock_artifact")
+    assert result.segments[0].flags == ("high_no_speech_prob", "low_confidence")
+    assert result.safety is not None
+    assert result.safety.safe
 
 
 def test_transcribe_vad_segments_rejects_non_normalized_wav_before_model_call(tmp_path: Path) -> None:

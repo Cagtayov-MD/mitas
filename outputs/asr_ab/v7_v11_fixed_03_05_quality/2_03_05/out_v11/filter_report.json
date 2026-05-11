@@ -1,0 +1,17 @@
+{
+  "raw_segment_count": 45,
+  "clean_segment_count": 44,
+  "dropped_segment_count": 1,
+  "drop_reasons": {
+    "long_token_artifact:length=223": 1
+  },
+  "flags": {
+    "long_token_artifact": 1
+  },
+  "languages_raw": {
+    "tr": 45
+  },
+  "languages_clean": {
+    "tr": 44
+  }
+}

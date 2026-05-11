@@ -1,0 +1,170 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_midpoint_2min_quality\\trt_haber_1_mid_2min\\normalized\\trt_haber_1_mid_2min_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 47.83,
+    "speech_segments_count": 3,
+    "speech_seconds": 33.0,
+    "speech_ratio": 0.689944,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 0.1,
+        "end": 14.5,
+        "duration": 14.4
+      },
+      {
+        "start": 18.2,
+        "end": 26.1,
+        "duration": 7.9
+      },
+      {
+        "start": 27.9,
+        "end": 38.6,
+        "duration": 10.7
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 15.2,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 15.2,
+      "end": 27.575,
+      "source_vad_index": 1
+    },
+    {
+      "index": 2,
+      "start": 27.575,
+      "end": 40.25,
+      "source_vad_index": 2
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.6,
+      "duration": 3.6,
+      "text": "F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil.",
+      "language": "tr",
+      "avg_logprob": -0.07914595280519941,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.260204081632653,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 15.2,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 3.74,
+      "end": 8.32,
+      "duration": 4.58,
+      "text": "Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor.",
+      "language": "tr",
+      "avg_logprob": -0.07914595280519941,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.260204081632653,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 15.2,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 8.62,
+      "end": 11.8,
+      "duration": 3.18,
+      "text": "Bazen terörle mücadele, bazense keşif ve istihbarat.",
+      "language": "tr",
+      "avg_logprob": -0.07914595280519941,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.260204081632653,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 15.2,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 12.02,
+      "end": 14.04,
+      "duration": 2.02,
+      "text": "Bu kez ise görev Efes 2026.",
+      "language": "tr",
+      "avg_logprob": -0.07914595280519941,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.260204081632653,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 15.2,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 15.2,
+      "end": 25.96,
+      "duration": 10.76,
+      "text": "Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı.",
+      "language": "tr",
+      "avg_logprob": -0.10312500111758709,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.0,
+      "chunk_index": 1,
+      "chunk_start": 15.2,
+      "chunk_end": 27.575,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 27.575,
+      "end": 32.075,
+      "duration": 4.5,
+      "text": "Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor.",
+      "language": "tr",
+      "avg_logprob": -0.06963778544556011,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2333333333333334,
+      "chunk_index": 2,
+      "chunk_start": 27.575,
+      "chunk_end": 40.25,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 32.375,
+      "end": 37.815,
+      "duration": 5.44,
+      "text": "Gerisi onların havadaki zorlu görevleri büyük bir kolaylıkla, ustalıkla gerçekleştirmesinde.",
+      "language": "tr",
+      "avg_logprob": -0.06963778544556011,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2333333333333334,
+      "chunk_index": 2,
+      "chunk_start": 27.575,
+      "chunk_end": 40.25,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

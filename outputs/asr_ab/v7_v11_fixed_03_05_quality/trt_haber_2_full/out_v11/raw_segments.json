@@ -1,0 +1,562 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_fixed_03_05_quality\\trt_haber_2_full\\normalized\\trt_haber_2_full_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 146.704,
+    "speech_segments_count": 20,
+    "speech_seconds": 126.0,
+    "speech_ratio": 0.858872,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 6.9,
+        "end": 18.9,
+        "duration": 12.0
+      },
+      {
+        "start": 19.1,
+        "end": 27.2,
+        "duration": 8.1
+      },
+      {
+        "start": 27.4,
+        "end": 46.0,
+        "duration": 18.6
+      },
+      {
+        "start": 46.1,
+        "end": 51.1,
+        "duration": 5.0
+      },
+      {
+        "start": 51.9,
+        "end": 54.5,
+        "duration": 2.6
+      },
+      {
+        "start": 54.7,
+        "end": 56.6,
+        "duration": 1.9
+      },
+      {
+        "start": 57.2,
+        "end": 70.5,
+        "duration": 13.3
+      },
+      {
+        "start": 71.0,
+        "end": 73.7,
+        "duration": 2.7
+      },
+      {
+        "start": 73.8,
+        "end": 75.4,
+        "duration": 1.6
+      },
+      {
+        "start": 75.6,
+        "end": 79.4,
+        "duration": 3.8
+      },
+      {
+        "start": 79.6,
+        "end": 92.8,
+        "duration": 13.2
+      },
+      {
+        "start": 93.5,
+        "end": 96.5,
+        "duration": 3.0
+      },
+      {
+        "start": 97.1,
+        "end": 99.3,
+        "duration": 2.2
+      },
+      {
+        "start": 99.6,
+        "end": 103.4,
+        "duration": 3.8
+      },
+      {
+        "start": 104.2,
+        "end": 114.8,
+        "duration": 10.6
+      },
+      {
+        "start": 115.1,
+        "end": 119.2,
+        "duration": 4.1
+      },
+      {
+        "start": 119.4,
+        "end": 122.1,
+        "duration": 2.7
+      },
+      {
+        "start": 122.2,
+        "end": 124.9,
+        "duration": 2.7
+      },
+      {
+        "start": 125.4,
+        "end": 130.2,
+        "duration": 4.8
+      },
+      {
+        "start": 130.4,
+        "end": 139.7,
+        "duration": 9.3
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 5.9,
+      "end": 27.3,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 27.3,
+      "end": 56.9,
+      "source_vad_index": 2
+    },
+    {
+      "index": 2,
+      "start": 56.9,
+      "end": 79.5,
+      "source_vad_index": 6
+    },
+    {
+      "index": 3,
+      "start": 79.5,
+      "end": 103.8,
+      "source_vad_index": 10
+    },
+    {
+      "index": 4,
+      "start": 103.8,
+      "end": 130.2,
+      "source_vad_index": 14
+    },
+    {
+      "index": 5,
+      "start": 130.2,
+      "end": 143.2,
+      "source_vad_index": 19
+    }
+  ],
+  "segments": [
+    {
+      "start": 5.9,
+      "end": 12.62,
+      "duration": 6.72,
+      "text": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti.",
+      "language": "tr",
+      "avg_logprob": -0.10248162122625931,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4393305439330544,
+      "chunk_index": 0,
+      "chunk_start": 5.9,
+      "chunk_end": 27.3,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 12.78,
+      "end": 14.22,
+      "duration": 1.44,
+      "text": "Hastalara o empati yapabilme.",
+      "language": "tr",
+      "avg_logprob": -0.10248162122625931,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4393305439330544,
+      "chunk_index": 0,
+      "chunk_start": 5.9,
+      "chunk_end": 27.3,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 14.28,
+      "end": 18.78,
+      "duration": 4.5,
+      "text": "Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları.",
+      "language": "tr",
+      "avg_logprob": -0.10248162122625931,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4393305439330544,
+      "chunk_index": 0,
+      "chunk_start": 5.9,
+      "chunk_end": 27.3,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 19.12,
+      "end": 26.78,
+      "duration": 7.66,
+      "text": "Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar.",
+      "language": "tr",
+      "avg_logprob": -0.10248162122625931,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4393305439330544,
+      "chunk_index": 0,
+      "chunk_start": 5.9,
+      "chunk_end": 27.3,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 27.3,
+      "end": 40.46,
+      "duration": 13.16,
+      "text": "Çam ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar.",
+      "language": "tr",
+      "avg_logprob": -0.044921874859423006,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.572072072072072,
+      "chunk_index": 1,
+      "chunk_start": 27.3,
+      "chunk_end": 56.9,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 40.46,
+      "end": 50.74,
+      "duration": 10.28,
+      "text": "Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca sevgiyle büyütmeye çalışıyorlar.",
+      "language": "tr",
+      "avg_logprob": -0.044921874859423006,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.572072072072072,
+      "chunk_index": 1,
+      "chunk_start": 27.3,
+      "chunk_end": 56.9,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 56.9,
+      "end": 60.82,
+      "duration": 3.92,
+      "text": "Çocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim.",
+      "language": "tr",
+      "avg_logprob": -0.08328919826170146,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4007782101167314,
+      "chunk_index": 2,
+      "chunk_start": 56.9,
+      "chunk_end": 79.5,
+      "source_vad_index": 6,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 60.9,
+      "end": 67.82,
+      "duration": 6.92,
+      "text": "Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım.",
+      "language": "tr",
+      "avg_logprob": -0.08328919826170146,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4007782101167314,
+      "chunk_index": 2,
+      "chunk_start": 56.9,
+      "chunk_end": 79.5,
+      "source_vad_index": 6,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 68.24,
+      "end": 70.22,
+      "duration": 1.98,
+      "text": "Yürüyüşünü hiçbir zaman göremedim.",
+      "language": "tr",
+      "avg_logprob": -0.08328919826170146,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4007782101167314,
+      "chunk_index": 2,
+      "chunk_start": 56.9,
+      "chunk_end": 79.5,
+      "source_vad_index": 6,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 71.02,
+      "end": 75.18,
+      "duration": 4.16,
+      "text": "Ayşe Ceren Yıldız'a 6 yıllık hekim, 20 aylık kızı var.",
+      "language": "tr",
+      "avg_logprob": -0.08328919826170146,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4007782101167314,
+      "chunk_index": 2,
+      "chunk_start": 56.9,
+      "chunk_end": 79.5,
+      "source_vad_index": 6,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 75.7,
+      "end": 79.22,
+      "duration": 3.52,
+      "text": "Doğumu başladığında poliklinikte hasta muayene ediyordu.",
+      "language": "tr",
+      "avg_logprob": -0.08328919826170146,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4007782101167314,
+      "chunk_index": 2,
+      "chunk_start": 56.9,
+      "chunk_end": 79.5,
+      "source_vad_index": 6,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 79.5,
+      "end": 82.88,
+      "duration": 3.38,
+      "text": "Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim.",
+      "language": "tr",
+      "avg_logprob": -0.08330965942957184,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4935064935064934,
+      "chunk_index": 3,
+      "chunk_start": 79.5,
+      "chunk_end": 103.8,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 83.02,
+      "end": 88.64,
+      "duration": 5.62,
+      "text": "Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı.",
+      "language": "tr",
+      "avg_logprob": -0.08330965942957184,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4935064935064934,
+      "chunk_index": 3,
+      "chunk_start": 79.5,
+      "chunk_end": 103.8,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 88.9,
+      "end": 92.62,
+      "duration": 3.72,
+      "text": "Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz.",
+      "language": "tr",
+      "avg_logprob": -0.08330965942957184,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4935064935064934,
+      "chunk_index": 3,
+      "chunk_start": 79.5,
+      "chunk_end": 103.8,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 96.52,
+      "end": 99.18,
+      "duration": 2.66,
+      "text": "Anne olmak zaten çok büyük bir sorumluluk.",
+      "language": "tr",
+      "avg_logprob": -0.08330965942957184,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4935064935064934,
+      "chunk_index": 3,
+      "chunk_start": 79.5,
+      "chunk_end": 103.8,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 99.18,
+      "end": 103.18,
+      "duration": 4.0,
+      "text": "Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor.",
+      "language": "tr",
+      "avg_logprob": -0.08330965942957184,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4935064935064934,
+      "chunk_index": 3,
+      "chunk_start": 79.5,
+      "chunk_end": 103.8,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 103.8,
+      "end": 108.86,
+      "duration": 5.06,
+      "text": "Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var.",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 109.64,
+      "end": 114.62,
+      "duration": 4.98,
+      "text": "İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz.",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 115.08,
+      "end": 118.94,
+      "duration": 3.86,
+      "text": "Şadiye Hande Soyer somunsuysa çiçeği burnunda bir anne.",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 119.44,
+      "end": 124.48,
+      "duration": 5.04,
+      "text": "Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor.",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 125.34,
+      "end": 126.88,
+      "duration": 1.54,
+      "text": "Annelik mesaisi hiç bitmiyor.",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 127.94,
+      "end": 130.2,
+      "duration": 2.26,
+      "text": "Eğer gözüm arkada kalmadan işe gelip...",
+      "language": "tr",
+      "avg_logprob": -0.1506696469963543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4362934362934363,
+      "chunk_index": 4,
+      "chunk_start": 103.8,
+      "chunk_end": 130.2,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 130.2,
+      "end": 136.78,
+      "duration": 6.58,
+      "text": "Hem hastalara şifa olabiliyorsam hem kendi annem hem eşimin annesi bana destek olduğu için devam edebiliyorum.",
+      "language": "tr",
+      "avg_logprob": -0.14883609207309023,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2727272727272727,
+      "chunk_index": 5,
+      "chunk_start": 130.2,
+      "chunk_end": 143.2,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 137.34,
+      "end": 139.54,
+      "duration": 2.2,
+      "text": "Anneanneler, babaanneler iyi ki varlar.",
+      "language": "tr",
+      "avg_logprob": -0.14883609207309023,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2727272727272727,
+      "chunk_index": 5,
+      "chunk_start": 130.2,
+      "chunk_end": 143.2,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

@@ -11,6 +11,16 @@ from core.pipelines.asr.diarize import (
     segments_from_pyannote_output,
 )
 from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, NormalizeResult, normalize_audio, probe_audio_stream
+from core.pipelines.asr.quality import (
+    QualityConfig,
+    ResultSafetyDecision,
+    SegmentQualityDecision,
+    detect_repetition_collapse,
+    detect_word_density_anomaly,
+    evaluate_result_safety,
+    evaluate_segment,
+    is_stock_artifact,
+)
 from core.pipelines.asr.transcribe import (
     AudioTranscribeError,
     TranscriptSegment,
@@ -33,6 +43,9 @@ __all__ = [
     "DiarizationSegment",
     "NormalizeResult",
     "PyannotePipelineConfig",
+    "QualityConfig",
+    "ResultSafetyDecision",
+    "SegmentQualityDecision",
     "TranscriptSegment",
     "TranscribeChunk",
     "TranscribeResult",
@@ -41,7 +54,12 @@ __all__ = [
     "VadSpeechSegment",
     "build_transcribe_chunks",
     "configure_ffmpeg_shared_dll_directory",
+    "detect_repetition_collapse",
+    "detect_word_density_anomaly",
     "diarize_audio",
+    "evaluate_result_safety",
+    "evaluate_segment",
+    "is_stock_artifact",
     "load_whisper_model",
     "load_pyannote_pipeline",
     "normalize_audio",

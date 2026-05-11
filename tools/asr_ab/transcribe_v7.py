@@ -9,6 +9,7 @@ CONFIG = VariantConfig(
     output_name="out_v7",
     chunk_builder=build_merged_chunks,
     transcribe_kwargs=no_prompt_tr_kwargs(condition_on_previous_text=True),
+    exit_after_write=True,
 )
 
 

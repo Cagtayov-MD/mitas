@@ -1,0 +1,13 @@
+{
+  "raw_segment_count": 19,
+  "clean_segment_count": 19,
+  "dropped_segment_count": 0,
+  "drop_reasons": {},
+  "flags": {},
+  "languages_raw": {
+    "tr": 19
+  },
+  "languages_clean": {
+    "tr": 19
+  }
+}

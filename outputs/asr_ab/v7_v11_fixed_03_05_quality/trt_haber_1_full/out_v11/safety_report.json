@@ -1,0 +1,10 @@
+{
+  "safe": true,
+  "failure_reason": null,
+  "diagnostics": {
+    "max_run": 2,
+    "repeated_token": "tek",
+    "max_token_length": 20,
+    "words_per_second": 1.92
+  }
+}

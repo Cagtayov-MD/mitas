@@ -1,0 +1,176 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_midpoint_2min_quality\\trt_haber_3_mid_2min\\normalized\\trt_haber_3_mid_2min_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 37.726,
+    "speech_segments_count": 2,
+    "speech_seconds": 31.4,
+    "speech_ratio": 0.832317,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 21.9,
+        "duration": 21.9
+      },
+      {
+        "start": 23.6,
+        "end": 33.1,
+        "duration": 9.5
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 22.125,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 22.125,
+      "end": 35.35,
+      "source_vad_index": 1
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 5.24,
+      "duration": 5.24,
+      "text": "Arkadaşımız Hümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık, getirdik ekranlarınıza.",
+      "language": "tr",
+      "avg_logprob": -0.05830144517275752,
+      "no_speech_prob": 0.01824951171875,
+      "compression_ratio": 1.4982698961937717,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 22.125,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 5.32,
+      "end": 10.48,
+      "duration": 5.16,
+      "text": "Şimdi Ardahan ve Karşı sınırları arasında bulunan Çıldır Gölü'nün de yüzeyi kısmen buz tuttu.",
+      "language": "tr",
+      "avg_logprob": -0.05830144517275752,
+      "no_speech_prob": 0.01824951171875,
+      "compression_ratio": 1.4982698961937717,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 22.125,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 10.84,
+      "end": 16.72,
+      "duration": 5.88,
+      "text": "Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı.",
+      "language": "tr",
+      "avg_logprob": -0.05830144517275752,
+      "no_speech_prob": 0.01824951171875,
+      "compression_ratio": 1.4982698961937717,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 22.125,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 17.28,
+      "end": 21.78,
+      "duration": 4.5,
+      "text": "Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı.",
+      "language": "tr",
+      "avg_logprob": -0.05830144517275752,
+      "no_speech_prob": 0.01824951171875,
+      "compression_ratio": 1.4982698961937717,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 22.125,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 22.965,
+      "end": 26.245,
+      "duration": 3.28,
+      "text": "Bu görüntülerle noktalıyoruz bugün haber ajandasını.",
+      "language": "tr",
+      "avg_logprob": -0.11564700956075964,
+      "no_speech_prob": 0.0216064453125,
+      "compression_ratio": 1.238888888888889,
+      "chunk_index": 1,
+      "chunk_start": 22.125,
+      "chunk_end": 35.35,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 26.365,
+      "end": 28.785,
+      "duration": 2.42,
+      "text": "Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız.",
+      "language": "tr",
+      "avg_logprob": -0.11564700956075964,
+      "no_speech_prob": 0.0216064453125,
+      "compression_ratio": 1.238888888888889,
+      "chunk_index": 1,
+      "chunk_start": 22.125,
+      "chunk_end": 35.35,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 28.925,
+      "end": 31.545,
+      "duration": 2.62,
+      "text": "Sizleri de ekranlarınızın başına bekliyoruz efendim.",
+      "language": "tr",
+      "avg_logprob": -0.11564700956075964,
+      "no_speech_prob": 0.0216064453125,
+      "compression_ratio": 1.238888888888889,
+      "chunk_index": 1,
+      "chunk_start": 22.125,
+      "chunk_end": 35.35,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 31.645,
+      "end": 32.965,
+      "duration": 1.32,
+      "text": "İyi akşamlar diliyoruz. Hoşçakalın.",
+      "language": "tr",
+      "avg_logprob": -0.11564700956075964,
+      "no_speech_prob": 0.0216064453125,
+      "compression_ratio": 1.238888888888889,
+      "chunk_index": 1,
+      "chunk_start": 22.125,
+      "chunk_end": 35.35,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

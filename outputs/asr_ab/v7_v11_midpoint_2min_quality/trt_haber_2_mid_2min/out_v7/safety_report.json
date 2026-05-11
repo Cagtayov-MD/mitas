@@ -1,0 +1,10 @@
+{
+  "safe": true,
+  "failure_reason": null,
+  "diagnostics": {
+    "max_run": 1,
+    "repeated_token": "20",
+    "max_token_length": 15,
+    "words_per_second": 2.07
+  }
+}

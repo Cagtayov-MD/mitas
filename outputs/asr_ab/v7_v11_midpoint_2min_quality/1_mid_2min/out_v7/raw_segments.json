@@ -1,0 +1,15 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_midpoint_2min_quality\\1_mid_2min\\normalized\\1_mid_2min_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 85.84,
+    "speech_segments_count": 0,
+    "speech_seconds": 0,
+    "speech_ratio": 0.0,
+    "threshold": 0.5,
+    "segments": []
+  },
+  "chunks": [],
+  "segments": []
+}

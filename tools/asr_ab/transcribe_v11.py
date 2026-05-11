@@ -20,6 +20,7 @@ CONFIG = VariantConfig(
     chunk_builder=build_merged_chunks,
     transcribe_kwargs=no_prompt_tr_kwargs(condition_on_previous_text=True),
     model_path=BASE_TURBO_CT2_MODEL,
+    exit_after_write=True,
 )
 
 

@@ -1,0 +1,10 @@
+{
+  "safe": true,
+  "failure_reason": null,
+  "diagnostics": {
+    "max_run": 1,
+    "repeated_token": "Fena",
+    "max_token_length": 17,
+    "words_per_second": 2.0
+  }
+}

@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable, Iterable, Sequence
 
 from core.pipelines.asr.normalize import PROJECT_ROOT, TARGET_CODEC_NAME, TARGET_SAMPLE_RATE
+from core.pipelines.asr.quality import evaluate_result_safety, evaluate_segment
 from core.pipelines.asr.transcribe import DEFAULT_MODEL_PATH, WhisperModelConfig, load_whisper_model
 from core.pipelines.asr.vad import VadSpeechSegment, read_wav_duration_seconds, run_silero_vad
 
@@ -226,18 +227,14 @@ def build_single_pass_chunk(vad_segments: Sequence[VadSpeechSegment], audio_dura
 
 
 def keep_segment(segment: dict[str, Any]) -> tuple[bool, str | None]:
-    text = str(segment.get("text") or "").strip()
-    if len(text) < 2:
-        return False, "too_short"
-    if float(segment.get("no_speech_prob") or 0.0) > 0.6:
-        return False, "no_speech"
-    if float(segment.get("avg_logprob") or 0.0) < -1.0:
-        return False, "low_logprob"
-    if segment.get("language") not in {"tr", "en", None}:
-        return False, "unexpected_lang"
-    if not any(character.isalnum() for character in text):
-        return False, "no_alnum"
-    return True, "low_confidence" if float(segment.get("no_speech_prob") or 0.0) > 0.3 else None
+    decision = evaluate_segment(
+        text=str(segment.get("text") or ""),
+        no_speech_prob=float(segment.get("no_speech_prob") or 0.0),
+        avg_logprob=float(segment.get("avg_logprob") or 0.0),
+        language=segment.get("language"),
+    )
+    segment["flags"] = list(decision.flags)
+    return decision.keep, decision.drop_reason
 
 
 def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, ffmpeg_executable: Path) -> None:
@@ -302,6 +299,12 @@ def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, f
             raw_segments.append(segment)
 
     clean_segments = [segment for segment in raw_segments if segment["kept"]]
+    transcript = transcript_from_segments(clean_segments)
+    safety_report = evaluate_result_safety(
+        transcript_text=transcript,
+        word_count=len(transcript.split()),
+        speech_seconds=vad_result.speech_seconds if vad_result is not None else audio_duration,
+    )
     timing["transcribe_seconds"] = round(transcribe_seconds, 3)
     timing["total_seconds"] = round(time.perf_counter() - total_started, 3)
     timing["model_call_count"] = len(chunks)
@@ -312,10 +315,11 @@ def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, f
     write_json(output_dir / "raw_segments.json", build_output_payload(config, audio_path, vad_result, chunks, raw_segments))
     write_json(output_dir / "clean_segments.json", build_output_payload(config, audio_path, vad_result, chunks, clean_segments))
     write_json(output_dir / "filter_report.json", filter_report)
+    write_json(output_dir / "safety_report.json", asdict(safety_report))
     write_json(output_dir / "timing.json", timing)
     write_clean_transcript(output_dir / "clean_transcript.txt", clean_segments)
     if config.exit_after_write:
-        # The converted Selimc CT2 model sometimes aborts during native CUDA teardown after outputs are written.
+        # Some CT2/CUDA runs abort during native teardown after all outputs are written.
         sys.stdout.flush()
         sys.stderr.flush()
         os._exit(0)
@@ -347,10 +351,8 @@ def apply_filter(segment: dict[str, Any]) -> None:
     segment["kept"] = kept
     if kept:
         segment["drop_reason"] = None
-        segment["flags"] = [reason] if reason else []
     else:
         segment["drop_reason"] = reason
-        segment["flags"] = [reason] if reason else []
 
 
 def build_filter_report(raw_segments: Sequence[dict[str, Any]], clean_segments: Sequence[dict[str, Any]]) -> dict[str, Any]:
@@ -396,6 +398,10 @@ def build_output_payload(
 
 
 def write_clean_transcript(path: Path, clean_segments: Sequence[dict[str, Any]]) -> None:
+    path.write_text(transcript_from_segments(clean_segments) + "\n", encoding="utf-8")
+
+
+def transcript_from_segments(clean_segments: Sequence[dict[str, Any]]) -> str:
     paragraphs: list[str] = []
     current: list[str] = []
     previous_end: float | None = None
@@ -411,7 +417,7 @@ def write_clean_transcript(path: Path, clean_segments: Sequence[dict[str, Any]])
     if current:
         paragraphs.append(clean_join(current))
 
-    path.write_text("\n\n".join(paragraphs).strip() + "\n", encoding="utf-8")
+    return "\n\n".join(paragraphs).strip()
 
 
 def clean_join(parts: Sequence[str]) -> str:

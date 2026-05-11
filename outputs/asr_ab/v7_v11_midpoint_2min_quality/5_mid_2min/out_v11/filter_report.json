@@ -1,0 +1,17 @@
+{
+  "raw_segment_count": 22,
+  "clean_segment_count": 21,
+  "dropped_segment_count": 1,
+  "drop_reasons": {
+    "stock_artifact:altyazı m.k.": 1
+  },
+  "flags": {
+    "stock_artifact": 1
+  },
+  "languages_raw": {
+    "tr": 22
+  },
+  "languages_clean": {
+    "tr": 21
+  }
+}

@@ -1,0 +1,728 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_midpoint_2min_quality\\3_mid_2min\\normalized\\3_mid_2min_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 30,
+    "speech_seconds": 54.2,
+    "speech_ratio": 0.451667,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 5.1,
+        "end": 7.0,
+        "duration": 1.9
+      },
+      {
+        "start": 8.8,
+        "end": 9.8,
+        "duration": 1.0
+      },
+      {
+        "start": 10.2,
+        "end": 11.6,
+        "duration": 1.4
+      },
+      {
+        "start": 12.3,
+        "end": 13.4,
+        "duration": 1.1
+      },
+      {
+        "start": 14.8,
+        "end": 15.3,
+        "duration": 0.5
+      },
+      {
+        "start": 15.9,
+        "end": 17.6,
+        "duration": 1.7
+      },
+      {
+        "start": 18.3,
+        "end": 18.7,
+        "duration": 0.4
+      },
+      {
+        "start": 23.6,
+        "end": 24.8,
+        "duration": 1.2
+      },
+      {
+        "start": 26.2,
+        "end": 33.7,
+        "duration": 7.5
+      },
+      {
+        "start": 38.9,
+        "end": 41.6,
+        "duration": 2.7
+      },
+      {
+        "start": 46.5,
+        "end": 48.6,
+        "duration": 2.1
+      },
+      {
+        "start": 50.8,
+        "end": 52.6,
+        "duration": 1.8
+      },
+      {
+        "start": 54.8,
+        "end": 56.8,
+        "duration": 2.0
+      },
+      {
+        "start": 57.0,
+        "end": 59.4,
+        "duration": 2.4
+      },
+      {
+        "start": 60.3,
+        "end": 62.0,
+        "duration": 1.7
+      },
+      {
+        "start": 62.1,
+        "end": 64.3,
+        "duration": 2.2
+      },
+      {
+        "start": 65.4,
+        "end": 66.0,
+        "duration": 0.6
+      },
+      {
+        "start": 67.1,
+        "end": 68.9,
+        "duration": 1.8
+      },
+      {
+        "start": 69.6,
+        "end": 70.4,
+        "duration": 0.8
+      },
+      {
+        "start": 71.1,
+        "end": 75.4,
+        "duration": 4.3
+      },
+      {
+        "start": 76.4,
+        "end": 78.4,
+        "duration": 2.0
+      },
+      {
+        "start": 78.7,
+        "end": 80.7,
+        "duration": 2.0
+      },
+      {
+        "start": 95.6,
+        "end": 96.3,
+        "duration": 0.7
+      },
+      {
+        "start": 97.2,
+        "end": 98.7,
+        "duration": 1.5
+      },
+      {
+        "start": 101.4,
+        "end": 102.4,
+        "duration": 1.0
+      },
+      {
+        "start": 103.8,
+        "end": 104.5,
+        "duration": 0.7
+      },
+      {
+        "start": 104.8,
+        "end": 105.5,
+        "duration": 0.7
+      },
+      {
+        "start": 107.3,
+        "end": 108.3,
+        "duration": 1.0
+      },
+      {
+        "start": 108.6,
+        "end": 111.3,
+        "duration": 2.7
+      },
+      {
+        "start": 117.2,
+        "end": 120.0,
+        "duration": 2.8
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 7.9,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 7.9,
+      "end": 14.1,
+      "source_vad_index": 2
+    },
+    {
+      "index": 2,
+      "start": 14.1,
+      "end": 21.15,
+      "source_vad_index": 5
+    },
+    {
+      "index": 3,
+      "start": 21.15,
+      "end": 25.5,
+      "source_vad_index": 7
+    },
+    {
+      "index": 4,
+      "start": 25.5,
+      "end": 35.525,
+      "source_vad_index": 8
+    },
+    {
+      "index": 5,
+      "start": 35.525,
+      "end": 43.925,
+      "source_vad_index": 9
+    },
+    {
+      "index": 6,
+      "start": 43.925,
+      "end": 49.7,
+      "source_vad_index": 10
+    },
+    {
+      "index": 7,
+      "start": 49.7,
+      "end": 54.8,
+      "source_vad_index": 11
+    },
+    {
+      "index": 8,
+      "start": 54.8,
+      "end": 81.7,
+      "source_vad_index": 19
+    },
+    {
+      "index": 9,
+      "start": 88.4,
+      "end": 100.05,
+      "source_vad_index": 23
+    },
+    {
+      "index": 10,
+      "start": 100.05,
+      "end": 103.1,
+      "source_vad_index": 24
+    },
+    {
+      "index": 11,
+      "start": 103.1,
+      "end": 106.4,
+      "source_vad_index": 25
+    },
+    {
+      "index": 12,
+      "start": 106.4,
+      "end": 114.25,
+      "source_vad_index": 28
+    },
+    {
+      "index": 13,
+      "start": 114.25,
+      "end": 120.0,
+      "source_vad_index": 29
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 6.78,
+      "duration": 6.78,
+      "text": "Bulaşıkları yıkamana yardım edebilir miyim?",
+      "language": "tr",
+      "avg_logprob": -0.169053815305233,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8727272727272727,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 7.9,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 7.9,
+      "end": 11.5,
+      "duration": 3.6,
+      "text": "Demek istediğim sana yardım edebilir miyim?",
+      "language": "tr",
+      "avg_logprob": -0.3312500104308128,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8857142857142857,
+      "chunk_index": 1,
+      "chunk_start": 7.9,
+      "chunk_end": 14.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 12.34,
+      "end": 13.1,
+      "duration": 0.76,
+      "text": "Hayır, gracias.",
+      "language": "tr",
+      "avg_logprob": -0.3312500104308128,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8857142857142857,
+      "chunk_index": 1,
+      "chunk_start": 7.9,
+      "chunk_end": 14.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 14.1,
+      "end": 17.42,
+      "duration": 3.32,
+      "text": "David, babana benim için bir şey sorar mısın?",
+      "language": "tr",
+      "avg_logprob": -0.25156250298023225,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8615384615384616,
+      "chunk_index": 2,
+      "chunk_start": 14.1,
+      "chunk_end": 21.15,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 18.22,
+      "end": 18.48,
+      "duration": 0.26,
+      "text": "Tabii.",
+      "language": "tr",
+      "avg_logprob": -0.25156250298023225,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8615384615384616,
+      "chunk_index": 2,
+      "chunk_start": 14.1,
+      "chunk_end": 21.15,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 21.15,
+      "end": 24.63,
+      "duration": 3.48,
+      "text": "Sadece şunu söyle.",
+      "language": "tr",
+      "avg_logprob": -0.2231445275247097,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.7142857142857143,
+      "chunk_index": 3,
+      "chunk_start": 21.15,
+      "chunk_end": 25.5,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 26.26,
+      "end": 28.42,
+      "duration": 2.16,
+      "text": "Evine davet edilmenin benim için onur olduğunu söyle.",
+      "language": "tr",
+      "avg_logprob": -0.14412434864789248,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4210526315789473,
+      "chunk_index": 4,
+      "chunk_start": 25.5,
+      "chunk_end": 35.525,
+      "source_vad_index": 8,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 28.58,
+      "end": 32.1,
+      "duration": 3.52,
+      "text": "Baba senin evine davet edilmenin onun için bir onur olduğunu söyledi.",
+      "language": "tr",
+      "avg_logprob": -0.14412434864789248,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4210526315789473,
+      "chunk_index": 4,
+      "chunk_start": 25.5,
+      "chunk_end": 35.525,
+      "source_vad_index": 8,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 32.16,
+      "end": 33.42,
+      "duration": 1.26,
+      "text": "Ona teşekkür ettiğimi söyle.",
+      "language": "tr",
+      "avg_logprob": -0.14412434864789248,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4210526315789473,
+      "chunk_index": 4,
+      "chunk_start": 25.5,
+      "chunk_end": 35.525,
+      "source_vad_index": 8,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 35.525,
+      "end": 41.345,
+      "duration": 5.82,
+      "text": "Ben sandım ki idare ediyorum.",
+      "language": "tr",
+      "avg_logprob": -0.4953835227272727,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.7894736842105263,
+      "chunk_index": 5,
+      "chunk_start": 35.525,
+      "chunk_end": 43.925,
+      "source_vad_index": 9,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 43.925,
+      "end": 48.485,
+      "duration": 4.56,
+      "text": "Misafirperverliğiniz için teşekkürler.",
+      "language": "tr",
+      "avg_logprob": -0.13723958134651185,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8235294117647058,
+      "chunk_index": 6,
+      "chunk_start": 43.925,
+      "chunk_end": 49.7,
+      "source_vad_index": 10,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 49.7,
+      "end": 52.44,
+      "duration": 2.74,
+      "text": "Biz burada pek yardım istemeyiz.",
+      "language": "tr",
+      "avg_logprob": -0.1920572929084301,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8048780487804879,
+      "chunk_index": 7,
+      "chunk_start": 49.7,
+      "chunk_end": 54.8,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 54.8,
+      "end": 56.36,
+      "duration": 1.56,
+      "text": "Yıkamama yardım etmek mi istiyorsun?",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 57.04,
+      "end": 59.22,
+      "duration": 2.18,
+      "text": "Yardımsever biri olmak istiyorsan sorun yok.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 60.32,
+      "end": 61.76,
+      "duration": 1.44,
+      "text": "Ama neden burada olduğunu biliyorum.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 62.22,
+      "end": 63.96,
+      "duration": 1.74,
+      "text": "Oğullarımın yarışa katılmasını istiyorsun.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 65.46,
+      "end": 68.64,
+      "duration": 3.18,
+      "text": "Bay White, senin sporun bir televizyon gibi.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 69.68,
+      "end": 70.26,
+      "duration": 0.58,
+      "text": "Zorunlu değil.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 71.12,
+      "end": 75.14,
+      "duration": 4.02,
+      "text": "Oğullarımın seninle antrenman yaptığı her saat benimle çalışmadıkları bir saat demek.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 76.34,
+      "end": 78.14,
+      "duration": 1.8,
+      "text": "Bu soframızdan eksilen yemek demek.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 78.14,
+      "end": 80.56,
+      "duration": 2.42,
+      "text": "Senin gibi birinin bunu anlamasını beklemiyorum.",
+      "language": "tr",
+      "avg_logprob": -0.12752403273032262,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.599236641221374,
+      "chunk_index": 8,
+      "chunk_start": 54.8,
+      "chunk_end": 81.7,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 88.4,
+      "end": 98.26,
+      "duration": 9.86,
+      "text": "Tamam, uyandır.",
+      "language": "tr",
+      "avg_logprob": -0.5693359300494194,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.6666666666666666,
+      "chunk_index": 9,
+      "chunk_start": 88.4,
+      "chunk_end": 100.05,
+      "source_vad_index": 23,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 100.05,
+      "end": 101.97,
+      "duration": 1.92,
+      "text": "Geliyorum.",
+      "language": "tr",
+      "avg_logprob": -0.4654017857142857,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.5555555555555556,
+      "chunk_index": 10,
+      "chunk_start": 100.05,
+      "chunk_end": 103.1,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 103.1,
+      "end": 105.1,
+      "duration": 2.0,
+      "text": "Blanco!",
+      "language": "tr",
+      "avg_logprob": -0.4853515823682149,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.4666666666666667,
+      "chunk_index": 11,
+      "chunk_start": 103.1,
+      "chunk_end": 106.4,
+      "source_vad_index": 25,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 106.4,
+      "end": 108.18,
+      "duration": 1.78,
+      "text": "Burada ne işim var?",
+      "language": "tr",
+      "avg_logprob": -0.26048518482007477,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8787878787878788,
+      "chunk_index": 12,
+      "chunk_start": 106.4,
+      "chunk_end": 114.25,
+      "source_vad_index": 28,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 108.66,
+      "end": 110.02,
+      "duration": 1.36,
+      "text": "Beyaz olduğunu biliyorsun değil mi?",
+      "language": "tr",
+      "avg_logprob": -0.26048518482007477,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8787878787878788,
+      "chunk_index": 12,
+      "chunk_start": 106.4,
+      "chunk_end": 114.25,
+      "source_vad_index": 28,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 114.25,
+      "end": 117.97,
+      "duration": 3.72,
+      "text": "Bundan emin misin?",
+      "language": "tr",
+      "avg_logprob": -0.3928125,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8805970149253731,
+      "chunk_index": 13,
+      "chunk_start": 114.25,
+      "chunk_end": 120.0,
+      "source_vad_index": 29,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 118.13,
+      "end": 120.0,
+      "duration": 1.87,
+      "text": "Evet beyazlar cumartesi günü çekecek.",
+      "language": "tr",
+      "avg_logprob": -0.3928125,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8805970149253731,
+      "chunk_index": 13,
+      "chunk_start": 114.25,
+      "chunk_end": 120.0,
+      "source_vad_index": 29,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}
