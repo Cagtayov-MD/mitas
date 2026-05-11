@@ -319,3 +319,89 @@ Aynı Silero modeli tek kez yüklenerek 5 gerçek medya üzerinde normalize + VA
 - Tüm test paketi (`core` venv): 79 passed, 2 skipped.
 
 **Son karar:** B bloğu, yani Silero VAD entegrasyonu, mevcut kapsam için tamam kabul edilebilir. Bilinçli kalan tek konu profil bazlı VAD parametre kalibrasyonu; bu C/D bloklarından sonra gerçek transcript ve diarization sonuçlarıyla birlikte yapılmalı.
+
+---
+
+## 2026-05-11 / Blok C - faster-whisper Transcribe
+
+### Neden Bu Blok?
+
+ASR pipeline'ın üçüncü taşı, normalize edilmiş WAV ve VAD konuşma aralıklarından transcript üretmektir. Bu blok sadece segment-level transcript üretir; pyannote diarization ve speaker merge bu blokta yapılmaz.
+
+### Ön Kontrol
+
+- `models/asr/faster-whisper/large-v3` cache mevcut.
+- `WhisperModel.transcribe()` imzası kontrol edildi.
+- `multilingual` parametresinin faster-whisper default'u `False`; bu nedenle Karar 14 gereği kodda açıkça `multilingual=True` sabitlendi.
+- Önceki teşhis scriptleri `local_files_only=True`, `device="cuda"`, `compute_type="float16"` ile çalışıyordu; C bloğu aynı yolu izliyor.
+
+### Tasarım Kararı
+
+Transcribe modülü VAD segmentlerini doğrudan faster-whisper'a parametre olarak vermez. Bunun yerine:
+
+1. Normalize WAV'dan her VAD segmenti için küçük WAV chunk çıkarılır.
+2. Her chunk faster-whisper ile transcribe edilir.
+3. Chunk içi timestamp'ler ana medya zamanına `vad_segment.start` offset'iyle geri map edilir.
+
+**Neden böyle?**
+Bu, ASR implementasyon planındaki "Silero VAD region listesi faster-whisper'a doğrudan parametre olarak verilmez; transcribe modülü region'ları chunk/clip üretip işler" kararına uyar. Ayrıca C bloğu, faster-whisper'ın kendi `vad_filter` yolunu kapalı tutar.
+
+### Eklenen Kod
+
+- `core/pipelines/asr/transcribe.py` eklendi.
+  - Sebep: faster-whisper model load, VAD chunk çıkarma, transcribe çağrısı, timestamp offset mapping ve transcript çıktısını tek sorumlulukta toplamak.
+- `core/pipelines/asr/__init__.py` güncellendi.
+  - Sebep: transcribe tiplerini ve fonksiyonlarını ASR paketinden import edilebilir yapmak.
+- `tests/test_asr_transcribe.py` eklendi.
+  - Sebep: model yüklemeden fake model ile kontrat testleri yapmak; özellikle `multilingual=True`, `vad_filter=False`, `word_timestamps=False`, timestamp offset mapping ve boş VAD davranışını doğrulamak.
+- `tests/test_asr_transcribe_real_media.py` eklendi.
+  - Sebep: gerçek medya üzerinde normalize -> VAD -> faster-whisper large-v3 transcribe smoke yapmak. Bu test `asr` venv'de `unittest` ile çalışır; `core` venv'de faster-whisper/Silero olmadığı için skip olur.
+
+### Gerçek Medya Runtime Sonucu
+
+Gerçek medya: `E:\MITAS\testklipler\trt_haber (1).mp4`
+
+Akış:
+
+1. MP4 -> normalize WAV
+2. normalize WAV -> Silero VAD
+3. İlk 3 uygun VAD segmenti -> faster-whisper large-v3 (`multilingual=True`)
+
+Seçilen VAD segmentleri:
+
+- `7.8 - 11.6`
+- `14.6 - 28.2`
+- `33.3 - 36.0`
+
+Transcribe sonucu:
+
+- Transcript segment count: `4`
+- Language distribution: `{"tr": 4}`
+- Transcript:
+
+```text
+P-16'lar Eskişehir 1. Anajet Üssü'nden havalandı. Eskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılışacakları G kuvvetine karşı ekipmanlarını giyip hangara geçti. İntim kontroller, uçuş hazırlıkları yapıldı.
+```
+
+**Kalite notu:** Bu blok transcript kalitesini mükemmelleştirme bloğu değildir. Örneğin `F-16` -> `P-16` ve bazı kelime hataları görüldü. Bu beklenen bir smoke sonucu; kalite kalibrasyonu C bloğu sonunda değil, daha geniş gerçek medya transcribe/benchmark aşamasında yapılmalı.
+
+### Test ve Doğrulama
+
+- `tests/test_asr_transcribe.py` (`core` venv): 3 passed.
+- `tests/test_asr_transcribe.py tests/test_asr_transcribe_real_media.py` (`core` venv): 3 passed, 1 skipped.
+- `tests.test_asr_transcribe_real_media` (`asr` venv, unittest): OK.
+- Tüm test paketi (`core` venv): 82 passed, 3 skipped.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Normalize + VAD çıktısı kullanılarak segment-level transcript üretildi. `multilingual=True`, `vad_filter=False`, `word_timestamps=False` açıkça uygulanıyor.
+
+**Amaca hizmet ediyor mu?**
+Evet. C bloğunun amacı olan "VAD segmentleri -> transcript segmentleri" davranışı hem fake model testinde hem gerçek medya + large-v3 smoke'ta çalıştı.
+
+**Başka şeyi bozuyor mu?**
+Şimdilik hayır. Kod yeni `core/pipelines/asr/transcribe.py` altında izole. Core testleri model bağımlılığına zorlanmıyor; gerçek model testi ASR venv'e ait.
+
+**Daha iyi olabilir miydi?**
+Evet. Chunk bazlı transcribe, segmentler arası bağlamı sınırlayabilir. Buna karşılık bu yöntem kontrollü, VAD uyumlu ve timestamp offset açısından açık. Daha sonra kalite benchmark'ında full-audio transcribe + VAD chunk transcribe karşılaştırması yapılabilir.
