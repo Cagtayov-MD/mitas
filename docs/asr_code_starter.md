@@ -99,3 +99,21 @@ Evet. VAD/transcribe/diarize aşamalarının bekleyeceği sabit ses formatını 
 
 - `mutfak/05_AKTIF_GOREV.md` içinde A adımı tamamlandı olarak işaretlendi.
   - Sebep: Sprint dosyası "her adım sonunda işaretleme" disiplinini istiyor.
+
+### 2026-05-11 / Ek Kontrol - Gerçek Medya Normalize Smoke
+
+Kullanıcı sorusu üzerine A bloğunda gerçek medya smoke'u ayrıca kontrol edildi. İlk test turunda küçük gerçek WAV sample ve sentetik WAV dönüşümü vardı; gerçek video input ile normalize smoke henüz yapılmamıştı. Bu küçük eksik giderildi.
+
+**Komut amacı:** `testklipler/trt_haber (1).mp4` dosyasından sadece audio normalize adımını çalıştırmak; VAD/transcribe/diarize çalıştırmamak.
+
+**Sonuç:**
+
+- Input: `E:\MITAS\testklipler\trt_haber (1).mp4`
+- Output: `E:\MITAS\tmp\asr_normalize\trt_haber (1)_d3e6436bc9_16000hz_mono_s16.wav`
+- `reused_input`: `False`
+- Codec: `pcm_s16le`
+- Sample rate: `16000`
+- Channels: `1`
+- Sample format: `s16`
+
+**Yorum:** Gerçek MP4 üzerinde ffmpeg extract + normalize yolu çalışıyor. Bu sadece A bloğunu doğrular; henüz gerçek medya ile VAD, transcribe veya diarization testi yapılmadı.
