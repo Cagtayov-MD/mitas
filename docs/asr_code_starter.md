@@ -1361,3 +1361,54 @@ Ana pipeline değişmedi. A/B helper'da gerçek medya ile yakalanan negatif/over
 
 **Daha iyi olabilir miydi?**
 Evet. Referans transcript olmadığı için bu otomatik WER/CER testi değil. En iyi sonraki adım, bu 9 örnekten küçük bir manuel referans seti çıkarıp v7/v11 için gerçek WER/CER hesaplamak.
+
+## 2026-05-11 - Blok: v7/v11 Raw Tam Transcript Raporu
+
+Kullanıcı, `2.mp4` örneğinde `clean_transcript` çıktısının tüm konuşmayı göstermediğini fark etti. Kontrolde bunun kişi/speaker bazlı filtre değil, `no_speech_prob > 0.6` post-filter kuralı nedeniyle olduğu görüldü. Bu yüzden tüm medya seti için filtre öncesi `raw_segments.json` metinlerinden tek bir Markdown raporu hazırlandı.
+
+Üretilen dosya:
+
+```text
+E:\MITAS\outputs\asr_ab\v7_v11_media_batch\v7_v11_raw_full_transcripts_review.md
+```
+
+Bu raporda her medya için sıra şu şekilde:
+
+```text
+1.mp4
+  v7 tam çıktı
+  v11 tam çıktı
+2.mp4
+  v7 tam çıktı
+  v11 tam çıktı
+...
+karşılaştırmalı yorum
+```
+
+### Neden?
+
+`clean_transcript.txt` bazı durumlarda ham konuşmayı eksik gösteriyor. Özellikle `2.mp4` içinde v7 ham çıktıda konuşmaları yakaladığı halde `clean` aşamasında 26 segment `no_speech` sebebiyle düşmüştü. Bu yüzden model kararını `clean` metin üzerinden vermek yanıltıcıydı.
+
+### Sonuç
+
+Raw rapor, v7'nin eksik transcribe etmediğini; bazı konuşmaları post-filter'ın düşürdüğünü gösterdi. Bu bulgu nihai kararı değiştiriyor gibi değil, ama üretim kalitesini etkileyen net bir aksiyon çıkarıyor:
+
+```text
+no_speech_prob tek başına drop sebebi olmamalı.
+Önce low_confidence flag olmalı.
+Drop kararı tekrar/artifact, avg_logprob ve gerekirse ikinci geçişle verilmeli.
+```
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Kullanıcının istediği tek MD raporu üretildi; v7 ve v11 tam çıktıları sırayla yazıldı.
+
+**Amaca hizmet ediyor mu?**
+Evet. Clean/raw farkını görünür hale getirdi ve v7 değerlendirmesindeki eksiklik yanılgısını düzeltti.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Bu adım yeni ASR koşusu yapmadı; mevcut JSON kanıtlarından rapor üretti.
+
+**Daha iyi olabilir miydi?**
+Evet. Sonraki adım bu rapor üzerinden manuel işaretleme yapıp hangi segmentlerin gerçekten konuşma, hangilerinin artifact olduğunu etiketlemek.
