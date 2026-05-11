@@ -254,3 +254,36 @@ Hayır. Tüm mevcut test paketi geçti. VAD kodu `core/pipelines/asr/` altında 
 
 **Daha iyi olabilir miydi?**
 Evet, ileride VAD parametreleri profile göre ayarlanabilir. Şimdilik default Silero threshold/min_speech/min_silence değerleri kullanıldı; çünkü bu blok entegrasyon ve kontrat bloğu. Profil bazlı kalibrasyon transcribe smoke sonuçlarıyla birlikte ele alınmalı.
+
+### 2026-05-11 / Kullanıcı Doğrulama Kontrolü - Konuşma Yok vs Gerçek Sessizlik
+
+Kullanıcı "çalıştığını kanıtlamak için bir video üzerinden gerçek test yapabilir miyiz, bana şu videoda şurada ses yok diye söyle" dedi. Bunun için aynı gerçek medya üzerinde iki kontrol yapıldı:
+
+1. Silero VAD ile konuşma segmentleri ve konuşma olmayan aralıklar çıkarıldı.
+2. ffmpeg `silencedetect` ile gerçek düşük seviye sessizlik arandı.
+
+**Önemli ayrım:** Silero VAD "ses yok" değil, "konuşma yok" tespiti yapar. Fonda müzik, ambiyans veya efekt olabilir; VAD bunu konuşma olarak saymayabilir. Bu nedenle kullanıcıya iki ayrı sonuç verilecek.
+
+**Video:** `E:\MITAS\testklipler\trt_haber (1).mp4`
+
+**VAD sonucu:**
+
+- Toplam süre: `95.62 sn`
+- Speech ratio: `0.679774`
+- Konuşma segmentleri: `10`
+
+**VAD'a göre konuşma olmayan kontrol aralıkları:**
+
+- `00:00.000 - 00:06.200`
+- `00:11.600 - 00:14.600`
+- `00:28.200 - 00:33.300`
+- `00:46.600 - 00:47.800`
+- `01:02.300 - 01:06.000`
+- `01:13.900 - 01:15.500`
+- `01:26.400 - 01:35.620`
+
+**ffmpeg `silencedetect` sonucu (`noise=-35dB`, `d=0.5`):**
+
+- Gerçek düşük seviye sessizlik: `01:33.343 - 01:35.660`
+
+**Yorum:** Kullanıcı videoyu elle kontrol edecekse en net kontrol noktası sondaki `01:33.3 - 01:35.6` aralığıdır; ffmpeg'e göre de gerçek sessizlik burada. VAD açısından daha geniş son aralık `01:26.4 - 01:35.6` konuşmasız görünüyor; bu bölümde gerçek sessizlik sadece son ~2.3 saniyeye denk geliyor olabilir.
