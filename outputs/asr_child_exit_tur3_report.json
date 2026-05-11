@@ -1,0 +1,961 @@
+{
+  "tur": "3",
+  "tarih": "2026-05-11",
+  "status": "failed",
+  "recommended_decision": "B",
+  "decision_reason": "TA1 stayed dirty, so tqdm is not sufficient; process-per-clip baseline was measured.",
+  "decision_caveat": "Strict process-per-clip did not guarantee clean exit for every clip; Karar B is still the safer architecture, but it needs valid-JSON containment or CUDA/driver escalation before being treated as fully clean.",
+  "environment": {
+    "python": "3.10.11",
+    "faster_whisper": "1.2.1",
+    "ctranslate2": "4.7.1",
+    "torch": "2.11.0+cu126",
+    "cuda": true,
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "transcribe_signature": "(self, audio: Union[str, BinaryIO, numpy.ndarray], language: Optional[str] = None, task: str = 'transcribe', log_progress: bool = False, beam_size: int = 5, best_of: int = 5, patience: float = 1, length_penalty: float = 1, repetition_penalty: float = 1, no_repeat_ngram_size: int = 0, temperature: Union[float, List[float], Tuple[float, ...]] = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0], compression_ratio_threshold: Optional[float] = 2.4, log_prob_threshold: Optional[float] = -1.0, no_speech_threshold: Optional[float] = 0.6, condition_on_previous_text: bool = True, prompt_reset_on_temperature: float = 0.5, initial_prompt: Union[str, Iterable[int], NoneType] = None, prefix: Optional[str] = None, suppress_blank: bool = True, suppress_tokens: Optional[List[int]] = [-1], without_timestamps: bool = False, max_initial_timestamp: float = 1.0, word_timestamps: bool = False, prepend_punctuations: str = '\"\\'“¿([{-', append_punctuations: str = '\"\\'.。,，!！?？:：”)]}、', multilingual: bool = False, vad_filter: bool = False, vad_parameters: Union[dict, faster_whisper.vad.VadOptions, NoneType] = None, max_new_tokens: Optional[int] = None, chunk_length: Optional[int] = None, clip_timestamps: Union[str, List[float]] = '0', hallucination_silence_threshold: Optional[float] = None, hotwords: Optional[str] = None, language_detection_threshold: Optional[float] = 0.5, language_detection_segments: int = 1) -> Tuple[Iterable[faster_whisper.transcribe.Segment], faster_whisper.transcribe.TranscriptionInfo]",
+    "native_tqdm_control": "log_progress"
+  },
+  "tests": [
+    {
+      "test_id": "TA1",
+      "exit_code_dec": 3221226505,
+      "exit_code_hex": "0xC0000409",
+      "clean_exit": false,
+      "clips_count": 3,
+      "transcripts_count": 3,
+      "transcripts_valid": true,
+      "transcript_present": true,
+      "duration_seconds": 33.234,
+      "stderr_tail": "",
+      "stdout_tail": "lity\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 6.84, \"text\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"avg_logprob\": -0.24069853533398022, \"no_speech_prob\": 0.69970703125}], \"transcribe_seconds\": 0.71}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 8, \"transcript\": \"Esküviz Bey, Prime minizerim, Prime minizerlerine bir ikram edin. Bir dakika, bir dakika, bir dakika. Bir dakika, bir dakika. Bir dakika, bir dakika. Bir dakika. Bir dakika durayım.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 2.2, \"text\": \"Esküviz Bey,\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 2.2, \"end\": 3.34, \"text\": \"Prime minizerim,\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 3.34, \"end\": 5.84, \"text\": \"Prime minizerlerine bir ikram edin.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 5.84, \"end\": 9.76, \"text\": \"Bir dakika, bir dakika, bir dakika.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 9.76, \"end\": 11.6, \"text\": \"Bir dakika, bir dakika.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 11.6, \"end\": 12.86, \"text\": \"Bir dakika, bir dakika.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 12.86, \"end\": 14.86, \"text\": \"Bir dakika.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}, {\"start\": 14.86, \"end\": 16.2, \"text\": \"Bir dakika durayım.\", \"avg_logprob\": -1.6405184925466343, \"no_speech_prob\": 0.142333984375}], \"transcribe_seconds\": 23.417}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.294, \"explicit_log_progress_false\": false, \"monkeypatch_tqdm\": true, \"duration_seconds\": 31.746, \"notes\": [\"JSON emitted before normal child exit\"]}\n",
+      "child_stdout_json": {
+        "test_id": "TA1",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "transcribe_seconds": 2.325
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 6.84,
+                "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "avg_logprob": -0.24069853533398022,
+                "no_speech_prob": 0.69970703125
+              }
+            ],
+            "transcribe_seconds": 0.71
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 8,
+            "transcript": "Esküviz Bey, Prime minizerim, Prime minizerlerine bir ikram edin. Bir dakika, bir dakika, bir dakika. Bir dakika, bir dakika. Bir dakika, bir dakika. Bir dakika. Bir dakika durayım.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 2.2,
+                "text": "Esküviz Bey,",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 2.2,
+                "end": 3.34,
+                "text": "Prime minizerim,",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 3.34,
+                "end": 5.84,
+                "text": "Prime minizerlerine bir ikram edin.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 5.84,
+                "end": 9.76,
+                "text": "Bir dakika, bir dakika, bir dakika.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 9.76,
+                "end": 11.6,
+                "text": "Bir dakika, bir dakika.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 11.6,
+                "end": 12.86,
+                "text": "Bir dakika, bir dakika.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 12.86,
+                "end": 14.86,
+                "text": "Bir dakika.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 14.86,
+                "end": 16.2,
+                "text": "Bir dakika durayım.",
+                "avg_logprob": -1.6405184925466343,
+                "no_speech_prob": 0.142333984375
+              }
+            ],
+            "transcribe_seconds": 23.417
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "load_seconds": 5.294,
+        "explicit_log_progress_false": false,
+        "monkeypatch_tqdm": true,
+        "duration_seconds": 31.746,
+        "notes": [
+          "JSON emitted before normal child exit"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "notes": "child JSON valid; abnormal exit after output",
+      "status": "needs_review"
+    },
+    {
+      "test_id": "TA2",
+      "exit_code_dec": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "clips_count": 0,
+      "transcripts_count": 0,
+      "transcripts_valid": false,
+      "transcript_present": false,
+      "duration_seconds": 0.0,
+      "stderr_tail": "",
+      "notes": "skipped by early-exit: TA1 dirty, so tqdm monkey-patch is not sufficient",
+      "status": "skipped"
+    },
+    {
+      "test_id": "TA3",
+      "exit_code_dec": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "clips_count": 0,
+      "transcripts_count": 0,
+      "transcripts_valid": false,
+      "transcript_present": false,
+      "duration_seconds": 0.0,
+      "stderr_tail": "",
+      "notes": "skipped by early-exit: native log_progress path cannot rescue a dirty TA1 monkey-patch",
+      "status": "skipped"
+    },
+    {
+      "test_id": "TB1",
+      "exit_code_dec": 3221226505,
+      "exit_code_hex": "0xC0000409",
+      "clean_exit": false,
+      "clips_count": 4,
+      "transcripts_count": 4,
+      "transcripts_valid": true,
+      "transcript_present": true,
+      "duration_seconds": 37.319,
+      "stderr_tail": "",
+      "stdout_tail": "logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}, {\"start\": 10.68, \"end\": 12.26, \"text\": \"Saatliği yap, bu kadar.\", \"avg_logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}, {\"start\": 12.26, \"end\": 13.42, \"text\": \"Saatliği yap.\", \"avg_logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}, {\"start\": 13.42, \"end\": 14.18, \"text\": \"Tamam.\", \"avg_logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}, {\"start\": 14.18, \"end\": 15.1, \"text\": \"Saatliği yap.\", \"avg_logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}, {\"start\": 15.1, \"end\": 17.7, \"text\": \"Şunu bir dakika durduracağım.\", \"avg_logprob\": -1.6761115672010365, \"no_speech_prob\": 0.142333984375}], \"transcribe_seconds\": 24.78}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"transcribe_seconds\": 2.178}], \"transcripts_count\": 4, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.914, \"explicit_log_progress_false\": false, \"monkeypatch_tqdm\": false, \"duration_seconds\": 35.927, \"notes\": [\"JSON emitted before normal child exit\"]}\n",
+      "child_stdout_json": {
+        "test_id": "TB1",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 4,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "transcribe_seconds": 2.354
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 6.84,
+                "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "avg_logprob": -0.24069853533398022,
+                "no_speech_prob": 0.69970703125
+              }
+            ],
+            "transcribe_seconds": 0.701
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 14,
+            "transcript": "Sizinle ve bu konuda birbirine site atmak istiyorum. Özür dilerim. Mr. Prime Minister, every one, Size aziz olma. Prime Ministerye, herkese özür dilerim. Saatliği yap. Saatliği yap. Saatliği yap. Well, you know. Saatliği yap, bu kadar. Saatliği yap. Tamam. Saatliği yap. Şunu bir dakika durduracağım.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 2.2,
+                "text": "Sizinle ve bu konuda birbirine site atmak istiyorum.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 2.44,
+                "end": 3.36,
+                "text": "Özür dilerim.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 3.36,
+                "end": 4.32,
+                "text": "Mr. Prime Minister, every one,",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 4.32,
+                "end": 5.4,
+                "text": "Size aziz olma.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 5.4,
+                "end": 6.5,
+                "text": "Prime Ministerye, herkese özür dilerim.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 6.5,
+                "end": 7.64,
+                "text": "Saatliği yap.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 7.64,
+                "end": 8.98,
+                "text": "Saatliği yap.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 8.98,
+                "end": 9.58,
+                "text": "Saatliği yap.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 9.58,
+                "end": 10.68,
+                "text": "Well, you know.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 10.68,
+                "end": 12.26,
+                "text": "Saatliği yap, bu kadar.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 12.26,
+                "end": 13.42,
+                "text": "Saatliği yap.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 13.42,
+                "end": 14.18,
+                "text": "Tamam.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 14.18,
+                "end": 15.1,
+                "text": "Saatliği yap.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 15.1,
+                "end": 17.7,
+                "text": "Şunu bir dakika durduracağım.",
+                "avg_logprob": -1.6761115672010365,
+                "no_speech_prob": 0.142333984375
+              }
+            ],
+            "transcribe_seconds": 24.78
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "transcribe_seconds": 2.178
+          }
+        ],
+        "transcripts_count": 4,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "load_seconds": 5.914,
+        "explicit_log_progress_false": false,
+        "monkeypatch_tqdm": false,
+        "duration_seconds": 35.927,
+        "notes": [
+          "JSON emitted before normal child exit"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "notes": "child JSON valid; abnormal exit after output",
+      "status": "needs_review"
+    },
+    {
+      "test_id": "TB2",
+      "exit_code_dec": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "clips_count": 0,
+      "transcripts_count": 0,
+      "transcripts_valid": false,
+      "duration_seconds": 0.0,
+      "stderr_tail": "",
+      "notes": "procdump not available; no minidump captured",
+      "procdump_available": false,
+      "procdump_path": null,
+      "dump_path": null,
+      "cdb_available": false,
+      "cdb_path": null,
+      "top_frames": null,
+      "status": "skipped"
+    },
+    {
+      "test_id": "TB3",
+      "exit_code_dec": 1,
+      "exit_code_hex": "0x00000001",
+      "clean_exit": false,
+      "clips_count": 3,
+      "transcripts_count": 3,
+      "transcripts_valid": true,
+      "duration_seconds": 40.145,
+      "stderr_tail": "",
+      "notes": "each clip executed in a separate child process",
+      "total_wall_seconds": 40.145,
+      "per_child_load_seconds": [
+        5.414,
+        5.161,
+        5.058
+      ],
+      "per_child_transcribe_seconds": [
+        2.348,
+        0.869,
+        18.82
+      ],
+      "avg_load_seconds": 5.211,
+      "avg_transcribe_seconds": 7.346,
+      "all_clean_exits": false,
+      "child_results": [
+        {
+          "test_id": "TB3_CHILD",
+          "exit_code_dec": 0,
+          "exit_code_hex": "0x00000000",
+          "clean_exit": true,
+          "clips_count": 1,
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "duration_seconds": 8.339,
+          "stderr_tail": "",
+          "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"transcribe_seconds\": 2.348}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.414, \"per_child_load_seconds\": [5.414], \"per_child_transcribe_seconds\": [2.348], \"duration_seconds\": 7.763, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+          "child_stdout_json": {
+            "test_id": "TB3_CHILD",
+            "model_id": "large-v3",
+            "device": "cuda",
+            "compute_type": "float16",
+            "clips_count": 1,
+            "clips": [
+              {
+                "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+                "segments_count": 3,
+                "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "transcript_present": true,
+                "detected_language": "tr",
+                "language_probability": 1.0,
+                "segments": [
+                  {
+                    "start": 0.0,
+                    "end": 7.46,
+                    "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                    "avg_logprob": -0.2334690514538023,
+                    "no_speech_prob": 0.05828857421875
+                  },
+                  {
+                    "start": 7.78,
+                    "end": 11.1,
+                    "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                    "avg_logprob": -0.2334690514538023,
+                    "no_speech_prob": 0.05828857421875
+                  },
+                  {
+                    "start": 14.34,
+                    "end": 20.0,
+                    "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                    "avg_logprob": -0.2334690514538023,
+                    "no_speech_prob": 0.05828857421875
+                  }
+                ],
+                "transcribe_seconds": 2.348
+              }
+            ],
+            "transcripts_count": 1,
+            "transcripts_valid": true,
+            "transcript_present": true,
+            "load_seconds": 5.414,
+            "per_child_load_seconds": [
+              5.414
+            ],
+            "per_child_transcribe_seconds": [
+              2.348
+            ],
+            "duration_seconds": 7.763,
+            "notes": [
+              "one model load and one transcribe in this child"
+            ]
+          },
+          "child_stdout_parse_error": null,
+          "notes": "child JSON valid; clean exit",
+          "status": "passed"
+        },
+        {
+          "test_id": "TB3_CHILD",
+          "exit_code_dec": 0,
+          "exit_code_hex": "0x00000000",
+          "clean_exit": true,
+          "clips_count": 1,
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "duration_seconds": 6.537,
+          "stderr_tail": "",
+          "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\promo_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 6.84, \"text\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"avg_logprob\": -0.24069853533398022, \"no_speech_prob\": 0.69970703125}], \"transcribe_seconds\": 0.869}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.161, \"per_child_load_seconds\": [5.161], \"per_child_transcribe_seconds\": [0.869], \"duration_seconds\": 6.03, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+          "child_stdout_json": {
+            "test_id": "TB3_CHILD",
+            "model_id": "large-v3",
+            "device": "cuda",
+            "compute_type": "float16",
+            "clips_count": 1,
+            "clips": [
+              {
+                "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+                "segments_count": 1,
+                "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "transcript_present": true,
+                "detected_language": "tr",
+                "language_probability": 1.0,
+                "segments": [
+                  {
+                    "start": 0.0,
+                    "end": 6.84,
+                    "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                    "avg_logprob": -0.24069853533398022,
+                    "no_speech_prob": 0.69970703125
+                  }
+                ],
+                "transcribe_seconds": 0.869
+              }
+            ],
+            "transcripts_count": 1,
+            "transcripts_valid": true,
+            "transcript_present": true,
+            "load_seconds": 5.161,
+            "per_child_load_seconds": [
+              5.161
+            ],
+            "per_child_transcribe_seconds": [
+              0.869
+            ],
+            "duration_seconds": 6.03,
+            "notes": [
+              "one model load and one transcribe in this child"
+            ]
+          },
+          "child_stdout_parse_error": null,
+          "notes": "child JSON valid; clean exit",
+          "status": "passed"
+        },
+        {
+          "test_id": "TB3_CHILD",
+          "exit_code_dec": 3221226505,
+          "exit_code_hex": "0xC0000409",
+          "clean_exit": false,
+          "clips_count": 1,
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "duration_seconds": 25.268,
+          "stderr_tail": "",
+          "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 5, \"transcript\": \"Excuses me One minute One minute Have been One minute\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 1.06, \"text\": \"Excuses me\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 6.04, \"end\": 7.42, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 7.68, \"end\": 9.88, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 9.88, \"end\": 10.98, \"text\": \"Have been\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 12.84, \"end\": 14.86, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}], \"transcribe_seconds\": 18.82}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.058, \"per_child_load_seconds\": [5.058], \"per_child_transcribe_seconds\": [18.82], \"duration_seconds\": 23.877, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+          "child_stdout_json": {
+            "test_id": "TB3_CHILD",
+            "model_id": "large-v3",
+            "device": "cuda",
+            "compute_type": "float16",
+            "clips_count": 1,
+            "clips": [
+              {
+                "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+                "segments_count": 5,
+                "transcript": "Excuses me One minute One minute Have been One minute",
+                "transcript_present": true,
+                "detected_language": "tr",
+                "language_probability": 1.0,
+                "segments": [
+                  {
+                    "start": 0.0,
+                    "end": 1.06,
+                    "text": "Excuses me",
+                    "avg_logprob": -3.2538451733796494,
+                    "no_speech_prob": 0.142333984375
+                  },
+                  {
+                    "start": 6.04,
+                    "end": 7.42,
+                    "text": "One minute",
+                    "avg_logprob": -3.2538451733796494,
+                    "no_speech_prob": 0.142333984375
+                  },
+                  {
+                    "start": 7.68,
+                    "end": 9.88,
+                    "text": "One minute",
+                    "avg_logprob": -3.2538451733796494,
+                    "no_speech_prob": 0.142333984375
+                  },
+                  {
+                    "start": 9.88,
+                    "end": 10.98,
+                    "text": "Have been",
+                    "avg_logprob": -3.2538451733796494,
+                    "no_speech_prob": 0.142333984375
+                  },
+                  {
+                    "start": 12.84,
+                    "end": 14.86,
+                    "text": "One minute",
+                    "avg_logprob": -3.2538451733796494,
+                    "no_speech_prob": 0.142333984375
+                  }
+                ],
+                "transcribe_seconds": 18.82
+              }
+            ],
+            "transcripts_count": 1,
+            "transcripts_valid": true,
+            "transcript_present": true,
+            "load_seconds": 5.058,
+            "per_child_load_seconds": [
+              5.058
+            ],
+            "per_child_transcribe_seconds": [
+              18.82
+            ],
+            "duration_seconds": 23.877,
+            "notes": [
+              "one model load and one transcribe in this child"
+            ]
+          },
+          "child_stdout_parse_error": null,
+          "notes": "child JSON valid; abnormal exit after output",
+          "status": "needs_review"
+        }
+      ],
+      "status": "failed"
+    },
+    {
+      "test_id": "TC1",
+      "exit_code_dec": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "clips_count": 0,
+      "transcripts_count": 0,
+      "transcripts_valid": false,
+      "transcript_present": false,
+      "duration_seconds": 0.066,
+      "stderr_tail": "",
+      "stdout_tail": "{\"test_id\": \"TC1\", \"status\": \"skipped\", \"skip_reason\": \"requires isolated temporary venv package installs; not run unless TB2 identifies ctranslate2.dll\", \"transcript_present\": false, \"transcripts_valid\": false, \"notes\": [\"main environment untouched\"]}\n",
+      "child_stdout_json": {
+        "test_id": "TC1",
+        "status": "skipped",
+        "skip_reason": "requires isolated temporary venv package installs; not run unless TB2 identifies ctranslate2.dll",
+        "transcript_present": false,
+        "transcripts_valid": false,
+        "notes": [
+          "main environment untouched"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "notes": "TC1 skipped because TB2 did not identify ctranslate2.dll; child JSON valid; clean exit",
+      "status": "skipped"
+    }
+  ],
+  "tb3_metrics": {
+    "test_id": "TB3",
+    "exit_code_dec": 1,
+    "exit_code_hex": "0x00000001",
+    "clean_exit": false,
+    "clips_count": 3,
+    "transcripts_count": 3,
+    "transcripts_valid": true,
+    "duration_seconds": 40.145,
+    "stderr_tail": "",
+    "notes": "each clip executed in a separate child process",
+    "total_wall_seconds": 40.145,
+    "per_child_load_seconds": [
+      5.414,
+      5.161,
+      5.058
+    ],
+    "per_child_transcribe_seconds": [
+      2.348,
+      0.869,
+      18.82
+    ],
+    "avg_load_seconds": 5.211,
+    "avg_transcribe_seconds": 7.346,
+    "all_clean_exits": false,
+    "child_results": [
+      {
+        "test_id": "TB3_CHILD",
+        "exit_code_dec": 0,
+        "exit_code_hex": "0x00000000",
+        "clean_exit": true,
+        "clips_count": 1,
+        "transcripts_count": 1,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "duration_seconds": 8.339,
+        "stderr_tail": "",
+        "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"transcribe_seconds\": 2.348}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.414, \"per_child_load_seconds\": [5.414], \"per_child_transcribe_seconds\": [2.348], \"duration_seconds\": 7.763, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+        "child_stdout_json": {
+          "test_id": "TB3_CHILD",
+          "model_id": "large-v3",
+          "device": "cuda",
+          "compute_type": "float16",
+          "clips_count": 1,
+          "clips": [
+            {
+              "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+              "segments_count": 3,
+              "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+              "transcript_present": true,
+              "detected_language": "tr",
+              "language_probability": 1.0,
+              "segments": [
+                {
+                  "start": 0.0,
+                  "end": 7.46,
+                  "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                  "avg_logprob": -0.2334690514538023,
+                  "no_speech_prob": 0.05828857421875
+                },
+                {
+                  "start": 7.78,
+                  "end": 11.1,
+                  "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                  "avg_logprob": -0.2334690514538023,
+                  "no_speech_prob": 0.05828857421875
+                },
+                {
+                  "start": 14.34,
+                  "end": 20.0,
+                  "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                  "avg_logprob": -0.2334690514538023,
+                  "no_speech_prob": 0.05828857421875
+                }
+              ],
+              "transcribe_seconds": 2.348
+            }
+          ],
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "load_seconds": 5.414,
+          "per_child_load_seconds": [
+            5.414
+          ],
+          "per_child_transcribe_seconds": [
+            2.348
+          ],
+          "duration_seconds": 7.763,
+          "notes": [
+            "one model load and one transcribe in this child"
+          ]
+        },
+        "child_stdout_parse_error": null,
+        "notes": "child JSON valid; clean exit",
+        "status": "passed"
+      },
+      {
+        "test_id": "TB3_CHILD",
+        "exit_code_dec": 0,
+        "exit_code_hex": "0x00000000",
+        "clean_exit": true,
+        "clips_count": 1,
+        "transcripts_count": 1,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "duration_seconds": 6.537,
+        "stderr_tail": "",
+        "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\promo_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 6.84, \"text\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"avg_logprob\": -0.24069853533398022, \"no_speech_prob\": 0.69970703125}], \"transcribe_seconds\": 0.869}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.161, \"per_child_load_seconds\": [5.161], \"per_child_transcribe_seconds\": [0.869], \"duration_seconds\": 6.03, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+        "child_stdout_json": {
+          "test_id": "TB3_CHILD",
+          "model_id": "large-v3",
+          "device": "cuda",
+          "compute_type": "float16",
+          "clips_count": 1,
+          "clips": [
+            {
+              "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+              "segments_count": 1,
+              "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+              "transcript_present": true,
+              "detected_language": "tr",
+              "language_probability": 1.0,
+              "segments": [
+                {
+                  "start": 0.0,
+                  "end": 6.84,
+                  "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                  "avg_logprob": -0.24069853533398022,
+                  "no_speech_prob": 0.69970703125
+                }
+              ],
+              "transcribe_seconds": 0.869
+            }
+          ],
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "load_seconds": 5.161,
+          "per_child_load_seconds": [
+            5.161
+          ],
+          "per_child_transcribe_seconds": [
+            0.869
+          ],
+          "duration_seconds": 6.03,
+          "notes": [
+            "one model load and one transcribe in this child"
+          ]
+        },
+        "child_stdout_parse_error": null,
+        "notes": "child JSON valid; clean exit",
+        "status": "passed"
+      },
+      {
+        "test_id": "TB3_CHILD",
+        "exit_code_dec": 3221226505,
+        "exit_code_hex": "0xC0000409",
+        "clean_exit": false,
+        "clips_count": 1,
+        "transcripts_count": 1,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "duration_seconds": 25.268,
+        "stderr_tail": "",
+        "stdout_tail": "{\"test_id\": \"TB3_CHILD\", \"model_id\": \"large-v3\", \"device\": \"cuda\", \"compute_type\": \"float16\", \"clips_count\": 1, \"clips\": [{\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 5, \"transcript\": \"Excuses me One minute One minute Have been One minute\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 1.06, \"text\": \"Excuses me\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 6.04, \"end\": 7.42, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 7.68, \"end\": 9.88, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 9.88, \"end\": 10.98, \"text\": \"Have been\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}, {\"start\": 12.84, \"end\": 14.86, \"text\": \"One minute\", \"avg_logprob\": -3.2538451733796494, \"no_speech_prob\": 0.142333984375}], \"transcribe_seconds\": 18.82}], \"transcripts_count\": 1, \"transcripts_valid\": true, \"transcript_present\": true, \"load_seconds\": 5.058, \"per_child_load_seconds\": [5.058], \"per_child_transcribe_seconds\": [18.82], \"duration_seconds\": 23.877, \"notes\": [\"one model load and one transcribe in this child\"]}\n",
+        "child_stdout_json": {
+          "test_id": "TB3_CHILD",
+          "model_id": "large-v3",
+          "device": "cuda",
+          "compute_type": "float16",
+          "clips_count": 1,
+          "clips": [
+            {
+              "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+              "segments_count": 5,
+              "transcript": "Excuses me One minute One minute Have been One minute",
+              "transcript_present": true,
+              "detected_language": "tr",
+              "language_probability": 1.0,
+              "segments": [
+                {
+                  "start": 0.0,
+                  "end": 1.06,
+                  "text": "Excuses me",
+                  "avg_logprob": -3.2538451733796494,
+                  "no_speech_prob": 0.142333984375
+                },
+                {
+                  "start": 6.04,
+                  "end": 7.42,
+                  "text": "One minute",
+                  "avg_logprob": -3.2538451733796494,
+                  "no_speech_prob": 0.142333984375
+                },
+                {
+                  "start": 7.68,
+                  "end": 9.88,
+                  "text": "One minute",
+                  "avg_logprob": -3.2538451733796494,
+                  "no_speech_prob": 0.142333984375
+                },
+                {
+                  "start": 9.88,
+                  "end": 10.98,
+                  "text": "Have been",
+                  "avg_logprob": -3.2538451733796494,
+                  "no_speech_prob": 0.142333984375
+                },
+                {
+                  "start": 12.84,
+                  "end": 14.86,
+                  "text": "One minute",
+                  "avg_logprob": -3.2538451733796494,
+                  "no_speech_prob": 0.142333984375
+                }
+              ],
+              "transcribe_seconds": 18.82
+            }
+          ],
+          "transcripts_count": 1,
+          "transcripts_valid": true,
+          "transcript_present": true,
+          "load_seconds": 5.058,
+          "per_child_load_seconds": [
+            5.058
+          ],
+          "per_child_transcribe_seconds": [
+            18.82
+          ],
+          "duration_seconds": 23.877,
+          "notes": [
+            "one model load and one transcribe in this child"
+          ]
+        },
+        "child_stdout_parse_error": null,
+        "notes": "child JSON valid; abnormal exit after output",
+        "status": "needs_review"
+      }
+    ],
+    "status": "failed"
+  },
+  "duration_seconds": 113.088,
+  "notes": [
+    "No package/model changes were made.",
+    "TA3 uses explicit log_progress=False; disable_tqdm/verbose are not present in faster-whisper 1.2.1 signature.",
+    "Procdump/cdb are used only if present on PATH; no SysInternals download was attempted."
+  ]
+}
