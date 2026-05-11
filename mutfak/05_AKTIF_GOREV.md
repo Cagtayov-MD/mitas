@@ -1,7 +1,7 @@
 # 05 — AKTİF GÖREV
 
 > Son güncelleme: 2026-05-11
-> Son değişen bölüm: ASR v0.1 hazırlık checkpoint
+> Son değişen bölüm: ASR v0.1 audio normalize başlangıcı
 
 Bu dosya **şu an aktif olarak üzerinde çalışılan sprinttir**. Her sprint biterken arşivlenir veya tamamen yeniden yazılır. Genellikle tek bir sürümün dikey dilimine odaklanır.
 
@@ -97,7 +97,7 @@ Sıralı çalışma adımları. Her adım sonunda **commit + bu dosyaya işaretl
 
 ### 4.2 Sprint kodlama adımları
 
-- [ ] **A. ffmpeg audio extract** — video → 16khz mono wav. Tek fonksiyon, tek test.
+- [x] **A. ffmpeg audio extract** — video → 16khz mono wav. Tek fonksiyon, tek test.
 - [ ] **B. Silero VAD entegrasyonu** — wav → konuşma segmentleri (yine tek fonksiyon).
 - [ ] **C. faster-whisper transcribe** — VAD segmentleri → segment-level transcript.
 - [ ] **D. Pyannote diarization** — wav + transcript → speaker_id. v1 kapsamında zorunlu bileşen; güven eşiği altında speaker_id = null yazılır (Karar 15).
