@@ -1,0 +1,13 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "load_vad_seconds": 4.652,
+  "load_model_seconds": 2.026,
+  "transcribe_seconds": 7.039,
+  "total_seconds": 14.055,
+  "model_call_count": 8,
+  "raw_segment_count": 57,
+  "clean_segment_count": 57
+}

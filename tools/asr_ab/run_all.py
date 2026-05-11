@@ -19,6 +19,7 @@ VARIANTS = (
     ("tools.asr_ab.transcribe_v8", None),
     ("tools.asr_ab.transcribe_v9", ALIGNMENT_PYTHON),
     ("tools.asr_ab.transcribe_v10", None),
+    ("tools.asr_ab.transcribe_v11", None),
 )
 
 

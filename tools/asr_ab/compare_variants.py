@@ -12,6 +12,7 @@ from tools.asr_ab.common import DEFAULT_OUTPUT_ROOT, write_json
 DEFAULT_REFERENCE = Path(r"C:\Users\TRT03\Downloads\beyaz2 08 11.txt")
 BAD_TOKENS = ("É", "I don't know", "Are the days", "Konuklar Türkçe sohbet ediyor")
 CODE_SWITCH_TOKENS = ("Dancin", "Dancing", "Beer", "Bear", "Ayılar Dans")
+MODEL_ISOLATION_VARIANTS = ("out_v7", "out_v10", "out_v11")
 
 
 def parse_args() -> argparse.Namespace:
@@ -110,6 +111,23 @@ def write_markdown(path: Path, comparison: dict[str, object]) -> None:
                 **row
             )
         )
+    isolation_rows = [row for row in rows if row["variant"] in MODEL_ISOLATION_VARIANTS]
+    if isolation_rows:
+        lines.extend(
+            [
+                "",
+                "## Model Isolation Slice",
+                "",
+                "| Variant | Name | Word F1 | Bad hits | Code-switch | Calls | Total s |",
+                "|---|---|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for row in isolation_rows:
+            lines.append(
+                "| {variant} | {name} | {word_overlap_f1:.4f} | {bad_token_count} | {code_switch_count} | {model_call_count} | {total_seconds:.3f} |".format(
+                    **row
+                )
+            )
     lines.extend(["", "## Token Checks", ""])
     for row in rows:
         lines.append(f"### {row['variant']} - {row['name']}")

@@ -16,6 +16,15 @@
 | out_v8 | 55 | 55 | 0 | 0 | 4 | 0.0908 | 0.8696 | 1 | 28.679 | `{}` | `{'tr': 55}` |
 | out_v9 | 8 | 8 | 0 | 0 | 4 | 0.1683 | 0.8783 | 1 | 15.103 | `{}` | `{'tr': 8}` |
 | out_v10 | 29 | 28 | 1 | 0 | 4 | 0.0069 | 0.8037 | 8 | 16.440 | `{'low_logprob': 1}` | `{'tr': 28}` |
+| out_v11 | 57 | 57 | 0 | 0 | 4 | 0.1776 | 0.8696 | 8 | 14.055 | `{}` | `{'tr': 57}` |
+
+## Model Isolation Slice
+
+| Variant | Name | Word F1 | Bad hits | Code-switch | Calls | Total s |
+|---|---|---:|---:|---:|---:|---:|
+| out_v7 | v7_vad_merged_no_prompt | 0.8814 | 0 | 4 | 8 | 32.733 |
+| out_v10 | v10_selimc_turkish_turbo_ct2_vad_merged | 0.8037 | 0 | 4 | 8 | 16.440 |
+| out_v11 | v11_base_turbo_vad_merged_no_prompt | 0.8696 | 0 | 4 | 8 | 14.055 |
 
 ## Token Checks
 
@@ -70,6 +79,11 @@
 - Code-switch hits: `{'Dancin': True, 'Dancing': True, 'Beer': False, 'Bear': True, 'Ayılar Dans': True}`
 
 ### out_v10 - v10_selimc_turkish_turbo_ct2_vad_merged
+
+- Bad token hits: `{'É': False, "I don't know": False, 'Are the days': False, 'Konuklar Türkçe sohbet ediyor': False}`
+- Code-switch hits: `{'Dancin': True, 'Dancing': True, 'Beer': True, 'Bear': False, 'Ayılar Dans': True}`
+
+### out_v11 - v11_base_turbo_vad_merged_no_prompt
 
 - Bad token hits: `{'É': False, "I don't know": False, 'Are the days': False, 'Konuklar Türkçe sohbet ediyor': False}`
 - Code-switch hits: `{'Dancin': True, 'Dancing': True, 'Beer': True, 'Bear': False, 'Ayılar Dans': True}`

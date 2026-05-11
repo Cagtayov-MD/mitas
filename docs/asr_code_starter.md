@@ -1119,3 +1119,148 @@ Hayır. Ana pipeline değişmedi. Model dosyaları `models/` altında kaldı ve 
 
 **Daha iyi olabilir miydi?**
 Evet. Bu model tamamen elenmeden önce temiz tek-konuşmacılı Türkçe ve daha az code-switch içeren bir klipte ayrıca denenebilir. Fakat Beyaz2 gerçek medya hedefi için şu an `v7` daha güvenilir aday.
+
+## 2026-05-11 - Blok: Base Turbo İzolasyon Testi (`v11`)
+
+Kullanıcının yeni hipotezi: Selimc sonucundaki kalite düşüşünün kaynağı turbo mimarisi mi, yoksa Türkçe Common Voice fine-tune daralması mı? Bunu ayırmak için `v7` ile birebir aynı pipeline kullanılıp sadece model OpenAI base turbo CT2 dönüşümüne çevrildi.
+
+### Numara Notu
+
+Kullanıcı planında bu test `v10` olarak geçiyordu. Bizim mevcut checkpoint'te `v10` zaten Selimc fine-tune denemesi olarak commit'lenmişti:
+
+```text
+out_v10 = selimc/whisper-large-v3-turbo-turkish
+```
+
+Kanıt zincirini bozmamak ve önceki sonucu overwrite etmemek için base turbo izolasyonu `v11` olarak eklendi:
+
+```text
+out_v11 = openai/whisper-large-v3-turbo CT2 conversion
+```
+
+Karşılaştırma raporunda `out_v7`, `out_v10`, `out_v11` için ayrıca "Model Isolation Slice" bölümü eklendi.
+
+### Model İndirme
+
+Plan içindeki repo:
+
+```text
+Systran/faster-whisper-large-v3-turbo
+```
+
+Hugging Face tarafında `404 Repository Not Found` verdi. Bu yüzden aynı izolasyon amacına uyan, model kartında `openai/whisper-large-v3-turbo`dan CTranslate2/float16 çevrildiği yazan şu repo indirildi:
+
+```text
+dropbox-dash/faster-whisper-large-v3-turbo
+```
+
+Yerel model yolu:
+
+```text
+E:\MITAS\models\asr\faster-whisper\large-v3-turbo
+```
+
+Model dosyaları Git'e alınmadı; `models/` zaten `.gitignore` altında.
+
+### Ne Yaptım ve Neden?
+
+1. `tools/asr_ab/transcribe_v11.py` eklendi.
+   - Sebep: Base turbo modeli Selimc fine-tune'dan ayrı, izole bir varyant olarak koşturmak.
+   - `v7` ile aynı kalanlar:
+     - `build_merged_chunks`
+     - `MIN_CHUNK=12.0`
+     - `MAX_CHUNK=30.0`
+     - `GAP_MERGE=1.2`
+     - `PADDING=1.0`
+     - `language="tr"`
+     - `initial_prompt=None`
+     - `condition_on_previous_text=True`
+     - `multilingual=False`
+     - `temperature=[0.0, 0.2, 0.4]`
+     - `compression_ratio_threshold=2.4`
+     - `log_prob_threshold=-1.0`
+     - `no_speech_threshold=0.6`
+     - post-filter aynı
+
+2. `tools/asr_ab/run_all.py` içine `v11` eklendi.
+   - Sebep: Toplu A/B koşusunda base turbo da aynı seri içinde çalışabilsin.
+
+3. `tools/asr_ab/compare_variants.py` içinde "Model Isolation Slice" eklendi.
+   - Sebep: Tüm tablo kalabalıklaştığı için model kaynaklı farkı doğrudan görmek.
+   - Bu slice şu üçlüye bakıyor:
+
+```text
+out_v7  = base large-v3
+out_v10 = Selimc Turkish fine-tune turbo
+out_v11 = base large-v3-turbo CT2
+```
+
+### Gerçek Medya Testi
+
+Girdi yine aynı gerçek medya kesiti:
+
+```text
+E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\normalized\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav
+```
+
+Çıktılar:
+
+```text
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v11\raw_segments.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v11\clean_segments.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v11\clean_transcript.txt
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v11\filter_report.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v11\timing.json
+```
+
+### Sayısal Sonuç
+
+`v11` sonucu:
+
+- Raw segment: `57`
+- Clean segment: `57`
+- Drop: `0`
+- Bad hits: `0`
+- Code-switch hit: `4`
+- Word F1: `0.8696`
+- Model call count: `8`
+- Total runtime: `14.055s`
+- Transcribe runtime: `7.039s`
+
+Model izolasyon üçlüsü:
+
+| Varyant | Model | Word F1 | Total |
+|---|---|---:|---:|
+| `out_v7` | base large-v3 | `0.8814` | `32.733s` |
+| `out_v10` | Selimc Turkish turbo fine-tune | `0.8037` | `16.440s` |
+| `out_v11` | base large-v3-turbo CT2 | `0.8696` | `14.055s` |
+
+### Kalite Değerlendirmesi
+
+`v11`, Selimc `v10`dan açıkça daha temiz:
+
+- `çok tüylü kediydi` doğru geldi; Selimc'te `tediydi` olmuştu.
+- `Daisy` doğru geldi; Selimc'te `değzi` olmuştu.
+- `aksanım var mı` doğru geldi; Selimc'te `akşamın var mı` olmuştu.
+
+Ama `v7` kadar temiz değil:
+
+- `Dancing Bear` yine `Dancing Beer` oldu.
+- Bazı yerlerde anlam bozulması var: `Natalie Merchant` tarafı `Natalya Murschent` gibi geldi.
+- `O gün ne adı seninkinin erkek oğlunun?` benzeri zor cümlede daha bozuk bir yapı üretti.
+
+Bu yüzden hipotez sonucu şu: kalite düşüşünün büyük kısmı Selimc fine-tune daralmasından geliyor, fakat turbo base de `large-v3` kadar sağlam değil. Yani hız için `v11` değerlendirilebilir; kalite öncelikli üretim için `v7` hâlâ daha güvenli.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet, amaçla uyumlu. Sadece `v10` numarası korunamadı; önceki Selimc checkpoint'ini bozmamak için base turbo `v11` yapıldı.
+
+**Amaca hizmet ediyor mu?**
+Evet. Fine-tune etkisi ile turbo etkisi ayrıldı: Selimc ciddi geride, base turbo ise v7'ye yakın ama hâlâ biraz düşük.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Ana pipeline değişmedi. Model dosyaları Git'e alınmadı. Yeni varyant ve küçük kanıt dosyaları ayrı `out_v11` altında.
+
+**Daha iyi olabilir miydi?**
+Evet. Aynı izolasyon testi ERD code-switch klibinde de koşulmalı. Ayrıca `Dancing Bear` gibi özel İngilizce isim/şarkı yerleri için prompt'suz ama domain sözlüğü destekli post-correction ayrı test edilebilir; prompt leak dersinden dolayı bunu doğrudan Whisper initial prompt olarak vermemeliyiz.

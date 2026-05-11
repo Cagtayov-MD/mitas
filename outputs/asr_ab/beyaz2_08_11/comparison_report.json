@@ -381,6 +381,38 @@
       "reference_similarity": 0.0069,
       "word_overlap_f1": 0.8037,
       "char_count": 2129
+    },
+    {
+      "variant": "out_v11",
+      "name": "v11_base_turbo_vad_merged_no_prompt",
+      "model_call_count": 8,
+      "total_seconds": 14.055,
+      "transcribe_seconds": 7.039,
+      "raw_segments": 57,
+      "clean_segments": 57,
+      "dropped_segments": 0,
+      "drop_reasons": {},
+      "languages_clean": {
+        "tr": 57
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 0,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": true,
+        "Bear": false,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.1776,
+      "word_overlap_f1": 0.8696,
+      "char_count": 2146
     }
   ]
 }

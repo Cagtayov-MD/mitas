@@ -49,6 +49,17 @@ En iyi aday: `out_v7` (`v7_vad_merged_no_prompt`)
    - Örnek sapmalar: `kediydi` -> `tediydi`, `yavru` -> `yavrı`, `Daisy` -> `değzi`, `aksanım` -> `akşamın`.
    - Çıktılar yazıldıktan sonra native CUDA/CTranslate2 kapanışında abort görüldüğü için sadece bu deney varyantında `exit_after_write=True` kullanıldı.
 
+7. Base OpenAI turbo CT2 (`v11`) hız için güçlü, ama kalite olarak `v7` altında.
+   - İstenen `Systran/faster-whisper-large-v3-turbo` repo ID'si Hugging Face üzerinde `404` verdi.
+   - Bunun yerine model kartında `openai/whisper-large-v3-turbo`dan CT2/float16 çevrildiği yazan `dropbox-dash/faster-whisper-large-v3-turbo` indirildi.
+   - CT2 yolu: `E:\MITAS\models\asr\faster-whisper\large-v3-turbo`
+   - Strateji: `v7` ile aynı VAD-merged/no-prompt ayarı.
+   - Word F1: `0.8696`
+   - Runtime: `14.055s`
+   - Bad token: `0`
+   - Code-switch sayacı: `4`, ama `Dancing Bear` ifadesi `Dancing Beer` olarak geldi.
+   - Selimc `v10`dan belirgin daha temiz; bu, kalite düşüşünün önemli kısmının Türkçe fine-tune daralmasından geldiğini gösteriyor.
+
 ## Üretim İçin Öneri
 
 İlk üretim adayı:
@@ -66,3 +77,5 @@ Yani `v7` çizgisi.
 WhisperX `v9` ayrıca "hızlı alternatif" olarak saklanmalı, ama ana üretim kararından önce daha fazla özel isim/code-switch testi gerekir.
 
 Selimc Turkish Turbo `v10` bu Beyaz2 kesitinde ana aday yapılmamalı. Hız avantajı var, fakat gerçek yayın/code-switch kalitesi `v7` ve `v9` seviyesinin altında kaldı.
+
+Base turbo `v11` hız kritik senaryolar için ikinci aday olabilir. Ancak ana kalite hedefinde hâlâ `v7` önde: `v11`, `Daisy/kediydi` gibi yerlerde Selimc'e göre toparlıyor ama `Dancing Bear` ve bazı anlam ifadelerinde `v7` kadar güvenilir değil.
