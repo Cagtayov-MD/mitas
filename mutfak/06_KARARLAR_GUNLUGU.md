@@ -224,6 +224,8 @@ Aşağıdaki kararlar `MITAS_Master_Plan_Denetimli_v5.md` içinden seçilmiştir
 **Gerekçe:** Teşhis koşumunda tek klipli CPU/CUDA/load-only/compute_type varyasyonları temiz kapanırken, aynı CUDA `large-v3` model instance'ında üç klip ardışık transcribe edilince JSON geçerli yazıldıktan sonra `3221226505 / 0xC0000409` yeniden üretildi. Açık cleanup (`del model`, `gc.collect()`, kısa sleep) multi-clip vakasında exit kodunu temizlemedi.
 **Referans:** `outputs/asr_child_exit_diagnosis_report.json`, `scripts/asr_child_exit_diagnosis.py`.
 **Durum:** Aktif; üretim davranışına dönüştürülmeden önce ASR subprocess wrapper sözleşmesinde ayrıca ele alınacak.
+**Ek teknik not:** Genişletilmiş test paketinde T1/T2 aynı klip tekrarları temiz kaldı; T3 farklı üç klip aynı instance'ta `0xC0000409` üretti; T4 her klip için yeni model instance kullansa da aynı process içinde yine `0xC0000409` üretti; T5 dirty exit çıktısının temiz referansla segment bazında eşleştiğini gösterdi; T6a/T6b/T6c aynı klip cleanup varyasyonları temiz kaldı; T7 faulthandler koşumu dirty exit'i yeniden üretti. Bu bulgu process-per-clip containment'ı daha güçlü aday yapar, ancak bu satır production motor kararı değildir.
+**Ek referans:** `outputs/asr_child_exit_test_paketi_report.json`, `outputs/asr_child_exit_test_paketi_summary.md`, `scripts/asr_child_exit_test_paketi.py`.
 
 ### ~~2026-05-09 / Sunum öncesi gün gün plan~~
 

@@ -1,0 +1,1301 @@
+{
+  "paket_versiyonu": "1",
+  "tarih": "2026-05-11",
+  "ortam": {
+    "python": "3.10.11",
+    "ctranslate2": "4.7.1",
+    "faster_whisper": "1.2.1",
+    "torch": "2.11.0+cu126",
+    "cuda": true,
+    "gpu": "NVIDIA GeForce RTX 3090"
+  },
+  "status": "needs_review",
+  "testler": [
+    {
+      "test_id": "T1",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t1_child.py"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T1",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 2,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.176
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.949
+          }
+        ],
+        "transcripts_count": 2,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "none",
+        "cleanup_results": [],
+        "duration_seconds": 9.39,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 9.889,
+      "stdout_tail": "valandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 2.176}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.949}], \"transcripts_count\": 2, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"none\", \"cleanup_results\": [], \"duration_seconds\": 9.39, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "passed"
+    },
+    {
+      "test_id": "T2",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t2_child.py"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T2",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.144
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.989
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.984
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "none",
+        "cleanup_results": [],
+        "duration_seconds": 11.346,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 11.841,
+      "stdout_tail": "landı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.989}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.984}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"none\", \"cleanup_results\": [], \"duration_seconds\": 11.346, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "passed"
+    },
+    {
+      "test_id": "T3",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t3_child.py"
+      ],
+      "exit_code": 3221226505,
+      "exit_code_hex": "0xC0000409",
+      "clean_exit": false,
+      "child_stdout_json": {
+        "test_id": "T3",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.117
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 6.84,
+                "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "avg_logprob": -0.24069853533398022,
+                "no_speech_prob": 0.69970703125
+              }
+            ],
+            "duration_seconds": 0.662
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 13,
+            "transcript": "Excus me Mr. Prime Minister With apologies to Prime Minister Erdogan One minute One minute One minute One minute Well you know One minute One minute Okay One minute I'm going to hold you to the one minute please",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 1.74,
+                "text": "Excus me",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 1.74,
+                "end": 3.32,
+                "text": "Mr. Prime Minister",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 3.32,
+                "end": 6.18,
+                "text": "With apologies to Prime Minister Erdogan",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 6.18,
+                "end": 6.86,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 6.86,
+                "end": 7.36,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 7.36,
+                "end": 8.66,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 8.66,
+                "end": 9.16,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 9.66,
+                "end": 10.66,
+                "text": "Well you know",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 10.66,
+                "end": 11.16,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 11.16,
+                "end": 12.38,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 12.38,
+                "end": 13.12,
+                "text": "Okay",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 13.12,
+                "end": 14.62,
+                "text": "One minute",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              },
+              {
+                "start": 15.36,
+                "end": 17.36,
+                "text": "I'm going to hold you to the one minute please",
+                "avg_logprob": -1.1305559017288853,
+                "no_speech_prob": 0.142333984375
+              }
+            ],
+            "duration_seconds": 21.536
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "none",
+        "cleanup_results": [],
+        "duration_seconds": 29.493,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 30.847,
+      "stdout_tail": "present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 1.74, \"text\": \"Excus me\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 1.74, \"end\": 3.32, \"text\": \"Mr. Prime Minister\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 3.32, \"end\": 6.18, \"text\": \"With apologies to Prime Minister Erdogan\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 6.18, \"end\": 6.86, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 6.86, \"end\": 7.36, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 7.36, \"end\": 8.66, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 8.66, \"end\": 9.16, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 9.66, \"end\": 10.66, \"text\": \"Well you know\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 10.66, \"end\": 11.16, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 11.16, \"end\": 12.38, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 12.38, \"end\": 13.12, \"text\": \"Okay\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 13.12, \"end\": 14.62, \"text\": \"One minute\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}, {\"start\": 15.36, \"end\": 17.36, \"text\": \"I'm going to hold you to the one minute please\", \"avg_logprob\": -1.1305559017288853, \"no_speech_prob\": 0.142333984375}], \"duration_seconds\": 21.536}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"none\", \"cleanup_results\": [], \"duration_seconds\": 29.493, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "abnormal exit after parseable child output"
+      ],
+      "status": "needs_review"
+    },
+    {
+      "test_id": "T4",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t4_child.py"
+      ],
+      "exit_code": 3221226505,
+      "exit_code_hex": "0xC0000409",
+      "clean_exit": false,
+      "child_stdout_json": {
+        "test_id": "T4",
+        "scenario": "new_instance_per_clip_same_process",
+        "partial": true,
+        "completed_clips": 3,
+        "expected_clips": 3,
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.151
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 6.84,
+                "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "avg_logprob": -0.24069853533398022,
+                "no_speech_prob": 0.69970703125
+              }
+            ],
+            "duration_seconds": 0.758
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Sayın Cumhuriyet Cumhuriyeti Başkanı Kürtistan Cumhuriyeti Başkanı Erdoğan'a sessizlik etmiştim.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 29.98,
+                "text": "Sayın Cumhuriyet Cumhuriyeti Başkanı Kürtistan Cumhuriyeti Başkanı Erdoğan'a sessizlik etmiştim.",
+                "avg_logprob": -1.2650484977624354,
+                "no_speech_prob": 0.142333984375
+              }
+            ],
+            "duration_seconds": 16.587
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "duration_seconds": 31.348,
+        "notes": [
+          "partial progress JSON emitted before model cleanup"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 32.763,
+      "stdout_tail": "F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 2.151}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\promo_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 6.84, \"text\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"avg_logprob\": -0.24069853533398022, \"no_speech_prob\": 0.69970703125}], \"duration_seconds\": 0.758}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"Sayın Cumhuriyet Cumhuriyeti Başkanı Kürtistan Cumhuriyeti Başkanı Erdoğan'a sessizlik etmiştim.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 29.98, \"text\": \"Sayın Cumhuriyet Cumhuriyeti Başkanı Kürtistan Cumhuriyeti Başkanı Erdoğan'a sessizlik etmiştim.\", \"avg_logprob\": -1.2650484977624354, \"no_speech_prob\": 0.142333984375}], \"duration_seconds\": 16.587}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"duration_seconds\": 31.348, \"notes\": [\"partial progress JSON emitted before model cleanup\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "abnormal exit after parseable child output"
+      ],
+      "status": "needs_review"
+    },
+    {
+      "test_id": "T5",
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T5_REF",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 1,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.293
+          }
+        ],
+        "transcripts_count": 1,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "none",
+        "cleanup_results": [],
+        "duration_seconds": 7.773,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "transcript_present": true,
+      "duration_seconds": 8.32,
+      "notes": [
+        "reference clean single-transcribe compared with first clip from dirty multi-clip baseline",
+        "dirty_baseline=T3"
+      ],
+      "status": "passed",
+      "diff_summary": {
+        "segments_count_match": true,
+        "reference_segments_count": 3,
+        "suspect_segments_count": 3,
+        "segments_match": true,
+        "text_mismatches": [],
+        "numeric_mismatches": [],
+        "tolerance": 0.0001
+      }
+    },
+    {
+      "test_id": "T6a",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t6_child.py",
+        "--variant",
+        "empty_cache"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T6",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.249
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.957
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.982
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "empty_cache",
+        "cleanup_results": [
+          {
+            "variant": "empty_cache",
+            "actions": [
+              "torch.cuda.empty_cache"
+            ]
+          },
+          {
+            "variant": "empty_cache",
+            "actions": [
+              "torch.cuda.empty_cache"
+            ]
+          },
+          {
+            "variant": "empty_cache",
+            "actions": [
+              "torch.cuda.empty_cache"
+            ]
+          }
+        ],
+        "duration_seconds": 11.372,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 11.876,
+      "stdout_tail": "ts\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.957}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.982}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"empty_cache\", \"cleanup_results\": [{\"variant\": \"empty_cache\", \"actions\": [\"torch.cuda.empty_cache\"]}, {\"variant\": \"empty_cache\", \"actions\": [\"torch.cuda.empty_cache\"]}, {\"variant\": \"empty_cache\", \"actions\": [\"torch.cuda.empty_cache\"]}], \"duration_seconds\": 11.372, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "passed"
+    },
+    {
+      "test_id": "T6b",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t6_child.py",
+        "--variant",
+        "gc"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T6",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.13
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.985
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.948
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "gc",
+        "cleanup_results": [
+          {
+            "variant": "gc",
+            "actions": [
+              "gc.collect"
+            ]
+          },
+          {
+            "variant": "gc",
+            "actions": [
+              "gc.collect"
+            ]
+          },
+          {
+            "variant": "gc",
+            "actions": [
+              "gc.collect"
+            ]
+          }
+        ],
+        "duration_seconds": 11.462,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 11.961,
+      "stdout_tail": "\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.985}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.948}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"gc\", \"cleanup_results\": [{\"variant\": \"gc\", \"actions\": [\"gc.collect\"]}, {\"variant\": \"gc\", \"actions\": [\"gc.collect\"]}, {\"variant\": \"gc\", \"actions\": [\"gc.collect\"]}], \"duration_seconds\": 11.462, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "passed"
+    },
+    {
+      "test_id": "T6c",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t6_child.py",
+        "--variant",
+        "both"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T6",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.133
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.956
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 1.955
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "both",
+        "cleanup_results": [
+          {
+            "variant": "both",
+            "actions": [
+              "gc.collect",
+              "torch.cuda.empty_cache"
+            ]
+          },
+          {
+            "variant": "both",
+            "actions": [
+              "gc.collect",
+              "torch.cuda.empty_cache"
+            ]
+          },
+          {
+            "variant": "both",
+            "actions": [
+              "gc.collect",
+              "torch.cuda.empty_cache"
+            ]
+          }
+        ],
+        "duration_seconds": 11.305,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 11.816,
+      "stdout_tail": ": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.956}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 3, \"transcript\": \"F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 1.955}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"both\", \"cleanup_results\": [{\"variant\": \"both\", \"actions\": [\"gc.collect\", \"torch.cuda.empty_cache\"]}, {\"variant\": \"both\", \"actions\": [\"gc.collect\", \"torch.cuda.empty_cache\"]}, {\"variant\": \"both\", \"actions\": [\"gc.collect\", \"torch.cuda.empty_cache\"]}], \"duration_seconds\": 11.305, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "passed"
+    },
+    {
+      "test_id": "T6d",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t6_child.py",
+        "--variant",
+        "ct2_api"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T6d",
+        "scenario": "ctranslate2_cleanup_api_probe",
+        "status": "skipped",
+        "skip_reason": "api_candidates_not_called_in_diagnostic",
+        "api_candidates": [
+          "__cached__"
+        ],
+        "transcript_present": false,
+        "duration_seconds": 1.672,
+        "notes": [
+          "no safe public CTranslate2 cache flush API was called"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": false,
+      "duration_seconds": 2.05,
+      "stdout_tail": "{\"test_id\": \"T6d\", \"scenario\": \"ctranslate2_cleanup_api_probe\", \"status\": \"skipped\", \"skip_reason\": \"api_candidates_not_called_in_diagnostic\", \"api_candidates\": [\"__cached__\"], \"transcript_present\": false, \"duration_seconds\": 1.672, \"notes\": [\"no safe public CTranslate2 cache flush API was called\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "skipped"
+    },
+    {
+      "test_id": "T7",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "-X",
+        "faulthandler",
+        "-X",
+        "dev",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t7_child.py"
+      ],
+      "exit_code": 3221226505,
+      "exit_code_hex": "0xC0000409",
+      "clean_exit": false,
+      "child_stdout_json": {
+        "test_id": "T7",
+        "scenario": "same_instance",
+        "model_id": "large-v3",
+        "device": "cuda",
+        "compute_type": "float16",
+        "clips_count": 3,
+        "clips": [
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 3,
+            "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 7.46,
+                "text": "F-16'lar İzmir'de hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 7.78,
+                "end": 11.1,
+                "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              },
+              {
+                "start": 14.34,
+                "end": 20.0,
+                "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+                "avg_logprob": -0.2334690514538023,
+                "no_speech_prob": 0.05828857421875
+              }
+            ],
+            "duration_seconds": 2.271
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 6.84,
+                "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+                "avg_logprob": -0.24069853533398022,
+                "no_speech_prob": 0.69970703125
+              }
+            ],
+            "duration_seconds": 0.673
+          },
+          {
+            "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+            "segments_count": 1,
+            "transcript": "İzlediğiniz için teşekkür ederim.",
+            "transcript_present": true,
+            "detected_language": "tr",
+            "language_probability": 1.0,
+            "segments": [
+              {
+                "start": 0.0,
+                "end": 29.98,
+                "text": "İzlediğiniz için teşekkür ederim.",
+                "avg_logprob": -0.6244093726078669,
+                "no_speech_prob": 0.142333984375
+              }
+            ],
+            "duration_seconds": 15.223
+          }
+        ],
+        "transcripts_count": 3,
+        "transcripts_valid": true,
+        "transcript_present": true,
+        "cleanup_after_each": "none",
+        "cleanup_results": [],
+        "duration_seconds": 23.523,
+        "notes": [
+          "child emitted JSON before normal sys.exit(0)"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": true,
+      "duration_seconds": 24.919,
+      "stdout_tail": "lar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 7.46, \"text\": \"F-16'lar İzmir'de hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 7.78, \"end\": 11.1, \"text\": \"F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}, {\"start\": 14.34, \"end\": 20.0, \"text\": \"İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.\", \"avg_logprob\": -0.2334690514538023, \"no_speech_prob\": 0.05828857421875}], \"duration_seconds\": 2.271}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\promo_1_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 6.84, \"text\": \"Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.\", \"avg_logprob\": -0.24069853533398022, \"no_speech_prob\": 0.69970703125}], \"duration_seconds\": 0.673}, {\"clip_path\": \"E:\\\\MITAS\\\\outputs\\\\real_media_smoke\\\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav\", \"segments_count\": 1, \"transcript\": \"İzlediğiniz için teşekkür ederim.\", \"transcript_present\": true, \"detected_language\": \"tr\", \"language_probability\": 1.0, \"segments\": [{\"start\": 0.0, \"end\": 29.98, \"text\": \"İzlediğiniz için teşekkür ederim.\", \"avg_logprob\": -0.6244093726078669, \"no_speech_prob\": 0.142333984375}], \"duration_seconds\": 15.223}], \"transcripts_count\": 3, \"transcripts_valid\": true, \"transcript_present\": true, \"cleanup_after_each\": \"none\", \"cleanup_results\": [], \"duration_seconds\": 23.523, \"notes\": [\"child emitted JSON before normal sys.exit(0)\"]}\n",
+      "stderr_tail": "Fatal Python error: Aborted\n\nThread 0x0000d2e4 (most recent call first):\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 324 in wait\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 607 in wait\n  File \"E:\\MITAS\\venvs\\asr\\lib\\site-packages\\tqdm\\_monitor.py\", line 60 in run\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 1016 in _bootstrap_inner\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 973 in _bootstrap\n\nThread 0x00009d9c (most recent call first):\n  File \"E:\\MITAS\\scripts\\asr_exit_test_children\\t7_child.py\", line 10 in <module>\n\nExtension modules: av._core, av.logging, av.buffer, av.audio.format, av.error, av.dictionary, av.container.pyio, av.option, av.descriptor, av.format, av.index, av.utils, av.stream, av.container.streams, av.sidedata.encparams, av.sidedata.motionvectors, av.sidedata.sidedata, av.opaque, av.packet, av.container.input, av.container.output, av.container.core, av.codec.context, av.video.format, av.video.reformatter, av.plane, av.video.plane, av.video.frame, av.video.stream, av.codec.hwaccel, av.codec.codec, av.frame, av.audio.layout, av.audio.plane, av.audio.frame, av.audio.stream, av.filter.link, av.filter.context, av.filter.graph, av.filter.filter, av.filter.loudnorm, av.audio.resampler, av.audio.codeccontext, av.audio.fifo, av.bitstream, av.device, av.video.codeccontext, numpy._core._multiarray_umath, numpy.linalg._umath_linalg, torch._C, torch._C._dynamo.autograd_compiler, torch._C._dynamo.eval_frame, torch._C._dynamo.guards, torch._C._dynamo.utils, torch._C._fft, torch._C._linalg, torch._C._nested, torch._C._nn, torch._C._sparse, torch._C._special, yaml._yaml, av.subtitles.stream (total: 62)\n",
+      "notes": [
+        "child stdout JSON parsed",
+        "abnormal exit after parseable child output",
+        "minidump not configured in this no-registry-change run"
+      ],
+      "faulthandler_stderr": "Fatal Python error: Aborted\n\nThread 0x0000d2e4 (most recent call first):\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 324 in wait\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 607 in wait\n  File \"E:\\MITAS\\venvs\\asr\\lib\\site-packages\\tqdm\\_monitor.py\", line 60 in run\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 1016 in _bootstrap_inner\n  File \"C:\\Users\\TRT03\\AppData\\Local\\Programs\\Python\\Python310\\lib\\threading.py\", line 973 in _bootstrap\n\nThread 0x00009d9c (most recent call first):\n  File \"E:\\MITAS\\scripts\\asr_exit_test_children\\t7_child.py\", line 10 in <module>\n\nExtension modules: av._core, av.logging, av.buffer, av.audio.format, av.error, av.dictionary, av.container.pyio, av.option, av.descriptor, av.format, av.index, av.utils, av.stream, av.container.streams, av.sidedata.encparams, av.sidedata.motionvectors, av.sidedata.sidedata, av.opaque, av.packet, av.container.input, av.container.output, av.container.core, av.codec.context, av.video.format, av.video.reformatter, av.plane, av.video.plane, av.video.frame, av.video.stream, av.codec.hwaccel, av.codec.codec, av.frame, av.audio.layout, av.audio.plane, av.audio.frame, av.audio.stream, av.filter.link, av.filter.context, av.filter.graph, av.filter.filter, av.filter.loudnorm, av.audio.resampler, av.audio.codeccontext, av.audio.fifo, av.bitstream, av.device, av.video.codeccontext, numpy._core._multiarray_umath, numpy.linalg._umath_linalg, torch._C, torch._C._dynamo.autograd_compiler, torch._C._dynamo.eval_frame, torch._C._dynamo.guards, torch._C._dynamo.utils, torch._C._fft, torch._C._linalg, torch._C._nested, torch._C._nn, torch._C._sparse, torch._C._special, yaml._yaml, av.subtitles.stream (total: 62)\n",
+      "minidump_path": null,
+      "top_frame_module": null,
+      "status": "needs_review"
+    },
+    {
+      "test_id": "T8",
+      "command": [
+        "E:\\MITAS\\venvs\\asr\\Scripts\\python.exe",
+        "E:\\MITAS\\scripts\\asr_exit_test_children\\t8_child.py"
+      ],
+      "exit_code": 0,
+      "exit_code_hex": "0x00000000",
+      "clean_exit": true,
+      "child_stdout_json": {
+        "test_id": "T8",
+        "scenario": "version_matrix",
+        "status": "skipped",
+        "skip_reason": "requires isolated temporary venv package installs; not run in no-package-change pass",
+        "transcript_present": false,
+        "notes": [
+          "main ASR venv and project package files were not changed"
+        ]
+      },
+      "child_stdout_parse_error": null,
+      "transcript_present": false,
+      "duration_seconds": 0.065,
+      "stdout_tail": "{\"test_id\": \"T8\", \"scenario\": \"version_matrix\", \"status\": \"skipped\", \"skip_reason\": \"requires isolated temporary venv package installs; not run in no-package-change pass\", \"transcript_present\": false, \"notes\": [\"main ASR venv and project package files were not changed\"]}\n",
+      "stderr_tail": "",
+      "notes": [
+        "child stdout JSON parsed",
+        "clean exit"
+      ],
+      "status": "skipped"
+    }
+  ],
+  "ozet": {
+    "dirty_tests": [
+      "T3",
+      "T4",
+      "T7"
+    ],
+    "failed_tests": [],
+    "t4_karari": {
+      "result": "dirty",
+      "containment": "process-per-clip is the safer containment",
+      "interpretation": "problem is not only same-instance state; process-level CUDA lifecycle remains suspect"
+    },
+    "t5_diff_summary": {
+      "segments_count_match": true,
+      "reference_segments_count": 3,
+      "suspect_segments_count": 3,
+      "segments_match": true,
+      "text_mismatches": [],
+      "numeric_mismatches": [],
+      "tolerance": 0.0001
+    },
+    "likely_cause": "Fresh instances in one process still exit dirty; process-per-clip containment is favored."
+  },
+  "duration_seconds": 158.604
+}
