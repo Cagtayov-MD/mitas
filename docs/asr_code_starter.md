@@ -161,3 +161,96 @@ Hayır. Tüm test paketi 76 passed. Yeni test dosyası gerçek medya yoksa skip 
 
 **Daha iyi olabilir miydi?**  
 Multi-GB dosyalar (`2.mp4`, `3.mp4`, `4.mp4`, `5.mp4`) bu blokta tam normalize smoke'a sokulmadı. Bunun nedeni A bloğunu hızlı ve tekrar edilebilir tutmak. Büyük dosyalar için ayrı "ASR real media stress/benchmark" aşaması açılmalı; normalize unit/regression testine karıştırılırsa her test turu gereksiz ağırlaşır.
+
+---
+
+## 2026-05-11 / Blok B - Silero VAD
+
+### Neden Bu Blok?
+
+Normalize sonrası ASR pipeline'ın ikinci taşı, konuşmanın geçtiği zaman aralıklarını çıkarmaktır. Bu bilgi iki nedenle gerekli:
+
+- faster-whisper öncesinde konuşma bölgelerini bilmek.
+- `speech_ratio` metriğini kalite raporuna yazmak.
+
+Bu blok sadece VAD yapar. Transcribe, diarization ve segment-speaker merge bu blokta yapılmadı.
+
+### Ön Kontrol
+
+- `venvs/asr` içinde `silero_vad==6.2.1` mevcut.
+- API kontrol edildi:
+  - `load_silero_vad(onnx=False, opset_version=16)`
+  - `get_speech_timestamps(..., return_seconds=False/True, sampling_rate=16000)`
+  - `read_audio(path, sampling_rate=16000)`
+- `venvs/asr` içinde pytest yok. Bu yüzden gerçek Silero runtime testi stdlib `unittest` ile yazıldı.
+- `venvs/core` içinde Silero yok. Bu beklenen durum; ana ASR runtime `venvs/asr`.
+
+### Eklenen Kod
+
+- `core/pipelines/asr/vad.py` eklendi.
+  - Sebep: normalize edilmiş WAV üzerinde Silero VAD çalıştırmak, konuşma segmentlerini ve `speech_ratio` metriğini üretmek.
+- `core/pipelines/asr/__init__.py` güncellendi.
+  - Sebep: VAD tiplerini ve `run_silero_vad` fonksiyonunu ASR paketinden import edilebilir yapmak.
+- `tests/test_asr_vad.py` eklendi.
+  - Sebep: model yüklemeden çalışan kontrat testleri sağlamak; duration okuma, timestamp clamp ve normalize edilmemiş WAV reddi.
+- `tests/test_asr_vad_real_media.py` eklendi.
+  - Sebep: gerçek medya üzerinde normalize + gerçek Silero VAD runtime smoke'u yapmak. Bu test `asr` venv'de `unittest` ile çalıştırılır; `core` venv'de Silero olmadığı için skip olur.
+
+### İlk Sorun ve Düzeltme
+
+İlk gerçek runtime denemesinde sorun çıktı:
+
+- Silero'nun kendi `read_audio()` fonksiyonu `torchaudio.load()` yoluna girdi.
+- Bu yol `torchcodec` yüklemeye çalıştı.
+- `venvs/asr` içinde torchcodec native DLL yükleme hatası verdi.
+
+Bu, A bloğundaki gerçek normalize testlerinde görünmemişti; çünkü normalize ffmpeg/ffprobe ile çalışıyor, Silero audio reader yolunu kullanmıyordu.
+
+**Düzeltme:** `run_silero_vad()` artık Silero'nun `read_audio()` fonksiyonunu kullanmıyor. Normalize edilmiş WAV zaten 16 kHz mono 16-bit PCM olduğu için:
+
+1. stdlib `wave` ile WAV okunuyor.
+2. PCM s16 sample'ları stdlib `array` ile alınıyor.
+3. `torch.tensor(..., dtype=torch.float32) / 32768.0` ile Silero'nun beklediği waveform tensor'ı üretiliyor.
+
+**Neden böyle?**
+Bu yöntem torchcodec/torchaudio decode zincirini tamamen bypass eder. Audio decode sorumluluğu zaten A bloğunda ffmpeg normalize ile çözülmüştü; B bloğunda tekrar decode stack riski almak gereksizdi.
+
+### Gerçek Medya Runtime Sonucu
+
+Gerçek medya: `E:\MITAS\testklipler\trt_haber (1).mp4`
+
+Akış:
+
+1. MP4 -> normalize WAV
+2. normalize WAV -> Silero VAD
+
+Sonuç:
+
+- Audio duration: `95.62`
+- Speech segment count: `10`
+- Speech seconds: `65.0`
+- Speech ratio: `0.679774`
+- First segment: `start=6.2`, `end=7.6`, `duration=1.4`
+
+### Test ve Doğrulama
+
+- `tests/test_asr_vad.py` (`core` venv): 3 passed.
+- `tests/test_asr_vad_real_media.py` (`core` venv): 1 skipped.
+  - Sebep: Silero `core` venv'de yok; bu test gerçek ASR runtime'a ait.
+- `tests.test_asr_vad_real_media` (`asr` venv, unittest): OK.
+- `tests/test_asr_vad.py tests/test_asr_vad_real_media.py` (`core` venv): 3 passed, 1 skipped.
+- Tüm test paketi (`core` venv): 79 passed, 1 skipped.
+
+### Blok Sonu Öz-Kontrol
+
+**Uyumlu mu?**
+Evet. Kod, ASR planındaki "Normalize sonrası Silero VAD -> speech region listesi + speech_ratio" hedefiyle uyumlu.
+
+**Amaca hizmet ediyor mu?**
+Evet. Normalize edilmiş WAV'dan start/end/duration segmentleri ve clip-level `speech_ratio` üretildi.
+
+**Başka bir şeyi bozuyor mu?**
+Hayır. Tüm mevcut test paketi geçti. VAD kodu `core/pipelines/asr/` altında izole. `core` venv'de model bağımlılığı zorlanmıyor.
+
+**Daha iyi olabilir miydi?**
+Evet, ileride VAD parametreleri profile göre ayarlanabilir. Şimdilik default Silero threshold/min_speech/min_silence değerleri kullanıldı; çünkü bu blok entegrasyon ve kontrat bloğu. Profil bazlı kalibrasyon transcribe smoke sonuçlarıyla birlikte ele alınmalı.
