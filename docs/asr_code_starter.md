@@ -679,3 +679,147 @@ Hayır. Core test paketi geçti. Düzeltme sadece pyannote pipeline yüklenmeden
 
 **Daha iyi olabilir miydi?**
 Evet. Sistem PATH kalıcı olarak shared FFmpeg'e çevrilebilirdi; ama repo içinde izole çözüm daha kontrollü. Global Windows PATH değişmedi, mevcut ffmpeg davranışı bozulmadı.
+
+---
+
+## 2026-05-11 / Gerçek Medya Kontrolü - beyaz2 08:00-11:00
+
+### Neden Bu Kontrol?
+
+Kullanıcı `E:\MITAS\testklipler\beyaz2.mp4` dosyasının 8. dakika ile 11. dakika arasını, şu ana kadar eklenen modellerle genel kontrolden geçirmemi istedi.
+
+Amaç yeni pipeline kodu yazmak değil; mevcut blokların gerçek ve daha uzun bir medya parçasında birlikte davranışını görmek:
+
+```text
+clip extract -> torchcodec smoke -> normalize -> Silero VAD -> faster-whisper -> pyannote
+```
+
+### Girdi ve Hazırlık
+
+- Kaynak medya: `E:\MITAS\testklipler\beyaz2.mp4`
+- Kaynak süre: `6061.011882 sn`
+- Test aralığı: `00:08:00 - 00:11:00`
+- Üretilen test klibi:
+  - `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\beyaz2_08_11.mp4`
+  - Süre: `180.000000 sn`
+  - Ses: AAC, `44100 Hz`, stereo
+
+Bu klip shared FFmpeg ile re-encode edildi. Sebep: 3 dakikalık sabit, tekrar üretilebilir ve zaman aralığı net bir gerçek medya fixture'ı oluşturmak.
+
+### Koşu Sırasındaki Küçük Hatalar
+
+İlk iki hata model hatası değildi; kontrol scriptinin rapor yazma tarafındaydı.
+
+1. İlk koşu `NormalizeResult.duration_seconds` alanını okumaya çalıştı.
+   - Sebep: `NormalizeResult` içinde duration alanı yok; doğru kaynak `read_wav_duration_seconds(...)`.
+   - Sonuç: Script düzeltildi.
+2. İkinci koşuda modeller çalıştı ama JSON yazarken `WindowsPath` serialize edilemedi.
+   - Sebep: `asdict(...)` içindeki `Path` alanları string'e çevrilmemişti.
+   - Sonuç: Rapor yazımı `json.dumps(..., default=str)` ile düzeltildi.
+
+Bu iki hata pipeline davranışı değil, geçici kontrol scripti raporlama hatasıydı.
+
+### Başarılı Koşu Sonucu
+
+Raporlar:
+
+- JSON: `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\beyaz2_08_11_asr_models_report.json`
+- Özet: `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\beyaz2_08_11_asr_models_summary.md`
+
+Runtime:
+
+- Toplam: `55.713 sn`
+- torchcodec decode smoke: `3.038 sn`
+- normalize: `0.301 sn`
+- Silero VAD: `3.123 sn`
+- faster-whisper model load: `3.602 sn`
+- faster-whisper transcribe: `34.994 sn`
+- pyannote load: `7.248 sn`
+- pyannote diarize: `3.406 sn`
+
+### Model Çıktıları
+
+**Torchcodec**
+
+- Shared FFmpeg DLL yolu tanındı.
+- `AudioDecoder` gerçek MP4 üzerinden çalıştı.
+- Smoke sonucu:
+  - sample rate: `16000`
+  - shape: `[1, 16000]`
+
+**Normalize**
+
+- Çıktı WAV:
+  - `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\normalized\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav`
+- Süre: `180.001 sn`
+- Format beklentiye uygun: `16 kHz`, mono, `pcm_s16le`
+
+**Silero VAD**
+
+- Segment sayısı: `28`
+- Speech seconds: `151.2 sn`
+- Speech ratio: `0.839995`
+- Uzun VAD boşlukları:
+  - `11.1 - 16.0` (`4.9 sn`)
+  - `131.1 - 142.7` (`11.6 sn`)
+
+**faster-whisper**
+
+- Transcript segment sayısı: `58`
+- Dil dağılımı:
+  - `tr`: `55`
+  - `en`: `2`
+  - `pt`: `1`
+- Transcript karakter sayısı: `2175`
+
+Kalite işaretleri:
+
+- `0.100 - 2.380` aralığında `pt` görünen bozuk/kısa çıktı oluştu: `É...`
+  - `no_speech_prob`: `0.7866`
+  - Yorum: Bu büyük olasılıkla gerçek konuşma değil veya modelin yüksek belirsizlikle ürettiği açılış artefaktı.
+- `10.100 - 12.600` aralığında `en` çıktı oluştu.
+  - `no_speech_prob`: `0.8628`
+  - Yorum: Bu da yüksek no-speech olduğu için kalite raporu aşamasında filtre/uyarı adayı.
+- Toplam `25` transcript segmentinde `no_speech_prob > 0.3`.
+  - Yorum: Bu tek başına "yanlış" demek değil; ama F kalite raporu için önemli metrik.
+
+**pyannote diarization**
+
+- Segment sayısı: `54`
+- Speaker sayısı: `4`
+- Speaker süreleri:
+  - `SPEAKER_00`: `29.38 sn`
+  - `SPEAKER_01`: `82.196 sn`
+  - `SPEAKER_02`: `41.816 sn`
+  - `SPEAKER_03`: `10.7 sn`
+- `0.5 sn` altı kısa diarization parçası: `19`
+
+Yorum: 4 konuşmacı bu tür program kesiti için mümkün. Ancak `0.05 sn`, `0.085 sn`, `0.152 sn` gibi çok kısa speaker kırpıntıları E/F aşamasında smoothing veya minimum-duration filtresi gerektirebilir.
+
+### Uyarılar
+
+- Torchcodec uyarısı bu koşuda tekrar etmedi.
+- Kalan uyarılar:
+  - `triton not found`
+  - TF32 reproducibility uyarısı
+  - pyannote pooling içinde kısa sequence `std()` uyarısı
+
+Yorum: Bunlar bu koşuda bloklayıcı değil. Torchcodec problemi çözülmüş görünüyor.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Yeni pipeline kodu yazılmadı; mevcut A/B/C/D blokları gerçek medya üzerinde birlikte kontrol edildi.
+
+**Amaca hizmet ediyor mu?**
+Evet. 3 dakikalık gerçek klipte normalize, VAD, transcript, diarization ve torchcodec smoke birlikte çalıştı.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Kod değişikliği yapılmadı; sadece `outputs/real_media_smoke/beyaz2_08_11/` altında tekrar üretilebilir kontrol çıktıları üretildi ve bu dokümana kayıt düşüldü.
+
+**Daha iyi olabilir miydi?**
+Evet. Bu kontrol E/F için üç iyileştirme adayı gösterdi:
+
+- Transcript kalite raporunda `no_speech_prob` yüksek segmentler işaretlenmeli.
+- Diarization tarafında çok kısa speaker kırpıntıları için smoothing/min-duration kuralı düşünülmeli.
+- E bloğunda transcript-speaker merge yapılırken overlap süresi ve güven oranı yazılmalı; konuşmacı atanamayan segmentler dürüstçe `speaker_id = null` kalabilmeli.
