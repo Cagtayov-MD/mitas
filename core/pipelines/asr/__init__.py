@@ -13,6 +13,7 @@ from core.pipelines.asr.diarize import (
 )
 from core.pipelines.asr.models import FAST_MODEL, QUALITY_MODEL, ModelConfig, ProfileName, clear_model_cache
 from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, NormalizeResult, normalize_audio, probe_audio_stream
+from core.pipelines.asr.pipeline import AsrPipelineRunResult, run_asr_pipeline
 from core.pipelines.asr.quality import (
     QualityConfig,
     ResultSafetyDecision,
@@ -39,7 +40,9 @@ from core.pipelines.asr.vad import AudioVadError, VadResult, VadSpeechSegment, r
 
 __all__ = [
     "transcribe",
+    "run_asr_pipeline",
     "ProductionTranscribeResult",
+    "AsrPipelineRunResult",
     "TranscriptSegment",
     "DropRecord",
     "TranscribeTiming",

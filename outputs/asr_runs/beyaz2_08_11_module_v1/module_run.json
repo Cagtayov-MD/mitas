@@ -1,0 +1,55 @@
+{
+  "module_run_id": "module-beyaz2-08-11-asr-v1",
+  "job_id": "job-beyaz2-08-11-asr-v1",
+  "media_id": "beyaz2_08_11",
+  "module_name": "asr",
+  "module_version": "1.0",
+  "model_name": "large-v3-turbo",
+  "model_version": null,
+  "status": "done",
+  "started_at": "2026-05-11T16:01:52.311425Z",
+  "completed_at": "2026-05-11T16:02:06.061464Z",
+  "runtime_sec": 13.75,
+  "gpu_used": true,
+  "vram_peak_mb": null,
+  "error_msg": null,
+  "output_summary": {
+    "pipeline_version": "asr_v1_0",
+    "input_path": "E:\\MITAS\\tests\\fixtures\\beyaz2_08_11.wav",
+    "normalized_audio_path": "E:\\MITAS\\outputs\\asr_runs\\beyaz2_08_11_module_v1\\normalized.wav",
+    "profile_requested": "fast_with_fallback",
+    "profile_used": "fast",
+    "model_name": "large-v3-turbo",
+    "fallback_triggered": false,
+    "fallback_reason": null,
+    "audio_duration": 180.001,
+    "raw_segments": 53,
+    "clean_segments": 52,
+    "quality_drops": 1,
+    "clean_words": 310,
+    "safety": {
+      "safe": true,
+      "failure_reason": null,
+      "diagnostics": {
+        "max_run": 3,
+        "repeated_token": "yazdı",
+        "max_token_length": 16,
+        "words_per_second": 2.2
+      }
+    },
+    "timing": {
+      "normalize_seconds": 0.033,
+      "transcribe_total_seconds": 13.673,
+      "decode_seconds": 7.127,
+      "fallback_seconds": 0.0,
+      "chunk_count": 8,
+      "total_seconds": 13.75
+    },
+    "outputs": {
+      "archive": "archive.json",
+      "module_run": "module_run.json",
+      "summary": "summary.json",
+      "transcript_review": "transcript_review.md"
+    }
+  }
+}

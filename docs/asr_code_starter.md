@@ -1759,3 +1759,152 @@ Kontrol edildi. Eski `transcribe_vad_segments` ve A/B chunk regression testleri 
 
 **Daha iyi olabilir miydi?**
 Evet. `fast_with_fallback` sadece hard safety/critical drop durumunda fallback yapıyor. Semantik kalite farkı için henüz otomatik ölçüm yok. Bir sonraki kalite adımı küçük referans transcript seti + WER/CER veya Phase 2 entity correction olmalı.
+
+## 2026-05-11 - Blok: ASR Module Run Shell
+
+Bu blokta production `transcribe()` fonksiyonunu MİTAS'ın job/module-run sözleşmesine bağlayan ilk resmi ASR modül koşucusu eklendi.
+
+### Neden Bu Blok?
+
+ASR bizim ilk modülümüz; bu yüzden başka bir pipeline'a bağlanmadan önce kendi standart giriş/çıkış kabuğuna ihtiyaç duyuyor. Amaç şuydu:
+
+```text
+raw video/audio
+  -> normalize_audio
+  -> transcribe
+  -> archive.json
+  -> module_run.json
+  -> summary.json
+  -> transcript_review.md
+```
+
+Bu blok yeni kalite modeli denemedi, diarization/entity correction eklemedi. Sadece çalışan ASR production wrapper'ını MİTAS'ın izlenebilir modül çıktısı formatına bağladı.
+
+### Kodda Yapılanlar
+
+Yeni dosya:
+
+```text
+E:\MITAS\core\pipelines\asr\pipeline.py
+```
+
+Güncellenen dosya:
+
+```text
+E:\MITAS\core\pipelines\asr\__init__.py
+```
+
+Yeni test:
+
+```text
+E:\MITAS\tests\test_asr_pipeline.py
+```
+
+### Ne Yaptım ve Neden?
+
+1. `run_asr_pipeline(...)` eklendi.
+   - Sebep: ASR modülünün tek resmi giriş noktası olsun.
+   - Girdi olarak raw WAV/MP4 alıyor.
+   - Önce normalize ediyor.
+   - Sonra production `transcribe()` çağırıyor.
+   - Sonuçları standart dosyalara yazıyor.
+
+2. `AsrPipelineRunResult` eklendi.
+   - Sebep: çağıran kod hem dosya yollarını hem de `ProductionTranscribeResult` ve `ModuleRun` nesnesini birlikte alabilsin.
+
+3. `archive.json` yazımı eklendi.
+   - Sebep: ASR çıktısının arşiv katmanı `to_archive_dict()` ile kalıcı JSON olarak saklansın.
+
+4. `module_run.json` yazımı eklendi.
+   - Sebep: MİTAS worker/job tarafı her modül koşusunu `ModuleRun` şemasına göre takip edebilsin.
+
+5. `summary.json` yazımı eklendi.
+   - Sebep: hızlı okunur teknik özet ayrı dursun; segment sayısı, word count, safety, timing ve output dosyaları tek yerde görünsün.
+
+6. `transcript_review.md` yazımı eklendi.
+   - Sebep: ASR işinde asıl kanıt metindir. Kullanıcı metni tekrar istemek zorunda kalmasın diye clean ve verbatim transcript aynı inceleme dosyasına yazılıyor.
+
+7. Hata yolunda `module_run.json` ve `summary.json` yine yazılıyor.
+   - Sebep: modül fail olsa bile nerede ve neden fail olduğu kayıtta kalsın.
+
+### Gerçek Smoke Testi
+
+Gerçek test girdisi:
+
+```text
+E:\MITAS\tests\fixtures\beyaz2_08_11.wav
+```
+
+Üretilen modül çıktıları:
+
+```text
+E:\MITAS\outputs\asr_runs\beyaz2_08_11_module_v1\archive.json
+E:\MITAS\outputs\asr_runs\beyaz2_08_11_module_v1\module_run.json
+E:\MITAS\outputs\asr_runs\beyaz2_08_11_module_v1\summary.json
+E:\MITAS\outputs\asr_runs\beyaz2_08_11_module_v1\transcript_review.md
+E:\MITAS\outputs\asr_runs\beyaz2_08_11_module_v1\normalized.wav
+```
+
+`normalized.wav` çalışma kanıtı olarak output klasöründe duruyor; Git'e alınmıyor çünkü `.gitignore` içinde `outputs/**/*.wav` kuralı var.
+
+Gerçek smoke özeti:
+
+```text
+profile_requested = fast_with_fallback
+profile_used = fast
+model_name = large-v3-turbo
+fallback_triggered = false
+safety.safe = true
+audio_duration = 180.001
+raw_segments = 53
+clean_segments = 52
+quality_drops = 1
+clean_words = 310
+chunk_count = 8
+decode_seconds = 7.127
+total_seconds = 13.75
+module_run.status = done
+```
+
+Schema doğrulaması:
+
+```text
+ModuleRun.model_validate(module_run.json): pass
+status = JobStatus.done
+module_name = asr
+clean_words = 310
+```
+
+### Test ve Doğrulama
+
+Çalıştırılan doğrulamalar:
+
+```text
+py_compile core/pipelines/asr/pipeline.py core/pipelines/asr/__init__.py tests/test_asr_pipeline.py: pass
+pytest tests/test_asr_pipeline.py tests/test_production_transcribe.py tests/test_chunking.py tests/test_asr_quality.py tests/test_asr_ab_chunks.py tests/test_asr_transcribe.py tests/test_schema_module_run.py -q
+45 passed
+```
+
+### Kalite Notu
+
+Bu blok kalite iyileştirme bloğu değildi. Gerçek smoke transcript'inde daha önce bildiğimiz kelime seçimi riski hala görülebiliyor:
+
+```text
+Dancing Bear / Dancing Deer beklenen yerde fast model "Dancing Beer" üretebiliyor.
+```
+
+Bu, `module_run` kabuğunun yanlış olduğu anlamına gelmiyor; ASR modül kabuğu çalışıyor. Semantik kalite için sonraki ayrı iş referans/WER veya entity-normalization katmanı olacak.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. ASR ilk modül olduğu için production `transcribe()` artık standart MİTAS module-run çıktıları üretiyor. Phase 2 veya kalite algoritması bu bloğa karıştırılmadı.
+
+**Amaca hizmet ediyor mu?**
+Evet. Artık tek çağrıyla normalize edilmiş ses, transcript, archive çıktısı, summary ve module-run kaydı oluşuyor. Worker/pipeline tarafı için bağlanabilir ilk kabuk hazır.
+
+**Başka şeyi bozuyor mu?**
+Kontrol edildi. 45 test geçti; mevcut production transcribe, chunking, kalite, A/B chunk ve schema testleri çalışıyor. `tools/asr_ab` davranışına dokunulmadı.
+
+**Daha iyi olabilir miydi?**
+Evet. Şu an module-run dosya tabanlı bir kabuk. Bir sonraki adımda bunu gerçek job worker/repository akışına bağlayebiliriz. Ayrıca GPU/VRAM ölçümü şimdilik sınırlı: başarılı ASR koşusunda `gpu_used=True`, erken hata yolunda `gpu_used=False`, `vram_peak_mb=None`; ileride gerçek telemetry eklenmeli.
