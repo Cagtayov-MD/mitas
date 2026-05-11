@@ -823,3 +823,41 @@ Evet. Bu kontrol E/F için üç iyileştirme adayı gösterdi:
 - Transcript kalite raporunda `no_speech_prob` yüksek segmentler işaretlenmeli.
 - Diarization tarafında çok kısa speaker kırpıntıları için smoothing/min-duration kuralı düşünülmeli.
 - E bloğunda transcript-speaker merge yapılırken overlap süresi ve güven oranı yazılmalı; konuşmacı atanamayan segmentler dürüstçe `speaker_id = null` kalabilmeli.
+
+### Eksik Çıktı Düzeltmesi - Tam Timeline
+
+İlk beyaz2 kontrol çıktısı eksikti. Sadece genel model özetini ve ilk transcript satırlarını yazmıştı. Bu testin asıl amacı şu ana kadar yapılan işlerin birlikte görülmesiydi:
+
+```text
+boşluk -> konuşma -> transcript -> konuşmacı
+```
+
+Bu yüzden aynı smoke raporu yeniden model koşturmadan tam timeline formatına çevrildi.
+
+Yeni kanıt dosyaları:
+
+- `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\beyaz2_08_11_full_timeline.md`
+- `E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\beyaz2_08_11_full_timeline.json`
+
+İçerik:
+
+- Tüm `58` transcript segmenti yazıldı.
+- Her transcript segmentine pyannote ile en yüksek overlap veren speaker atandı.
+- Düşük overlap durumunda `speaker_id = null` bırakıldı.
+- Her segmentte `language`, `no_speech_prob`, speaker coverage ve kalite bayrakları yazıldı.
+- `10` VAD boşluğu ayrıca listelendi.
+- `54` pyannote speaker segmentinin tamamı ayrıca listelendi.
+
+Bu düzeltme E bloğundaki kalıcı merge kodu değildir. Sadece mevcut gerçek medya smoke çıktısını doğru okunabilir hale getiren tanı amaçlı birleşik rapordur.
+
+**Planla uyumlu mu?**
+Evet. Yeni pipeline davranışı eklenmedi; mevcut model çıktıları daha eksiksiz raporlandı.
+
+**Amaca hizmet ediyor mu?**
+Evet. Artık boşluk, transcript ve konuşmacı aynı kanıt dosyasında birlikte görülebiliyor.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Kod değişikliği yapılmadı; sadece eksik rapor formatı tamamlandı.
+
+**Daha iyi olabilir miydi?**
+Evet. Bu işlemin geçici scriptle değil, E/F aşamasında kalıcı pipeline çıktısı olarak üretilmesi gerekiyor. Bu düzeltme aynı ihtiyacı açıkça görünür hale getirdi.

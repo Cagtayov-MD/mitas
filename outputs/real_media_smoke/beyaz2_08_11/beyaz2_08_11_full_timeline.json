@@ -1,0 +1,1697 @@
+{
+  "source_media": "E:\\MITAS\\testklipler\\beyaz2.mp4",
+  "clip_media": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\beyaz2_08_11.mp4",
+  "source_range_seconds": {
+    "start": 480,
+    "end": 660,
+    "duration": 180
+  },
+  "assignment_method": {
+    "name": "diagnostic_max_overlap",
+    "min_speaker_overlap_seconds": 0.25,
+    "min_speaker_coverage": 0.2,
+    "note": "Bu E bloğundaki kalıcı merge kodu değil; mevcut smoke raporundan üretilen tanı amaçlı birleşik timeline'dır."
+  },
+  "counts": {
+    "transcript_segments": 58,
+    "vad_gaps": 10,
+    "diarization_segments": 54,
+    "speakers": 4
+  },
+  "speaker_durations": {
+    "SPEAKER_00": 29.38,
+    "SPEAKER_01": 82.196,
+    "SPEAKER_02": 41.816,
+    "SPEAKER_03": 10.7
+  },
+  "transcript_timeline": [
+    {
+      "index": 1,
+      "kind": "speech",
+      "relative_start": 0.1,
+      "relative_end": 2.38,
+      "source_start": 480.1,
+      "source_end": 482.38,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.048,
+      "speaker_coverage": 0.46,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.048
+      },
+      "language": "pt",
+      "avg_logprob": -0.47890625,
+      "no_speech_prob": 0.78662109375,
+      "flags": [
+        "NON_TR",
+        "HIGH_NO_SPEECH",
+        "LOW_SPEAKER_COVERAGE"
+      ],
+      "text": "É..."
+    },
+    {
+      "index": 2,
+      "kind": "speech",
+      "relative_start": 2.1,
+      "relative_end": 6.04,
+      "source_start": 482.1,
+      "source_end": 486.04,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.94,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 3.94
+      },
+      "language": "tr",
+      "avg_logprob": -0.14117187023162842,
+      "no_speech_prob": 0.11798095703125,
+      "flags": [],
+      "text": "Dişi bir kedi almışsın başka bir dişi kediyi hamile bırakınca."
+    },
+    {
+      "index": 3,
+      "kind": "speech",
+      "relative_start": 6.3,
+      "relative_end": 7.16,
+      "source_start": 486.3,
+      "source_end": 487.16,
+      "speaker_id": "SPEAKER_03",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.49,
+      "speaker_coverage": 0.57,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.37,
+        "SPEAKER_03": 0.49
+      },
+      "language": "tr",
+      "avg_logprob": -0.2508223715581392,
+      "no_speech_prob": 0.01113128662109375,
+      "flags": [],
+      "text": "Hayır hayır."
+    },
+    {
+      "index": 4,
+      "kind": "speech",
+      "relative_start": 7.72,
+      "relative_end": 9.82,
+      "source_start": 487.72,
+      "source_end": 489.82,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.1,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.1
+      },
+      "language": "tr",
+      "avg_logprob": -0.2508223715581392,
+      "no_speech_prob": 0.01113128662109375,
+      "flags": [],
+      "text": "Kendi kedinin erkek olduğunu anlamışsın."
+    },
+    {
+      "index": 5,
+      "kind": "speech",
+      "relative_start": 10.1,
+      "relative_end": 12.6,
+      "source_start": 490.1,
+      "source_end": 492.6,
+      "speaker_id": null,
+      "speaker_assignment_status": "low_overlap",
+      "speaker_overlap_seconds": 0.051,
+      "speaker_coverage": 0.02,
+      "all_speaker_overlaps": {
+        "SPEAKER_03": 0.051
+      },
+      "language": "en",
+      "avg_logprob": -0.9746093600988388,
+      "no_speech_prob": 0.86279296875,
+      "flags": [
+        "NON_TR",
+        "HIGH_NO_SPEECH",
+        "LOW_OVERLAP"
+      ],
+      "text": "I don't know."
+    },
+    {
+      "index": 6,
+      "kind": "speech",
+      "relative_start": 14.5,
+      "relative_end": 16.2,
+      "source_start": 494.5,
+      "source_end": 496.2,
+      "speaker_id": null,
+      "speaker_assignment_status": "no_overlap",
+      "speaker_overlap_seconds": 0.0,
+      "speaker_coverage": 0.0,
+      "all_speaker_overlaps": {},
+      "language": "tr",
+      "avg_logprob": -0.5578125,
+      "no_speech_prob": 0.400634765625,
+      "flags": [
+        "HIGH_NO_SPEECH",
+        "NO_OVERLAP"
+      ],
+      "text": "Evet."
+    },
+    {
+      "index": 7,
+      "kind": "speech",
+      "relative_start": 16.4,
+      "relative_end": 20.38,
+      "source_start": 496.4,
+      "source_end": 500.38,
+      "speaker_id": "SPEAKER_03",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.66,
+      "speaker_coverage": 0.92,
+      "all_speaker_overlaps": {
+        "SPEAKER_03": 3.66
+      },
+      "language": "tr",
+      "avg_logprob": -0.15914817971567954,
+      "no_speech_prob": 0.07177734375,
+      "flags": [],
+      "text": "Kimse anlamamıştı onun, hiçbir veteriner anlamamıştı."
+    },
+    {
+      "index": 8,
+      "kind": "speech",
+      "relative_start": 20.46,
+      "relative_end": 22.56,
+      "source_start": 500.46,
+      "source_end": 502.56,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.013,
+      "speaker_coverage": 0.482,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.013,
+        "SPEAKER_03": 0.867
+      },
+      "language": "tr",
+      "avg_logprob": -0.15914817971567954,
+      "no_speech_prob": 0.07177734375,
+      "flags": [
+        "LOW_SPEAKER_COVERAGE"
+      ],
+      "text": "Çok tüylü bir kediydi."
+    },
+    {
+      "index": 9,
+      "kind": "speech",
+      "relative_start": 24.4,
+      "relative_end": 26.52,
+      "source_start": 504.4,
+      "source_end": 506.52,
+      "speaker_id": "SPEAKER_03",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.818,
+      "speaker_coverage": 0.858,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.743,
+        "SPEAKER_03": 1.818
+      },
+      "language": "tr",
+      "avg_logprob": -0.24820964286724725,
+      "no_speech_prob": 0.0628662109375,
+      "flags": [],
+      "text": "Dört tane yavru yaptılar."
+    },
+    {
+      "index": 10,
+      "kind": "speech",
+      "relative_start": 26.8,
+      "relative_end": 28.78,
+      "source_start": 506.8,
+      "source_end": 508.78,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.833,
+      "speaker_coverage": 0.926,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.833
+      },
+      "language": "tr",
+      "avg_logprob": -0.4843750252173497,
+      "no_speech_prob": 0.2244873046875,
+      "flags": [],
+      "text": "O gündem adı seninkinden arka kolun."
+    },
+    {
+      "index": 11,
+      "kind": "speech",
+      "relative_start": 28.86,
+      "relative_end": 30.54,
+      "source_start": 508.86,
+      "source_end": 510.54,
+      "speaker_id": "SPEAKER_03",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.535,
+      "speaker_coverage": 0.914,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.533,
+        "SPEAKER_03": 1.535
+      },
+      "language": "tr",
+      "avg_logprob": -0.4843750252173497,
+      "no_speech_prob": 0.2244873046875,
+      "flags": [],
+      "text": "Evet adama hala Daisy."
+    },
+    {
+      "index": 12,
+      "kind": "speech",
+      "relative_start": 30.8,
+      "relative_end": 32.8,
+      "source_start": 510.8,
+      "source_end": 512.8,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.928,
+      "speaker_coverage": 0.464,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.928
+      },
+      "language": "en",
+      "avg_logprob": -0.517578125,
+      "no_speech_prob": 0.43505859375,
+      "flags": [
+        "NON_TR",
+        "HIGH_NO_SPEECH",
+        "LOW_SPEAKER_COVERAGE"
+      ],
+      "text": "Are the days"
+    },
+    {
+      "index": 13,
+      "kind": "speech",
+      "relative_start": 32.6,
+      "relative_end": 35.76,
+      "source_start": 512.6,
+      "source_end": 515.76,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.148,
+      "speaker_coverage": 0.68,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.148
+      },
+      "language": "tr",
+      "avg_logprob": -0.2667100810342365,
+      "no_speech_prob": 0.142822265625,
+      "flags": [],
+      "text": "Kahvaltıda böbrek yağmış bu bilgide."
+    },
+    {
+      "index": 14,
+      "kind": "speech",
+      "relative_start": 36.1,
+      "relative_end": 38.92,
+      "source_start": 516.1,
+      "source_end": 518.92,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.68,
+      "speaker_coverage": 0.596,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.68
+      },
+      "language": "tr",
+      "avg_logprob": -0.26336347743084554,
+      "no_speech_prob": 0.05029296875,
+      "flags": [],
+      "text": "daha ne diyeyim kahvaltıda böbrek gelmiş"
+    },
+    {
+      "index": 15,
+      "kind": "speech",
+      "relative_start": 38.92,
+      "relative_end": 39.22,
+      "source_start": 518.92,
+      "source_end": 519.22,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.3,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.3
+      },
+      "language": "tr",
+      "avg_logprob": -0.26336347743084554,
+      "no_speech_prob": 0.05029296875,
+      "flags": [],
+      "text": "evet"
+    },
+    {
+      "index": 16,
+      "kind": "speech",
+      "relative_start": 39.4,
+      "relative_end": 42.3,
+      "source_start": 519.4,
+      "source_end": 522.3,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.9,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.9
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Valla konuşmadığın kadar varmış ben sana söyleyeyim."
+    },
+    {
+      "index": 17,
+      "kind": "speech",
+      "relative_start": 42.48,
+      "relative_end": 44.0,
+      "source_start": 522.48,
+      "source_end": 524.0,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.52,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.52
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Evet konuşunca şey oldu yani."
+    },
+    {
+      "index": 18,
+      "kind": "speech",
+      "relative_start": 44.18,
+      "relative_end": 46.1,
+      "source_start": 524.18,
+      "source_end": 526.1,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.92,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.92
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Sen mi söyledin filmdeki parçayı, yabancı parçayı?"
+    },
+    {
+      "index": 19,
+      "kind": "speech",
+      "relative_start": 46.14,
+      "relative_end": 47.24,
+      "source_start": 526.14,
+      "source_end": 527.24,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.1,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.813,
+        "SPEAKER_02": 1.1
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Evet ben söyledim."
+    },
+    {
+      "index": 20,
+      "kind": "speech",
+      "relative_start": 47.26,
+      "relative_end": 47.92,
+      "source_start": 527.26,
+      "source_end": 527.92,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.66,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.66,
+        "SPEAKER_02": 0.458
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Mükemmel söylemişsin ama."
+    },
+    {
+      "index": 21,
+      "kind": "speech",
+      "relative_start": 47.92,
+      "relative_end": 49.54,
+      "source_start": 527.92,
+      "source_end": 529.54,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.62,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.272,
+        "SPEAKER_02": 1.62
+      },
+      "language": "tr",
+      "avg_logprob": -0.2071368279489311,
+      "no_speech_prob": 0.307373046875,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Ozan bana çok teşekkür ediyorum."
+    },
+    {
+      "index": 22,
+      "kind": "speech",
+      "relative_start": 49.8,
+      "relative_end": 58.6,
+      "source_start": 529.8,
+      "source_end": 538.6,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 8.8,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 8.8
+      },
+      "language": "tr",
+      "avg_logprob": -0.23297275335360795,
+      "no_speech_prob": 0.3818359375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Ozan bana göndermişti, ben düşündüm o bir şaka, çünkü o bizim filmimizin senaristlerinden biri, yani acayip..."
+    },
+    {
+      "index": 23,
+      "kind": "speech",
+      "relative_start": 58.5,
+      "relative_end": 62.2,
+      "source_start": 538.5,
+      "source_end": 542.2,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.194,
+      "speaker_coverage": 0.863,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 3.194
+      },
+      "language": "tr",
+      "avg_logprob": -0.2261439710855484,
+      "no_speech_prob": 0.04693603515625,
+      "flags": [],
+      "text": "Haftalar kendisini eve kapatmış ve..."
+    },
+    {
+      "index": 24,
+      "kind": "speech",
+      "relative_start": 61.7,
+      "relative_end": 69.4,
+      "source_start": 541.7,
+      "source_end": 549.4,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 7.303,
+      "speaker_coverage": 0.948,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 7.303
+      },
+      "language": "tr",
+      "avg_logprob": -0.1389648411422968,
+      "no_speech_prob": 0.11578369140625,
+      "flags": [],
+      "text": "Bayağı yazdı yazdı yazdı sonra bir gün bana mesaj attı işte öyle bir şarkı söyler misin senin karakterine uygun diye düşündük."
+    },
+    {
+      "index": 25,
+      "kind": "speech",
+      "relative_start": 69.6,
+      "relative_end": 77.18,
+      "source_start": 549.6,
+      "source_end": 557.18,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 7.135,
+      "speaker_coverage": 0.941,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 7.135
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Ben de böyle hay Allah benim şarkımı söyleyeceğim şimdi neden bu nereden çıktı nasıl kurtulacağım diye düşündüm."
+    },
+    {
+      "index": 26,
+      "kind": "speech",
+      "relative_start": 77.7,
+      "relative_end": 78.38,
+      "source_start": 557.7,
+      "source_end": 558.38,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.68,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 0.68
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Kurtulamadım."
+    },
+    {
+      "index": 27,
+      "kind": "speech",
+      "relative_start": 79.9,
+      "relative_end": 81.74,
+      "source_start": 559.9,
+      "source_end": 561.74,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.945,
+      "speaker_coverage": 0.514,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.945,
+        "SPEAKER_03": 0.676
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Bir sürü şeylerden kurtulmuyorum sanki."
+    },
+    {
+      "index": 28,
+      "kind": "speech",
+      "relative_start": 81.74,
+      "relative_end": 83.56,
+      "source_start": 561.74,
+      "source_end": 563.56,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.82,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.82,
+        "SPEAKER_02": 0.048,
+        "SPEAKER_03": 0.472
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Ama iyi ki kurtulmamışsın çünkü çok güzel."
+    },
+    {
+      "index": 29,
+      "kind": "speech",
+      "relative_start": 83.56,
+      "relative_end": 84.26,
+      "source_start": 563.56,
+      "source_end": 564.26,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.7,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 0.698,
+        "SPEAKER_01": 0.7,
+        "SPEAKER_02": 0.002
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Ya çok sağ ol."
+    },
+    {
+      "index": 30,
+      "kind": "speech",
+      "relative_start": 84.26,
+      "relative_end": 85.48,
+      "source_start": 564.26,
+      "source_end": 565.48,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.22,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 1.22,
+        "SPEAKER_01": 1.22
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Vallahi gerçekten çok güzel."
+    },
+    {
+      "index": 31,
+      "kind": "speech",
+      "relative_start": 85.54,
+      "relative_end": 86.28,
+      "source_start": 565.54,
+      "source_end": 566.28,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.74,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 0.74,
+        "SPEAKER_01": 0.74
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Çok teşekkürler."
+    },
+    {
+      "index": 32,
+      "kind": "speech",
+      "relative_start": 86.3,
+      "relative_end": 88.08,
+      "source_start": 566.3,
+      "source_end": 568.08,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.78,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 1.78,
+        "SPEAKER_01": 1.679
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Natalie Merchant'ın bir şarkısı Dancing Bear."
+    },
+    {
+      "index": 33,
+      "kind": "speech",
+      "relative_start": 88.62,
+      "relative_end": 89.44,
+      "source_start": 568.62,
+      "source_end": 569.44,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.82,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 0.82
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Ayılar dans ediyor."
+    },
+    {
+      "index": 34,
+      "kind": "speech",
+      "relative_start": 89.66,
+      "relative_end": 91.42,
+      "source_start": 569.66,
+      "source_end": 571.42,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.76,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 1.76
+      },
+      "language": "tr",
+      "avg_logprob": -0.32536764705882354,
+      "no_speech_prob": 0.228515625,
+      "flags": [],
+      "text": "Müberner söylüyor şarkının adı o."
+    },
+    {
+      "index": 35,
+      "kind": "speech",
+      "relative_start": 91.6,
+      "relative_end": 94.6,
+      "source_start": 571.6,
+      "source_end": 574.6,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.0,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 3.0
+      },
+      "language": "tr",
+      "avg_logprob": -0.35917209030745867,
+      "no_speech_prob": 0.253173828125,
+      "flags": [],
+      "text": "Şakayı gönderdim, ee şaka yapıyorsun bana falan dediler."
+    },
+    {
+      "index": 36,
+      "kind": "speech",
+      "relative_start": 94.6,
+      "relative_end": 97.6,
+      "source_start": 574.6,
+      "source_end": 577.6,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.0,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 3.0,
+        "SPEAKER_01": 0.962
+      },
+      "language": "tr",
+      "avg_logprob": -0.35917209030745867,
+      "no_speech_prob": 0.253173828125,
+      "flags": [],
+      "text": "Hayır yapmıyorum. Nasıl dedi bir daha söyle."
+    },
+    {
+      "index": 37,
+      "kind": "speech",
+      "relative_start": 97.6,
+      "relative_end": 100.6,
+      "source_start": 577.6,
+      "source_end": 580.6,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.0,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 3.0
+      },
+      "language": "tr",
+      "avg_logprob": -0.35917209030745867,
+      "no_speech_prob": 0.253173828125,
+      "flags": [],
+      "text": "Bana sürekli sette böyle, benim aksanım var mı? Yok diyorum Meryem."
+    },
+    {
+      "index": 38,
+      "kind": "speech",
+      "relative_start": 104.6,
+      "relative_end": 107.6,
+      "source_start": 584.6,
+      "source_end": 587.6,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.0,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 3.0,
+        "SPEAKER_02": 0.439
+      },
+      "language": "tr",
+      "avg_logprob": -0.35917209030745867,
+      "no_speech_prob": 0.253173828125,
+      "flags": [],
+      "text": "70 bölüm dizide oynadım, bir 8 haftada film çektim."
+    },
+    {
+      "index": 39,
+      "kind": "speech",
+      "relative_start": 108.4,
+      "relative_end": 111.5,
+      "source_start": 588.4,
+      "source_end": 591.5,
+      "speaker_id": "SPEAKER_00",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.642,
+      "speaker_coverage": 0.852,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 2.642
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "...gerçekten artık olmadığını düşünüyorum Aksa Hanım."
+    },
+    {
+      "index": 40,
+      "kind": "speech",
+      "relative_start": 112.7,
+      "relative_end": 116.1,
+      "source_start": 592.7,
+      "source_end": 596.1,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 3.18,
+      "speaker_coverage": 0.935,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 1.22,
+        "SPEAKER_02": 3.18
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Ama o senaryo çok önceden bana geldi."
+    },
+    {
+      "index": 41,
+      "kind": "speech",
+      "relative_start": 116.2,
+      "relative_end": 117.44,
+      "source_start": 596.2,
+      "source_end": 597.44,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.24,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_02": 1.24
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "O yüzden orada Türkçem iyi."
+    },
+    {
+      "index": 42,
+      "kind": "speech",
+      "relative_start": 117.76,
+      "relative_end": 120.44,
+      "source_start": 597.76,
+      "source_end": 600.44,
+      "speaker_id": "SPEAKER_02",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.68,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.276,
+        "SPEAKER_02": 2.68
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Bana daha zaman lazım önceden çalışmak için."
+    },
+    {
+      "index": 43,
+      "kind": "speech",
+      "relative_start": 120.46,
+      "relative_end": 121.74,
+      "source_start": 600.46,
+      "source_end": 601.74,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.28,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.28,
+        "SPEAKER_02": 0.16
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Yok düzeltmişsin Türkçeyi ya."
+    },
+    {
+      "index": 44,
+      "kind": "speech",
+      "relative_start": 121.82,
+      "relative_end": 123.68,
+      "source_start": 601.82,
+      "source_end": 603.68,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.635,
+      "speaker_coverage": 0.879,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.635,
+        "SPEAKER_02": 0.006
+      },
+      "language": "tr",
+      "avg_logprob": -0.2717126700785253,
+      "no_speech_prob": 0.345458984375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Bence şu anda gerçekten..."
+    },
+    {
+      "index": 45,
+      "kind": "speech",
+      "relative_start": 123.4,
+      "relative_end": 124.88,
+      "source_start": 603.4,
+      "source_end": 604.88,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.873,
+      "speaker_coverage": 0.59,
+      "all_speaker_overlaps": {
+        "SPEAKER_00": 0.051,
+        "SPEAKER_01": 0.873,
+        "SPEAKER_02": 0.759
+      },
+      "language": "tr",
+      "avg_logprob": -0.4714355543255806,
+      "no_speech_prob": 0.0692138671875,
+      "flags": [],
+      "text": "İyi değil mi gerçekten?"
+    },
+    {
+      "index": 46,
+      "kind": "speech",
+      "relative_start": 125.4,
+      "relative_end": 127.76,
+      "source_start": 605.4,
+      "source_end": 607.76,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.36,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.36
+      },
+      "language": "tr",
+      "avg_logprob": -0.215234371026357,
+      "no_speech_prob": 0.1866455078125,
+      "flags": [],
+      "text": "Yani derdini anlatabiliyor ilk geldiğinde."
+    },
+    {
+      "index": 47,
+      "kind": "speech",
+      "relative_start": 128.1,
+      "relative_end": 129.52,
+      "source_start": 608.1,
+      "source_end": 609.52,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 0.986,
+      "speaker_coverage": 0.694,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 0.986
+      },
+      "language": "tr",
+      "avg_logprob": -0.4175781175494194,
+      "no_speech_prob": 0.314453125,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Ay hiçbir şey anlamıyorum."
+    },
+    {
+      "index": 48,
+      "kind": "speech",
+      "relative_start": 129.62,
+      "relative_end": 130.84,
+      "source_start": 609.62,
+      "source_end": 610.84,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.22,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.22
+      },
+      "language": "tr",
+      "avg_logprob": -0.4175781175494194,
+      "no_speech_prob": 0.314453125,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Mamamı istiyor, şunu istiyor."
+    },
+    {
+      "index": 49,
+      "kind": "speech",
+      "relative_start": 141.2,
+      "relative_end": 144.64,
+      "source_start": 621.2,
+      "source_end": 624.64,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.982,
+      "speaker_coverage": 0.576,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.982
+      },
+      "language": "tr",
+      "avg_logprob": -0.247802734375,
+      "no_speech_prob": 0.54443359375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Merhaba candancığım"
+    },
+    {
+      "index": 50,
+      "kind": "speech",
+      "relative_start": 144.8,
+      "relative_end": 148.96,
+      "source_start": 624.8,
+      "source_end": 628.96,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 4.16,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 4.16
+      },
+      "language": "tr",
+      "avg_logprob": -0.20059742647058823,
+      "no_speech_prob": 0.366455078125,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Aslında güle güle beyaz şov da bitiyor."
+    },
+    {
+      "index": 51,
+      "kind": "speech",
+      "relative_start": 149.4,
+      "relative_end": 151.32,
+      "source_start": 629.4,
+      "source_end": 631.32,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.92,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.92
+      },
+      "language": "tr",
+      "avg_logprob": -0.2265625,
+      "no_speech_prob": 0.097900390625,
+      "flags": [],
+      "text": "Ben gidiyor tatile."
+    },
+    {
+      "index": 52,
+      "kind": "speech",
+      "relative_start": 151.6,
+      "relative_end": 153.78,
+      "source_start": 631.6,
+      "source_end": 633.78,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.18,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.18
+      },
+      "language": "tr",
+      "avg_logprob": -0.3240411931818182,
+      "no_speech_prob": 0.56640625,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Gider ayak çandanım."
+    },
+    {
+      "index": 53,
+      "kind": "speech",
+      "relative_start": 153.9,
+      "relative_end": 160.68,
+      "source_start": 633.9,
+      "source_end": 640.68,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 6.78,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 6.78
+      },
+      "language": "tr",
+      "avg_logprob": -0.2703804477401402,
+      "no_speech_prob": 0.112548828125,
+      "flags": [],
+      "text": "Birkaç bir şey söyleyeceğim, ay canım yazık sana cevap da veremeyeceğim."
+    },
+    {
+      "index": 54,
+      "kind": "speech",
+      "relative_start": 161.6,
+      "relative_end": 167.26,
+      "source_start": 641.6,
+      "source_end": 647.26,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 4.267,
+      "speaker_coverage": 0.754,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 4.267
+      },
+      "language": "tr",
+      "avg_logprob": -0.218377971578212,
+      "no_speech_prob": 0.521484375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Kaç milyon tık almışsın sayemde YouTube'de."
+    },
+    {
+      "index": 55,
+      "kind": "speech",
+      "relative_start": 167.64,
+      "relative_end": 171.72,
+      "source_start": 647.64,
+      "source_end": 651.72,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 4.08,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 4.08
+      },
+      "language": "tr",
+      "avg_logprob": -0.218377971578212,
+      "no_speech_prob": 0.521484375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Teşekkürden de geçtim bari bir özür dile."
+    },
+    {
+      "index": 56,
+      "kind": "speech",
+      "relative_start": 171.72,
+      "relative_end": 173.72,
+      "source_start": 651.72,
+      "source_end": 653.72,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 2.0,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 2.0
+      },
+      "language": "tr",
+      "avg_logprob": -0.218377971578212,
+      "no_speech_prob": 0.521484375,
+      "flags": [
+        "HIGH_NO_SPEECH"
+      ],
+      "text": "Kızları toplamalar..."
+    },
+    {
+      "index": 57,
+      "kind": "speech",
+      "relative_start": 174.2,
+      "relative_end": 178.68,
+      "source_start": 654.2,
+      "source_end": 658.68,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 4.48,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 4.48
+      },
+      "language": "tr",
+      "avg_logprob": -0.2670898362994194,
+      "no_speech_prob": 0.11712646484375,
+      "flags": [],
+      "text": "Hacizler falan filan, son sözü ben söyleyeceğim."
+    },
+    {
+      "index": 58,
+      "kind": "speech",
+      "relative_start": 178.98,
+      "relative_end": 180.0,
+      "source_start": 658.98,
+      "source_end": 660.0,
+      "speaker_id": "SPEAKER_01",
+      "speaker_assignment_status": "assigned",
+      "speaker_overlap_seconds": 1.02,
+      "speaker_coverage": 1.0,
+      "all_speaker_overlaps": {
+        "SPEAKER_01": 1.02
+      },
+      "language": "tr",
+      "avg_logprob": -0.2670898362994194,
+      "no_speech_prob": 0.11712646484375,
+      "flags": [],
+      "text": "Bakayım şimdi..."
+    }
+  ],
+  "vad_gaps": [
+    {
+      "index": 1,
+      "kind": "vad_gap",
+      "relative_start": 0.0,
+      "relative_end": 1.6,
+      "source_start": 480.0,
+      "source_end": 481.6,
+      "duration": 1.6,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 2,
+      "kind": "vad_gap",
+      "relative_start": 11.1,
+      "relative_end": 16.0,
+      "source_start": 491.1,
+      "source_end": 496.0,
+      "duration": 4.9,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 3,
+      "kind": "vad_gap",
+      "relative_start": 32.6,
+      "relative_end": 33.6,
+      "source_start": 512.6,
+      "source_end": 513.6,
+      "duration": 1.0,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 4,
+      "kind": "vad_gap",
+      "relative_start": 36.1,
+      "relative_end": 37.2,
+      "source_start": 516.1,
+      "source_end": 517.2,
+      "duration": 1.1,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 5,
+      "kind": "vad_gap",
+      "relative_start": 61.7,
+      "relative_end": 62.2,
+      "source_start": 541.7,
+      "source_end": 542.2,
+      "duration": 0.5,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 6,
+      "kind": "vad_gap",
+      "relative_start": 108.4,
+      "relative_end": 108.9,
+      "source_start": 588.4,
+      "source_end": 588.9,
+      "duration": 0.5,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 7,
+      "kind": "vad_gap",
+      "relative_start": 128.1,
+      "relative_end": 128.6,
+      "source_start": 608.1,
+      "source_end": 608.6,
+      "duration": 0.5,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 8,
+      "kind": "vad_gap",
+      "relative_start": 131.1,
+      "relative_end": 142.7,
+      "source_start": 611.1,
+      "source_end": 622.7,
+      "duration": 11.6,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 9,
+      "kind": "vad_gap",
+      "relative_start": 151.6,
+      "relative_end": 152.2,
+      "source_start": 631.6,
+      "source_end": 632.2,
+      "duration": 0.6,
+      "label": "VAD konuşma yok / boşluk"
+    },
+    {
+      "index": 10,
+      "kind": "vad_gap",
+      "relative_start": 161.3,
+      "relative_end": 163.1,
+      "source_start": 641.3,
+      "source_end": 643.1,
+      "duration": 1.8,
+      "label": "VAD konuşma yok / boşluk"
+    }
+  ],
+  "diarization_segments": [
+    {
+      "start": 0.031,
+      "end": 0.335,
+      "duration": 0.304,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 1.567,
+      "end": 6.612,
+      "duration": 5.045,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 6.612,
+      "end": 7.102,
+      "duration": 0.49,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 7.102,
+      "end": 7.658,
+      "duration": 0.556,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 7.709,
+      "end": 9.953,
+      "duration": 2.244,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 10.409,
+      "end": 10.46,
+      "duration": 0.051,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 16.72,
+      "end": 21.327,
+      "duration": 4.607,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 21.547,
+      "end": 22.762,
+      "duration": 1.215,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 23.032,
+      "end": 23.082,
+      "duration": 0.05,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 23.639,
+      "end": 24.297,
+      "duration": 0.658,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 24.702,
+      "end": 26.71,
+      "duration": 2.008,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 24.854,
+      "end": 25.597,
+      "duration": 0.743,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 26.947,
+      "end": 29.393,
+      "duration": 2.446,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 29.005,
+      "end": 30.743,
+      "duration": 1.738,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 31.216,
+      "end": 32.144,
+      "duration": 0.928,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 33.612,
+      "end": 36.008,
+      "duration": 2.396,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 37.24,
+      "end": 46.302,
+      "duration": 9.062,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 46.1,
+      "end": 47.585,
+      "duration": 1.485,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 46.589,
+      "end": 48.192,
+      "duration": 1.603,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 47.787,
+      "end": 61.591,
+      "duration": 13.804,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 62.097,
+      "end": 69.404,
+      "duration": 7.307,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 70.045,
+      "end": 79.023,
+      "duration": 8.978,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 80.322,
+      "end": 80.558,
+      "duration": 0.236,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 80.558,
+      "end": 81.031,
+      "duration": 0.473,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 81.031,
+      "end": 86.92,
+      "duration": 5.889,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 81.537,
+      "end": 82.212,
+      "duration": 0.675,
+      "speaker_id": "SPEAKER_03"
+    },
+    {
+      "start": 83.512,
+      "end": 83.562,
+      "duration": 0.05,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 83.562,
+      "end": 101.078,
+      "duration": 17.516,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 86.954,
+      "end": 87.106,
+      "duration": 0.152,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 87.173,
+      "end": 88.523,
+      "duration": 1.35,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 95.695,
+      "end": 96.505,
+      "duration": 0.81,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 96.843,
+      "end": 96.995,
+      "duration": 0.152,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 100.808,
+      "end": 100.893,
+      "duration": 0.085,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 101.129,
+      "end": 101.163,
+      "duration": 0.034,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 101.618,
+      "end": 101.973,
+      "duration": 0.355,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 102.023,
+      "end": 108.385,
+      "duration": 6.362,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 103.863,
+      "end": 103.964,
+      "duration": 0.101,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 103.964,
+      "end": 104.538,
+      "duration": 0.574,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 104.538,
+      "end": 104.555,
+      "duration": 0.017,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 105.027,
+      "end": 105.466,
+      "duration": 0.439,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 108.858,
+      "end": 113.92,
+      "duration": 5.062,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 111.524,
+      "end": 112.874,
+      "duration": 1.35,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 112.891,
+      "end": 112.975,
+      "duration": 0.084,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 113.178,
+      "end": 120.62,
+      "duration": 7.442,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 120.164,
+      "end": 123.455,
+      "duration": 3.291,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 123.674,
+      "end": 124.433,
+      "duration": 0.759,
+      "speaker_id": "SPEAKER_02"
+    },
+    {
+      "start": 124.062,
+      "end": 128.028,
+      "duration": 3.966,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 124.433,
+      "end": 124.484,
+      "duration": 0.051,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "start": 128.534,
+      "end": 131.032,
+      "duration": 2.498,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 136.381,
+      "end": 136.415,
+      "duration": 0.034,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 136.516,
+      "end": 136.583,
+      "duration": 0.067,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 137.478,
+      "end": 138.659,
+      "duration": 1.181,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 142.658,
+      "end": 160.883,
+      "duration": 18.225,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "start": 162.993,
+      "end": 180.087,
+      "duration": 17.094,
+      "speaker_id": "SPEAKER_01"
+    }
+  ]
+}
