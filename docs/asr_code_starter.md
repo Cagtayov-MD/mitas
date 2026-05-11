@@ -581,3 +581,101 @@ Hayır. Core test paketi geçti. Gerçek pyannote testi ASR venv'e izole edildi 
 
 **Daha iyi olabilir miydi?**
 Evet. Pyannote yükleme sırasında kullanılan `inspect.getmodule` wrapper ve `get_plda` patch'i dependency pürüzünü aşan pragmatik çözümler. Son kod kontrolünde `get_plda` patch'i kalıcı modül değişikliği yapmayacak şekilde context manager içine alındı. Uzun vadede speechbrain/k2/pyannote dependency durumu temizlenirse bu workaround tamamen kaldırılabilir. Şimdilik çalışma kanıtı var ve paket dosyası değiştirilmedi.
+
+---
+
+## 2026-05-11 / Blok D Ek - Torchcodec FFmpeg Shared DLL Düzeltmesi
+
+### Neden Bu Ek Blok?
+
+Pyannote gerçek medya testi çalışıyordu ama import sırasında şu uyarı geliyordu:
+
+```text
+torchcodec is not installed correctly so built-in audio decoding will fail
+```
+
+Bu, D bloğunu bozmadı çünkü pyannote'a dosya yolu değil, in-memory waveform veriyorduk. Yine de runtime temizliği için çözülmesi gereken gerçek bir ortamdı.
+
+### Kök Sebep
+
+`torchcodec==0.11.1` kurulu. Venv içinde `libtorchcodec_core*.dll` dosyaları da var.
+
+Sorun paket eksikliği değil, Windows DLL bağımlılık arama yoluydu:
+
+- PATH'teki FFmpeg: `C:\Users\TRT03\AppData\Local\Microsoft\WinGet\Packages\...\ffmpeg-8.1-full_build\bin`
+- Bu klasörde sadece `ffmpeg.exe`, `ffplay.exe`, `ffprobe.exe` var.
+- `torchcodec` için gereken shared DLL'ler burada yok:
+  - `avcodec-62.dll`
+  - `avformat-62.dll`
+  - `avutil-60.dll`
+  - `swresample-6.dll`
+
+Makinede zaten doğru shared FFmpeg kurulumu vardı:
+
+```text
+E:\MITAS\tools\ffmpeg-shared\ffmpeg-8.1.1-full_build-shared\bin
+```
+
+Bu klasör `--enable-shared` FFmpeg build'i ve gerekli DLL'leri içeriyor.
+
+### Yapılan Değişiklik
+
+- `core/pipelines/asr/diarize.py` içine `configure_ffmpeg_shared_dll_directory()` eklendi.
+  - Sebep: pyannote/torchcodec import edilmeden önce Windows'a shared FFmpeg DLL klasörünü tanıtmak.
+  - `os.add_dll_directory(...)` kullanıldı.
+  - Handle process boyunca tutuluyor; aksi halde Windows DLL arama kaydı erken kapanabilir.
+- `PyannotePipelineConfig` içine `ffmpeg_shared_bin` opsiyonu eklendi.
+  - Sebep: gerekirse farklı bir shared FFmpeg bin klasörü explicit verilebilsin.
+- Default resolver `E:\MITAS\tools\ffmpeg-shared\ffmpeg-*-full_build-shared\bin` altında required DLL setini arıyor.
+  - Sebep: versiyon değişirse kod tek bir sabit klasör adına kilitlenmesin.
+- `core/pipelines/asr/__init__.py` export listesine helper eklendi.
+- `tests/test_asr_diarize.py` içine shared DLL klasör doğrulama ve explicit yanlış klasör hata testi eklendi.
+- `tests/test_asr_diarize_real_media.py` içine gerçek medya torchcodec decode smoke eklendi.
+  - Sebep: artık sadece pyannote'un in-memory yolu değil, torchcodec'in doğrudan MP4 decode yolu da kanıtlanıyor.
+
+### Doğrulama
+
+Önce uyarıyı yeniden ürettim:
+
+```text
+import torchcodec.decoders
+RuntimeError: Could not load libtorchcodec
+```
+
+Sonra shared DLL klasörü kaydedilince doğrudan torchcodec import geçti:
+
+```text
+configure_ffmpeg_shared_dll_directory()
+import torchcodec.decoders
+```
+
+Gerçek medya decode smoke:
+
+```text
+AudioDecoder("E:\MITAS\testklipler\trt_haber (3).mp4", sample_rate=16000, num_channels=1)
+get_samples_played_in_range(0, 1)
+data shape: [1, 15604]
+sample_rate: 16000
+duration_seconds: 0.97525
+```
+
+Test sonuçları:
+
+- `tests/test_asr_diarize.py` (`core` venv): 6 passed.
+- `tests/test_asr_diarize.py tests/test_asr_diarize_real_media.py` (`core` venv): 6 passed, 2 skipped.
+- `tests.test_asr_diarize_real_media` (`asr` venv, unittest): 2 tests OK.
+- Tüm test paketi (`core` venv): 89 passed, 6 skipped.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Bu ek blok ASR pipeline kapsamını genişletmedi; sadece D bloğunun runtime bağımlılığını temizledi.
+
+**Amaca hizmet ediyor mu?**
+Evet. Torchcodec artık shared FFmpeg DLL'lerini buluyor ve gerçek MP4 decode edebiliyor.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Core test paketi geçti. Düzeltme sadece pyannote pipeline yüklenmeden önce Windows DLL arama yolunu ekliyor.
+
+**Daha iyi olabilir miydi?**
+Evet. Sistem PATH kalıcı olarak shared FFmpeg'e çevrilebilirdi; ama repo içinde izole çözüm daha kontrollü. Global Windows PATH değişmedi, mevcut ffmpeg davranışı bozulmadı.

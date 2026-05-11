@@ -9,7 +9,10 @@ import pytest
 
 from core.pipelines.asr.diarize import (
     AudioDiarizeError,
+    _has_required_ffmpeg_shared_dlls,
     _patched_pyannote_get_plda,
+    _resolve_ffmpeg_shared_bin,
+    configure_ffmpeg_shared_dll_directory,
     diarize_audio,
     segments_from_pyannote_output,
 )
@@ -93,6 +96,27 @@ def test_pyannote_get_plda_patch_is_restored_after_loading_scope() -> None:
 
     assert module.get_plda is original_get_plda
     assert module.get_plda() == "original"
+
+
+def test_ffmpeg_shared_bin_requires_core_runtime_dlls(tmp_path: Path) -> None:
+    bin_path = tmp_path / "ffmpeg-shared" / "bin"
+    bin_path.mkdir(parents=True)
+
+    assert _resolve_ffmpeg_shared_bin(bin_path) is None
+
+    for dll_name in ("avcodec-62.dll", "avformat-62.dll", "avutil-60.dll", "swresample-6.dll"):
+        (bin_path / dll_name).write_bytes(b"")
+
+    assert _has_required_ffmpeg_shared_dlls(bin_path)
+    assert _resolve_ffmpeg_shared_bin(bin_path) == bin_path
+
+
+def test_explicit_ffmpeg_shared_bin_rejects_missing_runtime_dlls(tmp_path: Path) -> None:
+    bin_path = tmp_path / "bin"
+    bin_path.mkdir()
+
+    with pytest.raises(AudioDiarizeError, match="missing required DLLs"):
+        configure_ffmpeg_shared_dll_directory(bin_path)
 
 
 def _write_silent_wav(path: Path, *, sample_rate: int, channels: int, seconds: float) -> None:

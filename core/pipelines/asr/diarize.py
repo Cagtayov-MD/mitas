@@ -21,8 +21,12 @@ DEFAULT_PYANNOTE_SNAPSHOT = (
     / "84fd25912480287da0247647c3d2b4853cb3ee5d"
 )
 DEFAULT_PYANNOTE_MODEL_ID = "pyannote/speaker-diarization-3.1"
+DEFAULT_FFMPEG_SHARED_ROOT = Path(__file__).resolve().parents[3] / "tools" / "ffmpeg-shared"
 DEFAULT_DEVICE = "cuda"
 PYANNOTE_TOKEN_ENV = "PYANNOTE_TOKEN"
+REQUIRED_FFMPEG_SHARED_DLL_PATTERNS = ("avcodec-*.dll", "avformat-*.dll", "avutil-*.dll", "swresample-*.dll")
+_FFMPEG_DLL_DIRECTORY_HANDLES: list[Any] = []
+_REGISTERED_FFMPEG_DLL_DIRECTORIES: set[Path] = set()
 
 
 class AudioDiarizeError(RuntimeError):
@@ -34,6 +38,7 @@ class PyannotePipelineConfig:
     checkpoint: Path | str = DEFAULT_PYANNOTE_SNAPSHOT
     device: str = DEFAULT_DEVICE
     token_env: str = PYANNOTE_TOKEN_ENV
+    ffmpeg_shared_bin: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -56,6 +61,7 @@ class DiarizationResult:
 
 def load_pyannote_pipeline(config: PyannotePipelineConfig | None = None) -> Any:
     pipeline_config = config or PyannotePipelineConfig()
+    configure_ffmpeg_shared_dll_directory(pipeline_config.ffmpeg_shared_bin)
 
     try:
         import torch
@@ -76,6 +82,27 @@ def load_pyannote_pipeline(config: PyannotePipelineConfig | None = None) -> Any:
         raise AudioDiarizeError(f"Failed to load pyannote pipeline from: {checkpoint}")
 
     return pipeline.to(torch.device(pipeline_config.device))
+
+
+def configure_ffmpeg_shared_dll_directory(ffmpeg_shared_bin: Path | None = None) -> Path | None:
+    bin_path = _resolve_ffmpeg_shared_bin(ffmpeg_shared_bin)
+    if bin_path is None and ffmpeg_shared_bin is not None:
+        raise AudioDiarizeError(f"FFmpeg shared DLL directory is missing required DLLs: {ffmpeg_shared_bin}")
+    if bin_path is None or os.name != "nt":
+        return bin_path
+
+    resolved = bin_path.resolve()
+    if resolved in _REGISTERED_FFMPEG_DLL_DIRECTORIES:
+        return resolved
+
+    try:
+        handle = os.add_dll_directory(str(resolved))
+    except OSError as exc:
+        raise AudioDiarizeError(f"Failed to register FFmpeg shared DLL directory: {resolved}") from exc
+
+    _FFMPEG_DLL_DIRECTORY_HANDLES.append(handle)
+    _REGISTERED_FFMPEG_DLL_DIRECTORIES.add(resolved)
+    return resolved
 
 
 def diarize_audio(
@@ -139,6 +166,25 @@ def _resolve_checkpoint(checkpoint: Path | str) -> Path | str:
     if str(checkpoint) == str(DEFAULT_PYANNOTE_SNAPSHOT):
         return DEFAULT_PYANNOTE_MODEL_ID
     return checkpoint
+
+
+def _resolve_ffmpeg_shared_bin(explicit_bin: Path | None = None) -> Path | None:
+    if explicit_bin is not None:
+        path = Path(explicit_bin)
+        return path if _has_required_ffmpeg_shared_dlls(path) else None
+
+    if not DEFAULT_FFMPEG_SHARED_ROOT.exists():
+        return None
+
+    for candidate in sorted(DEFAULT_FFMPEG_SHARED_ROOT.glob("ffmpeg-*-full_build-shared/bin"), reverse=True):
+        if _has_required_ffmpeg_shared_dlls(candidate):
+            return candidate
+
+    return None
+
+
+def _has_required_ffmpeg_shared_dlls(bin_path: Path) -> bool:
+    return bin_path.is_dir() and all(any(bin_path.glob(pattern)) for pattern in REQUIRED_FFMPEG_SHARED_DLL_PATTERNS)
 
 
 @contextmanager
