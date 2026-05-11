@@ -1264,3 +1264,100 @@ Hayır. Ana pipeline değişmedi. Model dosyaları Git'e alınmadı. Yeni varyan
 
 **Daha iyi olabilir miydi?**
 Evet. Aynı izolasyon testi ERD code-switch klibinde de koşulmalı. Ayrıca `Dancing Bear` gibi özel İngilizce isim/şarkı yerleri için prompt'suz ama domain sözlüğü destekli post-correction ayrı test edilebilir; prompt leak dersinden dolayı bunu doğrudan Whisper initial prompt olarak vermemeliyiz.
+
+## 2026-05-11 - Blok: v7 vs v11 Çoklu Gerçek Medya Testi
+
+Kullanıcının isteği üzerine `v7` ve `v11` daha geniş medya setinde tekrar test edildi.
+
+### Test Seti
+
+- `E:\MITAS\testklipler\1.mp4`
+- `E:\MITAS\testklipler\2.mp4`
+- `E:\MITAS\testklipler\3.mp4`
+- `E:\MITAS\testklipler\4.mp4`
+- `E:\MITAS\testklipler\5.mp4`
+- `E:\MITAS\testklipler\beyaz1.mp4`
+- `E:\MITAS\testklipler\trt_haber (1).mp4`
+- `E:\MITAS\testklipler\trt_haber (2).mp4`
+- `E:\MITAS\testklipler\trt_haber (3).mp4`
+
+`1.mp4` toplam `171.680s` olduğu için istenen `03:00-05:00` aralığı yoktu. Bu dosya atlanmadı; tam klip fallback olarak koşuldu ve raporda `full_fallback_shorter_than_3min` diye işaretlendi.
+
+### Ne Yaptım ve Neden?
+
+1. `tools/asr_ab/run_v7_v11_media_batch.py` eklendi.
+   - Sebep: Aynı medya setini tekrar tekrar elle koşturmak yerine kontrollü, tekrarlanabilir bir batch test akışı oluşturmak.
+   - Çıktılar:
+     - `batch_report.md`
+     - `batch_summary.json`
+     - `full_transcripts.md`
+     - her job için `out_v7/*` ve `out_v11/*`
+
+2. `build_merged_chunks` düzeltildi.
+   - İlk gerçek batch koşusunda kısa/seyrek VAD segmentlerinde negatif süreli chunk üretilebildiği görüldü.
+   - Düzeltme: min-chunk genişletmesi komşu sınırlarını aşmayacak ve komşu chunk'lar arasında orta sınır koyacak şekilde değiştirildi.
+   - Bu düzeltme üretim pipeline'a değil A/B helper'a ait, ama v7 stratejisinin üretime taşınması öncesi önemli bir kalite dersi.
+
+3. Batch runner subprocess tabanlı hale getirildi.
+   - Sebep: Bazı CTranslate2/CUDA kapanışlarında transcript dosyaları eksiksiz yazıldıktan sonra process native abort ile nonzero çıkabiliyor.
+   - Runner artık 5 zorunlu çıktı dosyası varsa bunu `nonzero_exit_after_required_outputs_written` uyarısı olarak kaydedip devam ediyor.
+
+4. Artifact/repetition kontrolleri eklendi.
+   - Sebep: v11'in bazı hataları klasik bad-token listesine yakalanmıyordu.
+   - Ek kontroller:
+     - `Abone olmayı`
+     - `Altyazı`
+     - `İzlediğiniz için teşekkür ederim`
+     - uzun token (`max_token_length >= 40`)
+     - ardışık token tekrarı (`max_consecutive_token_run >= 8`)
+
+### Sonuç Dosyaları
+
+```text
+E:\MITAS\outputs\asr_ab\v7_v11_media_batch\batch_report.md
+E:\MITAS\outputs\asr_ab\v7_v11_media_batch\batch_summary.json
+E:\MITAS\outputs\asr_ab\v7_v11_media_batch\full_transcripts.md
+E:\MITAS\outputs\asr_ab\v7_v11_media_batch\decision_review.md
+```
+
+### Özet Sonuç
+
+| Job | v7 words | v11 words | v7 total | v11 total | Pair F1 | Not |
+|---|---:|---:|---:|---:|---:|---|
+| `1_03_05` | 20 | 28 | 13.374s | 11.742s | 0.6250 | v11 stock artifact üretti. |
+| `2_03_05` | 58 | 161 | 35.743s | 14.418s | 0.5205 | v11 uzun `Hıhı...` hallucination ve ekstra diyalog üretti. |
+| `3_03_05` | 18 | 24 | 9.801s | 6.904s | 0.8571 | v11 bir ek cümle yakaladı. |
+| `4_03_05` | 4 | 9 | 9.476s | 6.899s | 0.0000 | İkisi de düşük konuşma/artifact bölgesinde güvenilmez. |
+| `5_03_05` | 216 | 217 | 24.044s | 10.746s | 0.9885 | v11 çok yakın ve hızlı. |
+| `beyaz1_03_05` | 87 | 685 | 28.744s | 21.736s | 0.1969 | v11 yüzlerce `ben` tekrarı üretti; kabul edilemez. |
+| `trt_haber_1_full` | 137 | 139 | 18.857s | 9.029s | 0.9203 | v11 hızlı ama artifact ve terim hatası var. |
+| `trt_haber_2_full` | 256 | 240 | 27.969s | 11.368s | 0.9556 | İkisi de güçlü; v7 daha güvenli. |
+| `trt_haber_3_full` | 135 | 134 | 18.318s | 8.309s | 0.9591 | İkisi de güçlü; v7 biraz daha güvenli. |
+
+### Nihai Karar
+
+`v7` üretim kalite varsayılanı olarak kalmalı.
+
+`v11` hız modu adayı olarak saklanmalı, fakat kalite kapısı olmadan default yapılmamalı. Sebep: temiz haber/anlatı içeriğinde 2x civarı hız avantajı sağlıyor, ama Beyaz/program/film gibi içeriklerde uzun tekrar ve stock subtitle hallucination üretebiliyor.
+
+Şu an önerilen politika:
+
+```text
+Default: v7 / base large-v3
+Fast optional mode: v11 / base large-v3-turbo + quality gate
+Rejected for this media mix: v10 / Selimc Turkish fine-tune turbo
+```
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. İstenen medya seti v7 ve v11 için koşuldu. Sadece `1.mp4` için istenen zaman aralığı dosya süresinde olmadığı için fallback açıkça işaretlendi.
+
+**Amaca hizmet ediyor mu?**
+Evet. Bu test v11'in hız avantajını ve riskli hallucination/repetition davranışını aynı anda görünür yaptı.
+
+**Başka şeyi bozuyor mu?**
+Ana pipeline değişmedi. A/B helper'da gerçek medya ile yakalanan negatif/overlap chunk bug'ı düzeltildi ve test eklendi.
+
+**Daha iyi olabilir miydi?**
+Evet. Referans transcript olmadığı için bu otomatik WER/CER testi değil. En iyi sonraki adım, bu 9 örnekten küçük bir manuel referans seti çıkarıp v7/v11 için gerçek WER/CER hesaplamak.

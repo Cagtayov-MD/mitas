@@ -1,0 +1,950 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\normalized\\beyaz1_03_05_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 27,
+    "speech_seconds": 109.3,
+    "speech_ratio": 0.910833,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 0.1,
+        "end": 1.7,
+        "duration": 1.6
+      },
+      {
+        "start": 2.8,
+        "end": 4.7,
+        "duration": 1.9
+      },
+      {
+        "start": 4.8,
+        "end": 13.5,
+        "duration": 8.7
+      },
+      {
+        "start": 13.6,
+        "end": 14.8,
+        "duration": 1.2
+      },
+      {
+        "start": 15.1,
+        "end": 18.0,
+        "duration": 2.9
+      },
+      {
+        "start": 18.3,
+        "end": 21.7,
+        "duration": 3.4
+      },
+      {
+        "start": 21.8,
+        "end": 22.5,
+        "duration": 0.7
+      },
+      {
+        "start": 22.6,
+        "end": 25.6,
+        "duration": 3.0
+      },
+      {
+        "start": 25.7,
+        "end": 30.0,
+        "duration": 4.3
+      },
+      {
+        "start": 30.3,
+        "end": 32.7,
+        "duration": 2.4
+      },
+      {
+        "start": 32.8,
+        "end": 34.0,
+        "duration": 1.2
+      },
+      {
+        "start": 34.3,
+        "end": 43.3,
+        "duration": 9.0
+      },
+      {
+        "start": 43.8,
+        "end": 44.2,
+        "duration": 0.4
+      },
+      {
+        "start": 44.4,
+        "end": 45.0,
+        "duration": 0.6
+      },
+      {
+        "start": 45.3,
+        "end": 55.0,
+        "duration": 9.7
+      },
+      {
+        "start": 55.1,
+        "end": 57.2,
+        "duration": 2.1
+      },
+      {
+        "start": 57.6,
+        "end": 60.0,
+        "duration": 2.4
+      },
+      {
+        "start": 61.5,
+        "end": 63.5,
+        "duration": 2.0
+      },
+      {
+        "start": 63.9,
+        "end": 77.3,
+        "duration": 13.4
+      },
+      {
+        "start": 77.5,
+        "end": 79.0,
+        "duration": 1.5
+      },
+      {
+        "start": 79.5,
+        "end": 84.3,
+        "duration": 4.8
+      },
+      {
+        "start": 84.6,
+        "end": 88.0,
+        "duration": 3.4
+      },
+      {
+        "start": 88.9,
+        "end": 90.8,
+        "duration": 1.9
+      },
+      {
+        "start": 91.1,
+        "end": 93.9,
+        "duration": 2.8
+      },
+      {
+        "start": 95.0,
+        "end": 107.7,
+        "duration": 12.7
+      },
+      {
+        "start": 108.0,
+        "end": 117.9,
+        "duration": 9.9
+      },
+      {
+        "start": 118.6,
+        "end": 120.0,
+        "duration": 1.4
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 30.15,
+      "source_vad_index": 2
+    },
+    {
+      "index": 1,
+      "start": 30.15,
+      "end": 60.75,
+      "source_vad_index": 14
+    },
+    {
+      "index": 2,
+      "start": 60.75,
+      "end": 90.95,
+      "source_vad_index": 18
+    },
+    {
+      "index": 3,
+      "start": 90.95,
+      "end": 120.0,
+      "source_vad_index": 24
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 2.0,
+      "duration": 2.0,
+      "text": "Konusu ne filmin?",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 2.0,
+      "end": 4.0,
+      "duration": 2.0,
+      "text": "Grafik inanılmaz iniş çıkışlı.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 4.0,
+      "end": 6.0,
+      "duration": 2.0,
+      "text": "Konusu şu an pek anlatmak istemiyorum işin açıkçası.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 6.0,
+      "end": 7.0,
+      "duration": 1.0,
+      "text": "Sürpriz olsun.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 7.0,
+      "end": 10.0,
+      "duration": 3.0,
+      "text": "Peki o kadar çok dizi film varken piyasada böyle bir ürk mü ediniz mi ya?",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 10.0,
+      "end": 18.0,
+      "duration": 8.0,
+      "text": "Yani biz de bir film yapıyoruz arada gerçi tabii herkesin aksiyonu farklı, karizması farklı kendine güveniyorsan tabii ki yaparsın tutulur da.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 18.0,
+      "end": 21.0,
+      "duration": 3.0,
+      "text": "Ama bu dönemde çok fazla film var hiç böyle bir ürküntü falan gelmedi mi?",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 21.0,
+      "end": 25.0,
+      "duration": 4.0,
+      "text": "Şimdi Beyaz bundan 4 sene önce de bana dizi teklifi geliyordu.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 25.0,
+      "end": 26.0,
+      "duration": 1.0,
+      "text": "Evet.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 26.0,
+      "end": 29.0,
+      "duration": 3.0,
+      "text": "Benim için dizi teklifi bana dizi teklifi edilmesi çok cazip geliyordu bana.",
+      "language": "tr",
+      "avg_logprob": -0.1522640233897433,
+      "no_speech_prob": 0.88330078125,
+      "compression_ratio": 1.62707182320442,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 29.0,
+      "end": 30.0,
+      "duration": 1.0,
+      "text": "Evet.",
+      "language": "tr",
+      "avg_logprob": -0.594921875,
+      "no_speech_prob": 0.00563812255859375,
+      "compression_ratio": 0.38461538461538464,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 30.15,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 30.15,
+      "end": 34.95,
+      "duration": 4.8,
+      "text": "Gözümde dizi güzel bir şeydi. Yapmak istediğim bir projeydi.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 34.95,
+      "end": 36.75,
+      "duration": 1.8,
+      "text": "Bu ama dizi film değil hala. Bu sinema filmi.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 36.75,
+      "end": 39.75,
+      "duration": 3.0,
+      "text": "Şu an sinema. Yalnız filmin konusu dizi olarak devam edecek.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 39.75,
+      "end": 40.35,
+      "duration": 0.6,
+      "text": "Anladım.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 40.35,
+      "end": 43.35,
+      "duration": 3.0,
+      "text": "Dizi başka bir konuyla devam etmiyor. Aynı kadro, aynı konu.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 45.35,
+      "end": 47.55,
+      "duration": 2.2,
+      "text": "Esin peki senin daha önce bir sinema deneyimi var mıydı?",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 47.55,
+      "end": 50.75,
+      "duration": 3.2,
+      "text": "Bir tane 90 yılında var. Tatar Ramazan isimli bir sinema filmim olmuştu.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 50.75,
+      "end": 53.35,
+      "duration": 2.6,
+      "text": "Ramazan'ı oynamıyordun. Tatar'ı oynamıyordun. Ne oynuyordun?",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 53.35,
+      "end": 53.95,
+      "duration": 0.6,
+      "text": "Tatar kızını oynuyordum.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 53.95,
+      "end": 56.35,
+      "duration": 2.4,
+      "text": "Tatar kızını oynuyordun. Var mı tatarlık ailede?",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 56.35,
+      "end": 57.35,
+      "duration": 1.0,
+      "text": "Hiç yok. Hayır.",
+      "language": "tr",
+      "avg_logprob": -0.2093278875003508,
+      "no_speech_prob": 0.71484375,
+      "compression_ratio": 1.6975308641975309,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 57.35,
+      "end": 60.35,
+      "duration": 3.0,
+      "text": "Yok. Göçmenlik var mı? Gözler mavi çünkü.",
+      "language": "tr",
+      "avg_logprob": -0.15059621083109,
+      "no_speech_prob": 0.0017538070678710938,
+      "compression_ratio": 0.8888888888888888,
+      "chunk_index": 1,
+      "chunk_start": 30.15,
+      "chunk_end": 60.75,
+      "source_vad_index": 14,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 60.75,
+      "end": 72.81,
+      "duration": 12.06,
+      "text": "var yani göçmen sayesinde yarımadası'na gelmiş atalarımız moralı oğlu soy ismi",
+      "language": "tr",
+      "avg_logprob": -0.4571629347426168,
+      "no_speech_prob": 0.77392578125,
+      "compression_ratio": 1.4175257731958764,
+      "chunk_index": 2,
+      "chunk_start": 60.75,
+      "chunk_end": 90.95,
+      "source_vad_index": 18,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 72.81,
+      "end": 77.01,
+      "duration": 4.2,
+      "text": "oradan kaynakları zaten Karaferya Selanik moralı oğullar gelmiş Ege'ye yerleşmişler",
+      "language": "tr",
+      "avg_logprob": -0.4571629347426168,
+      "no_speech_prob": 0.77392578125,
+      "compression_ratio": 1.4175257731958764,
+      "chunk_index": 2,
+      "chunk_start": 60.75,
+      "chunk_end": 90.95,
+      "source_vad_index": 18,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 77.01,
+      "end": 83.79,
+      "duration": 6.78,
+      "text": "göçmenlik yok ama Tatar kızına benzemek için o dönemde 7 kilo filan almıştım Karakaşlar",
+      "language": "tr",
+      "avg_logprob": -0.4571629347426168,
+      "no_speech_prob": 0.77392578125,
+      "compression_ratio": 1.4175257731958764,
+      "chunk_index": 2,
+      "chunk_start": 60.75,
+      "chunk_end": 90.95,
+      "source_vad_index": 18,
+      "kept": false,
+      "drop_reason": "no_speech",
+      "flags": [
+        "no_speech"
+      ]
+    },
+    {
+      "start": 83.79,
+      "end": 88.29,
+      "duration": 4.5,
+      "text": "Tatar kızları da güzel olur güzel olur hakikaten var mı aramızda Tatar kızı",
+      "language": "tr",
+      "avg_logprob": -0.4518229303260644,
+      "no_speech_prob": 0.0014657974243164062,
+      "compression_ratio": 1.2028985507246377,
+      "chunk_index": 2,
+      "chunk_start": 60.75,
+      "chunk_end": 90.95,
+      "source_vad_index": 18,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 90.95,
+      "end": 96.79,
+      "duration": 5.84,
+      "text": "Evet Sevim Aval Ankara'dan aramış",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 96.79,
+      "end": 98.03,
+      "duration": 1.24,
+      "text": "Telefonumuzda bekliyor",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 98.03,
+      "end": 100.53,
+      "duration": 2.5,
+      "text": "Alo Sevim Hanım iyi akşamlar iyi geceler",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 100.53,
+      "end": 101.37,
+      "duration": 0.84,
+      "text": "İyi geceler",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 101.37,
+      "end": 104.23,
+      "duration": 2.86,
+      "text": "Teşekkür ederim iyiyim sizler nasılsınız",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 104.23,
+      "end": 105.89,
+      "duration": 1.66,
+      "text": "Çok teşekkür ederiz biz de iyiyiz",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 105.89,
+      "end": 107.57,
+      "duration": 1.68,
+      "text": "Arkadaşlarla oturduk sohbet ediyoruz",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 107.57,
+      "end": 110.15,
+      "duration": 2.58,
+      "text": "Var mı söylemek istediğiniz sormak istediğiniz bir şeyler",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 110.15,
+      "end": 112.47,
+      "duration": 2.32,
+      "text": "Öncelikle Beyaz programını çok severek",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 112.47,
+      "end": 114.47,
+      "duration": 2.0,
+      "text": "Ama çok severek ve beğenerek izliyorum",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 114.47,
+      "end": 115.67,
+      "duration": 1.2,
+      "text": "Sağolun teşekkür ederiz",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 115.67,
+      "end": 117.73,
+      "duration": 2.06,
+      "text": "Artık programın hep böyle sürmesini istiyorum",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 117.73,
+      "end": 118.93,
+      "duration": 1.2,
+      "text": "İnşallah",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 118.93,
+      "end": 120.0,
+      "duration": 1.07,
+      "text": "Önce sana bir sorum var",
+      "language": "tr",
+      "avg_logprob": -0.1641613994783993,
+      "no_speech_prob": 0.39404296875,
+      "compression_ratio": 1.6610738255033557,
+      "chunk_index": 3,
+      "chunk_start": 90.95,
+      "chunk_end": 120.0,
+      "source_vad_index": 24,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    }
+  ]
+}

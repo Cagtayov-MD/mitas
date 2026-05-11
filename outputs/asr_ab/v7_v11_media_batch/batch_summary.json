@@ -1,0 +1,1085 @@
+{
+  "output_root": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch",
+  "elapsed_seconds": 306.795,
+  "jobs": [
+    {
+      "slug": "1_03_05",
+      "source": "E:\\MITAS\\testklipler\\1.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 0.0,
+      "actual_end": 171.68,
+      "source_duration": 171.68,
+      "audio_duration": 171.68,
+      "mode": "full_fallback_shorter_than_3min",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\1_03_05\\out_v7",
+          "transcript": "Günaydın sevgili dinleyicilerimiz saatimiz 7'yi gösteriyor.\n\nİzlediğiniz için teşekkür ederim. Nazan babanın kucağına gideceksin inşallah.\n\nHiçbir şeyde gözüm yok\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\1_03_05\\normalized\\1_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 4.866,
+            "load_model_seconds": 3.729,
+            "transcribe_seconds": 4.576,
+            "total_seconds": 13.374,
+            "model_call_count": 5,
+            "raw_segment_count": 7,
+            "clean_segment_count": 4
+          },
+          "filter_report": {
+            "raw_segment_count": 7,
+            "clean_segment_count": 4,
+            "dropped_segment_count": 3,
+            "drop_reasons": {
+              "no_speech": 3
+            },
+            "flags": {
+              "low_confidence": 2,
+              "no_speech": 3
+            },
+            "languages_raw": {
+              "tr": 7
+            },
+            "languages_clean": {
+              "tr": 4
+            }
+          },
+          "word_count": 20,
+          "char_count": 163,
+          "segment_count": 4,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": true
+          },
+          "artifact_token_count": 1,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 16
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\1_03_05\\out_v11",
+          "transcript": "Günaydın sevgili dinleyicilerimiz. Saatimiz 7'yi gösteriyor.\n\nAbone olmayı, yorum yapmayı ve beğen butonuna tıklamayı unutmayın. azdan babanın kucağına gideceksin inşallah Hiçbir şeyde gözüm yok\n\nAltyazı M.K.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\1_03_05\\normalized\\1_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 5.161,
+            "load_model_seconds": 2.183,
+            "transcribe_seconds": 4.194,
+            "total_seconds": 11.742,
+            "model_call_count": 5,
+            "raw_segment_count": 5,
+            "clean_segment_count": 5
+          },
+          "filter_report": {
+            "raw_segment_count": 5,
+            "clean_segment_count": 5,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 5
+            },
+            "languages_clean": {
+              "tr": 5
+            }
+          },
+          "word_count": 28,
+          "char_count": 209,
+          "segment_count": 5,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": true,
+            "Altyazı": true,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 2,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 16
+        }
+      },
+      "v7_v11_word_f1": 0.625,
+      "v11_speedup": 1.139
+    },
+    {
+      "slug": "2_03_05",
+      "source": "E:\\MITAS\\testklipler\\2.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 180.0,
+      "actual_end": 300.0,
+      "source_duration": 7535.488,
+      "audio_duration": 120.0,
+      "mode": "requested_03_05",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\2_03_05\\out_v7",
+          "transcript": "kötü olmasının matematiksel bir açıklaması olabilir.\n\nTeşekkür ederim.\n\nAdın Martin'di değil mi? Evet John, adım Martin. Yanlış hesaplar yapmak sende alışkanlık haline gelmiş. Makalelerini okumuştum. İkisini de, nazi şifreleri üzerine olanı ve doğrusal olmayan denklemler hakkında yazdığını, her ikisinde de ne ufuk açan ne de yenilik getiren tek bir fikir bile olmadığından son derece eminim. Afiyet olsun.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\2_03_05\\normalized\\2_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 4.155,
+            "load_model_seconds": 3.7,
+            "transcribe_seconds": 27.494,
+            "total_seconds": 35.743,
+            "model_call_count": 10,
+            "raw_segment_count": 35,
+            "clean_segment_count": 9
+          },
+          "filter_report": {
+            "raw_segment_count": 35,
+            "clean_segment_count": 9,
+            "dropped_segment_count": 26,
+            "drop_reasons": {
+              "no_speech": 26
+            },
+            "flags": {
+              "no_speech": 26,
+              "low_confidence": 1
+            },
+            "languages_raw": {
+              "tr": 35
+            },
+            "languages_clean": {
+              "tr": 9
+            }
+          },
+          "word_count": 58,
+          "char_count": 408,
+          "segment_count": 9,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 12
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\2_03_05\\out_v11",
+          "transcript": "kötü olmasının matematiksel bir açıklaması olabilir. Hıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıhıh Teşekkür ederim.\n\nBen Nils'in. Sembol kriptolojisinden. Nils bir Japon şifresini çözdü. Dünyayı faşizmden kurtardı. En azından kızları öyle diyor. Değil mi Nils? Adım Bender. Atom fizikçisiyim. Nasılsın? Geç mi kaldın? Evet. Evet Bay Sol. Tamam. İyiyim. Merhaba. Ben Sol. Richard Sol. Merhaba. Dehanın ağırlığı. Öyle çok. İşte geldim. Nasılsın? Var ki Bay Sol. Bender. Seni görmek ne güzel. Seni de sevmek çok güzel. Teşekkür ederim. Anlayamadım Affedersin seni garson zannettim Biraz kibar ol Ensign Ensign kibarlıktan anlamaz mı? Sıra bakma Evet Martin Ensign Adın Martin'di değil mi? Evet John, adın Martin. Yanlış hesaplar yapmak sende alışkanlık haline gelmiş. Makalelerini okumuştum. İkisini de Nazi şifreleri üzerine olanı ve doğrusal olmayan denklemler hakkında yazdığını. Her ikisinde de ne ufuk açar ne de yenilik getiren tek bir fikir bile olmadığından son derece eminim. Afiyet olsun.\n\nBeyler, John Nash ile tanışın. Batı Virginalı, Esra Rengiz dahi. Seçkin Carnegie bursunu kazanan diğer adam. Aynen. Tamam. Tabii ki.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\2_03_05\\normalized\\2_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.861,
+            "load_model_seconds": 2.163,
+            "transcribe_seconds": 8.02,
+            "total_seconds": 14.418,
+            "model_call_count": 10,
+            "raw_segment_count": 45,
+            "clean_segment_count": 45
+          },
+          "filter_report": {
+            "raw_segment_count": 45,
+            "clean_segment_count": 45,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 45
+            },
+            "languages_clean": {
+              "tr": 45
+            }
+          },
+          "word_count": 161,
+          "char_count": 1308,
+          "segment_count": 45,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 2,
+          "max_token_length": 223
+        }
+      },
+      "v7_v11_word_f1": 0.5205,
+      "v11_speedup": 2.479
+    },
+    {
+      "slug": "3_03_05",
+      "source": "E:\\MITAS\\testklipler\\3.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 180.0,
+      "actual_end": 300.0,
+      "source_duration": 7416.576,
+      "audio_duration": 120.0,
+      "mode": "requested_03_05",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\out_v7",
+          "transcript": "Boya dükkanı. Yarın ilk iş. Bir boya dükkanı varsa tabii. Julie. Ne? Hadi gidip odanızı bulalım kızlar. Hadi.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\normalized\\3_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.713,
+            "load_model_seconds": 3.487,
+            "transcribe_seconds": 2.522,
+            "total_seconds": 9.801,
+            "model_call_count": 2,
+            "raw_segment_count": 8,
+            "clean_segment_count": 7
+          },
+          "filter_report": {
+            "raw_segment_count": 8,
+            "clean_segment_count": 7,
+            "dropped_segment_count": 1,
+            "drop_reasons": {
+              "no_speech": 1
+            },
+            "flags": {
+              "no_speech": 1
+            },
+            "languages_raw": {
+              "tr": 8
+            },
+            "languages_clean": {
+              "tr": 7
+            }
+          },
+          "word_count": 18,
+          "char_count": 110,
+          "segment_count": 7,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 7
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\out_v11",
+          "transcript": "Baba, lütfen yanlış çıkışa girdiğini söyle.\n\nBoya dükkanı. Yarın ilk iş. Bir boya dükkanı varsa tabii. Julie. Ne? Hadi gidip odanızı bulalım kızlar. Hadi.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\normalized\\3_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.777,
+            "load_model_seconds": 2.046,
+            "transcribe_seconds": 1.003,
+            "total_seconds": 6.904,
+            "model_call_count": 2,
+            "raw_segment_count": 7,
+            "clean_segment_count": 7
+          },
+          "filter_report": {
+            "raw_segment_count": 7,
+            "clean_segment_count": 7,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 7
+            },
+            "languages_clean": {
+              "tr": 7
+            }
+          },
+          "word_count": 24,
+          "char_count": 155,
+          "segment_count": 7,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 9
+        }
+      },
+      "v7_v11_word_f1": 0.8571,
+      "v11_speedup": 1.42
+    },
+    {
+      "slug": "4_03_05",
+      "source": "E:\\MITAS\\testklipler\\4.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 180.0,
+      "actual_end": 300.0,
+      "source_duration": 15711.84,
+      "audio_duration": 120.0,
+      "mode": "requested_03_05",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\4_03_05\\out_v7",
+          "transcript": "İzlediğiniz için teşekkür ederim.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\4_03_05\\normalized\\4_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.725,
+            "load_model_seconds": 3.451,
+            "transcribe_seconds": 2.219,
+            "total_seconds": 9.476,
+            "model_call_count": 2,
+            "raw_segment_count": 2,
+            "clean_segment_count": 1
+          },
+          "filter_report": {
+            "raw_segment_count": 2,
+            "clean_segment_count": 1,
+            "dropped_segment_count": 1,
+            "drop_reasons": {
+              "low_logprob": 1
+            },
+            "flags": {
+              "low_confidence": 1,
+              "low_logprob": 1
+            },
+            "languages_raw": {
+              "tr": 2
+            },
+            "languages_clean": {
+              "tr": 1
+            }
+          },
+          "word_count": 4,
+          "char_count": 34,
+          "segment_count": 1,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": true
+          },
+          "artifact_token_count": 1,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 12
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\4_03_05\\out_v11",
+          "transcript": "Altyazı M.K. Altyazı M.K. Altyazı M.K.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\4_03_05\\normalized\\4_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.82,
+            "load_model_seconds": 2.1,
+            "transcribe_seconds": 0.905,
+            "total_seconds": 6.899,
+            "model_call_count": 2,
+            "raw_segment_count": 3,
+            "clean_segment_count": 3
+          },
+          "filter_report": {
+            "raw_segment_count": 3,
+            "clean_segment_count": 3,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 3
+            },
+            "languages_clean": {
+              "tr": 3
+            }
+          },
+          "word_count": 9,
+          "char_count": 39,
+          "segment_count": 3,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": true,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 1,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 7
+        }
+      },
+      "v7_v11_word_f1": 0.0,
+      "v11_speedup": 1.374
+    },
+    {
+      "slug": "5_03_05",
+      "source": "E:\\MITAS\\testklipler\\5.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 180.0,
+      "actual_end": 300.0,
+      "source_duration": 2436.04,
+      "audio_duration": 120.0,
+      "mode": "requested_03_05",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\out_v7",
+          "transcript": "Köprü bu şekilde sabit kalıyor. İki kulesinin suyun üzerinde birbirine olan 2023 metrelik uzaklığı onu dünyanın en uzun orta açıklıklı köprüsü yapıyor. Peki ama mühendisliğin sınırlarını tam anlamıyla zorlayacak bir köprü nasıl planlanır?\n\nGerçekten çok ihtişamlı. Buradan bakınca kendimin ne kadar küçük olduğunu hissettim. Evet köprü gerçekten çok büyük ama inan yapım amacı çok çok daha büyük. Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu. Bu sürenin kısalacak olması çok güzel. Bu amaçladığımız faydalardan sadece bir tanesi. Asıl master plan ve karayolları genel müdülünü buna bağlı olarak... Mega projesi Marmara bölgesinin etrafını otoyol ringiyle dönmek, bütün buradaki mevcut olan veya sonradan otoyol imalatı tamamlandıktan sonra yapılacak olan organize sanayi bölgeleri, limanlar, havalimanları, tren garlarının tamamının birbirine olan entegrasyonunu sağlamak ve üretimi desteklemek. Pekin'den Londra'ya kadar uzanan modern ipek yolu diyebileceğimiz ve tüm dünya ticaretini ilgilendiren bir güzergah oluşuyor. İşte Çanakkale Boğazı da bu güzergahın kilit noktasında yer alıyor. Hem Doğu ülkelerinin Anadolu üzerinden Avrupa'ya geçişinde hem de Türkiye sınırları içindeki karayolu bağlantısıyla 1915 Çanakkale Köprüsü dev bir ağın en önemli parçası. Yani bu köprüyle birlikte doğu batı arası en uzak noktalarda Türkiye'nin de dahil olduğu ithalat ve ihracat karayolu üzerinden yapılabilecek. Fakat böyle bir karayolu ağının Çanakkale Boğazı'ndan geçecek olması köprünün nerede konumlanacağı ile ilgili soruları da beraberinde getiriyor.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\normalized\\5_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.793,
+            "load_model_seconds": 3.49,
+            "transcribe_seconds": 16.442,
+            "total_seconds": 24.044,
+            "model_call_count": 8,
+            "raw_segment_count": 15,
+            "clean_segment_count": 15
+          },
+          "filter_report": {
+            "raw_segment_count": 15,
+            "clean_segment_count": 15,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {
+              "low_confidence": 8
+            },
+            "languages_raw": {
+              "tr": 15
+            },
+            "languages_clean": {
+              "tr": 15
+            }
+          },
+          "word_count": 216,
+          "char_count": 1584,
+          "segment_count": 15,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 2,
+          "max_token_length": 15
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\out_v11",
+          "transcript": "Bu köprü bu şekilde sabit kalıyor. İki kulesinin suyun üzerinde birbirine olan 2023 metrelik uzaklığı onu dünyanın en uzun orta açıklıklı köprüsü yapıyor. Peki ama mühendisliğin sınırlarını tam anlamıyla zorlayacak bir köprü nasıl planlanır?\n\nGerçekten çok ihtişamlı. Buradan bakınca kendimin ne kadar küçük olduğunu hissettim. Evet köprü gerçekten çok büyük ama inan yapım amacı çok çok daha büyük. Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu. Bu sürenin kısalacak olması çok güzel. Bu amaçladığımız faydalardan sadece bir tanesi. Asıl master plan ve karayolları genel müdürünün buna bağlı olarak... Mega projesi Marmara bölgesinin etrafını otoyol ringiyle dönmek, bütün buradaki mevcut olan veya sonradan otoyol imalatı tamamlandıktan sonra yapılacak olan organize sanayi bölgeleri, limanlar, havalimanları, tren garların tamamının birbirine olan entegrasyonunu sağlamak ve üretimi desteklemek. Pekin'den Londra'ya kadar uzanan modern ipek yolu diyebileceğimiz ve tüm dünya ticaretini ilgilendiren bir güzergah oluşuyor. İşte Çanakkale Boğazı da bu güzergahın kilit noktasında yer alıyor. Hem Doğu ülkelerinin Anadolu üzerinden Avrupa'ya geçişinde hem de Türkiye sınırları içindeki karayolu bağlantısıyla 1915 Çanakkale Köprüsü dev bir ağın en önemli parçası. Yani bu köprüyle birlikte Doğu-Batı arası en uzak noktalarda Türkiye'nin de dahil olduğu ithalat ve ihracat karayolu üzerinden yapılabilecek. Fakat böyle bir karayolu ağının Çanakkale Boğazı'ndan geçecek olması köprünün nerede konumlanacağı ile ilgili soruları da beraberinde getiriyor.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\normalized\\5_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.794,
+            "load_model_seconds": 2.048,
+            "transcribe_seconds": 4.589,
+            "total_seconds": 10.746,
+            "model_call_count": 8,
+            "raw_segment_count": 13,
+            "clean_segment_count": 13
+          },
+          "filter_report": {
+            "raw_segment_count": 13,
+            "clean_segment_count": 13,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 13
+            },
+            "languages_clean": {
+              "tr": 13
+            }
+          },
+          "word_count": 217,
+          "char_count": 1586,
+          "segment_count": 13,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 2,
+          "max_token_length": 15
+        }
+      },
+      "v7_v11_word_f1": 0.9885,
+      "v11_speedup": 2.237
+    },
+    {
+      "slug": "beyaz1_03_05",
+      "source": "E:\\MITAS\\testklipler\\beyaz1.mp4",
+      "requested_start": 180.0,
+      "requested_end": 300.0,
+      "actual_start": 180.0,
+      "actual_end": 300.0,
+      "source_duration": 476.049,
+      "audio_duration": 120.0,
+      "mode": "requested_03_05",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\out_v7",
+          "transcript": "Evet.\n\nYok. Göçmenlik var mı? Gözler mavi çünkü.\n\nTatar kızları da güzel olur güzel olur hakikaten var mı aramızda Tatar kızı\n\nEvet Sevim Aval Ankara'dan aramış Telefonumuzda bekliyor Alo Sevim Hanım iyi akşamlar iyi geceler İyi geceler Teşekkür ederim iyiyim sizler nasılsınız Çok teşekkür ederiz biz de iyiyiz Arkadaşlarla oturduk sohbet ediyoruz Var mı söylemek istediğiniz sormak istediğiniz bir şeyler Öncelikle Beyaz programını çok severek Ama çok severek ve beğenerek izliyorum Sağolun teşekkür ederiz Artık programın hep böyle sürmesini istiyorum İnşallah Önce sana bir sorum var\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\normalized\\beyaz1_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.762,
+            "load_model_seconds": 3.503,
+            "transcribe_seconds": 21.303,
+            "total_seconds": 28.744,
+            "model_call_count": 4,
+            "raw_segment_count": 41,
+            "clean_segment_count": 17
+          },
+          "filter_report": {
+            "raw_segment_count": 41,
+            "clean_segment_count": 17,
+            "dropped_segment_count": 24,
+            "drop_reasons": {
+              "no_speech": 24
+            },
+            "flags": {
+              "no_speech": 24,
+              "low_confidence": 14
+            },
+            "languages_raw": {
+              "tr": 41
+            },
+            "languages_clean": {
+              "tr": 17
+            }
+          },
+          "word_count": 87,
+          "char_count": 588,
+          "segment_count": 17,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 13
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\out_v11",
+          "transcript": "Konusu ne filmin? Grafik inanılmaz. Konusu şu an pek anlatmak istemiyorum. Sürpriz olsun. Peki o kadar çok dizi film varken piyasada böyle bir ürkmediniz mi? Yani biz de bir film yapıyoruz. Gerçi tabii herkesin aksiyonu farklı, karizması farklı. Kendine güveniyorsan tabii ki yaparsın. Ama bu dönemde çok fazla film var. Hiç böyle bir ürküntü falan gelmedi mi? Şimdi Beyaz bundan 4 sene önce de bana dizi teklifi geliyordu. Benim için bana dizi teklif edilmesi çok cazip geliyordu bana. İzlediğiniz için teşekkür ederim. Gözümde dizi güzel bir şeydi, yapmak istediğim bir projeydi. Bu ama dizi film değil hala, bu sinema filmi. Şu an sinema, yalnız filmin konusu dizi olarak devam edecek. Anladım. Dizi başka bir konuyla devam ediyor. Aynı kadro, aynı konu.\n\nEsin peki senin daha önce bir sinema deneyimin var mıydı? Bir tane 90 yılında var, Tatar Ramazan isimli bir sinema filmi olmuştu. Ramazan'ı oynamıyordun, Tatar'ı oynamıyordun. Tatar kızını oynuyordun. Tatar kızını oynuyordun. Var mı Tatarlık ailede? Hiç yok, hayır. Yok, göçmenlik var mı? Gözler mavi çünkü. Yenek. Yenek. Ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben ben Evet Sevim Aval Ankara'dan aramış telefonumuzda bekliyor hatımızda. Alo Sevim Hanım iyi akşamlar iyi geceler. İyi geceler. Nasılsınız? Teşekkür ederim iyiyim sizler nasılsınız? Çok teşekkür ederiz bizler de iyiyiz. Arkadaşlar da oturduk sohbet ediyoruz. Var mı söylemek istediğiniz sormak istediğiniz bir şeyler? Öncelikle Beyaz programını çok severek ama çok severek ve beğenerek izliyorum. Sağ olun teşekkür ederiz. Artık programının hep böyle sürmesini istiyorum. İnşallah. Önce sana bir sorum var.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\normalized\\beyaz1_03_05_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.79,
+            "load_model_seconds": 2.046,
+            "transcribe_seconds": 15.728,
+            "total_seconds": 21.736,
+            "model_call_count": 4,
+            "raw_segment_count": 44,
+            "clean_segment_count": 44
+          },
+          "filter_report": {
+            "raw_segment_count": 44,
+            "clean_segment_count": 44,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 44
+            },
+            "languages_clean": {
+              "tr": 44
+            }
+          },
+          "word_count": 685,
+          "char_count": 3359,
+          "segment_count": 44,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": true
+          },
+          "artifact_token_count": 1,
+          "max_consecutive_token_run": 444,
+          "max_token_length": 13
+        }
+      },
+      "v7_v11_word_f1": 0.1969,
+      "v11_speedup": 1.322
+    },
+    {
+      "slug": "trt_haber_1_full",
+      "source": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+      "requested_start": null,
+      "requested_end": null,
+      "actual_start": 0.0,
+      "actual_end": 95.66,
+      "source_duration": 95.66,
+      "audio_duration": 95.62,
+      "mode": "full_requested",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\out_v7",
+          "transcript": "Tüm hazırlıklar tamamlandı. P-16'lar Eskişehir 1. Anajet Üssü'nden havalandı.\n\nEskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılışacakları G kuvvetine karşı ekipmanlarını giyip hangara geçti.\n\nBu kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipten uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı. F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev Efes 2026. Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı. Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor. Gerisi onların havadaki zorlu görevleri büyük bir kolaylık ve ustalıkla gerçekleştirmesinde.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\normalized\\trt_haber_1_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.448,
+            "load_model_seconds": 3.562,
+            "transcribe_seconds": 11.642,
+            "total_seconds": 18.857,
+            "model_call_count": 5,
+            "raw_segment_count": 10,
+            "clean_segment_count": 9
+          },
+          "filter_report": {
+            "raw_segment_count": 10,
+            "clean_segment_count": 9,
+            "dropped_segment_count": 1,
+            "drop_reasons": {
+              "no_speech": 1
+            },
+            "flags": {
+              "no_speech": 1
+            },
+            "languages_raw": {
+              "tr": 10
+            },
+            "languages_clean": {
+              "tr": 9
+            }
+          },
+          "word_count": 137,
+          "char_count": 981,
+          "segment_count": 9,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 2,
+          "max_token_length": 19
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\out_v11",
+          "transcript": "Tüm hazırlıklar tamamlandı. P-16'lar Eskişehir 1. Anajet üstünden havalandı.\n\nEskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen FS-2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılaşacakları C kuvvetine karşı ekipmanlarını giyip hangara geçti.\n\nİkin kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipler uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı. F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev FS-2026. İzlediğiniz için teşekkür ederim. Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı. Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor. Gerisi onların havadaki zorlu görevleri büyük bir kolaylıkla, ustalıkla gerçekleştirmesinde.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\normalized\\trt_haber_1_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.403,
+            "load_model_seconds": 2.05,
+            "transcribe_seconds": 3.386,
+            "total_seconds": 9.029,
+            "model_call_count": 5,
+            "raw_segment_count": 13,
+            "clean_segment_count": 13
+          },
+          "filter_report": {
+            "raw_segment_count": 13,
+            "clean_segment_count": 13,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 13
+            },
+            "languages_clean": {
+              "tr": 13
+            }
+          },
+          "word_count": 139,
+          "char_count": 1012,
+          "segment_count": 13,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": true
+          },
+          "artifact_token_count": 1,
+          "max_consecutive_token_run": 2,
+          "max_token_length": 19
+        }
+      },
+      "v7_v11_word_f1": 0.9203,
+      "v11_speedup": 2.088
+    },
+    {
+      "slug": "trt_haber_2_full",
+      "source": "E:\\MITAS\\testklipler\\trt_haber (2).mp4",
+      "requested_start": null,
+      "requested_end": null,
+      "actual_start": 0.0,
+      "actual_end": 146.744,
+      "source_duration": 146.744,
+      "audio_duration": 146.704,
+      "mode": "full_requested",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_2_full\\out_v7",
+          "transcript": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti. Hastalara o empati yapabilme. Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları. Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar. Çan ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar. Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca, sevgiyle büyütmeye çalışıyorlar. Gözde Şahin 19 yıllık hekim. 14 yaşında bir kızı var. Çocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim. Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım, yürüyüşünü hiçbir zaman göremedim. Ayşe Ceren Yıldız ise 6 yıllık hekim, 20 aylık kızı var. Doğumu başladığında poliklinikte hasta muayene ediyordu. Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim. Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı. Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz. Kübra Keskin Topbaş'ta 11 yıllık hekim. Anne olmak zaten çok büyük bir sorumluluk. Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor. Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var. İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz. Şadiye Hande Soyer Somunsuysa çiçeği burnunda bir anne. Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor. Annelik mesaisi hiç bitmiyor. Eğer gözüm arkada kalmadan işe gelip... hastalara şifa olabiliyorsam hem kendi annem hem eşimin annesi bana destek olduğu için devam edebiliyorum. Anneanneler, babaanneler iyi ki varlar.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_2_full\\normalized\\trt_haber_2_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 4.189,
+            "load_model_seconds": 3.49,
+            "transcribe_seconds": 20.044,
+            "total_seconds": 27.969,
+            "model_call_count": 6,
+            "raw_segment_count": 27,
+            "clean_segment_count": 27
+          },
+          "filter_report": {
+            "raw_segment_count": 27,
+            "clean_segment_count": 27,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 27
+            },
+            "languages_clean": {
+              "tr": 27
+            }
+          },
+          "word_count": 256,
+          "char_count": 1866,
+          "segment_count": 27,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 14
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_2_full\\out_v11",
+          "transcript": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti. Hastalara o empati yapabilme. Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları. Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar. Çam ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar. Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca sevgiyle büyütmeye çalışıyorlar.\n\nÇocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim. Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım. Yürüyüşünü hiçbir zaman göremedim. Ayşe Ceren Yıldız'a 6 yıllık hekim, 20 aylık kızı var. Doğumu başladığında poliklinikte hasta muayene ediyordu. Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim. Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı. Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz.\n\nAnne olmak zaten çok büyük bir sorumluluk. Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor. Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var. İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz. Şadiye Hande Soyer somunsuysa çiçeği burnunda bir anne. Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor. Annelik mesaisi hiç bitmiyor. Eğer gözüm arkada kalmadan işe gelip... Hem hastalara şifa olabiliyorsam hem kendi annem hem eşimin annesi bana destek olduğu için devam edebiliyorum. Anneanneler, babaanneler iyi ki varlar.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_2_full\\normalized\\trt_haber_2_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 4.156,
+            "load_model_seconds": 2.059,
+            "transcribe_seconds": 4.915,
+            "total_seconds": 11.368,
+            "model_call_count": 6,
+            "raw_segment_count": 24,
+            "clean_segment_count": 24
+          },
+          "filter_report": {
+            "raw_segment_count": 24,
+            "clean_segment_count": 24,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 24
+            },
+            "languages_clean": {
+              "tr": 24
+            }
+          },
+          "word_count": 240,
+          "char_count": 1775,
+          "segment_count": 24,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 14
+        }
+      },
+      "v7_v11_word_f1": 0.9556,
+      "v11_speedup": 2.46
+    },
+    {
+      "slug": "trt_haber_3_full",
+      "source": "E:\\MITAS\\testklipler\\trt_haber (3).mp4",
+      "requested_start": null,
+      "requested_end": null,
+      "actual_start": 0.0,
+      "actual_end": 75.452,
+      "source_duration": 75.452,
+      "audio_duration": 75.418,
+      "mode": "full_requested",
+      "variants": {
+        "out_v7": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\out_v7",
+          "transcript": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil ışıklarda karşıya geçmeye çalışan araca çarptı. Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı. Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı. Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek. Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.\n\nVanda durum bu. Arkadaşımız Hümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık, getirdik ekranlarınıza. Şimdi Ardahan ve Karst sınırları arasında bulunan Çıldır Gölü'nün de yüzeyi kısmen buz tuttu. Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı. Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı. Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.\n",
+          "timing": {
+            "variant": "v7_vad_merged_no_prompt",
+            "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\normalized\\trt_haber_3_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.104,
+            "load_model_seconds": 3.461,
+            "transcribe_seconds": 11.596,
+            "total_seconds": 18.318,
+            "model_call_count": 4,
+            "raw_segment_count": 13,
+            "clean_segment_count": 13
+          },
+          "filter_report": {
+            "raw_segment_count": 13,
+            "clean_segment_count": 13,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 13
+            },
+            "languages_clean": {
+              "tr": 13
+            }
+          },
+          "word_count": 135,
+          "char_count": 1022,
+          "segment_count": 13,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 14
+        },
+        "out_v11": {
+          "output_dir": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\out_v11",
+          "transcript": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil, ışıklarda karşıya geçmeye çalışan araca çarptı. Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı. Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı. Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek. Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.\n\nVan'da durum bu. Arkadaşımız Yümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık getirdik ekranlarınıza. Ardahan ve Karş sınırları arasında bulunan Çıldır Gölü'nünde yüzeyi kısmen buz tuttu. Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı. Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı. Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.\n",
+          "timing": {
+            "variant": "v11_base_turbo_vad_merged_no_prompt",
+            "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+            "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3-turbo",
+            "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\normalized\\trt_haber_3_full_16000hz_mono_s16.wav",
+            "load_vad_seconds": 3.084,
+            "load_model_seconds": 2.05,
+            "transcribe_seconds": 3.01,
+            "total_seconds": 8.309,
+            "model_call_count": 4,
+            "raw_segment_count": 10,
+            "clean_segment_count": 10
+          },
+          "filter_report": {
+            "raw_segment_count": 10,
+            "clean_segment_count": 10,
+            "dropped_segment_count": 0,
+            "drop_reasons": {},
+            "flags": {},
+            "languages_raw": {
+              "tr": 10
+            },
+            "languages_clean": {
+              "tr": 10
+            }
+          },
+          "word_count": 134,
+          "char_count": 1015,
+          "segment_count": 10,
+          "bad_token_hits": {
+            "É": false,
+            "I don't know": false,
+            "Are the days": false,
+            "Konuklar Türkçe sohbet ediyor": false
+          },
+          "bad_token_count": 0,
+          "artifact_token_hits": {
+            "Abone olmayı": false,
+            "Altyazı": false,
+            "İzlediğiniz için teşekkür ederim": false
+          },
+          "artifact_token_count": 0,
+          "max_consecutive_token_run": 1,
+          "max_token_length": 14
+        }
+      },
+      "v7_v11_word_f1": 0.9591,
+      "v11_speedup": 2.205
+    }
+  ],
+  "run_warnings": [
+    {
+      "module": "tools.asr_ab.transcribe_v11",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "1_03_05",
+      "variant": "out_v11"
+    },
+    {
+      "module": "tools.asr_ab.transcribe_v7",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "2_03_05",
+      "variant": "out_v7"
+    },
+    {
+      "module": "tools.asr_ab.transcribe_v11",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "2_03_05",
+      "variant": "out_v11"
+    },
+    {
+      "module": "tools.asr_ab.transcribe_v7",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "4_03_05",
+      "variant": "out_v7"
+    },
+    {
+      "module": "tools.asr_ab.transcribe_v11",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "4_03_05",
+      "variant": "out_v11"
+    },
+    {
+      "module": "tools.asr_ab.transcribe_v11",
+      "exit_code": 3221226505,
+      "warning": "nonzero_exit_after_required_outputs_written",
+      "stderr_tail": "",
+      "job": "beyaz1_03_05",
+      "variant": "out_v11"
+    }
+  ]
+}

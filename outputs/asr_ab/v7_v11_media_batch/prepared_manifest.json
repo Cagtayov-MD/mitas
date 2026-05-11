@@ -1,0 +1,110 @@
+[
+  {
+    "slug": "1_03_05",
+    "source": "E:\\MITAS\\testklipler\\1.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\1_03_05\\normalized\\1_03_05_16000hz_mono_s16.wav",
+    "source_duration": 171.68,
+    "audio_duration": 171.68,
+    "actual_start": 0.0,
+    "actual_end": 171.68,
+    "mode": "full_fallback_shorter_than_3min"
+  },
+  {
+    "slug": "2_03_05",
+    "source": "E:\\MITAS\\testklipler\\2.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\2_03_05\\normalized\\2_03_05_16000hz_mono_s16.wav",
+    "source_duration": 7535.488,
+    "audio_duration": 120.0,
+    "actual_start": 180.0,
+    "actual_end": 300.0,
+    "mode": "requested_03_05"
+  },
+  {
+    "slug": "3_03_05",
+    "source": "E:\\MITAS\\testklipler\\3.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\normalized\\3_03_05_16000hz_mono_s16.wav",
+    "source_duration": 7416.576,
+    "audio_duration": 120.0,
+    "actual_start": 180.0,
+    "actual_end": 300.0,
+    "mode": "requested_03_05"
+  },
+  {
+    "slug": "4_03_05",
+    "source": "E:\\MITAS\\testklipler\\4.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\4_03_05\\normalized\\4_03_05_16000hz_mono_s16.wav",
+    "source_duration": 15711.84,
+    "audio_duration": 120.0,
+    "actual_start": 180.0,
+    "actual_end": 300.0,
+    "mode": "requested_03_05"
+  },
+  {
+    "slug": "5_03_05",
+    "source": "E:\\MITAS\\testklipler\\5.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\normalized\\5_03_05_16000hz_mono_s16.wav",
+    "source_duration": 2436.04,
+    "audio_duration": 120.0,
+    "actual_start": 180.0,
+    "actual_end": 300.0,
+    "mode": "requested_03_05"
+  },
+  {
+    "slug": "beyaz1_03_05",
+    "source": "E:\\MITAS\\testklipler\\beyaz1.mp4",
+    "requested_start": 180.0,
+    "requested_end": 300.0,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\beyaz1_03_05\\normalized\\beyaz1_03_05_16000hz_mono_s16.wav",
+    "source_duration": 476.049,
+    "audio_duration": 120.0,
+    "actual_start": 180.0,
+    "actual_end": 300.0,
+    "mode": "requested_03_05"
+  },
+  {
+    "slug": "trt_haber_1_full",
+    "source": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+    "requested_start": null,
+    "requested_end": null,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\normalized\\trt_haber_1_full_16000hz_mono_s16.wav",
+    "source_duration": 95.66,
+    "audio_duration": 95.62,
+    "actual_start": 0.0,
+    "actual_end": 95.66,
+    "mode": "full_requested"
+  },
+  {
+    "slug": "trt_haber_2_full",
+    "source": "E:\\MITAS\\testklipler\\trt_haber (2).mp4",
+    "requested_start": null,
+    "requested_end": null,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_2_full\\normalized\\trt_haber_2_full_16000hz_mono_s16.wav",
+    "source_duration": 146.744,
+    "audio_duration": 146.704,
+    "actual_start": 0.0,
+    "actual_end": 146.744,
+    "mode": "full_requested"
+  },
+  {
+    "slug": "trt_haber_3_full",
+    "source": "E:\\MITAS\\testklipler\\trt_haber (3).mp4",
+    "requested_start": null,
+    "requested_end": null,
+    "output_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\normalized\\trt_haber_3_full_16000hz_mono_s16.wav",
+    "source_duration": 75.452,
+    "audio_duration": 75.418,
+    "actual_start": 0.0,
+    "actual_end": 75.452,
+    "mode": "full_requested"
+  }
+]

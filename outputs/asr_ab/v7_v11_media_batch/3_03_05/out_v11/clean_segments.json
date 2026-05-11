@@ -1,0 +1,184 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\3_03_05\\normalized\\3_03_05_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 7,
+    "speech_seconds": 6.9,
+    "speech_ratio": 0.0575,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 31.0,
+        "end": 32.6,
+        "duration": 1.6
+      },
+      {
+        "start": 107.1,
+        "end": 107.8,
+        "duration": 0.7
+      },
+      {
+        "start": 108.3,
+        "end": 109.9,
+        "duration": 1.6
+      },
+      {
+        "start": 110.6,
+        "end": 111.2,
+        "duration": 0.6
+      },
+      {
+        "start": 112.0,
+        "end": 112.4,
+        "duration": 0.4
+      },
+      {
+        "start": 112.9,
+        "end": 114.4,
+        "duration": 1.5
+      },
+      {
+        "start": 114.6,
+        "end": 115.1,
+        "duration": 0.5
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 24.8,
+      "end": 38.8,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 104.1,
+      "end": 118.1,
+      "source_vad_index": 2
+    }
+  ],
+  "segments": [
+    {
+      "start": 24.8,
+      "end": 32.24,
+      "duration": 7.44,
+      "text": "Baba, lütfen yanlış çıkışa girdiğini söyle.",
+      "language": "tr",
+      "avg_logprob": -0.2385253831744194,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 0.8813559322033898,
+      "chunk_index": 0,
+      "chunk_start": 24.8,
+      "chunk_end": 38.8,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 104.98,
+      "end": 105.74,
+      "duration": 0.76,
+      "text": "Boya dükkanı.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 106.94,
+      "end": 107.7,
+      "duration": 0.76,
+      "text": "Yarın ilk iş.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 108.24,
+      "end": 109.62,
+      "duration": 1.38,
+      "text": "Bir boya dükkanı varsa tabii.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 110.62,
+      "end": 110.92,
+      "duration": 0.3,
+      "text": "Julie.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 111.92,
+      "end": 114.28,
+      "duration": 2.36,
+      "text": "Ne? Hadi gidip odanızı bulalım kızlar.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 114.6,
+      "end": 114.84,
+      "duration": 0.24,
+      "text": "Hadi.",
+      "language": "tr",
+      "avg_logprob": -0.30303485003801495,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1018518518518519,
+      "chunk_index": 1,
+      "chunk_start": 104.1,
+      "chunk_end": 118.1,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

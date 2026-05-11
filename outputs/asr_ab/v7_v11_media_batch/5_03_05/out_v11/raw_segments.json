@@ -1,0 +1,402 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\5_03_05\\normalized\\5_03_05_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 120.0,
+    "speech_segments_count": 23,
+    "speech_seconds": 100.5,
+    "speech_ratio": 0.8375,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 1.9,
+        "duration": 1.9
+      },
+      {
+        "start": 2.7,
+        "end": 11.4,
+        "duration": 8.7
+      },
+      {
+        "start": 13.0,
+        "end": 18.1,
+        "duration": 5.1
+      },
+      {
+        "start": 24.4,
+        "end": 26.8,
+        "duration": 2.4
+      },
+      {
+        "start": 27.1,
+        "end": 29.0,
+        "duration": 1.9
+      },
+      {
+        "start": 29.2,
+        "end": 29.8,
+        "duration": 0.6
+      },
+      {
+        "start": 29.9,
+        "end": 32.3,
+        "duration": 2.4
+      },
+      {
+        "start": 32.6,
+        "end": 34.5,
+        "duration": 1.9
+      },
+      {
+        "start": 34.6,
+        "end": 37.1,
+        "duration": 2.5
+      },
+      {
+        "start": 37.5,
+        "end": 40.4,
+        "duration": 2.9
+      },
+      {
+        "start": 40.6,
+        "end": 44.9,
+        "duration": 4.3
+      },
+      {
+        "start": 45.2,
+        "end": 49.7,
+        "duration": 4.5
+      },
+      {
+        "start": 49.8,
+        "end": 54.5,
+        "duration": 4.7
+      },
+      {
+        "start": 54.7,
+        "end": 56.7,
+        "duration": 2.0
+      },
+      {
+        "start": 56.9,
+        "end": 61.3,
+        "duration": 4.4
+      },
+      {
+        "start": 61.5,
+        "end": 65.2,
+        "duration": 3.7
+      },
+      {
+        "start": 65.3,
+        "end": 70.7,
+        "duration": 5.4
+      },
+      {
+        "start": 72.4,
+        "end": 79.9,
+        "duration": 7.5
+      },
+      {
+        "start": 80.5,
+        "end": 84.7,
+        "duration": 4.2
+      },
+      {
+        "start": 85.9,
+        "end": 97.8,
+        "duration": 11.9
+      },
+      {
+        "start": 99.7,
+        "end": 106.9,
+        "duration": 7.2
+      },
+      {
+        "start": 107.0,
+        "end": 109.1,
+        "duration": 2.1
+      },
+      {
+        "start": 110.9,
+        "end": 119.2,
+        "duration": 8.3
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 11.7,
+      "source_vad_index": 1
+    },
+    {
+      "index": 1,
+      "start": 11.7,
+      "end": 23.9,
+      "source_vad_index": 2
+    },
+    {
+      "index": 2,
+      "start": 23.9,
+      "end": 49.75,
+      "source_vad_index": 11
+    },
+    {
+      "index": 3,
+      "start": 49.75,
+      "end": 71.55,
+      "source_vad_index": 16
+    },
+    {
+      "index": 4,
+      "start": 71.55,
+      "end": 85.275,
+      "source_vad_index": 17
+    },
+    {
+      "index": 5,
+      "start": 85.275,
+      "end": 98.125,
+      "source_vad_index": 19
+    },
+    {
+      "index": 6,
+      "start": 98.125,
+      "end": 109.75,
+      "source_vad_index": 20
+    },
+    {
+      "index": 7,
+      "start": 109.75,
+      "end": 120.0,
+      "source_vad_index": 22
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 1.7,
+      "duration": 1.7,
+      "text": "Bu köprü bu şekilde sabit kalıyor.",
+      "language": "tr",
+      "avg_logprob": -0.10922759433962265,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2097902097902098,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 11.7,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 2.78,
+      "end": 11.08,
+      "duration": 8.3,
+      "text": "İki kulesinin suyun üzerinde birbirine olan 2023 metrelik uzaklığı onu dünyanın en uzun orta açıklıklı köprüsü yapıyor.",
+      "language": "tr",
+      "avg_logprob": -0.10922759433962265,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2097902097902098,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 11.7,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 11.7,
+      "end": 18.0,
+      "duration": 6.3,
+      "text": "Peki ama mühendisliğin sınırlarını tam anlamıyla zorlayacak bir köprü nasıl planlanır?",
+      "language": "tr",
+      "avg_logprob": -0.08762123050360844,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.043010752688172,
+      "chunk_index": 1,
+      "chunk_start": 11.7,
+      "chunk_end": 23.9,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 24.42,
+      "end": 28.94,
+      "duration": 4.52,
+      "text": "Gerçekten çok ihtişamlı. Buradan bakınca kendimin ne kadar küçük olduğunu hissettim.",
+      "language": "tr",
+      "avg_logprob": -0.11257684639975672,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.5155709342560553,
+      "chunk_index": 2,
+      "chunk_start": 23.9,
+      "chunk_end": 49.75,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 29.24,
+      "end": 34.3,
+      "duration": 5.06,
+      "text": "Evet köprü gerçekten çok büyük ama inan yapım amacı çok çok daha büyük.",
+      "language": "tr",
+      "avg_logprob": -0.11257684639975672,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.5155709342560553,
+      "chunk_index": 2,
+      "chunk_start": 23.9,
+      "chunk_end": 49.75,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 34.64,
+      "end": 41.76,
+      "duration": 7.12,
+      "text": "Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu. Bu sürenin kısalacak olması çok güzel.",
+      "language": "tr",
+      "avg_logprob": -0.11257684639975672,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.5155709342560553,
+      "chunk_index": 2,
+      "chunk_start": 23.9,
+      "chunk_end": 49.75,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 41.76,
+      "end": 49.75,
+      "duration": 7.99,
+      "text": "Bu amaçladığımız faydalardan sadece bir tanesi. Asıl master plan ve karayolları genel müdürünün buna bağlı olarak...",
+      "language": "tr",
+      "avg_logprob": -0.11257684639975672,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.5155709342560553,
+      "chunk_index": 2,
+      "chunk_start": 23.9,
+      "chunk_end": 49.75,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 49.75,
+      "end": 70.57,
+      "duration": 20.82,
+      "text": "Mega projesi Marmara bölgesinin etrafını otoyol ringiyle dönmek, bütün buradaki mevcut olan veya sonradan otoyol imalatı tamamlandıktan sonra yapılacak olan organize sanayi bölgeleri, limanlar, havalimanları, tren garların tamamının birbirine olan entegrasyonunu sağlamak ve üretimi desteklemek.",
+      "language": "tr",
+      "avg_logprob": -0.052942155364980086,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4739336492890995,
+      "chunk_index": 3,
+      "chunk_start": 49.75,
+      "chunk_end": 71.55,
+      "source_vad_index": 16,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 71.55,
+      "end": 79.77,
+      "duration": 8.22,
+      "text": "Pekin'den Londra'ya kadar uzanan modern ipek yolu diyebileceğimiz ve tüm dünya ticaretini ilgilendiren bir güzergah oluşuyor.",
+      "language": "tr",
+      "avg_logprob": -0.08513484262440303,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2621951219512195,
+      "chunk_index": 4,
+      "chunk_start": 71.55,
+      "chunk_end": 85.275,
+      "source_vad_index": 17,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 80.53,
+      "end": 84.41,
+      "duration": 3.88,
+      "text": "İşte Çanakkale Boğazı da bu güzergahın kilit noktasında yer alıyor.",
+      "language": "tr",
+      "avg_logprob": -0.08513484262440303,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2621951219512195,
+      "chunk_index": 4,
+      "chunk_start": 71.55,
+      "chunk_end": 85.275,
+      "source_vad_index": 17,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 85.275,
+      "end": 97.455,
+      "duration": 12.18,
+      "text": "Hem Doğu ülkelerinin Anadolu üzerinden Avrupa'ya geçişinde hem de Türkiye sınırları içindeki karayolu bağlantısıyla 1915 Çanakkale Köprüsü dev bir ağın en önemli parçası.",
+      "language": "tr",
+      "avg_logprob": -0.025470670862276047,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.170731707317073,
+      "chunk_index": 5,
+      "chunk_start": 85.275,
+      "chunk_end": 98.125,
+      "source_vad_index": 19,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 98.125,
+      "end": 108.785,
+      "duration": 10.66,
+      "text": "Yani bu köprüyle birlikte Doğu-Batı arası en uzak noktalarda Türkiye'nin de dahil olduğu ithalat ve ihracat karayolu üzerinden yapılabilecek.",
+      "language": "tr",
+      "avg_logprob": -0.08755095384043196,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1278195488721805,
+      "chunk_index": 6,
+      "chunk_start": 98.125,
+      "chunk_end": 109.75,
+      "source_vad_index": 20,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 109.75,
+      "end": 118.99,
+      "duration": 9.24,
+      "text": "Fakat böyle bir karayolu ağının Çanakkale Boğazı'ndan geçecek olması köprünün nerede konumlanacağı ile ilgili soruları da beraberinde getiriyor.",
+      "language": "tr",
+      "avg_logprob": -0.09855143011858065,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.1691176470588236,
+      "chunk_index": 7,
+      "chunk_start": 109.75,
+      "chunk_end": 120.0,
+      "source_vad_index": 22,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

@@ -161,21 +161,32 @@ def build_merged_chunks(vad_segments: Sequence[VadSpeechSegment], audio_duration
     groups.append((current_start, current_end))
 
     expanded: list[tuple[float, float]] = []
-    for start, end in groups:
-        if end - start >= min_chunk:
-            expanded.append((start, end))
-            continue
-        needed = min_chunk - (end - start)
-        left = needed / 2.0
-        right = needed - left
-        expanded.append((max(0.0, start - left), min(audio_duration, end + right)))
+    for index, (start, end) in enumerate(groups):
+        left_bound = groups[index - 1][1] if index > 0 else 0.0
+        right_bound = groups[index + 1][0] if index + 1 < len(groups) else audio_duration
+        if end - start < min_chunk:
+            needed = min(min_chunk - (end - start), max(0.0, right_bound - left_bound - (end - start)))
+            left = min(needed / 2.0, max(0.0, start - left_bound))
+            right = min(needed - left, max(0.0, right_bound - end))
+            remaining = needed - left - right
+            if remaining > 0.0:
+                left += min(remaining, max(0.0, start - left_bound - left))
+            start = max(left_bound, start - left)
+            end = min(right_bound, end + right)
+        expanded.append((start, end))
 
     padded: list[Chunk] = []
+    boundaries = [0.0]
+    for index in range(len(expanded) - 1):
+        boundary = (expanded[index][1] + expanded[index + 1][0]) / 2.0
+        boundaries.append(max(boundaries[-1], min(audio_duration, boundary)))
+    boundaries.append(audio_duration)
+
     for index, (start, end) in enumerate(expanded):
-        previous_end = expanded[index - 1][1] if index > 0 else 0.0
-        next_start = expanded[index + 1][0] if index + 1 < len(expanded) else audio_duration
-        chunk_start = max(previous_end, start - padding)
-        chunk_end = min(next_start, end + padding)
+        chunk_start = max(boundaries[index], start - padding)
+        chunk_end = min(boundaries[index + 1], end + padding)
+        if chunk_end <= chunk_start:
+            continue
         padded.append(
             Chunk(
                 index=index,

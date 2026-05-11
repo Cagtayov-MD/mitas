@@ -1,0 +1,251 @@
+{
+  "variant": "v7_vad_merged_no_prompt",
+  "description": "VAD-guided merged chunks like v2, but no initial_prompt to test prompt-leak removal.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_1_full\\normalized\\trt_haber_1_full_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 95.62,
+    "speech_segments_count": 10,
+    "speech_seconds": 65.0,
+    "speech_ratio": 0.679774,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 6.2,
+        "end": 7.6,
+        "duration": 1.4
+      },
+      {
+        "start": 7.8,
+        "end": 11.6,
+        "duration": 3.8
+      },
+      {
+        "start": 14.6,
+        "end": 28.2,
+        "duration": 13.6
+      },
+      {
+        "start": 33.3,
+        "end": 36.0,
+        "duration": 2.7
+      },
+      {
+        "start": 36.1,
+        "end": 39.1,
+        "duration": 3.0
+      },
+      {
+        "start": 39.3,
+        "end": 42.8,
+        "duration": 3.5
+      },
+      {
+        "start": 42.9,
+        "end": 46.6,
+        "duration": 3.7
+      },
+      {
+        "start": 47.8,
+        "end": 62.3,
+        "duration": 14.5
+      },
+      {
+        "start": 66.0,
+        "end": 73.9,
+        "duration": 7.9
+      },
+      {
+        "start": 75.5,
+        "end": 86.4,
+        "duration": 10.9
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 1.6,
+      "end": 14.6,
+      "source_vad_index": 1
+    },
+    {
+      "index": 1,
+      "start": 14.6,
+      "end": 29.2,
+      "source_vad_index": 2
+    },
+    {
+      "index": 2,
+      "start": 32.3,
+      "end": 62.9,
+      "source_vad_index": 7
+    },
+    {
+      "index": 3,
+      "start": 62.9,
+      "end": 75.225,
+      "source_vad_index": 8
+    },
+    {
+      "index": 4,
+      "start": 75.225,
+      "end": 87.95,
+      "source_vad_index": 9
+    }
+  ],
+  "segments": [
+    {
+      "start": 1.6,
+      "end": 7.48,
+      "duration": 5.88,
+      "text": "Tüm hazırlıklar tamamlandı.",
+      "language": "tr",
+      "avg_logprob": -0.13581731227728036,
+      "no_speech_prob": 0.0188140869140625,
+      "compression_ratio": 0.9883720930232558,
+      "chunk_index": 0,
+      "chunk_start": 1.6,
+      "chunk_end": 14.6,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 7.84,
+      "end": 11.08,
+      "duration": 3.24,
+      "text": "P-16'lar Eskişehir 1. Anajet Üssü'nden havalandı.",
+      "language": "tr",
+      "avg_logprob": -0.13581731227728036,
+      "no_speech_prob": 0.0188140869140625,
+      "compression_ratio": 0.9883720930232558,
+      "chunk_index": 0,
+      "chunk_start": 1.6,
+      "chunk_end": 14.6,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 14.6,
+      "end": 22.04,
+      "duration": 7.44,
+      "text": "Eskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi.",
+      "language": "tr",
+      "avg_logprob": -0.06756366035084665,
+      "no_speech_prob": 0.0010004043579101562,
+      "compression_ratio": 1.2994652406417113,
+      "chunk_index": 1,
+      "chunk_start": 14.6,
+      "chunk_end": 29.2,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 22.34,
+      "end": 27.58,
+      "duration": 5.24,
+      "text": "Pilotlar gökyüzünde karşılışacakları G kuvvetine karşı ekipmanlarını giyip hangara geçti.",
+      "language": "tr",
+      "avg_logprob": -0.06756366035084665,
+      "no_speech_prob": 0.0010004043579101562,
+      "compression_ratio": 1.2994652406417113,
+      "chunk_index": 1,
+      "chunk_start": 14.6,
+      "chunk_end": 29.2,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 32.3,
+      "end": 46.02,
+      "duration": 13.72,
+      "text": "Bu kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipten uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı.",
+      "language": "tr",
+      "avg_logprob": -0.08512931116696061,
+      "no_speech_prob": 0.01971435546875,
+      "compression_ratio": 1.47,
+      "chunk_index": 2,
+      "chunk_start": 32.3,
+      "chunk_end": 62.9,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 47.2,
+      "end": 61.84,
+      "duration": 14.64,
+      "text": "F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev Efes 2026.",
+      "language": "tr",
+      "avg_logprob": -0.08512931116696061,
+      "no_speech_prob": 0.01971435546875,
+      "compression_ratio": 1.47,
+      "chunk_index": 2,
+      "chunk_start": 32.3,
+      "chunk_end": 62.9,
+      "source_vad_index": 7,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 62.9,
+      "end": 73.76,
+      "duration": 10.86,
+      "text": "Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı.",
+      "language": "tr",
+      "avg_logprob": -0.10546875279396772,
+      "no_speech_prob": 0.0240020751953125,
+      "compression_ratio": 1.0,
+      "chunk_index": 3,
+      "chunk_start": 62.9,
+      "chunk_end": 75.225,
+      "source_vad_index": 8,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 75.225,
+      "end": 79.865,
+      "duration": 4.64,
+      "text": "Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor.",
+      "language": "tr",
+      "avg_logprob": -0.06383825369455197,
+      "no_speech_prob": 0.00884246826171875,
+      "compression_ratio": 1.2333333333333334,
+      "chunk_index": 4,
+      "chunk_start": 75.225,
+      "chunk_end": 87.95,
+      "source_vad_index": 9,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 80.165,
+      "end": 85.605,
+      "duration": 5.44,
+      "text": "Gerisi onların havadaki zorlu görevleri büyük bir kolaylık ve ustalıkla gerçekleştirmesinde.",
+      "language": "tr",
+      "avg_logprob": -0.06383825369455197,
+      "no_speech_prob": 0.00884246826171875,
+      "compression_ratio": 1.2333333333333334,
+      "chunk_index": 4,
+      "chunk_start": 75.225,
+      "chunk_end": 87.95,
+      "source_vad_index": 9,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

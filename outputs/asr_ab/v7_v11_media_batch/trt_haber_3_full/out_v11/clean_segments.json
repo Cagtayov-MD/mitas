@@ -1,0 +1,237 @@
+{
+  "variant": "v11_base_turbo_vad_merged_no_prompt",
+  "description": "OpenAI large-v3-turbo CTranslate2 conversion with the exact v7 VAD-merged no-prompt strategy.",
+  "audio_path": "E:\\MITAS\\outputs\\asr_ab\\v7_v11_media_batch\\trt_haber_3_full\\normalized\\trt_haber_3_full_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 75.418,
+    "speech_segments_count": 5,
+    "speech_seconds": 58.8,
+    "speech_ratio": 0.779655,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 6.1,
+        "end": 15.1,
+        "duration": 9.0
+      },
+      {
+        "start": 15.3,
+        "end": 19.0,
+        "duration": 3.7
+      },
+      {
+        "start": 20.8,
+        "end": 34.2,
+        "duration": 13.4
+      },
+      {
+        "start": 36.5,
+        "end": 59.6,
+        "duration": 23.1
+      },
+      {
+        "start": 61.2,
+        "end": 70.8,
+        "duration": 9.6
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 5.1,
+      "end": 19.9,
+      "source_vad_index": 0
+    },
+    {
+      "index": 1,
+      "start": 19.9,
+      "end": 35.2,
+      "source_vad_index": 2
+    },
+    {
+      "index": 2,
+      "start": 35.5,
+      "end": 59.8,
+      "source_vad_index": 3
+    },
+    {
+      "index": 3,
+      "start": 59.8,
+      "end": 73.0,
+      "source_vad_index": 4
+    }
+  ],
+  "segments": [
+    {
+      "start": 5.78,
+      "end": 12.32,
+      "duration": 6.54,
+      "text": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil, ışıklarda karşıya geçmeye çalışan araca çarptı.",
+      "language": "tr",
+      "avg_logprob": -0.07586348801851273,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.3313253012048192,
+      "chunk_index": 0,
+      "chunk_start": 5.1,
+      "chunk_end": 19.9,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 12.52,
+      "end": 18.92,
+      "duration": 6.4,
+      "text": "Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı.",
+      "language": "tr",
+      "avg_logprob": -0.07586348801851273,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.3313253012048192,
+      "chunk_index": 0,
+      "chunk_start": 5.1,
+      "chunk_end": 19.9,
+      "source_vad_index": 0,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 20.56,
+      "end": 25.72,
+      "duration": 5.16,
+      "text": "Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı.",
+      "language": "tr",
+      "avg_logprob": -0.10252700911627875,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2938144329896908,
+      "chunk_index": 1,
+      "chunk_start": 19.9,
+      "chunk_end": 35.2,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 25.84,
+      "end": 30.4,
+      "duration": 4.56,
+      "text": "Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek.",
+      "language": "tr",
+      "avg_logprob": -0.10252700911627875,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2938144329896908,
+      "chunk_index": 1,
+      "chunk_start": 19.9,
+      "chunk_end": 35.2,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 30.8,
+      "end": 33.48,
+      "duration": 2.68,
+      "text": "Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.",
+      "language": "tr",
+      "avg_logprob": -0.10252700911627875,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.2938144329896908,
+      "chunk_index": 1,
+      "chunk_start": 19.9,
+      "chunk_end": 35.2,
+      "source_vad_index": 2,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 36.3,
+      "end": 42.94,
+      "duration": 6.64,
+      "text": "Van'da durum bu. Arkadaşımız Yümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık getirdik ekranlarınıza.",
+      "language": "tr",
+      "avg_logprob": -0.08011745186460098,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4982935153583619,
+      "chunk_index": 2,
+      "chunk_start": 35.5,
+      "chunk_end": 59.8,
+      "source_vad_index": 3,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 43.02,
+      "end": 48.18,
+      "duration": 5.16,
+      "text": "Ardahan ve Karş sınırları arasında bulunan Çıldır Gölü'nünde yüzeyi kısmen buz tuttu.",
+      "language": "tr",
+      "avg_logprob": -0.08011745186460098,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4982935153583619,
+      "chunk_index": 2,
+      "chunk_start": 35.5,
+      "chunk_end": 59.8,
+      "source_vad_index": 3,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 48.52,
+      "end": 54.42,
+      "duration": 5.9,
+      "text": "Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı.",
+      "language": "tr",
+      "avg_logprob": -0.08011745186460098,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4982935153583619,
+      "chunk_index": 2,
+      "chunk_start": 35.5,
+      "chunk_end": 59.8,
+      "source_vad_index": 3,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 54.96,
+      "end": 59.46,
+      "duration": 4.5,
+      "text": "Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı.",
+      "language": "tr",
+      "avg_logprob": -0.08011745186460098,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.4982935153583619,
+      "chunk_index": 2,
+      "chunk_start": 35.5,
+      "chunk_end": 59.8,
+      "source_vad_index": 3,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 59.8,
+      "end": 70.66,
+      "duration": 10.86,
+      "text": "Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.",
+      "language": "tr",
+      "avg_logprob": -0.09867788461538461,
+      "no_speech_prob": 0.0,
+      "compression_ratio": 1.238888888888889,
+      "chunk_index": 3,
+      "chunk_start": 59.8,
+      "chunk_end": 73.0,
+      "source_vad_index": 4,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}
