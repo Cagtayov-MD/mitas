@@ -7,7 +7,7 @@ import wave
 
 import pytest
 
-from core.pipelines.asr.transcribe import AudioTranscribeError, transcribe_vad_segments
+from core.pipelines.asr.transcribe import AudioTranscribeError, build_transcribe_chunks, transcribe_vad_segments
 from core.pipelines.asr.vad import VadSpeechSegment
 
 
@@ -55,8 +55,25 @@ def test_transcribe_vad_segments_maps_offsets_and_forces_multilingual_true(tmp_p
     assert result.vad_segments_count == 1
     assert result.transcript == "Merhaba dünya"
     assert result.language_distribution == {"tr": 1}
+    assert result.chunk_padding_seconds == 1.5
     assert [(segment.start, segment.end, segment.text, segment.source_vad_index) for segment in result.segments] == [
-        (1.1, 1.6, "Merhaba dünya", 0)
+        (0.1, 0.6, "Merhaba dünya", 0)
+    ]
+
+
+def test_build_transcribe_chunks_adds_padding_without_crossing_neighbor_speech() -> None:
+    chunks = build_transcribe_chunks(
+        [
+            VadSpeechSegment(start=6.2, end=7.6, duration=1.4),
+            VadSpeechSegment(start=7.8, end=11.6, duration=3.8),
+        ],
+        audio_duration=20.0,
+        padding_seconds=1.5,
+    )
+
+    assert [(chunk.chunk_segment.start, chunk.chunk_segment.end) for chunk in chunks] == [
+        (4.7, 7.8),
+        (7.6, 13.1),
     ]
 
 

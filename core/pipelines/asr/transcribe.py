@@ -8,7 +8,7 @@ import tempfile
 from typing import Any, Iterable, Sequence
 
 from core.pipelines.asr.normalize import PROJECT_ROOT, TARGET_CODEC_NAME, TARGET_SAMPLE_RATE, probe_audio_stream
-from core.pipelines.asr.vad import VadSpeechSegment
+from core.pipelines.asr.vad import VadSpeechSegment, read_wav_duration_seconds
 
 
 DEFAULT_MODEL_PATH = PROJECT_ROOT / "models" / "asr" / "faster-whisper" / "large-v3"
@@ -18,6 +18,7 @@ DEFAULT_BEAM_SIZE = 5
 TRANSCRIBE_MULTILINGUAL = True
 TRANSCRIBE_WORD_TIMESTAMPS = False
 TRANSCRIBE_VAD_FILTER = False
+DEFAULT_CHUNK_PADDING_SECONDS = 1.5
 
 
 class AudioTranscribeError(RuntimeError):
@@ -50,12 +51,20 @@ class TranscriptSegment:
 
 
 @dataclass(frozen=True)
+class TranscribeChunk:
+    source_vad_index: int
+    vad_segment: VadSpeechSegment
+    chunk_segment: VadSpeechSegment
+
+
+@dataclass(frozen=True)
 class TranscribeResult:
     audio_path: Path
     model_path: Path
     device: str
     compute_type: str
     multilingual: bool
+    chunk_padding_seconds: float
     vad_segments_count: int
     segments: list[TranscriptSegment]
     transcript: str
@@ -84,6 +93,7 @@ def transcribe_vad_segments(
     model: Any | None = None,
     config: WhisperModelConfig | None = None,
     chunk_output_dir: str | Path | None = None,
+    chunk_padding_seconds: float = DEFAULT_CHUNK_PADDING_SECONDS,
     ffmpeg_executable: str = "ffmpeg",
 ) -> TranscribeResult:
     model_config = config or WhisperModelConfig()
@@ -97,17 +107,20 @@ def transcribe_vad_segments(
         )
 
     if not vad_segments:
-        return _empty_result(path, model_config)
+        return _empty_result(path, model_config, chunk_padding_seconds=chunk_padding_seconds)
 
     whisper_model = model if model is not None else load_whisper_model(model_config)
+    audio_duration = read_wav_duration_seconds(path)
+    chunks = build_transcribe_chunks(vad_segments, audio_duration=audio_duration, padding_seconds=chunk_padding_seconds)
 
     if chunk_output_dir is None:
         with tempfile.TemporaryDirectory() as temp_dir:
             return _transcribe_with_chunk_dir(
                 path,
-                vad_segments,
+                chunks,
                 whisper_model,
                 model_config,
+                chunk_padding_seconds=chunk_padding_seconds,
                 chunk_dir=Path(temp_dir),
                 ffmpeg_executable=ffmpeg_executable,
             )
@@ -116,9 +129,10 @@ def transcribe_vad_segments(
     chunk_dir.mkdir(parents=True, exist_ok=True)
     return _transcribe_with_chunk_dir(
         path,
-        vad_segments,
+        chunks,
         whisper_model,
         model_config,
+        chunk_padding_seconds=chunk_padding_seconds,
         chunk_dir=chunk_dir,
         ffmpeg_executable=ffmpeg_executable,
     )
@@ -126,18 +140,22 @@ def transcribe_vad_segments(
 
 def _transcribe_with_chunk_dir(
     audio_path: Path,
-    vad_segments: Sequence[VadSpeechSegment],
+    chunks: Sequence[TranscribeChunk],
     model: Any,
     config: WhisperModelConfig,
     *,
+    chunk_padding_seconds: float,
     chunk_dir: Path,
     ffmpeg_executable: str,
 ) -> TranscribeResult:
     transcript_segments: list[TranscriptSegment] = []
 
-    for vad_index, vad_segment in enumerate(vad_segments):
-        chunk_path = chunk_dir / f"chunk_{vad_index:04d}_{int(vad_segment.start * 1000):08d}_{int(vad_segment.end * 1000):08d}.wav"
-        extract_wav_chunk(audio_path, vad_segment, chunk_path, ffmpeg_executable=ffmpeg_executable)
+    for chunk in chunks:
+        chunk_path = (
+            chunk_dir
+            / f"chunk_{chunk.source_vad_index:04d}_{int(chunk.chunk_segment.start * 1000):08d}_{int(chunk.chunk_segment.end * 1000):08d}.wav"
+        )
+        extract_wav_chunk(audio_path, chunk.chunk_segment, chunk_path, ffmpeg_executable=ffmpeg_executable)
         raw_segments, info = model.transcribe(
             str(chunk_path),
             beam_size=config.beam_size,
@@ -146,7 +164,7 @@ def _transcribe_with_chunk_dir(
             word_timestamps=TRANSCRIBE_WORD_TIMESTAMPS,
             condition_on_previous_text=False,
         )
-        transcript_segments.extend(_map_segments(raw_segments, info, vad_segment=vad_segment, vad_index=vad_index))
+        transcript_segments.extend(_map_segments(raw_segments, info, chunk=chunk))
 
     indexed_segments = [
         TranscriptSegment(
@@ -170,7 +188,8 @@ def _transcribe_with_chunk_dir(
         device=config.device,
         compute_type=config.compute_type,
         multilingual=TRANSCRIBE_MULTILINGUAL,
-        vad_segments_count=len(vad_segments),
+        chunk_padding_seconds=chunk_padding_seconds,
+        vad_segments_count=len(chunks),
         segments=indexed_segments,
         transcript=transcript,
         language_distribution=dict(language_distribution),
@@ -211,12 +230,33 @@ def extract_wav_chunk(
     return destination
 
 
+def build_transcribe_chunks(
+    vad_segments: Sequence[VadSpeechSegment],
+    *,
+    audio_duration: float,
+    padding_seconds: float = DEFAULT_CHUNK_PADDING_SECONDS,
+) -> list[TranscribeChunk]:
+    if padding_seconds < 0.0:
+        raise AudioTranscribeError(f"chunk padding must be non-negative: {padding_seconds}")
+
+    chunks: list[TranscribeChunk] = []
+    for index, vad_segment in enumerate(vad_segments):
+        previous_end = vad_segments[index - 1].end if index > 0 else 0.0
+        next_start = vad_segments[index + 1].start if index + 1 < len(vad_segments) else audio_duration
+        start = max(0.0, previous_end, vad_segment.start - padding_seconds)
+        end = min(audio_duration, next_start, vad_segment.end + padding_seconds)
+        if end <= start:
+            continue
+        chunk_segment = VadSpeechSegment(start=round(start, 3), end=round(end, 3), duration=round(end - start, 3))
+        chunks.append(TranscribeChunk(source_vad_index=index, vad_segment=vad_segment, chunk_segment=chunk_segment))
+    return chunks
+
+
 def _map_segments(
     raw_segments: Iterable[Any],
     info: Any,
     *,
-    vad_segment: VadSpeechSegment,
-    vad_index: int,
+    chunk: TranscribeChunk,
 ) -> list[TranscriptSegment]:
     mapped: list[TranscriptSegment] = []
     fallback_language = getattr(info, "language", None)
@@ -225,8 +265,8 @@ def _map_segments(
         text = str(getattr(raw_segment, "text", "")).strip()
         if not text:
             continue
-        start = round(vad_segment.start + float(raw_segment.start), 3)
-        end = round(min(vad_segment.end, vad_segment.start + float(raw_segment.end)), 3)
+        start = round(chunk.chunk_segment.start + float(raw_segment.start), 3)
+        end = round(min(chunk.chunk_segment.end, chunk.chunk_segment.start + float(raw_segment.end)), 3)
         if end <= start:
             continue
         mapped.append(
@@ -238,20 +278,21 @@ def _map_segments(
                 language=getattr(raw_segment, "language", None) or fallback_language,
                 avg_logprob=float(getattr(raw_segment, "avg_logprob", 0.0) or 0.0),
                 no_speech_prob=float(getattr(raw_segment, "no_speech_prob", 0.0) or 0.0),
-                source_vad_index=vad_index,
+                source_vad_index=chunk.source_vad_index,
             )
         )
 
     return mapped
 
 
-def _empty_result(audio_path: Path, config: WhisperModelConfig) -> TranscribeResult:
+def _empty_result(audio_path: Path, config: WhisperModelConfig, *, chunk_padding_seconds: float) -> TranscribeResult:
     return TranscribeResult(
         audio_path=audio_path,
         model_path=config.model_path,
         device=config.device,
         compute_type=config.compute_type,
         multilingual=TRANSCRIBE_MULTILINGUAL,
+        chunk_padding_seconds=chunk_padding_seconds,
         vad_segments_count=0,
         segments=[],
         transcript="",
@@ -270,4 +311,3 @@ def _run_command(command: tuple[str, ...]) -> subprocess.CompletedProcess[str]:
         raise AudioTranscribeError(f"Audio chunk command failed: {stderr}", command=command, stderr=stderr)
 
     return completed
-

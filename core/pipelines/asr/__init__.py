@@ -4,8 +4,10 @@ from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, N
 from core.pipelines.asr.transcribe import (
     AudioTranscribeError,
     TranscriptSegment,
+    TranscribeChunk,
     TranscribeResult,
     WhisperModelConfig,
+    build_transcribe_chunks,
     load_whisper_model,
     transcribe_vad_segments,
 )
@@ -18,10 +20,12 @@ __all__ = [
     "AudioStreamInfo",
     "NormalizeResult",
     "TranscriptSegment",
+    "TranscribeChunk",
     "TranscribeResult",
     "WhisperModelConfig",
     "VadResult",
     "VadSpeechSegment",
+    "build_transcribe_chunks",
     "load_whisper_model",
     "normalize_audio",
     "probe_audio_stream",

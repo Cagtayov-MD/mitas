@@ -405,3 +405,80 @@ Evet. C bloğunun amacı olan "VAD segmentleri -> transcript segmentleri" davran
 
 **Daha iyi olabilir miydi?**
 Evet. Chunk bazlı transcribe, segmentler arası bağlamı sınırlayabilir. Buna karşılık bu yöntem kontrollü, VAD uyumlu ve timestamp offset açısından açık. Daha sonra kalite benchmark'ında full-audio transcribe + VAD chunk transcribe karşılaştırması yapılabilir.
+
+### 2026-05-11 / C Bloğu Düzeltme - Giriş Cümlesi ve Multilingual Test
+
+Kullanıcı üç kritik nokta sordu:
+
+1. Kalite ne zaman düzeltilecek?
+2. Girişte atlanan cümlenin sebebi ne?
+3. Türkçe/İngilizce karışık gerçek test için `erd_test_video.mp4` eklenmeli.
+
+#### Kalite Ne Zaman Düzeltilecek?
+
+Kalite kalibrasyonu C bloğunun içinde kapatılmayacak. C bloğunda amaç transcribe hattının doğru bağlanmasıydı. Kalite düzeltme için doğru zaman:
+
+- C bloğu sonunda bariz entegrasyon hataları düzeltilir.
+- D diarization ve E/F schema + kalite raporu bağlandıktan sonra gerçek mini ASR benchmark yapılır.
+- O aşamada VAD threshold, chunk padding, chunk bazlı vs full-audio transcribe karşılaştırması, beam/temperature/condition ayarları birlikte değerlendirilir.
+
+Sebep: Transcript kalitesi tek parametreyle çözülmez; VAD sınırı, chunk bağlamı, multilingual davranış, diarization ve kalite metrikleri birlikte görülmeli.
+
+#### Girişte Atlanan Cümlenin Sebebi
+
+Video: `E:\MITAS\testklipler\trt_haber (1).mp4`
+
+Kullanıcı `5. sn de başlayan "tüm hazırlıklar tamamlandı"` cümlesinin eksik olduğunu söyledi. Teşhis:
+
+- İlk VAD segmenti: `6.2 - 7.6`
+- Kullanıcı gözlemine göre cümle yaklaşık `5. sn` civarında başlıyor.
+- C smoke testinde ayrıca `duration >= 2.0` filtresi vardı; ilk segment `1.4 sn` olduğu için smoke seçimine girmemişti.
+- İlk segment tek başına transcribe edildiğinde `Hazırlıklar tamamlandı.` geliyordu; yani hem smoke seçimi hem de VAD başlangıç sınırı ilk kelimeyi riske atıyordu.
+
+**Düzeltme:**
+
+- `transcribe_vad_segments()` artık VAD segmentini tam sınırdan kesmiyor.
+- Her VAD chunk için `1.5 sn` pre/post padding eklendi.
+- Padding komşu VAD segmentinin içine taşmıyor; böylece gereksiz tekrar azaltılıyor.
+
+Yeni sonuç:
+
+```text
+Tüm hazırlıklar tamamlandı.
+```
+
+Bu cümle artık gerçek medya transcribe testinde assert ediliyor.
+
+#### erd_test_video Multilingual Test
+
+Yeni gerçek medya testi `tests/test_asr_transcribe_real_media.py` içine eklendi.
+
+Video: `E:\MITAS\testklipler\erd_test_video.mp4`
+
+Seçilen VAD aralığı:
+
+- VAD segment indexleri: `38:44`
+- Yaklaşık zaman: `108.3 - 127.5`
+
+Bu bölümde Türkçe ve İngilizce birlikte var. Test artık şunları doğruluyor:
+
+- `multilingual=True`
+- Dil dağılımında en az 1 `tr`
+- Dil dağılımında en az 1 `en`
+- Transcript içinde `Prime Minister`
+- Transcript içinde `don't have time`
+- Transcript içinde `Altıncı`
+
+Gerçek smoke çıktısında görülen örnek:
+
+```text
+iki söz söyleyeceğim. Prime Minister, we can't start the debate again. Please, we just don't have time. ... Altıncı maddesinde der ki öldürmeyeceksin.
+```
+
+**Sonuç:** Türkçe/İngilizce karışık gerçek medya test kapsamına alındı. Bu, Karar 14 (`multilingual=True`) için C bloğundaki en önemli gerçek regresyon testidir.
+
+**Doğrulama:**
+
+- `tests/test_asr_transcribe.py tests/test_asr_transcribe_real_media.py` (`core` venv): 4 passed, 2 skipped.
+- `tests.test_asr_transcribe_real_media` (`asr` venv, unittest): 2 tests OK.
+- Tüm test paketi (`core` venv): 83 passed, 4 skipped.
