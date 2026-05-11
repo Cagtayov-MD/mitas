@@ -1,0 +1,13 @@
+{
+  "variant": "v6_vad_merged_multilingual_code_switch",
+  "description": "VAD-guided merged chunks like v2, but allow multilingual decoding for English titles and code-switch phrases.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "load_vad_seconds": 4.719,
+  "load_model_seconds": 3.539,
+  "transcribe_seconds": 20.149,
+  "total_seconds": 28.724,
+  "model_call_count": 8,
+  "raw_segment_count": 28,
+  "clean_segment_count": 27
+}

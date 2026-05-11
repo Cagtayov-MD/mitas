@@ -1,0 +1,13 @@
+{
+  "variant": "v8_full_audio_no_prompt",
+  "description": "Single full-audio transcribe call with built-in VAD like v4, but no initial_prompt to test prompt-leak removal.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "load_vad_seconds": 0.0,
+  "load_model_seconds": 5.157,
+  "transcribe_seconds": 23.521,
+  "total_seconds": 28.679,
+  "model_call_count": 1,
+  "raw_segment_count": 55,
+  "clean_segment_count": 55
+}

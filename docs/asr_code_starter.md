@@ -861,3 +861,154 @@ Hayır. Kod değişikliği yapılmadı; sadece eksik rapor formatı tamamlandı.
 
 **Daha iyi olabilir miydi?**
 Evet. Bu işlemin geçici scriptle değil, E/F aşamasında kalıcı pipeline çıktısı olarak üretilmesi gerekiyor. Bu düzeltme aynı ihtiyacı açıkça görünür hale getirdi.
+
+---
+
+## 2026-05-11 / ASR A-B Kalite Deneyi - beyaz2 08:00-11:00
+
+### Neden Bu Blok?
+
+Beyaz2 gerçek medya smoke çalışıyordu ama kalite vasattı. Kullanıcı özellikle TurboScribe çıktısındaki şu nokta atış bölümü örnek gösterdi:
+
+```text
+Çok teşekkürler. Dancin' Beer / Dancing Bear. Ayılar Dans ediyor.
+```
+
+Bu, çözümün sadece "Türkçe'ye kilitlemek" olmadığını gösterdi. İçerik Türkçe dominant ama gerçek İngilizce/code-switch ifadeler içeriyor.
+
+Bu yüzden mevcut `core/pipelines/asr/transcribe.py` dosyasına dokunmadan `tools/asr_ab/` altında A/B deneyleri kuruldu.
+
+### Eklenen Deney Altyapısı
+
+Yeni dosyalar:
+
+- `tools/asr_ab/common.py`
+- `tools/asr_ab/transcribe_v0.py`
+- `tools/asr_ab/transcribe_v1.py`
+- `tools/asr_ab/transcribe_v2.py`
+- `tools/asr_ab/transcribe_v3.py`
+- `tools/asr_ab/transcribe_v4.py`
+- `tools/asr_ab/transcribe_v5.py`
+- `tools/asr_ab/transcribe_v6.py`
+- `tools/asr_ab/transcribe_v7.py`
+- `tools/asr_ab/transcribe_v8.py`
+- `tools/asr_ab/transcribe_v9.py`
+- `tools/asr_ab/compare_variants.py`
+- `tools/asr_ab/run_all.py`
+
+Not: `tools/` repo `.gitignore` içinde olduğu için bu dosyalar commit sırasında force-add gerektirir.
+
+Her varyant aynı normalize WAV girdisini aldı:
+
+```text
+E:\MITAS\outputs\real_media_smoke\beyaz2_08_11\normalized\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav
+```
+
+Her varyant aynı temel çıktı formatını üretti:
+
+- `raw_segments.json`
+- `clean_segments.json`
+- `clean_transcript.txt`
+- `filter_report.json`
+- `timing.json`
+
+Karşılaştırma raporları:
+
+- `E:\MITAS\outputs\asr_ab\beyaz2_08_11\comparison_report.md`
+- `E:\MITAS\outputs\asr_ab\beyaz2_08_11\comparison_report.json`
+- `E:\MITAS\outputs\asr_ab\beyaz2_08_11\ab_findings.md`
+
+### Denenen Varyantlar
+
+- `v0`: mevcut baseline — her VAD segmenti ayrı chunk, multilingual, prompt yok.
+- `v1`: baseline chunking + `language="tr"` + initial prompt.
+- `v2`: VAD-guided merged chunks + initial prompt.
+- `v3`: fixed 28s window + initial prompt.
+- `v4`: full audio single pass + faster-whisper built-in VAD + initial prompt.
+- `v5`: fixed 28s window + multilingual code-switch.
+- `v6`: VAD-guided merged chunks + multilingual code-switch.
+- `v7`: VAD-guided merged chunks + `language="tr"` + prompt yok.
+- `v8`: full audio single pass + built-in VAD + prompt yok.
+- `v9`: WhisperX ASR (`alignment` venv), precomputed MITAS VAD + prompt yok.
+
+### Sayısal Sonuç
+
+| Varyant | Raw | Clean | Drop | Bad hits | Code-switch | Word F1 | Calls | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| v0 | 58 | 56 | 2 | 1 | 4 | 0.8585 | 28 | 44.652s |
+| v1 | 43 | 43 | 0 | 1 | 4 | 0.7851 | 28 | 37.089s |
+| v2 | 28 | 27 | 1 | 1 | 4 | 0.6703 | 8 | 28.874s |
+| v3 | 13 | 7 | 6 | 1 | 0 | 0.3750 | 7 | 21.993s |
+| v4 | 36 | 32 | 4 | 0 | 3 | 0.7864 | 1 | 31.420s |
+| v5 | 13 | 7 | 6 | 1 | 0 | 0.3750 | 7 | 21.271s |
+| v6 | 28 | 27 | 1 | 1 | 4 | 0.6703 | 8 | 28.724s |
+| v7 | 56 | 56 | 0 | 0 | 4 | 0.8814 | 8 | 32.733s |
+| v8 | 55 | 55 | 0 | 0 | 4 | 0.8696 | 1 | 28.679s |
+| v9 | 8 | 8 | 0 | 0 | 4 | 0.8783 | 1 | 15.103s |
+
+`Bad hits` şu tokenları aradı:
+
+- `É`
+- `I don't know`
+- `Are the days`
+- `Konuklar Türkçe sohbet ediyor`
+
+Son madde initial prompt sızıntısını yakalamak için eklendi.
+
+### Kritik Bulgular
+
+1. `initial_prompt` bu klipte zararlı çıktı.
+   - `v1`, `v2`, `v3`, `v5`, `v6` içinde prompt sızıntısı görüldü.
+   - Model, "Konuklar Türkçe sohbet ediyor..." cümlesini gerçek konuşma gibi transcript'e yazdı.
+
+2. `v3` ve `v5` fixed-window denemesi bu dedupe kuralıyla başarısız oldu.
+   - `segment.start < OVERLAP` kuralı, faster-whisper segmenti pencere başından büyük blok döndürdüğünde tüm pencereyi düşürdü.
+   - Sonuç hızlı ama eksik transcript.
+
+3. `v7` en iyi üretim adayı.
+   - Prompt yok.
+   - VAD-merged chunks var.
+   - `Dancing Bear / Ayılar dans ediyor` korunuyor.
+   - Bilinen hallucination tokenları yok.
+   - TurboScribe referansına en iyi word overlap skoru verdi.
+
+4. `v8` iyi fallback ama daha riskli.
+   - Tek çağrı ile hızlı ve tam çıktı üretiyor.
+   - Ancak bazı cümlelerde anlam sapması/hallucination daha belirgin.
+
+5. `v9 WhisperX` hızlı ve temiz ama özel isimlerde riskli.
+   - `Natalie Merchant` yerine `Natalie Blanchard` gibi sapma görüldü.
+   - Alignment venv'de torchcodec warning hâlâ çıkıyor; v9 WAV'ı NumPy olarak verdiği için koşuyu bozmadı.
+
+### Karar
+
+Şimdilik üretim transcribe stratejisi için ana aday:
+
+```text
+VAD-guided merged chunks
+language="tr"
+initial_prompt=None
+condition_on_previous_text=True
+shared quality filter
+```
+
+Yani `v7` çizgisi.
+
+WhisperX `v9`, hızlı alternatif olarak tutulmalı ama ana transcribe motoru yapılmadan önce daha fazla özel isim ve code-switch testi gerekiyor.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Ana pipeline koduna dokunulmadı. Deneyler `tools/asr_ab/` altında izole edildi.
+
+**Amaca hizmet ediyor mu?**
+Evet. Hangi değişikliğin kaliteyi artırdığı ablation ile görüldü: prompt değil, VAD-merged chunking + prompt'suz decode.
+
+**Başka şeyi bozuyor mu?**
+Hayır. `core/pipelines/asr/transcribe.py` değişmedi. Üretilen chunk WAV'lar Git'e alınmıyor; küçük JSON/TXT/MD kanıtları alınacak.
+
+**Daha iyi olabilir miydi?**
+Evet. `v7` üretim adayına dönüştürülmeden önce iki ek kontrol yapılmalı:
+
+- Aynı A/B `erd_test_video` gibi gerçek code-switch örneğinde denenmeli.
+- Fixed-window yaklaşımı için daha adil dedupe kuralı ayrıca denenebilir; mevcut `segment.start < 2s` kuralı fazla agresif kaldı.

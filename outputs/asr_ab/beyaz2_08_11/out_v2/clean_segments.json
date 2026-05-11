@@ -1,0 +1,681 @@
+{
+  "variant": "v2_vad_guided_merged_chunks",
+  "description": "Merge nearby VAD speech into 12-30s chunks with prompt and previous-text conditioning.",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "vad": {
+    "audio_duration": 180.001,
+    "speech_segments_count": 28,
+    "speech_seconds": 151.2,
+    "speech_ratio": 0.839995,
+    "threshold": 0.5,
+    "segments": [
+      {
+        "start": 1.6,
+        "end": 2.1,
+        "duration": 0.5
+      },
+      {
+        "start": 2.4,
+        "end": 6.3,
+        "duration": 3.9
+      },
+      {
+        "start": 6.7,
+        "end": 10.1,
+        "duration": 3.4
+      },
+      {
+        "start": 10.4,
+        "end": 11.1,
+        "duration": 0.7
+      },
+      {
+        "start": 16.0,
+        "end": 16.4,
+        "duration": 0.4
+      },
+      {
+        "start": 16.7,
+        "end": 24.4,
+        "duration": 7.7
+      },
+      {
+        "start": 24.7,
+        "end": 26.8,
+        "duration": 2.1
+      },
+      {
+        "start": 27.0,
+        "end": 30.8,
+        "duration": 3.8
+      },
+      {
+        "start": 31.2,
+        "end": 32.6,
+        "duration": 1.4
+      },
+      {
+        "start": 33.6,
+        "end": 36.1,
+        "duration": 2.5
+      },
+      {
+        "start": 37.2,
+        "end": 39.4,
+        "duration": 2.2
+      },
+      {
+        "start": 39.8,
+        "end": 49.8,
+        "duration": 10.0
+      },
+      {
+        "start": 49.9,
+        "end": 58.5,
+        "duration": 8.6
+      },
+      {
+        "start": 58.6,
+        "end": 61.7,
+        "duration": 3.1
+      },
+      {
+        "start": 62.2,
+        "end": 69.6,
+        "duration": 7.4
+      },
+      {
+        "start": 70.0,
+        "end": 91.6,
+        "duration": 21.6
+      },
+      {
+        "start": 91.9,
+        "end": 108.4,
+        "duration": 16.5
+      },
+      {
+        "start": 108.9,
+        "end": 123.4,
+        "duration": 14.5
+      },
+      {
+        "start": 123.7,
+        "end": 125.4,
+        "duration": 1.7
+      },
+      {
+        "start": 125.6,
+        "end": 128.1,
+        "duration": 2.5
+      },
+      {
+        "start": 128.6,
+        "end": 131.1,
+        "duration": 2.5
+      },
+      {
+        "start": 142.7,
+        "end": 144.8,
+        "duration": 2.1
+      },
+      {
+        "start": 145.0,
+        "end": 149.4,
+        "duration": 4.4
+      },
+      {
+        "start": 149.5,
+        "end": 151.6,
+        "duration": 2.1
+      },
+      {
+        "start": 152.2,
+        "end": 153.9,
+        "duration": 1.7
+      },
+      {
+        "start": 154.1,
+        "end": 161.3,
+        "duration": 7.2
+      },
+      {
+        "start": 163.1,
+        "end": 174.2,
+        "duration": 11.1
+      },
+      {
+        "start": 174.4,
+        "end": 180.0,
+        "duration": 5.6
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 13.35,
+      "source_vad_index": 1
+    },
+    {
+      "index": 1,
+      "start": 15.0,
+      "end": 39.8,
+      "source_vad_index": 5
+    },
+    {
+      "index": 2,
+      "start": 39.4,
+      "end": 70.0,
+      "source_vad_index": 11
+    },
+    {
+      "index": 3,
+      "start": 69.6,
+      "end": 91.9,
+      "source_vad_index": 15
+    },
+    {
+      "index": 4,
+      "start": 91.6,
+      "end": 108.9,
+      "source_vad_index": 16
+    },
+    {
+      "index": 5,
+      "start": 108.4,
+      "end": 132.1,
+      "source_vad_index": 17
+    },
+    {
+      "index": 6,
+      "start": 141.7,
+      "end": 162.3,
+      "source_vad_index": 25
+    },
+    {
+      "index": 7,
+      "start": 162.1,
+      "end": 180.001,
+      "source_vad_index": 26
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 9.82,
+      "duration": 9.82,
+      "text": "Dişi bir kedi almışsın, başka bir dişi kediyi hamile bırakınca kendi kedinin erkek olduğunu anlamışsın.",
+      "language": "tr",
+      "avg_logprob": -0.15290178315980094,
+      "no_speech_prob": 0.144287109375,
+      "compression_ratio": 1.1855670103092784,
+      "chunk_index": 0,
+      "chunk_start": 0.0,
+      "chunk_end": 13.35,
+      "source_vad_index": 1,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 15.0,
+      "end": 26.54,
+      "duration": 11.54,
+      "text": "Evet, kimse anlamamıştı onu. Hiçbir veteriner anlamamıştı. Çok tüylü bir kediydi. Sonra dört tane yavru yaptılar.",
+      "language": "tr",
+      "avg_logprob": -0.18307782850175533,
+      "no_speech_prob": 0.1861572265625,
+      "compression_ratio": 1.4066985645933014,
+      "chunk_index": 1,
+      "chunk_start": 15.0,
+      "chunk_end": 39.8,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 27.0,
+      "end": 28.78,
+      "duration": 1.78,
+      "text": "O gün ne adı seninkinin erkek oğlunu?",
+      "language": "tr",
+      "avg_logprob": -0.18307782850175533,
+      "no_speech_prob": 0.1861572265625,
+      "compression_ratio": 1.4066985645933014,
+      "chunk_index": 1,
+      "chunk_start": 15.0,
+      "chunk_end": 39.8,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 29.04,
+      "end": 30.56,
+      "duration": 1.52,
+      "text": "Evet, adama hala Daisy.",
+      "language": "tr",
+      "avg_logprob": -0.18307782850175533,
+      "no_speech_prob": 0.1861572265625,
+      "compression_ratio": 1.4066985645933014,
+      "chunk_index": 1,
+      "chunk_start": 15.0,
+      "chunk_end": 39.8,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 31.2,
+      "end": 31.96,
+      "duration": 0.76,
+      "text": "Adı Daisy mi?",
+      "language": "tr",
+      "avg_logprob": -0.18307782850175533,
+      "no_speech_prob": 0.1861572265625,
+      "compression_ratio": 1.4066985645933014,
+      "chunk_index": 1,
+      "chunk_start": 15.0,
+      "chunk_end": 39.8,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 33.42,
+      "end": 38.92,
+      "duration": 5.5,
+      "text": "Kahvaltıda böbrek gelmiş bu bilgide. Daha da ne diyeyim, kahvaltıda böbrek gelmiş.",
+      "language": "tr",
+      "avg_logprob": -0.18307782850175533,
+      "no_speech_prob": 0.1861572265625,
+      "compression_ratio": 1.4066985645933014,
+      "chunk_index": 1,
+      "chunk_start": 15.0,
+      "chunk_end": 39.8,
+      "source_vad_index": 5,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 39.4,
+      "end": 44.0,
+      "duration": 4.6,
+      "text": "Valla konuşmadığın kadar varmış ben sana söyleyeyim. Evet konuşunca şey oldu yani.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 44.18,
+      "end": 46.1,
+      "duration": 1.92,
+      "text": "Sen mi söyledin filmdeki parçayı, yabancı parçayı?",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 46.14,
+      "end": 47.26,
+      "duration": 1.12,
+      "text": "Evet ben söyledim.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 47.28,
+      "end": 47.92,
+      "duration": 0.64,
+      "text": "Mükemmel söylemişsin ama.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 47.92,
+      "end": 52.34,
+      "duration": 4.42,
+      "text": "Ozan bana, çok teşekkür ediyorum. Ozan bana göndermişti. Ben düşündüm o bir şaka.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 52.6,
+      "end": 56.6,
+      "duration": 4.0,
+      "text": "Çünkü o bizim filmimizin senaristlerinden biri.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 57.0,
+      "end": 63.64,
+      "duration": 6.64,
+      "text": "Yani acayip haftalar kendisini eve kapatmış ve baya yazdı yazdı yazdı.",
+      "language": "tr",
+      "avg_logprob": -0.12452290258334793,
+      "no_speech_prob": 0.37158203125,
+      "compression_ratio": 1.5018050541516246,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 63.64,
+      "end": 69.4,
+      "duration": 5.76,
+      "text": "Sonra bir gün bana mesaj attı. İşte öyle bir şarkı söyler misin senin karakterine uygun diye düşündük.",
+      "language": "tr",
+      "avg_logprob": -0.04873657179996371,
+      "no_speech_prob": 0.0340576171875,
+      "compression_ratio": 1.0857142857142856,
+      "chunk_index": 2,
+      "chunk_start": 39.4,
+      "chunk_end": 70.0,
+      "source_vad_index": 11,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 69.6,
+      "end": 77.16,
+      "duration": 7.56,
+      "text": "Ben de böyle hay Allah benim şarkımı söyleyeceğim şimdi neden, bu nereden çıktı, nasıl kurtulacağım diye düşündüm.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 77.72,
+      "end": 78.36,
+      "duration": 0.64,
+      "text": "Kurtulamadım.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 79.94,
+      "end": 81.56,
+      "duration": 1.62,
+      "text": "Bir sürü şeylerden kurtulmuyorum sanki.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 81.56,
+      "end": 83.58,
+      "duration": 2.02,
+      "text": "Ama iyi ki kurtulmamışsın çünkü çok güzel.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 83.58,
+      "end": 84.26,
+      "duration": 0.68,
+      "text": "Ya çok sağ ol.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 84.26,
+      "end": 85.48,
+      "duration": 1.22,
+      "text": "Vallahi gerçekten çok güzel.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 85.54,
+      "end": 86.28,
+      "duration": 0.74,
+      "text": "Çok teşekkürler.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 86.3,
+      "end": 89.44,
+      "duration": 3.14,
+      "text": "Natalie Merchant'ın bir şarkısı Dancing Bear, ayılar dans ediyor.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 89.66,
+      "end": 91.42,
+      "duration": 1.76,
+      "text": "Müberner söylüyor şarkının adı o.",
+      "language": "tr",
+      "avg_logprob": -0.31171219489153695,
+      "no_speech_prob": 0.1287841796875,
+      "compression_ratio": 1.4876325088339222,
+      "chunk_index": 3,
+      "chunk_start": 69.6,
+      "chunk_end": 91.9,
+      "source_vad_index": 15,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 91.6,
+      "end": 108.9,
+      "duration": 17.3,
+      "text": "Konuklar Türkçe sohbet ediyor, zaman zaman İngilizce şarkı, film veya marka adı geçiyor.",
+      "language": "tr",
+      "avg_logprob": -0.24743653647601604,
+      "no_speech_prob": 0.4560546875,
+      "compression_ratio": 0.9895833333333334,
+      "chunk_index": 4,
+      "chunk_start": 91.6,
+      "chunk_end": 108.9,
+      "source_vad_index": 16,
+      "kept": true,
+      "drop_reason": null,
+      "flags": [
+        "low_confidence"
+      ]
+    },
+    {
+      "start": 141.7,
+      "end": 151.34,
+      "duration": 9.64,
+      "text": "Merhaba candancığım, aslında güle güle, beyaz şovda bitiyor, ben gidiyor tatile.",
+      "language": "tr",
+      "avg_logprob": -0.12460937375823657,
+      "no_speech_prob": 0.005340576171875,
+      "compression_ratio": 1.2649006622516556,
+      "chunk_index": 6,
+      "chunk_start": 141.7,
+      "chunk_end": 162.3,
+      "source_vad_index": 25,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 151.34,
+      "end": 160.68,
+      "duration": 9.34,
+      "text": "Gider ayak çandanım, birkaç bir şey söyleyeceğim, ay canım yazık sana, cevap da veremeyeceğim.",
+      "language": "tr",
+      "avg_logprob": -0.12460937375823657,
+      "no_speech_prob": 0.005340576171875,
+      "compression_ratio": 1.2649006622516556,
+      "chunk_index": 6,
+      "chunk_start": 141.7,
+      "chunk_end": 162.3,
+      "source_vad_index": 25,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 162.1,
+      "end": 179.98,
+      "duration": 17.88,
+      "text": "Konuklar Türkçe sohbet ediyor, zaman zaman İngilizce şarkı, film veya marka adı geçiyor.",
+      "language": "tr",
+      "avg_logprob": -0.1669921870343387,
+      "no_speech_prob": 0.01483154296875,
+      "compression_ratio": 0.9895833333333334,
+      "chunk_index": 7,
+      "chunk_start": 162.1,
+      "chunk_end": 180.001,
+      "source_vad_index": 26,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

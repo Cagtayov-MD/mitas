@@ -1,0 +1,262 @@
+{
+  "variant": "v9_whisperx_precomputed_vad",
+  "description": "WhisperX ASR in alignment venv, using MITAS precomputed VAD segments and no prompt.",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "vad": {
+    "source": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\beyaz2_08_11_asr_models_report.json",
+    "speech_segments_count": 28,
+    "segments": [
+      {
+        "start": 1.6,
+        "end": 2.1
+      },
+      {
+        "start": 2.4,
+        "end": 6.3
+      },
+      {
+        "start": 6.7,
+        "end": 10.1
+      },
+      {
+        "start": 10.4,
+        "end": 11.1
+      },
+      {
+        "start": 16.0,
+        "end": 16.4
+      },
+      {
+        "start": 16.7,
+        "end": 24.4
+      },
+      {
+        "start": 24.7,
+        "end": 26.8
+      },
+      {
+        "start": 27.0,
+        "end": 30.8
+      },
+      {
+        "start": 31.2,
+        "end": 32.6
+      },
+      {
+        "start": 33.6,
+        "end": 36.1
+      },
+      {
+        "start": 37.2,
+        "end": 39.4
+      },
+      {
+        "start": 39.8,
+        "end": 49.8
+      },
+      {
+        "start": 49.9,
+        "end": 58.5
+      },
+      {
+        "start": 58.6,
+        "end": 61.7
+      },
+      {
+        "start": 62.2,
+        "end": 69.6
+      },
+      {
+        "start": 70.0,
+        "end": 91.6
+      },
+      {
+        "start": 91.9,
+        "end": 108.4
+      },
+      {
+        "start": 108.9,
+        "end": 123.4
+      },
+      {
+        "start": 123.7,
+        "end": 125.4
+      },
+      {
+        "start": 125.6,
+        "end": 128.1
+      },
+      {
+        "start": 128.6,
+        "end": 131.1
+      },
+      {
+        "start": 142.7,
+        "end": 144.8
+      },
+      {
+        "start": 145.0,
+        "end": 149.4
+      },
+      {
+        "start": 149.5,
+        "end": 151.6
+      },
+      {
+        "start": 152.2,
+        "end": 153.9
+      },
+      {
+        "start": 154.1,
+        "end": 161.3
+      },
+      {
+        "start": 163.1,
+        "end": 174.2
+      },
+      {
+        "start": 174.4,
+        "end": 180.0
+      }
+    ]
+  },
+  "chunks": [],
+  "segments": [
+    {
+      "start": 1.6,
+      "end": 30.8,
+      "duration": 29.2,
+      "text": "Eee dişi bir kedi almışsın. Başka bir dişi kediyi hamile bırakınca... Hayır hayır hayır. Kendi kedinin erkek olduğunu anlamışsın. Evet. Kimse anlamamıştı onu. Hiçbir veteriner anlamamıştı. Çok tüylü bir kediydi. Bir kediydi. Sonra dört tane yavru yaptılar. O gün ne vardı seninkinin erkek olduğunu? Evet adama hala Daisy.",
+      "language": "tr",
+      "avg_logprob": -0.1389723513275385,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 0,
+      "chunk_start": 1.6,
+      "chunk_end": 30.8,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 31.2,
+      "end": 58.5,
+      "duration": 27.3,
+      "text": "Adı Daisy mi? Kahvaltıda böbrek gelmiş bu bilgide. Daha da ne diyeyim kahvaltıda böbrek gelmiş evet. Valla konuşmadığın kadar varmış ben sana söyleyeyim. Evet konuşunca şey oldu yani. Sen mi söyledin filmdeki parçayı yabancı parçayı? Evet ben söyledim. Mükemmel söylemişsin. Ozan bana çok teşekkür ediyorum. Ozan bana göndermişti. Ben düşündüm o bir şaka. Çünkü o bizim filmimizin senaristlerinden biri. Yani acayip...",
+      "language": "tr",
+      "avg_logprob": -0.09082776615182862,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 1,
+      "chunk_start": 31.2,
+      "chunk_end": 58.5,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 58.6,
+      "end": 69.6,
+      "duration": 11.0,
+      "text": "Haftalar kendisini eve kapatmış ve bayağı yazdı, yazdı, yazdı. Sonra bir gün bana mesaj attı. İşte öyle bir şarkı söyler misin senin karakterine uygun diye düşündük.",
+      "language": "tr",
+      "avg_logprob": -0.055964544272193543,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 2,
+      "chunk_start": 58.6,
+      "chunk_end": 69.6,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 70.0,
+      "end": 91.6,
+      "duration": 21.6,
+      "text": "Ben de böyle hay Allah benim şarkımı söyleyeceğim şimdi neden? Bu nereden çıktı? Nasıl kurtulacağım diye düşündüm. Kurtulamadım. Bir sürü şeylerden kurtulmuyorum sanki. Ama iyi ki kurtulmamışsın çünkü çok. Ya çok sağ ol. Vallahi gerçekten çok güzel söyledin. Çok teşekkürler. Natalie Blanchard'ın bir şarkısı Dancing Bear. Ayılar dans ediyor. Müberner söylüyor şarkının adı o.",
+      "language": "tr",
+      "avg_logprob": -0.2378640782485888,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 3,
+      "chunk_start": 70.0,
+      "chunk_end": 91.6,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 91.9,
+      "end": 108.4,
+      "duration": 16.5,
+      "text": "Şakayı gönderdim. Şaka yapıyorsun bana falan. Nasıl dedi bir daha söyle. Bana sürekli sette böyle. Benim aksanım var mı? Yok diyorum. Yok. Yok. 70 bölüm dizide oynadım. Bir 8 haftada film çektim.",
+      "language": "tr",
+      "avg_logprob": -0.1810963183152871,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 4,
+      "chunk_start": 91.9,
+      "chunk_end": 108.4,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 108.9,
+      "end": 131.1,
+      "duration": 22.2,
+      "text": "Gerçekten artık olmadığını düşünüyorum Aksa Hanım. Ama o senaryo çok önceden bana geldi. O yüzden orada Türkçem iyi. Bana daha zaman lazım önceden çalışmak için. Yok düzeltmişsin Türkçeyi ya. Bence şu anda gerçekten... Öyle mi? İyi değil mi gerçekten? Yani derdini anlatabiliyor. İlk geldiğinde... Ayrıca bir şey anlamıyorum. Ama mı istiyor, sonu istiyor.",
+      "language": "tr",
+      "avg_logprob": -0.17574404648372105,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 5,
+      "chunk_start": 108.9,
+      "chunk_end": 131.1,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 142.7,
+      "end": 161.3,
+      "duration": 18.6,
+      "text": "Merhaba candancığım, aslında güle güle. Beyaz şov da bitiyor, ben gidiyor tatile. Gider ayak çandanım, birkaç bir şey söyleyeceğim. Ay canım yazık sana, cevap da veremeyeceksin.",
+      "language": "tr",
+      "avg_logprob": -0.09172711720956224,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 6,
+      "chunk_start": 142.7,
+      "chunk_end": 161.3,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    },
+    {
+      "start": 163.1,
+      "end": 180.0,
+      "duration": 16.9,
+      "text": "Kaç milyon tık almışsın sayemde YouTube'de. Teşekkürden de geçtim bari bir özür dile. Kızları toplamalar, hacizler falan filan. Son sözü ben söyleyeceğim bakayım şimdi.",
+      "language": "tr",
+      "avg_logprob": -0.10222582434708218,
+      "no_speech_prob": 0.0,
+      "compression_ratio": null,
+      "chunk_index": 7,
+      "chunk_start": 163.1,
+      "chunk_end": 180.0,
+      "source_vad_index": null,
+      "kept": true,
+      "drop_reason": null,
+      "flags": []
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "variant": "v5_fixed_28s_multilingual_code_switch",
+  "description": "Fixed 28s windows like v3, but allow multilingual decoding to test real English code-switch preservation.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "load_vad_seconds": 4.797,
+  "load_model_seconds": 3.401,
+  "transcribe_seconds": 12.786,
+  "total_seconds": 21.271,
+  "model_call_count": 7,
+  "raw_segment_count": 13,
+  "clean_segment_count": 7
+}

@@ -1,0 +1,352 @@
+{
+  "reference_path": "C:\\Users\\TRT03\\Downloads\\beyaz2 08 11.txt",
+  "output_root": "E:\\MITAS\\outputs\\asr_ab\\beyaz2_08_11",
+  "bad_tokens": [
+    "É",
+    "I don't know",
+    "Are the days",
+    "Konuklar Türkçe sohbet ediyor"
+  ],
+  "code_switch_tokens": [
+    "Dancin",
+    "Dancing",
+    "Beer",
+    "Bear",
+    "Ayılar Dans"
+  ],
+  "variants": [
+    {
+      "variant": "out_v0",
+      "name": "v0_baseline_current",
+      "model_call_count": 28,
+      "total_seconds": 44.652,
+      "transcribe_seconds": 35.289,
+      "raw_segments": 58,
+      "clean_segments": 56,
+      "dropped_segments": 2,
+      "drop_reasons": {
+        "no_speech": 2
+      },
+      "languages_clean": {
+        "tr": 55,
+        "en": 1
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": true,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0728,
+      "word_overlap_f1": 0.8585,
+      "char_count": 2159
+    },
+    {
+      "variant": "out_v1",
+      "name": "v1_minimal_patch_filter_language",
+      "model_call_count": 28,
+      "total_seconds": 37.089,
+      "transcribe_seconds": 27.162,
+      "raw_segments": 43,
+      "clean_segments": 43,
+      "dropped_segments": 0,
+      "drop_reasons": {},
+      "languages_clean": {
+        "tr": 43
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": true
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0806,
+      "word_overlap_f1": 0.7851,
+      "char_count": 2030
+    },
+    {
+      "variant": "out_v2",
+      "name": "v2_vad_guided_merged_chunks",
+      "model_call_count": 8,
+      "total_seconds": 28.874,
+      "transcribe_seconds": 19.296,
+      "raw_segments": 28,
+      "clean_segments": 27,
+      "dropped_segments": 1,
+      "drop_reasons": {
+        "no_speech": 1
+      },
+      "languages_clean": {
+        "tr": 27
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": true
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0421,
+      "word_overlap_f1": 0.6703,
+      "char_count": 1589
+    },
+    {
+      "variant": "out_v3",
+      "name": "v3_fixed_28s_windows",
+      "model_call_count": 7,
+      "total_seconds": 21.993,
+      "transcribe_seconds": 12.679,
+      "raw_segments": 13,
+      "clean_segments": 7,
+      "dropped_segments": 6,
+      "drop_reasons": {
+        "overlap_duplicate": 6
+      },
+      "languages_clean": {
+        "tr": 7
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": true
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": false,
+        "Dancing": false,
+        "Beer": false,
+        "Bear": false,
+        "Ayılar Dans": false
+      },
+      "code_switch_count": 0,
+      "reference_similarity": 0.0092,
+      "word_overlap_f1": 0.375,
+      "char_count": 613
+    },
+    {
+      "variant": "out_v4",
+      "name": "v4_full_audio_single_pass",
+      "model_call_count": 1,
+      "total_seconds": 31.42,
+      "transcribe_seconds": 24.204,
+      "raw_segments": 36,
+      "clean_segments": 32,
+      "dropped_segments": 4,
+      "drop_reasons": {
+        "no_speech": 4
+      },
+      "languages_clean": {
+        "tr": 32
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 0,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": false,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 3,
+      "reference_similarity": 0.043,
+      "word_overlap_f1": 0.7864,
+      "char_count": 1783
+    },
+    {
+      "variant": "out_v5",
+      "name": "v5_fixed_28s_multilingual_code_switch",
+      "model_call_count": 7,
+      "total_seconds": 21.271,
+      "transcribe_seconds": 12.786,
+      "raw_segments": 13,
+      "clean_segments": 7,
+      "dropped_segments": 6,
+      "drop_reasons": {
+        "overlap_duplicate": 6
+      },
+      "languages_clean": {
+        "tr": 7
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": true
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": false,
+        "Dancing": false,
+        "Beer": false,
+        "Bear": false,
+        "Ayılar Dans": false
+      },
+      "code_switch_count": 0,
+      "reference_similarity": 0.0092,
+      "word_overlap_f1": 0.375,
+      "char_count": 613
+    },
+    {
+      "variant": "out_v6",
+      "name": "v6_vad_merged_multilingual_code_switch",
+      "model_call_count": 8,
+      "total_seconds": 28.724,
+      "transcribe_seconds": 20.149,
+      "raw_segments": 28,
+      "clean_segments": 27,
+      "dropped_segments": 1,
+      "drop_reasons": {
+        "no_speech": 1
+      },
+      "languages_clean": {
+        "tr": 27
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": true
+      },
+      "bad_token_count": 1,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0421,
+      "word_overlap_f1": 0.6703,
+      "char_count": 1589
+    },
+    {
+      "variant": "out_v7",
+      "name": "v7_vad_merged_no_prompt",
+      "model_call_count": 8,
+      "total_seconds": 32.733,
+      "transcribe_seconds": 24.199,
+      "raw_segments": 56,
+      "clean_segments": 56,
+      "dropped_segments": 0,
+      "drop_reasons": {},
+      "languages_clean": {
+        "tr": 56
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 0,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0836,
+      "word_overlap_f1": 0.8814,
+      "char_count": 2166
+    },
+    {
+      "variant": "out_v8",
+      "name": "v8_full_audio_no_prompt",
+      "model_call_count": 1,
+      "total_seconds": 28.679,
+      "transcribe_seconds": 23.521,
+      "raw_segments": 55,
+      "clean_segments": 55,
+      "dropped_segments": 0,
+      "drop_reasons": {},
+      "languages_clean": {
+        "tr": 55
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 0,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.0908,
+      "word_overlap_f1": 0.8696,
+      "char_count": 2147
+    },
+    {
+      "variant": "out_v9",
+      "name": "v9_whisperx_precomputed_vad",
+      "model_call_count": 1,
+      "total_seconds": 15.103,
+      "transcribe_seconds": 4.911,
+      "raw_segments": 8,
+      "clean_segments": 8,
+      "dropped_segments": 0,
+      "drop_reasons": {},
+      "languages_clean": {
+        "tr": 8
+      },
+      "bad_token_hits": {
+        "É": false,
+        "I don't know": false,
+        "Are the days": false,
+        "Konuklar Türkçe sohbet ediyor": false
+      },
+      "bad_token_count": 0,
+      "code_switch_hits": {
+        "Dancin": true,
+        "Dancing": true,
+        "Beer": false,
+        "Bear": true,
+        "Ayılar Dans": true
+      },
+      "code_switch_count": 4,
+      "reference_similarity": 0.1683,
+      "word_overlap_f1": 0.8783,
+      "char_count": 2184
+    }
+  ]
+}
