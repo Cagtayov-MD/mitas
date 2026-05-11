@@ -117,3 +117,47 @@ Kullanıcı sorusu üzerine A bloğunda gerçek medya smoke'u ayrıca kontrol ed
 - Sample format: `s16`
 
 **Yorum:** Gerçek MP4 üzerinde ffmpeg extract + normalize yolu çalışıyor. Bu sadece A bloğunu doğrular; henüz gerçek medya ile VAD, transcribe veya diarization testi yapılmadı.
+
+### 2026-05-11 / Ek Kontrol - Gerçek Medya Pytest Smoke Seti
+
+Kullanıcı "gerçek medyalarla da test yap, eksik kalmasın" dediği için A bloğuna kalıcı bir gerçek medya pytest'i eklendi.
+
+**Eklenen test dosyası:** `tests/test_asr_normalize_real_media.py`
+
+**Neden eklendi?**
+
+Tek seferlik manuel smoke yeterli değildi. Normalize/extract davranışının gerçek MP4 dosyalarında tekrar tekrar doğrulanabilmesi için pytest içine alınması daha güvenli. Test, `testklipler/` klasörü mevcutsa çalışır; başka ortamda gerçek medya yoksa skip eder. Böylece lokal güvence artar, repo taşınabilirliği bozulmaz.
+
+**Gerçek medya smoke seti:**
+
+- `E:\MITAS\testklipler\erd_test_video.mp4`
+- `E:\MITAS\testklipler\trt_haber (1).mp4`
+- `E:\MITAS\testklipler\trt_haber (2).mp4`
+- `E:\MITAS\testklipler\trt_haber (3).mp4`
+- `E:\MITAS\testklipler\1.mp4`
+
+**Ön gözlem:**
+
+- İlk dört dosya: AAC, 44.1 kHz, stereo.
+- `1.mp4`: AAC, 48 kHz, stereo.
+- Hepsi hedef dışı formattaydı; yani test gerçekten ffmpeg dönüşüm yolunu çalıştırdı.
+
+**Test sonuçları:**
+
+- `tests/test_asr_normalize_real_media.py`: 5 passed.
+- `tests/test_asr_normalize.py tests/test_asr_normalize_real_media.py`: 9 passed.
+- Tüm test paketi: 76 passed.
+
+**Blok Sonu Ek Öz-Kontrol:**
+
+**Uyumlu mu?**  
+Evet. Gerçek medya testi sadece A bloğunun sorumluluğunu doğruluyor: video/audio input -> 16 kHz mono PCM WAV.
+
+**Amaca hizmet ediyor mu?**  
+Evet. Artık normalize adımı sadece sentetik veya küçük sample ile değil, gerçek TRT MP4 dosyalarıyla da regression altında.
+
+**Başka bir şeyi bozuyor mu?**  
+Hayır. Tüm test paketi 76 passed. Yeni test dosyası gerçek medya yoksa skip edecek şekilde yazıldı; `testklipler/` Git dışında kaldığı için başka ortamları kırmaması hedeflendi.
+
+**Daha iyi olabilir miydi?**  
+Multi-GB dosyalar (`2.mp4`, `3.mp4`, `4.mp4`, `5.mp4`) bu blokta tam normalize smoke'a sokulmadı. Bunun nedeni A bloğunu hızlı ve tekrar edilebilir tutmak. Büyük dosyalar için ayrı "ASR real media stress/benchmark" aşaması açılmalı; normalize unit/regression testine karıştırılırsa her test turu gereksiz ağırlaşır.
