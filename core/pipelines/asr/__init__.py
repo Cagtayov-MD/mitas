@@ -1,5 +1,14 @@
 """ASR v0.1 pipeline building blocks."""
 
+from core.pipelines.asr.diarize import (
+    AudioDiarizeError,
+    DiarizationResult,
+    DiarizationSegment,
+    PyannotePipelineConfig,
+    diarize_audio,
+    load_pyannote_pipeline,
+    segments_from_pyannote_output,
+)
 from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, NormalizeResult, normalize_audio, probe_audio_stream
 from core.pipelines.asr.transcribe import (
     AudioTranscribeError,
@@ -16,9 +25,13 @@ from core.pipelines.asr.vad import AudioVadError, VadResult, VadSpeechSegment, r
 __all__ = [
     "AudioNormalizeError",
     "AudioTranscribeError",
+    "AudioDiarizeError",
     "AudioVadError",
     "AudioStreamInfo",
+    "DiarizationResult",
+    "DiarizationSegment",
     "NormalizeResult",
+    "PyannotePipelineConfig",
     "TranscriptSegment",
     "TranscribeChunk",
     "TranscribeResult",
@@ -26,9 +39,12 @@ __all__ = [
     "VadResult",
     "VadSpeechSegment",
     "build_transcribe_chunks",
+    "diarize_audio",
     "load_whisper_model",
+    "load_pyannote_pipeline",
     "normalize_audio",
     "probe_audio_stream",
     "run_silero_vad",
+    "segments_from_pyannote_output",
     "transcribe_vad_segments",
 ]

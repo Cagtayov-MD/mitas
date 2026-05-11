@@ -482,3 +482,102 @@ iki söz söyleyeceğim. Prime Minister, we can't start the debate again. Please
 - `tests/test_asr_transcribe.py tests/test_asr_transcribe_real_media.py` (`core` venv): 4 passed, 2 skipped.
 - `tests.test_asr_transcribe_real_media` (`asr` venv, unittest): 2 tests OK.
 - Tüm test paketi (`core` venv): 83 passed, 4 skipped.
+
+---
+
+## 2026-05-11 / Blok D - Pyannote Diarization
+
+### Neden Bu Blok?
+
+ASR v0.1 sadece transcript üretmeyecek; Karar 15 gereği konuşmacı etiketli transcript hedefleniyor. D bloğunun görevi transcript'e speaker bağlamak değil, önce pyannote ile bağımsız bir speaker timeline üretmek:
+
+```text
+normalize WAV -> pyannote diarization -> SPEAKER_00/01 zaman aralıkları
+```
+
+Transcript segmentlerine speaker bağlama E bloğunda yapılacak.
+
+### Ön Kontrol
+
+- `venvs/asr` içinde `pyannote.audio==4.0.4` mevcut.
+- `PYANNOTE_TOKEN` ortam değişkeni boş.
+- HuggingFace cache içinde `pyannote/speaker-diarization-3.1` snapshot mevcut:
+  - `C:\Users\TRT03\.cache\huggingface\hub\models--pyannote--speaker-diarization-3.1\snapshots\84fd25912480287da0247647c3d2b4853cb3ee5d`
+- Eski `outputs/pyannote_smoke_report.json` gerçek medya değil, scipy fallback dosyasıydı ve 0 segment üretmişti. Bu yüzden D bloğunda gerçek medya smoke yeniden yapıldı.
+
+### İlk Sorunlar ve Çözüm
+
+**Sorun 1: torchcodec uyarısı**
+
+Pyannote import sırasında torchcodec native DLL uyarısı veriyor. Bu, pyannote'un kendi dosya decode yolunu kullanırsak sorun olur.
+
+**Çözüm:** D bloğu pyannote'a dosya yolu vermiyor. A/B bloklarında doğrulanan manuel WAV loader ile waveform tensor üretiliyor ve pyannote'a şu formatta veriliyor:
+
+```python
+{"waveform": waveform, "sample_rate": 16000}
+```
+
+Bu yüzden torchcodec decode zinciri kullanılmıyor.
+
+**Sorun 2: speechbrain lazy `k2` import hatası**
+
+Pipeline yüklenirken `speechbrain` lazy import mekanizması `k2` olmayan opsiyonel modülü `inspect.stack()` sırasında tetikledi ve yükleme patladı.
+
+**Çözüm:** Yalnız pipeline yükleme süresince dar kapsamlı bir `inspect.getmodule` wrapper kullanıldı. ImportError yakalanırsa modül yokmuş gibi davranılıyor. Ayrıca eski smoke scriptindeki `get_plda` devre dışı bırakma davranışı korundu ama kalıcı global patch olarak bırakılmadı; yükleme çağrısı bitince eski fonksiyon geri yükleniyor. Bu paket dosyalarını değiştirmez; sadece yükleme çağrısı çevresinde uygulanır.
+
+### Eklenen Kod
+
+- `core/pipelines/asr/diarize.py` eklendi.
+  - Sebep: pyannote pipeline yükleme, normalize WAV'tan in-memory waveform üretme, diarization output'unu `DiarizationSegment` listesine çevirme.
+- `core/pipelines/asr/__init__.py` güncellendi.
+  - Sebep: diarize tiplerini ve fonksiyonlarını ASR paketinden import edilebilir yapmak.
+- `tests/test_asr_diarize.py` eklendi.
+  - Sebep: model yüklemeden output parsing, normalized input şartı, fake pipeline davranışı ve `get_plda` patch'inin yükleme scope'u sonunda geri alındığını test etmek.
+- `tests/test_asr_diarize_real_media.py` eklendi.
+  - Sebep: gerçek medya üzerinde normalize -> pyannote diarization smoke yapmak. Bu test `asr` venv'de `unittest` ile çalışır; `core` venv'de pyannote/torch olmadığı için skip olur.
+- `mutfak/05_AKTIF_GOREV.md` güncellendi.
+  - Sebep: D bloğunun gerçek medya testi ve core regresyonu geçtikten sonra aktif sprint listesinde Pyannote diarization adımını tamamlandı göstermek.
+
+### Gerçek Medya Runtime Sonucu
+
+Gerçek medya: `E:\MITAS\testklipler\trt_haber (3).mp4`
+
+Akış:
+
+1. MP4 -> normalize WAV
+2. normalize WAV -> in-memory waveform
+3. pyannote speaker-diarization-3.1 -> speaker timeline
+
+Sonuç:
+
+- Pipeline load: `10.121 sn`
+- Diarize runtime: `2.466 sn`
+- Segment count: `4`
+- Speaker count: `1`
+- Speakers: `["SPEAKER_00"]`
+- İlk segmentler:
+  - `6.072 - 19.1`, `SPEAKER_00`
+  - `20.787 - 34.203`, `SPEAKER_00`
+  - `36.43 - 59.65`, `SPEAKER_00`
+  - `61.253 - 70.703`, `SPEAKER_00`
+
+### Test ve Doğrulama
+
+- `tests/test_asr_diarize.py` (`core` venv): 4 passed.
+- `tests/test_asr_diarize.py tests/test_asr_diarize_real_media.py` (`core` venv): 4 passed, 1 skipped.
+- `tests.test_asr_diarize_real_media` (`asr` venv, unittest): OK.
+- Tüm test paketi (`core` venv): 87 passed, 5 skipped.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. D bloğu sadece pyannote speaker timeline üretiyor; transcript merge'e geçmedi.
+
+**Amaca hizmet ediyor mu?**
+Evet. Normalize gerçek medya üzerinde pyannote çalıştı ve `SPEAKER_00` zaman aralıkları üretildi.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Core test paketi geçti. Gerçek pyannote testi ASR venv'e izole edildi ve core venv'de skip oluyor.
+
+**Daha iyi olabilir miydi?**
+Evet. Pyannote yükleme sırasında kullanılan `inspect.getmodule` wrapper ve `get_plda` patch'i dependency pürüzünü aşan pragmatik çözümler. Son kod kontrolünde `get_plda` patch'i kalıcı modül değişikliği yapmayacak şekilde context manager içine alındı. Uzun vadede speechbrain/k2/pyannote dependency durumu temizlenirse bu workaround tamamen kaldırılabilir. Şimdilik çalışma kanıtı var ve paket dosyası değiştirilmedi.

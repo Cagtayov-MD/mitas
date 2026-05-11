@@ -1,7 +1,7 @@
 # 05 — AKTİF GÖREV
 
 > Son güncelleme: 2026-05-11
-> Son değişen bölüm: ASR v0.1 faster-whisper transcribe entegrasyonu
+> Son değişen bölüm: ASR v0.1 Pyannote diarization entegrasyonu
 
 Bu dosya **şu an aktif olarak üzerinde çalışılan sprinttir**. Her sprint biterken arşivlenir veya tamamen yeniden yazılır. Genellikle tek bir sürümün dikey dilimine odaklanır.
 
@@ -100,7 +100,7 @@ Sıralı çalışma adımları. Her adım sonunda **commit + bu dosyaya işaretl
 - [x] **A. ffmpeg audio extract** — video → 16khz mono wav. Tek fonksiyon, tek test.
 - [x] **B. Silero VAD entegrasyonu** — wav → konuşma segmentleri (yine tek fonksiyon).
 - [x] **C. faster-whisper transcribe** — VAD segmentleri → segment-level transcript.
-- [ ] **D. Pyannote diarization** — wav + transcript → speaker_id. v1 kapsamında zorunlu bileşen; güven eşiği altında speaker_id = null yazılır (Karar 15).
+- [x] **D. Pyannote diarization** — wav + transcript → speaker_id. v1 kapsamında zorunlu bileşen; güven eşiği altında speaker_id = null yazılır (Karar 15).
 - [ ] **E. Schema'ya bağlama** — çıktı `TimelineEvent` ve `ModuleRun` sözleşmesine uyar.
 - [ ] **F. Kalite raporu** — `module_run` içine ASR kalite metrikleri yazılır.
 - [ ] **G. Smoke test** — `tests/test_asr_v0_1_smoke.py` veya benzeri.
