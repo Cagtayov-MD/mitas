@@ -1575,3 +1575,36 @@ Kontrol edildi. Mevcut chunk ve transcribe testleri geçti. A/B batch'lerde proc
 
 **Daha iyi olabilir miydi?**
 Evet. Hala referans transcript/WER yok. Sonraki sağlam adım küçük bir manuel referans seti çıkarıp v7/v11 için gerçek WER/CER ve missing-speech metriği hesaplamak. Ayrıca production wrapper'da "v11 unsafe -> v7 fallback -> v7 unsafe ise retry/manual review" politikası uygulanmalı.
+
+## 2026-05-11 - Blok: Transcript Paylaşım Standardı
+
+Kullanıcı, ASR test sonuçlarında metinlerin ayrıca paylaşılmasını tekrar hatırlatmak zorunda kaldı. Bu doğru bir uyarıydı: sadece `batch_report.md` ve sayısal sonuç vermek yeterli değil; ASR işinde asıl kanıt transcript metnidir.
+
+Bu nedenle son iki batch'in v7/v11 clean transcript çıktıları tek dosyada birleştirildi:
+
+```text
+E:\MITAS\outputs\asr_ab\v7_v11_quality_transcripts_review.md
+```
+
+Bundan sonraki ASR test standardı:
+
+```text
+1. Sayısal/teknik rapor linki verilecek.
+2. Tam transcript metni veya transcript MD linki aynı cevapta verilecek.
+3. Eğer metin çok uzunsa tek MD üretilecek ve kullanıcıya açıkça söylenecek.
+4. Clean transcript yanında gerekli durumda raw/verbatim kanıt yolu da belirtilecek.
+```
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Kontrollü çalışma düzeninde kanıtların sadece skor değil metin olarak da görünmesi gerekiyor.
+
+**Amaca hizmet ediyor mu?**
+Evet. Kullanıcı artık v7/v11 çıktısını doğrudan okuyup kalite yorumu yapabilir.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Yeni ASR koşusu yapılmadı; mevcut `clean_transcript.txt` dosyaları tek inceleme MD'sinde toplandı.
+
+**Daha iyi olabilir miydi?**
+Evet. Production wrapper aşamasında bu çıktı otomatik üretilmeli: her job için `raw_transcript`, `clean_transcript`, `normalized_transcript` ayrı ve yan yana olmalı.
