@@ -1012,3 +1012,110 @@ Evet. `v7` üretim adayına dönüştürülmeden önce iki ek kontrol yapılmal�
 
 - Aynı A/B `erd_test_video` gibi gerçek code-switch örneğinde denenmeli.
 - Fixed-window yaklaşımı için daha adil dedupe kuralı ayrıca denenebilir; mevcut `segment.start < 2s` kuralı fazla agresif kaldı.
+
+## 2026-05-11 - Blok: Selimc Turkish Turbo Model Denemesi (`v10`)
+
+Kullanıcının isteği üzerine Hugging Face üzerindeki `selimc/whisper-large-v3-turbo-turkish` modeli eklendi ve aynı `beyaz2_08_11.wav` aralığında denendi. Amaç, Türkçe için fine-tune edilmiş modelin mevcut en iyi adayımız olan `v7` stratejisinden daha iyi olup olmadığını izole biçimde görmekti.
+
+### Ne Yaptım ve Neden?
+
+1. Modeli doğrudan mevcut ASR sanal ortamına yeni paket kurmadan dönüştürdüm.
+   - Sebep: `E:\MITAS\venvs\alignment` ortamında `transformers`, `huggingface_hub`, `ctranslate2` ve `faster-whisper` hazırdı.
+   - Dönüştürülen model yolu:
+
+```text
+E:\MITAS\models\asr\faster-whisper\selimc-whisper-large-v3-turbo-turkish-float16
+```
+
+2. Modeli CTranslate2/faster-whisper formatına `float16` olarak çevirdim.
+   - Sebep: A/B altyapımız `faster-whisper` üzerinden çalışıyor; aynı chunking, aynı filtre, aynı rapor formatı ile adil kıyas için modelin CT2 formatında yüklenmesi gerekiyordu.
+   - İndirme sırasında Hugging Face Xet yardımcı paketi olmadığı için normal HTTP indirmeye düştü; işlem başarıyla tamamlandı.
+
+3. `tools/asr_ab/transcribe_v10.py` eklendi.
+   - `v10`, `v7` ile aynı stratejiyi kullanıyor:
+     - VAD-guided merged chunks
+     - `language="tr"`
+     - `initial_prompt=None`
+     - `condition_on_previous_text=True`
+   - Tek fark model yolu: `selimc/whisper-large-v3-turbo-turkish` CT2 çıktısı.
+   - Sebep: Böylece kalite farkının chunking/ayar değil, model farkından gelip gelmediğini ölçebiliyoruz.
+
+4. `tools/asr_ab/common.py` içinde model yolu parametrik hale getirildi.
+   - Sebep: Varyantların farklı modelle çalışabilmesi için ortak runner sadece default modele bağlı kalmamalıydı.
+   - Ek alanlar:
+     - `model_path`
+     - `compute_type`
+     - `exit_after_write`
+
+5. `tools/asr_ab/compare_variants.py` sıralaması düzeltildi.
+   - Sebep: `out_v10`, alfabetik sıralamada `out_v1` ile `out_v2` arasına giriyordu. Rapor artık `out_v0 ... out_v10` şeklinde sayısal sıralanıyor.
+
+### Karşılaşılan Sorun
+
+`v10` çıktıları düzgün yazıldıktan sonra Python süreci normal kapanış sırasında native CUDA/CTranslate2 temizliğinde `Fatal Python error: Aborted` ile düşebiliyordu. Bu hata transcript üretimini bozmuyordu; dosyalar yazılmış oluyordu, fakat komut exit code açısından başarısız görünüyordu.
+
+Bu nedenle sadece deney varyantı için `exit_after_write=True` eklendi. Runner bütün JSON/TXT kanıtlarını yazdıktan sonra süreci temiz şekilde `0` exit code ile kapatıyor. Bu üretim pipeline kararı değil; sadece bu A/B model denemesinin güvenilir rapor üretebilmesi için izole bir koruma.
+
+### Sonuç Dosyaları
+
+```text
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v10\raw_segments.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v10\clean_segments.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v10\clean_transcript.txt
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v10\filter_report.json
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\out_v10\timing.json
+```
+
+Karşılaştırma raporları güncellendi:
+
+```text
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\comparison_report.md
+E:\MITAS\outputs\asr_ab\beyaz2_08_11\comparison_report.json
+```
+
+### Sayısal Sonuç
+
+`v10` sonucu:
+
+- Raw segment: `29`
+- Clean segment: `28`
+- Drop: `1` (`low_logprob`)
+- Bad hits: `0`
+- Code-switch hit: `4`
+- Word F1: `0.8037`
+- Model call count: `8`
+- Total runtime: `16.440s`
+- Transcribe runtime: `9.519s`
+
+`v7` karşılaştırması:
+
+- Word F1: `0.8814`
+- Total runtime: `32.733s`
+- Bad hits: `0`
+- Code-switch hit: `4`
+
+### Kalite Değerlendirmesi
+
+`v10` hızlı çıktı, fakat kalite olarak `v7` seviyesine yaklaşmadı. Örnek hatalar:
+
+- `çok tüylü kediydi` yerine `çok tüylü tediydi`
+- `dört tane yavru` yerine `dört tane yavrı`
+- `Daisy` yerine `değzi`
+- `Dancing Bear` yerine `dancing beer`
+- `benim aksanım var mı` yerine `benim akşamın var mı`
+
+Bu yüzden `selimc/whisper-large-v3-turbo-turkish` bu gerçek TV/program klibi için ana aday yapılmadı. Model Türkçe fine-tune edilmiş olsa da bu fine-tune temiz Türkçe konuşma alanında yararlı olabilir; bizim testimizde gürültülü yayın, hızlı diyalog, özel isim ve İngilizce/Türkçe karışımı nedeniyle daha fazla fonetik sapma verdi.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. Mevcut üretim `transcribe.py` dosyasına dokunulmadı. Yeni model yalnızca `tools/asr_ab/` altında ayrı `v10` varyantı olarak denendi.
+
+**Amaca hizmet ediyor mu?**
+Evet. Kullanıcının istediği Türkçe fine-tune model aynı medya, aynı referans, aynı rapor formatı ile denendi. Sonuç, modelin hızlı ama kalite olarak geride olduğunu gösterdi.
+
+**Başka şeyi bozuyor mu?**
+Hayır. Ana pipeline değişmedi. Model dosyaları `models/` altında kaldı ve Git'e alınmayacak. Rapor sıralaması iyileştirildi; eski varyant çıktıları değiştirilmedi.
+
+**Daha iyi olabilir miydi?**
+Evet. Bu model tamamen elenmeden önce temiz tek-konuşmacılı Türkçe ve daha az code-switch içeren bir klipte ayrıca denenebilir. Fakat Beyaz2 gerçek medya hedefi için şu an `v7` daha güvenilir aday.

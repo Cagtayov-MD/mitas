@@ -1,0 +1,13 @@
+{
+  "variant": "v10_selimc_turkish_turbo_ct2_vad_merged",
+  "description": "selimc/whisper-large-v3-turbo-turkish converted to CTranslate2 float16, using the v7 VAD-merged no-prompt strategy.",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\selimc-whisper-large-v3-turbo-turkish-float16",
+  "audio_path": "E:\\MITAS\\outputs\\real_media_smoke\\beyaz2_08_11\\normalized\\beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav",
+  "load_vad_seconds": 4.558,
+  "load_model_seconds": 2.025,
+  "transcribe_seconds": 9.519,
+  "total_seconds": 16.44,
+  "model_call_count": 8,
+  "raw_segment_count": 29,
+  "clean_segment_count": 28
+}

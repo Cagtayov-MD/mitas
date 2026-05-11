@@ -15,6 +15,7 @@
 | out_v7 | 56 | 56 | 0 | 0 | 4 | 0.0836 | 0.8814 | 8 | 32.733 | `{}` | `{'tr': 56}` |
 | out_v8 | 55 | 55 | 0 | 0 | 4 | 0.0908 | 0.8696 | 1 | 28.679 | `{}` | `{'tr': 55}` |
 | out_v9 | 8 | 8 | 0 | 0 | 4 | 0.1683 | 0.8783 | 1 | 15.103 | `{}` | `{'tr': 8}` |
+| out_v10 | 29 | 28 | 1 | 0 | 4 | 0.0069 | 0.8037 | 8 | 16.440 | `{'low_logprob': 1}` | `{'tr': 28}` |
 
 ## Token Checks
 
@@ -67,3 +68,8 @@
 
 - Bad token hits: `{'É': False, "I don't know": False, 'Are the days': False, 'Konuklar Türkçe sohbet ediyor': False}`
 - Code-switch hits: `{'Dancin': True, 'Dancing': True, 'Beer': False, 'Bear': True, 'Ayılar Dans': True}`
+
+### out_v10 - v10_selimc_turkish_turbo_ct2_vad_merged
+
+- Bad token hits: `{'É': False, "I don't know": False, 'Are the days': False, 'Konuklar Türkçe sohbet ediyor': False}`
+- Code-switch hits: `{'Dancin': True, 'Dancing': True, 'Beer': True, 'Bear': False, 'Ayılar Dans': True}`

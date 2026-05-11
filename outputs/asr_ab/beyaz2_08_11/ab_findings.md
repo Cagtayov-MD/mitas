@@ -38,6 +38,17 @@ En iyi aday: `out_v7` (`v7_vad_merged_no_prompt`)
    - Ancak özel isim ve bazı ifadelerde sapma var: ör. `Natalie Blanchard` gibi.
    - Alignment venv'de torchcodec warning hâlâ görünüyor; bu varyant WAV'ı NumPy olarak verdiği için koşuyu bozmadı.
 
+6. Selimc Turkish Turbo CT2 (`v10`) hızlı ama kalite olarak geride kaldı.
+   - Model: `selimc/whisper-large-v3-turbo-turkish`
+   - CT2 yolu: `E:\MITAS\models\asr\faster-whisper\selimc-whisper-large-v3-turbo-turkish-float16`
+   - Strateji: `v7` ile aynı VAD-merged/no-prompt ayarı.
+   - Word F1: `0.8037`
+   - Runtime: `16.440s`
+   - Bad token: `0`
+   - Code-switch sayacı: `4`, ama `Dancing Bear` tarafında `Bear` yerine `Beer` yakalandı.
+   - Örnek sapmalar: `kediydi` -> `tediydi`, `yavru` -> `yavrı`, `Daisy` -> `değzi`, `aksanım` -> `akşamın`.
+   - Çıktılar yazıldıktan sonra native CUDA/CTranslate2 kapanışında abort görüldüğü için sadece bu deney varyantında `exit_after_write=True` kullanıldı.
+
 ## Üretim İçin Öneri
 
 İlk üretim adayı:
@@ -53,3 +64,5 @@ shared quality filter
 Yani `v7` çizgisi.
 
 WhisperX `v9` ayrıca "hızlı alternatif" olarak saklanmalı, ama ana üretim kararından önce daha fazla özel isim/code-switch testi gerekir.
+
+Selimc Turkish Turbo `v10` bu Beyaz2 kesitinde ana aday yapılmamalı. Hız avantajı var, fakat gerçek yayın/code-switch kalitesi `v7` ve `v9` seviyesinin altında kaldı.

@@ -4,9 +4,11 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import time
 from typing import Any, Callable, Iterable, Sequence
 
@@ -57,8 +59,11 @@ class VariantConfig:
     output_name: str
     chunk_builder: Callable[[Sequence[VadSpeechSegment], float], list[Chunk]]
     transcribe_kwargs: dict[str, Any]
+    model_path: Path = DEFAULT_MODEL_PATH
+    compute_type: str = "float16"
     use_vad_for_transcribe: bool = True
     run_vad_metadata: bool = True
+    exit_after_write: bool = False
     skip_initial_overlap_seconds: float | None = None
     single_pass: bool = False
 
@@ -233,7 +238,7 @@ def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, f
     timing: dict[str, Any] = {
         "variant": config.name,
         "description": config.description,
-        "model_path": str(DEFAULT_MODEL_PATH),
+        "model_path": str(config.model_path),
         "audio_path": str(audio_path),
     }
     total_started = time.perf_counter()
@@ -245,7 +250,7 @@ def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, f
     timing["load_vad_seconds"] = round(time.perf_counter() - started, 3)
 
     started = time.perf_counter()
-    model = load_whisper_model(WhisperModelConfig())
+    model = load_whisper_model(WhisperModelConfig(model_path=config.model_path, compute_type=config.compute_type))
     timing["load_model_seconds"] = round(time.perf_counter() - started, 3)
 
     chunks = config.chunk_builder(vad_segments, audio_duration)
@@ -298,6 +303,11 @@ def run_variant(config: VariantConfig, *, audio_path: Path, output_root: Path, f
     write_json(output_dir / "filter_report.json", filter_report)
     write_json(output_dir / "timing.json", timing)
     write_clean_transcript(output_dir / "clean_transcript.txt", clean_segments)
+    if config.exit_after_write:
+        # The converted Selimc CT2 model sometimes aborts during native CUDA teardown after outputs are written.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(0)
 
 
 def build_raw_segment(raw: Any, info: Any, chunk: Chunk, *, absolute_start: float, absolute_end: float) -> dict[str, Any]:

@@ -30,12 +30,19 @@ def normalize_reference(text: str) -> str:
     return " ".join(lines)
 
 
+def variant_sort_key(path: Path) -> tuple[int, str]:
+    match = re.search(r"out_v(\d+)$", path.name)
+    if match:
+        return (int(match.group(1)), path.name)
+    return (9999, path.name)
+
+
 def main() -> None:
     args = parse_args()
     reference = normalize_reference(args.reference.read_text(encoding="utf-8"))
     rows: list[dict[str, object]] = []
 
-    for output_dir in sorted(args.out_root.glob("out_v*")):
+    for output_dir in sorted(args.out_root.glob("out_v*"), key=variant_sort_key):
         transcript_path = output_dir / "clean_transcript.txt"
         raw_path = output_dir / "raw_segments.json"
         clean_path = output_dir / "clean_segments.json"
