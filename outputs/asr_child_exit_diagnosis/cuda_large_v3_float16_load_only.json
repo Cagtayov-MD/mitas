@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+  "model_id": "large-v3",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "device": "cuda",
+  "compute_type": "float16",
+  "transcribe_called": false,
+  "cleanup_enabled": false,
+  "detected_language": null,
+  "language_probability": null,
+  "segments_count": 0,
+  "transcript": "",
+  "clips_count": 0,
+  "clips": [],
+  "segments": [],
+  "runtime_sec": 3.516
+}

@@ -1,0 +1,59 @@
+{
+  "status": "passed",
+  "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+  "model_id": "large-v3",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "device": "cuda",
+  "compute_type": "int8_float16",
+  "transcribe_called": true,
+  "cleanup_enabled": false,
+  "detected_language": "tr",
+  "language_probability": 1.0,
+  "segments_count": 3,
+  "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzmir'de hazırlıklar tamamlandı. İzmir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+  "clips_count": 1,
+  "clips": [
+    {
+      "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 3,
+      "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzmir'de hazırlıklar tamamlandı. İzmir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 7.46,
+          "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+        },
+        {
+          "start": 7.78,
+          "end": 11.12,
+          "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+        },
+        {
+          "start": 14.18,
+          "end": 20.0,
+          "text": "İzmir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 7.46,
+      "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+    },
+    {
+      "start": 7.78,
+      "end": 11.12,
+      "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+    },
+    {
+      "start": 14.18,
+      "end": 20.0,
+      "text": "İzmir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+    }
+  ],
+  "runtime_sec": 9.873
+}

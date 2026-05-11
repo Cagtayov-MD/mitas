@@ -1,0 +1,177 @@
+{
+  "status": "passed",
+  "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+  "model_id": "large-v3",
+  "model_path": "E:\\MITAS\\models\\asr\\faster-whisper\\large-v3",
+  "device": "cuda",
+  "compute_type": "float16",
+  "transcribe_called": true,
+  "cleanup_enabled": false,
+  "detected_language": "tr",
+  "language_probability": 1.0,
+  "segments_count": 13,
+  "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı. Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor. Ömer Özyurt Ömer Özyurt Özür dilerim İlk bir dakika İlk bir dakika İlk bir dakika İlk bir dakika İlk bir dakika Bir dakika durdurayım",
+  "clips_count": 3,
+  "clips": [
+    {
+      "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 3,
+      "transcript": "F-16'lar İzmir'de hazırlıklar tamamlandı. F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı. İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı.",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 7.46,
+          "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+        },
+        {
+          "start": 7.78,
+          "end": 11.1,
+          "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı."
+        },
+        {
+          "start": 14.34,
+          "end": 20.0,
+          "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+        }
+      ]
+    },
+    {
+      "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\promo_1_20s_16000hz_mono_asr_input.wav",
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 1,
+      "transcript": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor.",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 6.84,
+          "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor."
+        }
+      ]
+    },
+    {
+      "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_20s_16000hz_mono_asr_input.wav",
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 9,
+      "transcript": "Ömer Özyurt Ömer Özyurt Özür dilerim İlk bir dakika İlk bir dakika İlk bir dakika İlk bir dakika İlk bir dakika Bir dakika durdurayım",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 2.0,
+          "text": "Ömer Özyurt"
+        },
+        {
+          "start": 2.0,
+          "end": 4.0,
+          "text": "Ömer Özyurt"
+        },
+        {
+          "start": 4.0,
+          "end": 6.0,
+          "text": "Özür dilerim"
+        },
+        {
+          "start": 6.0,
+          "end": 8.0,
+          "text": "İlk bir dakika"
+        },
+        {
+          "start": 8.0,
+          "end": 10.0,
+          "text": "İlk bir dakika"
+        },
+        {
+          "start": 10.0,
+          "end": 12.0,
+          "text": "İlk bir dakika"
+        },
+        {
+          "start": 12.0,
+          "end": 14.0,
+          "text": "İlk bir dakika"
+        },
+        {
+          "start": 14.0,
+          "end": 16.0,
+          "text": "İlk bir dakika"
+        },
+        {
+          "start": 16.0,
+          "end": 18.0,
+          "text": "Bir dakika durdurayım"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 7.46,
+      "text": "F-16'lar İzmir'de hazırlıklar tamamlandı."
+    },
+    {
+      "start": 7.78,
+      "end": 11.1,
+      "text": "F-16'lar İzkişehir 1. Anajet Üssü'nden havalandı."
+    },
+    {
+      "start": 14.34,
+      "end": 20.0,
+      "text": "İzkişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklar tamamlandı."
+    },
+    {
+      "start": 0.0,
+      "end": 6.84,
+      "text": "Günaydın sevgili dinleyicilerimiz, saatimiz yediği gösteriyor."
+    },
+    {
+      "start": 0.0,
+      "end": 2.0,
+      "text": "Ömer Özyurt"
+    },
+    {
+      "start": 2.0,
+      "end": 4.0,
+      "text": "Ömer Özyurt"
+    },
+    {
+      "start": 4.0,
+      "end": 6.0,
+      "text": "Özür dilerim"
+    },
+    {
+      "start": 6.0,
+      "end": 8.0,
+      "text": "İlk bir dakika"
+    },
+    {
+      "start": 8.0,
+      "end": 10.0,
+      "text": "İlk bir dakika"
+    },
+    {
+      "start": 10.0,
+      "end": 12.0,
+      "text": "İlk bir dakika"
+    },
+    {
+      "start": 12.0,
+      "end": 14.0,
+      "text": "İlk bir dakika"
+    },
+    {
+      "start": 14.0,
+      "end": 16.0,
+      "text": "İlk bir dakika"
+    },
+    {
+      "start": 16.0,
+      "end": 18.0,
+      "text": "Bir dakika durdurayım"
+    }
+  ],
+  "runtime_sec": 22.523
+}

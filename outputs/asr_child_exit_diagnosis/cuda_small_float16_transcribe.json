@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+  "model_id": "small",
+  "model_path": "C:\\Users\\TRT03\\.cache\\huggingface\\hub\\models--Systran--faster-whisper-small\\snapshots\\536b0662742c02347bc0e980a01041f333bce120",
+  "device": "cuda",
+  "compute_type": "float16",
+  "transcribe_called": true,
+  "cleanup_enabled": false,
+  "detected_language": "tr",
+  "language_probability": 1.0,
+  "segments_count": 2,
+  "transcript": "Bu dizinin betimlemesi ES Yergen tarafından Sesli Betimleme Derneğine yaptırılmıştır. www.sebeder.org",
+  "clips_count": 1,
+  "clips": [
+    {
+      "input_file": "E:\\MITAS\\outputs\\real_media_smoke\\news_trt_haber_1_20s_16000hz_mono_asr_input.wav",
+      "detected_language": "tr",
+      "language_probability": 1.0,
+      "segments_count": 2,
+      "transcript": "Bu dizinin betimlemesi ES Yergen tarafından Sesli Betimleme Derneğine yaptırılmıştır. www.sebeder.org",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 6.0,
+          "text": "Bu dizinin betimlemesi ES Yergen tarafından Sesli Betimleme Derneğine yaptırılmıştır."
+        },
+        {
+          "start": 6.0,
+          "end": 10.0,
+          "text": "www.sebeder.org"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 6.0,
+      "text": "Bu dizinin betimlemesi ES Yergen tarafından Sesli Betimleme Derneğine yaptırılmıştır."
+    },
+    {
+      "start": 6.0,
+      "end": 10.0,
+      "text": "www.sebeder.org"
+    }
+  ],
+  "runtime_sec": 1.493
+}

@@ -1,7 +1,7 @@
 # 06 — KARARLAR GÜNLÜĞÜ
 
 > Son güncelleme: 2026-05-11
-> Son değişen bölüm: lokal git ve test klip havuzu
+> Son değişen bölüm: ASR child process abnormal exit teşhisi
 
 Bu dosya MITAS projesinde **verilmiş kararların kalıcı kaydıdır**. Her karar tarih, başlık, kararın kendisi, gerekçesi ve varsa ilgili dosya referansıyla yazılır.
 
@@ -217,6 +217,13 @@ Aşağıdaki kararlar `MITAS_Master_Plan_Denetimli_v5.md` içinden seçilmiştir
 **Gerekçe:** ASR, OCR/KJ, denoise, visual tag, film/jenerik ve spor yayınları için farklı karakterde klipler mevcut. Hangi klibin hangi amaçla kullanılacağı yazılı olmazsa sprint sırasında seçim karışır.
 **Referans:** `mutfak/08_TEST_KLIPLER.md`, `mutfak/07_REFERANS_HARITASI.md`.
 **Durum:** Aktif.
+
+### 2026-05-11 / 12 — ASR child process abnormal exit izleniyor
+
+**Karar:** Windows hostta ASR child process, geçerli JSON çıktısı ürettikten sonra `0xC0000409` ile kapanırsa bu tek başına transcript çıktısını geçersiz kılmaz; ancak durum `needs_review` olarak izlenir ve production motor kararı yerine containment notu olarak tutulur.
+**Gerekçe:** Teşhis koşumunda tek klipli CPU/CUDA/load-only/compute_type varyasyonları temiz kapanırken, aynı CUDA `large-v3` model instance'ında üç klip ardışık transcribe edilince JSON geçerli yazıldıktan sonra `3221226505 / 0xC0000409` yeniden üretildi. Açık cleanup (`del model`, `gc.collect()`, kısa sleep) multi-clip vakasında exit kodunu temizlemedi.
+**Referans:** `outputs/asr_child_exit_diagnosis_report.json`, `scripts/asr_child_exit_diagnosis.py`.
+**Durum:** Aktif; üretim davranışına dönüştürülmeden önce ASR subprocess wrapper sözleşmesinde ayrıca ele alınacak.
 
 ### ~~2026-05-09 / Sunum öncesi gün gün plan~~
 
