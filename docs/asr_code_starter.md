@@ -287,3 +287,35 @@ Kullanıcı "çalıştığını kanıtlamak için bir video üzerinden gerçek t
 - Gerçek düşük seviye sessizlik: `01:33.343 - 01:35.660`
 
 **Yorum:** Kullanıcı videoyu elle kontrol edecekse en net kontrol noktası sondaki `01:33.3 - 01:35.6` aralığıdır; ffmpeg'e göre de gerçek sessizlik burada. VAD açısından daha geniş son aralık `01:26.4 - 01:35.6` konuşmasız görünüyor; bu bölümde gerçek sessizlik sadece son ~2.3 saniyeye denk geliyor olabilir.
+
+### 2026-05-11 / Son Denetim - B Bloğu Eksik Var mı?
+
+Kullanıcı "burada yapmamız gereken başka test var mı, bu kısım tamam mı, tekrar bak" dedi. Bunun üzerine B bloğu son kez test kapsamı açısından denetlendi.
+
+**Yakalanan küçük eksik:** Gerçek konuşmalı video runtime testi vardı; ancak tamamen sessiz normalize WAV için `0 segment / speech_ratio=0` runtime testi yoktu.
+
+**Kapatılan eksik:**
+
+- `tests/test_asr_vad_real_media.py` içine sessiz normalize WAV testi eklendi.
+- Test gerçek Silero modeliyle `venvs/asr` içinde çalıştırıldı.
+- Sonuç: sessiz WAV için `speech_segments=[]`, `speech_seconds=0.0`, `speech_ratio=0.0`.
+
+**Çoklu gerçek medya smoke:**
+
+Aynı Silero modeli tek kez yüklenerek 5 gerçek medya üzerinde normalize + VAD çalıştırıldı:
+
+| Medya | Süre | Segment | Speech seconds | Speech ratio |
+|---|---:|---:|---:|---:|
+| `erd_test_video.mp4` | `195.257` | `64` | `143.9` | `0.736977` |
+| `trt_haber (1).mp4` | `95.62` | `10` | `65.0` | `0.679774` |
+| `trt_haber (2).mp4` | `146.704` | `20` | `126.0` | `0.858872` |
+| `trt_haber (3).mp4` | `75.418` | `5` | `58.8` | `0.779655` |
+| `1.mp4` | `171.691` | `5` | `15.9` | `0.092608` |
+
+**Son test durumu:**
+
+- `tests.test_asr_vad_real_media` (`asr` venv, unittest): 2 tests OK.
+- `tests/test_asr_vad.py tests/test_asr_vad_real_media.py` (`core` venv): 3 passed, 2 skipped.
+- Tüm test paketi (`core` venv): 79 passed, 2 skipped.
+
+**Son karar:** B bloğu, yani Silero VAD entegrasyonu, mevcut kapsam için tamam kabul edilebilir. Bilinçli kalan tek konu profil bazlı VAD parametre kalibrasyonu; bu C/D bloklarından sonra gerçek transcript ve diarization sonuçlarıyla birlikte yapılmalı.
