@@ -26,7 +26,7 @@ Hedef: ASR pipeline'ını dürüstçe, smoke test edilebilir şekilde uçtan uca
 | Çalışma venv'i | `asr` — birleşik ASR/STT runtime |
 | Ana motor | faster-whisper large-v3 |
 | Ek motor (alignment) | WhisperX `alignment` venv'de; subprocess sleeve + word-level smoke yeşil |
-| Diarization | pyannote (asr venv'de var; v0.1 smoke kapsamı yeniden değerlendirilecek) |
+| Diarization | pyannote — v1 kapsamında zorunlu bileşen, kalite eşikli uygulanır (Karar 15) |
 | Denoise | DeepFilterNet `denoise` venv'de; subprocess sleeve + synthetic smoke yeşil |
 
 ---
@@ -100,7 +100,7 @@ Sıralı çalışma adımları. Her adım sonunda **commit + bu dosyaya işaretl
 - [ ] **A. ffmpeg audio extract** — video → 16khz mono wav. Tek fonksiyon, tek test.
 - [ ] **B. Silero VAD entegrasyonu** — wav → konuşma segmentleri (yine tek fonksiyon).
 - [ ] **C. faster-whisper transcribe** — VAD segmentleri → segment-level transcript.
-- [ ] **D. Pyannote diarization (koşullu)** — wav + transcript → speaker_id (eşik altında null).
+- [ ] **D. Pyannote diarization** — wav + transcript → speaker_id. v1 kapsamında zorunlu bileşen; güven eşiği altında speaker_id = null yazılır (Karar 15).
 - [ ] **E. Schema'ya bağlama** — çıktı `TimelineEvent` ve `ModuleRun` sözleşmesine uyar.
 - [ ] **F. Kalite raporu** — `module_run` içine ASR kalite metrikleri yazılır.
 - [ ] **G. Smoke test** — `tests/test_asr_v0_1_smoke.py` veya benzeri.

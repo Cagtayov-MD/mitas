@@ -9,6 +9,7 @@ testklipler/
 # Local assistant/session state
 .claude/
 .pytest_cache/
+/*bookmarks_*.html
 
 # Python build/runtime noise
 __pycache__/
@@ -26,6 +27,7 @@ outputs/**/*.flac
 outputs/**/*.mp4
 outputs/**/*.mkv
 outputs/**/*.avi
+outputs/*_child_outputs/
 
 # OS/editor noise
 Thumbs.db

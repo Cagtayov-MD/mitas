@@ -1,0 +1,90 @@
+{
+  "clip_path": "outputs\\real_media_smoke\\wav_erd_test_sound_75s_120s_16000hz_mono_asr_input.wav",
+  "model_id": "large-v3",
+  "device": "cuda",
+  "compute_type": "float16",
+  "transcribe_kwargs": {
+    "multilingual": true
+  },
+  "load_seconds": 5.426,
+  "transcribe_seconds": 24.656,
+  "segments_count": 9,
+  "detected_language": "tr",
+  "language_probability": 1.0,
+  "transcript": "İsim de veririm. Merak edenleriniz vardır belki. Şu zulme alkış tutanları da ayrıca kınıyorum. Çünkü bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur. Bakınız burada bir gerçeği bir kenara atamayız. Ben şurada çok not aldım. Ama bu notların hepsini cevaplayacak fırsatım yok. Fakat ben buradan sadece size iki söz söyleyeceğim. Bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir. Tevrat altıncı maddesinde der ki öldürmeyeceksin. Burada öldürme var. İki, bakın bu da çok enteresan. Gilad Atzemoni, İsrail barbarlığı zalimliğin de çok ötesinde bir şey. Bir Yahudi. Bunun yanında İsrail ordusunda askerlik görevini yapan Oxford Üniversitesi Uluslararası İlişkiler Profesörü Avişalem, İngiliz Gazetesi Guardian'da şunu söyledi. Prime Minister, I want to ask you, I want to ask you to defer to our host. Benim için de bundan böyle Davos bitmiştir. Daha Davos'a gelmem. Bunu da böyle bilesiniz. Siz konuşturmuyorsunuz. 25 dakika konuştu, 12 dakika konuşturmuyorsunuz. Olmaz. Let me turn this over to our host. Prime Minister. Do, ladies, Professor Schwab.",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 19.28,
+      "text": "İsim de veririm. Merak edenleriniz vardır belki. Şu zulme alkış tutanları da ayrıca kınıyorum. Çünkü bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur.",
+      "avg_logprob": -0.0674092061817646,
+      "no_speech_prob": 0.004467010498046875,
+      "language": null
+    },
+    {
+      "start": 19.28,
+      "end": 34.36,
+      "text": "Bakınız burada bir gerçeği bir kenara atamayız. Ben şurada çok not aldım. Ama bu notların hepsini cevaplayacak fırsatım yok. Fakat ben buradan sadece size iki söz söyleyeceğim.",
+      "avg_logprob": -0.1409857470056285,
+      "no_speech_prob": 0.00016450881958007812,
+      "language": null
+    },
+    {
+      "start": 34.44,
+      "end": 49.26,
+      "text": "Bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir, bir.",
+      "avg_logprob": -0.1409857470056285,
+      "no_speech_prob": 0.00016450881958007812,
+      "language": null
+    },
+    {
+      "start": 49.28,
+      "end": 68.16,
+      "text": "Tevrat altıncı maddesinde der ki öldürmeyeceksin. Burada öldürme var. İki, bakın bu da çok enteresan. Gilad Atzemoni, İsrail barbarlığı zalimliğin de çok ötesinde bir şey. Bir Yahudi.",
+      "avg_logprob": -0.09736082007905014,
+      "no_speech_prob": 0.037841796875,
+      "language": null
+    },
+    {
+      "start": 68.16,
+      "end": 79.16,
+      "text": "Bunun yanında İsrail ordusunda askerlik görevini yapan Oxford Üniversitesi Uluslararası İlişkiler Profesörü Avişalem, İngiliz Gazetesi Guardian'da şunu söyledi.",
+      "avg_logprob": -0.09736082007905014,
+      "no_speech_prob": 0.037841796875,
+      "language": null
+    },
+    {
+      "start": 79.28,
+      "end": 101.64,
+      "text": "Prime Minister, I want to ask you, I want to ask you to defer to our host. Benim için de bundan böyle Davos bitmiştir. Daha Davos'a gelmem. Bunu da böyle bilesiniz. Siz konuşturmuyorsunuz. 25 dakika konuştu, 12 dakika konuşturmuyorsunuz. Olmaz.",
+      "avg_logprob": -0.17933638310164549,
+      "no_speech_prob": 0.1473388671875,
+      "language": null
+    },
+    {
+      "start": 101.64,
+      "end": 107.4,
+      "text": "Let me turn this over to our host.",
+      "avg_logprob": -0.17933638310164549,
+      "no_speech_prob": 0.1473388671875,
+      "language": null
+    },
+    {
+      "start": 108.26,
+      "end": 109.06,
+      "text": "Prime Minister.",
+      "avg_logprob": -0.17933638310164549,
+      "no_speech_prob": 0.1473388671875,
+      "language": null
+    },
+    {
+      "start": 109.28,
+      "end": 114.76,
+      "text": "Do, ladies, Professor Schwab.",
+      "avg_logprob": -0.5046164989471436,
+      "no_speech_prob": 0.95361328125,
+      "language": null
+    }
+  ],
+  "duration_seconds": 30.082
+}

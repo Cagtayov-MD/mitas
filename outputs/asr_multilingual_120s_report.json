@@ -1,0 +1,194 @@
+{
+  "clip_path": "E:\\MITAS\\outputs\\real_media_smoke\\wav_erd_test_sound_120s_16000hz_mono_asr_input.wav",
+  "model_id": "large-v3",
+  "device": "cuda",
+  "compute_type": "float16",
+  "transcribe_kwargs": {
+    "multilingual": true
+  },
+  "load_seconds": 6.29,
+  "transcribe_seconds": 11.184,
+  "segments_count": 22,
+  "detected_language": "tr",
+  "language_probability": 0.74658203125,
+  "transcript": "Sayın Peres, benden yaşlısın. Sağ olun. Bana önemli lafları vardır. Tankların üzerinde Filistin'e girdiğim zaman kendimi bir başka mutlu addediyorum diyen başbakanlarınız vardır. Tankların üzerine çıkıp da Filistin'e girdiğim zaman kendimi mutlu addediyorum diyen başbakanlarınız olmuştur. Ve bana sayılar veriyorsunuz. İsim de veririm. Merak edenleriniz vardır belki. Şu zulme alkış tutanları da ayrıca kınıyorum. Çünkü. Bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur. Bakınız burada bir gerçeği bir kenara atamayız. Ben şurada çok not aldım. Ama bu notların hepsini cevaplayacak fırsatım yok. Fakat ben buradan sadece size iki söz söyleyeceğim. Bir, bir, bir. So we just don't have time. Excuse me. Bir. Excuse me. Kiss me. Bir.",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 23.8,
+      "text": "Sayın Peres, benden yaşlısın.",
+      "avg_logprob": -0.5625000238418579,
+      "no_speech_prob": 0.0638427734375,
+      "language": null
+    },
+    {
+      "start": 23.8,
+      "end": 53.78,
+      "text": "Sağ olun.",
+      "avg_logprob": -0.7254464456013271,
+      "no_speech_prob": 0.0008831024169921875,
+      "language": null
+    },
+    {
+      "start": 53.8,
+      "end": 55.42,
+      "text": "Bana önemli lafları vardır.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 56.74,
+      "end": 63.96,
+      "text": "Tankların üzerinde Filistin'e girdiğim zaman kendimi bir başka mutlu addediyorum diyen başbakanlarınız vardır.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 65.34,
+      "end": 72.28,
+      "text": "Tankların üzerine çıkıp da Filistin'e girdiğim zaman kendimi mutlu addediyorum diyen başbakanlarınız olmuştur.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 73.34,
+      "end": 74.98,
+      "text": "Ve bana sayılar veriyorsunuz.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 75.42,
+      "end": 76.08,
+      "text": "İsim de veririm.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 76.86,
+      "end": 78.34,
+      "text": "Merak edenleriniz vardır belki.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 79.04,
+      "end": 81.8,
+      "text": "Şu zulme alkış tutanları da ayrıca kınıyorum.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 81.8,
+      "end": 83.16,
+      "text": "Çünkü.",
+      "avg_logprob": -0.1655000047683716,
+      "no_speech_prob": 0.00701141357421875,
+      "language": null
+    },
+    {
+      "start": 83.8,
+      "end": 94.3,
+      "text": "Bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 95.36,
+      "end": 98.06,
+      "text": "Bakınız burada bir gerçeği bir kenara atamayız.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 99.16,
+      "end": 100.32,
+      "text": "Ben şurada çok not aldım.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 100.94,
+      "end": 103.6,
+      "text": "Ama bu notların hepsini cevaplayacak fırsatım yok.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 104.44,
+      "end": 109.34,
+      "text": "Fakat ben buradan sadece size iki söz söyleyeceğim.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 109.34,
+      "end": 111.34,
+      "text": "Bir, bir, bir.",
+      "avg_logprob": -0.16131365878714454,
+      "no_speech_prob": 0.0001571178436279297,
+      "language": null
+    },
+    {
+      "start": 113.8,
+      "end": 115.3,
+      "text": "So we just don't have time.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    },
+    {
+      "start": 115.3,
+      "end": 115.8,
+      "text": "Excuse me.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    },
+    {
+      "start": 115.8,
+      "end": 116.3,
+      "text": "Bir.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    },
+    {
+      "start": 116.3,
+      "end": 116.8,
+      "text": "Excuse me.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    },
+    {
+      "start": 116.8,
+      "end": 117.3,
+      "text": "Kiss me.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    },
+    {
+      "start": 117.3,
+      "end": 117.8,
+      "text": "Bir.",
+      "avg_logprob": -0.5289522076354307,
+      "no_speech_prob": 0.0321044921875,
+      "language": null
+    }
+  ],
+  "duration_seconds": 17.474
+}

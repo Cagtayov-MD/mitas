@@ -1,7 +1,7 @@
 # 04 — YOL HARİTASI
 
-> Son güncelleme: 2026-05-10
-> Son değişen bölüm: ilk sürüm
+> Son güncelleme: 2026-05-11
+> Son değişen bölüm: ASR v0.1 multilingual + diarization kararları
 
 Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefleri **bilinçli olarak yazılmaz**; tek kişilik geliştirmede tarih baskısı kararları çarpıtır. Sürüm sırası ve kabul kriteri sabittir; takvim esnektir.
 
@@ -24,9 +24,10 @@ Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefl
 
 **Kapsam:**
 - VAD (Silero)
-- faster-whisper large-v3 ana motor
-- WhisperX word-level alignment (test bekleyen)
-- pyannote diarization (benchmark gated; eşik geçilmezse `speaker_id = null`)
+- faster-whisper large-v3 ana motor (`multilingual=True`, Karar 14)
+- WhisperX word-level alignment (`alignment` venv'de opsiyonel; v0.1 ana pipeline dışında)
+- pyannote diarization (v1 zorunlu bileşen; eşik geçilmezse `speaker_id = null`, Karar 15)
+- diarization fail graceful degradation (`partial_success`, Karar 16)
 - DeepFilterNet denoise (koşullu)
 - ffmpeg audio extract
 - JSON primary çıktı (segments + words)

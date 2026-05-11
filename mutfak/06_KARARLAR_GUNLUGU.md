@@ -1,7 +1,7 @@
 # 06 — KARARLAR GÜNLÜĞÜ
 
 > Son güncelleme: 2026-05-11
-> Son değişen bölüm: ASR child process abnormal exit teşhisi
+> Son değişen bölüm: Diarization fail graceful degradation kararı (Karar 16)
 
 Bu dosya MITAS projesinde **verilmiş kararların kalıcı kaydıdır**. Her karar tarih, başlık, kararın kendisi, gerekçesi ve varsa ilgili dosya referansıyla yazılır.
 
@@ -147,6 +147,33 @@ Aşağıdaki kararlar `MITAS_Master_Plan_Denetimli_v5.md` içinden seçilmiştir
 **Referans:** `04_YOL_HARITASI.md` §3 Cephe D, `05_AKTIF_GOREV.md`.
 **Durum:** Aktif. Önceki "5 günlük shift planı" iptal edildi.
 
+### 2026-05-11 / 15 — Diarization v1 mimarisinin temel parçasıdır
+
+**Karar:** ASR pipeline sadece transkript değil, konuşmacı etiketli transkript
+üretir. Diarization motoru (pyannote.audio) pipeline'ın zorunlu bileşenidir.
+Konuşmacı etiketleri "SPEAKER_01", "SPEAKER_02" seviyesinde yeterlidir. Güven
+eşiği altında kalan segment için speaker_id = null yazılır, label basılmaz.
+İsim tanıma (voice identity), cross-session speaker enrollment ve overlap
+recovery (üst üste binen konuşmaları kelime kelime kurtarma) kapsam dışıdır.
+**Gerekçe:** TRT arşivi röportaj, panel, studio programı, haber gibi
+çok-konuşmacılı içerik içerir. Diarization olmadan bu profil işlenemez.
+"Eşik geçilmezse null" kuralı yanlış metadata üretimini engeller (Prensip 5.1).
+**Referans:** 05_AKTIF_GOREV.md §3, handoff brief 2026-05-11.
+**Durum:** Aktif.
+
+### 2026-05-11 / 16 — Diarization fail için graceful degradation
+
+**Karar:** ASR pipeline'ında diarization adımı başarısız olduğunda klip otomatik olarak tamamen failed durumuna düşmez. ASR transcribe başarılı + diarization fail durumunda klip `partial_success` ve `needs_review` olarak işaretlenir. Transcript üretilir ve output JSON'a yazılır. Tüm segmentlerde `speaker_id = null` olur. Output'a `speaker_labels_available = false` ve `diarization_status = failed` alanları eklenir. UI'da bu klipler sarı uyarı taşır. Export edilebilir; uyarı export ile beraber taşınır.
+
+**Strict mode:** Tam `failed` durumu sadece şu hallerde uygulanır: ASR transcribe başarısız, medya okunamadı, output JSON üretilemedi, veya çağırırken `diarize_required=True` strict mode seçilmiş ve diarize başarısız. `diarize_override=True/False` profil default'unu ezmek içindir; `diarize_required=True/False` sadece fail davranışını sertleştirir.
+
+**Batch davranışı:** Bir batch içinde bir veya daha fazla klip `partial_success` ise batch durumu `completed_with_warnings` olur. Batch tamamen `failed` durumuna sadece tüm klipler `failed` ise düşer.
+
+**Gerekçe:** Diarization fail klibin transcript'i için geri dönülmez bir kayıp değildir; transcript zaten ASR'dan üretilmiştir. Sessizce yarı çıktı vermek yerine açıkça "speaker bilgisi yok" sinyali vererek hem veri kaybını önler hem operatöre kontrol kapısı bırakırız. Strict mode (`diarize_required`) bu davranışı disable eden seçenek olarak kalır.
+
+**Referans:** `docs/MITAS_ASR_Pipeline_v0_1_Implementasyon_Plani_v2.md` §7, §10, §11.
+**Durum:** Aktif.
+
 ### 2026-05-10 / 3 — STT, ASR streaming_transcription alt moduna taşındı
 
 **Karar:** STT ayrı ana venv/profil/modül değildir. Canlı transcript `ASR > streaming_transcription` alt modudur. Primary runtime `E:\MITAS\venvs\asr`; `E:\MITAS\venvs\stt` legacy olarak korunur.
@@ -223,9 +250,35 @@ Aşağıdaki kararlar `MITAS_Master_Plan_Denetimli_v5.md` içinden seçilmiştir
 **Karar:** Windows hostta ASR child process, geçerli JSON çıktısı ürettikten sonra `0xC0000409` ile kapanırsa bu tek başına transcript çıktısını geçersiz kılmaz; ancak durum `needs_review` olarak izlenir ve production motor kararı yerine containment notu olarak tutulur.
 **Gerekçe:** Teşhis koşumunda tek klipli CPU/CUDA/load-only/compute_type varyasyonları temiz kapanırken, aynı CUDA `large-v3` model instance'ında üç klip ardışık transcribe edilince JSON geçerli yazıldıktan sonra `3221226505 / 0xC0000409` yeniden üretildi. Açık cleanup (`del model`, `gc.collect()`, kısa sleep) multi-clip vakasında exit kodunu temizlemedi.
 **Referans:** `outputs/asr_child_exit_diagnosis_report.json`, `scripts/asr_child_exit_diagnosis.py`.
-**Durum:** Aktif; üretim davranışına dönüştürülmeden önce ASR subprocess wrapper sözleşmesinde ayrıca ele alınacak.
+**Durum:** Superseded by Karar 14 (2026-05-11). Native CUDA teardown bug'ı hipotezi yanlış çıkmıştır; gerçek sebep multilingual=False default'u idi.
 **Ek teknik not:** Genişletilmiş test paketinde T1/T2 aynı klip tekrarları temiz kaldı; T3 farklı üç klip aynı instance'ta `0xC0000409` üretti; T4 her klip için yeni model instance kullansa da aynı process içinde yine `0xC0000409` üretti; T5 dirty exit çıktısının temiz referansla segment bazında eşleştiğini gösterdi; T6a/T6b/T6c aynı klip cleanup varyasyonları temiz kaldı; T7 faulthandler koşumu dirty exit'i yeniden üretti. Bu bulgu process-per-clip containment'ı daha güçlü aday yapar, ancak bu satır production motor kararı değildir.
 **Ek referans:** `outputs/asr_child_exit_test_paketi_report.json`, `outputs/asr_child_exit_test_paketi_summary.md`, `scripts/asr_child_exit_test_paketi.py`.
+
+### 2026-05-11 / 13 — wav_erd_test_sound deterministik dirty-exit patolojik klip
+
+**Karar:** `wav_erd_test_sound` benzeri patolojik ASR klipleri için tolerant containment ve `low_quality` flag yeterli ilk güvenlik ağı kabul edilir; `news_trt_haber_1` ve `promo_1` kontrol klipleri aynı koşulda temiz referans sayılır. `wav_erd_test_sound` exit davranışı deterministik kirli kabul edilir, transcript içeriği ise stokastik varyans gösterebilir.
+**Gerekçe:** Tek klip / tek process / tek transcribe tekrar testinde `wav_erd_test_sound` 10/10 kez `0xC0000409` ile kapandı. Aynı koşuda `news_trt_haber_1` ve `promo_1` 10/10 temiz kapandı. `wav_erd_test_sound` transcriptleri 10 tekrarın tamamında farklıydı ve süre aralığı 15.965-26.835 sn oldu; kontrollerde transcriptler identikti ve süreler kısa kaldı.
+**Referans:** `outputs/asr_tek_klip_tekrar_report.json`, `outputs/asr_tek_klip_tekrar_summary.md`, `scripts/asr_tek_klip_tekrar.py`, `scripts/tek_klip_child.py`.
+**Durum:** Superseded by Karar 14 (2026-05-11). wav_erd_test_sound patolojik klip değildir; multilingual içerik (Peres İngilizce + Erdoğan İngilizce araya girişi + alkış) Türkçe-kilitli ASR çağrısı ile çöp çıktı ve crash üretiyordu. multilingual=True ile aynı klip 3/3 temiz exit, anlamlı transcript verdi.
+
+### 2026-05-11 / 14 — ASR transcribe çağrılarında multilingual=True default
+
+**Karar:** MITAS ASR pipeline'ında `WhisperModel.transcribe()` çağrıları default olarak `multilingual=True` parametresi ile yapılır. Bu davranış pipeline genelinde geçerlidir; opt-out gerekmez. Tek-dilli klipler için marjinal yavaşlama (%12-15) kabul edilen üretim maliyetidir.
+
+**Gerekçe:** TRT haber kanalı arşivi multilingual içeriği (uluslararası ziyaretler, BM/AB/NATO toplantıları, yabancı misafir röportajları, basın toplantıları) önemli oranda içerir. Default `multilingual=False` ile bu içeriklerde model dil kilidinde sıkışıyor, hem çöp transcript üretiyor hem 10x yavaşlıyor hem Windows native exit `0xC0000409` ile crash ediyordu. `multilingual=True` ile aynı tetikleyici klip 10x hızlandı, transcript anlamlı oldu, crash gitti. Tek-dilli kontrol klipleri marjinal yavaşlama ile temiz çalışmaya devam etti (anlam benzerliği 0.88-0.95).
+
+**Ek teknik not (Karar 12 ve 13'ün düzeltilmesi):** Üç tur teşhis süresince varsayılan "native CUDA teardown bug'ı" ve "patolojik klip" hipotezleri yanlış çıktı. Gerçek root cause modelin dil çatışmasında uzun beam search'e girmesi, GPU state'ini yormaya, çıkışta CUDA cleanup'ı kirletmesiydi. multilingual=True her segment için ayrı dil tespiti yapmasını sağlayarak bu durumu engelliyor. Bu, "exit code patolojisi" semptomunun çıktı kalitesi semptomu ile birlikte değerlendirilmesinin önemini de gösteriyor.
+
+**Üst üste binen konuşmalar:** ASR overlapping speech durumunda dominant konuşmacıyı seçer, diğerini düşürür. Bu Whisper'ın bilinen ve beklenen davranışıdır, bug değildir. v1 kapsamında speaker diarization eklenmez; v2'de değerlendirilebilir.
+
+**Tolerant containment ve low_quality flag:** Karar 13'te önerilen "tolerant containment + low_quality flag wav_erd benzeri için yeterli" planı geçersizdir. multilingual=True ile crash kaynağı kalkmıştır; ASR worker normal subprocess olarak (process-per-clip izolasyonu gerekmeden) çalışabilir. Düşük kalite flag'i ayrı bir kalite metriği olarak kalabilir ama crash containment kaynağı olarak gerekçesi yoktur.
+
+**Referans:** 
+- `outputs/asr_multilingual_hipotez_report.json`
+- `outputs/asr_multilingual_hipotez_summary.md`
+- Önceki teşhis turları: `outputs/asr_child_exit_diagnosis_report.json`, `outputs/asr_child_exit_test_paketi_report.json`, `outputs/asr_child_exit_tur3_report.json`, `outputs/asr_tek_klip_tekrar_report.json`
+
+**Durum:** Aktif. Sonraki adım ASR pipeline implementasyonuna geçmektir; pipeline tasarımı multi-clip aynı process desenini kullanabilir (process izolasyonuna ihtiyaç kalmadı).
 
 ### ~~2026-05-09 / Sunum öncesi gün gün plan~~
 
@@ -251,13 +304,13 @@ WhisperX'in `asr` venv'e kurulmayacağı ve `alignment` venv'de kalacağı karar
 
 **Karar gerekiyor:** v0.1 word-level timestamp'i zorunlu kabul kriteri mi, yoksa kalite raporunda "alignment uygulanmadı / sınırlı uygulandı" olarak mı kalacak?
 
-### O3 — Pyannote v0.1 sprintine giriyor mu
+### ~~O3 — Pyannote v0.1 sprintine giriyor mu~~
 
 `asr` venv'inde pyannote var. Master plan diarization'ı benchmark gated yapmış (eşik geçilmezse `speaker_id = null`). v0.1 smoke'da pyannote koşulur mu?
 
 **Not:** Torchcodec sorunu hazırlık çalışmasında çözüldüğünde yeniden değerlendirilecek (bkz. 2026-05-11 / 6).
 
-**Karar gerekiyor:** Smoke ölçeğinde diarization test edilir mi, yoksa v0.2'ye bırakılır mı?
+**Durum:** Karara bağlandı (2026-05-11). Diarization v1 kapsamındadır; bkz. 2026-05-11 / 15.
 
 ### O4 — Test video seçimi
 
