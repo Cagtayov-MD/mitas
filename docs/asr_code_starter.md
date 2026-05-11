@@ -1608,3 +1608,154 @@ Hayır. Yeni ASR koşusu yapılmadı; mevcut `clean_transcript.txt` dosyaları t
 
 **Daha iyi olabilir miydi?**
 Evet. Production wrapper aşamasında bu çıktı otomatik üretilmeli: her job için `raw_transcript`, `clean_transcript`, `normalized_transcript` ayrı ve yan yana olmalı.
+
+## 2026-05-11 - Blok: Production ASR Wrapper v1.0
+
+Bu blokta A/B tarafında kanıtlanan v7/v11 mantığı production API'ye taşındı. Hedef, MİTAS pipeline'ının tek çağrıyla ASR sonucu alabilmesi ve Phase 2 için diarization/entity hook'larının hazır durmasıydı.
+
+### Yapılan Kod Değişiklikleri
+
+Yeni dosyalar:
+
+```text
+E:\MITAS\core\pipelines\asr\chunking.py
+E:\MITAS\core\pipelines\asr\models.py
+E:\MITAS\core\pipelines\asr\result.py
+E:\MITAS\core\pipelines\asr\phase2\__init__.py
+E:\MITAS\core\pipelines\asr\phase2\speaker_merge.py
+E:\MITAS\core\pipelines\asr\phase2\entity_normalization.py
+E:\MITAS\tests\test_chunking.py
+E:\MITAS\tests\test_production_transcribe.py
+```
+
+Güncellenen dosyalar:
+
+```text
+E:\MITAS\core\pipelines\asr\__init__.py
+E:\MITAS\core\pipelines\asr\transcribe.py
+```
+
+### Neden Böyle Yapıldı?
+
+1. `chunking.py`
+   - VAD-merged chunk mantığı production modülüne taşındı.
+   - A/B tarafında düzelttiğimiz negatif/overlap chunk riski burada da korunuyor.
+   - `MergedChunk.source_vad_indices` ile hangi VAD segmentlerinden geldiği saklanıyor.
+
+2. `models.py`
+   - `quality = large-v3`
+   - `fast = large-v3-turbo`
+   - `fast_with_fallback = önce turbo, kritik kalite/safety fail olursa large-v3`
+   - Model cache merkezi oldu.
+
+3. `result.py`
+   - `ProductionTranscribeResult` eklendi.
+   - `verbatim_transcript`, `clean_transcript`, `normalized_transcript` katmanları ayrıldı.
+   - Phase 2 için `speaker_segments`, `normalized_entities`, `speaker_id`, `normalized_text` alanları eklendi.
+
+4. `transcribe.py`
+   - Yeni production entry point: `transcribe(...)`
+   - Eski `transcribe_vad_segments(...)`, `build_transcribe_chunks(...)`, `WhisperModelConfig` korundu.
+   - Sebep: `tools/asr_ab/` regression scriptleri bu eski API'ye bağlı. Komple kırmak doğru olmazdı.
+
+5. Phase 2 stub'ları
+   - `speaker_merge.py`: diarization overlap ile speaker atama yeri.
+   - `entity_normalization.py`: Qwen/IMDb entity correction yeri.
+   - Şimdilik bilinçli olarak `NotImplementedError`.
+
+### Testler
+
+Çalıştırılan hızlı doğrulama:
+
+```text
+pytest tests/test_production_transcribe.py tests/test_chunking.py tests/test_asr_quality.py tests/test_asr_ab_chunks.py tests/test_asr_transcribe.py -v
+41 passed
+```
+
+Ayrı doğrulamalar:
+
+```text
+tests/test_chunking.py -v: 7 passed
+tests/test_production_transcribe.py -v: 5 passed
+py_compile yeni production modülleri: pass
+```
+
+Fixture dosyaları:
+
+```text
+E:\MITAS\tests\fixtures\beyaz2_08_11.wav
+E:\MITAS\tests\fixtures\beyaz1_03_05.wav
+```
+
+### Gerçek Smoke Testleri
+
+Üretilen kanıt dosyaları:
+
+```text
+E:\MITAS\outputs\asr_production_smoke\beyaz2_08_11_v1\archive.json
+E:\MITAS\outputs\asr_production_smoke\beyaz2_08_11_v1\transcript_review.md
+E:\MITAS\outputs\asr_production_smoke\beyaz2_08_11_v1_quality\archive.json
+E:\MITAS\outputs\asr_production_smoke\beyaz2_08_11_v1_quality\transcript_review.md
+E:\MITAS\outputs\asr_production_smoke\beyaz1_03_05_v1\archive.json
+E:\MITAS\outputs\asr_production_smoke\beyaz1_03_05_v1\transcript_review.md
+E:\MITAS\outputs\asr_production_smoke\production_asr_v1_smoke_transcripts.md
+```
+
+Özet:
+
+```text
+beyaz2 fast_with_fallback:
+  profile_used = fast
+  model = large-v3-turbo
+  fallback_triggered = false
+  safety.safe = true
+  raw_segments = 53
+  clean_segments = 52
+  clean_words = 310
+  total_seconds = 13.162
+
+beyaz2 quality:
+  profile_used = quality
+  model = large-v3
+  fallback_triggered = false
+  safety.safe = true
+  raw_segments = 54
+  clean_segments = 54
+  clean_words = 325
+  total_seconds = 30.299
+
+beyaz1 fast_with_fallback:
+  profile_used = fast
+  model = large-v3-turbo
+  fallback_triggered = false
+  safety.safe = true
+  raw_segments = 57
+  clean_segments = 56
+  clean_words = 301
+  total_seconds = 17.356
+```
+
+### Kalite Notu
+
+Smoke teknik olarak başarılı ama kalite açısından önemli bir gözlem var:
+
+```text
+beyaz2 fast_with_fallback: "Dancing Beer" üretti.
+beyaz2 quality: "Dancing Deer" üretti.
+```
+
+Bu, safety guard'ın semantik doğruluk ölçmediğini gösteriyor. Yani production wrapper çalışıyor, artifact/repetition guard var; fakat "hızlı model güvenli göründü ama kelime seçimi daha zayıf olabilir" sınıfı için ileride referans/WER veya entity-normalization katmanı gerekiyor.
+
+### Blok Sonu Öz-Kontrol
+
+**Planla uyumlu mu?**
+Evet. `chunking.py`, `models.py`, `result.py`, production `transcribe()`, Phase 2 stub'ları ve public API eklendi. A/B scriptleri korunarak ilerledik.
+
+**Amaca hizmet ediyor mu?**
+Evet. MİTAS artık tek production çağrıyla `ProductionTranscribeResult` alabiliyor; archive dict, transcript katmanları, fallback bilgisi, safety ve Phase 2 hook'ları hazır.
+
+**Başka şeyi bozuyor mu?**
+Kontrol edildi. Eski `transcribe_vad_segments` ve A/B chunk regression testleri geçiyor. Bu nedenle eski kanıt üretim araçları çalışmaya devam etmeli.
+
+**Daha iyi olabilir miydi?**
+Evet. `fast_with_fallback` sadece hard safety/critical drop durumunda fallback yapıyor. Semantik kalite farkı için henüz otomatik ölçüm yok. Bir sonraki kalite adımı küçük referans transcript seti + WER/CER veya Phase 2 entity correction olmalı.

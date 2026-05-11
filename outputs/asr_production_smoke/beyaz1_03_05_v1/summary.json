@@ -1,0 +1,27 @@
+{
+  "audio_path": "E:\\MITAS\\tests\\fixtures\\beyaz1_03_05.wav",
+  "profile_requested": "fast_with_fallback",
+  "profile_used": "fast",
+  "model_name": "large-v3-turbo",
+  "fallback_triggered": false,
+  "fallback_reason": null,
+  "safety": {
+    "safe": true,
+    "failure_reason": null,
+    "diagnostics": {
+      "max_run": 4,
+      "repeated_token": "Ha",
+      "max_token_length": 15,
+      "words_per_second": 2.61
+    }
+  },
+  "raw_segments": 57,
+  "clean_segments": 56,
+  "clean_words": 301,
+  "timing": {
+    "total_seconds": 17.356,
+    "chunk_count": 4,
+    "decode_seconds": 11.68,
+    "fallback_seconds": 0.0
+  }
+}
