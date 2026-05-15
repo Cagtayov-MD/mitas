@@ -1,0 +1,322 @@
+{
+  "module_run_id": "asr-001_h1-v0_1_demo",
+  "media_id": "001_h1",
+  "event_count": 15,
+  "events": [
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0000",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 0.0,
+      "end_time": 11.02,
+      "confidence": 0.9500225737005408,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde.",
+        "avg_logprob": -0.051269532879814506,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0001",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 12.8,
+      "end_time": 18.76,
+      "confidence": 0.8862213117282729,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor.",
+        "avg_logprob": -0.12078857206506655,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0002",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 18.76,
+      "end_time": 28.6,
+      "confidence": 0.8862213117282729,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Bugün atacağımız imzayla usta çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak.",
+        "avg_logprob": -0.12078857206506655,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0003",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 29.24,
+      "end_time": 32.08,
+      "confidence": 0.8862213117282729,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Dünyanın birçok yerinde geçerli bir belge olacak.",
+        "avg_logprob": -0.12078857206506655,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0004",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 32.54,
+      "end_time": 37.98,
+      "confidence": 0.8862213117282729,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı.",
+        "avg_logprob": -0.12078857206506655,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0005",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 38.48,
+      "end_time": 40.26,
+      "confidence": 0.8862213117282729,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Beşinci ve altıncı seviyede olacak.",
+        "avg_logprob": -0.12078857206506655,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0006",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 40.8,
+      "end_time": 52.8,
+      "confidence": 0.914318593532116,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeterlilere ve mesleki yeterlilik belgesine sahip olmuş olacaklardır.",
+        "avg_logprob": -0.08957619766054088,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0007",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 53.18,
+      "end_time": 58.94,
+      "confidence": 0.914318593532116,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar.",
+        "avg_logprob": -0.08957619766054088,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0008",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 59.2,
+      "end_time": 67.58,
+      "confidence": 0.914318593532116,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı.",
+        "avg_logprob": -0.08957619766054088,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0009",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 67.58,
+      "end_time": 69.58,
+      "confidence": 0.8551365274574177,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Kameramanlar televizyon haberciliğinin...",
+        "avg_logprob": -0.15649414155632257,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0010",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 69.95,
+      "end_time": 80.97,
+      "confidence": 0.8969219890945422,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması fevkalade önemli diye düşünüyorum.",
+        "avg_logprob": -0.10878638938477594,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0011",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 81.65,
+      "end_time": 87.09,
+      "confidence": 0.8969219890945422,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek.",
+        "avg_logprob": -0.10878638938477594,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0012",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 87.51,
+      "end_time": 91.01,
+      "confidence": 0.8969219890945422,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Ardından haber kameramanları bir sınava tabi tutulacak.",
+        "avg_logprob": -0.10878638938477594,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0013",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 91.47,
+      "end_time": 96.37,
+      "confidence": 0.8969219890945422,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Ulusal meslek standartı resmi gazetede yayınlandıktan sonra yürürlüğe girecek.",
+        "avg_logprob": -0.10878638938477594,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    },
+    {
+      "event_id": "asr-001_h1-v0_1_demo-asr-0014",
+      "media_id": "001_h1",
+      "event_type": "asr_segment",
+      "subtype": "tr",
+      "start_time": 96.99,
+      "end_time": 98.55,
+      "confidence": 0.8969219890945422,
+      "status": "auto",
+      "source_module": "asr",
+      "payload": {
+        "text": "Teşekkür ederiz başkanım sağ olun.",
+        "avg_logprob": -0.10878638938477594,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "evidence_ids": [
+        "asr-001_h1-v0_1_demo"
+      ],
+      "created_at": "2026-05-14T18:59:59.486860Z"
+    }
+  ]
+}

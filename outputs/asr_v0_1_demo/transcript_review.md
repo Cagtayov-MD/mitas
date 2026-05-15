@@ -1,0 +1,95 @@
+# ASR Module Run Transcript Review
+
+## Summary
+
+```json
+{
+  "pipeline_version": "asr_v1_0",
+  "input_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\001_h1\\audio_16000hz_mono_s16.wav",
+  "normalized_audio_path": "E:\\MITAS\\outputs\\asr_v0_1_demo\\normalized.wav",
+  "normalized_audio_paths": {
+    "mono": "E:\\MITAS\\outputs\\asr_v0_1_demo\\normalized.wav"
+  },
+  "profile_requested": "fast_with_fallback",
+  "profile_used": "fast",
+  "model_name": "large-v3-turbo",
+  "fallback_triggered": false,
+  "fallback_reason": null,
+  "selection_reason": "fast_passed_fallback_checks",
+  "audio_duration": 101.739,
+  "raw_segments": 15,
+  "clean_segments": 15,
+  "quality_drops": 0,
+  "duplicate_drops": 0,
+  "clean_words": 166,
+  "timeline_event_count": 15,
+  "vad": {
+    "speech_seconds": 86.4,
+    "speech_ratio": 0.849232,
+    "segment_count": 27
+  },
+  "quality_report": {
+    "word_timestamp_coverage": {
+      "status": "not_applicable",
+      "reason": "whisperx_not_integrated_in_v0_1",
+      "value": null
+    },
+    "alignment_success": {
+      "status": "not_applicable",
+      "reason": "whisperx_not_integrated_in_v0_1",
+      "value": null
+    },
+    "vad_speech_ratio": 0.849232,
+    "diarization": {
+      "status": "not_applicable",
+      "reason": "pyannote_not_invoked_in_v0_1"
+    },
+    "error_flags": []
+  },
+  "channels": {
+    "requested_mode": "mono",
+    "mode": "mono",
+    "auto_decided": false,
+    "lr_correlation": null,
+    "tracks": [],
+    "duplicate_drops": 0
+  },
+  "safety": {
+    "safe": true,
+    "failure_reason": null,
+    "diagnostics": {
+      "max_run": 1,
+      "repeated_token": "Kimi",
+      "max_token_length": 17,
+      "words_per_second": 1.82,
+      "expected_speech_end": 98.6,
+      "transcript_last_end": 98.55,
+      "uncovered_tail_seconds": 0.05,
+      "uncovered_tail_ratio": 0.0005
+    }
+  },
+  "timing": {
+    "normalize_seconds": 0.032,
+    "transcribe_total_seconds": 22.692,
+    "decode_seconds": 11.423,
+    "fallback_seconds": 0.0,
+    "chunk_count": 4,
+    "total_seconds": 22.804
+  },
+  "outputs": {
+    "archive": "archive.json",
+    "module_run": "module_run.json",
+    "summary": "summary.json",
+    "transcript_review": "transcript_review.md",
+    "timeline_events": "timeline_events.json"
+  }
+}
+```
+
+## Clean Transcript
+
+Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde. Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor. Bugün atacağımız imzayla usta çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak. Dünyanın birçok yerinde geçerli bir belge olacak. Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı. Beşinci ve altıncı seviyede olacak. Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeterlilere ve mesleki yeterlilik belgesine sahip olmuş olacaklardır. Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar. Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı. Kameramanlar televizyon haberciliğinin... Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması fevkalade önemli diye düşünüyorum. Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek. Ardından haber kameramanları bir sınava tabi tutulacak. Ulusal meslek standartı resmi gazetede yayınlandıktan sonra yürürlüğe girecek. Teşekkür ederiz başkanım sağ olun.
+
+## Verbatim Transcript
+
+Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde. Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor. Bugün atacağımız imzayla usta çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak. Dünyanın birçok yerinde geçerli bir belge olacak. Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı. Beşinci ve altıncı seviyede olacak. Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeterlilere ve mesleki yeterlilik belgesine sahip olmuş olacaklardır. Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar. Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı. Kameramanlar televizyon haberciliğinin... Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması fevkalade önemli diye düşünüyorum. Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek. Ardından haber kameramanları bir sınava tabi tutulacak. Ulusal meslek standartı resmi gazetede yayınlandıktan sonra yürürlüğe girecek. Teşekkür ederiz başkanım sağ olun.
