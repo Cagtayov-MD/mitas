@@ -133,6 +133,45 @@ candidates:
     benchmark_required: true
     selected_as_engine: false
     notes: "VAD support candidate."
+  - module_area: MT
+    candidate_name: nllb-200-3.3B-ct2-int8
+    priority: 1
+    status: candidate
+    venv: translate
+    install_state: installed_verified
+    smoke_test_command: "python scripts/translate_smoke.py --model nllb_3b"
+    expected_outputs:
+      - import_ok
+      - translates_en_to_tr_sample
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Installed and benchmarked. KN-3: Phase 0 multilingual fallback/default route; selected_as_engine remains false until manifest policy is revised."
+  - module_area: MT
+    candidate_name: nllb-200-distilled-1.3B-ct2-int8
+    priority: 2
+    status: candidate
+    venv: translate
+    install_state: installed_verified
+    smoke_test_command: "python scripts/translate_smoke.py --model nllb_1b"
+    expected_outputs:
+      - import_ok
+      - translates_en_to_tr_sample
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Installed and benchmarked. Kept as speed/size comparison candidate; not selected for Phase 0 route."
+  - module_area: MT
+    candidate_name: opus-mt-tc-big-en-tr-ct2-int8
+    priority: 3
+    status: candidate
+    venv: translate
+    install_state: installed_verified
+    smoke_test_command: "python scripts/translate_smoke.py --model opus"
+    expected_outputs:
+      - import_ok
+      - translates_en_to_tr_sample
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Installed and benchmarked. KN-3: Phase 0 EN->TR primary route; selected_as_engine remains false until manifest policy is revised."
   - module_area: Diarization
     candidate_name: pyannote
     priority: 1
