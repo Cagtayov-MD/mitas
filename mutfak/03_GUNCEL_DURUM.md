@@ -1,15 +1,100 @@
 # 03 — GÜNCEL DURUM
 
-> Son güncelleme: 2026-05-11
-> Son değişen bölüm: ASR v0.1 hazırlık checkpoint
+> Son güncelleme: 2026-05-14
+> Son değişen bölüm: §0.3 — ASR audit kapanışı (worktree port + 9 fix + Karar 27) eklendi
 
 Bu dosya **şu an nerede olduğumuzu** anlatır. Yapılmış olanlar, eksik kalanlar, açık kararlar, riskler. Her gelişme ile güncellenir.
 
 ---
 
+## 0. 2026-05-13 hızlı durum notu
+
+ASR tarafı 2026-05-11 envanterinden ileridedir: `core/pipelines/asr/` altında production wrapper, profile routing, quality guard, channel split/merge ve Phase 2 hook iskeletleri bulunuyor. `core/pipelines/asr/phase2/` şu an bilinçli olarak stub durumunda: speaker merge ve entity normalization için kapı açıldı ama çalışan Qwen/VLM entegrasyonu yok.
+
+Bugünkü ana fikir: Phase 2 sadece "transcript düzeltme" değil, **MITAS Üst Denetim Katmanı** olacak. Model, ASR/OCR/metadata çıktısına yukarıdan bakacak; özel isim hatası, quoted evidence, tabela/fiş/kart, tarihsel anakronizm, OCR/ASR çelişkisi ve bağlam kırığı gibi durumlarda kanıt isteyebilecek.
+
+Yeni referans dosyası: `mutfak/09_UST_DENETIM_KATMANI.md`.
+
+Geçici model sıralaması:
+- Default text üst-denetim adayı: `google/gemma-4-26b-a4b`
+- Kalite lideri / ikinci görüş: `qwen/qwen3.6-27b`
+- Alternatif Qwen adayı: `qwen/qwen3-30b-a3b-2507`
+- Audit/hakem: `meta/llama-3.3-70b`
+- Görsel kanıt / OCR crop / frame review: `nvidia/nemotron-3-nano-omni` ve ayrıca ayrı testte `qwen/qwen2.5-vl-7b`
+
+Önemli prensip: Model karar verici hakim değildir; **kanıt isteyen denetçidir**. `replace_allowed=true` yalnızca normal konuşma ASR hatası, dolu canonical, uygun confidence ve deterministik kapı onayı varsa geçerlidir.
+
+---
+
+## 0.2 2026-05-14 ASR v0.1 kapatma paketi (smoke geçti)
+
+ASR dikey diliminin v0.1 kalan dört maddesi tamamlandı:
+
+- **Schema bağlantısı:** `TimelineEvent` emit eklendi. Her clean_segment artık bir `asr_segment` event'i olarak `outputs/.../timeline_events.json` içine yazılıyor. `confidence = exp(avg_logprob)` ile normalize, `source_module="asr"`, `evidence_ids=[module_run_id]`. `ModuleRun` zaten bağlıydı.
+- **Kalite raporu standardı:** `summary.json` artık `model_name`, `fallback_triggered`, `fallback_reason`, `selection_reason`, `clean_segments`, `quality_drops`, `timeline_event_count`, `vad.speech_ratio` (+ speech_seconds, segment_count), `safety.diagnostics` (uncovered_tail dahil) alanlarını taşıyor.
+- **Smoke test:** `tests/test_asr_v0_1_smoke.py` golden-file testi yazıldı — 9 madde, ModuleRun ve TimelineEvent schema doğrulaması dahil. `core` venv'de pytest ile koşuyor (ASR runtime gerekmeden).
+- **Demo output:** `outputs/asr_v0_1_demo/` altında 5 artifact üretildi. Klip seçimi: 001_h1 (TRT haber kameramanları, 101.7 sn, `\\depo01cifs.int.trt.net.tr\sas_h264\testset\wav\H1.wav`). Sonuç: profile_used=fast (turbo geçti, fallback yok), 15 clean segment, 15 TimelineEvent, VAD speech_ratio=0.849, safety geçti. Üretim: `scripts/asr_v0_1_demo.py` (asr venv ile koşulur).
+
+Test sayısı: 45 mevcut + 9 v0.1 smoke = 54 yeşil.
+
+Sıradaki: TRT transcript havuzu gelince benchmark + tail-gap/coverage eşik kalibrasyonu. Ayrıca sprint kapatma (I — master plan §2.1 karşılaştırması, L — `docs/SPRINT_4_ASR_V0_1_DONE.md` arşiv raporu) açık.
+
+---
+
+## 0.3 2026-05-14 ASR audit kapanışı (worktree port + 9 fix + Karar 27)
+
+ASR modülü için derinlemesine audit (HIGH-1..HIGH-5, MED-1..MED-6, LOW-1..LOW-3) ana `E:\MITAS` workspace üzerinde kapatıldı. İş üç parçaya ayrıldı:
+
+- **Worktree port (DONE-ASR-001):** Önceki turda `.claude/worktrees/awesome-gould-1ee408` altında kalan 4 düzeltme (`multilingual=True` Karar 14, `_MODEL_CACHE_LOCK`, `CRITICAL_FALLBACK_DROP_PREFIXES` extend, `speech_seconds` magic clamp temizliği) ana workspace'e taşındı.
+- **Audit fix (DONE-ASR-002):** 9 gerçek bug kapatıldı.
+  - HIGH-1: `_select_fallback_result` "iki taraf da unsafe" yalan loglama → `degraded_both_unsafe` dalı, daha uzun coverage'lı taraf seçilir.
+  - HIGH-3: Tail-gap AND-gate ölü bölgesi → `effective_max_tail = min(3.0, expected_speech_end * 0.15)` dinamik eşik.
+  - MED-1: `error_flags` literal içerik sızıntısı → kategorik prefix (`drop.reason.split(":", 1)[0]`).
+  - MED-2: İkinci `_empty_result` dalında VAD kwargs eksikti → eklendi.
+  - MED-3: `evidence_ids=[module_run_id]` semantik yanlıştı → `evidence_ids=[]` (gerçek Evidence v0.2 WhisperX ile gelecek).
+  - MED-4: Legacy `transcribe_vad_segments` tail-gap params yoktu → `expected_speech_end` + `transcript_last_end` geçildi.
+  - MED-6: `channel_merge.py` `max()` ile `vad_speech_ratio` alt sınır raporluyordu → `_union_ratio_bound(L, R) = min(1.0, L+R)` üst sınır helper'ı, docstring ile bound olarak işaretli.
+  - LOW-1: `_segment_confidence(NaN)` 1.0 dönebiliyordu → `math.isfinite` guard.
+  - LOW-2: TimelineEvent payload'a `source_chunk_index` eklendi.
+  - Yan etki: `_fallback_failure_reason` sıralaması drop-first'e çevrildi (drop sebebi tail-gap'in genelde root cause'u). 3 test senaryosu rebalance edildi.
+- **Karar 27 (DONE-ASR-003):** Production `condition_on_previous_text` default `True` → `False`. Operasyonel scriptlerle uyum + hallucination yayılımı kapatma + fallback yükü azaltma. TRT kalibrasyonu A/B sonucu beklemekte.
+
+Doğrulama: `cd /e/MITAS && venvs/core/Scripts/python.exe -m pytest tests/ -q` → **166 passed, 6 skipped** (TEST-ASR-AUDIT-001). 6 skip = real_media GPU testleri.
+
+Açık takip için: `mutfak/05_AKTIF_GOREV.md` §0 canlı pano, `mutfak/06_KARARLAR_GUNLUGU.md` Karar 27.
+
+---
+
+## 0.1 2026-05-14 ASR model / fallback checkpoint
+
+Bugün ASR model politikası netleştirildi: production default decode `large-v3-turbo`; `large-v3` ise selective fallback / üst denetim modeli. Eski "large-v3 ana motor" mirası karar günlüğünde revize edildi.
+
+Dış Türkçe transcript kaynakları indirildi ve incelendi:
+- MediaSpeech Turkish / OpenSLR108: `E:\MITAS\cache\external_datasets\mediaspeech_tr\`; 2,513 WAV + 2,513 TXT, yaklaşık 10 saat. Bugün için en değerli geçici ASR prob seti.
+- Common Voice Turkish 25.0: `E:\MITAS\cache\external_datasets\common_voice_tr_25\`; 126,510 MP3, yaklaşık 135 saat. Ana TRT-domain karar seti değil, yardımcı kısa-utterance Türkçe kontrol korpusu.
+
+20 MediaSpeech segmentlik benchmark sonucu:
+- `fast / large-v3-turbo`: WER 0.1853, CER 0.0966, decode 14.098 sn.
+- `quality / large-v3`: WER 0.1775, CER 0.0961, decode 48.773 sn.
+- Örnek bazında: 8 quality galibiyeti, 6 fast galibiyeti, 6 eşitlik.
+
+Kod tarafında `fast_with_fallback` adaptif hale getirildi:
+- Tail-gap / uncovered-tail safety tetikleyicisi eklendi.
+- Fallback sonrası `large-v3` sonucu kör kabul edilmiyor; quality unsafe veya coverage olarak belirgin kötüyse turbo korunuyor.
+- Seçim nedeni `selection_reason` ile archive/summary tarafına taşınıyor.
+
+Gerçek doğrulama: MediaSpeech `430d0aaf-8f12-4a09-964d-aa75f4157100` klibinde eski kod turbo ile 14.8 sn sesin 7.42 sn'sinde kalıyordu. Yeni kod `tail_gap_uncovered` ile fallback tetikledi ve `large-v3` 14.04 sn kapsama verdi.
+
+Referanslar:
+- `outputs/external_turkish_transcripts_review.md`
+- `outputs/external_turkish_transcripts_asr_smoke_20\benchmark_results.md`
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 22-24.
+
+---
+
 ## 1. Tek paragrafta durum
 
-Sözleşme katmanı (Pydantic + JSON Schema), job runner skeleton (worker / repository / step_runner / errors), modüler venv altyapısı (8 venv kurulu, lock'lanmış), 47 test (schema + smoke), 22 dokümantasyon (sprint / env lock / denetim raporları), 34 JSON output raporu hazır. Master plan v5 ve uygulama planı v1 yazıldı. **Üretim pipeline kodu henüz yok**: ne ASR streaming pipeline, ne face streaming pipeline, ne WebSocket bridge, ne frontend. UI panel iskelet halinde (Figma export, mock data).
+Sözleşme katmanı (Pydantic + JSON Schema), job runner skeleton (worker / repository / step_runner / errors), modüler venv altyapısı, dokümantasyon ve output raporları hazır. Master plan v5 ve uygulama planı v1 yazıldı. ASR tarafında production wrapper ve kalite/channel altyapısı oluştu; **diğer production pipeline'lar henüz yok**: face, OCR/KJ, visual tag, WebSocket bridge ve frontend backend bağlantısı bekliyor. UI panel iskelet halinde (Figma export, mock data).
 
 Sonraki çekirdek odak: **v0.1 — ASR dikey dilim**. Düzgün şekilde ayağa kaldırılacak.
 
@@ -174,8 +259,9 @@ Hiçbir modülün gerçek pipeline kodu yok:
 ### 5.3 Veri tarafı
 
 - 🟡 Ham test klip havuzu var: `E:\MITAS\testklipler\` (envanter: `mutfak/08_TEST_KLIPLER.md`)
-- ❌ Ground truth dosyaları
-- ❌ Benchmark sprint'lerinin koşulması
+- 🟡 Dış transcript probu var: MediaSpeech TR ve Common Voice TR 25 `cache/external_datasets/` altında. MediaSpeech geçici gold/probe; Common Voice yardımcı korpus.
+- ❌ TRT iç transcript havuzu henüz workspace'e bağlanmadı; final ASR kararının gerçek gold kaynağı o olacak.
+- 🟡 Benchmark sprint'lerinin ilk dış veri koşumu tamamlandı; TRT verisinde tekrar koşulacak.
 
 ### 5.4 UI
 
@@ -194,6 +280,7 @@ Detay: `06_KARARLAR_GUNLUGU.md`'de listelenir, burada özet:
 3. **OCR motoru seçimi** — benchmark gated. OneOCR / PaddleOCR / EasyOCR / Tesseract aday. Sıralama master plan §0.3.3'te. Tesseract binary yok, fallback için kurulması gerekir.
 4. **WhisperX / alignment** — karar verildi: `asr` venv'e kurulmaz, `alignment` venv'de subprocess sleeve olarak çalışır. Word-level alignment smoke yeşil.
 5. **Pyannote** — `asr` venv'inde var. Torchcodec/FFmpeg hazırlığı tamamlandı; v0.1 smoke'da kullanımı sprint başlangıcında yeniden değerlendirilecek.
+6. **ASR model politikası** — karar verildi: default `large-v3-turbo`; `large-v3` selective fallback / üst-denetim modeli. TRT transcriptleri gelince eşik kalibrasyonu yapılacak.
 
 ---
 
@@ -208,13 +295,37 @@ Detay: `06_KARARLAR_GUNLUGU.md`'de listelenir, burada özet:
 
 ## 8. UI panel durumu
 
-Geliştirici dün bir UI panel iskelet zip'i paylaştı: **Medya_Yapay_Zeka_Kontrol_Paneli.zip**.
+Güncel UI takip dosyası açıldı:
+
+- `mutfak/10_UI_NOTLARI.md`
+
+Aktif çalışma dizini:
+
+- `E:\MITAS\.claude\worktrees\wonderful-vaughan-884d20\webui\`
+
+İlk kaynak: geliştiricinin paylaştığı **Medya_Yapay_Zeka_Kontrol_Paneli.zip** / Figma export iskeleti.
 
 İçerik:
 - React + Vite + Tailwind + shadcn/ui
 - İki ana sekme: Analysis Workstation + FaceBank Builder
-- Header, VideoPlayer (yüz overlay'lı), Timeline (6 track), Sidebar (Queue/Transcript/Faces/Tags/OCR/Meta/Evidence)
-- Mock data ile besleniyor; backend yok.
+- Header, VideoPlayer, Timeline, Sidebar (Uyarılar/ASR/Yüzler/Etiketler/OCR/Bilgi/Kanıt)
+- ASR API proxy'si mevcut: `/api` → `http://localhost:8787`
+- UI artık gerçek ASR job sonucunu `segments`, `summary`, `archive.quality` alanlarından gösteriyor.
+
+2026-05-14 UI davranış düzeltmeleri:
+
+- Upload artık otomatik ASR başlatmıyor. Dosya sadece hazırlanıyor; ASR kullanıcı `ASR Başlat` dediğinde çalışıyor.
+- Dosya seçilince görünür hazır mesajı basılıyor: `erd_test_sound.wav ASR için hazır`.
+- `DEMO MODU` rozeti kaldırıldı.
+- `İnceleme bekliyor` dili kaldırıldı; sağ panel `Uyarılar`, segment güveni `yüksek/orta/düşük güven` şeklinde.
+- Klavye: `Space`/`K` play-pause, `J` 10 sn geri, `L` 10 sn ileri.
+- Timeline-ASR çift yönlü senkronlandı: timeline segmenti sağ ASR satırını, ASR satırı timeline/video konumunu seçiyor ve vurguluyor.
+- Doğrulama: `tsc --noEmit` ve `vite build` geçti; `http://127.0.0.1:5173/` 200 döndü.
+
+ASR/UI sözleşme kararı:
+
+- ASR modeli/pipeline değişip API sözleşmesi aynı kalırsa UI değişmez.
+- Endpoint, response şekli, gönderilen profil/parametre veya yeni görsel özellik değişirse UI da güncellenir.
 
 Tespit edilen sözleşme/disiplin sapmaları:
 - Mock'ta yabancı ünlü face match örnekleri (Michael Jordan) — vizyonla çelişiyor, kaldırılmalı.
@@ -226,7 +337,7 @@ Tespit edilen sözleşme/disiplin sapmaları:
 - Job status göstergesi yok.
 - CandidateRelation kavramı UI'da temsil edilmiyor.
 
-Detay sapma listesi: `06_KARARLAR_GUNLUGU.md` → UI düzeltme görevleri.
+Not: Bu listenin bir kısmı 2026-05-14 UI düzeltmeleriyle kapandı. Detay ve yeni UI işleri artık `mutfak/10_UI_NOTLARI.md` içinde tutulacak. Kalıcı ürün kararları `06_KARARLAR_GUNLUGU.md` içine ayrıca geçirilecek.
 
 ---
 
@@ -241,4 +352,4 @@ Detay sapma listesi: `06_KARARLAR_GUNLUGU.md` → UI düzeltme görevleri.
 
 ## 10. Şimdiki adım
 
-ASR v0.1 hazırlık altyapısı tamamlandı: FFmpeg shared, torchcodec/asr smoke, alignment dormant teşhisi, denoise sleeve, WhisperX word-level smoke ve large-v3 offline smoke yeşil. Sonraki adım: `05_AKTIF_GOREV.md` içinde v0.1 ASR pipeline kodlamaya geçmeden hedef video ve dosya yapısı kararını kesinleştirmek.
+ASR v0.1 dikey dilimi kodca tamam (bkz. §0.2): schema bağlantısı, kalite raporu, smoke test, demo output yeşil. 54 test geçiyor. Sonraki adım: TRT transcript havuzu gelince aynı benchmark şeklini TRT-domain WAV/TXT çiftlerinde koşup tail-gap (3.0 sn AND %25) ve coverage seçici eşiklerini kalibre etmek; ardından sprint kapatma (master plan §2.1 karşılaştırması + `docs/SPRINT_4_ASR_V0_1_DONE.md`).

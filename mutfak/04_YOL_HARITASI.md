@@ -1,7 +1,7 @@
 # 04 — YOL HARİTASI
 
-> Son güncelleme: 2026-05-11
-> Son değişen bölüm: ASR v0.1 multilingual + diarization kararları
+> Son güncelleme: 2026-05-14
+> Son değişen bölüm: v0.1 ASR dikey dilim TAMAMLANDI; v0.1.x ASR olgunlaşma paketleri eklendi
 
 Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefleri **bilinçli olarak yazılmaz**; tek kişilik geliştirmede tarih baskısı kararları çarpıtır. Sürüm sırası ve kabul kriteri sabittir; takvim esnektir.
 
@@ -18,13 +18,16 @@ Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefl
 
 ## 2. Sürüm sırası ve gerekçesi
 
-### v0.1 — ASR dikey dilim (AKTİF)
+### v0.1 — ASR dikey dilim (TAMAMLANDI)
+
+**Sprint kapanış raporu:** [docs/SPRINT_4_ASR_V0_1_DONE.md](../docs/SPRINT_4_ASR_V0_1_DONE.md). Sözleşme katmanı (ModuleRun + TimelineEvent), kalite raporu (summary.quality_report §2.1 5 alan), smoke test (10 madde) ve gerçek demo output (`outputs/asr_v0_1_demo/`, klip: 001_h1 TRT haber kameramanları, 101.7 sn) yeşil. Toplam 166 test geçiyor.
 
 **Neden ilk:** ASR tüm timeline'ın zaman ekseni omurgasıdır. Face Recognition, OCR'ın temporal merge'i, Visual Tag'in sahne timing'i, hepsi ASR timeline'ı üstüne oturur. ASR çürükse her şey kayar.
 
 **Kapsam:**
 - VAD (Silero)
-- faster-whisper large-v3 ana motor (`multilingual=True`, Karar 14)
+- faster-whisper `large-v3-turbo` default decode motoru (`multilingual=True`, Karar 14, Karar 23)
+- faster-whisper `large-v3` selective fallback / üst-denetim modeli (tail-gap, safety failure, coverage selector; Karar 24)
 - WhisperX word-level alignment (`alignment` venv'de opsiyonel; v0.1 ana pipeline dışında)
 - pyannote diarization (v1 zorunlu bileşen; eşik geçilmezse `speaker_id = null`, Karar 15)
 - diarization fail graceful degradation (`partial_success`, Karar 16)
@@ -32,6 +35,7 @@ Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefl
 - ffmpeg audio extract
 - JSON primary çıktı (segments + words)
 - ASR kalite raporu (word timestamp coverage, alignment success, VAD speech ratio)
+- fallback audit log (`fallback_reason`, `selection_reason`, safety diagnostics)
 
 **Kabul kriteri:**
 - 1 dakikalık Türkçe TRT haber kesitinde:
@@ -40,12 +44,32 @@ Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefl
   - VAD speech ratio % cinsinden raporlanır
   - JSON master plan §1.2 timeline event sözleşmesine uyar
 
-**Çıktı dosyası:** `outputs/asr_v0_1_demo.json` (örnek).
+**Çıktı dosyası:** `outputs/asr_v0_1_demo/` (5 artifact: archive, summary, module_run, transcript_review, timeline_events).
 
-**Eksiklikler / risk noktaları:**
-- WhisperX kurulu değil; karar verilecek (kursak mı, fallback'e gidelim mi).
-- ASR pipeline `venvs/asr` içinde koşacak; canlı transcript `ASR > streaming_transcription` alt modudur.
-- DeepFilterNet'in eski TRT arşivinde faydalı mı zararlı mı bilinmiyor; benchmark gerekir.
+**v0.1 sonrası bilinen açıklar:** v0.1 dilimi *çalışan ASR + kalite raporu sözleşmesi* kapsadı. WhisperX entegrasyonu, diarization profil bazlı çağrı, profile dispatch, persistent worker ve TRT eşik kalibrasyonu **v0.1.x patch'leri** olarak ayrı sprint başlığında ilerleyecek (aşağıda).
+
+---
+
+### v0.1.x — ASR Olgunlaşma Paketleri (DEVRED)
+
+v0.1 dikey dilim kapandı; aşağıdaki 5 iş ASR'yi production v1'e hazırlar. Detaylı içerik, mevcut kod hazırlığı, ne yapılacak, niye önemli ve maliyet için: **[docs/ASR_V0_2_DEVRED_ISLER_DETAYLI.md](../docs/ASR_V0_2_DEVRED_ISLER_DETAYLI.md)**.
+
+| # | Paket | Şu an ne var | Eksik | Maliyet | Engelleyen |
+|---|---|---|---|---|---|
+| 1 | **WhisperX entegrasyonu** | `scripts/alignment_subprocess.py` subprocess sleeve smoke yeşil; `venvs/alignment/` kurulu | `core/pipelines/asr/align.py` + pipeline kancası; `quality_report.word_timestamp_coverage` + `alignment_success` doldur | 1-2 gün | — |
+| 2 | **Diarization profil bazlı çağrı** | `core/pipelines/asr/diarize.py` 214 satır gerçek kod; `tests/test_asr_diarize.py` yeşil; pyannote-audio 4.0.4 `asr` venv'de kurulu | `pipeline.py` diarize'ı import etmiyor; segment-speaker merge yok; Karar 15 graceful degradation eşiği uygulanmamış | 2-3 gün | Paket 3 |
+| 3 | **Profile dispatch (5 içerik profili)** | Karar 15 davranış matrisi dokümante (`bulten_haber`, `studio_panel`, `muzik_programi`, `film`, `belgesel`) | `profiles.py` yok; `run_asr_pipeline()` sadece MODEL profili (`fast_with_fallback`) alıyor; içerik profili parametresi yok | 1 gün | — |
+| 4 | **Persistent worker** | `_MODEL_CACHE` in-process cache; `core/jobs/worker.py` DummyWorker iskelet; `core/jobs/repository.py + step_runner.py` altyapı var | ASR-spesifik persistent worker yok; job queue gerçek değil; model cache thread-safe değil (HIGH-4) | 2-4 gün | — |
+| 5 | **TRT verisi eşik kalibrasyonu** | `scripts/asr_mediaspeech_benchmark.py` parametrik; `outputs/asr_archive_all_wav_benchmark/` (14 TRT WAV) fast/quality karşılaştırması var ama reference transcript yok | TRT iç gold transcripts (WAV+TXT çiftleri); fallback trigger rate analizi; eşik tuning | 2-3 gün (data sonrası) | **TRT veri** |
+
+**Pratik sıralama önerisi:** 3 → 2 → 1 → 5 (veri gelince) → 4. Paket 3 hızlı ve diğer her şeyin önkoşulu; paket 4 production-grade ihtiyaç, dev sırasında one-shot çağrı yeterli.
+
+**Kabul kriteri (her paket için):** 
+- Paket 1: `quality_report.word_timestamp_coverage > 0.95` ve `alignment_success = true` smoke test'te
+- Paket 2: TRT haber klibinde en az 2 farklı `speaker_id` üretilir; düşük güvende `null` graceful degrades
+- Paket 3: 5 içerik profili pipeline çağrısında tanınır; override mekanizması çalışır
+- Paket 4: 10 ardışık klip tek model yüklemesiyle işlenir; cache thread-safe
+- Paket 5: Karar 24 eşikleri (`max_uncovered_tail_seconds`, `max_uncovered_tail_ratio`, coverage tolerance) TRT verisinde sayısal gerekçeyle güncellenir
 
 ---
 
@@ -185,6 +209,7 @@ Bazı işler sürüme bağlanmadan paralel ilerler. Onları "cephe" olarak gör�
 - Mini set (5 saat) → v0.2-v0.5 sprintlerinde gerekli.
 - v1 release set (20 saat) → v1 release öncesi gerekli.
 - Sahip: geliştirici (Ç.) tek başına; aşamalı kurulur.
+- 2026-05-14: MediaSpeech TR geçici ASR probu, Common Voice TR 25 yardımcı korpus olarak indirildi. Final model/eşik kararı için TRT iç transcript havuzu esas alınacak.
 
 ### Cephe B — Hukuk / lisans / KVKK
 
@@ -194,15 +219,27 @@ Bazı işler sürüme bağlanmadan paralel ilerler. Onları "cephe" olarak gör�
 
 ### Cephe C — UI panel
 
-- Şu an Figma export iskelet + mock data.
-- v1.0 ile birlikte backend bağlanır.
-- Sözleşme uyumsuzlukları (status vocabulary, ID kavramları, eksik track'ler) v0.5 timeline birleşimi öncesi düzeltilmeli.
+- Güncel takip dosyası: `mutfak/10_UI_NOTLARI.md`.
+- Şu an React/Vite WebUI çalışma dizini mevcut: `E:\MITAS\.claude\worktrees\wonderful-vaughan-884d20\webui\`.
+- ASR WebUI ilk bağlantısı yapıldı: upload ayrı, `ASR Başlat` ayrı; `/api` proxy `localhost:8787` backend'e bağlı.
+- UI, ASR modelinin kendisi değil; ASR sonucunun görsel kabuğu. API sözleşmesi değişmedikçe model/pipeline değişiklikleri UI değişikliği gerektirmez.
+- Kalan sözleşme uyumsuzlukları (ID kavramları, CandidateRelation, ileri review akışları) v0.5 timeline birleşimi öncesi düzeltilmeli.
 
 ### Cephe D — Sunum / vitrin
 
 - Şu an aktif değil (geliştirici acele kararı geri çekti).
 - Geri gelirse batch demo (pre-processed video + UI gösterim) en güvenli seçenek.
 - Stream demo riski yüksek; v0.4 sonrası daha gerçekçi.
+
+### Cephe E — Üst Denetim / Evidence-Seeking Semantic Review
+
+- ASR/OCR/metadata çıktılarının üstünde çalışan LLM/VLM destekli kontrol katmanıdır.
+- Amaç otomatik "her şeyi düzeltmek" değil; özel isim, tarihsel anakronizm, OCR/ASR çelişkisi, quoted evidence ve bağlam kırığı yakalamaktır.
+- Model izinli aksiyon üretir: `canonical_link_only`, `replace_suggestion`, `review_only`, `fetch_frame`, `fetch_frame_crop`, `re_ocr_crop`, `re_asr_window`, `reference_check`, `red_flag`.
+- MITAS bu aksiyonlara göre kanıt toplar; model ikinci turda frame/crop/OCR/ASR/metadata paketini değerlendirir.
+- İlk MVP text-only çalışır: transcript blokları → findings JSON → deterministik kapı → `normalized_entities` + `red_flags`.
+- Görsel döngü sonraki adımda eklenir: timestamp → frame/crop → VLM/OCR → üst-denetim final kararı.
+- Model adayları ve güncel benchmark notları: `mutfak/09_UST_DENETIM_KATMANI.md`.
 
 ---
 

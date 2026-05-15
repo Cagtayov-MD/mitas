@@ -1,12 +1,71 @@
 # 00 — BURADAN BAŞLA
 
-> Bu klasör MITAS projesinin operasyonel beynidir.
-> Buraya yazılan her şey: ne yaptığımız, ne yapacağımız, neyi neden seçtiğimiz.
-> Acele kararlar değil; ince ince dokunmuş yol haritası.
+> Bu dosya mutfak klasörünün **akış ve organizasyon dosyasıdır**.
+> İçeriğin tamamını burada tutmaz; hangi durumda hangi mutfak dosyasına bakılacağını ve hangi gelişmenin nereye yazılacağını söyler.
+> Diğer mutfak dosyaları içerik, karar, plan, durum ve kanıt taşır.
 
 ---
 
-## 1. Bu klasör nedir, neden var
+## 0. İlk komut - Canlı Mutfak kaynak protokolü
+
+Bu dosyanın bu bölümü mutfak klasörünün **en üst çalışma kuralıdır**. `12_CANLI_MUTFAK_PROTOKOLU.md` bu kuralın ayrıntı kılavuzudur; çelişki olursa önce bu bölüm düzeltilir ve bağlayıcı kaynak burası kabul edilir.
+
+Kullanıcı "mutfak kaynak", "nerede kaldık", "kaldığımız yerden devam" veya benzer bir ifade kullandığında bu klasör **tek kaynak** kabul edilir.
+
+Değişmez kural:
+
+- Canonical workspace: `E:\MITAS`
+- Canlı pano: `05_AKTIF_GOREV.md`
+- Karar defteri: `06_KARARLAR_GUNLUGU.md`
+- Worktree kontrolü: `11_WORKTREE_KOORDINASYON.md`
+- Canlı mutfak protokolü: `12_CANLI_MUTFAK_PROTOKOLU.md`
+- Takip ID formatı: `PARK-*`, `TASK-*`, `DONE-*`, `TEST-*`, `DEC-*`
+- Sabit durum sözlüğü: `Açık`, `Ertelendi`, `Karar bekliyor`, `Devam ediyor`, `Yapıldı`, `Test edildi`, `Kapatıldı`, `İptal edildi`
+
+Her gerçek işlemden sonra mutfak güncellenir:
+
+- iş bittiyse `05_AKTIF_GOREV.md` yapılanlar/kapananlar bölümüne işlenir,
+- gerçek test koşulduysa komut ve sonuç `05_AKTIF_GOREV.md` içine yazılır,
+- karar verildiyse `06_KARARLAR_GUNLUGU.md` içine yazılır,
+- konu ertelendiyse `05_AKTIF_GOREV.md` sonraya bırakılanlar listesine girer,
+- ertelenen konu çözülürse açık listeden kapanan/yapılan işe taşınır.
+
+Mutfak güncellenmeden "tamamlandı" denmez. Bu klasör canlıdır; GPT, Opus, Claude Code veya başka bir yardımcı aynı takip sistemine rapor vermekle yükümlüdür.
+
+Bir iş ancak şu kayıtlar varsa tamamlandı sayılır: gerçek workspace/cwd belirtilmiş, değişen dosyalar yazılmış, test koşulduysa komut-sonuç yazılmış veya test koşulmadıysa açıkça belirtilmiş, `05_AKTIF_GOREV.md` canlı pano güncellenmiş, karar niteliği varsa `06_KARARLAR_GUNLUGU.md` işlenmiş, worktree/branch riski varsa `11_WORKTREE_KOORDINASYON.md` ile doğrulanmış.
+
+Bu bölüme yeni bir çalışma kuralı eklendiğinde aynı kural başka dosyalarda uzun uzun tekrar edilmez; ilgili ayrıntı dosyasına sadece referans verilir. Amaç tek kaynak, az tekrar, sıfır çelişkidir.
+
+---
+
+## 1. Organizasyon modeli
+
+`00_BURADAN_BASLA.md` = **akış bilgisi**.
+
+Diğer dosyalar = **içerik bilgisi**.
+
+Bu ayrım değişmez:
+
+| Soru / ihtiyaç | İlk bakılacak yer | Ne için? |
+|---|---|---|
+| Nerede kaldık? | `05_AKTIF_GOREV.md` | Canlı pano, açık işler, sıradaki adım |
+| Şunu yaptık mı? | `05_AKTIF_GOREV.md` | Yapılanlar/kapananlar ve açık park listesi |
+| Bu karar verilmiş miydi? | `06_KARARLAR_GUNLUGU.md` | Kalıcı karar ve gerekçe |
+| Sırada hangi sürüm/iş var? | `04_YOL_HARITASI.md` | Yol haritası ve v0.x/v1 akışı |
+| Genel durum ne? | `03_GUNCEL_DURUM.md` | Sistem/env/modül durumu |
+| Hangi dosya nerede? | `07_REFERANS_HARITASI.md` | Referans, output, script ve belge haritası |
+| Test klibi/dataset neydi? | `08_TEST_KLIPLER.md` | Test malzemesi ve kullanım amacı |
+| Üst-denetim / model seçimi ne durumda? | `09_UST_DENETIM_KATMANI.md` | Faz2/üst akıl kararları |
+| UI davranışı ne durumda? | `10_UI_NOTLARI.md` | UI sözleşmesi ve arayüz notları |
+| Başka worktree'de mi çalışıyoruz? | `11_WORKTREE_KOORDINASYON.md` | Canonical workspace ve worktree kontrolü |
+| Mutfak nasıl canlı tutulacak? | `12_CANLI_MUTFAK_PROTOKOLU.md` | Güncelleme, test, erteleme, kapanış kuralları |
+| Bir maddeyi nasıl takip edeceğiz? | `12_CANLI_MUTFAK_PROTOKOLU.md` | ID formatı, durum sözlüğü, tamamlandı kriteri |
+
+Yeni bir kural eklenecekse önce bu dosyanın §0 veya §1 bölümüne kısa akış kuralı olarak yazılır. Ayrıntısı ilgili içerik dosyasına gider.
+
+---
+
+## 2. Bu klasör nedir, neden var
 
 MITAS, tek kişi tarafından geliştirilen TRT arşivi için Türkçe-merkezli medya analiz sistemidir. Geliştirme süreci uzun ve katmanlıdır; Claude (web), Claude Code (Opus 4.7) ve gerekirse Codex gibi LLM araçlarıyla paralel ilerlemektedir.
 
@@ -21,7 +80,7 @@ Bu sebeple bu klasör **proje koduyla aynı disiplinle** tutulur: her karar değ
 
 ---
 
-## 2. Klasörü kim okur
+## 3. Klasörü kim okur
 
 İki muhatap var:
 
@@ -31,7 +90,7 @@ Bu sebeple bu klasör **proje koduyla aynı disiplinle** tutulur: her karar değ
 
 ---
 
-## 3. Okuma sırası (önemli — atlatma)
+## 4. Okuma sırası (önemli — atlatma)
 
 Bir LLM oturumuna başlarken dosyalar şu sırayla okunmalıdır:
 
@@ -43,27 +102,32 @@ Bir LLM oturumuna başlarken dosyalar şu sırayla okunmalıdır:
 6. **04_YOL_HARITASI.md** ← sırada neler var
 7. **06_KARARLAR_GUNLUGU.md** ← geçmişte ne karara bağlandı
 8. **07_REFERANS_HARITASI.md** ← hangi dosya nerede
+9. **08_TEST_KLIPLER.md** ← ham test klip havuzu
+10. **09_UST_DENETIM_KATMANI.md** ← Faz2 üst-denetim / "üst akıl" katmanı, model adayları
+11. **10_UI_NOTLARI.md** ← UI davranışları ve ASR/UI sözleşmesi
+12. **11_WORKTREE_KOORDINASYON.md** ← canonical workspace / Claude worktree karışıklığı protokolü
+13. **12_CANLI_MUTFAK_PROTOKOLU.md** ← mutfak kaynak / canlı pano / sonraya bırakılanlar protokolü
 
-**Yedi dakikada hepsi okunur.** Bunu yapmadan kod konuşması başlamaz.
+**On dakikada hepsi okunur.** Bunu yapmadan kod konuşması başlamaz.
 
 ---
 
-## 4. Çekirdek özet — "tek paragrafta MITAS"
+## 5. Çekirdek özet — "tek paragrafta MITAS"
 
 > MITAS, VITOS'un halefi olan, Türkçe-merkezli, web tabanlı, kurum içi çalışan video/medya analiz sistemidir. Çekirdek modülleri ASR, Face Recognition, Görsel Tagleme, OCR & Text Extraction, Audio Activity, Song Recognition, Timeline ve Review UI'dir. RTX 3090 / 24 GB VRAM hedef donanımdır. Geliştirme tek kişiliktir, LLM destekli ama disiplinlidir. Yanlış metadata eksik metadata'dan zararlıdır; her sonuç evidence ile açıklanabilir olmalıdır. Aday ilişki (candidate) ile kesin kimlik (identity) ayrı katmanlardır. Demo ile final analiz aynı şey değildir.
 
 ---
 
-## 5. Şu an aktif
+## 6. Şu an aktif
 
 **Aktif sürüm hedefi:** v0.1 — ASR dikey dilim.
-**Aktif odak:** ASR pipeline'ını düzgün şekilde ayağa kaldırmak.
-**Bloke olan:** Yok (10 Mayıs 2026 itibarıyla).
-**Sonraki adım:** `05_AKTIF_GOREV.md` içine bak.
+**Aktif odak:** ASR pipeline + Faz2 üst-denetim tasarımı. ASR production wrapper ve phase2 hook iskeletleri var; üst-denetim modeli ve kanıt döngüsü karara bağlanıyor.
+**Bloke olan:** Üst-denetim için nihai model seçimi ve benchmark seti netleşmeli.
+**Sonraki adım:** `05_AKTIF_GOREV.md` ve `09_UST_DENETIM_KATMANI.md` içine bak.
 
 ---
 
-## 6. Sürüm ve güncelleme disiplini
+## 7. Sürüm ve güncelleme disiplini
 
 Her dosyanın başında **son güncelleme tarihi** ve **son değişen bölüm** yazar.
 Karar değiştiğinde:
@@ -75,7 +139,7 @@ Bu klasör **canlıdır**. Statik bir doküman değil, projenin nabzı.
 
 ---
 
-## 7. Bu klasör neye dokunmaz
+## 8. Bu klasör neye dokunmaz
 
 Bu klasör aşağıdakileri **kapsamaz**:
 
@@ -88,7 +152,7 @@ Bu klasörün görevi **yön vermek ve hatırlatmaktır**, teknik detayı dökü
 
 ---
 
-## 8. LLM yardımcıya tek bir kural
+## 9. LLM yardımcıya tek bir kural
 
 Eğer bir LLM oturumunda bu klasörü açtıysan ve sen Claude / Claude Code / Codex isen:
 
@@ -102,7 +166,7 @@ Bu kurallar `02_CALISMA_DISIPLINI.md` dosyasında genişletilmiştir.
 
 ---
 
-## 9. Son not
+## 10. Son not
 
 Bu klasör beklentinin altında kalırsa hatadır.
 Ama beklentinin **üstünde** ya da **dışında** detay eklenmemelidir.

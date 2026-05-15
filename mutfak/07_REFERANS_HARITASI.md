@@ -1,7 +1,7 @@
 # 07 — REFERANS HARİTASI
 
-> Son güncelleme: 2026-05-11
-> Son değişen bölüm: test klip envanteri ve lokal git
+> Son güncelleme: 2026-05-14
+> Son değişen bölüm: UI notları ve aktif WebUI çalışma dizini
 
 Bu dosya MITAS projesindeki **tüm önemli dosyaların ve klasörlerin haritasıdır**. Hangi soruya hangi dosyada cevap aranır, hangi karar nereye yazılır. LLM oturumu açan bir asistanın "şu dosyaya bak" diyebilmesi için gerekli rehber.
 
@@ -26,7 +26,7 @@ E:\MITAS\
 ├── locks/                 ← Her venv için freeze + inspect
 ├── benchmark_templates/   ← Benchmark YAML şablonları
 ├── models/                ← Model cache (asr/faster-whisper)
-├── cache/                 ← Genel cache (1302 öğe)
+├── cache/                 ← Genel cache; external_datasets altında MediaSpeech/Common Voice ham verisi
 ├── venvs/                 ← modüler venv'ler
 ├── testklipler/           ← Ham test video/ses havuzu (gitignore)
 ├── tmp/                   ← Kurulum geçici dosyaları
@@ -66,6 +66,8 @@ E:\MITAS\
 → `MITAS_Master_Plan_Denetimli_v5.md` §2.1
 → `docs/MITAS_ASR_Torch_Env_Lock_v1.md`
 → `docs/MITAS_Faster_Whisper_Env_Lock_NoDownload_Guard_v1.md`
+→ Güncel operasyonel karar: `mutfak/06_KARARLAR_GUNLUGU.md` → 2026-05-14 / 23-24
+→ Kod: `core/pipelines/asr/transcribe.py`, `core/pipelines/asr/quality.py`
 
 ### "Hangi venv'de hangi paket var?"
 
@@ -88,13 +90,27 @@ E:\MITAS\
 
 ### "UI panel nerede, durumu ne?"
 
-→ Ayrı zip dosyası: **Medya_Yapay_Zeka_Kontrol_Paneli.zip** (geliştirici dağıtımı)
-→ Durum + sapma listesi: `mutfak/03_GUNCEL_DURUM.md` §8
+→ Güncel UI takip dosyası: `mutfak/10_UI_NOTLARI.md`
+→ Aktif çalışma dizini: `E:\MITAS\.claude\worktrees\wonderful-vaughan-884d20\webui\`
+→ Durum özeti: `mutfak/03_GUNCEL_DURUM.md` §8
 
 ### "Test klipleri nerede, hangisi ne için?"
 
 → `mutfak/08_TEST_KLIPLER.md`
 → Ham dosyalar: `E:\MITAS\testklipler\`
+
+### "Dış Türkçe transcript probu nerede?"
+
+→ İnceleme: `outputs/external_turkish_transcripts_review.md`
+→ MediaSpeech ham veri: `E:\MITAS\cache\external_datasets\mediaspeech_tr\`
+→ Common Voice ham veri: `E:\MITAS\cache\external_datasets\common_voice_tr_25\`
+→ 20 segment ASR benchmark: `outputs/external_turkish_transcripts_asr_smoke_20\benchmark_results.md`
+→ Script: `scripts/asr_mediaspeech_benchmark.py`
+
+### "Faz2 üst akıl / model seçimi / kanıt isteyen review döngüsü nedir?"
+
+→ `mutfak/09_UST_DENETIM_KATMANI.md`
+→ İlgili kararlar: `mutfak/06_KARARLAR_GUNLUGU.md` → 2026-05-13 / 17-20
 
 ### "LLM ile çalışırken nasıl davranılır?"
 
@@ -148,7 +164,7 @@ core/
     └── timeline.py             ← TimelineEvent
 ```
 
-**Pipeline kodu nereye gelecek?** Henüz yok. Öneri: `core/pipelines/asr/`, `core/pipelines/face/` gibi alt klasörler. Sprint başında karar verilir.
+**Pipeline kodu nereye gelecek?** ASR için `core/pipelines/asr/` altında production wrapper ve phase2 hook iskeleti oluştu. Diğer modüller için aynı desen (`core/pipelines/face/`, `core/pipelines/ocr/` vb.) beklenir.
 
 ---
 
@@ -334,17 +350,29 @@ Versiyon kontrolüne **alınmaz**.
 
 ---
 
-## 16. UI Panel (ayrı dizin)
+## 16. UI Panel
 
-`Medya_Yapay_Zeka_Kontrol_Paneli/` — geliştiricinin Figma export ile oluşturduğu UI iskelet. Henüz proje dizinine entegre değil, ayrı durur.
+Güncel UI takip yeri:
+
+`mutfak/10_UI_NOTLARI.md`
+
+Aktif çalışma dizini:
+
+`E:\MITAS\.claude\worktrees\wonderful-vaughan-884d20\webui\`
+
+İlk kaynak:
+
+`Medya_Yapay_Zeka_Kontrol_Paneli.zip` — geliştiricinin Figma export ile oluşturduğu UI iskelet.
 
 İçindekiler:
 - React + Vite + Tailwind + shadcn/ui
 - `src/app/components/` — UI bileşenleri
-- `src/app/mock-data.ts` — mock veri
+- `src/app/asr-api.ts` — ASR API köprüsü
 - `guidelines/Guidelines.md` — UI guideline'ı
 
-Düzeltme listesi: `mutfak/06_KARARLAR_GUNLUGU.md` → Açık konular O5.
+Düzeltme listesi ve yapılan değişiklikler: `mutfak/10_UI_NOTLARI.md`.
+
+Kalıcı ürün kararları: `mutfak/06_KARARLAR_GUNLUGU.md`.
 
 ---
 
@@ -362,6 +390,22 @@ Uzun ve zorlayıcı benchmark adayları:
 - `2.mp4`, `3.mp4` — Türkçe film + jenerik
 - `4.mp4` — atletizm şampiyonası, İngilizce KJ ve çok branş
 - `5.mp4` — belgesel
+
+---
+
+## 16B. `mutfak/09_UST_DENETIM_KATMANI.md`
+
+Faz2 üst-denetim / "üst akıl" katmanının operasyonel referansıdır.
+
+İçerik:
+- evidence-seeking semantic review fikri
+- allowed action listesi
+- deterministik replace kapısı
+- model aday tablosu
+- benchmark rubriği
+- sıradaki somut işler
+
+Bu dosya, "üst model nasıl çalışacak, hangi modeller aday, nerede kalmıştık?" sorusunun ilk cevabıdır.
 
 ---
 
