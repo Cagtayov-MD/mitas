@@ -1,0 +1,22 @@
+{
+  "created_at": "2026-05-15T19:23:43.237722+00:00",
+  "source_url": "https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz",
+  "cache_dir": "E:\\MITAS\\cache\\external_datasets\\flores200",
+  "archive_path": "E:\\MITAS\\cache\\external_datasets\\flores200\\flores200_dataset.tar.gz",
+  "output_path": "E:\\MITAS\\data\\translate_eval\\flores_en_tr_100.jsonl",
+  "row_count": 100,
+  "seed": 42,
+  "first_indices": [
+    6,
+    25,
+    27,
+    30,
+    32,
+    44,
+    46,
+    71,
+    80,
+    81
+  ],
+  "empty_rows": 0
+}

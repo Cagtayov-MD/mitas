@@ -1,0 +1,32 @@
+{
+  "created_at": "2026-05-15T19:32:17.550590+00:00",
+  "eval_path": "E:\\MITAS\\data\\translate_eval\\flores_en_tr_100.jsonl",
+  "row_count": 100,
+  "device": "cuda",
+  "models": {
+    "nllb_3b": {
+      "display_name": "NLLB 3.3B CT2",
+      "comet_22": 90.6477,
+      "chrf_pp": 57.1212,
+      "p50_ms": 1137.5,
+      "p95_ms": 1891.2,
+      "mean_ms": 1187.6
+    },
+    "nllb_1b": {
+      "display_name": "NLLB 1.3B distilled CT2",
+      "comet_22": 88.9777,
+      "chrf_pp": 55.3782,
+      "p50_ms": 1142.5,
+      "p95_ms": 1892.9,
+      "mean_ms": 1184.5
+    },
+    "opus": {
+      "display_name": "OPUS-MT-TC-BIG EN-TR CT2",
+      "comet_22": 89.2172,
+      "chrf_pp": 59.0026,
+      "p50_ms": 243.0,
+      "p95_ms": 416.5,
+      "mean_ms": 261.0
+    }
+  }
+}

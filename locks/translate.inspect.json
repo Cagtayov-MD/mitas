@@ -1,0 +1,72 @@
+{
+  "created_at": "2026-05-15T18:47:39.979587+00:00",
+  "venv": "translate",
+  "python": {
+    "executable": "E:\\MITAS\\venvs\\translate\\Scripts\\python.exe",
+    "version": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0"
+  },
+  "package_count": 59,
+  "important_packages": {
+    "ctranslate2": "4.7.1",
+    "transformers": "4.46.3",
+    "tokenizers": "0.20.3",
+    "sentencepiece": "0.2.0",
+    "sacremoses": "0.1.1",
+    "huggingface-hub": "0.27.0",
+    "torch": "2.5.1+cpu",
+    "numpy": "1.26.4",
+    "unbabel-comet": "2.2.4",
+    "sacrebleu": "2.4.3",
+    "pandas": "2.2.3",
+    "PyYAML": "6.0.2",
+    "setuptools": "80.9.0",
+    "pip": "26.1.1",
+    "wheel": "0.47.0",
+    "pytorch-lightning": "2.6.1",
+    "torchmetrics": "0.10.3",
+    "scipy": "1.15.3"
+  },
+  "import_smoke": {
+    "ctranslate2": {
+      "status": "ok",
+      "version": "4.7.1"
+    },
+    "transformers": {
+      "status": "ok",
+      "version": "4.46.3"
+    },
+    "sentencepiece": {
+      "status": "ok",
+      "version": "0.2.0"
+    },
+    "comet": {
+      "status": "ok",
+      "version": "2.2.4"
+    },
+    "sacrebleu": {
+      "status": "ok",
+      "version": "2.4.3"
+    },
+    "torch": {
+      "status": "ok",
+      "version": "2.5.1+cpu"
+    },
+    "numpy": {
+      "status": "ok",
+      "version": "1.26.4"
+    },
+    "pkg_resources": {
+      "status": "ok",
+      "version": null
+    }
+  },
+  "pip_check": {
+    "returncode": 0,
+    "output": "No broken requirements found."
+  },
+  "notes": [
+    "numpy pinned to 1.26.4 because unbabel-comet==2.2.4 requires numpy<2.0.",
+    "setuptools pinned to 80.9.0 because torchmetrics==0.10.3 imports pkg_resources; setuptools>=81 removes/breaks that import path."
+  ]
+}

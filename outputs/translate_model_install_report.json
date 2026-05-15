@@ -1,0 +1,58 @@
+{
+  "created_at": "2026-05-15T18:57:51.392982+00:00",
+  "models_root": "E:\\MITAS\\models\\translate",
+  "items": [
+    {
+      "model": "nllb_3b",
+      "hf_id": "facebook/nllb-200-3.3B",
+      "status": "converted",
+      "snapshot_path": "E:\\MITAS\\models\\translate\\_hf_snapshots\\nllb-200-3.3B-hf",
+      "out_dir": "E:\\MITAS\\models\\translate\\nllb-200-3.3B-ct2-int8",
+      "quantization": "int8_float16",
+      "copy_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "sentencepiece.bpe.model"
+      ],
+      "missing_copy_files": [],
+      "model_bin_size_bytes": 3356048001,
+      "seconds": 31.036
+    },
+    {
+      "model": "nllb_1b",
+      "hf_id": "facebook/nllb-200-distilled-1.3B",
+      "status": "converted",
+      "snapshot_path": "E:\\MITAS\\models\\translate\\_hf_snapshots\\nllb-200-distilled-1.3B-hf",
+      "out_dir": "E:\\MITAS\\models\\translate\\nllb-200-distilled-1.3B-ct2-int8",
+      "quantization": "int8_float16",
+      "copy_files": [
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "sentencepiece.bpe.model"
+      ],
+      "missing_copy_files": [],
+      "model_bin_size_bytes": 1377755777,
+      "seconds": 71.389
+    },
+    {
+      "model": "opus",
+      "hf_id": "Helsinki-NLP/opus-mt-tc-big-en-tr",
+      "status": "converted",
+      "snapshot_path": "E:\\MITAS\\models\\translate\\_hf_snapshots\\opus-mt-tc-big-en-tr-hf",
+      "out_dir": "E:\\MITAS\\models\\translate\\opus-mt-tc-big-en-tr-ct2-int8",
+      "quantization": "int8",
+      "copy_files": [
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "source.spm",
+        "target.spm",
+        "vocab.json"
+      ],
+      "missing_copy_files": [],
+      "model_bin_size_bytes": 237977893,
+      "seconds": 39.024
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "created_at": "2026-05-15T19:12:35.445180+00:00",
+  "device": "cuda",
+  "samples": [
+    "Good morning.",
+    "The press conference will start in five minutes.",
+    "He scored a goal in the last minute of the match.",
+    "Mr. Prime Minister, one minute please."
+  ],
+  "items": [
+    {
+      "model": "nllb_3b",
+      "device": "cuda",
+      "status": "passed",
+      "seconds": 6.867,
+      "outputs": [
+        {
+          "src": "Good morning.",
+          "tr": "- Merhaba. - Merhaba.",
+          "latency_ms": 496.1
+        },
+        {
+          "src": "The press conference will start in five minutes.",
+          "tr": "Basın toplantısı beş dakika içinde başlayacak.",
+          "latency_ms": 398.0
+        },
+        {
+          "src": "He scored a goal in the last minute of the match.",
+          "tr": "Maçın son dakikasında bir gol attı.",
+          "latency_ms": 518.4
+        },
+        {
+          "src": "Mr. Prime Minister, one minute please.",
+          "tr": "Sayın Başbakan, bir dakika lütfen.",
+          "latency_ms": 400.3
+        }
+      ]
+    },
+    {
+      "model": "nllb_1b",
+      "device": "cuda",
+      "status": "passed",
+      "seconds": 4.752,
+      "outputs": [
+        {
+          "src": "Good morning.",
+          "tr": "- Günaydın. - Merhaba.",
+          "latency_ms": 421.4
+        },
+        {
+          "src": "The press conference will start in five minutes.",
+          "tr": "Basın toplantısı beş dakika sonra başlayacak.",
+          "latency_ms": 450.1
+        },
+        {
+          "src": "He scored a goal in the last minute of the match.",
+          "tr": "Maçın son dakikasında bir gol attı.",
+          "latency_ms": 539.9
+        },
+        {
+          "src": "Mr. Prime Minister, one minute please.",
+          "tr": "Sayın Başbakan, bir dakika lütfen.",
+          "latency_ms": 438.5
+        }
+      ]
+    },
+    {
+      "model": "opus",
+      "device": "cuda",
+      "status": "passed",
+      "seconds": 1.041,
+      "outputs": [
+        {
+          "src": "Good morning.",
+          "tr": "Günaydın.",
+          "latency_ms": 51.5
+        },
+        {
+          "src": "The press conference will start in five minutes.",
+          "tr": "Basın toplantısı beş dakika içinde başlayacak.",
+          "latency_ms": 76.6
+        },
+        {
+          "src": "He scored a goal in the last minute of the match.",
+          "tr": "Maçın son dakikasında bir gol attı.",
+          "latency_ms": 101.9
+        },
+        {
+          "src": "Mr. Prime Minister, one minute please.",
+          "tr": "Sayın Başbakan, bir dakika lütfen.",
+          "latency_ms": 82.7
+        }
+      ]
+    }
+  ]
+}
