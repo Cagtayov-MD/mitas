@@ -185,6 +185,10 @@ def evaluate_result_safety(
     word_count: int,
     speech_seconds: float,
     *,
+    expected_speech_end: float | None = None,
+    transcript_last_end: float | None = None,
+    max_uncovered_tail_seconds: float = 3.0,
+    max_uncovered_tail_ratio: float = 0.25,
     max_repetition_run: int = 20,
     max_token_length: int = 80,
     max_words_per_second: float = 5.0,
@@ -205,6 +209,28 @@ def evaluate_result_safety(
     )
     diagnostics["words_per_second"] = round(words_per_second, 2)
 
+    uncovered_tail_seconds = 0.0
+    uncovered_tail_ratio = 0.0
+    effective_max_tail_seconds = max_uncovered_tail_seconds
+    if expected_speech_end is not None:
+        expected_speech_end = max(0.0, expected_speech_end)
+        diagnostics["expected_speech_end"] = round(expected_speech_end, 3)
+        if transcript_last_end is None:
+            diagnostics["transcript_last_end"] = None
+            uncovered_tail_seconds = expected_speech_end
+        else:
+            transcript_last_end = max(0.0, transcript_last_end)
+            diagnostics["transcript_last_end"] = round(transcript_last_end, 3)
+            uncovered_tail_seconds = max(0.0, expected_speech_end - transcript_last_end)
+        if expected_speech_end > 0.0:
+            uncovered_tail_ratio = uncovered_tail_seconds / expected_speech_end
+            # Audit HIGH-3: 3s mutlak eşik kisa kliplerde olu bolge birakir;
+            # klip suresine olcekle, mevcut uzun-klip davranisi 3s'de kalir.
+            effective_max_tail_seconds = min(max_uncovered_tail_seconds, expected_speech_end * 0.15)
+    diagnostics["uncovered_tail_seconds"] = round(uncovered_tail_seconds, 3)
+    diagnostics["uncovered_tail_ratio"] = round(uncovered_tail_ratio, 4)
+    diagnostics["effective_max_tail_seconds"] = round(effective_max_tail_seconds, 3)
+
     if is_collapsed:
         return ResultSafetyDecision(
             safe=False,
@@ -223,6 +249,16 @@ def evaluate_result_safety(
         return ResultSafetyDecision(
             safe=False,
             failure_reason=f"word_density_anomaly:wps={words_per_second:.2f}",
+            diagnostics=diagnostics,
+        )
+
+    if (
+        uncovered_tail_seconds >= effective_max_tail_seconds
+        and uncovered_tail_ratio >= max_uncovered_tail_ratio
+    ):
+        return ResultSafetyDecision(
+            safe=False,
+            failure_reason=f"tail_gap_uncovered:gap={uncovered_tail_seconds:.2f}s",
             diagnostics=diagnostics,
         )
 

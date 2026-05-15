@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 from typing import Any, Literal
 
 from core.pipelines.asr.normalize import PROJECT_ROOT
@@ -39,9 +40,18 @@ class TranscribeParams:
     """faster-whisper transcribe() parameters."""
 
     language: str | None = "tr"
-    multilingual: bool = False
+    # Karar 14 (2026-05-11): multilingual=True default. TRT haber arsiv
+    # code-switching + crash containment icin pipeline genelinde sabit.
+    multilingual: bool = True
     initial_prompt: str | None = None
-    condition_on_previous_text: bool = True
+    # Karar 27 (2026-05-14): condition_on_previous_text=False default. Operasyonel
+    # tum scriptler ve legacy yol False kullaniyor; True production tek istisna idi.
+    # True ile repetition_collapse / outro hallucination patolojileri context
+    # uzerinden segmentten segmente yayiliyor; quality.py kalkanlari bunlari
+    # yakalayip fallback'i tetikliyor. False bu dongunu kirar, large-v3 fallback
+    # yukunu azaltir. TRT kalibrasyonu (audit devreden is 5) sirasinda A/B
+    # olculecek; True objektif kazanirsa yeni Karar ile geri alinir.
+    condition_on_previous_text: bool = False
     vad_filter: bool = False
     word_timestamps: bool = False
     temperature: tuple[float, ...] = (0.0, 0.2, 0.4)
@@ -53,29 +63,37 @@ class TranscribeParams:
 DEFAULT_TRANSCRIBE_PARAMS = TranscribeParams()
 
 _MODEL_CACHE: dict[tuple[str, str, str], Any] = {}
+_MODEL_CACHE_LOCK = Lock()
 
 
 def load_model(config: ModelConfig) -> Any:
     """Load a faster-whisper model with a small in-process cache."""
     cache_key = (str(config.model_path), config.device, config.compute_type)
-    if cache_key in _MODEL_CACHE:
-        return _MODEL_CACHE[cache_key]
+    cached = _MODEL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
 
-    try:
-        from faster_whisper import WhisperModel
-    except ImportError as exc:
-        raise RuntimeError("faster-whisper is not installed") from exc
+    with _MODEL_CACHE_LOCK:
+        cached = _MODEL_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
 
-    model = WhisperModel(
-        str(config.model_path),
-        device=config.device,
-        compute_type=config.compute_type,
-        local_files_only=True,
-    )
-    _MODEL_CACHE[cache_key] = model
-    return model
+        try:
+            from faster_whisper import WhisperModel
+        except ImportError as exc:
+            raise RuntimeError("faster-whisper is not installed") from exc
+
+        model = WhisperModel(
+            str(config.model_path),
+            device=config.device,
+            compute_type=config.compute_type,
+            local_files_only=True,
+        )
+        _MODEL_CACHE[cache_key] = model
+        return model
 
 
 def clear_model_cache() -> None:
     """Clear cached model instances for tests or memory pressure."""
-    _MODEL_CACHE.clear()
+    with _MODEL_CACHE_LOCK:
+        _MODEL_CACHE.clear()

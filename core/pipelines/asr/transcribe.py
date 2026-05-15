@@ -36,7 +36,12 @@ TRANSCRIBE_VAD_FILTER = False
 DEFAULT_CHUNK_PADDING_SECONDS = 1.5
 _BUNDLED_FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
 DEFAULT_FFMPEG_EXECUTABLE = str(_BUNDLED_FFMPEG) if _BUNDLED_FFMPEG.exists() else "ffmpeg"
-CRITICAL_FALLBACK_DROP_PREFIXES = ("repetition_collapse", "long_token_artifact")
+CRITICAL_FALLBACK_DROP_PREFIXES = (
+    "repetition_collapse",
+    "long_token_artifact",
+    "very_low_logprob_short_text",
+    "multi_signal_low_quality",
+)
 
 
 class AsrPipelineError(RuntimeError):
@@ -111,19 +116,45 @@ def transcribe(
     if vad_segments is None:
         vad_result = run_silero_vad(path)
         vad_segments = vad_result.speech_segments
+        vad_speech_seconds = vad_result.speech_seconds
+        vad_speech_ratio = vad_result.speech_ratio
+    else:
+        vad_speech_seconds = round(sum(segment.duration for segment in vad_segments), 3)
+        vad_speech_ratio = (
+            round(min(1.0, vad_speech_seconds / audio_duration), 6) if audio_duration > 0.0 else 0.0
+        )
+    vad_segment_count = len(vad_segments)
 
     if not vad_segments:
-        return _empty_result(path, audio_duration, profile, elapsed_seconds=perf_counter() - started)
+        return _empty_result(
+            path,
+            audio_duration,
+            profile,
+            elapsed_seconds=perf_counter() - started,
+            vad_speech_seconds=vad_speech_seconds,
+            vad_speech_ratio=vad_speech_ratio,
+            vad_segment_count=vad_segment_count,
+        )
 
     chunks = build_merged_chunks(vad_segments, audio_duration=audio_duration)
     if not chunks:
-        return _empty_result(path, audio_duration, profile, elapsed_seconds=perf_counter() - started)
+        return _empty_result(
+            path,
+            audio_duration,
+            profile,
+            elapsed_seconds=perf_counter() - started,
+            vad_speech_seconds=vad_speech_seconds,
+            vad_speech_ratio=vad_speech_ratio,
+            vad_segment_count=vad_segment_count,
+        )
 
+    expected_speech_end = _expected_speech_end(vad_segments)
     quality_cfg = quality_config or QualityConfig()
     safety_kwargs = safety_config or {}
     fallback_triggered = False
     fallback_reason = None
     fallback_time = 0.0
+    selection_reason = None
 
     if profile == "quality":
         run_result = _run_single_pass(
@@ -131,28 +162,33 @@ def transcribe(
             chunks,
             QUALITY_MODEL,
             quality_cfg,
+            expected_speech_end=expected_speech_end,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
         profile_used = "quality"
         model_name = QUALITY_MODEL.name
+        selection_reason = "profile_quality_requested"
     elif profile == "fast":
         run_result = _run_single_pass(
             path,
             chunks,
             FAST_MODEL,
             quality_cfg,
+            expected_speech_end=expected_speech_end,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
         profile_used = "fast"
         model_name = FAST_MODEL.name
+        selection_reason = "profile_fast_requested"
     elif profile == "fast_with_fallback":
         fast_result = _run_single_pass(
             path,
             chunks,
             FAST_MODEL,
             quality_cfg,
+            expected_speech_end=expected_speech_end,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
@@ -161,21 +197,27 @@ def transcribe(
             run_result = fast_result
             profile_used = "fast"
             model_name = FAST_MODEL.name
+            selection_reason = "fast_passed_fallback_checks"
         else:
             fallback_started = perf_counter()
-            run_result = _run_single_pass(
+            quality_result = _run_single_pass(
                 path,
                 chunks,
                 QUALITY_MODEL,
                 quality_cfg,
+                expected_speech_end=expected_speech_end,
                 safety_kwargs=safety_kwargs,
                 ffmpeg_executable=ffmpeg_executable,
             )
             fallback_time = perf_counter() - fallback_started
             fallback_triggered = True
             fallback_reason = fast_failure
-            profile_used = "quality"
-            model_name = QUALITY_MODEL.name
+            run_result, profile_used, model_name, selection_reason = _select_fallback_result(
+                fast_result,
+                quality_result,
+                fast_failure=fast_failure,
+                expected_speech_end=expected_speech_end,
+            )
     else:
         raise AsrPipelineError(f"Unknown ASR profile: {profile}")
 
@@ -196,6 +238,7 @@ def transcribe(
         normalized_transcript=None,
         quality_drops=run_result["drops"],
         safety=run_result["safety"],
+        selection_reason=selection_reason,
         timing=TranscribeTiming(
             total_seconds=round(total_time, 3),
             chunk_count=len(chunks),
@@ -204,6 +247,9 @@ def transcribe(
         ),
         speaker_segments=[],
         normalized_entities=[],
+        vad_speech_seconds=vad_speech_seconds,
+        vad_speech_ratio=vad_speech_ratio,
+        vad_segment_count=vad_segment_count,
     )
 
 
@@ -213,6 +259,7 @@ def _run_single_pass(
     model_config: ModelConfig,
     quality_config: QualityConfig,
     *,
+    expected_speech_end: float | None,
     safety_kwargs: dict[str, Any],
     ffmpeg_executable: str,
     transcribe_params: TranscribeParams = DEFAULT_TRANSCRIBE_PARAMS,
@@ -264,13 +311,17 @@ def _run_single_pass(
             )
 
     transcript_text = " ".join(segment.text for segment in clean_segments).strip()
-    speech_seconds = max(sum(segment.end - segment.start for segment in clean_segments), 1.0)
-    safety = evaluate_result_safety(
-        transcript_text=transcript_text,
-        word_count=len(transcript_text.split()),
-        speech_seconds=speech_seconds,
+    speech_seconds = sum(segment.end - segment.start for segment in clean_segments)
+    transcript_last_end = max((segment.end for segment in clean_segments), default=None)
+    safety_inputs = {
+        "transcript_text": transcript_text,
+        "word_count": len(transcript_text.split()),
+        "speech_seconds": speech_seconds,
+        "expected_speech_end": expected_speech_end,
+        "transcript_last_end": transcript_last_end,
         **safety_kwargs,
-    )
+    }
+    safety = evaluate_result_safety(**safety_inputs)
 
     return {
         "raw_segments": raw_segments,
@@ -347,13 +398,112 @@ def _map_production_segments(raw_segments: Iterable[Any], info: Any, *, chunk: M
 
 
 def _fallback_failure_reason(run_result: dict[str, Any]) -> str | None:
-    safety = run_result["safety"]
-    if not safety.safe:
-        return safety.failure_reason or "safety_failed"
+    # Drop reasons surfaced first: a critical drop (repetition, long-token,
+    # very-low-logprob, multi-signal) often causes the downstream tail gap,
+    # so the drop is the more informative root cause for telemetry.
     for drop in run_result["drops"]:
         if drop.reason.startswith(CRITICAL_FALLBACK_DROP_PREFIXES):
             return f"quality_drop:{drop.reason}"
+    safety = run_result["safety"]
+    if not safety.safe:
+        return safety.failure_reason or "safety_failed"
     return None
+
+
+def _select_fallback_result(
+    fast_result: dict[str, Any],
+    quality_result: dict[str, Any],
+    *,
+    fast_failure: str,
+    expected_speech_end: float | None,
+    coverage_tolerance_seconds: float = 1.0,
+    coverage_tolerance_ratio: float = 0.05,
+) -> tuple[dict[str, Any], str, str, str]:
+    """Pick between fast and fallback (quality) results with honest reasoning.
+
+    Order matters: when both passes are unsafe we MUST report that explicitly
+    rather than silently returning fast under a "quality_unsafe" reason
+    (audit HIGH-1). When only one side is unsafe we prefer the safe side.
+    Otherwise we prefer the quality result unless its coverage is materially
+    worse than fast's (kept_fast:quality_coverage_worse).
+    """
+    fast_safety = fast_result["safety"]
+    quality_safety = quality_result["safety"]
+    fast_last_end = _last_clean_segment_end(fast_result)
+    quality_last_end = _last_clean_segment_end(quality_result)
+    fast_coverage = _coverage_ratio(fast_last_end, expected_speech_end)
+    quality_coverage = _coverage_ratio(quality_last_end, expected_speech_end)
+
+    if not fast_safety.safe and not quality_safety.safe:
+        fast_reason = fast_safety.failure_reason or "safety_failed"
+        quality_reason = quality_safety.failure_reason or "safety_failed"
+        if quality_last_end >= fast_last_end:
+            return (
+                quality_result,
+                "quality",
+                QUALITY_MODEL.name,
+                "degraded_both_unsafe:fast="
+                f"{fast_reason}:quality={quality_reason}:kept=quality:"
+                f"fast_end={fast_last_end:.2f}:quality_end={quality_last_end:.2f}",
+            )
+        return (
+            fast_result,
+            "fast",
+            FAST_MODEL.name,
+            "degraded_both_unsafe:fast="
+            f"{fast_reason}:quality={quality_reason}:kept=fast:"
+            f"fast_end={fast_last_end:.2f}:quality_end={quality_last_end:.2f}",
+        )
+
+    if not quality_safety.safe:
+        return (
+            fast_result,
+            "fast",
+            FAST_MODEL.name,
+            f"kept_fast:quality_unsafe:{quality_safety.failure_reason or 'safety_failed'}",
+        )
+
+    if not fast_safety.safe:
+        return (
+            quality_result,
+            "quality",
+            QUALITY_MODEL.name,
+            f"selected_quality:fast_unsafe:{fast_failure}",
+        )
+
+    quality_is_much_shorter = (
+        quality_last_end + coverage_tolerance_seconds < fast_last_end
+        and quality_coverage + coverage_tolerance_ratio < fast_coverage
+    )
+    if quality_is_much_shorter:
+        return (
+            fast_result,
+            "fast",
+            FAST_MODEL.name,
+            "kept_fast:quality_coverage_worse:"
+            f"fast_end={fast_last_end:.2f}:quality_end={quality_last_end:.2f}",
+        )
+
+    return (
+        quality_result,
+        "quality",
+        QUALITY_MODEL.name,
+        f"selected_quality:fallback_reason={fast_failure}",
+    )
+
+
+def _last_clean_segment_end(run_result: dict[str, Any]) -> float:
+    return max((segment.end for segment in run_result["clean_segments"]), default=0.0)
+
+
+def _coverage_ratio(last_end: float, expected_speech_end: float | None) -> float:
+    if expected_speech_end is None or expected_speech_end <= 0.0:
+        return 0.0
+    return max(0.0, min(1.0, last_end / expected_speech_end))
+
+
+def _expected_speech_end(vad_segments: Sequence[VadSpeechSegment]) -> float | None:
+    return max((segment.end for segment in vad_segments), default=None)
 
 
 def _build_verbatim(segments: list[TranscriptSegment]) -> str:
@@ -375,7 +525,16 @@ def _build_clean_paragraphs(segments: list[TranscriptSegment]) -> str:
     return "\n\n".join(" ".join(paragraph) for paragraph in paragraphs).strip()
 
 
-def _empty_result(path: Path, duration: float, profile: str, *, elapsed_seconds: float = 0.0) -> ProductionTranscribeResult:
+def _empty_result(
+    path: Path,
+    duration: float,
+    profile: str,
+    *,
+    elapsed_seconds: float = 0.0,
+    vad_speech_seconds: float | None = None,
+    vad_speech_ratio: float | None = None,
+    vad_segment_count: int | None = None,
+) -> ProductionTranscribeResult:
     return ProductionTranscribeResult(
         audio_path=path,
         audio_duration=duration,
@@ -394,6 +553,9 @@ def _empty_result(path: Path, duration: float, profile: str, *, elapsed_seconds:
         timing=TranscribeTiming(total_seconds=round(elapsed_seconds, 3), chunk_count=0, decode_seconds=0.0),
         speaker_segments=[],
         normalized_entities=[],
+        vad_speech_seconds=vad_speech_seconds,
+        vad_speech_ratio=vad_speech_ratio,
+        vad_segment_count=vad_segment_count,
     )
 
 
@@ -507,10 +669,14 @@ def _transcribe_with_chunk_dir(
     transcript = " ".join(segment.text for segment in clean_segments).strip()
     language_distribution = Counter(segment.language or "unknown" for segment in clean_segments)
     speech_seconds = sum(chunk.vad_segment.duration for chunk in chunks)
+    expected_speech_end = max((chunk.vad_segment.end for chunk in chunks), default=None)
+    transcript_last_end = max((segment.end for segment in clean_segments), default=None)
     safety = evaluate_result_safety(
         transcript_text=transcript,
         word_count=len(transcript.split()),
         speech_seconds=speech_seconds,
+        expected_speech_end=expected_speech_end,
+        transcript_last_end=transcript_last_end,
     )
 
     return TranscribeResult(

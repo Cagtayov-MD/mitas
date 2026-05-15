@@ -101,9 +101,11 @@ def test_transcribe_vad_segments_applies_quality_gate(tmp_path: Path) -> None:
         ]
     )
 
+    # VAD aligned with the kept segment so duration-aware tail-gap
+    # detection (audit HIGH-3) does not flag this stock-artifact scenario.
     result = transcribe_vad_segments(
         wav_path,
-        [VadSpeechSegment(start=0.0, end=2.0, duration=2.0)],
+        [VadSpeechSegment(start=0.0, end=1.0, duration=1.0)],
         model=model,
         chunk_output_dir=tmp_path / "chunks",
     )

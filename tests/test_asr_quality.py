@@ -205,3 +205,16 @@ class TestResultSafety:
         )
 
         assert decision.safe
+
+    def test_detects_uncovered_tail(self) -> None:
+        decision = evaluate_result_safety(
+            transcript_text="Konuşmanın sadece başı çözüldü",
+            word_count=5,
+            speech_seconds=1.0,
+            expected_speech_end=14.8,
+            transcript_last_end=7.42,
+        )
+
+        assert not decision.safe
+        assert "tail_gap_uncovered" in str(decision.failure_reason)
+        assert decision.diagnostics["uncovered_tail_seconds"] == 7.38

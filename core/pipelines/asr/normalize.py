@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+from typing import Literal
 
 
 TARGET_SAMPLE_RATE = 16_000
@@ -13,6 +14,7 @@ TARGET_CODEC_NAME = "pcm_s16le"
 TARGET_SAMPLE_FMT = "s16"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp" / "asr_normalize"
+ChannelMode = Literal["mono", "split"]
 
 
 class AudioNormalizeError(RuntimeError):
@@ -47,6 +49,7 @@ class AudioStreamInfo:
 class NormalizeResult:
     input_path: Path
     output_path: Path
+    outputs: dict[str, Path]
     input_stream: AudioStreamInfo
     output_stream: AudioStreamInfo
     reused_input: bool
@@ -92,14 +95,28 @@ def normalize_audio(
     output_dir: str | Path | None = None,
     ffmpeg_executable: str = "ffmpeg",
     ffprobe_executable: str = "ffprobe",
+    channel_mode: ChannelMode = "mono",
 ) -> NormalizeResult:
     source = Path(input_path)
     input_stream = probe_audio_stream(source, ffprobe_executable=ffprobe_executable)
+
+    if channel_mode not in {"mono", "split"}:
+        raise AudioNormalizeError(f"Unsupported ASR channel_mode: {channel_mode}")
+
+    if channel_mode == "split":
+        return _normalize_split(
+            source,
+            input_stream=input_stream,
+            output_dir=output_dir,
+            ffmpeg_executable=ffmpeg_executable,
+            ffprobe_executable=ffprobe_executable,
+        )
 
     if input_stream.is_target_wav:
         return NormalizeResult(
             input_path=source,
             output_path=source,
+            outputs={"mono": source},
             input_stream=input_stream,
             output_stream=input_stream,
             reused_input=True,
@@ -138,6 +155,7 @@ def normalize_audio(
     return NormalizeResult(
         input_path=source,
         output_path=output_path,
+        outputs={"mono": output_path},
         input_stream=input_stream,
         output_stream=output_stream,
         reused_input=False,
@@ -145,9 +163,72 @@ def normalize_audio(
     )
 
 
-def _normalized_filename(input_path: Path) -> str:
+def _normalize_split(
+    source: Path,
+    *,
+    input_stream: AudioStreamInfo,
+    output_dir: str | Path | None,
+    ffmpeg_executable: str,
+    ffprobe_executable: str,
+) -> NormalizeResult:
+    if input_stream.channels < 2:
+        raise AudioNormalizeError(f"split channel_mode requires stereo input; got channels={input_stream.channels}")
+
+    destination_dir = Path(output_dir) if output_dir is not None else DEFAULT_OUTPUT_DIR
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    left_path = destination_dir / _normalized_filename(source, channel="L")
+    right_path = destination_dir / _normalized_filename(source, channel="R")
+
+    left_command = _split_command(ffmpeg_executable, source, left_path, source_channel=0)
+    right_command = _split_command(ffmpeg_executable, source, right_path, source_channel=1)
+    _run_command(left_command)
+    _run_command(right_command)
+
+    left_stream = probe_audio_stream(left_path, ffprobe_executable=ffprobe_executable)
+    right_stream = probe_audio_stream(right_path, ffprobe_executable=ffprobe_executable)
+    if not left_stream.is_target_wav:
+        raise AudioNormalizeError(f"Normalized L output is not in target ASR format: {left_path}", command=left_command)
+    if not right_stream.is_target_wav:
+        raise AudioNormalizeError(f"Normalized R output is not in target ASR format: {right_path}", command=right_command)
+
+    return NormalizeResult(
+        input_path=source,
+        output_path=left_path,
+        outputs={"L": left_path, "R": right_path},
+        input_stream=input_stream,
+        output_stream=left_stream,
+        reused_input=False,
+        command=left_command,
+    )
+
+
+def _split_command(ffmpeg_executable: str, source: Path, output_path: Path, *, source_channel: int) -> tuple[str, ...]:
+    return (
+        ffmpeg_executable,
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(source),
+        "-map",
+        "0:a:0",
+        "-vn",
+        "-af",
+        f"pan=mono|c0=c{source_channel}",
+        "-ar",
+        str(TARGET_SAMPLE_RATE),
+        "-acodec",
+        TARGET_CODEC_NAME,
+        str(output_path),
+    )
+
+
+def _normalized_filename(input_path: Path, *, channel: str | None = None) -> str:
     resolved = str(input_path.resolve()).encode("utf-8", errors="surrogatepass")
     digest = hashlib.sha1(resolved).hexdigest()[:10]
+    if channel is not None:
+        return f"{input_path.stem}_{digest}_{channel}_16000hz_mono_s16.wav"
     return f"{input_path.stem}_{digest}_16000hz_mono_s16.wav"
 
 

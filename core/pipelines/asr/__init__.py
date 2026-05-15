@@ -1,6 +1,8 @@
 """ASR v1.0 production pipeline."""
 
 from core.pipelines.asr.chunking import MergedChunk, build_merged_chunks
+from core.pipelines.asr.channel_analysis import ChannelDecision, decide_channel_mode, measure_lr_correlation
+from core.pipelines.asr.channel_merge import merge_channel_results, tag_result_channel
 from core.pipelines.asr.diarize import (
     AudioDiarizeError,
     DiarizationResult,
@@ -13,7 +15,19 @@ from core.pipelines.asr.diarize import (
 )
 from core.pipelines.asr.models import FAST_MODEL, QUALITY_MODEL, ModelConfig, ProfileName, clear_model_cache
 from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, NormalizeResult, normalize_audio, probe_audio_stream
+from core.pipelines.asr.merge import (
+    SpeakerMergeConfig,
+    SpeakerMergeResult,
+    merge_speakers_into_segments,
+)
 from core.pipelines.asr.pipeline import AsrPipelineRunResult, run_asr_pipeline
+from core.pipelines.asr.profiles import (
+    CONTENT_PROFILES,
+    ContentProfile,
+    ContentProfileName,
+    get_content_profile,
+    list_content_profiles,
+)
 from core.pipelines.asr.quality import (
     QualityConfig,
     ResultSafetyDecision,
@@ -24,7 +38,7 @@ from core.pipelines.asr.quality import (
     evaluate_segment,
     is_stock_artifact,
 )
-from core.pipelines.asr.result import DropRecord, ProductionTranscribeResult, TranscriptSegment, TranscribeTiming
+from core.pipelines.asr.result import ChannelDuplicateDrop, DropRecord, ProductionTranscribeResult, TranscriptSegment, TranscribeTiming
 from core.pipelines.asr.transcribe import (
     AsrPipelineError,
     AudioTranscribeError,
@@ -41,11 +55,21 @@ from core.pipelines.asr.vad import AudioVadError, VadResult, VadSpeechSegment, r
 __all__ = [
     "transcribe",
     "run_asr_pipeline",
+    "ContentProfile",
+    "ContentProfileName",
+    "CONTENT_PROFILES",
+    "get_content_profile",
+    "list_content_profiles",
+    "SpeakerMergeConfig",
+    "SpeakerMergeResult",
+    "merge_speakers_into_segments",
     "ProductionTranscribeResult",
     "AsrPipelineRunResult",
     "TranscriptSegment",
     "DropRecord",
+    "ChannelDuplicateDrop",
     "TranscribeTiming",
+    "ChannelDecision",
     "QualityConfig",
     "ProfileName",
     "ModelConfig",
@@ -54,6 +78,10 @@ __all__ = [
     "clear_model_cache",
     "MergedChunk",
     "build_merged_chunks",
+    "decide_channel_mode",
+    "measure_lr_correlation",
+    "merge_channel_results",
+    "tag_result_channel",
     "evaluate_segment",
     "evaluate_result_safety",
     "is_stock_artifact",

@@ -77,7 +77,9 @@ class TestProductionInterface:
         assert len(result.clean_segments) == 1
         assert "İzlediğiniz için teşekkür ederim" not in result.clean_transcript
         assert calls[0]["initial_prompt"] is None
-        assert calls[0]["condition_on_previous_text"] is True
+        # Karar 27 (2026-05-14): condition_on_previous_text=False default;
+        # hallucination yayilimi engellemek + operasyonel scriptlerle uyum.
+        assert calls[0]["condition_on_previous_text"] is False
 
     def test_fast_profile_drops_stock_artifacts(
         self,
@@ -125,6 +127,71 @@ class TestProductionInterface:
         assert result.profile_used == "quality"
         assert "repetition_collapse" in (result.fallback_reason or "")
         assert result.clean_transcript == "Kaliteli fallback metni"
+
+    def test_tail_gap_triggers_fallback(
+        self,
+        normalized_wav: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        def fake_load_model(config: Any) -> _FakeModel:
+            if config.name == "large-v3-turbo":
+                return _FakeModel([_FakeSegment(0.1, 1.0, "Eksik turbo metni")], [])
+            return _FakeModel([_FakeSegment(0.1, 3.8, "Tam kalite metni devam ediyor")], [])
+
+        monkeypatch.setattr(asr_transcribe, "load_model", fake_load_model)
+
+        result = transcribe(
+            normalized_wav,
+            profile="fast_with_fallback",
+            vad_segments=[VadSpeechSegment(start=0.0, end=4.0, duration=4.0)],
+        )
+
+        assert result.fallback_triggered
+        assert result.model_name == "large-v3"
+        assert result.profile_used == "quality"
+        assert "tail_gap_uncovered" in (result.fallback_reason or "")
+        assert result.selection_reason
+        assert result.selection_reason.startswith("selected_quality:fast_unsafe")
+        assert result.clean_transcript == "Tam kalite metni devam ediyor"
+
+    def test_fallback_keeps_fast_when_quality_coverage_is_worse(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # 30s VAD window so the duration-aware tail-gap floor (audit HIGH-3)
+        # keeps the quality result SAFE despite its shorter coverage, which is
+        # what lets the coverage_worse selection branch fire. WAV must match
+        # the VAD window because _map_production_segments clamps to chunk.end.
+        wav_path = tmp_path / "fixture_long.wav"
+        _write_silent_wav(wav_path, sample_rate=16_000, channels=1, seconds=30.0)
+
+        def fake_load_model(config: Any) -> _FakeModel:
+            if config.name == "large-v3-turbo":
+                return _FakeModel(
+                    [
+                        _FakeSegment(0.1, 29.5, "Turbo tam metni burada koruyor"),
+                        _FakeSegment(0.2, 0.4, "ben " * 30),
+                    ],
+                    [],
+                )
+            return _FakeModel([_FakeSegment(0.1, 27.0, "Daha kısa kalite metni burada")], [])
+
+        monkeypatch.setattr(asr_transcribe, "load_model", fake_load_model)
+
+        result = transcribe(
+            wav_path,
+            profile="fast_with_fallback",
+            vad_segments=[VadSpeechSegment(start=0.0, end=30.0, duration=30.0)],
+        )
+
+        assert result.fallback_triggered
+        assert result.model_name == "large-v3-turbo"
+        assert result.profile_used == "fast"
+        assert "repetition_collapse" in (result.fallback_reason or "")
+        assert result.selection_reason
+        assert result.selection_reason.startswith("kept_fast:quality_coverage_worse")
+        assert result.clean_transcript == "Turbo tam metni burada koruyor"
 
     def test_phase2_hooks_empty_but_present(
         self,
