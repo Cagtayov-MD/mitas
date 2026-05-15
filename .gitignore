@@ -29,6 +29,10 @@ outputs/**/*.mkv
 outputs/**/*.avi
 outputs/*_child_outputs/
 
+# Runtime artifacts
+*.log
+outputs/webui_asr_jobs/
+
 # OS/editor noise
 Thumbs.db
 Desktop.ini
