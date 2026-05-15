@@ -32,6 +32,7 @@ outputs/*_child_outputs/
 # Runtime artifacts
 *.log
 outputs/webui_asr_jobs/
+outputs/webui_translate_cache/
 
 # OS/editor noise
 Thumbs.db

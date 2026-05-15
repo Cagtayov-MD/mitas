@@ -1,0 +1,6 @@
+default_target: tr
+routes:
+  en: opus-mt-tc-big-en-tr
+  "*": nllb-200-3.3b
+fallback:
+  - nllb-200-3.3b
