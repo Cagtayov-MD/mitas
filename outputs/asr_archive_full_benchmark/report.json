@@ -1,0 +1,185 @@
+{
+  "benchmark_id": "asr_archive_full_v0_1",
+  "benchmark_name": "ASR archive full benchmark",
+  "profiles": [
+    "fast",
+    "quality"
+  ],
+  "rows": [
+    {
+      "sample_id": "baris_manco_7den_77ye_full",
+      "category": "archive_entertainment",
+      "reference_ready": true,
+      "reference_path": "E:\\MITAS\\references\\asr_archive_full\\baris_manco_7den_77ye_full.txt",
+      "draft_reference_path": "outputs\\asr_archive_full_benchmark\\draft_references\\baris_manco_7den_77ye_full.txt",
+      "speedup_quality_vs_fast": 2.492,
+      "profiles": {
+        "fast": {
+          "status": "scored",
+          "wer": 0.702,
+          "cer": 0.6184,
+          "reference_ready": true,
+          "sample_id": "baris_manco_7den_77ye_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 2790.016,
+          "runtime_seconds_wall": 142.237,
+          "runtime_seconds_reported": 142.204,
+          "runtime_per_audio_minute": 3.059,
+          "clean_word_count": 3170,
+          "clean_segment_count": 527,
+          "quality_drop_count": 9,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 4,
+            "repeated_token": "Tüt",
+            "max_token_length": 18,
+            "words_per_second": 2.38
+          }
+        },
+        "quality": {
+          "status": "scored",
+          "wer": 0.7011,
+          "cer": 0.6427,
+          "reference_ready": true,
+          "sample_id": "baris_manco_7den_77ye_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 2790.016,
+          "runtime_seconds_wall": 354.448,
+          "runtime_seconds_reported": 354.411,
+          "runtime_per_audio_minute": 7.622,
+          "clean_word_count": 3342,
+          "clean_segment_count": 591,
+          "quality_drop_count": 2,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 9,
+            "repeated_token": "düt",
+            "max_token_length": 19,
+            "words_per_second": 2.35
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "neretva_ustune_dusen_hilal_full",
+      "category": "archive_documentary",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_archive_full\\neretva_ustune_dusen_hilal_full.txt",
+      "draft_reference_path": "outputs\\asr_archive_full_benchmark\\draft_references\\neretva_ustune_dusen_hilal_full.txt",
+      "speedup_quality_vs_fast": 2.211,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "neretva_ustune_dusen_hilal_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 1980.416,
+          "runtime_seconds_wall": 76.213,
+          "runtime_seconds_reported": 76.178,
+          "runtime_per_audio_minute": 2.309,
+          "clean_word_count": 1497,
+          "clean_segment_count": 185,
+          "quality_drop_count": 4,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "neler",
+            "max_token_length": 19,
+            "words_per_second": 1.76
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "neretva_ustune_dusen_hilal_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 1980.416,
+          "runtime_seconds_wall": 168.506,
+          "runtime_seconds_reported": 168.473,
+          "runtime_per_audio_minute": 5.105,
+          "clean_word_count": 1494,
+          "clean_segment_count": 194,
+          "quality_drop_count": 3,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "neler",
+            "max_token_length": 22,
+            "words_per_second": 1.76
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "merakli_momolar_full",
+      "category": "archive_children",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_archive_full\\merakli_momolar_full.txt",
+      "draft_reference_path": "outputs\\asr_archive_full_benchmark\\draft_references\\merakli_momolar_full.txt",
+      "speedup_quality_vs_fast": 2.246,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "merakli_momolar_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 1223.083,
+          "runtime_seconds_wall": 61.887,
+          "runtime_seconds_reported": 61.855,
+          "runtime_per_audio_minute": 3.036,
+          "clean_word_count": 1199,
+          "clean_segment_count": 294,
+          "quality_drop_count": 8,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "mesela?",
+            "max_token_length": 21,
+            "words_per_second": 1.8
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "merakli_momolar_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 1223.083,
+          "runtime_seconds_wall": 139.022,
+          "runtime_seconds_reported": 138.988,
+          "runtime_per_audio_minute": 6.82,
+          "clean_word_count": 1224,
+          "clean_segment_count": 281,
+          "quality_drop_count": 5,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 5,
+            "repeated_token": "Durun",
+            "max_token_length": 21,
+            "words_per_second": 1.73
+          }
+        }
+      }
+    }
+  ],
+  "decision_hint": "awaiting_reference_transcripts"
+}

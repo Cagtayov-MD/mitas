@@ -1,0 +1,42 @@
+[
+  {
+    "path": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\clips\\common_voice_tr_47763036.mp3",
+    "tsv": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\validated.tsv",
+    "text": "Dünyanın üçüncü büyük el yazması kütüphanesi de Kum şehrinde bulunmaktadır.",
+    "up_votes": 2,
+    "down_votes": 0,
+    "notes": "Longer clean read-speech sentence with Turkish characters and named place."
+  },
+  {
+    "path": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\clips\\common_voice_tr_46645126.mp3",
+    "tsv": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\validated.tsv",
+    "text": "Tuğgeneral rütbesine yükseldi.",
+    "up_votes": 2,
+    "down_votes": 0,
+    "notes": "Short military/rank vocabulary sanity check."
+  },
+  {
+    "path": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\clips\\common_voice_tr_19942053.mp3",
+    "tsv": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\validated.tsv",
+    "text": "Siyasette temiz insanlara ihtiyacımız var.",
+    "up_votes": 2,
+    "down_votes": 0,
+    "notes": "Short public-affairs sentence."
+  },
+  {
+    "path": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\clips\\common_voice_tr_41826546.mp3",
+    "tsv": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\validated.tsv",
+    "text": "İletişim protokolü analizinde ve bilgisayar güvenliği denetiminde kullanılabilir.",
+    "up_votes": 2,
+    "down_votes": 1,
+    "notes": "Technology/security vocabulary with Turkish-specific characters."
+  },
+  {
+    "path": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\clips\\common_voice_tr_19821495.mp3",
+    "tsv": "E:\\MITAS\\cache\\external_datasets\\common_voice_tr_25\\cv-corpus-25.0-2026-03-09\\tr\\validated.tsv",
+    "text": "Referandum tarihi henüz belirlenmedi.",
+    "up_votes": 2,
+    "down_votes": 0,
+    "notes": "Short government/politics vocabulary sanity check."
+  }
+]

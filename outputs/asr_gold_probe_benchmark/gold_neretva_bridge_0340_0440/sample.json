@@ -1,0 +1,13 @@
+{
+  "sample_id": "gold_neretva_bridge_0340_0440",
+  "category": "documentary_named_entities",
+  "source_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal\\audio_16000hz_mono_s16.wav",
+  "prepared_audio_path": "outputs\\asr_gold_probe_benchmark\\gold_neretva_bridge_0340_0440\\audio_16000hz_mono_s16.wav",
+  "start_sec": 220.0,
+  "end_sec": 280.0,
+  "audio_duration": 60.0,
+  "source_duration": 1980.416,
+  "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_neretva_bridge_0340_0440.txt",
+  "review_priority": "high",
+  "notes": "Neretva/Mostar bridge segment with previous quality hallucination risk."
+}

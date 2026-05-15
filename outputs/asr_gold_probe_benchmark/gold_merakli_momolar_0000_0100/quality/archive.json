@@ -1,0 +1,75 @@
+{
+  "audio_path": "outputs\\asr_gold_probe_benchmark\\gold_merakli_momolar_0000_0100\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 100.0,
+  "model": "large-v3",
+  "profile": "quality",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Meraklı Momolar başlıyor. Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar. Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba. Sana da merhaba.",
+    "clean": "Meraklı Momolar başlıyor.\n\nMama buna hayran olur bayılır, kuzucuklar taze çimen ararlar. Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba. Sana da merhaba.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 61.25,
+      "end": 68.25,
+      "text": "Meraklı Momolar başlıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.22949219743410745,
+      "no_speech_prob": 0.227294921875,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 77.5,
+      "end": 88.5,
+      "text": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.23359375476837158,
+      "no_speech_prob": 0.43017578125,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 89.85,
+      "end": 95.65,
+      "text": "Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.17187499372582687,
+      "no_speech_prob": 0.03656005859375,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 97.0,
+      "end": 99.06,
+      "text": "Sana da merhaba.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5224609524011612,
+      "no_speech_prob": 0.1485595703125,
+      "source_chunk_index": 4
+    }
+  ],
+  "quality": {
+    "drops": 1,
+    "drop_reasons": {
+      "stock_artifact:altyazı m.k.": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 14.803,
+    "chunk_count": 5,
+    "decode_seconds": 5.443,
+    "fallback_seconds": 0.0
+  }
+}

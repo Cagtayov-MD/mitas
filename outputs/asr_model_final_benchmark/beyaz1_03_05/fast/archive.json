@@ -1,0 +1,358 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\beyaz1_03_05\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 120.0,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Konusu ne filmin? Grafik inanılmaz. Konusu şu an pek anlatmak istemiyorum. Sürpriz olsun. Peki o kadar çok dizi film varken piyasada böyle bir ürkmediniz mi? Yani biz de bir film yapıyoruz. Gerçi tabii herkesin aksiyonu farklı, karizması farklı. Kendine güveniyorsan tabii ki yaparsın. Ama bu dönemde çok fazla film var. Hiç böyle bir ürküntü falan gelmedi mi? Şimdi Beyaz bundan 4 sene önce de bana dizi teklifi geliyordu. Benim için bana dizi teklif edilmesi çok cazip geliyordu bana. Gözümde dizi güzel bir şeydi, yapmak istediğim bir projeydi. Bu ama dizi film değil hala, bu sinema filmi. Şu an sinema, yalnız filmin konusu dizi olarak devam edecek. Anladım. Dizi başka bir konuyla devam ediyor. Aynı kadro, aynı konu. Esin peki senin daha önce bir sinema deneyimin var mıydı? Bir tane 90 yılında var, Tatar Ramazan isimli bir sinema filmi olmuştu. Ramazan'ı oynamıyordun, Tatar'ı oynamıyordun. Tatar kızını oynuyordun. Tatar kızını oynuyordun. Var mı Tatarlık ailede? Hiç yok, hayır. Yok, göçmenlik var mı? Gözler mavi çünkü. Evet. Evet. Evet Sevim Aval Ankara'dan aramış telefonumuzda bekliyor hatımızda. Alo Sevim Hanım iyi akşamlar iyi geceler. İyi geceler. Nasılsınız? Teşekkür ederim iyiyim sizler nasılsınız? Çok teşekkür ederiz bizler de iyiyiz. Arkadaşlar da oturduk sohbet ediyoruz. Var mı söylemek istediğiniz sormak istediğiniz bir şeyler? Öncelikle Beyaz programını çok severek ama çok severek ve beğenerek izliyorum. Sağ olun teşekkür ederiz. Artık programının hep böyle sürmesini istiyorum. İnşallah. Önce sana bir sorum var.",
+    "clean": "Konusu ne filmin? Grafik inanılmaz. Konusu şu an pek anlatmak istemiyorum. Sürpriz olsun. Peki o kadar çok dizi film varken piyasada böyle bir ürkmediniz mi? Yani biz de bir film yapıyoruz. Gerçi tabii herkesin aksiyonu farklı, karizması farklı. Kendine güveniyorsan tabii ki yaparsın. Ama bu dönemde çok fazla film var. Hiç böyle bir ürküntü falan gelmedi mi? Şimdi Beyaz bundan 4 sene önce de bana dizi teklifi geliyordu. Benim için bana dizi teklif edilmesi çok cazip geliyordu bana. Gözümde dizi güzel bir şeydi, yapmak istediğim bir projeydi. Bu ama dizi film değil hala, bu sinema filmi. Şu an sinema, yalnız filmin konusu dizi olarak devam edecek. Anladım. Dizi başka bir konuyla devam ediyor. Aynı kadro, aynı konu.\n\nEsin peki senin daha önce bir sinema deneyimin var mıydı? Bir tane 90 yılında var, Tatar Ramazan isimli bir sinema filmi olmuştu. Ramazan'ı oynamıyordun, Tatar'ı oynamıyordun. Tatar kızını oynuyordun. Tatar kızını oynuyordun. Var mı Tatarlık ailede? Hiç yok, hayır. Yok, göçmenlik var mı? Gözler mavi çünkü. Evet. Evet.\n\nEvet Sevim Aval Ankara'dan aramış telefonumuzda bekliyor hatımızda. Alo Sevim Hanım iyi akşamlar iyi geceler. İyi geceler. Nasılsınız? Teşekkür ederim iyiyim sizler nasılsınız? Çok teşekkür ederiz bizler de iyiyiz. Arkadaşlar da oturduk sohbet ediyoruz. Var mı söylemek istediğiniz sormak istediğiniz bir şeyler? Öncelikle Beyaz programını çok severek ama çok severek ve beğenerek izliyorum. Sağ olun teşekkür ederiz. Artık programının hep böyle sürmesini istiyorum. İnşallah. Önce sana bir sorum var.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 2.0,
+      "text": "Konusu ne filmin?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 2.0,
+      "end": 4.0,
+      "text": "Grafik inanılmaz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 4.0,
+      "end": 6.0,
+      "text": "Konusu şu an pek anlatmak istemiyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 6.0,
+      "end": 7.0,
+      "text": "Sürpriz olsun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 7.0,
+      "end": 10.0,
+      "text": "Peki o kadar çok dizi film varken piyasada böyle bir ürkmediniz mi?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 10.0,
+      "end": 12.0,
+      "text": "Yani biz de bir film yapıyoruz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 12.0,
+      "end": 16.0,
+      "text": "Gerçi tabii herkesin aksiyonu farklı, karizması farklı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 16.0,
+      "end": 18.0,
+      "text": "Kendine güveniyorsan tabii ki yaparsın.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 18.0,
+      "end": 20.0,
+      "text": "Ama bu dönemde çok fazla film var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 20.0,
+      "end": 22.0,
+      "text": "Hiç böyle bir ürküntü falan gelmedi mi?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 22.0,
+      "end": 25.0,
+      "text": "Şimdi Beyaz bundan 4 sene önce de bana dizi teklifi geliyordu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 25.0,
+      "end": 30.0,
+      "text": "Benim için bana dizi teklif edilmesi çok cazip geliyordu bana.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 30.15,
+      "end": 34.85,
+      "text": "Gözümde dizi güzel bir şeydi, yapmak istediğim bir projeydi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 34.85,
+      "end": 36.65,
+      "text": "Bu ama dizi film değil hala, bu sinema filmi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 36.65,
+      "end": 39.65,
+      "text": "Şu an sinema, yalnız filmin konusu dizi olarak devam edecek.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 39.65,
+      "end": 40.65,
+      "text": "Anladım.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 40.65,
+      "end": 42.15,
+      "text": "Dizi başka bir konuyla devam ediyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 42.15,
+      "end": 43.15,
+      "text": "Aynı kadro, aynı konu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 45.15,
+      "end": 47.65,
+      "text": "Esin peki senin daha önce bir sinema deneyimin var mıydı?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 47.65,
+      "end": 50.65,
+      "text": "Bir tane 90 yılında var, Tatar Ramazan isimli bir sinema filmi olmuştu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 50.65,
+      "end": 53.15,
+      "text": "Ramazan'ı oynamıyordun, Tatar'ı oynamıyordun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 53.15,
+      "end": 54.15,
+      "text": "Tatar kızını oynuyordun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 54.15,
+      "end": 55.15,
+      "text": "Tatar kızını oynuyordun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 55.15,
+      "end": 56.15,
+      "text": "Var mı Tatarlık ailede?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 56.15,
+      "end": 57.15,
+      "text": "Hiç yok, hayır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 57.15,
+      "end": 59.65,
+      "text": "Yok, göçmenlik var mı? Gözler mavi çünkü.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 59.65,
+      "end": 60.65,
+      "text": "Evet.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 60.65,
+      "end": 60.75,
+      "text": "Evet.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 90.95,
+      "end": 98.57,
+      "text": "Evet Sevim Aval Ankara'dan aramış telefonumuzda bekliyor hatımızda.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 98.65,
+      "end": 100.35,
+      "text": "Alo Sevim Hanım iyi akşamlar iyi geceler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 100.55,
+      "end": 101.35,
+      "text": "İyi geceler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 101.43,
+      "end": 102.03,
+      "text": "Nasılsınız?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 102.23,
+      "end": 104.23,
+      "text": "Teşekkür ederim iyiyim sizler nasılsınız?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 104.25,
+      "end": 105.89,
+      "text": "Çok teşekkür ederiz bizler de iyiyiz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 105.97,
+      "end": 107.55,
+      "text": "Arkadaşlar da oturduk sohbet ediyoruz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 108.09,
+      "end": 110.17,
+      "text": "Var mı söylemek istediğiniz sormak istediğiniz bir şeyler?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 110.21,
+      "end": 114.47,
+      "text": "Öncelikle Beyaz programını çok severek ama çok severek ve beğenerek izliyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 114.57,
+      "end": 115.67,
+      "text": "Sağ olun teşekkür ederiz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 115.69,
+      "end": 117.69,
+      "text": "Artık programının hep böyle sürmesini istiyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 118.63,
+      "end": 118.99,
+      "text": "İnşallah.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 118.99,
+      "end": 119.99,
+      "text": "Önce sana bir sorum var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    }
+  ],
+  "quality": {
+    "drops": 3,
+    "drop_reasons": {
+      "stock_artifact:izlediğiniz için teşekkür ederim": 1,
+      "repetition_collapse:Ben:run=223": 1,
+      "repetition_collapse:ben:run=221": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 20.616,
+    "chunk_count": 4,
+    "decode_seconds": 14.957,
+    "fallback_seconds": 0.0
+  }
+}

@@ -1,0 +1,363 @@
+{
+  "sample": "neretva_ustune_dusen_hilal_full",
+  "note": "avg_logprob: higher/closer to zero is better. no_speech_prob: lower is better. combined_score = avg_logprob - no_speech_prob, higher is better.",
+  "rows": [
+    {
+      "fast_word": "kurulardan",
+      "quality_word": "kurulalıdan",
+      "fast_segment": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "text": "Ben Mustafa Kaytas. Mostar şehri kurulardan beri burada oturur benim ailem. Belki de onlar kurdular burada. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "text": "Ben Mustafa Kaytas, Mostar şehri kurulalıdan beri burada oturur benim ailem. Belki de onlar kurdular burayı. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "avg_logprob_delta_fast_minus_quality": 0.0055,
+      "no_speech_delta_fast_minus_quality": -0.5215,
+      "combined_delta_fast_minus_quality": 0.527,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "burada",
+      "quality_word": "burayı",
+      "fast_segment": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "text": "Ben Mustafa Kaytas. Mostar şehri kurulardan beri burada oturur benim ailem. Belki de onlar kurdular burada. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "text": "Ben Mustafa Kaytas, Mostar şehri kurulalıdan beri burada oturur benim ailem. Belki de onlar kurdular burayı. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "avg_logprob_delta_fast_minus_quality": 0.0055,
+      "no_speech_delta_fast_minus_quality": -0.5215,
+      "combined_delta_fast_minus_quality": 0.527,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "çektik",
+      "quality_word": "çekti",
+      "fast_segment": {
+        "start": 111.34,
+        "end": 113.42,
+        "duration": 2.08,
+        "text": "Biz kaldık ama neler çektik.",
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 111.34,
+        "end": 113.4,
+        "duration": 2.06,
+        "text": "Biz kaldık ama neler çekti.",
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": 0.0038,
+      "no_speech_delta_fast_minus_quality": -0.1512,
+      "combined_delta_fast_minus_quality": 0.155,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "beygiri",
+      "quality_word": "peygiri",
+      "fast_segment": {
+        "start": 116.58,
+        "end": 119.16,
+        "duration": 2.58,
+        "text": "Dolap beygiri gibi dönüp duruyordu.",
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 115.9,
+        "end": 119.18,
+        "duration": 3.28,
+        "text": "Dolap peygiri gibi dönüp duruyordu.",
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": 0.0038,
+      "no_speech_delta_fast_minus_quality": -0.1512,
+      "combined_delta_fast_minus_quality": 0.155,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "güne",
+      "quality_word": "Bugüne",
+      "fast_segment": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "text": "Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanınmış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değildir.",
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "text": "Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanımış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değil.",
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0102,
+      "no_speech_delta_fast_minus_quality": -0.0003,
+      "combined_delta_fast_minus_quality": -0.0099,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "yıldır",
+      "quality_word": "yüzyıldır",
+      "fast_segment": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "text": "Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanınmış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değildir.",
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "text": "Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanımış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değil.",
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0102,
+      "no_speech_delta_fast_minus_quality": -0.0003,
+      "combined_delta_fast_minus_quality": -0.0099,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "tanınmış",
+      "quality_word": "tanımış",
+      "fast_segment": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "text": "Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanınmış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değildir.",
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "text": "Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanımış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değil.",
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0102,
+      "no_speech_delta_fast_minus_quality": -0.0003,
+      "combined_delta_fast_minus_quality": -0.0099,
+      "avg_logprob_winner": "near_tie",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "değildir",
+      "quality_word": "değil",
+      "fast_segment": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "text": "Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını görürsünüz. Dünyanın bildiği en tanınmış varlığımız köprümüzdür. O sanki taştan yapılma bir köprü değildir.",
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 194.07,
+        "end": 196.11,
+        "duration": 2.04,
+        "text": "Yine gelenler oluyor ama o kadar değil.",
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": 0.0787,
+      "no_speech_delta_fast_minus_quality": -0.2715,
+      "combined_delta_fast_minus_quality": 0.3502,
+      "avg_logprob_winner": "fast",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "varlığı",
+      "quality_word": "varlıktı",
+      "fast_segment": {
+        "start": 227.3,
+        "end": 229.3,
+        "duration": 2.0,
+        "text": "Efsanevi bir varlığı.",
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "text": "Efsanevi bir varlıktı, ona nasıl kıydılar bilemiyorum, şimdi köprüyor Mostar ne kadarmış.",
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0978,
+      "no_speech_delta_fast_minus_quality": -0.1418,
+      "combined_delta_fast_minus_quality": 0.044,
+      "avg_logprob_winner": "quality",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "bilemiyordum",
+      "quality_word": "bilemiyorum",
+      "fast_segment": {
+        "start": 229.8,
+        "end": 232.3,
+        "duration": 2.5,
+        "text": "Ona nasıl kıydılar bilemiyordum.",
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "text": "Efsanevi bir varlıktı, ona nasıl kıydılar bilemiyorum, şimdi köprüyor Mostar ne kadarmış.",
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0978,
+      "no_speech_delta_fast_minus_quality": -0.1418,
+      "combined_delta_fast_minus_quality": 0.044,
+      "avg_logprob_winner": "quality",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "yok",
+      "quality_word": "köprüyor",
+      "fast_segment": {
+        "start": 232.3,
+        "end": 234.3,
+        "duration": 2.0,
+        "text": "Şimdi köprü yok.",
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "text": "Efsanevi bir varlıktı, ona nasıl kıydılar bilemiyorum, şimdi köprüyor Mostar ne kadarmış.",
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0978,
+      "no_speech_delta_fast_minus_quality": -0.1418,
+      "combined_delta_fast_minus_quality": 0.044,
+      "avg_logprob_winner": "quality",
+      "combined_winner": "near_tie"
+    },
+    {
+      "fast_word": "dokuyu",
+      "quality_word": "hukuyu",
+      "fast_segment": {
+        "start": 242.92,
+        "end": 252.18,
+        "duration": 9.26,
+        "text": "Sağ ve soldaki büyük kulelerde, her iki yandaki çarşılarda, tarihi dokuyu muhafaza eden bütün yapılar, her yan delik diş gibi.",
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 242.9,
+        "end": 252.18,
+        "duration": 9.28,
+        "text": "Sağ ve soldaki büyük kulelerde, her iki yandaki çarşılarda, tarihi hukuyu muhafaza eden bütün yapılar, her yan delik diş gibi.",
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0628,
+      "no_speech_delta_fast_minus_quality": -0.1357,
+      "combined_delta_fast_minus_quality": 0.0729,
+      "avg_logprob_winner": "quality",
+      "combined_winner": "fast"
+    },
+    {
+      "fast_word": "çalışıyorlar",
+      "quality_word": "çalışıyor",
+      "fast_segment": {
+        "start": 255.82,
+        "end": 261.36,
+        "duration": 5.54,
+        "text": "Kendi imkanlarıyla kurtaranlar da her gün umutla dükkanını açıp işini yapmaya çalışıyorlar.",
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "flags": []
+      },
+      "quality_segment": {
+        "start": 255.82,
+        "end": 261.28,
+        "duration": 5.46,
+        "text": "Kendi imkanlarıyla kurtaranlar da her gün Umut'la dükkanını açıp işini yapmaya çalışıyor.",
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "flags": []
+      },
+      "avg_logprob_delta_fast_minus_quality": -0.0628,
+      "no_speech_delta_fast_minus_quality": -0.1357,
+      "combined_delta_fast_minus_quality": 0.0729,
+      "avg_logprob_winner": "quality",
+      "combined_winner": "fast"
+    }
+  ]
+}

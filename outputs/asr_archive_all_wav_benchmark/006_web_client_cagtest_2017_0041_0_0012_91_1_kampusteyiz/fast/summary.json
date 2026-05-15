@@ -1,0 +1,20 @@
+{
+  "sample_id": "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 1978.965,
+  "runtime_seconds_wall": 131.742,
+  "runtime_seconds_reported": 131.71,
+  "runtime_per_audio_minute": 3.994,
+  "clean_word_count": 2429,
+  "clean_segment_count": 315,
+  "quality_drop_count": 23,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "yavaş",
+    "max_token_length": 23,
+    "words_per_second": 2.52
+  }
+}

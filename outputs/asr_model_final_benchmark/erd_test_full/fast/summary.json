@@ -1,0 +1,20 @@
+{
+  "sample_id": "erd_test_full",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 195.257,
+  "runtime_seconds_wall": 15.741,
+  "runtime_seconds_reported": 15.707,
+  "runtime_per_audio_minute": 4.837,
+  "clean_word_count": 260,
+  "clean_segment_count": 45,
+  "quality_drop_count": 5,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 1,
+    "repeated_token": "Bir",
+    "max_token_length": 19,
+    "words_per_second": 1.85
+  }
+}

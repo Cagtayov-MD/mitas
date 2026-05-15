@@ -1,0 +1,130 @@
+{
+  "samples": [
+    {
+      "sample_id": "001_h1",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\H1.wav",
+      "source_name": "H1.wav",
+      "size_bytes": 19533902,
+      "size_mb": 19.534,
+      "duration_sec": 101.739,
+      "duration_min": 1.696
+    },
+    {
+      "sample_id": "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav",
+      "source_name": "web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav",
+      "size_bytes": 32006222,
+      "size_mb": 32.006,
+      "duration_sec": 166.699,
+      "duration_min": 2.778
+    },
+    {
+      "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+      "source_name": "2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+      "size_bytes": 32964686,
+      "size_mb": 32.965,
+      "duration_sec": 171.691,
+      "duration_min": 2.862
+    },
+    {
+      "sample_id": "004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2025-1408-2-0100-90-1-TRT_HABER_GAZZE_YIKIMI_HAVADAN_GÖRÜNTÜLEDİ.wav",
+      "source_name": "web_client_CAGTEST_2025-1408-2-0100-90-1-TRT_HABER_GAZZE_YIKIMI_HAVADAN_GÖRÜNTÜLEDİ.wav",
+      "size_bytes": 62394446,
+      "size_mb": 62.394,
+      "duration_sec": 324.971,
+      "duration_min": 5.416
+    },
+    {
+      "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+      "source_name": "web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+      "size_bytes": 234831950,
+      "size_mb": 234.832,
+      "duration_sec": 1223.083,
+      "duration_min": 20.385
+    },
+    {
+      "sample_id": "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav",
+      "source_name": "web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav",
+      "size_bytes": 379961422,
+      "size_mb": 379.961,
+      "duration_sec": 1978.965,
+      "duration_min": 32.983
+    },
+    {
+      "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+      "source_name": "web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+      "size_bytes": 380239950,
+      "size_mb": 380.24,
+      "duration_sec": 1980.416,
+      "duration_min": 33.007
+    },
+    {
+      "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+      "source_name": "web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+      "size_bytes": 467722318,
+      "size_mb": 467.722,
+      "duration_sec": 2436.053,
+      "duration_min": 40.601
+    },
+    {
+      "sample_id": "009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2012-9024-0-0006-00-1-ADAM_OLACAK_ÇOCUK.wav",
+      "source_name": "web_client_CAG_2012-9024-0-0006-00-1-ADAM_OLACAK_ÇOCUK.wav",
+      "size_bytes": 524484686,
+      "size_mb": 524.485,
+      "duration_sec": 2731.691,
+      "duration_min": 45.528
+    },
+    {
+      "sample_id": "010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_1988-0098-0-003-00-1-BARIŞ_MANÇO_İLE_7'DEN_77'YE.wav",
+      "source_name": "web_client_CAG_1988-0098-0-003-00-1-BARIŞ_MANÇO_İLE_7'DEN_77'YE.wav",
+      "size_bytes": 535683150,
+      "size_mb": 535.683,
+      "duration_sec": 2790.016,
+      "duration_min": 46.5
+    },
+    {
+      "sample_id": "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG3_2021-0046-0-0078-90-1-AKŞAM_SEFASI.wav",
+      "source_name": "web_client_CAG3_2021-0046-0-0078-90-1-AKŞAM_SEFASI.wav",
+      "size_bytes": 1021825102,
+      "size_mb": 1021.825,
+      "duration_sec": 5322.005,
+      "duration_min": 88.7
+    },
+    {
+      "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav",
+      "source_name": "web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav",
+      "size_bytes": 1025151054,
+      "size_mb": 1025.151,
+      "duration_sec": 5339.328,
+      "duration_min": 88.989
+    },
+    {
+      "sample_id": "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav",
+      "source_name": "web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav",
+      "size_bytes": 1348792398,
+      "size_mb": 1348.792,
+      "duration_sec": 7024.96,
+      "duration_min": 117.083
+    },
+    {
+      "sample_id": "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani",
+      "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG1_2024-0007-0-0070-91-1-MEHMED_FETİHLER_SULTANI.wav",
+      "source_name": "web_client_CAG1_2024-0007-0-0070-91-1-MEHMED_FETİHLER_SULTANI.wav",
+      "size_bytes": 1793925198,
+      "size_mb": 1793.925,
+      "duration_sec": 9343.36,
+      "duration_min": 155.723
+    }
+  ]
+}

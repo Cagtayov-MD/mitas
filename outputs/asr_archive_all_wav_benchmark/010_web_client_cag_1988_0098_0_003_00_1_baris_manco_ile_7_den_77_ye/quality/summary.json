@@ -1,0 +1,20 @@
+{
+  "sample_id": "010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 2790.016,
+  "runtime_seconds_wall": 389.381,
+  "runtime_seconds_reported": 389.345,
+  "runtime_per_audio_minute": 8.374,
+  "clean_word_count": 3339,
+  "clean_segment_count": 590,
+  "quality_drop_count": 7,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 9,
+    "repeated_token": "düt",
+    "max_token_length": 19,
+    "words_per_second": 2.35
+  }
+}

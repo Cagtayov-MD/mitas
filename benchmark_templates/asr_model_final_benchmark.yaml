@@ -1,0 +1,80 @@
+benchmark_id: asr_model_final_v0_1
+benchmark_name: ASR model finalization mini benchmark
+module: asr
+purpose: Decide whether large-v3-turbo can be the default ASR model with large-v3 as the quality fallback.
+decision_policy:
+  default_candidate: large-v3-turbo
+  fallback_candidate: large-v3
+  preferred_runtime_profile: fast_with_fallback
+  final_if:
+    - large-v3-turbo has no safety failures on the mini set.
+    - large-v3-turbo WER is no more than 0.03 absolute worse than large-v3 on clean news samples.
+    - large-v3-turbo does not drop important named entities compared with large-v3 in manual review.
+    - large-v3-turbo is at least 1.5x faster than large-v3 on average.
+  not_final_if:
+    - Any model creates repeated-token collapse, long-token artifact, or stock subtitle artifact that passes the quality gate.
+    - large-v3-turbo misses whole spoken passages that large-v3 captures.
+    - Timestamp drift makes downstream timeline use unreliable.
+metrics:
+  - wer
+  - cer
+  - runtime_per_audio_minute
+  - speedup_vs_large_v3
+  - clean_word_count
+  - safety_passed
+  - quality_drop_count
+  - manual_named_entity_notes
+reference_rules:
+  transcript_level: sentence-level text is enough for v0.1 model choice
+  punctuation: punctuation differences should not decide the model
+  casing: casing differences should not decide the model
+  named_entities: review manually, especially person/place/institution names
+  timestamps: inspect segment timing manually for at least three samples
+samples:
+  - sample_id: trt_haber_1_full
+    category: clean_news
+    source_path: testklipler/trt_haber (1).mp4
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_model_final/trt_haber_1_full.txt
+    review_priority: high
+    notes: Clean TRT news, good default acceptance sample.
+  - sample_id: trt_haber_2_full
+    category: clean_news
+    source_path: testklipler/trt_haber (2).mp4
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_model_final/trt_haber_2_full.txt
+    review_priority: high
+    notes: Clean report with several names and institutions.
+  - sample_id: trt_haber_3_full
+    category: clean_news
+    source_path: testklipler/trt_haber (3).mp4
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_model_final/trt_haber_3_full.txt
+    review_priority: high
+    notes: Clean anchor/news recap, useful for named entity review.
+  - sample_id: beyaz1_03_05
+    category: talk_show
+    source_path: testklipler/beyaz1.mp4
+    start_sec: 180.0
+    end_sec: 300.0
+    reference_path: references/asr_model_final/beyaz1_03_05.txt
+    review_priority: medium
+    notes: Entertainment/talk-show slice, harder turn-taking and informal speech.
+  - sample_id: erd_test_full
+    category: multilingual_press
+    source_path: testklipler/erd_test_video.mp4
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_model_final/erd_test_full.txt
+    review_priority: high
+    notes: Multilingual/code-switch stress case that previously exposed the multilingual=True decision.
+outputs:
+  root: outputs/asr_model_final_benchmark
+  report_json: outputs/asr_model_final_benchmark/report.json
+  report_md: outputs/asr_model_final_benchmark/report.md
+  draft_references_dir: outputs/asr_model_final_benchmark/draft_references
+status: prepared
+decision_status: awaiting_reference_transcripts

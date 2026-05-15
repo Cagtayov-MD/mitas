@@ -1,0 +1,13 @@
+{
+  "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 2436.053,
+  "source_duration": 2436.053,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav"
+}

@@ -1,0 +1,20 @@
+{
+  "sample_id": "neretva_ustune_dusen_hilal_full",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 1980.416,
+  "runtime_seconds_wall": 168.506,
+  "runtime_seconds_reported": 168.473,
+  "runtime_per_audio_minute": 5.105,
+  "clean_word_count": 1494,
+  "clean_segment_count": 194,
+  "quality_drop_count": 3,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "neler",
+    "max_token_length": 22,
+    "words_per_second": 1.76
+  }
+}

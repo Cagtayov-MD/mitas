@@ -1,0 +1,20 @@
+{
+  "sample_id": "trt_haber_1_full",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 95.62,
+  "runtime_seconds_wall": 9.13,
+  "runtime_seconds_reported": 9.093,
+  "runtime_per_audio_minute": 5.729,
+  "clean_word_count": 125,
+  "clean_segment_count": 12,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "tek",
+    "max_token_length": 20,
+    "words_per_second": 1.78
+  }
+}

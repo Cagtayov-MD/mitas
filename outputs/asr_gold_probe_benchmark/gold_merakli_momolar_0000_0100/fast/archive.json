@@ -1,0 +1,86 @@
+{
+  "audio_path": "outputs\\asr_gold_probe_benchmark\\gold_merakli_momolar_0000_0100\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 100.0,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar. Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba. Sanada Maraboo",
+    "clean": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar. Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba. Sanada Maraboo",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 77.5,
+      "end": 89.1,
+      "text": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.23593750476837158,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 89.85,
+      "end": 91.55,
+      "text": "Ne güzel bir gün.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.26528532608695654,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 92.25,
+      "end": 93.99,
+      "text": "Ne güzel bir gün.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.26528532608695654,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 94.39,
+      "end": 95.65,
+      "text": "Herkese merhaba.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.26528532608695654,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 97.0,
+      "end": 100.0,
+      "text": "Sanada Maraboo",
+      "speaker": null,
+      "flags": [
+        "low_logprob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.93310546875,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    }
+  ],
+  "quality": {
+    "drops": 2,
+    "drop_reasons": {
+      "stock_artifact:altyazı m.k.": 2
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 8.143,
+    "chunk_count": 5,
+    "decode_seconds": 2.36,
+    "fallback_seconds": 0.0
+  }
+}

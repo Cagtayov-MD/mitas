@@ -1,0 +1,2228 @@
+{
+  "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+  "source_name": "web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+  "fast_words": 4216,
+  "quality_words": 4216,
+  "edit_distance_fast_vs_quality": 163,
+  "substitution_count": 91,
+  "fast_extra_word_count": 36,
+  "quality_extra_word_count": 36,
+  "diff_rows": [
+    {
+      "fast": "metreküp",
+      "quality": "küp",
+      "count": 3,
+      "fast_metrics": {
+        "start": 606.76,
+        "end": 612.94,
+        "duration": 6.18,
+        "avg_logprob": -0.0778,
+        "no_speech_prob": 0.0,
+        "combined": -0.0778,
+        "flags": [],
+        "source_chunk_index": 37
+      },
+      "quality_metrics": {
+        "start": 1428.85,
+        "end": 1433.49,
+        "duration": 4.64,
+        "avg_logprob": -0.0742,
+        "no_speech_prob": 0.0419,
+        "combined": -0.1161,
+        "flags": [],
+        "source_chunk_index": 80
+      },
+      "combined_delta_fast_minus_quality": 0.0383,
+      "winner_by_combined": "near_tie",
+      "fast_context": "yana devrilmemesi bekleniyor Artık kuru havuzun tonlarca metreküp suyla doldurulup açılan kanallarında suyla buluşma zamanı",
+      "quality_context": "bir oda tasarladı İçine 89 bin metre küp beton döküp devasa bir duvar inşa etti"
+    },
+    {
+      "fast": "santimlik",
+      "quality": "santimli",
+      "count": 2,
+      "fast_metrics": {
+        "start": 889.84,
+        "end": 902.84,
+        "duration": 13.0,
+        "avg_logprob": -0.0822,
+        "no_speech_prob": 0.0,
+        "combined": -0.0822,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "quality_metrics": {
+        "start": 889.88,
+        "end": 902.7,
+        "duration": 12.82,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "combined_delta_fast_minus_quality": 0.189,
+      "winner_by_combined": "fast",
+      "fast_context": "yavaşça ve olabildiğince dengeli bir şekilde 20 santimlik hata apayı içerisinde de kalmaya çalışarak denizin",
+      "quality_context": "yavaşça ve olabildiğince dengeli bir şekilde 20 santimli kata apayı içerisinde de kalmaya çalışarak denizin"
+    },
+    {
+      "fast": "hata",
+      "quality": "kata",
+      "count": 2,
+      "fast_metrics": {
+        "start": 857.09,
+        "end": 859.27,
+        "duration": 2.18,
+        "avg_logprob": -0.0964,
+        "no_speech_prob": 0.0,
+        "combined": -0.0964,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 889.88,
+        "end": 902.7,
+        "duration": 12.82,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "combined_delta_fast_minus_quality": 0.1748,
+      "winner_by_combined": "fast",
+      "fast_context": "daha önceden iyileştirdiğiniz zemin üzerine kusursuzca yerleştirmelisiniz Hata payınız en fazla 20 santim Yani Küçük",
+      "quality_context": "ve olabildiğince dengeli bir şekilde 20 santimli kata apayı içerisinde de kalmaya çalışarak denizin tabanına"
+    },
+    {
+      "fast": "halatlar",
+      "quality": "alatlar",
+      "count": 2,
+      "fast_metrics": {
+        "start": 166.22,
+        "end": 171.32,
+        "duration": 5.1,
+        "avg_logprob": -0.0575,
+        "no_speech_prob": 0.0,
+        "combined": -0.0575,
+        "flags": [],
+        "source_chunk_index": 15
+      },
+      "quality_metrics": {
+        "start": 1210.12,
+        "end": 1214.84,
+        "duration": 4.72,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 72
+      },
+      "combined_delta_fast_minus_quality": 0.6505,
+      "winner_by_combined": "fast",
+      "fast_context": "seferde taşıyabilecek güçte iki büyük halat asıldı Halatlar burası için özel yapılmış çelik yol parçalarından",
+      "quality_context": "kas hissediyorum Çok heyecanlıydım yalnız bu çelik alatlar sayesinde heyecanımı yendim Cidden çok güven veriyorlar"
+    },
+    {
+      "fast": "rope",
+      "quality": "Holdingrop",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1281.95,
+        "end": 1290.67,
+        "duration": 8.72,
+        "avg_logprob": -0.0966,
+        "no_speech_prob": 0.0,
+        "combined": -0.0966,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "quality_metrics": {
+        "start": 1281.95,
+        "end": 1290.69,
+        "duration": 8.74,
+        "avg_logprob": -0.0772,
+        "no_speech_prob": 0.0206,
+        "combined": -0.0977,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "combined_delta_fast_minus_quality": 0.0012,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Avrupa Ankaraj bölgesine çekilmesi esnasında öncelikle hauling rope dediğimiz taşıma halatı çekiliyor ve hauling rope",
+      "quality_context": "Ankıraj'dan Avrupa Ankıraj bölgesine çekilmesi esnasında öncelikle Holdingrop dediğimiz taşıma halatı çekiliyor ve Holdingrop marifetiyle"
+    },
+    {
+      "fast": "ankıraş",
+      "quality": "Ankaraş",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1290.67,
+        "end": 1304.17,
+        "duration": 13.5,
+        "avg_logprob": -0.0966,
+        "no_speech_prob": 0.0,
+        "combined": -0.0966,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "quality_metrics": {
+        "start": 1291.19,
+        "end": 1304.15,
+        "duration": 12.96,
+        "avg_logprob": -0.0772,
+        "no_speech_prob": 0.0206,
+        "combined": -0.0977,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "combined_delta_fast_minus_quality": 0.0012,
+      "winner_by_combined": "near_tie",
+      "fast_context": "yaklaşık 3 saatlik bir yolculuktan sonra Avrupa ankıraş sahasına ulaşıyor ve orada ankıraş bloklarına soketleniyor",
+      "quality_context": "yaklaşık 3 saatlik bir yolculuktan sonra Avrupa Ankaraş sahasına ulaşıyor ve orada Ankaraş bloklarına soketleniyor"
+    },
+    {
+      "fast": "Ankıraj",
+      "quality": "Ankara",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1338.76,
+        "end": 1343.66,
+        "duration": 4.9,
+        "avg_logprob": -0.1359,
+        "no_speech_prob": 0.0,
+        "combined": -0.1359,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "quality_metrics": {
+        "start": 1338.78,
+        "end": 1343.66,
+        "duration": 4.88,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0297,
+        "combined": -0.1434,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "combined_delta_fast_minus_quality": 0.0075,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kedi yolu nihayetlenecek Fakat çelik halatların yolculuğu Ankıraj bloğuna kadar devam ediyor Asya ile Avrupa",
+      "quality_context": "kedi yolu nihayetlenecek Fakat çelik halatların yolculuğu Ankara bloğuna kadar devam ediyor Asya ile Avrupa"
+    },
+    {
+      "fast": "tabliyelerin",
+      "quality": "tablelerin",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1108.3,
+        "end": 1117.56,
+        "duration": 9.26,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805,
+        "flags": [],
+        "source_chunk_index": 66
+      },
+      "quality_metrics": {
+        "start": 1777.88,
+        "end": 1783.08,
+        "duration": 5.2,
+        "avg_logprob": -0.0897,
+        "no_speech_prob": 0.0233,
+        "combined": -0.113,
+        "flags": [],
+        "source_chunk_index": 97
+      },
+      "combined_delta_fast_minus_quality": 0.0325,
+      "winner_by_combined": "near_tie",
+      "fast_context": "yüz binlerce aracı yol blokları yani tabliyeler Tabliyelerin ağırlıklarını çelik kablolar kabloların ağırlığını ise Asya",
+      "quality_context": "de çırpınma hareketi azalmış olacak Tasarım mühendisleri tablelerin arasını açarak köprünün rüzgar saldırılarına karşı korunmasını"
+    },
+    {
+      "fast": "Asian",
+      "quality": "Agin",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1880.2,
+        "end": 1888.62,
+        "duration": 8.42,
+        "avg_logprob": -0.0738,
+        "no_speech_prob": 0.0,
+        "combined": -0.0738,
+        "flags": [],
+        "source_chunk_index": 102
+      },
+      "quality_metrics": {
+        "start": 265.94,
+        "end": 277.44,
+        "duration": 11.5,
+        "avg_logprob": -0.0711,
+        "no_speech_prob": 0.0244,
+        "combined": -0.0955,
+        "flags": [],
+        "source_chunk_index": 20
+      },
+      "combined_delta_fast_minus_quality": 0.0217,
+      "winner_by_combined": "near_tie",
+      "fast_context": "vinç tam da bu noktada işe koyuluyor Asian Herkül 106 metre yükseklik 52 metre genişlik",
+      "quality_context": "karayolu bağlantısıyla 1915 Çanakkale Köprüsü dev bir ağın en önemli parçası Yani bu köprüyle birlikte"
+    },
+    {
+      "fast": "Kutuna",
+      "quality": "Kutuma",
+      "count": 1,
+      "fast_metrics": {
+        "start": 23.8,
+        "end": 24.76,
+        "duration": 0.96,
+        "avg_logprob": -0.3791,
+        "no_speech_prob": 0.0,
+        "combined": -0.3791,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 22.76,
+        "end": 24.78,
+        "duration": 2.02,
+        "avg_logprob": -0.3783,
+        "no_speech_prob": 0.3523,
+        "combined": -0.7306,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": 0.3514,
+      "winner_by_combined": "fast",
+      "fast_context": "inşa etmeyi başardı Arkadaşlar işimiz çok zor Kutuna yaklaşıyor Hadi arkadaşlar hadi Birazdan gün doğacak",
+      "quality_context": "inşa etmeyi başardı Arkadaşlar işimiz çok zor Kutuma yaklaşıyor Hadi arkadaşlar hadi Birazdan gün doğacak"
+    },
+    {
+      "fast": "Çararkale",
+      "quality": "Çarakale",
+      "count": 1,
+      "fast_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1808,
+        "no_speech_prob": 0.0,
+        "combined": -0.1808,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1519,
+        "no_speech_prob": 0.0465,
+        "combined": -0.1985,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.0177,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Hadi arkadaşlar hadi Birazdan gün doğacak 1915 Çararkale Köprüsü hem zorlu fırtına ve depremlerle savaşacak",
+      "quality_context": "Hadi arkadaşlar hadi Birazdan gün doğacak 1915 Çarakale Köprüsü hem zorlu fırtına ve depremlerle savaşacak"
+    },
+    {
+      "fast": "binlerce",
+      "quality": "yüzbinlerce",
+      "count": 1,
+      "fast_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1808,
+        "no_speech_prob": 0.0,
+        "combined": -0.1808,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1519,
+        "no_speech_prob": 0.0465,
+        "combined": -0.1985,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.0177,
+      "winner_by_combined": "near_tie",
+      "fast_context": "depremlerle savaşacak hem de üzerinden geçen yüz binlerce aracın yükünü sığırtlayacak Burası Çanakkale Asya ve",
+      "quality_context": "ve depremlerle savaşacak hem de üzerinden geçen yüzbinlerce aracın yükünü sırtlayacak Burası Çanakkale Asya ve"
+    },
+    {
+      "fast": "sığırtlayacak",
+      "quality": "sırtlayacak",
+      "count": 1,
+      "fast_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1808,
+        "no_speech_prob": 0.0,
+        "combined": -0.1808,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1519,
+        "no_speech_prob": 0.0465,
+        "combined": -0.1985,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.0177,
+      "winner_by_combined": "near_tie",
+      "fast_context": "de üzerinden geçen yüz binlerce aracın yükünü sığırtlayacak Burası Çanakkale Asya ve Avrupa kıtalarını birbirinden",
+      "quality_context": "hem de üzerinden geçen yüzbinlerce aracın yükünü sırtlayacak Burası Çanakkale Asya ve Avrupa kıtalarını birbirinden"
+    },
+    {
+      "fast": "Bugünse",
+      "quality": "ise",
+      "count": 1,
+      "fast_metrics": {
+        "start": 78.86,
+        "end": 84.16,
+        "duration": 5.3,
+        "avg_logprob": -0.167,
+        "no_speech_prob": 0.0,
+        "combined": -0.167,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 78.86,
+        "end": 84.18,
+        "duration": 5.32,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.0438,
+        "combined": -0.1942,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.0272,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kurmak için devletlerin hücum ettiği geçilemeyen şehir Bugünse her iki kıtada da toprağı olan bu",
+      "quality_context": "için devletlerin hücum ettiği geçilemeyen şehir Bugün ise her iki kıtada da toprağı olan bu"
+    },
+    {
+      "fast": "köpreyi",
+      "quality": "köprü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 78.86,
+        "end": 84.16,
+        "duration": 5.3,
+        "avg_logprob": -0.167,
+        "no_speech_prob": 0.0,
+        "combined": -0.167,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 78.86,
+        "end": 84.18,
+        "duration": 5.32,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.0438,
+        "combined": -0.1942,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.0272,
+      "winner_by_combined": "near_tie",
+      "fast_context": "toprağı olan bu şehri ruhuna yakışır bir köpreyi işaret etti Dünyanın en önemli boğazlarından birine",
+      "quality_context": "toprağı olan bu şehir ruhuna yakışır bir köprü inşa edildi Dünyanın en önemli boğazlarından birine"
+    },
+    {
+      "fast": "işaret",
+      "quality": "inşa",
+      "count": 1,
+      "fast_metrics": {
+        "start": 78.86,
+        "end": 84.16,
+        "duration": 5.3,
+        "avg_logprob": -0.167,
+        "no_speech_prob": 0.0,
+        "combined": -0.167,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 8.16,
+        "end": 18.4,
+        "duration": 10.24,
+        "avg_logprob": -0.089,
+        "no_speech_prob": 0.1833,
+        "combined": -0.2723,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.1053,
+      "winner_by_combined": "fast",
+      "fast_context": "olan bu şehri ruhuna yakışır bir köpreyi işaret etti Dünyanın en önemli boğazlarından birine dünyanın",
+      "quality_context": "savaşlarına rağmen yeryüzünün en uzun asma köprüsünü inşa etmeyi başardı Arkadaşlar işimiz çok zor Kutuma"
+    },
+    {
+      "fast": "etti",
+      "quality": "edildi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 78.86,
+        "end": 84.16,
+        "duration": 5.3,
+        "avg_logprob": -0.167,
+        "no_speech_prob": 0.0,
+        "combined": -0.167,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 78.86,
+        "end": 84.18,
+        "duration": 5.32,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.0438,
+        "combined": -0.1942,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.0272,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bu şehri ruhuna yakışır bir köpreyi işaret etti Dünyanın en önemli boğazlarından birine dünyanın en",
+      "quality_context": "bu şehir ruhuna yakışır bir köprü inşa edildi Dünyanın en önemli boğazlarından birine dünyanın en"
+    },
+    {
+      "fast": "olacaktı",
+      "quality": "olacaktır",
+      "count": 1,
+      "fast_metrics": {
+        "start": 91.5,
+        "end": 100.88,
+        "duration": 9.38,
+        "avg_logprob": -0.0642,
+        "no_speech_prob": 0.0,
+        "combined": -0.0642,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 91.5,
+        "end": 100.9,
+        "duration": 9.4,
+        "avg_logprob": -0.075,
+        "no_speech_prob": 0.1152,
+        "combined": -0.1902,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.126,
+      "winner_by_combined": "fast",
+      "fast_context": "su yoluna yapacakları köprüden çok daha farklı olacaktı Binlerce ton beton kullanacaklardı Ama denizin ortasına",
+      "quality_context": "su yoluna yapacakları köprüden çok daha farklı olacaktır Binlerce ton beton kullanacaklardı Ama denizin ortasına"
+    },
+    {
+      "fast": "sağlayacaklardı",
+      "quality": "sağlayacaklardır",
+      "count": 1,
+      "fast_metrics": {
+        "start": 128.35,
+        "end": 133.93,
+        "duration": 5.58,
+        "avg_logprob": -0.1378,
+        "no_speech_prob": 0.0,
+        "combined": -0.1378,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 128.35,
+        "end": 134.03,
+        "duration": 5.68,
+        "avg_logprob": -0.1359,
+        "no_speech_prob": 0.0458,
+        "combined": -0.1817,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "combined_delta_fast_minus_quality": 0.0439,
+      "winner_by_combined": "near_tie",
+      "fast_context": "tasarlayacaklardı Ama şiddetli fırtınalarla baş etmesini nasıl sağlayacaklardı Ne olursa olsun sonuca ulaşmaları gerekiyordu Ve",
+      "quality_context": "tasarlayacaklardı Ama şiddetli fırtınalarla baş etmesini nasıl sağlayacaklardır Ne olursa olsun sonuca ulaşmaları gerekiyordu Ve"
+    },
+    {
+      "fast": "beş",
+      "quality": "5",
+      "count": 1,
+      "fast_metrics": {
+        "start": 147.2,
+        "end": 156.2,
+        "duration": 9.0,
+        "avg_logprob": -0.099,
+        "no_speech_prob": 0.0,
+        "combined": -0.099,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "quality_metrics": {
+        "start": 8.16,
+        "end": 18.4,
+        "duration": 10.24,
+        "avg_logprob": -0.089,
+        "no_speech_prob": 0.1833,
+        "combined": -0.2723,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.1733,
+      "winner_by_combined": "fast",
+      "fast_context": "Ve yaptılar Ya Allah Bismillah Çanakkale boğazında beş yılda tamamlanan bu köprü için önce Eyfel",
+      "quality_context": "birinde 90'ı Türklerden oluşan deneyimli bir ekip 5 yıl boyunca 250 binden fazla ticari gemi"
+    },
+    {
+      "fast": "göğe",
+      "quality": "göbeğe",
+      "count": 1,
+      "fast_metrics": {
+        "start": 147.2,
+        "end": 156.2,
+        "duration": 9.0,
+        "avg_logprob": -0.099,
+        "no_speech_prob": 0.0,
+        "combined": -0.099,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "quality_metrics": {
+        "start": 147.2,
+        "end": 156.74,
+        "duration": 9.54,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0918,
+        "combined": -0.1914,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "combined_delta_fast_minus_quality": 0.0924,
+      "winner_by_combined": "fast",
+      "fast_context": "bile daha uzun iki kule deniz tabanından göğe doğru yükseldi Daha sonra kuleler arasına 1500",
+      "quality_context": "bile daha uzun iki kule deniz tabanından göbeğe doğru yükseldi Daha sonra kuleler arasına 1500"
+    },
+    {
+      "fast": "Müdürlüğü'nün",
+      "quality": "müdürünü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 221.75,
+        "end": 229.75,
+        "duration": 8.0,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "quality_metrics": {
+        "start": 225.27,
+        "end": 229.75,
+        "duration": 4.48,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 18
+      },
+      "combined_delta_fast_minus_quality": 0.4709,
+      "winner_by_combined": "fast",
+      "fast_context": "tanesi Asıl master plan ve Karayolları Genel Müdürlüğü'nün buna bağlı olarak Mega projesi Marmara bölgesinin",
+      "quality_context": "tanesi Asıl master plan ve karayolları genel müdürünü buna bağlı olarak Mega projesi Marmara bölgesinin"
+    },
+    {
+      "fast": "garların",
+      "quality": "garlarının",
+      "count": 1,
+      "fast_metrics": {
+        "start": 229.75,
+        "end": 250.57,
+        "duration": 20.82,
+        "avg_logprob": -0.0531,
+        "no_speech_prob": 0.0,
+        "combined": -0.0531,
+        "flags": [],
+        "source_chunk_index": 19
+      },
+      "quality_metrics": {
+        "start": 229.75,
+        "end": 250.57,
+        "duration": 20.82,
+        "avg_logprob": -0.041,
+        "no_speech_prob": 0.1812,
+        "combined": -0.2222,
+        "flags": [],
+        "source_chunk_index": 19
+      },
+      "combined_delta_fast_minus_quality": 0.1691,
+      "winner_by_combined": "fast",
+      "fast_context": "olan organize sanayi bölgeleri limanlar havalimanları tren garların tamamının birbirine olan entegrasyonunu sağlamak ve üretimi",
+      "quality_context": "olan organize sanayi bölgeleri limanlar havalimanları tren garlarının tamamının birbirine olan entegrasyonunu sağlamak ve üretimi"
+    },
+    {
+      "fast": "İpek",
+      "quality": "ipek",
+      "count": 1,
+      "fast_metrics": {
+        "start": 251.6,
+        "end": 259.78,
+        "duration": 8.18,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.0,
+        "combined": -0.08,
+        "flags": [],
+        "source_chunk_index": 20
+      },
+      "quality_metrics": {
+        "start": 252.04,
+        "end": 259.78,
+        "duration": 7.74,
+        "avg_logprob": -0.0711,
+        "no_speech_prob": 0.0244,
+        "combined": -0.0955,
+        "flags": [],
+        "source_chunk_index": 20
+      },
+      "combined_delta_fast_minus_quality": 0.0155,
+      "winner_by_combined": "near_tie",
+      "fast_context": "üretimi desteklemek Pekin'den Londra'ya kadar uzanan modern İpek yolu diyebileceğimiz ve tüm dünya ticaretini ilgilendiren",
+      "quality_context": "üretimi desteklemek Pekin'den Londra'ya kadar uzanan modern ipek yolu diyebileceğimiz ve tüm dünya ticaretini ilgilendiren"
+    },
+    {
+      "fast": "fizibel",
+      "quality": "fizibil",
+      "count": 1,
+      "fast_metrics": {
+        "start": 329.39,
+        "end": 337.75,
+        "duration": 8.36,
+        "avg_logprob": -0.0861,
+        "no_speech_prob": 0.0,
+        "combined": -0.0861,
+        "flags": [],
+        "source_chunk_index": 23
+      },
+      "quality_metrics": {
+        "start": 329.37,
+        "end": 337.75,
+        "duration": 8.38,
+        "avg_logprob": -0.0744,
+        "no_speech_prob": 0.0115,
+        "combined": -0.0859,
+        "flags": [],
+        "source_chunk_index": 23
+      },
+      "combined_delta_fast_minus_quality": -0.0002,
+      "winner_by_combined": "near_tie",
+      "fast_context": "çalışmış ve hem ekonomik hem de daha fizibel güzergahlar belirlemiş Ama otoyol güzergahı buradaki milli",
+      "quality_context": "çalışmış ve hem ekonomik hem de daha fizibil güzergahlar belirlemiş Ama otoyol güzergahı buradaki milli"
+    },
+    {
+      "fast": "açıkluktaki",
+      "quality": "açıklıktaki",
+      "count": 1,
+      "fast_metrics": {
+        "start": 389.8,
+        "end": 394.74,
+        "duration": 4.94,
+        "avg_logprob": -0.1074,
+        "no_speech_prob": 0.0,
+        "combined": -0.1074,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "quality_metrics": {
+        "start": 389.8,
+        "end": 401.0,
+        "duration": 11.2,
+        "avg_logprob": -0.0644,
+        "no_speech_prob": 0.0494,
+        "combined": -0.1138,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "combined_delta_fast_minus_quality": 0.0063,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ilk problemdi Köprünün yerini belirlediniz ama bu açıkluktaki köprünün ayaklarını karada imal etmiş olsaydınız belki",
+      "quality_context": "ilk problemdi Köprünün yerini belirlediniz ama bu açıklıktaki köprünün ayaklarını karada imal etmiş olsaydınız belki"
+    },
+    {
+      "fast": "artıracak",
+      "quality": "arttıracak",
+      "count": 1,
+      "fast_metrics": {
+        "start": 420.44,
+        "end": 424.64,
+        "duration": 4.2,
+        "avg_logprob": -0.1251,
+        "no_speech_prob": 0.0,
+        "combined": -0.1251,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "quality_metrics": {
+        "start": 420.44,
+        "end": 427.46,
+        "duration": 7.02,
+        "avg_logprob": -0.1038,
+        "no_speech_prob": 0.0188,
+        "combined": -0.1226,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "combined_delta_fast_minus_quality": -0.0025,
+      "winner_by_combined": "near_tie",
+      "fast_context": "zaman işçilik ve ekonomik bakımdan maliyetleri hızla artıracak ve projeyi uygulanabilir olmaktan çıkaracaktır En deneyimli",
+      "quality_context": "zaman işçilik ve ekonomik bakımdan maliyetleri hızla arttıracak ve projeyi uygulanabilir olmaktan çıkaracaktır En deneyimli"
+    },
+    {
+      "fast": "hükümledi",
+      "quality": "yükümlüdür",
+      "count": 1,
+      "fast_metrics": {
+        "start": 437.5,
+        "end": 443.78,
+        "duration": 6.28,
+        "avg_logprob": -0.0694,
+        "no_speech_prob": 0.0,
+        "combined": -0.0694,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 437.5,
+        "end": 443.8,
+        "duration": 6.3,
+        "avg_logprob": -0.0483,
+        "no_speech_prob": 0.0083,
+        "combined": -0.0566,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": -0.0128,
+      "winner_by_combined": "near_tie",
+      "fast_context": "olduğu kadar o yapının ekonomik olmasıyla da hükümledi İşte biz de bu sorunu çözmek adına",
+      "quality_context": "olduğu kadar o yapının ekonomik olmasıyla da yükümlüdür İşte biz de bu sorunu çözmek adına"
+    },
+    {
+      "fast": "konumlandırdı",
+      "quality": "konumlandırdık",
+      "count": 1,
+      "fast_metrics": {
+        "start": 444.14,
+        "end": 451.96,
+        "duration": 7.82,
+        "avg_logprob": -0.0694,
+        "no_speech_prob": 0.0,
+        "combined": -0.0694,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 444.16,
+        "end": 452.04,
+        "duration": 7.88,
+        "avg_logprob": -0.0483,
+        "no_speech_prob": 0.0083,
+        "combined": -0.0566,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": -0.0128,
+      "winner_by_combined": "near_tie",
+      "fast_context": "birbirlerine doğru yaklaştırdık ve onları denizin içinde konumlandırdı Köprü kulelerinin denizin ortasında olması kuleleri taşıyacak",
+      "quality_context": "birbirlerine doğru yaklaştırdık ve onları denizin içinde konumlandırdık Köprü kulelerinin denizin ortasında olması kuleleri taşıyacak"
+    },
+    {
+      "fast": "kesonlarının",
+      "quality": "kesonların",
+      "count": 1,
+      "fast_metrics": {
+        "start": 470.95,
+        "end": 483.59,
+        "duration": 12.64,
+        "avg_logprob": -0.0601,
+        "no_speech_prob": 0.0,
+        "combined": -0.0601,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "quality_metrics": {
+        "start": 470.95,
+        "end": 483.57,
+        "duration": 12.62,
+        "avg_logprob": -0.04,
+        "no_speech_prob": 0.0563,
+        "combined": -0.0963,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": 0.0362,
+      "winner_by_combined": "near_tie",
+      "fast_context": "suyundaki klor deniz tabanına batıracağımız beton harme kesonlarının içindeki çelik donatıların zamanla paslanmasına ve beton",
+      "quality_context": "suyundaki klor deniz tabanına batıracağımız beton harme kesonların içindeki çelik donatıların zamanla paslanmasına ve beton"
+    },
+    {
+      "fast": "üniversitelerde",
+      "quality": "üniversitelerle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 483.91,
+        "end": 491.77,
+        "duration": 7.86,
+        "avg_logprob": -0.0601,
+        "no_speech_prob": 0.0,
+        "combined": -0.0601,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "quality_metrics": {
+        "start": 483.89,
+        "end": 491.77,
+        "duration": 7.88,
+        "avg_logprob": -0.04,
+        "no_speech_prob": 0.0563,
+        "combined": -0.0963,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": 0.0362,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bu sorunun önüne geçmek için işin başında üniversitelerde iş birliği halinde sayısız beton dökümü ve",
+      "quality_context": "bu sorunun önüne geçmek için işin başında üniversitelerle iş birliği halinde sayısız beton dökümü ve"
+    },
+    {
+      "fast": "metreküplük",
+      "quality": "küplük",
+      "count": 1,
+      "fast_metrics": {
+        "start": 508.47,
+        "end": 515.03,
+        "duration": 6.56,
+        "avg_logprob": -0.1036,
+        "no_speech_prob": 0.0,
+        "combined": -0.1036,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "quality_metrics": {
+        "start": 508.45,
+        "end": 515.03,
+        "duration": 6.58,
+        "avg_logprob": -0.0967,
+        "no_speech_prob": 0.0735,
+        "combined": -0.1702,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "combined_delta_fast_minus_quality": 0.0665,
+      "winner_by_combined": "fast",
+      "fast_context": "bir sonraki büyük mücadelesi başladı 50 bin metreküplük özel beton kullanılarak dev köprü temelleri yani",
+      "quality_context": "sonraki büyük mücadelesi başladı 50 bin metre küplük özel beton kullanılarak dev köprü temelleri yani"
+    },
+    {
+      "fast": "damarları",
+      "quality": "damarlara",
+      "count": 1,
+      "fast_metrics": {
+        "start": 579.36,
+        "end": 588.66,
+        "duration": 9.3,
+        "avg_logprob": -0.0824,
+        "no_speech_prob": 0.0,
+        "combined": -0.0824,
+        "flags": [],
+        "source_chunk_index": 36
+      },
+      "quality_metrics": {
+        "start": 579.06,
+        "end": 588.7,
+        "duration": 9.64,
+        "avg_logprob": -0.082,
+        "no_speech_prob": 0.0048,
+        "combined": -0.0869,
+        "flags": [],
+        "source_chunk_index": 36
+      },
+      "combined_delta_fast_minus_quality": 0.0045,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kan yolundaki damarlar gibi büyük damarlardan kılcal damarları doğru suyun ilerleyebileceği küçük kanallar açtı Daha",
+      "quality_context": "kan yolundaki damarlar gibi büyük damarlardan kılcal damarlara doğru suyun ilerleyebileceği küçük kanallar açtı Daha"
+    },
+    {
+      "fast": "Tabii",
+      "quality": "Tabi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 677.2,
+        "end": 679.42,
+        "duration": 2.22,
+        "avg_logprob": -0.2842,
+        "no_speech_prob": 0.0,
+        "combined": -0.2842,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "quality_metrics": {
+        "start": 677.2,
+        "end": 679.44,
+        "duration": 2.24,
+        "avg_logprob": -0.2812,
+        "no_speech_prob": 0.025,
+        "combined": -0.3063,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.0221,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kütleyi denizin ortasına nasıl taşırsınız E yüzdürerek Tabii batırmazsanız Kesonlar hesapladığınız gibi yükselip kontrol tamamen",
+      "quality_context": "kütleyi denizin ortasına nasıl taşırsınız E yüzdürerek Tabi batırmazsanız Kesonlar hesapladığınız gibi yükselip kontrol tamamen"
+    },
+    {
+      "fast": "kesonlar",
+      "quality": "onlar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 508.47,
+        "end": 515.03,
+        "duration": 6.56,
+        "avg_logprob": -0.1036,
+        "no_speech_prob": 0.0,
+        "combined": -0.1036,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "quality_metrics": {
+        "start": 706.0,
+        "end": 712.68,
+        "duration": 6.68,
+        "avg_logprob": -0.0625,
+        "no_speech_prob": 0.0115,
+        "combined": -0.074,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": -0.0296,
+      "winner_by_combined": "near_tie",
+      "fast_context": "özel beton kullanılarak dev köprü temelleri yani kesonlar inşa edilmeliydi Kesonlar denizde inşa edilemezdi Karada",
+      "quality_context": "kazılarak devam etti Yeterli açıklığa ulaşıldığında kes onlar remorkörlere bağlanarak ıslak havuz iskelesine kadar yüzdürüldü"
+    },
+    {
+      "fast": "römorkörlere",
+      "quality": "remorkörlere",
+      "count": 1,
+      "fast_metrics": {
+        "start": 706.0,
+        "end": 712.68,
+        "duration": 6.68,
+        "avg_logprob": -0.0617,
+        "no_speech_prob": 0.0,
+        "combined": -0.0617,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "quality_metrics": {
+        "start": 706.0,
+        "end": 712.68,
+        "duration": 6.68,
+        "avg_logprob": -0.0625,
+        "no_speech_prob": 0.0115,
+        "combined": -0.074,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.0123,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kazılarak devam etti Yeterli açıklığa ulaşıldığında kesonlar römorkörlere bağlanarak ıslak havuz iskelesine kadar yüzdürüldü Islak",
+      "quality_context": "devam etti Yeterli açıklığa ulaşıldığında kes onlar remorkörlere bağlanarak ıslak havuz iskelesine kadar yüzdürüldü Islak"
+    },
+    {
+      "fast": "Kasonların",
+      "quality": "Kesonların",
+      "count": 1,
+      "fast_metrics": {
+        "start": 722.38,
+        "end": 731.12,
+        "duration": 8.74,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805,
+        "flags": [],
+        "source_chunk_index": 45
+      },
+      "quality_metrics": {
+        "start": 532.65,
+        "end": 538.91,
+        "duration": 6.26,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.1793,
+        "combined": -0.2752,
+        "flags": [],
+        "source_chunk_index": 34
+      },
+      "combined_delta_fast_minus_quality": 0.1947,
+      "winner_by_combined": "fast",
+      "fast_context": "devam etmesi için önceden hazırlanan bir platform Kasonların inşası burada yaklaşık 5 ay devam etti",
+      "quality_context": "başında bu konu üzerinde çokça düşünüldü ve kesonların iki aşamada inşa edilmesine karar verildi Birincisi"
+    },
+    {
+      "fast": "körü",
+      "quality": "çekiromorkörü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 742.5,
+        "end": 753.8,
+        "duration": 11.3,
+        "avg_logprob": -0.0846,
+        "no_speech_prob": 0.0,
+        "combined": -0.0846,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 742.5,
+        "end": 753.8,
+        "duration": 11.3,
+        "avg_logprob": -0.0737,
+        "no_speech_prob": 0.0091,
+        "combined": -0.0828,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "combined_delta_fast_minus_quality": -0.0018,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Bu yüzden kesonlar 4 adet çekiro mor körü kullanılarak son derece yavaş ve dengeli bir",
+      "quality_context": "çaremiz yoktu Bu yüzden kesonlar 4 adet çekiromorkörü kullanılarak son derece yavaş ve dengeli bir"
+    },
+    {
+      "fast": "Kasonlarla",
+      "quality": "Kesonlarla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 816.4,
+        "end": 825.98,
+        "duration": 9.58,
+        "avg_logprob": -0.0912,
+        "no_speech_prob": 0.0,
+        "combined": -0.0912,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "quality_metrics": {
+        "start": 816.4,
+        "end": 825.98,
+        "duration": 9.58,
+        "avg_logprob": -0.0789,
+        "no_speech_prob": 0.0608,
+        "combined": -0.1396,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "combined_delta_fast_minus_quality": 0.0484,
+      "winner_by_combined": "near_tie",
+      "fast_context": "dönümlük çelik boru kazık tarlası meydana geldi Kasonlarla kazıklar arasında bir yük aktarma platformu oluşturmak",
+      "quality_context": "dönümlük çelik boru kazık tarlası meydana geldi Kesonlarla kazıklar arasında bir yük aktarma platformu oluşturmak"
+    },
+    {
+      "fast": "bir",
+      "quality": "çözülebilir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 0.94,
+        "end": 7.5,
+        "duration": 6.56,
+        "avg_logprob": -0.1003,
+        "no_speech_prob": 0.0,
+        "combined": -0.1003,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 843.77,
+        "end": 845.35,
+        "duration": 1.58,
+        "avg_logprob": -0.092,
+        "no_speech_prob": 0.0439,
+        "combined": -0.1359,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "combined_delta_fast_minus_quality": 0.0356,
+      "winner_by_combined": "near_tie",
+      "fast_context": "8 boğazından birinde 90'ı Türklerden oluşan deneyimli bir ekip 5 yıl boyunca 250 binden fazla",
+      "quality_context": "bir miktar hareket edecek mi Evet çok çözülebilir miktar Tabii bunun için öncelikle içi havayla"
+    },
+    {
+      "fast": "Tabi",
+      "quality": "Tabii",
+      "count": 1,
+      "fast_metrics": {
+        "start": 845.87,
+        "end": 857.09,
+        "duration": 11.22,
+        "avg_logprob": -0.0964,
+        "no_speech_prob": 0.0,
+        "combined": -0.0964,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 845.35,
+        "end": 857.13,
+        "duration": 11.78,
+        "avg_logprob": -0.092,
+        "no_speech_prob": 0.0439,
+        "combined": -0.1359,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "combined_delta_fast_minus_quality": 0.0395,
+      "winner_by_combined": "near_tie",
+      "fast_context": "hareket edecek Evet çok cüzde bir miktar Tabi bunun için öncelikle içi havayla dolu 65",
+      "quality_context": "hareket edecek mi Evet çok çözülebilir miktar Tabii bunun için öncelikle içi havayla dolu 65"
+    },
+    {
+      "fast": "sağlık",
+      "quality": "sağladık",
+      "count": 1,
+      "fast_metrics": {
+        "start": 902.86,
+        "end": 907.82,
+        "duration": 4.96,
+        "avg_logprob": -0.0822,
+        "no_speech_prob": 0.0,
+        "combined": -0.0822,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "quality_metrics": {
+        "start": 902.7,
+        "end": 907.88,
+        "duration": 5.18,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "combined_delta_fast_minus_quality": 0.189,
+      "winner_by_combined": "fast",
+      "fast_context": "hava boşluğunu dışarıya tahliye ederek kesonların batmasını sağlık Evet bir bakıma öyle Yaklaşık 8 saat",
+      "quality_context": "hava boşluğunu dışarıya tahliye ederek kesonların batmasını sağladık Evet bir bakıma öyle Yaklaşık 8 saat"
+    },
+    {
+      "fast": "Kason",
+      "quality": "Keson",
+      "count": 1,
+      "fast_metrics": {
+        "start": 935.85,
+        "end": 940.13,
+        "duration": 4.28,
+        "avg_logprob": -0.1768,
+        "no_speech_prob": 0.0,
+        "combined": -0.1768,
+        "flags": [],
+        "source_chunk_index": 57
+      },
+      "quality_metrics": {
+        "start": 521.67,
+        "end": 528.19,
+        "duration": 6.52,
+        "avg_logprob": -0.0967,
+        "no_speech_prob": 0.0735,
+        "combined": -0.1702,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "combined_delta_fast_minus_quality": -0.0066,
+      "winner_by_combined": "near_tie",
+      "fast_context": "inanılmaz Deniz tabanına çelik boru kazıklar çakıldı Kason dediğimiz beton temeller bu kazıkların üzerine oturtuldu",
+      "quality_context": "imal edilip denize taşınması gerekiyordu Binlerce tonluk keson temellerinin oraya taşındığını düşününce gerçekten hayal gücünün"
+    },
+    {
+      "fast": "tablileri",
+      "quality": "tableleri",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1086.12,
+        "end": 1090.68,
+        "duration": 4.56,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 1086.12,
+        "end": 1088.86,
+        "duration": 2.74,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.1175,
+      "winner_by_combined": "fast",
+      "fast_context": "36 bin ton Bunun dışında ana halatlarımız tablileri taşıyor dolayısıyla bu yük kulelere biniyor Tablilerimizin",
+      "quality_context": "36 bin ton Bunun dışında ana halatlarımız tableleri taşıyor Dolayısıyla bu yük kulelere biniyor Tablelerimizin"
+    },
+    {
+      "fast": "Tablilerimizin",
+      "quality": "Tablelerimizin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1090.9,
+        "end": 1092.92,
+        "duration": 2.02,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 1090.92,
+        "end": 1092.92,
+        "duration": 2.0,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.1175,
+      "winner_by_combined": "fast",
+      "fast_context": "tablileri taşıyor dolayısıyla bu yük kulelere biniyor Tablilerimizin ağırlığı da 55 bin ton Dolayısıyla bu",
+      "quality_context": "tableleri taşıyor Dolayısıyla bu yük kulelere biniyor Tablelerimizin ağırlığı da 55 bin ton Dolayısıyla bu"
+    },
+    {
+      "fast": "düşeği",
+      "quality": "düşe",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1095.9,
+        "end": 1101.86,
+        "duration": 5.96,
+        "avg_logprob": -0.1741,
+        "no_speech_prob": 0.0,
+        "combined": -0.1741,
+        "flags": [],
+        "source_chunk_index": 65
+      },
+      "quality_metrics": {
+        "start": 1095.9,
+        "end": 1101.88,
+        "duration": 5.98,
+        "avg_logprob": -0.1307,
+        "no_speech_prob": 0.0305,
+        "combined": -0.1613,
+        "flags": [],
+        "source_chunk_index": 65
+      },
+      "combined_delta_fast_minus_quality": -0.0129,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Dolayısıyla bu kulelerin fonksiyonu çok önemli Bizim düşeği yüklerimizi biz bu kulelerin üzerinde alıyoruz ve",
+      "quality_context": "Dolayısıyla bu kulelerin fonksiyonu çok önemli Bizim düşe yüklerimizi biz bu kulelerin üzerinde alıyoruz ve"
+    },
+    {
+      "fast": "bilimlerde",
+      "quality": "birimlerde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1132.2,
+        "end": 1137.8,
+        "duration": 5.6,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 1132.2,
+        "end": 1137.8,
+        "duration": 5.6,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.3066,
+        "combined": -0.3866,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "combined_delta_fast_minus_quality": 0.3061,
+      "winner_by_combined": "fast",
+      "fast_context": "Burada inanılmaz bir iş gücü kullanıldı Tüm bilimlerde Türk mühendisleri son derece aktif rol oynadı",
+      "quality_context": "Burada inanılmaz bir iş gücü kullanıldı Tüm birimlerde Türk mühendisleri son derece aktif rol oynadı"
+    },
+    {
+      "fast": "milimetre",
+      "quality": "mm",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1215.86,
+        "end": 1222.28,
+        "duration": 6.42,
+        "avg_logprob": -0.153,
+        "no_speech_prob": 0.0,
+        "combined": -0.153,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "quality_metrics": {
+        "start": 1215.86,
+        "end": 1222.18,
+        "duration": 6.32,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.0001,
+        "combined": -0.117,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "combined_delta_fast_minus_quality": -0.0361,
+      "winner_by_combined": "near_tie",
+      "fast_context": "güven veriyorlar Bu çelik halatlar 5 75 milimetre çapında ve 1960 megapaskal Çekme dayanımıyla Güney",
+      "quality_context": "güven veriyorlar Bu çelik alatlar 5 75 mm çapında ve 1960 MPa çekme dayanımıyla Güney"
+    },
+    {
+      "fast": "megapaskal",
+      "quality": "MPa",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1215.86,
+        "end": 1222.28,
+        "duration": 6.42,
+        "avg_logprob": -0.153,
+        "no_speech_prob": 0.0,
+        "combined": -0.153,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "quality_metrics": {
+        "start": 1215.86,
+        "end": 1222.18,
+        "duration": 6.32,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.0001,
+        "combined": -0.117,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "combined_delta_fast_minus_quality": -0.0361,
+      "winner_by_combined": "near_tie",
+      "fast_context": "halatlar 5 75 milimetre çapında ve 1960 megapaskal Çekme dayanımıyla Güney Kore'de üretildi Daha sonra",
+      "quality_context": "alatlar 5 75 mm çapında ve 1960 MPa çekme dayanımıyla Güney Kore'de üretildi Daha sonra"
+    },
+    {
+      "fast": "hali",
+      "quality": "yulolar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1225.93,
+        "end": 1233.35,
+        "duration": 7.42,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353,
+        "flags": [],
+        "source_chunk_index": 73
+      },
+      "quality_metrics": {
+        "start": 1230.87,
+        "end": 1232.21,
+        "duration": 1.34,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "flags": [],
+        "source_chunk_index": 73
+      },
+      "combined_delta_fast_minus_quality": 0.3343,
+      "winner_by_combined": "fast",
+      "fast_context": "geçtikten sonra demet haline getirildi ve rulolar hali de Türkiye'ye ulaştırıldı Ama 55 bin ton",
+      "quality_context": "proseslerden geçtikten sonra demet haline getirildi Ve yulolar halinde Türkiye'ye ulaştırıldı Ama 55 bin ton"
+    },
+    {
+      "fast": "de",
+      "quality": "halinde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 34.2,
+        "end": 43.36,
+        "duration": 9.16,
+        "avg_logprob": -0.1808,
+        "no_speech_prob": 0.0,
+        "combined": -0.1808,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 483.89,
+        "end": 491.77,
+        "duration": 7.88,
+        "avg_logprob": -0.04,
+        "no_speech_prob": 0.0563,
+        "combined": -0.0963,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": -0.0845,
+      "winner_by_combined": "quality",
+      "fast_context": "hem zorlu fırtına ve depremlerle savaşacak hem de üzerinden geçen yüz binlerce aracın yükünü sığırtlayacak",
+      "quality_context": "geçmek için işin başında üniversitelerle iş birliği halinde sayısız beton dökümü ve sayısız test gerçekleştirdik"
+    },
+    {
+      "fast": "Ankaraj'dan",
+      "quality": "Ankıraj'dan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1275.31,
+        "end": 1281.31,
+        "duration": 6.0,
+        "avg_logprob": -0.1477,
+        "no_speech_prob": 0.0,
+        "combined": -0.1477,
+        "flags": [],
+        "source_chunk_index": 74
+      },
+      "quality_metrics": {
+        "start": 1275.31,
+        "end": 1281.31,
+        "duration": 6.0,
+        "avg_logprob": -0.0842,
+        "no_speech_prob": 0.0002,
+        "combined": -0.0843,
+        "flags": [],
+        "source_chunk_index": 74
+      },
+      "combined_delta_fast_minus_quality": -0.0633,
+      "winner_by_combined": "quality",
+      "fast_context": "çözmesi gereken önemli bir sorundu Bunların Asya Ankaraj'dan Avrupa Ankaraj bölgesine çekilmesi esnasında öncelikle hauling",
+      "quality_context": "çözmesi gereken önemli bir sorundu Bunların Asya Ankıraj'dan Avrupa Ankıraj bölgesine çekilmesi esnasında öncelikle Holdingrop"
+    },
+    {
+      "fast": "Ankaraj",
+      "quality": "Ankıraj",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1275.31,
+        "end": 1281.31,
+        "duration": 6.0,
+        "avg_logprob": -0.1477,
+        "no_speech_prob": 0.0,
+        "combined": -0.1477,
+        "flags": [],
+        "source_chunk_index": 74
+      },
+      "quality_metrics": {
+        "start": 1275.31,
+        "end": 1281.31,
+        "duration": 6.0,
+        "avg_logprob": -0.0842,
+        "no_speech_prob": 0.0002,
+        "combined": -0.0843,
+        "flags": [],
+        "source_chunk_index": 74
+      },
+      "combined_delta_fast_minus_quality": -0.0633,
+      "winner_by_combined": "quality",
+      "fast_context": "önemli bir sorundu Bunların Asya Ankaraj'dan Avrupa Ankaraj bölgesine çekilmesi esnasında öncelikle hauling rope dediğimiz",
+      "quality_context": "önemli bir sorundu Bunların Asya Ankıraj'dan Avrupa Ankıraj bölgesine çekilmesi esnasında öncelikle Holdingrop dediğimiz taşıma"
+    },
+    {
+      "fast": "keldevetleri",
+      "quality": "devetleri",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1290.67,
+        "end": 1304.17,
+        "duration": 13.5,
+        "avg_logprob": -0.0966,
+        "no_speech_prob": 0.0,
+        "combined": -0.0966,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "quality_metrics": {
+        "start": 1291.19,
+        "end": 1304.15,
+        "duration": 12.96,
+        "avg_logprob": -0.0772,
+        "no_speech_prob": 0.0206,
+        "combined": -0.0977,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "combined_delta_fast_minus_quality": 0.0012,
+      "winner_by_combined": "near_tie",
+      "fast_context": "her biri 4368 metre uzunluğunda olan çelik keldevetleri yaklaşık 3 saatlik bir yolculuktan sonra Avrupa",
+      "quality_context": "biri 4368 metre uzunluğunda olan çelik kel devetleri yaklaşık 3 saatlik bir yolculuktan sonra Avrupa"
+    },
+    {
+      "fast": "sonduruyor",
+      "quality": "buluyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1331.1,
+        "end": 1333.44,
+        "duration": 2.34,
+        "avg_logprob": -0.1359,
+        "no_speech_prob": 0.0,
+        "combined": -0.1359,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "quality_metrics": {
+        "start": 1331.1,
+        "end": 1333.42,
+        "duration": 2.32,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0297,
+        "combined": -0.1434,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "combined_delta_fast_minus_quality": 0.0075,
+      "winner_by_combined": "near_tie",
+      "fast_context": "hareket etmiş oluyor Bu çelik halatlar nerede sonduruyor Birazdan üzerinde yürüdüğümüz kedi yolu nihayetlenecek Fakat",
+      "quality_context": "etmiş oluyor Bu çelik halatlar nerede son buluyor Birazdan üzerinde yürüdüğümüz kedi yolu nihayetlenecek Fakat"
+    },
+    {
+      "fast": "Ankara",
+      "quality": "ankıraç",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1363.4,
+        "end": 1372.02,
+        "duration": 8.62,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "quality_metrics": {
+        "start": 1363.38,
+        "end": 1372.04,
+        "duration": 8.66,
+        "avg_logprob": -0.1333,
+        "no_speech_prob": 0.0446,
+        "combined": -0.1778,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "combined_delta_fast_minus_quality": 0.0573,
+      "winner_by_combined": "fast",
+      "fast_context": "olduğunuz duvar ve onun dahil olduğu devasa Ankara yapısıdır Yani biraz önce görmüş olduğumuz 87",
+      "quality_context": "olduğunuz duvar ve onun dahil olduğu devasa ankıraç yapısıdır Yani biraz önce görmüş olduğumuz 87"
+    },
+    {
+      "fast": "anlayı",
+      "quality": "anayaya",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1386.55,
+        "end": 1393.23,
+        "duration": 6.68,
+        "avg_logprob": -0.1333,
+        "no_speech_prob": 0.0,
+        "combined": -0.1333,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "quality_metrics": {
+        "start": 1386.55,
+        "end": 1393.23,
+        "duration": 6.68,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.031,
+        "combined": -0.1675,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "combined_delta_fast_minus_quality": 0.0342,
+      "winner_by_combined": "near_tie",
+      "fast_context": "gerilimini bir noktada değil mümkün olduğunca geniş anlayı yayabilmek içindir Evet yani gücü biz bir",
+      "quality_context": "gerilimini bir noktada değil mümkün olduğunca geniş anayaya yayabilmek içindir Evet yani gücü biz bir"
+    },
+    {
+      "fast": "Anakablo",
+      "quality": "kablo",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1399.15,
+        "end": 1407.05,
+        "duration": 7.9,
+        "avg_logprob": -0.1333,
+        "no_speech_prob": 0.0,
+        "combined": -0.1333,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "quality_metrics": {
+        "start": 1242.07,
+        "end": 1243.83,
+        "duration": 1.76,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "flags": [],
+        "source_chunk_index": 73
+      },
+      "combined_delta_fast_minus_quality": 0.3364,
+      "winner_by_combined": "fast",
+      "fast_context": "Evet dağıtmış oluyoruz Tabiri caizse şöyle söyleyebiliriz Anakablo köprüdeki bütün yükleri derleyip toplayıp takım arkadaşı",
+      "quality_context": "iş değil Her bir ana halat 144 kablo demetinden her bir kablo demeti ise 127"
+    },
+    {
+      "fast": "Ankara'cılığına",
+      "quality": "bloğuna",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1399.15,
+        "end": 1407.05,
+        "duration": 7.9,
+        "avg_logprob": -0.1333,
+        "no_speech_prob": 0.0,
+        "combined": -0.1333,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "quality_metrics": {
+        "start": 1338.78,
+        "end": 1343.66,
+        "duration": 4.88,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0297,
+        "combined": -0.1434,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "combined_delta_fast_minus_quality": 0.0101,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bütün yükleri derleyip toplayıp takım arkadaşı olan Ankara'cılığına diyor ki ben bunların hepsini derledim topladım",
+      "quality_context": "yolu nihayetlenecek Fakat çelik halatların yolculuğu Ankara bloğuna kadar devam ediyor Asya ile Avrupa arasına"
+    },
+    {
+      "fast": "ankaraj",
+      "quality": "ankıraj",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1464.14,
+        "end": 1474.3,
+        "duration": 10.16,
+        "avg_logprob": -0.0974,
+        "no_speech_prob": 0.0,
+        "combined": -0.0974,
+        "flags": [],
+        "source_chunk_index": 82
+      },
+      "quality_metrics": {
+        "start": 1464.14,
+        "end": 1474.3,
+        "duration": 10.16,
+        "avg_logprob": -0.086,
+        "no_speech_prob": 0.0122,
+        "combined": -0.0982,
+        "flags": [],
+        "source_chunk_index": 82
+      },
+      "combined_delta_fast_minus_quality": 0.0008,
+      "winner_by_combined": "near_tie",
+      "fast_context": "metreküp beton toplamda 234 bin tonluk bir ankaraj bloğu masif yapıyı oluşturuyor Zaten böyle de",
+      "quality_context": "küp beton toplamda 234 bin tonluk bir ankıraj bloğu masif yapıyı oluşturuyor Zaten böyle de"
+    },
+    {
+      "fast": "tabliğenin",
+      "quality": "tabliyenin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1554.35,
+        "end": 1560.25,
+        "duration": 5.9,
+        "avg_logprob": -0.1103,
+        "no_speech_prob": 0.0,
+        "combined": -0.1103,
+        "flags": [],
+        "source_chunk_index": 86
+      },
+      "quality_metrics": {
+        "start": 1549.86,
+        "end": 1553.54,
+        "duration": 3.68,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "flags": [],
+        "source_chunk_index": 85
+      },
+      "combined_delta_fast_minus_quality": 0.2519,
+      "winner_by_combined": "fast",
+      "fast_context": "titreşimlerden bir tanesi tabliyenin çırpınması Tonlarca ağırlıktaki tabliğenin rüzgardan etkilenmesi sıklıkla karşılaşılan bir olay değil",
+      "quality_context": "bizim için en önemli titreşimlerden bir tanesi tabliyenin çırpınması Tonlarca ağırlıktaki tabliyenin rüzgardan etkilenmesi sıklıkla"
+    },
+    {
+      "fast": "maçetlerini",
+      "quality": "maketlerini",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1738.48,
+        "end": 1750.48,
+        "duration": 12.0,
+        "avg_logprob": -0.043,
+        "no_speech_prob": 0.0,
+        "combined": -0.043,
+        "flags": [],
+        "source_chunk_index": 95
+      },
+      "quality_metrics": {
+        "start": 1738.48,
+        "end": 1750.48,
+        "duration": 12.0,
+        "avg_logprob": -0.0502,
+        "no_speech_prob": 0.0031,
+        "combined": -0.0532,
+        "flags": [],
+        "source_chunk_index": 95
+      },
+      "combined_delta_fast_minus_quality": 0.0103,
+      "winner_by_combined": "near_tie",
+      "fast_context": "altındaki davranışlarını test etmek için farklı ölçekteki maçetlerini hesaplanabilir şiddetle rüzgara maruz bıraktılar ve tasarımın",
+      "quality_context": "altındaki davranışlarını test etmek için farklı ölçekteki maketlerini hesaplanabilir şiddette rüzgara maruz bıraktılar ve tasarımın"
+    },
+    {
+      "fast": "şiddetle",
+      "quality": "şiddette",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1672.2,
+        "end": 1681.9,
+        "duration": 9.7,
+        "avg_logprob": -0.07,
+        "no_speech_prob": 0.0,
+        "combined": -0.07,
+        "flags": [],
+        "source_chunk_index": 92
+      },
+      "quality_metrics": {
+        "start": 1738.48,
+        "end": 1750.48,
+        "duration": 12.0,
+        "avg_logprob": -0.0502,
+        "no_speech_prob": 0.0031,
+        "combined": -0.0532,
+        "flags": [],
+        "source_chunk_index": 95
+      },
+      "combined_delta_fast_minus_quality": -0.0168,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ya da hortumlar köprüyü yukarı aşağı iterek şiddetle sallanmasına ve dönmesine neden olacak Mühendisler bu",
+      "quality_context": "test etmek için farklı ölçekteki maketlerini hesaplanabilir şiddette rüzgara maruz bıraktılar ve tasarımın kusursuzluğunu doğruladılar"
+    },
+    {
+      "fast": "şiddetli",
+      "quality": "şiddetteki",
+      "count": 1,
+      "fast_metrics": {
+        "start": 128.35,
+        "end": 133.93,
+        "duration": 5.58,
+        "avg_logprob": -0.1378,
+        "no_speech_prob": 0.0,
+        "combined": -0.1378,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 1808.68,
+        "end": 1811.34,
+        "duration": 2.66,
+        "avg_logprob": -0.0678,
+        "no_speech_prob": 0.0106,
+        "combined": -0.0784,
+        "flags": [],
+        "source_chunk_index": 98
+      },
+      "combined_delta_fast_minus_quality": -0.0594,
+      "winner_by_combined": "quality",
+      "fast_context": "çıkaracaklardı 6 şeritli yol blokları tasarlayacaklardı Ama şiddetli fırtınalarla baş etmesini nasıl sağlayacaklardı Ne olursa",
+      "quality_context": "bir problem olarak karşılarına çıktı Köprüyü yıkamayacak şiddetteki bir rüzgar seyir halinde hareket eden araçlara"
+    },
+    {
+      "fast": "binci",
+      "quality": "yüzervinci",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1880.2,
+        "end": 1888.62,
+        "duration": 8.42,
+        "avg_logprob": -0.0738,
+        "no_speech_prob": 0.0,
+        "combined": -0.0738,
+        "flags": [],
+        "source_chunk_index": 102
+      },
+      "quality_metrics": {
+        "start": 1880.2,
+        "end": 1888.68,
+        "duration": 8.48,
+        "avg_logprob": -0.1026,
+        "no_speech_prob": 0.007,
+        "combined": -0.1096,
+        "flags": [],
+        "source_chunk_index": 102
+      },
+      "combined_delta_fast_minus_quality": 0.0358,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ton kaldırma kapasitesiyle dünyanın en büyük yüzer binci Bu zorlu görevde tabliyelerin ilk 16 tanesini",
+      "quality_context": "5000 ton kaldırma kapasitesiyle dünyanın en büyük yüzervinci Bu zorlu görevde tablelerin ilk 16 tanesini"
+    },
+    {
+      "fast": "tabgeye",
+      "quality": "tabliye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1947.05,
+        "end": 1952.41,
+        "duration": 5.36,
+        "avg_logprob": -0.1321,
+        "no_speech_prob": 0.0,
+        "combined": -0.1321,
+        "flags": [],
+        "source_chunk_index": 108
+      },
+      "quality_metrics": {
+        "start": 1858.96,
+        "end": 1866.68,
+        "duration": 7.72,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.0126,
+        "combined": -0.113,
+        "flags": [],
+        "source_chunk_index": 100
+      },
+      "combined_delta_fast_minus_quality": -0.0191,
+      "winner_by_combined": "near_tie",
+      "fast_context": "oluşturuyor Köprünün bir ucundan diğer ucuna 86 tabgeye dizildi 87 si yani sonuncusu Asya ile",
+      "quality_context": "Ortalama ağırlıkları 1000 ton olan 87 adet tabliye gemilerin güvenli geçiş seviyesi olan 70 metre"
+    },
+    {
+      "fast": "var",
+      "quality": "Hoşçakalın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 303.89,
+        "end": 306.79,
+        "duration": 2.9,
+        "avg_logprob": -0.1026,
+        "no_speech_prob": 0.0,
+        "combined": -0.1026,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "quality_metrics": {
+        "start": 1964.15,
+        "end": 1966.15,
+        "duration": 2.0,
+        "avg_logprob": -0.6033,
+        "no_speech_prob": 0.8257,
+        "combined": -1.429,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 110
+      },
+      "combined_delta_fast_minus_quality": 1.3264,
+      "winner_by_combined": "fast",
+      "fast_context": "adım attığınız her yerin manevi bir değeri var Uzmanların hem en yakın kıyı bulup maliyeti",
+      "quality_context": "için bizi bekliyor Ne kadar yakın bak Hoşçakalın Şu anda iyi gözüküyor ama 80'i alıp"
+    },
+    {
+      "fast": "sağlama",
+      "quality": "sağlamı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1966.9,
+        "end": 1971.14,
+        "duration": 4.24,
+        "avg_logprob": -0.1301,
+        "no_speech_prob": 0.0,
+        "combined": -0.1301,
+        "flags": [],
+        "source_chunk_index": 111
+      },
+      "quality_metrics": {
+        "start": 1966.9,
+        "end": 1970.94,
+        "duration": 4.04,
+        "avg_logprob": -0.114,
+        "no_speech_prob": 0.0817,
+        "combined": -0.1958,
+        "flags": [],
+        "source_chunk_index": 111
+      },
+      "combined_delta_fast_minus_quality": 0.0656,
+      "winner_by_combined": "fast",
+      "fast_context": "Şu anda iyi gözüküyor ama 80'i alıp sağlama almamız daha iyi olacaktır tamam Son tabliye",
+      "quality_context": "Şu anda iyi gözüküyor ama 80'i alıp sağlamı almanız daha iyi olacaktır Son tabliye yerleştirildikten"
+    },
+    {
+      "fast": "almamız",
+      "quality": "almanız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1966.9,
+        "end": 1971.14,
+        "duration": 4.24,
+        "avg_logprob": -0.1301,
+        "no_speech_prob": 0.0,
+        "combined": -0.1301,
+        "flags": [],
+        "source_chunk_index": 111
+      },
+      "quality_metrics": {
+        "start": 1966.9,
+        "end": 1970.94,
+        "duration": 4.04,
+        "avg_logprob": -0.114,
+        "no_speech_prob": 0.0817,
+        "combined": -0.1958,
+        "flags": [],
+        "source_chunk_index": 111
+      },
+      "combined_delta_fast_minus_quality": 0.0656,
+      "winner_by_combined": "fast",
+      "fast_context": "anda iyi gözüküyor ama 80'i alıp sağlama almamız daha iyi olacaktır tamam Son tabliye yerleştirildikten",
+      "quality_context": "anda iyi gözüküyor ama 80'i alıp sağlamı almanız daha iyi olacaktır Son tabliye yerleştirildikten sonra"
+    },
+    {
+      "fast": "tabliğe",
+      "quality": "tabliye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2000.0,
+        "end": 2007.36,
+        "duration": 7.36,
+        "avg_logprob": -0.1854,
+        "no_speech_prob": 0.0,
+        "combined": -0.1854,
+        "flags": [],
+        "source_chunk_index": 112
+      },
+      "quality_metrics": {
+        "start": 1947.05,
+        "end": 1952.43,
+        "duration": 5.38,
+        "avg_logprob": -0.1172,
+        "no_speech_prob": 0.2515,
+        "combined": -0.3687,
+        "flags": [],
+        "source_chunk_index": 108
+      },
+      "combined_delta_fast_minus_quality": 0.1833,
+      "winner_by_combined": "fast",
+      "fast_context": "etmekte ve sanırım 5 saat içerisinde bu tabliğe yerine oturmuş olacak Biz aşağıda hazırız Her",
+      "quality_context": "oluşturuyor Köprünün bir ucundan diğer ucuna 86 tabliye dizildi 87 si yani sonuncusu Asya ile"
+    },
+    {
+      "fast": "cm'de",
+      "quality": "santimetrede",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2048.2,
+        "end": 2059.3,
+        "duration": 11.1,
+        "avg_logprob": -0.0576,
+        "no_speech_prob": 0.0,
+        "combined": -0.0576,
+        "flags": [],
+        "source_chunk_index": 115
+      },
+      "quality_metrics": {
+        "start": 2048.2,
+        "end": 2059.3,
+        "duration": 11.1,
+        "avg_logprob": -0.0619,
+        "no_speech_prob": 0.0367,
+        "combined": -0.0985,
+        "flags": [],
+        "source_chunk_index": 115
+      },
+      "combined_delta_fast_minus_quality": 0.041,
+      "winner_by_combined": "near_tie",
+      "fast_context": "son tabliye bloğu pistonlar sayesinde her 15 cm'de bir 15 dakikalık molalarla ilerliyor Deniz seviyesinden",
+      "quality_context": "son tabliye bloğu pistonlar sayesinde her 15 santimetrede bir 15 dakikalık molalarla ilerliyor Deniz seviyesinden"
+    },
+    {
+      "fast": "4608",
+      "quality": "608",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2118.48,
+        "end": 2124.78,
+        "duration": 6.3,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "quality_metrics": {
+        "start": 2118.48,
+        "end": 2124.8,
+        "duration": 6.32,
+        "avg_logprob": -0.1049,
+        "no_speech_prob": 0.0169,
+        "combined": -0.1217,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "combined_delta_fast_minus_quality": 0.0013,
+      "winner_by_combined": "near_tie",
+      "fast_context": "uzanan binlerce kilometrelik bir yolun son dokunuşu 4608 metre uzunluğundaki bir köprü Bir santim bile",
+      "quality_context": "binlerce kilometrelik bir yolun son dokunuşu 4 608 metre uzunluğundaki bir köprü bir santim bile"
+    },
+    {
+      "fast": "ile",
+      "quality": "tarihiyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 290.65,
+        "end": 299.01,
+        "duration": 8.36,
+        "avg_logprob": -0.1026,
+        "no_speech_prob": 0.0,
+        "combined": -0.1026,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "quality_metrics": {
+        "start": 2282.15,
+        "end": 2289.05,
+        "duration": 6.9,
+        "avg_logprob": -0.095,
+        "no_speech_prob": 0.0156,
+        "combined": -0.1106,
+        "flags": [],
+        "source_chunk_index": 123
+      },
+      "combined_delta_fast_minus_quality": 0.008,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Çanakkale Boğazı'ndan geçecek olması köprünün nerede konumlanacağı ile ilgili soruları da beraberinde getiriyor Çünkü dünyanın",
+      "quality_context": "Avrupa kıtalarını birleştirmiyor Aynı zamanda Türkiye'nin şanlı tarihiyle parlak geleceği arasında da bir köprü oluşturuyor"
+    },
+    {
+      "fast": "Ankaraş",
+      "quality": "Ankaraç",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2311.94,
+        "end": 2317.58,
+        "duration": 5.64,
+        "avg_logprob": -0.0788,
+        "no_speech_prob": 0.0,
+        "combined": -0.0788,
+        "flags": [],
+        "source_chunk_index": 124
+      },
+      "quality_metrics": {
+        "start": 2311.94,
+        "end": 2317.58,
+        "duration": 5.64,
+        "avg_logprob": -0.0882,
+        "no_speech_prob": 0.0389,
+        "combined": -0.1272,
+        "flags": [],
+        "source_chunk_index": 124
+      },
+      "combined_delta_fast_minus_quality": 0.0483,
+      "winner_by_combined": "near_tie",
+      "fast_context": "seviyesinden 70 metre yükseğe tek tek yerleştirildi Ankaraş blokları köprüyü sabitlemek ve güvende tutmak için",
+      "quality_context": "seviyesinden 70 metre yükseğe tek tek yerleştirildi Ankaraç blokları köprüyü sabitlemek ve güvende tutmak için"
+    },
+    {
+      "fast": "4",
+      "quality": "dördüncü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 177.08,
+        "end": 181.7,
+        "duration": 4.62,
+        "avg_logprob": -0.1031,
+        "no_speech_prob": 0.0,
+        "combined": -0.1031,
+        "flags": [],
+        "source_chunk_index": 16
+      },
+      "quality_metrics": {
+        "start": 2372.0,
+        "end": 2382.28,
+        "duration": 10.28,
+        "avg_logprob": -0.0399,
+        "no_speech_prob": 0.0121,
+        "combined": -0.0519,
+        "flags": [],
+        "source_chunk_index": 127
+      },
+      "combined_delta_fast_minus_quality": -0.0511,
+      "winner_by_combined": "quality",
+      "fast_context": "iki ucundaki devasa beton bloklara bağlı Tamamı 4 5 kilometre uzunluğa sahip köprü bu şekilde",
+      "quality_context": "hızlanacak kolaylaşacak artacaktır Çanakkale boğazındaki ilk Boğazlardaki dördüncü köprümüzün ülkemize milletimize tüm dünyaya şimdiden hayırlı"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "fast_extra",
+      "text": "Saatte 5 kilometre gösteriyor çok az Şu anda 5 kilometre Çanakkale Boğazı'nda rüzgar hızı saatte 110 kilometreye kadar ulaşabiliyor",
+      "word_count": 19
+    },
+    {
+      "side": "quality_extra",
+      "text": "köprünün bilimsel hesaplamalarına uygun ölçüleri simgeleştirdi ve tasarımsal estetiğini de göz önünde bulundurarak",
+      "word_count": 13
+    },
+    {
+      "side": "quality_extra",
+      "text": "1915 Çanakkale Köprüsü'nde öncelikle kuleler göğe doğru 318 metre yükseldi",
+      "word_count": 10
+    },
+    {
+      "side": "fast_extra",
+      "text": "Ya Allah Bismillah",
+      "word_count": 3
+    },
+    {
+      "side": "fast_extra",
+      "text": "Ve ihbar ettirdik",
+      "word_count": 3
+    },
+    {
+      "side": "fast_extra",
+      "text": "çekiro mor",
+      "word_count": 2
+    }
+  ]
+}

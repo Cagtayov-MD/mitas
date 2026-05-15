@@ -1,0 +1,124 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_1_full\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 95.62,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Tüm hazırlıklar tamamlandı. P-16'lar Eskişehir 1. Anajet üstünden havalandı. Eskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen FS-2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılaşacakları C kuvvetine karşı ekipmanlarını giyip hangara geçti. İkin kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipler uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı. F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev FS-2026. Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı. Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor. Gerisi onların havadaki zorlu görevleri büyük bir kolaylıkla, ustalıkla gerçekleştirmesinde.",
+    "clean": "Tüm hazırlıklar tamamlandı. P-16'lar Eskişehir 1. Anajet üstünden havalandı.\n\nEskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen FS-2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılaşacakları C kuvvetine karşı ekipmanlarını giyip hangara geçti.\n\nİkin kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipler uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı. F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev FS-2026. Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı. Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor. Gerisi onların havadaki zorlu görevleri büyük bir kolaylıkla, ustalıkla gerçekleştirmesinde.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 1.6,
+      "end": 7.48,
+      "text": "Tüm hazırlıklar tamamlandı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 7.84,
+      "end": 11.08,
+      "text": "P-16'lar Eskişehir 1. Anajet üstünden havalandı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 14.6,
+      "end": 22.04,
+      "text": "Eskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen FS-2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 22.34,
+      "end": 27.58,
+      "text": "Pilotlar gökyüzünde karşılaşacakları C kuvvetine karşı ekipmanlarını giyip hangara geçti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 32.3,
+      "end": 38.86,
+      "text": "İkin kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 39.26,
+      "end": 46.04,
+      "text": "Pilot kokpite geçti, ekipler uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 47.66,
+      "end": 51.38,
+      "text": "F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 51.54,
+      "end": 56.1,
+      "text": "Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 56.1,
+      "end": 61.84,
+      "text": "Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev FS-2026.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 62.9,
+      "end": 73.76,
+      "text": "Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 75.225,
+      "end": 79.865,
+      "text": "Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 80.185,
+      "end": 85.605,
+      "text": "Gerisi onların havadaki zorlu görevleri büyük bir kolaylıkla, ustalıkla gerçekleştirmesinde.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    }
+  ],
+  "quality": {
+    "drops": 1,
+    "drop_reasons": {
+      "stock_artifact:izlediğiniz için teşekkür ederim": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 9.093,
+    "chunk_count": 5,
+    "decode_seconds": 3.637,
+    "fallback_seconds": 0.0
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 5339.328,
+  "runtime_seconds_wall": 176.991,
+  "runtime_seconds_reported": 176.959,
+  "runtime_per_audio_minute": 1.989,
+  "clean_word_count": 310,
+  "clean_segment_count": 58,
+  "quality_drop_count": 14,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "sorma.",
+    "max_token_length": 14,
+    "words_per_second": 0.98
+  }
+}

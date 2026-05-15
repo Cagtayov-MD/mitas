@@ -1,0 +1,20 @@
+{
+  "sample_id": "erd_test_full",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 195.257,
+  "runtime_seconds_wall": 41.553,
+  "runtime_seconds_reported": 41.518,
+  "runtime_per_audio_minute": 12.769,
+  "clean_word_count": 249,
+  "clean_segment_count": 57,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 18,
+    "repeated_token": "İngilizce",
+    "max_token_length": 19,
+    "words_per_second": 1.64
+  }
+}

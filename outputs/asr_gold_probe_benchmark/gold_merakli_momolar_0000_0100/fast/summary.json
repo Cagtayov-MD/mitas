@@ -1,0 +1,20 @@
+{
+  "sample_id": "gold_merakli_momolar_0000_0100",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 100.0,
+  "runtime_seconds_wall": 8.178,
+  "runtime_seconds_reported": 8.143,
+  "runtime_per_audio_minute": 4.907,
+  "clean_word_count": 21,
+  "clean_segment_count": 5,
+  "quality_drop_count": 2,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 1,
+    "repeated_token": "Mama",
+    "max_token_length": 10,
+    "words_per_second": 1.09
+  }
+}

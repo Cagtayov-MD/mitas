@@ -1,0 +1,1454 @@
+{
+  "sample_id": "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+  "source_name": "web_client_CAG3_2021-0046-0-0078-90-1-AKŞAM_SEFASI.wav",
+  "fast_words": 617,
+  "quality_words": 653,
+  "edit_distance_fast_vs_quality": 101,
+  "substitution_count": 55,
+  "fast_extra_word_count": 5,
+  "quality_extra_word_count": 41,
+  "diff_rows": [
+    {
+      "fast": "Gülderen",
+      "quality": "Gülderen'e",
+      "count": 1,
+      "fast_metrics": {
+        "start": 506.38,
+        "end": 508.14,
+        "duration": 1.76,
+        "avg_logprob": -0.1142,
+        "no_speech_prob": 0.0,
+        "combined": -0.1142,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 506.38,
+        "end": 518.12,
+        "duration": 11.74,
+        "avg_logprob": -0.09,
+        "no_speech_prob": 0.0653,
+        "combined": -0.1553,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": 0.0411,
+      "winner_by_combined": "near_tie",
+      "fast_context": "akşam sefası izlemektesiniz Canlı yayınla huzurlarınızdayız Korhan Gülderen az önce alkışladınız Orkestra şefimiz ve bu",
+      "quality_context": "Akşam Sefası izlemektesiniz Canlı yayınla huzurlarınızdayız Korhan Gülderen'e az önce alkışladığınız orkestra şefimiz ve bu"
+    },
+    {
+      "fast": "alkışladınız",
+      "quality": "alkışladığınız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 506.38,
+        "end": 508.14,
+        "duration": 1.76,
+        "avg_logprob": -0.1142,
+        "no_speech_prob": 0.0,
+        "combined": -0.1142,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 506.38,
+        "end": 518.12,
+        "duration": 11.74,
+        "avg_logprob": -0.09,
+        "no_speech_prob": 0.0653,
+        "combined": -0.1553,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": 0.0411,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Canlı yayınla huzurlarınızdayız Korhan Gülderen az önce alkışladınız Orkestra şefimiz ve bu alkışın çok daha",
+      "quality_context": "Canlı yayınla huzurlarınızdayız Korhan Gülderen'e az önce alkışladığınız orkestra şefimiz ve bu alkışın çok daha"
+    },
+    {
+      "fast": "içinde",
+      "quality": "de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 508.86,
+        "end": 518.1,
+        "duration": 9.24,
+        "avg_logprob": -0.1142,
+        "no_speech_prob": 0.0,
+        "combined": -0.1142,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 484.56,
+        "end": 490.1,
+        "duration": 5.54,
+        "avg_logprob": -0.0935,
+        "no_speech_prob": 0.0191,
+        "combined": -0.1126,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": -0.0017,
+      "winner_by_combined": "near_tie",
+      "fast_context": "akşam sefasının muhteşem müzisyenleri akşam sefası orkestrası içinde rica ediyorum Evet solist arkadaşlarımın yerlerini alırken",
+      "quality_context": "efendim Sizler TRT Müzik ekranlarının başına sizler de Arı Stüdyomuza şeref verdiniz hoş geldiniz Hepinize"
+    },
+    {
+      "fast": "Teşekkürler",
+      "quality": "ederim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1215.2,
+        "end": 1216.48,
+        "duration": 1.28,
+        "avg_logprob": -0.5097,
+        "no_speech_prob": 0.0,
+        "combined": -0.5097,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 1215.2,
+        "end": 1216.5,
+        "duration": 1.3,
+        "avg_logprob": -0.468,
+        "no_speech_prob": 0.0776,
+        "combined": -0.5456,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0359,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bir an geldi ki Mehtap seni sandım Teşekkürler Çiğdem Çiğdem Güldal Böyle şareye gelmeyen ufasın",
+      "quality_context": "an geldi ki Mehtap seni sandım Teşekkür ederim Çiğdem Çiğdem Gürdal Böyle şariye gelmeye mutansın"
+    },
+    {
+      "fast": "Güldal",
+      "quality": "Gürdal",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1218.9,
+        "end": 1221.14,
+        "duration": 2.24,
+        "avg_logprob": -0.5097,
+        "no_speech_prob": 0.0,
+        "combined": -0.5097,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 1218.9,
+        "end": 1221.12,
+        "duration": 2.22,
+        "avg_logprob": -0.468,
+        "no_speech_prob": 0.0776,
+        "combined": -0.5456,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0359,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ki Mehtap seni sandım Teşekkürler Çiğdem Çiğdem Güldal Böyle şareye gelmeyen ufasın Bayram delmeden coşkusunu",
+      "quality_context": "Mehtap seni sandım Teşekkür ederim Çiğdem Çiğdem Gürdal Böyle şariye gelmeye mutansın Bayram denmeden coşkusunu"
+    },
+    {
+      "fast": "şareye",
+      "quality": "şariye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1222.62,
+        "end": 1224.52,
+        "duration": 1.9,
+        "avg_logprob": -0.5097,
+        "no_speech_prob": 0.0,
+        "combined": -0.5097,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 1222.64,
+        "end": 1224.52,
+        "duration": 1.88,
+        "avg_logprob": -0.468,
+        "no_speech_prob": 0.0776,
+        "combined": -0.5456,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0359,
+      "winner_by_combined": "near_tie",
+      "fast_context": "seni sandım Teşekkürler Çiğdem Çiğdem Güldal Böyle şareye gelmeyen ufasın Bayram delmeden coşkusunu yaşamaya başladık",
+      "quality_context": "sandım Teşekkür ederim Çiğdem Çiğdem Gürdal Böyle şariye gelmeye mutansın Bayram denmeden coşkusunu yaşamaya başladık"
+    },
+    {
+      "fast": "gelmeyen",
+      "quality": "gelmeye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1222.62,
+        "end": 1224.52,
+        "duration": 1.9,
+        "avg_logprob": -0.5097,
+        "no_speech_prob": 0.0,
+        "combined": -0.5097,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 1222.64,
+        "end": 1224.52,
+        "duration": 1.88,
+        "avg_logprob": -0.468,
+        "no_speech_prob": 0.0776,
+        "combined": -0.5456,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0359,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sandım Teşekkürler Çiğdem Çiğdem Güldal Böyle şareye gelmeyen ufasın Bayram delmeden coşkusunu yaşamaya başladık Sizlerde",
+      "quality_context": "Teşekkür ederim Çiğdem Çiğdem Gürdal Böyle şariye gelmeye mutansın Bayram denmeden coşkusunu yaşamaya başladık Sizlerde"
+    },
+    {
+      "fast": "ufasın",
+      "quality": "mutansın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1222.62,
+        "end": 1224.52,
+        "duration": 1.9,
+        "avg_logprob": -0.5097,
+        "no_speech_prob": 0.0,
+        "combined": -0.5097,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 1222.64,
+        "end": 1224.52,
+        "duration": 1.88,
+        "avg_logprob": -0.468,
+        "no_speech_prob": 0.0776,
+        "combined": -0.5456,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0359,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Teşekkürler Çiğdem Çiğdem Güldal Böyle şareye gelmeyen ufasın Bayram delmeden coşkusunu yaşamaya başladık Sizlerde de",
+      "quality_context": "ederim Çiğdem Çiğdem Gürdal Böyle şariye gelmeye mutansın Bayram denmeden coşkusunu yaşamaya başladık Sizlerde de"
+    },
+    {
+      "fast": "delmeden",
+      "quality": "denmeden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1228.2,
+        "end": 1230.44,
+        "duration": 2.24,
+        "avg_logprob": -0.0877,
+        "no_speech_prob": 0.0,
+        "combined": -0.0877,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 1228.2,
+        "end": 1230.44,
+        "duration": 2.24,
+        "avg_logprob": -0.0661,
+        "no_speech_prob": 0.0219,
+        "combined": -0.088,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.0003,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Çiğdem Güldal Böyle şareye gelmeyen ufasın Bayram delmeden coşkusunu yaşamaya başladık Sizlerde de aynı coşku",
+      "quality_context": "Çiğdem Gürdal Böyle şariye gelmeye mutansın Bayram denmeden coşkusunu yaşamaya başladık Sizlerde de aynı coşku"
+    },
+    {
+      "fast": "alkışlarınızın",
+      "quality": "alkışlarınızla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1578.72,
+        "end": 1581.38,
+        "duration": 2.66,
+        "avg_logprob": -0.2269,
+        "no_speech_prob": 0.0,
+        "combined": -0.2269,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 1573.3,
+        "end": 1581.38,
+        "duration": 8.08,
+        "avg_logprob": -0.127,
+        "no_speech_prob": 0.0773,
+        "combined": -0.2043,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": -0.0226,
+      "winner_by_combined": "near_tie",
+      "fast_context": "gözü kör olsun diyeceğiz Teşekkür ederim Güçlü alkışlarınızın akşam sefası devam ediyor Yara söyleme söyleme",
+      "quality_context": "gözü kör olsun diyeceğiz Teşekkür ederim Güçlü alkışlarınızla akşam sefası devam ediyor Yara söyleme söyleme"
+    },
+    {
+      "fast": "Yare",
+      "quality": "Yara",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1970.75,
+        "end": 1974.75,
+        "duration": 4.0,
+        "avg_logprob": -0.6618,
+        "no_speech_prob": 0.0,
+        "combined": -0.6618,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "quality_metrics": {
+        "start": 1959.3,
+        "end": 1965.52,
+        "duration": 6.22,
+        "avg_logprob": -0.3123,
+        "no_speech_prob": 0.2937,
+        "combined": -0.606,
+        "flags": [],
+        "source_chunk_index": 7
+      },
+      "combined_delta_fast_minus_quality": -0.0558,
+      "winner_by_combined": "quality",
+      "fast_context": "Yara söyleme söyleme Bağrıma taş bastığımı söyleme Yare söyleme Ona söyleme göre söyleme Deli deli",
+      "quality_context": "ederim Güçlü alkışlarınızla akşam sefası devam ediyor Yara söyleme söyleme Bağrıma taş bastığımı söyleme Yara"
+    },
+    {
+      "fast": "desteğini",
+      "quality": "desteğimi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2124.2,
+        "end": 2128.06,
+        "duration": 3.86,
+        "avg_logprob": -0.3036,
+        "no_speech_prob": 0.0,
+        "combined": -0.3036,
+        "flags": [],
+        "source_chunk_index": 12
+      },
+      "quality_metrics": {
+        "start": 2083.16,
+        "end": 2088.08,
+        "duration": 4.92,
+        "avg_logprob": -0.4758,
+        "no_speech_prob": 0.4402,
+        "combined": -0.916,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": 0.6124,
+      "winner_by_combined": "fast",
+      "fast_context": "neredeyim Ona söyleme söyleme söyleme Deli deli desteğini söyleme Yare söyleme Bravo İlker Seni uğurlamıyorum",
+      "quality_context": "söyleme Ona söyleme yara söyleme Deli dev desteğimi söyleme Yara söyleme Gezer dolaşırım da bilmem"
+    },
+    {
+      "fast": "Yare",
+      "quality": "Yarı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2128.8,
+        "end": 2131.8,
+        "duration": 3.0,
+        "avg_logprob": -0.7327,
+        "no_speech_prob": 0.0,
+        "combined": -0.7327,
+        "flags": [],
+        "source_chunk_index": 13
+      },
+      "quality_metrics": {
+        "start": 2128.8,
+        "end": 2131.54,
+        "duration": 2.74,
+        "avg_logprob": -0.8343,
+        "no_speech_prob": 0.0944,
+        "combined": -0.9287,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 13
+      },
+      "combined_delta_fast_minus_quality": 0.196,
+      "winner_by_combined": "fast",
+      "fast_context": "söyleme söyleme söyleme Deli deli desteğini söyleme Yare söyleme Bravo İlker Seni uğurlamıyorum Diğer arkadaşlarımı",
+      "quality_context": "yare söyleme söyleme Deli deli desteğimi söyleme Yarı söyleme Bravo İlker Seni uğurlamıyorum Diğer arkadaşlarımı"
+    },
+    {
+      "fast": "alkışlarınızı",
+      "quality": "alkışlarınızla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2598.62,
+        "end": 2601.4,
+        "duration": 2.78,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "quality_metrics": {
+        "start": 2596.8,
+        "end": 2601.4,
+        "duration": 4.6,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.1971,
+        "combined": -0.3086,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "combined_delta_fast_minus_quality": 0.1658,
+      "winner_by_combined": "fast",
+      "fast_context": "Seni uğurlamıyorum Diğer arkadaşlarımı da alkışlarınızla Güçlü alkışlarınızı bir kez daha sahneye davet etmek istiyorum",
+      "quality_context": "Bravo İlker Seni uğurlamıyorum Diğer arkadaşlarımı da alkışlarınızla güçlü alkışlarınızla bir kez daha sahneye davet"
+    },
+    {
+      "fast": "Şekerli",
+      "quality": "vay",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2661.175,
+        "end": 2663.095,
+        "duration": 1.92,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 2657.575,
+        "end": 2661.095,
+        "duration": 3.52,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.1903,
+      "winner_by_combined": "fast",
+      "fast_context": "Sen de benim gibi sevdalı mısın vay Şekerli misin vay vay Kaymak kapısın vay vay",
+      "quality_context": "misiniz Sen de benim gibi sevdalı mısın vay vay Şeker yemesin vay vay Kaymakamısın vay"
+    },
+    {
+      "fast": "misin",
+      "quality": "Şeker",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2657.575,
+        "end": 2660.835,
+        "duration": 3.26,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 2661.095,
+        "end": 2663.115,
+        "duration": 2.02,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.1903,
+      "winner_by_combined": "fast",
+      "fast_context": "eder misiniz Sen de benim gibi sevdalı mısın vay Şekerli misin vay vay Kaymak kapısın",
+      "quality_context": "de benim gibi sevdalı mısın vay vay Şeker yemesin vay vay Kaymakamısın vay vay Yoksa"
+    },
+    {
+      "fast": "vay",
+      "quality": "yemesin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2657.575,
+        "end": 2660.835,
+        "duration": 3.26,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 2661.095,
+        "end": 2663.115,
+        "duration": 2.02,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.1903,
+      "winner_by_combined": "fast",
+      "fast_context": "misiniz Sen de benim gibi sevdalı mısın vay Şekerli misin vay vay Kaymak kapısın vay",
+      "quality_context": "benim gibi sevdalı mısın vay vay Şeker yemesin vay vay Kaymakamısın vay vay Yoksa sen"
+    },
+    {
+      "fast": "Kaymak",
+      "quality": "vay",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2663.235,
+        "end": 2664.935,
+        "duration": 1.7,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 2657.575,
+        "end": 2661.095,
+        "duration": 3.52,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.1903,
+      "winner_by_combined": "fast",
+      "fast_context": "sevdalı mısın vay Şekerli misin vay vay Kaymak kapısın vay vay Yoksa sen de benim",
+      "quality_context": "misiniz Sen de benim gibi sevdalı mısın vay vay Şeker yemesin vay vay Kaymakamısın vay"
+    },
+    {
+      "fast": "kapısın",
+      "quality": "Kaymakamısın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2663.235,
+        "end": 2664.935,
+        "duration": 1.7,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 2663.115,
+        "end": 2664.995,
+        "duration": 1.88,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.1903,
+      "winner_by_combined": "fast",
+      "fast_context": "mısın vay Şekerli misin vay vay Kaymak kapısın vay vay Yoksa sen de benim gibi",
+      "quality_context": "mısın vay vay Şeker yemesin vay vay Kaymakamısın vay vay Yoksa sen de benim gibi"
+    },
+    {
+      "fast": "arasımlarından",
+      "quality": "arasından",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2743.0,
+        "end": 2750.38,
+        "duration": 7.38,
+        "avg_logprob": -0.2999,
+        "no_speech_prob": 0.0,
+        "combined": -0.2999,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "quality_metrics": {
+        "start": 2743.0,
+        "end": 2748.9,
+        "duration": 5.9,
+        "avg_logprob": -0.2979,
+        "no_speech_prob": 0.2288,
+        "combined": -0.5266,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "combined_delta_fast_minus_quality": 0.2267,
+      "winner_by_combined": "fast",
+      "fast_context": "gibi sevdalı mısın vay Kısacık bir reklam arasımlarından yeniden sizlerleyiz sakın bizden bir ara ayrılmayın",
+      "quality_context": "sevdalı mısın vay vay Kısacık bir reklam arasından yeniden sizlerleyiz Sakın bizden bir yere ayrılmayın"
+    },
+    {
+      "fast": "Teşekkürler",
+      "quality": "Bu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3105.5,
+        "end": 3118.5,
+        "duration": 13.0,
+        "avg_logprob": -0.7773,
+        "no_speech_prob": 0.0,
+        "combined": -0.7773,
+        "flags": [],
+        "source_chunk_index": 19
+      },
+      "quality_metrics": {
+        "start": 506.38,
+        "end": 518.12,
+        "duration": 11.74,
+        "avg_logprob": -0.09,
+        "no_speech_prob": 0.0653,
+        "combined": -0.1553,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": -0.622,
+      "winner_by_combined": "quality",
+      "fast_context": "yeniden sizlerleyiz sakın bizden bir ara ayrılmayın Teşekkürler Dar zamandır belki de var olmasında sizlerin",
+      "quality_context": "Gülderen'e az önce alkışladığınız orkestra şefimiz ve bu alkışın çok daha fazlasını Akşam Sefası'nın muhteşem"
+    },
+    {
+      "fast": "Dar",
+      "quality": "kadar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3118.5,
+        "end": 3126.48,
+        "duration": 7.98,
+        "avg_logprob": -0.0591,
+        "no_speech_prob": 0.0,
+        "combined": -0.0591,
+        "flags": [],
+        "source_chunk_index": 20
+      },
+      "quality_metrics": {
+        "start": 3118.5,
+        "end": 3126.48,
+        "duration": 7.98,
+        "avg_logprob": -0.0603,
+        "no_speech_prob": 0.0735,
+        "combined": -0.1339,
+        "flags": [],
+        "source_chunk_index": 20
+      },
+      "combined_delta_fast_minus_quality": 0.0747,
+      "winner_by_combined": "fast",
+      "fast_context": "sizlerleyiz sakın bizden bir ara ayrılmayın Teşekkürler Dar zamandır belki de var olmasında sizlerin bu",
+      "quality_context": "bizden bir yere ayrılmayın Teşekkür ederim Bu kadar zamandır belki de var olmasında sizlerin bu"
+    },
+    {
+      "fast": "Konservatuarı'ndan",
+      "quality": "Konservatuvar'dan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3140.0,
+        "end": 3145.32,
+        "duration": 5.32,
+        "avg_logprob": -0.1283,
+        "no_speech_prob": 0.0,
+        "combined": -0.1283,
+        "flags": [],
+        "source_chunk_index": 21
+      },
+      "quality_metrics": {
+        "start": 3140.0,
+        "end": 3145.32,
+        "duration": 5.32,
+        "avg_logprob": -0.127,
+        "no_speech_prob": 0.0767,
+        "combined": -0.2038,
+        "flags": [],
+        "source_chunk_index": 21
+      },
+      "combined_delta_fast_minus_quality": 0.0754,
+      "winner_by_combined": "fast",
+      "fast_context": "yansıyor Benim kıymetli arkadaşım Volkan Teknik Üniversite Konservatuarı'ndan sınıf arkadaşım Korhan'la zaten yılını söylemeyelim yıllardır",
+      "quality_context": "yansıyor Benim kıymetli arkadaşım Volkan Teknik Üniversite Konservatuvar'dan sınıf arkadaşım Korhan'la zaten yılını söylemeyelim yıllardır"
+    },
+    {
+      "fast": "Unutamam",
+      "quality": "Unuttum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3160.9,
+        "end": 3172.22,
+        "duration": 11.32,
+        "avg_logprob": -0.318,
+        "no_speech_prob": 0.0,
+        "combined": -0.318,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "quality_metrics": {
+        "start": 3160.9,
+        "end": 3172.14,
+        "duration": 11.24,
+        "avg_logprob": -0.2882,
+        "no_speech_prob": 0.5693,
+        "combined": -0.8575,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 22
+      },
+      "combined_delta_fast_minus_quality": 0.5395,
+      "winner_by_combined": "fast",
+      "fast_context": "dedim Hem de hangi şarkıyı biliyor musunuz Unutamam seni unutamam seni Nasıl keyifliyiniz demenin vakti",
+      "quality_context": "dedim Hem de hangi şarkıyı biliyor musunuz Unuttum seni unuttum seni Nasıl keyifleriniz demenin vakti"
+    },
+    {
+      "fast": "unutamam",
+      "quality": "unuttum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3160.9,
+        "end": 3172.22,
+        "duration": 11.32,
+        "avg_logprob": -0.318,
+        "no_speech_prob": 0.0,
+        "combined": -0.318,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "quality_metrics": {
+        "start": 3160.9,
+        "end": 3172.14,
+        "duration": 11.24,
+        "avg_logprob": -0.2882,
+        "no_speech_prob": 0.5693,
+        "combined": -0.8575,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 22
+      },
+      "combined_delta_fast_minus_quality": 0.5395,
+      "winner_by_combined": "fast",
+      "fast_context": "de hangi şarkıyı biliyor musunuz Unutamam seni unutamam seni Nasıl keyifliyiniz demenin vakti geldi Ekran",
+      "quality_context": "de hangi şarkıyı biliyor musunuz Unuttum seni unuttum seni Nasıl keyifleriniz demenin vakti geldi Ekran"
+    },
+    {
+      "fast": "keyifliyiniz",
+      "quality": "keyifleriniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3496.475,
+        "end": 3502.995,
+        "duration": 6.52,
+        "avg_logprob": -0.2881,
+        "no_speech_prob": 0.0,
+        "combined": -0.2881,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 3496.475,
+        "end": 3502.995,
+        "duration": 6.52,
+        "avg_logprob": -0.2471,
+        "no_speech_prob": 0.1823,
+        "combined": -0.4294,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": 0.1413,
+      "winner_by_combined": "fast",
+      "fast_context": "biliyor musunuz Unutamam seni unutamam seni Nasıl keyifliyiniz demenin vakti geldi Ekran başındaki akşam sefası",
+      "quality_context": "biliyor musunuz Unuttum seni unuttum seni Nasıl keyifleriniz demenin vakti geldi Ekran başındaki akşam sefası"
+    },
+    {
+      "fast": "Güzel",
+      "quality": "DEĞİK",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3552.5,
+        "end": 3564.6,
+        "duration": 12.1,
+        "avg_logprob": -0.258,
+        "no_speech_prob": 0.0,
+        "combined": -0.258,
+        "flags": [],
+        "source_chunk_index": 26
+      },
+      "quality_metrics": {
+        "start": 3572.75,
+        "end": 3576.55,
+        "duration": 3.8,
+        "avg_logprob": -0.3942,
+        "no_speech_prob": 0.7471,
+        "combined": -1.1413,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 29
+      },
+      "combined_delta_fast_minus_quality": 0.8833,
+      "winner_by_combined": "fast",
+      "fast_context": "Güçlü alkışlarınızla lütfen Aşka merakım ezelde sen güzel bir bahaneydin aşka merakım Sen güzel bir",
+      "quality_context": "bir bahaneydin Sen güzel bir bahaneydin MAHRUM DEĞİK Güzelden ben sende sevmeyi sevdim mahrum değildim"
+    },
+    {
+      "fast": "de",
+      "quality": "Güzelden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 484.56,
+        "end": 490.1,
+        "duration": 5.54,
+        "avg_logprob": -0.1166,
+        "no_speech_prob": 0.0,
+        "combined": -0.1166,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 3576.6,
+        "end": 3585.5,
+        "duration": 8.9,
+        "avg_logprob": -0.3376,
+        "no_speech_prob": 0.6099,
+        "combined": -0.9474,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": 0.8309,
+      "winner_by_combined": "fast",
+      "fast_context": "efendim Sizler TRT müzik ekranlarının başına sizler de Arı Stüdyomuza şeref verdiniz hoş geldiniz Hepinize",
+      "quality_context": "bahaneydin Sen güzel bir bahaneydin MAHRUM DEĞİK Güzelden ben sende sevmeyi sevdim mahrum değildim Ben"
+    },
+    {
+      "fast": "de",
+      "quality": "Sende",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1230.54,
+        "end": 1232.3,
+        "duration": 1.76,
+        "avg_logprob": -0.0877,
+        "no_speech_prob": 0.0,
+        "combined": -0.0877,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 3576.6,
+        "end": 3585.5,
+        "duration": 8.9,
+        "avg_logprob": -0.3376,
+        "no_speech_prob": 0.6099,
+        "combined": -0.9474,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": 0.8598,
+      "winner_by_combined": "fast",
+      "fast_context": "ufasın Bayram delmeden coşkusunu yaşamaya başladık Sizlerde de aynı coşku heyecanı görüyorum Şimdi eşliklerinizi beklediğim",
+      "quality_context": "güzel bir bahaneydin MAHRUM DEĞİK Güzelden ben sende sevmeyi sevdim mahrum değildim Ben Sende Sevmeyi"
+    },
+    {
+      "fast": "kendime",
+      "quality": "kendimi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3696.95,
+        "end": 3710.525,
+        "duration": 13.575,
+        "avg_logprob": -0.254,
+        "no_speech_prob": 0.0,
+        "combined": -0.254,
+        "flags": [],
+        "source_chunk_index": 39
+      },
+      "quality_metrics": {
+        "start": 3594.075,
+        "end": 3605.335,
+        "duration": 11.26,
+        "avg_logprob": -0.1077,
+        "no_speech_prob": 0.145,
+        "combined": -0.2527,
+        "flags": [],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": -0.0013,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bir daha sevemiyorum sevemiyorum bahane bulamıyorum bulamıyorum kendime Kandırıyorum Aslında Ben sende Yaradanı sevdim Güle",
+      "quality_context": "Bir daha sevemiyorum sevemiyorum bahane bulamıyorum bulamıyorum kendimi kandırıyorum Aslında ben sende yaradanı sevdim bir"
+    },
+    {
+      "fast": "Güle",
+      "quality": "Söyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3889.95,
+        "end": 3901.37,
+        "duration": 11.42,
+        "avg_logprob": -0.4902,
+        "no_speech_prob": 0.0,
+        "combined": -0.4902,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 3889.95,
+        "end": 3902.33,
+        "duration": 12.38,
+        "avg_logprob": -0.2951,
+        "no_speech_prob": 0.5278,
+        "combined": -0.823,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.3327,
+      "winner_by_combined": "fast",
+      "fast_context": "kendime Kandırıyorum Aslında Ben sende Yaradanı sevdim Güle canım sevgilim hayat bize oyun oynuyor olabilir",
+      "quality_context": "kendimi Kandırıyorum aslında ben sende yaradanı sevdim Söyle canım sevgilim hayat bize oyun oynuyor olabilir"
+    },
+    {
+      "fast": "sar",
+      "quality": "Sarı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4331.4,
+        "end": 4337.4,
+        "duration": 6.0,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 4251.71,
+        "end": 4254.41,
+        "duration": 2.7,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.4692,
+      "winner_by_combined": "fast",
+      "fast_context": "sevgilim hayat bize oyun oynuyor olabilir kitabı sar çizmeli Mehmet Ağabey bir gün öder hesabı",
+      "quality_context": "Yaz tahtaya bir daha Dün dikdiri kitabı Sarı çizmeli Mehmet Ağa Sarı çizmeli Mehmet Ağa"
+    },
+    {
+      "fast": "Ağabey",
+      "quality": "Ağa",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4331.4,
+        "end": 4337.4,
+        "duration": 6.0,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 4251.71,
+        "end": 4254.41,
+        "duration": 2.7,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.4692,
+      "winner_by_combined": "fast",
+      "fast_context": "oyun oynuyor olabilir kitabı sar çizmeli Mehmet Ağabey bir gün öder hesabı yastak dayağı birden",
+      "quality_context": "daha Dün dikdiri kitabı Sarı çizmeli Mehmet Ağa Sarı çizmeli Mehmet Ağa bir gün öder"
+    },
+    {
+      "fast": "yastak",
+      "quality": "tahtaya",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4337.4,
+        "end": 4342.4,
+        "duration": 5.0,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 4244.91,
+        "end": 4249.03,
+        "duration": 4.12,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.4692,
+      "winner_by_combined": "fast",
+      "fast_context": "çizmeli Mehmet Ağabey bir gün öder hesabı yastak dayağı birden aldık defteri kitabı Sarı çizmeli",
+      "quality_context": "mi Boşa geçmiş ömre yaşam denir Yaz tahtaya bir daha Dün dikdiri kitabı Sarı çizmeli"
+    },
+    {
+      "fast": "dayağı",
+      "quality": "bir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4337.4,
+        "end": 4342.4,
+        "duration": 5.0,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 499.1,
+        "end": 503.86,
+        "duration": 4.76,
+        "avg_logprob": -0.09,
+        "no_speech_prob": 0.0653,
+        "combined": -0.1553,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": -0.395,
+      "winner_by_combined": "quality",
+      "fast_context": "Mehmet Ağabey bir gün öder hesabı yastak dayağı birden aldık defteri kitabı Sarı çizmeli Mehmet",
+      "quality_context": "Evet kendi günü ve kendi saatinde yine bir Akşam Sefası izlemektesiniz Canlı yayınla huzurlarınızdayız Korhan"
+    },
+    {
+      "fast": "birden",
+      "quality": "dana",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4337.4,
+        "end": 4342.4,
+        "duration": 5.0,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 4337.54,
+        "end": 4342.58,
+        "duration": 5.04,
+        "avg_logprob": -0.4383,
+        "no_speech_prob": 0.7197,
+        "combined": -1.1581,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 43
+      },
+      "combined_delta_fast_minus_quality": 0.6078,
+      "winner_by_combined": "fast",
+      "fast_context": "Ağabey bir gün öder hesabı yastak dayağı birden aldık defteri kitabı Sarı çizmeli Mehmet Ağa",
+      "quality_context": "bir gün öder hesabı Yaz tahtaya bir dana tık defteri kitabı Sarı çizmeli Mehmet Ağa"
+    },
+    {
+      "fast": "Almış",
+      "quality": "Tanrıç",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4723.0,
+        "end": 4729.02,
+        "duration": 6.02,
+        "avg_logprob": -0.3483,
+        "no_speech_prob": 0.0,
+        "combined": -0.3483,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 4723.0,
+        "end": 4729.04,
+        "duration": 6.04,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.2783,
+        "combined": -0.5798,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.2315,
+      "winner_by_combined": "fast",
+      "fast_context": "Çünkü yıllar öncesinde kalan aşkımız bir masa Almış bir tanem düş yerine gerçekmiş yaşanım sevmek",
+      "quality_context": "Çünkü yıllar öncesinde kalan aşkımız bir masal Tanrıç bir tanem düş yerine gerçekmiş yaşanım sevmek"
+    },
+    {
+      "fast": "dönme",
+      "quality": "dönmek",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4745.2,
+        "end": 4750.0,
+        "duration": 4.8,
+        "avg_logprob": -0.369,
+        "no_speech_prob": 0.0,
+        "combined": -0.369,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 4745.2,
+        "end": 4750.08,
+        "duration": 4.88,
+        "avg_logprob": -0.3091,
+        "no_speech_prob": 0.3782,
+        "combined": -0.6873,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "combined_delta_fast_minus_quality": 0.3183,
+      "winner_by_combined": "fast",
+      "fast_context": "için geç artık çok geç artık sana dönme Hadi iyi gidelim Bak yeniden belki de",
+      "quality_context": "için geç artık çok geç artık sana dönmek Hadi giderken bana Bak yeniden belki de"
+    },
+    {
+      "fast": "iyi",
+      "quality": "giderken",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4750.4,
+        "end": 4752.4,
+        "duration": 2.0,
+        "avg_logprob": -0.7944,
+        "no_speech_prob": 0.0,
+        "combined": -0.7944,
+        "flags": [],
+        "source_chunk_index": 52
+      },
+      "quality_metrics": {
+        "start": 4750.4,
+        "end": 4753.14,
+        "duration": 2.74,
+        "avg_logprob": -0.435,
+        "no_speech_prob": 0.5352,
+        "combined": -0.9701,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 52
+      },
+      "combined_delta_fast_minus_quality": 0.1757,
+      "winner_by_combined": "fast",
+      "fast_context": "artık çok geç artık sana dönme Hadi iyi gidelim Bak yeniden belki de sevinçle kocaklaşıp",
+      "quality_context": "artık çok geç artık sana dönmek Hadi giderken bana Bak yeniden belki de sevinçle koçaklaşıp"
+    },
+    {
+      "fast": "gidelim",
+      "quality": "bana",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4750.4,
+        "end": 4752.4,
+        "duration": 2.0,
+        "avg_logprob": -0.7944,
+        "no_speech_prob": 0.0,
+        "combined": -0.7944,
+        "flags": [],
+        "source_chunk_index": 52
+      },
+      "quality_metrics": {
+        "start": 4750.4,
+        "end": 4753.14,
+        "duration": 2.74,
+        "avg_logprob": -0.435,
+        "no_speech_prob": 0.5352,
+        "combined": -0.9701,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 52
+      },
+      "combined_delta_fast_minus_quality": 0.1757,
+      "winner_by_combined": "fast",
+      "fast_context": "çok geç artık sana dönme Hadi iyi gidelim Bak yeniden belki de sevinçle kocaklaşıp başlarız",
+      "quality_context": "çok geç artık sana dönmek Hadi giderken bana Bak yeniden belki de sevinçle koçaklaşıp başlarız"
+    },
+    {
+      "fast": "yerden",
+      "quality": "de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4818.0,
+        "end": 4827.12,
+        "duration": 9.12,
+        "avg_logprob": -0.2305,
+        "no_speech_prob": 0.0,
+        "combined": -0.2305,
+        "flags": [],
+        "source_chunk_index": 54
+      },
+      "quality_metrics": {
+        "start": 506.38,
+        "end": 518.12,
+        "duration": 11.74,
+        "avg_logprob": -0.09,
+        "no_speech_prob": 0.0653,
+        "combined": -0.1553,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": -0.0752,
+      "winner_by_combined": "quality",
+      "fast_context": "yeniden belki de sevinçle kocaklaşıp başlarız kaldığımız yerden Denen yerden başlamak ve gözlerini açmak yerden",
+      "quality_context": "Sefası'nın muhteşem müzisyenleri Akşam Sefası Orkestrası için de rica ediyorum Evet solist arkadaşlarımın yerlerini alırken"
+    },
+    {
+      "fast": "kucaklaşık",
+      "quality": "gibi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4835.95,
+        "end": 4838.93,
+        "duration": 2.98,
+        "avg_logprob": -0.3018,
+        "no_speech_prob": 0.0,
+        "combined": -0.3018,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "quality_metrics": {
+        "start": 2657.575,
+        "end": 2661.095,
+        "duration": 3.52,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.2861,
+      "winner_by_combined": "fast",
+      "fast_context": "ve gözlerini açmak yerden Belki de Sevinçle kucaklaşık Bizim için geç artık çık geç artık",
+      "quality_context": "Bize eşlik eder misiniz Sen de benim gibi sevdalı mısın vay vay Şeker yemesin vay"
+    },
+    {
+      "fast": "Kalk",
+      "quality": "Sakın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4866.3,
+        "end": 4868.8,
+        "duration": 2.5,
+        "avg_logprob": -0.3097,
+        "no_speech_prob": 0.0,
+        "combined": -0.3097,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 2749.0,
+        "end": 2750.36,
+        "duration": 1.36,
+        "avg_logprob": -0.2979,
+        "no_speech_prob": 0.2288,
+        "combined": -0.5266,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "combined_delta_fast_minus_quality": 0.2169,
+      "winner_by_combined": "fast",
+      "fast_context": "sen Yolcu yolunda gerek Yolcu yolunda gerek Kalk artık beni daha sevmek Hani giderken bana",
+      "quality_context": "vay Kısacık bir reklam arasından yeniden sizlerleyiz Sakın bizden bir yere ayrılmayın Teşekkür ederim Bu"
+    },
+    {
+      "fast": "Şidem",
+      "quality": "Şiidem",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4902.57,
+        "end": 4904.61,
+        "duration": 2.04,
+        "avg_logprob": -0.1895,
+        "no_speech_prob": 0.0,
+        "combined": -0.1895,
+        "flags": [],
+        "source_chunk_index": 62
+      },
+      "quality_metrics": {
+        "start": 4902.57,
+        "end": 4904.61,
+        "duration": 2.04,
+        "avg_logprob": -0.2113,
+        "no_speech_prob": 0.252,
+        "combined": -0.4633,
+        "flags": [],
+        "source_chunk_index": 62
+      },
+      "combined_delta_fast_minus_quality": 0.2738,
+      "winner_by_combined": "fast",
+      "fast_context": "gerek Teşekkürler Hiç hız kesmeden devam ediyoruz Şidem Gürdal bir kez daha geliyor Ve hepimizi",
+      "quality_context": "gerek Teşekkürler Hiç hız kesmeden devam ediyoruz Şiidem Gürdal bir kez daha geliyor Ve hepimizi"
+    },
+    {
+      "fast": "geçir",
+      "quality": "mutluluk",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5242.8,
+        "end": 5244.48,
+        "duration": 1.68,
+        "avg_logprob": -0.3058,
+        "no_speech_prob": 0.0,
+        "combined": -0.3058,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 5242.8,
+        "end": 5244.46,
+        "duration": 1.66,
+        "avg_logprob": -0.2405,
+        "no_speech_prob": 0.0689,
+        "combined": -0.3095,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.0037,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kalın sağlıkla kalın huzurlu olun Bereketli mutlu geçir ömrünüz ve en önemlisi aşkla kalın İyi",
+      "quality_context": "Esen kalın sağlıkla Kalın huzurlu olun Bereketli mutluluk etsin ömrünüzde En önemlisi aşkla kalın İyi"
+    },
+    {
+      "fast": "ömrünüz",
+      "quality": "etsin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5244.48,
+        "end": 5245.8,
+        "duration": 1.32,
+        "avg_logprob": -0.3058,
+        "no_speech_prob": 0.0,
+        "combined": -0.3058,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 5242.8,
+        "end": 5244.46,
+        "duration": 1.66,
+        "avg_logprob": -0.2405,
+        "no_speech_prob": 0.0689,
+        "combined": -0.3095,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.0037,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sağlıkla kalın huzurlu olun Bereketli mutlu geçir ömrünüz ve en önemlisi aşkla kalın İyi bayramlar",
+      "quality_context": "kalın sağlıkla Kalın huzurlu olun Bereketli mutluluk etsin ömrünüzde En önemlisi aşkla kalın İyi bayramlar"
+    },
+    {
+      "fast": "ve",
+      "quality": "ömrünüzde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 490.1,
+        "end": 495.44,
+        "duration": 5.34,
+        "avg_logprob": -0.1166,
+        "no_speech_prob": 0.0,
+        "combined": -0.1166,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 5244.46,
+        "end": 5245.78,
+        "duration": 1.32,
+        "avg_logprob": -0.2405,
+        "no_speech_prob": 0.0689,
+        "combined": -0.3095,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.1929,
+      "winner_by_combined": "fast",
+      "fast_context": "tüm ekip arkadaşlarım adına en içten sevgi ve saygılarımı gönderiyorum öncelikle Evet kendi günü ve",
+      "quality_context": "sağlıkla Kalın huzurlu olun Bereketli mutluluk etsin ömrünüzde En önemlisi aşkla kalın İyi bayramlar"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "quality_extra",
+      "text": "mi Boşa geçmiş ömre yaşam denir Yaz tahtaya bir daha Dün dikdiri",
+      "word_count": 12
+    },
+    {
+      "side": "quality_extra",
+      "text": "kendimi kandırıyorum aslında ben sende yaradanı sevdim",
+      "word_count": 7
+    },
+    {
+      "side": "quality_extra",
+      "text": "kucaklaşıp Aşlarız kaldığımız yerden yarınlar",
+      "word_count": 5
+    },
+    {
+      "side": "quality_extra",
+      "text": "Ben sende sevgiyi sevdim",
+      "word_count": 4
+    },
+    {
+      "side": "quality_extra",
+      "text": "Sarı çizmeli Mehmet Ağa",
+      "word_count": 4
+    },
+    {
+      "side": "quality_extra",
+      "text": "Teşekkür ederim",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "aşka merakım",
+      "word_count": 2
+    }
+  ]
+}

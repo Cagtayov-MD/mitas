@@ -1,0 +1,180 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\001_h1\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 101.739,
+  "model": "large-v3",
+  "profile": "quality",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde. Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor. Bugün atacağımız imzayla usta-çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak. Dünyanın birçok yerinde geçerli bir belge olacak. Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı. Beşinci ve altıncı seviyede olacaktır. Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeteneklere ve mesleki yetenek belgesine sahip olmuş olacaklardır. Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar. Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı. Kameramanlar televizyon haberciliğinin... Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması tevkalade önemli diye düşünüyorum. Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek. Ardından haber kameramanları bir sınava tabi tutulacak. Ulusal meslek standardı resmi gazetede yayınlandıktan sonra yürürlüğe girecek.",
+    "clean": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde. Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor. Bugün atacağımız imzayla usta-çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak. Dünyanın birçok yerinde geçerli bir belge olacak. Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı. Beşinci ve altıncı seviyede olacaktır. Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeteneklere ve mesleki yetenek belgesine sahip olmuş olacaklardır. Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar. Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı. Kameramanlar televizyon haberciliğinin... Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması tevkalade önemli diye düşünüyorum. Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek. Ardından haber kameramanları bir sınava tabi tutulacak. Ulusal meslek standardı resmi gazetede yayınlandıktan sonra yürürlüğe girecek.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 11.02,
+      "text": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.06420898088254035,
+      "no_speech_prob": 0.2496337890625,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 12.8,
+      "end": 18.76,
+      "text": "Onlar haber kameramanları. Artık haber kameramanlığına da ulusal meslek standartı geliyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12034828312524402,
+      "no_speech_prob": 0.00015592575073242188,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 18.76,
+      "end": 28.6,
+      "text": "Bugün atacağımız imzayla usta-çırak ilişkisine destekle birlikte yazılı kuralları olan bir meslek olacak.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12034828312524402,
+      "no_speech_prob": 0.00015592575073242188,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 29.24,
+      "end": 32.08,
+      "text": "Dünyanın birçok yerinde geçerli bir belge olacak.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12034828312524402,
+      "no_speech_prob": 0.00015592575073242188,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 32.56,
+      "end": 37.98,
+      "text": "Mesleki Yeterlilik Kurumu ile Türkiye Haber Kameramanları Derneği arasında protokol imzalandı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12034828312524402,
+      "no_speech_prob": 0.00015592575073242188,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 38.48,
+      "end": 40.5,
+      "text": "Beşinci ve altıncı seviyede olacaktır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12034828312524402,
+      "no_speech_prob": 0.00015592575073242188,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 40.8,
+      "end": 52.8,
+      "text": "Ulusal meslek standartı şu anlama taşıyor, lisans düzeyinde haber kameramanları artık ulusal meslek standartlarına, ulusal yeteneklere ve mesleki yetenek belgesine sahip olmuş olacaklardır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07229238238236675,
+      "no_speech_prob": 0.00505828857421875,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 53.22,
+      "end": 58.94,
+      "text": "Dolayısıyla bu meslek mensuplarında kendilerini ifade etme imkanına sahip olmuş olacaklar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07229238238236675,
+      "no_speech_prob": 0.00505828857421875,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 59.2,
+      "end": 67.58,
+      "text": "Törene deneyimli haber kameramanlarının yanı sıra Cumhurbaşkanlığı Başdanışmanı Basın Yayın ve Enformasyon Genel Müdürü Mehmet Akarca katıldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07229238238236675,
+      "no_speech_prob": 0.00505828857421875,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 67.58,
+      "end": 69.58,
+      "text": "Kameramanlar televizyon haberciliğinin...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12341308873146772,
+      "no_speech_prob": 0.0938720703125,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 69.95,
+      "end": 80.95,
+      "text": "Vazgeçilmesi zaten. Bunca meşakkatli bir işi yürütmekte olan haber kameramanlarının ciddi bir tarife kavuşmuş olması tevkalade önemli diye düşünüyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08417528486789617,
+      "no_speech_prob": 0.0026721954345703125,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 81.67,
+      "end": 87.09,
+      "text": "Önce haber kameramanlığı mesleğine ait sınav ve belgelendirme esasları belirlenecek.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08417528486789617,
+      "no_speech_prob": 0.0026721954345703125,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 87.09,
+      "end": 91.07,
+      "text": "Ardından haber kameramanları bir sınava tabi tutulacak.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08417528486789617,
+      "no_speech_prob": 0.0026721954345703125,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 91.45,
+      "end": 96.39,
+      "text": "Ulusal meslek standardı resmi gazetede yayınlandıktan sonra yürürlüğe girecek.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08417528486789617,
+      "no_speech_prob": 0.0026721954345703125,
+      "source_chunk_index": 3
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 33.486,
+    "chunk_count": 4,
+    "decode_seconds": 26.701,
+    "fallback_seconds": 0.0
+  }
+}

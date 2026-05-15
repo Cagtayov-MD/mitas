@@ -1,0 +1,20 @@
+{
+  "sample_id": "004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 324.971,
+  "runtime_seconds_wall": 30.116,
+  "runtime_seconds_reported": 30.082,
+  "runtime_per_audio_minute": 5.56,
+  "clean_word_count": 428,
+  "clean_segment_count": 35,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 1,
+    "repeated_token": "Şu",
+    "max_token_length": 16,
+    "words_per_second": 1.76
+  }
+}

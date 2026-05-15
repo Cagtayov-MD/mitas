@@ -1,0 +1,5015 @@
+{
+  "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+  "source_name": "web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+  "audio_duration": 1980.416,
+  "audio_minutes": 33.007,
+  "quality_segment_count": 194,
+  "fast_segment_count": 185,
+  "decisions": [
+    {
+      "quality_index": 0,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "combined": -0.6724,
+        "text": "Ben Mustafa Kaytas, Mostar şehri kurulalıdan beri burada oturur benim ailem. Belki de onlar kurdular burayı. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 43.3,
+          "end": 56.26,
+          "duration": 12.96,
+          "avg_logprob": -0.1455,
+          "no_speech_prob": 0.0,
+          "combined": -0.1455,
+          "text": "Ben Mustafa Kaytas. Mostar şehri kurulardan beri burada oturur benim ailem. Belki de onlar kurdular burada. Yalnız soyumun Türkiye'den gelme olduğunu biliyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "combined": -0.1455
+      }
+    },
+    {
+      "quality_index": 1,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 56.4,
+        "end": 60.4,
+        "duration": 4.0,
+        "avg_logprob": -0.1676,
+        "no_speech_prob": 0.181,
+        "combined": -0.3486,
+        "text": "Asırlarca benim ailemin soyu sürüp gidiyor",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 56.4,
+          "end": 62.62,
+          "duration": 6.22,
+          "avg_logprob": -0.2316,
+          "no_speech_prob": 0.0,
+          "combined": -0.2316,
+          "text": "Asırlarca benim ailemin soyu sürüp gidiyor, varlıklı asil bir geçmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 56.4,
+        "end": 62.62,
+        "duration": 6.22,
+        "segment_count": 1,
+        "avg_logprob": -0.2316,
+        "no_speech_prob": 0.0,
+        "combined": -0.2316
+      }
+    },
+    {
+      "quality_index": 2,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 60.4,
+        "end": 62.64,
+        "duration": 2.24,
+        "avg_logprob": -0.1676,
+        "no_speech_prob": 0.181,
+        "combined": -0.3486,
+        "text": "Varlıklı asil bir geçmiş",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 56.4,
+          "end": 62.62,
+          "duration": 6.22,
+          "avg_logprob": -0.2316,
+          "no_speech_prob": 0.0,
+          "combined": -0.2316,
+          "text": "Asırlarca benim ailemin soyu sürüp gidiyor, varlıklı asil bir geçmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 56.4,
+        "end": 62.62,
+        "duration": 6.22,
+        "segment_count": 1,
+        "avg_logprob": -0.2316,
+        "no_speech_prob": 0.0,
+        "combined": -0.2316
+      }
+    },
+    {
+      "quality_index": 10,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 91.1,
+        "end": 94.3,
+        "duration": 3.2,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Şimdi o günlerden de beter bir savaş yaşadık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 91.1,
+          "end": 94.3,
+          "duration": 3.2,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Şimdi o günlerden de beter bir savaş yaşadık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 91.1,
+        "end": 94.3,
+        "duration": 3.2,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 11,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 94.42,
+        "end": 97.94,
+        "duration": 3.52,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Şöyle ki o zaman hiç olmazsa canımızı kurtarabilmiştik.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 94.42,
+          "end": 97.96,
+          "duration": 3.54,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Şöyle ki o zaman hiç olmazsa canımızı kurtarabilmiştik.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 94.42,
+        "end": 97.96,
+        "duration": 3.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 12,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 98.42,
+        "end": 100.66,
+        "duration": 2.24,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Halbuki bugün böyle bir şans tanımadılar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 98.42,
+          "end": 100.66,
+          "duration": 2.24,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Halbuki bugün böyle bir şans tanımadılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 98.42,
+        "end": 100.66,
+        "duration": 2.24,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 13,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 101.66,
+        "end": 104.1,
+        "duration": 2.44,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Nasıl oldu da hayatta kalabildik bilmiyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 101.66,
+          "end": 104.06,
+          "duration": 2.4,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Nasıl oldu da hayatta kalabildik bilmiyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 101.66,
+        "end": 104.06,
+        "duration": 2.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 14,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 105.3,
+        "end": 107.26,
+        "duration": 1.96,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Çocuklarımız burayı terk ettiler.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 105.3,
+          "end": 107.26,
+          "duration": 1.96,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Çocuklarımız burayı terk ettiler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 105.3,
+        "end": 107.26,
+        "duration": 1.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 15,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 107.7,
+        "end": 110.76,
+        "duration": 3.06,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Çünkü böyle pis bir savaşı kabullenemediler.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 107.7,
+          "end": 110.78,
+          "duration": 3.08,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Çünkü böyle pis bir savaşı kabullenemediler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 107.7,
+        "end": 110.78,
+        "duration": 3.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 16,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 111.34,
+        "end": 113.4,
+        "duration": 2.06,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Biz kaldık ama neler çekti.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 111.34,
+          "end": 113.42,
+          "duration": 2.08,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Biz kaldık ama neler çektik.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 111.34,
+        "end": 113.42,
+        "duration": 2.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 17,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 114.26,
+        "end": 115.9,
+        "duration": 1.64,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Hayatta kalabilmek çok zor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 114.32,
+          "end": 116.0,
+          "duration": 1.68,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Hayatta kalabilmek çok zordu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 114.32,
+        "end": 116.0,
+        "duration": 1.68,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 18,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 115.9,
+        "end": 119.18,
+        "duration": 3.28,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "text": "Dolap peygiri gibi dönüp duruyordu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 116.58,
+          "end": 119.16,
+          "duration": 2.58,
+          "avg_logprob": -0.1688,
+          "no_speech_prob": 0.0,
+          "combined": -0.1688,
+          "text": "Dolap beygiri gibi dönüp duruyordu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 116.58,
+        "end": 119.16,
+        "duration": 2.58,
+        "segment_count": 1,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688
+      }
+    },
+    {
+      "quality_index": 19,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 120.575,
+        "end": 123.455,
+        "duration": 2.88,
+        "avg_logprob": -0.1546,
+        "no_speech_prob": 0.241,
+        "combined": -0.3956,
+        "text": "Ölmeyenler eminim ki bir yara almışlardır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 119.675,
+          "end": 123.455,
+          "duration": 3.78,
+          "avg_logprob": -0.1702,
+          "no_speech_prob": 0.0,
+          "combined": -0.1702,
+          "text": "Ölmeyenler eminim ki bir yara almışlardır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 119.675,
+        "end": 123.455,
+        "duration": 3.78,
+        "segment_count": 1,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702
+      }
+    },
+    {
+      "quality_index": 20,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 123.635,
+        "end": 125.335,
+        "duration": 1.7,
+        "avg_logprob": -0.1546,
+        "no_speech_prob": 0.241,
+        "combined": -0.3956,
+        "text": "Ben de yaralandım göğsümden.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 123.635,
+          "end": 125.335,
+          "duration": 1.7,
+          "avg_logprob": -0.1702,
+          "no_speech_prob": 0.0,
+          "combined": -0.1702,
+          "text": "Ben de yaralandım göğsümden.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 123.635,
+        "end": 125.335,
+        "duration": 1.7,
+        "segment_count": 1,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702
+      }
+    },
+    {
+      "quality_index": 21,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 126.215,
+        "end": 129.795,
+        "duration": 3.58,
+        "avg_logprob": -0.1546,
+        "no_speech_prob": 0.241,
+        "combined": -0.3956,
+        "text": "Aylarca o kötü şartlarda tedavi etmeye uğraştılar beni.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 126.215,
+          "end": 129.815,
+          "duration": 3.6,
+          "avg_logprob": -0.1702,
+          "no_speech_prob": 0.0,
+          "combined": -0.1702,
+          "text": "Aylarca o kötü şartlarda tedavi etmeye uğraştılar beni.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 126.215,
+        "end": 129.815,
+        "duration": 3.6,
+        "segment_count": 1,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702
+      }
+    },
+    {
+      "quality_index": 22,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 130.635,
+        "end": 131.535,
+        "duration": 0.9,
+        "avg_logprob": -0.1546,
+        "no_speech_prob": 0.241,
+        "combined": -0.3956,
+        "text": "İşte yaşıyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 130.615,
+          "end": 131.535,
+          "duration": 0.92,
+          "avg_logprob": -0.1702,
+          "no_speech_prob": 0.0,
+          "combined": -0.1702,
+          "text": "İşte yaşıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 130.615,
+        "end": 131.535,
+        "duration": 0.92,
+        "segment_count": 1,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702
+      }
+    },
+    {
+      "quality_index": 23,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 137.6,
+        "end": 140.5,
+        "duration": 2.9,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Bu evde hanımla birlikte kalıyoruz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 137.6,
+          "end": 140.5,
+          "duration": 2.9,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Bu evde hanımla birlikte kalıyoruz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 137.6,
+        "end": 140.5,
+        "duration": 2.9,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 24,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 141.58,
+        "end": 143.88,
+        "duration": 2.3,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Bu evin tarihi geçmişi çok eski.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 141.58,
+          "end": 143.88,
+          "duration": 2.3,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Bu evin tarihi geçmişi çok eski.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 141.58,
+        "end": 143.88,
+        "duration": 2.3,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 25,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 144.44,
+        "end": 148.12,
+        "duration": 3.68,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Türklerin bu bölgeye gelmelerinden sonra oluşan kültürün eseridir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 144.44,
+          "end": 148.12,
+          "duration": 3.68,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Türklerin bu bölgeye gelmelerinden sonra oluşan kültürün eseridir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 144.44,
+        "end": 148.12,
+        "duration": 3.68,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 26,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 148.12,
+        "end": 151.44,
+        "duration": 3.32,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "O zamandan beri burası vardır desem doğrudur.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 148.68,
+          "end": 151.38,
+          "duration": 2.7,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "O zamandan beri burası vardır desem doğrudur.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 148.68,
+        "end": 151.38,
+        "duration": 2.7,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 27,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 152.06,
+        "end": 154.44,
+        "duration": 2.38,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Böyle yapı çok az kaldı. Bir iki örnek daha.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 151.38,
+          "end": 154.44,
+          "duration": 3.06,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Böyle yapı çok az kaldı. Bir iki örnek daha.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 151.38,
+        "end": 154.44,
+        "duration": 3.06,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 28,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 155.42,
+        "end": 160.12,
+        "duration": 4.7,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Orijinal özelliklerini koruyorlar çünkü esas yapı hemen hiç değiştirilmemiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 155.36,
+          "end": 160.72,
+          "duration": 5.36,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Orijinal özelliklerini koruyorlar çünkü esas yapı hemen hiç değiştirilmemiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 155.36,
+        "end": 160.72,
+        "duration": 5.36,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 29,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 161.28,
+        "end": 165.4,
+        "duration": 4.12,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "text": "Bu mekanlarda Osmanlı kültürü kuşaktan kuşağa aktarılmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 161.28,
+          "end": 165.4,
+          "duration": 4.12,
+          "avg_logprob": -0.1173,
+          "no_speech_prob": 0.0,
+          "combined": -0.1173,
+          "text": "Bu mekanlarda Osmanlı kültürü kuşaktan kuşağa aktarılmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 161.28,
+        "end": 165.4,
+        "duration": 4.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.0,
+        "combined": -0.1173
+      }
+    },
+    {
+      "quality_index": 31,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 167.8,
+        "end": 168.56,
+        "duration": 0.76,
+        "avg_logprob": -0.1978,
+        "no_speech_prob": 0.3503,
+        "combined": -0.5481,
+        "text": "kültür dokusu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 167.8,
+          "end": 168.56,
+          "duration": 0.76,
+          "avg_logprob": -0.2517,
+          "no_speech_prob": 0.0,
+          "combined": -0.2517,
+          "text": "kültür dokusu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 167.8,
+        "end": 168.56,
+        "duration": 0.76,
+        "segment_count": 1,
+        "avg_logprob": -0.2517,
+        "no_speech_prob": 0.0,
+        "combined": -0.2517
+      }
+    },
+    {
+      "quality_index": 32,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 184.25,
+        "end": 190.47,
+        "duration": 6.22,
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "combined": -0.4187,
+        "text": "Neretva'nın iki yamacına kurulmuş olan Mostar'ı Mostar yapan eserleri tanımak lazım, tanıtmak lazım.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 183.97,
+          "end": 190.47,
+          "duration": 6.5,
+          "avg_logprob": -0.1452,
+          "no_speech_prob": 0.0,
+          "combined": -0.1452,
+          "text": "Neretva'nın iki yamacına kurulmuş olan Mostar'ı Mostar yapan eserleri tanımak lazım, tanıtmak lazım.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 183.97,
+        "end": 190.47,
+        "duration": 6.5,
+        "segment_count": 1,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452
+      }
+    },
+    {
+      "quality_index": 33,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 191.31,
+        "end": 193.47,
+        "duration": 2.16,
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "combined": -0.4187,
+        "text": "Eskiden pek çok turist gelir gezerdi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 191.29,
+          "end": 196.13,
+          "duration": 4.84,
+          "avg_logprob": -0.1452,
+          "no_speech_prob": 0.0,
+          "combined": -0.1452,
+          "text": "Eskiden pek çok turist gelir gezerdi. Yine gelenler oluyor ama o kadar değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 191.29,
+        "end": 196.13,
+        "duration": 4.84,
+        "segment_count": 1,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452
+      }
+    },
+    {
+      "quality_index": 34,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 194.07,
+        "end": 196.11,
+        "duration": 2.04,
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "combined": -0.4187,
+        "text": "Yine gelenler oluyor ama o kadar değil.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 191.29,
+          "end": 196.13,
+          "duration": 4.84,
+          "avg_logprob": -0.1452,
+          "no_speech_prob": 0.0,
+          "combined": -0.1452,
+          "text": "Eskiden pek çok turist gelir gezerdi. Yine gelenler oluyor ama o kadar değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 191.29,
+        "end": 196.13,
+        "duration": 4.84,
+        "segment_count": 1,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452
+      }
+    },
+    {
+      "quality_index": 37,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "combined": -0.5249,
+        "text": "Efsanevi bir varlıktı, ona nasıl kıydılar bilemiyorum, şimdi köprüyor Mostar ne kadarmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 227.3,
+          "end": 229.3,
+          "duration": 2.0,
+          "avg_logprob": -0.4809,
+          "no_speech_prob": 0.0,
+          "combined": -0.4809,
+          "text": "Efsanevi bir varlığı.",
+          "flags": []
+        },
+        {
+          "start": 229.8,
+          "end": 232.3,
+          "duration": 2.5,
+          "avg_logprob": -0.4809,
+          "no_speech_prob": 0.0,
+          "combined": -0.4809,
+          "text": "Ona nasıl kıydılar bilemiyordum.",
+          "flags": []
+        },
+        {
+          "start": 232.3,
+          "end": 234.3,
+          "duration": 2.0,
+          "avg_logprob": -0.4809,
+          "no_speech_prob": 0.0,
+          "combined": -0.4809,
+          "text": "Şimdi köprü yok.",
+          "flags": []
+        },
+        {
+          "start": 234.3,
+          "end": 236.3,
+          "duration": 2.0,
+          "avg_logprob": -0.4809,
+          "no_speech_prob": 0.0,
+          "combined": -0.4809,
+          "text": "Mostar ne kadarmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 227.3,
+        "end": 236.3,
+        "duration": 8.5,
+        "segment_count": 4,
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "combined": -0.4809
+      }
+    },
+    {
+      "quality_index": 38,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 237.9,
+        "end": 242.04,
+        "duration": 4.14,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "text": "Şehrin her yanında olduğu gibi köprü etrafında da ne büyük ziyanlar oldu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 237.9,
+          "end": 242.04,
+          "duration": 4.14,
+          "avg_logprob": -0.2079,
+          "no_speech_prob": 0.0,
+          "combined": -0.2079,
+          "text": "Şehrin her yanında olduğu gibi köprü etrafında da ne büyük ziyanlar oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 237.9,
+        "end": 242.04,
+        "duration": 4.14,
+        "segment_count": 1,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079
+      }
+    },
+    {
+      "quality_index": 39,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 242.9,
+        "end": 252.18,
+        "duration": 9.28,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "text": "Sağ ve soldaki büyük kulelerde, her iki yandaki çarşılarda, tarihi hukuyu muhafaza eden bütün yapılar, her yan delik diş gibi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 242.92,
+          "end": 252.18,
+          "duration": 9.26,
+          "avg_logprob": -0.2079,
+          "no_speech_prob": 0.0,
+          "combined": -0.2079,
+          "text": "Sağ ve soldaki büyük kulelerde, her iki yandaki çarşılarda, tarihi dokuyu muhafaza eden bütün yapılar, her yan delik diş gibi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 242.92,
+        "end": 252.18,
+        "duration": 9.26,
+        "segment_count": 1,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079
+      }
+    },
+    {
+      "quality_index": 40,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 252.66,
+        "end": 255.26,
+        "duration": 2.6,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "text": "Şimdi de kimi yerler yeniden yapılıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 252.68,
+          "end": 255.22,
+          "duration": 2.54,
+          "avg_logprob": -0.2079,
+          "no_speech_prob": 0.0,
+          "combined": -0.2079,
+          "text": "Şimdi kimi yerler yeniden yapılıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 252.68,
+        "end": 255.22,
+        "duration": 2.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079
+      }
+    },
+    {
+      "quality_index": 41,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 255.82,
+        "end": 261.28,
+        "duration": 5.46,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "text": "Kendi imkanlarıyla kurtaranlar da her gün Umut'la dükkanını açıp işini yapmaya çalışıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 255.82,
+          "end": 261.36,
+          "duration": 5.54,
+          "avg_logprob": -0.2079,
+          "no_speech_prob": 0.0,
+          "combined": -0.2079,
+          "text": "Kendi imkanlarıyla kurtaranlar da her gün umutla dükkanını açıp işini yapmaya çalışıyorlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 255.82,
+        "end": 261.36,
+        "duration": 5.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079
+      }
+    },
+    {
+      "quality_index": 42,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 261.64,
+        "end": 265.64,
+        "duration": 4.0,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "text": "İşte demircisiydi, bakırcisiydi, kelemcisiydi, şosobosu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 261.7,
+          "end": 265.66,
+          "duration": 3.96,
+          "avg_logprob": -0.2079,
+          "no_speech_prob": 0.0,
+          "combined": -0.2079,
+          "text": "İşte demircisiydi, bakırcısıydı, kelemcisiydi, şosobosu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 261.7,
+        "end": 265.66,
+        "duration": 3.96,
+        "segment_count": 1,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079
+      }
+    },
+    {
+      "quality_index": 43,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 265.8,
+        "end": 268.36,
+        "duration": 2.56,
+        "avg_logprob": -0.2607,
+        "no_speech_prob": 0.686,
+        "combined": -0.9468,
+        "text": "El emeği göz nuru geçim derdi işte.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 265.8,
+          "end": 268.36,
+          "duration": 2.56,
+          "avg_logprob": -0.3837,
+          "no_speech_prob": 0.0,
+          "combined": -0.3837,
+          "text": "El emeği gözlü örü geçim derdi işte.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 265.8,
+        "end": 268.36,
+        "duration": 2.56,
+        "segment_count": 1,
+        "avg_logprob": -0.3837,
+        "no_speech_prob": 0.0,
+        "combined": -0.3837
+      }
+    },
+    {
+      "quality_index": 49,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 349.6,
+        "end": 351.04,
+        "duration": 1.44,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Kıymeti, hazinesi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 349.6,
+          "end": 351.02,
+          "duration": 1.42,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Kıymeti, hazinesi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 349.6,
+        "end": 351.02,
+        "duration": 1.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 50,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 351.74,
+        "end": 353.28,
+        "duration": 1.54,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Benim bütün soyum Mostarlı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 351.74,
+          "end": 353.28,
+          "duration": 1.54,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Benim bütün soyum Mostarlı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 351.74,
+        "end": 353.28,
+        "duration": 1.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 51,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 354.12,
+        "end": 355.72,
+        "duration": 1.6,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Buranın kuruluşundan beri varız.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 354.1,
+          "end": 355.72,
+          "duration": 1.62,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Buranın kuruluşundan beri varız.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 354.1,
+        "end": 355.72,
+        "duration": 1.62,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 52,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 356.14,
+        "end": 359.3,
+        "duration": 3.16,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Canım kanım pahasına memleketimi savundum, korumaya çalıştım.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 356.14,
+          "end": 359.3,
+          "duration": 3.16,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Canım kanım pahasına memleketimi savundum, korumaya çalıştım.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 356.14,
+        "end": 359.3,
+        "duration": 3.16,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 53,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 360.02,
+        "end": 363.22,
+        "duration": 3.2,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Sadece kendim veya rahatım değildi karşı koymamın amacı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 360.02,
+          "end": 363.22,
+          "duration": 3.2,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Sadece kendim veya rahatım değildi karşı koymamın amacı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 360.02,
+        "end": 363.22,
+        "duration": 3.2,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 54,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 363.88,
+        "end": 365.94,
+        "duration": 2.06,
+        "avg_logprob": -0.1168,
+        "no_speech_prob": 0.1598,
+        "combined": -0.2766,
+        "text": "Bütün Mostarlılar halkım içindi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 363.86,
+          "end": 365.94,
+          "duration": 2.08,
+          "avg_logprob": -0.1365,
+          "no_speech_prob": 0.0,
+          "combined": -0.1365,
+          "text": "Bütün Mostarlılar, halkım içindi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 363.86,
+        "end": 365.94,
+        "duration": 2.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1365,
+        "no_speech_prob": 0.0,
+        "combined": -0.1365
+      }
+    },
+    {
+      "quality_index": 55,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 381.04,
+        "end": 385.32,
+        "duration": 4.28,
+        "avg_logprob": -0.0886,
+        "no_speech_prob": 0.1746,
+        "combined": -0.2631,
+        "text": "Köprünün kurulu olduğu mıntıkanın İstanbul'a benzediği söylenir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 381.06,
+          "end": 385.32,
+          "duration": 4.26,
+          "avg_logprob": -0.0881,
+          "no_speech_prob": 0.0,
+          "combined": -0.0881,
+          "text": "Köprünün kurulu olduğu mıntıkanın İstanbul'a benzediği söylenir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 381.06,
+        "end": 385.32,
+        "duration": 4.26,
+        "segment_count": 1,
+        "avg_logprob": -0.0881,
+        "no_speech_prob": 0.0,
+        "combined": -0.0881
+      }
+    },
+    {
+      "quality_index": 56,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 385.84,
+        "end": 392.84,
+        "duration": 7.0,
+        "avg_logprob": -0.0886,
+        "no_speech_prob": 0.1746,
+        "combined": -0.2631,
+        "text": "Doğrudur değildir bilemem ama onun şehrin ve nehrin en münasip yerine kurulduğuna şüphe yoktur.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 385.82,
+          "end": 392.84,
+          "duration": 7.02,
+          "avg_logprob": -0.0881,
+          "no_speech_prob": 0.0,
+          "combined": -0.0881,
+          "text": "Doğrudur değildir bilemem ama onun şehrin ve nehrin en münasip yerine kurulduğuna şüphe yoktur.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 385.82,
+        "end": 392.84,
+        "duration": 7.02,
+        "segment_count": 1,
+        "avg_logprob": -0.0881,
+        "no_speech_prob": 0.0,
+        "combined": -0.0881
+      }
+    },
+    {
+      "quality_index": 57,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 394.285,
+        "end": 397.645,
+        "duration": 3.36,
+        "avg_logprob": -0.1859,
+        "no_speech_prob": 0.1168,
+        "combined": -0.3027,
+        "text": "Yıkılmasından sonra Neret Bey'e dökülen taşları çıkarıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 394.285,
+          "end": 397.625,
+          "duration": 3.34,
+          "avg_logprob": -0.1924,
+          "no_speech_prob": 0.0,
+          "combined": -0.1924,
+          "text": "Yıkılmasından sonra Neret Bey'e dökülen taşları çıkarıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 394.285,
+        "end": 397.625,
+        "duration": 3.34,
+        "segment_count": 1,
+        "avg_logprob": -0.1924,
+        "no_speech_prob": 0.0,
+        "combined": -0.1924
+      }
+    },
+    {
+      "quality_index": 58,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 398.125,
+        "end": 399.405,
+        "duration": 1.28,
+        "avg_logprob": -0.1859,
+        "no_speech_prob": 0.1168,
+        "combined": -0.3027,
+        "text": "Kalın, kesme taşlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 398.125,
+          "end": 399.405,
+          "duration": 1.28,
+          "avg_logprob": -0.1924,
+          "no_speech_prob": 0.0,
+          "combined": -0.1924,
+          "text": "Kalın kesme taşlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 398.125,
+        "end": 399.405,
+        "duration": 1.28,
+        "segment_count": 1,
+        "avg_logprob": -0.1924,
+        "no_speech_prob": 0.0,
+        "combined": -0.1924
+      }
+    },
+    {
+      "quality_index": 59,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 400.065,
+        "end": 403.345,
+        "duration": 3.28,
+        "avg_logprob": -0.1859,
+        "no_speech_prob": 0.1168,
+        "combined": -0.3027,
+        "text": "Eksikleri tamamlanıp eski haliyle onarılmayı bekliyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 400.065,
+          "end": 403.365,
+          "duration": 3.3,
+          "avg_logprob": -0.1924,
+          "no_speech_prob": 0.0,
+          "combined": -0.1924,
+          "text": "Eksikleri tamamlanıp eski haliyle onarılmayı bekliyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 400.065,
+        "end": 403.365,
+        "duration": 3.3,
+        "segment_count": 1,
+        "avg_logprob": -0.1924,
+        "no_speech_prob": 0.0,
+        "combined": -0.1924
+      }
+    },
+    {
+      "quality_index": 60,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 417.1,
+        "end": 422.68,
+        "duration": 5.58,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Büyük köprünün hemen yakınında Neretva'ya karışan Radobolya çayı var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 417.1,
+          "end": 422.66,
+          "duration": 5.56,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Büyük köprünün hemen yakınında Neretve'ye karışan Radovolya çayı var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 417.1,
+        "end": 422.66,
+        "duration": 5.56,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 61,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 422.68,
+        "end": 425.38,
+        "duration": 2.7,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Şimdi barajlar yüzünden pek suyu kalmadı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 422.66,
+          "end": 425.38,
+          "duration": 2.72,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Şimdi barajlar yüzünden pek suyu kalmadı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 422.66,
+        "end": 425.38,
+        "duration": 2.72,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 62,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 425.96,
+        "end": 427.76,
+        "duration": 1.8,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Eskiden tek gür akarmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 425.92,
+          "end": 427.76,
+          "duration": 1.84,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Eskiden pek gür akarmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 425.92,
+        "end": 427.76,
+        "duration": 1.84,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 63,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 428.42,
+        "end": 430.9,
+        "duration": 2.48,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Zaten üzerinde pek çok su değirmeni vardı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 428.4,
+          "end": 430.88,
+          "duration": 2.48,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Zaten üzerinde pek çok su değerinin vardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 428.4,
+        "end": 430.88,
+        "duration": 2.48,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 64,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 431.62,
+        "end": 434.56,
+        "duration": 2.94,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "İşte burada büyük köprünün denemesini yapmışlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 431.6,
+          "end": 434.58,
+          "duration": 2.98,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "İşte burada Büyük köprünün denemesini yapmışlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 431.6,
+        "end": 434.58,
+        "duration": 2.98,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 65,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 434.84,
+        "end": 435.98,
+        "duration": 1.14,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Adı Eğri Köprüyü.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 434.82,
+          "end": 436.16,
+          "duration": 1.34,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Adı Eğri Köprüyü.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 434.82,
+        "end": 436.16,
+        "duration": 1.34,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 66,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 436.4,
+        "end": 437.82,
+        "duration": 1.42,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "Sel sularına kapıldı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 436.4,
+          "end": 437.82,
+          "duration": 1.42,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "Sel sularına kapıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 436.4,
+        "end": 437.82,
+        "duration": 1.42,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 67,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 438.84,
+        "end": 441.84,
+        "duration": 3.0,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "text": "İnşallah Nezira Camii gibi o da tekrar yapılır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 438.8,
+          "end": 441.84,
+          "duration": 3.04,
+          "avg_logprob": -0.2214,
+          "no_speech_prob": 0.0,
+          "combined": -0.2214,
+          "text": "İnşallah Nezira Camii gibi o da tekrar yapılır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 438.8,
+        "end": 441.84,
+        "duration": 3.04,
+        "segment_count": 1,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214
+      }
+    },
+    {
+      "quality_index": 69,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 448.1,
+        "end": 454.0,
+        "duration": 5.9,
+        "avg_logprob": -0.1232,
+        "no_speech_prob": 0.1207,
+        "combined": -0.2439,
+        "text": "Mostar'ın en eski camiyiydi. Sokağıyla, evleriyle, müştemilatıyla yapıldı yeniden.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 448.1,
+          "end": 454.0,
+          "duration": 5.9,
+          "avg_logprob": -0.1282,
+          "no_speech_prob": 0.0,
+          "combined": -0.1282,
+          "text": "Mostar'ın en eski camiydi. Sokağıyla, evleriyle, müştemilatıyla yapıldı yeniden.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 448.1,
+        "end": 454.0,
+        "duration": 5.9,
+        "segment_count": 1,
+        "avg_logprob": -0.1282,
+        "no_speech_prob": 0.0,
+        "combined": -0.1282
+      }
+    },
+    {
+      "quality_index": 70,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 547.3,
+        "end": 555.34,
+        "duration": 8.04,
+        "avg_logprob": -0.1396,
+        "no_speech_prob": 0.4729,
+        "combined": -0.6125,
+        "text": "Kuyumcular çarşısı. Çok da eski değil. Bir vakitler buradan geçen insanlar yüzyıllar öncesinde hissederdik.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 547.3,
+          "end": 555.34,
+          "duration": 8.04,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Kuyumcular Çarşısı. Çok da eski değil. Bir vakitler buradan geçen insanlar yüzyıllar öncesinde hissederdik.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 547.3,
+        "end": 555.34,
+        "duration": 8.04,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 71,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 555.34,
+        "end": 563.62,
+        "duration": 8.28,
+        "avg_logprob": -0.1396,
+        "no_speech_prob": 0.4729,
+        "combined": -0.6125,
+        "text": "Her şey orijinal halinde korunmaya çalışılıyordu. Bugün yine gayret gösterenler var. Yarınlara neler kalır bilinmez.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 555.34,
+          "end": 563.6,
+          "duration": 8.26,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Her şey orijinal halinde korunmaya çalışılıyordu. Bugün yine gayret gösterenler var. Yarınlara neler kalır bilinmez.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 555.34,
+        "end": 563.6,
+        "duration": 8.26,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 75,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 707.9,
+        "end": 712.56,
+        "duration": 4.66,
+        "avg_logprob": -0.1775,
+        "no_speech_prob": 0.3613,
+        "combined": -0.5389,
+        "text": "Tabakani Camii buradaki debbağların ibadet yeriymiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 707.9,
+          "end": 712.54,
+          "duration": 4.64,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "Tabakani Camii buradaki debbaların ibadet yeriymiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 707.9,
+        "end": 712.54,
+        "duration": 4.64,
+        "segment_count": 1,
+        "avg_logprob": -0.1986,
+        "no_speech_prob": 0.0,
+        "combined": -0.1986
+      }
+    },
+    {
+      "quality_index": 76,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 712.56,
+        "end": 717.56,
+        "duration": 5.0,
+        "avg_logprob": -0.1775,
+        "no_speech_prob": 0.3613,
+        "combined": -0.5389,
+        "text": "Epey zarar görmüştü, yenilendi. Eminim dostum Ömer Bey oralardadır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 713.1,
+          "end": 714.92,
+          "duration": 1.82,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "Epey zarar görmüştü, yenilendi.",
+          "flags": []
+        },
+        {
+          "start": 715.66,
+          "end": 717.92,
+          "duration": 2.26,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "Eminim dostum Ömer Bey oralardadır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 713.1,
+        "end": 717.92,
+        "duration": 4.08,
+        "segment_count": 2,
+        "avg_logprob": -0.1986,
+        "no_speech_prob": 0.0,
+        "combined": -0.1986
+      }
+    },
+    {
+      "quality_index": 77,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 718.62,
+        "end": 727.56,
+        "duration": 8.94,
+        "avg_logprob": -0.1775,
+        "no_speech_prob": 0.3613,
+        "combined": -0.5389,
+        "text": "İşte ben Mostar'da doğdum. Adım Ömer, soyadım Lakşe. Büyüklerim Konyalıymış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 717.92,
+          "end": 720.66,
+          "duration": 2.74,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "İşte ben Mostar'da doğdum.",
+          "flags": []
+        },
+        {
+          "start": 721.86,
+          "end": 724.66,
+          "duration": 2.8,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "Adım Ömer, soyadım Lakşe.",
+          "flags": []
+        },
+        {
+          "start": 725.96,
+          "end": 728.12,
+          "duration": 2.16,
+          "avg_logprob": -0.1986,
+          "no_speech_prob": 0.0,
+          "combined": -0.1986,
+          "text": "Büyüklerim Konyalıymış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 717.92,
+        "end": 728.12,
+        "duration": 7.7,
+        "segment_count": 3,
+        "avg_logprob": -0.1986,
+        "no_speech_prob": 0.0,
+        "combined": -0.1986
+      }
+    },
+    {
+      "quality_index": 78,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 728.3,
+        "end": 732.56,
+        "duration": 4.26,
+        "avg_logprob": -0.3407,
+        "no_speech_prob": 0.6514,
+        "combined": -0.992,
+        "text": "Bu gizel kente çocuğun geçmiş.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 728.3,
+          "end": 732.56,
+          "duration": 4.26,
+          "avg_logprob": -0.6631,
+          "no_speech_prob": 0.0,
+          "combined": -0.6631,
+          "text": "Bu Gizel Kente çożun geçmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 728.3,
+        "end": 732.56,
+        "duration": 4.26,
+        "segment_count": 1,
+        "avg_logprob": -0.6631,
+        "no_speech_prob": 0.0,
+        "combined": -0.6631
+      }
+    },
+    {
+      "quality_index": 79,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 735.0,
+        "end": 740.62,
+        "duration": 5.62,
+        "avg_logprob": -0.2279,
+        "no_speech_prob": 0.2866,
+        "combined": -0.5145,
+        "text": "Mostar önce çok güzel bir şehirmiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 735.0,
+          "end": 740.68,
+          "duration": 5.68,
+          "avg_logprob": -0.2196,
+          "no_speech_prob": 0.0,
+          "combined": -0.2196,
+          "text": "Mostar önce çok güzel bir şehir imiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 735.0,
+        "end": 740.68,
+        "duration": 5.68,
+        "segment_count": 1,
+        "avg_logprob": -0.2196,
+        "no_speech_prob": 0.0,
+        "combined": -0.2196
+      }
+    },
+    {
+      "quality_index": 82,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 758.125,
+        "end": 768.845,
+        "duration": 10.72,
+        "avg_logprob": -0.267,
+        "no_speech_prob": 0.6074,
+        "combined": -0.8744,
+        "text": "Bırakıyor ama sonra dönüyor. Konya'yı bırakıyor sonra dönüyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 758.125,
+          "end": 761.625,
+          "duration": 3.5,
+          "avg_logprob": -0.72,
+          "no_speech_prob": 0.0,
+          "combined": -0.72,
+          "text": "Bırakıyor ama sonra dönüyor.",
+          "flags": []
+        },
+        {
+          "start": 761.965,
+          "end": 768.865,
+          "duration": 6.9,
+          "avg_logprob": -0.72,
+          "no_speech_prob": 0.0,
+          "combined": -0.72,
+          "text": "Konya'yı bırakıyor sonra dönüyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 758.125,
+        "end": 768.865,
+        "duration": 10.4,
+        "segment_count": 2,
+        "avg_logprob": -0.72,
+        "no_speech_prob": 0.0,
+        "combined": -0.72
+      }
+    },
+    {
+      "quality_index": 83,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 769.375,
+        "end": 772.195,
+        "duration": 2.82,
+        "avg_logprob": -0.2432,
+        "no_speech_prob": 0.3618,
+        "combined": -0.605,
+        "text": "Biz aynı yapıyoruz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 769.375,
+          "end": 772.175,
+          "duration": 2.8,
+          "avg_logprob": -0.3687,
+          "no_speech_prob": 0.0,
+          "combined": -0.3687,
+          "text": "Biz aynı yapıyoruz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 769.375,
+        "end": 772.175,
+        "duration": 2.8,
+        "segment_count": 1,
+        "avg_logprob": -0.3687,
+        "no_speech_prob": 0.0,
+        "combined": -0.3687
+      }
+    },
+    {
+      "quality_index": 84,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 772.9,
+        "end": 777.54,
+        "duration": 4.64,
+        "avg_logprob": -0.6758,
+        "no_speech_prob": 0.1011,
+        "combined": -0.7769,
+        "text": "Mostar bir dünya dağı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 772.9,
+          "end": 777.36,
+          "duration": 4.46,
+          "avg_logprob": -0.7827,
+          "no_speech_prob": 0.0,
+          "combined": -0.7827,
+          "text": "Mostar bir din yada.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 772.9,
+        "end": 777.36,
+        "duration": 4.46,
+        "segment_count": 1,
+        "avg_logprob": -0.7827,
+        "no_speech_prob": 0.0,
+        "combined": -0.7827
+      }
+    },
+    {
+      "quality_index": 85,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 778.85,
+        "end": 784.41,
+        "duration": 5.56,
+        "avg_logprob": -0.3537,
+        "no_speech_prob": 0.4663,
+        "combined": -0.82,
+        "text": "Evet işte şimdi mostrar çok şey savaşta.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 778.85,
+          "end": 785.85,
+          "duration": 7.0,
+          "avg_logprob": -0.7358,
+          "no_speech_prob": 0.0,
+          "combined": -0.7358,
+          "text": "Evet, şimdi Mostarçok şe savaşta...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 778.85,
+        "end": 785.85,
+        "duration": 7.0,
+        "segment_count": 1,
+        "avg_logprob": -0.7358,
+        "no_speech_prob": 0.0,
+        "combined": -0.7358
+      }
+    },
+    {
+      "quality_index": 86,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 789.95,
+        "end": 807.07,
+        "duration": 17.12,
+        "avg_logprob": -0.1858,
+        "no_speech_prob": 0.1096,
+        "combined": -0.2955,
+        "text": "Zarar görmüş, çok harabe var. Şimdi yavaş yavaş mostlar yine kalkıyor, yaralar geçiyor. Güzel oluyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 789.95,
+          "end": 807.45,
+          "duration": 17.5,
+          "avg_logprob": -0.3435,
+          "no_speech_prob": 0.0,
+          "combined": -0.3435,
+          "text": "zarar görmüş çok harabe var şimdi yavaş yavaş Mostar yine şey kalkıyor yaralar geçiyor güzel oluyor",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 789.95,
+        "end": 807.45,
+        "duration": 17.5,
+        "segment_count": 1,
+        "avg_logprob": -0.3435,
+        "no_speech_prob": 0.0,
+        "combined": -0.3435
+      }
+    },
+    {
+      "quality_index": 89,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 901.7,
+        "end": 908.82,
+        "duration": 7.12,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Ben şurada soluklanırken göz nuruyla ekmeğini kazanmaya çalışan şu Mostarlı Hanım'ı bir dinleseniz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 901.7,
+          "end": 908.82,
+          "duration": 7.12,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Ben şurada soluklanırken göz nuruyla ekmeğini kazanmaya çalışan şu Mostar'lı hanımı bir dinleseniz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 901.7,
+        "end": 908.82,
+        "duration": 7.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 90,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 909.56,
+        "end": 914.62,
+        "duration": 5.06,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Bilekçe'de doğdum ama 1948'den beri Mostar'da yaşıyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 909.56,
+          "end": 914.62,
+          "duration": 5.06,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Bileçya'da doğdum ama 1948'den beri Mostar'da yaşıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 909.56,
+        "end": 914.62,
+        "duration": 5.06,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 91,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 915.36,
+        "end": 916.68,
+        "duration": 1.32,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Üç oğlum vardı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 915.38,
+          "end": 918.9,
+          "duration": 3.52,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Üç oğlum vardı. Biri savaşta şehit oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 915.38,
+        "end": 918.9,
+        "duration": 3.52,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 92,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 917.26,
+        "end": 918.88,
+        "duration": 1.62,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Biri savaşta şehit oldu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 915.38,
+          "end": 918.9,
+          "duration": 3.52,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Üç oğlum vardı. Biri savaşta şehit oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 915.38,
+        "end": 918.9,
+        "duration": 3.52,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 93,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 919.64,
+        "end": 923.16,
+        "duration": 3.52,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Ancak her şeye rağmen hayat devam ediyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 919.64,
+          "end": 923.16,
+          "duration": 3.52,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Ancak her şeye rağmen hayat devam ediyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 919.64,
+        "end": 923.16,
+        "duration": 3.52,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 94,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 923.8,
+        "end": 926.16,
+        "duration": 2.36,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "text": "Yaşamak zorundayız öyle değil mi?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 923.78,
+          "end": 926.14,
+          "duration": 2.36,
+          "avg_logprob": -0.1785,
+          "no_speech_prob": 0.0,
+          "combined": -0.1785,
+          "text": "Yaşamak zorundayız, öyle değil mi?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 923.78,
+        "end": 926.14,
+        "duration": 2.36,
+        "segment_count": 1,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785
+      }
+    },
+    {
+      "quality_index": 99,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 980.85,
+        "end": 986.05,
+        "duration": 5.2,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.314,
+        "combined": -0.4824,
+        "text": "Camiyi Türkiye restore ediyor. Gençler çalışıyordu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 980.85,
+          "end": 986.05,
+          "duration": 5.2,
+          "avg_logprob": -0.1883,
+          "no_speech_prob": 0.0,
+          "combined": -0.1883,
+          "text": "Camii Türkiye restore ediyor. Gençler çalışıyordu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 980.85,
+        "end": 986.05,
+        "duration": 5.2,
+        "segment_count": 1,
+        "avg_logprob": -0.1883,
+        "no_speech_prob": 0.0,
+        "combined": -0.1883
+      }
+    },
+    {
+      "quality_index": 100,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 986.91,
+        "end": 990.29,
+        "duration": 3.38,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.314,
+        "combined": -0.4824,
+        "text": "Savaşta minaresi yıkılmış. Cami epey hasar görmüştü.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 986.91,
+          "end": 990.29,
+          "duration": 3.38,
+          "avg_logprob": -0.1883,
+          "no_speech_prob": 0.0,
+          "combined": -0.1883,
+          "text": "Savaşta minaresi yıkılmış. Cami epey hasar görmüştü.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 986.91,
+        "end": 990.29,
+        "duration": 3.38,
+        "segment_count": 1,
+        "avg_logprob": -0.1883,
+        "no_speech_prob": 0.0,
+        "combined": -0.1883
+      }
+    },
+    {
+      "quality_index": 101,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1032.0,
+        "end": 1039.1,
+        "duration": 7.1,
+        "avg_logprob": -0.2125,
+        "no_speech_prob": 0.4529,
+        "combined": -0.6654,
+        "text": "Mostar'daki üç medreseden biri Koski Camii yanındaki bu medreseydi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1032.0,
+          "end": 1039.08,
+          "duration": 7.08,
+          "avg_logprob": -0.1687,
+          "no_speech_prob": 0.0,
+          "combined": -0.1687,
+          "text": "Mostar'daki üç medreseden biri Koski Camii yanındaki bu medreseydi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1032.0,
+        "end": 1039.08,
+        "duration": 7.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1687,
+        "no_speech_prob": 0.0,
+        "combined": -0.1687
+      }
+    },
+    {
+      "quality_index": 102,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1039.32,
+        "end": 1042.64,
+        "duration": 3.32,
+        "avg_logprob": -0.2125,
+        "no_speech_prob": 0.4529,
+        "combined": -0.6654,
+        "text": "Şimdi medrese olarak değil ama hizmete devam ediyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1039.08,
+          "end": 1042.62,
+          "duration": 3.54,
+          "avg_logprob": -0.1687,
+          "no_speech_prob": 0.0,
+          "combined": -0.1687,
+          "text": "Şimdi medrese olarak değil ama hizmete devam ediyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1039.08,
+        "end": 1042.62,
+        "duration": 3.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1687,
+        "no_speech_prob": 0.0,
+        "combined": -0.1687
+      }
+    },
+    {
+      "quality_index": 103,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1065.1,
+        "end": 1071.6,
+        "duration": 6.5,
+        "avg_logprob": -0.1128,
+        "no_speech_prob": 0.314,
+        "combined": -0.4267,
+        "text": "Köprünün panoramik olarak en iyi görüldüğü iki nokta Koski Mehmetbaşa Camii'ndendir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1065.1,
+          "end": 1071.6,
+          "duration": 6.5,
+          "avg_logprob": -0.0892,
+          "no_speech_prob": 0.0,
+          "combined": -0.0892,
+          "text": "Köprünün panoramik olarak en iyi görüldüğü iki nokta Koski Mehmetbaşa Camii'ndendir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1065.1,
+        "end": 1071.6,
+        "duration": 6.5,
+        "segment_count": 1,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.0,
+        "combined": -0.0892
+      }
+    },
+    {
+      "quality_index": 104,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1071.6,
+        "end": 1078.36,
+        "duration": 6.76,
+        "avg_logprob": -0.1128,
+        "no_speech_prob": 0.314,
+        "combined": -0.4267,
+        "text": "Biri minarenin şerefesinden görünümlüdür, diğeri ise yan avlusundaki çıkıntı üzeridir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1071.6,
+          "end": 1078.34,
+          "duration": 6.74,
+          "avg_logprob": -0.0892,
+          "no_speech_prob": 0.0,
+          "combined": -0.0892,
+          "text": "Biri minarenin şerefesinden görünümüdür, diğeri ise yan avlusundaki çıkıntı üzeridir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1071.6,
+        "end": 1078.34,
+        "duration": 6.74,
+        "segment_count": 1,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.0,
+        "combined": -0.0892
+      }
+    },
+    {
+      "quality_index": 105,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1082.7,
+        "end": 1089.82,
+        "duration": 7.12,
+        "avg_logprob": -0.2012,
+        "no_speech_prob": 0.5454,
+        "combined": -0.7466,
+        "text": "Haziresinde pek güzel mezar taşları vardı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1082.7,
+          "end": 1089.82,
+          "duration": 7.12,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "Haziresinde pek güzel mezar taşları vardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1082.7,
+        "end": 1089.82,
+        "duration": 7.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 106,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1090.18,
+        "end": 1091.86,
+        "duration": 1.68,
+        "avg_logprob": -0.2012,
+        "no_speech_prob": 0.5454,
+        "combined": -0.7466,
+        "text": "Şadırvanı da halen kullanılıyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1090.18,
+          "end": 1091.84,
+          "duration": 1.66,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "Şadırvanı da halen kullanılıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1090.18,
+        "end": 1091.84,
+        "duration": 1.66,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 107,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1100.7,
+        "end": 1112.36,
+        "duration": 11.66,
+        "avg_logprob": -0.2416,
+        "no_speech_prob": 0.5391,
+        "combined": -0.7807,
+        "text": "Moslar'ın sembol eserlerinden Bişçevişköy.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1100.7,
+          "end": 1112.48,
+          "duration": 11.78,
+          "avg_logprob": -0.306,
+          "no_speech_prob": 0.0,
+          "combined": -0.306,
+          "text": "Mostar'ın sembol eserlerinden Bişeviş Köşkü.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1100.7,
+        "end": 1112.48,
+        "duration": 11.78,
+        "segment_count": 1,
+        "avg_logprob": -0.306,
+        "no_speech_prob": 0.0,
+        "combined": -0.306
+      }
+    },
+    {
+      "quality_index": 110,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1128.05,
+        "end": 1135.33,
+        "duration": 7.28,
+        "avg_logprob": -0.2537,
+        "no_speech_prob": 0.7539,
+        "combined": -1.0076,
+        "text": "Çadırbanın suları ne türküler",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1128.05,
+          "end": 1136.27,
+          "duration": 8.22,
+          "avg_logprob": -0.1739,
+          "no_speech_prob": 0.0,
+          "combined": -0.1739,
+          "text": "Çadırbanın suları ne türküler mırıldanmaktır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1128.05,
+        "end": 1136.27,
+        "duration": 8.22,
+        "segment_count": 1,
+        "avg_logprob": -0.1739,
+        "no_speech_prob": 0.0,
+        "combined": -0.1739
+      }
+    },
+    {
+      "quality_index": 111,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1135.33,
+        "end": 1136.29,
+        "duration": 0.96,
+        "avg_logprob": -0.2537,
+        "no_speech_prob": 0.7539,
+        "combined": -1.0076,
+        "text": "Mırıldanmaktır",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1128.05,
+          "end": 1136.27,
+          "duration": 8.22,
+          "avg_logprob": -0.1739,
+          "no_speech_prob": 0.0,
+          "combined": -0.1739,
+          "text": "Çadırbanın suları ne türküler mırıldanmaktır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1128.05,
+        "end": 1136.27,
+        "duration": 8.22,
+        "segment_count": 1,
+        "avg_logprob": -0.1739,
+        "no_speech_prob": 0.0,
+        "combined": -0.1739
+      }
+    },
+    {
+      "quality_index": 112,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1157.2,
+        "end": 1163.68,
+        "duration": 6.48,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.2915,
+        "combined": -0.4229,
+        "text": "Taşlığında kimler serinlemiş, basamaklarından kimler inip çıkmıştır",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1157.2,
+          "end": 1163.66,
+          "duration": 6.46,
+          "avg_logprob": -0.1699,
+          "no_speech_prob": 0.0,
+          "combined": -0.1699,
+          "text": "Taşlığında kimler serinlemiş, basamaklarından kimler inip çıkmıştır?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1157.2,
+        "end": 1163.66,
+        "duration": 6.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1699,
+        "no_speech_prob": 0.0,
+        "combined": -0.1699
+      }
+    },
+    {
+      "quality_index": 113,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1163.68,
+        "end": 1169.34,
+        "duration": 5.66,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.2915,
+        "combined": -0.4229,
+        "text": "Kapıları, pencereleri, sedirleri, sergenleri, mangalları, yastıkları",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1164.46,
+          "end": 1169.36,
+          "duration": 4.9,
+          "avg_logprob": -0.1699,
+          "no_speech_prob": 0.0,
+          "combined": -0.1699,
+          "text": "Kapıları, pencereleri, sedirleri, sergenleri, mangaları, yastıkları.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1164.46,
+        "end": 1169.36,
+        "duration": 4.9,
+        "segment_count": 1,
+        "avg_logprob": -0.1699,
+        "no_speech_prob": 0.0,
+        "combined": -0.1699
+      }
+    },
+    {
+      "quality_index": 129,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1354.4,
+        "end": 1358.4,
+        "duration": 4.0,
+        "avg_logprob": -0.2171,
+        "no_speech_prob": 0.1796,
+        "combined": -0.3967,
+        "text": "Şadırvan'ı Mostar'da pek makbul tutulmaktadır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1354.4,
+          "end": 1358.4,
+          "duration": 4.0,
+          "avg_logprob": -0.1534,
+          "no_speech_prob": 0.0,
+          "combined": -0.1534,
+          "text": "Şadırvanı mostarda pek makbul tutulmaktadır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1354.4,
+        "end": 1358.4,
+        "duration": 4.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1534,
+        "no_speech_prob": 0.0,
+        "combined": -0.1534
+      }
+    },
+    {
+      "quality_index": 130,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1390.42,
+        "end": 1393.18,
+        "duration": 2.76,
+        "avg_logprob": -0.1123,
+        "no_speech_prob": 0.2195,
+        "combined": -0.3318,
+        "text": "Kapı süslemeleri eskiden daha güzelmiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1389.5,
+          "end": 1401.6,
+          "duration": 12.1,
+          "avg_logprob": -0.0807,
+          "no_speech_prob": 0.0,
+          "combined": -0.0807,
+          "text": "Kapı süslemeleri eskiden daha güzelmiş. Yapı olarak kapının kendisi de güzeldir. Kalın cami duvarlarının hemen her yanına çeşitli dönemlerde kalem işi veya atlar yapılmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1389.5,
+        "end": 1401.6,
+        "duration": 12.1,
+        "segment_count": 1,
+        "avg_logprob": -0.0807,
+        "no_speech_prob": 0.0,
+        "combined": -0.0807
+      }
+    },
+    {
+      "quality_index": 131,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1393.26,
+        "end": 1395.56,
+        "duration": 2.3,
+        "avg_logprob": -0.1123,
+        "no_speech_prob": 0.2195,
+        "combined": -0.3318,
+        "text": "Yapı olarak kapının kendisi de güzeldir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1389.5,
+          "end": 1401.6,
+          "duration": 12.1,
+          "avg_logprob": -0.0807,
+          "no_speech_prob": 0.0,
+          "combined": -0.0807,
+          "text": "Kapı süslemeleri eskiden daha güzelmiş. Yapı olarak kapının kendisi de güzeldir. Kalın cami duvarlarının hemen her yanına çeşitli dönemlerde kalem işi veya atlar yapılmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1389.5,
+        "end": 1401.6,
+        "duration": 12.1,
+        "segment_count": 1,
+        "avg_logprob": -0.0807,
+        "no_speech_prob": 0.0,
+        "combined": -0.0807
+      }
+    },
+    {
+      "quality_index": 132,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1396.18,
+        "end": 1401.6,
+        "duration": 5.42,
+        "avg_logprob": -0.1123,
+        "no_speech_prob": 0.2195,
+        "combined": -0.3318,
+        "text": "Kalın cami duvarlarının hemen her yanına çeşitli dönemlerde kalem işi veya atlar yapılmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1389.5,
+          "end": 1401.6,
+          "duration": 12.1,
+          "avg_logprob": -0.0807,
+          "no_speech_prob": 0.0,
+          "combined": -0.0807,
+          "text": "Kapı süslemeleri eskiden daha güzelmiş. Yapı olarak kapının kendisi de güzeldir. Kalın cami duvarlarının hemen her yanına çeşitli dönemlerde kalem işi veya atlar yapılmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1389.5,
+        "end": 1401.6,
+        "duration": 12.1,
+        "segment_count": 1,
+        "avg_logprob": -0.0807,
+        "no_speech_prob": 0.0,
+        "combined": -0.0807
+      }
+    },
+    {
+      "quality_index": 133,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1403.1,
+        "end": 1407.96,
+        "duration": 4.86,
+        "avg_logprob": -0.1657,
+        "no_speech_prob": 0.4871,
+        "combined": -0.6527,
+        "text": "Bazı kötü boyama veya süsler var elbet",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1403.1,
+          "end": 1407.94,
+          "duration": 4.84,
+          "avg_logprob": -0.2009,
+          "no_speech_prob": 0.0,
+          "combined": -0.2009,
+          "text": "Bazı kötü boyama veya süsler var elbet.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1403.1,
+        "end": 1407.94,
+        "duration": 4.84,
+        "segment_count": 1,
+        "avg_logprob": -0.2009,
+        "no_speech_prob": 0.0,
+        "combined": -0.2009
+      }
+    },
+    {
+      "quality_index": 134,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1407.96,
+        "end": 1413.3,
+        "duration": 5.34,
+        "avg_logprob": -0.1657,
+        "no_speech_prob": 0.4871,
+        "combined": -0.6527,
+        "text": "Hele Avusturya işgali sırasında bu bezemelerle ne kadar oynandığı biliniyor",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1408.88,
+          "end": 1413.18,
+          "duration": 4.3,
+          "avg_logprob": -0.2009,
+          "no_speech_prob": 0.0,
+          "combined": -0.2009,
+          "text": "Hele Avusturya işgali sırasında bu bezemelerle ne kadar oynandığı bilmiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1408.88,
+        "end": 1413.18,
+        "duration": 4.3,
+        "segment_count": 1,
+        "avg_logprob": -0.2009,
+        "no_speech_prob": 0.0,
+        "combined": -0.2009
+      }
+    },
+    {
+      "quality_index": 135,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1440.5,
+        "end": 1445.78,
+        "duration": 5.28,
+        "avg_logprob": -0.1334,
+        "no_speech_prob": 0.1929,
+        "combined": -0.3262,
+        "text": "Savaşın cami ve bilhassa kubbesinde meydana getirdiği hasar gözler önünde.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1440.98,
+          "end": 1445.8,
+          "duration": 4.82,
+          "avg_logprob": -0.1409,
+          "no_speech_prob": 0.0,
+          "combined": -0.1409,
+          "text": "Savaşın cami ve bilhassa kubbesinde meydana getirdiği hasar gözler önünde.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1440.98,
+        "end": 1445.8,
+        "duration": 4.82,
+        "segment_count": 1,
+        "avg_logprob": -0.1409,
+        "no_speech_prob": 0.0,
+        "combined": -0.1409
+      }
+    },
+    {
+      "quality_index": 136,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1445.78,
+        "end": 1448.92,
+        "duration": 3.14,
+        "avg_logprob": -0.1334,
+        "no_speech_prob": 0.1929,
+        "combined": -0.3262,
+        "text": "Kubbe kasnağında her yüzde bir pencere var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1446.28,
+          "end": 1448.9,
+          "duration": 2.62,
+          "avg_logprob": -0.1409,
+          "no_speech_prob": 0.0,
+          "combined": -0.1409,
+          "text": "Kubbe kasnağında her yüzde bir pencere var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1446.28,
+        "end": 1448.9,
+        "duration": 2.62,
+        "segment_count": 1,
+        "avg_logprob": -0.1409,
+        "no_speech_prob": 0.0,
+        "combined": -0.1409
+      }
+    },
+    {
+      "quality_index": 137,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1449.94,
+        "end": 1455.92,
+        "duration": 5.98,
+        "avg_logprob": -0.1334,
+        "no_speech_prob": 0.1929,
+        "combined": -0.3262,
+        "text": "Alt pencereler sıra kemerli ve sağır üst pencerelerle, üçüncü sıra üst pencereleri var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1449.94,
+          "end": 1455.92,
+          "duration": 5.98,
+          "avg_logprob": -0.1409,
+          "no_speech_prob": 0.0,
+          "combined": -0.1409,
+          "text": "Alt pencereler, sıra kemerli ve sağır üst pencerelerle üçüncü sıra üst pencereleri var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1449.94,
+        "end": 1455.92,
+        "duration": 5.98,
+        "segment_count": 1,
+        "avg_logprob": -0.1409,
+        "no_speech_prob": 0.0,
+        "combined": -0.1409
+      }
+    },
+    {
+      "quality_index": 138,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1456.64,
+        "end": 1460.1,
+        "duration": 3.46,
+        "avg_logprob": -0.1334,
+        "no_speech_prob": 0.1929,
+        "combined": -0.3262,
+        "text": "Bu camiinde Türkiye tarafından onarılacağını duyuyoruz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1456.64,
+          "end": 1460.1,
+          "duration": 3.46,
+          "avg_logprob": -0.1409,
+          "no_speech_prob": 0.0,
+          "combined": -0.1409,
+          "text": "Bu cami'nin de Türkiye tarafından onarılacağını duyuyoruz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1456.64,
+        "end": 1460.1,
+        "duration": 3.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1409,
+        "no_speech_prob": 0.0,
+        "combined": -0.1409
+      }
+    },
+    {
+      "quality_index": 139,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1461.28,
+        "end": 1464.58,
+        "duration": 3.3,
+        "avg_logprob": -0.1334,
+        "no_speech_prob": 0.1929,
+        "combined": -0.3262,
+        "text": "Belki o zaman haziresinde yatanlar rahatlayacaklardır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1461.28,
+          "end": 1464.56,
+          "duration": 3.28,
+          "avg_logprob": -0.1409,
+          "no_speech_prob": 0.0,
+          "combined": -0.1409,
+          "text": "Belki o zaman haziresinde yatanlar rahatlayacaklardır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1461.28,
+        "end": 1464.56,
+        "duration": 3.28,
+        "segment_count": 1,
+        "avg_logprob": -0.1409,
+        "no_speech_prob": 0.0,
+        "combined": -0.1409
+      }
+    },
+    {
+      "quality_index": 141,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1478.04,
+        "end": 1480.44,
+        "duration": 2.4,
+        "avg_logprob": -0.2015,
+        "no_speech_prob": 0.2073,
+        "combined": -0.4088,
+        "text": "Gazazlar Çarşısı diye bilinirdi burası.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1478.06,
+          "end": 1480.46,
+          "duration": 2.4,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "Gazazlar Çarşısı diye bilinirdi burası.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1478.06,
+        "end": 1480.46,
+        "duration": 2.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 142,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1480.9,
+        "end": 1483.48,
+        "duration": 2.58,
+        "avg_logprob": -0.2015,
+        "no_speech_prob": 0.2073,
+        "combined": -0.4088,
+        "text": "Saat Kulesi'ni Fatma Kadın diye bir hanım yaptırmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1480.9,
+          "end": 1483.5,
+          "duration": 2.6,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "Saat Kulesi'ni Fatma Kadın diye bir hanım yaptırmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1480.9,
+        "end": 1483.5,
+        "duration": 2.6,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 143,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1483.88,
+        "end": 1485.52,
+        "duration": 1.64,
+        "avg_logprob": -0.2015,
+        "no_speech_prob": 0.2073,
+        "combined": -0.4088,
+        "text": "300 yıldan fazla olsa gerek.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1483.9,
+          "end": 1485.5,
+          "duration": 1.6,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "300 yıldan fazla olsa gerek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1483.9,
+        "end": 1485.5,
+        "duration": 1.6,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 144,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1486.26,
+        "end": 1489.62,
+        "duration": 3.36,
+        "avg_logprob": -0.2015,
+        "no_speech_prob": 0.2073,
+        "combined": -0.4088,
+        "text": "Çanunun sesinin pek uzaklardan duyulduğu anlatılır hep.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1486.26,
+          "end": 1489.62,
+          "duration": 3.36,
+          "avg_logprob": -0.1766,
+          "no_speech_prob": 0.0,
+          "combined": -0.1766,
+          "text": "Çanının sesinin pek uzaklardan duyulduğu anlatılır hep.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1486.26,
+        "end": 1489.62,
+        "duration": 3.36,
+        "segment_count": 1,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766
+      }
+    },
+    {
+      "quality_index": 145,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1491.8,
+        "end": 1501.02,
+        "duration": 9.22,
+        "avg_logprob": -0.1765,
+        "no_speech_prob": 0.2454,
+        "combined": -0.4219,
+        "text": "Nasu Ağa Camii meydanı dolduran eserlerden biri Mosler'in güzelliklerinden.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1491.8,
+          "end": 1501.02,
+          "duration": 9.22,
+          "avg_logprob": -0.176,
+          "no_speech_prob": 0.0,
+          "combined": -0.176,
+          "text": "Nasu Ağa Camii meydanı dolduran eserlerden biri Mostar'ın güzelliklerinden.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1491.8,
+        "end": 1501.02,
+        "duration": 9.22,
+        "segment_count": 1,
+        "avg_logprob": -0.176,
+        "no_speech_prob": 0.0,
+        "combined": -0.176
+      }
+    },
+    {
+      "quality_index": 146,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1507.7,
+        "end": 1512.18,
+        "duration": 4.48,
+        "avg_logprob": -0.156,
+        "no_speech_prob": 0.1581,
+        "combined": -0.3141,
+        "text": "Savaşın ne feci ne çirkin olduğunun misallerinden şu yapı",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1507.7,
+          "end": 1523.02,
+          "duration": 15.32,
+          "avg_logprob": -0.1402,
+          "no_speech_prob": 0.0,
+          "combined": -0.1402,
+          "text": "Savaşın ne feci, ne çirkin olduğunun misallerinden şu yada. Eski Sırp kilisesiydi. Sırplar bir yandan, hırvatlar bir yandan Müslümanları ortada kıstırmışlardı. Fakat hani kilise? Bunu Müslümanlar yapmadılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1507.7,
+        "end": 1523.02,
+        "duration": 15.32,
+        "segment_count": 1,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.0,
+        "combined": -0.1402
+      }
+    },
+    {
+      "quality_index": 147,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1512.18,
+        "end": 1514.04,
+        "duration": 1.86,
+        "avg_logprob": -0.156,
+        "no_speech_prob": 0.1581,
+        "combined": -0.3141,
+        "text": "Eski Sırp kilisesiydi",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1507.7,
+          "end": 1523.02,
+          "duration": 15.32,
+          "avg_logprob": -0.1402,
+          "no_speech_prob": 0.0,
+          "combined": -0.1402,
+          "text": "Savaşın ne feci, ne çirkin olduğunun misallerinden şu yada. Eski Sırp kilisesiydi. Sırplar bir yandan, hırvatlar bir yandan Müslümanları ortada kıstırmışlardı. Fakat hani kilise? Bunu Müslümanlar yapmadılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1507.7,
+        "end": 1523.02,
+        "duration": 15.32,
+        "segment_count": 1,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.0,
+        "combined": -0.1402
+      }
+    },
+    {
+      "quality_index": 148,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1514.04,
+        "end": 1519.26,
+        "duration": 5.22,
+        "avg_logprob": -0.156,
+        "no_speech_prob": 0.1581,
+        "combined": -0.3141,
+        "text": "Sırplar bir yandan Hırvatlar bir yandan Müslümanları ortada kıstırmışlardı",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1507.7,
+          "end": 1523.02,
+          "duration": 15.32,
+          "avg_logprob": -0.1402,
+          "no_speech_prob": 0.0,
+          "combined": -0.1402,
+          "text": "Savaşın ne feci, ne çirkin olduğunun misallerinden şu yada. Eski Sırp kilisesiydi. Sırplar bir yandan, hırvatlar bir yandan Müslümanları ortada kıstırmışlardı. Fakat hani kilise? Bunu Müslümanlar yapmadılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1507.7,
+        "end": 1523.02,
+        "duration": 15.32,
+        "segment_count": 1,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.0,
+        "combined": -0.1402
+      }
+    },
+    {
+      "quality_index": 149,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1519.26,
+        "end": 1523.02,
+        "duration": 3.76,
+        "avg_logprob": -0.156,
+        "no_speech_prob": 0.1581,
+        "combined": -0.3141,
+        "text": "Fakat hani kilise bunu Müslümanlar yapmadılar",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1507.7,
+          "end": 1523.02,
+          "duration": 15.32,
+          "avg_logprob": -0.1402,
+          "no_speech_prob": 0.0,
+          "combined": -0.1402,
+          "text": "Savaşın ne feci, ne çirkin olduğunun misallerinden şu yada. Eski Sırp kilisesiydi. Sırplar bir yandan, hırvatlar bir yandan Müslümanları ortada kıstırmışlardı. Fakat hani kilise? Bunu Müslümanlar yapmadılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1507.7,
+        "end": 1523.02,
+        "duration": 15.32,
+        "segment_count": 1,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.0,
+        "combined": -0.1402
+      }
+    },
+    {
+      "quality_index": 150,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1553.58,
+        "end": 1558.02,
+        "duration": 4.44,
+        "avg_logprob": -0.1417,
+        "no_speech_prob": 0.2385,
+        "combined": -0.3802,
+        "text": "Şehirde yaşayanlar eskiden birbirlerine pek saygılıymışlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1553.6,
+          "end": 1558.0,
+          "duration": 4.4,
+          "avg_logprob": -0.1324,
+          "no_speech_prob": 0.0,
+          "combined": -0.1324,
+          "text": "Şehirde yaşayanlar eskiden birbirlerine pek saygılıymışlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1553.6,
+        "end": 1558.0,
+        "duration": 4.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1324,
+        "no_speech_prob": 0.0,
+        "combined": -0.1324
+      }
+    },
+    {
+      "quality_index": 151,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1558.5,
+        "end": 1562.96,
+        "duration": 4.46,
+        "avg_logprob": -0.1417,
+        "no_speech_prob": 0.2385,
+        "combined": -0.3802,
+        "text": "Buna yetişenler var. Ne güzel türküler yapılmış, şiirler dizilmiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1558.5,
+          "end": 1562.96,
+          "duration": 4.46,
+          "avg_logprob": -0.1324,
+          "no_speech_prob": 0.0,
+          "combined": -0.1324,
+          "text": "Buna yetişenler var. Ne güzel türküler yapılmış, şiirler dizilmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1558.5,
+        "end": 1562.96,
+        "duration": 4.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1324,
+        "no_speech_prob": 0.0,
+        "combined": -0.1324
+      }
+    },
+    {
+      "quality_index": 156,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1682.9,
+        "end": 1687.3,
+        "duration": 4.4,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Aslında eski Mostar, Osmanlı Mostarı korunamadı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1682.9,
+          "end": 1687.32,
+          "duration": 4.42,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Aslında eski Mostar, Osmanlı Mostarı korunamadı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1682.9,
+        "end": 1687.32,
+        "duration": 4.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 157,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1688.16,
+        "end": 1690.82,
+        "duration": 2.66,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Eski şehir günden güne kayboldu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1688.18,
+          "end": 1690.84,
+          "duration": 2.66,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Eski şehir günden güne kayboldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1688.18,
+        "end": 1690.84,
+        "duration": 2.66,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 158,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1690.82,
+        "end": 1694.88,
+        "duration": 4.06,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Yapılar değiştikçe daha Avrupai olunacağı zannedildi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1690.84,
+          "end": 1694.88,
+          "duration": 4.04,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Yapılar değiştikçe daha Avrupai olunacağı zannedildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1690.84,
+        "end": 1694.88,
+        "duration": 4.04,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 159,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1695.22,
+        "end": 1695.72,
+        "duration": 0.5,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Korunmadı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1695.2,
+          "end": 1695.74,
+          "duration": 0.54,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Korunmadı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1695.2,
+        "end": 1695.74,
+        "duration": 0.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 160,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1696.54,
+        "end": 1700.48,
+        "duration": 3.94,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Eski Yugoslavia'da bir nebze de olsa her kültüre bir saygı vardı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1696.56,
+          "end": 1700.48,
+          "duration": 3.92,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Eski Yugoslavia'da bir nebze de olsa her kültüre bir saygı vardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1696.56,
+        "end": 1700.48,
+        "duration": 3.92,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 161,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1700.92,
+        "end": 1703.12,
+        "duration": 2.2,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Bu savaş kültür kıyımı savaşı oldu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1700.92,
+          "end": 1703.08,
+          "duration": 2.16,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Bu savaş kültür kıyımı savaşı oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1700.92,
+        "end": 1703.08,
+        "duration": 2.16,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 162,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1703.72,
+        "end": 1708.82,
+        "duration": 5.1,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "Zar zor kalan, insanlığın ortak malı olmuş kültür eserleri yok edildi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1703.72,
+          "end": 1708.18,
+          "duration": 4.46,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "Zar zor kalan, insanlığın ortak malı olmuş kültür eserleri yok edildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1703.72,
+        "end": 1708.18,
+        "duration": 4.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 163,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1709.08,
+        "end": 1710.68,
+        "duration": 1.6,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "text": "İnsanın aklının alacağı bizden.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1709.06,
+          "end": 1710.8,
+          "duration": 1.74,
+          "avg_logprob": -0.1772,
+          "no_speech_prob": 0.0,
+          "combined": -0.1772,
+          "text": "İnsanın aklının alacağı bir saygı vardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1709.06,
+        "end": 1710.8,
+        "duration": 1.74,
+        "segment_count": 1,
+        "avg_logprob": -0.1772,
+        "no_speech_prob": 0.0,
+        "combined": -0.1772
+      }
+    },
+    {
+      "quality_index": 164,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1717.92,
+        "end": 1721.3,
+        "duration": 3.38,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "Mostarımızın sembolü tarihi köprü gitti, yok oldu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1717.86,
+          "end": 1721.28,
+          "duration": 3.42,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "Mostarımızın sembolü tarihi köprü gitti, yok oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1717.86,
+        "end": 1721.28,
+        "duration": 3.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 165,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1721.9,
+        "end": 1723.02,
+        "duration": 1.12,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "Daha nice eserler.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1721.9,
+          "end": 1723.02,
+          "duration": 1.12,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "Daha nice eserler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1721.9,
+        "end": 1723.02,
+        "duration": 1.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 166,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1723.7,
+        "end": 1728.94,
+        "duration": 5.24,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "İslam'ı, Osmanlı'yı hatırlatan, sembolize eden her şeyi yok etme kararındaydı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1723.7,
+          "end": 1729.1,
+          "duration": 5.4,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "İslam'ı, Osmanlı'yı hatırlatan, sembolize eden her şeyi yok etme kararındaydılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1723.7,
+        "end": 1729.1,
+        "duration": 5.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 167,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1729.82,
+        "end": 1733.0,
+        "duration": 3.18,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "Savaş öncesi ırvatlar burada yüzde on civarındaydı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1730.4,
+          "end": 1733.54,
+          "duration": 3.14,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "Savaş öncesi hırvatlar burada yüzde on civarındaydı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1730.4,
+        "end": 1733.54,
+        "duration": 3.14,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 168,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1734.12,
+        "end": 1736.94,
+        "duration": 2.82,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "Şimdi bakınız nasıl kimlik değiştirmeye çalışılıyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1734.12,
+          "end": 1736.94,
+          "duration": 2.82,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "Şimdi bakınız nasıl kimlik değiştirmeye çalışıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1734.12,
+        "end": 1736.94,
+        "duration": 2.82,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 169,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1737.64,
+        "end": 1740.2,
+        "duration": 2.56,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "İnanın ben tamamen objektifim.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1737.58,
+          "end": 1740.18,
+          "duration": 2.6,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "İnanın ben tamamen objektifim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1737.58,
+        "end": 1740.18,
+        "duration": 2.6,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 170,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1740.44,
+        "end": 1745.4,
+        "duration": 4.96,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "text": "Yani ne saçma sapan iddialarda bulunuyorum ne de haklı çıkmak için konuşuyorum.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1740.44,
+          "end": 1745.4,
+          "duration": 4.96,
+          "avg_logprob": -0.1871,
+          "no_speech_prob": 0.0,
+          "combined": -0.1871,
+          "text": "Yani ne saçma sapan iddialarda bulunuyorum ne de haklı çıkmak için konuşuyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1740.44,
+        "end": 1745.4,
+        "duration": 4.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871
+      }
+    },
+    {
+      "quality_index": 171,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1745.95,
+        "end": 1748.29,
+        "duration": 2.34,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Hem başkaları ile de konuşacaksınız.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1745.95,
+          "end": 1748.31,
+          "duration": 2.36,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Hem başkalarıyla da konuşacaksınız.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1745.95,
+        "end": 1748.31,
+        "duration": 2.36,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 172,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1748.91,
+        "end": 1752.67,
+        "duration": 3.76,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Zaten burası kimindir sorusunun cevabı mezarlıklardır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1748.91,
+          "end": 1752.67,
+          "duration": 3.76,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Zaten burası kimindir sorusunun cevabı mezarlıklardır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1748.91,
+        "end": 1752.67,
+        "duration": 3.76,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 173,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1753.59,
+        "end": 1755.35,
+        "duration": 1.76,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Daha fazla söylemeye hacet var mı?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1753.59,
+          "end": 1755.35,
+          "duration": 1.76,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Daha fazla söylemeye acet var mı?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1753.59,
+        "end": 1755.35,
+        "duration": 1.76,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 174,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1756.25,
+        "end": 1758.53,
+        "duration": 2.28,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Hedef tamamen yok etmekti.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1756.39,
+          "end": 1758.53,
+          "duration": 2.14,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Hedef tamamen yok etmekti.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1756.39,
+        "end": 1758.53,
+        "duration": 2.14,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 175,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1758.73,
+        "end": 1760.17,
+        "duration": 1.44,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Olmadı azınlık yaptık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1758.73,
+          "end": 1760.17,
+          "duration": 1.44,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Olmadı azınlık yaptık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1758.73,
+        "end": 1760.17,
+        "duration": 1.44,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 176,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1760.55,
+        "end": 1762.83,
+        "duration": 2.28,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Yani öz vatanında sığıntı olmak.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1760.55,
+          "end": 1762.83,
+          "duration": 2.28,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Yani öz vatanında sığıntı olmak.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1760.55,
+        "end": 1762.83,
+        "duration": 2.28,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 177,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1764.05,
+        "end": 1765.47,
+        "duration": 1.42,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "text": "Ne acı günlerdi tanrım.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1764.05,
+          "end": 1765.45,
+          "duration": 1.4,
+          "avg_logprob": -0.286,
+          "no_speech_prob": 0.0,
+          "combined": -0.286,
+          "text": "Ne harcı günlerdi Tanrım.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1764.05,
+        "end": 1765.45,
+        "duration": 1.4,
+        "segment_count": 1,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286
+      }
+    },
+    {
+      "quality_index": 178,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1799.2,
+        "end": 1806.0,
+        "duration": 6.8,
+        "avg_logprob": -0.1505,
+        "no_speech_prob": 0.7095,
+        "combined": -0.8599,
+        "text": "Kullarım halen İsviçre'de. Geriye Mostar'a dönmeyi istiyorlar ama şu anda ekonomimiz çok kötü halde.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1799.2,
+          "end": 1805.96,
+          "duration": 6.76,
+          "avg_logprob": -0.1543,
+          "no_speech_prob": 0.0,
+          "combined": -0.1543,
+          "text": "Yollarım halen İsviçre'de. Geriye Mostar'a dönmeyi istiyorlar ama şu anda ekonomimiz çok kötü aldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1799.2,
+        "end": 1805.96,
+        "duration": 6.76,
+        "segment_count": 1,
+        "avg_logprob": -0.1543,
+        "no_speech_prob": 0.0,
+        "combined": -0.1543
+      }
+    },
+    {
+      "quality_index": 179,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1806.2,
+        "end": 1811.0,
+        "duration": 4.8,
+        "avg_logprob": -0.1505,
+        "no_speech_prob": 0.7095,
+        "combined": -0.8599,
+        "text": "Altyapı çökmüş durumda. Bir de tabii sistem değişikliği yapılmaya çalışılıyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1806.18,
+          "end": 1811.02,
+          "duration": 4.84,
+          "avg_logprob": -0.1543,
+          "no_speech_prob": 0.0,
+          "combined": -0.1543,
+          "text": "Altyapı çökmüş durumda. Bir de tabii sistem değişikliği yapılmaya çalışılıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1806.18,
+        "end": 1811.02,
+        "duration": 4.84,
+        "segment_count": 1,
+        "avg_logprob": -0.1543,
+        "no_speech_prob": 0.0,
+        "combined": -0.1543
+      }
+    },
+    {
+      "quality_index": 180,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1811.54,
+        "end": 1815.88,
+        "duration": 4.34,
+        "avg_logprob": -0.1505,
+        "no_speech_prob": 0.7095,
+        "combined": -0.8599,
+        "text": "Sosyalist altyapıdan liberalizme geçiş. Zor günler belası.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1811.54,
+          "end": 1816.08,
+          "duration": 4.54,
+          "avg_logprob": -0.1543,
+          "no_speech_prob": 0.0,
+          "combined": -0.1543,
+          "text": "Sosyalist altyapıdan liberalizme geçiş. Zor günler belası var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1811.54,
+        "end": 1816.08,
+        "duration": 4.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1543,
+        "no_speech_prob": 0.0,
+        "combined": -0.1543
+      }
+    },
+    {
+      "quality_index": 191,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1890.0,
+        "end": 1892.46,
+        "duration": 2.46,
+        "avg_logprob": -0.1101,
+        "no_speech_prob": 0.312,
+        "combined": -0.4221,
+        "text": "Hiçbir şey eskisi gibi değil ki.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1890.0,
+          "end": 1892.46,
+          "duration": 2.46,
+          "avg_logprob": -0.1445,
+          "no_speech_prob": 0.0,
+          "combined": -0.1445,
+          "text": "Hiçbir şey eskisi gibi değil ki.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1890.0,
+        "end": 1892.46,
+        "duration": 2.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1445,
+        "no_speech_prob": 0.0,
+        "combined": -0.1445
+      }
+    },
+    {
+      "quality_index": 192,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1901.35,
+        "end": 1911.69,
+        "duration": 10.34,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.1339,
+        "combined": -0.4509,
+        "text": "Sanki bir oyun oynuyoruz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1901.35,
+          "end": 1911.73,
+          "duration": 10.38,
+          "avg_logprob": -0.2429,
+          "no_speech_prob": 0.0,
+          "combined": -0.2429,
+          "text": "Sanki bir oyun oynuyoruz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1901.35,
+        "end": 1911.73,
+        "duration": 10.38,
+        "segment_count": 1,
+        "avg_logprob": -0.2429,
+        "no_speech_prob": 0.0,
+        "combined": -0.2429
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 134,
+    "auto_swaps": 79,
+    "review_candidates": 55,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 194.44,
+    "review_quality_duration": 348.26,
+    "kept_risky_quality_duration": 0
+  }
+}

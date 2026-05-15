@@ -1,0 +1,13 @@
+{
+  "sample_id": "erd_test_full",
+  "category": "multilingual_press",
+  "source_path": "E:\\MITAS\\testklipler\\erd_test_video.mp4",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\erd_test_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 195.257,
+  "source_duration": 195.297,
+  "reference_path": "E:\\MITAS\\references\\asr_model_final\\erd_test_full.txt",
+  "review_priority": "high",
+  "notes": "Multilingual/code-switch stress case that previously exposed the multilingual=True decision."
+}

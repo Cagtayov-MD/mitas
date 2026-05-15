@@ -1,0 +1,20 @@
+{
+  "sample_id": "baris_manco_7den_77ye_full",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 2790.016,
+  "runtime_seconds_wall": 354.448,
+  "runtime_seconds_reported": 354.411,
+  "runtime_per_audio_minute": 7.622,
+  "clean_word_count": 3342,
+  "clean_segment_count": 591,
+  "quality_drop_count": 2,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 9,
+    "repeated_token": "düt",
+    "max_token_length": 19,
+    "words_per_second": 2.35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 171.691,
+  "source_duration": 171.691,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi.txt",
+  "review_priority": "medium",
+  "notes": "2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav"
+}

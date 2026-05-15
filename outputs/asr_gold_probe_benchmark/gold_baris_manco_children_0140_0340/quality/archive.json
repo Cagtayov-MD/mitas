@@ -1,0 +1,367 @@
+{
+  "audio_path": "outputs\\asr_gold_probe_benchmark\\gold_baris_manco_children_0140_0340\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 120.0,
+  "model": "large-v3",
+  "profile": "quality",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "İyi günler. Mektuplar, mektuplar, mektuplar. Binlerce mektup gelmeye başladı sizlerden. Özellikle süper dede, süper babaanne köşemize konuk olmak isteyenler ve adam olacak çocuk köşemizde yarışmak isteyen kardeşlerimizden geliyorum. Binlerce mektup bunları programımız el verdiğince imkanlarımız için değerlendirip buradan sizlere konuk etmeye çalışacağız. Lütfen mektupları yazmaya devam edin. Bizler çok fazla vaktinizi almak istemiyoruz. Hemen hemen ilk görüntülerimize geçiyoruz. İşte bu haftanın ilk görüntüleri. Sağ olun. Sağ olun elleriniz dert görmesin sağ olun. Adam olacak çocuk yedisinde neyse yetmiş yedisinde odur devam ediyor. Geçtiğim saflarda söylemiştim mektuplar mektuplar binlerce mektup diye. Binler iki binler beş binler on binleri katladı. Bunu niye söylüyorum artık cumartesi pazar demiyor sevgili postacımız. Elinde bir çuval bizim mahallenin yolunu tutuyor. Ben de söz verdim kendisine ilk programda sana bir selam yollayacağım. O on binlerce mektubu bize taşıdığın için sevgili postacı amca. Piyanoda her zaman olduğu gibi mini ablamız bizlerle beraber. Ve ben hemen ilk yarışmacımızı alıyorum. İlk yarışmacımız. Şu güzel kıyafet içinde Saruhan. Hoş geldin Saruhan. Nasılsın? İyi. Dur senin bir mikrofon sunum var galiba. Şöyle yapalım. Oldu mu? Baştan başladın. Hoş geldin Saruhan. İyisin. İstersen şöyle yapalım Saruhan. O mikrofon senin olsun, bu mikrofon benim olsun. Oldu mu? Hadi sen oraya konuş. Nasılsın Saruhan? İyiyim. İyi. Gayet iyi Saruhan. Buraya sen yalnız mı geldin Saruhan? Annemle, teyzemle geldim. Nerede annenle teyzen? Göremiyorum.",
+    "clean": "İyi günler. Mektuplar, mektuplar, mektuplar. Binlerce mektup gelmeye başladı sizlerden. Özellikle süper dede, süper babaanne köşemize konuk olmak isteyenler ve adam olacak çocuk köşemizde yarışmak isteyen kardeşlerimizden geliyorum. Binlerce mektup bunları programımız el verdiğince imkanlarımız için değerlendirip buradan sizlere konuk etmeye çalışacağız. Lütfen mektupları yazmaya devam edin. Bizler çok fazla vaktinizi almak istemiyoruz. Hemen hemen ilk görüntülerimize geçiyoruz. İşte bu haftanın ilk görüntüleri. Sağ olun. Sağ olun elleriniz dert görmesin sağ olun. Adam olacak çocuk yedisinde neyse yetmiş yedisinde odur devam ediyor. Geçtiğim saflarda söylemiştim mektuplar mektuplar binlerce mektup diye. Binler iki binler beş binler on binleri katladı. Bunu niye söylüyorum artık cumartesi pazar demiyor sevgili postacımız. Elinde bir çuval bizim mahallenin yolunu tutuyor. Ben de söz verdim kendisine ilk programda sana bir selam yollayacağım. O on binlerce mektubu bize taşıdığın için sevgili postacı amca. Piyanoda her zaman olduğu gibi mini ablamız bizlerle beraber. Ve ben hemen ilk yarışmacımızı alıyorum. İlk yarışmacımız. Şu güzel kıyafet içinde Saruhan. Hoş geldin Saruhan. Nasılsın? İyi. Dur senin bir mikrofon sunum var galiba. Şöyle yapalım.\n\nOldu mu? Baştan başladın. Hoş geldin Saruhan.\n\nİyisin. İstersen şöyle yapalım Saruhan. O mikrofon senin olsun, bu mikrofon benim olsun. Oldu mu? Hadi sen oraya konuş. Nasılsın Saruhan? İyiyim.\n\nİyi. Gayet iyi Saruhan. Buraya sen yalnız mı geldin Saruhan?\n\nAnnemle, teyzemle geldim. Nerede annenle teyzen? Göremiyorum.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 0.4,
+      "end": 15.9,
+      "text": "İyi günler. Mektuplar, mektuplar, mektuplar. Binlerce mektup gelmeye başladı sizlerden. Özellikle süper dede, süper babaanne köşemize konuk olmak isteyenler ve adam olacak çocuk köşemizde yarışmak isteyen kardeşlerimizden geliyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05317382789216936,
+      "no_speech_prob": 0.1890869140625,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 15.9,
+      "end": 30.88,
+      "text": "Binlerce mektup bunları programımız el verdiğince imkanlarımız için değerlendirip buradan sizlere konuk etmeye çalışacağız. Lütfen mektupları yazmaya devam edin. Bizler çok fazla vaktinizi almak istemiyoruz. Hemen hemen ilk görüntülerimize geçiyoruz. İşte bu haftanın ilk görüntüleri.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.042568713157291875,
+      "no_speech_prob": 0.00019872188568115234,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 31.1,
+      "end": 42.6,
+      "text": "Sağ olun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.32645089285714285,
+      "no_speech_prob": 0.37109375,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 43.15,
+      "end": 45.05,
+      "text": "Sağ olun elleriniz dert görmesin sağ olun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 45.35,
+      "end": 49.43,
+      "text": "Adam olacak çocuk yedisinde neyse yetmiş yedisinde odur devam ediyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 50.65,
+      "end": 53.65,
+      "text": "Geçtiğim saflarda söylemiştim mektuplar mektuplar binlerce mektup diye.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 53.81,
+      "end": 55.77,
+      "text": "Binler iki binler beş binler on binleri katladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 56.17,
+      "end": 59.63,
+      "text": "Bunu niye söylüyorum artık cumartesi pazar demiyor sevgili postacımız.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 59.77,
+      "end": 61.59,
+      "text": "Elinde bir çuval bizim mahallenin yolunu tutuyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 61.93,
+      "end": 64.53,
+      "text": "Ben de söz verdim kendisine ilk programda sana bir selam yollayacağım.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 64.53,
+      "end": 67.13,
+      "text": "O on binlerce mektubu bize taşıdığın için sevgili postacı amca.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 67.61,
+      "end": 70.13,
+      "text": "Piyanoda her zaman olduğu gibi mini ablamız bizlerle beraber.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.11398565866908089,
+      "no_speech_prob": 0.0872802734375,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 71.2,
+      "end": 77.84,
+      "text": "Ve ben hemen ilk yarışmacımızı alıyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2627377795136493,
+      "no_speech_prob": 0.1773681640625,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 78.66,
+      "end": 79.4,
+      "text": "İlk yarışmacımız.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2627377795136493,
+      "no_speech_prob": 0.1773681640625,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 80.35,
+      "end": 82.73,
+      "text": "Şu güzel kıyafet içinde Saruhan.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.25483630952380953,
+      "no_speech_prob": 0.32763671875,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 83.41,
+      "end": 84.57,
+      "text": "Hoş geldin Saruhan.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.25483630952380953,
+      "no_speech_prob": 0.32763671875,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 85.5,
+      "end": 86.68,
+      "text": "Nasılsın?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.43372844827586204,
+      "no_speech_prob": 0.346435546875,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 87.18,
+      "end": 87.4,
+      "text": "İyi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.43372844827586204,
+      "no_speech_prob": 0.346435546875,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 88.26,
+      "end": 90.1,
+      "text": "Dur senin bir mikrofon sunum var galiba. Şöyle yapalım.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.43372844827586204,
+      "no_speech_prob": 0.346435546875,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 92.75,
+      "end": 93.61,
+      "text": "Oldu mu?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.49524457040040387,
+      "no_speech_prob": 0.2509765625,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 94.39,
+      "end": 95.07,
+      "text": "Baştan başladın.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.49524457040040387,
+      "no_speech_prob": 0.2509765625,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 96.25,
+      "end": 97.59,
+      "text": "Hoş geldin Saruhan.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.49524457040040387,
+      "no_speech_prob": 0.2509765625,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 99.7,
+      "end": 102.0,
+      "text": "İyisin. İstersen şöyle yapalım Saruhan.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 102.2,
+      "end": 104.32,
+      "text": "O mikrofon senin olsun, bu mikrofon benim olsun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 104.4,
+      "end": 105.68,
+      "text": "Oldu mu? Hadi sen oraya konuş.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 106.66,
+      "end": 107.44,
+      "text": "Nasılsın Saruhan?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 107.78,
+      "end": 108.22,
+      "text": "İyiyim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 110.38,
+      "end": 111.56,
+      "text": "İyi. Gayet iyi Saruhan.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 111.98,
+      "end": 113.18,
+      "text": "Buraya sen yalnız mı geldin Saruhan?",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 115.28,
+      "end": 117.12,
+      "text": "Annemle, teyzemle geldim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 117.14,
+      "end": 118.5,
+      "text": "Nerede annenle teyzen? Göremiyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20341435723282672,
+      "no_speech_prob": 0.094970703125,
+      "source_chunk_index": 7
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 39.373,
+    "chunk_count": 8,
+    "decode_seconds": 29.875,
+    "fallback_seconds": 0.0
+  }
+}

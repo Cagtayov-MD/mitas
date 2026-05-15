@@ -1,0 +1,413 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 324.971,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Şu anda Ürdün'ün Zerka kentine bağlı askeri hava üstündeyiz ve TRT haber olarak Gazze'ye havadan yardım bırakacak olan bu askeri nakliye uçağına bineceğiz. Elbette soykırımcı İsrail'in Gazze'de aç 22 aydır sürdürdüğü soykırımda son olarak kullandığı, aylardır kullandığı yeni silah açlık, açlığı silah olarak kullanıyor. Ölüm merkezlerine dönüştü İsrail'in sözde yardım noktaları. Ve bu tepkilerin üzerine işte geçtiğimiz günlerden itibaren havadan yardımlar gazlaya yapılmaya başlandı. Ancak bunlar elbette son derece kısıtlı yardımlar olduğu söyleniyor. Şu anda biz de bu yardımlardan birisine Ürdün Hava Kuvvetlerine bağlı C-130 tipi nakli uçağının önündeyiz. Kameraman arkadaşım Osman Eken de işte burada ekrana getiriyor an ve an. Birazdan bu uçak kalkacak. Son hazırlıklar yapılıyor. Sınırlı sayıda 8 ton ağırlığında yardımlar buraya yerleştiriliyor ve paraşıklı bir şekilde gazelin belli noktalarına fırlatılacak. Tabii şunu özellikle delirtelim. Bu bir Ürdün uçağı ve buradaki mürettebat Ürdün ekibinden oluşuyor. Biz de TRT Haber olarak onlarla birlikte bu yolculuğa katıldık. Buradaki yardımlar arasında tabii Türkiye dahil olmak üzere dünyanın pek çok ülkeden ulaştırılan yardımlar Ürdün Hava Kuvvetleri tarafından dağıtılıyor. Ancak ülkemizin elbette Gazze yapılan insani yardımlarda Türkiye başı çekiyor. İşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı. Bu soykırımdan önce Gazze'ye gelmişliğinde pek çok noktasında haber çalışmış. Söyleyebilirim ki İsrail'in tüm ablugasına rağmen Gazze son derece hayat dolu bir yerdi ve insanın kendine son derece kusurduk hissettiği bir yerdi. İsrail'in ablugasının zor şartlara rağmen bu soykırımın ilişkisi derse şu an gözlerimin önünde ve gerçekten tanınmaz halde çok bir küm bir enkazdan bahsettiğim. Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir. Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok. kuş sesleri yok ve tek köküvizçi tamamen Bu reyini tonla videolarımız başlığı için seviyorum. Biz de TRT Adol olarak, Gazzey üzerindeki gülüşçülere katılan Ektürk Televizyonu olarak, Kadanavana karışım Osman Ekleyi'nin görüntüleriyle ilk kez Türkiye'de ekranları yüktüreceğiz. Gazzey'nin şu an bunların görünmesi gerekiyor kalpte, konuşulması gerekiyor. Bana ne geliyor ki şu an 2 milyondan patlatı, İsrail'lik, soykırımın ardından. Gazzey'nin şu an, gazetelerini değil, gazetelerini kaybetmediler. Sevdiklerini kaybettiler, hatıralarını kaybettiler. Yüzdümçuların arası yıptan et. Belki de en kötüsü insanlığa olan yurtlarını kaybettiler. Dünyanın en büyük gazeteci seri katili İsrail bizim gibi uluslararası gazetecilerin Gazze'ye giderek oradan haber yapmasına izin vermiyor. Bu nedenle biz onların yaşadıkları ızdıraba tanık olamadık, yakinen gözlemleyemedik. Ancak bugün gördüğümüz Gazze'nin işte o hali bize aslında bu soykırımın insanlığın vicdanında nasıl kocaman bir leke olduğunu çok açık bir şekilde yüzümüze çarptı.",
+    "clean": "Şu anda Ürdün'ün Zerka kentine bağlı askeri hava üstündeyiz ve TRT haber olarak Gazze'ye havadan yardım bırakacak olan bu askeri nakliye uçağına bineceğiz. Elbette soykırımcı İsrail'in Gazze'de aç 22 aydır sürdürdüğü soykırımda son olarak kullandığı, aylardır kullandığı yeni silah açlık, açlığı silah olarak kullanıyor. Ölüm merkezlerine dönüştü İsrail'in sözde yardım noktaları. Ve bu tepkilerin üzerine işte geçtiğimiz günlerden itibaren havadan yardımlar gazlaya yapılmaya başlandı. Ancak bunlar elbette son derece kısıtlı yardımlar olduğu söyleniyor. Şu anda biz de bu yardımlardan birisine Ürdün Hava Kuvvetlerine bağlı C-130 tipi nakli uçağının önündeyiz. Kameraman arkadaşım Osman Eken de işte burada ekrana getiriyor an ve an. Birazdan bu uçak kalkacak. Son hazırlıklar yapılıyor. Sınırlı sayıda 8 ton ağırlığında yardımlar buraya yerleştiriliyor ve paraşıklı bir şekilde gazelin belli noktalarına fırlatılacak.\n\nTabii şunu özellikle delirtelim. Bu bir Ürdün uçağı ve buradaki mürettebat Ürdün ekibinden oluşuyor. Biz de TRT Haber olarak onlarla birlikte bu yolculuğa katıldık. Buradaki yardımlar arasında tabii Türkiye dahil olmak üzere dünyanın pek çok ülkeden ulaştırılan yardımlar Ürdün Hava Kuvvetleri tarafından dağıtılıyor. Ancak ülkemizin elbette Gazze yapılan insani yardımlarda Türkiye başı çekiyor.\n\nİşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı.\n\nBu soykırımdan önce Gazze'ye gelmişliğinde pek çok noktasında haber çalışmış. Söyleyebilirim ki İsrail'in tüm ablugasına rağmen Gazze son derece hayat dolu bir yerdi ve insanın kendine son derece kusurduk hissettiği bir yerdi. İsrail'in ablugasının zor şartlara rağmen bu soykırımın ilişkisi derse şu an gözlerimin önünde ve gerçekten tanınmaz halde çok bir küm bir enkazdan bahsettiğim. Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir. Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok. kuş sesleri yok ve tek köküvizçi tamamen Bu reyini tonla videolarımız başlığı için seviyorum.\n\nBiz de TRT Adol olarak, Gazzey üzerindeki gülüşçülere katılan Ektürk Televizyonu olarak, Kadanavana karışım Osman Ekleyi'nin görüntüleriyle ilk kez Türkiye'de ekranları yüktüreceğiz. Gazzey'nin şu an bunların görünmesi gerekiyor kalpte, konuşulması gerekiyor. Bana ne geliyor ki şu an 2 milyondan patlatı, İsrail'lik, soykırımın ardından. Gazzey'nin şu an, gazetelerini değil, gazetelerini kaybetmediler. Sevdiklerini kaybettiler, hatıralarını kaybettiler. Yüzdümçuların arası yıptan et. Belki de en kötüsü insanlığa olan yurtlarını kaybettiler.\n\nDünyanın en büyük gazeteci seri katili İsrail bizim gibi uluslararası gazetecilerin Gazze'ye giderek oradan haber yapmasına izin vermiyor. Bu nedenle biz onların yaşadıkları ızdıraba tanık olamadık, yakinen gözlemleyemedik. Ancak bugün gördüğümüz Gazze'nin işte o hali bize aslında bu soykırımın insanlığın vicdanında nasıl kocaman bir leke olduğunu çok açık bir şekilde yüzümüze çarptı.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 8.1,
+      "end": 21.5,
+      "text": "Şu anda Ürdün'ün Zerka kentine bağlı askeri hava üstündeyiz ve TRT haber olarak Gazze'ye havadan yardım bırakacak olan bu askeri nakliye uçağına bineceğiz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.06990489052689594,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 21.5,
+      "end": 33.82,
+      "text": "Elbette soykırımcı İsrail'in Gazze'de aç 22 aydır sürdürdüğü soykırımda son olarak kullandığı, aylardır kullandığı yeni silah açlık, açlığı silah olarak kullanıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.06990489052689594,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 33.82,
+      "end": 38.6,
+      "text": "Ölüm merkezlerine dönüştü İsrail'in sözde yardım noktaları.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07376802655366752,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 38.9,
+      "end": 46.42,
+      "text": "Ve bu tepkilerin üzerine işte geçtiğimiz günlerden itibaren havadan yardımlar gazlaya yapılmaya başlandı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10434027899194646,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 46.76,
+      "end": 50.94,
+      "text": "Ancak bunlar elbette son derece kısıtlı yardımlar olduğu söyleniyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10434027899194646,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 51.44,
+      "end": 59.84,
+      "text": "Şu anda biz de bu yardımlardan birisine Ürdün Hava Kuvvetlerine bağlı C-130 tipi nakli uçağının önündeyiz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10434027899194646,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 59.94,
+      "end": 64.7,
+      "text": "Kameraman arkadaşım Osman Eken de işte burada ekrana getiriyor an ve an.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10434027899194646,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 64.7,
+      "end": 68.2,
+      "text": "Birazdan bu uçak kalkacak. Son hazırlıklar yapılıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10434027899194646,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 68.5,
+      "end": 80.38,
+      "text": "Sınırlı sayıda 8 ton ağırlığında yardımlar buraya yerleştiriliyor ve paraşıklı bir şekilde gazelin belli noktalarına fırlatılacak.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1247274681579235,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 92.0,
+      "end": 99.2,
+      "text": "Tabii şunu özellikle delirtelim. Bu bir Ürdün uçağı ve buradaki mürettebat Ürdün ekibinden oluşuyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08464567163797813,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 99.62,
+      "end": 104.22,
+      "text": "Biz de TRT Haber olarak onlarla birlikte bu yolculuğa katıldık.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08464567163797813,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 104.9,
+      "end": 114.42,
+      "text": "Buradaki yardımlar arasında tabii Türkiye dahil olmak üzere dünyanın pek çok ülkeden ulaştırılan yardımlar Ürdün Hava Kuvvetleri tarafından dağıtılıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08464567163797813,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 114.42,
+      "end": 120.3,
+      "text": "Ancak ülkemizin elbette Gazze yapılan insani yardımlarda Türkiye başı çekiyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.08464567163797813,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 138.5,
+      "end": 155.44,
+      "text": "İşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0812049310367841,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 165.8,
+      "end": 171.34,
+      "text": "Bu soykırımdan önce Gazze'ye gelmişliğinde pek çok noktasında haber çalışmış.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27228859965415564,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 171.98,
+      "end": 182.14,
+      "text": "Söyleyebilirim ki İsrail'in tüm ablugasına rağmen Gazze son derece hayat dolu bir yerdi ve insanın kendine son derece kusurduk hissettiği bir yerdi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27228859965415564,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 182.14,
+      "end": 194.14,
+      "text": "İsrail'in ablugasının zor şartlara rağmen bu soykırımın ilişkisi derse şu an gözlerimin önünde ve gerçekten tanınmaz halde çok bir küm bir enkazdan bahsettiğim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27228859965415564,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 194.4,
+      "end": 207.88,
+      "text": "Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2347826141378154,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 209.14,
+      "end": 219.68,
+      "text": "Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2347826141378154,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 219.8,
+      "end": 222.12,
+      "text": "kuş sesleri yok",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5594429606976716,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 222.12,
+      "end": 223.42,
+      "text": "ve",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5594429606976716,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 223.42,
+      "end": 225.26,
+      "text": "tek köküvizçi",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5594429606976716,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 225.26,
+      "end": 226.74,
+      "text": "tamamen",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5594429606976716,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 227.6,
+      "end": 231.18,
+      "text": "Bu reyini tonla videolarımız başlığı için seviyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.6694078821884958,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 8
+    },
+    {
+      "start": 233.3,
+      "end": 239.18,
+      "text": "Biz de TRT Adol olarak, Gazzey üzerindeki gülüşçülere katılan Ektürk Televizyonu olarak,",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.37206375678913706,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 239.66,
+      "end": 245.8,
+      "text": "Kadanavana karışım Osman Ekleyi'nin görüntüleriyle ilk kez Türkiye'de ekranları yüktüreceğiz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.37206375678913706,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 246.14,
+      "end": 251.5,
+      "text": "Gazzey'nin şu an bunların görünmesi gerekiyor kalpte, konuşulması gerekiyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.37206375678913706,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 252.58,
+      "end": 257.66,
+      "text": "Bana ne geliyor ki şu an 2 milyondan patlatı, İsrail'lik, soykırımın ardından.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.37206375678913706,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 257.66,
+      "end": 261.44,
+      "text": "Gazzey'nin şu an, gazetelerini değil, gazetelerini kaybetmediler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.37206375678913706,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 261.825,
+      "end": 265.705,
+      "text": "Sevdiklerini kaybettiler, hatıralarını kaybettiler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3627049238955388,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 10
+    },
+    {
+      "start": 265.865,
+      "end": 267.245,
+      "text": "Yüzdümçuların arası yıptan et.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3627049238955388,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 10
+    },
+    {
+      "start": 267.805,
+      "end": 273.665,
+      "text": "Belki de en kötüsü insanlığa olan yurtlarını kaybettiler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3627049238955388,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 10
+    },
+    {
+      "start": 286.7,
+      "end": 295.74,
+      "text": "Dünyanın en büyük gazeteci seri katili İsrail bizim gibi uluslararası gazetecilerin Gazze'ye giderek oradan haber yapmasına izin vermiyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.047705461718435364,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 11
+    },
+    {
+      "start": 295.74,
+      "end": 303.06,
+      "text": "Bu nedenle biz onların yaşadıkları ızdıraba tanık olamadık, yakinen gözlemleyemedik.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.047705461718435364,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 11
+    },
+    {
+      "start": 303.38,
+      "end": 316.08,
+      "text": "Ancak bugün gördüğümüz Gazze'nin işte o hali bize aslında bu soykırımın insanlığın vicdanında nasıl kocaman bir leke olduğunu çok açık bir şekilde yüzümüze çarptı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.047705461718435364,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 11
+    }
+  ],
+  "quality": {
+    "drops": 1,
+    "drop_reasons": {
+      "stock_artifact:altyazı m.k.": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 30.082,
+    "chunk_count": 12,
+    "decode_seconds": 18.357,
+    "fallback_seconds": 0.0
+  }
+}

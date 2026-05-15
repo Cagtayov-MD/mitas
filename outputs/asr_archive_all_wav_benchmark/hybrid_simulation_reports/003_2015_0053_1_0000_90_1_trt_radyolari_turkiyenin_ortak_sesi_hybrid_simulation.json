@@ -1,0 +1,193 @@
+{
+  "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+  "source_name": "2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+  "audio_duration": 171.691,
+  "audio_minutes": 2.862,
+  "quality_segment_count": 6,
+  "fast_segment_count": 3,
+  "decisions": [
+    {
+      "quality_index": 0,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 0.0,
+        "end": 6.84,
+        "duration": 6.84,
+        "avg_logprob": -0.2124,
+        "no_speech_prob": 0.4043,
+        "combined": -0.6167,
+        "text": "Günaydın sevgili dinleyicilerimiz saatimiz 7'yi gösteriyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 0.0,
+          "end": 6.84,
+          "duration": 6.84,
+          "avg_logprob": -0.2306,
+          "no_speech_prob": 0.0,
+          "combined": -0.2306,
+          "text": "Günaydın sevgili dinleyicilerimiz. Saatimiz 7'yi gösteriyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 0.0,
+        "end": 6.84,
+        "duration": 6.84,
+        "segment_count": 1,
+        "avg_logprob": -0.2306,
+        "no_speech_prob": 0.0,
+        "combined": -0.2306
+      }
+    },
+    {
+      "quality_index": 1,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 36.35,
+        "end": 39.63,
+        "duration": 3.28,
+        "avg_logprob": -0.519,
+        "no_speech_prob": 0.2332,
+        "combined": -0.7522,
+        "text": "Nazan babanın kucağına gideceksin inşallah.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 36.35,
+          "end": 47.29,
+          "duration": 10.94,
+          "avg_logprob": -0.5552,
+          "no_speech_prob": 0.0,
+          "combined": -0.5552,
+          "text": "azdan babanın kucağına gideceksin inşallah",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 36.35,
+        "end": 47.29,
+        "duration": 10.94,
+        "segment_count": 1,
+        "avg_logprob": -0.5552,
+        "no_speech_prob": 0.0,
+        "combined": -0.5552
+      }
+    },
+    {
+      "quality_index": 2,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 47.3,
+        "end": 55.08,
+        "duration": 7.78,
+        "avg_logprob": -0.3621,
+        "no_speech_prob": 0.54,
+        "combined": -0.9021,
+        "text": "Hiçbir şeyde gözüm yok",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 47.3,
+          "end": 55.04,
+          "duration": 7.74,
+          "avg_logprob": -0.299,
+          "no_speech_prob": 0.0,
+          "combined": -0.299,
+          "text": "Hiçbir şeyde gözüm yok",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 47.3,
+        "end": 55.04,
+        "duration": 7.74,
+        "segment_count": 1,
+        "avg_logprob": -0.299,
+        "no_speech_prob": 0.0,
+        "combined": -0.299
+      }
+    },
+    {
+      "quality_index": 3,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 58.35,
+        "end": 66.07,
+        "duration": 7.72,
+        "avg_logprob": -0.337,
+        "no_speech_prob": 0.624,
+        "combined": -0.961,
+        "text": "Arda cezanın içi Arda Arda dök Selçuk'u vur gerisinde Selçuk geliyor vuruyor",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 4,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 66.07,
+        "end": 67.17,
+        "duration": 1.1,
+        "avg_logprob": -0.337,
+        "no_speech_prob": 0.624,
+        "combined": -0.961,
+        "text": "Vur",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 5,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 67.17,
+        "end": 70.49,
+        "duration": 3.32,
+        "avg_logprob": -0.337,
+        "no_speech_prob": 0.624,
+        "combined": -0.961,
+        "text": "Selçuk geliyor vuruyor",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 6,
+    "auto_swaps": 1,
+    "review_candidates": 5,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 3.28,
+    "review_quality_duration": 26.76,
+    "kept_risky_quality_duration": 0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 5339.328,
+  "source_duration": 5339.328,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav"
+}

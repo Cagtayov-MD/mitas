@@ -1,0 +1,5 @@
+# Draft reference for gold_mehmed_0000_0100
+# Listen to the source audio/video and manually correct this text.
+# Delete these comment lines before copying into references/asr_model_final/.
+
+Bir süredir Tuna'nın ötesinden gelen malumatlar bir hayli canımızı yakar. Evvel ikaz ettik, ettik ama kulak asmadılar. Ardından Lalam Şahabettin Paşa'yı gönderdik. Şehit ettiler. Hep sabır, hep sabır dedik. Gayrı vakit sabır vaktini aşmıştır. Emri bize itaat etmeyen Bosna Kralı Stefan'ın kellesi Semendire Kalesi'ne asılmıştır. ...Lalam Şehabettin Paşa'nın intikamı alınmıştır. Şükürler olsun. Hünkârım o vakit ejderhanın başı kesilmiştir. Hak konuşursun Sadrazam Paşa. Lakin o ejderhanın birden çok başı vardır. Macarlar, Papalık, Vlad Dracula. Hünkârım buyruk verin başlarını ayrı, ayaklarını ayrı kesip önünüze atalım. Vlad Dracula Yahudi tacirlerle çoktan anlaşmayı yaptı.

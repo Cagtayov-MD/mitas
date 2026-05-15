@@ -1,0 +1,13 @@
+{
+  "sample_id": "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 166.699,
+  "source_duration": 166.699,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav"
+}

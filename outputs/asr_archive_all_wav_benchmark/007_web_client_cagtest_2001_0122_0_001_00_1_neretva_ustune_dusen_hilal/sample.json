@@ -1,0 +1,13 @@
+{
+  "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 1980.416,
+  "source_duration": 1980.416,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav"
+}

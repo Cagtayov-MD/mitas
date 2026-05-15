@@ -1,0 +1,13 @@
+{
+  "sample_id": "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 1978.965,
+  "source_duration": 1978.965,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav"
+}

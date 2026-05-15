@@ -1,0 +1,949 @@
+{
+  "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+  "source_name": "web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav",
+  "fast_words": 335,
+  "quality_words": 310,
+  "edit_distance_fast_vs_quality": 120,
+  "substitution_count": 33,
+  "fast_extra_word_count": 56,
+  "quality_extra_word_count": 31,
+  "diff_rows": [
+    {
+      "fast": "Esenlikle",
+      "quality": "senlikle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 127.8,
+        "end": 144.74,
+        "duration": 16.94,
+        "avg_logprob": -0.1669,
+        "no_speech_prob": 0.0,
+        "combined": -0.1669,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 127.8,
+        "end": 138.22,
+        "duration": 10.42,
+        "avg_logprob": -0.1328,
+        "no_speech_prob": 0.2644,
+        "combined": -0.3972,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.2303,
+      "winner_by_combined": "fast",
+      "fast_context": "Esenlikle Bezmen Revnak'la hoş geldiniz şerefler verdiniz Arı",
+      "quality_context": "E senlikle bezme revnakla hoş geldiniz Şerefler verdiniz Arı"
+    },
+    {
+      "fast": "Bezmen",
+      "quality": "bezme",
+      "count": 1,
+      "fast_metrics": {
+        "start": 127.8,
+        "end": 144.74,
+        "duration": 16.94,
+        "avg_logprob": -0.1669,
+        "no_speech_prob": 0.0,
+        "combined": -0.1669,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 127.8,
+        "end": 138.22,
+        "duration": 10.42,
+        "avg_logprob": -0.1328,
+        "no_speech_prob": 0.2644,
+        "combined": -0.3972,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.2303,
+      "winner_by_combined": "fast",
+      "fast_context": "Esenlikle Bezmen Revnak'la hoş geldiniz şerefler verdiniz Arı Stüdyomuza",
+      "quality_context": "E senlikle bezme revnakla hoş geldiniz Şerefler verdiniz Arı Stüdyomuza"
+    },
+    {
+      "fast": "inci",
+      "quality": "birerinci",
+      "count": 1,
+      "fast_metrics": {
+        "start": 156.0,
+        "end": 167.48,
+        "duration": 11.48,
+        "avg_logprob": -0.1113,
+        "no_speech_prob": 0.0,
+        "combined": -0.1113,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 156.0,
+        "end": 167.48,
+        "duration": 11.48,
+        "avg_logprob": -0.0982,
+        "no_speech_prob": 0.0072,
+        "combined": -0.1054,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": -0.0058,
+      "winner_by_combined": "near_tie",
+      "fast_context": "önderliğinde akşam sefası orkestrası Ve hepsi birer inci tanesi onlar tam kadro buradayız A takımı",
+      "quality_context": "Yıldırım önderliğinde Akşam Sefası Orkestrası Ve hepsi birerinci tanesi onlar tam kadro buradayız A takımı"
+    },
+    {
+      "fast": "Safalı",
+      "quality": "Sağlıklı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 177.6,
+        "end": 181.24,
+        "duration": 3.64,
+        "avg_logprob": -0.4598,
+        "no_speech_prob": 0.0,
+        "combined": -0.4598,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 177.6,
+        "end": 181.26,
+        "duration": 3.66,
+        "avg_logprob": -0.4211,
+        "no_speech_prob": 0.0219,
+        "combined": -0.4429,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": -0.0168,
+      "winner_by_combined": "near_tie",
+      "fast_context": "şefine bütün arkadaşlarım için kocaman bir alkış Safalı bir sezon olsun Marun Hanım hoşgeldiniz Baharı",
+      "quality_context": "şefine bütün arkadaşlarım için kocaman bir alkış Sağlıklı bir sezon olsun Marul Hanım hoş geldiniz"
+    },
+    {
+      "fast": "Marun",
+      "quality": "Marul",
+      "count": 1,
+      "fast_metrics": {
+        "start": 181.24,
+        "end": 182.52,
+        "duration": 1.28,
+        "avg_logprob": -0.4598,
+        "no_speech_prob": 0.0,
+        "combined": -0.4598,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 181.26,
+        "end": 182.52,
+        "duration": 1.26,
+        "avg_logprob": -0.4211,
+        "no_speech_prob": 0.0219,
+        "combined": -0.4429,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": -0.0168,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kocaman bir alkış Safalı bir sezon olsun Marun Hanım hoşgeldiniz Baharı bekleyen kumrular gibi Sen",
+      "quality_context": "kocaman bir alkış Sağlıklı bir sezon olsun Marul Hanım hoş geldiniz Baharı bekleyen kumrular gibi"
+    },
+    {
+      "fast": "hoşgeldiniz",
+      "quality": "geldiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 181.24,
+        "end": 182.52,
+        "duration": 1.28,
+        "avg_logprob": -0.4598,
+        "no_speech_prob": 0.0,
+        "combined": -0.4598,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 127.8,
+        "end": 138.22,
+        "duration": 10.42,
+        "avg_logprob": -0.1328,
+        "no_speech_prob": 0.2644,
+        "combined": -0.3972,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": -0.0626,
+      "winner_by_combined": "quality",
+      "fast_context": "alkış Safalı bir sezon olsun Marun Hanım hoşgeldiniz Baharı bekleyen kumrular gibi Sen de beni",
+      "quality_context": "E senlikle bezme revnakla hoş geldiniz Şerefler verdiniz Arı Stüdyomuza sizler TRT Müzik"
+    },
+    {
+      "fast": "çınladı",
+      "quality": "durdum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 262.3,
+        "end": 274.58,
+        "duration": 12.28,
+        "avg_logprob": -0.2623,
+        "no_speech_prob": 0.0,
+        "combined": -0.2623,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 422.9,
+        "end": 425.78,
+        "duration": 2.88,
+        "avg_logprob": -0.6201,
+        "no_speech_prob": 0.4839,
+        "combined": -1.104,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 7
+      },
+      "combined_delta_fast_minus_quality": 0.8417,
+      "winner_by_combined": "fast",
+      "fast_context": "bir tanrıyım bir de beni sakın unutma çınladı Çok teşekkürler Çileni gönül Ez elden çileni",
+      "quality_context": "bir tanrıyım bir de beni sakın unutma durdum Çok teşekkürler çileni gönül ezelden çileni gönül"
+    },
+    {
+      "fast": "elden",
+      "quality": "ezelden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 897.0,
+        "end": 906.0,
+        "duration": 9.0,
+        "avg_logprob": -0.5121,
+        "no_speech_prob": 0.0,
+        "combined": -0.5121,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 897.78,
+        "end": 899.78,
+        "duration": 2.0,
+        "avg_logprob": -0.5057,
+        "no_speech_prob": 0.5801,
+        "combined": -1.0858,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": 0.5737,
+      "winner_by_combined": "fast",
+      "fast_context": "unutma çınladı Çok teşekkürler Çileni gönül Ez elden çileni gönül Küle iledir Kırıp geçti Aşk",
+      "quality_context": "sakın unutma durdum Çok teşekkürler çileni gönül ezelden çileni gönül Felek beni kul eyledi yaktı"
+    },
+    {
+      "fast": "Küle",
+      "quality": "yıktı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 974.25,
+        "end": 976.25,
+        "duration": 2.0,
+        "avg_logprob": -0.7417,
+        "no_speech_prob": 0.0,
+        "combined": -0.7417,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 962.1,
+        "end": 974.2,
+        "duration": 12.1,
+        "avg_logprob": -0.2598,
+        "no_speech_prob": 0.5825,
+        "combined": -0.8423,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.1006,
+      "winner_by_combined": "fast",
+      "fast_context": "teşekkürler Çileni gönül Ez elden çileni gönül Küle iledir Kırıp geçti Aşk dalımı vefasıza yol",
+      "quality_context": "çileni gönül Felek beni kul eyledi yaktı yıktı Küleyledim Kırıp geçti Aşk dalımı vefasıza yol"
+    },
+    {
+      "fast": "iledir",
+      "quality": "Küleyledim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 974.25,
+        "end": 976.25,
+        "duration": 2.0,
+        "avg_logprob": -0.7417,
+        "no_speech_prob": 0.0,
+        "combined": -0.7417,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 974.25,
+        "end": 976.25,
+        "duration": 2.0,
+        "avg_logprob": -0.6004,
+        "no_speech_prob": 0.5996,
+        "combined": -1.2001,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 11
+      },
+      "combined_delta_fast_minus_quality": 0.4584,
+      "winner_by_combined": "fast",
+      "fast_context": "Çileni gönül Ez elden çileni gönül Küle iledir Kırıp geçti Aşk dalımı vefasıza yol eyledim",
+      "quality_context": "gönül Felek beni kul eyledi yaktı yıktı Küleyledim Kırıp geçti Aşk dalımı vefasıza yol eyledim"
+    },
+    {
+      "fast": "Vefat",
+      "quality": "fazla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1100.4,
+        "end": 1101.3,
+        "duration": 0.9,
+        "avg_logprob": -0.3472,
+        "no_speech_prob": 0.0,
+        "combined": -0.3472,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "quality_metrics": {
+        "start": 1087.3,
+        "end": 1101.3,
+        "duration": 14.0,
+        "avg_logprob": -0.2437,
+        "no_speech_prob": 0.4309,
+        "combined": -0.6746,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 14
+      },
+      "combined_delta_fast_minus_quality": 0.3274,
+      "winner_by_combined": "fast",
+      "fast_context": "oldum Bastı geçti Kulu oldum Küstü geçti Vefat Güldü geçti yoldum bastı geçti kulu oldum",
+      "quality_context": "bastı geçti kulu oldum küstü geçti ve fazla Güldü geçti yol oldum bastı geçti kulu"
+    },
+    {
+      "fast": "yoldum",
+      "quality": "oldum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1108.7,
+        "end": 1122.7,
+        "duration": 14.0,
+        "avg_logprob": -0.1922,
+        "no_speech_prob": 0.0,
+        "combined": -0.1922,
+        "flags": [],
+        "source_chunk_index": 15
+      },
+      "quality_metrics": {
+        "start": 1087.3,
+        "end": 1101.3,
+        "duration": 14.0,
+        "avg_logprob": -0.2437,
+        "no_speech_prob": 0.4309,
+        "combined": -0.6746,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 14
+      },
+      "combined_delta_fast_minus_quality": 0.4824,
+      "winner_by_combined": "fast",
+      "fast_context": "Kulu oldum Küstü geçti Vefat Güldü geçti yoldum bastı geçti kulu oldum güldü geçti vefa",
+      "quality_context": "Felek beni kul eyledim Güldü geçti yol oldum bastı geçti kulu oldum küstü geçti ve"
+    },
+    {
+      "fast": "hayal",
+      "quality": "Olur",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1464.55,
+        "end": 1476.67,
+        "duration": 12.12,
+        "avg_logprob": -0.7871,
+        "no_speech_prob": 0.0,
+        "combined": -0.7871,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "quality_metrics": {
+        "start": 1637.1,
+        "end": 1639.62,
+        "duration": 2.52,
+        "avg_logprob": -0.3785,
+        "no_speech_prob": 0.1055,
+        "combined": -0.484,
+        "flags": [],
+        "source_chunk_index": 19
+      },
+      "combined_delta_fast_minus_quality": -0.3031,
+      "winner_by_combined": "quality",
+      "fast_context": "efendim Şarkı şu Benzemez Kimse sanki tarzına hayal Ağzınıza sağlık efendim var olur Sorma kederdeyim",
+      "quality_context": "şarkıyı birlikte okuyacağız efendim Şarkı şu Benzemez Olur Ağzınıza sağlık efendim Var olun Sorma söyleyemem"
+    },
+    {
+      "fast": "utanırız",
+      "quality": "utanırım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2099.65,
+        "end": 2103.17,
+        "duration": 3.52,
+        "avg_logprob": -0.5577,
+        "no_speech_prob": 0.0,
+        "combined": -0.5577,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 2099.65,
+        "end": 2102.63,
+        "duration": 2.98,
+        "avg_logprob": -0.6385,
+        "no_speech_prob": 0.6865,
+        "combined": -1.325,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": 0.7673,
+      "winner_by_combined": "fast",
+      "fast_context": "Sorma kederdeyim sorma yangınlardayım zaman zaman Sorma utanırız Sorma söyleyemem sorma Nöbetlerdeyim Başım Bugün yarın",
+      "quality_context": "Sorma kederdeyim sorma yangınlardayım zaman zaman Sorma utanırım Sorma söyleyemem sorma Dövetlerdeyim başım Kırık kalp"
+    },
+    {
+      "fast": "Nöbetlerdeyim",
+      "quality": "Dövetlerdeyim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2109.25,
+        "end": 2113.25,
+        "duration": 4.0,
+        "avg_logprob": -0.4136,
+        "no_speech_prob": 0.0,
+        "combined": -0.4136,
+        "flags": [],
+        "source_chunk_index": 26
+      },
+      "quality_metrics": {
+        "start": 2109.25,
+        "end": 2113.25,
+        "duration": 4.0,
+        "avg_logprob": -0.4053,
+        "no_speech_prob": 0.7505,
+        "combined": -1.1558,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 26
+      },
+      "combined_delta_fast_minus_quality": 0.7422,
+      "winner_by_combined": "fast",
+      "fast_context": "zaman zaman Sorma utanırız Sorma söyleyemem sorma Nöbetlerdeyim Başım Bugün yarın biter dedim değişen bir",
+      "quality_context": "zaman zaman Sorma utanırım Sorma söyleyemem sorma Dövetlerdeyim başım Kırık kalp kırık değişen bir şey"
+    },
+    {
+      "fast": "yarın",
+      "quality": "Kırık",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4116.675,
+        "end": 4123.855,
+        "duration": 7.18,
+        "avg_logprob": -0.3567,
+        "no_speech_prob": 0.0,
+        "combined": -0.3567,
+        "flags": [],
+        "source_chunk_index": 31
+      },
+      "quality_metrics": {
+        "start": 4105.3,
+        "end": 4109.42,
+        "duration": 4.12,
+        "avg_logprob": -0.3036,
+        "no_speech_prob": 0.5942,
+        "combined": -0.8978,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": 0.5411,
+      "winner_by_combined": "fast",
+      "fast_context": "utanırız Sorma söyleyemem sorma Nöbetlerdeyim Başım Bugün yarın biter dedim değişen bir şey yok Seneler",
+      "quality_context": "Sorma utanırım Sorma söyleyemem sorma Dövetlerdeyim başım Kırık kalp kırık değişen bir şey yok Hayat"
+    },
+    {
+      "fast": "adamın",
+      "quality": "inanan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4566.75,
+        "end": 4575.09,
+        "duration": 8.34,
+        "avg_logprob": -0.5249,
+        "no_speech_prob": 0.0,
+        "combined": -0.5249,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "quality_metrics": {
+        "start": 4566.75,
+        "end": 4575.13,
+        "duration": 8.38,
+        "avg_logprob": -0.4277,
+        "no_speech_prob": 0.5405,
+        "combined": -0.9683,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.4434,
+      "winner_by_combined": "fast",
+      "fast_context": "sevmek gözlerin dudakları O yeminler her bir adamın gözlerin dudakları O yeminler hep yalan Gözlerin",
+      "quality_context": "delice sevmek Gözlerin dudakları O yeminler hep inanan gözlerin dudakların O yeminler hep yalan Gözlerin"
+    },
+    {
+      "fast": "dudakları",
+      "quality": "dudakların",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4553.4,
+        "end": 4565.88,
+        "duration": 12.48,
+        "avg_logprob": -0.2546,
+        "no_speech_prob": 0.0,
+        "combined": -0.2546,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 4566.75,
+        "end": 4575.13,
+        "duration": 8.38,
+        "avg_logprob": -0.4277,
+        "no_speech_prob": 0.5405,
+        "combined": -0.9683,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.7137,
+      "winner_by_combined": "fast",
+      "fast_context": "Yaşamak yalan belki yalan delice sevmek gözlerin dudakları O yeminler her bir adamın gözlerin dudakları",
+      "quality_context": "Gözlerin dudakları O yeminler hep inanan gözlerin dudakların O yeminler hep yalan Gözlerin dudakların O"
+    },
+    {
+      "fast": "Sonsuz",
+      "quality": "sevmekte",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5129.1,
+        "end": 5133.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 4632.45,
+        "end": 4637.49,
+        "duration": 5.04,
+        "avg_logprob": -0.4185,
+        "no_speech_prob": 0.7085,
+        "combined": -1.127,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.7459,
+      "winner_by_combined": "fast",
+      "fast_context": "yalan Gözlerin dudakların O yeminler hep yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan",
+      "quality_context": "Gözlerin dudakların O yeminler hep yalan Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler"
+    },
+    {
+      "fast": "teşekkürler",
+      "quality": "yalnız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 422.9,
+        "end": 430.2,
+        "duration": 7.3,
+        "avg_logprob": -0.5965,
+        "no_speech_prob": 0.0,
+        "combined": -0.5965,
+        "flags": [],
+        "source_chunk_index": 7
+      },
+      "quality_metrics": {
+        "start": 4438.86,
+        "end": 4442.36,
+        "duration": 3.5,
+        "avg_logprob": -0.1544,
+        "no_speech_prob": 0.6348,
+        "combined": -0.7892,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": 0.1927,
+      "winner_by_combined": "fast",
+      "fast_context": "bir de beni sakın unutma çınladı Çok teşekkürler Çileni gönül Ez elden çileni gönül Küle",
+      "quality_context": "boyunca sürdü iç yüzünden ayrılıklar Aramızda şimdi yalnız ayrılıklar Aramızda şimdi yalnız ayrılık var ayrılık"
+    },
+    {
+      "fast": "Kah",
+      "quality": "Acımasız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 4637.49,
+        "end": 4646.45,
+        "duration": 8.96,
+        "avg_logprob": -0.4185,
+        "no_speech_prob": 0.7085,
+        "combined": -1.127,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.7459,
+      "winner_by_combined": "fast",
+      "fast_context": "dudakların O yeminler hep yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin",
+      "quality_context": "O yeminler hep yalan Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler Kâh sevginin"
+    },
+    {
+      "fast": "geçmişe",
+      "quality": "ağını",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 4637.49,
+        "end": 4646.45,
+        "duration": 8.96,
+        "avg_logprob": -0.4185,
+        "no_speech_prob": 0.7085,
+        "combined": -1.127,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.7459,
+      "winner_by_combined": "fast",
+      "fast_context": "O yeminler hep yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini",
+      "quality_context": "yeminler hep yalan Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler Kâh sevginin elini"
+    },
+    {
+      "fast": "götüren",
+      "quality": "şimdi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 4438.86,
+        "end": 4442.36,
+        "duration": 3.5,
+        "avg_logprob": -0.1544,
+        "no_speech_prob": 0.6348,
+        "combined": -0.7892,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 32
+      },
+      "combined_delta_fast_minus_quality": 0.4081,
+      "winner_by_combined": "fast",
+      "fast_context": "yeminler hep yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini tutturan",
+      "quality_context": "Seneler boyunca sürdü iç yüzünden ayrılıklar Aramızda şimdi yalnız ayrılıklar Aramızda şimdi yalnız ayrılık var"
+    },
+    {
+      "fast": "kah",
+      "quality": "örüyoruz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 4637.49,
+        "end": 4646.45,
+        "duration": 8.96,
+        "avg_logprob": -0.4185,
+        "no_speech_prob": 0.7085,
+        "combined": -1.127,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.7459,
+      "winner_by_combined": "fast",
+      "fast_context": "hep yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini tutturan kalp",
+      "quality_context": "yalan Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler Kâh sevginin elini tutturan kalp"
+    },
+    {
+      "fast": "sevgiliyi",
+      "quality": "Sonsuz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 5129.1,
+        "end": 5133.18,
+        "duration": 4.08,
+        "avg_logprob": -0.6997,
+        "no_speech_prob": 0.2876,
+        "combined": -0.9873,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "combined_delta_fast_minus_quality": 0.6062,
+      "winner_by_combined": "fast",
+      "fast_context": "yalan Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini tutturan kalp ritmini",
+      "quality_context": "Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler Kâh sevginin elini tutturan kalp ritmini"
+    },
+    {
+      "fast": "hatırlatan",
+      "quality": "teşekkürler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5137.1,
+        "end": 5141.1,
+        "duration": 4.0,
+        "avg_logprob": -0.3811,
+        "no_speech_prob": 0.0,
+        "combined": -0.3811,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 425.78,
+        "end": 430.2,
+        "duration": 4.42,
+        "avg_logprob": -0.6201,
+        "no_speech_prob": 0.4839,
+        "combined": -1.104,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 7
+      },
+      "combined_delta_fast_minus_quality": 0.7229,
+      "winner_by_combined": "fast",
+      "fast_context": "Sonsuz teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini tutturan kalp ritmini düzenleyen",
+      "quality_context": "bir de beni sakın unutma durdum Çok teşekkürler çileni gönül ezelden çileni gönül Felek beni"
+    },
+    {
+      "fast": "Kah",
+      "quality": "Kâh",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5142.1,
+        "end": 5150.12,
+        "duration": 8.02,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.0,
+        "combined": -0.1684,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 5142.1,
+        "end": 5150.12,
+        "duration": 8.02,
+        "avg_logprob": -0.1165,
+        "no_speech_prob": 0.002,
+        "combined": -0.1184,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": -0.05,
+      "winner_by_combined": "quality",
+      "fast_context": "teşekkürler Kah geçmişe götüren kah sevgiliyi hatırlatan Kah sevginin elini tutturan kalp ritmini düzenleyen ruhunuza",
+      "quality_context": "yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler Kâh sevginin elini tutturan kalp ritmini düzenleyen ruhunuza"
+    },
+    {
+      "fast": "Allah'a",
+      "quality": "mı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5155.8,
+        "end": 5158.7,
+        "duration": 2.9,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.0,
+        "combined": -0.1684,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 5155.8,
+        "end": 5158.7,
+        "duration": 2.9,
+        "avg_logprob": -0.1165,
+        "no_speech_prob": 0.002,
+        "combined": -0.1184,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": -0.05,
+      "winner_by_combined": "quality",
+      "fast_context": "yine aynı stüdyoda görüşmek ve buluşmak dileğiyle Allah'a ısmarladık sefanız bol olsun hoşçakalın Teşekkürler",
+      "quality_context": "aynı stüdyoda görüşmek ve buluşmak dileğiyle Alas mı aldık Sefanız bol olsun Hoşçakalın"
+    },
+    {
+      "fast": "ısmarladık",
+      "quality": "aldık",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5155.8,
+        "end": 5158.7,
+        "duration": 2.9,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.0,
+        "combined": -0.1684,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 5155.8,
+        "end": 5158.7,
+        "duration": 2.9,
+        "avg_logprob": -0.1165,
+        "no_speech_prob": 0.002,
+        "combined": -0.1184,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": -0.05,
+      "winner_by_combined": "quality",
+      "fast_context": "aynı stüdyoda görüşmek ve buluşmak dileğiyle Allah'a ısmarladık sefanız bol olsun hoşçakalın Teşekkürler",
+      "quality_context": "stüdyoda görüşmek ve buluşmak dileğiyle Alas mı aldık Sefanız bol olsun Hoşçakalın"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "fast_extra",
+      "text": "Senin aşkına hiç doyumamaz Sana gel diye gel diye bir son Sana aşkımı anlatabilsem Yine maziye maziye dönsen",
+      "word_count": 18
+    },
+    {
+      "side": "fast_extra",
+      "text": "etsen ilk aşkın tadını bulamaz Sana gel diye gel diye bilirsin Sana aşkımı anlatabilsem",
+      "word_count": 14
+    },
+    {
+      "side": "quality_extra",
+      "text": "olun Sorma söyleyemem sorma nöbetlerdeyim başımda Sorma söyleyemem sorma nöbetlerdeyim taşım duman",
+      "word_count": 12
+    },
+    {
+      "side": "fast_extra",
+      "text": "Olamaz bir ömür boyunca Ne kadar seversen sensin neden ilk aşk gibi",
+      "word_count": 12
+    },
+    {
+      "side": "quality_extra",
+      "text": "Hayat dedim sınav dedim bir dersti bu öğrenme",
+      "word_count": 8
+    },
+    {
+      "side": "quality_extra",
+      "text": "Felek beni kul eyledi yaktı",
+      "word_count": 5
+    },
+    {
+      "side": "fast_extra",
+      "text": "güldü geçti vefa",
+      "word_count": 3
+    },
+    {
+      "side": "fast_extra",
+      "text": "Kimse sanki tarzına",
+      "word_count": 3
+    }
+  ]
+}

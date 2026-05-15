@@ -1,0 +1,20 @@
+{
+  "sample_id": "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 9343.36,
+  "runtime_seconds_wall": 507.684,
+  "runtime_seconds_reported": 507.652,
+  "runtime_per_audio_minute": 3.26,
+  "clean_word_count": 6986,
+  "clean_segment_count": 1484,
+  "quality_drop_count": 46,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 7,
+    "repeated_token": "haydi,",
+    "max_token_length": 19,
+    "words_per_second": 1.53
+  }
+}

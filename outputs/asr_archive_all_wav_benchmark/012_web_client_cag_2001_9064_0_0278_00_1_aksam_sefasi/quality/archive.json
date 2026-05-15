@@ -1,0 +1,755 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 5339.328,
+  "model": "large-v3",
+  "profile": "quality",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "E senlikle, bezme revnakla hoş geldiniz. Şerefler verdiniz Arı Stüdyomuza sizler, TRT Müzik ekranlarına sizler efendim. Akşam sefanıza, sizin programınıza, bizim çok özlediğimiz ekranınıza hoş geldiniz, şerefler verdiniz. Usta sanatçılardan bir tanesidir o, şeftir o. Suat Yıldırım önderliğinde Akşam Sefası Orkestrası. Ve hepsi birerinci tanesi onlar tam kadro buradayız A takımı İstanbul Ankara ve İzmir radyolarının seçkin solistleri. Efendim şarkılarımız çok bugün yönetmeninden resim seçicisine kameramanından ışıkçısına stüdyo şefine bütün arkadaşlarım için kocaman bir alkış. Sağlıklı bir sezon olsun Marul Hanım hoş geldiniz Baharı bekleyen kumrular gibi Sen de beni bekle sakın unutma Ellerin havada, gözlerin yolda, bir tanrıyım bir de beni sakın unutma. durdum Çok teşekkürler. çileni gönül ezelden çileni gönül Felek beni kul eyledi, yaktı yıktı. Küleyledim Kırıp geçti Aşk dalımı vefasıza yol eyledim. Felek beni kul eyledim. Güldü geçti yol oldum bastı geçti kulu oldum küstü geçti ve fazla Güldü geçti yol oldum, bastı geçti kulu oldum. Bu şarkıyı birlikte okuyacağız efendim Şarkı şu Benzemez. Olur Ağzınıza sağlık efendim. Var olun. Sorma söyleyemem sorma nöbetlerdeyim başımda Sorma söyleyemem sorma nöbetlerdeyim taşım duman sorma. Sorma, kederdeyim sorma, yangınlardayım zaman zaman. Sorma, utanırım Sorma söyleyemem sorma Dövetlerdeyim başım Kırık kalp kırık, değişen bir şey yok. Hayat dedim, sınav dedim, bir dersti bu öğrenme. Seneler boyunca sürdü iç yüzünden ayrılıklar Aramızda şimdi yalnız ayrılıklar Aramızda şimdi yalnız ayrılık var ayrılık var. olamaz. Bir ömür boyunca Yine maziye maziye dönsem Senin aşkına hiç doyum olmaz Senin aşkına hiç doyum olmaz Senin aşkına hiç doyum olmaz Yaşamak yalan belki, yalan delice sevmek. Gözlerin dudakları... O yeminler hep inanan gözlerin dudakların. O yeminler hep yalan Gözlerin dudakların O yeminler hep yalan Seni sevmekte yalnız Acımasız ağını şimdi örüyoruz Sonsuz teşekkürler. Kâh sevginin elini tutturan, kalp ritmini düzenleyen, ruhunuza iyi gelen program Akşam Sefası sona erdi. Haftaya yine aynı ekranda, yine aynı stüdyoda görüşmek ve buluşmak dileğiyle. Alas mı aldık? Sefanız bol olsun. Hoşçakalın.",
+    "clean": "E senlikle, bezme revnakla hoş geldiniz. Şerefler verdiniz Arı Stüdyomuza sizler, TRT Müzik ekranlarına sizler efendim. Akşam sefanıza, sizin programınıza, bizim çok özlediğimiz ekranınıza hoş geldiniz, şerefler verdiniz. Usta sanatçılardan bir tanesidir o, şeftir o. Suat Yıldırım önderliğinde Akşam Sefası Orkestrası.\n\nVe hepsi birerinci tanesi onlar tam kadro buradayız A takımı İstanbul Ankara ve İzmir radyolarının seçkin solistleri. Efendim şarkılarımız çok bugün yönetmeninden resim seçicisine kameramanından ışıkçısına stüdyo şefine bütün arkadaşlarım için kocaman bir alkış. Sağlıklı bir sezon olsun Marul Hanım hoş geldiniz\n\nBaharı bekleyen kumrular gibi Sen de beni bekle sakın unutma Ellerin havada, gözlerin yolda, bir tanrıyım bir de beni sakın unutma.\n\ndurdum Çok teşekkürler.\n\nçileni gönül ezelden çileni gönül\n\nFelek beni kul eyledi, yaktı yıktı. Küleyledim Kırıp geçti Aşk dalımı vefasıza yol eyledim. Felek beni kul eyledim.\n\nGüldü geçti yol oldum bastı geçti kulu oldum küstü geçti ve fazla\n\nGüldü geçti yol oldum, bastı geçti kulu oldum.\n\nBu şarkıyı birlikte okuyacağız efendim Şarkı şu Benzemez.\n\nOlur Ağzınıza sağlık efendim. Var olun.\n\nSorma söyleyemem sorma nöbetlerdeyim başımda\n\nSorma söyleyemem sorma nöbetlerdeyim taşım duman sorma.\n\nSorma, kederdeyim sorma, yangınlardayım zaman zaman. Sorma, utanırım Sorma söyleyemem sorma Dövetlerdeyim başım\n\nKırık kalp kırık, değişen bir şey yok. Hayat dedim, sınav dedim, bir dersti bu öğrenme.\n\nSeneler boyunca sürdü iç yüzünden ayrılıklar Aramızda şimdi yalnız ayrılıklar\n\nAramızda şimdi yalnız ayrılık var ayrılık var.\n\nolamaz. Bir ömür boyunca\n\nYine maziye maziye dönsem Senin aşkına hiç doyum olmaz Senin aşkına hiç doyum olmaz Senin aşkına hiç doyum olmaz\n\nYaşamak yalan belki, yalan delice sevmek. Gözlerin dudakları... O yeminler hep inanan gözlerin dudakların. O yeminler hep yalan Gözlerin dudakların O yeminler hep yalan\n\nSeni sevmekte yalnız Acımasız ağını şimdi örüyoruz\n\nSonsuz teşekkürler.\n\nKâh sevginin elini tutturan, kalp ritmini düzenleyen, ruhunuza iyi gelen program Akşam Sefası sona erdi. Haftaya yine aynı ekranda, yine aynı stüdyoda görüşmek ve buluşmak dileğiyle. Alas mı aldık? Sefanız bol olsun. Hoşçakalın.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 127.8,
+      "end": 138.22,
+      "text": "E senlikle, bezme revnakla hoş geldiniz. Şerefler verdiniz Arı Stüdyomuza sizler, TRT Müzik ekranlarına sizler efendim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.13281249560293604,
+      "no_speech_prob": 0.264404296875,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 138.34,
+      "end": 144.72,
+      "text": "Akşam sefanıza, sizin programınıza, bizim çok özlediğimiz ekranınıza hoş geldiniz, şerefler verdiniz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.13281249560293604,
+      "no_speech_prob": 0.264404296875,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 146.26,
+      "end": 153.08,
+      "text": "Usta sanatçılardan bir tanesidir o, şeftir o. Suat Yıldırım önderliğinde Akşam Sefası Orkestrası.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.13281249560293604,
+      "no_speech_prob": 0.264404296875,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 156.0,
+      "end": 167.48,
+      "text": "Ve hepsi birerinci tanesi onlar tam kadro buradayız A takımı İstanbul Ankara ve İzmir radyolarının seçkin solistleri.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0982013045875139,
+      "no_speech_prob": 0.007228851318359375,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 167.48,
+      "end": 177.26,
+      "text": "Efendim şarkılarımız çok bugün yönetmeninden resim seçicisine kameramanından ışıkçısına stüdyo şefine bütün arkadaşlarım için kocaman bir alkış.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0982013045875139,
+      "no_speech_prob": 0.007228851318359375,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 177.6,
+      "end": 181.26,
+      "text": "Sağlıklı bir sezon olsun",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.42105263471603394,
+      "no_speech_prob": 0.0218963623046875,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 181.26,
+      "end": 182.52,
+      "text": "Marul Hanım hoş geldiniz",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.42105263471603394,
+      "no_speech_prob": 0.0218963623046875,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 250.0,
+      "end": 255.94,
+      "text": "Baharı bekleyen kumrular gibi",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1941731727371613,
+      "no_speech_prob": 0.156494140625,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 255.94,
+      "end": 261.5,
+      "text": "Sen de beni bekle sakın unutma",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1941731727371613,
+      "no_speech_prob": 0.156494140625,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 262.3,
+      "end": 272.96,
+      "text": "Ellerin havada, gözlerin yolda, bir tanrıyım bir de beni sakın unutma.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.26316551588199755,
+      "no_speech_prob": 0.418212890625,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 422.9,
+      "end": 425.78,
+      "text": "durdum",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.620117207368215,
+      "no_speech_prob": 0.48388671875,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 425.78,
+      "end": 430.2,
+      "text": "Çok teşekkürler.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.620117207368215,
+      "no_speech_prob": 0.48388671875,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 892.0,
+      "end": 895.32,
+      "text": "çileni",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.5057091323228983,
+      "no_speech_prob": 0.580078125,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 895.32,
+      "end": 897.78,
+      "text": "gönül",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.5057091323228983,
+      "no_speech_prob": 0.580078125,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 897.78,
+      "end": 899.78,
+      "text": "ezelden",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.5057091323228983,
+      "no_speech_prob": 0.580078125,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 899.78,
+      "end": 903.78,
+      "text": "çileni",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.5057091323228983,
+      "no_speech_prob": 0.580078125,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 903.78,
+      "end": 905.78,
+      "text": "gönül",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.5057091323228983,
+      "no_speech_prob": 0.580078125,
+      "source_chunk_index": 9
+    },
+    {
+      "start": 962.1,
+      "end": 974.2,
+      "text": "Felek beni kul eyledi, yaktı yıktı.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.2597656299670537,
+      "no_speech_prob": 0.58251953125,
+      "source_chunk_index": 10
+    },
+    {
+      "start": 974.25,
+      "end": 976.25,
+      "text": "Küleyledim",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.6004464115415301,
+      "no_speech_prob": 0.599609375,
+      "source_chunk_index": 11
+    },
+    {
+      "start": 977.15,
+      "end": 979.23,
+      "text": "Kırıp geçti",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.4453125223517418,
+      "no_speech_prob": 0.70263671875,
+      "source_chunk_index": 12
+    },
+    {
+      "start": 980.2,
+      "end": 988.34,
+      "text": "Aşk dalımı vefasıza yol eyledim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3758680688010322,
+      "no_speech_prob": 0.34619140625,
+      "source_chunk_index": 13
+    },
+    {
+      "start": 988.88,
+      "end": 992.5,
+      "text": "Felek beni kul eyledim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3758680688010322,
+      "no_speech_prob": 0.34619140625,
+      "source_chunk_index": 13
+    },
+    {
+      "start": 1087.3,
+      "end": 1101.3,
+      "text": "Güldü geçti yol oldum bastı geçti kulu oldum küstü geçti ve fazla",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.24368989352996534,
+      "no_speech_prob": 0.430908203125,
+      "source_chunk_index": 14
+    },
+    {
+      "start": 1108.7,
+      "end": 1119.8,
+      "text": "Güldü geçti yol oldum, bastı geçti kulu oldum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.20814732426688784,
+      "no_speech_prob": 0.340576171875,
+      "source_chunk_index": 15
+    },
+    {
+      "start": 1449.8,
+      "end": 1458.9,
+      "text": "Bu şarkıyı birlikte okuyacağız efendim",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2996961673100789,
+      "no_speech_prob": 0.2958984375,
+      "source_chunk_index": 16
+    },
+    {
+      "start": 1458.9,
+      "end": 1460.34,
+      "text": "Şarkı şu",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2996961673100789,
+      "no_speech_prob": 0.2958984375,
+      "source_chunk_index": 16
+    },
+    {
+      "start": 1461.65,
+      "end": 1463.65,
+      "text": "Benzemez.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.30189731291362215,
+      "no_speech_prob": 0.71533203125,
+      "source_chunk_index": 17
+    },
+    {
+      "start": 1637.1,
+      "end": 1639.62,
+      "text": "Olur",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.378515625,
+      "no_speech_prob": 0.10546875,
+      "source_chunk_index": 19
+    },
+    {
+      "start": 1639.62,
+      "end": 1644.52,
+      "text": "Ağzınıza sağlık efendim. Var olun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.378515625,
+      "no_speech_prob": 0.10546875,
+      "source_chunk_index": 19
+    },
+    {
+      "start": 1992.6,
+      "end": 2002.6,
+      "text": "Sorma söyleyemem sorma nöbetlerdeyim başımda",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.33128721373421804,
+      "no_speech_prob": 0.6484375,
+      "source_chunk_index": 21
+    },
+    {
+      "start": 2073.15,
+      "end": 2086.55,
+      "text": "Sorma söyleyemem sorma nöbetlerdeyim taşım duman sorma.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.23016826464579657,
+      "no_speech_prob": 0.642578125,
+      "source_chunk_index": 22
+    },
+    {
+      "start": 2088.9,
+      "end": 2099.04,
+      "text": "Sorma, kederdeyim sorma, yangınlardayım zaman zaman.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.2211277238700701,
+      "no_speech_prob": 0.75244140625,
+      "source_chunk_index": 23
+    },
+    {
+      "start": 2099.65,
+      "end": 2102.63,
+      "text": "Sorma, utanırım",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.6384548611111112,
+      "no_speech_prob": 0.6865234375,
+      "source_chunk_index": 24
+    },
+    {
+      "start": 2103.2,
+      "end": 2109.24,
+      "text": "Sorma söyleyemem sorma",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.30498798993917614,
+      "no_speech_prob": 0.492431640625,
+      "source_chunk_index": 25
+    },
+    {
+      "start": 2109.25,
+      "end": 2113.25,
+      "text": "Dövetlerdeyim",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.4052734300494194,
+      "no_speech_prob": 0.75048828125,
+      "source_chunk_index": 26
+    },
+    {
+      "start": 2114.35,
+      "end": 2116.45,
+      "text": "başım",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_logprob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.86953125,
+      "no_speech_prob": 0.61376953125,
+      "source_chunk_index": 27
+    },
+    {
+      "start": 4105.3,
+      "end": 4109.42,
+      "text": "Kırık kalp kırık, değişen bir şey yok.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.30357142857142855,
+      "no_speech_prob": 0.59423828125,
+      "source_chunk_index": 30
+    },
+    {
+      "start": 4111.28,
+      "end": 4116.66,
+      "text": "Hayat dedim, sınav dedim, bir dersti bu öğrenme.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.30357142857142855,
+      "no_speech_prob": 0.59423828125,
+      "source_chunk_index": 30
+    },
+    {
+      "start": 4433.1,
+      "end": 4438.86,
+      "text": "Seneler boyunca sürdü iç yüzünden ayrılıklar",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.15442708830038707,
+      "no_speech_prob": 0.634765625,
+      "source_chunk_index": 32
+    },
+    {
+      "start": 4438.86,
+      "end": 4442.36,
+      "text": "Aramızda şimdi yalnız ayrılıklar",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.15442708830038707,
+      "no_speech_prob": 0.634765625,
+      "source_chunk_index": 32
+    },
+    {
+      "start": 4448.5,
+      "end": 4452.75,
+      "text": "Aramızda şimdi yalnız ayrılık var ayrılık var.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.2208116261495484,
+      "no_speech_prob": 0.40478515625,
+      "source_chunk_index": 34
+    },
+    {
+      "start": 4457.15,
+      "end": 4459.49,
+      "text": "olamaz. Bir ömür boyunca",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.22130408653846154,
+      "no_speech_prob": 0.494384765625,
+      "source_chunk_index": 36
+    },
+    {
+      "start": 4486.375,
+      "end": 4488.835,
+      "text": "Yine maziye maziye dönsem",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12036700512087622,
+      "no_speech_prob": 0.023529052734375,
+      "source_chunk_index": 40
+    },
+    {
+      "start": 4488.835,
+      "end": 4491.215,
+      "text": "Senin aşkına hiç doyum olmaz",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12036700512087622,
+      "no_speech_prob": 0.023529052734375,
+      "source_chunk_index": 40
+    },
+    {
+      "start": 4491.215,
+      "end": 4493.595,
+      "text": "Senin aşkına hiç doyum olmaz",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12036700512087622,
+      "no_speech_prob": 0.023529052734375,
+      "source_chunk_index": 40
+    },
+    {
+      "start": 4493.595,
+      "end": 4496.395,
+      "text": "Senin aşkına hiç doyum olmaz",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.12036700512087622,
+      "no_speech_prob": 0.023529052734375,
+      "source_chunk_index": 40
+    },
+    {
+      "start": 4553.4,
+      "end": 4561.96,
+      "text": "Yaşamak yalan belki, yalan delice sevmek.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2322716351885062,
+      "no_speech_prob": 0.317626953125,
+      "source_chunk_index": 41
+    },
+    {
+      "start": 4561.96,
+      "end": 4565.96,
+      "text": "Gözlerin dudakları...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2322716351885062,
+      "no_speech_prob": 0.317626953125,
+      "source_chunk_index": 41
+    },
+    {
+      "start": 4566.75,
+      "end": 4575.13,
+      "text": "O yeminler hep inanan gözlerin dudakların.",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.4277343861758709,
+      "no_speech_prob": 0.54052734375,
+      "source_chunk_index": 42
+    },
+    {
+      "start": 4577.05,
+      "end": 4579.83,
+      "text": "O yeminler hep yalan",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2298900407773477,
+      "no_speech_prob": 0.385498046875,
+      "source_chunk_index": 43
+    },
+    {
+      "start": 4579.83,
+      "end": 4585.01,
+      "text": "Gözlerin dudakların",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2298900407773477,
+      "no_speech_prob": 0.385498046875,
+      "source_chunk_index": 43
+    },
+    {
+      "start": 4585.01,
+      "end": 4587.99,
+      "text": "O yeminler hep yalan",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2298900407773477,
+      "no_speech_prob": 0.385498046875,
+      "source_chunk_index": 43
+    },
+    {
+      "start": 4632.45,
+      "end": 4637.49,
+      "text": "Seni sevmekte yalnız",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.4185267857142857,
+      "no_speech_prob": 0.70849609375,
+      "source_chunk_index": 44
+    },
+    {
+      "start": 4637.49,
+      "end": 4646.45,
+      "text": "Acımasız ağını şimdi örüyoruz",
+      "speaker": null,
+      "flags": [
+        "high_no_speech_prob",
+        "low_confidence"
+      ],
+      "language": "tr",
+      "avg_logprob": -0.4185267857142857,
+      "no_speech_prob": 0.70849609375,
+      "source_chunk_index": 44
+    },
+    {
+      "start": 5129.1,
+      "end": 5133.18,
+      "text": "Sonsuz teşekkürler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.6996527777777778,
+      "no_speech_prob": 0.28759765625,
+      "source_chunk_index": 46
+    },
+    {
+      "start": 5142.1,
+      "end": 5150.12,
+      "text": "Kâh sevginin elini tutturan, kalp ritmini düzenleyen, ruhunuza iyi gelen program Akşam Sefası sona erdi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1164772713726217,
+      "no_speech_prob": 0.0019550323486328125,
+      "source_chunk_index": 47
+    },
+    {
+      "start": 5150.84,
+      "end": 5155.52,
+      "text": "Haftaya yine aynı ekranda, yine aynı stüdyoda görüşmek ve buluşmak dileğiyle.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1164772713726217,
+      "no_speech_prob": 0.0019550323486328125,
+      "source_chunk_index": 47
+    },
+    {
+      "start": 5155.8,
+      "end": 5158.7,
+      "text": "Alas mı aldık? Sefanız bol olsun. Hoşçakalın.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.1164772713726217,
+      "no_speech_prob": 0.0019550323486328125,
+      "source_chunk_index": 47
+    }
+  ],
+  "quality": {
+    "drops": 14,
+    "drop_reasons": {
+      "stock_artifact:altyazı m.k.": 13,
+      "stock_artifact:izlediğiniz için teşekkür ederim": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 176.959,
+    "chunk_count": 48,
+    "decode_seconds": 73.144,
+    "fallback_seconds": 0.0
+  }
+}

@@ -1,0 +1,9 @@
+# Draft reference for trt_haber_1_full
+# Listen to the source audio/video and manually correct this text.
+# Delete these comment lines before copying into references/asr_model_final/.
+
+Tüm hazırlıklar tamamlandı. P-16'lar Eskişehir 1. Anajet Üssü'nden havalandı.
+
+Eskişehir'de F-16 pilotlarının İzmir'de gerçekleştirilen EFES 2026 tatbikatı için hazırlıklarını TRT Haber ekibi görüntüledi. Pilotlar gökyüzünde karşılışacakları G kuvvetine karşı ekipmanlarını giyip hangara geçti.
+
+Bu kontroller uçuş hazırlıkları yapıldı. Yer ekibi her detayı tek tek inceledi. Pilot kokpite geçti, ekipten uçağa dair raporu aldı ve F-16 pilotu savaş uçağındaki yerini aldı. F-16 savaş uçaklarının kokpitinde olmak hiç de kolay değil. Onlar birbirinden zorlu eğitimleri tamamlayarak hava sahamızın muhafızlarına dönüşüyor. Bazen terörle mücadele, bazense keşif ve istihbarat. Bu kez ise görev Efes 2026. Angardan çıkan F-16, dosta güven, düşmana korku veren sesiyle göğe yükselmek üzere aprondaki yerini aldı. Her şey hazır. Kahraman pilotların havalanması için tek bir talimat bekleniyor. Gerisi onların havadaki zorlu görevleri büyük bir kolaylık ve ustalıkla gerçekleştirmesinde.

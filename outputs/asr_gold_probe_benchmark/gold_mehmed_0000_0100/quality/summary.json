@@ -1,0 +1,20 @@
+{
+  "sample_id": "gold_mehmed_0000_0100",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 100.0,
+  "runtime_seconds_wall": 30.56,
+  "runtime_seconds_reported": 30.525,
+  "runtime_per_audio_minute": 18.336,
+  "clean_word_count": 90,
+  "clean_segment_count": 15,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "ettik,",
+    "max_token_length": 12,
+    "words_per_second": 1.52
+  }
+}

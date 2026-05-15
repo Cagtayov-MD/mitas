@@ -1,0 +1,20 @@
+{
+  "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 1980.416,
+  "runtime_seconds_wall": 96.947,
+  "runtime_seconds_reported": 96.916,
+  "runtime_per_audio_minute": 2.937,
+  "clean_word_count": 1497,
+  "clean_segment_count": 185,
+  "quality_drop_count": 4,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "neler",
+    "max_token_length": 19,
+    "words_per_second": 1.76
+  }
+}

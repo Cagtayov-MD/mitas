@@ -1,0 +1,389 @@
+{
+  "benchmark_id": "asr_gold_probe_v0_1",
+  "benchmark_name": "ASR gold probe benchmark",
+  "profiles": [
+    "fast",
+    "quality"
+  ],
+  "rows": [
+    {
+      "sample_id": "gold_h1_news_0000_0100",
+      "category": "clean_news",
+      "reference_ready": false,
+      "reference_issues": [
+        "placeholder_or_draft_text"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_h1_news_0000_0100.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_h1_news_0000_0100.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_h1_news_0000_0100.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_h1_news_0000_0100.txt",
+      "speedup_quality_vs_fast": 1.766,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_h1_news_0000_0100",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 12.897,
+          "runtime_seconds_reported": 12.864,
+          "runtime_per_audio_minute": 7.738,
+          "clean_word_count": 166,
+          "clean_segment_count": 15,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Kimi",
+            "max_token_length": 17,
+            "words_per_second": 1.82
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_h1_news_0000_0100",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 22.775,
+          "runtime_seconds_reported": 22.738,
+          "runtime_per_audio_minute": 13.665,
+          "clean_word_count": 160,
+          "clean_segment_count": 14,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Kimi",
+            "max_token_length": 17,
+            "words_per_second": 1.77
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "gold_neretva_bridge_0340_0440",
+      "category": "documentary_named_entities",
+      "reference_ready": false,
+      "reference_issues": [
+        "timestamp_markers_present"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_neretva_bridge_0340_0440.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_neretva_bridge_0340_0440.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_neretva_bridge_0340_0440.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_neretva_bridge_0340_0440.txt",
+      "speedup_quality_vs_fast": 2.541,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_neretva_bridge_0340_0440",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 60.0,
+          "runtime_seconds_wall": 7.792,
+          "runtime_seconds_reported": 7.754,
+          "runtime_per_audio_minute": 7.792,
+          "clean_word_count": 89,
+          "clean_segment_count": 11,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Dünyanın",
+            "max_token_length": 13,
+            "words_per_second": 2.12
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_neretva_bridge_0340_0440",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 60.0,
+          "runtime_seconds_wall": 19.803,
+          "runtime_seconds_reported": 19.765,
+          "runtime_per_audio_minute": 19.803,
+          "clean_word_count": 88,
+          "clean_segment_count": 10,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Dünyanın",
+            "max_token_length": 13,
+            "words_per_second": 2.13
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "gold_merakli_momolar_0000_0100",
+      "category": "children_dubbing",
+      "reference_ready": false,
+      "reference_issues": [
+        "timestamp_markers_present"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_merakli_momolar_0000_0100.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_merakli_momolar_0000_0100.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_merakli_momolar_0000_0100.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_merakli_momolar_0000_0100.txt",
+      "speedup_quality_vs_fast": 1.814,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_merakli_momolar_0000_0100",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 8.178,
+          "runtime_seconds_reported": 8.143,
+          "runtime_per_audio_minute": 4.907,
+          "clean_word_count": 21,
+          "clean_segment_count": 5,
+          "quality_drop_count": 2,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Mama",
+            "max_token_length": 10,
+            "words_per_second": 1.09
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_merakli_momolar_0000_0100",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 14.838,
+          "runtime_seconds_reported": 14.803,
+          "runtime_per_audio_minute": 8.903,
+          "clean_word_count": 25,
+          "clean_segment_count": 4,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Meraklı",
+            "max_token_length": 10,
+            "words_per_second": 0.97
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "gold_baris_manco_children_0140_0340",
+      "category": "entertainment_children",
+      "reference_ready": false,
+      "reference_issues": [
+        "timestamp_markers_present"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_baris_manco_children_0140_0340.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_baris_manco_children_0140_0340.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_baris_manco_children_0140_0340.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_baris_manco_children_0140_0340.txt",
+      "speedup_quality_vs_fast": 2.485,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_baris_manco_children_0140_0340",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 120.0,
+          "runtime_seconds_wall": 15.861,
+          "runtime_seconds_reported": 15.818,
+          "runtime_per_audio_minute": 7.931,
+          "clean_word_count": 218,
+          "clean_segment_count": 31,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 3,
+            "repeated_token": "mektuplar",
+            "max_token_length": 16,
+            "words_per_second": 2.2
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_baris_manco_children_0140_0340",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 120.0,
+          "runtime_seconds_wall": 39.412,
+          "runtime_seconds_reported": 39.373,
+          "runtime_per_audio_minute": 19.706,
+          "clean_word_count": 217,
+          "clean_segment_count": 31,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 3,
+            "repeated_token": "Mektuplar,",
+            "max_token_length": 16,
+            "words_per_second": 2.27
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "gold_kuran_0000_0100",
+      "category": "religious_competition",
+      "reference_ready": false,
+      "reference_issues": [
+        "placeholder_or_draft_text"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_kuran_0000_0100.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_kuran_0000_0100.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_kuran_0000_0100.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_kuran_0000_0100.txt",
+      "speedup_quality_vs_fast": 1.778,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_kuran_0000_0100",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 8.142,
+          "runtime_seconds_reported": 8.103,
+          "runtime_per_audio_minute": 4.885,
+          "clean_word_count": 75,
+          "clean_segment_count": 5,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Tam",
+            "max_token_length": 14,
+            "words_per_second": 1.75
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_kuran_0000_0100",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 14.478,
+          "runtime_seconds_reported": 14.445,
+          "runtime_per_audio_minute": 8.687,
+          "clean_word_count": 75,
+          "clean_segment_count": 5,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Tam",
+            "max_token_length": 14,
+            "words_per_second": 1.79
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "gold_mehmed_0000_0100",
+      "category": "historical_drama",
+      "reference_ready": false,
+      "reference_issues": [
+        "placeholder_or_draft_text"
+      ],
+      "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_mehmed_0000_0100.txt",
+      "draft_reference_path": "outputs\\asr_gold_probe_benchmark\\draft_references\\gold_mehmed_0000_0100.txt",
+      "review_packet_path": "outputs\\asr_gold_probe_benchmark\\review_packets\\gold_mehmed_0000_0100.md",
+      "review_candidate_path": "outputs\\asr_gold_probe_benchmark\\review_candidates\\gold_mehmed_0000_0100.txt",
+      "speedup_quality_vs_fast": 3.033,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_mehmed_0000_0100",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 10.077,
+          "runtime_seconds_reported": 10.043,
+          "runtime_per_audio_minute": 6.046,
+          "clean_word_count": 91,
+          "clean_segment_count": 16,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "ettik,",
+            "max_token_length": 12,
+            "words_per_second": 1.29
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "gold_mehmed_0000_0100",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 100.0,
+          "runtime_seconds_wall": 30.56,
+          "runtime_seconds_reported": 30.525,
+          "runtime_per_audio_minute": 18.336,
+          "clean_word_count": 90,
+          "clean_segment_count": 15,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "ettik,",
+            "max_token_length": 12,
+            "words_per_second": 1.52
+          }
+        }
+      }
+    }
+  ],
+  "decision_hint": "awaiting_reference_transcripts"
+}

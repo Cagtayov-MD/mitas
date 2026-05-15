@@ -1,0 +1,20 @@
+{
+  "sample_id": "010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 2790.016,
+  "runtime_seconds_wall": 213.848,
+  "runtime_seconds_reported": 213.815,
+  "runtime_per_audio_minute": 4.599,
+  "clean_word_count": 3168,
+  "clean_segment_count": 528,
+  "quality_drop_count": 9,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 7,
+    "repeated_token": "2.",
+    "max_token_length": 18,
+    "words_per_second": 2.38
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 171.691,
+  "runtime_seconds_wall": 13.01,
+  "runtime_seconds_reported": 12.974,
+  "runtime_per_audio_minute": 4.546,
+  "clean_word_count": 31,
+  "clean_segment_count": 6,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "Arda",
+    "max_token_length": 16,
+    "words_per_second": 1.03
+  }
+}

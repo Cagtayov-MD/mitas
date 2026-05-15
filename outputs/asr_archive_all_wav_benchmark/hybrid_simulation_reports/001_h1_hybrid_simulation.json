@@ -1,0 +1,55 @@
+{
+  "sample_id": "001_h1",
+  "source_name": "H1.wav",
+  "audio_duration": 101.739,
+  "audio_minutes": 1.696,
+  "quality_segment_count": 14,
+  "fast_segment_count": 15,
+  "decisions": [
+    {
+      "quality_index": 0,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 0.0,
+        "end": 11.02,
+        "duration": 11.02,
+        "avg_logprob": -0.0642,
+        "no_speech_prob": 0.2496,
+        "combined": -0.3138,
+        "text": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 0.0,
+          "end": 11.02,
+          "duration": 11.02,
+          "avg_logprob": -0.0513,
+          "no_speech_prob": 0.0,
+          "combined": -0.0513,
+          "text": "Kimi zaman çatışmanın tam ortasında, kimi zaman yangında, doğal afette, haberin olduğu her yerde.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 0.0,
+        "end": 11.02,
+        "duration": 11.02,
+        "segment_count": 1,
+        "avg_logprob": -0.0513,
+        "no_speech_prob": 0.0,
+        "combined": -0.0513
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 1,
+    "auto_swaps": 0,
+    "review_candidates": 1,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 0,
+    "review_quality_duration": 11.02,
+    "kept_risky_quality_duration": 0
+  }
+}

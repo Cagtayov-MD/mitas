@@ -1,0 +1,20 @@
+{
+  "sample_id": "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 166.699,
+  "runtime_seconds_wall": 52.476,
+  "runtime_seconds_reported": 52.417,
+  "runtime_per_audio_minute": 18.888,
+  "clean_word_count": 265,
+  "clean_segment_count": 20,
+  "quality_drop_count": 0,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 1,
+    "repeated_token": "Cumhurbaşkanı",
+    "max_token_length": 18,
+    "words_per_second": 1.82
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 171.691,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Günaydın sevgili dinleyicilerimiz. Saatimiz 7'yi gösteriyor. azdan babanın kucağına gideceksin inşallah Hiçbir şeyde gözüm yok",
+    "clean": "Günaydın sevgili dinleyicilerimiz. Saatimiz 7'yi gösteriyor.\n\nazdan babanın kucağına gideceksin inşallah Hiçbir şeyde gözüm yok",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 6.84,
+      "text": "Günaydın sevgili dinleyicilerimiz. Saatimiz 7'yi gösteriyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.23063858436501544,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 36.35,
+      "end": 47.29,
+      "text": "azdan babanın kucağına gideceksin inşallah",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5552083571751912,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 47.3,
+      "end": 55.04,
+      "text": "Hiçbir şeyde gözüm yok",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2990234434604645,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    }
+  ],
+  "quality": {
+    "drops": 2,
+    "drop_reasons": {
+      "stock_artifact:abone olmayı": 1,
+      "stock_artifact:altyazı m.k.": 1
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 20.603,
+    "chunk_count": 5,
+    "decode_seconds": 8.219,
+    "fallback_seconds": 0.0
+  }
+}

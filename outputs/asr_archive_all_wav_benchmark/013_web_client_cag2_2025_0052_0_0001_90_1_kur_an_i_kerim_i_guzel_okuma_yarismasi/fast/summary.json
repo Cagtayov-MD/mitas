@@ -1,0 +1,20 @@
+{
+  "sample_id": "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 7024.96,
+  "runtime_seconds_wall": 388.233,
+  "runtime_seconds_reported": 388.199,
+  "runtime_per_audio_minute": 3.316,
+  "clean_word_count": 5426,
+  "clean_segment_count": 910,
+  "quality_drop_count": 135,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 4,
+    "repeated_token": "saymış",
+    "max_token_length": 25,
+    "words_per_second": 1.67
+  }
+}

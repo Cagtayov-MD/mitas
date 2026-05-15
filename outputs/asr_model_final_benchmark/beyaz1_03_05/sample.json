@@ -1,0 +1,13 @@
+{
+  "sample_id": "beyaz1_03_05",
+  "category": "talk_show",
+  "source_path": "E:\\MITAS\\testklipler\\beyaz1.mp4",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\beyaz1_03_05\\audio_16000hz_mono_s16.wav",
+  "start_sec": 180.0,
+  "end_sec": 300.0,
+  "audio_duration": 120.0,
+  "source_duration": 476.049,
+  "reference_path": "E:\\MITAS\\references\\asr_model_final\\beyaz1_03_05.txt",
+  "review_priority": "medium",
+  "notes": "Entertainment/talk-show slice, harder turn-taking and informal speech."
+}

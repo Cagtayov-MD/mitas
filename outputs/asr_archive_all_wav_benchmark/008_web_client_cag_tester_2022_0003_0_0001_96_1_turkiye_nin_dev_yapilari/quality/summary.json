@@ -1,0 +1,20 @@
+{
+  "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 2436.053,
+  "runtime_seconds_wall": 427.668,
+  "runtime_seconds_reported": 427.632,
+  "runtime_per_audio_minute": 10.533,
+  "clean_word_count": 4210,
+  "clean_segment_count": 359,
+  "quality_drop_count": 5,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "çok",
+    "max_token_length": 21,
+    "words_per_second": 2.1
+  }
+}

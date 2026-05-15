@@ -1,0 +1,48 @@
+{
+  "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+  "source_name": "2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+  "fast_words": 15,
+  "quality_words": 31,
+  "edit_distance_fast_vs_quality": 17,
+  "substitution_count": 1,
+  "fast_extra_word_count": 0,
+  "quality_extra_word_count": 16,
+  "diff_rows": [
+    {
+      "fast": "azdan",
+      "quality": "Nazan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 36.35,
+        "end": 47.29,
+        "duration": 10.94,
+        "avg_logprob": -0.5552,
+        "no_speech_prob": 0.0,
+        "combined": -0.5552,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 36.35,
+        "end": 39.63,
+        "duration": 3.28,
+        "avg_logprob": -0.519,
+        "no_speech_prob": 0.2332,
+        "combined": -0.7522,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.197,
+      "winner_by_combined": "fast",
+      "fast_context": "Günaydın sevgili dinleyicilerimiz Saatimiz 7'yi gösteriyor azdan babanın kucağına gideceksin inşallah Hiçbir şeyde gözüm",
+      "quality_context": "Günaydın sevgili dinleyicilerimiz saatimiz 7'yi gösteriyor Nazan babanın kucağına gideceksin inşallah Hiçbir şeyde gözüm"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "quality_extra",
+      "text": "Arda cezanın içi Arda Arda dök Selçuk'u vur gerisinde Selçuk geliyor vuruyor Vur Selçuk geliyor vuruyor",
+      "word_count": 16
+    }
+  ]
+}

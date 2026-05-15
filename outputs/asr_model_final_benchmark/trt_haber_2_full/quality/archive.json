@@ -1,0 +1,242 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_2_full\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 146.704,
+  "model": "large-v3",
+  "profile": "quality",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti. Hastalara o empati yapabilme. Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları. Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar. Çan ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar. Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca, sevgiyle büyütmeye çalışıyorlar. Gözde Şahin 19 yıllık hekim. 14 yaşında bir kızı var. Çocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim. Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım, yürüyüşünü hiçbir zaman göremedim. Ayşe Ceren Yıldız ise 6 yıllık hekim, 20 aylık kızı var. Doğumu başladığında poliklinikte hasta muayene ediyordu. Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim. Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı. Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz. Kübra Keskin Topbaş'ta 11 yıllık hekim. Anne olmak zaten çok büyük bir sorumluluk. Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor. Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var. İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz. Şadiye Hande Soyer Somunsuysa çiçeği burnunda bir anne. Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor. Annelik mesaisi hiç bitmiyor. Eğer gözüm arkada kalmadan işe gelip... hastalara şifa olabiliyorsam hem kendi annem hem eşimin annesi bana destek olduğu için devam edebiliyorum. Anneanneler, babaanneler iyi ki varlar.",
+    "clean": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti. Hastalara o empati yapabilme. Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları. Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar. Çan ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar. Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca, sevgiyle büyütmeye çalışıyorlar. Gözde Şahin 19 yıllık hekim. 14 yaşında bir kızı var. Çocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim. Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım, yürüyüşünü hiçbir zaman göremedim. Ayşe Ceren Yıldız ise 6 yıllık hekim, 20 aylık kızı var. Doğumu başladığında poliklinikte hasta muayene ediyordu. Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim. Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı. Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz. Kübra Keskin Topbaş'ta 11 yıllık hekim. Anne olmak zaten çok büyük bir sorumluluk. Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor. Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var. İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz. Şadiye Hande Soyer Somunsuysa çiçeği burnunda bir anne. Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor. Annelik mesaisi hiç bitmiyor. Eğer gözüm arkada kalmadan işe gelip... hastalara şifa olabiliyorsam hem kendi annem hem eşimin annesi bana destek olduğu için devam edebiliyorum. Anneanneler, babaanneler iyi ki varlar.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 5.9,
+      "end": 12.62,
+      "text": "Ben özellikle anne olduktan sonra kendi mesleğim kadın doğum hekimliğine bakış açım çok fazla değişti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 12.76,
+      "end": 18.78,
+      "text": "Hastalara o empati yapabilme. Aslında bizim anne olarak bu işi yaptığımızdaki çok ortak yanları.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 19.12,
+      "end": 26.8,
+      "text": "Bazen acil bir durum için hastaneye koşuyorlar, bazen de nöbette çocuklarından ayrı kalmanın zorluğunu yaşıyorlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 27.3,
+      "end": 40.46,
+      "text": "Çan ve Sakura Şehir Hastanesi'nin kadın hastalıkları ve doğum uzmanları bir taraftan hastalarına umut olmaya çalışırken bir taraftan da evde onları bekleyen çocuklarına yetişmeye çalışıyorlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 40.46,
+      "end": 50.76,
+      "text": "Zorlu geçen nöbetler, acil ameliyatlar, uykusuz gecelere rağmen onlar çocuklarını fedakarca, sevgiyle büyütmeye çalışıyorlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 51.9,
+      "end": 56.42,
+      "text": "Gözde Şahin 19 yıllık hekim. 14 yaşında bir kızı var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 56.9,
+      "end": 60.82,
+      "text": "Çocuğumu ayağımdan sallarken bırakıp hemen koşarak hastaneye gittim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 60.9,
+      "end": 70.24,
+      "text": "Bunun gibi birçok örnek durumla karşılaştık ve çocuğumun hiçbir zaman mesela ilk sözcüğünü duyamadım, yürüyüşünü hiçbir zaman göremedim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 71.04,
+      "end": 75.18,
+      "text": "Ayşe Ceren Yıldız ise 6 yıllık hekim, 20 aylık kızı var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 75.7,
+      "end": 79.22,
+      "text": "Doğumu başladığında poliklinikte hasta muayene ediyordu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 79.5,
+      "end": 82.88,
+      "text": "Ben de gebelik sürecimde aktif olarak çalışmaya devam ettim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 83.02,
+      "end": 88.64,
+      "text": "Hatta 36 hafta gebeyken poliklinikte hasta bakıyordum ve o akşam doğumum başladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 88.9,
+      "end": 92.66,
+      "text": "Başka annelere, başka annelerin evlatlarına da şifa almaya çalışıyoruz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 93.5,
+      "end": 96.34,
+      "text": "Kübra Keskin Topbaş'ta 11 yıllık hekim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 97.08,
+      "end": 99.18,
+      "text": "Anne olmak zaten çok büyük bir sorumluluk.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 99.64,
+      "end": 103.18,
+      "text": "Aynı zamanda hekim bir anne olmak bu sorumluluğu ikiye katlıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 103.8,
+      "end": 108.86,
+      "text": "Bir tarafta evde bekleyen bir çocuğunuz var, bir tarafta hastalarınız var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 109.62,
+      "end": 114.72,
+      "text": "İkisine de hakkaniyetli olup eşit çerçevede yaklaşmaya çalışıyorsunuz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 115.08,
+      "end": 118.94,
+      "text": "Şadiye Hande Soyer Somunsuysa çiçeği burnunda bir anne.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 119.44,
+      "end": 124.52,
+      "text": "Hekimlik hayallerime devam edebiliyorsam annelerin varlığı sayesinde diyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 125.36,
+      "end": 126.88,
+      "text": "Annelik mesaisi hiç bitmiyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 127.92,
+      "end": 130.2,
+      "text": "Eğer gözüm arkada kalmadan işe gelip...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 130.2,
+      "end": 132.7,
+      "text": "hastalara şifa olabiliyorsam",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 132.7,
+      "end": 134.54,
+      "text": "hem kendi annem hem eşimin annesi",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 134.54,
+      "end": 136.8,
+      "text": "bana destek olduğu için devam edebiliyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 137.58,
+      "end": 138.74,
+      "text": "Anneanneler, babaanneler",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 138.74,
+      "end": 139.54,
+      "text": "iyi ki varlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 27.868,
+    "chunk_count": 6,
+    "decode_seconds": 20.332,
+    "fallback_seconds": 0.0
+  }
+}

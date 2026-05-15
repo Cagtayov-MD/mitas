@@ -1,0 +1,2424 @@
+{
+  "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+  "source_name": "web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+  "audio_duration": 1223.083,
+  "audio_minutes": 20.385,
+  "quality_segment_count": 281,
+  "fast_segment_count": 295,
+  "decisions": [
+    {
+      "quality_index": 0,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 61.25,
+        "end": 68.25,
+        "duration": 7.0,
+        "avg_logprob": -0.2295,
+        "no_speech_prob": 0.2273,
+        "combined": -0.4568,
+        "text": "Meraklı Momolar başlıyor.",
+        "flags": []
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 1,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 77.5,
+        "end": 88.5,
+        "duration": 11.0,
+        "avg_logprob": -0.2336,
+        "no_speech_prob": 0.4302,
+        "combined": -0.6638,
+        "text": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 77.5,
+          "end": 89.1,
+          "duration": 11.6,
+          "avg_logprob": -0.2359,
+          "no_speech_prob": 0.0,
+          "combined": -0.2359,
+          "text": "Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 77.5,
+        "end": 89.1,
+        "duration": 11.6,
+        "segment_count": 1,
+        "avg_logprob": -0.2359,
+        "no_speech_prob": 0.0,
+        "combined": -0.2359
+      }
+    },
+    {
+      "quality_index": 3,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 97.0,
+        "end": 99.08,
+        "duration": 2.08,
+        "avg_logprob": -0.5502,
+        "no_speech_prob": 0.1896,
+        "combined": -0.7398,
+        "text": "Sana da merhaba.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 97.0,
+          "end": 101.32,
+          "duration": 4.32,
+          "avg_logprob": -0.6616,
+          "no_speech_prob": 0.0,
+          "combined": -0.6616,
+          "text": "Sanada Merhaba, Sanada.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 97.0,
+        "end": 101.32,
+        "duration": 4.32,
+        "segment_count": 1,
+        "avg_logprob": -0.6616,
+        "no_speech_prob": 0.0,
+        "combined": -0.6616
+      }
+    },
+    {
+      "quality_index": 4,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 100.14,
+        "end": 101.42,
+        "duration": 1.28,
+        "avg_logprob": -0.5502,
+        "no_speech_prob": 0.1896,
+        "combined": -0.7398,
+        "text": "Sana da.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 97.0,
+          "end": 101.32,
+          "duration": 4.32,
+          "avg_logprob": -0.6616,
+          "no_speech_prob": 0.0,
+          "combined": -0.6616,
+          "text": "Sanada Merhaba, Sanada.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 97.0,
+        "end": 101.32,
+        "duration": 4.32,
+        "segment_count": 1,
+        "avg_logprob": -0.6616,
+        "no_speech_prob": 0.0,
+        "combined": -0.6616
+      }
+    },
+    {
+      "quality_index": 11,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 123.1,
+        "end": 125.22,
+        "duration": 2.12,
+        "avg_logprob": -0.4112,
+        "no_speech_prob": 0.1232,
+        "combined": -0.5344,
+        "text": "Nesi mi?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 124.06,
+          "end": 125.22,
+          "duration": 1.16,
+          "avg_logprob": -0.464,
+          "no_speech_prob": 0.0,
+          "combined": -0.464,
+          "text": "Nesi mi?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 124.06,
+        "end": 125.22,
+        "duration": 1.16,
+        "segment_count": 1,
+        "avg_logprob": -0.464,
+        "no_speech_prob": 0.0,
+        "combined": -0.464
+      }
+    },
+    {
+      "quality_index": 12,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 126.08,
+        "end": 127.86,
+        "duration": 1.78,
+        "avg_logprob": -0.4112,
+        "no_speech_prob": 0.1232,
+        "combined": -0.5344,
+        "text": "Her şeyi çok güzel",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 126.08,
+          "end": 127.68,
+          "duration": 1.6,
+          "avg_logprob": -0.464,
+          "no_speech_prob": 0.0,
+          "combined": -0.464,
+          "text": "Her şeyi çok güzel.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 126.08,
+        "end": 127.68,
+        "duration": 1.6,
+        "segment_count": 1,
+        "avg_logprob": -0.464,
+        "no_speech_prob": 0.0,
+        "combined": -0.464
+      }
+    },
+    {
+      "quality_index": 13,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 127.86,
+        "end": 129.14,
+        "duration": 1.28,
+        "avg_logprob": -0.4112,
+        "no_speech_prob": 0.1232,
+        "combined": -0.5344,
+        "text": "Her şeyi",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 128.22,
+          "end": 129.08,
+          "duration": 0.86,
+          "avg_logprob": -0.464,
+          "no_speech_prob": 0.0,
+          "combined": -0.464,
+          "text": "Her şeyi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 128.22,
+        "end": 129.08,
+        "duration": 0.86,
+        "segment_count": 1,
+        "avg_logprob": -0.464,
+        "no_speech_prob": 0.0,
+        "combined": -0.464
+      }
+    },
+    {
+      "quality_index": 14,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 129.14,
+        "end": 131.1,
+        "duration": 1.96,
+        "avg_logprob": -0.4112,
+        "no_speech_prob": 0.1232,
+        "combined": -0.5344,
+        "text": "Sence öyle değil mi?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 129.64,
+          "end": 131.04,
+          "duration": 1.4,
+          "avg_logprob": -0.464,
+          "no_speech_prob": 0.0,
+          "combined": -0.464,
+          "text": "Sence öyle değil mi?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 129.64,
+        "end": 131.04,
+        "duration": 1.4,
+        "segment_count": 1,
+        "avg_logprob": -0.464,
+        "no_speech_prob": 0.0,
+        "combined": -0.464
+      }
+    },
+    {
+      "quality_index": 15,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 131.78,
+        "end": 132.36,
+        "duration": 0.58,
+        "avg_logprob": -0.4112,
+        "no_speech_prob": 0.1232,
+        "combined": -0.5344,
+        "text": "Değil",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 131.78,
+          "end": 132.34,
+          "duration": 0.56,
+          "avg_logprob": -0.464,
+          "no_speech_prob": 0.0,
+          "combined": -0.464,
+          "text": "Değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 131.78,
+        "end": 132.34,
+        "duration": 0.56,
+        "segment_count": 1,
+        "avg_logprob": -0.464,
+        "no_speech_prob": 0.0,
+        "combined": -0.464
+      }
+    },
+    {
+      "quality_index": 85,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 328.8,
+        "end": 334.98,
+        "duration": 6.18,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.5918,
+        "combined": -0.8195,
+        "text": "Şimdi şarkı zamanı.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 328.8,
+          "end": 334.9,
+          "duration": 6.1,
+          "avg_logprob": -0.2482,
+          "no_speech_prob": 0.0,
+          "combined": -0.2482,
+          "text": "Şimdi şarkı zamanı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 328.8,
+        "end": 334.9,
+        "duration": 6.1,
+        "segment_count": 1,
+        "avg_logprob": -0.2482,
+        "no_speech_prob": 0.0,
+        "combined": -0.2482
+      }
+    },
+    {
+      "quality_index": 118,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 488.55,
+        "end": 490.55,
+        "duration": 2.0,
+        "avg_logprob": -0.5226,
+        "no_speech_prob": 0.3955,
+        "combined": -0.9181,
+        "text": "Sapsın?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 488.55,
+          "end": 491.87,
+          "duration": 3.32,
+          "avg_logprob": -0.7115,
+          "no_speech_prob": 0.0,
+          "combined": -0.7115,
+          "text": "Sapsa?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 488.55,
+        "end": 491.87,
+        "duration": 3.32,
+        "segment_count": 1,
+        "avg_logprob": -0.7115,
+        "no_speech_prob": 0.0,
+        "combined": -0.7115
+      }
+    },
+    {
+      "quality_index": 119,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 493.25,
+        "end": 496.81,
+        "duration": 3.56,
+        "avg_logprob": -0.305,
+        "no_speech_prob": 0.3594,
+        "combined": -0.6644,
+        "text": "Sapsi, sana sesleniyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 493.25,
+          "end": 496.87,
+          "duration": 3.62,
+          "avg_logprob": -0.3354,
+          "no_speech_prob": 0.0,
+          "combined": -0.3354,
+          "text": "Sapsi sana sesleniyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 493.25,
+        "end": 496.87,
+        "duration": 3.62,
+        "segment_count": 1,
+        "avg_logprob": -0.3354,
+        "no_speech_prob": 0.0,
+        "combined": -0.3354
+      }
+    },
+    {
+      "quality_index": 129,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 528.9,
+        "end": 530.18,
+        "duration": 1.28,
+        "avg_logprob": -0.2324,
+        "no_speech_prob": 0.2325,
+        "combined": -0.465,
+        "text": "Tıka basa doydum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 528.9,
+          "end": 530.18,
+          "duration": 1.28,
+          "avg_logprob": -0.4616,
+          "no_speech_prob": 0.0,
+          "combined": -0.4616,
+          "text": "Tıka basa doydum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 528.9,
+        "end": 530.18,
+        "duration": 1.28,
+        "segment_count": 1,
+        "avg_logprob": -0.4616,
+        "no_speech_prob": 0.0,
+        "combined": -0.4616
+      }
+    },
+    {
+      "quality_index": 211,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 816.3,
+        "end": 820.8,
+        "duration": 4.5,
+        "avg_logprob": -0.1669,
+        "no_speech_prob": 0.5234,
+        "combined": -0.6903,
+        "text": "Anne kedinin iki tane yavrusu oldu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 816.3,
+          "end": 820.8,
+          "duration": 4.5,
+          "avg_logprob": -0.1866,
+          "no_speech_prob": 0.0,
+          "combined": -0.1866,
+          "text": "Anne kedinin iki tane yavrusu oldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 816.3,
+        "end": 820.8,
+        "duration": 4.5,
+        "segment_count": 1,
+        "avg_logprob": -0.1866,
+        "no_speech_prob": 0.0,
+        "combined": -0.1866
+      }
+    },
+    {
+      "quality_index": 212,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 821.18,
+        "end": 822.62,
+        "duration": 1.44,
+        "avg_logprob": -0.1669,
+        "no_speech_prob": 0.5234,
+        "combined": -0.6903,
+        "text": "Yavrular şimdi altı aylık.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 821.22,
+          "end": 822.62,
+          "duration": 1.4,
+          "avg_logprob": -0.1866,
+          "no_speech_prob": 0.0,
+          "combined": -0.1866,
+          "text": "Yavrular şimdi 6 aylık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 821.22,
+        "end": 822.62,
+        "duration": 1.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1866,
+        "no_speech_prob": 0.0,
+        "combined": -0.1866
+      }
+    },
+    {
+      "quality_index": 213,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 822.98,
+        "end": 826.1,
+        "duration": 3.12,
+        "avg_logprob": -0.1669,
+        "no_speech_prob": 0.5234,
+        "combined": -0.6903,
+        "text": "Yani anne kedinin onları yalnız bırakabileceği kadar büyüdüler.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 822.96,
+          "end": 826.1,
+          "duration": 3.14,
+          "avg_logprob": -0.1866,
+          "no_speech_prob": 0.0,
+          "combined": -0.1866,
+          "text": "Yani anne kedinin onları yalnız bırakabileceği kadar büyüdüler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 822.96,
+        "end": 826.1,
+        "duration": 3.14,
+        "segment_count": 1,
+        "avg_logprob": -0.1866,
+        "no_speech_prob": 0.0,
+        "combined": -0.1866
+      }
+    },
+    {
+      "quality_index": 214,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 828.95,
+        "end": 833.07,
+        "duration": 4.12,
+        "avg_logprob": -0.2743,
+        "no_speech_prob": 0.4207,
+        "combined": -0.695,
+        "text": "Laura yavru kedilerden birini alabilir.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 215,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 833.49,
+        "end": 834.59,
+        "duration": 1.1,
+        "avg_logprob": -0.2743,
+        "no_speech_prob": 0.4207,
+        "combined": -0.695,
+        "text": "O da Roscoe'yi seçiyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 216,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 839.85,
+        "end": 843.49,
+        "duration": 3.64,
+        "avg_logprob": -0.2881,
+        "no_speech_prob": 0.6851,
+        "combined": -0.9732,
+        "text": "Roscoe artık kendi başına yemek yemeli",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 839.85,
+          "end": 843.45,
+          "duration": 3.6,
+          "avg_logprob": -0.2247,
+          "no_speech_prob": 0.0,
+          "combined": -0.2247,
+          "text": "...Rosko artık kendi başına yemek yemeli.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 839.85,
+        "end": 843.45,
+        "duration": 3.6,
+        "segment_count": 1,
+        "avg_logprob": -0.2247,
+        "no_speech_prob": 0.0,
+        "combined": -0.2247
+      }
+    },
+    {
+      "quality_index": 217,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 843.49,
+        "end": 845.25,
+        "duration": 1.76,
+        "avg_logprob": -0.2881,
+        "no_speech_prob": 0.6851,
+        "combined": -0.9732,
+        "text": "Günde dört defa",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 843.83,
+          "end": 844.85,
+          "duration": 1.02,
+          "avg_logprob": -0.2247,
+          "no_speech_prob": 0.0,
+          "combined": -0.2247,
+          "text": "Günde dört defa.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 843.83,
+        "end": 844.85,
+        "duration": 1.02,
+        "segment_count": 1,
+        "avg_logprob": -0.2247,
+        "no_speech_prob": 0.0,
+        "combined": -0.2247
+      }
+    },
+    {
+      "quality_index": 218,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 845.25,
+        "end": 847.29,
+        "duration": 2.04,
+        "avg_logprob": -0.2881,
+        "no_speech_prob": 0.6851,
+        "combined": -0.9732,
+        "text": "Önce Laura ona biraz süt veriyor",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 845.59,
+          "end": 847.25,
+          "duration": 1.66,
+          "avg_logprob": -0.2247,
+          "no_speech_prob": 0.0,
+          "combined": -0.2247,
+          "text": "Önce Laura ona biraz süt veriyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 845.59,
+        "end": 847.25,
+        "duration": 1.66,
+        "segment_count": 1,
+        "avg_logprob": -0.2247,
+        "no_speech_prob": 0.0,
+        "combined": -0.2247
+      }
+    },
+    {
+      "quality_index": 219,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 857.65,
+        "end": 865.75,
+        "duration": 8.1,
+        "avg_logprob": -0.2066,
+        "no_speech_prob": 0.5171,
+        "combined": -0.7237,
+        "text": "Ama Rosco ayrıca özel kedi maması da yiyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 857.65,
+          "end": 865.73,
+          "duration": 8.08,
+          "avg_logprob": -0.3729,
+          "no_speech_prob": 0.0,
+          "combined": -0.3729,
+          "text": "Amorosko ayrıca özel kedi maması da yiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 857.65,
+        "end": 865.73,
+        "duration": 8.08,
+        "segment_count": 1,
+        "avg_logprob": -0.3729,
+        "no_speech_prob": 0.0,
+        "combined": -0.3729
+      }
+    },
+    {
+      "quality_index": 220,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 871.525,
+        "end": 873.865,
+        "duration": 2.34,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Rosco'nun evde kalması için",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 871.525,
+          "end": 874.965,
+          "duration": 3.44,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Roscoe'nun evde kalması için eğitilmesi gerekiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 871.525,
+        "end": 874.965,
+        "duration": 3.44,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 221,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 873.865,
+        "end": 874.965,
+        "duration": 1.1,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "eğitilmesi gerekiyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 871.525,
+          "end": 874.965,
+          "duration": 3.44,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Roscoe'nun evde kalması için eğitilmesi gerekiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 871.525,
+        "end": 874.965,
+        "duration": 3.44,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 222,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 875.065,
+        "end": 877.725,
+        "duration": 2.66,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Tuvalet için cat box kullanması gerekir.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 874.965,
+          "end": 877.705,
+          "duration": 2.74,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Tuvalet için Catbox kullanması gerekir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 874.965,
+        "end": 877.705,
+        "duration": 2.74,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 223,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 877.965,
+        "end": 879.005,
+        "duration": 1.04,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Bu bir kedi tuvaleti.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 877.945,
+          "end": 879.005,
+          "duration": 1.06,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Bu bir kedi tuvaleti.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 877.945,
+        "end": 879.005,
+        "duration": 1.06,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 224,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 879.645,
+        "end": 881.705,
+        "duration": 2.06,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Cat box'ın içi kedi kumu denilen",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 879.625,
+          "end": 883.305,
+          "duration": 3.68,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Catbox'ın içi kedi kumu denilen bir çeşit kumla dolduruluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 879.625,
+        "end": 883.305,
+        "duration": 3.68,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 225,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 881.705,
+        "end": 883.305,
+        "duration": 1.6,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "bir çeşit kumla dolduruluyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 879.625,
+          "end": 883.305,
+          "duration": 3.68,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Catbox'ın içi kedi kumu denilen bir çeşit kumla dolduruluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 879.625,
+        "end": 883.305,
+        "duration": 3.68,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 226,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 883.925,
+        "end": 885.285,
+        "duration": 1.36,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Böylece evin kutu",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 883.905,
+          "end": 886.725,
+          "duration": 2.82,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Böylece evin kutu kopması engellemiş oluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 883.905,
+        "end": 886.725,
+        "duration": 2.82,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 227,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 885.285,
+        "end": 886.705,
+        "duration": 1.42,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "kapması engellenmiş oluyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 883.905,
+          "end": 886.725,
+          "duration": 2.82,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Böylece evin kutu kopması engellemiş oluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 883.905,
+        "end": 886.725,
+        "duration": 2.82,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 228,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 887.905,
+        "end": 890.025,
+        "duration": 2.12,
+        "avg_logprob": -0.2277,
+        "no_speech_prob": 0.4355,
+        "combined": -0.6633,
+        "text": "Laura Rosco ile oynamayı çok seviyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 888.045,
+          "end": 890.045,
+          "duration": 2.0,
+          "avg_logprob": -0.2511,
+          "no_speech_prob": 0.0,
+          "combined": -0.2511,
+          "text": "Laura Roscoe ile oynamayı çok seviyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 888.045,
+        "end": 890.045,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.0,
+        "combined": -0.2511
+      }
+    },
+    {
+      "quality_index": 229,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 903.65,
+        "end": 909.77,
+        "duration": 6.12,
+        "avg_logprob": -0.1599,
+        "no_speech_prob": 0.1663,
+        "combined": -0.3261,
+        "text": "Ve tüm kediler gibi Roscoe'da kısa sürede en rahat yerleri keşfediyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 903.65,
+          "end": 909.77,
+          "duration": 6.12,
+          "avg_logprob": -0.1543,
+          "no_speech_prob": 0.0,
+          "combined": -0.1543,
+          "text": "Ve tüm kediler gibi Roscoe'da kısa sürede en rahat yerleri keşfediyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 903.65,
+        "end": 909.77,
+        "duration": 6.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1543,
+        "no_speech_prob": 0.0,
+        "combined": -0.1543
+      }
+    },
+    {
+      "quality_index": 230,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 925.1,
+        "end": 931.94,
+        "duration": 6.84,
+        "avg_logprob": -0.2613,
+        "no_speech_prob": 0.4749,
+        "combined": -0.7361,
+        "text": "Yavru kedileri doktora yani veterinere getirmemiz gerekir.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 925.1,
+          "end": 934.64,
+          "duration": 9.54,
+          "avg_logprob": -0.4045,
+          "no_speech_prob": 0.0,
+          "combined": -0.4045,
+          "text": "Yavru kedileri doktora yani veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 925.1,
+        "end": 934.64,
+        "duration": 9.54,
+        "segment_count": 1,
+        "avg_logprob": -0.4045,
+        "no_speech_prob": 0.0,
+        "combined": -0.4045
+      }
+    },
+    {
+      "quality_index": 231,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 932.44,
+        "end": 934.22,
+        "duration": 1.78,
+        "avg_logprob": -0.2613,
+        "no_speech_prob": 0.4749,
+        "combined": -0.7361,
+        "text": "Veteriner Jacques Roske'yi görecek.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 925.1,
+          "end": 934.64,
+          "duration": 9.54,
+          "avg_logprob": -0.4045,
+          "no_speech_prob": 0.0,
+          "combined": -0.4045,
+          "text": "Yavru kedileri doktora yani veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 925.1,
+        "end": 934.64,
+        "duration": 9.54,
+        "segment_count": 1,
+        "avg_logprob": -0.4045,
+        "no_speech_prob": 0.0,
+        "combined": -0.4045
+      }
+    },
+    {
+      "quality_index": 232,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 968.2,
+        "end": 972.76,
+        "duration": 4.56,
+        "avg_logprob": -0.1883,
+        "no_speech_prob": 0.103,
+        "combined": -0.2912,
+        "text": "Rosko'nun sağlığı çok iyi ama yine de bu ilacı içmesi gerekiyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 968.2,
+          "end": 972.76,
+          "duration": 4.56,
+          "avg_logprob": -0.1598,
+          "no_speech_prob": 0.0,
+          "combined": -0.1598,
+          "text": "Rosco'nun sağlığı çok iyi ama yine de bu ilacı içmesi gerekiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 968.2,
+        "end": 972.76,
+        "duration": 4.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.0,
+        "combined": -0.1598
+      }
+    },
+    {
+      "quality_index": 233,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 973.24,
+        "end": 975.96,
+        "duration": 2.72,
+        "avg_logprob": -0.1883,
+        "no_speech_prob": 0.103,
+        "combined": -0.2912,
+        "text": "Bu ilaçla karnındaki kurtlardan kurtulmuş olacak.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 973.24,
+          "end": 975.96,
+          "duration": 2.72,
+          "avg_logprob": -0.1598,
+          "no_speech_prob": 0.0,
+          "combined": -0.1598,
+          "text": "Bu ilaçla karnındaki kurtlardan kurtulmuş olacak.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 973.24,
+        "end": 975.96,
+        "duration": 2.72,
+        "segment_count": 1,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.0,
+        "combined": -0.1598
+      }
+    },
+    {
+      "quality_index": 234,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 979.6,
+        "end": 985.08,
+        "duration": 5.48,
+        "avg_logprob": -0.1313,
+        "no_speech_prob": 0.1183,
+        "combined": -0.2497,
+        "text": "Ayrıca hastalanmasını önlemek için iğne de oluyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 979.6,
+          "end": 985.1,
+          "duration": 5.5,
+          "avg_logprob": -0.1375,
+          "no_speech_prob": 0.0,
+          "combined": -0.1375,
+          "text": "Ayrıca hastalanmasını önlemek için iğnede oluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 979.6,
+        "end": 985.1,
+        "duration": 5.5,
+        "segment_count": 1,
+        "avg_logprob": -0.1375,
+        "no_speech_prob": 0.0,
+        "combined": -0.1375
+      }
+    },
+    {
+      "quality_index": 235,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1042.6,
+        "end": 1049.2,
+        "duration": 6.6,
+        "avg_logprob": -0.1747,
+        "no_speech_prob": 0.1537,
+        "combined": -0.3284,
+        "text": "Rosco'nun mırıldandığını duyuyor musunuz?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1042.6,
+          "end": 1049.22,
+          "duration": 6.62,
+          "avg_logprob": -0.1804,
+          "no_speech_prob": 0.0,
+          "combined": -0.1804,
+          "text": "Roscoe'nun mırıldandığını duyuyor musunuz?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1042.6,
+        "end": 1049.22,
+        "duration": 6.62,
+        "segment_count": 1,
+        "avg_logprob": -0.1804,
+        "no_speech_prob": 0.0,
+        "combined": -0.1804
+      }
+    },
+    {
+      "quality_index": 236,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1049.44,
+        "end": 1051.06,
+        "duration": 1.62,
+        "avg_logprob": -0.1747,
+        "no_speech_prob": 0.1537,
+        "combined": -0.3284,
+        "text": "Bu çok mutlu olduğu anlamına gelir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1049.46,
+          "end": 1051.12,
+          "duration": 1.66,
+          "avg_logprob": -0.1804,
+          "no_speech_prob": 0.0,
+          "combined": -0.1804,
+          "text": "Bu çok mutlu olduğu anlamına gelir",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1049.46,
+        "end": 1051.12,
+        "duration": 1.66,
+        "segment_count": 1,
+        "avg_logprob": -0.1804,
+        "no_speech_prob": 0.0,
+        "combined": -0.1804
+      }
+    },
+    {
+      "quality_index": 237,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 1056.025,
+        "end": 1059.205,
+        "duration": 3.18,
+        "avg_logprob": -0.1617,
+        "no_speech_prob": 0.1039,
+        "combined": -0.2657,
+        "text": "Hayvanların yatak odalarına girmeleri yasaktır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1056.025,
+          "end": 1059.205,
+          "duration": 3.18,
+          "avg_logprob": -0.1762,
+          "no_speech_prob": 0.0,
+          "combined": -0.1762,
+          "text": "Hayvanların yatak odalarına girmeleri yasaktır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1056.025,
+        "end": 1059.205,
+        "duration": 3.18,
+        "segment_count": 1,
+        "avg_logprob": -0.1762,
+        "no_speech_prob": 0.0,
+        "combined": -0.1762
+      }
+    },
+    {
+      "quality_index": 238,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 1060.085,
+        "end": 1063.105,
+        "duration": 3.02,
+        "avg_logprob": -0.1617,
+        "no_speech_prob": 0.1039,
+        "combined": -0.2657,
+        "text": "Ama bazen Laura ve Roscoe kurallara uymuyorlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1060.085,
+          "end": 1063.105,
+          "duration": 3.02,
+          "avg_logprob": -0.1762,
+          "no_speech_prob": 0.0,
+          "combined": -0.1762,
+          "text": "Ama bazen Laura ve Rosco kurallara uymuyorlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1060.085,
+        "end": 1063.105,
+        "duration": 3.02,
+        "segment_count": 1,
+        "avg_logprob": -0.1762,
+        "no_speech_prob": 0.0,
+        "combined": -0.1762
+      }
+    },
+    {
+      "quality_index": 239,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1076.8,
+        "end": 1078.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Ne var? Başın kaşınıyor mu?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1076.8,
+          "end": 1078.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Ne var? Başın kaşınıyor mu?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1076.8,
+        "end": 1078.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 240,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1078.8,
+        "end": 1080.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Anam, ne oldu?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1078.8,
+          "end": 1080.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Anam, çok güzel mi kalacak?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1078.8,
+        "end": 1080.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 241,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1080.8,
+        "end": 1082.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Yok yok, herhalde bana öyle geldi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1080.8,
+          "end": 1082.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Yok yok, herhalde bana öyle geldi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1080.8,
+        "end": 1082.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 242,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1082.8,
+        "end": 1084.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Ben bugün bitlerle çok uğraştım da, ondan herhalde.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1082.8,
+          "end": 1085.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Ben bugün Bitler'le çok uğraştım da ondan herhalde.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1082.8,
+        "end": 1085.8,
+        "duration": 3.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 243,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1084.8,
+        "end": 1086.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Anam, ne oldu?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1082.8,
+          "end": 1085.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Ben bugün Bitler'le çok uğraştım da ondan herhalde.",
+          "flags": []
+        },
+        {
+          "start": 1085.8,
+          "end": 1087.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Vallahi ne yapacak?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1082.8,
+        "end": 1087.8,
+        "duration": 5.0,
+        "segment_count": 2,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 244,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1086.8,
+        "end": 1088.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Ben çok korkuyorum.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1085.8,
+          "end": 1087.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Vallahi ne yapacak?",
+          "flags": []
+        },
+        {
+          "start": 1087.8,
+          "end": 1089.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Evet Bitler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1085.8,
+        "end": 1089.8,
+        "duration": 4.0,
+        "segment_count": 2,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 245,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1088.8,
+        "end": 1090.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Evet, bitler. Şuna bak,",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1087.8,
+          "end": 1089.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Evet Bitler.",
+          "flags": []
+        },
+        {
+          "start": 1089.8,
+          "end": 1092.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Şuna bak, söyleyince bile kaşınıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1087.8,
+        "end": 1092.8,
+        "duration": 5.0,
+        "segment_count": 2,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 246,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1090.8,
+        "end": 1092.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "söyleyince bile kaşınıyorum.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1089.8,
+          "end": 1092.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Şuna bak, söyleyince bile kaşınıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1089.8,
+        "end": 1092.8,
+        "duration": 3.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 247,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1092.8,
+        "end": 1094.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Ne oldu bunun?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1092.8,
+          "end": 1094.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Ne oldu bunu?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1092.8,
+        "end": 1094.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 248,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1094.8,
+        "end": 1096.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Nereden mi bulduk?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1094.8,
+          "end": 1096.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Nereden de bulduk?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1094.8,
+        "end": 1096.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 249,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1096.8,
+        "end": 1098.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Sapsı besliyordu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1096.8,
+          "end": 1098.8,
+          "duration": 2.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Sapsi besliyordu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1096.8,
+        "end": 1098.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 250,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1098.8,
+        "end": 1100.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "Bizim başımıza da",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1098.8,
+          "end": 1101.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Hep bizim başımıza da misafir olmuşlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1098.8,
+        "end": 1101.8,
+        "duration": 3.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 251,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1100.8,
+        "end": 1102.8,
+        "duration": 2.0,
+        "avg_logprob": -0.3236,
+        "no_speech_prob": 0.8232,
+        "combined": -1.1469,
+        "text": "misafir olmuşlar.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1098.8,
+          "end": 1101.8,
+          "duration": 3.0,
+          "avg_logprob": -0.3169,
+          "no_speech_prob": 0.0,
+          "combined": -0.3169,
+          "text": "Hep bizim başımıza da misafir olmuşlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1098.8,
+        "end": 1101.8,
+        "duration": 3.0,
+        "segment_count": 1,
+        "avg_logprob": -0.3169,
+        "no_speech_prob": 0.0,
+        "combined": -0.3169
+      }
+    },
+    {
+      "quality_index": 252,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1102.9,
+        "end": 1105.94,
+        "duration": 3.04,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Evet evet yanlış duymadın.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1102.9,
+          "end": 1105.94,
+          "duration": 3.04,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Evet, yanlış duymadın.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1102.9,
+        "end": 1105.94,
+        "duration": 3.04,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 253,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1106.24,
+        "end": 1109.32,
+        "duration": 3.08,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Sapsi bitlerin beslenebilecek hayvanlar olduğunu zannetmiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1106.24,
+          "end": 1109.32,
+          "duration": 3.08,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Sapsi, bitlerin beslenebilecek hayvanlar olduğunu zannetmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1106.24,
+        "end": 1109.32,
+        "duration": 3.08,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 254,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1109.62,
+        "end": 1111.24,
+        "duration": 1.62,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Onlara bit deme mom.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1109.62,
+          "end": 1111.22,
+          "duration": 1.6,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Onlara bit dememom.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1109.62,
+        "end": 1111.22,
+        "duration": 1.6,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 255,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1111.66,
+        "end": 1112.32,
+        "duration": 0.66,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Alınıyorlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1111.68,
+          "end": 1112.28,
+          "duration": 0.6,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Alınıyorlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1111.68,
+        "end": 1112.28,
+        "duration": 0.6,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 256,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1112.84,
+        "end": 1114.02,
+        "duration": 1.18,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Onların da adı var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1112.84,
+          "end": 1114.02,
+          "duration": 1.18,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Onların da adı var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1112.84,
+        "end": 1114.02,
+        "duration": 1.18,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 257,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1114.4,
+        "end": 1116.52,
+        "duration": 2.12,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Başında bitme besliyorsun yani.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1114.42,
+          "end": 1116.5,
+          "duration": 2.08,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Başında bitme besliyorsun yani.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1114.42,
+        "end": 1116.5,
+        "duration": 2.08,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 258,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1116.88,
+        "end": 1117.24,
+        "duration": 0.36,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Durun.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1116.88,
+          "end": 1117.48,
+          "duration": 0.6,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Durun ya.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1116.88,
+        "end": 1117.48,
+        "duration": 0.6,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 259,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1119.7,
+        "end": 1120.86,
+        "duration": 1.16,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Nereden mi bulmuş?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1119.62,
+          "end": 1120.86,
+          "duration": 1.24,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Nereden mi bulmuş?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1119.62,
+        "end": 1120.86,
+        "duration": 1.24,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 260,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1122.56,
+        "end": 1124.26,
+        "duration": 1.7,
+        "avg_logprob": -0.3393,
+        "no_speech_prob": 0.2769,
+        "combined": -0.6161,
+        "text": "Koşularının çocuğu bitlenmiş.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1122.54,
+          "end": 1124.3,
+          "duration": 1.76,
+          "avg_logprob": -0.3853,
+          "no_speech_prob": 0.0,
+          "combined": -0.3853,
+          "text": "Korşularının çocuğu bitlenmiş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1122.54,
+        "end": 1124.3,
+        "duration": 1.76,
+        "segment_count": 1,
+        "avg_logprob": -0.3853,
+        "no_speech_prob": 0.0,
+        "combined": -0.3853
+      }
+    },
+    {
+      "quality_index": 279,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1183.5,
+        "end": 1189.54,
+        "duration": 6.04,
+        "avg_logprob": -0.3521,
+        "no_speech_prob": 0.5454,
+        "combined": -0.8975,
+        "text": "Merakli momolar et.trt.net.tr",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1183.5,
+          "end": 1185.36,
+          "duration": 1.86,
+          "avg_logprob": -0.5714,
+          "no_speech_prob": 0.0,
+          "combined": -0.5714,
+          "text": "Möra klimamolar.",
+          "flags": []
+        },
+        {
+          "start": 1185.56,
+          "end": 1186.78,
+          "duration": 1.22,
+          "avg_logprob": -0.5714,
+          "no_speech_prob": 0.0,
+          "combined": -0.5714,
+          "text": "Et, dere, dere.",
+          "flags": []
+        },
+        {
+          "start": 1187.08,
+          "end": 1189.54,
+          "duration": 2.46,
+          "avg_logprob": -0.5714,
+          "no_speech_prob": 0.0,
+          "combined": -0.5714,
+          "text": "Nokta, net, nokta, dere.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1183.5,
+        "end": 1189.54,
+        "duration": 5.54,
+        "segment_count": 3,
+        "avg_logprob": -0.5714,
+        "no_speech_prob": 0.0,
+        "combined": -0.5714
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 64,
+    "auto_swaps": 41,
+    "review_candidates": 23,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 80.3,
+    "review_quality_duration": 96.2,
+    "kept_risky_quality_duration": 0
+  }
+}

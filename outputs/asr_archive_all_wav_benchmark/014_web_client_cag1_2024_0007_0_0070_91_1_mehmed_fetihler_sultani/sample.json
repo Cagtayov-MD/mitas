@@ -1,0 +1,13 @@
+{
+  "sample_id": "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG1_2024-0007-0-0070-91-1-MEHMED_FETİHLER_SULTANI.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 9343.36,
+  "source_duration": 9343.36,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG1_2024-0007-0-0070-91-1-MEHMED_FETİHLER_SULTANI.wav"
+}

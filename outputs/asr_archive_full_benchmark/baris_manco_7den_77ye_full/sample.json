@@ -1,0 +1,13 @@
+{
+  "sample_id": "baris_manco_7den_77ye_full",
+  "category": "archive_entertainment",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_1988-0098-0-003-00-1-BARIŞ_MANÇO_İLE_7'DEN_77'YE.wav",
+  "prepared_audio_path": "outputs\\asr_archive_full_benchmark\\baris_manco_7den_77ye_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 2790.016,
+  "source_duration": 2790.016,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_full\\baris_manco_7den_77ye_full.txt",
+  "review_priority": "high",
+  "notes": "Full archive WAV; Baris Manco ile 7'den 77'ye."
+}

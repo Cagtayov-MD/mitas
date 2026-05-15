@@ -1,0 +1,147 @@
+{
+  "audio_path": "outputs\\asr_gold_probe_benchmark\\gold_neretva_bridge_0340_0440\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 60.0,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Dünyanın bildiği en tanımış varlığımız köprümüzdü. O sanki taştan yapılma bir köprü değil, efsanevi bir varlığıydı. Ona nasıl kıydılar bilemiyorum. Şimdi köprü yok. Mostar ne kadar düş. Şehrin her yanında olduğu gibi köprü etrafında da ne büyük ziyanlar oldu. Sağ ve soldaki büyük kulelerde her iki yandaki çarşılarda tarihi rukuyu muhafaza eden bütün yapılar. Her yan dedik diş gibi. Şimdi kimi yerler yeniden yapılıyor. Kendi imkanlarıyla kurtaranlar da her gün umutla dükkanını açıp işini yapmaya çalışıyorlar. İşte demircisiydi, bakırcısıydı, kelemcisiydi, şosu buzuklu. El emeği gözlü örü geçim derdi işte.",
+    "clean": "Dünyanın bildiği en tanımış varlığımız köprümüzdü. O sanki taştan yapılma bir köprü değil, efsanevi bir varlığıydı. Ona nasıl kıydılar bilemiyorum. Şimdi köprü yok. Mostar ne kadar düş. Şehrin her yanında olduğu gibi köprü etrafında da ne büyük ziyanlar oldu. Sağ ve soldaki büyük kulelerde her iki yandaki çarşılarda tarihi rukuyu muhafaza eden bütün yapılar. Her yan dedik diş gibi. Şimdi kimi yerler yeniden yapılıyor. Kendi imkanlarıyla kurtaranlar da her gün umutla dükkanını açıp işini yapmaya çalışıyorlar. İşte demircisiydi, bakırcısıydı, kelemcisiydi, şosu buzuklu. El emeği gözlü örü geçim derdi işte.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.66,
+      "text": "Dünyanın bildiği en tanımış varlığımız köprümüzdü.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2708333419716876,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 4.34,
+      "end": 8.9,
+      "text": "O sanki taştan yapılma bir köprü değil, efsanevi bir varlığıydı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2708333419716876,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 9.92,
+      "end": 11.98,
+      "text": "Ona nasıl kıydılar bilemiyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2708333419716876,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 12.64,
+      "end": 15.78,
+      "text": "Şimdi köprü yok. Mostar ne kadar düş.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2708333419716876,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 17.0,
+      "end": 22.04,
+      "text": "Şehrin her yanında olduğu gibi köprü etrafında da ne büyük ziyanlar oldu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 22.92,
+      "end": 29.98,
+      "text": "Sağ ve soldaki büyük kulelerde her iki yandaki çarşılarda tarihi rukuyu muhafaza eden bütün yapılar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 30.58,
+      "end": 32.2,
+      "text": "Her yan dedik diş gibi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 33.2,
+      "end": 35.2,
+      "text": "Şimdi kimi yerler yeniden yapılıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 35.2,
+      "end": 41.38,
+      "text": "Kendi imkanlarıyla kurtaranlar da her gün umutla dükkanını açıp işini yapmaya çalışıyorlar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 41.7,
+      "end": 45.78,
+      "text": "İşte demircisiydi, bakırcısıydı, kelemcisiydi, şosu buzuklu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.2434440540683853,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 45.8,
+      "end": 48.36,
+      "text": "El emeği gözlü örü geçim derdi işte.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.3837316176470588,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 7.754,
+    "chunk_count": 3,
+    "decode_seconds": 2.546,
+    "fallback_seconds": 0.0
+  }
+}

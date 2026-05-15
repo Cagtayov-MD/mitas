@@ -1,0 +1,13 @@
+{
+  "sample_id": "trt_haber_3_full",
+  "category": "clean_news",
+  "source_path": "E:\\MITAS\\testklipler\\trt_haber (3).mp4",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_3_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 75.418,
+  "source_duration": 75.452,
+  "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_3_full.txt",
+  "review_priority": "high",
+  "notes": "Clean anchor/news recap, useful for named entity review."
+}

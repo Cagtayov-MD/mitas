@@ -1,0 +1,13 @@
+{
+  "sample_id": "gold_baris_manco_children_0140_0340",
+  "category": "entertainment_children",
+  "source_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye\\audio_16000hz_mono_s16.wav",
+  "prepared_audio_path": "outputs\\asr_gold_probe_benchmark\\gold_baris_manco_children_0140_0340\\audio_16000hz_mono_s16.wav",
+  "start_sec": 100.0,
+  "end_sec": 220.0,
+  "audio_duration": 120.0,
+  "source_duration": 2790.016,
+  "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_baris_manco_children_0140_0340.txt",
+  "review_priority": "high",
+  "notes": "Baris Manco children/talk-show opening."
+}

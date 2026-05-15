@@ -1,0 +1,761 @@
+[
+  {
+    "sample": "neretva_ustune_dusen_hilal_full",
+    "title": "Neretva Üstüne Düşen Hilal",
+    "fast_words": 1497,
+    "quality_words": 1496,
+    "edit_distance_fast_vs_quality": 90,
+    "substitution_count": 71,
+    "fast_extra_word_count": 10,
+    "quality_extra_word_count": 9,
+    "substitutions": [
+      {
+        "fast": "kurulardan",
+        "quality": "kurulalıdan",
+        "count": 1,
+        "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem Belki de",
+        "quality_context": "Ben Mustafa Kaytas Mostar şehri kurulalıdan beri burada oturur benim ailem Belki de"
+      },
+      {
+        "fast": "burada",
+        "quality": "burayı",
+        "count": 1,
+        "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem Belki de onlar kurdular",
+        "quality_context": "oturur benim ailem Belki de onlar kurdular burayı Yalnız soyumun Türkiye'den gelme olduğunu biliyorum Asırlarca"
+      },
+      {
+        "fast": "çektik",
+        "quality": "çekti",
+        "count": 1,
+        "fast_context": "bir savaşı kabullenemediler Biz kaldık ama neler çektik Hayatta kalabilmek çok zordu Dolap beygiri gibi",
+        "quality_context": "bir savaşı kabullenemediler Biz kaldık ama neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi"
+      },
+      {
+        "fast": "beygiri",
+        "quality": "peygiri",
+        "count": 1,
+        "fast_context": "neler çektik Hayatta kalabilmek çok zordu Dolap beygiri gibi dönüp duruyordu Ölmeyenler eminim ki bir",
+        "quality_context": "neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi dönüp duruyordu Ölmeyenler eminim ki bir"
+      },
+      {
+        "fast": "güne",
+        "quality": "Bugüne",
+        "count": 1,
+        "fast_context": "değirmenleri hanlar hamamlar çeşmeler ve camiler Bu güne kadar yüz yıldır tahrip edilerek bir kısmının",
+        "quality_context": "su değirmenleri hanlar hamamlar çeşmeler ve camiler Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin"
+      },
+      {
+        "fast": "yıldır",
+        "quality": "yüzyıldır",
+        "count": 1,
+        "fast_context": "çeşmeler ve camiler Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını",
+        "quality_context": "hanlar hamamlar çeşmeler ve camiler Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin bile kalmadığını"
+      },
+      {
+        "fast": "tanınmış",
+        "quality": "tanımış",
+        "count": 1,
+        "fast_context": "izinin bile kalmadığını görürsünüz Dünyanın bildiği en tanınmış varlığımız köprümüzdür O sanki taştan yapılma bir",
+        "quality_context": "izinin bile kalmadığını görürsünüz Dünyanın bildiği en tanımış varlığımız köprümüzdür O sanki taştan yapılma bir"
+      },
+      {
+        "fast": "değildir",
+        "quality": "değil",
+        "count": 1,
+        "fast_context": "köprümüzdür O sanki taştan yapılma bir köprü değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum",
+        "quality_context": "gezerdi Yine gelenler oluyor ama o kadar değil Dediğim gibi Mostar Türklerin şehir yaptığı bir"
+      },
+      {
+        "fast": "varlığı",
+        "quality": "varlıktı",
+        "count": 1,
+        "fast_context": "taştan yapılma bir köprü değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok",
+        "quality_context": "taştan yapılma bir köprü değil Efsanevi bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar"
+      },
+      {
+        "fast": "bilemiyordum",
+        "quality": "bilemiyorum",
+        "count": 1,
+        "fast_context": "değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok Mostar ne kadarmış Şehrin",
+        "quality_context": "değil Efsanevi bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar ne kadarmış Şehrin her"
+      },
+      {
+        "fast": "yok",
+        "quality": "köprüyor",
+        "count": 1,
+        "fast_context": "varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok Mostar ne kadarmış Şehrin her yanında olduğu",
+        "quality_context": "bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar ne kadarmış Şehrin her yanında olduğu"
+      },
+      {
+        "fast": "dokuyu",
+        "quality": "hukuyu",
+        "count": 1,
+        "fast_context": "büyük kulelerde her iki yandaki çarşılarda tarihi dokuyu muhafaza eden bütün yapılar her yan delik",
+        "quality_context": "büyük kulelerde her iki yandaki çarşılarda tarihi hukuyu muhafaza eden bütün yapılar her yan delik"
+      },
+      {
+        "fast": "çalışıyorlar",
+        "quality": "çalışıyor",
+        "count": 1,
+        "fast_context": "her gün umutla dükkanını açıp işini yapmaya çalışıyorlar İşte demircisiydi bakırcısıydı kelemcisiydi şosobosu El emeği",
+        "quality_context": "her gün Umut'la dükkanını açıp işini yapmaya çalışıyor İşte demircisiydi bakırcisiydi kelemcisiydi şosobosu El emeği"
+      },
+      {
+        "fast": "Neretve'ye",
+        "quality": "Neretva'ya",
+        "count": 1,
+        "fast_context": "haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretve'ye karışan Radovolya çayı var Şimdi barajlar yüzünden",
+        "quality_context": "haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretva'ya karışan Radobolya çayı var Şimdi barajlar yüzünden"
+      },
+      {
+        "fast": "Radovolya",
+        "quality": "Radobolya",
+        "count": 1,
+        "fast_context": "bekliyor Büyük köprünün hemen yakınında Neretve'ye karışan Radovolya çayı var Şimdi barajlar yüzünden pek suyu",
+        "quality_context": "bekliyor Büyük köprünün hemen yakınında Neretva'ya karışan Radobolya çayı var Şimdi barajlar yüzünden pek suyu"
+      },
+      {
+        "fast": "değerinin",
+        "quality": "değirmeni",
+        "count": 1,
+        "fast_context": "gür akarmış Zaten üzerinde pek çok su değerinin vardı İşte burada Büyük köprünün denemesini yapmışlar",
+        "quality_context": "gür akarmış Zaten üzerinde pek çok su değirmeni vardı İşte burada büyük köprünün denemesini yapmışlar"
+      },
+      {
+        "fast": "camiydi",
+        "quality": "camiyiydi",
+        "count": 1,
+        "fast_context": "etrafını Türkler tekrar yaptılar Mostar'ın en eski camiydi Sokağıyla evleriyle müştemilatıyla yapıldı yeniden Kuyumcular Çarşısı",
+        "quality_context": "etrafını Türkler tekrar yaptılar Mostar'ın en eski camiyiydi Sokağıyla evleriyle müştemilatıyla yapıldı yeniden Kuyumcular çarşısı"
+      },
+      {
+        "fast": "debbaların",
+        "quality": "debbağların",
+        "count": 1,
+        "fast_context": "tabiata ne kadar uyar Tabakani Camii buradaki debbaların ibadet yeriymiş Epey zarar görmüştü yenilendi Eminim",
+        "quality_context": "tabiata ne kadar uyar Tabakani Camii buradaki debbağların ibadet yeriymiş Epey zarar görmüştü yenilendi Eminim"
+      },
+      {
+        "fast": "çożun",
+        "quality": "çocuğun",
+        "count": 1,
+        "fast_context": "soyadım Lakşe Büyüklerim Konyalıymış Bu Gizel Kente çożun geçmiş Mostar önce çok güzel bir şehir",
+        "quality_context": "soyadım Lakşe Büyüklerim Konyalıymış Bu gizel kente çocuğun geçmiş Mostar önce çok güzel bir şehirmiş"
+      },
+      {
+        "fast": "şehir",
+        "quality": "şehirmiş",
+        "count": 1,
+        "fast_context": "o kadar değil Dediğim gibi Mostar Türklerin şehir yaptığı bir yer Bunların arasında benim atalarım",
+        "quality_context": "çocuğun geçmiş Mostar önce çok güzel bir şehirmiş Her şey Bosna'da bizim için en güzel"
+      },
+      {
+        "fast": "imiş",
+        "quality": "Her",
+        "count": 1,
+        "fast_context": "geçmiş Mostar önce çok güzel bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar",
+        "quality_context": "hem diğer insanlarımız birçok şeylerini kaybetmeye başladılar Her şeyi devletleştirdiler o zaman Elimizde avucumuzda ne"
+      },
+      {
+        "fast": "Herzek",
+        "quality": "şey",
+        "count": 1,
+        "fast_context": "Mostar önce çok güzel bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok",
+        "quality_context": "buradan geçen insanlar yüzyıllar öncesinde hissederdik Her şey orijinal halinde korunmaya çalışılıyordu Bugün yine gayret"
+      },
+      {
+        "fast": "engizel",
+        "quality": "güzel",
+        "count": 1,
+        "fast_context": "bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama",
+        "quality_context": "gizel kente çocuğun geçmiş Mostar önce çok güzel bir şehirmiş Her şey Bosna'da bizim için"
+      },
+      {
+        "fast": "Mostarlar",
+        "quality": "Mostar'ı",
+        "count": 1,
+        "fast_context": "imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama sonra dönüyor",
+        "quality_context": "kültür dokusu Neretva'nın iki yamacına kurulmuş olan Mostar'ı Mostar yapan eserleri tanımak lazım tanıtmak lazım"
+      },
+      {
+        "fast": "seviyor",
+        "quality": "seviyorum",
+        "count": 1,
+        "fast_context": "bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama sonra dönüyor Konya'yı bırakıyor sonra",
+        "quality_context": "için en güzel kent Mostar'ı çok çok seviyorum Bırakıyor ama sonra dönüyor Konya'yı bırakıyor sonra"
+      },
+      {
+        "fast": "Mostarçok",
+        "quality": "çok",
+        "count": 1,
+        "fast_context": "yapıyoruz Mostar bir din yada Evet şimdi Mostarçok şe savaşta zarar görmüş çok harabe var",
+        "quality_context": "Biz kaldık ama neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi dönüp duruyordu Ölmeyenler"
+      },
+      {
+        "fast": "Mostar",
+        "quality": "mostlar",
+        "count": 1,
+        "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem",
+        "quality_context": "görmüş çok harabe var Şimdi yavaş yavaş mostlar yine kalkıyor yaralar geçiyor Güzel oluyor Eski"
+      },
+      {
+        "fast": "Bileçya'da",
+        "quality": "Bilekçe'de",
+        "count": 1,
+        "fast_context": "kazanmaya çalışan şu Mostar'lı hanımı bir dinleseniz Bileçya'da doğdum ama 1948'den beri Mostar'da yaşıyorum Üç",
+        "quality_context": "kazanmaya çalışan şu Mostarlı Hanım'ı bir dinleseniz Bilekçe'de doğdum ama 1948'den beri Mostar'da yaşıyorum Üç"
+      },
+      {
+        "fast": "kaybetti",
+        "quality": "kaybettik",
+        "count": 1,
+        "fast_context": "oldu İçimiz yandı Sanki onunla her şeyimizi kaybetti Ancak şunu söylemeliyim ki asla suçlu değildik",
+        "quality_context": "oldu İçimiz yandı Sanki onunla her şeyimizi kaybettik Ancak şunu söylemeliyim ki asla suçlu değildik"
+      },
+      {
+        "fast": "Camii",
+        "quality": "Camiyi",
+        "count": 1,
+        "fast_context": "Eğri Köprüyü Sel sularına kapıldı İnşallah Nezira Camii gibi o da tekrar yapılır 950 senesinde",
+        "quality_context": "dediğiniz büyük vezirin günlükçüsüymüş Çok hayırsever biriymiş Camiyi Türkiye restore ediyor Gençler çalışıyordu Savaşta minaresi"
+      },
+      {
+        "fast": "görünümüdür",
+        "quality": "görünümlüdür",
+        "count": 1,
+        "fast_context": "nokta Koski Mehmetbaşa Camii'ndendir Biri minarenin şerefesinden görünümüdür diğeri ise yan avlusundaki çıkıntı üzeridir Haziresinde",
+        "quality_context": "nokta Koski Mehmetbaşa Camii'ndendir Biri minarenin şerefesinden görünümlüdür diğeri ise yan avlusundaki çıkıntı üzeridir Haziresinde"
+      },
+      {
+        "fast": "Mostar'ın",
+        "quality": "Moslar'ın",
+        "count": 1,
+        "fast_context": "yıktırılan cami ve etrafını Türkler tekrar yaptılar Mostar'ın en eski camiydi Sokağıyla evleriyle müştemilatıyla yapıldı",
+        "quality_context": "mezar taşları vardı Şadırvanı da halen kullanılıyor Moslar'ın sembol eserlerinden Bişçevişköy Sahipleri Ahmet Bey de"
+      },
+      {
+        "fast": "Köşkü",
+        "quality": "Bişçevişköy",
+        "count": 1,
+        "fast_context": "da halen kullanılıyor Mostar'ın sembol eserlerinden Bişeviş Köşkü Sahipleri Ahmet Bey de Zehra Hanım'da vefat",
+        "quality_context": "Şadırvanı da halen kullanılıyor Moslar'ın sembol eserlerinden Bişçevişköy Sahipleri Ahmet Bey de Zehra Hanım da"
+      },
+      {
+        "fast": "Hanım'da",
+        "quality": "da",
+        "count": 1,
+        "fast_context": "Bişeviş Köşkü Sahipleri Ahmet Bey de Zehra Hanım'da vefat ettiler Kim bilir ne hatıralar yıkmış",
+        "quality_context": "bugün böyle bir şans tanımadılar Nasıl oldu da hayatta kalabildik bilmiyorum Çocuklarımız burayı terk ettiler"
+      },
+      {
+        "fast": "mangaları",
+        "quality": "mangalları",
+        "count": 1,
+        "fast_context": "kimler inip çıkmıştır Kapıları pencereleri sedirleri sergenleri mangaları yastıkları Ziyaretçisi hiç eksik olmaz müzeydir Avrupa'nın",
+        "quality_context": "kimler inip çıkmıştır Kapıları pencereleri sedirleri sergenleri mangalları yastıkları Ziyaretçisi hiç eksik olmaz müze evdir"
+      },
+      {
+        "fast": "müzeydir",
+        "quality": "evdir",
+        "count": 1,
+        "fast_context": "sergenleri mangaları yastıkları Ziyaretçisi hiç eksik olmaz müzeydir Avrupa'nın ortasında tam bir Türk evini hem",
+        "quality_context": "mangalları yastıkları Ziyaretçisi hiç eksik olmaz müze evdir Avrupa'nın ortasında tam bir Türk evini hem"
+      },
+      {
+        "fast": "halini",
+        "quality": "haliyle",
+        "count": 1,
+        "fast_context": "Türk evini hem de otantik ve orijinal halini görmek belki onları şaşırtıyordu ama kültür bu",
+        "quality_context": "çıkarıyor Kalın kesme taşlar Eksikleri tamamlanıp eski haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretva'ya"
+      },
+      {
+        "fast": "birlikteydi",
+        "quality": "birlikte",
+        "count": 1,
+        "fast_context": "görmek belki onları şaşırtıyordu ama kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez",
+        "quality_context": "uğraştılar beni İşte yaşıyorum Bu evde hanımla birlikte kalıyoruz Bu evin tarihi geçmişi çok eski"
+      },
+      {
+        "fast": "Zayim",
+        "quality": "Zahim",
+        "count": 1,
+        "fast_context": "onları şaşırtıyordu ama kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez Onu herkes",
+        "quality_context": "onları şaşırtıyordu ama kültür bu birlikte Hacı Zahim Mehmet Bey denilince kimse bilmez Onu herkes"
+      },
+      {
+        "fast": "denince",
+        "quality": "denilince",
+        "count": 1,
+        "fast_context": "kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez Onu herkes Karagöz Mehmet Bey",
+        "quality_context": "kültür bu birlikte Hacı Zahim Mehmet Bey denilince kimse bilmez Onu herkes Karagöz Mehmet Bey"
+      },
+      {
+        "fast": "öğerlerdi",
+        "quality": "överlerdi",
+        "count": 1,
+        "fast_context": "bina kesme taştandır Mostarlılar bu camiyi pek öğerlerdi Emsali olmayan bir eser gibi anlatırlardı Son",
+        "quality_context": "bina kesme taştandır Mostarlılar bu camiyi pek överlerdi Emsali olmayan bir eser gibi anlatırlardı Son"
+      },
+      {
+        "fast": "bilmiyor",
+        "quality": "biliniyor",
+        "count": 1,
+        "fast_context": "işgali sırasında bu bezemelerle ne kadar oynandığı bilmiyor Savaşın cami ve bilhassa kubbesinde meydana getirdiği",
+        "quality_context": "işgali sırasında bu bezemelerle ne kadar oynandığı biliniyor Savaşın cami ve bilhassa kubbesinde meydana getirdiği"
+      },
+      {
+        "fast": "de",
+        "quality": "camiinde",
+        "count": 1,
+        "fast_context": "kurulardan beri burada oturur benim ailem Belki de onlar kurdular burada Yalnız soyumun Türkiye'den gelme",
+        "quality_context": "avluları yoktur İşte Karagöz Bey'in yaptırdığı bu camiinde dar bir dış avlusu vardır Kapısı köşededir"
+      },
+      {
+        "fast": "Çanının",
+        "quality": "Çanunun",
+        "count": 1,
+        "fast_context": "hanım yaptırmış 300 yıldan fazla olsa gerek Çanının sesinin pek uzaklardan duyulduğu anlatılır hep Nasu",
+        "quality_context": "hanım yaptırmış 300 yıldan fazla olsa gerek Çanunun sesinin pek uzaklardan duyulduğu anlatılır hep Nasu"
+      },
+      {
+        "fast": "Mostar'ın",
+        "quality": "Mosler'in",
+        "count": 1,
+        "fast_context": "mezar taşları vardı Şadırvanı da halen kullanılıyor Mostar'ın sembol eserlerinden Bişeviş Köşkü Sahipleri Ahmet Bey",
+        "quality_context": "Nasu Ağa Camii meydanı dolduran eserlerden biri Mosler'in güzelliklerinden Savaşın ne feci ne çirkin olduğunun"
+      },
+      {
+        "fast": "peki",
+        "quality": "iyimser",
+        "count": 1,
+        "fast_context": "yapılmış şiirler dizilmiş Gelecek neler getirecek bilmiyorum peki imserde değilim ama gençler çok iyi düşünüp",
+        "quality_context": "şiirler dizilmiş Gelecek neler getirecek bilmiyorum pek iyimser de değilim Ama gençler çok iyi düşünüp"
+      },
+      {
+        "fast": "imserde",
+        "quality": "de",
+        "count": 1,
+        "fast_context": "şiirler dizilmiş Gelecek neler getirecek bilmiyorum peki imserde değilim ama gençler çok iyi düşünüp bu",
+        "quality_context": "kurulalıdan beri burada oturur benim ailem Belki de onlar kurdular burayı Yalnız soyumun Türkiye'den gelme"
+      },
+      {
+        "fast": "beldeyi",
+        "quality": "perdeyi",
+        "count": 1,
+        "fast_context": "gençler çok iyi düşünüp bu dünya güzeli beldeyi yeniden yaşanır kılmalıdır Eskiden köprüden atlama yarışları",
+        "quality_context": "gençler çok iyi düşünüp bu dünya güzeli perdeyi yeniden yaşanır kılmalıdır Eskiden köprüden atlama yarışları"
+      },
+      {
+        "fast": "vardı",
+        "quality": "bizden",
+        "count": 1,
+        "fast_context": "akarmış Zaten üzerinde pek çok su değerinin vardı İşte burada Büyük köprünün denemesini yapmışlar Adı",
+        "quality_context": "kültür eserleri yok edildi İnsanın aklının alacağı bizden Mostarımızın sembolü tarihi köprü gitti yok oldu"
+      },
+      {
+        "fast": "kararındaydılar",
+        "quality": "kararındaydı",
+        "count": 1,
+        "fast_context": "hatırlatan sembolize eden her şeyi yok etme kararındaydılar Savaş öncesi hırvatlar burada yüzde on civarındaydı",
+        "quality_context": "hatırlatan sembolize eden her şeyi yok etme kararındaydı Savaş öncesi ırvatlar burada yüzde on civarındaydı"
+      },
+      {
+        "fast": "hırvatlar",
+        "quality": "ırvatlar",
+        "count": 1,
+        "fast_context": "yada Eski Sırp kilisesiydi Sırplar bir yandan hırvatlar bir yandan Müslümanları ortada kıstırmışlardı Fakat hani",
+        "quality_context": "her şeyi yok etme kararındaydı Savaş öncesi ırvatlar burada yüzde on civarındaydı Şimdi bakınız nasıl"
+      },
+      {
+        "fast": "çalışıyorum",
+        "quality": "çalışılıyor",
+        "count": 1,
+        "fast_context": "on civarındaydı Şimdi bakınız nasıl kimlik değiştirmeye çalışıyorum İnanın ben tamamen objektifim Yani ne saçma",
+        "quality_context": "yapılar onarıldıkça çatıları da eski haline getirilmeye çalışılıyor Kaygan kaya çatı örtüsü Bu havalide sıkça"
+      },
+      {
+        "fast": "başkalarıyla",
+        "quality": "ile",
+        "count": 1,
+        "fast_context": "ne de haklı çıkmak için konuşuyorum Hem başkalarıyla da konuşacaksınız Zaten burası kimindir sorusunun cevabı",
+        "quality_context": "de haklı çıkmak için konuşuyorum Hem başkaları ile de konuşacaksınız Zaten burası kimindir sorusunun cevabı"
+      },
+      {
+        "fast": "Yollarım",
+        "quality": "Kullarım",
+        "count": 1,
+        "fast_context": "vatanında sığıntı olmak Ne harcı günlerdi Tanrım Yollarım halen İsviçre'de Geriye Mostar'a dönmeyi istiyorlar ama",
+        "quality_context": "vatanında sığıntı olmak Ne acı günlerdi tanrım Kullarım halen İsviçre'de Geriye Mostar'a dönmeyi istiyorlar ama"
+      },
+      {
+        "fast": "Hırvatlısı",
+        "quality": "Sırp",
+        "count": 1,
+        "fast_context": "bir sistem getirildi ki işlemez halde Müslüman Hırvatlısı karma yönetimi Güçlü topraklar bile üçe ayrılmış",
+        "quality_context": "ne çirkin olduğunun misallerinden şu yapı Eski Sırp kilisesiydi Sırplar bir yandan Hırvatlar bir yandan"
+      },
+      {
+        "fast": "Güçlü",
+        "quality": "Üçlü",
+        "count": 1,
+        "fast_context": "ki işlemez halde Müslüman Hırvatlısı karma yönetimi Güçlü topraklar bile üçe ayrılmış gibi Mutlu muyuz",
+        "quality_context": "işlemez halde Müslüman Hırvat Sırp Karma yönetimi Üçlü Topraklar bile üçe ayrılmış gibi Mutlu muyuz"
+      },
+      {
+        "fast": "günün",
+        "quality": "oyunun",
+        "count": 1,
+        "fast_context": "ki Sanki bir oyun oynuyoruz Bakalım o günün sonu nasıl olacak",
+        "quality_context": "değil ki Sanki bir oyun oynuyoruz Bakalım oyunun sonu nasıl olacak"
+      }
+    ],
+    "phrase_differences": [
+      {
+        "side": "fast_extra",
+        "words": [
+          "bir",
+          "saygı"
+        ]
+      }
+    ]
+  },
+  {
+    "sample": "merakli_momolar_full",
+    "title": "Meraklı Momolar",
+    "fast_words": 1199,
+    "quality_words": 1227,
+    "edit_distance_fast_vs_quality": 91,
+    "substitution_count": 49,
+    "fast_extra_word_count": 7,
+    "quality_extra_word_count": 35,
+    "substitutions": [
+      {
+        "fast": "Sanada",
+        "quality": "da",
+        "count": 2,
+        "fast_context": "gün Ne güzel bir gün Herkese merhaba Sanada Merhaba Sanada Sapsi sana da merhaba Tapçi",
+        "quality_context": "Ne güzel bir gün Herkese merhaba Sana da merhaba Sana da Sapsi sana da merhaba"
+      },
+      {
+        "fast": "Roscoe'nun",
+        "quality": "Rosco'nun",
+        "count": 2,
+        "fast_context": "Amorosko ayrıca özel kedi maması da yiyor Roscoe'nun evde kalması için eğitilmesi gerekiyor Tuvalet için",
+        "quality_context": "Rosco ayrıca özel kedi maması da yiyor Rosco'nun evde kalması için eğitilmesi gerekiyor Tuvalet için"
+      },
+      {
+        "fast": "Pemi'cim",
+        "quality": "Pemiciğim",
+        "count": 1,
+        "fast_context": "Ne besleyeceğimi buldum Buldun mu Sağ ol Pemi'cim Senin sayende buldum Benim sayende mi buldun",
+        "quality_context": "Ne besleyeceğimi buldum Buldun mu Sağ ol Pemiciğim Senin sayende buldum Benim sayende mi buldum"
+      },
+      {
+        "fast": "buldun",
+        "quality": "buldum",
+        "count": 1,
+        "fast_context": "beslesen Ne beslesen Buldum Ne besleyeceğimi buldum Buldun mu Sağ ol Pemi'cim Senin sayende buldum",
+        "quality_context": "görünce çığlık atmaz Ben tırtıla dokunamam ki Buldum Ay hep beslemek istemişimdir bunu Ama nasıl"
+      },
+      {
+        "fast": "Fekri",
+        "quality": "Fikri",
+        "count": 1,
+        "fast_context": "Hoşçakal Çok merak ettim Hep böyle oluyor Fekri ben veriyorum ama Bulduklarında bana söylemiyorlar Bir",
+        "quality_context": "Ya çok merak ettim Hep böyle oluyor Fikri ben veriyorum ama bulduklarında bana söylemiyorlar Bir"
+      },
+      {
+        "fast": "Sapsa",
+        "quality": "Sapsın",
+        "count": 1,
+        "fast_context": "beni Beni de bekleyin ben de geliyorum Sapsa Sapsi sana sesleniyorum Aa duymamışım seni mom",
+        "quality_context": "beni Beni de bekleyin ben de geliyorum Sapsın Sapsi sana sesleniyorum Aa duymamışım seni mom"
+      },
+      {
+        "fast": "sonrayı",
+        "quality": "sonra",
+        "count": 1,
+        "fast_context": "içerim galiba Kurabiyeler beni su sattı Biraz sonrayı sormuyorum canım Şimdi ne yapmayı düşünüyorsun Şimdi",
+        "quality_context": "parmaklarımı yiyecektim Parmaklarını mı yiyecektin Sakın ha Sonra ne yaparsın parmaksız parmaksız Demi Porti kurabiyeleri"
+      },
+      {
+        "fast": "kaçtığını",
+        "quality": "kaçtığımı",
+        "count": 1,
+        "fast_context": "mom Tıka basa doydum Sapsi ellerini yıkamaktan kaçtığını düşünüyorum Doğru mu Aa neden kaçayım mom",
+        "quality_context": "mom Tıka basa doydum Sapsi ellerini yıkamaktan kaçtığımı düşünüyorum Doğru mu Aa Neden kaçayım Moğol"
+      },
+      {
+        "fast": "mom",
+        "quality": "Moğol",
+        "count": 1,
+        "fast_context": "ne kadar iştahlısınız böyle İştahlı ne demek Mom Bugün çok yiyorsunuz demek Bir tepsi kurabiyenin",
+        "quality_context": "kaçtığımı düşünüyorum Doğru mu Aa Neden kaçayım Moğol Ben de şimdi yıkayacaktım Tabii Ben de"
+      },
+      {
+        "fast": "zamana",
+        "quality": "zamanı",
+        "count": 1,
+        "fast_context": "Neyse biraz sonra anlarız nasılsa Şimdi özgü zamana Kafam kaşınıyor Arda'ya sordum Kaşı o zaman",
+        "quality_context": "kimsenin aklına bir şey getirmeyeceğim Şimdi şarkı zamanı Bugün ne kadar iştahlısınız böyle İştahlı ne"
+      },
+      {
+        "fast": "tertemiz",
+        "quality": "tertibiz",
+        "count": 1,
+        "fast_context": "gerekiyormuş İnsan vücudunda böcekler yaşamazmış Oh ellerim tertemiz oldu Hem de mis gibi kokuyor Ne",
+        "quality_context": "gerekiyormuş İnsan vücudunda böcekler yaşamazmış Oh ellerim tertibiz oldu Hem de mis gibi kokuyor Ne"
+      },
+      {
+        "fast": "mom",
+        "quality": "Mum",
+        "count": 1,
+        "fast_context": "kurabiyenin kırıntısını bile bırakmadınız Kırıntıları ne yapacaktın Mom Kuşlara mı atacaktın Hayır onun için söylemedim",
+        "quality_context": "görmüş olamazsın değil mi I ıh hayır Mum Tamam Eee Sapsi ellerini yıkadın mı Şey"
+      },
+      {
+        "fast": "Eee",
+        "quality": "Ne",
+        "count": 1,
+        "fast_context": "görmüş olamazsın değil mi Hayır Mum Tamam Eee Sapsi ellerini yıkadın mı Şey Lütfen doğruyu",
+        "quality_context": "hayran olur bayılır kuzucuklar taze çimen ararlar Ne güzel bir gün Ne güzel bir gün"
+      },
+      {
+        "fast": "dememom",
+        "quality": "Mom",
+        "count": 1,
+        "fast_context": "mi Evet Bitlerin mi yani Onlara bit dememom Alınıyorlar Onların da adı var Başında bitmeme",
+        "quality_context": "ne kadar iştahlısınız böyle İştahlı ne demek Mom Bugün çok yiyorsunuz demek Bir tepsi kurabiyenin"
+      },
+      {
+        "fast": "Dur",
+        "quality": "durun",
+        "count": 1,
+        "fast_context": "hemen bulaştırmalıyım Bulaştırmalıyım mı dedim Bulmalıyım diyecektim Dur gitme merak ettim Hoşçakal Çok merak ettim",
+        "quality_context": "da adı var Başında bitmeme istiyorsun yani Durun durun durun durun durun Sakin olun Hepimiz"
+      },
+      {
+        "fast": "6",
+        "quality": "altı",
+        "count": 1,
+        "fast_context": "kedinin iki tane yavrusu oldu Yavrular şimdi 6 aylık Yani anne kedinin onları yalnız bırakabileceği",
+        "quality_context": "kedinin iki tane yavrusu oldu Yavrular şimdi altı aylık Yani anne kedinin onları yalnız bırakabileceği"
+      },
+      {
+        "fast": "Rosko",
+        "quality": "Roscoe",
+        "count": 1,
+        "fast_context": "anne kedinin onları yalnız bırakabileceği kadar büyüdüler Rosko artık kendi başına yemek yemeli Günde dört",
+        "quality_context": "kedilerden birini alabilir O da Roscoe'yi seçiyor Roscoe artık kendi başına yemek yemeli Günde dört"
+      },
+      {
+        "fast": "Amorosko",
+        "quality": "Rosco",
+        "count": 1,
+        "fast_context": "defa Önce Laura ona biraz süt veriyor Amorosko ayrıca özel kedi maması da yiyor Roscoe'nun",
+        "quality_context": "Önce Laura ona biraz süt veriyor Ama Rosco ayrıca özel kedi maması da yiyor Rosco'nun"
+      },
+      {
+        "fast": "Catbox",
+        "quality": "box",
+        "count": 1,
+        "fast_context": "evde kalması için eğitilmesi gerekiyor Tuvalet için Catbox kullanması gerekir Bu bir kedi tuvaleti Catbox'ın",
+        "quality_context": "kalması için eğitilmesi gerekiyor Tuvalet için cat box kullanması gerekir Bu bir kedi tuvaleti Cat"
+      },
+      {
+        "fast": "Catbox'ın",
+        "quality": "box'ın",
+        "count": 1,
+        "fast_context": "Catbox kullanması gerekir Bu bir kedi tuvaleti Catbox'ın içi kedi kumu denilen bir çeşit kumla",
+        "quality_context": "kullanması gerekir Bu bir kedi tuvaleti Cat box'ın içi kedi kumu denilen bir çeşit kumla"
+      },
+      {
+        "fast": "kopması",
+        "quality": "kapması",
+        "count": 1,
+        "fast_context": "bir çeşit kumla dolduruluyor Böylece evin kutu kopması engellemiş oluyor Laura Roscoe ile oynamayı çok",
+        "quality_context": "bir çeşit kumla dolduruluyor Böylece evin kutu kapması engellenmiş oluyor Laura Rosco ile oynamayı çok"
+      },
+      {
+        "fast": "engellemiş",
+        "quality": "engellenmiş",
+        "count": 1,
+        "fast_context": "çeşit kumla dolduruluyor Böylece evin kutu kopması engellemiş oluyor Laura Roscoe ile oynamayı çok seviyor",
+        "quality_context": "çeşit kumla dolduruluyor Böylece evin kutu kapması engellenmiş oluyor Laura Rosco ile oynamayı çok seviyor"
+      },
+      {
+        "fast": "Roscoe",
+        "quality": "Rosco",
+        "count": 1,
+        "fast_context": "Böylece evin kutu kopması engellemiş oluyor Laura Roscoe ile oynamayı çok seviyor Ve tüm kediler",
+        "quality_context": "Böylece evin kutu kapması engellenmiş oluyor Laura Rosco ile oynamayı çok seviyor Ve tüm kediler"
+      },
+      {
+        "fast": "götürmeniz",
+        "quality": "getirmemiz",
+        "count": 1,
+        "fast_context": "yerleri keşfediyor Yavru kedileri doktora yani veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek Rosco'nun sağlığı",
+        "quality_context": "yerleri keşfediyor Yavru kedileri doktora yani veterinere getirmemiz gerekir Veteriner Jacques Roske'yi görecek Rosko'nun sağlığı"
+      },
+      {
+        "fast": "Jack",
+        "quality": "Jacques",
+        "count": 1,
+        "fast_context": "kedileri doktora yani veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek Rosco'nun sağlığı çok iyi ama",
+        "quality_context": "kedileri doktora yani veterinere getirmemiz gerekir Veteriner Jacques Roske'yi görecek Rosko'nun sağlığı çok iyi ama"
+      },
+      {
+        "fast": "Rusköy'ü",
+        "quality": "Roske'yi",
+        "count": 1,
+        "fast_context": "doktora yani veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek Rosco'nun sağlığı çok iyi ama yine",
+        "quality_context": "doktora yani veterinere getirmemiz gerekir Veteriner Jacques Roske'yi görecek Rosko'nun sağlığı çok iyi ama yine"
+      },
+      {
+        "fast": "Rosco'nun",
+        "quality": "Rosko'nun",
+        "count": 1,
+        "fast_context": "veterinere götürmeniz gerekir veteriner Jack Rusköy'ü görecek Rosco'nun sağlığı çok iyi ama yine de bu",
+        "quality_context": "veterinere getirmemiz gerekir Veteriner Jacques Roske'yi görecek Rosko'nun sağlığı çok iyi ama yine de bu"
+      },
+      {
+        "fast": "iğnede",
+        "quality": "de",
+        "count": 1,
+        "fast_context": "kurtlardan kurtulmuş olacak Ayrıca hastalanmasını önlemek için iğnede oluyor Roscoe'nun mırıldandığını duyuyor musunuz Bu çok",
+        "quality_context": "ellerimde hiç kırıntı yok Olsun Bence yine de yıkamalısınız Parmaklarınız yağlanmıştır Yıkamazsak ne olur Mom"
+      },
+      {
+        "fast": "Rosco",
+        "quality": "Roscoe",
+        "count": 1,
+        "fast_context": "odalarına girmeleri yasaktır Ama bazen Laura ve Rosco kurallara uymuyorlar Ne var Başın kaşınıyor mu",
+        "quality_context": "odalarına girmeleri yasaktır Ama bazen Laura ve Roscoe kurallara uymuyorlar Ne var Başın kaşınıyor mu"
+      },
+      {
+        "fast": "kalacak",
+        "quality": "oldu",
+        "count": 1,
+        "fast_context": "Başın kaşınıyor mu Anam çok güzel mi kalacak Yok yok herhalde bana öyle geldi Ben",
+        "quality_context": "İnsan vücudunda böcekler yaşamazmış Oh ellerim tertibiz oldu Hem de mis gibi kokuyor Ne güzel"
+      },
+      {
+        "fast": "Vallahi",
+        "quality": "Anam",
+        "count": 1,
+        "fast_context": "bugün Bitler'le çok uğraştım da ondan herhalde Vallahi ne yapacak Evet Bitler Şuna bak söyleyince",
+        "quality_context": "kurallara uymuyorlar Ne var Başın kaşınıyor mu Anam ne oldu Yok yok herhalde bana öyle"
+      },
+      {
+        "fast": "yapacak",
+        "quality": "korkuyorum",
+        "count": 1,
+        "fast_context": "çok uğraştım da ondan herhalde Vallahi ne yapacak Evet Bitler Şuna bak söyleyince bile kaşınıyorum",
+        "quality_context": "ondan herhalde Anam ne oldu Ben çok korkuyorum Evet bitler Şuna bak söyleyince bile kaşınıyorum"
+      },
+      {
+        "fast": "dememom",
+        "quality": "mom",
+        "count": 1,
+        "fast_context": "bitlerin beslenebilecek hayvanlar olduğunu zannetmiş Onlara bit dememom Alınıyorlar Onların da adı var Başında bitme",
+        "quality_context": "ne kadar iştahlısınız böyle İştahlı ne demek Mom Bugün çok yiyorsunuz demek Bir tepsi kurabiyenin"
+      },
+      {
+        "fast": "Korşularının",
+        "quality": "Koşularının",
+        "count": 1,
+        "fast_context": "besliyorsun yani Durun ya Nereden mi bulmuş Korşularının çocuğu bitlenmiş O da onun tokasını takmış",
+        "quality_context": "bitme besliyorsun yani Durun Nereden mi bulmuş Koşularının çocuğu bitlenmiş O da onun tokasını takmış"
+      },
+      {
+        "fast": "34347",
+        "quality": "4347",
+        "count": 1,
+        "fast_context": "de TRT İstanbul Televizyonu Meraklı Momolar Programı 34347 Ortakey İstanbul Möraklimamolar Et dere dere nokta",
+        "quality_context": "de TRT İstanbul televizyonu Meraklı Momolar programı 4347 Ortaki İstanbul Merakli momolar et trt net"
+      },
+      {
+        "fast": "Ortakey",
+        "quality": "Ortaki",
+        "count": 1,
+        "fast_context": "TRT İstanbul Televizyonu Meraklı Momolar Programı 34347 Ortakey İstanbul Möraklimamolar Et dere dere nokta net",
+        "quality_context": "TRT İstanbul televizyonu Meraklı Momolar programı 4347 Ortaki İstanbul Merakli momolar et trt net tr"
+      },
+      {
+        "fast": "Et",
+        "quality": "Merakli",
+        "count": 1,
+        "fast_context": "Meraklı Momolar Programı 34347 Ortakey İstanbul Möraklimamolar Et dere dere nokta net nokta dere Meraklı",
+        "quality_context": "Meraklı Momolar başlıyor Mama buna hayran olur bayılır"
+      },
+      {
+        "fast": "dere",
+        "quality": "momolar",
+        "count": 1,
+        "fast_context": "Momolar Programı 34347 Ortakey İstanbul Möraklimamolar Et dere dere nokta net nokta dere Meraklı Momolar",
+        "quality_context": "Meraklı Momolar başlıyor Mama buna hayran olur bayılır kuzucuklar"
+      }
+    ],
+    "phrase_differences": [
+      {
+        "side": "quality_extra",
+        "words": [
+          "Laura",
+          "yavru",
+          "kedilerden",
+          "birini",
+          "alabilir",
+          "O",
+          "da",
+          "Roscoe'yi",
+          "seçiyor"
+        ]
+      },
+      {
+        "side": "quality_extra",
+        "words": [
+          "Meraklı",
+          "Momolar",
+          "başlıyor"
+        ]
+      },
+      {
+        "side": "quality_extra",
+        "words": [
+          "Durun",
+          "durun",
+          "durun"
+        ]
+      },
+      {
+        "side": "quality_extra",
+        "words": [
+          "oldu",
+          "Ben",
+          "çok"
+        ]
+      },
+      {
+        "side": "quality_extra",
+        "words": [
+          "Ah",
+          "E"
+        ]
+      },
+      {
+        "side": "quality_extra",
+        "words": [
+          "I",
+          "ıh"
+        ]
+      },
+      {
+        "side": "fast_extra",
+        "words": [
+          "çok",
+          "güzel"
+        ]
+      }
+    ]
+  }
+]

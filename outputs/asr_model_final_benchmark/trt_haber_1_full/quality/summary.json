@@ -1,0 +1,20 @@
+{
+  "sample_id": "trt_haber_1_full",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 95.62,
+  "runtime_seconds_wall": 18.273,
+  "runtime_seconds_reported": 18.24,
+  "runtime_per_audio_minute": 11.466,
+  "clean_word_count": 128,
+  "clean_segment_count": 9,
+  "quality_drop_count": 1,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "tek",
+    "max_token_length": 20,
+    "words_per_second": 1.8
+  }
+}

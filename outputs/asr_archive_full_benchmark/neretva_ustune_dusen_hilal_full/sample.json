@@ -1,0 +1,13 @@
+{
+  "sample_id": "neretva_ustune_dusen_hilal_full",
+  "category": "archive_documentary",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+  "prepared_audio_path": "outputs\\asr_archive_full_benchmark\\neretva_ustune_dusen_hilal_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 1980.416,
+  "source_duration": 1980.416,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_full\\neretva_ustune_dusen_hilal_full.txt",
+  "review_priority": "high",
+  "notes": "Full archive WAV; Neretva Ustune Dusen Hilal."
+}

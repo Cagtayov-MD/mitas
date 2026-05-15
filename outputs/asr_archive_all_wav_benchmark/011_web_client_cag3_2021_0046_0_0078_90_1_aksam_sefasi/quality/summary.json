@@ -1,0 +1,20 @@
+{
+  "sample_id": "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 5322.005,
+  "runtime_seconds_wall": 167.441,
+  "runtime_seconds_reported": 167.409,
+  "runtime_per_audio_minute": 1.888,
+  "clean_word_count": 653,
+  "clean_segment_count": 108,
+  "quality_drop_count": 9,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "Çiğdem,",
+    "max_token_length": 18,
+    "words_per_second": 1.32
+  }
+}

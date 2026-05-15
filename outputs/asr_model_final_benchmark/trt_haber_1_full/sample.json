@@ -1,0 +1,13 @@
+{
+  "sample_id": "trt_haber_1_full",
+  "category": "clean_news",
+  "source_path": "E:\\MITAS\\testklipler\\trt_haber (1).mp4",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_1_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 95.62,
+  "source_duration": 95.66,
+  "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_1_full.txt",
+  "review_priority": "high",
+  "notes": "Clean TRT news, good default acceptance sample."
+}

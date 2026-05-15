@@ -1,0 +1,897 @@
+{
+  "sample_id": "004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi",
+  "source_name": "web_client_CAGTEST_2025-1408-2-0100-90-1-TRT_HABER_GAZZE_YIKIMI_HAVADAN_GÖRÜNTÜLEDİ.wav",
+  "audio_duration": 324.971,
+  "audio_minutes": 5.416,
+  "quality_segment_count": 35,
+  "fast_segment_count": 35,
+  "decisions": [
+    {
+      "quality_index": 9,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 92.0,
+        "end": 99.2,
+        "duration": 7.2,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.1764,
+        "combined": -0.2656,
+        "text": "Tabii şunu özellikle belirtelim. Bu bir Ürdün uçağı ve buradaki mürettebat Ürdün ekibinden oluşuyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 92.0,
+          "end": 99.2,
+          "duration": 7.2,
+          "avg_logprob": -0.0846,
+          "no_speech_prob": 0.0,
+          "combined": -0.0846,
+          "text": "Tabii şunu özellikle delirtelim. Bu bir Ürdün uçağı ve buradaki mürettebat Ürdün ekibinden oluşuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 92.0,
+        "end": 99.2,
+        "duration": 7.2,
+        "segment_count": 1,
+        "avg_logprob": -0.0846,
+        "no_speech_prob": 0.0,
+        "combined": -0.0846
+      }
+    },
+    {
+      "quality_index": 10,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 99.62,
+        "end": 104.2,
+        "duration": 4.58,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.1764,
+        "combined": -0.2656,
+        "text": "Biz de TRT Haber olarak onlarla birlikte bu yolculuğa katıldık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 99.62,
+          "end": 104.22,
+          "duration": 4.6,
+          "avg_logprob": -0.0846,
+          "no_speech_prob": 0.0,
+          "combined": -0.0846,
+          "text": "Biz de TRT Haber olarak onlarla birlikte bu yolculuğa katıldık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 99.62,
+        "end": 104.22,
+        "duration": 4.6,
+        "segment_count": 1,
+        "avg_logprob": -0.0846,
+        "no_speech_prob": 0.0,
+        "combined": -0.0846
+      }
+    },
+    {
+      "quality_index": 11,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 104.92,
+        "end": 114.42,
+        "duration": 9.5,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.1764,
+        "combined": -0.2656,
+        "text": "Buradaki yardımlar arasında tabii Türkiye dahil olmak üzere dünyanın pek çok ülkeden ulaştırılan yardımlar Ürdün Hava Kuvvetleri tarafından dağıtılıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 104.9,
+          "end": 114.42,
+          "duration": 9.52,
+          "avg_logprob": -0.0846,
+          "no_speech_prob": 0.0,
+          "combined": -0.0846,
+          "text": "Buradaki yardımlar arasında tabii Türkiye dahil olmak üzere dünyanın pek çok ülkeden ulaştırılan yardımlar Ürdün Hava Kuvvetleri tarafından dağıtılıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 104.9,
+        "end": 114.42,
+        "duration": 9.52,
+        "segment_count": 1,
+        "avg_logprob": -0.0846,
+        "no_speech_prob": 0.0,
+        "combined": -0.0846
+      }
+    },
+    {
+      "quality_index": 12,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 114.42,
+        "end": 120.3,
+        "duration": 5.88,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.1764,
+        "combined": -0.2656,
+        "text": "Ancak ülkemizin elbette gaz ile yapılan insani yardımlarda Türkiye başı çekiyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 114.42,
+          "end": 120.3,
+          "duration": 5.88,
+          "avg_logprob": -0.0846,
+          "no_speech_prob": 0.0,
+          "combined": -0.0846,
+          "text": "Ancak ülkemizin elbette Gazze yapılan insani yardımlarda Türkiye başı çekiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 114.42,
+        "end": 120.3,
+        "duration": 5.88,
+        "segment_count": 1,
+        "avg_logprob": -0.0846,
+        "no_speech_prob": 0.0,
+        "combined": -0.0846
+      }
+    },
+    {
+      "quality_index": 13,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 138.5,
+        "end": 145.2,
+        "duration": 6.7,
+        "avg_logprob": -0.1289,
+        "no_speech_prob": 0.1224,
+        "combined": -0.2513,
+        "text": "İşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 138.5,
+          "end": 155.44,
+          "duration": 16.94,
+          "avg_logprob": -0.0812,
+          "no_speech_prob": 0.0,
+          "combined": -0.0812,
+          "text": "İşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 138.5,
+        "end": 155.44,
+        "duration": 16.94,
+        "segment_count": 1,
+        "avg_logprob": -0.0812,
+        "no_speech_prob": 0.0,
+        "combined": -0.0812
+      }
+    },
+    {
+      "quality_index": 14,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 145.2,
+        "end": 155.44,
+        "duration": 10.24,
+        "avg_logprob": -0.1289,
+        "no_speech_prob": 0.1224,
+        "combined": -0.2513,
+        "text": "Ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 138.5,
+          "end": 155.44,
+          "duration": 16.94,
+          "avg_logprob": -0.0812,
+          "no_speech_prob": 0.0,
+          "combined": -0.0812,
+          "text": "İşte bu şekilde saniyeler içerisinde yardımlar Gazze'nin güneyine fırlatıldı ve elbette sadece birkaç saniye içerisinde buradaki paketler Gazze'nin üzerine bırakıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 138.5,
+        "end": 155.44,
+        "duration": 16.94,
+        "segment_count": 1,
+        "avg_logprob": -0.0812,
+        "no_speech_prob": 0.0,
+        "combined": -0.0812
+      }
+    },
+    {
+      "quality_index": 15,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 165.8,
+        "end": 171.32,
+        "duration": 5.52,
+        "avg_logprob": -0.2087,
+        "no_speech_prob": 0.3213,
+        "combined": -0.53,
+        "text": "Rus oykırımdan önce Gazze'ye gelmişliğinde pek çok noktasında haber çalışmış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 165.8,
+          "end": 171.34,
+          "duration": 5.54,
+          "avg_logprob": -0.2723,
+          "no_speech_prob": 0.0,
+          "combined": -0.2723,
+          "text": "Bu soykırımdan önce Gazze'ye gelmişliğinde pek çok noktasında haber çalışmış.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 165.8,
+        "end": 171.34,
+        "duration": 5.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2723,
+        "no_speech_prob": 0.0,
+        "combined": -0.2723
+      }
+    },
+    {
+      "quality_index": 16,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 171.32,
+        "end": 182.16,
+        "duration": 10.84,
+        "avg_logprob": -0.2087,
+        "no_speech_prob": 0.3213,
+        "combined": -0.53,
+        "text": "Bir sürü söyleyebilirim ki İsrail'in tüm abukasına rağmen Gazze son derece hayat dolu bir yerdi ve insanın kendine son derece özgürlük hissettiği bir yerdi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 171.98,
+          "end": 182.14,
+          "duration": 10.16,
+          "avg_logprob": -0.2723,
+          "no_speech_prob": 0.0,
+          "combined": -0.2723,
+          "text": "Söyleyebilirim ki İsrail'in tüm ablugasına rağmen Gazze son derece hayat dolu bir yerdi ve insanın kendine son derece kusurduk hissettiği bir yerdi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 171.98,
+        "end": 182.14,
+        "duration": 10.16,
+        "segment_count": 1,
+        "avg_logprob": -0.2723,
+        "no_speech_prob": 0.0,
+        "combined": -0.2723
+      }
+    },
+    {
+      "quality_index": 17,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 182.5,
+        "end": 194.2,
+        "duration": 11.7,
+        "avg_logprob": -0.2087,
+        "no_speech_prob": 0.3213,
+        "combined": -0.53,
+        "text": "İsrail'in abukasının gibi zor şartlara rağmen Rus oykırımı yaşandığı derse şu an gözlerimin önünde de gerçekten tanınmaz halde topiküm bir enkazdan bahsedilir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 182.14,
+          "end": 194.14,
+          "duration": 12.0,
+          "avg_logprob": -0.2723,
+          "no_speech_prob": 0.0,
+          "combined": -0.2723,
+          "text": "İsrail'in ablugasının zor şartlara rağmen bu soykırımın ilişkisi derse şu an gözlerimin önünde ve gerçekten tanınmaz halde çok bir küm bir enkazdan bahsettiğim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 182.14,
+        "end": 194.14,
+        "duration": 12.0,
+        "segment_count": 1,
+        "avg_logprob": -0.2723,
+        "no_speech_prob": 0.0,
+        "combined": -0.2723
+      }
+    },
+    {
+      "quality_index": 18,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 194.4,
+        "end": 199.06,
+        "duration": 4.66,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaptanmış hali.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 194.4,
+          "end": 207.88,
+          "duration": 13.48,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 194.4,
+        "end": 207.88,
+        "duration": 13.48,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 19,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 199.64,
+        "end": 204.18,
+        "duration": 4.54,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Gri bir toz yuğutu tamamen sanki Gazze'nin üzerini patlamış.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 194.4,
+          "end": 207.88,
+          "duration": 13.48,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 194.4,
+        "end": 207.88,
+        "duration": 13.48,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 20,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 205.0,
+        "end": 207.86,
+        "duration": 2.86,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Doğanın tüm renkleri Gazze'den siliniş yıktı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 194.4,
+          "end": 207.88,
+          "duration": 13.48,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Sokakları, caddeleri harap olmuş, boloz yığınlarıyla kaplanmış halde, gri bir toz büyütü tamamen sanki Gazze'nin üzerini patlamış, doğanın tüm renkleri Gazze'den silini şirktir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 194.4,
+        "end": 207.88,
+        "duration": 13.48,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 21,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 209.12,
+        "end": 214.06,
+        "duration": 4.94,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Ayakta kalan tek yük binaları ise sadece beton iskeletlerden idare ettirilmektedir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 209.14,
+          "end": 219.68,
+          "duration": 10.54,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 209.14,
+        "end": 219.68,
+        "duration": 10.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 22,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 214.5,
+        "end": 217.7,
+        "duration": 3.2,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Gerçekten bu işler açısı bir durum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 209.14,
+          "end": 219.68,
+          "duration": 10.54,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 209.14,
+        "end": 219.68,
+        "duration": 10.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 23,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 218.1,
+        "end": 219.68,
+        "duration": 1.58,
+        "avg_logprob": -0.2769,
+        "no_speech_prob": 0.104,
+        "combined": -0.3809,
+        "text": "Ağaç yok, çimen yok.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 209.14,
+          "end": 219.68,
+          "duration": 10.54,
+          "avg_logprob": -0.2348,
+          "no_speech_prob": 0.0,
+          "combined": -0.2348,
+          "text": "Ayakta kalan tek yük binalarınsa sadece beton iskeletlerden ibaret yok kalak. Gerçekten bu işler açısı bir durum. Ağaç yok, çimen yok.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 209.14,
+        "end": 219.68,
+        "duration": 10.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2348,
+        "no_speech_prob": 0.0,
+        "combined": -0.2348
+      }
+    },
+    {
+      "quality_index": 24,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 219.8,
+        "end": 226.8,
+        "duration": 7.0,
+        "avg_logprob": -0.5005,
+        "no_speech_prob": 0.3696,
+        "combined": -0.8701,
+        "text": "Kuş sesleri yok ve tek köprüsü tamamen...",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 219.8,
+          "end": 222.12,
+          "duration": 2.32,
+          "avg_logprob": -0.5594,
+          "no_speech_prob": 0.0,
+          "combined": -0.5594,
+          "text": "kuş sesleri yok",
+          "flags": []
+        },
+        {
+          "start": 222.12,
+          "end": 223.42,
+          "duration": 1.3,
+          "avg_logprob": -0.5594,
+          "no_speech_prob": 0.0,
+          "combined": -0.5594,
+          "text": "ve",
+          "flags": []
+        },
+        {
+          "start": 223.42,
+          "end": 225.26,
+          "duration": 1.84,
+          "avg_logprob": -0.5594,
+          "no_speech_prob": 0.0,
+          "combined": -0.5594,
+          "text": "tek köküvizçi",
+          "flags": []
+        },
+        {
+          "start": 225.26,
+          "end": 226.74,
+          "duration": 1.48,
+          "avg_logprob": -0.5594,
+          "no_speech_prob": 0.0,
+          "combined": -0.5594,
+          "text": "tamamen",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 219.8,
+        "end": 226.74,
+        "duration": 6.94,
+        "segment_count": 4,
+        "avg_logprob": -0.5594,
+        "no_speech_prob": 0.0,
+        "combined": -0.5594
+      }
+    },
+    {
+      "quality_index": 25,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 227.6,
+        "end": 231.6,
+        "duration": 4.0,
+        "avg_logprob": -0.5563,
+        "no_speech_prob": 0.1635,
+        "combined": -0.7198,
+        "text": "Buraya inip tonlanıyordunuz, başka hiçbir şey yorulmuyordunuz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 227.6,
+          "end": 231.18,
+          "duration": 3.58,
+          "avg_logprob": -0.6694,
+          "no_speech_prob": 0.0,
+          "combined": -0.6694,
+          "text": "Bu reyini tonla videolarımız başlığı için seviyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 227.6,
+        "end": 231.18,
+        "duration": 3.58,
+        "segment_count": 1,
+        "avg_logprob": -0.6694,
+        "no_speech_prob": 0.0,
+        "combined": -0.6694
+      }
+    },
+    {
+      "quality_index": 26,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 233.3,
+        "end": 239.18,
+        "duration": 5.88,
+        "avg_logprob": -0.3274,
+        "no_speech_prob": 0.3176,
+        "combined": -0.6451,
+        "text": "Biz de TRT Ağdol olarak Gazze'nin üzerindeki güççülere katılan Ek Türk Televizyonu olarak",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 233.3,
+          "end": 239.18,
+          "duration": 5.88,
+          "avg_logprob": -0.3721,
+          "no_speech_prob": 0.0,
+          "combined": -0.3721,
+          "text": "Biz de TRT Adol olarak, Gazzey üzerindeki gülüşçülere katılan Ektürk Televizyonu olarak,",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 233.3,
+        "end": 239.18,
+        "duration": 5.88,
+        "segment_count": 1,
+        "avg_logprob": -0.3721,
+        "no_speech_prob": 0.0,
+        "combined": -0.3721
+      }
+    },
+    {
+      "quality_index": 27,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 239.18,
+        "end": 245.78,
+        "duration": 6.6,
+        "avg_logprob": -0.3274,
+        "no_speech_prob": 0.3176,
+        "combined": -0.6451,
+        "text": "Adana Manakalışı Osman Ege'nin görüntüleriyle ilk kez Türkiye'de ekranlara yırtılacağız.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 239.66,
+          "end": 245.8,
+          "duration": 6.14,
+          "avg_logprob": -0.3721,
+          "no_speech_prob": 0.0,
+          "combined": -0.3721,
+          "text": "Kadanavana karışım Osman Ekleyi'nin görüntüleriyle ilk kez Türkiye'de ekranları yüktüreceğiz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 239.66,
+        "end": 245.8,
+        "duration": 6.14,
+        "segment_count": 1,
+        "avg_logprob": -0.3721,
+        "no_speech_prob": 0.0,
+        "combined": -0.3721
+      }
+    },
+    {
+      "quality_index": 28,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 246.14,
+        "end": 251.52,
+        "duration": 5.38,
+        "avg_logprob": -0.3274,
+        "no_speech_prob": 0.3176,
+        "combined": -0.6451,
+        "text": "Gazze'nin şu an bunların görünmesi gerekiyor galip de, konuşulması gerekiyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 246.14,
+          "end": 251.5,
+          "duration": 5.36,
+          "avg_logprob": -0.3721,
+          "no_speech_prob": 0.0,
+          "combined": -0.3721,
+          "text": "Gazzey'nin şu an bunların görünmesi gerekiyor kalpte, konuşulması gerekiyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 246.14,
+        "end": 251.5,
+        "duration": 5.36,
+        "segment_count": 1,
+        "avg_logprob": -0.3721,
+        "no_speech_prob": 0.0,
+        "combined": -0.3721
+      }
+    },
+    {
+      "quality_index": 29,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 252.58,
+        "end": 257.64,
+        "duration": 5.06,
+        "avg_logprob": -0.3274,
+        "no_speech_prob": 0.3176,
+        "combined": -0.6451,
+        "text": "Parayla geliyor ki şu an 2 milyondan fazla feyizlilik, soykırımın ardından.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 252.58,
+          "end": 257.66,
+          "duration": 5.08,
+          "avg_logprob": -0.3721,
+          "no_speech_prob": 0.0,
+          "combined": -0.3721,
+          "text": "Bana ne geliyor ki şu an 2 milyondan patlatı, İsrail'lik, soykırımın ardından.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 252.58,
+        "end": 257.66,
+        "duration": 5.08,
+        "segment_count": 1,
+        "avg_logprob": -0.3721,
+        "no_speech_prob": 0.0,
+        "combined": -0.3721
+      }
+    },
+    {
+      "quality_index": 30,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 257.64,
+        "end": 261.46,
+        "duration": 3.82,
+        "avg_logprob": -0.3274,
+        "no_speech_prob": 0.3176,
+        "combined": -0.6451,
+        "text": "Tarih gerilerini değil, dert gerileri kaybetmediler.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 257.66,
+          "end": 261.44,
+          "duration": 3.78,
+          "avg_logprob": -0.3721,
+          "no_speech_prob": 0.0,
+          "combined": -0.3721,
+          "text": "Gazzey'nin şu an, gazetelerini değil, gazetelerini kaybetmediler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 257.66,
+        "end": 261.44,
+        "duration": 3.78,
+        "segment_count": 1,
+        "avg_logprob": -0.3721,
+        "no_speech_prob": 0.0,
+        "combined": -0.3721
+      }
+    },
+    {
+      "quality_index": 31,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 261.825,
+        "end": 273.665,
+        "duration": 11.84,
+        "avg_logprob": -0.1467,
+        "no_speech_prob": 0.1599,
+        "combined": -0.3066,
+        "text": "Sevdiklerini kaybettiler. Hatıralarını kaybettiler. Belki de en kötüsü insanlığa olan mutlarını kaybettiler.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 261.825,
+          "end": 265.705,
+          "duration": 3.88,
+          "avg_logprob": -0.3627,
+          "no_speech_prob": 0.0,
+          "combined": -0.3627,
+          "text": "Sevdiklerini kaybettiler, hatıralarını kaybettiler.",
+          "flags": []
+        },
+        {
+          "start": 265.865,
+          "end": 267.245,
+          "duration": 1.38,
+          "avg_logprob": -0.3627,
+          "no_speech_prob": 0.0,
+          "combined": -0.3627,
+          "text": "Yüzdümçuların arası yıptan et.",
+          "flags": []
+        },
+        {
+          "start": 267.805,
+          "end": 273.665,
+          "duration": 5.86,
+          "avg_logprob": -0.3627,
+          "no_speech_prob": 0.0,
+          "combined": -0.3627,
+          "text": "Belki de en kötüsü insanlığa olan yurtlarını kaybettiler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 261.825,
+        "end": 273.665,
+        "duration": 11.12,
+        "segment_count": 3,
+        "avg_logprob": -0.3627,
+        "no_speech_prob": 0.0,
+        "combined": -0.3627
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 23,
+    "auto_swaps": 4,
+    "review_candidates": 19,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 11.46,
+    "review_quality_duration": 132.06,
+    "kept_risky_quality_duration": 0
+  }
+}

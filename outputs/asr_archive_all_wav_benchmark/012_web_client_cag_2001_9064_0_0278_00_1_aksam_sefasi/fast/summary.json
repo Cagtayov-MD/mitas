@@ -1,0 +1,20 @@
+{
+  "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 5339.328,
+  "runtime_seconds_wall": 111.846,
+  "runtime_seconds_reported": 111.81,
+  "runtime_per_audio_minute": 1.257,
+  "clean_word_count": 335,
+  "clean_segment_count": 60,
+  "quality_drop_count": 15,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "zaman",
+    "max_token_length": 14,
+    "words_per_second": 1.08
+  }
+}

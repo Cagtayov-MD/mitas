@@ -1,0 +1,64 @@
+benchmark_id: asr_archive_full_v0_1
+benchmark_name: ASR archive full benchmark
+module: asr
+purpose: Run full-length ASR regression on TRT archive WAV samples with manually transcribed references.
+decision_policy:
+  default_candidate: large-v3-turbo
+  fallback_candidate: large-v3
+  preferred_runtime_profile: fast_with_fallback
+  final_if:
+    - large-v3-turbo has no safety failures on the archive set.
+    - large-v3-turbo WER is no more than 0.03 absolute worse than large-v3 on the archive set.
+    - large-v3-turbo does not drop important named entities compared with large-v3 in manual review.
+    - large-v3-turbo is at least 1.5x faster than large-v3 on average.
+  not_final_if:
+    - Any model creates repeated-token collapse, long-token artifact, or stock subtitle artifact that passes the quality gate.
+    - large-v3-turbo misses whole spoken passages that large-v3 captures.
+    - Timestamp drift makes downstream timeline use unreliable.
+metrics:
+  - wer
+  - cer
+  - runtime_per_audio_minute
+  - speedup_vs_large_v3
+  - clean_word_count
+  - safety_passed
+  - quality_drop_count
+  - manual_named_entity_notes
+reference_rules:
+  transcript_level: full-program text reference
+  punctuation: punctuation differences should not decide the model
+  casing: casing differences should not decide the model
+  named_entities: review manually, especially person/place/institution names
+  timestamps: inspect segment timing manually for all three samples
+samples:
+  - sample_id: baris_manco_7den_77ye_full
+    category: archive_entertainment
+    source_path: //depo01cifs.int.trt.net.tr/sas_h264/testset/wav/web_client_CAG_1988-0098-0-003-00-1-BARIŞ_MANÇO_İLE_7'DEN_77'YE.wav
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_archive_full/baris_manco_7den_77ye_full.txt
+    review_priority: high
+    notes: Full archive WAV; Baris Manco ile 7'den 77'ye.
+  - sample_id: neretva_ustune_dusen_hilal_full
+    category: archive_documentary
+    source_path: //depo01cifs.int.trt.net.tr/sas_h264/testset/wav/web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_archive_full/neretva_ustune_dusen_hilal_full.txt
+    review_priority: high
+    notes: Full archive WAV; Neretva Ustune Dusen Hilal.
+  - sample_id: merakli_momolar_full
+    category: archive_children
+    source_path: //depo01cifs.int.trt.net.tr/sas_h264/testset/wav/web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav
+    start_sec: null
+    end_sec: null
+    reference_path: references/asr_archive_full/merakli_momolar_full.txt
+    review_priority: high
+    notes: Full archive WAV; Merakli Momolar.
+outputs:
+  root: outputs/asr_archive_full_benchmark
+  report_json: outputs/asr_archive_full_benchmark/report.json
+  report_md: outputs/asr_archive_full_benchmark/report.md
+  draft_references_dir: outputs/asr_archive_full_benchmark/draft_references
+status: prepared
+decision_status: awaiting_reference_transcripts

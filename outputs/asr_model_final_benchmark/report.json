@@ -1,0 +1,300 @@
+{
+  "benchmark_id": "asr_model_final_v0_1",
+  "profiles": [
+    "fast",
+    "quality"
+  ],
+  "rows": [
+    {
+      "sample_id": "trt_haber_1_full",
+      "category": "clean_news",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_1_full.txt",
+      "draft_reference_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\draft_references\\trt_haber_1_full.txt",
+      "speedup_quality_vs_fast": 2.001,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_1_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 95.62,
+          "runtime_seconds_wall": 9.13,
+          "runtime_seconds_reported": 9.093,
+          "runtime_per_audio_minute": 5.729,
+          "clean_word_count": 125,
+          "clean_segment_count": 12,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "tek",
+            "max_token_length": 20,
+            "words_per_second": 1.78
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_1_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 95.62,
+          "runtime_seconds_wall": 18.273,
+          "runtime_seconds_reported": 18.24,
+          "runtime_per_audio_minute": 11.466,
+          "clean_word_count": 128,
+          "clean_segment_count": 9,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 2,
+            "repeated_token": "tek",
+            "max_token_length": 20,
+            "words_per_second": 1.8
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "trt_haber_2_full",
+      "category": "clean_news",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_2_full.txt",
+      "draft_reference_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\draft_references\\trt_haber_2_full.txt",
+      "speedup_quality_vs_fast": 2.493,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_2_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 146.704,
+          "runtime_seconds_wall": 11.191,
+          "runtime_seconds_reported": 11.158,
+          "runtime_per_audio_minute": 4.577,
+          "clean_word_count": 238,
+          "clean_segment_count": 24,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Ben",
+            "max_token_length": 15,
+            "words_per_second": 2.07
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_2_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 146.704,
+          "runtime_seconds_wall": 27.902,
+          "runtime_seconds_reported": 27.868,
+          "runtime_per_audio_minute": 11.411,
+          "clean_word_count": 254,
+          "clean_segment_count": 27,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Ben",
+            "max_token_length": 15,
+            "words_per_second": 2.08
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "trt_haber_3_full",
+      "category": "clean_news",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_3_full.txt",
+      "draft_reference_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\draft_references\\trt_haber_3_full.txt",
+      "speedup_quality_vs_fast": 2.201,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_3_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 75.418,
+          "runtime_seconds_wall": 8.314,
+          "runtime_seconds_reported": 8.281,
+          "runtime_per_audio_minute": 6.614,
+          "clean_word_count": 128,
+          "clean_segment_count": 10,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "İstanbul'da",
+            "max_token_length": 14,
+            "words_per_second": 2.19
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "trt_haber_3_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 75.418,
+          "runtime_seconds_wall": 18.295,
+          "runtime_seconds_reported": 18.262,
+          "runtime_per_audio_minute": 14.555,
+          "clean_word_count": 130,
+          "clean_segment_count": 13,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "İstanbul'da",
+            "max_token_length": 14,
+            "words_per_second": 2.24
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "beyaz1_03_05",
+      "category": "talk_show",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_model_final\\beyaz1_03_05.txt",
+      "draft_reference_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\draft_references\\beyaz1_03_05.txt",
+      "speedup_quality_vs_fast": 1.375,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "beyaz1_03_05",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 120.0,
+          "runtime_seconds_wall": 20.65,
+          "runtime_seconds_reported": 20.616,
+          "runtime_per_audio_minute": 10.325,
+          "clean_word_count": 234,
+          "clean_segment_count": 41,
+          "quality_drop_count": 3,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 3,
+            "repeated_token": "Evet.",
+            "max_token_length": 13,
+            "words_per_second": 2.74
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "beyaz1_03_05",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 120.0,
+          "runtime_seconds_wall": 28.391,
+          "runtime_seconds_reported": 28.355,
+          "runtime_per_audio_minute": 14.196,
+          "clean_word_count": 292,
+          "clean_segment_count": 41,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Konusu",
+            "max_token_length": 13,
+            "words_per_second": 2.54
+          }
+        }
+      }
+    },
+    {
+      "sample_id": "erd_test_full",
+      "category": "multilingual_press",
+      "reference_ready": false,
+      "reference_path": "E:\\MITAS\\references\\asr_model_final\\erd_test_full.txt",
+      "draft_reference_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\draft_references\\erd_test_full.txt",
+      "speedup_quality_vs_fast": 2.64,
+      "profiles": {
+        "fast": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "erd_test_full",
+          "profile": "fast",
+          "model_name": "large-v3-turbo",
+          "audio_duration": 195.257,
+          "runtime_seconds_wall": 15.741,
+          "runtime_seconds_reported": 15.707,
+          "runtime_per_audio_minute": 4.837,
+          "clean_word_count": 260,
+          "clean_segment_count": 45,
+          "quality_drop_count": 5,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 1,
+            "repeated_token": "Bir",
+            "max_token_length": 19,
+            "words_per_second": 1.85
+          }
+        },
+        "quality": {
+          "status": "awaiting_reference",
+          "wer": null,
+          "cer": null,
+          "reference_ready": false,
+          "sample_id": "erd_test_full",
+          "profile": "quality",
+          "model_name": "large-v3",
+          "audio_duration": 195.257,
+          "runtime_seconds_wall": 41.553,
+          "runtime_seconds_reported": 41.518,
+          "runtime_per_audio_minute": 12.769,
+          "clean_word_count": 249,
+          "clean_segment_count": 57,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "safety_failure": null,
+          "safety_diagnostics": {
+            "max_run": 18,
+            "repeated_token": "İngilizce",
+            "max_token_length": 19,
+            "words_per_second": 1.64
+          }
+        }
+      }
+    }
+  ],
+  "decision_hint": "awaiting_reference_transcripts"
+}

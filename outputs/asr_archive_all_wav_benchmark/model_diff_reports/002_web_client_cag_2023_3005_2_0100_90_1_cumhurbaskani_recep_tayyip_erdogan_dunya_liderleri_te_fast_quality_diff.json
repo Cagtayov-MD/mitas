@@ -1,0 +1,164 @@
+{
+  "sample_id": "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+  "source_name": "web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav",
+  "fast_words": 271,
+  "quality_words": 268,
+  "edit_distance_fast_vs_quality": 8,
+  "substitution_count": 5,
+  "fast_extra_word_count": 3,
+  "quality_extra_word_count": 0,
+  "diff_rows": [
+    {
+      "fast": "Devletleri",
+      "quality": "ABD",
+      "count": 1,
+      "fast_metrics": {
+        "start": 21.7,
+        "end": 32.26,
+        "duration": 10.56,
+        "avg_logprob": -0.0561,
+        "no_speech_prob": 0.0,
+        "combined": -0.0561,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 21.64,
+        "end": 32.26,
+        "duration": 10.62,
+        "avg_logprob": -0.0562,
+        "no_speech_prob": 0.0321,
+        "combined": -0.0883,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": 0.0323,
+      "winner_by_combined": "near_tie",
+      "fast_context": "açıklama iletişim başkanlığından yapıldı Açıklamada Amerika Birleşik Devletleri Başkanı Joe Biden'ın Cumhurbaşkanı Recep Tayyip Erdoğan'ı",
+      "quality_context": "Görüşmelere dair açıklama iletişim başkanlığından yapıldı Açıklamada ABD Başkanı Joe Biden'ın Cumhurbaşkanı Recep Tayyip Erdoğan'ı"
+    },
+    {
+      "fast": "Mahmut",
+      "quality": "Mahmud",
+      "count": 1,
+      "fast_metrics": {
+        "start": 125.5,
+        "end": 131.64,
+        "duration": 6.14,
+        "avg_logprob": -0.103,
+        "no_speech_prob": 0.0,
+        "combined": -0.103,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 125.5,
+        "end": 131.64,
+        "duration": 6.14,
+        "avg_logprob": -0.0974,
+        "no_speech_prob": 0.0086,
+        "combined": -0.1059,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.0029,
+      "winner_by_combined": "near_tie",
+      "fast_context": "atanması hususunda mutabık kaldı Filistin Devlet Başkanı Mahmut Abbas Erdoğan'ı arayarak yeniden Cumhurbaşkanlığına seçilmesini kutladı",
+      "quality_context": "atanması hususunda mutabık kaldı Filistin Devlet Başkanı Mahmud Abbas Erdoğan'ı arayarak yeniden Cumhurbaşkanlığına seçilmesini kutladı"
+    },
+    {
+      "fast": "yine",
+      "quality": "Gine",
+      "count": 1,
+      "fast_metrics": {
+        "start": 132.0,
+        "end": 141.12,
+        "duration": 9.12,
+        "avg_logprob": -0.103,
+        "no_speech_prob": 0.0,
+        "combined": -0.103,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 131.98,
+        "end": 141.12,
+        "duration": 9.14,
+        "avg_logprob": -0.0974,
+        "no_speech_prob": 0.0086,
+        "combined": -0.1059,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.0029,
+      "winner_by_combined": "near_tie",
+      "fast_context": "seçilmesini kutladı Pakistan Başbakanı Şahbaz Şerif ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da",
+      "quality_context": "seçilmesini kutladı Pakistan Başbakanı Şahbaz Şerif ve Gine Bissau Cumhurbaşkanı Umar Osissoco Embalo da Cumhurbaşkanı"
+    },
+    {
+      "fast": "Sojo",
+      "quality": "Osissoco",
+      "count": 1,
+      "fast_metrics": {
+        "start": 132.0,
+        "end": 141.12,
+        "duration": 9.12,
+        "avg_logprob": -0.103,
+        "no_speech_prob": 0.0,
+        "combined": -0.103,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 131.98,
+        "end": 141.12,
+        "duration": 9.14,
+        "avg_logprob": -0.0974,
+        "no_speech_prob": 0.0086,
+        "combined": -0.1059,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.0029,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Şerif ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti",
+      "quality_context": "Şahbaz Şerif ve Gine Bissau Cumhurbaşkanı Umar Osissoco Embalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti"
+    },
+    {
+      "fast": "Mbalo",
+      "quality": "Embalo",
+      "count": 1,
+      "fast_metrics": {
+        "start": 132.0,
+        "end": 141.12,
+        "duration": 9.12,
+        "avg_logprob": -0.103,
+        "no_speech_prob": 0.0,
+        "combined": -0.103,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "quality_metrics": {
+        "start": 131.98,
+        "end": 141.12,
+        "duration": 9.14,
+        "avg_logprob": -0.0974,
+        "no_speech_prob": 0.0086,
+        "combined": -0.1059,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.0029,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti İletişim",
+      "quality_context": "Şerif ve Gine Bissau Cumhurbaşkanı Umar Osissoco Embalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti İletişim"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "fast_extra",
+      "text": "Amerika Birleşik",
+      "word_count": 2
+    }
+  ]
+}

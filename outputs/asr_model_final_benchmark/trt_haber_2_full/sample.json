@@ -1,0 +1,13 @@
+{
+  "sample_id": "trt_haber_2_full",
+  "category": "clean_news",
+  "source_path": "E:\\MITAS\\testklipler\\trt_haber (2).mp4",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_2_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 146.704,
+  "source_duration": 146.744,
+  "reference_path": "E:\\MITAS\\references\\asr_model_final\\trt_haber_2_full.txt",
+  "review_priority": "high",
+  "notes": "Clean report with several names and institutions."
+}

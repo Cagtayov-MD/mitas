@@ -1,0 +1,7 @@
+# Draft reference for trt_haber_3_full
+# Listen to the source audio/video and manually correct this text.
+# Delete these comment lines before copying into references/asr_model_final/.
+
+İstanbul'da tramvay yolunda hızla ilerleyen otomobil ışıklarda karşıya geçmeye çalışan araca çarptı. Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı. Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı. Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek. Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.
+
+Vanda durum bu. Arkadaşımız Hümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık, getirdik ekranlarınıza. Şimdi Ardahan ve Karst sınırları arasında bulunan Çıldır Gölü'nün de yüzeyi kısmen buz tuttu. Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı. Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı. Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.

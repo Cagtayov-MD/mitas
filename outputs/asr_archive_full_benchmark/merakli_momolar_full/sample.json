@@ -1,0 +1,13 @@
+{
+  "sample_id": "merakli_momolar_full",
+  "category": "archive_children",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+  "prepared_audio_path": "outputs\\asr_archive_full_benchmark\\merakli_momolar_full\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 1223.083,
+  "source_duration": 1223.083,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_full\\merakli_momolar_full.txt",
+  "review_priority": "high",
+  "notes": "Full archive WAV; Merakli Momolar."
+}

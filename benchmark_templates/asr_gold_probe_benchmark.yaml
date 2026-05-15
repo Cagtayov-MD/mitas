@@ -1,0 +1,81 @@
+benchmark_id: asr_gold_probe_v0_1
+benchmark_name: ASR gold probe benchmark
+module: asr
+purpose: Build a small diverse manually scored set before deciding fast/quality/hybrid policy.
+decision_policy:
+  default_candidate: fast-first selective quality
+  final_if:
+    - fast-only, quality-only, and hybrid candidates are compared against manual references.
+    - named entity errors are reviewed separately from WER/CER.
+metrics:
+  - wer
+  - cer
+  - runtime_per_audio_minute
+  - safety_passed
+  - quality_drop_count
+reference_rules:
+  transcript_level: exact text for selected time windows
+  punctuation: punctuation differences should not decide the model
+  casing: casing differences should not decide the model
+  named_entities: review manually and mark important person/place/institution names
+review_workflow:
+  mode: asr_candidate_correction
+  candidate_command: python scripts/asr_model_final_benchmark.py --manifest benchmark_templates/asr_gold_probe_benchmark.yaml --out-root outputs/asr_gold_probe_benchmark --review
+  user_task: Listen to the ASR candidate text and report only wrong words or phrases.
+  score_gate: Reference files must not contain timestamps, TODO placeholders, or draft comment lines.
+samples:
+  - sample_id: gold_h1_news_0000_0100
+    category: clean_news
+    source_path: outputs/asr_archive_all_wav_benchmark/001_h1/audio_16000hz_mono_s16.wav
+    start_sec: 0.0
+    end_sec: 100.0
+    reference_path: references/asr_gold_probe/gold_h1_news_0000_0100.txt
+    review_priority: medium
+    notes: Clean short news/professional speech sample.
+  - sample_id: gold_neretva_bridge_0340_0440
+    category: documentary_named_entities
+    source_path: outputs/asr_archive_all_wav_benchmark/007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal/audio_16000hz_mono_s16.wav
+    start_sec: 220.0
+    end_sec: 280.0
+    reference_path: references/asr_gold_probe/gold_neretva_bridge_0340_0440.txt
+    review_priority: high
+    notes: Neretva/Mostar bridge segment with previous quality hallucination risk.
+  - sample_id: gold_merakli_momolar_0000_0100
+    category: children_dubbing
+    source_path: outputs/asr_archive_all_wav_benchmark/005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar/audio_16000hz_mono_s16.wav
+    start_sec: 0.0
+    end_sec: 100.0
+    reference_path: references/asr_gold_probe/gold_merakli_momolar_0000_0100.txt
+    review_priority: high
+    notes: Dubbing/children content with character names.
+  - sample_id: gold_baris_manco_children_0140_0340
+    category: entertainment_children
+    source_path: outputs/asr_archive_all_wav_benchmark/010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye/audio_16000hz_mono_s16.wav
+    start_sec: 100.0
+    end_sec: 220.0
+    reference_path: references/asr_gold_probe/gold_baris_manco_children_0140_0340.txt
+    review_priority: high
+    notes: Baris Manco children/talk-show opening.
+  - sample_id: gold_kuran_0000_0100
+    category: religious_competition
+    source_path: outputs/asr_archive_all_wav_benchmark/013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi/audio_16000hz_mono_s16.wav
+    start_sec: 0.0
+    end_sec: 100.0
+    reference_path: references/asr_gold_probe/gold_kuran_0000_0100.txt
+    review_priority: high
+    notes: Religious terminology and recitation-adjacent program speech.
+  - sample_id: gold_mehmed_0000_0100
+    category: historical_drama
+    source_path: outputs/asr_archive_all_wav_benchmark/014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani/audio_16000hz_mono_s16.wav
+    start_sec: 0.0
+    end_sec: 100.0
+    reference_path: references/asr_gold_probe/gold_mehmed_0000_0100.txt
+    review_priority: high
+    notes: Historical names and dramatic speech.
+outputs:
+  root: outputs/asr_gold_probe_benchmark
+  report_json: outputs/asr_gold_probe_benchmark/report.json
+  report_md: outputs/asr_gold_probe_benchmark/report.md
+  draft_references_dir: outputs/asr_gold_probe_benchmark/draft_references
+status: prepared
+decision_status: awaiting_reference_transcripts

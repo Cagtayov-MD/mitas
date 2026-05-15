@@ -1,0 +1,246 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 166.699,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Cumhurbaşkanı Erdoğan'ı seçimdeki başarısının ardından birçok ülkenin lideri telefonla arayarak tebrik etti. Görüşmelerde ülkeler arası ilişkiler ve bölgesel konular değerlendirildi. Görüşmelere dair açıklama iletişim başkanlığından yapıldı. Açıklamada Amerika Birleşik Devletleri Başkanı Joe Biden'ın Cumhurbaşkanı Recep Tayyip Erdoğan'ı yeniden Cumhurbaşkanlığına seçilmesi dolayısıyla tebrik ettiği belirtildi. İki lider bölgesel ve küresel meydan okumalar karşısında Türkiye-ABD ilişkilerinin daha da önem taşıdığına dikkat çekti. Yeni dönemde ülkeler arasındaki tüm konularda iş birliğini ilerletme hususunda mutabık kaldı. Cumhurbaşkanı Erdoğan'ı seçim başarısı dolayısıyla arayan liderlerden biri de Rusya Devlet Başkanı Vladimir Putin oldu. Liderler önümüzdeki süreçte Türkiye-Rusya ilişkilerinde ve bölgesel konularda iş birliğini daha da geliştirme konusunda mutabakata vardı. Fransa Cumhurbaşkanı Emmanuel Macron, Erdoğan'ı telefonla arayarak seçim başarısı dolayısıyla tebrik etti. Cumhurbaşkanı Erdoğan'ı telefonla arayan İsrailli mevkidaşı Isaac Herzog ve İsrail Başbakanı Benjamin Netanyahu tekrar Cumhurbaşkanlığına seçilmesini kutladı. Hollanda Başbakanı Mark Rut ve Almanya Başbakanı Olaf Scholz da Cumhurbaşkanı Erdoğan'ı telefonla arayan liderler arasındaydı. Rut ve Scholz Erdoğan'ın seçim başarısını tebrik etti. Cumhurbaşkanı Erdoğan'a bir tebrik telefonu da Ukrayna Devlet Başkanı Volodymyr Zelenski'den geldi. Mısır Cumhurbaşkanı Abdülfettah Essisi de Cumhurbaşkanı Erdoğan'la telefonla görüşerek tebriklerini iletti. Ekonomi başta olmak üzere Türkiye-Mısır ilişkilerini derinleştirecek adımlar ve bölgesel meselelerin de ele alındığı görüşmede iki lider karşılıklı olarak büyük elçi atanması hususunda mutabık kaldı. Filistin Devlet Başkanı Mahmut Abbas Erdoğan'ı arayarak yeniden Cumhurbaşkanlığına seçilmesini kutladı. Pakistan Başbakanı Şahbaz Şerif ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti. İletişim Başkanı Fahrettin Altun, dünya liderlerinin tebrik telefonlarına ilişkin paylaşım yaptı. Cumhurbaşkanı Erdoğan'ın 19 ülkeden tebrik telefonu aldığını kaydetti. Bunun yanı sıra 100'ün üzerinde ülke ve uluslararası kuruluşunda Cumhurbaşkanı Erdoğan'ı yazılı mesajla tebrik ettiğini belirtti.",
+    "clean": "Cumhurbaşkanı Erdoğan'ı seçimdeki başarısının ardından birçok ülkenin lideri telefonla arayarak tebrik etti. Görüşmelerde ülkeler arası ilişkiler ve bölgesel konular değerlendirildi. Görüşmelere dair açıklama iletişim başkanlığından yapıldı.\n\nAçıklamada Amerika Birleşik Devletleri Başkanı Joe Biden'ın Cumhurbaşkanı Recep Tayyip Erdoğan'ı yeniden Cumhurbaşkanlığına seçilmesi dolayısıyla tebrik ettiği belirtildi. İki lider bölgesel ve küresel meydan okumalar karşısında Türkiye-ABD ilişkilerinin daha da önem taşıdığına dikkat çekti. Yeni dönemde ülkeler arasındaki tüm konularda iş birliğini ilerletme hususunda mutabık kaldı. Cumhurbaşkanı Erdoğan'ı seçim başarısı dolayısıyla arayan liderlerden biri de Rusya Devlet Başkanı Vladimir Putin oldu. Liderler önümüzdeki süreçte Türkiye-Rusya ilişkilerinde ve bölgesel konularda iş birliğini daha da geliştirme konusunda mutabakata vardı. Fransa Cumhurbaşkanı Emmanuel Macron, Erdoğan'ı telefonla arayarak seçim başarısı dolayısıyla tebrik etti. Cumhurbaşkanı Erdoğan'ı telefonla arayan İsrailli mevkidaşı Isaac Herzog ve İsrail Başbakanı Benjamin Netanyahu tekrar Cumhurbaşkanlığına seçilmesini kutladı. Hollanda Başbakanı Mark Rut ve Almanya Başbakanı Olaf Scholz da Cumhurbaşkanı Erdoğan'ı telefonla arayan liderler arasındaydı. Rut ve Scholz Erdoğan'ın seçim başarısını tebrik etti. Cumhurbaşkanı Erdoğan'a bir tebrik telefonu da Ukrayna Devlet Başkanı Volodymyr Zelenski'den geldi. Mısır Cumhurbaşkanı Abdülfettah Essisi de Cumhurbaşkanı Erdoğan'la telefonla görüşerek tebriklerini iletti. Ekonomi başta olmak üzere Türkiye-Mısır ilişkilerini derinleştirecek adımlar ve bölgesel meselelerin de ele alındığı görüşmede iki lider karşılıklı olarak büyük elçi atanması hususunda mutabık kaldı.\n\nFilistin Devlet Başkanı Mahmut Abbas Erdoğan'ı arayarak yeniden Cumhurbaşkanlığına seçilmesini kutladı. Pakistan Başbakanı Şahbaz Şerif ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti. İletişim Başkanı Fahrettin Altun, dünya liderlerinin tebrik telefonlarına ilişkin paylaşım yaptı. Cumhurbaşkanı Erdoğan'ın 19 ülkeden tebrik telefonu aldığını kaydetti. Bunun yanı sıra 100'ün üzerinde ülke ve uluslararası kuruluşunda Cumhurbaşkanı Erdoğan'ı yazılı mesajla tebrik ettiğini belirtti.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 2.9,
+      "end": 9.38,
+      "text": "Cumhurbaşkanı Erdoğan'ı seçimdeki başarısının ardından birçok ülkenin lideri telefonla arayarak tebrik etti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07741095173743463,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 10.12,
+      "end": 14.62,
+      "text": "Görüşmelerde ülkeler arası ilişkiler ve bölgesel konular değerlendirildi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07741095173743463,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 15.26,
+      "end": 18.68,
+      "text": "Görüşmelere dair açıklama iletişim başkanlığından yapıldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.07741095173743463,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 21.7,
+      "end": 32.26,
+      "text": "Açıklamada Amerika Birleşik Devletleri Başkanı Joe Biden'ın Cumhurbaşkanı Recep Tayyip Erdoğan'ı yeniden Cumhurbaşkanlığına seçilmesi dolayısıyla tebrik ettiği belirtildi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.056053323032972696,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 32.46,
+      "end": 40.36,
+      "text": "İki lider bölgesel ve küresel meydan okumalar karşısında Türkiye-ABD ilişkilerinin daha da önem taşıdığına dikkat çekti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.056053323032972696,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 40.68,
+      "end": 46.8,
+      "text": "Yeni dönemde ülkeler arasındaki tüm konularda iş birliğini ilerletme hususunda mutabık kaldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.056053323032972696,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 47.6,
+      "end": 55.44,
+      "text": "Cumhurbaşkanı Erdoğan'ı seçim başarısı dolayısıyla arayan liderlerden biri de Rusya Devlet Başkanı Vladimir Putin oldu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.045095485490229396,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 55.44,
+      "end": 64.76,
+      "text": "Liderler önümüzdeki süreçte Türkiye-Rusya ilişkilerinde ve bölgesel konularda iş birliğini daha da geliştirme konusunda mutabakata vardı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.045095485490229396,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 65.25,
+      "end": 71.81,
+      "text": "Fransa Cumhurbaşkanı Emmanuel Macron, Erdoğan'ı telefonla arayarak seçim başarısı dolayısıyla tebrik etti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05859375015685433,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 72.07,
+      "end": 81.83,
+      "text": "Cumhurbaşkanı Erdoğan'ı telefonla arayan İsrailli mevkidaşı Isaac Herzog ve İsrail Başbakanı Benjamin Netanyahu tekrar Cumhurbaşkanlığına seçilmesini kutladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05859375015685433,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 82.5,
+      "end": 90.66,
+      "text": "Hollanda Başbakanı Mark Rut ve Almanya Başbakanı Olaf Scholz da Cumhurbaşkanı Erdoğan'ı telefonla arayan liderler arasındaydı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05546137848693245,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 90.88,
+      "end": 94.42,
+      "text": "Rut ve Scholz Erdoğan'ın seçim başarısını tebrik etti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05546137848693245,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 94.76,
+      "end": 100.64,
+      "text": "Cumhurbaşkanı Erdoğan'a bir tebrik telefonu da Ukrayna Devlet Başkanı Volodymyr Zelenski'den geldi.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.05546137848693245,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 102.2,
+      "end": 109.5,
+      "text": "Mısır Cumhurbaşkanı Abdülfettah Essisi de Cumhurbaşkanı Erdoğan'la telefonla görüşerek tebriklerini iletti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0627866939667168,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 109.5,
+      "end": 122.26,
+      "text": "Ekonomi başta olmak üzere Türkiye-Mısır ilişkilerini derinleştirecek adımlar ve bölgesel meselelerin de ele alındığı görüşmede iki lider karşılıklı olarak büyük elçi atanması hususunda mutabık kaldı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0627866939667168,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 125.5,
+      "end": 131.64,
+      "text": "Filistin Devlet Başkanı Mahmut Abbas Erdoğan'ı arayarak yeniden Cumhurbaşkanlığına seçilmesini kutladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10304276331474907,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 132.0,
+      "end": 141.12,
+      "text": "Pakistan Başbakanı Şahbaz Şerif ve yine Bissau Cumhurbaşkanı Umar Ossi Sojo Mbalo da Cumhurbaşkanı Erdoğan'ı telefonla tebrik etti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.10304276331474907,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 143.1,
+      "end": 150.0,
+      "text": "İletişim Başkanı Fahrettin Altun, dünya liderlerinin tebrik telefonlarına ilişkin paylaşım yaptı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0544836946155714,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 150.26,
+      "end": 154.72,
+      "text": "Cumhurbaşkanı Erdoğan'ın 19 ülkeden tebrik telefonu aldığını kaydetti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0544836946155714,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 154.72,
+      "end": 163.56,
+      "text": "Bunun yanı sıra 100'ün üzerinde ülke ve uluslararası kuruluşunda Cumhurbaşkanı Erdoğan'ı yazılı mesajla tebrik ettiğini belirtti.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.0544836946155714,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 25.908,
+    "chunk_count": 8,
+    "decode_seconds": 13.486,
+    "fallback_seconds": 0.0
+  }
+}

@@ -1,0 +1,2664 @@
+{
+  "sample_id": "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+  "source_name": "web_client_CAG3_2021-0046-0-0078-90-1-AKŞAM_SEFASI.wav",
+  "audio_duration": 5322.005,
+  "audio_minutes": 88.7,
+  "quality_segment_count": 108,
+  "fast_segment_count": 108,
+  "decisions": [
+    {
+      "quality_index": 6,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 519.35,
+        "end": 529.59,
+        "duration": 10.24,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.102,
+        "combined": -0.2422,
+        "text": "Evet solist arkadaşlarımın yerlerini alırken sahnede Ömer, Faruk, Özcan kalıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 519.35,
+          "end": 529.59,
+          "duration": 10.24,
+          "avg_logprob": -0.1853,
+          "no_speech_prob": 0.0,
+          "combined": -0.1853,
+          "text": "Evet, solist arkadaşlarımın yerlerini alırken sahnede Ömer, Faruk, Özcan kalıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 519.35,
+        "end": 529.59,
+        "duration": 10.24,
+        "segment_count": 1,
+        "avg_logprob": -0.1853,
+        "no_speech_prob": 0.0,
+        "combined": -0.1853
+      }
+    },
+    {
+      "quality_index": 7,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 529.59,
+        "end": 530.59,
+        "duration": 1.0,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.102,
+        "combined": -0.2422,
+        "text": "Ve diyor ki...",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 529.59,
+          "end": 531.55,
+          "duration": 1.96,
+          "avg_logprob": -0.1853,
+          "no_speech_prob": 0.0,
+          "combined": -0.1853,
+          "text": "Ve diyor ki...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 529.59,
+        "end": 531.55,
+        "duration": 1.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1853,
+        "no_speech_prob": 0.0,
+        "combined": -0.1853
+      }
+    },
+    {
+      "quality_index": 18,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1959.3,
+        "end": 1965.52,
+        "duration": 6.22,
+        "avg_logprob": -0.3123,
+        "no_speech_prob": 0.2937,
+        "combined": -0.606,
+        "text": "Yara söyleme, söyleme",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1959.3,
+          "end": 1965.48,
+          "duration": 6.18,
+          "avg_logprob": -0.3558,
+          "no_speech_prob": 0.0,
+          "combined": -0.3558,
+          "text": "Yara söyleme, söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1959.3,
+        "end": 1965.48,
+        "duration": 6.18,
+        "segment_count": 1,
+        "avg_logprob": -0.3558,
+        "no_speech_prob": 0.0,
+        "combined": -0.3558
+      }
+    },
+    {
+      "quality_index": 19,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1965.52,
+        "end": 1969.94,
+        "duration": 4.42,
+        "avg_logprob": -0.3123,
+        "no_speech_prob": 0.2937,
+        "combined": -0.606,
+        "text": "Bağrıma taş bastığımı söyleme",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1965.48,
+          "end": 1969.86,
+          "duration": 4.38,
+          "avg_logprob": -0.3558,
+          "no_speech_prob": 0.0,
+          "combined": -0.3558,
+          "text": "Bağrıma taş bastığımı söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1965.48,
+        "end": 1969.86,
+        "duration": 4.38,
+        "segment_count": 1,
+        "avg_logprob": -0.3558,
+        "no_speech_prob": 0.0,
+        "combined": -0.3558
+      }
+    },
+    {
+      "quality_index": 20,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1970.75,
+        "end": 1974.15,
+        "duration": 3.4,
+        "avg_logprob": -0.8025,
+        "no_speech_prob": 0.2747,
+        "combined": -1.0771,
+        "text": "Yara söyleme",
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1970.75,
+          "end": 1974.75,
+          "duration": 4.0,
+          "avg_logprob": -0.6618,
+          "no_speech_prob": 0.0,
+          "combined": -0.6618,
+          "text": "Yare söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1970.75,
+        "end": 1974.75,
+        "duration": 4.0,
+        "segment_count": 1,
+        "avg_logprob": -0.6618,
+        "no_speech_prob": 0.0,
+        "combined": -0.6618
+      }
+    },
+    {
+      "quality_index": 21,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2077.0,
+        "end": 2083.16,
+        "duration": 6.16,
+        "avg_logprob": -0.4758,
+        "no_speech_prob": 0.4402,
+        "combined": -0.916,
+        "text": "Ona söyleme, yara söyleme",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 2077.0,
+          "end": 2083.14,
+          "duration": 6.14,
+          "avg_logprob": -0.417,
+          "no_speech_prob": 0.0,
+          "combined": -0.417,
+          "text": "Ona söyleme, göre söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2077.0,
+        "end": 2083.14,
+        "duration": 6.14,
+        "segment_count": 1,
+        "avg_logprob": -0.417,
+        "no_speech_prob": 0.0,
+        "combined": -0.417
+      }
+    },
+    {
+      "quality_index": 22,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2083.16,
+        "end": 2088.08,
+        "duration": 4.92,
+        "avg_logprob": -0.4758,
+        "no_speech_prob": 0.4402,
+        "combined": -0.916,
+        "text": "Deli dev desteğimi söyleme",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 2083.14,
+          "end": 2088.1,
+          "duration": 4.96,
+          "avg_logprob": -0.417,
+          "no_speech_prob": 0.0,
+          "combined": -0.417,
+          "text": "Deli deli desteğimi söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2083.14,
+        "end": 2088.1,
+        "duration": 4.96,
+        "segment_count": 1,
+        "avg_logprob": -0.417,
+        "no_speech_prob": 0.0,
+        "combined": -0.417
+      }
+    },
+    {
+      "quality_index": 23,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2088.8,
+        "end": 2092.12,
+        "duration": 3.32,
+        "avg_logprob": -0.2633,
+        "no_speech_prob": 0.4358,
+        "combined": -0.6991,
+        "text": "Yara söyleme",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 2088.8,
+          "end": 2092.14,
+          "duration": 3.34,
+          "avg_logprob": -0.3283,
+          "no_speech_prob": 0.0,
+          "combined": -0.3283,
+          "text": "Yara söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2088.8,
+        "end": 2092.14,
+        "duration": 3.34,
+        "segment_count": 1,
+        "avg_logprob": -0.3283,
+        "no_speech_prob": 0.0,
+        "combined": -0.3283
+      }
+    },
+    {
+      "quality_index": 24,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2092.12,
+        "end": 2099.8,
+        "duration": 7.68,
+        "avg_logprob": -0.2633,
+        "no_speech_prob": 0.4358,
+        "combined": -0.6991,
+        "text": "Gezer dolaşırım da bilmem neredeyim",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 2092.14,
+          "end": 2099.8,
+          "duration": 7.66,
+          "avg_logprob": -0.3283,
+          "no_speech_prob": 0.0,
+          "combined": -0.3283,
+          "text": "Gezer dolaşırım da bilmem neredeyim",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2092.14,
+        "end": 2099.8,
+        "duration": 7.66,
+        "segment_count": 1,
+        "avg_logprob": -0.3283,
+        "no_speech_prob": 0.0,
+        "combined": -0.3283
+      }
+    },
+    {
+      "quality_index": 25,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2112.6,
+        "end": 2123.28,
+        "duration": 10.68,
+        "avg_logprob": -0.4238,
+        "no_speech_prob": 0.3574,
+        "combined": -0.7812,
+        "text": "Ona söyleme, yare söyleme, söyleme",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2112.6,
+          "end": 2123.28,
+          "duration": 10.68,
+          "avg_logprob": -0.4619,
+          "no_speech_prob": 0.0,
+          "combined": -0.4619,
+          "text": "Ona söyleme, söyleme, söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2112.6,
+        "end": 2123.28,
+        "duration": 10.68,
+        "segment_count": 1,
+        "avg_logprob": -0.4619,
+        "no_speech_prob": 0.0,
+        "combined": -0.4619
+      }
+    },
+    {
+      "quality_index": 26,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2124.2,
+        "end": 2128.04,
+        "duration": 3.84,
+        "avg_logprob": -0.3262,
+        "no_speech_prob": 0.1522,
+        "combined": -0.4784,
+        "text": "Deli deli desteğimi söyleme",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2124.2,
+          "end": 2128.06,
+          "duration": 3.86,
+          "avg_logprob": -0.3036,
+          "no_speech_prob": 0.0,
+          "combined": -0.3036,
+          "text": "Deli deli desteğini söyleme",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2124.2,
+        "end": 2128.06,
+        "duration": 3.86,
+        "segment_count": 1,
+        "avg_logprob": -0.3036,
+        "no_speech_prob": 0.0,
+        "combined": -0.3036
+      }
+    },
+    {
+      "quality_index": 28,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2591.9,
+        "end": 2594.8,
+        "duration": 2.9,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.1971,
+        "combined": -0.3086,
+        "text": "Bravo İlker",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2591.9,
+          "end": 2594.8,
+          "duration": 2.9,
+          "avg_logprob": -0.1428,
+          "no_speech_prob": 0.0,
+          "combined": -0.1428,
+          "text": "Bravo İlker",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2591.9,
+        "end": 2594.8,
+        "duration": 2.9,
+        "segment_count": 1,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428
+      }
+    },
+    {
+      "quality_index": 29,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2594.8,
+        "end": 2596.8,
+        "duration": 2.0,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.1971,
+        "combined": -0.3086,
+        "text": "Seni uğurlamıyorum",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2594.8,
+          "end": 2596.8,
+          "duration": 2.0,
+          "avg_logprob": -0.1428,
+          "no_speech_prob": 0.0,
+          "combined": -0.1428,
+          "text": "Seni uğurlamıyorum",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2594.8,
+        "end": 2596.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428
+      }
+    },
+    {
+      "quality_index": 30,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2596.8,
+        "end": 2601.4,
+        "duration": 4.6,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.1971,
+        "combined": -0.3086,
+        "text": "Diğer arkadaşlarımı da alkışlarınızla güçlü alkışlarınızla bir kez daha sahneye davet etmek istiyorum",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2596.8,
+          "end": 2598.62,
+          "duration": 1.82,
+          "avg_logprob": -0.1428,
+          "no_speech_prob": 0.0,
+          "combined": -0.1428,
+          "text": "Diğer arkadaşlarımı da alkışlarınızla",
+          "flags": []
+        },
+        {
+          "start": 2598.62,
+          "end": 2601.4,
+          "duration": 2.78,
+          "avg_logprob": -0.1428,
+          "no_speech_prob": 0.0,
+          "combined": -0.1428,
+          "text": "Güçlü alkışlarınızı bir kez daha sahneye davet etmek istiyorum",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2596.8,
+        "end": 2601.4,
+        "duration": 4.6,
+        "segment_count": 2,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428
+      }
+    },
+    {
+      "quality_index": 31,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2601.4,
+        "end": 2602.86,
+        "duration": 1.46,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.1971,
+        "combined": -0.3086,
+        "text": "Hep beraber",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2601.4,
+          "end": 2602.86,
+          "duration": 1.46,
+          "avg_logprob": -0.1428,
+          "no_speech_prob": 0.0,
+          "combined": -0.1428,
+          "text": "Hep beraber",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2601.4,
+        "end": 2602.86,
+        "duration": 1.46,
+        "segment_count": 1,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428
+      }
+    },
+    {
+      "quality_index": 34,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2657.575,
+        "end": 2661.095,
+        "duration": 3.52,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "text": "Sen de benim gibi sevdalı mısın vay vay",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2657.575,
+          "end": 2660.835,
+          "duration": 3.26,
+          "avg_logprob": -0.3976,
+          "no_speech_prob": 0.0,
+          "combined": -0.3976,
+          "text": "Sen de benim gibi sevdalı mısın vay?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2657.575,
+        "end": 2660.835,
+        "duration": 3.26,
+        "segment_count": 1,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976
+      }
+    },
+    {
+      "quality_index": 35,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2661.095,
+        "end": 2663.115,
+        "duration": 2.02,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "text": "Şeker yemesin vay vay",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2661.175,
+          "end": 2663.095,
+          "duration": 1.92,
+          "avg_logprob": -0.3976,
+          "no_speech_prob": 0.0,
+          "combined": -0.3976,
+          "text": "Şekerli misin vay vay?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2661.175,
+        "end": 2663.095,
+        "duration": 1.92,
+        "segment_count": 1,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976
+      }
+    },
+    {
+      "quality_index": 36,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2663.115,
+        "end": 2664.995,
+        "duration": 1.88,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "text": "Kaymakamısın vay vay",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2663.235,
+          "end": 2664.935,
+          "duration": 1.7,
+          "avg_logprob": -0.3976,
+          "no_speech_prob": 0.0,
+          "combined": -0.3976,
+          "text": "Kaymak kapısın vay vay?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2663.235,
+        "end": 2664.935,
+        "duration": 1.7,
+        "segment_count": 1,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976
+      }
+    },
+    {
+      "quality_index": 37,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2664.995,
+        "end": 2668.935,
+        "duration": 3.94,
+        "avg_logprob": -0.2251,
+        "no_speech_prob": 0.3628,
+        "combined": -0.5879,
+        "text": "Yoksa sen de benim gibi sevdalı mısın vay vay",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2665.135,
+          "end": 2668.535,
+          "duration": 3.4,
+          "avg_logprob": -0.3976,
+          "no_speech_prob": 0.0,
+          "combined": -0.3976,
+          "text": "Yoksa sen de benim gibi sevdalı mısın vay?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2665.135,
+        "end": 2668.535,
+        "duration": 3.4,
+        "segment_count": 1,
+        "avg_logprob": -0.3976,
+        "no_speech_prob": 0.0,
+        "combined": -0.3976
+      }
+    },
+    {
+      "quality_index": 38,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2743.0,
+        "end": 2748.9,
+        "duration": 5.9,
+        "avg_logprob": -0.2979,
+        "no_speech_prob": 0.2288,
+        "combined": -0.5266,
+        "text": "Kısacık bir reklam arasından yeniden sizlerleyiz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2743.0,
+          "end": 2750.38,
+          "duration": 7.38,
+          "avg_logprob": -0.2999,
+          "no_speech_prob": 0.0,
+          "combined": -0.2999,
+          "text": "Kısacık bir reklam arasımlarından yeniden sizlerleyiz sakın bizden bir ara ayrılmayın.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2743.0,
+        "end": 2750.38,
+        "duration": 7.38,
+        "segment_count": 1,
+        "avg_logprob": -0.2999,
+        "no_speech_prob": 0.0,
+        "combined": -0.2999
+      }
+    },
+    {
+      "quality_index": 39,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2749.0,
+        "end": 2750.36,
+        "duration": 1.36,
+        "avg_logprob": -0.2979,
+        "no_speech_prob": 0.2288,
+        "combined": -0.5266,
+        "text": "Sakın bizden bir yere ayrılmayın.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2743.0,
+          "end": 2750.38,
+          "duration": 7.38,
+          "avg_logprob": -0.2999,
+          "no_speech_prob": 0.0,
+          "combined": -0.2999,
+          "text": "Kısacık bir reklam arasımlarından yeniden sizlerleyiz sakın bizden bir ara ayrılmayın.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2743.0,
+        "end": 2750.38,
+        "duration": 7.38,
+        "segment_count": 1,
+        "avg_logprob": -0.2999,
+        "no_speech_prob": 0.0,
+        "combined": -0.2999
+      }
+    },
+    {
+      "quality_index": 40,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3105.5,
+        "end": 3118.5,
+        "duration": 13.0,
+        "avg_logprob": -0.4021,
+        "no_speech_prob": 0.6006,
+        "combined": -1.0027,
+        "text": "Teşekkür ederim.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3105.5,
+          "end": 3118.5,
+          "duration": 13.0,
+          "avg_logprob": -0.7773,
+          "no_speech_prob": 0.0,
+          "combined": -0.7773,
+          "text": "Teşekkürler.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3105.5,
+        "end": 3118.5,
+        "duration": 13.0,
+        "segment_count": 1,
+        "avg_logprob": -0.7773,
+        "no_speech_prob": 0.0,
+        "combined": -0.7773
+      }
+    },
+    {
+      "quality_index": 52,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3160.9,
+        "end": 3172.14,
+        "duration": 11.24,
+        "avg_logprob": -0.2882,
+        "no_speech_prob": 0.5693,
+        "combined": -0.8575,
+        "text": "Unuttum seni, unuttum seni.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3160.9,
+          "end": 3172.22,
+          "duration": 11.32,
+          "avg_logprob": -0.318,
+          "no_speech_prob": 0.0,
+          "combined": -0.318,
+          "text": "Unutamam seni, unutamam seni",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3160.9,
+        "end": 3172.22,
+        "duration": 11.32,
+        "segment_count": 1,
+        "avg_logprob": -0.318,
+        "no_speech_prob": 0.0,
+        "combined": -0.318
+      }
+    },
+    {
+      "quality_index": 53,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3496.475,
+        "end": 3502.995,
+        "duration": 6.52,
+        "avg_logprob": -0.2471,
+        "no_speech_prob": 0.1823,
+        "combined": -0.4294,
+        "text": "Nasıl keyifleriniz demenin vakti geldi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3496.475,
+          "end": 3502.995,
+          "duration": 6.52,
+          "avg_logprob": -0.2881,
+          "no_speech_prob": 0.0,
+          "combined": -0.2881,
+          "text": "Nasıl keyifliyiniz demenin vakti geldi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3496.475,
+        "end": 3502.995,
+        "duration": 6.52,
+        "segment_count": 1,
+        "avg_logprob": -0.2881,
+        "no_speech_prob": 0.0,
+        "combined": -0.2881
+      }
+    },
+    {
+      "quality_index": 55,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3552.5,
+        "end": 3562.46,
+        "duration": 9.96,
+        "avg_logprob": -0.3532,
+        "no_speech_prob": 0.5186,
+        "combined": -0.8718,
+        "text": "Aşka merakım ezelde, sen güzel bir bahaneydin.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3552.5,
+          "end": 3564.6,
+          "duration": 12.1,
+          "avg_logprob": -0.258,
+          "no_speech_prob": 0.0,
+          "combined": -0.258,
+          "text": "Aşka merakım ezelde sen güzel bir bahaneydin aşka merakım.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3552.5,
+        "end": 3564.6,
+        "duration": 12.1,
+        "segment_count": 1,
+        "avg_logprob": -0.258,
+        "no_speech_prob": 0.0,
+        "combined": -0.258
+      }
+    },
+    {
+      "quality_index": 57,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 3572.75,
+        "end": 3576.55,
+        "duration": 3.8,
+        "avg_logprob": -0.3942,
+        "no_speech_prob": 0.7471,
+        "combined": -1.1413,
+        "text": "MAHRUM DEĞİK",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3572.75,
+          "end": 3576.57,
+          "duration": 3.82,
+          "avg_logprob": -0.3908,
+          "no_speech_prob": 0.0,
+          "combined": -0.3908,
+          "text": "Mahrum Bey'in",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3572.75,
+        "end": 3576.57,
+        "duration": 3.82,
+        "segment_count": 1,
+        "avg_logprob": -0.3908,
+        "no_speech_prob": 0.0,
+        "combined": -0.3908
+      }
+    },
+    {
+      "quality_index": 58,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3576.6,
+        "end": 3585.5,
+        "duration": 8.9,
+        "avg_logprob": -0.3376,
+        "no_speech_prob": 0.6099,
+        "combined": -0.9474,
+        "text": "Güzelden ben sende sevmeyi sevdim mahrum değildim",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3576.6,
+          "end": 3585.5,
+          "duration": 8.9,
+          "avg_logprob": -0.311,
+          "no_speech_prob": 0.0,
+          "combined": -0.311,
+          "text": "Güzel de ben sende sevmeyi sevdim, mahrum değildim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3576.6,
+        "end": 3585.5,
+        "duration": 8.9,
+        "segment_count": 1,
+        "avg_logprob": -0.311,
+        "no_speech_prob": 0.0,
+        "combined": -0.311
+      }
+    },
+    {
+      "quality_index": 59,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3585.75,
+        "end": 3591.13,
+        "duration": 5.38,
+        "avg_logprob": -0.3411,
+        "no_speech_prob": 0.4685,
+        "combined": -0.8096,
+        "text": "Ben Sende Sevmeyi Sevdim",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3585.75,
+          "end": 3591.09,
+          "duration": 5.34,
+          "avg_logprob": -0.3818,
+          "no_speech_prob": 0.0,
+          "combined": -0.3818,
+          "text": "Ben sen de sevmeyi sevdim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3585.75,
+        "end": 3591.09,
+        "duration": 5.34,
+        "segment_count": 1,
+        "avg_logprob": -0.3818,
+        "no_speech_prob": 0.0,
+        "combined": -0.3818
+      }
+    },
+    {
+      "quality_index": 60,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3594.075,
+        "end": 3605.335,
+        "duration": 11.26,
+        "avg_logprob": -0.1077,
+        "no_speech_prob": 0.145,
+        "combined": -0.2527,
+        "text": "Bir daha sevemiyorum, sevemiyorum, bahane bulamıyorum, bulamıyorum, kendimi kandırıyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3594.075,
+          "end": 3598.735,
+          "duration": 4.66,
+          "avg_logprob": -0.1585,
+          "no_speech_prob": 0.0,
+          "combined": -0.1585,
+          "text": "Bir daha sevemiyorum, sevemiyorum",
+          "flags": []
+        },
+        {
+          "start": 3598.735,
+          "end": 3602.875,
+          "duration": 4.14,
+          "avg_logprob": -0.1585,
+          "no_speech_prob": 0.0,
+          "combined": -0.1585,
+          "text": "Bahane bulamıyorum, bulamıyorum",
+          "flags": []
+        },
+        {
+          "start": 3602.875,
+          "end": 3605.335,
+          "duration": 2.46,
+          "avg_logprob": -0.1585,
+          "no_speech_prob": 0.0,
+          "combined": -0.1585,
+          "text": "Kendimi kandırıyorum",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3594.075,
+        "end": 3605.335,
+        "duration": 11.26,
+        "segment_count": 3,
+        "avg_logprob": -0.1585,
+        "no_speech_prob": 0.0,
+        "combined": -0.1585
+      }
+    },
+    {
+      "quality_index": 61,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3605.9,
+        "end": 3617.78,
+        "duration": 11.88,
+        "avg_logprob": -0.1777,
+        "no_speech_prob": 0.3098,
+        "combined": -0.4875,
+        "text": "Aslında ben sende yaradanı sevdim, bir daha sevemiyorum, sevemiyorum, bahane bulamıyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3605.9,
+          "end": 3617.78,
+          "duration": 11.88,
+          "avg_logprob": -0.1993,
+          "no_speech_prob": 0.0,
+          "combined": -0.1993,
+          "text": "Aslında ben sende yaradanı sevdim, bir daha sevemiyorum, sevemiyorum, bahane bulamıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3605.9,
+        "end": 3617.78,
+        "duration": 11.88,
+        "segment_count": 1,
+        "avg_logprob": -0.1993,
+        "no_speech_prob": 0.0,
+        "combined": -0.1993
+      }
+    },
+    {
+      "quality_index": 62,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 3617.875,
+        "end": 3627.875,
+        "duration": 10.0,
+        "avg_logprob": -0.3637,
+        "no_speech_prob": 0.3037,
+        "combined": -0.6674,
+        "text": "bulamıyorum kendimi kandırıyorum aslında ben sende yaradanı sevdim",
+        "flags": []
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 63,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3669.05,
+        "end": 3676.15,
+        "duration": 7.1,
+        "avg_logprob": -0.2124,
+        "no_speech_prob": 0.6655,
+        "combined": -0.8779,
+        "text": "Ben senin sevgini sevdim, sana sundum gani gani.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3669.05,
+          "end": 3676.15,
+          "duration": 7.1,
+          "avg_logprob": -0.219,
+          "no_speech_prob": 0.0,
+          "combined": -0.219,
+          "text": "Ben senin sevgini sevdim, sana sundum gani gani.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3669.05,
+        "end": 3676.15,
+        "duration": 7.1,
+        "segment_count": 1,
+        "avg_logprob": -0.219,
+        "no_speech_prob": 0.0,
+        "combined": -0.219
+      }
+    },
+    {
+      "quality_index": 64,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 3676.45,
+        "end": 3681.15,
+        "duration": 4.7,
+        "avg_logprob": -0.2548,
+        "no_speech_prob": 0.2651,
+        "combined": -0.5199,
+        "text": "Ben sende sevgiyi sevdim",
+        "flags": []
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 66,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3696.95,
+        "end": 3705.09,
+        "duration": 8.14,
+        "avg_logprob": -0.1909,
+        "no_speech_prob": 0.2086,
+        "combined": -0.3995,
+        "text": "Ben sende yaradanı sevdim, bir daha sevemiyorum, sevemiyorum.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3696.95,
+          "end": 3710.525,
+          "duration": 13.575,
+          "avg_logprob": -0.254,
+          "no_speech_prob": 0.0,
+          "combined": -0.254,
+          "text": "Ben sende yaradanı sevdim, bir daha sevemiyorum, sevemiyorum, bahane bulamıyorum, bulamıyorum, kendime...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3696.95,
+        "end": 3710.525,
+        "duration": 13.575,
+        "segment_count": 1,
+        "avg_logprob": -0.254,
+        "no_speech_prob": 0.0,
+        "combined": -0.254
+      }
+    },
+    {
+      "quality_index": 67,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3705.77,
+        "end": 3709.95,
+        "duration": 4.18,
+        "avg_logprob": -0.1909,
+        "no_speech_prob": 0.2086,
+        "combined": -0.3995,
+        "text": "Bahane bulamıyorum, bulamıyorum kendimi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3696.95,
+          "end": 3710.525,
+          "duration": 13.575,
+          "avg_logprob": -0.254,
+          "no_speech_prob": 0.0,
+          "combined": -0.254,
+          "text": "Ben sende yaradanı sevdim, bir daha sevemiyorum, sevemiyorum, bahane bulamıyorum, bulamıyorum, kendime...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3696.95,
+        "end": 3710.525,
+        "duration": 13.575,
+        "segment_count": 1,
+        "avg_logprob": -0.254,
+        "no_speech_prob": 0.0,
+        "combined": -0.254
+      }
+    },
+    {
+      "quality_index": 68,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3710.525,
+        "end": 3718.165,
+        "duration": 7.64,
+        "avg_logprob": -0.3357,
+        "no_speech_prob": 0.2578,
+        "combined": -0.5935,
+        "text": "Kandırıyorum aslında ben sende yaradanı sevdim",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 3710.525,
+          "end": 3712.045,
+          "duration": 1.52,
+          "avg_logprob": -0.4732,
+          "no_speech_prob": 0.0,
+          "combined": -0.4732,
+          "text": "Kandırıyorum",
+          "flags": []
+        },
+        {
+          "start": 3712.045,
+          "end": 3713.305,
+          "duration": 1.26,
+          "avg_logprob": -0.4732,
+          "no_speech_prob": 0.0,
+          "combined": -0.4732,
+          "text": "Aslında",
+          "flags": []
+        },
+        {
+          "start": 3713.305,
+          "end": 3715.665,
+          "duration": 2.36,
+          "avg_logprob": -0.4732,
+          "no_speech_prob": 0.0,
+          "combined": -0.4732,
+          "text": "Ben sende",
+          "flags": []
+        },
+        {
+          "start": 3715.665,
+          "end": 3717.925,
+          "duration": 2.26,
+          "avg_logprob": -0.4732,
+          "no_speech_prob": 0.0,
+          "combined": -0.4732,
+          "text": "Yaradanı sevdim",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3710.525,
+        "end": 3717.925,
+        "duration": 7.4,
+        "segment_count": 4,
+        "avg_logprob": -0.4732,
+        "no_speech_prob": 0.0,
+        "combined": -0.4732
+      }
+    },
+    {
+      "quality_index": 69,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 3889.95,
+        "end": 3902.33,
+        "duration": 12.38,
+        "avg_logprob": -0.2951,
+        "no_speech_prob": 0.5278,
+        "combined": -0.823,
+        "text": "Söyle canım sevgilim, hayat bize oyun oynuyor olabilir mi?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 3889.95,
+          "end": 3901.37,
+          "duration": 11.42,
+          "avg_logprob": -0.4902,
+          "no_speech_prob": 0.0,
+          "combined": -0.4902,
+          "text": "Güle canım sevgilim hayat bize oyun oynuyor olabilir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 3889.95,
+        "end": 3901.37,
+        "duration": 11.42,
+        "segment_count": 1,
+        "avg_logprob": -0.4902,
+        "no_speech_prob": 0.0,
+        "combined": -0.4902
+      }
+    },
+    {
+      "quality_index": 70,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 4240.55,
+        "end": 4244.91,
+        "duration": 4.36,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "text": "Boşa geçmiş ömre yaşam denir",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 71,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 4244.91,
+        "end": 4249.03,
+        "duration": 4.12,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "text": "Yaz tahtaya bir daha",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 72,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 4249.03,
+        "end": 4251.71,
+        "duration": 2.68,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "text": "Dün dikdiri kitabı",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 73,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 4251.71,
+        "end": 4254.41,
+        "duration": 2.7,
+        "avg_logprob": -0.4399,
+        "no_speech_prob": 0.5796,
+        "combined": -1.0195,
+        "text": "Sarı çizmeli Mehmet Ağa",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 74,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4331.4,
+        "end": 4337.54,
+        "duration": 6.14,
+        "avg_logprob": -0.4383,
+        "no_speech_prob": 0.7197,
+        "combined": -1.1581,
+        "text": "Sarı çizmeli Mehmet Ağa bir gün öder hesabı",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4331.4,
+          "end": 4337.4,
+          "duration": 6.0,
+          "avg_logprob": -0.5503,
+          "no_speech_prob": 0.0,
+          "combined": -0.5503,
+          "text": "kitabı sar çizmeli Mehmet Ağabey bir gün öder hesabı",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4331.4,
+        "end": 4337.4,
+        "duration": 6.0,
+        "segment_count": 1,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503
+      }
+    },
+    {
+      "quality_index": 75,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4337.54,
+        "end": 4342.58,
+        "duration": 5.04,
+        "avg_logprob": -0.4383,
+        "no_speech_prob": 0.7197,
+        "combined": -1.1581,
+        "text": "Yaz tahtaya bir dana tık defteri kitabı",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4337.4,
+          "end": 4342.4,
+          "duration": 5.0,
+          "avg_logprob": -0.5503,
+          "no_speech_prob": 0.0,
+          "combined": -0.5503,
+          "text": "yastak dayağı birden aldık defteri kitabı",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4337.4,
+        "end": 4342.4,
+        "duration": 5.0,
+        "segment_count": 1,
+        "avg_logprob": -0.5503,
+        "no_speech_prob": 0.0,
+        "combined": -0.5503
+      }
+    },
+    {
+      "quality_index": 76,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4342.8,
+        "end": 4347.32,
+        "duration": 4.52,
+        "avg_logprob": -0.3553,
+        "no_speech_prob": 0.1223,
+        "combined": -0.4775,
+        "text": "Sarı çizmeli Mehmet Ağa, bir gün öder hesap.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4342.8,
+          "end": 4347.32,
+          "duration": 4.52,
+          "avg_logprob": -0.4658,
+          "no_speech_prob": 0.0,
+          "combined": -0.4658,
+          "text": "Sarı çizmeli Mehmet Ağa, bir gün öden eser.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4342.8,
+        "end": 4347.32,
+        "duration": 4.52,
+        "segment_count": 1,
+        "avg_logprob": -0.4658,
+        "no_speech_prob": 0.0,
+        "combined": -0.4658
+      }
+    },
+    {
+      "quality_index": 77,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4717.55,
+        "end": 4722.99,
+        "duration": 5.44,
+        "avg_logprob": -0.2496,
+        "no_speech_prob": 0.5547,
+        "combined": -0.8043,
+        "text": "Çünkü yıllar öncesinde kalan aşkımız bir masal.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4717.55,
+          "end": 4722.99,
+          "duration": 5.44,
+          "avg_logprob": -0.1682,
+          "no_speech_prob": 0.0,
+          "combined": -0.1682,
+          "text": "Çünkü yıllar öncesinde kalan aşkımız bir masa.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4717.55,
+        "end": 4722.99,
+        "duration": 5.44,
+        "segment_count": 1,
+        "avg_logprob": -0.1682,
+        "no_speech_prob": 0.0,
+        "combined": -0.1682
+      }
+    },
+    {
+      "quality_index": 78,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4723.0,
+        "end": 4729.04,
+        "duration": 6.04,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.2783,
+        "combined": -0.5798,
+        "text": "Tanrıç bir tanem, düş yerine gerçekmiş yaşanım, sevmek.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4723.0,
+          "end": 4729.02,
+          "duration": 6.02,
+          "avg_logprob": -0.3483,
+          "no_speech_prob": 0.0,
+          "combined": -0.3483,
+          "text": "Almış bir tanem düş yerine gerçekmiş yaşanım sevmek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4723.0,
+        "end": 4729.02,
+        "duration": 6.02,
+        "segment_count": 1,
+        "avg_logprob": -0.3483,
+        "no_speech_prob": 0.0,
+        "combined": -0.3483
+      }
+    },
+    {
+      "quality_index": 79,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4729.35,
+        "end": 4735.07,
+        "duration": 5.72,
+        "avg_logprob": -0.1798,
+        "no_speech_prob": 0.2393,
+        "combined": -0.4191,
+        "text": "Eskidenmiş güzelim sanki yıllar öncesinde kalan",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4729.35,
+          "end": 4734.99,
+          "duration": 5.64,
+          "avg_logprob": -0.2242,
+          "no_speech_prob": 0.0,
+          "combined": -0.2242,
+          "text": "Eskidenmiş güzelim sanki yıllar öncesinde kalan",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4729.35,
+        "end": 4734.99,
+        "duration": 5.64,
+        "segment_count": 1,
+        "avg_logprob": -0.2242,
+        "no_speech_prob": 0.0,
+        "combined": -0.2242
+      }
+    },
+    {
+      "quality_index": 80,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4735.07,
+        "end": 4738.45,
+        "duration": 3.38,
+        "avg_logprob": -0.1798,
+        "no_speech_prob": 0.2393,
+        "combined": -0.4191,
+        "text": "Aşkımız bir masal",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4734.99,
+          "end": 4738.45,
+          "duration": 3.46,
+          "avg_logprob": -0.2242,
+          "no_speech_prob": 0.0,
+          "combined": -0.2242,
+          "text": "Aşkımız bir masal",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4734.99,
+        "end": 4738.45,
+        "duration": 3.46,
+        "segment_count": 1,
+        "avg_logprob": -0.2242,
+        "no_speech_prob": 0.0,
+        "combined": -0.2242
+      }
+    },
+    {
+      "quality_index": 81,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4745.2,
+        "end": 4750.08,
+        "duration": 4.88,
+        "avg_logprob": -0.3091,
+        "no_speech_prob": 0.3782,
+        "combined": -0.6873,
+        "text": "Bizim için geç artık, çok geç artık sana dönmek.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4745.2,
+          "end": 4750.0,
+          "duration": 4.8,
+          "avg_logprob": -0.369,
+          "no_speech_prob": 0.0,
+          "combined": -0.369,
+          "text": "Bizim için geç artık, çok geç artık sana dönme.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4745.2,
+        "end": 4750.0,
+        "duration": 4.8,
+        "segment_count": 1,
+        "avg_logprob": -0.369,
+        "no_speech_prob": 0.0,
+        "combined": -0.369
+      }
+    },
+    {
+      "quality_index": 82,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4750.4,
+        "end": 4753.14,
+        "duration": 2.74,
+        "avg_logprob": -0.435,
+        "no_speech_prob": 0.5352,
+        "combined": -0.9701,
+        "text": "Hadi giderken bana",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4750.4,
+          "end": 4752.4,
+          "duration": 2.0,
+          "avg_logprob": -0.7944,
+          "no_speech_prob": 0.0,
+          "combined": -0.7944,
+          "text": "Hadi iyi gidelim",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4750.4,
+        "end": 4752.4,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.7944,
+        "no_speech_prob": 0.0,
+        "combined": -0.7944
+      }
+    },
+    {
+      "quality_index": 83,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4818.0,
+        "end": 4827.12,
+        "duration": 9.12,
+        "avg_logprob": -0.2127,
+        "no_speech_prob": 0.4773,
+        "combined": -0.69,
+        "text": "Bak yeniden belki de sevinçle koçaklaşıp başlarız kaldığımız yerden.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4818.0,
+          "end": 4827.12,
+          "duration": 9.12,
+          "avg_logprob": -0.2305,
+          "no_speech_prob": 0.0,
+          "combined": -0.2305,
+          "text": "Bak yeniden belki de sevinçle kocaklaşıp başlarız kaldığımız yerden.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4818.0,
+        "end": 4827.12,
+        "duration": 9.12,
+        "segment_count": 1,
+        "avg_logprob": -0.2305,
+        "no_speech_prob": 0.0,
+        "combined": -0.2305
+      }
+    },
+    {
+      "quality_index": 84,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4828.25,
+        "end": 4831.59,
+        "duration": 3.34,
+        "avg_logprob": -0.3851,
+        "no_speech_prob": 0.5527,
+        "combined": -0.9378,
+        "text": "denen yerden başlamak",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4828.25,
+          "end": 4834.39,
+          "duration": 6.14,
+          "avg_logprob": -0.2566,
+          "no_speech_prob": 0.0,
+          "combined": -0.2566,
+          "text": "Denen yerden başlamak ve gözlerini açmak yerden",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4828.25,
+        "end": 4834.39,
+        "duration": 6.14,
+        "segment_count": 1,
+        "avg_logprob": -0.2566,
+        "no_speech_prob": 0.0,
+        "combined": -0.2566
+      }
+    },
+    {
+      "quality_index": 85,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4831.59,
+        "end": 4833.55,
+        "duration": 1.96,
+        "avg_logprob": -0.3851,
+        "no_speech_prob": 0.5527,
+        "combined": -0.9378,
+        "text": "ve gözlerini açmak",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4828.25,
+          "end": 4834.39,
+          "duration": 6.14,
+          "avg_logprob": -0.2566,
+          "no_speech_prob": 0.0,
+          "combined": -0.2566,
+          "text": "Denen yerden başlamak ve gözlerini açmak yerden",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4828.25,
+        "end": 4834.39,
+        "duration": 6.14,
+        "segment_count": 1,
+        "avg_logprob": -0.2566,
+        "no_speech_prob": 0.0,
+        "combined": -0.2566
+      }
+    },
+    {
+      "quality_index": 86,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4833.55,
+        "end": 4834.25,
+        "duration": 0.7,
+        "avg_logprob": -0.3851,
+        "no_speech_prob": 0.5527,
+        "combined": -0.9378,
+        "text": "iyi de",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4828.25,
+          "end": 4834.39,
+          "duration": 6.14,
+          "avg_logprob": -0.2566,
+          "no_speech_prob": 0.0,
+          "combined": -0.2566,
+          "text": "Denen yerden başlamak ve gözlerini açmak yerden",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4828.25,
+        "end": 4834.39,
+        "duration": 6.14,
+        "segment_count": 1,
+        "avg_logprob": -0.2566,
+        "no_speech_prob": 0.0,
+        "combined": -0.2566
+      }
+    },
+    {
+      "quality_index": 87,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4834.25,
+        "end": 4835.93,
+        "duration": 1.68,
+        "avg_logprob": -0.3851,
+        "no_speech_prob": 0.5527,
+        "combined": -0.9378,
+        "text": "belki de",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4834.39,
+          "end": 4835.93,
+          "duration": 1.54,
+          "avg_logprob": -0.2566,
+          "no_speech_prob": 0.0,
+          "combined": -0.2566,
+          "text": "Belki de",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4834.39,
+        "end": 4835.93,
+        "duration": 1.54,
+        "segment_count": 1,
+        "avg_logprob": -0.2566,
+        "no_speech_prob": 0.0,
+        "combined": -0.2566
+      }
+    },
+    {
+      "quality_index": 88,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4835.95,
+        "end": 4838.97,
+        "duration": 3.02,
+        "avg_logprob": -0.2598,
+        "no_speech_prob": 0.4138,
+        "combined": -0.6736,
+        "text": "Sevinçle kucaklaşıp",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4835.95,
+          "end": 4838.93,
+          "duration": 2.98,
+          "avg_logprob": -0.3018,
+          "no_speech_prob": 0.0,
+          "combined": -0.3018,
+          "text": "Sevinçle kucaklaşık",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4835.95,
+        "end": 4838.93,
+        "duration": 2.98,
+        "segment_count": 1,
+        "avg_logprob": -0.3018,
+        "no_speech_prob": 0.0,
+        "combined": -0.3018
+      }
+    },
+    {
+      "quality_index": 89,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 4839.65,
+        "end": 4844.89,
+        "duration": 5.24,
+        "avg_logprob": -0.3765,
+        "no_speech_prob": 0.5796,
+        "combined": -0.9561,
+        "text": "Aşlarız kaldığımız yerden yarınlar gibi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 90,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4844.9,
+        "end": 4849.6,
+        "duration": 4.7,
+        "avg_logprob": -0.3586,
+        "no_speech_prob": 0.7041,
+        "combined": -1.0627,
+        "text": "Bizim için geç artık, çok geç artık sana dönmek.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4844.9,
+          "end": 4849.6,
+          "duration": 4.7,
+          "avg_logprob": -0.3878,
+          "no_speech_prob": 0.0,
+          "combined": -0.3878,
+          "text": "Bizim için geç artık, çık geç artık sana dönmek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4844.9,
+        "end": 4849.6,
+        "duration": 4.7,
+        "segment_count": 1,
+        "avg_logprob": -0.3878,
+        "no_speech_prob": 0.0,
+        "combined": -0.3878
+      }
+    },
+    {
+      "quality_index": 91,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4851.3,
+        "end": 4861.42,
+        "duration": 10.12,
+        "avg_logprob": -0.2072,
+        "no_speech_prob": 0.5459,
+        "combined": -0.7531,
+        "text": "Bana demiştin ya sen, yolcu yolunda gerek, yolcu yolunda gerek.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4851.3,
+          "end": 4854.34,
+          "duration": 3.04,
+          "avg_logprob": -0.4027,
+          "no_speech_prob": 0.0,
+          "combined": -0.4027,
+          "text": "Bana demiştin ya sen",
+          "flags": []
+        },
+        {
+          "start": 4854.34,
+          "end": 4857.14,
+          "duration": 2.8,
+          "avg_logprob": -0.4027,
+          "no_speech_prob": 0.0,
+          "combined": -0.4027,
+          "text": "Yolcu yolunda gerek",
+          "flags": []
+        },
+        {
+          "start": 4857.14,
+          "end": 4861.46,
+          "duration": 4.32,
+          "avg_logprob": -0.4027,
+          "no_speech_prob": 0.0,
+          "combined": -0.4027,
+          "text": "Yolcu yolunda gerek",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4851.3,
+        "end": 4861.46,
+        "duration": 10.16,
+        "segment_count": 3,
+        "avg_logprob": -0.4027,
+        "no_speech_prob": 0.0,
+        "combined": -0.4027
+      }
+    },
+    {
+      "quality_index": 92,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4866.3,
+        "end": 4868.8,
+        "duration": 2.5,
+        "avg_logprob": -0.2958,
+        "no_speech_prob": 0.457,
+        "combined": -0.7528,
+        "text": "Sakın artık beni daha sevmek.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4866.3,
+          "end": 4868.8,
+          "duration": 2.5,
+          "avg_logprob": -0.3097,
+          "no_speech_prob": 0.0,
+          "combined": -0.3097,
+          "text": "Kalk artık beni daha sevmek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4866.3,
+        "end": 4868.8,
+        "duration": 2.5,
+        "segment_count": 1,
+        "avg_logprob": -0.3097,
+        "no_speech_prob": 0.0,
+        "combined": -0.3097
+      }
+    },
+    {
+      "quality_index": 93,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4869.58,
+        "end": 4876.0,
+        "duration": 6.42,
+        "avg_logprob": -0.2958,
+        "no_speech_prob": 0.457,
+        "combined": -0.7528,
+        "text": "Hani giderken bana demiştin ya sen, yolcu yolunda gerek.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 4869.58,
+          "end": 4873.24,
+          "duration": 3.66,
+          "avg_logprob": -0.3097,
+          "no_speech_prob": 0.0,
+          "combined": -0.3097,
+          "text": "Hani giderken bana demiştin ya sen.",
+          "flags": []
+        },
+        {
+          "start": 4873.9,
+          "end": 4875.78,
+          "duration": 1.88,
+          "avg_logprob": -0.3097,
+          "no_speech_prob": 0.0,
+          "combined": -0.3097,
+          "text": "Yolcu yolunda gerek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4869.58,
+        "end": 4875.78,
+        "duration": 5.54,
+        "segment_count": 2,
+        "avg_logprob": -0.3097,
+        "no_speech_prob": 0.0,
+        "combined": -0.3097
+      }
+    },
+    {
+      "quality_index": 94,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 4896.15,
+        "end": 4900.87,
+        "duration": 4.72,
+        "avg_logprob": -0.2113,
+        "no_speech_prob": 0.252,
+        "combined": -0.4633,
+        "text": "Teşekkürler",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4896.15,
+          "end": 4900.87,
+          "duration": 4.72,
+          "avg_logprob": -0.1895,
+          "no_speech_prob": 0.0,
+          "combined": -0.1895,
+          "text": "Teşekkürler",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4896.15,
+        "end": 4900.87,
+        "duration": 4.72,
+        "segment_count": 1,
+        "avg_logprob": -0.1895,
+        "no_speech_prob": 0.0,
+        "combined": -0.1895
+      }
+    },
+    {
+      "quality_index": 95,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4900.87,
+        "end": 4902.57,
+        "duration": 1.7,
+        "avg_logprob": -0.2113,
+        "no_speech_prob": 0.252,
+        "combined": -0.4633,
+        "text": "Hiç hız kesmeden devam ediyoruz",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4900.87,
+          "end": 4902.57,
+          "duration": 1.7,
+          "avg_logprob": -0.1895,
+          "no_speech_prob": 0.0,
+          "combined": -0.1895,
+          "text": "Hiç hız kesmeden devam ediyoruz",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4900.87,
+        "end": 4902.57,
+        "duration": 1.7,
+        "segment_count": 1,
+        "avg_logprob": -0.1895,
+        "no_speech_prob": 0.0,
+        "combined": -0.1895
+      }
+    },
+    {
+      "quality_index": 96,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4902.57,
+        "end": 4904.61,
+        "duration": 2.04,
+        "avg_logprob": -0.2113,
+        "no_speech_prob": 0.252,
+        "combined": -0.4633,
+        "text": "Şiidem Gürdal bir kez daha geliyor",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4902.57,
+          "end": 4904.61,
+          "duration": 2.04,
+          "avg_logprob": -0.1895,
+          "no_speech_prob": 0.0,
+          "combined": -0.1895,
+          "text": "Şidem Gürdal bir kez daha geliyor",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4902.57,
+        "end": 4904.61,
+        "duration": 2.04,
+        "segment_count": 1,
+        "avg_logprob": -0.1895,
+        "no_speech_prob": 0.0,
+        "combined": -0.1895
+      }
+    },
+    {
+      "quality_index": 97,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 4904.61,
+        "end": 4906.57,
+        "duration": 1.96,
+        "avg_logprob": -0.2113,
+        "no_speech_prob": 0.252,
+        "combined": -0.4633,
+        "text": "Ve hepimizi ayaklandırıyor",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 4904.61,
+          "end": 4907.35,
+          "duration": 2.74,
+          "avg_logprob": -0.1895,
+          "no_speech_prob": 0.0,
+          "combined": -0.1895,
+          "text": "Ve hepimizi ayaklandırıyor",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 4904.61,
+        "end": 4907.35,
+        "duration": 2.74,
+        "segment_count": 1,
+        "avg_logprob": -0.1895,
+        "no_speech_prob": 0.0,
+        "combined": -0.1895
+      }
+    },
+    {
+      "quality_index": 98,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5229.8,
+        "end": 5231.8,
+        "duration": 2.0,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Eşlik ettiğiniz için, heyecanımıza",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5229.8,
+          "end": 5231.8,
+          "duration": 2.0,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "eşlik ettiğiniz için, heyecanımıza",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5229.8,
+        "end": 5231.8,
+        "duration": 2.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 99,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5231.8,
+        "end": 5233.88,
+        "duration": 2.08,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Ortak olduğunuz için ve bir canlı yayını",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5231.8,
+          "end": 5233.88,
+          "duration": 2.08,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "ortak olduğunuz için ve bir canlı yayını",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5231.8,
+        "end": 5233.88,
+        "duration": 2.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 100,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5233.88,
+        "end": 5235.86,
+        "duration": 1.98,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Daha bizlerle geçirdiğiniz için",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5233.88,
+          "end": 5235.86,
+          "duration": 1.98,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "daha bizlerle geçirdiğiniz için",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5233.88,
+        "end": 5235.86,
+        "duration": 1.98,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 101,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5235.86,
+        "end": 5237.96,
+        "duration": 2.1,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Müteşekkiriz. Sürçülisan ettiysek",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5235.86,
+          "end": 5237.94,
+          "duration": 2.08,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "müteşekkiriz. Sürçülisan ettiysek",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5235.86,
+        "end": 5237.94,
+        "duration": 2.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 102,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5237.96,
+        "end": 5239.96,
+        "duration": 2.0,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Affola. Mutlu bayramlar",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5237.94,
+          "end": 5239.96,
+          "duration": 2.02,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "affola. Mutlu bayramlar",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5237.94,
+        "end": 5239.96,
+        "duration": 2.02,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 103,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5239.96,
+        "end": 5241.92,
+        "duration": 1.96,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Diliyorum. Esen kalın, sağlıkla",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5239.96,
+          "end": 5241.94,
+          "duration": 1.98,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "diliyorum. Esen kalın, sağlıkla",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5239.96,
+        "end": 5241.94,
+        "duration": 1.98,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    },
+    {
+      "quality_index": 104,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 5241.92,
+        "end": 5242.8,
+        "duration": 0.88,
+        "avg_logprob": -0.1115,
+        "no_speech_prob": 0.3894,
+        "combined": -0.5009,
+        "text": "Kalın, huzurlu",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 5241.94,
+          "end": 5242.8,
+          "duration": 0.86,
+          "avg_logprob": -0.1198,
+          "no_speech_prob": 0.0,
+          "combined": -0.1198,
+          "text": "kalın, huzurlu",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 5241.94,
+        "end": 5242.8,
+        "duration": 0.86,
+        "segment_count": 1,
+        "avg_logprob": -0.1198,
+        "no_speech_prob": 0.0,
+        "combined": -0.1198
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 72,
+    "auto_swaps": 30,
+    "review_candidates": 42,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 71.46,
+    "review_quality_duration": 286.06,
+    "kept_risky_quality_duration": 0
+  }
+}

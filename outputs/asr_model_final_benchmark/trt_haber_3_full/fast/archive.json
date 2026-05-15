@@ -1,0 +1,106 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\trt_haber_3_full\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 75.418,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil, ışıklarda karşıya geçmeye çalışan araca çarptı. Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı. Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı. Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek. Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor. Van'da durum bu. Arkadaşımız Yümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık getirdik ekranlarınıza. Ardahan ve Karş sınırları arasında bulunan Çıldır Gölü'nünde yüzeyi kısmen buz tuttu. Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı. Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı. Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.",
+    "clean": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil, ışıklarda karşıya geçmeye çalışan araca çarptı. Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı. Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı. Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek. Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.\n\nVan'da durum bu. Arkadaşımız Yümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık getirdik ekranlarınıza. Ardahan ve Karş sınırları arasında bulunan Çıldır Gölü'nünde yüzeyi kısmen buz tuttu. Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı. Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı. Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 5.78,
+      "end": 12.32,
+      "text": "İstanbul'da tramvay yolunda hızla ilerleyen otomobil, ışıklarda karşıya geçmeye çalışan araca çarptı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 12.52,
+      "end": 18.92,
+      "text": "Saniyeler önce karşıya geçen yaya ise şans eseri kurtuldu. O anlar güvenlik kameralarına yansıdı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 20.56,
+      "end": 25.72,
+      "text": "Yunanistan'a açılan Edirne Pazar Kule sınır kapısında modernizasyon çalışmaları başladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 25.84,
+      "end": 30.4,
+      "text": "Giriş ve çıkış peron sayısı artırılacak ve kapı daha aktif hale getirilecek.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 30.8,
+      "end": 33.48,
+      "text": "Ayrıntıları öğreneceğiz hemen. Yavuz Demir bizi bekliyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 36.3,
+      "end": 42.94,
+      "text": "Van'da durum bu. Arkadaşımız Yümeyra Pardeli'nin güç koşullarda yaptığı yayını paylaştık getirdik ekranlarınıza.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 43.02,
+      "end": 48.18,
+      "text": "Ardahan ve Karş sınırları arasında bulunan Çıldır Gölü'nünde yüzeyi kısmen buz tuttu.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 48.52,
+      "end": 54.42,
+      "text": "Buz kalınlığının 20 santimetreyi bulmasıyla birlikte atlı kızaklar göle gelen ziyaretçilere hizmet vermeye başladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 54.96,
+      "end": 59.46,
+      "text": "Gürcistan sınırında bulunan ve donan Aktaş Gölü ise patencileri ağırladı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 59.8,
+      "end": 70.66,
+      "text": "Bu görüntülerle noktalıyoruz bugün haber ajandasını. Yarın saatler 14'ü gösterdiğinde biz yine burada olacağız. Sizleri de ekranlarınızın başına bekliyoruz efendim. İyi akşamlar diliyoruz. Hoşçakalın.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 8.281,
+    "chunk_count": 4,
+    "decode_seconds": 3.222,
+    "fallback_seconds": 0.0
+  }
+}

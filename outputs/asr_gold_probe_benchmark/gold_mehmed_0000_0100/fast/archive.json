@@ -1,0 +1,202 @@
+{
+  "audio_path": "outputs\\asr_gold_probe_benchmark\\gold_mehmed_0000_0100\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 100.0,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Boşalarım, beylerim. Bir süredir Tuna'nın ötesinden gelen malumatlar bir hayli canımızı yakar. Evvel ikaz ettik, ettik ama kulak asmadılar. Ardından Lalam Şehabettin Paşa'yı gönderdik. Şehit ettiler. Hep sabır, hep sabır dedik. Gayrı vakit sabır vaktini aşmıştır. Emrimize itaat etmeyen Bosna Kralı Stefan'ın kellesi Semendire Kalesi'ne asılmıştır. ...Lalam Şehabettin Paşa'nın intikamı alınmıştır. Şükürler olsun. Hünkârım o vakit ejderhanın başı kesilmiştir. Hak konuşursun Sadraazam Paşa. Lakin o ejderhanın birden çok başı vardır. Macarlar, papalık, Vlad Dracula... Hünkârım, buyruk verin başlarını ayrı, ayaklarını ayrı kesip önünüze atalım. Vlad Drakula Yahudi tacirlerle çoktan anlaşmayı yaptı.",
+    "clean": "Boşalarım, beylerim. Bir süredir Tuna'nın ötesinden gelen malumatlar bir hayli canımızı yakar. Evvel ikaz ettik, ettik ama kulak asmadılar. Ardından Lalam Şehabettin Paşa'yı gönderdik. Şehit ettiler. Hep sabır, hep sabır dedik. Gayrı vakit sabır vaktini aşmıştır. Emrimize itaat etmeyen Bosna Kralı Stefan'ın kellesi Semendire Kalesi'ne asılmıştır. ...Lalam Şehabettin Paşa'nın intikamı alınmıştır. Şükürler olsun. Hünkârım o vakit ejderhanın başı kesilmiştir. Hak konuşursun Sadraazam Paşa. Lakin o ejderhanın birden çok başı vardır. Macarlar, papalık, Vlad Dracula... Hünkârım, buyruk verin başlarını ayrı, ayaklarını ayrı kesip önünüze atalım. Vlad Drakula Yahudi tacirlerle çoktan anlaşmayı yaptı.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 17.1,
+      "end": 28.64,
+      "text": "Boşalarım, beylerim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.5091146032015482,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 0
+    },
+    {
+      "start": 29.4,
+      "end": 34.88,
+      "text": "Bir süredir Tuna'nın ötesinden gelen malumatlar bir hayli canımızı yakar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.06843171572243725,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 1
+    },
+    {
+      "start": 35.55,
+      "end": 41.11,
+      "text": "Evvel ikaz ettik, ettik ama kulak asmadılar.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.19520970394736842,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 2
+    },
+    {
+      "start": 42.0,
+      "end": 46.44,
+      "text": "Ardından Lalam Şehabettin Paşa'yı gönderdik.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.14572010869565216,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 3
+    },
+    {
+      "start": 47.35,
+      "end": 48.85,
+      "text": "Şehit ettiler.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.4735243055555556,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 4
+    },
+    {
+      "start": 50.15,
+      "end": 53.61,
+      "text": "Hep sabır, hep sabır dedik.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.17052802135204448,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 54.57,
+      "end": 57.77,
+      "text": "Gayrı vakit sabır vaktini aşmıştır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.17052802135204448,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 5
+    },
+    {
+      "start": 58.95,
+      "end": 65.63,
+      "text": "Emrimize itaat etmeyen Bosna Kralı Stefan'ın kellesi Semendire Kalesi'ne asılmıştır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.18430397727272727,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 6
+    },
+    {
+      "start": 67.4,
+      "end": 70.2,
+      "text": "...Lalam Şehabettin Paşa'nın intikamı alınmıştır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 70.92,
+      "end": 71.96,
+      "text": "Şükürler olsun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 72.76,
+      "end": 75.24,
+      "text": "Hünkârım o vakit ejderhanın başı kesilmiştir.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 75.48,
+      "end": 77.64,
+      "text": "Hak konuşursun Sadraazam Paşa.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 77.96,
+      "end": 81.64,
+      "text": "Lakin o ejderhanın birden çok başı vardır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 81.96,
+      "end": 85.72,
+      "text": "Macarlar, papalık, Vlad Dracula...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 86.24,
+      "end": 93.64,
+      "text": "Hünkârım, buyruk verin başlarını ayrı, ayaklarını ayrı kesip önünüze atalım.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.27663935183501637,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 7
+    },
+    {
+      "start": 93.9,
+      "end": 99.2,
+      "text": "Vlad Drakula Yahudi tacirlerle çoktan anlaşmayı yaptı.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr",
+      "avg_logprob": -0.4117187365889549,
+      "no_speech_prob": 0.0,
+      "source_chunk_index": 8
+    }
+  ],
+  "quality": {
+    "drops": 0,
+    "drop_reasons": {},
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 10.043,
+    "chunk_count": 9,
+    "decode_seconds": 4.207,
+    "fallback_seconds": 0.0
+  }
+}

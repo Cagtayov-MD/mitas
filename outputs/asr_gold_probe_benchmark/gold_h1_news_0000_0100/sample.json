@@ -1,0 +1,13 @@
+{
+  "sample_id": "gold_h1_news_0000_0100",
+  "category": "clean_news",
+  "source_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\001_h1\\audio_16000hz_mono_s16.wav",
+  "prepared_audio_path": "outputs\\asr_gold_probe_benchmark\\gold_h1_news_0000_0100\\audio_16000hz_mono_s16.wav",
+  "start_sec": 0.0,
+  "end_sec": 100.0,
+  "audio_duration": 100.0,
+  "source_duration": 101.739,
+  "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_h1_news_0000_0100.txt",
+  "review_priority": "medium",
+  "notes": "Clean short news/professional speech sample."
+}

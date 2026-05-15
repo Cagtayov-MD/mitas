@@ -1,0 +1,2818 @@
+{
+  "sample_id": "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+  "source_name": "web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav",
+  "fast_words": 2435,
+  "quality_words": 2400,
+  "edit_distance_fast_vs_quality": 192,
+  "substitution_count": 101,
+  "fast_extra_word_count": 63,
+  "quality_extra_word_count": 28,
+  "diff_rows": [
+    {
+      "fast": "havayolu",
+      "quality": "yolu",
+      "count": 2,
+      "fast_metrics": {
+        "start": 114.2,
+        "end": 118.64,
+        "duration": 4.44,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 114.2,
+        "end": 118.68,
+        "duration": 4.48,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "girmek istiyorum ben de Ya başka bir havayolu şirketinde Amacımız bir havayolu pilot olmak Mehmet",
+      "quality_context": "ben de Ya da başka bir hava yolu şirketinde Amacımız bir hava yolu pilotu olmak"
+    },
+    {
+      "fast": "de",
+      "quality": "Kampüs'teyiz'de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 56.84,
+        "end": 65.18,
+        "duration": 8.34,
+        "avg_logprob": -0.0774,
+        "no_speech_prob": 0.0,
+        "combined": -0.0774,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 57.22,
+        "end": 61.1,
+        "duration": 3.88,
+        "avg_logprob": -0.0674,
+        "no_speech_prob": 0.1641,
+        "combined": -0.2315,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.1541,
+      "winner_by_combined": "fast",
+      "fast_context": "burada bu üniversitede yetişiyor Bence önce kampüsteyiz de Türk Hava Kurumu Üniversitesi'nde şöyle bir dolaşalım",
+      "quality_context": "araştırmacıları burada bu üniversitede yetişiyor Bence önce Kampüs'teyiz'de Türk Hava Kurumu Üniversitesi'nde şöyle bir dolaşalım"
+    },
+    {
+      "fast": "okulumuzda",
+      "quality": "okulumuza",
+      "count": 1,
+      "fast_metrics": {
+        "start": 89.6,
+        "end": 91.08,
+        "duration": 1.48,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 89.6,
+        "end": 91.08,
+        "duration": 1.48,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "geldin Hoş bulduk Siz de hoş geldiniz okulumuzda Hoş bulduk Seni tanıyabilir miyiz Tabii ki",
+      "quality_context": "bulduk Hoş bulduk siz de hoş geldiniz okulumuza Hoş bulduk seni tanıyabilir miyiz Tabii ki"
+    },
+    {
+      "fast": "ve",
+      "quality": "Mehmet",
+      "count": 1,
+      "fast_metrics": {
+        "start": 44.4,
+        "end": 51.46,
+        "duration": 7.06,
+        "avg_logprob": -0.0774,
+        "no_speech_prob": 0.0,
+        "combined": -0.0774,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 88.42,
+        "end": 89.14,
+        "duration": 0.72,
+        "avg_logprob": -0.1774,
+        "no_speech_prob": 0.0756,
+        "combined": -0.253,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "combined_delta_fast_minus_quality": 0.1756,
+      "winner_by_combined": "fast",
+      "fast_context": "Ve kampüsteyizden herkese merhaba Bu hafta Ankara'dayız Etimeskut'a",
+      "quality_context": "Üniversitesi'nde devam ediyor Yeni bir konuğum var Mehmet hoş geldin Hoş bulduk Hoş bulduk siz"
+    },
+    {
+      "fast": "Metro",
+      "quality": "Ruhi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 92.96,
+        "end": 98.9,
+        "duration": 5.94,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 93.0,
+        "end": 98.9,
+        "duration": 5.9,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "Seni tanıyabilir miyiz Tabii ki Ben ve Metro Yarımkaç Türk Hava Kurumu Üniversitesi Hava Ulaştırma",
+      "quality_context": "seni tanıyabilir miyiz Tabii ki ben Mehmet Ruhi Yarımkaş Türk Hava Kurumu Üniversitesi Hava Ulaştırma"
+    },
+    {
+      "fast": "Yarımkaç",
+      "quality": "Yarımkaş",
+      "count": 1,
+      "fast_metrics": {
+        "start": 92.96,
+        "end": 98.9,
+        "duration": 5.94,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 93.0,
+        "end": 98.9,
+        "duration": 5.9,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "tanıyabilir miyiz Tabii ki Ben ve Metro Yarımkaç Türk Hava Kurumu Üniversitesi Hava Ulaştırma Fakültesi",
+      "quality_context": "tanıyabilir miyiz Tabii ki ben Mehmet Ruhi Yarımkaş Türk Hava Kurumu Üniversitesi Hava Ulaştırma Fakültesi"
+    },
+    {
+      "fast": "hayali",
+      "quality": "hayalin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 106.38,
+        "end": 109.32,
+        "duration": 2.94,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 106.4,
+        "end": 109.32,
+        "duration": 2.92,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "aşamasına geldik Bitirmeyi bekliyoruz Bitirdikten sonra nedir hayali Nerede çalışmak istersin Bitirdikten sonra tabii ki",
+      "quality_context": "aşamasına geldik Bitirmeyi bekliyoruz Bitirdikten sonra nedir hayalin nerede çalışmak istersin Bitirdikten sonra tabii ki"
+    },
+    {
+      "fast": "pilot",
+      "quality": "pilotu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 99.08,
+        "end": 101.46,
+        "duration": 2.38,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 114.2,
+        "end": 118.68,
+        "duration": 4.48,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1212,
+      "winner_by_combined": "fast",
+      "fast_context": "sınıf öğrencisiyim Yani çok yakın bir zamanda pilot olacaksın Evet okul bitmek üzere artık Eğitimlerimizin",
+      "quality_context": "hava yolu şirketinde Amacımız bir hava yolu pilotu olmak Mehmet nasıl bir eğitim alıyorsunuz burada"
+    },
+    {
+      "fast": "Pilotaj",
+      "quality": "Pirataj",
+      "count": 1,
+      "fast_metrics": {
+        "start": 92.96,
+        "end": 98.9,
+        "duration": 5.94,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 134.75,
+        "end": 139.05,
+        "duration": 4.3,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0617,
+        "combined": -0.197,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0764,
+      "winner_by_combined": "fast",
+      "fast_context": "Türk Hava Kurumu Üniversitesi Hava Ulaştırma Fakültesi Pilotaj Bölümü son sınıf öğrencisiyim Yani çok yakın",
+      "quality_context": "ortak derslerimizi alıyoruz Ortak derslerimizi aldıktan sonra Pirataj bölümü 2 sınıfla beraber artık kendi bölüm"
+    },
+    {
+      "fast": "ikinci",
+      "quality": "2",
+      "count": 1,
+      "fast_metrics": {
+        "start": 135.01,
+        "end": 139.03,
+        "duration": 4.02,
+        "avg_logprob": -0.0982,
+        "no_speech_prob": 0.0,
+        "combined": -0.0982,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 134.75,
+        "end": 139.05,
+        "duration": 4.3,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0617,
+        "combined": -0.197,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "combined_delta_fast_minus_quality": 0.0988,
+      "winner_by_combined": "fast",
+      "fast_context": "alıyoruz Ortak derslerimizi aldıktan sonra Pilotaj bölümü ikinci sınıfla beraber artık kendi bölüm derslerimizi almaya",
+      "quality_context": "alıyoruz Ortak derslerimizi aldıktan sonra Pirataj bölümü 2 sınıfla beraber artık kendi bölüm derslerimizi almaya"
+    },
+    {
+      "fast": "pilotaj",
+      "quality": "piyotaj",
+      "count": 1,
+      "fast_metrics": {
+        "start": 135.01,
+        "end": 139.03,
+        "duration": 4.02,
+        "avg_logprob": -0.0982,
+        "no_speech_prob": 0.0,
+        "combined": -0.0982,
+        "flags": [],
+        "source_chunk_index": 4
+      },
+      "quality_metrics": {
+        "start": 194.68,
+        "end": 201.86,
+        "duration": 7.18,
+        "avg_logprob": -0.0776,
+        "no_speech_prob": 0.0421,
+        "combined": -0.1197,
+        "flags": [],
+        "source_chunk_index": 6
+      },
+      "combined_delta_fast_minus_quality": 0.0215,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ortak derslerimizi alıyoruz Ortak derslerimizi aldıktan sonra Pilotaj bölümü ikinci sınıfla beraber artık kendi bölüm",
+      "quality_context": "bölümlerimiz mevcut aynı zamanda ve havalaştırma fakültesinde piyotaj bölümümüz var Tüm bölümlerimiz İngilizce eğitim vermekte"
+    },
+    {
+      "fast": "önemlisi",
+      "quality": "önemli",
+      "count": 1,
+      "fast_metrics": {
+        "start": 226.26,
+        "end": 230.64,
+        "duration": 4.38,
+        "avg_logprob": -0.092,
+        "no_speech_prob": 0.0,
+        "combined": -0.092,
+        "flags": [],
+        "source_chunk_index": 7
+      },
+      "quality_metrics": {
+        "start": 225.98,
+        "end": 230.64,
+        "duration": 4.66,
+        "avg_logprob": -0.0737,
+        "no_speech_prob": 0.1676,
+        "combined": -0.2413,
+        "flags": [],
+        "source_chunk_index": 7
+      },
+      "combined_delta_fast_minus_quality": 0.1492,
+      "winner_by_combined": "fast",
+      "fast_context": "ki bunların hepsini normal karşılıyoruz ve en önemlisi sakinliğimizi korumaya çalışıyoruz Sakinliğimizi zaten koruduğumuz takdirde",
+      "quality_context": "tabii ki bunların hepsini normal karşılıyoruz En önemli sakinliğimizi korumaya çalışıyoruz Sakinliğimizi zaten koruduğumuz takdirde"
+    },
+    {
+      "fast": "uçlarımıza",
+      "quality": "uçuşlarımıza",
+      "count": 1,
+      "fast_metrics": {
+        "start": 251.78,
+        "end": 253.66,
+        "duration": 1.88,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "quality_metrics": {
+        "start": 251.78,
+        "end": 253.66,
+        "duration": 1.88,
+        "avg_logprob": -0.1263,
+        "no_speech_prob": 0.1361,
+        "combined": -0.2624,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.1333,
+      "winner_by_combined": "fast",
+      "fast_context": "yapıyor Hiçbir eksiğimiz yok Çok güvenli şekilde uçlarımıza devam ediyoruz O yüzden korkulacak hiçbir durum",
+      "quality_context": "yapıyor Hiçbir eksiğimiz yok Çok güvenli şekilde uçuşlarımıza devam ediyoruz O yüzden korkulacak hiçbir durum"
+    },
+    {
+      "fast": "kampüste",
+      "quality": "kampüstü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 161.55,
+        "end": 164.71,
+        "duration": 3.16,
+        "avg_logprob": -0.0932,
+        "no_speech_prob": 0.0,
+        "combined": -0.0932,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "quality_metrics": {
+        "start": 256.96,
+        "end": 259.48,
+        "duration": 2.52,
+        "avg_logprob": -0.1263,
+        "no_speech_prob": 0.1361,
+        "combined": -0.2624,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.1692,
+      "winner_by_combined": "fast",
+      "fast_context": "çok güzel bir okul burası Neler yapıyorsunuz kampüste arkadaşlarınızla Nasıl bir hayat var burada Açıkçası",
+      "quality_context": "durum yok yani Teşekkür ederim Az önce kampüstü arkadaşlarımıza müzik de dinliyoruz dedin Müzikten bahsetmişken"
+    },
+    {
+      "fast": "müzikle",
+      "quality": "de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 256.96,
+        "end": 259.42,
+        "duration": 2.46,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "quality_metrics": {
+        "start": 89.6,
+        "end": 91.08,
+        "duration": 1.48,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1126,
+      "winner_by_combined": "fast",
+      "fast_context": "yani Teşekkür ederim Az önce kampüste arkadaşlarımıza müzikle dinliyoruz dedi Müzikten bahsetmişken bu güzel sohbete",
+      "quality_context": "hoş geldin Hoş bulduk Hoş bulduk siz de hoş geldiniz okulumuza Hoş bulduk seni tanıyabilir"
+    },
+    {
+      "fast": "Republic'den",
+      "quality": "Republic'ten",
+      "count": 1,
+      "fast_metrics": {
+        "start": 263.26,
+        "end": 265.34,
+        "duration": 2.08,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "quality_metrics": {
+        "start": 263.68,
+        "end": 265.36,
+        "duration": 1.68,
+        "avg_logprob": -0.1263,
+        "no_speech_prob": 0.1361,
+        "combined": -0.2624,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.1333,
+      "winner_by_combined": "fast",
+      "fast_context": "bir müzik arası verelim Ne dinleyelim One Republic'den Rich Love'ı dinleyelim Hadi o zaman One",
+      "quality_context": "bir müzik arası verelim Ne dinleyelim One Republic'ten Rich Love'ı dinleyelim Hadi o zaman One"
+    },
+    {
+      "fast": "no",
+      "quality": "MÜZİK",
+      "count": 1,
+      "fast_metrics": {
+        "start": 280.49,
+        "end": 281.49,
+        "duration": 1.0,
+        "avg_logprob": -0.2714,
+        "no_speech_prob": 0.0,
+        "combined": -0.2714,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 267.35,
+        "end": 282.35,
+        "duration": 15.0,
+        "avg_logprob": -0.6377,
+        "no_speech_prob": 0.6807,
+        "combined": -1.3184,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": 1.047,
+      "winner_by_combined": "fast",
+      "fast_context": "we know we never tried But then no Ve Türk Hava Kurumu Üniversitesi'nde hocam hangi",
+      "quality_context": "dinleyelim Hadi o zaman One Republic'i dinliyoruz MÜZİK Ve Türk Hava Kurumu Üniversitesi'nde hocam hangi"
+    },
+    {
+      "fast": "2",
+      "quality": "FNPT2",
+      "count": 1,
+      "fast_metrics": {
+        "start": 456.52,
+        "end": 459.4,
+        "duration": 2.88,
+        "avg_logprob": -0.0997,
+        "no_speech_prob": 0.0,
+        "combined": -0.0997,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 456.52,
+        "end": 459.42,
+        "duration": 2.9,
+        "avg_logprob": -0.0935,
+        "no_speech_prob": 0.0769,
+        "combined": -0.1704,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.0707,
+      "winner_by_combined": "fast",
+      "fast_context": "simülatör bölümündeyiz Simülatör uçuşlarını burada gerçekleştiriyoruz FNPT 2 tipi olarak Simülatör uçuşunun açıkçası önemi şu",
+      "quality_context": "Okulu'nun simülatör bölümündeyiz Simülatör uçuşlarını burada gerçekleştiriyoruz FNPT2 tipi olarak Simülatör uçuşunun açıkçası önemi şu"
+    },
+    {
+      "fast": "dediğimiz",
+      "quality": "dediğiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 470.0,
+        "end": 478.46,
+        "duration": 8.46,
+        "avg_logprob": -0.1056,
+        "no_speech_prob": 0.0,
+        "combined": -0.1056,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 475.0,
+        "end": 478.8,
+        "duration": 3.8,
+        "avg_logprob": -0.2569,
+        "no_speech_prob": 0.0023,
+        "combined": -0.2592,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.1536,
+      "winner_by_combined": "fast",
+      "fast_context": "uçuş eğitiminde şu anda öğrencilerimiz alet kartları dediğimiz iPad'de gördüğünüz kartları kullanarak Atatürk Havaalanı'ndan kalkıp",
+      "quality_context": "uçuş eğitiminde şu anda öğrencilerimiz Alet kartları dediğiniz iPad'de gördüğünüz kartları kullanarak Atatürk Havaalanı'ndan kalkıp"
+    },
+    {
+      "fast": "Öğrencilerimizle",
+      "quality": "Öğrencilerimize",
+      "count": 1,
+      "fast_metrics": {
+        "start": 513.25,
+        "end": 516.93,
+        "duration": 3.68,
+        "avg_logprob": -0.0945,
+        "no_speech_prob": 0.0,
+        "combined": -0.0945,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "quality_metrics": {
+        "start": 500.95,
+        "end": 512.97,
+        "duration": 12.02,
+        "avg_logprob": -0.0831,
+        "no_speech_prob": 0.0122,
+        "combined": -0.0953,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "combined_delta_fast_minus_quality": 0.0008,
+      "winner_by_combined": "near_tie",
+      "fast_context": "acil durumları burada öğrencilerimize gerçekleştirebiliyoruz Teşekkür ederim Öğrencilerimizle de konuşalım Hemen seni tanıyabilir miyiz Merhabalar",
+      "quality_context": "buzlanmaydı yangındı gibi tüm acil durumları burada öğrencilerimize gerçekleştirebiliyoruz Teşekkür ederim Öğrencilerimize de konuşalım Hemen"
+    },
+    {
+      "fast": "mesleği",
+      "quality": "mesleğe",
+      "count": 1,
+      "fast_metrics": {
+        "start": 526.19,
+        "end": 528.75,
+        "duration": 2.56,
+        "avg_logprob": -0.0945,
+        "no_speech_prob": 0.0,
+        "combined": -0.0945,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "quality_metrics": {
+        "start": 526.19,
+        "end": 528.77,
+        "duration": 2.58,
+        "avg_logprob": -0.0831,
+        "no_speech_prob": 0.0122,
+        "combined": -0.0953,
+        "flags": [],
+        "source_chunk_index": 27
+      },
+      "combined_delta_fast_minus_quality": 0.0008,
+      "winner_by_combined": "near_tie",
+      "fast_context": "tamamlamaya çalışıyorum Nasıl başlamaya karar verdin bu mesleği Daha önce yurt dışında bulundum Oradaki araştırmalar",
+      "quality_context": "tamamlamaya çalışıyorum Nasıl başlamaya karar verdin bu mesleğe Daha önce yurt dışında bulundum Oradaki araştırmalar"
+    },
+    {
+      "fast": "eğitiminin",
+      "quality": "eğitimin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 536.61,
+        "end": 537.79,
+        "duration": 1.18,
+        "avg_logprob": -0.1216,
+        "no_speech_prob": 0.0,
+        "combined": -0.1216,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "quality_metrics": {
+        "start": 536.61,
+        "end": 537.81,
+        "duration": 1.2,
+        "avg_logprob": -0.1071,
+        "no_speech_prob": 0.0508,
+        "combined": -0.1579,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "combined_delta_fast_minus_quality": 0.0363,
+      "winner_by_combined": "near_tie",
+      "fast_context": "buraya gelip başlama kararı aldım Nasıl gidiyor eğitiminin peki Eğitimim gidiyor Son aşamalardayım Artık bitince",
+      "quality_context": "buraya gelip başlama kararı aldım Nasıl gidiyor eğitimin peki Eğitimim iyi gidiyor Son aşamalardayım Artık"
+    },
+    {
+      "fast": "yollarına",
+      "quality": "havayollarına",
+      "count": 1,
+      "fast_metrics": {
+        "start": 538.29,
+        "end": 544.07,
+        "duration": 5.78,
+        "avg_logprob": -0.1216,
+        "no_speech_prob": 0.0,
+        "combined": -0.1216,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "quality_metrics": {
+        "start": 538.29,
+        "end": 544.07,
+        "duration": 5.78,
+        "avg_logprob": -0.1071,
+        "no_speech_prob": 0.0508,
+        "combined": -0.1579,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "combined_delta_fast_minus_quality": 0.0363,
+      "winner_by_combined": "near_tie",
+      "fast_context": "gidiyor Son aşamalardayım Artık bitince inşallah hava yollarına başvuru yapacağız Umuyoruz Seni tanıyabilir miyiz Tabii",
+      "quality_context": "iyi gidiyor Son aşamalardayım Artık bitince inşallah havayollarına başvuru yapacağız Umuyoruz Seni tanıyabilir miyiz Tabii"
+    },
+    {
+      "fast": "TU6",
+      "quality": "6",
+      "count": 1,
+      "fast_metrics": {
+        "start": 551.95,
+        "end": 557.49,
+        "duration": 5.54,
+        "avg_logprob": -0.1216,
+        "no_speech_prob": 0.0,
+        "combined": -0.1216,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "quality_metrics": {
+        "start": 551.93,
+        "end": 557.49,
+        "duration": 5.56,
+        "avg_logprob": -0.1071,
+        "no_speech_prob": 0.0508,
+        "combined": -0.1579,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "combined_delta_fast_minus_quality": 0.0363,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Kurumu Uçuş Akademisi'nde öğrenciyim Hacı arkadaşımla birlikte TU6 grubu olarak başladık Şu anda da alet",
+      "quality_context": "Uçuş Akademisi'nde öğrenciyim Hacı arkadaşımla birlikte Tuva 6 grubu olarak başladık Şu anda da alet"
+    },
+    {
+      "fast": "eğitim",
+      "quality": "eğitimim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 118.95,
+        "end": 123.09,
+        "duration": 4.14,
+        "avg_logprob": -0.1287,
+        "no_speech_prob": 0.0,
+        "combined": -0.1287,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 538.29,
+        "end": 544.07,
+        "duration": 5.78,
+        "avg_logprob": -0.1071,
+        "no_speech_prob": 0.0508,
+        "combined": -0.1579,
+        "flags": [],
+        "source_chunk_index": 28
+      },
+      "combined_delta_fast_minus_quality": 0.0292,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bir havayolu pilot olmak Mehmet nasıl bir eğitim alıyorsunuz burada Uygulamalar pratik uçuşlar çok var",
+      "quality_context": "başlama kararı aldım Nasıl gidiyor eğitimin peki Eğitimim iyi gidiyor Son aşamalardayım Artık bitince inşallah"
+    },
+    {
+      "fast": "kitağı",
+      "quality": "gitar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 577.65,
+        "end": 579.57,
+        "duration": 1.92,
+        "avg_logprob": -0.1316,
+        "no_speech_prob": 0.0,
+        "combined": -0.1316,
+        "flags": [],
+        "source_chunk_index": 29
+      },
+      "quality_metrics": {
+        "start": 577.63,
+        "end": 579.59,
+        "duration": 1.96,
+        "avg_logprob": -0.1324,
+        "no_speech_prob": 0.5532,
+        "combined": -0.6856,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 29
+      },
+      "combined_delta_fast_minus_quality": 0.5541,
+      "winner_by_combined": "fast",
+      "fast_context": "bayağı iyi 18 senedir 19 senedir bas kitağı çalıyorum zaten Aa ne güzel Neler dinlersiniz",
+      "quality_context": "aram bayağı iyi 18 19 senedir bas gitar çalıyorum zaten Ne güzel Neler dinlersiniz peki"
+    },
+    {
+      "fast": "ilgimi",
+      "quality": "ilgim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 585.9,
+        "end": 591.32,
+        "duration": 5.42,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 567.47,
+        "end": 569.43,
+        "duration": 1.96,
+        "avg_logprob": -0.1324,
+        "no_speech_prob": 0.5532,
+        "combined": -0.6856,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 29
+      },
+      "combined_delta_fast_minus_quality": 0.5186,
+      "winner_by_combined": "fast",
+      "fast_context": "Bir de zaten 80'ler 90'lar pop müzikle ilgimi çekiyor O da yabancı müzik tarzında Hadi",
+      "quality_context": "çocukken böyle bir düşüncen Çocukluktan beri uçuşa ilgim var tabii ki Babam eski pilot Eski"
+    },
+    {
+      "fast": "sohbeti",
+      "quality": "sohbete",
+      "count": 1,
+      "fast_metrics": {
+        "start": 591.62,
+        "end": 594.9,
+        "duration": 3.28,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 259.48,
+        "end": 262.56,
+        "duration": 3.08,
+        "avg_logprob": -0.1263,
+        "no_speech_prob": 0.1361,
+        "combined": -0.2624,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.0954,
+      "winner_by_combined": "fast",
+      "fast_context": "yabancı müzik tarzında Hadi o zaman bu sohbeti minnazik müzik arası verelim Ne dinleyelim O",
+      "quality_context": "de dinliyoruz dedin Müzikten bahsetmişken bu güzel sohbete minnacık bir müzik arası verelim Ne dinleyelim"
+    },
+    {
+      "fast": "minnazik",
+      "quality": "minnacık",
+      "count": 1,
+      "fast_metrics": {
+        "start": 591.62,
+        "end": 594.9,
+        "duration": 3.28,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 259.48,
+        "end": 262.56,
+        "duration": 3.08,
+        "avg_logprob": -0.1263,
+        "no_speech_prob": 0.1361,
+        "combined": -0.2624,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.0954,
+      "winner_by_combined": "fast",
+      "fast_context": "müzik tarzında Hadi o zaman bu sohbeti minnazik müzik arası verelim Ne dinleyelim O zaman",
+      "quality_context": "dinliyoruz dedin Müzikten bahsetmişken bu güzel sohbete minnacık bir müzik arası verelim Ne dinleyelim One"
+    },
+    {
+      "fast": "zamanında",
+      "quality": "zamanda",
+      "count": 1,
+      "fast_metrics": {
+        "start": 595.32,
+        "end": 600.9,
+        "duration": 5.58,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 99.06,
+        "end": 101.46,
+        "duration": 2.4,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.0747,
+      "winner_by_combined": "fast",
+      "fast_context": "arası verelim Ne dinleyelim O zaman yakın zamanında güzel şarkalarla biliyorsun Weekend'den Can't Feel My",
+      "quality_context": "son sınıf öğrencisiyim Yani çok yakın bir zamanda pilot olacaksın Evet okul bitmek üzere artık"
+    },
+    {
+      "fast": "şarkalarla",
+      "quality": "biri",
+      "count": 1,
+      "fast_metrics": {
+        "start": 595.32,
+        "end": 600.9,
+        "duration": 5.58,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 595.32,
+        "end": 600.86,
+        "duration": 5.54,
+        "avg_logprob": -0.138,
+        "no_speech_prob": 0.0884,
+        "combined": -0.2264,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": 0.0593,
+      "winner_by_combined": "fast",
+      "fast_context": "Ne dinleyelim O zaman yakın zamanında güzel şarkalarla biliyorsun Weekend'den Can't Feel My Face olursa",
+      "quality_context": "O zaman yakın zamanda güzel şarkılar alan biri olsun Weekend'den Can't Feel My Face olursa"
+    },
+    {
+      "fast": "biliyorsun",
+      "quality": "olsun",
+      "count": 1,
+      "fast_metrics": {
+        "start": 595.32,
+        "end": 600.9,
+        "duration": 5.58,
+        "avg_logprob": -0.1671,
+        "no_speech_prob": 0.0,
+        "combined": -0.1671,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 595.32,
+        "end": 600.86,
+        "duration": 5.54,
+        "avg_logprob": -0.138,
+        "no_speech_prob": 0.0884,
+        "combined": -0.2264,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": 0.0593,
+      "winner_by_combined": "fast",
+      "fast_context": "dinleyelim O zaman yakın zamanında güzel şarkalarla biliyorsun Weekend'den Can't Feel My Face olursa Peki",
+      "quality_context": "zaman yakın zamanda güzel şarkılar alan biri olsun Weekend'den Can't Feel My Face olursa Peki"
+    },
+    {
+      "fast": "Alperen",
+      "quality": "Eren",
+      "count": 1,
+      "fast_metrics": {
+        "start": 819.5,
+        "end": 825.42,
+        "duration": 5.92,
+        "avg_logprob": -0.1584,
+        "no_speech_prob": 0.0,
+        "combined": -0.1584,
+        "flags": [],
+        "source_chunk_index": 37
+      },
+      "quality_metrics": {
+        "start": 819.5,
+        "end": 822.58,
+        "duration": 3.08,
+        "avg_logprob": -0.1806,
+        "no_speech_prob": 0.6309,
+        "combined": -0.8114,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 37
+      },
+      "combined_delta_fast_minus_quality": 0.653,
+      "winner_by_combined": "fast",
+      "fast_context": "az önce Senden başlayalım mı Başlayalım Ben Alperen Pekşen 22 yaşındayım Samsunluyum Aslen Selanik göçmeniyim",
+      "quality_context": "önce Senden başlayalım mı Başlayalım Ben Arif Eren Pekşen 22 yaşındayım Samsunluyum Aslen Selenlik göçmeniyim"
+    },
+    {
+      "fast": "Selanik",
+      "quality": "Selenlik",
+      "count": 1,
+      "fast_metrics": {
+        "start": 819.5,
+        "end": 825.42,
+        "duration": 5.92,
+        "avg_logprob": -0.1584,
+        "no_speech_prob": 0.0,
+        "combined": -0.1584,
+        "flags": [],
+        "source_chunk_index": 37
+      },
+      "quality_metrics": {
+        "start": 823.3,
+        "end": 825.44,
+        "duration": 2.14,
+        "avg_logprob": -0.1806,
+        "no_speech_prob": 0.6309,
+        "combined": -0.8114,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 37
+      },
+      "combined_delta_fast_minus_quality": 0.653,
+      "winner_by_combined": "fast",
+      "fast_context": "Ben Alperen Pekşen 22 yaşındayım Samsunluyum Aslen Selanik göçmeniyim Uçak mühendisliğini okuyorum Yaklaşık 11 yaşımdan",
+      "quality_context": "Arif Eren Pekşen 22 yaşındayım Samsunluyum Aslen Selenlik göçmeniyim Uçak mühendisliğini de okuyorum Yaklaşık 11"
+    },
+    {
+      "fast": "ilerlettim",
+      "quality": "ilerlettin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 843.92,
+        "end": 845.54,
+        "duration": 1.62,
+        "avg_logprob": -0.1278,
+        "no_speech_prob": 0.0,
+        "combined": -0.1278,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "quality_metrics": {
+        "start": 843.92,
+        "end": 845.52,
+        "duration": 1.6,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.1011,
+        "combined": -0.2184,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "combined_delta_fast_minus_quality": 0.0906,
+      "winner_by_combined": "fast",
+      "fast_context": "öyle başladım Öyle de devam ediyorum Sonra ilerlettim başka enstrümanlara Sonra ilerlettim ve üniversiteye gelince",
+      "quality_context": "öyle başladım Öyle de devam ediyorum Sonra ilerlettin başka enstrümanlara Ve üniversiteye gelince de gitarla"
+    },
+    {
+      "fast": "Rock'n'roll",
+      "quality": "Rock'ın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 848.34,
+        "end": 850.6,
+        "duration": 2.26,
+        "avg_logprob": -0.1278,
+        "no_speech_prob": 0.0,
+        "combined": -0.1278,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "quality_metrics": {
+        "start": 845.88,
+        "end": 849.3,
+        "duration": 3.42,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.1011,
+        "combined": -0.2184,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "combined_delta_fast_minus_quality": 0.0906,
+      "winner_by_combined": "fast",
+      "fast_context": "ilerlettim ve üniversiteye gelince de gitarla tanıştım Rock'n'roll ile tanıştım Öyle de devam ediyorum şu",
+      "quality_context": "enstrümanlara Ve üniversiteye gelince de gitarla tanıştım Rock'ın roll'la tanıştım Öyle de devam ediyorum şu"
+    },
+    {
+      "fast": "ile",
+      "quality": "roll'la",
+      "count": 1,
+      "fast_metrics": {
+        "start": 848.34,
+        "end": 850.6,
+        "duration": 2.26,
+        "avg_logprob": -0.1278,
+        "no_speech_prob": 0.0,
+        "combined": -0.1278,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "quality_metrics": {
+        "start": 845.88,
+        "end": 849.3,
+        "duration": 3.42,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.1011,
+        "combined": -0.2184,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "combined_delta_fast_minus_quality": 0.0906,
+      "winner_by_combined": "fast",
+      "fast_context": "ve üniversiteye gelince de gitarla tanıştım Rock'n'roll ile tanıştım Öyle de devam ediyorum şu an",
+      "quality_context": "Ve üniversiteye gelince de gitarla tanıştım Rock'ın roll'la tanıştım Öyle de devam ediyorum şu an"
+    },
+    {
+      "fast": "3",
+      "quality": "sene",
+      "count": 1,
+      "fast_metrics": {
+        "start": 883.25,
+        "end": 890.05,
+        "duration": 6.8,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 883.25,
+        "end": 885.67,
+        "duration": 2.42,
+        "avg_logprob": -0.1458,
+        "no_speech_prob": 0.0531,
+        "combined": -0.1988,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "combined_delta_fast_minus_quality": 0.0754,
+      "winner_by_combined": "fast",
+      "fast_context": "12 yaşımdayken gitar kursuna yazılmıştım Bir yaklaşık 3 4 sene gitar çaldım Sonra sesim güzel",
+      "quality_context": "yaşımdayken gitar kursuna yazılmıştım Bir yaklaşık üç sene dört sene gitar çaldım Sonra sesim güzel"
+    },
+    {
+      "fast": "4",
+      "quality": "dört",
+      "count": 1,
+      "fast_metrics": {
+        "start": 883.25,
+        "end": 890.05,
+        "duration": 6.8,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 883.25,
+        "end": 885.67,
+        "duration": 2.42,
+        "avg_logprob": -0.1458,
+        "no_speech_prob": 0.0531,
+        "combined": -0.1988,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "combined_delta_fast_minus_quality": 0.0754,
+      "winner_by_combined": "fast",
+      "fast_context": "yaşımdayken gitar kursuna yazılmıştım Bir yaklaşık 3 4 sene gitar çaldım Sonra sesim güzel olduğunu",
+      "quality_context": "gitar kursuna yazılmıştım Bir yaklaşık üç sene dört sene gitar çaldım Sonra sesim güzel olduğunu"
+    },
+    {
+      "fast": "1",
+      "quality": "bir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 890.33,
+        "end": 894.61,
+        "duration": 4.28,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 57.22,
+        "end": 61.1,
+        "duration": 3.88,
+        "avg_logprob": -0.0674,
+        "no_speech_prob": 0.1641,
+        "combined": -0.2315,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.108,
+      "winner_by_combined": "fast",
+      "fast_context": "etraftaki arkadaşlarım ailem İşte şan dersleri alıyorum 1 2 senedir O şekilde ilerliyor şu anda",
+      "quality_context": "önce Kampüs'teyiz'de Türk Hava Kurumu Üniversitesi'nde şöyle bir dolaşalım Ardından da müzik ve tabii ki"
+    },
+    {
+      "fast": "2",
+      "quality": "iki",
+      "count": 1,
+      "fast_metrics": {
+        "start": 890.33,
+        "end": 894.61,
+        "duration": 4.28,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 890.33,
+        "end": 892.51,
+        "duration": 2.18,
+        "avg_logprob": -0.1458,
+        "no_speech_prob": 0.0531,
+        "combined": -0.1988,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "combined_delta_fast_minus_quality": 0.0754,
+      "winner_by_combined": "fast",
+      "fast_context": "arkadaşlarım ailem İşte şan dersleri alıyorum 1 2 senedir O şekilde ilerliyor şu anda Ne",
+      "quality_context": "arkadaşlarım ailem İşte şan dersleri alıyorum bir iki senedir O şekilde ilerliyor şu anda Ne"
+    },
+    {
+      "fast": "Hani",
+      "quality": "Yani",
+      "count": 1,
+      "fast_metrics": {
+        "start": 898.09,
+        "end": 904.93,
+        "duration": 6.84,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 99.06,
+        "end": 101.46,
+        "duration": 2.4,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.1414,
+        "combined": -0.2418,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.1183,
+      "winner_by_combined": "fast",
+      "fast_context": "Şu anda bir grup kurmak istiyorum sadece Hani şu an için bunu arkadaşlarım hatta üzerinde",
+      "quality_context": "Ulaştırma Fakültesi Pilotaj Bölümü son sınıf öğrencisiyim Yani çok yakın bir zamanda pilot olacaksın Evet"
+    },
+    {
+      "fast": "konuşuyor",
+      "quality": "konuşuyoruz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 898.09,
+        "end": 904.93,
+        "duration": 6.84,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 169.57,
+        "end": 172.51,
+        "duration": 2.94,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.0212,
+        "combined": -0.1171,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": -0.0063,
+      "winner_by_combined": "near_tie",
+      "fast_context": "şu an için bunu arkadaşlarım hatta üzerinde konuşuyor Bu arada birlikte düşünüyoruz Bir şeyler yapacağız",
+      "quality_context": "beraber vakit geçiyoruz Bazen müzik dinliyoruz bazen konuşuyoruz tartışıyoruz Bazen uçakları izliyoruz Güzel vakit geçiriyoruz"
+    },
+    {
+      "fast": "planı",
+      "quality": "planım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 908.7,
+        "end": 910.32,
+        "duration": 1.62,
+        "avg_logprob": -0.1799,
+        "no_speech_prob": 0.0,
+        "combined": -0.1799,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 908.7,
+        "end": 910.32,
+        "duration": 1.62,
+        "avg_logprob": -0.1518,
+        "no_speech_prob": 0.0895,
+        "combined": -0.2413,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.0614,
+      "winner_by_combined": "fast",
+      "fast_context": "yapacağız umarım Şu an işin böyle bir planı var Yani üniversitede bitirdikten sonra devam edeceksiniz",
+      "quality_context": "yapacağız umarım Şu an için böyle bir planım var Yani üniversitede bitirdikten sonra devam edeceksiniz"
+    },
+    {
+      "fast": "birinden",
+      "quality": "günden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 927.64,
+        "end": 930.8,
+        "duration": 3.16,
+        "avg_logprob": -0.1799,
+        "no_speech_prob": 0.0,
+        "combined": -0.1799,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 927.64,
+        "end": 930.8,
+        "duration": 3.16,
+        "avg_logprob": -0.1518,
+        "no_speech_prob": 0.0895,
+        "combined": -0.2413,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.0614,
+      "winner_by_combined": "fast",
+      "fast_context": "yaşındayım İngilizce işleme bölümünde okuyorum Müziğe küçük birinden başladığım tam olarak hatırlamıyorum bir şeyim yok",
+      "quality_context": "yaşındayım İngilizce işleme bölümünde okuyorum Müziğe küçük günden başladığımı tam olarak hatırlamıyorum bir şeyim yok"
+    },
+    {
+      "fast": "başladığım",
+      "quality": "başladığımı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 927.64,
+        "end": 930.8,
+        "duration": 3.16,
+        "avg_logprob": -0.1799,
+        "no_speech_prob": 0.0,
+        "combined": -0.1799,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 927.64,
+        "end": 930.8,
+        "duration": 3.16,
+        "avg_logprob": -0.1518,
+        "no_speech_prob": 0.0895,
+        "combined": -0.2413,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.0614,
+      "winner_by_combined": "fast",
+      "fast_context": "İngilizce işleme bölümünde okuyorum Müziğe küçük birinden başladığım tam olarak hatırlamıyorum bir şeyim yok Hani",
+      "quality_context": "İngilizce işleme bölümünde okuyorum Müziğe küçük günden başladığımı tam olarak hatırlamıyorum bir şeyim yok Hani"
+    },
+    {
+      "fast": "Bey'i",
+      "quality": "Bey",
+      "count": 1,
+      "fast_metrics": {
+        "start": 936.5,
+        "end": 939.14,
+        "duration": 2.64,
+        "avg_logprob": -0.2927,
+        "no_speech_prob": 0.0,
+        "combined": -0.2927,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "quality_metrics": {
+        "start": 936.48,
+        "end": 939.14,
+        "duration": 2.66,
+        "avg_logprob": -0.2354,
+        "no_speech_prob": 0.1301,
+        "combined": -0.3655,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.0729,
+      "winner_by_combined": "fast",
+      "fast_context": "gördük televizyondan öyle başladık küçükten Kiziroğlu Mustafa Bey'i dinledin bir anda değişti mi hayatımız Nasıldı",
+      "quality_context": "gördük televizyondan Öyle başladık küçükten Kiziroğlu Mustafa Bey dinledin bir anda değişti mi hayatımız Nasıldı"
+    },
+    {
+      "fast": "olur",
+      "quality": "bilmiyorum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 941.72,
+        "end": 945.14,
+        "duration": 3.42,
+        "avg_logprob": -0.2927,
+        "no_speech_prob": 0.0,
+        "combined": -0.2927,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "quality_metrics": {
+        "start": 945.84,
+        "end": 947.4,
+        "duration": 1.56,
+        "avg_logprob": -0.2354,
+        "no_speech_prob": 0.1301,
+        "combined": -0.3655,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.0729,
+      "winner_by_combined": "fast",
+      "fast_context": "o şarkı Kiziroğlu Mustafa Bey bir beyin olur Bir beyin olur İşte oradan başladık Şarkı",
+      "quality_context": "bir beyin oğlu Bir beyin oğlu mu bilmiyorum İşte oradan başladık Şarkı söyleye söyleye ondan"
+    },
+    {
+      "fast": "gerçek",
+      "quality": "gerçekten",
+      "count": 1,
+      "fast_metrics": {
+        "start": 459.82,
+        "end": 468.0,
+        "duration": 8.18,
+        "avg_logprob": -0.0997,
+        "no_speech_prob": 0.0,
+        "combined": -0.0997,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 982.87,
+        "end": 984.99,
+        "duration": 2.12,
+        "avg_logprob": -0.1687,
+        "no_speech_prob": 0.2756,
+        "combined": -0.4444,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "combined_delta_fast_minus_quality": 0.3447,
+      "winner_by_combined": "fast",
+      "fast_context": "Simülatör uçuşunun açıkçası önemi şu şekilde gerçekte gerçek şartlarda gerçekleştiremediğimiz senaryoları burada gerçekleştirebiliyoruz Ne gibi",
+      "quality_context": "bitiremiyorum Ne için Olmuyor mümkün değil Yani gerçekten hafta sonlarımı değerlendiriyorum Bu sefer ders çalışamıyorum"
+    },
+    {
+      "fast": "çalışasım",
+      "quality": "mı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 984.99,
+        "end": 989.77,
+        "duration": 4.78,
+        "avg_logprob": -0.1767,
+        "no_speech_prob": 0.0,
+        "combined": -0.1767,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "quality_metrics": {
+        "start": 818.56,
+        "end": 819.44,
+        "duration": 0.88,
+        "avg_logprob": -0.1806,
+        "no_speech_prob": 0.6309,
+        "combined": -0.8114,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 37
+      },
+      "combined_delta_fast_minus_quality": 0.6348,
+      "winner_by_combined": "fast",
+      "fast_context": "Bu sefer ders çalışamıyorum Hafta içi de çalışasım gelmiyor 7 günün bir gün bulamıyorum ya",
+      "quality_context": "güzel sesler duyduk az önce Senden başlayalım mı Başlayalım Ben Arif Eren Pekşen 22 yaşındayım"
+    },
+    {
+      "fast": "7",
+      "quality": "Yedi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 990.4,
+        "end": 994.22,
+        "duration": 3.82,
+        "avg_logprob": -0.1147,
+        "no_speech_prob": 0.0,
+        "combined": -0.1147,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "quality_metrics": {
+        "start": 990.4,
+        "end": 994.2,
+        "duration": 3.8,
+        "avg_logprob": -0.1344,
+        "no_speech_prob": 0.1353,
+        "combined": -0.2697,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.155,
+      "winner_by_combined": "fast",
+      "fast_context": "ders çalışamıyorum Hafta içi de çalışasım gelmiyor 7 günün bir gün bulamıyorum ya çalışmak için",
+      "quality_context": "çalışamıyorum Hafta içi de çalışası mı gelmiyor Yedi günün bir gün bulamıyorum çalışmak için Anca"
+    },
+    {
+      "fast": "filanlar",
+      "quality": "falan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 994.38,
+        "end": 997.16,
+        "duration": 2.78,
+        "avg_logprob": -0.1147,
+        "no_speech_prob": 0.0,
+        "combined": -0.1147,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "quality_metrics": {
+        "start": 931.3,
+        "end": 935.08,
+        "duration": 3.78,
+        "avg_logprob": -0.2354,
+        "no_speech_prob": 0.1301,
+        "combined": -0.3655,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.2508,
+      "winner_by_combined": "fast",
+      "fast_context": "çalışmak için Anca yaklaştığı zaman işte vizeler filanlar anca o şekilde Bu yoğunluğun içinde müziğe",
+      "quality_context": "şeyim yok Hani öyle Kiziroğlu Mustafa Beyler falan filan gördük televizyondan Öyle başladık küçükten Kiziroğlu"
+    },
+    {
+      "fast": "olmuştum",
+      "quality": "olmuştun",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1009.68,
+        "end": 1013.06,
+        "duration": 3.38,
+        "avg_logprob": -0.1147,
+        "no_speech_prob": 0.0,
+        "combined": -0.1147,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "quality_metrics": {
+        "start": 1009.68,
+        "end": 1013.06,
+        "duration": 3.38,
+        "avg_logprob": -0.1344,
+        "no_speech_prob": 0.1353,
+        "combined": -0.2697,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.155,
+      "winner_by_combined": "fast",
+      "fast_context": "Hani derslerinde bu kadar çalışsan hani filozof olmuştum diyorlar Haklılar yani bu konuda Daha çok",
+      "quality_context": "davranıyor Hani derslerinde bu kadar çalışsan filozof olmuştun diyorlar Haklılar yani bu konuda Daha çok"
+    },
+    {
+      "fast": "oluyor",
+      "quality": "Uzayabilir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 211.3,
+        "end": 215.24,
+        "duration": 3.94,
+        "avg_logprob": -0.092,
+        "no_speech_prob": 0.0,
+        "combined": -0.092,
+        "flags": [],
+        "source_chunk_index": 7
+      },
+      "quality_metrics": {
+        "start": 1018.8,
+        "end": 1019.52,
+        "duration": 0.72,
+        "avg_logprob": -0.1826,
+        "no_speech_prob": 0.2104,
+        "combined": -0.3931,
+        "flags": [],
+        "source_chunk_index": 45
+      },
+      "combined_delta_fast_minus_quality": 0.301,
+      "winner_by_combined": "fast",
+      "fast_context": "uçakta yolculuk yaparken korkuyoruz Uçak sallanıyor türbülans oluyor Siz ne yapıyorsunuz o durumda Neler hissediyorsunuz",
+      "quality_context": "Daha çok müziğe ağırlık verdiğimiz için zaten Uzayabilir Eyvah uzar mı okul uzamaz Uzar yani"
+    },
+    {
+      "fast": "aşıydım",
+      "quality": "arşıydım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1052.75,
+        "end": 1053.73,
+        "duration": 0.98,
+        "avg_logprob": -0.1448,
+        "no_speech_prob": 0.0,
+        "combined": -0.1448,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 1052.75,
+        "end": 1053.73,
+        "duration": 0.98,
+        "avg_logprob": -0.1279,
+        "no_speech_prob": 0.1859,
+        "combined": -0.3138,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "combined_delta_fast_minus_quality": 0.169,
+      "winner_by_combined": "fast",
+      "fast_context": "yan flütle başlamak istedim ilk Yan flüt aşıydım Fakat o zamanlar tabii gitar popüler gençler",
+      "quality_context": "yan flütle başlamak istedim ilk Yan flüt arşıydım Fakat o zamanlar tabii gitar popüler gençler"
+    },
+    {
+      "fast": "başladı",
+      "quality": "başlıyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1061.03,
+        "end": 1062.55,
+        "duration": 1.52,
+        "avg_logprob": -0.1448,
+        "no_speech_prob": 0.0,
+        "combined": -0.1448,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 61.44,
+        "end": 66.52,
+        "duration": 5.08,
+        "avg_logprob": -0.0674,
+        "no_speech_prob": 0.1641,
+        "combined": -0.2315,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.0867,
+      "winner_by_combined": "fast",
+      "fast_context": "falan bakıyorlar O yüzden babam hep gitarla başladı Gitarla başlaydı Ben de gitarla başladım Daha",
+      "quality_context": "tabii ki uçuş dolu sohbetlerimize başlayalım Kampüs'teyiz başlıyor Ve yolculuğumuz Ankara'da Türk Hava Kurumu Üniversitesi'nde"
+    },
+    {
+      "fast": "başlaydı",
+      "quality": "dedi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1062.61,
+        "end": 1063.49,
+        "duration": 0.88,
+        "avg_logprob": -0.1448,
+        "no_speech_prob": 0.0,
+        "combined": -0.1448,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 1061.03,
+        "end": 1063.51,
+        "duration": 2.48,
+        "avg_logprob": -0.1279,
+        "no_speech_prob": 0.1859,
+        "combined": -0.3138,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "combined_delta_fast_minus_quality": 0.169,
+      "winner_by_combined": "fast",
+      "fast_context": "O yüzden babam hep gitarla başladı Gitarla başlaydı Ben de gitarla başladım Daha sonradan bataryı",
+      "quality_context": "yüzden babam hep gitarla başlıyor gitarla başlıyor dedi Ben de gitarla başladım Daha sonradan bateri"
+    },
+    {
+      "fast": "bataryı",
+      "quality": "bateri",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1064.65,
+        "end": 1066.71,
+        "duration": 2.06,
+        "avg_logprob": -0.1448,
+        "no_speech_prob": 0.0,
+        "combined": -0.1448,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 1064.65,
+        "end": 1066.69,
+        "duration": 2.04,
+        "avg_logprob": -0.1279,
+        "no_speech_prob": 0.1859,
+        "combined": -0.3138,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "combined_delta_fast_minus_quality": 0.169,
+      "winner_by_combined": "fast",
+      "fast_context": "başlaydı Ben de gitarla başladım Daha sonradan bataryı çalmak istedim Sonradan bağlamaya yöneldim Böyle hepsi",
+      "quality_context": "dedi Ben de gitarla başladım Daha sonradan bateri çalmak istedim Sonradan bağlamaya yöneldim Böyle hepsi"
+    },
+    {
+      "fast": "bahsediyoruz",
+      "quality": "bahsediyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1090.03,
+        "end": 1093.15,
+        "duration": 3.12,
+        "avg_logprob": -0.2044,
+        "no_speech_prob": 0.0,
+        "combined": -0.2044,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 1090.11,
+        "end": 1094.29,
+        "duration": 4.18,
+        "avg_logprob": -0.1621,
+        "no_speech_prob": 0.1648,
+        "combined": -0.3269,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.1225,
+      "winner_by_combined": "fast",
+      "fast_context": "çalarken daha az Yani müzikten ve okullarımızdan bahsediyoruz Okulların uzamasına gitti oradan başka bir yerlere",
+      "quality_context": "çalarken daha az Yani müzikten ve okullarımızdan bahsediyor Okulların uzamasına gitti Oradan başka bir yerlere"
+    },
+    {
+      "fast": "onu",
+      "quality": "Bunu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1095.51,
+        "end": 1097.01,
+        "duration": 1.5,
+        "avg_logprob": -0.2044,
+        "no_speech_prob": 0.0,
+        "combined": -0.2044,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 876.47,
+        "end": 878.51,
+        "duration": 2.04,
+        "avg_logprob": -0.1045,
+        "no_speech_prob": 0.2598,
+        "combined": -0.3642,
+        "flags": [],
+        "source_chunk_index": 39
+      },
+      "combined_delta_fast_minus_quality": 0.1598,
+      "winner_by_combined": "fast",
+      "fast_context": "başka bir yerlere En iyisi bir sohbeti onu da hemen keselim Teşekkür ediyorum güzel sohbeticiğim",
+      "quality_context": "zaten Sen nasıl başladın müziğe Nasıl keşfettin bunu Ben işte 12 yaşımdayken gitar kursuna yazılmıştım"
+    },
+    {
+      "fast": "sohbeticiğim",
+      "quality": "sohbeticim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1097.31,
+        "end": 1099.47,
+        "duration": 2.16,
+        "avg_logprob": -0.2044,
+        "no_speech_prob": 0.0,
+        "combined": -0.2044,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 1097.33,
+        "end": 1099.47,
+        "duration": 2.14,
+        "avg_logprob": -0.1621,
+        "no_speech_prob": 0.1648,
+        "combined": -0.3269,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.1225,
+      "winner_by_combined": "fast",
+      "fast_context": "onu da hemen keselim Teşekkür ediyorum güzel sohbeticiğim bol şans Ve Ankara'da Türk Hava Kurumu",
+      "quality_context": "Bunu da hemen keselim Teşekkür ediyorum Güzel sohbeticim Bol şans Ve Ankara'da Türk Hava Kurumu"
+    },
+    {
+      "fast": "3",
+      "quality": "üçüncü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1400.1,
+        "end": 1401.52,
+        "duration": 1.42,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1400.1,
+        "end": 1401.52,
+        "duration": 1.42,
+        "avg_logprob": -0.1224,
+        "no_speech_prob": 0.5161,
+        "combined": -0.6385,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.4934,
+      "winner_by_combined": "fast",
+      "fast_context": "önce Hangi bölümdesin Kaçıncı sınıftasın Uzay Mühendisliği 3 sınıftayım Müziğe nasıl başladın Müziğe yaklaşık bir",
+      "quality_context": "önce Hangi bölümdesin Kaçıncı sınıftasın Uzay mühendisliği üçüncü sınıftayım Müziğe nasıl başladın Müziğe yaklaşık bir"
+    },
+    {
+      "fast": "1'de",
+      "quality": "birde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1403.08,
+        "end": 1405.14,
+        "duration": 2.06,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1403.04,
+        "end": 1405.14,
+        "duration": 2.1,
+        "avg_logprob": -0.1224,
+        "no_speech_prob": 0.5161,
+        "combined": -0.6385,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.4934,
+      "winner_by_combined": "fast",
+      "fast_context": "Müziğe nasıl başladın Müziğe yaklaşık bir lise 1'de başladım İşte aslında hep bir içimde vardı",
+      "quality_context": "Müziğe nasıl başladın Müziğe yaklaşık bir lise birde başladım Aslında hep bir içimde vardı bir"
+    },
+    {
+      "fast": "başlamadım",
+      "quality": "başlayamadım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1411.74,
+        "end": 1414.08,
+        "duration": 2.34,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1411.72,
+        "end": 1414.08,
+        "duration": 2.36,
+        "avg_logprob": -0.1224,
+        "no_speech_prob": 0.5161,
+        "combined": -0.6385,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.4934,
+      "winner_by_combined": "fast",
+      "fast_context": "de çıktı bir şekilde ben de gitara başlamadım Ya ergenlik döneminden gelen bir şey o",
+      "quality_context": "de çıktı bir şekilde Ben de gitara başlayamadım Ya ergenlik döneminden gelen bir şeyle o"
+    },
+    {
+      "fast": "tarzımla",
+      "quality": "tarzımda",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1419.02,
+        "end": 1421.04,
+        "duration": 2.02,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1419.02,
+        "end": 1421.04,
+        "duration": 2.02,
+        "avg_logprob": -0.1224,
+        "no_speech_prob": 0.5161,
+        "combined": -0.6385,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.4934,
+      "winner_by_combined": "fast",
+      "fast_context": "zaman bilmiyorum ama başladım işte Sonra müzik tarzımla illaki değişik oldu İşte bu günlere kadar",
+      "quality_context": "zaman bilmiyorum ama başladım işte Sonra müzik tarzımda illaki değişiklik oldu Hadi bakalım İşte bugünlere"
+    },
+    {
+      "fast": "değişik",
+      "quality": "değişiklik",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1419.02,
+        "end": 1421.04,
+        "duration": 2.02,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1419.02,
+        "end": 1421.04,
+        "duration": 2.02,
+        "avg_logprob": -0.1224,
+        "no_speech_prob": 0.5161,
+        "combined": -0.6385,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.4934,
+      "winner_by_combined": "fast",
+      "fast_context": "ama başladım işte Sonra müzik tarzımla illaki değişik oldu İşte bu günlere kadar geldik böyle",
+      "quality_context": "ama başladım işte Sonra müzik tarzımda illaki değişiklik oldu Hadi bakalım İşte bugünlere kadar geldik"
+    },
+    {
+      "fast": "İşte",
+      "quality": "bakalım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 890.33,
+        "end": 894.61,
+        "duration": 4.28,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.0,
+        "combined": -0.1235,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "quality_metrics": {
+        "start": 960.55,
+        "end": 962.53,
+        "duration": 1.98,
+        "avg_logprob": -0.1687,
+        "no_speech_prob": 0.2756,
+        "combined": -0.4444,
+        "flags": [],
+        "source_chunk_index": 43
+      },
+      "combined_delta_fast_minus_quality": 0.3209,
+      "winner_by_combined": "fast",
+      "fast_context": "güzel olduğunu söylemeye başladılar etraftaki arkadaşlarım ailem İşte şan dersleri alıyorum 1 2 senedir O",
+      "quality_context": "başladım Şimdi arkadaşlarla Bir grup kurduk İşte bakalım bir şeyler yapmaya çalışıyoruz Müzik kulübü olarak"
+    },
+    {
+      "fast": "bu",
+      "quality": "İşte",
+      "count": 1,
+      "fast_metrics": {
+        "start": 44.4,
+        "end": 51.46,
+        "duration": 7.06,
+        "avg_logprob": -0.0774,
+        "no_speech_prob": 0.0,
+        "combined": -0.0774,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 890.33,
+        "end": 892.51,
+        "duration": 2.18,
+        "avg_logprob": -0.1458,
+        "no_speech_prob": 0.0531,
+        "combined": -0.1988,
+        "flags": [],
+        "source_chunk_index": 40
+      },
+      "combined_delta_fast_minus_quality": 0.1215,
+      "winner_by_combined": "fast",
+      "fast_context": "Ve kampüsteyizden herkese merhaba Bu hafta Ankara'dayız Etimeskut'a geldik Türk Hava Kurumu",
+      "quality_context": "güzel olduğunu söylemeye başladılar etraftaki arkadaşlarım ailem İşte şan dersleri alıyorum bir iki senedir O"
+    },
+    {
+      "fast": "günlere",
+      "quality": "bugünlere",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1421.45,
+        "end": 1423.21,
+        "duration": 1.76,
+        "avg_logprob": -0.1389,
+        "no_speech_prob": 0.0,
+        "combined": -0.1389,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "quality_metrics": {
+        "start": 1421.45,
+        "end": 1423.21,
+        "duration": 1.76,
+        "avg_logprob": -0.1401,
+        "no_speech_prob": 0.0799,
+        "combined": -0.22,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": 0.0811,
+      "winner_by_combined": "fast",
+      "fast_context": "müzik tarzımla illaki değişik oldu İşte bu günlere kadar geldik böyle Hangi tarzlar var hayatımda",
+      "quality_context": "tarzımda illaki değişiklik oldu Hadi bakalım İşte bugünlere kadar geldik böyle Hangi tarzlar var hayatında"
+    },
+    {
+      "fast": "hayatımda",
+      "quality": "hayatında",
+      "count": 1,
+      "fast_metrics": {
+        "start": 913.44,
+        "end": 917.6,
+        "duration": 4.16,
+        "avg_logprob": -0.1799,
+        "no_speech_prob": 0.0,
+        "combined": -0.1799,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 1423.29,
+        "end": 1424.67,
+        "duration": 1.38,
+        "avg_logprob": -0.1401,
+        "no_speech_prob": 0.0799,
+        "combined": -0.22,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": 0.0401,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sonra devam edeceksiniz bir müzikle Müzik zaten hayatımda hep olacak Bunu garanti ediyorum yani Ne",
+      "quality_context": "bugünlere kadar geldik böyle Hangi tarzlar var hayatında Ya ben caz bluz severim dinlerim Ekstra"
+    },
+    {
+      "fast": "blues'u",
+      "quality": "bluz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1424.99,
+        "end": 1426.99,
+        "duration": 2.0,
+        "avg_logprob": -0.1389,
+        "no_speech_prob": 0.0,
+        "combined": -0.1389,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "quality_metrics": {
+        "start": 1424.97,
+        "end": 1426.97,
+        "duration": 2.0,
+        "avg_logprob": -0.1401,
+        "no_speech_prob": 0.0799,
+        "combined": -0.22,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": 0.0811,
+      "winner_by_combined": "fast",
+      "fast_context": "Hangi tarzlar var hayatımda Ya ben caz blues'u severim dinlerim Ekstra böyle türkü falan da",
+      "quality_context": "Hangi tarzlar var hayatında Ya ben caz bluz severim dinlerim Ekstra böyle türkü falan da"
+    },
+    {
+      "fast": "diye",
+      "quality": "diyorum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1029.82,
+        "end": 1030.84,
+        "duration": 1.02,
+        "avg_logprob": -0.2583,
+        "no_speech_prob": 0.0,
+        "combined": -0.2583,
+        "flags": [],
+        "source_chunk_index": 45
+      },
+      "quality_metrics": {
+        "start": 1435.47,
+        "end": 1437.05,
+        "duration": 1.58,
+        "avg_logprob": -0.1401,
+        "no_speech_prob": 0.0799,
+        "combined": -0.22,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": -0.0384,
+      "winner_by_combined": "near_tie",
+      "fast_context": "uzamalı Yani bu altın çağlarımız uzamalı Uzamalı diye düşünüyorum Teşekkür ederim Seni de tanıyabilir miyiz",
+      "quality_context": "ve severim Ve şarkı olarak da söylerim diyorum Teşekkür ederim Hemen şöyle geçelim Seni de"
+    },
+    {
+      "fast": "Seni",
+      "quality": "Sen",
+      "count": 1,
+      "fast_metrics": {
+        "start": 91.1,
+        "end": 92.62,
+        "duration": 1.52,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 876.47,
+        "end": 878.51,
+        "duration": 2.04,
+        "avg_logprob": -0.1045,
+        "no_speech_prob": 0.2598,
+        "combined": -0.3642,
+        "flags": [],
+        "source_chunk_index": 39
+      },
+      "combined_delta_fast_minus_quality": 0.2437,
+      "winner_by_combined": "fast",
+      "fast_context": "Siz de hoş geldiniz okulumuzda Hoş bulduk Seni tanıyabilir miyiz Tabii ki Ben ve Metro",
+      "quality_context": "zamanda akustik gitar çalıyorum Şarkı söylüyorum zaten Sen nasıl başladın müziğe Nasıl keşfettin bunu Ben"
+    },
+    {
+      "fast": "3",
+      "quality": "Üçüncü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1462.87,
+        "end": 1465.75,
+        "duration": 2.88,
+        "avg_logprob": -0.1251,
+        "no_speech_prob": 0.0,
+        "combined": -0.1251,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "quality_metrics": {
+        "start": 1442.29,
+        "end": 1443.45,
+        "duration": 1.16,
+        "avg_logprob": -0.1401,
+        "no_speech_prob": 0.0799,
+        "combined": -0.22,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": 0.0949,
+      "winner_by_combined": "fast",
+      "fast_context": "de tanıyabilir miyiz İsmim Sezgin Havacılık yönetimi 3 sınıf öğrencisiyim Ben de lise 1'de bağlama",
+      "quality_context": "de tanıyabilir miyiz Merhaba ben Emel Yurdakul Üçüncü sınıf öğrencisiyim Havacılık yönetimi okuyorum Ben müziği"
+    },
+    {
+      "fast": "Anka",
+      "quality": "Ankı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1691.78,
+        "end": 1696.74,
+        "duration": 4.96,
+        "avg_logprob": -0.1039,
+        "no_speech_prob": 0.0,
+        "combined": -0.1039,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "quality_metrics": {
+        "start": 1691.78,
+        "end": 1696.74,
+        "duration": 4.96,
+        "avg_logprob": -0.0871,
+        "no_speech_prob": 0.1885,
+        "combined": -0.2756,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "combined_delta_fast_minus_quality": 0.1717,
+      "winner_by_combined": "fast",
+      "fast_context": "Hemen seni tanıyabilir miyiz Ben Tolga Üniversitemiz Anka Havacılık ve Uzay Topluluğu'nun yönetim kurulu başkanıyım",
+      "quality_context": "Hemen seni tanıyabilir miyiz Ben Tolga Üniversitemiz Ankı Havacılık ve Uzay Topluluğu'nun yönetim kurulu başkanıyım"
+    },
+    {
+      "fast": "kurslar",
+      "quality": "kursları",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1735.39,
+        "end": 1741.29,
+        "duration": 5.9,
+        "avg_logprob": -0.0793,
+        "no_speech_prob": 0.0,
+        "combined": -0.0793,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "quality_metrics": {
+        "start": 1735.41,
+        "end": 1741.31,
+        "duration": 5.9,
+        "avg_logprob": -0.081,
+        "no_speech_prob": 0.0061,
+        "combined": -0.0871,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "combined_delta_fast_minus_quality": 0.0078,
+      "winner_by_combined": "near_tie",
+      "fast_context": "öğrencilerinden biriyim Bu kursa katılmak istemiştim Arkadaşlarımız kurslar açmıştı birkaç tane Onlardan biri bugün Model",
+      "quality_context": "öğrencilerinden biriyim Bu kursa katılmak istemiştim Arkadaşlarımız kursları açmıştı birkaç tane Onlardan biri bugün Model"
+    },
+    {
+      "fast": "Yüzen",
+      "quality": "Yüzem",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1770.14,
+        "end": 1776.26,
+        "duration": 6.12,
+        "avg_logprob": -0.141,
+        "no_speech_prob": 0.0,
+        "combined": -0.141,
+        "flags": [],
+        "source_chunk_index": 58
+      },
+      "quality_metrics": {
+        "start": 1770.2,
+        "end": 1776.24,
+        "duration": 6.04,
+        "avg_logprob": -0.1142,
+        "no_speech_prob": 0.1254,
+        "combined": -0.2396,
+        "flags": [],
+        "source_chunk_index": 58
+      },
+      "combined_delta_fast_minus_quality": 0.0986,
+      "winner_by_combined": "fast",
+      "fast_context": "var Hemen seni tanıyabilir miyiz Evet Ben Yüzen Türk Hava Kurumu Üniversitesi öğrencisi 4 sınıf",
+      "quality_context": "var Hemen seni tanıyabilir miyiz Evet Ben Yüzem Türk Hava Kurumu Üniversitesi 4 sınıf öğrencisiyim"
+    },
+    {
+      "fast": "ayarlamamızı",
+      "quality": "ayarlamamız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1795.02,
+        "end": 1799.64,
+        "duration": 4.62,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "quality_metrics": {
+        "start": 1795.02,
+        "end": 1799.64,
+        "duration": 4.62,
+        "avg_logprob": -0.1748,
+        "no_speech_prob": 0.0472,
+        "combined": -0.222,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "combined_delta_fast_minus_quality": 0.0519,
+      "winner_by_combined": "fast",
+      "fast_context": "olduğu için Lövye aşağıda rudder uçağın yönünü ayarlamamızı sağlıyor Sağ sola ve ileri geri hareketi",
+      "quality_context": "olduğu için Lövye aşağıda rudder uçağın yönünü ayarlamamız sağlıyor Sağ sola ve ileri geri hareketi"
+    },
+    {
+      "fast": "mikçör",
+      "quality": "mikser",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1804.02,
+        "end": 1806.92,
+        "duration": 2.9,
+        "avg_logprob": -0.1702,
+        "no_speech_prob": 0.0,
+        "combined": -0.1702,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "quality_metrics": {
+        "start": 1804.0,
+        "end": 1806.92,
+        "duration": 2.92,
+        "avg_logprob": -0.1748,
+        "no_speech_prob": 0.0472,
+        "combined": -0.222,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "combined_delta_fast_minus_quality": 0.0519,
+      "winner_by_combined": "fast",
+      "fast_context": "aynı şekilde sağ sola hareketi Gaz kolumuz mikçör ayarımız filet herkesin duymuştur Çok karışık görünüyor",
+      "quality_context": "aynı şekilde sağ sola hareketi Gaz kolumuz mikser ayarımız filet herkesin duymuştur Çok karışık görünüyor"
+    },
+    {
+      "fast": "da",
+      "quality": "Burada",
+      "count": 1,
+      "fast_metrics": {
+        "start": 56.84,
+        "end": 65.18,
+        "duration": 8.34,
+        "avg_logprob": -0.0774,
+        "no_speech_prob": 0.0,
+        "combined": -0.0774,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 51.78,
+        "end": 56.84,
+        "duration": 5.06,
+        "avg_logprob": -0.0674,
+        "no_speech_prob": 0.1641,
+        "combined": -0.2315,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.1541,
+      "winner_by_combined": "fast",
+      "fast_context": "Hava Kurumu Üniversitesi'nde şöyle bir dolaşalım ardından da müzik ve tabii ki uçuş dolu sohbetlerimize",
+      "quality_context": "Geleceğin pilotları uçak mühendisleri ve uzay araştırmacıları burada bu üniversitede yetişiyor Bence önce Kampüs'teyiz'de Türk"
+    },
+    {
+      "fast": "Avionic",
+      "quality": "stand",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1810.85,
+        "end": 1814.63,
+        "duration": 3.78,
+        "avg_logprob": -0.1679,
+        "no_speech_prob": 0.0,
+        "combined": -0.1679,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 1810.85,
+        "end": 1814.61,
+        "duration": 3.76,
+        "avg_logprob": -0.1531,
+        "no_speech_prob": 0.1683,
+        "combined": -0.3214,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "combined_delta_fast_minus_quality": 0.1535,
+      "winner_by_combined": "fast",
+      "fast_context": "ışıklarımız var Bu da elektrik sistemlerimiz Master Avionic Standby batarya sivitçilerimiz Böyle bu şekilde 4",
+      "quality_context": "ışıklarımız var Burada elektrik sistemlerimiz master avionik stand by batarya switchlerimiz Öyle bu şekilde 4"
+    },
+    {
+      "fast": "Standby",
+      "quality": "by",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1810.85,
+        "end": 1814.63,
+        "duration": 3.78,
+        "avg_logprob": -0.1679,
+        "no_speech_prob": 0.0,
+        "combined": -0.1679,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 1810.85,
+        "end": 1814.61,
+        "duration": 3.76,
+        "avg_logprob": -0.1531,
+        "no_speech_prob": 0.1683,
+        "combined": -0.3214,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "combined_delta_fast_minus_quality": 0.1535,
+      "winner_by_combined": "fast",
+      "fast_context": "var Bu da elektrik sistemlerimiz Master Avionic Standby batarya sivitçilerimiz Böyle bu şekilde 4 yıldır",
+      "quality_context": "var Burada elektrik sistemlerimiz master avionik stand by batarya switchlerimiz Öyle bu şekilde 4 yıldır"
+    },
+    {
+      "fast": "sivitçilerimiz",
+      "quality": "switchlerimiz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1810.85,
+        "end": 1814.63,
+        "duration": 3.78,
+        "avg_logprob": -0.1679,
+        "no_speech_prob": 0.0,
+        "combined": -0.1679,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 1810.85,
+        "end": 1814.61,
+        "duration": 3.76,
+        "avg_logprob": -0.1531,
+        "no_speech_prob": 0.1683,
+        "combined": -0.3214,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "combined_delta_fast_minus_quality": 0.1535,
+      "winner_by_combined": "fast",
+      "fast_context": "da elektrik sistemlerimiz Master Avionic Standby batarya sivitçilerimiz Böyle bu şekilde 4 yıldır bu eğitimin",
+      "quality_context": "elektrik sistemlerimiz master avionik stand by batarya switchlerimiz Öyle bu şekilde 4 yıldır bu eğitimin"
+    },
+    {
+      "fast": "Böyle",
+      "quality": "Öyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 563.75,
+        "end": 567.13,
+        "duration": 3.38,
+        "avg_logprob": -0.1316,
+        "no_speech_prob": 0.0,
+        "combined": -0.1316,
+        "flags": [],
+        "source_chunk_index": 29
+      },
+      "quality_metrics": {
+        "start": 841.0,
+        "end": 843.74,
+        "duration": 2.74,
+        "avg_logprob": -0.1173,
+        "no_speech_prob": 0.1011,
+        "combined": -0.2184,
+        "flags": [],
+        "source_chunk_index": 38
+      },
+      "combined_delta_fast_minus_quality": 0.0869,
+      "winner_by_combined": "fast",
+      "fast_context": "meslek çocukluk hayalim miydi Var mıydı çocukken böyle bir düşüncen Çocukluktan beri uçuşa ilgim var",
+      "quality_context": "benim Pek desteklemedi babam Ben kendi çabalarımla öyle başladım Öyle de devam ediyorum Sonra ilerlettin"
+    },
+    {
+      "fast": "Müziklerle",
+      "quality": "Müziklerden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1890.02,
+        "end": 1891.12,
+        "duration": 1.1,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1890.04,
+        "end": 1891.12,
+        "duration": 1.08,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "Başta biraz paniklerdi ama şu an iyiler Müziklerle nasıldır Müzikle iyi tabii ki herkesin olduğu",
+      "quality_context": "Başta biraz paniklerdi ama şu an iyiler Müziklerden nasıldır Müzikler iyi tabii ki herkesin olduğu"
+    },
+    {
+      "fast": "Müzikle",
+      "quality": "Müzikler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 574.15,
+        "end": 575.41,
+        "duration": 1.26,
+        "avg_logprob": -0.1316,
+        "no_speech_prob": 0.0,
+        "combined": -0.1316,
+        "flags": [],
+        "source_chunk_index": 29
+      },
+      "quality_metrics": {
+        "start": 1891.48,
+        "end": 1893.38,
+        "duration": 1.9,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.3857,
+      "winner_by_combined": "fast",
+      "fast_context": "olmasından dolayı sürekli o kültürde büyüdük yani Müzikle aranız nasıldır Müzikle aram bayağı iyi 18",
+      "quality_context": "paniklerdi ama şu an iyiler Müziklerden nasıldır Müzikler iyi tabii ki herkesin olduğu gibi Neler"
+    },
+    {
+      "fast": "LP'yi",
+      "quality": "LP",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1895.14,
+        "end": 1896.86,
+        "duration": 1.72,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1895.14,
+        "end": 1897.08,
+        "duration": 1.94,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "olduğu gibi Neler dinliyorsun Ya şu sıra LP'yi dinliyorum Ben Möre'yle çok iyi çıkış yaptı",
+      "quality_context": "olduğu gibi Neler dinliyorsun Ya şu sıra LP dinliyorum ben Vero'yla çok iyi çıkış yaptı"
+    },
+    {
+      "fast": "Möre'yle",
+      "quality": "Vero'yla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1897.0,
+        "end": 1898.42,
+        "duration": 1.42,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1897.16,
+        "end": 1898.44,
+        "duration": 1.28,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "dinliyorsun Ya şu sıra LP'yi dinliyorum Ben Möre'yle çok iyi çıkış yaptı Ankara'ya da gelecekmiş",
+      "quality_context": "dinliyorsun Ya şu sıra LP dinliyorum ben Vero'yla çok iyi çıkış yaptı Ankara'ya da gelecekmiş"
+    },
+    {
+      "fast": "konserine",
+      "quality": "konserini",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1898.5,
+        "end": 1900.88,
+        "duration": 2.38,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1898.5,
+        "end": 1900.86,
+        "duration": 2.36,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "çok iyi çıkış yaptı Ankara'ya da gelecekmiş konserine gitmeyi çok istiyorum Manış Baba Türkler de",
+      "quality_context": "çok iyi çıkış yaptı Ankara'ya da gelecekmiş konserini eklemeye çok istiyorum Manuş Baba Türkler'de bence"
+    },
+    {
+      "fast": "gitmeyi",
+      "quality": "eklemeye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1898.5,
+        "end": 1900.88,
+        "duration": 2.38,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1898.5,
+        "end": 1900.86,
+        "duration": 2.36,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "iyi çıkış yaptı Ankara'ya da gelecekmiş konserine gitmeyi çok istiyorum Manış Baba Türkler de bence",
+      "quality_context": "iyi çıkış yaptı Ankara'ya da gelecekmiş konserini eklemeye çok istiyorum Manuş Baba Türkler'de bence çok"
+    },
+    {
+      "fast": "Manış",
+      "quality": "Manuş",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1901.58,
+        "end": 1904.22,
+        "duration": 2.64,
+        "avg_logprob": -0.2177,
+        "no_speech_prob": 0.0,
+        "combined": -0.2177,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1901.58,
+        "end": 1904.18,
+        "duration": 2.6,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2995,
+      "winner_by_combined": "fast",
+      "fast_context": "Ankara'ya da gelecekmiş konserine gitmeyi çok istiyorum Manış Baba Türkler de bence çok başarılı Bu",
+      "quality_context": "Ankara'ya da gelecekmiş konserini eklemeye çok istiyorum Manuş Baba Türkler'de bence çok başarılı Bu şekilde"
+    },
+    {
+      "fast": "de",
+      "quality": "Türkler'de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 89.6,
+        "end": 91.08,
+        "duration": 1.48,
+        "avg_logprob": -0.1206,
+        "no_speech_prob": 0.0,
+        "combined": -0.1206,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 1901.58,
+        "end": 1904.18,
+        "duration": 2.6,
+        "avg_logprob": -0.2199,
+        "no_speech_prob": 0.2974,
+        "combined": -0.5173,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.3967,
+      "winner_by_combined": "fast",
+      "fast_context": "var Mehmet hoş geldin Hoş bulduk Siz de hoş geldiniz okulumuzda Hoş bulduk Seni tanıyabilir",
+      "quality_context": "gelecekmiş konserini eklemeye çok istiyorum Manuş Baba Türkler'de bence çok başarılı Bu şekilde Müzik Ve"
+    },
+    {
+      "fast": "Etimeskut",
+      "quality": "Etimesku",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1911.7,
+        "end": 1921.72,
+        "duration": 10.02,
+        "avg_logprob": -0.1111,
+        "no_speech_prob": 0.0,
+        "combined": -0.1111,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 1911.7,
+        "end": 1921.72,
+        "duration": 10.02,
+        "avg_logprob": -0.0847,
+        "no_speech_prob": 0.0439,
+        "combined": -0.1286,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.0175,
+      "winner_by_combined": "near_tie",
+      "fast_context": "şekilde Ve kampüsteyizden bugünlük bu kadar Ankara Etimeskut Türk Hava Kurumu Üniversitesi'ndeydi Bugün kampüsteyiz ve",
+      "quality_context": "Müzik Ve kampüsteyizden bugünlük bu kadar Ankara Etimesku Türk Hava Kurumu Üniversitesi'ndeydi Bugün kampüsteyiz ve"
+    },
+    {
+      "fast": "Gelirsek",
+      "quality": "Gelecek",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1929.26,
+        "end": 1934.44,
+        "duration": 5.18,
+        "avg_logprob": -0.1111,
+        "no_speech_prob": 0.0,
+        "combined": -0.1111,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 1930.86,
+        "end": 1934.44,
+        "duration": 3.58,
+        "avg_logprob": -0.0847,
+        "no_speech_prob": 0.0439,
+        "combined": -0.1286,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.0175,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bize Facebook adresimizden ulaşabilirsiniz TRT Müzik Kampüsteyiz Gelirsek hafta bambaşka bir kampüste görüşmek üzere Hoşçakalın",
+      "quality_context": "bize Facebook adresimizden ulaşabilirsiniz TRT Müzik kampüsteyiz Gelecek hafta bambaşka bir kampüste görüşmek üzere Hoşçakalın"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "fast_extra",
+      "text": "I remember talking and drinking what we could find Burning all those candles and staying up through the night We make reservations for the places we know we never tried But then",
+      "word_count": 32
+    },
+    {
+      "side": "fast_extra",
+      "text": "Göklerde bulamazlarken Bende gizli olduğunu sezenler olur",
+      "word_count": 7
+    },
+    {
+      "side": "quality_extra",
+      "text": "Hoş bulduk",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "şarkılar alan",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "Sonra ilerlettim",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "oğlu mu",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "bu vızıyor",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "Şeyi değilim",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "Bu şekilde",
+      "word_count": 2
+    }
+  ]
+}

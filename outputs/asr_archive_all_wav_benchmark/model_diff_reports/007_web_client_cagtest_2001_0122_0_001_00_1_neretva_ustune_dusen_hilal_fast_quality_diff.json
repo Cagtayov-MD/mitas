@@ -1,0 +1,1708 @@
+{
+  "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+  "source_name": "web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+  "fast_words": 1497,
+  "quality_words": 1496,
+  "edit_distance_fast_vs_quality": 90,
+  "substitution_count": 71,
+  "fast_extra_word_count": 10,
+  "quality_extra_word_count": 9,
+  "diff_rows": [
+    {
+      "fast": "kurulardan",
+      "quality": "kurulalıdan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "combined": -0.1455,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "combined": -0.6724,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.527,
+      "winner_by_combined": "fast",
+      "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem Belki de",
+      "quality_context": "Ben Mustafa Kaytas Mostar şehri kurulalıdan beri burada oturur benim ailem Belki de"
+    },
+    {
+      "fast": "burada",
+      "quality": "burayı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "combined": -0.1455,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "combined": -0.6724,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.527,
+      "winner_by_combined": "fast",
+      "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem Belki de onlar kurdular",
+      "quality_context": "oturur benim ailem Belki de onlar kurdular burayı Yalnız soyumun Türkiye'den gelme olduğunu biliyorum Asırlarca"
+    },
+    {
+      "fast": "çektik",
+      "quality": "çekti",
+      "count": 1,
+      "fast_metrics": {
+        "start": 111.34,
+        "end": 113.42,
+        "duration": 2.08,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 111.34,
+        "end": 113.4,
+        "duration": 2.06,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.155,
+      "winner_by_combined": "fast",
+      "fast_context": "bir savaşı kabullenemediler Biz kaldık ama neler çektik Hayatta kalabilmek çok zordu Dolap beygiri gibi",
+      "quality_context": "bir savaşı kabullenemediler Biz kaldık ama neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi"
+    },
+    {
+      "fast": "beygiri",
+      "quality": "peygiri",
+      "count": 1,
+      "fast_metrics": {
+        "start": 116.58,
+        "end": 119.16,
+        "duration": 2.58,
+        "avg_logprob": -0.1688,
+        "no_speech_prob": 0.0,
+        "combined": -0.1688,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 115.9,
+        "end": 119.18,
+        "duration": 3.28,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.155,
+      "winner_by_combined": "fast",
+      "fast_context": "neler çektik Hayatta kalabilmek çok zordu Dolap beygiri gibi dönüp duruyordu Ölmeyenler eminim ki bir",
+      "quality_context": "neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi dönüp duruyordu Ölmeyenler eminim ki bir"
+    },
+    {
+      "fast": "güne",
+      "quality": "Bugüne",
+      "count": 1,
+      "fast_metrics": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "combined": -0.0685,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "combined": -0.0586,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": -0.0099,
+      "winner_by_combined": "near_tie",
+      "fast_context": "değirmenleri hanlar hamamlar çeşmeler ve camiler Bu güne kadar yüz yıldır tahrip edilerek bir kısmının",
+      "quality_context": "su değirmenleri hanlar hamamlar çeşmeler ve camiler Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin"
+    },
+    {
+      "fast": "yıldır",
+      "quality": "yüzyıldır",
+      "count": 1,
+      "fast_metrics": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "combined": -0.0685,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "combined": -0.0586,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": -0.0099,
+      "winner_by_combined": "near_tie",
+      "fast_context": "çeşmeler ve camiler Bu güne kadar yüz yıldır tahrip edilerek bir kısmının izinin bile kalmadığını",
+      "quality_context": "hanlar hamamlar çeşmeler ve camiler Bugüne kadar yüzyıldır tahrip edilerek bir kısmının izinin bile kalmadığını"
+    },
+    {
+      "fast": "tanınmış",
+      "quality": "tanımış",
+      "count": 1,
+      "fast_metrics": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "combined": -0.0685,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 212.935,
+        "end": 227.135,
+        "duration": 14.2,
+        "avg_logprob": -0.0583,
+        "no_speech_prob": 0.0003,
+        "combined": -0.0586,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "combined_delta_fast_minus_quality": -0.0099,
+      "winner_by_combined": "near_tie",
+      "fast_context": "izinin bile kalmadığını görürsünüz Dünyanın bildiği en tanınmış varlığımız köprümüzdür O sanki taştan yapılma bir",
+      "quality_context": "izinin bile kalmadığını görürsünüz Dünyanın bildiği en tanımış varlığımız köprümüzdür O sanki taştan yapılma bir"
+    },
+    {
+      "fast": "değildir",
+      "quality": "değil",
+      "count": 1,
+      "fast_metrics": {
+        "start": 212.915,
+        "end": 227.295,
+        "duration": 14.38,
+        "avg_logprob": -0.0685,
+        "no_speech_prob": 0.0,
+        "combined": -0.0685,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 194.07,
+        "end": 196.11,
+        "duration": 2.04,
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "combined": -0.4187,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": 0.3502,
+      "winner_by_combined": "fast",
+      "fast_context": "köprümüzdür O sanki taştan yapılma bir köprü değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum",
+      "quality_context": "gezerdi Yine gelenler oluyor ama o kadar değil Dediğim gibi Mostar Türklerin şehir yaptığı bir"
+    },
+    {
+      "fast": "varlığı",
+      "quality": "varlıktı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 227.3,
+        "end": 229.3,
+        "duration": 2.0,
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "combined": -0.4809,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "quality_metrics": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "combined": -0.5249,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.044,
+      "winner_by_combined": "near_tie",
+      "fast_context": "taştan yapılma bir köprü değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok",
+      "quality_context": "taştan yapılma bir köprü değil Efsanevi bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar"
+    },
+    {
+      "fast": "bilemiyordum",
+      "quality": "bilemiyorum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 229.8,
+        "end": 232.3,
+        "duration": 2.5,
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "combined": -0.4809,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "quality_metrics": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "combined": -0.5249,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.044,
+      "winner_by_combined": "near_tie",
+      "fast_context": "değildir Efsanevi bir varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok Mostar ne kadarmış Şehrin",
+      "quality_context": "değil Efsanevi bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar ne kadarmış Şehrin her"
+    },
+    {
+      "fast": "yok",
+      "quality": "köprüyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 232.3,
+        "end": 234.3,
+        "duration": 2.0,
+        "avg_logprob": -0.4809,
+        "no_speech_prob": 0.0,
+        "combined": -0.4809,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "quality_metrics": {
+        "start": 227.3,
+        "end": 235.8,
+        "duration": 8.5,
+        "avg_logprob": -0.3831,
+        "no_speech_prob": 0.1418,
+        "combined": -0.5249,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.044,
+      "winner_by_combined": "near_tie",
+      "fast_context": "varlığı Ona nasıl kıydılar bilemiyordum Şimdi köprü yok Mostar ne kadarmış Şehrin her yanında olduğu",
+      "quality_context": "bir varlıktı ona nasıl kıydılar bilemiyorum şimdi köprüyor Mostar ne kadarmış Şehrin her yanında olduğu"
+    },
+    {
+      "fast": "dokuyu",
+      "quality": "hukuyu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 242.92,
+        "end": 252.18,
+        "duration": 9.26,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 242.9,
+        "end": 252.18,
+        "duration": 9.28,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "combined_delta_fast_minus_quality": 0.073,
+      "winner_by_combined": "fast",
+      "fast_context": "büyük kulelerde her iki yandaki çarşılarda tarihi dokuyu muhafaza eden bütün yapılar her yan delik",
+      "quality_context": "büyük kulelerde her iki yandaki çarşılarda tarihi hukuyu muhafaza eden bütün yapılar her yan delik"
+    },
+    {
+      "fast": "çalışıyorlar",
+      "quality": "çalışıyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 255.82,
+        "end": 261.36,
+        "duration": 5.54,
+        "avg_logprob": -0.2079,
+        "no_speech_prob": 0.0,
+        "combined": -0.2079,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "quality_metrics": {
+        "start": 255.82,
+        "end": 261.28,
+        "duration": 5.46,
+        "avg_logprob": -0.1451,
+        "no_speech_prob": 0.1357,
+        "combined": -0.2809,
+        "flags": [],
+        "source_chunk_index": 11
+      },
+      "combined_delta_fast_minus_quality": 0.073,
+      "winner_by_combined": "fast",
+      "fast_context": "her gün umutla dükkanını açıp işini yapmaya çalışıyorlar İşte demircisiydi bakırcısıydı kelemcisiydi şosobosu El emeği",
+      "quality_context": "her gün Umut'la dükkanını açıp işini yapmaya çalışıyor İşte demircisiydi bakırcisiydi kelemcisiydi şosobosu El emeği"
+    },
+    {
+      "fast": "Neretve'ye",
+      "quality": "Neretva'ya",
+      "count": 1,
+      "fast_metrics": {
+        "start": 417.1,
+        "end": 422.66,
+        "duration": 5.56,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 417.1,
+        "end": 422.68,
+        "duration": 5.58,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.106,
+      "winner_by_combined": "fast",
+      "fast_context": "haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretve'ye karışan Radovolya çayı var Şimdi barajlar yüzünden",
+      "quality_context": "haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretva'ya karışan Radobolya çayı var Şimdi barajlar yüzünden"
+    },
+    {
+      "fast": "Radovolya",
+      "quality": "Radobolya",
+      "count": 1,
+      "fast_metrics": {
+        "start": 417.1,
+        "end": 422.66,
+        "duration": 5.56,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 417.1,
+        "end": 422.68,
+        "duration": 5.58,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.106,
+      "winner_by_combined": "fast",
+      "fast_context": "bekliyor Büyük köprünün hemen yakınında Neretve'ye karışan Radovolya çayı var Şimdi barajlar yüzünden pek suyu",
+      "quality_context": "bekliyor Büyük köprünün hemen yakınında Neretva'ya karışan Radobolya çayı var Şimdi barajlar yüzünden pek suyu"
+    },
+    {
+      "fast": "değerinin",
+      "quality": "değirmeni",
+      "count": 1,
+      "fast_metrics": {
+        "start": 428.4,
+        "end": 430.88,
+        "duration": 2.48,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 428.42,
+        "end": 430.9,
+        "duration": 2.48,
+        "avg_logprob": -0.1736,
+        "no_speech_prob": 0.1538,
+        "combined": -0.3274,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "combined_delta_fast_minus_quality": 0.106,
+      "winner_by_combined": "fast",
+      "fast_context": "gür akarmış Zaten üzerinde pek çok su değerinin vardı İşte burada Büyük köprünün denemesini yapmışlar",
+      "quality_context": "gür akarmış Zaten üzerinde pek çok su değirmeni vardı İşte burada büyük köprünün denemesini yapmışlar"
+    },
+    {
+      "fast": "camiydi",
+      "quality": "camiyiydi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 448.1,
+        "end": 454.0,
+        "duration": 5.9,
+        "avg_logprob": -0.1282,
+        "no_speech_prob": 0.0,
+        "combined": -0.1282,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "quality_metrics": {
+        "start": 448.1,
+        "end": 454.0,
+        "duration": 5.9,
+        "avg_logprob": -0.1232,
+        "no_speech_prob": 0.1207,
+        "combined": -0.2439,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "combined_delta_fast_minus_quality": 0.1157,
+      "winner_by_combined": "fast",
+      "fast_context": "etrafını Türkler tekrar yaptılar Mostar'ın en eski camiydi Sokağıyla evleriyle müştemilatıyla yapıldı yeniden Kuyumcular Çarşısı",
+      "quality_context": "etrafını Türkler tekrar yaptılar Mostar'ın en eski camiyiydi Sokağıyla evleriyle müştemilatıyla yapıldı yeniden Kuyumcular çarşısı"
+    },
+    {
+      "fast": "debbaların",
+      "quality": "debbağların",
+      "count": 1,
+      "fast_metrics": {
+        "start": 707.9,
+        "end": 712.54,
+        "duration": 4.64,
+        "avg_logprob": -0.1986,
+        "no_speech_prob": 0.0,
+        "combined": -0.1986,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "quality_metrics": {
+        "start": 707.9,
+        "end": 712.56,
+        "duration": 4.66,
+        "avg_logprob": -0.1775,
+        "no_speech_prob": 0.3613,
+        "combined": -0.5389,
+        "flags": [],
+        "source_chunk_index": 22
+      },
+      "combined_delta_fast_minus_quality": 0.3403,
+      "winner_by_combined": "fast",
+      "fast_context": "tabiata ne kadar uyar Tabakani Camii buradaki debbaların ibadet yeriymiş Epey zarar görmüştü yenilendi Eminim",
+      "quality_context": "tabiata ne kadar uyar Tabakani Camii buradaki debbağların ibadet yeriymiş Epey zarar görmüştü yenilendi Eminim"
+    },
+    {
+      "fast": "çożun",
+      "quality": "çocuğun",
+      "count": 1,
+      "fast_metrics": {
+        "start": 728.3,
+        "end": 732.56,
+        "duration": 4.26,
+        "avg_logprob": -0.6631,
+        "no_speech_prob": 0.0,
+        "combined": -0.6631,
+        "flags": [],
+        "source_chunk_index": 23
+      },
+      "quality_metrics": {
+        "start": 728.3,
+        "end": 732.56,
+        "duration": 4.26,
+        "avg_logprob": -0.3407,
+        "no_speech_prob": 0.6514,
+        "combined": -0.992,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 23
+      },
+      "combined_delta_fast_minus_quality": 0.329,
+      "winner_by_combined": "fast",
+      "fast_context": "soyadım Lakşe Büyüklerim Konyalıymış Bu Gizel Kente çożun geçmiş Mostar önce çok güzel bir şehir",
+      "quality_context": "soyadım Lakşe Büyüklerim Konyalıymış Bu gizel kente çocuğun geçmiş Mostar önce çok güzel bir şehirmiş"
+    },
+    {
+      "fast": "şehir",
+      "quality": "şehirmiş",
+      "count": 1,
+      "fast_metrics": {
+        "start": 196.975,
+        "end": 212.915,
+        "duration": 15.94,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.0,
+        "combined": -0.0866,
+        "flags": [],
+        "source_chunk_index": 9
+      },
+      "quality_metrics": {
+        "start": 735.0,
+        "end": 740.62,
+        "duration": 5.62,
+        "avg_logprob": -0.2279,
+        "no_speech_prob": 0.2866,
+        "combined": -0.5145,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": 0.428,
+      "winner_by_combined": "fast",
+      "fast_context": "o kadar değil Dediğim gibi Mostar Türklerin şehir yaptığı bir yer Bunların arasında benim atalarım",
+      "quality_context": "çocuğun geçmiş Mostar önce çok güzel bir şehirmiş Her şey Bosna'da bizim için en güzel"
+    },
+    {
+      "fast": "imiş",
+      "quality": "Her",
+      "count": 1,
+      "fast_metrics": {
+        "start": 735.0,
+        "end": 740.68,
+        "duration": 5.68,
+        "avg_logprob": -0.2196,
+        "no_speech_prob": 0.0,
+        "combined": -0.2196,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 82.0,
+        "end": 83.7,
+        "duration": 1.7,
+        "avg_logprob": -0.1306,
+        "no_speech_prob": 0.0616,
+        "combined": -0.1922,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": -0.0274,
+      "winner_by_combined": "near_tie",
+      "fast_context": "geçmiş Mostar önce çok güzel bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar",
+      "quality_context": "hem diğer insanlarımız birçok şeylerini kaybetmeye başladılar Her şeyi devletleştirdiler o zaman Elimizde avucumuzda ne"
+    },
+    {
+      "fast": "Herzek",
+      "quality": "şey",
+      "count": 1,
+      "fast_metrics": {
+        "start": 741.8,
+        "end": 749.22,
+        "duration": 7.42,
+        "avg_logprob": -0.5813,
+        "no_speech_prob": 0.0,
+        "combined": -0.5813,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 555.34,
+        "end": 563.62,
+        "duration": 8.28,
+        "avg_logprob": -0.1396,
+        "no_speech_prob": 0.4729,
+        "combined": -0.6125,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 20
+      },
+      "combined_delta_fast_minus_quality": 0.0312,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Mostar önce çok güzel bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok",
+      "quality_context": "buradan geçen insanlar yüzyıllar öncesinde hissederdik Her şey orijinal halinde korunmaya çalışılıyordu Bugün yine gayret"
+    },
+    {
+      "fast": "engizel",
+      "quality": "güzel",
+      "count": 1,
+      "fast_metrics": {
+        "start": 741.8,
+        "end": 749.22,
+        "duration": 7.42,
+        "avg_logprob": -0.5813,
+        "no_speech_prob": 0.0,
+        "combined": -0.5813,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 735.0,
+        "end": 740.62,
+        "duration": 5.62,
+        "avg_logprob": -0.2279,
+        "no_speech_prob": 0.2866,
+        "combined": -0.5145,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": -0.0668,
+      "winner_by_combined": "quality",
+      "fast_context": "bir şehir imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama",
+      "quality_context": "gizel kente çocuğun geçmiş Mostar önce çok güzel bir şehirmiş Her şey Bosna'da bizim için"
+    },
+    {
+      "fast": "Mostarlar",
+      "quality": "Mostar'ı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 750.65,
+        "end": 756.59,
+        "duration": 5.94,
+        "avg_logprob": -0.7536,
+        "no_speech_prob": 0.0,
+        "combined": -0.7536,
+        "flags": [],
+        "source_chunk_index": 26
+      },
+      "quality_metrics": {
+        "start": 184.25,
+        "end": 190.47,
+        "duration": 6.22,
+        "avg_logprob": -0.1472,
+        "no_speech_prob": 0.2715,
+        "combined": -0.4187,
+        "flags": [],
+        "source_chunk_index": 8
+      },
+      "combined_delta_fast_minus_quality": -0.3349,
+      "winner_by_combined": "quality",
+      "fast_context": "imiş Herzek Bosna'da bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama sonra dönüyor",
+      "quality_context": "kültür dokusu Neretva'nın iki yamacına kurulmuş olan Mostar'ı Mostar yapan eserleri tanımak lazım tanıtmak lazım"
+    },
+    {
+      "fast": "seviyor",
+      "quality": "seviyorum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 750.65,
+        "end": 756.59,
+        "duration": 5.94,
+        "avg_logprob": -0.7536,
+        "no_speech_prob": 0.0,
+        "combined": -0.7536,
+        "flags": [],
+        "source_chunk_index": 26
+      },
+      "quality_metrics": {
+        "start": 750.65,
+        "end": 756.61,
+        "duration": 5.96,
+        "avg_logprob": -0.5524,
+        "no_speech_prob": 0.0453,
+        "combined": -0.5977,
+        "flags": [],
+        "source_chunk_index": 26
+      },
+      "combined_delta_fast_minus_quality": -0.1559,
+      "winner_by_combined": "quality",
+      "fast_context": "bizim için engizel kent Mostarlar çok çok seviyor Bırakıyor ama sonra dönüyor Konya'yı bırakıyor sonra",
+      "quality_context": "için en güzel kent Mostar'ı çok çok seviyorum Bırakıyor ama sonra dönüyor Konya'yı bırakıyor sonra"
+    },
+    {
+      "fast": "Mostarçok",
+      "quality": "çok",
+      "count": 1,
+      "fast_metrics": {
+        "start": 778.85,
+        "end": 785.85,
+        "duration": 7.0,
+        "avg_logprob": -0.7358,
+        "no_speech_prob": 0.0,
+        "combined": -0.7358,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "quality_metrics": {
+        "start": 114.26,
+        "end": 115.9,
+        "duration": 1.64,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": -0.412,
+      "winner_by_combined": "quality",
+      "fast_context": "yapıyoruz Mostar bir din yada Evet şimdi Mostarçok şe savaşta zarar görmüş çok harabe var",
+      "quality_context": "Biz kaldık ama neler çekti Hayatta kalabilmek çok zor Dolap peygiri gibi dönüp duruyordu Ölmeyenler"
+    },
+    {
+      "fast": "Mostar",
+      "quality": "mostlar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "combined": -0.1455,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 789.95,
+        "end": 807.07,
+        "duration": 17.12,
+        "avg_logprob": -0.1858,
+        "no_speech_prob": 0.1096,
+        "combined": -0.2955,
+        "flags": [],
+        "source_chunk_index": 31
+      },
+      "combined_delta_fast_minus_quality": 0.15,
+      "winner_by_combined": "fast",
+      "fast_context": "Ben Mustafa Kaytas Mostar şehri kurulardan beri burada oturur benim ailem",
+      "quality_context": "görmüş çok harabe var Şimdi yavaş yavaş mostlar yine kalkıyor yaralar geçiyor Güzel oluyor Eski"
+    },
+    {
+      "fast": "Bileçya'da",
+      "quality": "Bilekçe'de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 909.56,
+        "end": 914.62,
+        "duration": 5.06,
+        "avg_logprob": -0.1785,
+        "no_speech_prob": 0.0,
+        "combined": -0.1785,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "quality_metrics": {
+        "start": 909.56,
+        "end": 914.62,
+        "duration": 5.06,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.1709,
+        "combined": -0.3213,
+        "flags": [],
+        "source_chunk_index": 33
+      },
+      "combined_delta_fast_minus_quality": 0.1427,
+      "winner_by_combined": "fast",
+      "fast_context": "kazanmaya çalışan şu Mostar'lı hanımı bir dinleseniz Bileçya'da doğdum ama 1948'den beri Mostar'da yaşıyorum Üç",
+      "quality_context": "kazanmaya çalışan şu Mostarlı Hanım'ı bir dinleseniz Bilekçe'de doğdum ama 1948'den beri Mostar'da yaşıyorum Üç"
+    },
+    {
+      "fast": "kaybetti",
+      "quality": "kaybettik",
+      "count": 1,
+      "fast_metrics": {
+        "start": 942.83,
+        "end": 956.19,
+        "duration": 13.36,
+        "avg_logprob": -0.0879,
+        "no_speech_prob": 0.0,
+        "combined": -0.0879,
+        "flags": [],
+        "source_chunk_index": 34
+      },
+      "quality_metrics": {
+        "start": 942.81,
+        "end": 956.2,
+        "duration": 13.39,
+        "avg_logprob": -0.0948,
+        "no_speech_prob": 0.0479,
+        "combined": -0.1427,
+        "flags": [],
+        "source_chunk_index": 34
+      },
+      "combined_delta_fast_minus_quality": 0.0548,
+      "winner_by_combined": "fast",
+      "fast_context": "oldu İçimiz yandı Sanki onunla her şeyimizi kaybetti Ancak şunu söylemeliyim ki asla suçlu değildik",
+      "quality_context": "oldu İçimiz yandı Sanki onunla her şeyimizi kaybettik Ancak şunu söylemeliyim ki asla suçlu değildik"
+    },
+    {
+      "fast": "Camii",
+      "quality": "Camiyi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 438.8,
+        "end": 441.84,
+        "duration": 3.04,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 980.85,
+        "end": 986.05,
+        "duration": 5.2,
+        "avg_logprob": -0.1684,
+        "no_speech_prob": 0.314,
+        "combined": -0.4824,
+        "flags": [],
+        "source_chunk_index": 37
+      },
+      "combined_delta_fast_minus_quality": 0.261,
+      "winner_by_combined": "fast",
+      "fast_context": "Eğri Köprüyü Sel sularına kapıldı İnşallah Nezira Camii gibi o da tekrar yapılır 950 senesinde",
+      "quality_context": "dediğiniz büyük vezirin günlükçüsüymüş Çok hayırsever biriymiş Camiyi Türkiye restore ediyor Gençler çalışıyordu Savaşta minaresi"
+    },
+    {
+      "fast": "görünümüdür",
+      "quality": "görünümlüdür",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1071.6,
+        "end": 1078.34,
+        "duration": 6.74,
+        "avg_logprob": -0.0892,
+        "no_speech_prob": 0.0,
+        "combined": -0.0892,
+        "flags": [],
+        "source_chunk_index": 39
+      },
+      "quality_metrics": {
+        "start": 1071.6,
+        "end": 1078.36,
+        "duration": 6.76,
+        "avg_logprob": -0.1128,
+        "no_speech_prob": 0.314,
+        "combined": -0.4267,
+        "flags": [],
+        "source_chunk_index": 39
+      },
+      "combined_delta_fast_minus_quality": 0.3376,
+      "winner_by_combined": "fast",
+      "fast_context": "nokta Koski Mehmetbaşa Camii'ndendir Biri minarenin şerefesinden görünümüdür diğeri ise yan avlusundaki çıkıntı üzeridir Haziresinde",
+      "quality_context": "nokta Koski Mehmetbaşa Camii'ndendir Biri minarenin şerefesinden görünümlüdür diğeri ise yan avlusundaki çıkıntı üzeridir Haziresinde"
+    },
+    {
+      "fast": "Mostar'ın",
+      "quality": "Moslar'ın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 448.1,
+        "end": 454.0,
+        "duration": 5.9,
+        "avg_logprob": -0.1282,
+        "no_speech_prob": 0.0,
+        "combined": -0.1282,
+        "flags": [],
+        "source_chunk_index": 18
+      },
+      "quality_metrics": {
+        "start": 1100.7,
+        "end": 1112.36,
+        "duration": 11.66,
+        "avg_logprob": -0.2416,
+        "no_speech_prob": 0.5391,
+        "combined": -0.7807,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.6525,
+      "winner_by_combined": "fast",
+      "fast_context": "yıktırılan cami ve etrafını Türkler tekrar yaptılar Mostar'ın en eski camiydi Sokağıyla evleriyle müştemilatıyla yapıldı",
+      "quality_context": "mezar taşları vardı Şadırvanı da halen kullanılıyor Moslar'ın sembol eserlerinden Bişçevişköy Sahipleri Ahmet Bey de"
+    },
+    {
+      "fast": "Köşkü",
+      "quality": "Bişçevişköy",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1100.7,
+        "end": 1112.48,
+        "duration": 11.78,
+        "avg_logprob": -0.306,
+        "no_speech_prob": 0.0,
+        "combined": -0.306,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 1100.7,
+        "end": 1112.36,
+        "duration": 11.66,
+        "avg_logprob": -0.2416,
+        "no_speech_prob": 0.5391,
+        "combined": -0.7807,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": 0.4746,
+      "winner_by_combined": "fast",
+      "fast_context": "da halen kullanılıyor Mostar'ın sembol eserlerinden Bişeviş Köşkü Sahipleri Ahmet Bey de Zehra Hanım'da vefat",
+      "quality_context": "Şadırvanı da halen kullanılıyor Moslar'ın sembol eserlerinden Bişçevişköy Sahipleri Ahmet Bey de Zehra Hanım da"
+    },
+    {
+      "fast": "Hanım'da",
+      "quality": "da",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1113.68,
+        "end": 1116.88,
+        "duration": 3.2,
+        "avg_logprob": -0.4327,
+        "no_speech_prob": 0.0,
+        "combined": -0.4327,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "quality_metrics": {
+        "start": 101.66,
+        "end": 104.1,
+        "duration": 2.44,
+        "avg_logprob": -0.1726,
+        "no_speech_prob": 0.1512,
+        "combined": -0.3239,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": -0.1088,
+      "winner_by_combined": "quality",
+      "fast_context": "Bişeviş Köşkü Sahipleri Ahmet Bey de Zehra Hanım'da vefat ettiler Kim bilir ne hatıralar yıkmış",
+      "quality_context": "bugün böyle bir şans tanımadılar Nasıl oldu da hayatta kalabildik bilmiyorum Çocuklarımız burayı terk ettiler"
+    },
+    {
+      "fast": "mangaları",
+      "quality": "mangalları",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1164.46,
+        "end": 1169.36,
+        "duration": 4.9,
+        "avg_logprob": -0.1699,
+        "no_speech_prob": 0.0,
+        "combined": -0.1699,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "quality_metrics": {
+        "start": 1163.68,
+        "end": 1169.34,
+        "duration": 5.66,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.2915,
+        "combined": -0.4229,
+        "flags": [],
+        "source_chunk_index": 44
+      },
+      "combined_delta_fast_minus_quality": 0.253,
+      "winner_by_combined": "fast",
+      "fast_context": "kimler inip çıkmıştır Kapıları pencereleri sedirleri sergenleri mangaları yastıkları Ziyaretçisi hiç eksik olmaz müzeydir Avrupa'nın",
+      "quality_context": "kimler inip çıkmıştır Kapıları pencereleri sedirleri sergenleri mangalları yastıkları Ziyaretçisi hiç eksik olmaz müze evdir"
+    },
+    {
+      "fast": "müzeydir",
+      "quality": "evdir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1189.9,
+        "end": 1201.62,
+        "duration": 11.72,
+        "avg_logprob": -0.2633,
+        "no_speech_prob": 0.0,
+        "combined": -0.2633,
+        "flags": [],
+        "source_chunk_index": 45
+      },
+      "quality_metrics": {
+        "start": 1189.9,
+        "end": 1201.62,
+        "duration": 11.72,
+        "avg_logprob": -0.3062,
+        "no_speech_prob": 0.0948,
+        "combined": -0.4011,
+        "flags": [],
+        "source_chunk_index": 45
+      },
+      "combined_delta_fast_minus_quality": 0.1377,
+      "winner_by_combined": "fast",
+      "fast_context": "sergenleri mangaları yastıkları Ziyaretçisi hiç eksik olmaz müzeydir Avrupa'nın ortasında tam bir Türk evini hem",
+      "quality_context": "mangalları yastıkları Ziyaretçisi hiç eksik olmaz müze evdir Avrupa'nın ortasında tam bir Türk evini hem"
+    },
+    {
+      "fast": "halini",
+      "quality": "haliyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1202.3,
+        "end": 1212.3,
+        "duration": 10.0,
+        "avg_logprob": -0.1082,
+        "no_speech_prob": 0.0,
+        "combined": -0.1082,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 400.065,
+        "end": 403.345,
+        "duration": 3.28,
+        "avg_logprob": -0.1859,
+        "no_speech_prob": 0.1168,
+        "combined": -0.3027,
+        "flags": [],
+        "source_chunk_index": 16
+      },
+      "combined_delta_fast_minus_quality": 0.1944,
+      "winner_by_combined": "fast",
+      "fast_context": "Türk evini hem de otantik ve orijinal halini görmek belki onları şaşırtıyordu ama kültür bu",
+      "quality_context": "çıkarıyor Kalın kesme taşlar Eksikleri tamamlanıp eski haliyle onarılmayı bekliyor Büyük köprünün hemen yakınında Neretva'ya"
+    },
+    {
+      "fast": "birlikteydi",
+      "quality": "birlikte",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1202.3,
+        "end": 1212.3,
+        "duration": 10.0,
+        "avg_logprob": -0.1082,
+        "no_speech_prob": 0.0,
+        "combined": -0.1082,
+        "flags": [],
+        "source_chunk_index": 46
+      },
+      "quality_metrics": {
+        "start": 137.6,
+        "end": 140.5,
+        "duration": 2.9,
+        "avg_logprob": -0.1062,
+        "no_speech_prob": 0.1677,
+        "combined": -0.2739,
+        "flags": [],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.1656,
+      "winner_by_combined": "fast",
+      "fast_context": "görmek belki onları şaşırtıyordu ama kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez",
+      "quality_context": "uğraştılar beni İşte yaşıyorum Bu evde hanımla birlikte kalıyoruz Bu evin tarihi geçmişi çok eski"
+    },
+    {
+      "fast": "Zayim",
+      "quality": "Zahim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1309.68,
+        "end": 1312.16,
+        "duration": 2.48,
+        "avg_logprob": -0.1416,
+        "no_speech_prob": 0.0,
+        "combined": -0.1416,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1308.7,
+        "end": 1312.18,
+        "duration": 3.48,
+        "avg_logprob": -0.1408,
+        "no_speech_prob": 0.033,
+        "combined": -0.1738,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.0323,
+      "winner_by_combined": "near_tie",
+      "fast_context": "onları şaşırtıyordu ama kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez Onu herkes",
+      "quality_context": "onları şaşırtıyordu ama kültür bu birlikte Hacı Zahim Mehmet Bey denilince kimse bilmez Onu herkes"
+    },
+    {
+      "fast": "denince",
+      "quality": "denilince",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1309.68,
+        "end": 1312.16,
+        "duration": 2.48,
+        "avg_logprob": -0.1416,
+        "no_speech_prob": 0.0,
+        "combined": -0.1416,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1308.7,
+        "end": 1312.18,
+        "duration": 3.48,
+        "avg_logprob": -0.1408,
+        "no_speech_prob": 0.033,
+        "combined": -0.1738,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.0323,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kültür bu birlikteydi Hacı Zayim Mehmet Bey denince kimse bilmez Onu herkes Karagöz Mehmet Bey",
+      "quality_context": "kültür bu birlikte Hacı Zahim Mehmet Bey denilince kimse bilmez Onu herkes Karagöz Mehmet Bey"
+    },
+    {
+      "fast": "öğerlerdi",
+      "quality": "överlerdi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1325.4,
+        "end": 1343.18,
+        "duration": 17.78,
+        "avg_logprob": -0.082,
+        "no_speech_prob": 0.0,
+        "combined": -0.082,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "quality_metrics": {
+        "start": 1340.6,
+        "end": 1343.18,
+        "duration": 2.58,
+        "avg_logprob": -0.1097,
+        "no_speech_prob": 0.0063,
+        "combined": -0.1159,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": 0.0339,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bina kesme taştandır Mostarlılar bu camiyi pek öğerlerdi Emsali olmayan bir eser gibi anlatırlardı Son",
+      "quality_context": "bina kesme taştandır Mostarlılar bu camiyi pek överlerdi Emsali olmayan bir eser gibi anlatırlardı Son"
+    },
+    {
+      "fast": "bilmiyor",
+      "quality": "biliniyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1408.88,
+        "end": 1413.18,
+        "duration": 4.3,
+        "avg_logprob": -0.2009,
+        "no_speech_prob": 0.0,
+        "combined": -0.2009,
+        "flags": [],
+        "source_chunk_index": 52
+      },
+      "quality_metrics": {
+        "start": 1407.96,
+        "end": 1413.3,
+        "duration": 5.34,
+        "avg_logprob": -0.1657,
+        "no_speech_prob": 0.4871,
+        "combined": -0.6527,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 52
+      },
+      "combined_delta_fast_minus_quality": 0.4518,
+      "winner_by_combined": "fast",
+      "fast_context": "işgali sırasında bu bezemelerle ne kadar oynandığı bilmiyor Savaşın cami ve bilhassa kubbesinde meydana getirdiği",
+      "quality_context": "işgali sırasında bu bezemelerle ne kadar oynandığı biliniyor Savaşın cami ve bilhassa kubbesinde meydana getirdiği"
+    },
+    {
+      "fast": "de",
+      "quality": "camiinde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0,
+        "combined": -0.1455,
+        "flags": [],
+        "source_chunk_index": 0
+      },
+      "quality_metrics": {
+        "start": 1331.58,
+        "end": 1336.46,
+        "duration": 4.88,
+        "avg_logprob": -0.1097,
+        "no_speech_prob": 0.0063,
+        "combined": -0.1159,
+        "flags": [],
+        "source_chunk_index": 49
+      },
+      "combined_delta_fast_minus_quality": -0.0296,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kurulardan beri burada oturur benim ailem Belki de onlar kurdular burada Yalnız soyumun Türkiye'den gelme",
+      "quality_context": "avluları yoktur İşte Karagöz Bey'in yaptırdığı bu camiinde dar bir dış avlusu vardır Kapısı köşededir"
+    },
+    {
+      "fast": "Çanının",
+      "quality": "Çanunun",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1486.26,
+        "end": 1489.62,
+        "duration": 3.36,
+        "avg_logprob": -0.1766,
+        "no_speech_prob": 0.0,
+        "combined": -0.1766,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "quality_metrics": {
+        "start": 1486.26,
+        "end": 1489.62,
+        "duration": 3.36,
+        "avg_logprob": -0.2015,
+        "no_speech_prob": 0.2073,
+        "combined": -0.4088,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "combined_delta_fast_minus_quality": 0.2322,
+      "winner_by_combined": "fast",
+      "fast_context": "hanım yaptırmış 300 yıldan fazla olsa gerek Çanının sesinin pek uzaklardan duyulduğu anlatılır hep Nasu",
+      "quality_context": "hanım yaptırmış 300 yıldan fazla olsa gerek Çanunun sesinin pek uzaklardan duyulduğu anlatılır hep Nasu"
+    },
+    {
+      "fast": "Mostar'ın",
+      "quality": "Mosler'in",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1100.7,
+        "end": 1112.48,
+        "duration": 11.78,
+        "avg_logprob": -0.306,
+        "no_speech_prob": 0.0,
+        "combined": -0.306,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "quality_metrics": {
+        "start": 1491.8,
+        "end": 1501.02,
+        "duration": 9.22,
+        "avg_logprob": -0.1765,
+        "no_speech_prob": 0.2454,
+        "combined": -0.4219,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "combined_delta_fast_minus_quality": 0.1158,
+      "winner_by_combined": "fast",
+      "fast_context": "mezar taşları vardı Şadırvanı da halen kullanılıyor Mostar'ın sembol eserlerinden Bişeviş Köşkü Sahipleri Ahmet Bey",
+      "quality_context": "Nasu Ağa Camii meydanı dolduran eserlerden biri Mosler'in güzelliklerinden Savaşın ne feci ne çirkin olduğunun"
+    },
+    {
+      "fast": "peki",
+      "quality": "iyimser",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1637.6,
+        "end": 1650.62,
+        "duration": 13.02,
+        "avg_logprob": -0.1443,
+        "no_speech_prob": 0.0,
+        "combined": -0.1443,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "quality_metrics": {
+        "start": 1637.6,
+        "end": 1650.62,
+        "duration": 13.02,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.0064,
+        "combined": -0.1567,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "combined_delta_fast_minus_quality": 0.0124,
+      "winner_by_combined": "near_tie",
+      "fast_context": "yapılmış şiirler dizilmiş Gelecek neler getirecek bilmiyorum peki imserde değilim ama gençler çok iyi düşünüp",
+      "quality_context": "şiirler dizilmiş Gelecek neler getirecek bilmiyorum pek iyimser de değilim Ama gençler çok iyi düşünüp"
+    },
+    {
+      "fast": "imserde",
+      "quality": "de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1637.6,
+        "end": 1650.62,
+        "duration": 13.02,
+        "avg_logprob": -0.1443,
+        "no_speech_prob": 0.0,
+        "combined": -0.1443,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "quality_metrics": {
+        "start": 43.3,
+        "end": 56.26,
+        "duration": 12.96,
+        "avg_logprob": -0.151,
+        "no_speech_prob": 0.5215,
+        "combined": -0.6724,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 0
+      },
+      "combined_delta_fast_minus_quality": 0.5282,
+      "winner_by_combined": "fast",
+      "fast_context": "şiirler dizilmiş Gelecek neler getirecek bilmiyorum peki imserde değilim ama gençler çok iyi düşünüp bu",
+      "quality_context": "kurulalıdan beri burada oturur benim ailem Belki de onlar kurdular burayı Yalnız soyumun Türkiye'den gelme"
+    },
+    {
+      "fast": "beldeyi",
+      "quality": "perdeyi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1637.6,
+        "end": 1650.62,
+        "duration": 13.02,
+        "avg_logprob": -0.1443,
+        "no_speech_prob": 0.0,
+        "combined": -0.1443,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "quality_metrics": {
+        "start": 1637.6,
+        "end": 1650.62,
+        "duration": 13.02,
+        "avg_logprob": -0.1504,
+        "no_speech_prob": 0.0064,
+        "combined": -0.1567,
+        "flags": [],
+        "source_chunk_index": 59
+      },
+      "combined_delta_fast_minus_quality": 0.0124,
+      "winner_by_combined": "near_tie",
+      "fast_context": "gençler çok iyi düşünüp bu dünya güzeli beldeyi yeniden yaşanır kılmalıdır Eskiden köprüden atlama yarışları",
+      "quality_context": "gençler çok iyi düşünüp bu dünya güzeli perdeyi yeniden yaşanır kılmalıdır Eskiden köprüden atlama yarışları"
+    },
+    {
+      "fast": "vardı",
+      "quality": "bizden",
+      "count": 1,
+      "fast_metrics": {
+        "start": 428.4,
+        "end": 430.88,
+        "duration": 2.48,
+        "avg_logprob": -0.2214,
+        "no_speech_prob": 0.0,
+        "combined": -0.2214,
+        "flags": [],
+        "source_chunk_index": 17
+      },
+      "quality_metrics": {
+        "start": 1709.08,
+        "end": 1710.68,
+        "duration": 1.6,
+        "avg_logprob": -0.1598,
+        "no_speech_prob": 0.5239,
+        "combined": -0.6838,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 61
+      },
+      "combined_delta_fast_minus_quality": 0.4623,
+      "winner_by_combined": "fast",
+      "fast_context": "akarmış Zaten üzerinde pek çok su değerinin vardı İşte burada Büyük köprünün denemesini yapmışlar Adı",
+      "quality_context": "kültür eserleri yok edildi İnsanın aklının alacağı bizden Mostarımızın sembolü tarihi köprü gitti yok oldu"
+    },
+    {
+      "fast": "kararındaydılar",
+      "quality": "kararındaydı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1723.7,
+        "end": 1729.1,
+        "duration": 5.4,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871,
+        "flags": [],
+        "source_chunk_index": 62
+      },
+      "quality_metrics": {
+        "start": 1723.7,
+        "end": 1728.94,
+        "duration": 5.24,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 62
+      },
+      "combined_delta_fast_minus_quality": 0.4612,
+      "winner_by_combined": "fast",
+      "fast_context": "hatırlatan sembolize eden her şeyi yok etme kararındaydılar Savaş öncesi hırvatlar burada yüzde on civarındaydı",
+      "quality_context": "hatırlatan sembolize eden her şeyi yok etme kararındaydı Savaş öncesi ırvatlar burada yüzde on civarındaydı"
+    },
+    {
+      "fast": "hırvatlar",
+      "quality": "ırvatlar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1507.7,
+        "end": 1523.02,
+        "duration": 15.32,
+        "avg_logprob": -0.1402,
+        "no_speech_prob": 0.0,
+        "combined": -0.1402,
+        "flags": [],
+        "source_chunk_index": 57
+      },
+      "quality_metrics": {
+        "start": 1729.82,
+        "end": 1733.0,
+        "duration": 3.18,
+        "avg_logprob": -0.1742,
+        "no_speech_prob": 0.4741,
+        "combined": -0.6484,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 62
+      },
+      "combined_delta_fast_minus_quality": 0.5081,
+      "winner_by_combined": "fast",
+      "fast_context": "yada Eski Sırp kilisesiydi Sırplar bir yandan hırvatlar bir yandan Müslümanları ortada kıstırmışlardı Fakat hani",
+      "quality_context": "her şeyi yok etme kararındaydı Savaş öncesi ırvatlar burada yüzde on civarındaydı Şimdi bakınız nasıl"
+    },
+    {
+      "fast": "çalışıyorum",
+      "quality": "çalışılıyor",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1734.12,
+        "end": 1736.94,
+        "duration": 2.82,
+        "avg_logprob": -0.1871,
+        "no_speech_prob": 0.0,
+        "combined": -0.1871,
+        "flags": [],
+        "source_chunk_index": 62
+      },
+      "quality_metrics": {
+        "start": 653.22,
+        "end": 659.1,
+        "duration": 5.88,
+        "avg_logprob": -0.1068,
+        "no_speech_prob": 0.0479,
+        "combined": -0.1546,
+        "flags": [],
+        "source_chunk_index": 21
+      },
+      "combined_delta_fast_minus_quality": -0.0325,
+      "winner_by_combined": "near_tie",
+      "fast_context": "on civarındaydı Şimdi bakınız nasıl kimlik değiştirmeye çalışıyorum İnanın ben tamamen objektifim Yani ne saçma",
+      "quality_context": "yapılar onarıldıkça çatıları da eski haline getirilmeye çalışılıyor Kaygan kaya çatı örtüsü Bu havalide sıkça"
+    },
+    {
+      "fast": "başkalarıyla",
+      "quality": "ile",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1745.95,
+        "end": 1748.31,
+        "duration": 2.36,
+        "avg_logprob": -0.286,
+        "no_speech_prob": 0.0,
+        "combined": -0.286,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "quality_metrics": {
+        "start": 1745.95,
+        "end": 1748.29,
+        "duration": 2.34,
+        "avg_logprob": -0.2648,
+        "no_speech_prob": 0.2229,
+        "combined": -0.4877,
+        "flags": [],
+        "source_chunk_index": 63
+      },
+      "combined_delta_fast_minus_quality": 0.2017,
+      "winner_by_combined": "fast",
+      "fast_context": "ne de haklı çıkmak için konuşuyorum Hem başkalarıyla da konuşacaksınız Zaten burası kimindir sorusunun cevabı",
+      "quality_context": "de haklı çıkmak için konuşuyorum Hem başkaları ile de konuşacaksınız Zaten burası kimindir sorusunun cevabı"
+    },
+    {
+      "fast": "Yollarım",
+      "quality": "Kullarım",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1799.2,
+        "end": 1805.96,
+        "duration": 6.76,
+        "avg_logprob": -0.1543,
+        "no_speech_prob": 0.0,
+        "combined": -0.1543,
+        "flags": [],
+        "source_chunk_index": 64
+      },
+      "quality_metrics": {
+        "start": 1799.2,
+        "end": 1806.0,
+        "duration": 6.8,
+        "avg_logprob": -0.1505,
+        "no_speech_prob": 0.7095,
+        "combined": -0.8599,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 64
+      },
+      "combined_delta_fast_minus_quality": 0.7057,
+      "winner_by_combined": "fast",
+      "fast_context": "vatanında sığıntı olmak Ne harcı günlerdi Tanrım Yollarım halen İsviçre'de Geriye Mostar'a dönmeyi istiyorlar ama",
+      "quality_context": "vatanında sığıntı olmak Ne acı günlerdi tanrım Kullarım halen İsviçre'de Geriye Mostar'a dönmeyi istiyorlar ama"
+    },
+    {
+      "fast": "Hırvatlısı",
+      "quality": "Sırp",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1867.46,
+        "end": 1869.9,
+        "duration": 2.44,
+        "avg_logprob": -0.1943,
+        "no_speech_prob": 0.0,
+        "combined": -0.1943,
+        "flags": [],
+        "source_chunk_index": 65
+      },
+      "quality_metrics": {
+        "start": 1512.18,
+        "end": 1514.04,
+        "duration": 1.86,
+        "avg_logprob": -0.156,
+        "no_speech_prob": 0.1581,
+        "combined": -0.3141,
+        "flags": [],
+        "source_chunk_index": 57
+      },
+      "combined_delta_fast_minus_quality": 0.1198,
+      "winner_by_combined": "fast",
+      "fast_context": "bir sistem getirildi ki işlemez halde Müslüman Hırvatlısı karma yönetimi Güçlü topraklar bile üçe ayrılmış",
+      "quality_context": "ne çirkin olduğunun misallerinden şu yapı Eski Sırp kilisesiydi Sırplar bir yandan Hırvatlar bir yandan"
+    },
+    {
+      "fast": "Güçlü",
+      "quality": "Üçlü",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1870.54,
+        "end": 1873.52,
+        "duration": 2.98,
+        "avg_logprob": -0.1943,
+        "no_speech_prob": 0.0,
+        "combined": -0.1943,
+        "flags": [],
+        "source_chunk_index": 65
+      },
+      "quality_metrics": {
+        "start": 1870.54,
+        "end": 1870.9,
+        "duration": 0.36,
+        "avg_logprob": -0.1845,
+        "no_speech_prob": 0.0634,
+        "combined": -0.2479,
+        "flags": [],
+        "source_chunk_index": 65
+      },
+      "combined_delta_fast_minus_quality": 0.0536,
+      "winner_by_combined": "fast",
+      "fast_context": "ki işlemez halde Müslüman Hırvatlısı karma yönetimi Güçlü topraklar bile üçe ayrılmış gibi Mutlu muyuz",
+      "quality_context": "işlemez halde Müslüman Hırvat Sırp Karma yönetimi Üçlü Topraklar bile üçe ayrılmış gibi Mutlu muyuz"
+    },
+    {
+      "fast": "günün",
+      "quality": "oyunun",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1912.05,
+        "end": 1914.87,
+        "duration": 2.82,
+        "avg_logprob": -0.2634,
+        "no_speech_prob": 0.0,
+        "combined": -0.2634,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 1912.05,
+        "end": 1914.87,
+        "duration": 2.82,
+        "avg_logprob": -0.2767,
+        "no_speech_prob": 0.0448,
+        "combined": -0.3215,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "combined_delta_fast_minus_quality": 0.0581,
+      "winner_by_combined": "fast",
+      "fast_context": "ki Sanki bir oyun oynuyoruz Bakalım o günün sonu nasıl olacak",
+      "quality_context": "değil ki Sanki bir oyun oynuyoruz Bakalım oyunun sonu nasıl olacak"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "fast_extra",
+      "text": "bir saygı",
+      "word_count": 2
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "sample_id": "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 7024.96,
+  "source_duration": 7024.96,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav"
+}

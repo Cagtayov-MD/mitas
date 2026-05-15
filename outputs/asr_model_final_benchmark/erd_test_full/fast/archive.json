@@ -1,0 +1,388 @@
+{
+  "audio_path": "E:\\MITAS\\outputs\\asr_model_final_benchmark\\erd_test_full\\audio_16000hz_mono_s16.wav",
+  "audio_duration": 195.257,
+  "model": "large-v3-turbo",
+  "profile": "fast",
+  "fallback": false,
+  "fallback_reason": null,
+  "transcript": {
+    "verbatim": "Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Sayın Peres, benden yaşlısın. Sesin çok yüksek çıkıyor. Biliyorum ki sesinin bu kadar çok yüksek çıkması bir suçluluk psikolojisinin gereğidir. Benim seçim bu kadar yüksek çıkmayacak. Bunu da böyle bilesin. Öldürmeye gelince siz öldürmeyi çok iyi bilirsiniz. Plajlardaki çocukları nasıl öldürdüğünüzü, nasıl vurduğunuzu çok iyi biliyorum. Ülkenizde başbakanlık yapmış olan iki kişinin bana önemli lafları vardır. Tankların üzerinde Filistin'e girdiğim zaman kendimi bir başka mutlu addediyorum diyen başbakanlarınız vardır. Tankların üzerine çıkıp da Filistin'e girdiğim zaman kendimi mutlu addediyorum diyen başbakanlarınız olmuştur. Ve bana sayılar veriyorsunuz. İsim de veririm. Merak edenleriniz vardır belki. Şu zulme... Alkış tutanları da ayrıca kınıyorum. Çünkü bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur. Bakınız burada bir gerçeği bir kenara atamayız. Ben şurada çok not aldım. Ama bu notların hepsini cevaplayacak fırsatım yok. Fakat ben buradan sadece size... İki söz söyleyeceğim. Prime Minister, we can't start the debate again. Please, we just don't have time. Excuse me. Sözümü kesmeyin. Bir, Tevrat 6. maddesinde der ki öldürmeyeceksin. Burada öldürme var. İki, bakın bu da çok enteresan, Gilad Atzamoni, İsrail barbarlığı zalimliğin de çok ötesinde bir şey. Bir Yahudi. Bunun yanında. İsrail ordusunda askerlik görevini yapan Oxford Üniversitesi Uluslararası İlişkiler Profesörü, Avishalem, Üngiliz gazetesi Guardian'da şunu söylüyor. Prime Minister, I want to ask you to defer to our host, to our host. Let me. Siz konuşturmuyorsunuz. 25 dakika konuştu, 12 dakika konuşturmuyorsun. Olmaz.",
+    "clean": "Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Bir dakika. Sayın Peres, benden yaşlısın.\n\nSesin çok yüksek çıkıyor. Biliyorum ki sesinin bu kadar çok yüksek çıkması bir suçluluk psikolojisinin gereğidir. Benim seçim bu kadar yüksek çıkmayacak. Bunu da böyle bilesin. Öldürmeye gelince siz öldürmeyi çok iyi bilirsiniz. Plajlardaki çocukları nasıl öldürdüğünüzü, nasıl vurduğunuzu çok iyi biliyorum.\n\nÜlkenizde başbakanlık yapmış olan iki kişinin bana önemli lafları vardır. Tankların üzerinde Filistin'e girdiğim zaman kendimi bir başka mutlu addediyorum diyen başbakanlarınız vardır. Tankların üzerine çıkıp da Filistin'e girdiğim zaman kendimi mutlu addediyorum diyen başbakanlarınız olmuştur. Ve bana sayılar veriyorsunuz. İsim de veririm. Merak edenleriniz vardır belki. Şu zulme... Alkış tutanları da ayrıca kınıyorum. Çünkü bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur. Bakınız burada bir gerçeği bir kenara atamayız. Ben şurada çok not aldım. Ama bu notların hepsini cevaplayacak fırsatım yok. Fakat ben buradan sadece size... İki söz söyleyeceğim. Prime Minister, we can't start the debate again. Please, we just don't have time. Excuse me. Sözümü kesmeyin. Bir, Tevrat 6. maddesinde der ki öldürmeyeceksin. Burada öldürme var. İki, bakın bu da çok enteresan, Gilad Atzamoni, İsrail barbarlığı zalimliğin de çok ötesinde bir şey. Bir Yahudi. Bunun yanında. İsrail ordusunda askerlik görevini yapan Oxford Üniversitesi Uluslararası İlişkiler Profesörü, Avishalem, Üngiliz gazetesi Guardian'da şunu söylüyor. Prime Minister, I want to ask you to defer to our host, to our host.\n\nLet me.\n\nSiz konuşturmuyorsunuz. 25 dakika konuştu, 12 dakika konuşturmuyorsun. Olmaz.",
+    "normalized": null
+  },
+  "segments": [
+    {
+      "start": 6.0,
+      "end": 7.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 7.0,
+      "end": 8.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 8.0,
+      "end": 9.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 9.0,
+      "end": 10.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 10.0,
+      "end": 11.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 11.0,
+      "end": 12.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 12.0,
+      "end": 13.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 13.0,
+      "end": 14.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 14.0,
+      "end": 15.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 15.0,
+      "end": 16.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 16.0,
+      "end": 17.0,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 17.0,
+      "end": 17.4,
+      "text": "Bir dakika.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 17.4,
+      "end": 23.76,
+      "text": "Sayın Peres, benden yaşlısın.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 27.3,
+      "end": 28.54,
+      "text": "Sesin çok yüksek çıkıyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 29.88,
+      "end": 35.7,
+      "text": "Biliyorum ki sesinin bu kadar çok yüksek çıkması bir suçluluk psikolojisinin gereğidir.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 35.7,
+      "end": 38.0,
+      "text": "Benim seçim bu kadar yüksek çıkmayacak.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 38.92,
+      "end": 39.82,
+      "text": "Bunu da böyle bilesin.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 40.9,
+      "end": 43.76,
+      "text": "Öldürmeye gelince siz öldürmeyi çok iyi bilirsiniz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 44.96,
+      "end": 48.8,
+      "text": "Plajlardaki çocukları nasıl öldürdüğünüzü, nasıl vurduğunuzu çok iyi biliyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 50.8,
+      "end": 55.4,
+      "text": "Ülkenizde başbakanlık yapmış olan iki kişinin bana önemli lafları vardır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 56.78,
+      "end": 63.96,
+      "text": "Tankların üzerinde Filistin'e girdiğim zaman kendimi bir başka mutlu addediyorum diyen başbakanlarınız vardır.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 64.9,
+      "end": 72.3,
+      "text": "Tankların üzerine çıkıp da Filistin'e girdiğim zaman kendimi mutlu addediyorum diyen başbakanlarınız olmuştur.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 73.42,
+      "end": 75.04,
+      "text": "Ve bana sayılar veriyorsunuz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 75.42,
+      "end": 76.1,
+      "text": "İsim de veririm.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 76.84,
+      "end": 78.36,
+      "text": "Merak edenleriniz vardır belki.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 78.36,
+      "end": 80.0,
+      "text": "Şu zulme...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 80.0,
+      "end": 81.82,
+      "text": "Alkış tutanları da ayrıca kınıyorum.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 82.94,
+      "end": 94.28,
+      "text": "Çünkü bu çocukları öldürenleri, bu insanları öldürenleri kalkıp da alkışlamak öyle zannediyorum ki o da ayrı bir insanlık suçudur.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 94.875,
+      "end": 98.075,
+      "text": "Bakınız burada bir gerçeği bir kenara atamayız.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 99.175,
+      "end": 100.335,
+      "text": "Ben şurada çok not aldım.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 101.035,
+      "end": 103.615,
+      "text": "Ama bu notların hepsini cevaplayacak fırsatım yok.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 104.495,
+      "end": 107.25,
+      "text": "Fakat ben buradan sadece size...",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 107.25,
+      "end": 109.35,
+      "text": "İki söz söyleyeceğim.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 110.35,
+      "end": 113.39,
+      "text": "Prime Minister, we can't start the debate again.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 113.51,
+      "end": 114.77,
+      "text": "Please, we just don't have time.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 114.89,
+      "end": 115.37,
+      "text": "Excuse me.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 116.59,
+      "end": 117.77,
+      "text": "Sözümü kesmeyin.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 119.175,
+      "end": 131.155,
+      "text": "Bir, Tevrat 6. maddesinde der ki öldürmeyeceksin. Burada öldürme var.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 131.155,
+      "end": 144.795,
+      "text": "İki, bakın bu da çok enteresan, Gilad Atzamoni, İsrail barbarlığı zalimliğin de çok ötesinde bir şey. Bir Yahudi. Bunun yanında.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 145.1,
+      "end": 154.48,
+      "text": "İsrail ordusunda askerlik görevini yapan Oxford Üniversitesi Uluslararası İlişkiler Profesörü, Avishalem, Üngiliz gazetesi Guardian'da şunu söylüyor.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 154.48,
+      "end": 162.76,
+      "text": "Prime Minister, I want to ask you to defer to our host, to our host.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 168.08,
+      "end": 168.42,
+      "text": "Let me.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 170.6,
+      "end": 172.6,
+      "text": "Siz konuşturmuyorsunuz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 172.6,
+      "end": 175.6,
+      "text": "25 dakika konuştu, 12 dakika konuşturmuyorsun.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    },
+    {
+      "start": 175.6,
+      "end": 177.6,
+      "text": "Olmaz.",
+      "speaker": null,
+      "flags": [],
+      "language": "tr"
+    }
+  ],
+  "quality": {
+    "drops": 5,
+    "drop_reasons": {
+      "stock_artifact:izlediğiniz için teşekkür ederim": 5
+    },
+    "safety_passed": true
+  },
+  "timing": {
+    "total_seconds": 15.707,
+    "chunk_count": 13,
+    "decode_seconds": 8.785,
+    "fallback_seconds": 0.0
+  }
+}

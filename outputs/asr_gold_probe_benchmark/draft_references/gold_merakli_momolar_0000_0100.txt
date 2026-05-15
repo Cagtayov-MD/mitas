@@ -1,0 +1,7 @@
+# Draft reference for gold_merakli_momolar_0000_0100
+# Listen to the source audio/video and manually correct this text.
+# Delete these comment lines before copying into references/asr_model_final/.
+
+Meraklı Momolar başlıyor.
+
+Mama buna hayran olur bayılır, kuzucuklar taze çimen ararlar. Ne güzel bir gün. Ne güzel bir gün. Herkese merhaba. Sana da merhaba.

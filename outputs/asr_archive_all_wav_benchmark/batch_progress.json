@@ -1,0 +1,433 @@
+{
+  "started_at": "2026-05-13 00:15:31",
+  "updated_at": "2026-05-13 00:15:31",
+  "total_samples": 14,
+  "completed": 14,
+  "running": [],
+  "pending": [],
+  "failed": {},
+  "completed_before_start": [
+    "001_h1",
+    "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+    "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+    "004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi",
+    "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+    "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+    "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+    "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+    "009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk",
+    "010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye",
+    "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+    "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+    "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+    "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani"
+  ],
+  "samples": [
+    {
+      "sample_id": "001_h1",
+      "source_name": "H1.wav",
+      "duration_min": 1.696,
+      "size_mb": 19.534,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 22.616,
+          "runtime_per_audio_minute": 13.338,
+          "clean_word_count": 166,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 33.517,
+          "runtime_per_audio_minute": 19.767,
+          "clean_word_count": 160,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "high_no_speech_segments": 1,
+          "high_no_speech_duration": 11.02
+        }
+      }
+    },
+    {
+      "sample_id": "002_web_client_cag_2023_3005_2_0100_90_1_cumhurbaskani_recep_tayyip_erdogan_dunya_liderleri_te",
+      "source_name": "web_client_CAG_2023-3005-2-0100-90-1-CUMHURBAŞKANI_RECEP_TAYYİP_ERDOĞAN_DÜNYA_LİDERLERİ_TEBRİK_TELEFONU.wav",
+      "duration_min": 2.778,
+      "size_mb": 32.006,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 25.939,
+          "runtime_per_audio_minute": 9.336,
+          "clean_word_count": 268,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 52.476,
+          "runtime_per_audio_minute": 18.888,
+          "clean_word_count": 265,
+          "quality_drop_count": 0,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        }
+      }
+    },
+    {
+      "sample_id": "003_2015_0053_1_0000_90_1_trt_radyolari_turkiyenin_ortak_sesi",
+      "source_name": "2015-0053-1-0000-90-1-TRT_RADYOLARI_TÜRKİYENİN_ORTAK_SESİ.wav",
+      "duration_min": 2.862,
+      "size_mb": 32.965,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 20.632,
+          "runtime_per_audio_minute": 7.21,
+          "clean_word_count": 15,
+          "quality_drop_count": 2,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 13.01,
+          "runtime_per_audio_minute": 4.546,
+          "clean_word_count": 31,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "high_no_speech_segments": 6,
+          "high_no_speech_duration": 30.04
+        }
+      }
+    },
+    {
+      "sample_id": "004_web_client_cagtest_2025_1408_2_0100_90_1_trt_haber_gazze_yikimi_havadan_goruntuledi",
+      "source_name": "web_client_CAGTEST_2025-1408-2-0100-90-1-TRT_HABER_GAZZE_YIKIMI_HAVADAN_GÖRÜNTÜLEDİ.wav",
+      "duration_min": 5.416,
+      "size_mb": 62.394,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 30.116,
+          "runtime_per_audio_minute": 5.56,
+          "clean_word_count": 428,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 81.158,
+          "runtime_per_audio_minute": 14.984,
+          "clean_word_count": 424,
+          "quality_drop_count": 1,
+          "safety_passed": true,
+          "high_no_speech_segments": 23,
+          "high_no_speech_duration": 143.52
+        }
+      }
+    },
+    {
+      "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+      "source_name": "web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+      "duration_min": 20.385,
+      "size_mb": 234.832,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 107.578,
+          "runtime_per_audio_minute": 5.277,
+          "clean_word_count": 1200,
+          "quality_drop_count": 8,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 160.933,
+          "runtime_per_audio_minute": 7.895,
+          "clean_word_count": 1224,
+          "quality_drop_count": 5,
+          "safety_passed": true,
+          "high_no_speech_segments": 64,
+          "high_no_speech_duration": 176.5
+        }
+      }
+    },
+    {
+      "sample_id": "006_web_client_cagtest_2017_0041_0_0012_91_1_kampusteyiz",
+      "source_name": "web_client_CAGTEST_2017-0041-0-0012-91-1-KAMPÜSTEYİZ.wav",
+      "duration_min": 32.983,
+      "size_mb": 379.961,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 131.742,
+          "runtime_per_audio_minute": 3.994,
+          "clean_word_count": 2429,
+          "quality_drop_count": 23,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 519.38,
+          "runtime_per_audio_minute": 15.747,
+          "clean_word_count": 2397,
+          "quality_drop_count": 22,
+          "safety_passed": true,
+          "high_no_speech_segments": 204,
+          "high_no_speech_duration": 553.72
+        }
+      }
+    },
+    {
+      "sample_id": "007_web_client_cagtest_2001_0122_0_001_00_1_neretva_ustune_dusen_hilal",
+      "source_name": "web_client_CAGTEST_2001-0122-0-001-00-1-NERETVA_ÜSTÜNE_DÜŞEN_HİLAL.wav",
+      "duration_min": 33.007,
+      "size_mb": 380.24,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 96.947,
+          "runtime_per_audio_minute": 2.937,
+          "clean_word_count": 1497,
+          "quality_drop_count": 4,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 387.548,
+          "runtime_per_audio_minute": 11.741,
+          "clean_word_count": 1494,
+          "quality_drop_count": 3,
+          "safety_passed": true,
+          "high_no_speech_segments": 134,
+          "high_no_speech_duration": 542.7
+        }
+      }
+    },
+    {
+      "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+      "source_name": "web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+      "duration_min": 40.601,
+      "size_mb": 467.722,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 293.226,
+          "runtime_per_audio_minute": 7.222,
+          "clean_word_count": 4210,
+          "quality_drop_count": 8,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 427.668,
+          "runtime_per_audio_minute": 10.533,
+          "clean_word_count": 4210,
+          "quality_drop_count": 5,
+          "safety_passed": true,
+          "high_no_speech_segments": 84,
+          "high_no_speech_duration": 365.67
+        }
+      }
+    },
+    {
+      "sample_id": "009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk",
+      "source_name": "web_client_CAG_2012-9024-0-0006-00-1-ADAM_OLACAK_ÇOCUK.wav",
+      "duration_min": 45.528,
+      "size_mb": 524.485,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 300.644,
+          "runtime_per_audio_minute": 6.603,
+          "clean_word_count": 4083,
+          "quality_drop_count": 21,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 908.437,
+          "runtime_per_audio_minute": 19.953,
+          "clean_word_count": 4165,
+          "quality_drop_count": 10,
+          "safety_passed": true,
+          "high_no_speech_segments": 742,
+          "high_no_speech_duration": 1584.19
+        }
+      }
+    },
+    {
+      "sample_id": "010_web_client_cag_1988_0098_0_003_00_1_baris_manco_ile_7_den_77_ye",
+      "source_name": "web_client_CAG_1988-0098-0-003-00-1-BARIŞ_MANÇO_İLE_7'DEN_77'YE.wav",
+      "duration_min": 46.5,
+      "size_mb": 535.683,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 213.848,
+          "runtime_per_audio_minute": 4.599,
+          "clean_word_count": 3168,
+          "quality_drop_count": 9,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 389.381,
+          "runtime_per_audio_minute": 8.374,
+          "clean_word_count": 3339,
+          "quality_drop_count": 7,
+          "safety_passed": true,
+          "high_no_speech_segments": 415,
+          "high_no_speech_duration": 1029.55
+        }
+      }
+    },
+    {
+      "sample_id": "011_web_client_cag3_2021_0046_0_0078_90_1_aksam_sefasi",
+      "source_name": "web_client_CAG3_2021-0046-0-0078-90-1-AKŞAM_SEFASI.wav",
+      "duration_min": 88.7,
+      "size_mb": 1021.825,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 141.525,
+          "runtime_per_audio_minute": 1.596,
+          "clean_word_count": 617,
+          "quality_drop_count": 13,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 167.441,
+          "runtime_per_audio_minute": 1.888,
+          "clean_word_count": 653,
+          "quality_drop_count": 9,
+          "safety_passed": true,
+          "high_no_speech_segments": 72,
+          "high_no_speech_duration": 357.52
+        }
+      }
+    },
+    {
+      "sample_id": "012_web_client_cag_2001_9064_0_0278_00_1_aksam_sefasi",
+      "source_name": "web_client_CAG_2001-9064-0-0278-00-1-AKŞAM_SEFASI.wav",
+      "duration_min": 88.989,
+      "size_mb": 1025.151,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 111.846,
+          "runtime_per_audio_minute": 1.257,
+          "clean_word_count": 335,
+          "quality_drop_count": 15,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 176.991,
+          "runtime_per_audio_minute": 1.989,
+          "clean_word_count": 310,
+          "quality_drop_count": 14,
+          "safety_passed": true,
+          "high_no_speech_segments": 47,
+          "high_no_speech_duration": 263.83
+        }
+      }
+    },
+    {
+      "sample_id": "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+      "source_name": "web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav",
+      "duration_min": 117.083,
+      "size_mb": 1348.792,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 388.233,
+          "runtime_per_audio_minute": 3.316,
+          "clean_word_count": 5426,
+          "quality_drop_count": 135,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 724.298,
+          "runtime_per_audio_minute": 6.186,
+          "clean_word_count": 5616,
+          "quality_drop_count": 90,
+          "safety_passed": true,
+          "high_no_speech_segments": 453,
+          "high_no_speech_duration": 1976.735
+        }
+      }
+    },
+    {
+      "sample_id": "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani",
+      "source_name": "web_client_CAG1_2024-0007-0-0070-91-1-MEHMED_FETİHLER_SULTANI.wav",
+      "duration_min": 155.723,
+      "size_mb": 1793.925,
+      "status": "complete",
+      "profiles": {
+        "fast": {
+          "status": "done",
+          "runtime_seconds_wall": 507.684,
+          "runtime_per_audio_minute": 3.26,
+          "clean_word_count": 6986,
+          "quality_drop_count": 46,
+          "safety_passed": true,
+          "high_no_speech_segments": 0,
+          "high_no_speech_duration": 0
+        },
+        "quality": {
+          "status": "done",
+          "runtime_seconds_wall": 1078.512,
+          "runtime_per_audio_minute": 6.926,
+          "clean_word_count": 7106,
+          "quality_drop_count": 20,
+          "safety_passed": true,
+          "high_no_speech_segments": 526,
+          "high_no_speech_duration": 1398.335
+        }
+      }
+    }
+  ]
+}

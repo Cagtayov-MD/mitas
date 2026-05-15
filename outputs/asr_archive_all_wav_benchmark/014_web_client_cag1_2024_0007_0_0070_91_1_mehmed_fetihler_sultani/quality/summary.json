@@ -1,0 +1,20 @@
+{
+  "sample_id": "014_web_client_cag1_2024_0007_0_0070_91_1_mehmed_fetihler_sultani",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 9343.36,
+  "runtime_seconds_wall": 1078.512,
+  "runtime_seconds_reported": 1078.479,
+  "runtime_per_audio_minute": 6.926,
+  "clean_word_count": 7106,
+  "clean_segment_count": 1624,
+  "quality_drop_count": 20,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 5,
+    "repeated_token": "Çök,",
+    "max_token_length": 25,
+    "words_per_second": 1.51
+  }
+}

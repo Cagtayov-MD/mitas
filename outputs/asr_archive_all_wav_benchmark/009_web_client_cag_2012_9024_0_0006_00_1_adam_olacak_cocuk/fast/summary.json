@@ -1,0 +1,20 @@
+{
+  "sample_id": "009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 2731.691,
+  "runtime_seconds_wall": 300.644,
+  "runtime_seconds_reported": 300.606,
+  "runtime_per_audio_minute": 6.603,
+  "clean_word_count": 4083,
+  "clean_segment_count": 915,
+  "quality_drop_count": 21,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 10,
+    "repeated_token": "Koş",
+    "max_token_length": 18,
+    "words_per_second": 2.38
+  }
+}

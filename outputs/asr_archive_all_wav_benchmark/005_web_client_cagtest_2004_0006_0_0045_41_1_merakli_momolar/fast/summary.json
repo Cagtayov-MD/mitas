@@ -1,0 +1,20 @@
+{
+  "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+  "profile": "fast",
+  "model_name": "large-v3-turbo",
+  "audio_duration": 1223.083,
+  "runtime_seconds_wall": 107.578,
+  "runtime_seconds_reported": 107.545,
+  "runtime_per_audio_minute": 5.277,
+  "clean_word_count": 1200,
+  "clean_segment_count": 295,
+  "quality_drop_count": 8,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 2,
+    "repeated_token": "mesela?",
+    "max_token_length": 21,
+    "words_per_second": 1.8
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "sample_id": "009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAG_2012-9024-0-0006-00-1-ADAM_OLACAK_ÇOCUK.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 2731.691,
+  "source_duration": 2731.691,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\009_web_client_cag_2012_9024_0_0006_00_1_adam_olacak_cocuk.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAG_2012-9024-0-0006-00-1-ADAM_OLACAK_ÇOCUK.wav"
+}

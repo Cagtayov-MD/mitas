@@ -1,0 +1,3050 @@
+{
+  "sample_id": "008_web_client_cag_tester_2022_0003_0_0001_96_1_turkiye_nin_dev_yapilari",
+  "source_name": "web_client_CAG_tester_2022-0003-0-0001-96-1-TÜRKİYE'NİN_DEV_YAPILARI.wav",
+  "audio_duration": 2436.053,
+  "audio_minutes": 40.601,
+  "quality_segment_count": 359,
+  "fast_segment_count": 358,
+  "decisions": [
+    {
+      "quality_index": 0,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 0.98,
+        "end": 7.5,
+        "duration": 6.52,
+        "avg_logprob": -0.089,
+        "no_speech_prob": 0.1833,
+        "combined": -0.2723,
+        "text": "Dünyanın en önemli 8 boğazından birinde %90'ı Türklerden oluşan deneyimli bir ekip,",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 0.94,
+          "end": 7.5,
+          "duration": 6.56,
+          "avg_logprob": -0.1003,
+          "no_speech_prob": 0.0,
+          "combined": -0.1003,
+          "text": "Dünyanın en önemli 8 boğazından birinde %90'ı Türklerden oluşan deneyimli bir ekip,",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 0.94,
+        "end": 7.5,
+        "duration": 6.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1003,
+        "no_speech_prob": 0.0,
+        "combined": -0.1003
+      }
+    },
+    {
+      "quality_index": 1,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 8.16,
+        "end": 18.4,
+        "duration": 10.24,
+        "avg_logprob": -0.089,
+        "no_speech_prob": 0.1833,
+        "combined": -0.2723,
+        "text": "5 yıl boyunca 250 binden fazla ticari gemi geçişine ve boğazdaki rüzgar savaşlarına rağmen yeryüzünün en uzun asma köprüsünü inşa etmeyi başardı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 8.18,
+          "end": 18.42,
+          "duration": 10.24,
+          "avg_logprob": -0.1003,
+          "no_speech_prob": 0.0,
+          "combined": -0.1003,
+          "text": "5 yıl boyunca 250 binden fazla ticari gemi geçişine ve boğazdaki rüzgar savaşlarına rağmen yeryüzünün en uzun asma köprüsünü inşa etmeyi başardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 8.18,
+        "end": 18.42,
+        "duration": 10.24,
+        "segment_count": 1,
+        "avg_logprob": -0.1003,
+        "no_speech_prob": 0.0,
+        "combined": -0.1003
+      }
+    },
+    {
+      "quality_index": 2,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 18.7,
+        "end": 22.76,
+        "duration": 4.06,
+        "avg_logprob": -0.3783,
+        "no_speech_prob": 0.3523,
+        "combined": -0.7306,
+        "text": "Arkadaşlar işimiz çok zor",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 18.7,
+          "end": 22.74,
+          "duration": 4.04,
+          "avg_logprob": -0.3791,
+          "no_speech_prob": 0.0,
+          "combined": -0.3791,
+          "text": "Arkadaşlar işimiz çok zor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 18.7,
+        "end": 22.74,
+        "duration": 4.04,
+        "segment_count": 1,
+        "avg_logprob": -0.3791,
+        "no_speech_prob": 0.0,
+        "combined": -0.3791
+      }
+    },
+    {
+      "quality_index": 3,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 22.76,
+        "end": 24.78,
+        "duration": 2.02,
+        "avg_logprob": -0.3783,
+        "no_speech_prob": 0.3523,
+        "combined": -0.7306,
+        "text": "Kutuma yaklaşıyor",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 23.8,
+          "end": 24.76,
+          "duration": 0.96,
+          "avg_logprob": -0.3791,
+          "no_speech_prob": 0.0,
+          "combined": -0.3791,
+          "text": "Kutuna yaklaşıyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 23.8,
+        "end": 24.76,
+        "duration": 0.96,
+        "segment_count": 1,
+        "avg_logprob": -0.3791,
+        "no_speech_prob": 0.0,
+        "combined": -0.3791
+      }
+    },
+    {
+      "quality_index": 4,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 25.75,
+        "end": 27.37,
+        "duration": 1.62,
+        "avg_logprob": -0.3865,
+        "no_speech_prob": 0.5542,
+        "combined": -0.9407,
+        "text": "Hadi arkadaşlar hadi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 25.75,
+          "end": 27.35,
+          "duration": 1.6,
+          "avg_logprob": -0.5326,
+          "no_speech_prob": 0.0,
+          "combined": -0.5326,
+          "text": "Hadi arkadaşlar hadi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 25.75,
+        "end": 27.35,
+        "duration": 1.6,
+        "segment_count": 1,
+        "avg_logprob": -0.5326,
+        "no_speech_prob": 0.0,
+        "combined": -0.5326
+      }
+    },
+    {
+      "quality_index": 5,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 29.15,
+        "end": 30.33,
+        "duration": 1.18,
+        "avg_logprob": -0.3865,
+        "no_speech_prob": 0.5542,
+        "combined": -0.9407,
+        "text": "Birazdan gün doğacak.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 29.17,
+          "end": 30.33,
+          "duration": 1.16,
+          "avg_logprob": -0.5326,
+          "no_speech_prob": 0.0,
+          "combined": -0.5326,
+          "text": "Birazdan gün doğacak.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 29.17,
+        "end": 30.33,
+        "duration": 1.16,
+        "segment_count": 1,
+        "avg_logprob": -0.5326,
+        "no_speech_prob": 0.0,
+        "combined": -0.5326
+      }
+    },
+    {
+      "quality_index": 11,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 91.5,
+        "end": 100.9,
+        "duration": 9.4,
+        "avg_logprob": -0.075,
+        "no_speech_prob": 0.1152,
+        "combined": -0.1902,
+        "text": "Mühendislerin tüm dünyanın önemini kabul ettiği bu boğaza köprü inşa etmesi normal bir su yoluna yapacakları köprüden çok daha farklı olacaktır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 91.5,
+          "end": 100.88,
+          "duration": 9.38,
+          "avg_logprob": -0.0642,
+          "no_speech_prob": 0.0,
+          "combined": -0.0642,
+          "text": "Mühendislerin tüm dünyanın önemini kabul ettiği bu boğaza köprü inşa etmesi normal bir su yoluna yapacakları köprüden çok daha farklı olacaktı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 91.5,
+        "end": 100.88,
+        "duration": 9.38,
+        "segment_count": 1,
+        "avg_logprob": -0.0642,
+        "no_speech_prob": 0.0,
+        "combined": -0.0642
+      }
+    },
+    {
+      "quality_index": 12,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 102.25,
+        "end": 105.85,
+        "duration": 3.6,
+        "avg_logprob": -0.2482,
+        "no_speech_prob": 0.1969,
+        "combined": -0.4451,
+        "text": "Binlerce ton beton kullanacaklardı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 102.25,
+          "end": 105.85,
+          "duration": 3.6,
+          "avg_logprob": -0.1918,
+          "no_speech_prob": 0.0,
+          "combined": -0.1918,
+          "text": "Binlerce ton beton kullanacaklardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 102.25,
+        "end": 105.85,
+        "duration": 3.6,
+        "segment_count": 1,
+        "avg_logprob": -0.1918,
+        "no_speech_prob": 0.0,
+        "combined": -0.1918
+      }
+    },
+    {
+      "quality_index": 13,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 106.95,
+        "end": 111.51,
+        "duration": 4.56,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.136,
+        "combined": -0.2595,
+        "text": "Ama denizin ortasına bu beton kütleleri nasıl taşıyacaklardı?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 106.95,
+          "end": 111.49,
+          "duration": 4.54,
+          "avg_logprob": -0.1491,
+          "no_speech_prob": 0.0,
+          "combined": -0.1491,
+          "text": "Ama denizin ortasına bu beton kütleleri nasıl taşıyacaklardı?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 106.95,
+        "end": 111.49,
+        "duration": 4.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1491,
+        "no_speech_prob": 0.0,
+        "combined": -0.1491
+      }
+    },
+    {
+      "quality_index": 14,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 112.51,
+        "end": 115.17,
+        "duration": 2.66,
+        "avg_logprob": -0.1235,
+        "no_speech_prob": 0.136,
+        "combined": -0.2595,
+        "text": "Onlarca ağırlıkta çelik yapılar inşa edeceklerdi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 112.49,
+          "end": 115.19,
+          "duration": 2.7,
+          "avg_logprob": -0.1491,
+          "no_speech_prob": 0.0,
+          "combined": -0.1491,
+          "text": "Onlarca ağırlıkta çelik yapılar inşa edeceklerdi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 112.49,
+        "end": 115.19,
+        "duration": 2.7,
+        "segment_count": 1,
+        "avg_logprob": -0.1491,
+        "no_speech_prob": 0.0,
+        "combined": -0.1491
+      }
+    },
+    {
+      "quality_index": 15,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 116.7,
+        "end": 120.96,
+        "duration": 4.26,
+        "avg_logprob": -0.1863,
+        "no_speech_prob": 0.3457,
+        "combined": -0.532,
+        "text": "Ama çeliği en yükseğe nasıl çıkaracaklardı?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 116.7,
+          "end": 120.96,
+          "duration": 4.26,
+          "avg_logprob": -0.1712,
+          "no_speech_prob": 0.0,
+          "combined": -0.1712,
+          "text": "Ama çeliği en yükseğe nasıl çıkaracaklardı?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 116.7,
+        "end": 120.96,
+        "duration": 4.26,
+        "segment_count": 1,
+        "avg_logprob": -0.1712,
+        "no_speech_prob": 0.0,
+        "combined": -0.1712
+      }
+    },
+    {
+      "quality_index": 16,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 122.4,
+        "end": 126.0,
+        "duration": 3.6,
+        "avg_logprob": -0.1643,
+        "no_speech_prob": 0.146,
+        "combined": -0.3103,
+        "text": "6 şeritli yol blokları tasarlayacaklardı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 122.4,
+          "end": 125.98,
+          "duration": 3.58,
+          "avg_logprob": -0.1655,
+          "no_speech_prob": 0.0,
+          "combined": -0.1655,
+          "text": "6 şeritli yol blokları tasarlayacaklardı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 122.4,
+        "end": 125.98,
+        "duration": 3.58,
+        "segment_count": 1,
+        "avg_logprob": -0.1655,
+        "no_speech_prob": 0.0,
+        "combined": -0.1655
+      }
+    },
+    {
+      "quality_index": 19,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 140.15,
+        "end": 143.07,
+        "duration": 2.92,
+        "avg_logprob": -0.3147,
+        "no_speech_prob": 0.1159,
+        "combined": -0.4306,
+        "text": "Ve yaptılar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 140.15,
+          "end": 143.07,
+          "duration": 2.92,
+          "avg_logprob": -0.4417,
+          "no_speech_prob": 0.0,
+          "combined": -0.4417,
+          "text": "Ve yaptılar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 140.15,
+        "end": 143.07,
+        "duration": 2.92,
+        "segment_count": 1,
+        "avg_logprob": -0.4417,
+        "no_speech_prob": 0.0,
+        "combined": -0.4417
+      }
+    },
+    {
+      "quality_index": 27,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 204.43,
+        "end": 208.95,
+        "duration": 4.52,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Gerçekten çok ihtişamlı. Buradan bakınca kendimin ne kadar küçük olduğunu hissettim.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 204.41,
+          "end": 208.95,
+          "duration": 4.54,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Gerçekten çok ihtişamlı. Buradan bakınca kendimin ne kadar küçük olduğunu hissettim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 204.41,
+        "end": 208.95,
+        "duration": 4.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 28,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 209.25,
+        "end": 214.31,
+        "duration": 5.06,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Evet köprü gerçekten çok büyük ama inan yapım amacı çok çok daha büyük.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 209.25,
+          "end": 214.31,
+          "duration": 5.06,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Evet köprü gerçekten çok büyük ama inan yapım amacı çok çok daha büyük.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 209.25,
+        "end": 214.31,
+        "duration": 5.06,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 29,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 214.63,
+        "end": 219.51,
+        "duration": 4.88,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 214.63,
+          "end": 221.75,
+          "duration": 7.12,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu. Bu sürenin kısalacak olması çok güzel.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 214.63,
+        "end": 221.75,
+        "duration": 7.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 30,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 219.75,
+        "end": 221.75,
+        "duration": 2.0,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Bu sürenin kısalacak olması çok güzel.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 214.63,
+          "end": 221.75,
+          "duration": 7.12,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Daha önce çok geçtim. Özellikle bayramlarda. Feribotla saatlerce beklediğim oldu. Bu sürenin kısalacak olması çok güzel.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 214.63,
+        "end": 221.75,
+        "duration": 7.12,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 31,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 221.75,
+        "end": 224.75,
+        "duration": 3.0,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Bu amaçladığımız faydalardan sadece bir tanesi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 221.75,
+          "end": 229.75,
+          "duration": 8.0,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Bu amaçladığımız faydalardan sadece bir tanesi. Asıl master plan ve Karayolları Genel Müdürlüğü'nün buna bağlı olarak...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 221.75,
+        "end": 229.75,
+        "duration": 8.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 32,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 225.27,
+        "end": 229.75,
+        "duration": 4.48,
+        "avg_logprob": -0.1275,
+        "no_speech_prob": 0.4585,
+        "combined": -0.586,
+        "text": "Asıl master plan ve karayolları genel müdürünü buna bağlı olarak...",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 221.75,
+          "end": 229.75,
+          "duration": 8.0,
+          "avg_logprob": -0.1151,
+          "no_speech_prob": 0.0,
+          "combined": -0.1151,
+          "text": "Bu amaçladığımız faydalardan sadece bir tanesi. Asıl master plan ve Karayolları Genel Müdürlüğü'nün buna bağlı olarak...",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 221.75,
+        "end": 229.75,
+        "duration": 8.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1151,
+        "no_speech_prob": 0.0,
+        "combined": -0.1151
+      }
+    },
+    {
+      "quality_index": 33,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 229.75,
+        "end": 250.57,
+        "duration": 20.82,
+        "avg_logprob": -0.041,
+        "no_speech_prob": 0.1812,
+        "combined": -0.2222,
+        "text": "Mega projesi Marmara bölgesinin etrafını otoyol ringiyle dönmek, bütün buradaki mevcut olan veya sonradan otoyol imalatı tamamlandıktan sonra yapılacak olan organize sanayi bölgeleri, limanlar, havalimanları, tren garlarının tamamının birbirine olan entegrasyonunu sağlamak ve üretimi desteklemek.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 229.75,
+          "end": 250.57,
+          "duration": 20.82,
+          "avg_logprob": -0.0531,
+          "no_speech_prob": 0.0,
+          "combined": -0.0531,
+          "text": "Mega projesi Marmara bölgesinin etrafını otoyol ringiyle dönmek, bütün buradaki mevcut olan veya sonradan otoyol imalatı tamamlandıktan sonra yapılacak olan organize sanayi bölgeleri, limanlar, havalimanları, tren garların tamamının birbirine olan entegrasyonunu sağlamak ve üretimi desteklemek.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 229.75,
+        "end": 250.57,
+        "duration": 20.82,
+        "segment_count": 1,
+        "avg_logprob": -0.0531,
+        "no_speech_prob": 0.0,
+        "combined": -0.0531
+      }
+    },
+    {
+      "quality_index": 71,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 528.45,
+        "end": 532.13,
+        "duration": 3.68,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.1793,
+        "combined": -0.2752,
+        "text": "Eee dünyanın bir numaralı asma köprüsünü inşa etmek kolay olmuyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 528.45,
+          "end": 532.13,
+          "duration": 3.68,
+          "avg_logprob": -0.0923,
+          "no_speech_prob": 0.0,
+          "combined": -0.0923,
+          "text": "Eee dünyanın bir numaralı asma köprüsünü inşa etmek kolay olmuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 528.45,
+        "end": 532.13,
+        "duration": 3.68,
+        "segment_count": 1,
+        "avg_logprob": -0.0923,
+        "no_speech_prob": 0.0,
+        "combined": -0.0923
+      }
+    },
+    {
+      "quality_index": 72,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 532.65,
+        "end": 538.91,
+        "duration": 6.26,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.1793,
+        "combined": -0.2752,
+        "text": "Aslında projenin başında bu konu üzerinde çokça düşünüldü ve kesonların iki aşamada inşa edilmesine karar verildi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 532.65,
+          "end": 538.91,
+          "duration": 6.26,
+          "avg_logprob": -0.0923,
+          "no_speech_prob": 0.0,
+          "combined": -0.0923,
+          "text": "Aslında projenin başında bu konu üzerinde çokça düşünüldü ve kesonların iki aşamada inşa edilmesine karar verildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 532.65,
+        "end": 538.91,
+        "duration": 6.26,
+        "segment_count": 1,
+        "avg_logprob": -0.0923,
+        "no_speech_prob": 0.0,
+        "combined": -0.0923
+      }
+    },
+    {
+      "quality_index": 73,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 539.29,
+        "end": 543.21,
+        "duration": 3.92,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.1793,
+        "combined": -0.2752,
+        "text": "Birincisi kuru havuz aşaması, ikincisi ise ıslak havuz aşaması.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 539.29,
+          "end": 543.21,
+          "duration": 3.92,
+          "avg_logprob": -0.0923,
+          "no_speech_prob": 0.0,
+          "combined": -0.0923,
+          "text": "Birincisi kuru havuz aşaması, ikincisi ise ıslak havuz aşaması.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 539.29,
+        "end": 543.21,
+        "duration": 3.92,
+        "segment_count": 1,
+        "avg_logprob": -0.0923,
+        "no_speech_prob": 0.0,
+        "combined": -0.0923
+      }
+    },
+    {
+      "quality_index": 74,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 543.67,
+        "end": 554.31,
+        "duration": 10.64,
+        "avg_logprob": -0.0959,
+        "no_speech_prob": 0.1793,
+        "combined": -0.2752,
+        "text": "Bittiklerinde her biri yaklaşık 65 bin ton olacak dev kesonların kuru havuzdaki macerası boyları 16 metreye, ağırlıkları yaklaşık 50 bin tona ulaşana kadar tam 9 ay sürdü.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 543.69,
+          "end": 554.29,
+          "duration": 10.6,
+          "avg_logprob": -0.0923,
+          "no_speech_prob": 0.0,
+          "combined": -0.0923,
+          "text": "Bittiklerinde her biri yaklaşık 65 bin ton olacak dev kesonların kuru havuzdaki macerası boyları 16 metreye ağırlıkları yaklaşık 50 bin tona ulaşana kadar tam 9 ay sürdü.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 543.69,
+        "end": 554.29,
+        "duration": 10.6,
+        "segment_count": 1,
+        "avg_logprob": -0.0923,
+        "no_speech_prob": 0.0,
+        "combined": -0.0923
+      }
+    },
+    {
+      "quality_index": 77,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 558.4,
+        "end": 559.62,
+        "duration": 1.22,
+        "avg_logprob": -0.1892,
+        "no_speech_prob": 0.1698,
+        "combined": -0.359,
+        "text": "Denizde dolmuş durumda ama.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 558.4,
+          "end": 559.62,
+          "duration": 1.22,
+          "avg_logprob": -0.1438,
+          "no_speech_prob": 0.0,
+          "combined": -0.1438,
+          "text": "Denizde dolmuş durumda ama.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 558.4,
+        "end": 559.62,
+        "duration": 1.22,
+        "segment_count": 1,
+        "avg_logprob": -0.1438,
+        "no_speech_prob": 0.0,
+        "combined": -0.1438
+      }
+    },
+    {
+      "quality_index": 78,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 559.92,
+        "end": 561.88,
+        "duration": 1.96,
+        "avg_logprob": -0.1892,
+        "no_speech_prob": 0.1698,
+        "combined": -0.359,
+        "text": "Evet şu anda kur havuzun içinde bulunuyoruz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 559.92,
+          "end": 561.88,
+          "duration": 1.96,
+          "avg_logprob": -0.1438,
+          "no_speech_prob": 0.0,
+          "combined": -0.1438,
+          "text": "Evet şu anda kuru havuzun içinde bulunuyoruz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 559.92,
+        "end": 561.88,
+        "duration": 1.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1438,
+        "no_speech_prob": 0.0,
+        "combined": -0.1438
+      }
+    },
+    {
+      "quality_index": 126,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 889.88,
+        "end": 902.7,
+        "duration": 12.82,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "text": "Batırma esnasında odalara eşit miktarda su pompalayarak kesonumuzu yavaşça ve olabildiğince dengeli bir şekilde 20 santimli kata apayı içerisinde de kalmaya çalışarak denizin tabanına doğru batırmaya başladık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 889.84,
+          "end": 902.84,
+          "duration": 13.0,
+          "avg_logprob": -0.0822,
+          "no_speech_prob": 0.0,
+          "combined": -0.0822,
+          "text": "Batırma esnasında odalara eşit miktarda su pompalayarak kesonumuzu yavaşça ve olabildiğince dengeli bir şekilde 20 santimlik hata apayı içerisinde de kalmaya çalışarak denizin tabanına doğru batırmaya başladık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 889.84,
+        "end": 902.84,
+        "duration": 13.0,
+        "segment_count": 1,
+        "avg_logprob": -0.0822,
+        "no_speech_prob": 0.0,
+        "combined": -0.0822
+      }
+    },
+    {
+      "quality_index": 127,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 902.7,
+        "end": 907.88,
+        "duration": 5.18,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "text": "Yani içerideki hava boşluğunu dışarıya tahliye ederek kesonların batmasını sağladık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 902.86,
+          "end": 907.82,
+          "duration": 4.96,
+          "avg_logprob": -0.0822,
+          "no_speech_prob": 0.0,
+          "combined": -0.0822,
+          "text": "Yani içerideki hava boşluğunu dışarıya tahliye ederek kesonların batmasını sağlık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 902.86,
+        "end": 907.82,
+        "duration": 4.96,
+        "segment_count": 1,
+        "avg_logprob": -0.0822,
+        "no_speech_prob": 0.0,
+        "combined": -0.0822
+      }
+    },
+    {
+      "quality_index": 128,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 908.22,
+        "end": 919.18,
+        "duration": 10.96,
+        "avg_logprob": -0.0802,
+        "no_speech_prob": 0.191,
+        "combined": -0.2712,
+        "text": "Evet bir bakıma öyle. Yaklaşık 8 saat süren batırma operasyonu neticesinde her iki kesonumuzu da rekor denilebilecek bir seviyede 5 santimli kata apayla denizin tabanına batırmayı başardık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 907.82,
+          "end": 918.82,
+          "duration": 11.0,
+          "avg_logprob": -0.0822,
+          "no_speech_prob": 0.0,
+          "combined": -0.0822,
+          "text": "Evet bir bakıma öyle. Yaklaşık 8 saat süren batırma operasyonu neticesinde her iki kesonumuzu da rekor denilebilecek bir seviyede 5 santimlik hata apayla denizin tabanına batırmayı başardık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 907.82,
+        "end": 918.82,
+        "duration": 11.0,
+        "segment_count": 1,
+        "avg_logprob": -0.0822,
+        "no_speech_prob": 0.0,
+        "combined": -0.0822
+      }
+    },
+    {
+      "quality_index": 131,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 931.2,
+        "end": 934.76,
+        "duration": 3.56,
+        "avg_logprob": -0.1647,
+        "no_speech_prob": 0.1396,
+        "combined": -0.3043,
+        "text": "Deniz tabanına çelik boru kazıklar çakıldı",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 931.2,
+          "end": 934.74,
+          "duration": 3.54,
+          "avg_logprob": -0.1737,
+          "no_speech_prob": 0.0,
+          "combined": -0.1737,
+          "text": "Deniz tabanına çelik boru kazıklar çakıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 931.2,
+        "end": 934.74,
+        "duration": 3.54,
+        "segment_count": 1,
+        "avg_logprob": -0.1737,
+        "no_speech_prob": 0.0,
+        "combined": -0.1737
+      }
+    },
+    {
+      "quality_index": 136,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 960.4,
+        "end": 970.82,
+        "duration": 10.42,
+        "avg_logprob": -0.1127,
+        "no_speech_prob": 0.2488,
+        "combined": -0.3615,
+        "text": "Üzerine çıkmakta olduğum kulenin yüksekliğini gözünüzde canlandırmak istiyorsanız 5 adet Galata Kulesini üst üste hayal edin.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 960.4,
+          "end": 970.8,
+          "duration": 10.4,
+          "avg_logprob": -0.1211,
+          "no_speech_prob": 0.0,
+          "combined": -0.1211,
+          "text": "Üzerine çıkmakta olduğum kulenin yüksekliğini gözünüzde canlandırmak istiyorsanız 5 adet Galata Kulesi'ni üst üste hayal edin.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 960.4,
+        "end": 970.8,
+        "duration": 10.4,
+        "segment_count": 1,
+        "avg_logprob": -0.1211,
+        "no_speech_prob": 0.0,
+        "combined": -0.1211
+      }
+    },
+    {
+      "quality_index": 137,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 972.6,
+        "end": 981.9,
+        "duration": 9.3,
+        "avg_logprob": -0.0783,
+        "no_speech_prob": 0.2311,
+        "combined": -0.3094,
+        "text": "Projeyi en iyi bilen mühendislerden biriyle çok da kısa sürmeyecek bir yolculuğa çıkıyorum",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 972.6,
+          "end": 981.86,
+          "duration": 9.26,
+          "avg_logprob": -0.0744,
+          "no_speech_prob": 0.0,
+          "combined": -0.0744,
+          "text": "Projeyi en iyi bilen mühendislerden biriyle çok da kısa sürmeyecek bir yolculuğa çıkıyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 972.6,
+        "end": 981.86,
+        "duration": 9.26,
+        "segment_count": 1,
+        "avg_logprob": -0.0744,
+        "no_speech_prob": 0.0,
+        "combined": -0.0744
+      }
+    },
+    {
+      "quality_index": 149,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1066.62,
+        "end": 1070.92,
+        "duration": 4.3,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "32 blok üst üste konularak 318 metreye ulaştık değil mi?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1066.62,
+          "end": 1070.92,
+          "duration": 4.3,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "32 blok üst üste konularak 318 metreye ulaştık değil mi?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1066.62,
+        "end": 1070.92,
+        "duration": 4.3,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 150,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1071.16,
+        "end": 1075.22,
+        "duration": 4.06,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Evet, aynen öyle oldu. Ama tabii bu kulelerin çok önemli bir görevi var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1071.16,
+          "end": 1075.24,
+          "duration": 4.08,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Evet aynen öyle oldu ama tabi bu kulelerin çok önemli bir görevi var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1071.16,
+        "end": 1075.24,
+        "duration": 4.08,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 151,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1075.62,
+        "end": 1079.18,
+        "duration": 3.56,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Bu kulelerin kuzeyinde ve güneyinde olmak üzere iki tane ana halatımız var.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1075.6,
+          "end": 1079.18,
+          "duration": 3.58,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Bu kulelerin kuzeyinde ve güneyinde olmak üzere iki tane ana halatımız var.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1075.6,
+        "end": 1079.18,
+        "duration": 3.58,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 152,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1079.8,
+        "end": 1081.86,
+        "duration": 2.06,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Her bir ana halatın ağırlığı 18 bin ton.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1079.78,
+          "end": 1081.88,
+          "duration": 2.1,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Her bir ana halatın ağırlığı 18 bin ton.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1079.78,
+        "end": 1081.88,
+        "duration": 2.1,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 153,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1082.26,
+        "end": 1085.76,
+        "duration": 3.5,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Sadece iki ana halattan gelen yük 36 bin ton.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1082.28,
+          "end": 1085.78,
+          "duration": 3.5,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Sadece iki ana halattan gelen yük 36 bin ton.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1082.28,
+        "end": 1085.78,
+        "duration": 3.5,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 154,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1086.12,
+        "end": 1088.86,
+        "duration": 2.74,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Bunun dışında ana halatlarımız tableleri taşıyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1086.12,
+          "end": 1090.68,
+          "duration": 4.56,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Bunun dışında ana halatlarımız tablileri taşıyor dolayısıyla bu yük kulelere biniyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1086.12,
+        "end": 1090.68,
+        "duration": 4.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 155,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1088.98,
+        "end": 1090.66,
+        "duration": 1.68,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Dolayısıyla bu yük kulelere biniyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1086.12,
+          "end": 1090.68,
+          "duration": 4.56,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Bunun dışında ana halatlarımız tablileri taşıyor dolayısıyla bu yük kulelere biniyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1086.12,
+        "end": 1090.68,
+        "duration": 4.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 156,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1090.92,
+        "end": 1092.92,
+        "duration": 2.0,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Tablelerimizin ağırlığı da 55 bin ton.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1090.9,
+          "end": 1092.92,
+          "duration": 2.02,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Tablilerimizin ağırlığı da 55 bin ton.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1090.9,
+        "end": 1092.92,
+        "duration": 2.02,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 157,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1093.08,
+        "end": 1095.56,
+        "duration": 2.48,
+        "avg_logprob": -0.1223,
+        "no_speech_prob": 0.136,
+        "combined": -0.2582,
+        "text": "Dolayısıyla bu kulelerin fonksiyonu çok önemli.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1093.1,
+          "end": 1095.58,
+          "duration": 2.48,
+          "avg_logprob": -0.1407,
+          "no_speech_prob": 0.0,
+          "combined": -0.1407,
+          "text": "Dolayısıyla bu kulelerin fonksiyonu çok önemli.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1093.1,
+        "end": 1095.58,
+        "duration": 2.48,
+        "segment_count": 1,
+        "avg_logprob": -0.1407,
+        "no_speech_prob": 0.0,
+        "combined": -0.1407
+      }
+    },
+    {
+      "quality_index": 163,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1132.2,
+        "end": 1137.8,
+        "duration": 5.6,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.3066,
+        "combined": -0.3866,
+        "text": "Burada inanılmaz bir iş gücü kullanıldı. Tüm birimlerde Türk mühendisleri son derece aktif rol oynadı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1132.2,
+          "end": 1137.8,
+          "duration": 5.6,
+          "avg_logprob": -0.0805,
+          "no_speech_prob": 0.0,
+          "combined": -0.0805,
+          "text": "Burada inanılmaz bir iş gücü kullanıldı. Tüm bilimlerde Türk mühendisleri son derece aktif rol oynadı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1132.2,
+        "end": 1137.8,
+        "duration": 5.6,
+        "segment_count": 1,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805
+      }
+    },
+    {
+      "quality_index": 164,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1137.8,
+        "end": 1142.24,
+        "duration": 4.44,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.3066,
+        "combined": -0.3866,
+        "text": "Elbette yabancı mühendislerle de çalıştık. Onların da katkılarını gördük.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1137.8,
+          "end": 1142.26,
+          "duration": 4.46,
+          "avg_logprob": -0.0805,
+          "no_speech_prob": 0.0,
+          "combined": -0.0805,
+          "text": "Elbette yabancı mühendislerle de çalıştık. Onların da katkılarını gördük.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1137.8,
+        "end": 1142.26,
+        "duration": 4.46,
+        "segment_count": 1,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805
+      }
+    },
+    {
+      "quality_index": 165,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1142.84,
+        "end": 1149.06,
+        "duration": 6.22,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.3066,
+        "combined": -0.3866,
+        "text": "Ama çalışan mühendislerin %90'dan fazlası Türk mühendisiydi. Bundan da çok mutluyuz.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1142.82,
+          "end": 1149.06,
+          "duration": 6.24,
+          "avg_logprob": -0.0805,
+          "no_speech_prob": 0.0,
+          "combined": -0.0805,
+          "text": "Ama çalışan mühendislerin %90'dan fazlası Türk mühendisiydi. Bundan da çok mutluyuz.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1142.82,
+        "end": 1149.06,
+        "duration": 6.24,
+        "segment_count": 1,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805
+      }
+    },
+    {
+      "quality_index": 166,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1149.88,
+        "end": 1155.52,
+        "duration": 5.64,
+        "avg_logprob": -0.08,
+        "no_speech_prob": 0.3066,
+        "combined": -0.3866,
+        "text": "1915 Çanakkale Köprüsü 5 yıl boyunca 30 bin kişinin çalıştığı mega bir proje.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1149.9,
+          "end": 1155.52,
+          "duration": 5.62,
+          "avg_logprob": -0.0805,
+          "no_speech_prob": 0.0,
+          "combined": -0.0805,
+          "text": "1915 Çanakkale Köprüsü, 5 yıl boyunca 30 bin kişinin çalıştığı mega bir proje.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1149.9,
+        "end": 1155.52,
+        "duration": 5.62,
+        "segment_count": 1,
+        "avg_logprob": -0.0805,
+        "no_speech_prob": 0.0,
+        "combined": -0.0805
+      }
+    },
+    {
+      "quality_index": 170,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1192.22,
+        "end": 1195.38,
+        "duration": 3.16,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Selçuk Bey, ben ne kadar yürümüş oldum?",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1192.16,
+          "end": 1195.38,
+          "duration": 3.22,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Selçuk Bey, ben ne kadar yürümüş oldum?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1192.16,
+        "end": 1195.38,
+        "duration": 3.22,
+        "segment_count": 1,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 171,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1195.46,
+        "end": 1197.74,
+        "duration": 2.28,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Yaklaşık bir kilometrelik çetin bir yürüyüş.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1195.5,
+          "end": 1197.74,
+          "duration": 2.24,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Yaklaşık bir kilometrelik çetin bir yürüyüş.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1195.5,
+        "end": 1197.74,
+        "duration": 2.24,
+        "segment_count": 1,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 172,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1197.86,
+        "end": 1203.26,
+        "duration": 5.4,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Bu vesileyle zannediyorum vücudunuzda daha evvel haberdar olmadığınız bir takım kaslarla da tanışmışsınız.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1197.88,
+          "end": 1203.26,
+          "duration": 5.38,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Bu vesileyle zannediyorum vücudunuzda daha evvel haberdar olmadığınız bir takım kaslarla da tanışmışsınız.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1197.88,
+        "end": 1203.26,
+        "duration": 5.38,
+        "segment_count": 1,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 173,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1203.46,
+        "end": 1209.48,
+        "duration": 6.02,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Şu an vücudumda inanın hissetmediğim kadar fazla kas hissediyorum.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1203.46,
+          "end": 1209.46,
+          "duration": 6.0,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Şu an vücudumda inanın hissetmediğim kadar fazla kas hissediyorum.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1203.46,
+        "end": 1209.46,
+        "duration": 6.0,
+        "segment_count": 1,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 174,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1210.12,
+        "end": 1214.84,
+        "duration": 4.72,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Çok heyecanlıydım yalnız bu çelik alatlar sayesinde heyecanımı yendim.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1210.14,
+          "end": 1210.88,
+          "duration": 0.74,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Çok heyecanlıydım.",
+          "flags": []
+        },
+        {
+          "start": 1210.96,
+          "end": 1214.84,
+          "duration": 3.88,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Yalnız bu çelik halatlar sayesinde heyecanımı yendim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1210.14,
+        "end": 1214.84,
+        "duration": 4.62,
+        "segment_count": 2,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 175,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1214.92,
+        "end": 1215.86,
+        "duration": 0.94,
+        "avg_logprob": -0.1084,
+        "no_speech_prob": 0.5996,
+        "combined": -0.708,
+        "text": "Cidden çok güven veriyorlar.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1214.9,
+          "end": 1215.86,
+          "duration": 0.96,
+          "avg_logprob": -0.1205,
+          "no_speech_prob": 0.0,
+          "combined": -0.1205,
+          "text": "Cidden çok güven veriyorlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1214.9,
+        "end": 1215.86,
+        "duration": 0.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1205,
+        "no_speech_prob": 0.0,
+        "combined": -0.1205
+      }
+    },
+    {
+      "quality_index": 177,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1222.65,
+        "end": 1224.09,
+        "duration": 1.44,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "çekme dayanımıyla",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1222.65,
+          "end": 1225.59,
+          "duration": 2.94,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Çekme dayanımıyla Güney Kore'de üretildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1222.65,
+        "end": 1225.59,
+        "duration": 2.94,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 178,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1224.09,
+        "end": 1226.49,
+        "duration": 2.4,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Güney Kore'de üretildi. Daha sonra",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1222.65,
+          "end": 1225.59,
+          "duration": 2.94,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Çekme dayanımıyla Güney Kore'de üretildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1222.65,
+        "end": 1225.59,
+        "duration": 2.94,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 179,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1226.49,
+        "end": 1228.25,
+        "duration": 1.76,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Çin'de bir takım proseslerden",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1225.93,
+          "end": 1233.35,
+          "duration": 7.42,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Daha sonra Çin'de bir takım proseslerden geçtikten sonra demet haline getirildi ve rulolar hali de Türkiye'ye ulaştırıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1225.93,
+        "end": 1233.35,
+        "duration": 7.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 180,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1228.25,
+        "end": 1230.75,
+        "duration": 2.5,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "geçtikten sonra demet haline getirildi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1225.93,
+          "end": 1233.35,
+          "duration": 7.42,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Daha sonra Çin'de bir takım proseslerden geçtikten sonra demet haline getirildi ve rulolar hali de Türkiye'ye ulaştırıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1225.93,
+        "end": 1233.35,
+        "duration": 7.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 181,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1230.87,
+        "end": 1232.21,
+        "duration": 1.34,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Ve yulolar halinde",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1225.93,
+          "end": 1233.35,
+          "duration": 7.42,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Daha sonra Çin'de bir takım proseslerden geçtikten sonra demet haline getirildi ve rulolar hali de Türkiye'ye ulaştırıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1225.93,
+        "end": 1233.35,
+        "duration": 7.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 182,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1232.21,
+        "end": 1233.33,
+        "duration": 1.12,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Türkiye'ye ulaştırıldı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1225.93,
+          "end": 1233.35,
+          "duration": 7.42,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Daha sonra Çin'de bir takım proseslerden geçtikten sonra demet haline getirildi ve rulolar hali de Türkiye'ye ulaştırıldı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1225.93,
+        "end": 1233.35,
+        "duration": 7.42,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 183,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1234.15,
+        "end": 1236.13,
+        "duration": 1.98,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Ama 55 bin ton ağırlığı",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1234.37,
+          "end": 1240.01,
+          "duration": 5.64,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Ama 55 bin ton ağırlığı taşıyacak kadar kuvvetli halatları imal etmek kolay bir iş değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1234.37,
+        "end": 1240.01,
+        "duration": 5.64,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 184,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1236.13,
+        "end": 1237.95,
+        "duration": 1.82,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "taşıyacak kadar kuvvetli halatları",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1234.37,
+          "end": 1240.01,
+          "duration": 5.64,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Ama 55 bin ton ağırlığı taşıyacak kadar kuvvetli halatları imal etmek kolay bir iş değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1234.37,
+        "end": 1240.01,
+        "duration": 5.64,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 185,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1237.95,
+        "end": 1240.01,
+        "duration": 2.06,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "imal etmek kolay bir iş değil.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1234.37,
+          "end": 1240.01,
+          "duration": 5.64,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Ama 55 bin ton ağırlığı taşıyacak kadar kuvvetli halatları imal etmek kolay bir iş değil.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1234.37,
+        "end": 1240.01,
+        "duration": 5.64,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 186,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1241.07,
+        "end": 1242.07,
+        "duration": 1.0,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Her bir ana halat",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1241.05,
+          "end": 1247.61,
+          "duration": 6.56,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Her bir ana halat 144 kablo demetinden her bir kablo demeti ise 127 çelik telden oluşuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1241.05,
+        "end": 1247.61,
+        "duration": 6.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 187,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1242.07,
+        "end": 1243.83,
+        "duration": 1.76,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "144 kablo demetinden",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1241.05,
+          "end": 1247.61,
+          "duration": 6.56,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Her bir ana halat 144 kablo demetinden her bir kablo demeti ise 127 çelik telden oluşuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1241.05,
+        "end": 1247.61,
+        "duration": 6.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 188,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1243.83,
+        "end": 1245.53,
+        "duration": 1.7,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "her bir kablo demeti ise",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1241.05,
+          "end": 1247.61,
+          "duration": 6.56,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Her bir ana halat 144 kablo demetinden her bir kablo demeti ise 127 çelik telden oluşuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1241.05,
+        "end": 1247.61,
+        "duration": 6.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 189,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1245.53,
+        "end": 1247.61,
+        "duration": 2.08,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "127 çelik telden oluşuyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1241.05,
+          "end": 1247.61,
+          "duration": 6.56,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Her bir ana halat 144 kablo demetinden her bir kablo demeti ise 127 çelik telden oluşuyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1241.05,
+        "end": 1247.61,
+        "duration": 6.56,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 190,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1248.43,
+        "end": 1249.53,
+        "duration": 1.1,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "Küçük bir hesaplamayla",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1248.43,
+          "end": 1251.39,
+          "duration": 2.96,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Küçük bir hesaplamayla 20 bine yakın çelik kablo.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1248.43,
+        "end": 1251.39,
+        "duration": 2.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 191,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1249.53,
+        "end": 1251.39,
+        "duration": 1.86,
+        "avg_logprob": -0.1386,
+        "no_speech_prob": 0.3311,
+        "combined": -0.4696,
+        "text": "20 bine yakın çelik kablo.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1248.43,
+          "end": 1251.39,
+          "duration": 2.96,
+          "avg_logprob": -0.1353,
+          "no_speech_prob": 0.0,
+          "combined": -0.1353,
+          "text": "Küçük bir hesaplamayla 20 bine yakın çelik kablo.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1248.43,
+        "end": 1251.39,
+        "duration": 2.96,
+        "segment_count": 1,
+        "avg_logprob": -0.1353,
+        "no_speech_prob": 0.0,
+        "combined": -0.1353
+      }
+    },
+    {
+      "quality_index": 237,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1524.8,
+        "end": 1529.24,
+        "duration": 4.44,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Köprü için kritik rüzgar neresi? Yani hesaplamaları nereye göre yapmamız lazım?",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1524.78,
+          "end": 1529.24,
+          "duration": 4.46,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Köprü için kritik rüzgar neresi? Yani hesaplamaları nereye göre yapmamız lazım?",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1524.78,
+        "end": 1529.24,
+        "duration": 4.46,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 238,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1529.72,
+        "end": 1532.68,
+        "duration": 2.96,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Asma köprülere malum her yönden rüzgar gelebilir.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1529.72,
+          "end": 1532.68,
+          "duration": 2.96,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Asma köprülere malum her yönden rüzgar gelebilir.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1529.72,
+        "end": 1532.68,
+        "duration": 2.96,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 239,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1532.84,
+        "end": 1537.12,
+        "duration": 4.28,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Biz de geriye dönük olarak bir takım araştırmalar yaptık ve bir sonuca vardık.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1532.84,
+          "end": 1537.12,
+          "duration": 4.28,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Biz de geriye dönük olarak bir takım araştırmalar yaptık ve bir sonuca vardık.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1532.84,
+        "end": 1537.12,
+        "duration": 4.28,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 240,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1537.3,
+        "end": 1540.38,
+        "duration": 3.08,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Bu bölgenin hakim rüzgarları köprüye yandan etkiyen rüzgarlar.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1537.3,
+          "end": 1540.38,
+          "duration": 3.08,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Bu bölgenin hakim rüzgarları köprüye yandan etkiyen rüzgarlar.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1537.3,
+        "end": 1540.38,
+        "duration": 3.08,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 241,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1540.8,
+        "end": 1544.72,
+        "duration": 3.92,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Bu yandan gelen rüzgar köprü tabliyesinde çırpınmaya sebep oluyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1540.82,
+          "end": 1544.74,
+          "duration": 3.92,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Bu yandan gelen rüzgar köprü tabliyesinde çırpınmaya sebep oluyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1540.82,
+        "end": 1544.74,
+        "duration": 3.92,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 242,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1545.06,
+        "end": 1549.46,
+        "duration": 4.4,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Bu çırpınma da aslında asma köprüleri yıkıcı etkisi olabilen bir titreşim.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1545.06,
+          "end": 1549.48,
+          "duration": 4.42,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Bu çırpınma da aslında asma köprüleri yıkıcı etkisi olabilen bir titreşim.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1545.06,
+        "end": 1549.48,
+        "duration": 4.42,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 243,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1549.86,
+        "end": 1553.54,
+        "duration": 3.68,
+        "avg_logprob": -0.0866,
+        "no_speech_prob": 0.2756,
+        "combined": -0.3623,
+        "text": "Ve bizim için en önemli titreşimlerden bir tanesi tabliyenin çırpınması.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1549.86,
+          "end": 1553.54,
+          "duration": 3.68,
+          "avg_logprob": -0.0996,
+          "no_speech_prob": 0.0,
+          "combined": -0.0996,
+          "text": "Ve bizim için en önemli titreşimlerden bir tanesi tabliyenin çırpınması.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1549.86,
+        "end": 1553.54,
+        "duration": 3.68,
+        "segment_count": 1,
+        "avg_logprob": -0.0996,
+        "no_speech_prob": 0.0,
+        "combined": -0.0996
+      }
+    },
+    {
+      "quality_index": 274,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_fast_not_clearly_better",
+      "quality": {
+        "start": 1726.8,
+        "end": 1730.04,
+        "duration": 3.24,
+        "avg_logprob": -0.1082,
+        "no_speech_prob": 0.1076,
+        "combined": -0.2158,
+        "text": "proje hayata geçirilmeden önce sağlaması yapılmalıydı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1726.8,
+          "end": 1730.04,
+          "duration": 3.24,
+          "avg_logprob": -0.1948,
+          "no_speech_prob": 0.0,
+          "combined": -0.1948,
+          "text": "Proje hayata geçirilmeden önce sağlaması yapılmalıydı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1726.8,
+        "end": 1730.04,
+        "duration": 3.24,
+        "segment_count": 1,
+        "avg_logprob": -0.1948,
+        "no_speech_prob": 0.0,
+        "combined": -0.1948
+      }
+    },
+    {
+      "quality_index": 302,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 1911.25,
+        "end": 1914.77,
+        "duration": 3.52,
+        "avg_logprob": -0.0905,
+        "no_speech_prob": 0.1332,
+        "combined": -0.2237,
+        "text": "Santim santim hesaplamalarla yerlerine oturtuldu.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1911.25,
+          "end": 1914.77,
+          "duration": 3.52,
+          "avg_logprob": -0.1087,
+          "no_speech_prob": 0.0,
+          "combined": -0.1087,
+          "text": "Santim santim hesaplamalarla yerlerine oturtuldu.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1911.25,
+        "end": 1914.77,
+        "duration": 3.52,
+        "segment_count": 1,
+        "avg_logprob": -0.1087,
+        "no_speech_prob": 0.0,
+        "combined": -0.1087
+      }
+    },
+    {
+      "quality_index": 305,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1947.05,
+        "end": 1952.43,
+        "duration": 5.38,
+        "avg_logprob": -0.1172,
+        "no_speech_prob": 0.2515,
+        "combined": -0.3687,
+        "text": "Köprünün bir ucundan diğer ucuna 86 tabliye dizildi.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1947.05,
+          "end": 1952.41,
+          "duration": 5.36,
+          "avg_logprob": -0.1321,
+          "no_speech_prob": 0.0,
+          "combined": -0.1321,
+          "text": "Köprünün bir ucundan diğer ucuna 86 tabgeye dizildi.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1947.05,
+        "end": 1952.41,
+        "duration": 5.36,
+        "segment_count": 1,
+        "avg_logprob": -0.1321,
+        "no_speech_prob": 0.0,
+        "combined": -0.1321
+      }
+    },
+    {
+      "quality_index": 306,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1952.87,
+        "end": 1958.31,
+        "duration": 5.44,
+        "avg_logprob": -0.1172,
+        "no_speech_prob": 0.2515,
+        "combined": -0.3687,
+        "text": "87.si yani sonuncusu Asya ile Avrupa'yı birleştirmek için bizi bekliyor.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 1952.83,
+          "end": 1958.31,
+          "duration": 5.48,
+          "avg_logprob": -0.1321,
+          "no_speech_prob": 0.0,
+          "combined": -0.1321,
+          "text": "87.si yani sonuncusu Asya ile Avrupa'yı birleştirmek için bizi bekliyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1952.83,
+        "end": 1958.31,
+        "duration": 5.48,
+        "segment_count": 1,
+        "avg_logprob": -0.1321,
+        "no_speech_prob": 0.0,
+        "combined": -0.1321
+      }
+    },
+    {
+      "quality_index": 308,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 1964.15,
+        "end": 1966.15,
+        "duration": 2.0,
+        "avg_logprob": -0.6033,
+        "no_speech_prob": 0.8257,
+        "combined": -1.429,
+        "text": "Hoşçakalın.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 313,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 1994.5,
+        "end": 1999.44,
+        "duration": 4.94,
+        "avg_logprob": -0.1672,
+        "no_speech_prob": 0.5542,
+        "combined": -0.7214,
+        "text": "Kelsiz'den çok fazla anons var. Aşağıda hummalı bir çalışma devam ediyor.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 1995.5,
+          "end": 1999.44,
+          "duration": 3.94,
+          "avg_logprob": -0.1854,
+          "no_speech_prob": 0.0,
+          "combined": -0.1854,
+          "text": "Kelsiz'den çok fazla anons var. Aşağıda hummalı bir çalışma devam ediyor.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 1995.5,
+        "end": 1999.44,
+        "duration": 3.94,
+        "segment_count": 1,
+        "avg_logprob": -0.1854,
+        "no_speech_prob": 0.0,
+        "combined": -0.1854
+      }
+    },
+    {
+      "quality_index": 314,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2000.02,
+        "end": 2007.36,
+        "duration": 7.34,
+        "avg_logprob": -0.1672,
+        "no_speech_prob": 0.5542,
+        "combined": -0.7214,
+        "text": "Yaklaşık 100 kişi bu operasyonu takip etmekte ve sanırım 5 saat içerisinde bu tabliye yerine oturmuş olacak.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [
+        {
+          "start": 2000.0,
+          "end": 2007.36,
+          "duration": 7.36,
+          "avg_logprob": -0.1854,
+          "no_speech_prob": 0.0,
+          "combined": -0.1854,
+          "text": "Yaklaşık 100 kişi bu operasyonu takip etmekte ve sanırım 5 saat içerisinde bu tabliğe yerine oturmuş olacak.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2000.0,
+        "end": 2007.36,
+        "duration": 7.36,
+        "segment_count": 1,
+        "avg_logprob": -0.1854,
+        "no_speech_prob": 0.0,
+        "combined": -0.1854
+      }
+    },
+    {
+      "quality_index": 330,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 2174.24,
+        "end": 2174.3,
+        "duration": 0.06,
+        "avg_logprob": -0.2727,
+        "no_speech_prob": 0.3208,
+        "combined": -0.5935,
+        "text": "köprünün bilimsel hesaplamalarına uygun ölçüleri simgeleştirdi ve tasarımsal estetiğini de göz önünde bulundurarak",
+        "flags": []
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 331,
+      "decision": "auto_swap_to_fast",
+      "reason": "quality_risky_fast_combined_clearly_better",
+      "quality": {
+        "start": 2174.3,
+        "end": 2176.5,
+        "duration": 2.2,
+        "avg_logprob": -0.1686,
+        "no_speech_prob": 0.1637,
+        "combined": -0.3323,
+        "text": "Geleceğin projesine imza attı.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2174.3,
+          "end": 2176.52,
+          "duration": 2.22,
+          "avg_logprob": -0.1629,
+          "no_speech_prob": 0.0,
+          "combined": -0.1629,
+          "text": "geleceğin projesine imza attı.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2174.3,
+        "end": 2176.52,
+        "duration": 2.22,
+        "segment_count": 1,
+        "avg_logprob": -0.1629,
+        "no_speech_prob": 0.0,
+        "combined": -0.1629
+      }
+    },
+    {
+      "quality_index": 351,
+      "decision": "review_candidate",
+      "reason": "quality_risky_no_fast_overlap",
+      "quality": {
+        "start": 2297.35,
+        "end": 2297.4,
+        "duration": 0.05,
+        "avg_logprob": -0.1887,
+        "no_speech_prob": 0.4263,
+        "combined": -0.615,
+        "text": "1915 Çanakkale Köprüsü'nde öncelikle kuleler göğe doğru 318 metre yükseldi.",
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ]
+      },
+      "fast_replacements": [],
+      "fast_aggregate": null
+    },
+    {
+      "quality_index": 356,
+      "decision": "review_candidate",
+      "reason": "quality_risky_but_segment_too_long",
+      "quality": {
+        "start": 2341.8,
+        "end": 2368.5,
+        "duration": 26.7,
+        "avg_logprob": -0.0189,
+        "no_speech_prob": 0.2781,
+        "combined": -0.297,
+        "text": "Dünyanın en büyük orta açıklıklı köprüsü olan 1915 Çanakkale Avrupa ile Asya ve Afrika kıtalarını birleştiren küresel ulaşım projesinin bu önemli ayağının hizmete girmesiyle ticaret ve turizmin yanı sıra insani ilişkilerde hızlanacak, kolaylaşacak, artacaktır.",
+        "flags": []
+      },
+      "fast_replacements": [
+        {
+          "start": 2341.8,
+          "end": 2368.5,
+          "duration": 26.7,
+          "avg_logprob": -0.0255,
+          "no_speech_prob": 0.0,
+          "combined": -0.0255,
+          "text": "Dünyanın en büyük orta açıklıklı köprüsü olan 1915 Çanakkale Avrupa ile Asya ve Afrika kıtalarını birleştiren küresel ulaşım projesinin bu önemli ayağının hizmete girmesiyle ticaret ve turizmin yanı sıra insani ilişkilerde hızlanacak, kolaylaşacak, artacaktır.",
+          "flags": []
+        }
+      ],
+      "fast_aggregate": {
+        "start": 2341.8,
+        "end": 2368.5,
+        "duration": 26.7,
+        "segment_count": 1,
+        "avg_logprob": -0.0255,
+        "no_speech_prob": 0.0,
+        "combined": -0.0255
+      }
+    }
+  ],
+  "summary": {
+    "risky_quality_segments": 84,
+    "auto_swaps": 44,
+    "review_candidates": 40,
+    "kept_risky_quality": 0,
+    "auto_swap_quality_duration": 103.7,
+    "review_quality_duration": 261.97,
+    "kept_risky_quality_duration": 0
+  }
+}

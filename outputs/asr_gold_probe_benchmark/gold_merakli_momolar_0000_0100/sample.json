@@ -1,0 +1,13 @@
+{
+  "sample_id": "gold_merakli_momolar_0000_0100",
+  "category": "children_dubbing",
+  "source_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar\\audio_16000hz_mono_s16.wav",
+  "prepared_audio_path": "outputs\\asr_gold_probe_benchmark\\gold_merakli_momolar_0000_0100\\audio_16000hz_mono_s16.wav",
+  "start_sec": 0.0,
+  "end_sec": 100.0,
+  "audio_duration": 100.0,
+  "source_duration": 1223.083,
+  "reference_path": "E:\\MITAS\\references\\asr_gold_probe\\gold_merakli_momolar_0000_0100.txt",
+  "review_priority": "high",
+  "notes": "Dubbing/children content with character names."
+}

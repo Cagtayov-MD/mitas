@@ -1,0 +1,13 @@
+{
+  "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+  "category": "archive_all_wav",
+  "source_path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\wav\\web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav",
+  "prepared_audio_path": "E:\\MITAS\\outputs\\asr_archive_all_wav_benchmark\\005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar\\audio_16000hz_mono_s16.wav",
+  "start_sec": null,
+  "end_sec": null,
+  "audio_duration": 1223.083,
+  "source_duration": 1223.083,
+  "reference_path": "E:\\MITAS\\references\\asr_archive_all_wav\\005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar.txt",
+  "review_priority": "medium",
+  "notes": "web_client_CAGTEST_2004-0006-0-0045-41-1-MERAKLI_MOMOLAR.wav"
+}

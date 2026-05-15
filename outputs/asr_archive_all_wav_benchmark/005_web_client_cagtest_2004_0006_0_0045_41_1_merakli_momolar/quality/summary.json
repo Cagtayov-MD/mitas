@@ -1,0 +1,20 @@
+{
+  "sample_id": "005_web_client_cagtest_2004_0006_0_0045_41_1_merakli_momolar",
+  "profile": "quality",
+  "model_name": "large-v3",
+  "audio_duration": 1223.083,
+  "runtime_seconds_wall": 160.933,
+  "runtime_seconds_reported": 160.896,
+  "runtime_per_audio_minute": 7.895,
+  "clean_word_count": 1224,
+  "clean_segment_count": 281,
+  "quality_drop_count": 5,
+  "safety_passed": true,
+  "safety_failure": null,
+  "safety_diagnostics": {
+    "max_run": 5,
+    "repeated_token": "Durun",
+    "max_token_length": 21,
+    "words_per_second": 1.73
+  }
+}

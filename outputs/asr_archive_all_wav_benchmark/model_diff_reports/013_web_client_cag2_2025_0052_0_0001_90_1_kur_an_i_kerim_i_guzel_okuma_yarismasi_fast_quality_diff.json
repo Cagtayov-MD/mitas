@@ -1,0 +1,5193 @@
+{
+  "sample_id": "013_web_client_cag2_2025_0052_0_0001_90_1_kur_an_i_kerim_i_guzel_okuma_yarismasi",
+  "source_name": "web_client_CAG2_2025-0052-0-0001-90-1-KUR'AN-I_KERİM'İ_GÜZEL_OKUMA_YARIŞMASI.wav",
+  "fast_words": 5511,
+  "quality_words": 6106,
+  "edit_distance_fast_vs_quality": 959,
+  "substitution_count": 246,
+  "fast_extra_word_count": 59,
+  "quality_extra_word_count": 654,
+  "diff_rows": [
+    {
+      "fast": "4",
+      "quality": "dört",
+      "count": 5,
+      "fast_metrics": {
+        "start": 1300.57,
+        "end": 1311.87,
+        "duration": 11.3,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 70
+      },
+      "quality_metrics": {
+        "start": 1048.58,
+        "end": 1055.04,
+        "duration": 6.46,
+        "avg_logprob": -0.1157,
+        "no_speech_prob": 0.0055,
+        "combined": -0.1213,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "combined_delta_fast_minus_quality": -0.0079,
+      "winner_by_combined": "near_tie",
+      "fast_context": "namaz olduğu için 4'er rekat kılınır Bu 4 rekat aynı name ile aynı şekilde devam",
+      "quality_context": "ü Leyali Ramazan diye anılan bu namaza dört rekatla bir dinlenme amacıyla biraz oturulduğundan teravih"
+    },
+    {
+      "fast": "Dr",
+      "quality": "Doktor",
+      "count": 3,
+      "fast_metrics": {
+        "start": 1362.66,
+        "end": 1364.88,
+        "duration": 2.22,
+        "avg_logprob": -0.2094,
+        "no_speech_prob": 0.0,
+        "combined": -0.2094,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "quality_metrics": {
+        "start": 1240.74,
+        "end": 1242.92,
+        "duration": 2.18,
+        "avg_logprob": -0.1335,
+        "no_speech_prob": 0.0503,
+        "combined": -0.1838,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "combined_delta_fast_minus_quality": -0.0256,
+      "winner_by_combined": "near_tie",
+      "fast_context": "eylesin Ve tebrik ediyorum şimdiden Çok teşekkürler Dr Mehmet Alisar hocam Efendim bu yıl Kur'an",
+      "quality_context": "arkadaşlara çok teşekkür ediyoruz bu video için Doktor Mehmet Ali Sarı Hocam ellerinizden öperim Kavuştuk"
+    },
+    {
+      "fast": "Bismillah'la",
+      "quality": "ile",
+      "count": 2,
+      "fast_metrics": {
+        "start": 758.98,
+        "end": 763.7,
+        "duration": 4.72,
+        "avg_logprob": -0.1146,
+        "no_speech_prob": 0.0,
+        "combined": -0.1146,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 75.38,
+        "end": 82.42,
+        "duration": 7.04,
+        "avg_logprob": -0.082,
+        "no_speech_prob": 0.0953,
+        "combined": -0.1773,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": 0.0627,
+      "winner_by_combined": "fast",
+      "fast_context": "tilavetiyle başladık Güzel okudular O halde bu Bismillah'la birlikte Allah bereketimizi artırsın diyorum Bizimle birlikte",
+      "quality_context": "vardır Kur'an ı Kerim'i en güzel seda ile okumak kalpten kalbe köprüler kurmak için 10"
+    },
+    {
+      "fast": "artırsın",
+      "quality": "arttırsın",
+      "count": 2,
+      "fast_metrics": {
+        "start": 758.98,
+        "end": 763.7,
+        "duration": 4.72,
+        "avg_logprob": -0.1146,
+        "no_speech_prob": 0.0,
+        "combined": -0.1146,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 759.0,
+        "end": 763.7,
+        "duration": 4.7,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0515,
+        "combined": -0.1829,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.0683,
+      "winner_by_combined": "fast",
+      "fast_context": "O halde bu Bismillah'la birlikte Allah bereketimizi artırsın diyorum Bizimle birlikte ikinci tura kalan yarışmacımız",
+      "quality_context": "halde bu Bismillah ile birlikte Allah bereketimizi arttırsın diyorum Bizimle birlikte ikinci tura kalan yarışmacımız"
+    },
+    {
+      "fast": "TRT1",
+      "quality": "1",
+      "count": 2,
+      "fast_metrics": {
+        "start": 934.94,
+        "end": 941.32,
+        "duration": 6.38,
+        "avg_logprob": -0.0812,
+        "no_speech_prob": 0.0,
+        "combined": -0.0812,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "quality_metrics": {
+        "start": 934.4,
+        "end": 941.36,
+        "duration": 6.96,
+        "avg_logprob": -0.0848,
+        "no_speech_prob": 0.0004,
+        "combined": -0.0852,
+        "flags": [],
+        "source_chunk_index": 55
+      },
+      "combined_delta_fast_minus_quality": 0.004,
+      "winner_by_combined": "near_tie",
+      "fast_context": "o muhteşem tilavetleri hep birlikte dinleyeceğiz inşallah TRT1 ekranlarına TRT1 Kur'an ı Kerim'i güzel okuma",
+      "quality_context": "muhteşem tilavetleri hep birlikte dinleyeceğiz inşallah TRT 1 ekranlarına TRT 1 Kur'an ı Kerim'i güzel"
+    },
+    {
+      "fast": "Aşri",
+      "quality": "ı",
+      "count": 2,
+      "fast_metrics": {
+        "start": 2077.7,
+        "end": 2084.84,
+        "duration": 7.14,
+        "avg_logprob": -0.2072,
+        "no_speech_prob": 0.0,
+        "combined": -0.2072,
+        "flags": [],
+        "source_chunk_index": 111
+      },
+      "quality_metrics": {
+        "start": 75.38,
+        "end": 82.42,
+        "duration": 7.04,
+        "avg_logprob": -0.082,
+        "no_speech_prob": 0.0953,
+        "combined": -0.1773,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "combined_delta_fast_minus_quality": -0.03,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Faruk İslam evladımızı dinledik Böylece 10 dönem Aşri Şerif'ini ilk Aşri Şerif'ini dinlemiş olduk Güzel",
+      "quality_context": "bereket vardır müjde vardır felah vardır Kur'an ı Kerim'i en güzel seda ile okumak kalpten"
+    },
+    {
+      "fast": "40",
+      "quality": "kırk",
+      "count": 2,
+      "fast_metrics": {
+        "start": 858.9,
+        "end": 866.54,
+        "duration": 7.64,
+        "avg_logprob": -0.091,
+        "no_speech_prob": 0.0,
+        "combined": -0.091,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 873.4,
+        "end": 878.6,
+        "duration": 5.2,
+        "avg_logprob": -0.0776,
+        "no_speech_prob": 0.0182,
+        "combined": -0.0958,
+        "flags": [],
+        "source_chunk_index": 52
+      },
+      "combined_delta_fast_minus_quality": 0.0048,
+      "winner_by_combined": "near_tie",
+      "fast_context": "malumunuz Efendimiz sallallahu aleyhi ve selleme nübüvvet 40 yaşında tebliğ edildi 40 kemalin ve kemalatın",
+      "quality_context": "ve Kemalat'ın yaşı Bizler de istedik ki Kırk Kur'an bülbülümüzle bu yıl sizlerin huzurlarında olalım"
+    },
+    {
+      "fast": "rahliye",
+      "quality": "Rahle'ye",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1490.3,
+        "end": 1492.2,
+        "duration": 1.9,
+        "avg_logprob": -0.2185,
+        "no_speech_prob": 0.0,
+        "combined": -0.2185,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "quality_metrics": {
+        "start": 2651.96,
+        "end": 2654.74,
+        "duration": 2.78,
+        "avg_logprob": -0.162,
+        "no_speech_prob": 0.0703,
+        "combined": -0.2323,
+        "flags": [],
+        "source_chunk_index": 139
+      },
+      "combined_delta_fast_minus_quality": 0.0138,
+      "winner_by_combined": "near_tie",
+      "fast_context": "mıyız Hazırım inşallah Bizler de hazırız Sizi Rahli'ye davet ederim lütfen buyrunuz Ömer Faruk İslam",
+      "quality_context": "hocam Elhamdülillah hazırız Bizler de hazırız Sizi Rahle'ye davet ediyorum lütfen buyurun selam Hafız Furkan"
+    },
+    {
+      "fast": "dokuz",
+      "quality": "99",
+      "count": 2,
+      "fast_metrics": {
+        "start": 3406.5,
+        "end": 3411.46,
+        "duration": 4.96,
+        "avg_logprob": -0.2606,
+        "no_speech_prob": 0.0,
+        "combined": -0.2606,
+        "flags": [],
+        "source_chunk_index": 174
+      },
+      "quality_metrics": {
+        "start": 3406.5,
+        "end": 3411.46,
+        "duration": 4.96,
+        "avg_logprob": -0.3211,
+        "no_speech_prob": 0.0301,
+        "combined": -0.3512,
+        "flags": [],
+        "source_chunk_index": 174
+      },
+      "combined_delta_fast_minus_quality": 0.0906,
+      "winner_by_combined": "fast",
+      "fast_context": "Çınar kardeşimize Bendeniz bir notunu alakoyarak doksan dokuz veriyorum Doksan dokuz puan Maşallah Evet Halil",
+      "quality_context": "Furkan Çınar kardeşimize Bendeniz bir notunu alakoyarak 99 veriyorum 99 puan Maşallah Evet Halil Necip"
+    },
+    {
+      "fast": "John",
+      "quality": "Can",
+      "count": 2,
+      "fast_metrics": {
+        "start": 3484.7,
+        "end": 3491.6,
+        "duration": 6.9,
+        "avg_logprob": -0.2467,
+        "no_speech_prob": 0.0,
+        "combined": -0.2467,
+        "flags": [],
+        "source_chunk_index": 179
+      },
+      "quality_metrics": {
+        "start": 4166.42,
+        "end": 4168.46,
+        "duration": 2.04,
+        "avg_logprob": -0.2477,
+        "no_speech_prob": 0.1727,
+        "combined": -0.4204,
+        "flags": [],
+        "source_chunk_index": 213
+      },
+      "combined_delta_fast_minus_quality": 0.1737,
+      "winner_by_combined": "fast",
+      "fast_context": "birlikte ikinci tura kalan yarışmacımız Huzurlarınıza Muhammed John geliyor Muhammed Hocam hoş geldiniz Hoş bulduk",
+      "quality_context": "ederim değerli Bekir Kösey hocam Kıymetli Muhammed Can hocam Ağzınıza sağlık güzel okudunuz Allah razı"
+    },
+    {
+      "fast": "Sarı",
+      "quality": "Alisar",
+      "count": 2,
+      "fast_metrics": {
+        "start": 1240.74,
+        "end": 1244.18,
+        "duration": 3.44,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0,
+        "combined": -0.1314,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 1362.64,
+        "end": 1364.86,
+        "duration": 2.22,
+        "avg_logprob": -0.2673,
+        "no_speech_prob": 0.0171,
+        "combined": -0.2844,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "combined_delta_fast_minus_quality": 0.153,
+      "winner_by_combined": "fast",
+      "fast_context": "ediyoruz bu video için Doktor Mehmet Ali Sarı hocam ellerinizden öperim kavuştuk elhamdülillah Hocam videomuzu",
+      "quality_context": "tebrik ediyorum şimdiden Çok teşekkürler Doktor Mehmet Alisar Hocam Teşekkür ederim Efendim bu yıl Kur'an"
+    },
+    {
+      "fast": "abiciğim",
+      "quality": "abicim",
+      "count": 2,
+      "fast_metrics": {
+        "start": 5523.27,
+        "end": 5527.33,
+        "duration": 4.06,
+        "avg_logprob": -0.1734,
+        "no_speech_prob": 0.0,
+        "combined": -0.1734,
+        "flags": [],
+        "source_chunk_index": 284
+      },
+      "quality_metrics": {
+        "start": 5524.59,
+        "end": 5527.33,
+        "duration": 2.74,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0296,
+        "combined": -0.1725,
+        "flags": [],
+        "source_chunk_index": 284
+      },
+      "combined_delta_fast_minus_quality": -0.001,
+      "winner_by_combined": "near_tie",
+      "fast_context": "puan veriyorum Ben senden 2 puanı alıyorum abiciğim 40 30 puan veriyorum Bizimle birlikte ikinci",
+      "quality_context": "puan veriyorum Ben senden 2 puanı alıyorum abicim 40 eksi 30 puan veriyorum Bizimle birlikte"
+    },
+    {
+      "fast": "Mezzin",
+      "quality": "Mezun",
+      "count": 2,
+      "fast_metrics": {
+        "start": 5568.38,
+        "end": 5569.26,
+        "duration": 0.88,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.0,
+        "combined": -0.3015,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "quality_metrics": {
+        "start": 5568.36,
+        "end": 5570.32,
+        "duration": 1.96,
+        "avg_logprob": -0.2352,
+        "no_speech_prob": 0.3701,
+        "combined": -0.6054,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "combined_delta_fast_minus_quality": 0.3039,
+      "winner_by_combined": "fast",
+      "fast_context": "razı olsun Millet camimizde imhatip olarak görebiliyorsunuz Mezzin kayım Mezzin kayım olarak evet Mezzin kayım",
+      "quality_context": "olsun Millet camimizde imam hatip olarak görev Mezun kayım olarak evet Mezun kayım olarak görev"
+    },
+    {
+      "fast": "silavetler",
+      "quality": "silahvetler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 52.22,
+        "end": 60.2,
+        "duration": 7.98,
+        "avg_logprob": -0.0865,
+        "no_speech_prob": 0.0,
+        "combined": -0.0865,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 52.22,
+        "end": 60.2,
+        "duration": 7.98,
+        "avg_logprob": -0.1032,
+        "no_speech_prob": 0.0228,
+        "combined": -0.126,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "combined_delta_fast_minus_quality": 0.0395,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bu mikrofondaydı Hafızalarda yer eden o eşsiz silavetler şimdi koca bir maziye silinmez bir mirasa",
+      "quality_context": "bu mikrofondaydı Hafızalarda yer eden o eşsiz silahvetler şimdi koca bir maziye silinmez bir mirasa"
+    },
+    {
+      "fast": "yusran",
+      "quality": "ر",
+      "count": 1,
+      "fast_metrics": {
+        "start": 160.6,
+        "end": 171.6,
+        "duration": 11.0,
+        "avg_logprob": -0.5433,
+        "no_speech_prob": 0.0,
+        "combined": -0.5433,
+        "flags": [],
+        "source_chunk_index": 10
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.1163,
+      "winner_by_combined": "fast",
+      "fast_context": "aradayız Bismillahirrahmanirrahim fa inna maa al usri yusran inna maa al usri yusra Sadakallahu'l Azim",
+      "quality_context": "ا ن م ع ال ع س ر ي س ر ا ا ن م"
+    },
+    {
+      "fast": "ay",
+      "quality": "Ey",
+      "count": 1,
+      "fast_metrics": {
+        "start": 259.2,
+        "end": 265.94,
+        "duration": 6.74,
+        "avg_logprob": -0.6766,
+        "no_speech_prob": 0.0,
+        "combined": -0.6766,
+        "flags": [],
+        "source_chunk_index": 23
+      },
+      "quality_metrics": {
+        "start": 197.6,
+        "end": 199.9,
+        "duration": 2.3,
+        "avg_logprob": -0.1079,
+        "no_speech_prob": 0.7529,
+        "combined": -0.8608,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 15
+      },
+      "combined_delta_fast_minus_quality": 0.1843,
+      "winner_by_combined": "fast",
+      "fast_context": "Muhakkak ki Allah doğruyu söyledi Bismillahirrahmanirrahim Ya ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu",
+      "quality_context": "azim Rahman ve Rahim olan Allah'ın adıyla Ey Muhammed Senin göğsünü açıp genişletmedik mi Belini"
+    },
+    {
+      "fast": "Eyühellezine",
+      "quality": "yühellezine",
+      "count": 1,
+      "fast_metrics": {
+        "start": 265.95,
+        "end": 274.95,
+        "duration": 9.0,
+        "avg_logprob": -0.5336,
+        "no_speech_prob": 0.0,
+        "combined": -0.5336,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 265.95,
+        "end": 275.55,
+        "duration": 9.6,
+        "avg_logprob": -0.3879,
+        "no_speech_prob": 0.3191,
+        "combined": -0.707,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": 0.1734,
+      "winner_by_combined": "fast",
+      "fast_context": "ki Allah doğruyu söyledi Bismillahirrahmanirrahim Ya ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ",
+      "quality_context": "doğruyu söyledi Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim Ya Eyüp Ey yühellezine amenü kütübe aleyküm ısıyam Kütübe aleyküm الصيام"
+    },
+    {
+      "fast": "aleykumussiyam",
+      "quality": "ısıyam",
+      "count": 1,
+      "fast_metrics": {
+        "start": 265.95,
+        "end": 274.95,
+        "duration": 9.0,
+        "avg_logprob": -0.5336,
+        "no_speech_prob": 0.0,
+        "combined": -0.5336,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 265.95,
+        "end": 275.55,
+        "duration": 9.6,
+        "avg_logprob": -0.3879,
+        "no_speech_prob": 0.3191,
+        "combined": -0.707,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "combined_delta_fast_minus_quality": 0.1734,
+      "winner_by_combined": "fast",
+      "fast_context": "söyledi Bismillahirrahmanirrahim Ya ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ kütübe alâllezîne min",
+      "quality_context": "Ya Eyüp Ey yühellezine amenü kütübe aleyküm ısıyam Kütübe aleyküm الصيام كما كتب على الذين"
+    },
+    {
+      "fast": "aleykümü",
+      "quality": "كتب",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 278.6,
+        "end": 295.02,
+        "duration": 16.42,
+        "avg_logprob": -0.1849,
+        "no_speech_prob": 0.4402,
+        "combined": -0.6251,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.1456,
+      "winner_by_combined": "fast",
+      "fast_context": "Ya ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ kütübe alâllezîne min qablikum lealleküm",
+      "quality_context": "kütübe aleyküm ısıyam Kütübe aleyküm الصيام كما كتب على الذين من قبلكم لعلكم تتقون Eyyâmen"
+    },
+    {
+      "fast": "assiyamu",
+      "quality": "على",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 278.6,
+        "end": 295.02,
+        "duration": 16.42,
+        "avg_logprob": -0.1849,
+        "no_speech_prob": 0.4402,
+        "combined": -0.6251,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.1456,
+      "winner_by_combined": "fast",
+      "fast_context": "ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ kütübe alâllezîne min qablikum lealleküm tettekûn",
+      "quality_context": "aleyküm ısıyam Kütübe aleyküm الصيام كما كتب على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât"
+    },
+    {
+      "fast": "kütübe",
+      "quality": "من",
+      "count": 1,
+      "fast_metrics": {
+        "start": 265.95,
+        "end": 274.95,
+        "duration": 9.0,
+        "avg_logprob": -0.5336,
+        "no_speech_prob": 0.0,
+        "combined": -0.5336,
+        "flags": [],
+        "source_chunk_index": 24
+      },
+      "quality_metrics": {
+        "start": 278.6,
+        "end": 295.02,
+        "duration": 16.42,
+        "avg_logprob": -0.1849,
+        "no_speech_prob": 0.4402,
+        "combined": -0.6251,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.0915,
+      "winner_by_combined": "fast",
+      "fast_context": "doğruyu söyledi Bismillahirrahmanirrahim Ya ay Eyühellezine amenü kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ kütübe alâllezîne",
+      "quality_context": "Kütübe aleyküm الصيام كما كتب على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât ف م"
+    },
+    {
+      "fast": "alâllezîne",
+      "quality": "قبلكم",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 278.6,
+        "end": 295.02,
+        "duration": 16.42,
+        "avg_logprob": -0.1849,
+        "no_speech_prob": 0.4402,
+        "combined": -0.6251,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.1456,
+      "winner_by_combined": "fast",
+      "fast_context": "kütübe aleykumussiyam Kütübe aleykümü assiyamu kemâ kütübe alâllezîne min qablikum lealleküm tettekûn ف م ن",
+      "quality_context": "aleyküm الصيام كما كتب على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât ف م ن"
+    },
+    {
+      "fast": "qablikum",
+      "quality": "تتقون",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 278.6,
+        "end": 295.02,
+        "duration": 16.42,
+        "avg_logprob": -0.1849,
+        "no_speech_prob": 0.4402,
+        "combined": -0.6251,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 25
+      },
+      "combined_delta_fast_minus_quality": 0.1456,
+      "winner_by_combined": "fast",
+      "fast_context": "Kütübe aleykümü assiyamu kemâ kütübe alâllezîne min qablikum lealleküm tettekûn ف م ن ك ان",
+      "quality_context": "كما كتب على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât ف م ن ك ان"
+    },
+    {
+      "fast": "lealleküm",
+      "quality": "Eyyâmen",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 295.4,
+        "end": 305.84,
+        "duration": 10.44,
+        "avg_logprob": -0.3113,
+        "no_speech_prob": 0.4707,
+        "combined": -0.782,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 26
+      },
+      "combined_delta_fast_minus_quality": 0.3025,
+      "winner_by_combined": "fast",
+      "fast_context": "aleykümü assiyamu kemâ kütübe alâllezîne min qablikum lealleküm tettekûn ف م ن ك ان م",
+      "quality_context": "كتب على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât ف م ن ك ان م"
+    },
+    {
+      "fast": "tettekûn",
+      "quality": "ma'dûdât",
+      "count": 1,
+      "fast_metrics": {
+        "start": 278.6,
+        "end": 295.1,
+        "duration": 16.5,
+        "avg_logprob": -0.4795,
+        "no_speech_prob": 0.0,
+        "combined": -0.4795,
+        "flags": [],
+        "source_chunk_index": 25
+      },
+      "quality_metrics": {
+        "start": 295.4,
+        "end": 305.84,
+        "duration": 10.44,
+        "avg_logprob": -0.3113,
+        "no_speech_prob": 0.4707,
+        "combined": -0.782,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 26
+      },
+      "combined_delta_fast_minus_quality": 0.3025,
+      "winner_by_combined": "fast",
+      "fast_context": "assiyamu kemâ kütübe alâllezîne min qablikum lealleküm tettekûn ف م ن ك ان م ن",
+      "quality_context": "على الذين من قبلكم لعلكم تتقون Eyyâmen ma'dûdât ف م ن ك ان م ن"
+    },
+    {
+      "fast": "tilavetle",
+      "quality": "bitilavetle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 749.04,
+        "end": 751.04,
+        "duration": 2.0,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 749.04,
+        "end": 751.04,
+        "duration": 2.0,
+        "avg_logprob": -0.2428,
+        "no_speech_prob": 0.3738,
+        "combined": -0.6166,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.4657,
+      "winner_by_combined": "fast",
+      "fast_context": "Üslup açısından problem yoktu En fes bir tilavetle Özel sezona bence çok uygun çok manidar",
+      "quality_context": "güzeldi Üslup açısından problem yoktu En fes bitilavetle Özel sezona bence çok uygun çok manidar"
+    },
+    {
+      "fast": "programıyla",
+      "quality": "ile",
+      "count": 1,
+      "fast_metrics": {
+        "start": 843.1,
+        "end": 855.48,
+        "duration": 12.38,
+        "avg_logprob": -0.091,
+        "no_speech_prob": 0.0,
+        "combined": -0.091,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 759.0,
+        "end": 763.7,
+        "duration": 4.7,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0515,
+        "combined": -0.1829,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "combined_delta_fast_minus_quality": 0.0919,
+      "winner_by_combined": "fast",
+      "fast_context": "Kerim'i güzel okuma yarışması 10 yıl özel programıyla birlikte olacağız Sizlerin huzurlarında olacağız Efendim malumunuz",
+      "quality_context": "başladık Güzel okudular O halde bu Bismillah ile birlikte Allah bereketimizi arttırsın diyorum Bizimle birlikte"
+    },
+    {
+      "fast": "TRTB",
+      "quality": "TRT1",
+      "count": 1,
+      "fast_metrics": {
+        "start": 896.6,
+        "end": 910.64,
+        "duration": 14.04,
+        "avg_logprob": -0.0668,
+        "no_speech_prob": 0.0,
+        "combined": -0.0668,
+        "flags": [],
+        "source_chunk_index": 53
+      },
+      "quality_metrics": {
+        "start": 896.6,
+        "end": 910.64,
+        "duration": 14.04,
+        "avg_logprob": -0.0544,
+        "no_speech_prob": 0.0159,
+        "combined": -0.0703,
+        "flags": [],
+        "source_chunk_index": 53
+      },
+      "combined_delta_fast_minus_quality": 0.0035,
+      "winner_by_combined": "near_tie",
+      "fast_context": "da bereketli kılalım duasıyla kıymetli izleyicilerimiz kıymetlerimiz TRTB ekranları aracıyla Ramazan ayı boyunca hanelerinize dahi",
+      "quality_context": "da bereketli kılalım duasıyla kıymetli izleyicilerimiz kıymetlerimiz TRT1 ekranları aracıyla Ramazan ayı boyunca hanelerinize dahi"
+    },
+    {
+      "fast": "sefalar",
+      "quality": "safalar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 951.0,
+        "end": 962.42,
+        "duration": 11.42,
+        "avg_logprob": -0.1246,
+        "no_speech_prob": 0.0,
+        "combined": -0.1246,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "quality_metrics": {
+        "start": 951.0,
+        "end": 962.44,
+        "duration": 11.44,
+        "avg_logprob": -0.1056,
+        "no_speech_prob": 0.0055,
+        "combined": -0.111,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "combined_delta_fast_minus_quality": -0.0136,
+      "winner_by_combined": "near_tie",
+      "fast_context": "elhamdülillah kavuştuk kıymetlilerimiz hocalarımız efendim hoş geldiniz sefalar getirdiniz Efendim sizlere bir müjdemiz daha var",
+      "quality_context": "elhamdülillah kavuştuk kıymetlilerimiz hocalarımız efendim hoş geldiniz safalar getirdiniz Efendim sizlere bir müjdemiz daha var"
+    },
+    {
+      "fast": "tervihanın",
+      "quality": "terbihanın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1032.0,
+        "end": 1039.94,
+        "duration": 7.94,
+        "avg_logprob": -0.0851,
+        "no_speech_prob": 0.0,
+        "combined": -0.0851,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 1032.0,
+        "end": 1039.96,
+        "duration": 7.96,
+        "avg_logprob": -0.1157,
+        "no_speech_prob": 0.0055,
+        "combined": -0.1213,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "combined_delta_fast_minus_quality": 0.0362,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kimsenin geçmiş günahları bağışlanır Teravih kelimesi Arapça tervihanın çoğuludur ve oturmak istirahat etmek anlamına gelmektedir",
+      "quality_context": "kimsenin geçmiş günahları bağışlanır Teravih kelimesi Arapça terbihanın çoğuludur ve oturmak istirahat etmek anlamına gelmektedir"
+    },
+    {
+      "fast": "Hazreti",
+      "quality": "Hz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1082.8,
+        "end": 1088.06,
+        "duration": 5.26,
+        "avg_logprob": -0.0843,
+        "no_speech_prob": 0.0,
+        "combined": -0.0843,
+        "flags": [],
+        "source_chunk_index": 61
+      },
+      "quality_metrics": {
+        "start": 1082.8,
+        "end": 1088.06,
+        "duration": 5.26,
+        "avg_logprob": -0.0765,
+        "no_speech_prob": 0.0395,
+        "combined": -0.116,
+        "flags": [],
+        "source_chunk_index": 61
+      },
+      "combined_delta_fast_minus_quality": 0.0317,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sonra yatsı namazıyla beraber kılınan bu namaz Hazreti Peygamber'in Ramazan aylarına has olarak kıldığı nafile",
+      "quality_context": "sonra yatsı namazıyla beraber kılınan bu namaz Hz Peygamberin Ramazan aylarına has olarak kıldığı nafile"
+    },
+    {
+      "fast": "teşerif",
+      "quality": "teşerrüf",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1263.0,
+        "end": 1274.08,
+        "duration": 11.08,
+        "avg_logprob": -0.1283,
+        "no_speech_prob": 0.0,
+        "combined": -0.1283,
+        "flags": [],
+        "source_chunk_index": 69
+      },
+      "quality_metrics": {
+        "start": 1263.0,
+        "end": 1274.08,
+        "duration": 11.08,
+        "avg_logprob": -0.1226,
+        "no_speech_prob": 0.0356,
+        "combined": -0.1582,
+        "flags": [],
+        "source_chunk_index": 69
+      },
+      "combined_delta_fast_minus_quality": 0.0298,
+      "winner_by_combined": "near_tie",
+      "fast_context": "de Milletimizin insanlarımızın ve bütün İslam dünyasının teşerif ettiğimiz şereflendirdiğimiz Ramazan ayını tebrik ediyorum İnşallah",
+      "quality_context": "de Milletimizin insanlarımızın ve bütün İslam dünyasının teşerrüf ettiğimiz şereflendirdiğimiz Ramazan ayını tebrik ediyorum İnşallah"
+    },
+    {
+      "fast": "4'er",
+      "quality": "dörder",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1293.25,
+        "end": 1300.09,
+        "duration": 6.84,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 70
+      },
+      "quality_metrics": {
+        "start": 1293.25,
+        "end": 1300.09,
+        "duration": 6.84,
+        "avg_logprob": -0.1249,
+        "no_speech_prob": 0.0459,
+        "combined": -0.1708,
+        "flags": [],
+        "source_chunk_index": 70
+      },
+      "combined_delta_fast_minus_quality": 0.0416,
+      "winner_by_combined": "near_tie",
+      "fast_context": "eden 20 rekatlık bir namaz olduğu için 4'er rekat kılınır Bu 4 rekat aynı name",
+      "quality_context": "eden 20 rekatlık bir namaz olduğu için dörder rekat kılınır Bu dört rekat aynı name"
+    },
+    {
+      "fast": "rekatta",
+      "quality": "da",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1321.35,
+        "end": 1333.51,
+        "duration": 12.16,
+        "avg_logprob": -0.1357,
+        "no_speech_prob": 0.0,
+        "combined": -0.1357,
+        "flags": [],
+        "source_chunk_index": 71
+      },
+      "quality_metrics": {
+        "start": 727.92,
+        "end": 732.18,
+        "duration": 4.26,
+        "avg_logprob": -0.1182,
+        "no_speech_prob": 0.4683,
+        "combined": -0.5865,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.4508,
+      "winner_by_combined": "fast",
+      "fast_context": "Hüseyin'i Dördüncü rekat eviç makamı son dört rekatta acamaşıran makamı ile uygulanır Son vitir namazında",
+      "quality_context": "yıl özelde bugün Sesi gayet elverişli Daha da güzel olacak inşallah İster Müslüm olsun isterse"
+    },
+    {
+      "fast": "programımızda",
+      "quality": "programımıza",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1374.4,
+        "end": 1379.52,
+        "duration": 5.12,
+        "avg_logprob": -0.103,
+        "no_speech_prob": 0.0,
+        "combined": -0.103,
+        "flags": [],
+        "source_chunk_index": 73
+      },
+      "quality_metrics": {
+        "start": 1374.4,
+        "end": 1379.52,
+        "duration": 5.12,
+        "avg_logprob": -0.1007,
+        "no_speech_prob": 0.0233,
+        "combined": -0.124,
+        "flags": [],
+        "source_chunk_index": 73
+      },
+      "combined_delta_fast_minus_quality": 0.021,
+      "winner_by_combined": "near_tie",
+      "fast_context": "efendim Burası yıldızlar geçidi olacak ve ilk programımızda çok heyecanlıyız İlk yıldızlarımızı alacağız efendim Hazır",
+      "quality_context": "efendim Burası yıldızlar geçidi olacak ve ilk programımıza çok heyecanlıyız İlk yıldızlarımızı alacağız efendim Hazır"
+    },
+    {
+      "fast": "inşallah",
+      "quality": "İnşallah",
+      "count": 1,
+      "fast_metrics": {
+        "start": 727.96,
+        "end": 732.2,
+        "duration": 4.24,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 1274.08,
+        "end": 1281.28,
+        "duration": 7.2,
+        "avg_logprob": -0.1226,
+        "no_speech_prob": 0.0356,
+        "combined": -0.1582,
+        "flags": [],
+        "source_chunk_index": 69
+      },
+      "combined_delta_fast_minus_quality": 0.0073,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Sesi gayet elverişli daha da güzel olacak inşallah İster Müslüm olsun isterse gayrimüslim olsun İnsana",
+      "quality_context": "teşerrüf ettiğimiz şereflendirdiğimiz Ramazan ayını tebrik ediyorum İnşallah sağlıklı sıhhatli semereli maneviyatlı oruçlar diliyorum Ve"
+    },
+    {
+      "fast": "olmaz",
+      "quality": "olmasın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1416.8,
+        "end": 1419.82,
+        "duration": 3.02,
+        "avg_logprob": -0.2412,
+        "no_speech_prob": 0.0,
+        "combined": -0.2412,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "quality_metrics": {
+        "start": 1416.82,
+        "end": 1419.82,
+        "duration": 3.0,
+        "avg_logprob": -0.2081,
+        "no_speech_prob": 0.0379,
+        "combined": -0.246,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "combined_delta_fast_minus_quality": 0.0048,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Allah razı olsun inşallah hata yapmamıza vesile olmaz heyecanımız Olmaz olmaz Siz tecrübelisiniz Zaten ben",
+      "quality_context": "Allah razı olsun İnşallah hata yapmamıza vesile olmasın heyecanımız Olmaz olmaz Siz tecrübelisiniz Zaten ben"
+    },
+    {
+      "fast": "Hatibi",
+      "quality": "Ümmetibi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1439.93,
+        "end": 1441.85,
+        "duration": 1.92,
+        "avg_logprob": -0.1793,
+        "no_speech_prob": 0.0,
+        "combined": -0.1793,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "quality_metrics": {
+        "start": 1438.93,
+        "end": 1443.59,
+        "duration": 4.66,
+        "avg_logprob": -0.1377,
+        "no_speech_prob": 0.3296,
+        "combined": -0.4673,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "combined_delta_fast_minus_quality": 0.288,
+      "winner_by_combined": "fast",
+      "fast_context": "daha da Erdek Merkez Çarşı Camii İmam Hatibi olarak görüyorum ve devam etmekteyim hocam Maşallah",
+      "quality_context": "Halen daha da Erdek Merkez Çarşı Camii Ümmetibi olarak görüntüye devam etmekteyim hocam Maşallah hemşerim"
+    },
+    {
+      "fast": "ve",
+      "quality": "görüntüye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 191.55,
+        "end": 195.91,
+        "duration": 4.36,
+        "avg_logprob": -0.0812,
+        "no_speech_prob": 0.0,
+        "combined": -0.0812,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "quality_metrics": {
+        "start": 1438.93,
+        "end": 1443.59,
+        "duration": 4.66,
+        "avg_logprob": -0.1377,
+        "no_speech_prob": 0.3296,
+        "combined": -0.4673,
+        "flags": [],
+        "source_chunk_index": 77
+      },
+      "combined_delta_fast_minus_quality": 0.3861,
+      "winner_by_combined": "fast",
+      "fast_context": "maa al usri yusra Sadakallahu'l Azim Rahman ve Rahim olan Allah'ın adıyla Ey Muhammed Senin",
+      "quality_context": "da Erdek Merkez Çarşı Camii Ümmetibi olarak görüntüye devam etmekteyim hocam Maşallah hemşerim ya Balıkesir"
+    },
+    {
+      "fast": "teşrif",
+      "quality": "teşrip",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1461.95,
+        "end": 1470.11,
+        "duration": 8.16,
+        "avg_logprob": -0.141,
+        "no_speech_prob": 0.0,
+        "combined": -0.141,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "quality_metrics": {
+        "start": 1461.95,
+        "end": 1470.13,
+        "duration": 8.18,
+        "avg_logprob": -0.1396,
+        "no_speech_prob": 0.0453,
+        "combined": -0.1848,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "combined_delta_fast_minus_quality": 0.0439,
+      "winner_by_combined": "near_tie",
+      "fast_context": "defa yarışmamıza katılmışsınız ve şimdi de buraya teşrif buyurdunuz ve hırkların arasındasınız Allah razı olsun",
+      "quality_context": "defa yarışmamıza katılmışsınız ve şimdi de buraya teşrip buyurdunuz ve hırkların arasındasınız Allah razı olsun"
+    },
+    {
+      "fast": "buyrunuz",
+      "quality": "buyurunuz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1490.3,
+        "end": 1492.2,
+        "duration": 1.9,
+        "avg_logprob": -0.2185,
+        "no_speech_prob": 0.0,
+        "combined": -0.2185,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "quality_metrics": {
+        "start": 1018.91,
+        "end": 1019.27,
+        "duration": 0.36,
+        "avg_logprob": -0.1229,
+        "no_speech_prob": 0.0059,
+        "combined": -0.1288,
+        "flags": [],
+        "source_chunk_index": 58
+      },
+      "combined_delta_fast_minus_quality": -0.0897,
+      "winner_by_combined": "quality",
+      "fast_context": "de hazırız Sizi Rahli'ye davet ederim lütfen buyrunuz Ömer Faruk İslam Fatır Suresi 9 ila",
+      "quality_context": "Bugün teravih Efendim hep birlikte izleyelim mi Buyurunuz Ramazan ayını inanarak ve sevabını Allah'tan bekleyerek"
+    },
+    {
+      "fast": "Vallahu",
+      "quality": "ع",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": -0.1679,
+      "winner_by_combined": "quality",
+      "fast_context": "tilavet edecekler ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م",
+      "quality_context": "bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع س ر ي س ر"
+    },
+    {
+      "fast": "allazhi",
+      "quality": "ذ",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 171.6,
+        "end": 178.6,
+        "duration": 7.0,
+        "avg_logprob": -0.3045,
+        "no_speech_prob": 0.5552,
+        "combined": -0.8597,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 11
+      },
+      "combined_delta_fast_minus_quality": 0.0323,
+      "winner_by_combined": "near_tie",
+      "fast_context": "edecekler ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م ك",
+      "quality_context": "ر ي س ر ا ف إ ذ ا ف ر نت ف ان ص"
+    },
+    {
+      "fast": "arsalan",
+      "quality": "اب",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 1589.6,
+        "end": 1610.0,
+        "duration": 20.4,
+        "avg_logprob": -0.116,
+        "no_speech_prob": 0.5044,
+        "combined": -0.6204,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 84
+      },
+      "combined_delta_fast_minus_quality": -0.2071,
+      "winner_by_combined": "quality",
+      "fast_context": "ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م ك ر",
+      "quality_context": "fetusîrusahâbâ ف ت ث ير س ح اب ا ف ش ق ن اه إ"
+    },
+    {
+      "fast": "riyaha",
+      "quality": "ش",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 529.7,
+        "end": 545.4,
+        "duration": 15.7,
+        "avg_logprob": -0.0659,
+        "no_speech_prob": 0.1559,
+        "combined": -0.2218,
+        "flags": [],
+        "source_chunk_index": 41
+      },
+      "combined_delta_fast_minus_quality": -0.6056,
+      "winner_by_combined": "quality",
+      "fast_context": "şimdi söz Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م ك ر أ",
+      "quality_context": "و ل ع ل ك م ت ش ك ر ون Sadakallahu'l azim Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim"
+    },
+    {
+      "fast": "fatusiru",
+      "quality": "د",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 308.15,
+        "end": 323.15,
+        "duration": 15.0,
+        "avg_logprob": -0.1125,
+        "no_speech_prob": 0.4368,
+        "combined": -0.5493,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 27
+      },
+      "combined_delta_fast_minus_quality": -0.2781,
+      "winner_by_combined": "quality",
+      "fast_context": "söz Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م ك ر أ ول",
+      "quality_context": "ل ى س ف ر ف ع د ة م ن ا ي ام ا"
+    },
+    {
+      "fast": "sahaba",
+      "quality": "ير",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1566.2,
+        "end": 1579.9,
+        "duration": 13.7,
+        "avg_logprob": -0.8274,
+        "no_speech_prob": 0.0,
+        "combined": -0.8274,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 83
+      },
+      "quality_metrics": {
+        "start": 1589.6,
+        "end": 1610.0,
+        "duration": 20.4,
+        "avg_logprob": -0.116,
+        "no_speech_prob": 0.5044,
+        "combined": -0.6204,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 84
+      },
+      "combined_delta_fast_minus_quality": -0.2071,
+      "winner_by_combined": "quality",
+      "fast_context": "Kur'an'ın Bismillahirrahmanirrahim Vallahu allazhi arsalan riyaha fatusiru sahaba و م ك ر أ ول ئ",
+      "quality_context": "Ve Allahüllezî arselerriyâha fetusîrusahâbâ ف ت ث ير س ح اب ا ف ش ق"
+    },
+    {
+      "fast": "ول",
+      "quality": "şükürler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1717.7,
+        "end": 1731.7,
+        "duration": 14.0,
+        "avg_logprob": -0.1507,
+        "no_speech_prob": 0.0,
+        "combined": -0.1507,
+        "flags": [],
+        "source_chunk_index": 90
+      },
+      "quality_metrics": {
+        "start": 818.35,
+        "end": 833.21,
+        "duration": 14.86,
+        "avg_logprob": -0.0568,
+        "no_speech_prob": 0.0105,
+        "combined": -0.0673,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "combined_delta_fast_minus_quality": -0.0834,
+      "winner_by_combined": "quality",
+      "fast_context": "fatusiru sahaba و م ك ر أ ول ئ ك ه و ي ب ول",
+      "quality_context": "hep birlikte cem eyleyen Yüce Rabbimize sonsuz şükürler olsun Büyük bir hasretle büyük bir özlemle"
+    },
+    {
+      "fast": "الله",
+      "quality": "Sadakallahul",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2012.45,
+        "end": 2018.91,
+        "duration": 6.46,
+        "avg_logprob": -0.3514,
+        "no_speech_prob": 0.0,
+        "combined": -0.3514,
+        "flags": [],
+        "source_chunk_index": 107
+      },
+      "quality_metrics": {
+        "start": 186.1,
+        "end": 190.42,
+        "duration": 4.32,
+        "avg_logprob": -0.3708,
+        "no_speech_prob": 0.385,
+        "combined": -0.7558,
+        "flags": [],
+        "source_chunk_index": 13
+      },
+      "combined_delta_fast_minus_quality": 0.4044,
+      "winner_by_combined": "fast",
+      "fast_context": "ك ه و ي ب ول صدق الله العظيم Ömer Faruk İslam için burada bulunan",
+      "quality_context": "ف ر نت ف ان ص ب Sadakallahu'l azim Rahman ve Rahim olan Allah'ın adıyla"
+    },
+    {
+      "fast": "العظيم",
+      "quality": "Azim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2012.45,
+        "end": 2018.91,
+        "duration": 6.46,
+        "avg_logprob": -0.3514,
+        "no_speech_prob": 0.0,
+        "combined": -0.3514,
+        "flags": [],
+        "source_chunk_index": 107
+      },
+      "quality_metrics": {
+        "start": 186.1,
+        "end": 190.42,
+        "duration": 4.32,
+        "avg_logprob": -0.3708,
+        "no_speech_prob": 0.385,
+        "combined": -0.7558,
+        "flags": [],
+        "source_chunk_index": 13
+      },
+      "combined_delta_fast_minus_quality": 0.4044,
+      "winner_by_combined": "fast",
+      "fast_context": "ه و ي ب ول صدق الله العظيم Ömer Faruk İslam için burada bulunan seyirci",
+      "quality_context": "ر نت ف ان ص ب Sadakallahu'l azim Rahman ve Rahim olan Allah'ın adıyla Ey"
+    },
+    {
+      "fast": "Sağlıkla",
+      "quality": "Sağlıklı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2058.74,
+        "end": 2068.38,
+        "duration": 9.64,
+        "avg_logprob": -0.1251,
+        "no_speech_prob": 0.0,
+        "combined": -0.1251,
+        "flags": [],
+        "source_chunk_index": 109
+      },
+      "quality_metrics": {
+        "start": 1274.08,
+        "end": 1281.28,
+        "duration": 7.2,
+        "avg_logprob": -0.1226,
+        "no_speech_prob": 0.0356,
+        "combined": -0.1582,
+        "flags": [],
+        "source_chunk_index": 69
+      },
+      "combined_delta_fast_minus_quality": 0.0331,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ediyorum Bekir Bey kardeşim Allah hayırlı eylesin Sağlıkla afiyetle hep beraber sonuna erelim inşallah Ömer",
+      "quality_context": "ettiğimiz şereflendirdiğimiz Ramazan ayını tebrik ediyorum İnşallah sağlıklı sıhhatli semereli maneviyatlı oruçlar diliyorum Ve dünyamızdaki"
+    },
+    {
+      "fast": "Tabi",
+      "quality": "Tabii",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1341.07,
+        "end": 1349.19,
+        "duration": 8.12,
+        "avg_logprob": -0.1357,
+        "no_speech_prob": 0.0,
+        "combined": -0.1357,
+        "flags": [],
+        "source_chunk_index": 71
+      },
+      "quality_metrics": {
+        "start": 1427.58,
+        "end": 1428.18,
+        "duration": 0.6,
+        "avg_logprob": -0.2081,
+        "no_speech_prob": 0.0379,
+        "combined": -0.246,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "combined_delta_fast_minus_quality": 0.1103,
+      "winner_by_combined": "fast",
+      "fast_context": "dinlendirici bir makamdır O makam ifade edilir Tabi camilerde bu mihrap mahfel birliği ile yürütülür",
+      "quality_context": "Estağfurullah İzleyicilerimize tekrar bir hatırlasın mı sizi Tabii aman aman İsmim Ömer Faruk İslam Aslan"
+    },
+    {
+      "fast": "İzleyicisiyle",
+      "quality": "izleyicisiyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2172.75,
+        "end": 2181.99,
+        "duration": 9.24,
+        "avg_logprob": -0.2019,
+        "no_speech_prob": 0.0,
+        "combined": -0.2019,
+        "flags": [],
+        "source_chunk_index": 115
+      },
+      "quality_metrics": {
+        "start": 2172.75,
+        "end": 2174.65,
+        "duration": 1.9,
+        "avg_logprob": -0.2416,
+        "no_speech_prob": 0.3115,
+        "combined": -0.5532,
+        "flags": [],
+        "source_chunk_index": 115
+      },
+      "combined_delta_fast_minus_quality": 0.3512,
+      "winner_by_combined": "fast",
+      "fast_context": "yılında özel bir sezonla özel bir bölümle İzleyicisiyle buluşuyor meraklısıyla buluşuyor ve değişmeyen iki şey",
+      "quality_context": "yılında özel bir sezonla özel bir bölümle izleyicisiyle buluşuyor Meraklısıyla buluşuyor Ve değişmeyen iki şey"
+    },
+    {
+      "fast": "tezhib",
+      "quality": "tezhip",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2206.46,
+        "end": 2211.66,
+        "duration": 5.2,
+        "avg_logprob": -0.1196,
+        "no_speech_prob": 0.0,
+        "combined": -0.1196,
+        "flags": [],
+        "source_chunk_index": 116
+      },
+      "quality_metrics": {
+        "start": 2206.44,
+        "end": 2211.66,
+        "duration": 5.22,
+        "avg_logprob": -0.114,
+        "no_speech_prob": 0.0704,
+        "combined": -0.1845,
+        "flags": [],
+        "source_chunk_index": 116
+      },
+      "combined_delta_fast_minus_quality": 0.0649,
+      "winner_by_combined": "fast",
+      "fast_context": "Allah razı olsun Eğer arkadaşlarımız gösterebilirse efendim tezhib yine 10 yıla özel Aynı zamanda o",
+      "quality_context": "Allah razı olsun Eğer arkadaşlarımız gösterebilirse efendim tezhip yine 10 yıla özel Aynı zamanda o"
+    },
+    {
+      "fast": "çekeyim",
+      "quality": "sileyim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2251.37,
+        "end": 2253.73,
+        "duration": 2.36,
+        "avg_logprob": -0.1099,
+        "no_speech_prob": 0.0,
+        "combined": -0.1099,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "quality_metrics": {
+        "start": 2251.37,
+        "end": 2253.01,
+        "duration": 1.64,
+        "avg_logprob": -0.1375,
+        "no_speech_prob": 0.0583,
+        "combined": -0.1958,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "combined_delta_fast_minus_quality": 0.0858,
+      "winner_by_combined": "fast",
+      "fast_context": "duyguyu verin Kur'an sesidir Şöyle söyleyeyim altını çekeyim ister Müslüm olsun İstersek gayrimüslim olsun insana",
+      "quality_context": "duyguyu veren Kur'an sesidir Şöyle söyleyeyim altını sileyim isterim Müslim olsun İstersek gayrimüslim olsun insana"
+    },
+    {
+      "fast": "ister",
+      "quality": "isterim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2251.37,
+        "end": 2253.73,
+        "duration": 2.36,
+        "avg_logprob": -0.1099,
+        "no_speech_prob": 0.0,
+        "combined": -0.1099,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "quality_metrics": {
+        "start": 2251.37,
+        "end": 2253.01,
+        "duration": 1.64,
+        "avg_logprob": -0.1375,
+        "no_speech_prob": 0.0583,
+        "combined": -0.1958,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "combined_delta_fast_minus_quality": 0.0858,
+      "winner_by_combined": "fast",
+      "fast_context": "verin Kur'an sesidir Şöyle söyleyeyim altını çekeyim ister Müslüm olsun İstersek gayrimüslim olsun insana manevi",
+      "quality_context": "veren Kur'an sesidir Şöyle söyleyeyim altını sileyim isterim Müslim olsun İstersek gayrimüslim olsun insana manevi"
+    },
+    {
+      "fast": "Müslüm",
+      "quality": "Müslim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 732.58,
+        "end": 735.76,
+        "duration": 3.18,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 2253.01,
+        "end": 2253.71,
+        "duration": 0.7,
+        "avg_logprob": -0.2494,
+        "no_speech_prob": 0.0032,
+        "combined": -0.2526,
+        "flags": [],
+        "source_chunk_index": 117
+      },
+      "combined_delta_fast_minus_quality": 0.1016,
+      "winner_by_combined": "fast",
+      "fast_context": "elverişli daha da güzel olacak inşallah İster Müslüm olsun isterse gayrimüslim olsun İnsana manevi haz",
+      "quality_context": "Kur'an sesidir Şöyle söyleyeyim altını sileyim isterim Müslim olsun İstersek gayrimüslim olsun insana manevi haz"
+    },
+    {
+      "fast": "kendilerinden",
+      "quality": "kendilerine",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2272.95,
+        "end": 2278.29,
+        "duration": 5.34,
+        "avg_logprob": -0.1412,
+        "no_speech_prob": 0.0,
+        "combined": -0.1412,
+        "flags": [],
+        "source_chunk_index": 118
+      },
+      "quality_metrics": {
+        "start": 2269.41,
+        "end": 2278.27,
+        "duration": 8.86,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0021,
+        "combined": -0.1158,
+        "flags": [],
+        "source_chunk_index": 118
+      },
+      "combined_delta_fast_minus_quality": -0.0254,
+      "winner_by_combined": "near_tie",
+      "fast_context": "ihtimam biraz daha özenle bu sezonu kaçırmamalarını kendilerinden istirham ediyorum Bilmesiyle Cenab ı Hak Ramazan",
+      "quality_context": "ihtimam biraz daha özenle bu sezonu kaçırmamalarını kendilerine istirham ediyorum Bil vesile Cenab ı Hak"
+    },
+    {
+      "fast": "Bilmesiyle",
+      "quality": "vesile",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2278.71,
+        "end": 2281.95,
+        "duration": 3.24,
+        "avg_logprob": -0.1412,
+        "no_speech_prob": 0.0,
+        "combined": -0.1412,
+        "flags": [],
+        "source_chunk_index": 118
+      },
+      "quality_metrics": {
+        "start": 1416.82,
+        "end": 1419.82,
+        "duration": 3.0,
+        "avg_logprob": -0.2081,
+        "no_speech_prob": 0.0379,
+        "combined": -0.246,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "combined_delta_fast_minus_quality": 0.1048,
+      "winner_by_combined": "fast",
+      "fast_context": "özenle bu sezonu kaçırmamalarını kendilerinden istirham ediyorum Bilmesiyle Cenab ı Hak Ramazan ı Şerif ayını",
+      "quality_context": "mi Allah razı olsun İnşallah hata yapmamıza vesile olmasın heyecanımız Olmaz olmaz Siz tecrübelisiniz Zaten"
+    },
+    {
+      "fast": "fiziyle",
+      "quality": "fiziğiyle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2296.37,
+        "end": 2305.49,
+        "duration": 9.12,
+        "avg_logprob": -0.0999,
+        "no_speech_prob": 0.0,
+        "combined": -0.0999,
+        "flags": [],
+        "source_chunk_index": 119
+      },
+      "quality_metrics": {
+        "start": 2296.39,
+        "end": 2305.49,
+        "duration": 9.1,
+        "avg_logprob": -0.1004,
+        "no_speech_prob": 0.0213,
+        "combined": -0.1217,
+        "flags": [],
+        "source_chunk_index": 119
+      },
+      "combined_delta_fast_minus_quality": 0.0218,
+      "winner_by_combined": "near_tie",
+      "fast_context": "çok uygun Hem ismiyle hem cismiyle hem fiziyle hem de tilavetiyle çok uygun çok manidar",
+      "quality_context": "çok uygun Hem ismiyle hem cismiyle hem fiziğiyle hem de tilavetiyle çok uygun çok manidar"
+    },
+    {
+      "fast": "Eceboğlu",
+      "quality": "Ecipoğlu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2315.9,
+        "end": 2319.26,
+        "duration": 3.36,
+        "avg_logprob": -0.2024,
+        "no_speech_prob": 0.0,
+        "combined": -0.2024,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "quality_metrics": {
+        "start": 2315.9,
+        "end": 2329.12,
+        "duration": 13.22,
+        "avg_logprob": -0.1897,
+        "no_speech_prob": 0.082,
+        "combined": -0.2717,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "combined_delta_fast_minus_quality": 0.0693,
+      "winner_by_combined": "fast",
+      "fast_context": "benim Çok teşekkürler Osman Egin Hocam Halil Eceboğlu Hocam hocam yine çok şıksınız Maşallah size",
+      "quality_context": "benim Çok teşekkürler Osman Egin Hocam Halil Ecipoğlu hocam hocam yine çok şıksınız maşallah size"
+    },
+    {
+      "fast": "safalar",
+      "quality": "sefalar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2329.76,
+        "end": 2331.5,
+        "duration": 1.74,
+        "avg_logprob": -0.2024,
+        "no_speech_prob": 0.0,
+        "combined": -0.2024,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "quality_metrics": {
+        "start": 2329.76,
+        "end": 2331.48,
+        "duration": 1.72,
+        "avg_logprob": -0.1897,
+        "no_speech_prob": 0.082,
+        "combined": -0.2717,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "combined_delta_fast_minus_quality": 0.0693,
+      "winner_by_combined": "fast",
+      "fast_context": "büyük bir onur benim için Hoş geldiniz safalar getirdiniz Teşekkür ederim Bismillah elhamdülillah ve salatu",
+      "quality_context": "büyük bir onur benim için Hoş geldiniz sefalar getirdiniz Çok teşekkür ederim Bismillahirrahmanirrahim ve salatu"
+    },
+    {
+      "fast": "elhamdülillah",
+      "quality": "Bismillahirrahmanirrahim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 833.19,
+        "end": 842.37,
+        "duration": 9.18,
+        "avg_logprob": -0.0595,
+        "no_speech_prob": 0.0,
+        "combined": -0.0595,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "quality_metrics": {
+        "start": 119.475,
+        "end": 128.655,
+        "duration": 9.18,
+        "avg_logprob": -0.1701,
+        "no_speech_prob": 0.4624,
+        "combined": -0.6325,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 5
+      },
+      "combined_delta_fast_minus_quality": 0.573,
+      "winner_by_combined": "fast",
+      "fast_context": "özlemle beklediğimiz Ramazan ayına hep birlikte kavuştuk elhamdülillah Efendim rahmetin ve bereketin sembolü olan Ramazan",
+      "quality_context": "köprüler kurmak için 10 kez bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع"
+    },
+    {
+      "fast": "aleyhi",
+      "quality": "rasulillah",
+      "count": 1,
+      "fast_metrics": {
+        "start": 858.9,
+        "end": 866.54,
+        "duration": 7.64,
+        "avg_logprob": -0.091,
+        "no_speech_prob": 0.0,
+        "combined": -0.091,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 2331.48,
+        "end": 2336.24,
+        "duration": 4.76,
+        "avg_logprob": -0.1897,
+        "no_speech_prob": 0.082,
+        "combined": -0.2717,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "combined_delta_fast_minus_quality": 0.1807,
+      "winner_by_combined": "fast",
+      "fast_context": "Sizlerin huzurlarında olacağız Efendim malumunuz Efendimiz sallallahu aleyhi ve selleme nübüvvet 40 yaşında tebliğ edildi",
+      "quality_context": "ederim Bismillahirrahmanirrahim ve salatu ve selamu aleyh rasulillah Öncelikle tüm Müslümanların ortak sevinci olan mübarek"
+    },
+    {
+      "fast": "resulillah",
+      "quality": "Öncelikle",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2333.06,
+        "end": 2336.18,
+        "duration": 3.12,
+        "avg_logprob": -0.2024,
+        "no_speech_prob": 0.0,
+        "combined": -0.2024,
+        "flags": [],
+        "source_chunk_index": 121
+      },
+      "quality_metrics": {
+        "start": 743.78,
+        "end": 746.42,
+        "duration": 2.64,
+        "avg_logprob": -0.1182,
+        "no_speech_prob": 0.4683,
+        "combined": -0.5865,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.3841,
+      "winner_by_combined": "fast",
+      "fast_context": "Bismillah elhamdülillah ve salatu ve selamu aleyhi resulillah Tüm Müslümanların ortak sevinci olan Mübarek Ramazan",
+      "quality_context": "huzur veren en önemli ses Kur'an'ın sesidir Öncelikle kendisini tebrik ediyorum Gayet güzeldi Üslup açısından"
+    },
+    {
+      "fast": "Necipol",
+      "quality": "Necip",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2404.22,
+        "end": 2405.84,
+        "duration": 1.62,
+        "avg_logprob": -0.2835,
+        "no_speech_prob": 0.0,
+        "combined": -0.2835,
+        "flags": [],
+        "source_chunk_index": 124
+      },
+      "quality_metrics": {
+        "start": 2404.22,
+        "end": 2405.8,
+        "duration": 1.58,
+        "avg_logprob": -0.3044,
+        "no_speech_prob": 0.0022,
+        "combined": -0.3066,
+        "flags": [],
+        "source_chunk_index": 124
+      },
+      "combined_delta_fast_minus_quality": 0.0231,
+      "winner_by_combined": "near_tie",
+      "fast_context": "birlikte Allah bereketimizi artırsın diyorum Teşekkürler Halil Necipol hocam Evet Ömer Faruk İslam kardeşim ağzınıza",
+      "quality_context": "birlikte Allah bereketimizi arttırsın diyorum Teşekkürler Halil Necip Olucan Evet Ömer Faruk İslam kardeşim ağzınıza"
+    },
+    {
+      "fast": "hocam",
+      "quality": "Olucan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1240.74,
+        "end": 1244.18,
+        "duration": 3.44,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0,
+        "combined": -0.1314,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 2404.22,
+        "end": 2405.8,
+        "duration": 1.58,
+        "avg_logprob": -0.3044,
+        "no_speech_prob": 0.0022,
+        "combined": -0.3066,
+        "flags": [],
+        "source_chunk_index": 124
+      },
+      "combined_delta_fast_minus_quality": 0.1752,
+      "winner_by_combined": "fast",
+      "fast_context": "bu video için Doktor Mehmet Ali Sarı hocam ellerinizden öperim kavuştuk elhamdülillah Hocam videomuzu izledik",
+      "quality_context": "Allah bereketimizi arttırsın diyorum Teşekkürler Halil Necip Olucan Evet Ömer Faruk İslam kardeşim ağzınıza gönlünüze"
+    },
+    {
+      "fast": "Güzeldi",
+      "quality": "ederim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 743.78,
+        "end": 746.42,
+        "duration": 2.64,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 1364.86,
+        "end": 1366.2,
+        "duration": 1.34,
+        "avg_logprob": -0.1982,
+        "no_speech_prob": 0.1311,
+        "combined": -0.3293,
+        "flags": [],
+        "source_chunk_index": 72
+      },
+      "combined_delta_fast_minus_quality": 0.1784,
+      "winner_by_combined": "fast",
+      "fast_context": "Kur'an'ın sesidir Öncelikle kendisini tebrik ediyorum gayet güzeldi Üslup açısından problem yoktu En fes bir",
+      "quality_context": "Çok teşekkürler Doktor Mehmet Alisar Hocam Teşekkür ederim Efendim bu yıl Kur'an bülbüllerimizin en seçkin"
+    },
+    {
+      "fast": "Fark",
+      "quality": "Faruk",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2471.86,
+        "end": 2473.76,
+        "duration": 1.9,
+        "avg_logprob": -0.2696,
+        "no_speech_prob": 0.0,
+        "combined": -0.2696,
+        "flags": [],
+        "source_chunk_index": 129
+      },
+      "quality_metrics": {
+        "start": 1389.4,
+        "end": 1395.64,
+        "duration": 6.24,
+        "avg_logprob": -0.1311,
+        "no_speech_prob": 0.1807,
+        "combined": -0.3118,
+        "flags": [],
+        "source_chunk_index": 74
+      },
+      "combined_delta_fast_minus_quality": 0.0422,
+      "winner_by_combined": "near_tie",
+      "fast_context": "kardeşim teşekkür ediyorum Allah razı olsun Ömer Fark hocam size de çok teşekkür ediyorum Ve",
+      "quality_context": "10 yıl özel programı başlıyor Huzurlarınıza Ömer Faruk İslam geliyor Hoş geldiniz Hoş bulduk Ömer"
+    },
+    {
+      "fast": "Necipoğlu",
+      "quality": "Neciboğlu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2492.4,
+        "end": 2494.82,
+        "duration": 2.42,
+        "avg_logprob": -0.2533,
+        "no_speech_prob": 0.0,
+        "combined": -0.2533,
+        "flags": [],
+        "source_chunk_index": 131
+      },
+      "quality_metrics": {
+        "start": 2492.4,
+        "end": 2494.82,
+        "duration": 2.42,
+        "avg_logprob": -0.2295,
+        "no_speech_prob": 0.2368,
+        "combined": -0.4663,
+        "flags": [],
+        "source_chunk_index": 131
+      },
+      "combined_delta_fast_minus_quality": 0.213,
+      "winner_by_combined": "fast",
+      "fast_context": "98 puan veriyor 98 puan Evet Halil Necipoğlu hocam Evet Teşekkürler kıymetli kardeşim Ömer Faruk",
+      "quality_context": "98 puan veriyor 98 puan Evet Halil Neciboğlu hocam Evet teşekkürler kıymetli kardeşim Ömer Faruk"
+    },
+    {
+      "fast": "İyisiler",
+      "quality": "sizler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2615.5,
+        "end": 2616.28,
+        "duration": 0.78,
+        "avg_logprob": -0.162,
+        "no_speech_prob": 0.0,
+        "combined": -0.162,
+        "flags": [],
+        "source_chunk_index": 138
+      },
+      "quality_metrics": {
+        "start": 1406.8,
+        "end": 1408.64,
+        "duration": 1.84,
+        "avg_logprob": -0.2081,
+        "no_speech_prob": 0.0379,
+        "combined": -0.246,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "combined_delta_fast_minus_quality": 0.084,
+      "winner_by_combined": "fast",
+      "fast_context": "Hocam Merhabalar Hoş geldiniz Hoş gördük Nasılsınız İyisiler de iyisiniz Sizi gördük daha iyi oldu",
+      "quality_context": "Evet hocam Ömer Faruk hocam nasılsınız Elhamdülillah Sizler nasılsınız İyisiniz inşallah Elhamdülillah 10 yıl özel"
+    },
+    {
+      "fast": "Alif",
+      "quality": "من",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2721.85,
+        "end": 2733.85,
+        "duration": 12.0,
+        "avg_logprob": -0.7617,
+        "no_speech_prob": 0.0,
+        "combined": -0.7617,
+        "flags": [],
+        "source_chunk_index": 143
+      },
+      "quality_metrics": {
+        "start": 2841.6,
+        "end": 2857.34,
+        "duration": 15.74,
+        "avg_logprob": -0.2176,
+        "no_speech_prob": 0.1938,
+        "combined": -0.4115,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "combined_delta_fast_minus_quality": -0.3502,
+      "winner_by_combined": "quality",
+      "fast_context": "tilavet edecekler ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Alif Lam Ra وما أهلكنا من قرية إلا",
+      "quality_context": "اب م ع ل وم ما تسبق من أمة أجلها وما يستأخرون و ق ال"
+    },
+    {
+      "fast": "Lam",
+      "quality": "أمة",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2721.85,
+        "end": 2733.85,
+        "duration": 12.0,
+        "avg_logprob": -0.7617,
+        "no_speech_prob": 0.0,
+        "combined": -0.7617,
+        "flags": [],
+        "source_chunk_index": 143
+      },
+      "quality_metrics": {
+        "start": 2841.6,
+        "end": 2857.34,
+        "duration": 15.74,
+        "avg_logprob": -0.2176,
+        "no_speech_prob": 0.1938,
+        "combined": -0.4115,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "combined_delta_fast_minus_quality": -0.3502,
+      "winner_by_combined": "quality",
+      "fast_context": "edecekler ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Alif Lam Ra وما أهلكنا من قرية إلا ولها",
+      "quality_context": "م ع ل وم ما تسبق من أمة أجلها وما يستأخرون و ق ال وا"
+    },
+    {
+      "fast": "Ra",
+      "quality": "أجلها",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2721.85,
+        "end": 2733.85,
+        "duration": 12.0,
+        "avg_logprob": -0.7617,
+        "no_speech_prob": 0.0,
+        "combined": -0.7617,
+        "flags": [],
+        "source_chunk_index": 143
+      },
+      "quality_metrics": {
+        "start": 2841.6,
+        "end": 2857.34,
+        "duration": 15.74,
+        "avg_logprob": -0.2176,
+        "no_speech_prob": 0.1938,
+        "combined": -0.4115,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "combined_delta_fast_minus_quality": -0.3502,
+      "winner_by_combined": "quality",
+      "fast_context": "ve şimdi söz Kur'an'ın Bismillahirrahmanirrahim Alif Lam Ra وما أهلكنا من قرية إلا ولها كتاب",
+      "quality_context": "ع ل وم ما تسبق من أمة أجلها وما يستأخرون و ق ال وا ي"
+    },
+    {
+      "fast": "أهلكنا",
+      "quality": "ة",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2816.9,
+        "end": 2837.02,
+        "duration": 20.12,
+        "avg_logprob": -0.2711,
+        "no_speech_prob": 0.0,
+        "combined": -0.2711,
+        "flags": [],
+        "source_chunk_index": 147
+      },
+      "quality_metrics": {
+        "start": 308.15,
+        "end": 323.15,
+        "duration": 15.0,
+        "avg_logprob": -0.1125,
+        "no_speech_prob": 0.4368,
+        "combined": -0.5493,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 27
+      },
+      "combined_delta_fast_minus_quality": 0.2783,
+      "winner_by_combined": "fast",
+      "fast_context": "söz Kur'an'ın Bismillahirrahmanirrahim Alif Lam Ra وما أهلكنا من قرية إلا ولها كتاب معلوم Ma",
+      "quality_context": "ى س ف ر ف ع د ة م ن ا ي ام ا خ"
+    },
+    {
+      "fast": "Ma",
+      "quality": "ن",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2349.41,
+        "end": 2359.35,
+        "duration": 9.94,
+        "avg_logprob": -0.1864,
+        "no_speech_prob": 0.0,
+        "combined": -0.1864,
+        "flags": [],
+        "source_chunk_index": 122
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.4732,
+      "winner_by_combined": "fast",
+      "fast_context": "şu anda bizi ekranlarında gören sesimizi işiten Ma ile cümle dostlarımıza cümle aziz milletimize yüksek",
+      "quality_context": "10 kez bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع س ر ي"
+    },
+    {
+      "fast": "tasbiku",
+      "quality": "الص",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2841.6,
+        "end": 2856.6,
+        "duration": 15.0,
+        "avg_logprob": -0.7534,
+        "no_speech_prob": 0.0,
+        "combined": -0.7534,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "quality_metrics": {
+        "start": 2899.1,
+        "end": 2916.62,
+        "duration": 17.52,
+        "avg_logprob": -0.1139,
+        "no_speech_prob": 0.252,
+        "combined": -0.3659,
+        "flags": [],
+        "source_chunk_index": 150
+      },
+      "combined_delta_fast_minus_quality": -0.3875,
+      "winner_by_combined": "quality",
+      "fast_context": "من قرية إلا ولها كتاب معلوم Ma tasbiku min umma tin ajalaha wa ma yastakhiroon",
+      "quality_context": "ا ن ك ن ت م ن الص اد ق ين La yu'minûne bihî ve"
+    },
+    {
+      "fast": "ajalaha",
+      "quality": "La",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2841.6,
+        "end": 2856.6,
+        "duration": 15.0,
+        "avg_logprob": -0.7534,
+        "no_speech_prob": 0.0,
+        "combined": -0.7534,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": -0.1532,
+      "winner_by_combined": "quality",
+      "fast_context": "كتاب معلوم Ma tasbiku min umma tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي",
+      "quality_context": "ت م ن الص اد ق ين La yu'minûne bihî ve kad khalet sünnetul evvelî"
+    },
+    {
+      "fast": "wa",
+      "quality": "yu'minûne",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2841.6,
+        "end": 2856.6,
+        "duration": 15.0,
+        "avg_logprob": -0.7534,
+        "no_speech_prob": 0.0,
+        "combined": -0.7534,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": -0.1532,
+      "winner_by_combined": "quality",
+      "fast_context": "معلوم Ma tasbiku min umma tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل",
+      "quality_context": "م ن الص اد ق ين La yu'minûne bihî ve kad khalet sünnetul evvelî Allah'a"
+    },
+    {
+      "fast": "yastakhiroon",
+      "quality": "ve",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2841.6,
+        "end": 2856.6,
+        "duration": 15.0,
+        "avg_logprob": -0.7534,
+        "no_speech_prob": 0.0,
+        "combined": -0.7534,
+        "flags": [],
+        "source_chunk_index": 148
+      },
+      "quality_metrics": {
+        "start": 191.55,
+        "end": 195.91,
+        "duration": 4.36,
+        "avg_logprob": -0.0857,
+        "no_speech_prob": 0.0526,
+        "combined": -0.1383,
+        "flags": [],
+        "source_chunk_index": 14
+      },
+      "combined_delta_fast_minus_quality": -0.6151,
+      "winner_by_combined": "quality",
+      "fast_context": "tasbiku min umma tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر",
+      "quality_context": "ف ان ص ب Sadakallahu'l azim Rahman ve Rahim olan Allah'ın adıyla Ey Muhammed Senin"
+    },
+    {
+      "fast": "وقالوا",
+      "quality": "kad",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": 0.3841,
+      "winner_by_combined": "fast",
+      "fast_context": "min umma tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك",
+      "quality_context": "اد ق ين La yu'minûne bihî ve kad khalet sünnetul evvelî Allah'a şükürler olsun Sadakallahu'l"
+    },
+    {
+      "fast": "يا",
+      "quality": "khalet",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": 0.3841,
+      "winner_by_combined": "fast",
+      "fast_context": "umma tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون",
+      "quality_context": "ق ين La yu'minûne bihî ve kad khalet sünnetul evvelî Allah'a şükürler olsun Sadakallahu'l azim"
+    },
+    {
+      "fast": "أيها",
+      "quality": "sünnetul",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": 0.3841,
+      "winner_by_combined": "fast",
+      "fast_context": "tin ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan",
+      "quality_context": "ين La yu'minûne bihî ve kad khalet sünnetul evvelî Allah'a şükürler olsun Sadakallahu'l azim Furkan"
+    },
+    {
+      "fast": "الذي",
+      "quality": "evvelî",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 3075.65,
+        "end": 3087.45,
+        "duration": 11.8,
+        "avg_logprob": -0.3206,
+        "no_speech_prob": 0.2795,
+        "combined": -0.6002,
+        "flags": [],
+        "source_chunk_index": 156
+      },
+      "combined_delta_fast_minus_quality": 0.3841,
+      "winner_by_combined": "fast",
+      "fast_context": "ajalaha wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar",
+      "quality_context": "La yu'minûne bihî ve kad khalet sünnetul evvelî Allah'a şükürler olsun Sadakallahu'l azim Furkan Çınar"
+    },
+    {
+      "fast": "نزل",
+      "quality": "Allah'a",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 1745.55,
+        "end": 1757.425,
+        "duration": 11.875,
+        "avg_logprob": -0.3898,
+        "no_speech_prob": 0.749,
+        "combined": -1.1389,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 91
+      },
+      "combined_delta_fast_minus_quality": 0.9228,
+      "winner_by_combined": "fast",
+      "fast_context": "wa ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar için",
+      "quality_context": "ئ ك ه و ي ب ور Allah'a emanet olun و م ن ك ل"
+    },
+    {
+      "fast": "عليه",
+      "quality": "şükürler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 1993.625,
+        "end": 2004.875,
+        "duration": 11.25,
+        "avg_logprob": -0.4622,
+        "no_speech_prob": 0.5127,
+        "combined": -0.9749,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 105
+      },
+      "combined_delta_fast_minus_quality": 0.7589,
+      "winner_by_combined": "fast",
+      "fast_context": "ma yastakhiroon وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar için burada",
+      "quality_context": "ا ض ر ي ا Günlüğü Allah'a şükürler olsun Sadakallahul Azim Ömer Faruk İslam için"
+    },
+    {
+      "fast": "إنك",
+      "quality": "Sadakallahu'l",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 545.4,
+        "end": 552.64,
+        "duration": 7.24,
+        "avg_logprob": -0.4303,
+        "no_speech_prob": 0.1764,
+        "combined": -0.6067,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.3907,
+      "winner_by_combined": "fast",
+      "fast_context": "وقالوا يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar için burada bulunan seyirci",
+      "quality_context": "ك م ت ش ك ر ون Sadakallahu'l azim Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim Kur'an ı Kerim'i güzel"
+    },
+    {
+      "fast": "لمجنون",
+      "quality": "azim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2875.7,
+        "end": 2893.82,
+        "duration": 18.12,
+        "avg_logprob": -0.216,
+        "no_speech_prob": 0.0,
+        "combined": -0.216,
+        "flags": [],
+        "source_chunk_index": 149
+      },
+      "quality_metrics": {
+        "start": 545.4,
+        "end": 552.64,
+        "duration": 7.24,
+        "avg_logprob": -0.4303,
+        "no_speech_prob": 0.1764,
+        "combined": -0.6067,
+        "flags": [],
+        "source_chunk_index": 42
+      },
+      "combined_delta_fast_minus_quality": 0.3907,
+      "winner_by_combined": "fast",
+      "fast_context": "يا أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar için burada bulunan seyirci hocalarımızdan",
+      "quality_context": "م ت ش ك ر ون Sadakallahu'l azim Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim Kur'an ı Kerim'i güzel okuma"
+    },
+    {
+      "fast": "Kurkan",
+      "quality": "Furkan",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3157.825,
+        "end": 3164.225,
+        "duration": 6.4,
+        "avg_logprob": -0.1376,
+        "no_speech_prob": 0.0,
+        "combined": -0.1376,
+        "flags": [],
+        "source_chunk_index": 161
+      },
+      "quality_metrics": {
+        "start": 2599.0,
+        "end": 2607.22,
+        "duration": 8.22,
+        "avg_logprob": -0.1616,
+        "no_speech_prob": 0.3127,
+        "combined": -0.4743,
+        "flags": [],
+        "source_chunk_index": 137
+      },
+      "combined_delta_fast_minus_quality": 0.3368,
+      "winner_by_combined": "fast",
+      "fast_context": "أيها الذي نزل عليه الذكر إنك لمجنون Kurkan Çınar için burada bulunan seyirci hocalarımızdan puanlama",
+      "quality_context": "Bizimle birlikte ikinci tura kalan yarışmacımız Huzurlarınıza Furkan Çınar geliyor Furkan Hocam Merhabalar Hoş geldiniz"
+    },
+    {
+      "fast": "Necipoğlu",
+      "quality": "Oğlu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3291.7,
+        "end": 3293.92,
+        "duration": 2.22,
+        "avg_logprob": -0.1437,
+        "no_speech_prob": 0.0,
+        "combined": -0.1437,
+        "flags": [],
+        "source_chunk_index": 166
+      },
+      "quality_metrics": {
+        "start": 3291.7,
+        "end": 3293.9,
+        "duration": 2.2,
+        "avg_logprob": -0.1302,
+        "no_speech_prob": 0.0979,
+        "combined": -0.2281,
+        "flags": [],
+        "source_chunk_index": 166
+      },
+      "combined_delta_fast_minus_quality": 0.0844,
+      "winner_by_combined": "fast",
+      "fast_context": "Ali Sarı Hocam Ağzınıza sağlık Evet Halil Necipoğlu hocam Çok teşekkür ederim değerli Bekir Köse",
+      "quality_context": "Sarı Hocam Ağzınıza sağlık Evet Halil Necip Oğlu hocam Çok teşekkür ederim değerli Bekir Köse"
+    },
+    {
+      "fast": "müteşemlikler",
+      "quality": "muhteşemlikler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3336.94,
+        "end": 3340.62,
+        "duration": 3.68,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "quality_metrics": {
+        "start": 2569.925,
+        "end": 2573.625,
+        "duration": 3.7,
+        "avg_logprob": -0.0955,
+        "no_speech_prob": 0.213,
+        "combined": -0.3085,
+        "flags": [],
+        "source_chunk_index": 135
+      },
+      "combined_delta_fast_minus_quality": 0.1794,
+      "winner_by_combined": "fast",
+      "fast_context": "Siz o arayış içinde bile ne kadar müteşemlikler ortaya koydunuz Allah bu mübarek Ramazan ı",
+      "quality_context": "Siz o arayış içinde bile ne kadar muhteşemlikler ortaya koydunuz Şu andaki tilaveti potansiyelin 50'si"
+    },
+    {
+      "fast": "hürmetine",
+      "quality": "örmetine",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3340.62,
+        "end": 3347.76,
+        "duration": 7.14,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "quality_metrics": {
+        "start": 3340.62,
+        "end": 3347.74,
+        "duration": 7.12,
+        "avg_logprob": -0.1341,
+        "no_speech_prob": 0.0091,
+        "combined": -0.1432,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "combined_delta_fast_minus_quality": 0.0141,
+      "winner_by_combined": "near_tie",
+      "fast_context": "koydunuz Allah bu mübarek Ramazan ı Şerif hürmetine cümle hufazın ahiret hayatında olanlarına rahmet berhayatı",
+      "quality_context": "koydunuz Allah bu mübarek Ramazan ı Şerif örmetine cümle Huffaz'ın ahiret hayatında olanlarına rahmet berhayat"
+    },
+    {
+      "fast": "hufazın",
+      "quality": "Huffaz'ın",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3340.62,
+        "end": 3347.76,
+        "duration": 7.14,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "quality_metrics": {
+        "start": 3340.62,
+        "end": 3347.74,
+        "duration": 7.12,
+        "avg_logprob": -0.1341,
+        "no_speech_prob": 0.0091,
+        "combined": -0.1432,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "combined_delta_fast_minus_quality": 0.0141,
+      "winner_by_combined": "near_tie",
+      "fast_context": "bu mübarek Ramazan ı Şerif hürmetine cümle hufazın ahiret hayatında olanlarına rahmet berhayatı olanlarına selamet",
+      "quality_context": "bu mübarek Ramazan ı Şerif örmetine cümle Huffaz'ın ahiret hayatında olanlarına rahmet berhayat olanlarına selamet"
+    },
+    {
+      "fast": "berhayatı",
+      "quality": "berhayat",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3348.24,
+        "end": 3350.42,
+        "duration": 2.18,
+        "avg_logprob": -0.1292,
+        "no_speech_prob": 0.0,
+        "combined": -0.1292,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "quality_metrics": {
+        "start": 3348.24,
+        "end": 3350.42,
+        "duration": 2.18,
+        "avg_logprob": -0.1341,
+        "no_speech_prob": 0.0091,
+        "combined": -0.1432,
+        "flags": [],
+        "source_chunk_index": 167
+      },
+      "combined_delta_fast_minus_quality": 0.0141,
+      "winner_by_combined": "near_tie",
+      "fast_context": "hürmetine cümle hufazın ahiret hayatında olanlarına rahmet berhayatı olanlarına selamet nasip eylesin Sizi saygıyla selamlıyorum",
+      "quality_context": "örmetine cümle Huffaz'ın ahiret hayatında olanlarına rahmet berhayat olanlarına selamet nasip eylesin Sizi saygıyla selamlıyorum"
+    },
+    {
+      "fast": "Necipoğlu",
+      "quality": "Oğul",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3417.5,
+        "end": 3418.9,
+        "duration": 1.4,
+        "avg_logprob": -0.2606,
+        "no_speech_prob": 0.0,
+        "combined": -0.2606,
+        "flags": [],
+        "source_chunk_index": 174
+      },
+      "quality_metrics": {
+        "start": 3417.48,
+        "end": 3418.9,
+        "duration": 1.42,
+        "avg_logprob": -0.3211,
+        "no_speech_prob": 0.0301,
+        "combined": -0.3512,
+        "flags": [],
+        "source_chunk_index": 174
+      },
+      "combined_delta_fast_minus_quality": 0.0906,
+      "winner_by_combined": "fast",
+      "fast_context": "veriyorum Doksan dokuz puan Maşallah Evet Halil Necipoğlu hocam Şimdi değerli Furkan hocam Size 97",
+      "quality_context": "veriyorum 99 puan Maşallah Evet Halil Necip Oğul hocam Şimdi değerli Furkan hocam Size 97"
+    },
+    {
+      "fast": "kırklara",
+      "quality": "40'lara",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3520.93,
+        "end": 3523.37,
+        "duration": 2.44,
+        "avg_logprob": -0.146,
+        "no_speech_prob": 0.0,
+        "combined": -0.146,
+        "flags": [],
+        "source_chunk_index": 181
+      },
+      "quality_metrics": {
+        "start": 3520.45,
+        "end": 3522.59,
+        "duration": 2.14,
+        "avg_logprob": -0.1225,
+        "no_speech_prob": 0.1816,
+        "combined": -0.3041,
+        "flags": [],
+        "source_chunk_index": 181
+      },
+      "combined_delta_fast_minus_quality": 0.1582,
+      "winner_by_combined": "fast",
+      "fast_context": "çok sevindiniz mi Sevindik elhamdülillah Hocamın tabiriyle kırklara karıştınız İnşallah hocam Ne mutlu sizlere Allah",
+      "quality_context": "çok sevindiniz mi Sevindik elhamdülillah hocamın tabiriyle 40'lara karıştınız İnşallah hocam Ne mutlu sizlere Allah"
+    },
+    {
+      "fast": "kırklarındandı",
+      "quality": "40'larındandı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3526.33,
+        "end": 3530.77,
+        "duration": 4.44,
+        "avg_logprob": -0.146,
+        "no_speech_prob": 0.0,
+        "combined": -0.146,
+        "flags": [],
+        "source_chunk_index": 181
+      },
+      "quality_metrics": {
+        "start": 3528.27,
+        "end": 3530.41,
+        "duration": 2.14,
+        "avg_logprob": -0.1225,
+        "no_speech_prob": 0.1816,
+        "combined": -0.3041,
+        "flags": [],
+        "source_chunk_index": 181
+      },
+      "combined_delta_fast_minus_quality": 0.1582,
+      "winner_by_combined": "fast",
+      "fast_context": "razı olsun eksik olmayın Ve yıllarca TRT'nin kırklarındandı diye anılacak bundan emin olun Çünkü muhteşem",
+      "quality_context": "Allah razı olsun Eksik olmayın Yıllarca TRT'nin 40'larındandı diye anılacak Bundan emin olun Çünkü muhteşem"
+    },
+    {
+      "fast": "berrekallah",
+      "quality": "berrakallah",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3569.525,
+        "end": 3570.945,
+        "duration": 1.42,
+        "avg_logprob": -0.2835,
+        "no_speech_prob": 0.0,
+        "combined": -0.2835,
+        "flags": [],
+        "source_chunk_index": 184
+      },
+      "quality_metrics": {
+        "start": 3569.525,
+        "end": 3570.945,
+        "duration": 1.42,
+        "avg_logprob": -0.2366,
+        "no_speech_prob": 0.1952,
+        "combined": -0.4318,
+        "flags": [],
+        "source_chunk_index": 184
+      },
+      "combined_delta_fast_minus_quality": 0.1483,
+      "winner_by_combined": "fast",
+      "fast_context": "alıp götürüyor Elhamdülillah Evet Muhammed Hocam Maşallah berrekallah Eksik olma Şimdi hazır mısınız sorusunu soracağım",
+      "quality_context": "alıp götürüyor Elhamdülillah Evet Muhammed hocam Maşallah berrakallah Eksik olmuş Şimdi hazır mısınız sorusunu soracağım"
+    },
+    {
+      "fast": "değiliz",
+      "quality": "TRT'deyiz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3579.625,
+        "end": 3580.325,
+        "duration": 0.7,
+        "avg_logprob": -0.2835,
+        "no_speech_prob": 0.0,
+        "combined": -0.2835,
+        "flags": [],
+        "source_chunk_index": 184
+      },
+      "quality_metrics": {
+        "start": 3579.605,
+        "end": 3580.265,
+        "duration": 0.66,
+        "avg_logprob": -0.2366,
+        "no_speech_prob": 0.1952,
+        "combined": -0.4318,
+        "flags": [],
+        "source_chunk_index": 184
+      },
+      "combined_delta_fast_minus_quality": 0.1483,
+      "winner_by_combined": "fast",
+      "fast_context": "gördüm ama ben Normaldir hocam Normaldir Terhette değiliz Hazır mısınız Hazırız hocam Bizler de hazırız",
+      "quality_context": "heyecanlı gördüm ama ben Normaldir hocam Normaldir TRT'deyiz Hazır mısınız Hazırız hocam Bizler de hazırız"
+    },
+    {
+      "fast": "rahliye",
+      "quality": "rahliyeye",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2652.82,
+        "end": 2653.92,
+        "duration": 1.1,
+        "avg_logprob": -0.2294,
+        "no_speech_prob": 0.0,
+        "combined": -0.2294,
+        "flags": [],
+        "source_chunk_index": 139
+      },
+      "quality_metrics": {
+        "start": 3582.765,
+        "end": 3584.485,
+        "duration": 1.72,
+        "avg_logprob": -0.2366,
+        "no_speech_prob": 0.1952,
+        "combined": -0.4318,
+        "flags": [],
+        "source_chunk_index": 184
+      },
+      "combined_delta_fast_minus_quality": 0.2025,
+      "winner_by_combined": "fast",
+      "fast_context": "hocam Elhamdülillah hazırız Bizler de hazırız Sizi rahliye davet ediyorum Lütfen buyurun Hafız Furkan Çınar",
+      "quality_context": "mısınız Hazırız hocam Bizler de hazırız Sizi rahliyeye davet ediyorum efendim buyurunuz Hafız Muhammed John"
+    },
+    {
+      "fast": "İttekوا",
+      "quality": "ا",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3677.0,
+        "end": 3697.28,
+        "duration": 20.28,
+        "avg_logprob": -0.3477,
+        "no_speech_prob": 0.0,
+        "combined": -0.3477,
+        "flags": [],
+        "source_chunk_index": 190
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.3119,
+      "winner_by_combined": "fast",
+      "fast_context": "ayetleri tilavet edecekler ve şimdi söz Kur'an'ın İttekوا الله حق تقاته ولا تموتن إلا وأنتم",
+      "quality_context": "için 10 kez bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع س ر"
+    },
+    {
+      "fast": "مسلمون",
+      "quality": "وا",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3677.0,
+        "end": 3697.28,
+        "duration": 20.28,
+        "avg_logprob": -0.3477,
+        "no_speech_prob": 0.0,
+        "combined": -0.3477,
+        "flags": [],
+        "source_chunk_index": 190
+      },
+      "quality_metrics": {
+        "start": 348.7,
+        "end": 360.78,
+        "duration": 12.08,
+        "avg_logprob": -0.1164,
+        "no_speech_prob": 0.1182,
+        "combined": -0.2346,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": -0.113,
+      "winner_by_combined": "quality",
+      "fast_context": "الله حق تقاته ولا تموتن إلا وأنتم مسلمون واذكروا نعمة الله عليكم إذ كنتم أعداد",
+      "quality_context": "له و ا ن ت ص وم وا خ ي ر ل ك م ا"
+    },
+    {
+      "fast": "O",
+      "quality": "ن",
+      "count": 1,
+      "fast_metrics": {
+        "start": 52.22,
+        "end": 60.2,
+        "duration": 7.98,
+        "avg_logprob": -0.0865,
+        "no_speech_prob": 0.0,
+        "combined": -0.0865,
+        "flags": [],
+        "source_chunk_index": 2
+      },
+      "quality_metrics": {
+        "start": 165.66,
+        "end": 170.86,
+        "duration": 5.2,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": 0.5731,
+      "winner_by_combined": "fast",
+      "fast_context": "davet için bu mikrofondaydı Hafızalarda yer eden o eşsiz silavetler şimdi koca bir maziye silinmez",
+      "quality_context": "س ر ي س ر ا ا ن م ع ال ع س ر ي"
+    },
+    {
+      "fast": "tujuhum",
+      "quality": "م",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3981.2,
+        "end": 3997.28,
+        "duration": 16.08,
+        "avg_logprob": -1.1424,
+        "no_speech_prob": 0.0,
+        "combined": -1.1424,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 206
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": -0.4829,
+      "winner_by_combined": "quality",
+      "fast_context": "الله عليكم إذ كنتم أعداد O da tujuhum acafartum ba'da imanikum fazukul azam Hafız Muhammed",
+      "quality_context": "kez bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع س ر ي س"
+    },
+    {
+      "fast": "acafartum",
+      "quality": "ت",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3981.2,
+        "end": 3997.28,
+        "duration": 16.08,
+        "avg_logprob": -1.1424,
+        "no_speech_prob": 0.0,
+        "combined": -1.1424,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 206
+      },
+      "quality_metrics": {
+        "start": 348.7,
+        "end": 360.78,
+        "duration": 12.08,
+        "avg_logprob": -0.1164,
+        "no_speech_prob": 0.1182,
+        "combined": -0.2346,
+        "flags": [],
+        "source_chunk_index": 30
+      },
+      "combined_delta_fast_minus_quality": -0.9078,
+      "winner_by_combined": "quality",
+      "fast_context": "عليكم إذ كنتم أعداد O da tujuhum acafartum ba'da imanikum fazukul azam Hafız Muhammed John",
+      "quality_context": "خيرا فهو خير له و ا ن ت ص وم وا خ ي ر ل"
+    },
+    {
+      "fast": "imanikum",
+      "quality": "ف",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3981.2,
+        "end": 3997.28,
+        "duration": 16.08,
+        "avg_logprob": -1.1424,
+        "no_speech_prob": 0.0,
+        "combined": -1.1424,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 206
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": -0.4829,
+      "winner_by_combined": "quality",
+      "fast_context": "كنتم أعداد O da tujuhum acafartum ba'da imanikum fazukul azam Hafız Muhammed John için burada",
+      "quality_context": "kurmak için 10 kez bir aradayız Bismillahirrahmanirrahim ف ا ن م ع ال ع س"
+    },
+    {
+      "fast": "fazukul",
+      "quality": "ر",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3981.2,
+        "end": 3997.28,
+        "duration": 16.08,
+        "avg_logprob": -1.1424,
+        "no_speech_prob": 0.0,
+        "combined": -1.1424,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 206
+      },
+      "quality_metrics": {
+        "start": 160.6,
+        "end": 165.66,
+        "duration": 5.06,
+        "avg_logprob": -0.1058,
+        "no_speech_prob": 0.5537,
+        "combined": -0.6595,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 10
+      },
+      "combined_delta_fast_minus_quality": -0.4829,
+      "winner_by_combined": "quality",
+      "fast_context": "أعداد O da tujuhum acafartum ba'da imanikum fazukul azam Hafız Muhammed John için burada bulunan",
+      "quality_context": "ا ن م ع ال ع س ر ي س ر ا ا ن م"
+    },
+    {
+      "fast": "Necipol",
+      "quality": "Oğul",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3352.25,
+        "end": 3354.27,
+        "duration": 2.02,
+        "avg_logprob": -0.1747,
+        "no_speech_prob": 0.0,
+        "combined": -0.1747,
+        "flags": [],
+        "source_chunk_index": 168
+      },
+      "quality_metrics": {
+        "start": 4160.78,
+        "end": 4162.52,
+        "duration": 1.74,
+        "avg_logprob": -0.2477,
+        "no_speech_prob": 0.1727,
+        "combined": -0.4204,
+        "flags": [],
+        "source_chunk_index": 213
+      },
+      "combined_delta_fast_minus_quality": 0.2457,
+      "winner_by_combined": "fast",
+      "fast_context": "eylesin Sizi saygıyla selamlıyorum Çok teşekkürler Halil Necipol hocam Allah razı olsun Evet Furkan hocam",
+      "quality_context": "ederiz İyi ki geldiniz Evet Halil Necip Oğul hocam Teşekkür ederim değerli Bekir Kösey hocam"
+    },
+    {
+      "fast": "10",
+      "quality": "on",
+      "count": 1,
+      "fast_metrics": {
+        "start": 33.5,
+        "end": 41.02,
+        "duration": 7.52,
+        "avg_logprob": -0.0758,
+        "no_speech_prob": 0.0,
+        "combined": -0.0758,
+        "flags": [],
+        "source_chunk_index": 1
+      },
+      "quality_metrics": {
+        "start": 4179.98,
+        "end": 4181.84,
+        "duration": 1.86,
+        "avg_logprob": -0.1424,
+        "no_speech_prob": 0.012,
+        "combined": -0.1544,
+        "flags": [],
+        "source_chunk_index": 213
+      },
+      "combined_delta_fast_minus_quality": 0.0786,
+      "winner_by_combined": "fast",
+      "fast_context": "Tam 10 yıldır bu ekran sadece bir yarışmaya değil",
+      "quality_context": "yani bizim klasik Türk tavrı dediğimiz ta on yıldan beri hep işaret ettiğimiz konular içinde"
+    },
+    {
+      "fast": "kalamadığınız",
+      "quality": "kalamadınız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4182.0,
+        "end": 4192.06,
+        "duration": 10.06,
+        "avg_logprob": -0.1412,
+        "no_speech_prob": 0.0,
+        "combined": -0.1412,
+        "flags": [],
+        "source_chunk_index": 214
+      },
+      "quality_metrics": {
+        "start": 3448.93,
+        "end": 3460.93,
+        "duration": 12.0,
+        "avg_logprob": -0.1293,
+        "no_speech_prob": 0.2544,
+        "combined": -0.3837,
+        "flags": [],
+        "source_chunk_index": 177
+      },
+      "combined_delta_fast_minus_quality": 0.2425,
+      "winner_by_combined": "fast",
+      "fast_context": "beri hep işaret ettiğimiz konular içinde çok kalamadığınız tercih ettiğiniz tarz itibariyle olsa gerek bu",
+      "quality_context": "beri hep işaret ettiğimiz konular içinde çok kalamadınız Müslüman olmak ve Allah'ın bize verdiği o"
+    },
+    {
+      "fast": "kardeşim",
+      "quality": "ederim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2058.74,
+        "end": 2068.38,
+        "duration": 9.64,
+        "avg_logprob": -0.1251,
+        "no_speech_prob": 0.0,
+        "combined": -0.1251,
+        "flags": [],
+        "source_chunk_index": 109
+      },
+      "quality_metrics": {
+        "start": 1490.3,
+        "end": 1492.16,
+        "duration": 1.86,
+        "avg_logprob": -0.177,
+        "no_speech_prob": 0.0554,
+        "combined": -0.2324,
+        "flags": [],
+        "source_chunk_index": 79
+      },
+      "combined_delta_fast_minus_quality": 0.1073,
+      "winner_by_combined": "fast",
+      "fast_context": "alıyoruz efendim Çok teşekkür ediyorum Bekir Bey kardeşim Allah hayırlı eylesin Sağlıkla afiyetle hep beraber",
+      "quality_context": "inşallah Bizler de hazırız Sizi Rahli'ye davet ederim lütfen buyurunuz Ömer Faruk İslam Fatır Suresi"
+    },
+    {
+      "fast": "Necipol",
+      "quality": "Oğlu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4160.76,
+        "end": 4162.52,
+        "duration": 1.76,
+        "avg_logprob": -0.2288,
+        "no_speech_prob": 0.0,
+        "combined": -0.2288,
+        "flags": [],
+        "source_chunk_index": 213
+      },
+      "quality_metrics": {
+        "start": 4216.51,
+        "end": 4217.95,
+        "duration": 1.44,
+        "avg_logprob": -0.3404,
+        "no_speech_prob": 0.0185,
+        "combined": -0.3589,
+        "flags": [],
+        "source_chunk_index": 215
+      },
+      "combined_delta_fast_minus_quality": 0.1301,
+      "winner_by_combined": "fast",
+      "fast_context": "teşekkür ederiz İyi ki geldiniz Evet Halil Necipol hocam Teşekkür ederim değerli Bekir Kösey hocam",
+      "quality_context": "Aziz Kardeş Teşekkür ederim Teşekkürler Halil Necip Oğlu hocam Allah razı olsun Doktor Mehmet Alisar"
+    },
+    {
+      "fast": "Elhamd",
+      "quality": "Elhamdülillah",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4227.0,
+        "end": 4229.0,
+        "duration": 2.0,
+        "avg_logprob": -0.8052,
+        "no_speech_prob": 0.0,
+        "combined": -0.8052,
+        "flags": [
+          "low_logprob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 217
+      },
+      "quality_metrics": {
+        "start": 833.91,
+        "end": 842.33,
+        "duration": 8.42,
+        "avg_logprob": -0.0568,
+        "no_speech_prob": 0.0105,
+        "combined": -0.0673,
+        "flags": [],
+        "source_chunk_index": 50
+      },
+      "combined_delta_fast_minus_quality": -0.7379,
+      "winner_by_combined": "quality",
+      "fast_context": "Çok teşekkür ediyorum efendim Rica ederim Evet Elhamd Muhammed John kardeşimizi dinledik Kur'an tilavetinde iki",
+      "quality_context": "özlemle beklediğimiz Ramazan ayına hep birlikte kavuştuk elhamdülillah Efendim rahmetin ve bereketin sembolü olan Ramazan"
+    },
+    {
+      "fast": "asfat",
+      "quality": "asfalt",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4239.665,
+        "end": 4244.885,
+        "duration": 5.22,
+        "avg_logprob": -0.1912,
+        "no_speech_prob": 0.0,
+        "combined": -0.1912,
+        "flags": [],
+        "source_chunk_index": 219
+      },
+      "quality_metrics": {
+        "start": 4239.665,
+        "end": 4244.885,
+        "duration": 5.22,
+        "avg_logprob": -0.1259,
+        "no_speech_prob": 0.0856,
+        "combined": -0.2115,
+        "flags": [],
+        "source_chunk_index": 219
+      },
+      "combined_delta_fast_minus_quality": 0.0203,
+      "winner_by_combined": "near_tie",
+      "fast_context": "temel esas vardır Birisi elfaz öteki de asfat sesler Bu önemli olan elfazdır Elfaz da",
+      "quality_context": "temel esas vardır Birisi elfaz öteki de asfalt sesler Bu önemli olan elfazdır Elfazda hata"
+    },
+    {
+      "fast": "da",
+      "quality": "Elfazda",
+      "count": 1,
+      "fast_metrics": {
+        "start": 727.96,
+        "end": 732.2,
+        "duration": 4.24,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 4246.375,
+        "end": 4251.395,
+        "duration": 5.02,
+        "avg_logprob": -0.1708,
+        "no_speech_prob": 0.0033,
+        "combined": -0.1741,
+        "flags": [],
+        "source_chunk_index": 220
+      },
+      "combined_delta_fast_minus_quality": 0.0232,
+      "winner_by_combined": "near_tie",
+      "fast_context": "yıl özelde bugün Sesi gayet elverişli daha da güzel olacak inşallah İster Müslüm olsun isterse",
+      "quality_context": "de asfalt sesler Bu önemli olan elfazdır Elfazda hata etmemek lazım Asfaltta şöyle böyle durumlar"
+    },
+    {
+      "fast": "da",
+      "quality": "Asfaltta",
+      "count": 1,
+      "fast_metrics": {
+        "start": 896.6,
+        "end": 910.64,
+        "duration": 14.04,
+        "avg_logprob": -0.0668,
+        "no_speech_prob": 0.0,
+        "combined": -0.0668,
+        "flags": [],
+        "source_chunk_index": 53
+      },
+      "quality_metrics": {
+        "start": 4252.135,
+        "end": 4264.395,
+        "duration": 12.26,
+        "avg_logprob": -0.1708,
+        "no_speech_prob": 0.0033,
+        "combined": -0.1741,
+        "flags": [],
+        "source_chunk_index": 220
+      },
+      "combined_delta_fast_minus_quality": 0.1073,
+      "winner_by_combined": "fast",
+      "fast_context": "sadasını sizlere ulaştıralım Azımız çok bereketli çoğumuzu da inşallah daha da bereketli kılalım duasıyla kıymetli",
+      "quality_context": "önemli olan elfazdır Elfazda hata etmemek lazım Asfaltta şöyle böyle durumlar olabilir Yakın olur uzak"
+    },
+    {
+      "fast": "elfaza",
+      "quality": "elfazda",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4255.675,
+        "end": 4264.395,
+        "duration": 8.72,
+        "avg_logprob": -0.206,
+        "no_speech_prob": 0.0,
+        "combined": -0.206,
+        "flags": [],
+        "source_chunk_index": 220
+      },
+      "quality_metrics": {
+        "start": 4252.135,
+        "end": 4264.395,
+        "duration": 12.26,
+        "avg_logprob": -0.1708,
+        "no_speech_prob": 0.0033,
+        "combined": -0.1741,
+        "flags": [],
+        "source_chunk_index": 220
+      },
+      "combined_delta_fast_minus_quality": -0.0318,
+      "winner_by_combined": "near_tie",
+      "fast_context": "uzak olur pes olur tiz olur ama elfaza çok dikkat etmek lazım Muhammed kardeşim Gözlerinden",
+      "quality_context": "uzak olur pes olur tiz olur ama elfazda çok dikkat etmek lazım Muhammed kardeşim Gözlerinden"
+    },
+    {
+      "fast": "ilavet",
+      "quality": "ilave",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3443.45,
+        "end": 3448.93,
+        "duration": 5.48,
+        "avg_logprob": -0.1447,
+        "no_speech_prob": 0.0,
+        "combined": -0.1447,
+        "flags": [],
+        "source_chunk_index": 177
+      },
+      "quality_metrics": {
+        "start": 1293.25,
+        "end": 1300.09,
+        "duration": 6.84,
+        "avg_logprob": -0.1249,
+        "no_speech_prob": 0.0459,
+        "combined": -0.1708,
+        "flags": [],
+        "source_chunk_index": 70
+      },
+      "combined_delta_fast_minus_quality": 0.0261,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sağlık güzel okudunuz ve fakat en tespit ilavet çok güzel bir ilavetti Yani bizim klasik",
+      "quality_context": "niyaz ediyorum Amin Teravih namazı Yastı namazına ilave eden 20 rekatlık bir namaz olduğu için"
+    },
+    {
+      "fast": "tilavetti",
+      "quality": "etti",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4288.74,
+        "end": 4290.48,
+        "duration": 1.74,
+        "avg_logprob": -0.1892,
+        "no_speech_prob": 0.0,
+        "combined": -0.1892,
+        "flags": [],
+        "source_chunk_index": 221
+      },
+      "quality_metrics": {
+        "start": 4288.74,
+        "end": 4290.5,
+        "duration": 1.76,
+        "avg_logprob": -0.1814,
+        "no_speech_prob": 0.1458,
+        "combined": -0.3272,
+        "flags": [],
+        "source_chunk_index": 221
+      },
+      "combined_delta_fast_minus_quality": 0.138,
+      "winner_by_combined": "fast",
+      "fast_context": "olsun En tespit ilavet çok güzel bir tilavetti Şimdi Selman El Farisi biliyorsun Ferisi'dir Yani",
+      "quality_context": "En tespit ilave çok güzel bir ilave etti Şimdi Selman el Farisi biliyorsun Ferisi'dir yani"
+    },
+    {
+      "fast": "Kâb",
+      "quality": "Ka'b",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4327.63,
+        "end": 4335.07,
+        "duration": 7.44,
+        "avg_logprob": -0.1802,
+        "no_speech_prob": 0.0,
+        "combined": -0.1802,
+        "flags": [],
+        "source_chunk_index": 223
+      },
+      "quality_metrics": {
+        "start": 4331.45,
+        "end": 4332.87,
+        "duration": 1.42,
+        "avg_logprob": -0.196,
+        "no_speech_prob": 0.0705,
+        "combined": -0.2665,
+        "flags": [],
+        "source_chunk_index": 223
+      },
+      "combined_delta_fast_minus_quality": 0.0862,
+      "winner_by_combined": "fast",
+      "fast_context": "bin Avvam Talha bin Ubeydullah Ubey bin Kâb Abdullah bin Mesud gibi Ama Selman'da bu",
+      "quality_context": "bin Avvam Talha bin Ubeydullah Ubey bin Ka'b Abdullah bin Mesud gibi Ama Selman'da bu"
+    },
+    {
+      "fast": "faresi",
+      "quality": "Farisi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4337.97,
+        "end": 4339.43,
+        "duration": 1.46,
+        "avg_logprob": -0.1802,
+        "no_speech_prob": 0.0,
+        "combined": -0.1802,
+        "flags": [],
+        "source_chunk_index": 223
+      },
+      "quality_metrics": {
+        "start": 4290.5,
+        "end": 4297.34,
+        "duration": 6.84,
+        "avg_logprob": -0.1814,
+        "no_speech_prob": 0.1458,
+        "combined": -0.3272,
+        "flags": [],
+        "source_chunk_index": 221
+      },
+      "combined_delta_fast_minus_quality": 0.1469,
+      "winner_by_combined": "fast",
+      "fast_context": "gibi Ama Selman'da bu yok Selman el faresi Çünkü kalkmış gelmiş babası vesaire bilinmiyor Herkes",
+      "quality_context": "güzel bir ilave etti Şimdi Selman el Farisi biliyorsun Ferisi'dir yani İranlı'dır Medine'de sallallahu aleyhi"
+    },
+    {
+      "fast": "Köse",
+      "quality": "Köste",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2147.08,
+        "end": 2150.64,
+        "duration": 3.56,
+        "avg_logprob": -0.1214,
+        "no_speech_prob": 0.0,
+        "combined": -0.1214,
+        "flags": [],
+        "source_chunk_index": 114
+      },
+      "quality_metrics": {
+        "start": 4447.66,
+        "end": 4450.24,
+        "duration": 2.58,
+        "avg_logprob": -0.2642,
+        "no_speech_prob": 0.3054,
+        "combined": -0.5696,
+        "flags": [],
+        "source_chunk_index": 228
+      },
+      "combined_delta_fast_minus_quality": 0.4482,
+      "winner_by_combined": "fast",
+      "fast_context": "Osman Egin hocam kavuştuk elhamdülillah Elhamdülillah Bekir Köse kardeşim çok teşekkür ediyorum kıymetli hocam Tilaveti",
+      "quality_context": "Evet Halil Necipoglu hocam Evet kıymetli Bekir Köste hocam teşekkür ederim Değerli Muhammed Can hocam"
+    },
+    {
+      "fast": "performansı",
+      "quality": "performanslı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4535.58,
+        "end": 4539.18,
+        "duration": 3.6,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0,
+        "combined": -0.1428,
+        "flags": [],
+        "source_chunk_index": 237
+      },
+      "quality_metrics": {
+        "start": 4535.58,
+        "end": 4539.18,
+        "duration": 3.6,
+        "avg_logprob": -0.1404,
+        "no_speech_prob": 0.1812,
+        "combined": -0.3215,
+        "flags": [],
+        "source_chunk_index": 237
+      },
+      "combined_delta_fast_minus_quality": 0.1787,
+      "winner_by_combined": "fast",
+      "fast_context": "Bu vesileyle entes bir tilavet gerçekleştirdin O performansı gücü iktisatlı kullanmak lazım Bunu Kur'an'la sarıp",
+      "quality_context": "Bu vesileyle entes bir tilavet gerçekleştirdin O performanslı gücü iktisatlı kullanmak lazım Bunu Kur'an'la sarıp"
+    },
+    {
+      "fast": "edebilir",
+      "quality": "edebilirim",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2423.86,
+        "end": 2425.56,
+        "duration": 1.7,
+        "avg_logprob": -0.1897,
+        "no_speech_prob": 0.0,
+        "combined": -0.1897,
+        "flags": [],
+        "source_chunk_index": 125
+      },
+      "quality_metrics": {
+        "start": 3185.16,
+        "end": 3194.02,
+        "duration": 8.86,
+        "avg_logprob": -0.1167,
+        "no_speech_prob": 0.1188,
+        "combined": -0.2355,
+        "flags": [],
+        "source_chunk_index": 162
+      },
+      "combined_delta_fast_minus_quality": 0.0459,
+      "winner_by_combined": "near_tie",
+      "fast_context": "puanlamamız var efendim Puanlama noktasına sizi davet edebilir miyim Tabii ki Buyurunuz efendim Evet Doktor",
+      "quality_context": "çok harika bir ortamda bulunuyoruz diye ifade edebilirim Elhamdülillah Furkan Çınar kardeşim de buradaki değere"
+    },
+    {
+      "fast": "olsun",
+      "quality": "sizler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 732.58,
+        "end": 735.76,
+        "duration": 3.18,
+        "avg_logprob": -0.1509,
+        "no_speech_prob": 0.0,
+        "combined": -0.1509,
+        "flags": [],
+        "source_chunk_index": 47
+      },
+      "quality_metrics": {
+        "start": 2612.0,
+        "end": 2616.3,
+        "duration": 4.3,
+        "avg_logprob": -0.1112,
+        "no_speech_prob": 0.6367,
+        "combined": -0.7479,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 138
+      },
+      "combined_delta_fast_minus_quality": 0.597,
+      "winner_by_combined": "fast",
+      "fast_context": "daha da güzel olacak inşallah İster Müslüm olsun isterse gayrimüslim olsun İnsana manevi haz manevi",
+      "quality_context": "Merhabalar Hoş geldiniz Hoş gördük Nasılsınız İyi sizler de iyisiniz Sizi gördük daha iyi oldu"
+    },
+    {
+      "fast": "Siz",
+      "quality": "de",
+      "count": 1,
+      "fast_metrics": {
+        "start": 951.0,
+        "end": 962.42,
+        "duration": 11.42,
+        "avg_logprob": -0.1246,
+        "no_speech_prob": 0.0,
+        "combined": -0.1246,
+        "flags": [],
+        "source_chunk_index": 56
+      },
+      "quality_metrics": {
+        "start": 871.16,
+        "end": 873.16,
+        "duration": 2.0,
+        "avg_logprob": -0.1399,
+        "no_speech_prob": 0.0102,
+        "combined": -0.1501,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "combined_delta_fast_minus_quality": 0.0255,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Etimeskut müftülüğü Altındağ müftülüğünden gelen kıymetli hocalarımız Siz Kur'an dostu izleyicilerimiz ve elhamdülillah kavuştuk kıymetlilerimiz",
+      "quality_context": "edildi 40 Kemal'in ve Kemalat'ın yaşı Bizler de istedik ki Kırk Kur'an bülbülümüzle bu yıl"
+    },
+    {
+      "fast": "neredeyse",
+      "quality": "iyisiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4588.83,
+        "end": 4590.39,
+        "duration": 1.56,
+        "avg_logprob": -0.2786,
+        "no_speech_prob": 0.0,
+        "combined": -0.2786,
+        "flags": [],
+        "source_chunk_index": 240
+      },
+      "quality_metrics": {
+        "start": 2612.0,
+        "end": 2616.3,
+        "duration": 4.3,
+        "avg_logprob": -0.1112,
+        "no_speech_prob": 0.6367,
+        "combined": -0.7479,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 138
+      },
+      "combined_delta_fast_minus_quality": 0.4693,
+      "winner_by_combined": "fast",
+      "fast_context": "Hoş geldiniz Nasılsınız Allah razı olsun Siz neredeyse inşallah Sizi gördük daha iyi olduk hocam",
+      "quality_context": "geldiniz Hoş gördük Nasılsınız İyi sizler de iyisiniz Sizi gördük daha iyi oldu kıymetli hocam"
+    },
+    {
+      "fast": "buyurunuz",
+      "quality": "Hazırız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1018.93,
+        "end": 1019.29,
+        "duration": 0.36,
+        "avg_logprob": -0.1191,
+        "no_speech_prob": 0.0,
+        "combined": -0.1191,
+        "flags": [],
+        "source_chunk_index": 58
+      },
+      "quality_metrics": {
+        "start": 1488.83,
+        "end": 1490.13,
+        "duration": 1.3,
+        "avg_logprob": -0.1396,
+        "no_speech_prob": 0.0453,
+        "combined": -0.1848,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "combined_delta_fast_minus_quality": 0.0658,
+      "winner_by_combined": "fast",
+      "fast_context": "Bugün teravih Efendim hep birlikte izleyelim mi Buyurunuz Ramazan ayını inanarak ve sevabını Allah'tan bekleyerek",
+      "quality_context": "efendim hazır mıyız Hazırım inşallah Bizler de hazırız Sizi Rahli'ye davet ederim lütfen buyurunuz Ömer"
+    },
+    {
+      "fast": "Sakay",
+      "quality": "Saka",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5191.875,
+        "end": 5199.055,
+        "duration": 7.18,
+        "avg_logprob": -0.1507,
+        "no_speech_prob": 0.0,
+        "combined": -0.1507,
+        "flags": [],
+        "source_chunk_index": 263
+      },
+      "quality_metrics": {
+        "start": 4584.05,
+        "end": 4586.85,
+        "duration": 2.8,
+        "avg_logprob": -0.2026,
+        "no_speech_prob": 0.3013,
+        "combined": -0.5039,
+        "flags": [],
+        "source_chunk_index": 240
+      },
+      "combined_delta_fast_minus_quality": 0.3532,
+      "winner_by_combined": "fast",
+      "fast_context": "يجعل الله له نورا فما Hafız Muhammed Sakay için burada bulunan seyirci hocalarımızdan puanlama yapmalarını",
+      "quality_context": "kalan yarışmacımız Huzurlarınıza Muhammed Faka geliyor Muhammed Saka hocam hoş geldiniz nasılsınız sizler de iyisiniz"
+    },
+    {
+      "fast": "Sar",
+      "quality": "Alisar",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5254.78,
+        "end": 5259.5,
+        "duration": 4.72,
+        "avg_logprob": -0.2041,
+        "no_speech_prob": 0.0,
+        "combined": -0.2041,
+        "flags": [],
+        "source_chunk_index": 266
+      },
+      "quality_metrics": {
+        "start": 3236.52,
+        "end": 3237.88,
+        "duration": 1.36,
+        "avg_logprob": -0.2557,
+        "no_speech_prob": 0.1292,
+        "combined": -0.3849,
+        "flags": [],
+        "source_chunk_index": 164
+      },
+      "combined_delta_fast_minus_quality": 0.1808,
+      "winner_by_combined": "fast",
+      "fast_context": "tebrik ediyorum Çok teşekkürler Dr Mehmet Ali Sar hocam Ağzınıza gönlünüze sağlık Evet Osman Egin",
+      "quality_context": "teşekkür ediyoruz Allah razı olsun Doktor Mehmet Alisar Hocam Teşekkür ederim efendim Rica ederim hocam"
+    },
+    {
+      "fast": "Sakal",
+      "quality": "Saka",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5265.14,
+        "end": 5270.2,
+        "duration": 5.06,
+        "avg_logprob": -0.2041,
+        "no_speech_prob": 0.0,
+        "combined": -0.2041,
+        "flags": [],
+        "source_chunk_index": 266
+      },
+      "quality_metrics": {
+        "start": 4652.3,
+        "end": 4663.48,
+        "duration": 11.18,
+        "avg_logprob": -0.1565,
+        "no_speech_prob": 0.0801,
+        "combined": -0.2366,
+        "flags": [],
+        "source_chunk_index": 243
+      },
+      "combined_delta_fast_minus_quality": 0.0325,
+      "winner_by_combined": "near_tie",
+      "fast_context": "teşekkür ediyorum Dilaveti gerçekleştiren kıymetli kardeşim Muhammed Sakal hocama da teşekkürlerimi arz ediyorum Bilvesi ile",
+      "quality_context": "Rahle'ye davet ediyorum buyurmuz Hazırız Hafız Muhammed Saka Nur Suresi 36 42 ayetleri tilavet edecekler"
+    },
+    {
+      "fast": "Bilvesi",
+      "quality": "Bil",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5270.2,
+        "end": 5272.74,
+        "duration": 2.54,
+        "avg_logprob": -0.2728,
+        "no_speech_prob": 0.0,
+        "combined": -0.2728,
+        "flags": [],
+        "source_chunk_index": 266
+      },
+      "quality_metrics": {
+        "start": 2278.27,
+        "end": 2282.25,
+        "duration": 3.98,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0021,
+        "combined": -0.1158,
+        "flags": [],
+        "source_chunk_index": 118
+      },
+      "combined_delta_fast_minus_quality": -0.157,
+      "winner_by_combined": "quality",
+      "fast_context": "Muhammed Sakal hocama da teşekkürlerimi arz ediyorum Bilvesi ile memleketimiz Trabzon'umuzu Hürmetle muhabbetle selamlıyorum Bekir",
+      "quality_context": "özenle bu sezonu kaçırmamalarını kendilerine istirham ediyorum Bil vesile Cenab ı Hak Ramazan ı Şerif"
+    },
+    {
+      "fast": "ile",
+      "quality": "vesile",
+      "count": 1,
+      "fast_metrics": {
+        "start": 74.9,
+        "end": 82.44,
+        "duration": 7.54,
+        "avg_logprob": -0.0693,
+        "no_speech_prob": 0.0,
+        "combined": -0.0693,
+        "flags": [],
+        "source_chunk_index": 3
+      },
+      "quality_metrics": {
+        "start": 2278.27,
+        "end": 2282.25,
+        "duration": 3.98,
+        "avg_logprob": -0.1137,
+        "no_speech_prob": 0.0021,
+        "combined": -0.1158,
+        "flags": [],
+        "source_chunk_index": 118
+      },
+      "combined_delta_fast_minus_quality": 0.0466,
+      "winner_by_combined": "near_tie",
+      "fast_context": "vardır Kur'an ı Kerim'i en güzel seda ile okumak kalpten kalbe köprüler kurmak için 10",
+      "quality_context": "bu sezonu kaçırmamalarını kendilerine istirham ediyorum Bil vesile Cenab ı Hak Ramazan ı Şerif ayını"
+    },
+    {
+      "fast": "esirlidir",
+      "quality": "Balıkesirlidir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5277.85,
+        "end": 5284.19,
+        "duration": 6.34,
+        "avg_logprob": -0.1564,
+        "no_speech_prob": 0.0,
+        "combined": -0.1564,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "quality_metrics": {
+        "start": 5278.19,
+        "end": 5284.19,
+        "duration": 6.0,
+        "avg_logprob": -0.1181,
+        "no_speech_prob": 0.086,
+        "combined": -0.2041,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "combined_delta_fast_minus_quality": 0.0478,
+      "winner_by_combined": "near_tie",
+      "fast_context": "muhabbetle selamlıyorum Bekir kardeşimiz biliyorsunuz Trabzonsporlu Balık esirlidir ama Trabzonsporlu çok canı gönülden seven bir",
+      "quality_context": "Hürmetle muhabbetle selamlıyorum Bekir kardeşimiz biliyorsunuz Trabzonsporlu Balıkesirlidir ama Trabzonsporlu çok canı gönülden seven bir"
+    },
+    {
+      "fast": "büyüğümüz",
+      "quality": "yüğümüz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5293.81,
+        "end": 5298.23,
+        "duration": 4.42,
+        "avg_logprob": -0.1564,
+        "no_speech_prob": 0.0,
+        "combined": -0.1564,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "quality_metrics": {
+        "start": 5294.57,
+        "end": 5298.21,
+        "duration": 3.64,
+        "avg_logprob": -0.1181,
+        "no_speech_prob": 0.086,
+        "combined": -0.2041,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "combined_delta_fast_minus_quality": 0.0478,
+      "winner_by_combined": "near_tie",
+      "fast_context": "etmek onun güzelliğini anlatmak Çok kıymetli bir büyüğümüz muhterem hocam da ifade ettiler ifade buyururlar",
+      "quality_context": "etmek onun güzelliğini anlatmak Çok kıymetli bir yüğümüz muhterem hocam da ifade ettiler ifade buyururlar"
+    },
+    {
+      "fast": "Trabzonsporlu'nun",
+      "quality": "Trabzon'un",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5299.21,
+        "end": 5301.73,
+        "duration": 2.52,
+        "avg_logprob": -0.1564,
+        "no_speech_prob": 0.0,
+        "combined": -0.1564,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "quality_metrics": {
+        "start": 5299.17,
+        "end": 5301.71,
+        "duration": 2.54,
+        "avg_logprob": -0.1181,
+        "no_speech_prob": 0.086,
+        "combined": -0.2041,
+        "flags": [],
+        "source_chunk_index": 267
+      },
+      "combined_delta_fast_minus_quality": 0.0478,
+      "winner_by_combined": "near_tie",
+      "fast_context": "muhterem hocam da ifade ettiler ifade buyururlar Trabzonsporlu'nun birçok güzellikleri var Ama bence en güzel",
+      "quality_context": "muhterem hocam da ifade ettiler ifade buyururlar Trabzon'un birçok güzellikleri var Ama bence en güzel"
+    },
+    {
+      "fast": "Necipoğlu",
+      "quality": "Ecipoğlu",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4445.1,
+        "end": 4447.66,
+        "duration": 2.56,
+        "avg_logprob": -0.2661,
+        "no_speech_prob": 0.0,
+        "combined": -0.2661,
+        "flags": [],
+        "source_chunk_index": 228
+      },
+      "quality_metrics": {
+        "start": 5318.92,
+        "end": 5320.3,
+        "duration": 1.38,
+        "avg_logprob": -0.1693,
+        "no_speech_prob": 0.2546,
+        "combined": -0.4239,
+        "flags": [],
+        "source_chunk_index": 269
+      },
+      "combined_delta_fast_minus_quality": 0.1578,
+      "winner_by_combined": "fast",
+      "fast_context": "puanlama noktasına davet ediyorum buyurunuz Evet Halil Necipoğlu hocam Evet kıymetli Bekir Köse hocam teşekkür",
+      "quality_context": "Allah razı olsun kardeşim benim Evet Halil Ecipoğlu hocam Evet teşekkür ederim Kıymetli Muhammed Sakar"
+    },
+    {
+      "fast": "değilsiniz",
+      "quality": "iyisiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2642.14,
+        "end": 2645.1,
+        "duration": 2.96,
+        "avg_logprob": -0.2294,
+        "no_speech_prob": 0.0,
+        "combined": -0.2294,
+        "flags": [],
+        "source_chunk_index": 139
+      },
+      "quality_metrics": {
+        "start": 4588.77,
+        "end": 4590.45,
+        "duration": 1.68,
+        "avg_logprob": -0.2026,
+        "no_speech_prob": 0.3013,
+        "combined": -0.5039,
+        "flags": [],
+        "source_chunk_index": 240
+      },
+      "combined_delta_fast_minus_quality": 0.2745,
+      "winner_by_combined": "fast",
+      "fast_context": "ki geldiniz hoş geldiniz Burada zaten yalnız değilsiniz Ankaralısınız zaten Biz sizin misafiriniz olarak geldik",
+      "quality_context": "Saka hocam hoş geldiniz nasılsınız sizler de iyisiniz inşallah sizi gördük daha iyi olduk hocam"
+    },
+    {
+      "fast": "de",
+      "quality": "Hatim'le",
+      "count": 1,
+      "fast_metrics": {
+        "start": 871.16,
+        "end": 873.16,
+        "duration": 2.0,
+        "avg_logprob": -0.2209,
+        "no_speech_prob": 0.0,
+        "combined": -0.2209,
+        "flags": [],
+        "source_chunk_index": 51
+      },
+      "quality_metrics": {
+        "start": 5335.3,
+        "end": 5337.58,
+        "duration": 2.28,
+        "avg_logprob": -0.2032,
+        "no_speech_prob": 0.162,
+        "combined": -0.3652,
+        "flags": [],
+        "source_chunk_index": 270
+      },
+      "combined_delta_fast_minus_quality": 0.1443,
+      "winner_by_combined": "fast",
+      "fast_context": "edildi 40 kemalin ve kemalatın yaşı Bizler de istedik ki Kırk Kur'an bülbülümüzle bu yıl",
+      "quality_context": "mı biraz Evet hocam Neler yapacaksınız mesela Hatim'le teravih kıldıracak mısın Hocam görevdeyiz teravihler olacak"
+    },
+    {
+      "fast": "terafi",
+      "quality": "teravih",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5335.3,
+        "end": 5337.62,
+        "duration": 2.32,
+        "avg_logprob": -0.2207,
+        "no_speech_prob": 0.0,
+        "combined": -0.2207,
+        "flags": [],
+        "source_chunk_index": 270
+      },
+      "quality_metrics": {
+        "start": 1008.87,
+        "end": 1015.35,
+        "duration": 6.48,
+        "avg_logprob": -0.1229,
+        "no_speech_prob": 0.0059,
+        "combined": -0.1288,
+        "flags": [],
+        "source_chunk_index": 58
+      },
+      "combined_delta_fast_minus_quality": -0.0919,
+      "winner_by_combined": "quality",
+      "fast_context": "Evet hocam Neler yapacaksınız mesela Hatim de terafi kıldıracak mısın Görevdeyiz terafiler olacak Görevdeyiz Tamam",
+      "quality_context": "kıymetli Kur'an dostu izleyicilerimize ulaştıralım Bugün de teravih Ramazan deyince aklımıza ilk gelen teravih sahur"
+    },
+    {
+      "fast": "terafiler",
+      "quality": "teravihler",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5337.64,
+        "end": 5339.46,
+        "duration": 1.82,
+        "avg_logprob": -0.2207,
+        "no_speech_prob": 0.0,
+        "combined": -0.2207,
+        "flags": [],
+        "source_chunk_index": 270
+      },
+      "quality_metrics": {
+        "start": 5337.58,
+        "end": 5339.5,
+        "duration": 1.92,
+        "avg_logprob": -0.2032,
+        "no_speech_prob": 0.162,
+        "combined": -0.3652,
+        "flags": [],
+        "source_chunk_index": 270
+      },
+      "combined_delta_fast_minus_quality": 0.1445,
+      "winner_by_combined": "fast",
+      "fast_context": "mesela Hatim de terafi kıldıracak mısın Görevdeyiz terafiler olacak Görevdeyiz Tamam gayet güzel Şimdi henüz",
+      "quality_context": "mesela Hatim'le teravih kıldıracak mısın Hocam görevdeyiz teravihler olacak görevdeyiz Tamam gayet güzel Şimdi henüz"
+    },
+    {
+      "fast": "arifsiniz",
+      "quality": "ariştiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5381.87,
+        "end": 5383.51,
+        "duration": 1.64,
+        "avg_logprob": -0.1659,
+        "no_speech_prob": 0.0,
+        "combined": -0.1659,
+        "flags": [],
+        "source_chunk_index": 271
+      },
+      "quality_metrics": {
+        "start": 5381.87,
+        "end": 5385.31,
+        "duration": 3.44,
+        "avg_logprob": -0.1255,
+        "no_speech_prob": 0.0166,
+        "combined": -0.1422,
+        "flags": [],
+        "source_chunk_index": 271
+      },
+      "combined_delta_fast_minus_quality": -0.0238,
+      "winner_by_combined": "near_tie",
+      "fast_context": "hocam Yani sakin olmak lazım Siz çok arifsiniz Gayet net anladınız Doğru mu Allah razı",
+      "quality_context": "hocam Yani sakin olmak lazım Siz çok ariştiniz gayet net anladınız doğru mu Allah razı"
+    },
+    {
+      "fast": "Şerif'inize",
+      "quality": "Şerifiniz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5388.19,
+        "end": 5390.07,
+        "duration": 1.88,
+        "avg_logprob": -0.1659,
+        "no_speech_prob": 0.0,
+        "combined": -0.1659,
+        "flags": [],
+        "source_chunk_index": 271
+      },
+      "quality_metrics": {
+        "start": 5328.18,
+        "end": 5331.78,
+        "duration": 3.6,
+        "avg_logprob": -0.1693,
+        "no_speech_prob": 0.2546,
+        "combined": -0.4239,
+        "flags": [],
+        "source_chunk_index": 269
+      },
+      "combined_delta_fast_minus_quality": 0.258,
+      "winner_by_combined": "fast",
+      "fast_context": "Peki çok hürmetle selamlıyorum Tekrar Ramazan ı Şerif'inize mübarek olsun Çok teşekkürler Halil Necipol hocam",
+      "quality_context": "Sizler de iyisiniz inşallah Elhamdülillah Ramazan ı Şerif'iniz mübarek olsun Nasıl hazırlandınız mı biraz Evet"
+    },
+    {
+      "fast": "Necipol",
+      "quality": "Necipov",
+      "count": 1,
+      "fast_metrics": {
+        "start": 4216.45,
+        "end": 4217.95,
+        "duration": 1.5,
+        "avg_logprob": -0.3347,
+        "no_speech_prob": 0.0,
+        "combined": -0.3347,
+        "flags": [],
+        "source_chunk_index": 215
+      },
+      "quality_metrics": {
+        "start": 5390.07,
+        "end": 5392.35,
+        "duration": 2.28,
+        "avg_logprob": -0.1255,
+        "no_speech_prob": 0.0166,
+        "combined": -0.1422,
+        "flags": [],
+        "source_chunk_index": 271
+      },
+      "combined_delta_fast_minus_quality": -0.1926,
+      "winner_by_combined": "quality",
+      "fast_context": "hocam Teşekkür ederim Aziz kardeşim Teşekkürler Halil Necipol hocam Allah razı olsun Doktor Mehmet Ali",
+      "quality_context": "ı Şerifiniz mübarek olsun Çok teşekkürler Halil Necipov hocam Teşekkürler Çok teşekkür ediyoruz Muhammed Hocam"
+    },
+    {
+      "fast": "Çok",
+      "quality": "bulduk",
+      "count": 1,
+      "fast_metrics": {
+        "start": 751.7,
+        "end": 757.6,
+        "duration": 5.9,
+        "avg_logprob": -0.1146,
+        "no_speech_prob": 0.0,
+        "combined": -0.1146,
+        "flags": [],
+        "source_chunk_index": 48
+      },
+      "quality_metrics": {
+        "start": 1400.8,
+        "end": 1401.42,
+        "duration": 0.62,
+        "avg_logprob": -0.3585,
+        "no_speech_prob": 0.3589,
+        "combined": -0.7174,
+        "flags": [],
+        "source_chunk_index": 75
+      },
+      "combined_delta_fast_minus_quality": 0.6028,
+      "winner_by_combined": "fast",
+      "fast_context": "En fes bir tilavetle Özel sezona bence çok uygun çok manidar bir kardeşimizin tilavetiyle başladık",
+      "quality_context": "Ömer Faruk İslam geliyor Hoş geldiniz Hoş bulduk Ömer Faruk İslam Evet hocam Ömer Faruk"
+    },
+    {
+      "fast": "olarak",
+      "quality": "imam",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1082.8,
+        "end": 1088.06,
+        "duration": 5.26,
+        "avg_logprob": -0.0843,
+        "no_speech_prob": 0.0,
+        "combined": -0.0843,
+        "flags": [],
+        "source_chunk_index": 61
+      },
+      "quality_metrics": {
+        "start": 5566.12,
+        "end": 5568.36,
+        "duration": 2.24,
+        "avg_logprob": -0.2352,
+        "no_speech_prob": 0.3701,
+        "combined": -0.6054,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "combined_delta_fast_minus_quality": 0.5211,
+      "winner_by_combined": "fast",
+      "fast_context": "bu namaz Hazreti Peygamber'in Ramazan aylarına has olarak kıldığı nafile bir namazdır İslam geleneğinde yüzyıllar",
+      "quality_context": "göz bebeği Allah razı olsun Millet camimizde imam hatip olarak görev Mezun kayım olarak evet"
+    },
+    {
+      "fast": "görebiliyorsunuz",
+      "quality": "hatip",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5566.14,
+        "end": 5568.38,
+        "duration": 2.24,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.0,
+        "combined": -0.3015,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "quality_metrics": {
+        "start": 5566.12,
+        "end": 5568.36,
+        "duration": 2.24,
+        "avg_logprob": -0.2352,
+        "no_speech_prob": 0.3701,
+        "combined": -0.6054,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "combined_delta_fast_minus_quality": 0.3039,
+      "winner_by_combined": "fast",
+      "fast_context": "Allah razı olsun Millet camimizde imhatip olarak görebiliyorsunuz Mezzin kayım Mezzin kayım olarak evet Mezzin",
+      "quality_context": "bebeği Allah razı olsun Millet camimizde imam hatip olarak görev Mezun kayım olarak evet Mezun"
+    },
+    {
+      "fast": "Mezzin",
+      "quality": "olarak",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5569.28,
+        "end": 5570.3,
+        "duration": 1.02,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.0,
+        "combined": -0.3015,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "quality_metrics": {
+        "start": 1082.8,
+        "end": 1088.06,
+        "duration": 5.26,
+        "avg_logprob": -0.0765,
+        "no_speech_prob": 0.0395,
+        "combined": -0.116,
+        "flags": [],
+        "source_chunk_index": 61
+      },
+      "combined_delta_fast_minus_quality": -0.1855,
+      "winner_by_combined": "quality",
+      "fast_context": "Millet camimizde imhatip olarak görebiliyorsunuz Mezzin kayım Mezzin kayım olarak evet Mezzin kayım olarak görebiliyorsunuz",
+      "quality_context": "bu namaz Hz Peygamberin Ramazan aylarına has olarak kıldığı nafile bir namazdır İslam geleneğinde yüzyıllar"
+    },
+    {
+      "fast": "görebiliyorsunuz",
+      "quality": "yapıyorsunuz",
+      "count": 1,
+      "fast_metrics": {
+        "start": 5570.48,
+        "end": 5572.08,
+        "duration": 1.6,
+        "avg_logprob": -0.3015,
+        "no_speech_prob": 0.0,
+        "combined": -0.3015,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "quality_metrics": {
+        "start": 5570.48,
+        "end": 5572.06,
+        "duration": 1.58,
+        "avg_logprob": -0.2352,
+        "no_speech_prob": 0.3701,
+        "combined": -0.6054,
+        "flags": [],
+        "source_chunk_index": 286
+      },
+      "combined_delta_fast_minus_quality": 0.3039,
+      "winner_by_combined": "fast",
+      "fast_context": "Mezzin kayım olarak evet Mezzin kayım olarak görebiliyorsunuz orada Hocam 2017 2018 yıllarında sizi aramızda",
+      "quality_context": "kayım olarak evet Mezun kayım olarak görev yapıyorsunuz orada Hocam 2017 2018 yıllarında sizi aramızda"
+    },
+    {
+      "fast": "tilavet",
+      "quality": "tilabet",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1476.57,
+        "end": 1481.65,
+        "duration": 5.08,
+        "avg_logprob": -0.141,
+        "no_speech_prob": 0.0,
+        "combined": -0.141,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "quality_metrics": {
+        "start": 5602.55,
+        "end": 5612.93,
+        "duration": 10.38,
+        "avg_logprob": -0.1678,
+        "no_speech_prob": 0.0859,
+        "combined": -0.2537,
+        "flags": [],
+        "source_chunk_index": 289
+      },
+      "combined_delta_fast_minus_quality": 0.1127,
+      "winner_by_combined": "fast",
+      "fast_context": "çalışırız İnşallah inşallah Sizden böyle muhteşem bir tilavet dinliyoruz zaten dinlemeye de devam edeceğiz Şimdi",
+      "quality_context": "Ahmet Kuzu Tevbe Suresi 38 41 ayetleri tilabet edecekler ve şimdi söz Kur'an'ın Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim"
+    },
+    {
+      "fast": "Hafız",
+      "quality": "Afız",
+      "count": 1,
+      "fast_metrics": {
+        "start": 2655.7,
+        "end": 2666.82,
+        "duration": 11.12,
+        "avg_logprob": -0.1452,
+        "no_speech_prob": 0.0,
+        "combined": -0.1452,
+        "flags": [],
+        "source_chunk_index": 140
+      },
+      "quality_metrics": {
+        "start": 6202.875,
+        "end": 6211.075,
+        "duration": 8.2,
+        "avg_logprob": -0.1454,
+        "no_speech_prob": 0.2084,
+        "combined": -0.3537,
+        "flags": [],
+        "source_chunk_index": 312
+      },
+      "combined_delta_fast_minus_quality": 0.2085,
+      "winner_by_combined": "fast",
+      "fast_context": "hazırız Sizi rahliye davet ediyorum Lütfen buyurun Hafız Furkan Çınar Hicr Suresi 1 ila 15",
+      "quality_context": "aleyk Ya selam ya selam Ya Selam Afız Ahmet Kuzu için burada bulunan seyirci hocalarımızdan"
+    },
+    {
+      "fast": "innallaha",
+      "quality": "innellaha",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6277.22,
+        "end": 6279.0,
+        "duration": 1.78,
+        "avg_logprob": -0.2319,
+        "no_speech_prob": 0.0,
+        "combined": -0.2319,
+        "flags": [],
+        "source_chunk_index": 315
+      },
+      "quality_metrics": {
+        "start": 6277.2,
+        "end": 6279.7,
+        "duration": 2.5,
+        "avg_logprob": -0.2207,
+        "no_speech_prob": 0.0345,
+        "combined": -0.2553,
+        "flags": [],
+        "source_chunk_index": 315
+      },
+      "combined_delta_fast_minus_quality": 0.0234,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Efendimiz sallallahu aleyhi ve sellem la tehzen innallaha me'anâ diyor Şimdi şuraya geleceğim Ahmet Hocam'ın",
+      "quality_context": "Efendimiz sallallahu aleyhi ve sellem la tehzen innellaha ma'ana diyor Şimdi şuraya geleceğim Ahmet hocamın"
+    },
+    {
+      "fast": "me'anâ",
+      "quality": "ma'ana",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6279.0,
+        "end": 6279.7,
+        "duration": 0.7,
+        "avg_logprob": -0.2319,
+        "no_speech_prob": 0.0,
+        "combined": -0.2319,
+        "flags": [],
+        "source_chunk_index": 315
+      },
+      "quality_metrics": {
+        "start": 6277.2,
+        "end": 6279.7,
+        "duration": 2.5,
+        "avg_logprob": -0.2207,
+        "no_speech_prob": 0.0345,
+        "combined": -0.2553,
+        "flags": [],
+        "source_chunk_index": 315
+      },
+      "combined_delta_fast_minus_quality": 0.0234,
+      "winner_by_combined": "near_tie",
+      "fast_context": "sallallahu aleyhi ve sellem la tehzen innallaha me'anâ diyor Şimdi şuraya geleceğim Ahmet Hocam'ın tilavetiyle",
+      "quality_context": "sallallahu aleyhi ve sellem la tehzen innellaha ma'ana diyor Şimdi şuraya geleceğim Ahmet hocamın tilavetiyle"
+    },
+    {
+      "fast": "Bekir",
+      "quality": "Bubekir",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1258.66,
+        "end": 1260.94,
+        "duration": 2.28,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0,
+        "combined": -0.1314,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 6293.18,
+        "end": 6297.94,
+        "duration": 4.76,
+        "avg_logprob": -0.1825,
+        "no_speech_prob": 0.0066,
+        "combined": -0.1891,
+        "flags": [],
+        "source_chunk_index": 316
+      },
+      "combined_delta_fast_minus_quality": 0.0577,
+      "winner_by_combined": "fast",
+      "fast_context": "edeceğim Lütfen buyurunuz efendim Çok teşekkür ediyorum Bekir Bey Ben de Milletimizin insanlarımızın ve bütün",
+      "quality_context": "Sanki alıyor o mağaranın dibine O Hazreti Bubekir radıyallahu anh'ın taşıdığı endişeleri taşıyor Ve adeta"
+    },
+    {
+      "fast": "Egyen",
+      "quality": "Egin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6324.67,
+        "end": 6326.27,
+        "duration": 1.6,
+        "avg_logprob": -0.2306,
+        "no_speech_prob": 0.0,
+        "combined": -0.2306,
+        "flags": [],
+        "source_chunk_index": 317
+      },
+      "quality_metrics": {
+        "start": 2143.2,
+        "end": 2146.66,
+        "duration": 3.46,
+        "avg_logprob": -0.1144,
+        "no_speech_prob": 0.1437,
+        "combined": -0.258,
+        "flags": [],
+        "source_chunk_index": 114
+      },
+      "combined_delta_fast_minus_quality": 0.0274,
+      "winner_by_combined": "near_tie",
+      "fast_context": "benim canım kardeşim benim Çok teşekkürler Osman Egyen Hoca Allah razı olsun Dostum Ahmet Hocam",
+      "quality_context": "Doktor Mehmet Ali Sarı Hocam Evet Osman Egin Hocam kavuştuk elhamdülillah Elhamdülillah Bekir Köse kardeşim"
+    },
+    {
+      "fast": "İnnemâ",
+      "quality": "mâ",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6422.33,
+        "end": 6423.35,
+        "duration": 1.02,
+        "avg_logprob": -0.2962,
+        "no_speech_prob": 0.0,
+        "combined": -0.2962,
+        "flags": [],
+        "source_chunk_index": 324
+      },
+      "quality_metrics": {
+        "start": 6422.35,
+        "end": 6423.35,
+        "duration": 1.0,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.1246,
+        "combined": -0.3757,
+        "flags": [],
+        "source_chunk_index": 324
+      },
+      "combined_delta_fast_minus_quality": 0.0795,
+      "winner_by_combined": "fast",
+      "fast_context": "biz bunları görüyoruz böyle birkaç yerde var İnnemâ ya Rabbi Bu olacak Önü deniz arkası",
+      "quality_context": "bunları görüyoruz Böyle birkaç yerde var İnne mâ yâ Rabbi Bu olacak Önü deniz arkası"
+    },
+    {
+      "fast": "oradası",
+      "quality": "ortası",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6424.07,
+        "end": 6426.83,
+        "duration": 2.76,
+        "avg_logprob": -0.2962,
+        "no_speech_prob": 0.0,
+        "combined": -0.2962,
+        "flags": [],
+        "source_chunk_index": 324
+      },
+      "quality_metrics": {
+        "start": 6424.05,
+        "end": 6426.85,
+        "duration": 2.8,
+        "avg_logprob": -0.2511,
+        "no_speech_prob": 0.1246,
+        "combined": -0.3757,
+        "flags": [],
+        "source_chunk_index": 324
+      },
+      "combined_delta_fast_minus_quality": 0.0795,
+      "winner_by_combined": "fast",
+      "fast_context": "Rabbi Bu olacak Önü deniz arkası Firavun'un oradası Kavm ı Musa perişan bir şey için",
+      "quality_context": "Rabbi Bu olacak Önü deniz arkası firavunun ortası Kavm ı Musa perişan bir şey içinde"
+    },
+    {
+      "fast": "yarabbîs",
+      "quality": "içinde",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6438.65,
+        "end": 6440.25,
+        "duration": 1.6,
+        "avg_logprob": -0.3636,
+        "no_speech_prob": 0.0,
+        "combined": -0.3636,
+        "flags": [],
+        "source_chunk_index": 325
+      },
+      "quality_metrics": {
+        "start": 2569.925,
+        "end": 2573.625,
+        "duration": 3.7,
+        "avg_logprob": -0.0955,
+        "no_speech_prob": 0.213,
+        "combined": -0.3085,
+        "flags": [],
+        "source_chunk_index": 135
+      },
+      "combined_delta_fast_minus_quality": -0.0551,
+      "winner_by_combined": "quality",
+      "fast_context": "seyyetîn İnne ale müdrakün yakalandık Kalla inneme'i yarabbîs Allah bizimle Dolayısıyla Cenab ı Hakk'a böyle",
+      "quality_context": "fizleri de ondan güzel Siz o arayış içinde bile ne kadar muhteşemlikler ortaya koydunuz Şu"
+    },
+    {
+      "fast": "Amin",
+      "quality": "etsin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1289.64,
+        "end": 1290.08,
+        "duration": 0.44,
+        "avg_logprob": -0.1283,
+        "no_speech_prob": 0.0,
+        "combined": -0.1283,
+        "flags": [],
+        "source_chunk_index": 69
+      },
+      "quality_metrics": {
+        "start": 6446.75,
+        "end": 6448.33,
+        "duration": 1.58,
+        "avg_logprob": -0.2507,
+        "no_speech_prob": 0.0508,
+        "combined": -0.3015,
+        "flags": [],
+        "source_chunk_index": 325
+      },
+      "combined_delta_fast_minus_quality": 0.1731,
+      "winner_by_combined": "fast",
+      "fast_context": "bulması için Cenab ı Hakk'a niyaz ediyorum Amin Teravih namazı Yastı namazına ilave eden 20",
+      "quality_context": "lazım Allah böyle bir imanı hepimize nasip etsin Ahmet Kuzu kardeşim kucaklıyorum öpüyorum ve tebrik"
+    },
+    {
+      "fast": "İyi",
+      "quality": "iyi",
+      "count": 1,
+      "fast_metrics": {
+        "start": 3361.91,
+        "end": 3362.63,
+        "duration": 0.72,
+        "avg_logprob": -0.1747,
+        "no_speech_prob": 0.0,
+        "combined": -0.1747,
+        "flags": [],
+        "source_chunk_index": 168
+      },
+      "quality_metrics": {
+        "start": 1422.5,
+        "end": 1424.6,
+        "duration": 2.1,
+        "avg_logprob": -0.2081,
+        "no_speech_prob": 0.0379,
+        "combined": -0.246,
+        "flags": [],
+        "source_chunk_index": 76
+      },
+      "combined_delta_fast_minus_quality": 0.0712,
+      "winner_by_combined": "fast",
+      "fast_context": "teşekkür ediyoruz tekrar ağzınıza gönlünüze yüreğinize sağlık İyi ki geldiniz Allah razı olsun Puanlama için",
+      "quality_context": "olmaz Siz tecrübelisiniz Zaten ben sizi çok iyi tanıyorum da Estağfurullah İzleyicilerimize tekrar bir hatırlasın"
+    },
+    {
+      "fast": "puanlamayı",
+      "quality": "puanlamaya",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6470.92,
+        "end": 6472.2,
+        "duration": 1.28,
+        "avg_logprob": -0.2559,
+        "no_speech_prob": 0.0,
+        "combined": -0.2559,
+        "flags": [],
+        "source_chunk_index": 327
+      },
+      "quality_metrics": {
+        "start": 6471.28,
+        "end": 6472.22,
+        "duration": 0.94,
+        "avg_logprob": -0.2506,
+        "no_speech_prob": 0.1532,
+        "combined": -0.4038,
+        "flags": [],
+        "source_chunk_index": 327
+      },
+      "combined_delta_fast_minus_quality": 0.1479,
+      "winner_by_combined": "fast",
+      "fast_context": "ki geldiniz Tekrar hoş geldiniz Hazır mıyız puanlamayı Alırız inşallah Sizi puanlama noktasına davet ediyorum",
+      "quality_context": "ki geldiniz tekrar hoş geldiniz Hazır mıyız puanlamaya Alırız inşallah Sizi puanlama noktasına davet ediyorum"
+    },
+    {
+      "fast": "Elgin",
+      "quality": "Egin",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6482.25,
+        "end": 6485.17,
+        "duration": 2.92,
+        "avg_logprob": -0.2142,
+        "no_speech_prob": 0.0,
+        "combined": -0.2142,
+        "flags": [],
+        "source_chunk_index": 328
+      },
+      "quality_metrics": {
+        "start": 2310.44,
+        "end": 2312.18,
+        "duration": 1.74,
+        "avg_logprob": -0.2201,
+        "no_speech_prob": 0.0021,
+        "combined": -0.2222,
+        "flags": [],
+        "source_chunk_index": 120
+      },
+      "combined_delta_fast_minus_quality": 0.008,
+      "winner_by_combined": "near_tie",
+      "fast_context": "Sizi puanlama noktasına davet ediyorum lütfen Osman Elgin Hocam Bekir Hocam çok teşekkür ediyorum Ahmet",
+      "quality_context": "Teşekkür ediyorum kardeşim benim Çok teşekkürler Osman Egin Hocam Halil Ecipoğlu hocam hocam yine çok"
+    },
+    {
+      "fast": "iki",
+      "quality": "2",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1461.95,
+        "end": 1470.11,
+        "duration": 8.16,
+        "avg_logprob": -0.141,
+        "no_speech_prob": 0.0,
+        "combined": -0.141,
+        "flags": [],
+        "source_chunk_index": 78
+      },
+      "quality_metrics": {
+        "start": 5524.59,
+        "end": 5527.33,
+        "duration": 2.74,
+        "avg_logprob": -0.1428,
+        "no_speech_prob": 0.0296,
+        "combined": -0.1725,
+        "flags": [],
+        "source_chunk_index": 284
+      },
+      "combined_delta_fast_minus_quality": 0.0315,
+      "winner_by_combined": "near_tie",
+      "fast_context": "var Evet hocam Değil mi Evet Yani iki defa yarışmamıza katılmışsınız ve şimdi de buraya",
+      "quality_context": "tebrik ederek 100 puan veriyorum Ben senden 2 puanı alıyorum abicim 40 eksi 30 puan"
+    },
+    {
+      "fast": "ediyoruz",
+      "quality": "ediyorum",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1236.0,
+        "end": 1239.86,
+        "duration": 3.86,
+        "avg_logprob": -0.1314,
+        "no_speech_prob": 0.0,
+        "combined": -0.1314,
+        "flags": [],
+        "source_chunk_index": 68
+      },
+      "quality_metrics": {
+        "start": 743.78,
+        "end": 746.42,
+        "duration": 2.64,
+        "avg_logprob": -0.1182,
+        "no_speech_prob": 0.4683,
+        "combined": -0.5865,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 47
+      },
+      "combined_delta_fast_minus_quality": 0.4551,
+      "winner_by_combined": "fast",
+      "fast_context": "Melekler bile bilmezler Evet arkadaşlara çok teşekkür ediyoruz bu video için Doktor Mehmet Ali Sarı",
+      "quality_context": "önemli ses Kur'an'ın sesidir Öncelikle kendisini tebrik ediyorum Gayet güzeldi Üslup açısından problem yoktu En"
+    },
+    {
+      "fast": "aldı",
+      "quality": "aldığı",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6787.05,
+        "end": 6789.69,
+        "duration": 2.64,
+        "avg_logprob": -0.3762,
+        "no_speech_prob": 0.0,
+        "combined": -0.3762,
+        "flags": [],
+        "source_chunk_index": 352
+      },
+      "quality_metrics": {
+        "start": 6747.8,
+        "end": 6759.1,
+        "duration": 11.3,
+        "avg_logprob": -0.127,
+        "no_speech_prob": 0.624,
+        "combined": -0.751,
+        "flags": [
+          "high_no_speech_prob",
+          "low_confidence"
+        ],
+        "source_chunk_index": 346
+      },
+      "combined_delta_fast_minus_quality": 0.3748,
+      "winner_by_combined": "fast",
+      "fast_context": "da dinleyeceğiz Bizimle yola devam ediyor Seyircilerimizden aldı 94 puanla toplamda 391 puana ulaşarak Günün",
+      "quality_context": "okuma yarışması 10 yıl özelde bugün Seyircilerimizden aldığı 94 puanla toplamda 390 puana ulaşarak Günün"
+    },
+    {
+      "fast": "alkışlarınız",
+      "quality": "alkışlarınızla",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6845.45,
+        "end": 6848.41,
+        "duration": 2.96,
+        "avg_logprob": -0.1145,
+        "no_speech_prob": 0.0,
+        "combined": -0.1145,
+        "flags": [],
+        "source_chunk_index": 363
+      },
+      "quality_metrics": {
+        "start": 6767.35,
+        "end": 6769.35,
+        "duration": 2.0,
+        "avg_logprob": -0.1808,
+        "no_speech_prob": 0.1663,
+        "combined": -0.3471,
+        "flags": [],
+        "source_chunk_index": 349
+      },
+      "combined_delta_fast_minus_quality": 0.2326,
+      "winner_by_combined": "fast",
+      "fast_context": "ulaşarak Günün birincisi olan Yarışmacımız Çok güçlü alkışlarınız efendim Ahmet Kuzu oluyor Efendim heyecan devam",
+      "quality_context": "puana ulaşarak Günün Üçüncüsü olan yarışmacımız Güçlü alkışlarınızla Furkan Çınar oluyor Kendilerini diğer turlarda da"
+    },
+    {
+      "fast": "dört",
+      "quality": "94",
+      "count": 1,
+      "fast_metrics": {
+        "start": 1039.94,
+        "end": 1055.04,
+        "duration": 15.1,
+        "avg_logprob": -0.0851,
+        "no_speech_prob": 0.0,
+        "combined": -0.0851,
+        "flags": [],
+        "source_chunk_index": 60
+      },
+      "quality_metrics": {
+        "start": 2529.25,
+        "end": 2530.69,
+        "duration": 1.44,
+        "avg_logprob": -0.1615,
+        "no_speech_prob": 0.0584,
+        "combined": -0.2199,
+        "flags": [],
+        "source_chunk_index": 133
+      },
+      "combined_delta_fast_minus_quality": 0.1349,
+      "winner_by_combined": "fast",
+      "fast_context": "ü Leyali Ramazan diye anılan bu namaza dört rekatla bir dinlenme amacıyla biraz oturulduğundan teravih",
+      "quality_context": "kalbi ruhi karşılığınız tariften azadedir Puan karşılığınız 94 94 puan Böylelikle Ömer Faruk İslam kıymetli"
+    },
+    {
+      "fast": "Con",
+      "quality": "John",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6908.6,
+        "end": 6915.1,
+        "duration": 6.5,
+        "avg_logprob": -0.1928,
+        "no_speech_prob": 0.0,
+        "combined": -0.1928,
+        "flags": [],
+        "source_chunk_index": 373
+      },
+      "quality_metrics": {
+        "start": 3484.7,
+        "end": 3491.62,
+        "duration": 6.92,
+        "avg_logprob": -0.2365,
+        "no_speech_prob": 0.3184,
+        "combined": -0.5548,
+        "flags": [],
+        "source_chunk_index": 179
+      },
+      "combined_delta_fast_minus_quality": 0.3621,
+      "winner_by_combined": "fast",
+      "fast_context": "Diğer turda bizimle yola devam ediyor Muhammed Con Ve çok kıymetli Ömer Faruk İslam kardeşime",
+      "quality_context": "birlikte ikinci tura kalan yarışmacımız Huzurlarınıza Muhammed John geliyor Muhammed Hocam hoş geldiniz Hoş bulduk"
+    },
+    {
+      "fast": "geçmişlerimizde",
+      "quality": "geçmişlerimize",
+      "count": 1,
+      "fast_metrics": {
+        "start": 6968.35,
+        "end": 6971.33,
+        "duration": 2.98,
+        "avg_logprob": -0.1665,
+        "no_speech_prob": 0.0,
+        "combined": -0.1665,
+        "flags": [],
+        "source_chunk_index": 376
+      },
+      "quality_metrics": {
+        "start": 6968.35,
+        "end": 6971.33,
+        "duration": 2.98,
+        "avg_logprob": -0.1455,
+        "no_speech_prob": 0.0022,
+        "combined": -0.1476,
+        "flags": [],
+        "source_chunk_index": 376
+      },
+      "combined_delta_fast_minus_quality": -0.0188,
+      "winner_by_combined": "near_tie",
+      "fast_context": "tüm okunan ayeti kerimeleri Sure i Celileleri geçmişlerimizde onların ruhlarına armağan ediyoruz Rabbim kabul buyursun",
+      "quality_context": "okunan ayet i kerimeleri sure i celileleri geçmişlerimize onların ruhlarına armağan ediyoruz Rabbim kabul buyursun"
+    }
+  ],
+  "phrase_differences": [
+    {
+      "side": "quality_extra",
+      "text": "اعداء ف أ ل ف ب ي ن ق ل وب ك م ف أ ص ب ح ت م ب ن ع م ت ه إ خ و ان ا و ك ن ت م ع ل ى ش ف اح الص ر ة م ن الن ار ف أ ل ق ذ ك م م ن ه ا ك ذ ل ك ي ب ع ل ون Allah'a şükürler olsun و د ت و ج وه م أ ك ف ر ت م ب ع د ايم ان ك م ف ذ وق وا ال ع ذ اب ف ذ وق وا ال ع ذ اب ب م ا",
+      "word_count": 111
+    },
+    {
+      "side": "quality_extra",
+      "text": "Ve Allahüllezî arselerriyâha fetusîrusahâbâ ف ت ث ير س ح اب ا ف ش ق ن اه إ ل ى ب ل د م ي ت ف أ ح ي ي ن ا ب ه ال أ ر ض ف س ق ن اه ا ل ى ب ل د م ي ت ف ا ح ي ي ن ا ب ه ال ا ر ض ب ع د م و ت ه ا ''Mem kâne yurîdul izzete felillâhi l izzetujemî'â'' و ال ذ ين ي م ك ر ون الس ي ئ ات ل ه م",
+      "word_count": 97
+    },
+    {
+      "side": "quality_extra",
+      "text": "TİLK AYATU ALKİTABİ VE KUR'ANİM MÜBİL Rübemâ yeveddüllezîne keferû lev kânû muslimîn Zerhum ye'kulun ve yetemette'un ve yulhihimul emelü feseufe ya'lemun و م ا أ ه ل ك ن ا م ن ق ر ي ة إ ل ا و ل ه ا ك ت اب م ع ل وم ما تسبق",
+      "word_count": 52
+    },
+    {
+      "side": "quality_extra",
+      "text": "Bismillahirrahmanirrahim ا ت ق وا الل ه ح ق ت ق ات ه و ل ا ت م وت ن ا ل ا و ا ن ت م م س ل م ون و اع ت ص م وا ب ح ب ل الل ه ج م يع",
+      "word_count": 48
+    },
+    {
+      "side": "quality_extra",
+      "text": "يستأخرون و ق ال وا ي ا أ ي ه ا ال ذ ي ن ز ل ع ل ي ه الذ ك ر إ ن ك ل م ج ن ون ل و م ا ت أ ت ين ا ب ال م ل ائ ك",
+      "word_count": 47
+    },
+    {
+      "side": "quality_extra",
+      "text": "Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim Ya eyyühellezine amenüme ما لكم إذا قيل لكم انفروا في سبيل الله اثاقلتم إلى الأرض ف م ا م ت اع وا ال ح ي اة الد ن ي ا ف ي ال آخ ر ة ا ل ا ق ل يم",
+      "word_count": 44
+    },
+    {
+      "side": "quality_extra",
+      "text": "و ع ل ى ال ذ ين ي ط يق ون ه ف د ي ة ط ع ام م س ك ين فمن تطوع خيرا فهو خير له",
+      "word_count": 29
+    },
+    {
+      "side": "quality_extra",
+      "text": "Allah'a emanet olun Allah'a şükürler olsun و م ن ل م ي ج ع ل الل ه ل ه ن ور ا ف م ا و إ ل",
+      "word_count": 28
+    },
+    {
+      "side": "quality_extra",
+      "text": "ف ا ن م ع ال ع س ر ي س ر ا ا ن م ع ال ع س ر ي س ر ا",
+      "word_count": 25
+    },
+    {
+      "side": "quality_extra",
+      "text": "ور Allah'a emanet olun و م ن ك ل ت أ ك ل ون ل ح م ا ض ر ي ا Günlüğü Allah'a",
+      "word_count": 24
+    },
+    {
+      "side": "quality_extra",
+      "text": "ت م ت ع ل م ون Euzubillahimineşşeytanirracim Bismillahirrahmanirrahim و ل ت ك م ل وا ال ع د ة و ل",
+      "word_count": 22
+    },
+    {
+      "side": "quality_extra",
+      "text": "Es salatu ve selamu aleyke ya Resulallah Es salatu ve selamu aleyke ya Habiballah Es salatu ve selamu aleyke ya Emine Vahille",
+      "word_count": 22
+    },
+    {
+      "side": "quality_extra",
+      "text": "ك ب ر وا الل ه ع ل ى م ا ه د اك م و ل",
+      "word_count": 17
+    },
+    {
+      "side": "fast_extra",
+      "text": "için değil mi Gâle kella hayır inneme'i yarabbî seyyetîn İnne ale müdrakün yakalandık Kalla inneme'i",
+      "word_count": 15
+    },
+    {
+      "side": "quality_extra",
+      "text": "ك ب ر وا الل ه ع ل ى م ا ه د اك",
+      "word_count": 14
+    },
+    {
+      "side": "quality_extra",
+      "text": "Allah Allah maşallah barakallah selamun aleyk",
+      "word_count": 6
+    },
+    {
+      "side": "quality_extra",
+      "text": "ت ش ك ر",
+      "word_count": 4
+    },
+    {
+      "side": "quality_extra",
+      "text": "Huzurlarınıza Furkan Çınar geliyor",
+      "word_count": 4
+    },
+    {
+      "side": "fast_extra",
+      "text": "Maradolsun Ben teşekkür ederim",
+      "word_count": 4
+    },
+    {
+      "side": "quality_extra",
+      "text": "aleyküm الصيام كما",
+      "word_count": 3
+    },
+    {
+      "side": "quality_extra",
+      "text": "Sadakallahu'l azim Euzubillahimineşşeytanirracim",
+      "word_count": 3
+    },
+    {
+      "side": "fast_extra",
+      "text": "Çok teşekkür ederim",
+      "word_count": 3
+    },
+    {
+      "side": "fast_extra",
+      "text": "Ben ellerinize öpüyorum",
+      "word_count": 3
+    },
+    {
+      "side": "quality_extra",
+      "text": "و ل",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "Teşekkür ederim",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "saygı duymak",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "Kardeş Teşekkür",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "Allah razı",
+      "word_count": 2
+    },
+    {
+      "side": "quality_extra",
+      "text": "Allah kahretmesin",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "radıyallahu anh",
+      "word_count": 2
+    },
+    {
+      "side": "fast_extra",
+      "text": "Teşekkür ederim",
+      "word_count": 2
+    }
+  ]
+}
