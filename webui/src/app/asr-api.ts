@@ -345,90 +345,119 @@ export function shouldOfferTurkishTranslation(segment: Pick<AsrSegment, 'text' |
   if (!segment.text.trim()) {
     return false;
   }
-  return guessSegmentSourceLanguage(segment) !== 'tr';
+  return !isClearlyTurkishText(segment);
 }
 
 export function guessSegmentSourceLanguage(segment: Pick<AsrSegment, 'text' | 'language'>): string {
-  const text = segment.text.toLocaleLowerCase('tr-TR');
   const normalized = normalizeSourceLanguage(segment.language);
-  if (normalized === 'tr') {
+  if (isClearlyTurkishText(segment)) {
     return 'tr';
-  }
-  const englishHits = countWordHits(text, [
-    'the',
-    'prime',
-    'minister',
-    'please',
-    'debate',
-    'again',
-    'time',
-    'would',
-    'apologize',
-    "can't",
-    'cannot',
-    "don't",
-    'have',
-    'start',
-  ]);
-  const turkishHits = countWordHits(text, [
-    'abi',
-    'acaba',
-    'ama',
-    'ancak',
-    'artık',
-    'bakan',
-    'başkan',
-    'ben',
-    'beni',
-    'benim',
-    'biz',
-    'bizim',
-    'bunu',
-    'böyle',
-    'çok',
-    'daha',
-    'da',
-    'de',
-    'için',
-    'ile',
-    'ki',
-    'mı',
-    'mi',
-    'mu',
-    'mü',
-    'ne',
-    'neden',
-    'nasıl',
-    'evet',
-    'hayır',
-    'değil',
-    'davos',
-    'şimdi',
-    'sonra',
-    'önce',
-    'olan',
-    'olarak',
-    'oldu',
-    'olacak',
-    'var',
-    'yok',
-    'sesin',
-    'yüksek',
-    'öldürmeye',
-    'gelince',
-    'bilirsiniz',
-  ]);
-  if (/[çğıöşü]/i.test(text) || turkishHits >= 2 || (turkishHits >= 1 && englishHits === 0)) {
-    return 'tr';
-  }
-  if (englishHits >= 2 && englishHits > turkishHits) {
-    return 'en';
   }
   if (normalized && !isTurkishSourceLanguage(normalized)) {
     return normalized;
   }
   return 'en';
 }
+
+function isClearlyTurkishText(segment: Pick<AsrSegment, 'text' | 'language'>): boolean {
+  const text = segment.text.toLocaleLowerCase('tr-TR');
+  const normalized = normalizeSourceLanguage(segment.language);
+  const englishHits = countWordHits(text, ENGLISH_TRANSLATION_HINTS);
+  const turkishHits = countWordHits(text, TURKISH_TRANSLATION_BLOCKERS);
+  if (englishHits > turkishHits) {
+    return false;
+  }
+  if (/[çğıış]/i.test(text) || turkishHits >= 2) {
+    return true;
+  }
+  return normalized === 'tr' && turkishHits >= 1 && englishHits === 0;
+}
+
+const ENGLISH_TRANSLATION_HINTS = [
+  'the',
+  'a',
+  'an',
+  'and',
+  'or',
+  'but',
+  'one',
+  'minute',
+  'prime',
+  'minister',
+  'please',
+  'debate',
+  'again',
+  'time',
+  'would',
+  'apologize',
+  "can't",
+  'cannot',
+  "don't",
+  'have',
+  'start',
+  'we',
+  'you',
+  'your',
+  'our',
+  'this',
+  'that',
+  'is',
+  'are',
+  'was',
+  'were',
+];
+
+const TURKISH_TRANSLATION_BLOCKERS = [
+  'abi',
+  'acaba',
+  'ama',
+  'ancak',
+  'artık',
+  'bakan',
+  'başkan',
+  'ben',
+  'beni',
+  'benim',
+  'biz',
+  'bizim',
+  'bunu',
+  'böyle',
+  'çok',
+  'daha',
+  'da',
+  'de',
+  'diye',
+  'için',
+  'ile',
+  'ki',
+  'mı',
+  'mi',
+  'mu',
+  'mü',
+  'ne',
+  'neden',
+  'nasıl',
+  'evet',
+  'hayır',
+  'değil',
+  'şimdi',
+  'sonra',
+  'önce',
+  'olan',
+  'olarak',
+  'oldu',
+  'olacak',
+  'var',
+  'yok',
+  'merhaba',
+  'tamam',
+  'lütfen',
+  'sesin',
+  'yüksek',
+  'öldürmeye',
+  'gelince',
+  'bilirsiniz',
+];
 
 function countWordHits(text: string, words: string[]): number {
   return words.reduce((count, word) => {
