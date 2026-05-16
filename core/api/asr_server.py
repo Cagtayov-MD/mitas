@@ -113,6 +113,7 @@ class _MEMSTATUSEX(ctypes.Structure):
     ]
 
 def _ram_percent() -> int:
+    """Instant RAM read via Windows kernel API — no subprocess needed."""
     try:
         stat = _MEMSTATUSEX()
         stat.dwLength = ctypes.sizeof(_MEMSTATUSEX)
@@ -121,31 +122,50 @@ def _ram_percent() -> int:
     except Exception:
         return -1
 
-_NO_WIN = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+_NO_WIN = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 def _cpu_percent() -> int:
-    # Try PowerShell CIM first (works on Win10/11 even when wmic is deprecated)
+    # 1) typeperf — fastest Windows perf counter reader, always available
     try:
         r = subprocess.run(
-            ["powershell", "-NoProfile", "-Command",
-             "(Get-CimInstance -ClassName Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average"],
-            capture_output=True, text=True, timeout=8, creationflags=_NO_WIN,
+            ["typeperf", r"\Processor(_Total)\% Processor Time", "-sc", "1"],
+            capture_output=True, text=True, timeout=6, creationflags=_NO_WIN,
         )
-        val = r.stdout.strip()
-        if r.returncode == 0 and val:
-            return int(float(val))
+        if r.returncode == 0:
+            for line in r.stdout.strip().splitlines()[1:]:
+                parts = line.split(",")
+                if len(parts) >= 2:
+                    try:
+                        return round(float(parts[-1].strip().strip('"')))
+                    except ValueError:
+                        pass
     except Exception:
         pass
-    # Fallback: wmic
+    # 2) wmic (plain, no /format:value — more portable across Win versions)
     try:
         r = subprocess.run(
-            ["wmic", "cpu", "get", "loadpercentage", "/format:value"],
+            ["wmic", "cpu", "get", "LoadPercentage"],
             capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
         )
-        m = re.search(r"LoadPercentage=(\d+)", r.stdout, re.IGNORECASE)
-        return int(m.group(1)) if m else -1
+        for line in r.stdout.strip().splitlines():
+            stripped = line.strip()
+            if stripped.isdigit():
+                return int(stripped)
     except Exception:
-        return -1
+        pass
+    # 3) PowerShell last resort
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+             "(Get-CimInstance Win32_Processor).LoadPercentage"],
+            capture_output=True, text=True, timeout=10, creationflags=_NO_WIN,
+        )
+        val = r.stdout.strip()
+        if r.returncode == 0 and val.isdigit():
+            return int(val)
+    except Exception:
+        pass
+    return -1
 
 _NVIDIA_SMI_PATHS = [
     "nvidia-smi",
@@ -161,28 +181,25 @@ def _gpu_percent() -> int:
                 capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
             )
             if r.returncode == 0:
-                val = r.stdout.strip().split("\n")[0].strip()
-                return int(val) if val.isdigit() else -1
+                val = r.stdout.strip().splitlines()[0].strip()
+                if val.isdigit():
+                    return int(val)
+                return -1
         except FileNotFoundError:
             continue
         except Exception:
             return -1
     return -1
 
-_sysinfo_cache: dict[str, int] = {"cpu": -1, "ram": -1, "gpu": -1}
+_sysinfo_cache: dict[str, int] = {"cpu": -1, "gpu": -1}
 _sysinfo_lock = threading.Lock()
 
 def _sysinfo_worker() -> None:
-    # First tick immediately so the cache isn't -1 on first frontend poll
-    ram = _ram_percent()
-    with _sysinfo_lock:
-        _sysinfo_cache["ram"] = ram
     while True:
         cpu = _cpu_percent()
-        ram = _ram_percent()
         gpu = _gpu_percent()
         with _sysinfo_lock:
-            _sysinfo_cache.update({"cpu": cpu, "ram": ram, "gpu": gpu})
+            _sysinfo_cache.update({"cpu": cpu, "gpu": gpu})
         time.sleep(5)
 
 threading.Thread(target=_sysinfo_worker, daemon=True, name="sysinfo-poller").start()
@@ -190,7 +207,9 @@ threading.Thread(target=_sysinfo_worker, daemon=True, name="sysinfo-poller").sta
 @app.get("/api/sysinfo")
 def get_sysinfo() -> dict[str, int]:
     with _sysinfo_lock:
-        return dict(_sysinfo_cache)
+        result = dict(_sysinfo_cache)
+    result["ram"] = _ram_percent()   # always fresh — ctypes call is instant
+    return result
 
 
 @app.post("/api/restart")
