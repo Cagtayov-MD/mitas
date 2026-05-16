@@ -300,8 +300,8 @@ export function VideoPlayer({
 
 
       {/* Video Content Area */}
-      <div className="relative flex-1 flex flex-col items-start justify-start overflow-hidden bg-app-shell">
-        <div className="relative w-full h-full flex items-start justify-start">
+      <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden bg-app-shell">
+        <div className="relative w-full h-full flex items-center justify-center">
           {isMediaReadyForAsr && (
             <div className="absolute top-4 left-4 z-20 rounded-sm border border-info-border bg-app-shell/95 px-3 py-2 shadow-glow-info">
               <div className="text-[12px] font-semibold text-info">
@@ -320,7 +320,7 @@ export function VideoPlayer({
             <video
               ref={setVideoNode}
               src={isDashVideo ? undefined : mediaPreviewUrl}
-              className="w-full h-full object-contain object-left bg-surface"
+              className="w-full h-full object-contain object-center bg-surface"
               preload="metadata"
               onLoadedMetadata={publishState}
               onTimeUpdate={publishState}
@@ -330,7 +330,7 @@ export function VideoPlayer({
             />
           )}
           {isAudio && mediaPreviewUrl && (
-            <div className="mt-4 ml-4 w-full max-w-xl border border-border-subtle bg-surface p-4 rounded-sm">
+            <div className="mt-4 w-full max-w-xl border border-border-subtle bg-surface p-4 rounded-sm">
               <div className="text-xs text-foreground-muted mb-3">
                 {selectedFileName
                   ? isSttSelected
