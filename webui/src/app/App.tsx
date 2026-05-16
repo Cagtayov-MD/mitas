@@ -1,5 +1,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui';
 import { AnalysisWorkspace } from './components/AnalysisWorkspace';
+import { SysInfoBar } from './components/SysInfoBar';
 import { FaceBankWorkspace } from './components/FaceBankWorkspace';
 import { Archive, Database, MonitorPlay, Lock } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -389,12 +390,14 @@ export default function App() {
           </TabsList>
 
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-3 text-xs text-foreground-muted font-medium">
-               <span>Yönetici</span>
-               <div className="h-7 w-7 bg-surface-elevated rounded-full border border-border-mitas flex items-center justify-center text-[10px] text-foreground-default">
-                  YÖ
-               </div>
-             </div>
+            <SysInfoBar />
+            <div className="w-px h-4 bg-border-mitas" />
+            <div className="flex items-center gap-3 text-xs text-foreground-muted font-medium">
+              <span>Yönetici</span>
+              <div className="h-7 w-7 bg-surface-elevated rounded-full border border-border-mitas flex items-center justify-center text-[10px] text-foreground-default">
+                YÖ
+              </div>
+            </div>
           </div>
         </div>
 

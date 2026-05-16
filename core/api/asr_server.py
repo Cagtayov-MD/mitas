@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import ctypes
+import ctypes.wintypes
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
@@ -18,6 +20,7 @@ import re
 import shutil
 import subprocess
 import threading
+import time
 import traceback
 import tempfile
 from typing import Any, Literal
@@ -31,7 +34,8 @@ from core.api.live_stt_text import LIVE_STT_INITIAL_PROMPT, repair_live_text
 from core.observability import system_events
 from core.pipelines.asr.models import DEFAULT_TRANSCRIBE_PARAMS, FAST_MODEL, ProfileName, load_model
 from core.pipelines.asr.normalize import PROJECT_ROOT
-from core.pipelines.asr.pipeline import run_asr_pipeline
+from core.pipelines.asr.pipeline import ASR_PIPELINE_VERSION, run_asr_pipeline
+from core.pipelines.asr.version import get_code_version
 
 
 JobState = Literal["queued", "running", "done", "partial", "failed"]
@@ -68,6 +72,98 @@ _live_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-stt
 _translate_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-translate")
 _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
+
+import logging as _logging
+_server_logger = _logging.getLogger("mitas.asr.server")
+
+
+@app.on_event("startup")
+async def _log_startup_version() -> None:
+    _server_logger.info(
+        "MITAS ASR server started: code_version=%s pipeline_version=%s",
+        get_code_version(),
+        ASR_PIPELINE_VERSION,
+    )
+
+
+@app.get("/version")
+def get_version() -> dict[str, Any]:
+    """Return the running server's code and pipeline versions."""
+    return {
+        "code_version": get_code_version(),
+        "pipeline_version": ASR_PIPELINE_VERSION,
+    }
+
+
+# ---------------------------------------------------------------------------
+# System resource monitor — polls every 5 s in a daemon thread
+# ---------------------------------------------------------------------------
+class _MEMSTATUSEX(ctypes.Structure):
+    _fields_ = [
+        ("dwLength",               ctypes.wintypes.DWORD),
+        ("dwMemoryLoad",           ctypes.wintypes.DWORD),
+        ("ullTotalPhys",           ctypes.c_uint64),
+        ("ullAvailPhys",           ctypes.c_uint64),
+        ("ullTotalPageFile",       ctypes.c_uint64),
+        ("ullAvailPageFile",       ctypes.c_uint64),
+        ("ullTotalVirtual",        ctypes.c_uint64),
+        ("ullAvailVirtual",        ctypes.c_uint64),
+        ("ullAvailExtendedVirtual", ctypes.c_uint64),
+    ]
+
+def _ram_percent() -> int:
+    try:
+        stat = _MEMSTATUSEX()
+        stat.dwLength = ctypes.sizeof(_MEMSTATUSEX)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+        return int(stat.dwMemoryLoad)
+    except Exception:
+        return -1
+
+_NO_WIN = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+def _cpu_percent() -> int:
+    try:
+        r = subprocess.run(
+            ["wmic", "cpu", "get", "loadpercentage", "/format:value"],
+            capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
+        )
+        m = re.search(r"LoadPercentage=(\d+)", r.stdout)
+        return int(m.group(1)) if m else -1
+    except Exception:
+        return -1
+
+def _gpu_percent() -> int:
+    try:
+        r = subprocess.run(
+            ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
+        )
+        if r.returncode == 0:
+            val = r.stdout.strip().split("\n")[0].strip()
+            return int(val) if val.isdigit() else -1
+        return -1
+    except Exception:
+        return -1
+
+_sysinfo_cache: dict[str, int] = {"cpu": -1, "ram": -1, "gpu": -1}
+_sysinfo_lock = threading.Lock()
+
+def _sysinfo_worker() -> None:
+    while True:
+        cpu = _cpu_percent()
+        ram = _ram_percent()
+        gpu = _gpu_percent()
+        with _sysinfo_lock:
+            _sysinfo_cache.update({"cpu": cpu, "ram": ram, "gpu": gpu})
+        time.sleep(5)
+
+threading.Thread(target=_sysinfo_worker, daemon=True, name="sysinfo-poller").start()
+
+@app.get("/api/sysinfo")
+def get_sysinfo() -> dict[str, int]:
+    with _sysinfo_lock:
+        return dict(_sysinfo_cache)
 
 
 @app.get("/api/health")
