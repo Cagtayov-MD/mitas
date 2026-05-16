@@ -138,8 +138,8 @@ export function Timeline({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'i' || e.key === 'İ') onSetInPoint(playback.currentTime);
-      else if (e.key === 'o') onSetOutPoint(playback.currentTime);
+      if (e.key === 'i' || e.key === 'İ' || e.key === 'ı' || e.key === 'I' || e.code === 'KeyI') onSetInPoint(playback.currentTime);
+      else if (e.key === 'o' || e.key === 'O' || e.code === 'KeyO') onSetOutPoint(playback.currentTime);
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
