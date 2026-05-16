@@ -254,8 +254,6 @@ export function Header({
 
       {/* Models Bar */}
       <div className="flex items-center justify-between px-4 py-1.5 bg-app-shell border-b border-border-subtle/50">
-        <div className="flex items-center gap-4 text-xs font-mono text-foreground-muted">
-
         <div className="flex items-center gap-2">
           <span className="text-[10px] uppercase font-mono text-foreground-muted mr-2">Modeller:</span>
           <Badge variant="success">STT/ASR: {modelName}</Badge>
