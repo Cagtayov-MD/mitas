@@ -31,7 +31,10 @@ outputs/*_child_outputs/
 
 # Runtime artifacts
 *.log
+outputs/clips/
+outputs/system_events.jsonl
 outputs/webui_asr_jobs/
+outputs/webui_uploads/
 outputs/webui_translate_cache/
 
 # OS/editor noise

@@ -249,4 +249,16 @@ def _merge_timing(left: TranscribeTiming | None, right: TranscribeTiming | None)
         chunk_count=left.chunk_count + right.chunk_count,
         decode_seconds=round(left.decode_seconds + right.decode_seconds, 3),
         fallback_seconds=round(left.fallback_seconds + right.fallback_seconds, 3),
+        fallback_chunk_count=left.fallback_chunk_count + right.fallback_chunk_count,
+        fallback_total_chunk_count=left.fallback_total_chunk_count + right.fallback_total_chunk_count,
+        fallback_mode=_merge_fallback_mode(left.fallback_mode, right.fallback_mode),
     )
+
+
+def _merge_fallback_mode(left: str | None, right: str | None) -> str | None:
+    modes = {mode for mode in (left, right) if mode}
+    if not modes:
+        return None
+    if len(modes) == 1:
+        return modes.pop()
+    return "mixed"

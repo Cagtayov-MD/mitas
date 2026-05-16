@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
+import logging
 import math
 from pathlib import Path
 import shutil
@@ -361,6 +362,13 @@ def run_asr_pipeline(
     run_dir = Path(output_dir) if output_dir is not None else _default_output_dir(media, module_id)
     run_dir.mkdir(parents=True, exist_ok=True)
 
+    asr_logger = logging.getLogger("mitas.asr")
+    asr_logger.setLevel(logging.INFO)
+    log_handler = logging.FileHandler(run_dir / "asr.log", encoding="utf-8")
+    log_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    asr_logger.addHandler(log_handler)
+    asr_logger.info("ASR pipeline started: media=%s module_run=%s", media, module_id)
+
     started_at = datetime.now(timezone.utc)
     total_started = perf_counter()
     normalize_seconds = 0.0
@@ -529,9 +537,13 @@ def run_asr_pipeline(
         )
         _write_json(run_dir / "module_run.json", module_run.model_dump(mode="json"))
         _write_json(run_dir / "summary.json", module_run.output_summary)
+        asr_logger.exception("ASR pipeline failed: %s", exc)
         if isinstance(exc, AudioNormalizeError):
             raise
         raise AsrPipelineError(f"ASR pipeline failed: {exc}") from exc
+    finally:
+        asr_logger.removeHandler(log_handler)
+        log_handler.close()
 
 
 def _build_summary(
@@ -565,6 +577,9 @@ def _build_summary(
         "fallback_triggered": asr_result.fallback_triggered,
         "fallback_reason": asr_result.fallback_reason,
         "selection_reason": asr_result.selection_reason,
+        "fallback_mode": timing.fallback_mode if timing else None,
+        "fallback_chunk_count": timing.fallback_chunk_count if timing else None,
+        "fallback_total_chunk_count": timing.fallback_total_chunk_count if timing else None,
         "audio_duration": asr_result.audio_duration,
         "raw_segments": len(asr_result.raw_segments),
         "clean_segments": len(asr_result.clean_segments),
@@ -596,6 +611,9 @@ def _build_summary(
             "transcribe_total_seconds": timing.total_seconds if timing else None,
             "decode_seconds": timing.decode_seconds if timing else None,
             "fallback_seconds": timing.fallback_seconds if timing else None,
+            "fallback_chunk_count": timing.fallback_chunk_count if timing else None,
+            "fallback_total_chunk_count": timing.fallback_total_chunk_count if timing else None,
+            "fallback_mode": timing.fallback_mode if timing else None,
             "chunk_count": timing.chunk_count if timing else None,
             "total_seconds": round(total_seconds, 3),
         },

@@ -62,6 +62,9 @@ class TranscribeTiming:
     chunk_count: int
     decode_seconds: float
     fallback_seconds: float = 0.0
+    fallback_chunk_count: int = 0
+    fallback_total_chunk_count: int = 0
+    fallback_mode: str | None = None
 
 
 @dataclass(frozen=True)
@@ -120,6 +123,9 @@ class ProductionTranscribeResult:
                 "chunk_count": self.timing.chunk_count if self.timing else None,
                 "decode_seconds": self.timing.decode_seconds if self.timing else None,
                 "fallback_seconds": self.timing.fallback_seconds if self.timing else None,
+                "fallback_chunk_count": self.timing.fallback_chunk_count if self.timing else None,
+                "fallback_total_chunk_count": self.timing.fallback_total_chunk_count if self.timing else None,
+                "fallback_mode": self.timing.fallback_mode if self.timing else None,
             },
         }
         if self.channel_mode != "mono" or self.channel_auto_decided or self.lr_correlation is not None or self.duplicate_drops:

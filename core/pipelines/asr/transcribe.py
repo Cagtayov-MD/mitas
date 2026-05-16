@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field, replace
+import logging
 from pathlib import Path
 import subprocess
 import tempfile
@@ -25,6 +26,8 @@ from core.pipelines.asr.quality import QualityConfig, ResultSafetyDecision, eval
 from core.pipelines.asr.result import DropRecord, ProductionTranscribeResult, TranscriptSegment, TranscribeTiming
 from core.pipelines.asr.vad import VadSpeechSegment, read_wav_duration_seconds, run_silero_vad
 
+
+logger = logging.getLogger("mitas.asr")
 
 DEFAULT_MODEL_PATH = QUALITY_MODEL.model_path
 DEFAULT_DEVICE = QUALITY_MODEL.device
@@ -154,6 +157,9 @@ def transcribe(
     fallback_triggered = False
     fallback_reason = None
     fallback_time = 0.0
+    fallback_chunk_count = 0
+    fallback_total_chunk_count = 0
+    fallback_mode = None
     selection_reason = None
 
     if profile == "quality":
@@ -199,24 +205,75 @@ def transcribe(
             model_name = FAST_MODEL.name
             selection_reason = "fast_passed_fallback_checks"
         else:
+            fallback_chunk_indexes = _select_fallback_chunk_indexes(
+                fast_result,
+                chunks,
+                fast_failure=fast_failure,
+            )
+            fallback_chunks = [chunk for chunk in chunks if chunk.index in fallback_chunk_indexes]
+            if not fallback_chunks:
+                fallback_chunks = chunks
+                fallback_chunk_indexes = tuple(chunk.index for chunk in chunks)
+
+            fallback_chunk_count = len(fallback_chunks)
+            fallback_total_chunk_count = len(chunks)
+            fallback_mode = "full" if fallback_chunk_count == len(chunks) else "selective"
+            logger.info(
+                "ASR fallback triggered: reason=%s mode=%s chunks=%d/%d",
+                fast_failure,
+                fallback_mode,
+                fallback_chunk_count,
+                fallback_total_chunk_count,
+            )
             fallback_started = perf_counter()
             quality_result = _run_single_pass(
                 path,
-                chunks,
+                fallback_chunks,
                 QUALITY_MODEL,
                 quality_cfg,
-                expected_speech_end=expected_speech_end,
+                expected_speech_end=_expected_chunk_end(fallback_chunks),
                 safety_kwargs=safety_kwargs,
                 ffmpeg_executable=ffmpeg_executable,
             )
             fallback_time = perf_counter() - fallback_started
             fallback_triggered = True
             fallback_reason = fast_failure
+            fallback_candidate = (
+                quality_result
+                if fallback_mode == "full"
+                else _merge_selective_fallback_result(
+                    fast_result,
+                    quality_result,
+                    selected_chunk_indexes=fallback_chunk_indexes,
+                    quality_config=quality_cfg,
+                    expected_speech_end=expected_speech_end,
+                    safety_kwargs=safety_kwargs,
+                )
+            )
             run_result, profile_used, model_name, selection_reason = _select_fallback_result(
                 fast_result,
-                quality_result,
+                fallback_candidate,
                 fast_failure=fast_failure,
                 expected_speech_end=expected_speech_end,
+            )
+            if run_result is fallback_candidate and fallback_mode == "selective":
+                profile_used = "fast_selective_quality"
+                model_name = f"{FAST_MODEL.name}+{QUALITY_MODEL.name}"
+            kept_fast_chunks = fallback_candidate.get("selective_kept_fast_chunks", ())
+            selection_reason = (
+                f"{selection_reason}:fallback_mode={fallback_mode}:"
+                f"fallback_chunks={fallback_chunk_count}/{fallback_total_chunk_count}"
+            )
+            if kept_fast_chunks:
+                selection_reason = (
+                    f"{selection_reason}:kept_fast_chunks={len(kept_fast_chunks)}"
+                    f"({','.join(str(index) for index in kept_fast_chunks)})"
+                )
+            logger.info(
+                "ASR fallback selected: %s profile=%s model=%s",
+                selection_reason,
+                profile_used,
+                model_name,
             )
     else:
         raise AsrPipelineError(f"Unknown ASR profile: {profile}")
@@ -244,6 +301,9 @@ def transcribe(
             chunk_count=len(chunks),
             decode_seconds=round(run_result["decode_time"], 3),
             fallback_seconds=round(fallback_time, 3),
+            fallback_chunk_count=fallback_chunk_count,
+            fallback_total_chunk_count=fallback_total_chunk_count,
+            fallback_mode=fallback_mode,
         ),
         speaker_segments=[],
         normalized_entities=[],
@@ -281,6 +341,28 @@ def _run_single_pass(
         )
     decode_time = perf_counter() - decode_started
 
+    raw_segments = [
+        replace(segment, index=index)
+        for index, segment in enumerate(sorted(raw_segments, key=lambda item: (item.start, item.end)))
+    ]
+
+    return _evaluate_run_segments(
+        raw_segments,
+        quality_config,
+        expected_speech_end=expected_speech_end,
+        safety_kwargs=safety_kwargs,
+        decode_time=decode_time,
+    )
+
+
+def _evaluate_run_segments(
+    raw_segments: list[TranscriptSegment],
+    quality_config: QualityConfig,
+    *,
+    expected_speech_end: float | None,
+    safety_kwargs: dict[str, Any],
+    decode_time: float,
+) -> dict[str, Any]:
     raw_segments = [
         replace(segment, index=index)
         for index, segment in enumerate(sorted(raw_segments, key=lambda item: (item.start, item.end)))
@@ -408,6 +490,126 @@ def _fallback_failure_reason(run_result: dict[str, Any]) -> str | None:
     if not safety.safe:
         return safety.failure_reason or "safety_failed"
     return None
+
+
+def _select_fallback_chunk_indexes(
+    fast_result: dict[str, Any],
+    chunks: list[MergedChunk],
+    *,
+    fast_failure: str,
+) -> tuple[int, ...]:
+    selected: set[int] = set()
+    valid_indexes = {chunk.index for chunk in chunks}
+    safety = fast_result["safety"]
+    safety_reason = None if safety.safe else safety.failure_reason
+
+    if fast_failure.startswith("quality_drop:"):
+        for drop in fast_result["drops"]:
+            if drop.reason.startswith(CRITICAL_FALLBACK_DROP_PREFIXES):
+                chunk_index = _drop_source_chunk_index(fast_result, drop)
+                if chunk_index is not None:
+                    selected.add(chunk_index)
+
+    if fast_failure.startswith("tail_gap_uncovered") or (
+        safety_reason is not None and safety_reason.startswith("tail_gap_uncovered")
+    ):
+        last_end = _last_clean_segment_end(fast_result)
+        for chunk in chunks:
+            if chunk.end > last_end:
+                selected.add(chunk.index)
+            elif chunk.start <= last_end <= chunk.end:
+                selected.add(chunk.index)
+
+    if not selected:
+        for segment in fast_result["clean_segments"]:
+            if "low_confidence" in segment.flags or "very_low_logprob" in segment.flags:
+                selected.add(segment.source_chunk_index)
+
+    if not selected:
+        selected = valid_indexes
+
+    return tuple(sorted(index for index in selected if index in valid_indexes))
+
+
+def _drop_source_chunk_index(run_result: dict[str, Any], drop: DropRecord) -> int | None:
+    raw_segments = run_result["raw_segments"]
+    if 0 <= drop.original_index < len(raw_segments):
+        return raw_segments[drop.original_index].source_chunk_index
+    for segment in raw_segments:
+        if segment.start == drop.start and segment.end == drop.end and segment.text == drop.text:
+            return segment.source_chunk_index
+    return None
+
+
+def _expected_chunk_end(chunks: list[MergedChunk]) -> float | None:
+    return max((chunk.end for chunk in chunks), default=None)
+
+
+def _merge_selective_fallback_result(
+    fast_result: dict[str, Any],
+    quality_result: dict[str, Any],
+    *,
+    selected_chunk_indexes: Sequence[int],
+    quality_config: QualityConfig,
+    expected_speech_end: float | None,
+    safety_kwargs: dict[str, Any],
+    coverage_tolerance_seconds: float = 1.0,
+    coverage_tolerance_ratio: float = 0.05,
+) -> dict[str, Any]:
+    selected = set(selected_chunk_indexes)
+    # Per-chunk safety net. The whole-result coverage guard in
+    # _select_fallback_result only inspects the LAST clean segment end, so a
+    # chunk the quality re-pass fails to transcribe becomes an invisible
+    # mid-timeline hole (fast segments dropped, nothing replaces them). Keep
+    # the fast segments for any chunk whose quality speech coverage regressed
+    # materially against fast.
+    kept_fast_chunks: list[int] = []
+    for chunk_index in sorted(selected):
+        fast_seconds = _chunk_clean_speech_seconds(fast_result, chunk_index)
+        quality_seconds = _chunk_clean_speech_seconds(quality_result, chunk_index)
+        quality_regressed = (
+            fast_seconds > 0.0
+            and quality_seconds + coverage_tolerance_seconds < fast_seconds
+            and quality_seconds < fast_seconds * (1.0 - coverage_tolerance_ratio)
+        )
+        if quality_regressed:
+            kept_fast_chunks.append(chunk_index)
+            logger.warning(
+                "selective fallback kept fast for chunk %d: quality regressed "
+                "(fast=%.2fs quality=%.2fs)",
+                chunk_index,
+                fast_seconds,
+                quality_seconds,
+            )
+
+    quality_chunks = selected.difference(kept_fast_chunks)
+    merged_raw = [
+        segment
+        for segment in fast_result["raw_segments"]
+        if segment.source_chunk_index not in quality_chunks
+    ]
+    merged_raw.extend(
+        segment
+        for segment in quality_result["raw_segments"]
+        if segment.source_chunk_index in quality_chunks
+    )
+    evaluated = _evaluate_run_segments(
+        merged_raw,
+        quality_config,
+        expected_speech_end=expected_speech_end,
+        safety_kwargs=safety_kwargs,
+        decode_time=fast_result["decode_time"] + quality_result["decode_time"],
+    )
+    evaluated["selective_kept_fast_chunks"] = tuple(kept_fast_chunks)
+    return evaluated
+
+
+def _chunk_clean_speech_seconds(run_result: dict[str, Any], chunk_index: int) -> float:
+    return sum(
+        segment.end - segment.start
+        for segment in run_result["clean_segments"]
+        if segment.source_chunk_index == chunk_index
+    )
 
 
 def _select_fallback_result(

@@ -342,6 +342,16 @@ recovery (üst üste binen konuşmaları kelime kelime kurtarma) kapsam dışıd
 
 **Durum:** Aktif. Manifest'te `selected_as_engine` alanı mevcut politika/testler nedeniyle false kalır; gerçek route assignment Faz C'de `config/translation_router.yaml` ile yazılacak.
 
+### 2026-05-16 / 31 — ASR fallback gerçekten selective çalışır
+
+**Karar:** `fast_with_fallback` profilinde fallback tetiklendiğinde `large-v3` tüm dosyayı tekrar çözmez. Önce `large-v3-turbo` tam decode edilir; kalite drop'u veya tail-gap gibi sinyallerden riskli `source_chunk_index` listesi çıkarılır; yalnız bu chunk'lar `large-v3` ile yeniden çözülür ve sonuç fast transcript içine segment aralığı bazında yamalanır. Tek chunk'lı veya lokalize edilemeyen durumda full fallback güvenli yedek olarak kalır.
+
+**Gerekçe:** Önceki kod, Karar 21/23'teki "selective fallback" niyetine rağmen fallback tetiklenince aynı `chunks` listesinin tamamını `large-v3` ile ikinci kez koşturuyordu. Uzun dosyalarda bu süreyi iki kata yaklaştırıyor ve UI'da "fallback neden bu kadar pahalı?" sorusuna yol açıyordu.
+
+**Referans:** `core/pipelines/asr/transcribe.py`, `core/pipelines/asr/result.py`, `core/pipelines/asr/pipeline.py`, `tests/test_production_transcribe.py`.
+
+**Durum:** Aktif. Summary/timing alanlarına `fallback_mode`, `fallback_chunk_count`, `fallback_total_chunk_count` eklendi; WebUI job log'u fallback çalışırsa kaç chunk tekrar çözüldüğünü yazar.
+
 ### 2026-05-10 / 3 — STT, ASR streaming_transcription alt moduna taşındı
 
 **Karar:** STT ayrı ana venv/profil/modül değildir. Canlı transcript `ASR > streaming_transcription` alt modudur. Primary runtime `E:\MITAS\venvs\asr`; `E:\MITAS\venvs\stt` legacy olarak korunur.

@@ -9,8 +9,12 @@ from time import perf_counter
 from typing import Any
 
 from core.pipelines.translate.cache import TranslationCache, build_cache_key
+from core.pipelines.translate.post_edit import polish_turkish_broadcast
 from core.pipelines.translate.router import load_router, normalize_lang
 from core.pipelines.translate.runtime import translate_text
+
+
+POST_EDIT_PROFILE = "broadcast_tr_v1"
 
 
 @dataclass(frozen=True)
@@ -50,7 +54,7 @@ def translate_segment(
         source_text=source_text,
         source_lang=normalized_source,
         target_lang=normalized_target,
-        model=model_id,
+        model=_cache_model_key(model_id, normalized_target),
     )
     cache = TranslationCache(cache_dir)
     cached = cache.get(key)
@@ -64,6 +68,12 @@ def translate_segment(
         source_lang=normalized_source,
         target_lang=normalized_target,
     )
+    if normalized_target == "tr":
+        translated = polish_turkish_broadcast(
+            translated,
+            source_text=source_text,
+            source_lang=normalized_source,
+        )
     latency_ms = int(round((perf_counter() - started) * 1000))
     result = TranslationResult(
         text=translated,
@@ -110,3 +120,9 @@ def _result_from_dict(payload: dict[str, Any], *, cache_hit: bool, latency_ms: i
         latency_ms=int(payload["latency_ms"] if latency_ms is None else latency_ms),
         created_at=str(payload["created_at"]),
     )
+
+
+def _cache_model_key(model_id: str, target_lang: str) -> str:
+    if target_lang == "tr":
+        return f"{model_id}:{POST_EDIT_PROFILE}"
+    return model_id

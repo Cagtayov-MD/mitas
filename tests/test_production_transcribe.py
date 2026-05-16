@@ -193,6 +193,76 @@ class TestProductionInterface:
         assert result.selection_reason.startswith("kept_fast:quality_coverage_worse")
         assert result.clean_transcript == "Turbo tam metni burada koruyor"
 
+    def test_selective_fallback_reruns_only_failed_chunk(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        wav_path = tmp_path / "fixture_three_chunks.wav"
+        _write_silent_wav(wav_path, sample_rate=16_000, channels=1, seconds=40.0)
+        calls: list[tuple[str, int]] = []
+
+        monkeypatch.setattr(asr_transcribe, "load_model", lambda config: object())
+
+        def fake_transcribe_chunk(
+            audio_path: Path,
+            chunk: Any,
+            model: Any,
+            model_config: Any,
+            params: Any,
+            *,
+            ffmpeg_executable: str,
+        ) -> list[Any]:
+            calls.append((model_config.name, chunk.index))
+            start = round(chunk.start + 0.1, 3)
+            end = round(min(chunk.end, chunk.start + 1.0), 3)
+            if model_config.name == "large-v3-turbo" and chunk.index == 1:
+                text = "ben " * 30
+            elif model_config.name == "large-v3":
+                text = f"Kalite chunk {chunk.index}"
+            else:
+                text = f"Turbo chunk {chunk.index}"
+            return [
+                asr_transcribe.TranscriptSegment(
+                    index=0,
+                    start=start,
+                    end=end,
+                    text=text,
+                    language="tr",
+                    avg_logprob=-0.2,
+                    no_speech_prob=0.01,
+                    source_chunk_index=chunk.index,
+                )
+            ]
+
+        monkeypatch.setattr(asr_transcribe, "_transcribe_chunk", fake_transcribe_chunk)
+
+        result = transcribe(
+            wav_path,
+            profile="fast_with_fallback",
+            vad_segments=[
+                VadSpeechSegment(start=0.5, end=5.0, duration=4.5),
+                VadSpeechSegment(start=16.0, end=20.0, duration=4.0),
+                VadSpeechSegment(start=31.0, end=35.0, duration=4.0),
+            ],
+        )
+
+        assert result.fallback_triggered
+        assert result.profile_used == "fast_selective_quality"
+        assert result.model_name == "large-v3-turbo+large-v3"
+        assert "repetition_collapse" in (result.fallback_reason or "")
+        assert calls == [
+            ("large-v3-turbo", 0),
+            ("large-v3-turbo", 1),
+            ("large-v3-turbo", 2),
+            ("large-v3", 1),
+        ]
+        assert result.verbatim_transcript == "Turbo chunk 0 Kalite chunk 1 Turbo chunk 2"
+        assert result.timing is not None
+        assert result.timing.fallback_mode == "selective"
+        assert result.timing.fallback_chunk_count == 1
+        assert result.timing.fallback_total_chunk_count == 3
+
     def test_phase2_hooks_empty_but_present(
         self,
         normalized_wav: Path,
@@ -232,6 +302,80 @@ class TestProductionInterface:
         assert "transcript" in archive
         assert "verbatim" in archive["transcript"]
         assert archive["transcript"]["normalized"] is None
+
+
+def _segment(chunk_index: int, start: float, end: float, text: str) -> Any:
+    from core.pipelines.asr.result import TranscriptSegment
+
+    return TranscriptSegment(
+        index=0,
+        start=start,
+        end=end,
+        text=text,
+        language="tr",
+        avg_logprob=-0.2,
+        no_speech_prob=0.01,
+        source_chunk_index=chunk_index,
+    )
+
+
+def _run_result(segments: list[Any], decode_time: float = 1.0) -> dict[str, Any]:
+    return {"raw_segments": list(segments), "clean_segments": list(segments), "decode_time": decode_time}
+
+
+class TestSelectiveFallbackMerge:
+    """Regression: a selected chunk whose quality re-pass yields nothing must
+    keep the fast segments instead of leaving a mid-timeline hole."""
+
+    def test_quality_empty_for_selected_chunk_keeps_fast(self) -> None:
+        from core.pipelines.asr.quality import QualityConfig
+
+        fast = _run_result(
+            [
+                _segment(0, 0.0, 1.6, "merhaba burada konusma var"),
+                _segment(1, 2.2, 3.8, "net turkce cumle bu kisimda duyuluyor"),
+            ]
+        )
+        quality_empty = _run_result([], decode_time=0.5)
+
+        merged = asr_transcribe._merge_selective_fallback_result(
+            fast,
+            quality_empty,
+            selected_chunk_indexes=(1,),
+            quality_config=QualityConfig(),
+            expected_speech_end=None,
+            safety_kwargs={},
+        )
+
+        assert merged["selective_kept_fast_chunks"] == (1,)
+        chunk_one = [s for s in merged["clean_segments"] if s.source_chunk_index == 1]
+        assert chunk_one, "selected chunk must not become an empty hole"
+        assert "net turkce cumle" in " ".join(s.text for s in chunk_one)
+
+    def test_quality_good_for_selected_chunk_is_used(self) -> None:
+        from core.pipelines.asr.quality import QualityConfig
+
+        fast = _run_result(
+            [
+                _segment(0, 0.0, 1.6, "merhaba burada konusma var"),
+                _segment(1, 2.2, 3.8, "fast modelin urettigi zayif metin"),
+            ]
+        )
+        quality = _run_result([_segment(1, 2.2, 3.8, "kalite modeli duzeltilmis net metin")], decode_time=0.7)
+
+        merged = asr_transcribe._merge_selective_fallback_result(
+            fast,
+            quality,
+            selected_chunk_indexes=(1,),
+            quality_config=QualityConfig(),
+            expected_speech_end=None,
+            safety_kwargs={},
+        )
+
+        assert merged["selective_kept_fast_chunks"] == ()
+        chunk_one_text = " ".join(s.text for s in merged["clean_segments"] if s.source_chunk_index == 1)
+        assert "kalite modeli duzeltilmis" in chunk_one_text
+        assert "zayif metin" not in chunk_one_text
 
 
 def _write_silent_wav(path: Path, *, sample_rate: int, channels: int, seconds: float) -> None:

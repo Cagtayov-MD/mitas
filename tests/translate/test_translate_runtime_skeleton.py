@@ -79,3 +79,19 @@ def test_translate_batch_preserves_order(monkeypatch, tmp_path: Path) -> None:
 
     assert [result.text for result in results] == ["tr:hello", "tr:world"]
     assert [result.model for result in results] == [OPUS_EN_TR, OPUS_EN_TR]
+
+
+def test_translate_segment_applies_broadcast_post_edit(monkeypatch, tmp_path: Path) -> None:
+    def fake_translate_text(**kwargs: object) -> str:
+        return "Başbakan, tartışmayı tekrar başlatamayız, lütfen, sadece zamanımız yok."
+
+    monkeypatch.setattr("core.pipelines.translate.service.translate_text", fake_translate_text)
+
+    result = translate_segment(
+        segment_id="seg_1",
+        source_text="Prime Minister, we can't start the debate again, please, we just don't have time.",
+        source_lang="en",
+        cache_dir=tmp_path,
+    )
+
+    assert result.text == "Sayın Başbakan, tartışmayı yeniden açamayız, lütfen; buna zamanımız yok."

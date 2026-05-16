@@ -26,6 +26,7 @@ from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.api.live_stt_text import LIVE_STT_INITIAL_PROMPT, repair_live_text
+from core.observability import system_events
 from core.pipelines.asr.models import DEFAULT_TRANSCRIBE_PARAMS, FAST_MODEL, ProfileName, load_model
 from core.pipelines.asr.normalize import PROJECT_ROOT
 from core.pipelines.asr.pipeline import run_asr_pipeline
@@ -35,8 +36,14 @@ JobState = Literal["queued", "running", "done", "partial", "failed"]
 LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 
 API_VERSION = "asr-api-v0.1"
-UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "webui_uploads"
-JOB_ROOT = PROJECT_ROOT / "outputs" / "webui_asr_jobs"
+CLIPS_ROOT = PROJECT_ROOT / "outputs" / "clips"
+# Legacy roots kept only for reading old development jobs created before the
+# clip-centric layout. New uploads always go under CLIPS_ROOT.
+LEGACY_UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "webui_uploads"
+LEGACY_JOB_ROOT = PROJECT_ROOT / "outputs" / "webui_asr_jobs"
+ASR_MODULE_DIR = "asr"
+SOURCE_DIR = "source"
+TRANSLATIONS_DIR = "translations"
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024 * 1024
 LIVE_STT_SAMPLE_RATE = 16_000
 LIVE_STT_MAX_CHUNK_BYTES = LIVE_STT_SAMPLE_RATE * 2 * 15
@@ -94,23 +101,39 @@ async def create_asr_job(
     """Store uploaded media and start an ASR job in the background."""
     job_id = f"asr-{uuid4().hex[:12]}"
     safe_name = _safe_filename(filename)
-    job_dir = JOB_ROOT / job_id
-    upload_dir = UPLOAD_ROOT / job_id
-    input_path = upload_dir / safe_name
+    media_id = Path(safe_name).stem or "media"
+    clip_id = _allocate_clip_id(media_id)
+    clip_dir = CLIPS_ROOT / clip_id
+    source_dir = clip_dir / SOURCE_DIR
+    job_dir = clip_dir / ASR_MODULE_DIR / job_id
     run_dir = job_dir / "run"
+    input_path = source_dir / safe_name
+    source_dir.mkdir(parents=True, exist_ok=True)
     job_dir.mkdir(parents=True, exist_ok=True)
-    upload_dir.mkdir(parents=True, exist_ok=True)
 
     size = await _write_request_body(request, input_path)
     if size == 0:
         raise HTTPException(status_code=400, detail="empty_upload")
 
+    _ensure_clip_record(
+        clip_id=clip_id,
+        filename=safe_name,
+        media_id=media_id,
+        size_bytes=size,
+        source_path=input_path,
+    )
+
     job = {
         "job_id": job_id,
+        "clip_id": clip_id,
+        "media_id": media_id,
         "status": "queued",
         "filename": safe_name,
         "input_path": str(input_path),
         "output_dir": str(run_dir),
+        "job_dir": str(job_dir),
+        "clip_dir": str(clip_dir),
+        "module": "asr",
         "profile": profile,
         "channel_mode": channel_mode,
         "size_bytes": size,
@@ -119,10 +142,34 @@ async def create_asr_job(
         "completed_at": None,
         "message": "ASR işi kuyruğa alındı.",
         "error": None,
+        "progress_percent": 0,
+        "progress_label": "Kuyrukta",
+        "log_path": str(job_dir / "job_log.jsonl"),
     }
     _save_job(job)
+    _attach_job_to_clip(clip_id, module=ASR_MODULE_DIR, job_id=job_id)
+    _append_job_log(job_id, "Medya yüklendi.", stage="upload", progress_percent=3)
+    _append_job_log(job_id, "ASR işi kuyruğa alındı.", stage="queued", progress_percent=5)
+    system_events.log_event(
+        "media_imported",
+        summary=f"{safe_name} içe aktarıldı ({_format_size(size)}).",
+        module="upload",
+        media_id=media_id,
+        filename=safe_name,
+        job_id=job_id,
+        detail={"clip_id": clip_id, "size_bytes": size, "profile": profile, "channel_mode": channel_mode},
+    )
+    system_events.log_event(
+        "asr_queued",
+        summary=f"{safe_name} için ASR kuyruğa alındı.",
+        module="asr",
+        media_id=media_id,
+        filename=safe_name,
+        job_id=job_id,
+        detail={"clip_id": clip_id},
+    )
     _executor.submit(_run_job, job_id)
-    return _public_job(job)
+    return _public_job(_load_job(job_id) or job)
 
 
 @app.get("/api/jobs")
@@ -141,6 +188,65 @@ def get_job(job_id: str) -> dict[str, Any]:
     return _public_job(job)
 
 
+@app.get("/api/clips")
+def list_clips(limit: int = Query(default=50, ge=1, le=500)) -> dict[str, Any]:
+    """List clips (newest first) with their module statuses."""
+    records = _list_clip_records(limit)
+    clips = [_public_clip(record) for record in records]
+    return {"clips": clips, "count": len(clips)}
+
+
+@app.get("/api/clips/{clip_id}")
+def get_clip(clip_id: str) -> dict[str, Any]:
+    """Return clip metadata + every job recorded under it + recent events."""
+    record = _load_clip_record(clip_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="clip_not_found")
+    payload = _public_clip(record)
+    payload["jobs"] = _public_clip_jobs(clip_id)
+    payload["events"] = system_events.read_events(media_id=record.get("media_id"), limit=500)
+    return payload
+
+
+@app.get("/api/events")
+def list_events(
+    limit: int = Query(default=200, ge=1, le=2000),
+    since: str | None = Query(default=None),
+    kind: str | None = Query(default=None),
+    level: str | None = Query(default=None),
+    module: str | None = Query(default=None),
+    job_id: str | None = Query(default=None),
+    media_id: str | None = Query(default=None),
+) -> dict[str, Any]:
+    """Return system-wide events, newest-first. Used by the WebUI LOG panel."""
+    events = system_events.read_events(
+        limit=limit,
+        since=since,
+        kind=kind,
+        level=level,
+        module=module,
+        job_id=job_id,
+        media_id=media_id,
+    )
+    return {"events": events, "count": len(events)}
+
+
+@app.get("/api/events/{event_id}")
+def get_event(event_id: str) -> dict[str, Any]:
+    """Return a single event plus the related per-job step log when available."""
+    event = system_events.find_event(event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="event_not_found")
+    payload: dict[str, Any] = {"event": event, "job_logs": []}
+    related_job_id = event.get("job_id")
+    if related_job_id:
+        job = _load_job(str(related_job_id))
+        if job is not None:
+            payload["job_logs"] = _read_job_logs(job)
+            payload["job_status"] = job.get("status")
+    return payload
+
+
 @app.post("/api/translate/segments")
 async def translate_segments(request: Request) -> dict[str, Any]:
     """Translate selected transcript segments through the isolated translate venv."""
@@ -149,13 +255,66 @@ async def translate_segments(request: Request) -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="invalid_json") from exc
     translate_payload = _prepare_translate_payload(payload)
+    job_id = str(payload.get("job_id") or "") if isinstance(payload, dict) else ""
+    item_count = len(translate_payload["items"])
+    target_lang = translate_payload["target_lang"]
+    related_job = _load_job(job_id) if job_id else None
+    media_filename = str(related_job.get("filename")) if related_job else None
+    media_id = str(related_job.get("media_id")) if related_job and related_job.get("media_id") else (
+        Path(media_filename).stem if media_filename else None
+    )
+    clip_id = str(related_job.get("clip_id")) if related_job and related_job.get("clip_id") else None
+    system_events.log_event(
+        "translate_started",
+        summary=f"{item_count} segment için çeviri başladı (hedef: {target_lang}).",
+        module="translate",
+        media_id=media_id,
+        filename=media_filename,
+        job_id=job_id or None,
+        detail={"clip_id": clip_id, "item_count": item_count, "target_lang": target_lang},
+    )
+    started = datetime.now(timezone.utc)
     loop = asyncio.get_running_loop()
     try:
-        return await loop.run_in_executor(_translate_executor, _run_translate_subprocess, translate_payload)
+        result = await loop.run_in_executor(_translate_executor, _run_translate_subprocess, translate_payload)
     except ValueError as exc:
+        system_events.log_event(
+            "translate_failed",
+            summary="Çeviri girişleri geçersiz.",
+            level="error",
+            module="translate",
+            media_id=media_id,
+            filename=media_filename,
+            job_id=job_id or None,
+            error=str(exc),
+            detail={"clip_id": clip_id},
+        )
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
+        system_events.log_event(
+            "translate_failed",
+            summary=f"{item_count} segment çevirisi başarısız oldu.",
+            level="error",
+            module="translate",
+            media_id=media_id,
+            filename=media_filename,
+            job_id=job_id or None,
+            error=str(exc),
+            detail={"clip_id": clip_id},
+        )
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    elapsed = (datetime.now(timezone.utc) - started).total_seconds()
+    system_events.log_event(
+        "translate_completed",
+        summary=f"{item_count} segment çevirisi tamamlandı ({elapsed:.1f} sn).",
+        module="translate",
+        media_id=media_id,
+        filename=media_filename,
+        job_id=job_id or None,
+        duration_seconds=elapsed,
+        detail={"clip_id": clip_id, "item_count": item_count, "target_lang": target_lang},
+    )
+    return result
 
 
 @app.websocket("/api/stt/preview/ws")
@@ -275,11 +434,27 @@ def _run_job(job_id: str) -> None:
     if job is None:
         return
 
+    filename = str(job.get("filename") or "")
+    media_id = str(job.get("media_id") or (Path(filename).stem if filename else "")) or None
+    clip_id = str(job.get("clip_id") or "") or None
+    _append_job_log(job_id, "ASR worker başladı.", stage="worker", progress_percent=8)
     _update_job(
         job_id,
         status="running",
         started_at=_now_iso(),
         message="Gerçek ASR modeli çalışıyor.",
+        progress_percent=12,
+        progress_label="ASR çalışıyor",
+    )
+    _append_job_log(job_id, "Normalizasyon, kanal kararı ve ASR pipeline başladı.", stage="pipeline", progress_percent=15)
+    system_events.log_event(
+        "asr_started",
+        summary=f"{filename or media_id or job_id} için ASR başladı.",
+        module="asr",
+        media_id=media_id,
+        filename=filename or None,
+        job_id=job_id,
+        detail={"clip_id": clip_id, "profile": job.get("profile"), "channel_mode": job.get("channel_mode")},
     )
     try:
         result = run_asr_pipeline(
@@ -291,6 +466,22 @@ def _run_job(job_id: str) -> None:
             job_id=job_id,
             module_run_id=f"{job_id}-module",
         )
+        _append_job_log(job_id, "ASR pipeline çıktı dosyalarını üretti.", stage="artifacts", progress_percent=95)
+        summary = result.module_run.output_summary
+        if summary.get("fallback_triggered"):
+            fallback_chunk_count = summary.get("fallback_chunk_count")
+            fallback_total_chunk_count = summary.get("fallback_total_chunk_count")
+            fallback_mode = summary.get("fallback_mode") or "unknown"
+            if fallback_chunk_count is not None and fallback_total_chunk_count is not None:
+                fallback_detail = f"{fallback_chunk_count}/{fallback_total_chunk_count} chunk"
+            else:
+                fallback_detail = "chunk bilgisi yok"
+            _append_job_log(
+                job_id,
+                f"Fallback çalıştı: {fallback_mode} ({fallback_detail}).",
+                stage="fallback",
+                progress_percent=96,
+            )
         module_status = str(result.module_run.status)
         status: JobState = "partial" if module_status == "partial" else "done"
         _update_job(
@@ -298,11 +489,42 @@ def _run_job(job_id: str) -> None:
             status=status,
             completed_at=_now_iso(),
             message="ASR tamamlandı." if status == "done" else "ASR kısmi sonuçla tamamlandı.",
+            progress_percent=100,
+            progress_label="Tamamlandı" if status == "done" else "Kısmi tamamlandı",
             archive_path=str(result.archive_path),
             module_run_path=str(result.module_run_path),
             summary_path=str(result.summary_path),
             transcript_review_path=str(result.transcript_review_path),
             timeline_events_path=str(result.timeline_events_path),
+        )
+        _append_job_log(
+            job_id,
+            "ASR tamamlandı." if status == "done" else "ASR kısmi sonuçla tamamlandı.",
+            stage=status,
+            progress_percent=100,
+        )
+        elapsed = _job_elapsed_seconds(_load_job(job_id) or job)
+        if clip_id:
+            _update_clip_module_status(clip_id, module=ASR_MODULE_DIR, status=status, job_id=job_id)
+        system_events.log_event(
+            "asr_completed" if status == "done" else "asr_partial",
+            summary=(
+                f"{filename or media_id or job_id} için ASR tamamlandı"
+                f" ({elapsed} sn)." if status == "done"
+                else f"{filename or media_id or job_id} için ASR kısmi sonuçla bitti ({elapsed} sn)."
+            ),
+            level="info" if status == "done" else "warn",
+            module="asr",
+            media_id=media_id,
+            filename=filename or None,
+            job_id=job_id,
+            duration_seconds=elapsed,
+            detail={
+                "clip_id": clip_id,
+                "profile": job.get("profile"),
+                "fallback_triggered": bool(summary.get("fallback_triggered")) if isinstance(summary, dict) else None,
+                "fallback_mode": summary.get("fallback_mode") if isinstance(summary, dict) else None,
+            },
         )
     except Exception as exc:  # noqa: BLE001 - persisted local job error
         _update_job(
@@ -312,6 +534,22 @@ def _run_job(job_id: str) -> None:
             message="ASR başarısız oldu.",
             error=str(exc),
             traceback=traceback.format_exc(),
+            progress_percent=100,
+            progress_label="Hata",
+        )
+        _append_job_log(job_id, f"ASR başarısız oldu: {exc}", stage="failed", level="error", progress_percent=100)
+        if clip_id:
+            _update_clip_module_status(clip_id, module=ASR_MODULE_DIR, status="failed", job_id=job_id)
+        system_events.log_event(
+            "asr_failed",
+            summary=f"{filename or media_id or job_id} için ASR başarısız oldu.",
+            level="error",
+            module="asr",
+            media_id=media_id,
+            filename=filename or None,
+            job_id=job_id,
+            error=str(exc),
+            detail={"clip_id": clip_id},
         )
 
 
@@ -574,8 +812,12 @@ def _translation_cache_dir(job_id: str) -> Path:
     if job_id:
         job = _load_job(job_id)
         if job is not None:
-            return Path(str(job["output_dir"])) / "translations"
-        return JOB_ROOT / _safe_filename(job_id) / "translations"
+            clip_id = str(job.get("clip_id") or "").strip()
+            if clip_id:
+                return CLIPS_ROOT / clip_id / TRANSLATIONS_DIR
+            # Legacy fallback for pre-clip-layout jobs.
+            return Path(str(job["output_dir"])) / TRANSLATIONS_DIR
+        return CLIPS_ROOT / "_unknown" / TRANSLATIONS_DIR / _safe_filename(job_id)
     return PROJECT_ROOT / "outputs" / "webui_translate_cache"
 
 
@@ -663,33 +905,194 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
         payload["timeline_events"] = timeline.get("events") or []
     else:
         payload["timeline_events"] = []
+    payload["elapsed_seconds"] = _job_elapsed_seconds(payload)
+    payload["progress_percent"] = _job_progress_percent(payload)
+    payload["logs"] = _read_job_logs(payload)
     return payload
 
 
+def _job_json_paths(limit: int | None = None) -> list[Path]:
+    """Collect job.json paths from the clip layout and the legacy layout."""
+    candidates: list[Path] = []
+    if CLIPS_ROOT.exists():
+        candidates.extend(CLIPS_ROOT.glob("*/asr/*/job.json"))
+    if LEGACY_JOB_ROOT.exists():
+        candidates.extend(LEGACY_JOB_ROOT.glob("*/job.json"))
+    candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+    if limit is not None:
+        return candidates[:limit]
+    return candidates
+
+
 def _load_recent_jobs(limit: int) -> list[dict[str, Any]]:
-    JOB_ROOT.mkdir(parents=True, exist_ok=True)
-    paths = sorted(JOB_ROOT.glob("*/job.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    CLIPS_ROOT.mkdir(parents=True, exist_ok=True)
     jobs: list[dict[str, Any]] = []
-    for path in paths[:limit]:
+    for path in _job_json_paths(limit=limit):
         payload = _read_json(path)
         if isinstance(payload, dict):
             jobs.append(payload)
     return jobs
 
 
+def _find_job_json(job_id: str) -> Path | None:
+    if not job_id:
+        return None
+    if CLIPS_ROOT.exists():
+        for path in CLIPS_ROOT.glob(f"*/asr/{job_id}/job.json"):
+            return path
+    legacy = LEGACY_JOB_ROOT / job_id / "job.json"
+    if legacy.exists():
+        return legacy
+    return None
+
+
 def _load_job(job_id: str) -> dict[str, Any] | None:
     with _jobs_lock:
         if job_id in _jobs:
             return dict(_jobs[job_id])
-    path = JOB_ROOT / job_id / "job.json"
+    path = _find_job_json(job_id)
+    if path is None:
+        return None
     payload = _read_json(path)
     return payload if isinstance(payload, dict) else None
+
+
+def _job_json_target(job: dict[str, Any]) -> Path:
+    job_dir = job.get("job_dir")
+    if job_dir:
+        return Path(str(job_dir)) / "job.json"
+    clip_id = job.get("clip_id")
+    if clip_id:
+        return CLIPS_ROOT / str(clip_id) / ASR_MODULE_DIR / str(job["job_id"]) / "job.json"
+    return LEGACY_JOB_ROOT / str(job["job_id"]) / "job.json"
 
 
 def _save_job(job: dict[str, Any]) -> None:
     with _jobs_lock:
         _jobs[job["job_id"]] = dict(job)
-    _write_json(JOB_ROOT / job["job_id"] / "job.json", job)
+    _write_json(_job_json_target(job), job)
+
+
+def _allocate_clip_id(media_id: str) -> str:
+    """Allocate a unique clip folder name.
+
+    Common case: ``er_vid`` → ``er_vid``. On collision, append ``_2``, ``_3``,
+    … until a free slot is found. The numeric suffix is preferred over a
+    random hash because most clips are uploaded once and short readable names
+    make manual disk inspection easier.
+    """
+    base = re.sub(r"[^A-Za-z0-9._-]+", "_", (media_id or "media").strip()) or "media"
+    if not (CLIPS_ROOT / base).exists():
+        return base
+    index = 2
+    while (CLIPS_ROOT / f"{base}_{index}").exists():
+        index += 1
+    return f"{base}_{index}"
+
+
+def _clip_record_path(clip_id: str) -> Path:
+    return CLIPS_ROOT / clip_id / "clip.json"
+
+
+def _ensure_clip_record(
+    *,
+    clip_id: str,
+    filename: str,
+    media_id: str,
+    size_bytes: int,
+    source_path: Path,
+) -> dict[str, Any]:
+    path = _clip_record_path(clip_id)
+    existing = _read_json(path)
+    record: dict[str, Any]
+    if isinstance(existing, dict):
+        record = existing
+    else:
+        record = {
+            "clip_id": clip_id,
+            "media_id": media_id,
+            "filename": filename,
+            "imported_at": _now_iso(),
+            "size_bytes": size_bytes,
+            "source_path": str(source_path),
+            "modules": {},
+        }
+    record.setdefault("modules", {})
+    _write_json(path, record)
+    return record
+
+
+def _attach_job_to_clip(clip_id: str, *, module: str, job_id: str) -> None:
+    path = _clip_record_path(clip_id)
+    record = _read_json(path)
+    if not isinstance(record, dict):
+        return
+    modules = record.setdefault("modules", {})
+    module_state = modules.setdefault(module, {"jobs": [], "latest_job_id": None, "status": None})
+    if job_id not in module_state.get("jobs", []):
+        module_state.setdefault("jobs", []).append(job_id)
+    module_state["latest_job_id"] = job_id
+    module_state["status"] = "queued"
+    module_state["updated_at"] = _now_iso()
+    _write_json(path, record)
+
+
+def _update_clip_module_status(clip_id: str, *, module: str, status: str, job_id: str) -> None:
+    path = _clip_record_path(clip_id)
+    record = _read_json(path)
+    if not isinstance(record, dict):
+        return
+    modules = record.setdefault("modules", {})
+    module_state = modules.setdefault(module, {"jobs": [job_id], "latest_job_id": job_id})
+    module_state["status"] = status
+    module_state["latest_job_id"] = job_id
+    module_state["updated_at"] = _now_iso()
+    _write_json(path, record)
+
+
+def _load_clip_record(clip_id: str) -> dict[str, Any] | None:
+    record = _read_json(_clip_record_path(clip_id))
+    return record if isinstance(record, dict) else None
+
+
+def _public_clip(record: dict[str, Any]) -> dict[str, Any]:
+    out = dict(record)
+    modules = out.get("modules") or {}
+    summary: dict[str, Any] = {}
+    for module, state in modules.items():
+        if isinstance(state, dict):
+            summary[module] = {
+                "status": state.get("status"),
+                "latest_job_id": state.get("latest_job_id"),
+                "job_count": len(state.get("jobs") or []),
+                "updated_at": state.get("updated_at"),
+            }
+    out["module_summary"] = summary
+    return out
+
+
+def _public_clip_jobs(clip_id: str) -> list[dict[str, Any]]:
+    base = CLIPS_ROOT / clip_id
+    if not base.exists():
+        return []
+    jobs: list[dict[str, Any]] = []
+    for job_json in base.glob("*/*/job.json"):
+        payload = _read_json(job_json)
+        if isinstance(payload, dict):
+            jobs.append(_public_job(payload))
+    jobs.sort(key=lambda item: str(item.get("created_at") or ""), reverse=True)
+    return jobs
+
+
+def _list_clip_records(limit: int) -> list[dict[str, Any]]:
+    CLIPS_ROOT.mkdir(parents=True, exist_ok=True)
+    paths = sorted(CLIPS_ROOT.glob("*/clip.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    records: list[dict[str, Any]] = []
+    for path in paths[: max(1, min(limit, 500))]:
+        record = _read_json(path)
+        if isinstance(record, dict):
+            records.append(record)
+    return records
 
 
 def _update_job(job_id: str, **updates: Any) -> None:
@@ -698,6 +1101,97 @@ def _update_job(job_id: str, **updates: Any) -> None:
         return
     job.update(updates)
     _save_job(job)
+
+
+def _append_job_log(
+    job_id: str,
+    message: str,
+    *,
+    stage: str,
+    level: str = "info",
+    progress_percent: int | None = None,
+) -> None:
+    job = _load_job(job_id)
+    if job is None:
+        return
+    default_log = LEGACY_JOB_ROOT / job_id / "job_log.jsonl"
+    job_dir = job.get("job_dir")
+    if job_dir:
+        default_log = Path(str(job_dir)) / "job_log.jsonl"
+    log_path = Path(str(job.get("log_path") or default_log))
+    event: dict[str, Any] = {
+        "ts": _now_iso(),
+        "level": level,
+        "stage": stage,
+        "message": message,
+    }
+    if progress_percent is not None:
+        event["progress_percent"] = int(max(0, min(100, progress_percent)))
+        job["progress_percent"] = event["progress_percent"]
+    job["progress_label"] = message
+    job["log_path"] = str(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+    _save_job(job)
+
+
+def _read_job_logs(job: dict[str, Any]) -> list[dict[str, Any]]:
+    fallback = LEGACY_JOB_ROOT / str(job["job_id"]) / "job_log.jsonl"
+    job_dir = job.get("job_dir")
+    if job_dir:
+        fallback = Path(str(job_dir)) / "job_log.jsonl"
+    log_path = Path(str(job.get("log_path") or fallback))
+    if not log_path.exists():
+        return []
+    logs: list[dict[str, Any]] = []
+    try:
+        for line in log_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            payload = json.loads(line)
+            if isinstance(payload, dict):
+                logs.append(payload)
+    except (OSError, json.JSONDecodeError):
+        return logs
+    return logs[-500:]
+
+
+def _job_elapsed_seconds(job: dict[str, Any]) -> int:
+    started_at = _parse_iso_datetime(job.get("started_at"))
+    if started_at is None:
+        return 0
+    completed_at = _parse_iso_datetime(job.get("completed_at"))
+    end = completed_at or datetime.now(timezone.utc)
+    return max(0, int((end - started_at).total_seconds()))
+
+
+def _job_progress_percent(job: dict[str, Any]) -> int:
+    status = str(job.get("status") or "")
+    stored = int(max(0, min(100, int(job.get("progress_percent") or 0))))
+    if status in {"done", "partial", "failed"}:
+        return 100
+    if status == "queued":
+        return max(stored, 5)
+    if status == "running":
+        elapsed = _job_elapsed_seconds(job)
+        # Pipeline içi callback yok; kullanıcıya bekleme hissi vermek için 15-92 arası tahmini akar.
+        estimated_seconds = max(90, int(float(job.get("size_bytes") or 0) / (12 * 1024 * 1024)) * 60)
+        estimated_progress = 15 + int(min(77, (elapsed / estimated_seconds) * 77))
+        return max(stored, min(92, estimated_progress))
+    return stored
+
+
+def _parse_iso_datetime(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _read_json(path_like: str | Path) -> Any | None:
@@ -713,6 +1207,15 @@ def _read_json(path_like: str | Path) -> Any | None:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _format_size(size_bytes: int) -> str:
+    size = float(size_bytes)
+    for unit in ("B", "KB", "MB", "GB"):
+        if size < 1024 or unit == "GB":
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} B"
+        size /= 1024
+    return f"{size_bytes} B"
 
 
 def _safe_filename(filename: str) -> str:

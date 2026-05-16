@@ -388,3 +388,66 @@ Kural:
 - Yapılan UI değişikliği → dosya + davranış + doğrulama ile yazılır.
 - ASR kalite problemi UI'da görünse bile kökü ASR ise burada sadece referans verilir; detay ASR kalite/benchmark dosyasında tutulur.
 - Kalıcı ürün kararı ise ayrıca `mutfak/06_KARARLAR_GUNLUGU.md` içine karar olarak geçirilir.
+
+---
+
+## 7. Segment Bazlı Türkçe Çeviri
+
+Tarih: 2026-05-15
+
+Beklenti:
+
+- Batch STT sonucunda yabancı dil satırının üzerinde veya yanında `T` aksiyonu görünsün.
+- Kullanıcı `T` bastığında orijinal satır sabit kalsın, Türkçe çeviri aynı segmentin altında görünsün.
+- Türkçe segmentler yeniden çevrilmesin.
+
+Yapılan:
+
+- Backend'e `POST /api/translate/segments` endpoint'i eklendi. Endpoint ana ASR API içinde kalıyor ama çeviri runtime'ını izole `venvs/translate` ortamında subprocess olarak çağırıyor.
+- Router kararı `config/translation_router.yaml` içine bağlandı: EN→TR için `opus-mt-tc-big-en-tr`, diğer destekli diller için `nllb-200-3.3b`.
+- UI'da ASR segment satırlarına `T` butonu eklendi. Buton yabancı dil segmentlerde aktif, Türkçe segmentlerde `TR` etiketi gösteriliyor.
+- Çeviri sonucu segment altında `TR çeviri` bloğu olarak saklanıyor; aynı job açık kaldığı sürece UI state'te korunuyor.
+
+Doğrulama:
+
+- `translate_smoke.py --model all` üç modelde geçti.
+- `/api/translate/segments` EN örneğinde OPUS ile `Sayın Başbakan, bir dakika lütfen.` döndürdü.
+- `/api/translate/segments` FR örneğinde NLLB 3.3B ile Türkçe sonuç döndürdü.
+- UI `tsc --noEmit` ve `vite build` geçti.
+
+2026-05-15 ek:
+
+- Çeviri çıktısına `broadcast_tr_v1` post-edit katmanı eklendi. Amaç ham MT çıktısını daha doğal TRT/haber altyazısı Türkçesine yaklaştırmak.
+- Örnek düzeltme: `Başbakan, tartışmayı tekrar başlatamayız, lütfen, sadece zamanımız yok.` → `Sayın Başbakan, tartışmayı yeniden açamayız, lütfen; buna zamanımız yok.`
+- ASR sekmesi üstüne `T Tümünü Çevir` aksiyonu eklendi. Bu aksiyon tüm transcript satırlarını Türkçe hedefe çevirir; zaten Türkçe görünen satırlar `orijinal Türkçe` olarak korunur.
+- Segmentlerde kanal bilgisi `L/R` gelirse timeline iki ASR lane'e ayrılır: `ASR Kanal 1` ve `ASR Kanal 2`.
+- Sağ ASR panelinde kanal filtresi eklendi: `Tümü / Kanal 1 / Kanal 2`.
+
+---
+
+## 8. ASR İlerleme ve Kalıcı İşlem Logu
+
+Tarih: 2026-05-16
+
+Beklenti:
+
+- ASR devam ederken kullanıcı yüzde kaçta olduğunu görmeli.
+- Aynı yerde işlemin kaç dakikadır sürdüğü görünmeli.
+- Sağ panelde yapılan işlemleri gösteren bir `Log` sekmesi olmalı.
+- Sayfa yenilense veya kapatılıp açılsa log kaybolmamalı.
+
+Yapılan:
+
+- Backend job kaydına `progress_percent`, `progress_label`, `elapsed_seconds` ve `logs` alanları eklendi.
+- Her ASR job için kalıcı `job_log.jsonl` tutuluyor: `outputs/webui_asr_jobs/<job_id>/job_log.jsonl`.
+- Backend, upload/kuyruk/worker/pipeline/artifact/tamamlandı/hata aşamalarını logluyor.
+- Pipeline içi chunk callback'i olmadığı için running yüzdesi şimdilik tahmini akar; gerçek aşama logları ayrıca kalıcıdır.
+- UI Header, `yüzde + geçen süre` bilgisini rozet ve progress bar olarak gösteriyor.
+- Sağ panelde `Log` sekmesi eklendi.
+- UI açıldığında son ASR job otomatik geri yükleniyor; böylece yenileme sonrası log ve sonuçlar tekrar görünür.
+
+Doğrulama:
+
+- Küçük wav smoke job'da running sırasında progress `17 → 20 → 22`, tamamlanınca `100` döndü.
+- Aynı smoke job için `6` log kaydı API'den geri döndü.
+- `py_compile core/api/asr_server.py`, UI `tsc --noEmit`, UI `vite build` geçti.
