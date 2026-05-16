@@ -2,6 +2,7 @@ import { Database, DownloadCloud, LogIn, RefreshCw, Search, SplitSquareHorizonta
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, ScrollArea } from './ui';
 import {
+  autoLoginTedialSession,
   fetchTedialSession,
   forgetTedialSession,
   searchTedial,
@@ -44,7 +45,7 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
   const keyframeUrl = useMemo(() => selected ? tedialKeyframeProxyUrl(selected) : null, [selected]);
 
   useEffect(() => {
-    fetchTedialSession()
+    fetchTedialSession(true)
       .then(setSession)
       .catch((error) => setMessage(error instanceof Error ? error.message : 'Tedial durumu alınamadı'));
   }, []);
@@ -74,6 +75,18 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
       setMessage('Oturum kapatıldı');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Oturum kapatılamadı');
+    }
+  };
+
+  const handleAutoLogin = async () => {
+    setMessage('Otomatik login deneniyor');
+    try {
+      const next = await autoLoginTedialSession();
+      setSession(next);
+      setMessage(next.status === 'connected' ? 'Otomatik login tamam' : next.auto_login_error || 'Otomatik login tamamlanamadı');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Otomatik login başarısız');
+      await refreshSession(false).catch(() => undefined);
     }
   };
 
@@ -147,6 +160,12 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
             <RefreshCw className="h-3.5 w-3.5" />
             Yenile
           </Button>
+          {session?.auto_login_enabled ? (
+            <Button size="sm" variant="outline" className="gap-2" onClick={handleAutoLogin} disabled={!session.auto_login_configured}>
+              <RefreshCw className="h-3.5 w-3.5" />
+              Oto Login
+            </Button>
+          ) : null}
           <Button size="sm" className="gap-2" onClick={handleConnect}>
             <LogIn className="h-3.5 w-3.5" />
             Bağlan

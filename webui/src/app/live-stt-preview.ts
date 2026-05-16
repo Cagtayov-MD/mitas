@@ -81,11 +81,12 @@ export function useLiveSttPreview({
 
   const socketRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | MediaStreamAudioSourceNode | null>(null);
   const sourceElementRef = useRef<HTMLMediaElement | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const silentGainRef = useRef<GainNode | null>(null);
   const sourceOutputConnectedRef = useRef(false);
+  const sourceNeedsOutputRef = useRef(false);
   const pendingSamplesRef = useRef<number[]>([]);
   const pendingStartTimeRef = useRef<number | null>(null);
   const pendingEndTimeRef = useRef<number | null>(null);
@@ -191,13 +192,20 @@ export function useLiveSttPreview({
       let sourceNode = sourceNodeRef.current;
       if (!sourceNode || sourceElementRef.current !== mediaElement) {
         sourceNodeRef.current?.disconnect();
-        sourceNode = audioContext.createMediaElementSource(mediaElement);
+        const capturedStream = captureMediaElementStream(mediaElement);
+        if (capturedStream?.getAudioTracks().length) {
+          sourceNode = audioContext.createMediaStreamSource(capturedStream);
+          sourceNeedsOutputRef.current = false;
+        } else {
+          sourceNode = audioContext.createMediaElementSource(mediaElement);
+          sourceNeedsOutputRef.current = true;
+        }
         sourceNodeRef.current = sourceNode;
         sourceElementRef.current = mediaElement;
         sourceOutputConnectedRef.current = false;
       }
 
-      if (!sourceOutputConnectedRef.current) {
+      if (sourceNeedsOutputRef.current && !sourceOutputConnectedRef.current) {
         sourceNode.connect(audioContext.destination);
         sourceOutputConnectedRef.current = true;
       }
@@ -460,6 +468,18 @@ export function useLiveSttPreview({
 function createLiveSttSocketUrl(): string {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${protocol}//${window.location.host}/api/stt/preview/ws`;
+}
+
+function captureMediaElementStream(mediaElement: HTMLMediaElement): MediaStream | null {
+  const capturable = mediaElement as HTMLMediaElement & {
+    captureStream?: () => MediaStream;
+    mozCaptureStream?: () => MediaStream;
+  };
+  try {
+    return capturable.captureStream?.() ?? capturable.mozCaptureStream?.() ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function statusLabel(status: LiveSttStatus): string {

@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
 import json
+import mimetypes
 import os
 from pathlib import Path
 import re
@@ -25,22 +26,28 @@ import time
 import traceback
 import tempfile
 from typing import Any, Literal
+import urllib.error
+import urllib.request
 from uuid import uuid4
 import wave
 
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from core.api.live_stt_text import LIVE_STT_INITIAL_PROMPT, repair_live_text
 from core.observability import system_events
+from core.pipelines.asr.align import AlignmentMode
 from core.pipelines.asr.models import DEFAULT_TRANSCRIBE_PARAMS, FAST_MODEL, ProfileName, load_model
 from core.pipelines.asr.normalize import PROJECT_ROOT
 from core.pipelines.asr.pipeline import ASR_PIPELINE_VERSION, run_asr_pipeline
+from core.pipelines.asr.profiles import ContentProfileName
 from core.pipelines.asr.version import get_code_version
 
 
 JobState = Literal["queued", "running", "done", "partial", "failed"]
 LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
+DiarizeMode = Literal["auto", "on", "off"]
 
 API_VERSION = "asr-api-v0.1"
 CLIPS_ROOT = PROJECT_ROOT / "outputs" / "clips"
@@ -58,6 +65,15 @@ LIVE_STT_MAX_CHUNK_BYTES = LIVE_STT_SAMPLE_RATE * 2 * 15
 TRANSLATE_PYTHON = PROJECT_ROOT / "venvs" / "translate" / "Scripts" / "python.exe"
 TRANSLATE_API_SCRIPT = PROJECT_ROOT / "scripts" / "translate_api_call.py"
 TRANSLATE_TIMEOUT_SECONDS = 600
+SUMMARY_TIMEOUT_SECONDS = 90
+SUMMARY_MAX_SOURCE_CHARS = 60000
+TURKISH_SUMMARY_STOPWORDS = {
+    "acaba", "ama", "ancak", "artık", "aslında", "az", "bazı", "belki", "ben", "beni", "benim", "beri",
+    "bir", "biraz", "birçok", "biz", "bizim", "bu", "buna", "bunu", "burada", "böyle", "çok", "çünkü",
+    "daha", "da", "de", "değil", "diye", "en", "gibi", "hem", "hep", "her", "hiç", "ile", "için",
+    "ise", "işte", "kadar", "ki", "mı", "mi", "mu", "mü", "nasıl", "ne", "neden", "olarak", "olan",
+    "oldu", "oluyor", "sonra", "şimdi", "şu", "ve", "veya", "ya", "yani", "yine",
+}
 
 app = FastAPI(title="MITAS ASR API", version=API_VERSION)
 app.add_middleware(
@@ -73,6 +89,7 @@ _live_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-stt
 _translate_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-translate")
 _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
+_media_remux_lock = threading.Lock()
 
 import logging as _logging
 _server_logger = _logging.getLogger("mitas.asr.server")
@@ -215,9 +232,25 @@ def get_sysinfo() -> dict[str, int]:
 @app.post("/api/restart")
 def restart_server() -> dict[str, str]:
     """Replace the current process with a fresh uvicorn instance."""
+    def _restart_argv() -> list[str]:
+        argv = list(sys.argv)
+        scripts_dir = Path(sys.prefix) / ("Scripts" if os.name == "nt" else "bin")
+        uvicorn_exe = scripts_dir / ("uvicorn.exe" if os.name == "nt" else "uvicorn")
+
+        if argv:
+            first = Path(argv[0])
+            launched_with_uvicorn_module = first.name == "__main__.py" and first.parent.name == "uvicorn"
+            launched_with_uvicorn_exe = first.name.lower() in {"uvicorn", "uvicorn.exe"}
+            if uvicorn_exe.exists() and (launched_with_uvicorn_module or launched_with_uvicorn_exe):
+                return [str(uvicorn_exe), *argv[1:]]
+
+        return [sys.executable, *argv]
+
     def _do_restart() -> None:
         time.sleep(0.4)
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        os.chdir(PROJECT_ROOT)
+        argv = _restart_argv()
+        os.execv(argv[0], argv)
     threading.Thread(target=_do_restart, daemon=True, name="restart").start()
     return {"status": "restarting"}
 
@@ -250,8 +283,11 @@ def health() -> dict[str, Any]:
 async def create_asr_job(
     request: Request,
     filename: str = Query(default="media"),
-    profile: ProfileName = Query(default="fast_with_fallback"),
+    profile: ProfileName | None = Query(default=None),
+    content_profile: ContentProfileName | None = Query(default="bulten_haber"),
+    diarize: DiarizeMode = Query(default="auto"),
     channel_mode: Literal["mono", "split", "auto"] = Query(default="auto"),
+    word_alignment_mode: AlignmentMode = Query(default="whisperx"),
     force: Literal["none", "full"] = Query(default="none"),
 ) -> dict[str, Any]:
     """Store uploaded media and start an ASR job in the background.
@@ -323,8 +359,12 @@ async def create_asr_job(
         "job_dir": str(job_dir),
         "clip_dir": str(clip_dir),
         "module": "asr",
-        "profile": profile,
+        "profile": profile or "fast_with_fallback",
+        "model_profile_override": profile,
+        "content_profile": content_profile,
+        "diarize": diarize,
         "channel_mode": channel_mode,
+        "word_alignment_mode": word_alignment_mode,
         "size_bytes": size,
         "reprocessed": reprocessed,
         "previous_job_id": previous_job_id,
@@ -349,7 +389,14 @@ async def create_asr_job(
             media_id=media_id,
             filename=safe_name,
             job_id=job_id,
-            detail={"clip_id": clip_id, "previous_job_id": previous_job_id, "profile": profile},
+            detail={
+                "clip_id": clip_id,
+                "previous_job_id": previous_job_id,
+                "profile": profile,
+                "content_profile": content_profile,
+                "diarize": diarize,
+                "word_alignment_mode": word_alignment_mode,
+            },
         )
     else:
         system_events.log_event(
@@ -359,7 +406,15 @@ async def create_asr_job(
             media_id=media_id,
             filename=safe_name,
             job_id=job_id,
-            detail={"clip_id": clip_id, "size_bytes": size, "profile": profile, "channel_mode": channel_mode},
+            detail={
+                "clip_id": clip_id,
+                "size_bytes": size,
+                "profile": profile,
+                "content_profile": content_profile,
+                "diarize": diarize,
+                "channel_mode": channel_mode,
+                "word_alignment_mode": word_alignment_mode,
+            },
         )
     system_events.log_event(
         "asr_queued",
@@ -417,9 +472,22 @@ def _build_reused_response(existing_clip: dict[str, Any], *, content_hash: str) 
 
 
 @app.get("/api/jobs")
-def list_jobs(limit: int = Query(default=20, ge=1, le=100)) -> dict[str, Any]:
+def list_jobs(
+    limit: int = Query(default=20, ge=1, le=500),
+    compact: bool = Query(default=False),
+    q: str | None = Query(default=None),
+) -> dict[str, Any]:
     """List recent ASR jobs."""
-    jobs = [_public_job(job) for job in _load_recent_jobs(limit)]
+    search_query = (q or "").strip()
+    if compact:
+        jobs = [_public_job_summary(job, search_query=search_query) for job in _load_recent_jobs(limit, search_query=search_query)]
+    else:
+        jobs = [_public_job(job) for job in _load_recent_jobs(limit, search_query=search_query)]
+        if search_query:
+            for job in jobs:
+                match = _job_search_match(job, search_query)
+                if match:
+                    job["search_match"] = match
     return {"jobs": jobs}
 
 
@@ -430,6 +498,82 @@ def get_job(job_id: str) -> dict[str, Any]:
     if job is None:
         raise HTTPException(status_code=404, detail="job_not_found")
     return _public_job(job)
+
+
+@app.post("/api/jobs/{job_id}/transcript-summary")
+async def summarize_job_transcript(
+    job_id: str,
+    force: bool = Query(default=False),
+) -> dict[str, Any]:
+    """Generate or return the persisted human-readable transcript summary."""
+    job = _load_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job_not_found")
+    public_job = _public_job(job)
+    transcript = str(public_job.get("transcript") or "").strip()
+    if not transcript:
+        raise HTTPException(status_code=400, detail="transcript_empty")
+
+    summary_path = _transcript_summary_path(public_job)
+    if summary_path.exists() and not force:
+        cached = _read_json(summary_path)
+        if isinstance(cached, dict):
+            return cached
+
+    started = datetime.now(timezone.utc)
+    loop = asyncio.get_running_loop()
+    try:
+        summary = await loop.run_in_executor(_translate_executor, _generate_transcript_summary, public_job, transcript)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    payload = {
+        "job_id": job_id,
+        "filename": public_job.get("filename"),
+        "created_at": _now_iso(),
+        "elapsed_seconds": round((datetime.now(timezone.utc) - started).total_seconds(), 3),
+        **summary,
+    }
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    job["transcript_summary_path"] = str(summary_path)
+    _save_job(job)
+    system_events.log_event(
+        "transcript_summary_completed",
+        summary=f"{public_job.get('filename') or job_id} için transcript özeti üretildi.",
+        module="summary",
+        media_id=str(public_job.get("media_id") or "") or None,
+        filename=str(public_job.get("filename") or "") or None,
+        job_id=job_id,
+        duration_seconds=payload["elapsed_seconds"],
+        detail={"model": payload.get("model"), "provider": payload.get("provider")},
+    )
+    return payload
+
+
+@app.get("/api/jobs/{job_id}/media")
+def get_job_media(job_id: str) -> FileResponse:
+    """Stream the original media for a persisted ASR job."""
+    job = _load_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job_not_found")
+    raw_path = job.get("input_path")
+    if not raw_path:
+        raise HTTPException(status_code=404, detail="media_not_found")
+    media_path = Path(str(raw_path)).resolve()
+    allowed_roots = [CLIPS_ROOT.resolve(), LEGACY_UPLOAD_ROOT.resolve()]
+    if not any(_is_path_under(media_path, root) for root in allowed_roots):
+        raise HTTPException(status_code=403, detail="media_path_not_allowed")
+    if not media_path.exists() or not media_path.is_file():
+        raise HTTPException(status_code=404, detail="media_not_found")
+    media_path = _playback_media_path(media_path)
+    media_type, _ = mimetypes.guess_type(str(media_path))
+    return FileResponse(
+        media_path,
+        media_type=media_type or "application/octet-stream",
+        filename=str(job.get("filename") or media_path.name),
+        content_disposition_type="inline",
+    )
 
 
 @app.get("/api/clips")
@@ -698,13 +842,27 @@ def _run_job(job_id: str) -> None:
         media_id=media_id,
         filename=filename or None,
         job_id=job_id,
-        detail={"clip_id": clip_id, "profile": job.get("profile"), "channel_mode": job.get("channel_mode")},
+        detail={
+            "clip_id": clip_id,
+            "profile": job.get("profile"),
+            "model_profile_override": job.get("model_profile_override"),
+            "content_profile": job.get("content_profile"),
+            "diarize": job.get("diarize"),
+            "channel_mode": job.get("channel_mode"),
+            "word_alignment_mode": job.get("word_alignment_mode"),
+        },
     )
     try:
+        content_profile = job.get("content_profile") or None
+        model_profile_override = job.get("model_profile_override") or None
         result = run_asr_pipeline(
             job["input_path"],
-            profile=job["profile"],
+            content_profile=content_profile,
+            profile=None if content_profile else model_profile_override,
+            model_profile_override=model_profile_override if content_profile else None,
+            diarize_override=_diarize_override(job.get("diarize")),
             channel_mode=job["channel_mode"],
+            word_alignment_mode=job.get("word_alignment_mode") or "whisperx",
             output_dir=job["output_dir"],
             media_id=Path(job["filename"]).stem,
             job_id=job_id,
@@ -795,6 +953,15 @@ def _run_job(job_id: str) -> None:
             error=str(exc),
             detail={"clip_id": clip_id},
         )
+
+
+def _diarize_override(value: Any) -> bool | None:
+    mode = str(value or "auto").strip().lower()
+    if mode == "on":
+        return True
+    if mode == "off":
+        return False
+    return None
 
 
 def _parse_live_chunk(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1134,13 +1301,19 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
     payload = dict(job)
     summary_path = payload.get("summary_path") or str(Path(payload["output_dir"]) / "summary.json")
     archive_path = payload.get("archive_path") or str(Path(payload["output_dir"]) / "archive.json")
+    module_run_path = payload.get("module_run_path") or str(Path(payload["output_dir"]) / "module_run.json")
     timeline_path = payload.get("timeline_events_path") or str(Path(payload["output_dir"]) / "timeline_events.json")
+    transcript_summary_path = payload.get("transcript_summary_path") or str(Path(payload["output_dir"]) / "transcript_summary.json")
     summary = _read_json(summary_path)
     archive = _read_json(archive_path)
+    module_run = _read_json(module_run_path)
     timeline = _read_json(timeline_path)
+    transcript_summary = _read_json(transcript_summary_path)
 
     if summary is not None:
         payload["summary"] = summary
+    if module_run is not None:
+        payload["module_run"] = module_run
     if archive is not None:
         payload["archive"] = archive
         transcript = archive.get("transcript") or {}
@@ -1156,7 +1329,271 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
     payload["elapsed_seconds"] = _job_elapsed_seconds(payload)
     payload["progress_percent"] = _job_progress_percent(payload)
     payload["logs"] = _read_job_logs(payload)
+    if transcript_summary is not None:
+        payload["transcript_summary"] = transcript_summary
+        payload["transcript_summary_path"] = str(transcript_summary_path)
     return payload
+
+
+def _public_job_summary(job: dict[str, Any], *, search_query: str = "") -> dict[str, Any]:
+    payload = dict(job)
+    summary_path = payload.get("summary_path") or str(Path(payload["output_dir"]) / "summary.json")
+    transcript_summary_path = payload.get("transcript_summary_path") or str(Path(payload["output_dir"]) / "transcript_summary.json")
+    summary = _read_json(summary_path)
+    transcript_summary = _read_json(transcript_summary_path)
+    if summary is not None:
+        payload["summary"] = summary
+    if transcript_summary is not None:
+        payload["transcript_summary"] = transcript_summary
+        payload["transcript_summary_path"] = str(transcript_summary_path)
+    payload["transcript"] = ""
+    payload["segments"] = []
+    payload["timeline_events"] = []
+    payload["logs"] = []
+    payload["elapsed_seconds"] = _job_elapsed_seconds(payload)
+    payload["progress_percent"] = _job_progress_percent(payload)
+    if search_query:
+        match = _job_search_match(payload, search_query)
+        if match:
+            payload["search_match"] = match
+    return payload
+
+
+def _transcript_summary_path(job: dict[str, Any]) -> Path:
+    explicit = job.get("transcript_summary_path")
+    if explicit:
+        return Path(str(explicit))
+    return Path(str(job["output_dir"])) / "transcript_summary.json"
+
+
+def _job_search_match(job: dict[str, Any], query: str) -> dict[str, Any] | None:
+    needle = _normalize_search_text(query)
+    if not needle:
+        return None
+
+    summary_path = job.get("summary_path") or str(Path(str(job["output_dir"])) / "summary.json")
+    summary = job.get("summary") if isinstance(job.get("summary"), dict) else _read_json(summary_path)
+    metadata_parts = [
+        job.get("job_id"),
+        job.get("clip_id"),
+        job.get("media_id"),
+        job.get("filename"),
+        job.get("status"),
+        job.get("message"),
+        job.get("error"),
+        job.get("profile"),
+        job.get("channel_mode"),
+    ]
+    if isinstance(summary, dict):
+        metadata_parts.extend([
+            summary.get("model_name"),
+            summary.get("profile_used"),
+            summary.get("profile_requested"),
+            summary.get("fallback_reason"),
+            summary.get("selection_reason"),
+        ])
+    metadata_text = " ".join(str(part) for part in metadata_parts if part)
+    if needle in _normalize_search_text(metadata_text):
+        return {"scope": "metadata", "label": "metadata", "count": 1, "snippet": _search_snippet(metadata_text, query)}
+
+    transcript = _job_transcript_for_search(job)
+    if transcript:
+        count = _normalize_search_text(transcript).count(needle)
+        if count > 0:
+            return {"scope": "transcript", "label": "transcript", "count": count, "snippet": _search_snippet(transcript, query)}
+    return None
+
+
+def _job_transcript_for_search(job: dict[str, Any]) -> str:
+    if isinstance(job.get("transcript"), str) and job.get("transcript"):
+        return str(job["transcript"])
+    archive_path = job.get("archive_path") or str(Path(str(job["output_dir"])) / "archive.json")
+    archive = job.get("archive") if isinstance(job.get("archive"), dict) else _read_json(archive_path)
+    if not isinstance(archive, dict):
+        return ""
+    transcript_block = archive.get("transcript")
+    if isinstance(transcript_block, dict):
+        text = transcript_block.get("clean") or transcript_block.get("verbatim")
+        if isinstance(text, str):
+            return text
+    segments = archive.get("segments")
+    if isinstance(segments, list):
+        return " ".join(str(segment.get("text") or "") for segment in segments if isinstance(segment, dict))
+    return ""
+
+
+def _normalize_search_text(value: Any) -> str:
+    return str(value or "").casefold()
+
+
+def _search_snippet(text: str, query: str, *, radius: int = 90) -> str:
+    needle = _normalize_search_text(query)
+    haystack = _normalize_search_text(text)
+    index = haystack.find(needle)
+    if index < 0:
+        return text[: radius * 2].strip()
+    start = max(0, index - radius)
+    end = min(len(text), index + len(query) + radius)
+    prefix = "..." if start > 0 else ""
+    suffix = "..." if end < len(text) else ""
+    return f"{prefix}{text[start:end].strip()}{suffix}"
+
+
+def _generate_transcript_summary(job: dict[str, Any], transcript: str) -> dict[str, Any]:
+    try:
+        return _summarize_with_openai(job, transcript)
+    except RuntimeError:
+        return _summarize_locally(job, transcript)
+
+
+def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, Any]:
+    api_key = os.environ.get("OPENAI_API_KEY")
+    model = os.environ.get("MITAS_SUMMARY_MODEL") or os.environ.get("OPENAI_SUMMARY_MODEL")
+    if not api_key or not model:
+        raise RuntimeError("summary_model_not_configured")
+
+    base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    source = _summary_source_text(transcript)
+    summary_block = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+    prompt = (
+        "Aşağıdaki medya transkriptini Türkçe olarak özetle.\n"
+        "İstenen çıktı:\n"
+        "- 1 kısa genel özet paragrafı\n"
+        "- 4-7 maddelik önemli konular\n"
+        "- Varsa kişi/kurum/yer/spor takımı adları\n"
+        "Halüsinasyon yapma; sadece transkriptte geçenleri yaz.\n\n"
+        f"Dosya: {job.get('filename')}\n"
+        f"Süre: {_format_summary_seconds(summary_block.get('audio_duration'))}\n\n"
+        f"TRANSKRİPT:\n{source}"
+    )
+    body = {
+        "model": model,
+        "temperature": 0.2,
+        "max_tokens": 900,
+        "messages": [
+            {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın."},
+            {"role": "user", "content": prompt},
+        ],
+    }
+    request = urllib.request.Request(
+        f"{base_url}/chat/completions",
+        data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=SUMMARY_TIMEOUT_SECONDS) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"summary_model_failed:{exc}") from exc
+
+    content = (
+        payload.get("choices", [{}])[0]
+        .get("message", {})
+        .get("content")
+    )
+    if not isinstance(content, str) or not content.strip():
+        raise RuntimeError("summary_model_empty")
+    return {
+        "provider": "openai-compatible",
+        "model": model,
+        "summary": content.strip(),
+        "source_chars": len(transcript),
+        "used_chars": len(source),
+    }
+
+
+def _summarize_locally(job: dict[str, Any], transcript: str) -> dict[str, Any]:
+    sentences = _split_summary_sentences(transcript)
+    if not sentences:
+        return {
+            "provider": "local",
+            "model": "local-extractive-summary",
+            "summary": transcript[:1200],
+            "source_chars": len(transcript),
+            "used_chars": min(len(transcript), 1200),
+        }
+    frequencies = _summary_word_frequencies(transcript)
+    scored: list[tuple[float, int, str]] = []
+    for index, sentence in enumerate(sentences):
+        words = _summary_words(sentence)
+        if not words:
+            continue
+        score = sum(frequencies.get(word, 0) for word in words) / max(len(words), 1)
+        if 45 <= len(sentence) <= 260:
+            score *= 1.15
+        scored.append((score, index, sentence))
+
+    selected = sorted(scored, key=lambda item: item[0], reverse=True)[:6]
+    selected_sentences = [sentence for _, _, sentence in sorted(selected, key=lambda item: item[1])]
+    keywords = _summary_keywords(frequencies, limit=10)
+    headline = selected_sentences[0] if selected_sentences else sentences[0]
+    bullets = "\n".join(f"- {sentence}" for sentence in selected_sentences[1:]) or "- Öne çıkan ayrı bir madde bulunamadı."
+    keyword_text = ", ".join(keywords) if keywords else "-"
+    summary = (
+        f"Genel özet: {headline}\n\n"
+        f"Öne çıkanlar:\n{bullets}\n\n"
+        f"Anahtar kelimeler: {keyword_text}"
+    )
+    return {
+        "provider": "local",
+        "model": "local-extractive-summary",
+        "summary": summary,
+        "source_chars": len(transcript),
+        "used_chars": len(transcript),
+        "note": "OPENAI_API_KEY ve MITAS_SUMMARY_MODEL ayarlı olmadığı için yerel extractive özet üretildi.",
+    }
+
+
+def _summary_source_text(transcript: str) -> str:
+    if len(transcript) <= SUMMARY_MAX_SOURCE_CHARS:
+        return transcript
+    head = transcript[:25000]
+    middle_start = max(0, len(transcript) // 2 - 7500)
+    middle = transcript[middle_start:middle_start + 15000]
+    tail = transcript[-20000:]
+    return f"{head}\n\n[... orta bölümden seçki ...]\n\n{middle}\n\n[... son bölüm ...]\n\n{tail}"
+
+
+def _split_summary_sentences(text: str) -> list[str]:
+    chunks = re.split(r"(?<=[.!?…])\s+", text.replace("\n", " "))
+    return [re.sub(r"\s+", " ", chunk).strip() for chunk in chunks if len(chunk.strip()) >= 25]
+
+
+def _summary_words(text: str) -> list[str]:
+    words = re.findall(r"[\wçğıöşüÇĞİÖŞÜ'-]+", text.lower(), flags=re.UNICODE)
+    return [
+        word.strip("'-")
+        for word in words
+        if len(word.strip("'-")) >= 4 and word.strip("'-") not in TURKISH_SUMMARY_STOPWORDS
+    ]
+
+
+def _summary_word_frequencies(text: str) -> dict[str, int]:
+    frequencies: dict[str, int] = {}
+    for word in _summary_words(text):
+        frequencies[word] = frequencies.get(word, 0) + 1
+    return frequencies
+
+
+def _summary_keywords(frequencies: dict[str, int], *, limit: int) -> list[str]:
+    return [
+        word
+        for word, _count in sorted(frequencies.items(), key=lambda item: item[1], reverse=True)[:limit]
+    ]
+
+
+def _format_summary_seconds(value: Any) -> str:
+    try:
+        seconds = int(float(value))
+    except (TypeError, ValueError):
+        return "-"
+    hours, rem = divmod(max(0, seconds), 3600)
+    minutes, secs = divmod(rem, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
 def _job_json_paths(limit: int | None = None) -> list[Path]:
@@ -1172,13 +1609,19 @@ def _job_json_paths(limit: int | None = None) -> list[Path]:
     return candidates
 
 
-def _load_recent_jobs(limit: int) -> list[dict[str, Any]]:
+def _load_recent_jobs(limit: int, *, search_query: str = "") -> list[dict[str, Any]]:
     CLIPS_ROOT.mkdir(parents=True, exist_ok=True)
     jobs: list[dict[str, Any]] = []
-    for path in _job_json_paths(limit=limit):
+    query = search_query.strip()
+    for path in _job_json_paths(limit=None if query else limit):
         payload = _read_json(path)
-        if isinstance(payload, dict):
-            jobs.append(payload)
+        if not isinstance(payload, dict):
+            continue
+        if query and _job_search_match(payload, query) is None:
+            continue
+        jobs.append(payload)
+        if len(jobs) >= limit:
+            break
     return jobs
 
 
@@ -1192,6 +1635,82 @@ def _find_job_json(job_id: str) -> Path | None:
     if legacy.exists():
         return legacy
     return None
+
+
+def _is_path_under(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _playback_media_path(media_path: Path) -> Path:
+    if not _is_playback_remux_candidate(media_path):
+        return media_path
+    try:
+        return _ensure_playback_mp4(media_path)
+    except Exception as exc:
+        _server_logger.warning("playback remux failed for %s: %s", media_path, exc)
+        return media_path
+
+
+def _is_playback_remux_candidate(media_path: Path) -> bool:
+    suffix = media_path.suffix.lower()
+    if suffix not in {".mp4", ".m4v", ".mov"}:
+        return False
+    return not media_path.name.endswith(".mitas_playback.mp4")
+
+
+def _ensure_playback_mp4(media_path: Path) -> Path:
+    playback_path = media_path.with_name(f"{media_path.stem}.mitas_playback.mp4")
+    if _playback_cache_is_fresh(playback_path, media_path):
+        return playback_path
+    with _media_remux_lock:
+        if _playback_cache_is_fresh(playback_path, media_path):
+            return playback_path
+        _remux_media_for_playback(media_path, playback_path)
+    return playback_path
+
+
+def _playback_cache_is_fresh(playback_path: Path, source_path: Path) -> bool:
+    return (
+        playback_path.exists()
+        and playback_path.is_file()
+        and playback_path.stat().st_size > 0
+        and playback_path.stat().st_mtime >= source_path.stat().st_mtime
+    )
+
+
+def _remux_media_for_playback(source_path: Path, playback_path: Path) -> None:
+    from core.pipelines.asr.transcribe import DEFAULT_FFMPEG_EXECUTABLE
+
+    playback_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = playback_path.with_suffix(playback_path.suffix + ".part.mp4")
+    temp_path.unlink(missing_ok=True)
+    command = [
+        DEFAULT_FFMPEG_EXECUTABLE,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-i",
+        str(source_path),
+        "-map",
+        "0:v:0?",
+        "-map",
+        "0:a:0?",
+        "-c",
+        "copy",
+        "-movflags",
+        "+faststart",
+        str(temp_path),
+    ]
+    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    if completed.returncode != 0:
+        temp_path.unlink(missing_ok=True)
+        raise RuntimeError((completed.stderr or completed.stdout or "ffmpeg remux failed").strip())
+    temp_path.replace(playback_path)
 
 
 def _load_job(job_id: str) -> dict[str, Any] | None:

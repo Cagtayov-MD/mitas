@@ -5,6 +5,10 @@ export interface TedialSession {
   remember: boolean;
   cookie_names: string[];
   error?: string | null;
+  auto_login_enabled?: boolean;
+  auto_login_configured?: boolean;
+  auto_login_attempted?: boolean;
+  auto_login_error?: string | null;
 }
 
 export interface TedialSearchResult {
@@ -65,6 +69,14 @@ export async function startTedialSession(remember: boolean): Promise<TedialSessi
   return payload;
 }
 
+export async function autoLoginTedialSession(): Promise<TedialSession> {
+  const response = await fetch(`${TEDIAL_API}/session/auto-login`, { method: 'POST' });
+  if (!response.ok) {
+    throw new Error(await readTedialError(response));
+  }
+  return response.json();
+}
+
 export async function forgetTedialSession(): Promise<TedialSession> {
   const response = await fetch(`${TEDIAL_API}/session/forget`, { method: 'POST' });
   if (!response.ok) {
@@ -119,8 +131,10 @@ export async function startTedialAsrJob(item: TedialSearchResult, options: Tedia
   const params = new URLSearchParams({
     repository_id: item.repository_id,
     title: item.title || item.asset_id,
-    profile: 'fast_with_fallback',
+    content_profile: 'bulten_haber',
+    diarize: 'auto',
     channel_mode: channelMode,
+    word_alignment_mode: 'whisperx',
     audio_track: String(audioTrack),
   });
   const response = await fetch(`${TEDIAL_API}/assets/${encodeURIComponent(item.asset_id)}/asr?${params.toString()}`, {
@@ -129,15 +143,16 @@ export async function startTedialAsrJob(item: TedialSearchResult, options: Tedia
   if (!response.ok) {
     throw new Error(await readTedialError(response));
   }
+  const job = await response.json() as AsrJob;
   const normalizedItem = { ...item, duration_seconds: tedialDurationSeconds(item) };
   return {
     item: normalizedItem,
-    filename,
-    mediaType: 'application/dash+xml',
-    streamUrl: tedialManifestUrl(item, audioTrack),
+    filename: job.filename || filename,
+    mediaType: 'video/mp4',
+    streamUrl: `/api/jobs/${encodeURIComponent(job.job_id)}/media`,
     audioTrack,
     channelMode,
-    job: await response.json(),
+    job,
   };
 }
 
