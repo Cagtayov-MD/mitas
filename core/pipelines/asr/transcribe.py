@@ -45,6 +45,12 @@ CRITICAL_FALLBACK_DROP_PREFIXES = (
     "very_low_logprob_short_text",
     "multi_signal_low_quality",
 )
+DEFAULT_VAD_COVERAGE_TOLERANCE_SECONDS = 0.5
+DEFAULT_VAD_GAP_MERGE_SECONDS = 1.2
+DEFAULT_MIN_UNCOVERED_VAD_RANGE_SECONDS = 3.0
+DEFAULT_MIN_UNCOVERED_VAD_SPEECH_SECONDS = 2.0
+DEFAULT_VAD_GAP_REPAIR_PREROLL_SECONDS = 1.0
+DEFAULT_VAD_GAP_REPAIR_POSTROLL_SECONDS = 0.5
 
 
 class AsrPipelineError(RuntimeError):
@@ -169,6 +175,7 @@ def transcribe(
             QUALITY_MODEL,
             quality_cfg,
             expected_speech_end=expected_speech_end,
+            vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
@@ -182,6 +189,7 @@ def transcribe(
             FAST_MODEL,
             quality_cfg,
             expected_speech_end=expected_speech_end,
+            vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
@@ -195,6 +203,7 @@ def transcribe(
             FAST_MODEL,
             quality_cfg,
             expected_speech_end=expected_speech_end,
+            vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
         )
@@ -205,19 +214,32 @@ def transcribe(
             model_name = FAST_MODEL.name
             selection_reason = "fast_passed_fallback_checks"
         else:
+            gap_repair_fallback = fast_failure.startswith("vad_gap_uncovered")
             fallback_chunk_indexes = _select_fallback_chunk_indexes(
                 fast_result,
                 chunks,
                 fast_failure=fast_failure,
             )
-            fallback_chunks = [chunk for chunk in chunks if chunk.index in fallback_chunk_indexes]
+            fallback_chunks = (
+                _build_vad_gap_repair_chunks(
+                    chunks,
+                    fast_result.get("uncovered_vad_ranges", ()),
+                    vad_segments=vad_segments,
+                )
+                if gap_repair_fallback
+                else [chunk for chunk in chunks if chunk.index in fallback_chunk_indexes]
+            )
+            if gap_repair_fallback and fallback_chunks:
+                fallback_chunk_indexes = tuple(sorted({chunk.index for chunk in fallback_chunks}))
             if not fallback_chunks:
                 fallback_chunks = chunks
                 fallback_chunk_indexes = tuple(chunk.index for chunk in chunks)
 
             fallback_chunk_count = len(fallback_chunks)
             fallback_total_chunk_count = len(chunks)
-            fallback_mode = "full" if fallback_chunk_count == len(chunks) else "selective"
+            fallback_mode = "selective" if gap_repair_fallback else (
+                "full" if fallback_chunk_count == len(chunks) else "selective"
+            )
             logger.info(
                 "ASR fallback triggered: reason=%s mode=%s chunks=%d/%d",
                 fast_failure,
@@ -232,6 +254,7 @@ def transcribe(
                 QUALITY_MODEL,
                 quality_cfg,
                 expected_speech_end=_expected_chunk_end(fallback_chunks),
+                vad_segments=_vad_segments_for_chunks(vad_segments, fallback_chunks),
                 safety_kwargs=safety_kwargs,
                 ffmpeg_executable=ffmpeg_executable,
             )
@@ -247,7 +270,9 @@ def transcribe(
                     selected_chunk_indexes=fallback_chunk_indexes,
                     quality_config=quality_cfg,
                     expected_speech_end=expected_speech_end,
+                    vad_segments=vad_segments,
                     safety_kwargs=safety_kwargs,
+                    preserve_fast_selected_chunks=gap_repair_fallback,
                 )
             )
             run_result, profile_used, model_name, selection_reason = _select_fallback_result(
@@ -320,6 +345,7 @@ def _run_single_pass(
     quality_config: QualityConfig,
     *,
     expected_speech_end: float | None,
+    vad_segments: Sequence[VadSpeechSegment] | None = None,
     safety_kwargs: dict[str, Any],
     ffmpeg_executable: str,
     transcribe_params: TranscribeParams = DEFAULT_TRANSCRIBE_PARAMS,
@@ -350,6 +376,7 @@ def _run_single_pass(
         raw_segments,
         quality_config,
         expected_speech_end=expected_speech_end,
+        vad_segments=vad_segments,
         safety_kwargs=safety_kwargs,
         decode_time=decode_time,
     )
@@ -360,6 +387,7 @@ def _evaluate_run_segments(
     quality_config: QualityConfig,
     *,
     expected_speech_end: float | None,
+    vad_segments: Sequence[VadSpeechSegment] | None = None,
     safety_kwargs: dict[str, Any],
     decode_time: float,
 ) -> dict[str, Any]:
@@ -404,6 +432,33 @@ def _evaluate_run_segments(
         **safety_kwargs,
     }
     safety = evaluate_result_safety(**safety_inputs)
+    uncovered_vad_ranges = _detect_uncovered_vad_ranges(clean_segments, vad_segments or ())
+    if vad_segments is not None:
+        diagnostics = dict(safety.diagnostics)
+        diagnostics["uncovered_vad_ranges"] = uncovered_vad_ranges
+        diagnostics["max_uncovered_vad_gap_seconds"] = max(
+            (gap["range_seconds"] for gap in uncovered_vad_ranges),
+            default=0.0,
+        )
+        diagnostics["uncovered_vad_speech_seconds"] = round(
+            sum(gap["speech_seconds"] for gap in uncovered_vad_ranges),
+            3,
+        )
+        if uncovered_vad_ranges and safety.safe:
+            first_gap = uncovered_vad_ranges[0]
+            safety = replace(
+                safety,
+                safe=False,
+                failure_reason=(
+                    "vad_gap_uncovered:"
+                    f"gap={first_gap['range_seconds']:.2f}s:"
+                    f"speech={first_gap['speech_seconds']:.2f}s:"
+                    f"start={first_gap['start']:.2f}:end={first_gap['end']:.2f}"
+                ),
+                diagnostics=diagnostics,
+            )
+        else:
+            safety = replace(safety, diagnostics=diagnostics)
 
     return {
         "raw_segments": raw_segments,
@@ -411,6 +466,7 @@ def _evaluate_run_segments(
         "drops": drops,
         "safety": safety,
         "decode_time": decode_time,
+        "uncovered_vad_ranges": uncovered_vad_ranges,
     }
 
 
@@ -520,6 +576,14 @@ def _select_fallback_chunk_indexes(
             elif chunk.start <= last_end <= chunk.end:
                 selected.add(chunk.index)
 
+    if fast_failure.startswith("vad_gap_uncovered"):
+        for gap in fast_result.get("uncovered_vad_ranges", ()):
+            gap_start = gap["start"]
+            gap_end = gap["end"]
+            for chunk in chunks:
+                if chunk.end > gap_start and chunk.start < gap_end:
+                    selected.add(chunk.index)
+
     if not selected:
         for segment in fast_result["clean_segments"]:
             if "low_confidence" in segment.flags or "very_low_logprob" in segment.flags:
@@ -545,6 +609,79 @@ def _expected_chunk_end(chunks: list[MergedChunk]) -> float | None:
     return max((chunk.end for chunk in chunks), default=None)
 
 
+def _vad_segments_for_chunks(
+    vad_segments: Sequence[VadSpeechSegment],
+    chunks: Sequence[MergedChunk],
+) -> list[VadSpeechSegment]:
+    indexes = sorted(
+        {
+            source_index
+            for chunk in chunks
+            for source_index in chunk.source_vad_indices
+            if 0 <= source_index < len(vad_segments)
+        }
+    )
+    return [vad_segments[index] for index in indexes]
+
+
+def _build_vad_gap_repair_chunks(
+    chunks: Sequence[MergedChunk],
+    gaps: Sequence[dict[str, float]],
+    *,
+    vad_segments: Sequence[VadSpeechSegment],
+    preroll_seconds: float = DEFAULT_VAD_GAP_REPAIR_PREROLL_SECONDS,
+    postroll_seconds: float = DEFAULT_VAD_GAP_REPAIR_POSTROLL_SECONDS,
+) -> list[MergedChunk]:
+    repair_chunks: list[MergedChunk] = []
+    for gap in gaps:
+        gap_start = gap["start"]
+        gap_end = gap["end"]
+        for chunk in chunks:
+            if chunk.end <= gap_start or chunk.start >= gap_end:
+                continue
+            start = max(chunk.start, gap_start - preroll_seconds)
+            end = min(chunk.end, gap_end + postroll_seconds)
+            if end <= start:
+                continue
+            source_vad_indices = tuple(
+                source_index
+                for source_index in chunk.source_vad_indices
+                if 0 <= source_index < len(vad_segments)
+                and vad_segments[source_index].end > start
+                and vad_segments[source_index].start < end
+            )
+            repair_chunks.append(
+                MergedChunk(
+                    index=chunk.index,
+                    start=round(start, 3),
+                    end=round(end, 3),
+                    duration=round(end - start, 3),
+                    source_vad_indices=source_vad_indices or chunk.source_vad_indices,
+                )
+            )
+    return _merge_repair_chunks(repair_chunks)
+
+
+def _merge_repair_chunks(chunks: Sequence[MergedChunk]) -> list[MergedChunk]:
+    merged: list[MergedChunk] = []
+    for chunk in sorted(chunks, key=lambda item: (item.index, item.start, item.end)):
+        if not merged or chunk.index != merged[-1].index or chunk.start > merged[-1].end:
+            merged.append(chunk)
+            continue
+        previous = merged[-1]
+        start = min(previous.start, chunk.start)
+        end = max(previous.end, chunk.end)
+        source_vad_indices = tuple(sorted(set(previous.source_vad_indices) | set(chunk.source_vad_indices)))
+        merged[-1] = MergedChunk(
+            index=previous.index,
+            start=round(start, 3),
+            end=round(end, 3),
+            duration=round(end - start, 3),
+            source_vad_indices=source_vad_indices,
+        )
+    return merged
+
+
 def _merge_selective_fallback_result(
     fast_result: dict[str, Any],
     quality_result: dict[str, Any],
@@ -552,7 +689,9 @@ def _merge_selective_fallback_result(
     selected_chunk_indexes: Sequence[int],
     quality_config: QualityConfig,
     expected_speech_end: float | None,
+    vad_segments: Sequence[VadSpeechSegment] | None = None,
     safety_kwargs: dict[str, Any],
+    preserve_fast_selected_chunks: bool = False,
     coverage_tolerance_seconds: float = 1.0,
     coverage_tolerance_ratio: float = 0.05,
 ) -> dict[str, Any]:
@@ -583,11 +722,15 @@ def _merge_selective_fallback_result(
             )
 
     quality_chunks = selected.difference(kept_fast_chunks)
-    merged_raw = [
-        segment
-        for segment in fast_result["raw_segments"]
-        if segment.source_chunk_index not in quality_chunks
-    ]
+    merged_raw = (
+        list(fast_result["raw_segments"])
+        if preserve_fast_selected_chunks
+        else [
+            segment
+            for segment in fast_result["raw_segments"]
+            if segment.source_chunk_index not in quality_chunks
+        ]
+    )
     merged_raw.extend(
         segment
         for segment in quality_result["raw_segments"]
@@ -597,6 +740,7 @@ def _merge_selective_fallback_result(
         merged_raw,
         quality_config,
         expected_speech_end=expected_speech_end,
+        vad_segments=vad_segments,
         safety_kwargs=safety_kwargs,
         decode_time=fast_result["decode_time"] + quality_result["decode_time"],
     )
@@ -706,6 +850,105 @@ def _coverage_ratio(last_end: float, expected_speech_end: float | None) -> float
 
 def _expected_speech_end(vad_segments: Sequence[VadSpeechSegment]) -> float | None:
     return max((segment.end for segment in vad_segments), default=None)
+
+
+def _detect_uncovered_vad_ranges(
+    clean_segments: Sequence[TranscriptSegment],
+    vad_segments: Sequence[VadSpeechSegment],
+    *,
+    coverage_tolerance_seconds: float = DEFAULT_VAD_COVERAGE_TOLERANCE_SECONDS,
+    merge_gap_seconds: float = DEFAULT_VAD_GAP_MERGE_SECONDS,
+    min_range_seconds: float = DEFAULT_MIN_UNCOVERED_VAD_RANGE_SECONDS,
+    min_speech_seconds: float = DEFAULT_MIN_UNCOVERED_VAD_SPEECH_SECONDS,
+) -> list[dict[str, float]]:
+    """Find VAD-confirmed speech ranges that have no clean ASR coverage."""
+    if not vad_segments:
+        return []
+
+    transcript_windows = sorted(
+        (
+            max(0.0, segment.start - coverage_tolerance_seconds),
+            max(0.0, segment.end + coverage_tolerance_seconds),
+        )
+        for segment in clean_segments
+        if segment.end > segment.start
+    )
+    uncovered_fragments: list[tuple[float, float]] = []
+
+    for vad_segment in sorted(vad_segments, key=lambda item: (item.start, item.end)):
+        cursor = vad_segment.start
+        vad_end = vad_segment.end
+        if vad_end <= cursor:
+            continue
+
+        for window_start, window_end in transcript_windows:
+            if window_end <= cursor:
+                continue
+            if window_start >= vad_end:
+                break
+            if window_start > cursor:
+                uncovered_fragments.append((cursor, min(window_start, vad_end)))
+            cursor = max(cursor, min(window_end, vad_end))
+            if cursor >= vad_end:
+                break
+
+        if cursor < vad_end:
+            uncovered_fragments.append((cursor, vad_end))
+
+    if not uncovered_fragments:
+        return []
+
+    merged: list[dict[str, float]] = []
+    current_start, current_end = uncovered_fragments[0]
+    current_speech_seconds = current_end - current_start
+
+    for start, end in uncovered_fragments[1:]:
+        if start - current_end <= merge_gap_seconds:
+            current_end = max(current_end, end)
+            current_speech_seconds += end - start
+            continue
+        _append_uncovered_vad_gap(
+            merged,
+            current_start,
+            current_end,
+            current_speech_seconds,
+            min_range_seconds=min_range_seconds,
+            min_speech_seconds=min_speech_seconds,
+        )
+        current_start, current_end = start, end
+        current_speech_seconds = end - start
+
+    _append_uncovered_vad_gap(
+        merged,
+        current_start,
+        current_end,
+        current_speech_seconds,
+        min_range_seconds=min_range_seconds,
+        min_speech_seconds=min_speech_seconds,
+    )
+    return merged
+
+
+def _append_uncovered_vad_gap(
+    ranges: list[dict[str, float]],
+    start: float,
+    end: float,
+    speech_seconds: float,
+    *,
+    min_range_seconds: float,
+    min_speech_seconds: float,
+) -> None:
+    range_seconds = max(0.0, end - start)
+    if range_seconds < min_range_seconds or speech_seconds < min_speech_seconds:
+        return
+    ranges.append(
+        {
+            "start": round(start, 3),
+            "end": round(end, 3),
+            "range_seconds": round(range_seconds, 3),
+            "speech_seconds": round(speech_seconds, 3),
+        }
+    )
 
 
 def _build_verbatim(segments: list[TranscriptSegment]) -> str:

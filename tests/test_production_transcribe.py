@@ -154,6 +154,76 @@ class TestProductionInterface:
         assert result.selection_reason.startswith("selected_quality:fast_unsafe")
         assert result.clean_transcript == "Tam kalite metni devam ediyor"
 
+    def test_internal_vad_gap_triggers_selective_fallback(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        wav_path = tmp_path / "fixture_three_chunks.wav"
+        _write_silent_wav(wav_path, sample_rate=16_000, channels=1, seconds=40.0)
+        calls: list[tuple[str, int]] = []
+
+        monkeypatch.setattr(asr_transcribe, "load_model", lambda config: object())
+
+        def fake_transcribe_chunk(
+            audio_path: Path,
+            chunk: Any,
+            model: Any,
+            model_config: Any,
+            params: Any,
+            *,
+            ffmpeg_executable: str,
+        ) -> list[Any]:
+            calls.append((model_config.name, chunk.index))
+            if model_config.name == "large-v3-turbo" and chunk.index == 1:
+                return []
+            text = (
+                f"Kalite chunk {chunk.index}"
+                if model_config.name == "large-v3"
+                else f"Turbo chunk {chunk.index}"
+            )
+            return [
+                asr_transcribe.TranscriptSegment(
+                    index=0,
+                    start=round(chunk.start + 0.1, 3),
+                    end=round(chunk.end - 0.1, 3),
+                    text=text,
+                    language="tr",
+                    avg_logprob=-0.2,
+                    no_speech_prob=0.01,
+                    source_chunk_index=chunk.index,
+                )
+            ]
+
+        monkeypatch.setattr(asr_transcribe, "_transcribe_chunk", fake_transcribe_chunk)
+
+        result = transcribe(
+            wav_path,
+            profile="fast_with_fallback",
+            vad_segments=[
+                VadSpeechSegment(start=0.5, end=5.0, duration=4.5),
+                VadSpeechSegment(start=16.0, end=20.0, duration=4.0),
+                VadSpeechSegment(start=31.0, end=35.0, duration=4.0),
+            ],
+        )
+
+        assert result.fallback_triggered
+        assert result.profile_used == "fast_selective_quality"
+        assert result.model_name == "large-v3-turbo+large-v3"
+        assert result.fallback_reason
+        assert result.fallback_reason.startswith("vad_gap_uncovered")
+        assert calls == [
+            ("large-v3-turbo", 0),
+            ("large-v3-turbo", 1),
+            ("large-v3-turbo", 2),
+            ("large-v3", 1),
+        ]
+        assert result.verbatim_transcript == "Turbo chunk 0 Kalite chunk 1 Turbo chunk 2"
+        assert result.timing is not None
+        assert result.timing.fallback_mode == "selective"
+        assert result.timing.fallback_chunk_count == 1
+        assert result.timing.fallback_total_chunk_count == 3
+
     def test_fallback_keeps_fast_when_quality_coverage_is_worse(
         self,
         tmp_path: Path,
@@ -376,6 +446,71 @@ class TestSelectiveFallbackMerge:
         chunk_one_text = " ".join(s.text for s in merged["clean_segments"] if s.source_chunk_index == 1)
         assert "kalite modeli duzeltilmis" in chunk_one_text
         assert "zayif metin" not in chunk_one_text
+
+    def test_gap_repair_supplements_instead_of_replacing_fast_audio(self) -> None:
+        from core.pipelines.asr.quality import QualityConfig
+
+        fast = _run_result([_segment(1, 10.0, 12.0, "hizli modelin duydugu ara soz")])
+        quality = _run_result([_segment(1, 12.0, 18.0, "onarim modelinin tamamladigi konusma")])
+
+        merged = asr_transcribe._merge_selective_fallback_result(
+            fast,
+            quality,
+            selected_chunk_indexes=(1,),
+            quality_config=QualityConfig(),
+            expected_speech_end=18.0,
+            vad_segments=[VadSpeechSegment(start=10.0, end=18.0, duration=8.0)],
+            safety_kwargs={},
+            preserve_fast_selected_chunks=True,
+        )
+
+        merged_text = " ".join(segment.text for segment in merged["clean_segments"])
+        assert "hizli modelin duydugu" in merged_text
+        assert "onarim modelinin" in merged_text
+        assert merged["safety"].safe
+
+
+class TestVadCoverageGaps:
+    def test_detects_vad_speech_between_clean_segments(self) -> None:
+        gaps = asr_transcribe._detect_uncovered_vad_ranges(
+            [
+                _segment(0, 119.175, 124.535, "With apologies"),
+                _segment(2, 145.1, 163.1, "Prime Minister"),
+            ],
+            [
+                VadSpeechSegment(start=119.9, end=125.2, duration=5.3),
+                VadSpeechSegment(start=125.5, end=127.5, duration=2.0),
+                VadSpeechSegment(start=127.7, end=129.2, duration=1.5),
+                VadSpeechSegment(start=130.1, end=131.3, duration=1.2),
+                VadSpeechSegment(start=131.8, end=132.4, duration=0.6),
+                VadSpeechSegment(start=132.9, end=134.5, duration=1.6),
+                VadSpeechSegment(start=135.1, end=136.8, duration=1.7),
+                VadSpeechSegment(start=137.5, end=139.3, duration=1.8),
+                VadSpeechSegment(start=139.5, end=142.2, duration=2.7),
+                VadSpeechSegment(start=142.6, end=143.4, duration=0.8),
+                VadSpeechSegment(start=144.1, end=145.0, duration=0.9),
+            ],
+        )
+
+        assert len(gaps) == 1
+        assert gaps[0]["start"] == 125.035
+        assert gaps[0]["end"] == 144.6
+        assert gaps[0]["range_seconds"] == pytest.approx(19.565)
+        assert gaps[0]["speech_seconds"] == pytest.approx(14.565)
+
+    def test_ignores_silence_between_clean_segments(self) -> None:
+        gaps = asr_transcribe._detect_uncovered_vad_ranges(
+            [
+                _segment(0, 0.0, 2.0, "ilk cumle"),
+                _segment(1, 8.0, 10.0, "ikinci cumle"),
+            ],
+            [
+                VadSpeechSegment(start=0.0, end=2.0, duration=2.0),
+                VadSpeechSegment(start=8.0, end=10.0, duration=2.0),
+            ],
+        )
+
+        assert gaps == []
 
 
 def _write_silent_wav(path: Path, *, sample_rate: int, channels: int, seconds: float) -> None:
