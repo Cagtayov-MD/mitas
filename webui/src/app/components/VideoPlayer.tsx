@@ -70,7 +70,6 @@ export function VideoPlayer({
   const isVideo = Boolean(mediaPreviewUrl && mediaType?.startsWith('video/'));
   const isDashVideo = Boolean(mediaPreviewUrl && mediaType === 'application/dash+xml');
   const isAudio = Boolean(mediaPreviewUrl && (mediaType?.startsWith('audio/') || (!isVideo && !isDashVideo)));
-  const isMediaReadyForAsr = Boolean(selectedFileName && mediaPreviewUrl && !asrJob);
   const isSttSelected = analysisProfile === 'stt';
   const selectedProfileLabel = analysisProfileLabel(analysisProfile);
   const duration = saneDuration(playback.duration) || saneDuration(mediaDurationHint) || saneDuration(asrJob?.summary?.audio_duration) || 0;
@@ -302,20 +301,7 @@ export function VideoPlayer({
       {/* Video Content Area */}
       <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden bg-app-shell">
         <div className="relative w-full h-full flex items-center justify-center">
-          {isMediaReadyForAsr && (
-            <div className="absolute top-4 left-4 z-20 rounded-sm border border-info-border bg-app-shell/95 px-3 py-2 shadow-glow-info">
-              <div className="text-[12px] font-semibold text-info">
-                {isSttSelected
-                  ? `${selectedFileName} STT için hazır`
-                  : `${selectedFileName} yüklendi`}
-              </div>
-              <div className="mt-0.5 text-[10px] text-foreground-muted">
-                {isSttSelected
-                  ? 'Model çalışmadı. Başlatmak için STT Başlat.'
-                  : `Seçili profil: ${selectedProfileLabel}. Konuşmadan metne için STT seç.`}
-              </div>
-            </div>
-          )}
+
           {(isVideo || isDashVideo) && mediaPreviewUrl && (
             <video
               ref={setVideoNode}
