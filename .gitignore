@@ -28,14 +28,24 @@ outputs/**/*.mp4
 outputs/**/*.mkv
 outputs/**/*.avi
 outputs/*_child_outputs/
+outputs/tedial/
 
 # Runtime artifacts
 *.log
+*.har
+*.cookiejar
+*.cookies
+faz0_*.txt
 outputs/clips/
+outputs/clips/_incoming/
 outputs/system_events.jsonl
 outputs/webui_asr_jobs/
 outputs/webui_uploads/
 outputs/webui_translate_cache/
+
+# Tedial sensitive session state
+.tedial_sessions/
+tedial_session*.json
 
 # OS/editor noise
 Thumbs.db
