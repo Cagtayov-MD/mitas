@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import ctypes
+import sys
 import ctypes.wintypes
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -190,6 +191,16 @@ threading.Thread(target=_sysinfo_worker, daemon=True, name="sysinfo-poller").sta
 def get_sysinfo() -> dict[str, int]:
     with _sysinfo_lock:
         return dict(_sysinfo_cache)
+
+
+@app.post("/api/restart")
+def restart_server() -> dict[str, str]:
+    """Replace the current process with a fresh uvicorn instance."""
+    def _do_restart() -> None:
+        time.sleep(0.4)
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    threading.Thread(target=_do_restart, daemon=True, name="restart").start()
+    return {"status": "restarting"}
 
 
 @app.get("/api/health")

@@ -1,6 +1,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui';
 import { AnalysisWorkspace } from './components/AnalysisWorkspace';
 import { SysInfoBar } from './components/SysInfoBar';
+import { RestartButton } from './components/RestartButton';
 import { FaceBankWorkspace } from './components/FaceBankWorkspace';
 import { Archive, Database, MonitorPlay, Lock } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -354,6 +355,7 @@ export default function App() {
         {/* Global Shell Top Bar */}
         <div className="h-14 border-b border-border-subtle bg-app-shell flex items-center justify-between px-4 shrink-0">
           <div className="flex items-center gap-3">
+            <RestartButton />
              <div className="h-7 w-7 bg-info-strong rounded-sm flex items-center justify-center shadow-glow-info">
                 <MonitorPlay className="h-4 w-4 text-white" />
              </div>
