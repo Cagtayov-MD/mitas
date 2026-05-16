@@ -11,7 +11,6 @@ import {
   Type,
   Volume2,
   VolumeX,
-  Info,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import * as dashjs from 'dashjs';
@@ -299,17 +298,6 @@ export function VideoPlayer({
         </Button>
       </div>
 
-      {/* WIP Notes */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
-        <div className="flex items-center gap-1.5 bg-app-shell/85 backdrop-blur text-[9px] text-foreground-muted px-2 py-1 rounded-sm border border-border-subtle">
-          <Info className="h-2.5 w-2.5" />
-          Yüz tanıma kapalı - bu koşuda yalnızca seçili işlem çalışır.
-        </div>
-        <div className="flex items-center gap-1.5 bg-app-shell/85 backdrop-blur text-[9px] text-foreground-muted px-2 py-1 rounded-sm border border-border-subtle">
-          <Info className="h-2.5 w-2.5" />
-          OCR kapalı - görüntüden metin çıkarımı yapılmaz.
-        </div>
-      </div>
 
       {/* Video Content Area */}
       <div className="relative flex-1 flex flex-col items-start justify-start overflow-hidden bg-app-shell">
