@@ -9,6 +9,7 @@ import {
   formatClock,
   type AnalysisProfile,
   type AsrJob,
+  type AsrSegment,
   type PlaybackState,
 } from '../asr-api';
 
@@ -85,6 +86,54 @@ export function Header({
         ? 'Canlı STT Preview player sesini dinliyor.'
       : asrJob?.message || (mediaReadyText ?? 'Medya yükle; konuşmadan metne işlemi STT seçilince başlar.');
 
+  const handleExport = () => {
+    if (!asrJob || !asrJob.segments.length) return;
+    const { segments, filename, summary, profile } = asrJob;
+
+    const channelOf = (s: AsrSegment): 'L' | 'R' | null => {
+      const v = String(s.channel ?? '').trim().toUpperCase();
+      if (v === 'L' || v === 'LEFT' || v === '1' || v === 'KANAL 1') return 'L';
+      if (v === 'R' || v === 'RIGHT' || v === '2' || v === 'KANAL 2') return 'R';
+      return null;
+    };
+
+    const hasL = segments.some(s => channelOf(s) === 'L');
+    const hasR = segments.some(s => channelOf(s) === 'R');
+    const isStereo = hasL && hasR;
+
+    const sorted = [...segments].sort((a, b) => a.start - b.start);
+    const exportedAt = new Date().toLocaleString('tr-TR');
+    const durStr = formatClock(summary?.audio_duration);
+    const modelStr = summary?.model_name ?? profile ?? '—';
+    const sep = '─'.repeat(60);
+
+    const header = [
+      `MITAS Transkript — ${filename}`,
+      `Süre: ${durStr} | Model: ${modelStr} | Profil: ${profile ?? '—'}`,
+      isStereo ? 'Kanal Modu: Stereo (Kanal 1 + Kanal 2 iç içe)' : 'Kanal Modu: Mono',
+      `Dışa aktarılma tarihi: ${exportedAt}`,
+      sep,
+      '',
+    ].join('\n');
+
+    const lines = sorted.map(s => {
+      const time = `[${formatClock(s.start)} → ${formatClock(s.end)}]`;
+      const ch = isStereo ? `  [${channelOf(s) === 'L' ? 'Kanal 1' : channelOf(s) === 'R' ? 'Kanal 2' : '?    '}]` : '';
+      return `${time}${ch}  ${s.text.trim()}`;
+    });
+
+    const content = header + lines.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename.replace(/\.[^/.]+$/, '')}_transkript.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -110,11 +159,11 @@ export function Header({
               <span className="text-sm font-semibold text-foreground-strong">
                 {asrJob?.filename || selectedFileName || 'Gerçek medya yok'}
               </span>
-              <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'done' ? 'success' : isSttSelected ? 'outline' : 'warning'}>
+              <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'partial' ? 'warning' : asrJob?.status === 'done' ? 'success' : isSttSelected ? 'outline' : 'warning'}>
                 {statusText}
               </Badge>
               {processMeta ? (
-                <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'done' || asrJob?.status === 'partial' ? 'success' : 'secondary'}>
+                <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'partial' ? 'warning' : asrJob?.status === 'done' ? 'success' : 'secondary'}>
                   {processMeta}
                 </Badge>
               ) : null}
@@ -159,7 +208,13 @@ export function Header({
             <ListTodo className="h-3.5 w-3.5" />
             Uyarılar ({asrJob?.summary?.quality_drops ?? 0})
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" disabled={!asrJob?.transcript}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={!asrJob?.segments?.length}
+            onClick={handleExport}
+          >
             <Download className="h-3.5 w-3.5 text-foreground-muted" />
             Dışa Aktar
           </Button>
