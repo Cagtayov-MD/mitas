@@ -7,17 +7,32 @@ interface SysInfo {
 }
 
 function StatChip({ label, value }: { label: string; value: number }) {
-  const color =
-    value < 0   ? 'text-foreground-disabled'
+  const isUnknown = value < 0;
+  const barColor =
+    isUnknown   ? 'bg-foreground-disabled/30'
+    : value >= 90 ? 'bg-danger'
+    : value >= 70 ? 'bg-warning-strong'
+    : 'bg-info';
+  const textColor =
+    isUnknown   ? 'text-foreground-disabled'
     : value >= 90 ? 'text-danger'
     : value >= 70 ? 'text-warning-strong'
-    : 'text-foreground-muted';
+    : 'text-foreground-strong';
 
   return (
-    <span className="tabular-nums">
-      <span className="text-foreground-disabled">{label}: </span>
-      <span className={`font-semibold ${color}`}>{value < 0 ? '—' : `%${value}`}</span>
-    </span>
+    <div className="flex flex-col items-center gap-0.5 min-w-[48px]">
+      <span className="text-[9px] uppercase tracking-wider font-semibold text-foreground-disabled">{label}</span>
+      <span className={`text-base font-bold tabular-nums leading-none ${textColor}`}>
+        {isUnknown ? '—' : `${value}%`}
+      </span>
+      {/* mini bar */}
+      <div className="w-full h-0.5 bg-surface-elevated rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-1000 ${barColor}`}
+          style={{ width: isUnknown ? '0%' : `${value}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -46,12 +61,21 @@ export function SysInfoBar() {
   const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   return (
-    <div className="flex items-center gap-3 text-[10px] font-mono text-foreground-muted select-none shrink-0">
-      <span className="tabular-nums text-foreground-default font-medium">{dateStr} {timeStr}</span>
-      <div className="w-px h-3 bg-border-mitas" />
-      <StatChip label="CPU" value={info.cpu} />
-      <StatChip label="GPU" value={info.gpu} />
-      <StatChip label="RAM" value={info.ram} />
+    <div className="flex items-center gap-4 select-none shrink-0">
+      {/* Date + Time */}
+      <div className="flex flex-col items-end gap-0">
+        <span className="text-xs font-mono font-semibold text-foreground-default tabular-nums leading-tight">{timeStr}</span>
+        <span className="text-[10px] font-mono text-foreground-muted tabular-nums leading-tight">{dateStr}</span>
+      </div>
+
+      <div className="w-px h-8 bg-border-mitas" />
+
+      {/* System stats */}
+      <div className="flex items-center gap-3">
+        <StatChip label="CPU" value={info.cpu} />
+        <StatChip label="GPU" value={info.gpu} />
+        <StatChip label="RAM" value={info.ram} />
+      </div>
     </div>
   );
 }

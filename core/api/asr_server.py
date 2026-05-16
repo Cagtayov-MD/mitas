@@ -123,33 +123,59 @@ def _ram_percent() -> int:
 _NO_WIN = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
 def _cpu_percent() -> int:
+    # Try PowerShell CIM first (works on Win10/11 even when wmic is deprecated)
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "(Get-CimInstance -ClassName Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average"],
+            capture_output=True, text=True, timeout=8, creationflags=_NO_WIN,
+        )
+        val = r.stdout.strip()
+        if r.returncode == 0 and val:
+            return int(float(val))
+    except Exception:
+        pass
+    # Fallback: wmic
     try:
         r = subprocess.run(
             ["wmic", "cpu", "get", "loadpercentage", "/format:value"],
             capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
         )
-        m = re.search(r"LoadPercentage=(\d+)", r.stdout)
+        m = re.search(r"LoadPercentage=(\d+)", r.stdout, re.IGNORECASE)
         return int(m.group(1)) if m else -1
     except Exception:
         return -1
 
+_NVIDIA_SMI_PATHS = [
+    "nvidia-smi",
+    r"C:\Windows\System32\nvidia-smi.exe",
+    r"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe",
+]
+
 def _gpu_percent() -> int:
-    try:
-        r = subprocess.run(
-            ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
-        )
-        if r.returncode == 0:
-            val = r.stdout.strip().split("\n")[0].strip()
-            return int(val) if val.isdigit() else -1
-        return -1
-    except Exception:
-        return -1
+    for cmd in _NVIDIA_SMI_PATHS:
+        try:
+            r = subprocess.run(
+                [cmd, "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
+            )
+            if r.returncode == 0:
+                val = r.stdout.strip().split("\n")[0].strip()
+                return int(val) if val.isdigit() else -1
+        except FileNotFoundError:
+            continue
+        except Exception:
+            return -1
+    return -1
 
 _sysinfo_cache: dict[str, int] = {"cpu": -1, "ram": -1, "gpu": -1}
 _sysinfo_lock = threading.Lock()
 
 def _sysinfo_worker() -> None:
+    # First tick immediately so the cache isn't -1 on first frontend poll
+    ram = _ram_percent()
+    with _sysinfo_lock:
+        _sysinfo_cache["ram"] = ram
     while True:
         cpu = _cpu_percent()
         ram = _ram_percent()
