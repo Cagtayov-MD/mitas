@@ -66,6 +66,8 @@ export function AnalysisWorkspace({
   onTranslateAllSegments,
 }: AnalysisWorkspaceProps) {
   const [mediaElement, setMediaElement] = useState<HTMLMediaElement | null>(null);
+  const [inPoint, setInPoint] = useState<number | null>(null);
+  const [outPoint, setOutPoint] = useState<number | null>(null);
   const isLivePreviewEnabled = isSttPreviewEnabled && analysisProfile === 'stt' && Boolean(mediaPreviewUrl);
   const livePreview = useLiveSttPreview({
     enabled: isLivePreviewEnabled,
@@ -78,6 +80,18 @@ export function AnalysisWorkspace({
   const handleMediaElementChange = useCallback((element: HTMLMediaElement | null) => {
     setMediaElement(element);
   }, []);
+
+  const handleTranslateRange = useCallback((from: number, to: number) => {
+    if (!asrJob) return;
+    asrJob.segments.forEach((seg, idx) => {
+      if (seg.start < to && seg.end > from) {
+        onTranslateSegment(idx);
+      }
+    });
+  }, [asrJob, onTranslateSegment]);
+
+  const handleSetInPoint = useCallback((t: number | null) => setInPoint(t), []);
+  const handleSetOutPoint = useCallback((t: number | null) => setOutPoint(t), []);
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -117,9 +131,14 @@ export function AnalysisWorkspace({
             playback={playback}
             enabledAsrChannels={enabledAsrChannels}
             selectedSegmentIndex={selectedSegmentIndex}
+            inPoint={inPoint}
+            outPoint={outPoint}
             onSeek={onSeek}
+            onSetInPoint={handleSetInPoint}
+            onSetOutPoint={handleSetOutPoint}
             onToggleAsrChannel={onToggleAsrChannel}
             onSelectSegment={onSelectSegment}
+            onTranslateRange={handleTranslateRange}
           />
         </div>
         <Sidebar
