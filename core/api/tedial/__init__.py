@@ -8,6 +8,7 @@ MITAS API server.
 
 from core.api.tedial.config import TedialConfig
 from core.api.tedial.import_queue import TedialEnqueueResult, TedialImportQueue
+from core.api.tedial.job_runner import TedialJobRunResult, TedialJobRunner, TedialModuleResult
 from core.api.tedial.media_resolver import (
     TedialMediaDownload,
     TedialMediaResolveError,
@@ -31,6 +32,7 @@ from core.api.tedial.proxy import (
     build_tedial_import_plan,
     rewrite_mpd_base_urls,
 )
+from core.api.tedial.router import create_tedial_router
 from core.api.tedial.session import (
     TedialCookieJar,
     TedialSessionBroker,
@@ -45,9 +47,12 @@ __all__ = [
     "TedialCookieJar",
     "TedialEnqueueResult",
     "TedialImportQueue",
+    "TedialJobRunResult",
+    "TedialJobRunner",
     "TedialMediaDownload",
     "TedialMediaResolveError",
     "TedialMpdRepresentation",
+    "TedialModuleResult",
     "TedialProxyError",
     "TedialProxyPlan",
     "TedialProxyService",
@@ -58,6 +63,7 @@ __all__ = [
     "TedialSessionSnapshot",
     "TedialSessionStatus",
     "build_tedial_import_plan",
+    "create_tedial_router",
     "extract_mpd_base_urls",
     "extract_mpd_representations",
     "keep_mpd_audio_track",

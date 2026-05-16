@@ -70,7 +70,7 @@ def main() -> int:
         },
         "parsed_results": [asdict(item) for item in results],
         "rewritten_mpd": rewritten_mpd.strip(),
-        "note": "This smoke covers dependency-light Tedial primitives only; router/UI wiring is reviewed separately.",
+        "note": "This smoke is offline: it covers broker/parser/proxy primitives and does not call Tedial.",
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
