@@ -10,10 +10,12 @@ import asyncio
 import base64
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import threading
 import traceback
@@ -37,6 +39,7 @@ LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 
 API_VERSION = "asr-api-v0.1"
 CLIPS_ROOT = PROJECT_ROOT / "outputs" / "clips"
+INCOMING_ROOT = CLIPS_ROOT / "_incoming"
 # Legacy roots kept only for reading old development jobs created before the
 # clip-centric layout. New uploads always go under CLIPS_ROOT.
 LEGACY_UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "webui_uploads"
@@ -97,23 +100,55 @@ async def create_asr_job(
     filename: str = Query(default="media"),
     profile: ProfileName = Query(default="fast_with_fallback"),
     channel_mode: Literal["mono", "split", "auto"] = Query(default="auto"),
+    force: Literal["none", "full"] = Query(default="none"),
 ) -> dict[str, Any]:
-    """Store uploaded media and start an ASR job in the background."""
+    """Store uploaded media and start an ASR job in the background.
+
+    Dedup: if an existing clip has the same sha256 content hash, the upload
+    is reused (no new clip, no new ASR run) unless ``force=full`` is set.
+    ``force=full`` attaches a fresh ASR job under the existing clip.
+    """
     job_id = f"asr-{uuid4().hex[:12]}"
     safe_name = _safe_filename(filename)
     media_id = Path(safe_name).stem or "media"
-    clip_id = _allocate_clip_id(media_id)
-    clip_dir = CLIPS_ROOT / clip_id
-    source_dir = clip_dir / SOURCE_DIR
+    staging_path = INCOMING_ROOT / f"{job_id}.bin"
+
+    size, content_hash = await _write_request_body(request, staging_path)
+    if size == 0:
+        staging_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="empty_upload")
+
+    existing_clip = _find_clip_by_hash(content_hash)
+
+    if existing_clip is not None and force != "full":
+        staging_path.unlink(missing_ok=True)
+        return _build_reused_response(existing_clip, content_hash=content_hash)
+
+    if existing_clip is not None and force == "full":
+        clip_id = str(existing_clip["clip_id"])
+        clip_dir = CLIPS_ROOT / clip_id
+        source_dir = clip_dir / SOURCE_DIR
+        input_path = Path(str(existing_clip.get("source_path") or (source_dir / safe_name)))
+        previous_job_id = (
+            (existing_clip.get("modules") or {})
+            .get("asr", {})
+            .get("latest_job_id")
+        )
+        staging_path.unlink(missing_ok=True)
+        reprocessed = True
+    else:
+        clip_id = _allocate_clip_id(media_id)
+        clip_dir = CLIPS_ROOT / clip_id
+        source_dir = clip_dir / SOURCE_DIR
+        source_dir.mkdir(parents=True, exist_ok=True)
+        input_path = source_dir / safe_name
+        shutil.move(str(staging_path), str(input_path))
+        previous_job_id = None
+        reprocessed = False
+
     job_dir = clip_dir / ASR_MODULE_DIR / job_id
     run_dir = job_dir / "run"
-    input_path = source_dir / safe_name
-    source_dir.mkdir(parents=True, exist_ok=True)
     job_dir.mkdir(parents=True, exist_ok=True)
-
-    size = await _write_request_body(request, input_path)
-    if size == 0:
-        raise HTTPException(status_code=400, detail="empty_upload")
 
     _ensure_clip_record(
         clip_id=clip_id,
@@ -121,12 +156,14 @@ async def create_asr_job(
         media_id=media_id,
         size_bytes=size,
         source_path=input_path,
+        content_hash=content_hash,
     )
 
     job = {
         "job_id": job_id,
         "clip_id": clip_id,
         "media_id": media_id,
+        "content_hash": content_hash,
         "status": "queued",
         "filename": safe_name,
         "input_path": str(input_path),
@@ -137,6 +174,8 @@ async def create_asr_job(
         "profile": profile,
         "channel_mode": channel_mode,
         "size_bytes": size,
+        "reprocessed": reprocessed,
+        "previous_job_id": previous_job_id,
         "created_at": _now_iso(),
         "started_at": None,
         "completed_at": None,
@@ -150,15 +189,26 @@ async def create_asr_job(
     _attach_job_to_clip(clip_id, module=ASR_MODULE_DIR, job_id=job_id)
     _append_job_log(job_id, "Medya yüklendi.", stage="upload", progress_percent=3)
     _append_job_log(job_id, "ASR işi kuyruğa alındı.", stage="queued", progress_percent=5)
-    system_events.log_event(
-        "media_imported",
-        summary=f"{safe_name} içe aktarıldı ({_format_size(size)}).",
-        module="upload",
-        media_id=media_id,
-        filename=safe_name,
-        job_id=job_id,
-        detail={"clip_id": clip_id, "size_bytes": size, "profile": profile, "channel_mode": channel_mode},
-    )
+    if reprocessed:
+        system_events.log_event(
+            "asr_reprocess_started",
+            summary=f"{safe_name} için ASR tekrar işleniyor (force=full).",
+            module="asr",
+            media_id=media_id,
+            filename=safe_name,
+            job_id=job_id,
+            detail={"clip_id": clip_id, "previous_job_id": previous_job_id, "profile": profile},
+        )
+    else:
+        system_events.log_event(
+            "media_imported",
+            summary=f"{safe_name} içe aktarıldı ({_format_size(size)}).",
+            module="upload",
+            media_id=media_id,
+            filename=safe_name,
+            job_id=job_id,
+            detail={"clip_id": clip_id, "size_bytes": size, "profile": profile, "channel_mode": channel_mode},
+        )
     system_events.log_event(
         "asr_queued",
         summary=f"{safe_name} için ASR kuyruğa alındı.",
@@ -169,7 +219,49 @@ async def create_asr_job(
         detail={"clip_id": clip_id},
     )
     _executor.submit(_run_job, job_id)
-    return _public_job(_load_job(job_id) or job)
+    response = _public_job(_load_job(job_id) or job)
+    response["reused"] = False
+    response["content_hash"] = content_hash
+    return response
+
+
+def _build_reused_response(existing_clip: dict[str, Any], *, content_hash: str) -> dict[str, Any]:
+    """Build the API response for a duplicate upload that reuses an existing clip.
+
+    Keep the response job-compatible when a latest ASR job exists. The WebUI
+    upload path expects a ``job_id`` and can keep polling/opening transcripts
+    without special-casing duplicate media.
+    """
+    clip_id = str(existing_clip["clip_id"])
+    filename = str(existing_clip.get("filename") or "")
+    media_id = str(existing_clip.get("media_id") or "")
+    asr_state = (existing_clip.get("modules") or {}).get("asr") or {}
+    latest_asr_job_id = asr_state.get("latest_job_id")
+    asr_status = asr_state.get("status")
+    latest_job = _load_job(str(latest_asr_job_id)) if latest_asr_job_id else None
+    clip_payload = _public_clip(existing_clip)
+    pub = _public_job(latest_job) if latest_job is not None else clip_payload
+    pub.update(
+        {
+            "reused": True,
+            "content_hash": content_hash,
+            "latest_asr_job_id": latest_asr_job_id,
+            "asr_status": asr_status or pub.get("status"),
+            "message": "Bu klip daha önce işlenmiş, mevcut transkript kullanılıyor.",
+            "module_summary": clip_payload.get("module_summary", {}),
+            "reprocess_url": f"/api/asr/transcribe?filename={filename}&force=full",
+        }
+    )
+    system_events.log_event(
+        "media_reused",
+        summary=f"{filename or media_id or clip_id} daha önce işlenmiş, mevcut transkript kullanılıyor.",
+        module="upload",
+        media_id=media_id or None,
+        filename=filename or None,
+        job_id=latest_asr_job_id,
+        detail={"clip_id": clip_id, "content_hash": content_hash, "latest_asr_job_id": latest_asr_job_id, "asr_status": asr_status},
+    )
+    return pub
 
 
 @app.get("/api/jobs")
@@ -861,7 +953,8 @@ def _parse_translate_stdout(stdout: str) -> dict[str, Any]:
     raise RuntimeError("translation_response_invalid")
 
 
-async def _write_request_body(request: Request, destination: Path) -> int:
+async def _write_request_body(request: Request, destination: Path) -> tuple[int, str]:
+    """Stream the request body to ``destination`` and return ``(size, sha256_hex)``."""
     content_length = request.headers.get("content-length")
     if content_length is not None:
         try:
@@ -871,6 +964,8 @@ async def _write_request_body(request: Request, destination: Path) -> int:
             pass
 
     written = 0
+    hasher = hashlib.sha256()
+    destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("wb") as handle:
         async for chunk in request.stream():
             if not chunk:
@@ -878,8 +973,9 @@ async def _write_request_body(request: Request, destination: Path) -> int:
             written += len(chunk)
             if written > MAX_UPLOAD_BYTES:
                 raise HTTPException(status_code=413, detail="upload_too_large")
+            hasher.update(chunk)
             handle.write(chunk)
-    return written
+    return written, hasher.hexdigest()
 
 
 def _public_job(job: dict[str, Any]) -> dict[str, Any]:
@@ -1001,6 +1097,7 @@ def _ensure_clip_record(
     media_id: str,
     size_bytes: int,
     source_path: Path,
+    content_hash: str | None = None,
 ) -> dict[str, Any]:
     path = _clip_record_path(clip_id)
     existing = _read_json(path)
@@ -1017,9 +1114,22 @@ def _ensure_clip_record(
             "source_path": str(source_path),
             "modules": {},
         }
+    if content_hash and not record.get("content_hash"):
+        record["content_hash"] = content_hash
     record.setdefault("modules", {})
     _write_json(path, record)
     return record
+
+
+def _find_clip_by_hash(content_hash: str) -> dict[str, Any] | None:
+    """Find an existing clip record by sha256 of its source content."""
+    if not content_hash or not CLIPS_ROOT.exists():
+        return None
+    for record_path in CLIPS_ROOT.glob("*/clip.json"):
+        record = _read_json(record_path)
+        if isinstance(record, dict) and record.get("content_hash") == content_hash:
+            return record
+    return None
 
 
 def _attach_job_to_clip(clip_id: str, *, module: str, job_id: str) -> None:

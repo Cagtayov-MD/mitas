@@ -95,9 +95,11 @@ verebilir.
 
 | kind | level | Ne zaman | module |
 |---|---|---|---|
-| `media_imported` | info | Kullanıcı dosya yükledi | upload |
+| `media_imported` | info | Kullanıcı **yeni** dosya yükledi | upload |
+| `media_reused` | info | Yüklenen dosya daha önce işlenmiş, mevcut transkript kullanılıyor | upload |
 | `asr_queued` | info | ASR kuyruğa alındı | asr |
 | `asr_started` | info | ASR worker iş üzerine geçti | asr |
+| `asr_reprocess_started` | info | Aynı klibe `force=full` ile yeniden ASR koşuluyor | asr |
 | `asr_completed` | info | ASR başarıyla bitti | asr |
 | `asr_partial` | warn | ASR kısmi sonuçla bitti | asr |
 | `asr_failed` | error | ASR hata verdi | asr |
@@ -180,6 +182,72 @@ Bir klipin **her şeyi tek merkezde**: kimlik, modül özeti, tüm jobları
   "events": [ ... newest first, only this clip ... ]
 }
 ```
+
+### `POST /api/asr/transcribe` — yeni davranış (dedup + force)
+
+Query parametreleri:
+- `filename` (default `"media"`)
+- `profile` (default `"fast_with_fallback"`)
+- `channel_mode` (`mono | split | auto`, default `auto`)
+- `force` (`none | full`, default `none`) — `full` ile aynı klibe yeniden ASR
+
+Sunucu upload sırasında dosyanın **sha256** hash'ini hesaplar. Üç senaryo:
+
+**1. Yeni içerik** (hash hiçbir klipte yok)
+```json
+{
+  "job_id": "asr-abc123",
+  "clip_id": "er_vid",
+  "content_hash": "8f3a1c...",
+  "reused": false,
+  "reprocessed": false,
+  "status": "queued",
+  "progress_percent": 5,
+  ...
+}
+```
+
+**2. Duplicate tespit edildi** (`force=none`) — ASR koşulmaz, mevcut ASR job uyumlu yanıt döner
+```json
+{
+  "reused": true,
+  "job_id": "asr-abc123",
+  "status": "done",
+  "clip_id": "er_vid",
+  "content_hash": "8f3a1c...",
+  "filename": "er_vid.mp4",
+  "imported_at": "2026-05-16T13:42:01Z",
+  "latest_asr_job_id": "asr-abc123",
+  "asr_status": "done",
+  "message": "Bu klip daha önce işlenmiş, mevcut transkript kullanılıyor.",
+  "reprocess_url": "/api/asr/transcribe?filename=er_vid.mp4&force=full",
+  "module_summary": {
+    "asr": { "status": "done", "latest_job_id": "asr-abc123", "job_count": 1 }
+  }
+}
+```
+
+UI bunu görünce iki seçenek sunar:
+- **"Mevcut transkripti aç"** → yanıt zaten son job formatını taşır; gerekirse `GET /api/jobs/{latest_asr_job_id}` ile tazele
+- **"Tekrar işle"** → aynı dosyayı `reprocess_url`'e POST et (`?force=full`)
+
+**3. Force full** (mevcut klip, yeni ASR)
+```json
+{
+  "job_id": "asr-xyz789",
+  "clip_id": "er_vid",
+  "content_hash": "8f3a1c...",
+  "reused": false,
+  "reprocessed": true,
+  "previous_job_id": "asr-abc123",
+  "status": "queued",
+  ...
+}
+```
+
+Eski transkript silinmez; klibin altına yeni `asr/<job_id>/` eklenir.
+`clip.json`'da `modules.asr.latest_job_id` yeni job'a güncellenir, eski
+job `modules.asr.jobs[]` listesinde kalır.
 
 ### `GET /api/jobs` ve `GET /api/jobs/{job_id}`
 
