@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 from typing import Literal
@@ -12,7 +13,24 @@ TARGET_SAMPLE_RATE = 16_000
 TARGET_CHANNELS = 1
 TARGET_CODEC_NAME = "pcm_s16le"
 TARGET_SAMPLE_FMT = "s16"
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _resolve_project_root() -> Path:
+    configured = os.environ.get("MITAS_PROJECT_ROOT", "").strip()
+    if configured:
+        return Path(configured)
+
+    current = Path(__file__).resolve().parents[3]
+    if (current / "models" / "asr" / "faster-whisper").exists():
+        return current
+
+    for parent in current.parents:
+        if (parent / "models" / "asr" / "faster-whisper").exists():
+            return parent
+    return current
+
+
+PROJECT_ROOT = _resolve_project_root()
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "tmp" / "asr_normalize"
 ChannelMode = Literal["mono", "split"]
 
