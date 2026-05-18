@@ -350,7 +350,7 @@ def run_asr_pipeline(
     model_profile_override: ProfileName | None = None,
     diarize_override: bool | None = None,
     diarize_required: bool = False,
-    channel_mode: Literal["mono", "split", "auto"] = "mono",
+    channel_mode: Literal["mono", "split", "auto"] = "auto",
     word_alignment_mode: AlignmentMode = "whisperx",
     output_dir: str | Path | None = None,
     media_id: str | None = None,
