@@ -45,7 +45,7 @@ from core.pipelines.asr.version import get_code_version
 from core.pipelines.asr.profiles import ContentProfile, ContentProfileName, get_content_profile
 from core.pipelines.asr.result import ProductionTranscribeResult
 from core.pipelines.asr.transcribe import DEFAULT_FFMPEG_EXECUTABLE, AsrPipelineError, transcribe
-from core.pipelines.asr.models import ProfileName
+from core.pipelines.asr.models import DEFAULT_TRANSCRIBE_PARAMS, ProfileName, TranscribeParams
 from core.schemas import EventStatus, EventType, ModuleRun, TimelineEvent
 from core.schemas.common import JobStatus
 
@@ -76,6 +76,15 @@ class AsrPipelineRunResult:
 
 
 DEFAULT_LEGACY_MODEL_PROFILE: ProfileName = "fast_with_fallback"
+
+
+def _build_transcribe_params(profile_resolution: "_ProfileResolution") -> TranscribeParams | None:
+    """Build TranscribeParams from the resolved content profile, or None for legacy calls."""
+    cp = profile_resolution.content_profile
+    if cp is None:
+        return None
+    from dataclasses import replace as dc_replace
+    return dc_replace(DEFAULT_TRANSCRIBE_PARAMS, beam_size=cp.beam_size, initial_prompt=cp.initial_prompt)
 
 
 @dataclass(frozen=True)
@@ -472,11 +481,13 @@ def run_asr_pipeline(
                 language_intelligence.runtime_sec,
             )
 
+        transcribe_params = _build_transcribe_params(profile_resolution)
         if channel_decision.effective_mode == "split":
             left_result = tag_result_channel(
                 transcribe(
                     normalized_outputs["L"],
                     profile=profile_resolution.model_profile,
+                    transcribe_params=transcribe_params,
                     ffmpeg_executable=ffmpeg_executable,
                     ffprobe_executable=ffprobe,
                 ),
@@ -486,6 +497,7 @@ def run_asr_pipeline(
                 transcribe(
                     normalized_outputs["R"],
                     profile=profile_resolution.model_profile,
+                    transcribe_params=transcribe_params,
                     ffmpeg_executable=ffmpeg_executable,
                     ffprobe_executable=ffprobe,
                 ),
@@ -496,6 +508,7 @@ def run_asr_pipeline(
             asr_result = transcribe(
                 normalized_outputs["mono"],
                 profile=profile_resolution.model_profile,
+                transcribe_params=transcribe_params,
                 ffmpeg_executable=ffmpeg_executable,
                 ffprobe_executable=ffprobe,
             )
