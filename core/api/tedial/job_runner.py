@@ -231,7 +231,10 @@ def _run_asr_pipeline(*, input_path: str | Path, output_dir: str | Path, media_i
 
     result = run_asr_pipeline(
         input_path,
-        profile=profile,  # type: ignore[arg-type]
+        content_profile="bulten_haber",
+        model_profile_override=profile,  # type: ignore[arg-type]
+        channel_mode="auto",
+        word_alignment_mode="whisperx",
         output_dir=output_dir,
         media_id=media_id,
         job_id=job_id,
