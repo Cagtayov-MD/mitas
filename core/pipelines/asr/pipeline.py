@@ -13,15 +13,35 @@ from time import perf_counter
 from typing import Any, Literal
 from uuid import uuid4
 
-from core.pipelines.asr.channel_analysis import ChannelDecision, decide_channel_mode
+from core.pipelines.asr.align import (
+    ALIGNMENT_STATUS_DEGRADED,
+    ALIGNMENT_STATUS_FAILED,
+    AlignmentMode,
+    AlignmentOutcome,
+    align_word_timestamps,
+)
+from core.pipelines.asr.channel_analysis import (
+    ChannelDecision,
+    StereoRedundancyAnalysis,
+    analyze_stereo_redundancy,
+    decide_channel_mode,
+)
 from core.pipelines.asr.channel_merge import merge_channel_results, tag_result_channel
 from core.pipelines.asr.diarize import AudioDiarizeError, DiarizationResult, diarize_audio
+from core.pipelines.asr.language_intelligence import (
+    LanguageIntelligenceMode,
+    LanguageIntelligenceResult,
+    config_from_env as language_intelligence_config_from_env,
+    run_language_intelligence,
+)
 from core.pipelines.asr.merge import (
     SpeakerMergeConfig,
     SpeakerMergeResult,
     merge_speakers_into_segments,
 )
 from core.pipelines.asr.normalize import AudioNormalizeError, NormalizeResult, PROJECT_ROOT, normalize_audio, probe_audio_stream
+from core.pipelines.asr.phase2.entity_normalization import normalize_entities
+from core.pipelines.asr.version import get_code_version
 from core.pipelines.asr.profiles import ContentProfile, ContentProfileName, get_content_profile
 from core.pipelines.asr.result import ProductionTranscribeResult
 from core.pipelines.asr.transcribe import DEFAULT_FFMPEG_EXECUTABLE, AsrPipelineError, transcribe
@@ -33,7 +53,8 @@ from core.schemas.common import JobStatus
 ASR_MODULE_NAME = "asr"
 ASR_MODULE_VERSION = "1.0"
 ASR_PIPELINE_VERSION = "asr_v1_0"
-DEFAULT_ASR_RUNS_DIR = PROJECT_ROOT / "outputs" / "asr_runs"
+DEFAULT_OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+DEFAULT_ASR_RUNS_DIR = DEFAULT_OUTPUTS_DIR / "runs" / "asr"
 
 
 @dataclass(frozen=True)
@@ -51,6 +72,7 @@ class AsrPipelineRunResult:
     transcribe_result: ProductionTranscribeResult
     module_run: ModuleRun
     timeline_events: list[TimelineEvent]
+    alignment_outcome: AlignmentOutcome
 
 
 DEFAULT_LEGACY_MODEL_PROFILE: ProfileName = "fast_with_fallback"
@@ -196,8 +218,8 @@ def _run_diarization_if_requested(
         callers never expected speaker tags; we keep their summary stable.
       - `diarize_intent` is False (`film` / `belgesel` default, or override) →
         `skipped`.
-      - `channel_mode == "split"` → `skipped`. Diarizing per-channel and then
-        cross-channel merging is a separate sprint; Paket 2 is mono-only.
+      - Split-channel ASR can still diarize against the mono mix and then merge
+        speaker IDs into the channel-tagged transcript segments.
 
     Failure handling (Karar 16):
       - With `diarize_required=True`, exceptions propagate so the pipeline
@@ -209,10 +231,6 @@ def _run_diarization_if_requested(
         return _diarization_skipped(asr_result, DIARIZATION_STATUS_NOT_APPLICABLE, "legacy_call")
     if not profile_resolution.diarize_intent:
         return _diarization_skipped(asr_result, DIARIZATION_STATUS_SKIPPED, "diarize_intent_false")
-    if channel_mode == "split":
-        # Split-channel diarization is intentionally deferred; keep transcript intact.
-        return _diarization_skipped(asr_result, DIARIZATION_STATUS_SKIPPED, "split_channel_unsupported_v0_1_x")
-
     started = perf_counter()
     try:
         diarization = diarize_audio(normalized_audio)
@@ -289,6 +307,7 @@ def _classify_diarization_status(merge_result: SpeakerMergeResult) -> str:
 def _resolve_job_status(
     safety: Any,  # ResultSafetyDecision | None — keep loose to avoid forward import
     diarization_status: str,
+    alignment_status: str,
 ) -> JobStatus:
     """Combine ASR safety and diarization status into a single job status.
 
@@ -299,6 +318,8 @@ def _resolve_job_status(
         return JobStatus.partial
     if diarization_status == DIARIZATION_STATUS_FAILED:
         return JobStatus.partial
+    if alignment_status in {ALIGNMENT_STATUS_FAILED, ALIGNMENT_STATUS_DEGRADED}:
+        return JobStatus.partial
     return JobStatus.done
 
 
@@ -308,6 +329,7 @@ def _resolve_error_message(
     safety: Any,
     diarization_status: str,
     diarization_error: str | None,
+    alignment_outcome: AlignmentOutcome,
 ) -> str | None:
     if status == JobStatus.done:
         return None
@@ -315,6 +337,8 @@ def _resolve_error_message(
         return safety.failure_reason or "asr_safety_failed"
     if diarization_status == DIARIZATION_STATUS_FAILED:
         return f"diarization_failed:{diarization_error or 'unknown'}"
+    if alignment_outcome.status in {ALIGNMENT_STATUS_FAILED, ALIGNMENT_STATUS_DEGRADED}:
+        return f"alignment_{alignment_outcome.status}:{alignment_outcome.reason or 'unknown'}"
     return None
 
 
@@ -327,12 +351,14 @@ def run_asr_pipeline(
     diarize_override: bool | None = None,
     diarize_required: bool = False,
     channel_mode: Literal["mono", "split", "auto"] = "mono",
+    word_alignment_mode: AlignmentMode = "whisperx",
     output_dir: str | Path | None = None,
     media_id: str | None = None,
     job_id: str | None = None,
     module_run_id: str | None = None,
     ffmpeg_executable: str = DEFAULT_FFMPEG_EXECUTABLE,
     ffprobe_executable: str | None = None,
+    language_intelligence_mode: LanguageIntelligenceMode | None = None,
 ) -> AsrPipelineRunResult:
     """Run the first MITAS module: normalize media, transcribe, and write artifacts.
 
@@ -381,6 +407,7 @@ def run_asr_pipeline(
             requested_mode=channel_mode,
             input_stream=input_stream,
             ffmpeg_executable=ffmpeg_executable,
+            ffprobe_executable=ffprobe,
         )
         normalize_started = perf_counter()
         normalize_result = normalize_audio(
@@ -390,9 +417,60 @@ def run_asr_pipeline(
             ffprobe_executable=ffprobe,
             channel_mode=channel_decision.effective_mode,  # type: ignore[arg-type]
         )
-        normalize_seconds = perf_counter() - normalize_started
         normalized_outputs = _materialize_normalized_outputs(normalize_result, run_dir, channel_decision)
+        if channel_decision.effective_mode == "split":
+            mono_result = normalize_audio(
+                source,
+                output_dir=run_dir / "normalized_mono",
+                ffmpeg_executable=ffmpeg_executable,
+                ffprobe_executable=ffprobe,
+                channel_mode="mono",
+            )
+            normalized_outputs["mono"] = _materialize_normalized_audio(mono_result, run_dir / "normalized.wav")
+        normalize_seconds = perf_counter() - normalize_started
         normalized_audio = normalized_outputs.get("mono") or normalized_outputs.get("L") or normalize_result.output_path
+
+        stereo_analysis: StereoRedundancyAnalysis | None = None
+        if channel_decision.effective_mode == "split" and "L" in normalized_outputs and "R" in normalized_outputs:
+            stereo_analysis = analyze_stereo_redundancy(
+                normalized_outputs["L"],
+                normalized_outputs["R"],
+            )
+            if stereo_analysis.is_redundant_stereo and not channel_decision.auto_decided:
+                asr_logger.warning(
+                    "Redundant stereo detected (pearson_median=%.4f midside_db=%.1f confidence=%s) "
+                    "but split was explicitly forced (requested_mode=%s). "
+                    "Consider channel_mode=auto to avoid duplicate transcription.",
+                    stereo_analysis.pearson_median or 0.0,
+                    stereo_analysis.midside_db_median or 0.0,
+                    stereo_analysis.redundancy_confidence,
+                    channel_decision.requested_mode,
+                )
+            asr_logger.info(
+                "Stereo redundancy analysis: pearson_median=%.4f pearson_p10=%.4f midside_db=%.1f "
+                "windows=%d/%d redundant=%s confidence=%s",
+                stereo_analysis.pearson_median or 0.0,
+                stereo_analysis.pearson_p10 or 0.0,
+                stereo_analysis.midside_db_median or 0.0,
+                stereo_analysis.speech_windows_used,
+                stereo_analysis.speech_windows_sampled,
+                stereo_analysis.is_redundant_stereo,
+                stereo_analysis.redundancy_confidence,
+            )
+
+        language_intelligence = run_language_intelligence(
+            normalized_audio,
+            config=language_intelligence_config_from_env(language_intelligence_mode),
+            temp_dir=run_dir,
+        )
+        if language_intelligence.enabled:
+            asr_logger.info(
+                "Language Intelligence shadow completed: status=%s master=%s windows=%s runtime=%.3f",
+                language_intelligence.status,
+                language_intelligence.master_language,
+                len(language_intelligence.windows),
+                language_intelligence.runtime_sec,
+            )
 
         if channel_decision.effective_mode == "split":
             left_result = tag_result_channel(
@@ -431,15 +509,23 @@ def run_asr_pipeline(
             asr_result=asr_result,
         )
         asr_result = diarization_outcome.updated_result
+        asr_result = normalize_entities(asr_result)
+        asr_result, alignment_outcome = align_word_timestamps(
+            asr_result,
+            normalized_outputs=normalized_outputs,
+            run_dir=run_dir,
+            mode=word_alignment_mode,
+        )
 
         completed_at = datetime.now(timezone.utc)
         total_seconds = perf_counter() - total_started
-        status = _resolve_job_status(asr_result.safety, diarization_outcome.status)
+        status = _resolve_job_status(asr_result.safety, diarization_outcome.status, alignment_outcome.status)
         error_msg = _resolve_error_message(
             status=status,
             safety=asr_result.safety,
             diarization_status=diarization_outcome.status,
             diarization_error=diarization_outcome.error_message,
+            alignment_outcome=alignment_outcome,
         )
 
         archive_path = run_dir / "archive.json"
@@ -456,6 +542,7 @@ def run_asr_pipeline(
         )
 
         archive = asr_result.to_archive_dict()
+        archive["language_intelligence"] = language_intelligence.to_dict()
         summary = _build_summary(
             source=source,
             normalized_audio=normalized_audio,
@@ -463,10 +550,13 @@ def run_asr_pipeline(
             profile_resolution=profile_resolution,
             diarize_required=diarize_required,
             diarization_outcome=diarization_outcome,
+            alignment_outcome=alignment_outcome,
             normalize_seconds=normalize_seconds,
             total_seconds=total_seconds,
             asr_result=asr_result,
             channel_decision=channel_decision,
+            stereo_analysis=stereo_analysis,
+            language_intelligence=language_intelligence,
             timeline_event_count=len(timeline_events),
         )
         module_run = _build_module_run(
@@ -509,6 +599,7 @@ def run_asr_pipeline(
             transcribe_result=asr_result,
             module_run=module_run,
             timeline_events=timeline_events,
+            alignment_outcome=alignment_outcome,
         )
     except Exception as exc:
         completed_at = datetime.now(timezone.utc)
@@ -526,10 +617,12 @@ def run_asr_pipeline(
             error_msg=str(exc),
             output_summary={
                 "pipeline_version": ASR_PIPELINE_VERSION,
+                "code_version": get_code_version(),
                 "input_path": str(source),
                 "content_profile": profile_resolution.content_profile_name,
                 "profile_requested": profile_resolution.model_profile,
                 "channel_mode_requested": channel_mode,
+                "word_alignment_mode": word_alignment_mode,
                 "normalize_seconds": round(normalize_seconds, 3),
                 "total_seconds": round(total_seconds, 3),
                 "error": str(exc),
@@ -554,16 +647,20 @@ def _build_summary(
     profile_resolution: "_ProfileResolution",
     diarize_required: bool,
     diarization_outcome: "_DiarizationOutcome",
+    alignment_outcome: AlignmentOutcome,
     normalize_seconds: float,
     total_seconds: float,
     asr_result: ProductionTranscribeResult,
     channel_decision: ChannelDecision,
+    stereo_analysis: StereoRedundancyAnalysis | None,
+    language_intelligence: LanguageIntelligenceResult,
     timeline_event_count: int,
 ) -> dict[str, Any]:
     safety = asr_result.safety
     timing = asr_result.timing
     return {
         "pipeline_version": ASR_PIPELINE_VERSION,
+        "code_version": get_code_version(),
         "input_path": str(source),
         "normalized_audio_path": str(normalized_audio),
         "normalized_audio_paths": {key: str(path) for key, path in normalized_outputs.items()},
@@ -577,6 +674,7 @@ def _build_summary(
         "fallback_triggered": asr_result.fallback_triggered,
         "fallback_reason": asr_result.fallback_reason,
         "selection_reason": asr_result.selection_reason,
+        "fallback_report": dict(asr_result.fallback_report),
         "fallback_mode": timing.fallback_mode if timing else None,
         "fallback_chunk_count": timing.fallback_chunk_count if timing else None,
         "fallback_total_chunk_count": timing.fallback_total_chunk_count if timing else None,
@@ -585,6 +683,7 @@ def _build_summary(
         "clean_segments": len(asr_result.clean_segments),
         "quality_drops": len(asr_result.quality_drops),
         "duplicate_drops": len(asr_result.duplicate_drops),
+        "normalized_entities": len(asr_result.normalized_entities),
         "clean_words": len(asr_result.clean_transcript.split()),
         "timeline_event_count": timeline_event_count,
         "vad": {
@@ -592,7 +691,9 @@ def _build_summary(
             "speech_ratio": asr_result.vad_speech_ratio,
             "segment_count": asr_result.vad_segment_count,
         },
-        "quality_report": _build_quality_report(asr_result, diarization_outcome),
+        "quality_report": _build_quality_report(asr_result, diarization_outcome, alignment_outcome),
+        "word_alignment": _build_alignment_summary_block(alignment_outcome),
+        "language_intelligence": language_intelligence.to_dict(),
         "channels": {
             "requested_mode": channel_decision.requested_mode,
             "mode": channel_decision.effective_mode,
@@ -600,6 +701,15 @@ def _build_summary(
             "lr_correlation": channel_decision.lr_correlation,
             "tracks": sorted(key for key in normalized_outputs if key != "mono"),
             "duplicate_drops": len(asr_result.duplicate_drops),
+            "stereo_analysis": stereo_analysis.to_dict() if stereo_analysis is not None else None,
+            "channel_decision_override": (
+                "forced_split_despite_redundant_stereo"
+                if stereo_analysis is not None
+                and stereo_analysis.is_redundant_stereo
+                and not channel_decision.auto_decided
+                and channel_decision.requested_mode == "split"
+                else None
+            ),
         },
         "safety": {
             "safe": safety.safe if safety else None,
@@ -630,13 +740,13 @@ def _build_summary(
 def _build_quality_report(
     asr_result: ProductionTranscribeResult,
     diarization_outcome: "_DiarizationOutcome",
+    alignment_outcome: AlignmentOutcome,
 ) -> dict[str, Any]:
     """Master plan §2.1 ASR kalite raporu sözleşmesine birebir karşılık veren blok.
 
-    v0.1.x sonrası `diarization` bloğu artık gerçek değer üretiyor:
-    Paket 2 wiring'i sonucunda `status` `ok` / `degraded` / `failed` /
-    `skipped` / `not_applicable` değerlerinden birini alır. WhisperX (Paket 1
-    WhisperX entegrasyonu) hala `not_applicable` plak; Paket 3 ile doldurulacak.
+    v0.1.x sonrası `diarization` bloğu gerçek değer üretir. Word timing bloğu
+    da WhisperX subprocess çıktısına bağlıdır; fallback kullanılırsa raporda
+    açıkça görünür.
     Karar 25 / Mutfak 05.3.4.
     """
     # Audit MED-1: error_flags kategoriktir; literal drop payload'i (orn.
@@ -652,18 +762,45 @@ def _build_quality_report(
 
     return {
         "word_timestamp_coverage": {
-            "status": "not_applicable",
-            "reason": "whisperx_not_integrated_in_v0_1",
-            "value": None,
+            "status": alignment_outcome.status,
+            "reason": alignment_outcome.reason,
+            "value": alignment_outcome.coverage,
+            "method": alignment_outcome.method,
+            "fallback_method": alignment_outcome.fallback_method,
+            "aligned_words": alignment_outcome.aligned_words,
+            "expected_words": alignment_outcome.expected_words,
+            "runtime_sec": round(alignment_outcome.runtime_sec, 3),
         },
         "alignment_success": {
-            "status": "not_applicable",
-            "reason": "whisperx_not_integrated_in_v0_1",
-            "value": None,
+            "status": alignment_outcome.status,
+            "reason": alignment_outcome.reason,
+            "value": alignment_outcome.success,
+            "method": alignment_outcome.method,
+            "fallback_method": alignment_outcome.fallback_method,
         },
         "vad_speech_ratio": asr_result.vad_speech_ratio,
+        "selective_quality_repair": _build_selective_quality_repair_block(asr_result),
+        "vad_gap_repair": _build_vad_gap_repair_block(asr_result),
         "diarization": _build_diarization_quality_block(diarization_outcome),
+        "speaker_word_timeline": _build_speaker_word_timeline_block(asr_result),
+        "entity_normalization": _build_entity_normalization_block(asr_result),
         "error_flags": error_flags,
+    }
+
+
+def _build_alignment_summary_block(outcome: AlignmentOutcome) -> dict[str, Any]:
+    return {
+        "status": outcome.status,
+        "method": outcome.method,
+        "fallback_method": outcome.fallback_method,
+        "expected_words": outcome.expected_words,
+        "aligned_words": outcome.aligned_words,
+        "coverage": outcome.coverage,
+        "success": outcome.success,
+        "reason": outcome.reason,
+        "runtime_sec": round(outcome.runtime_sec, 3),
+        "artifacts": list(outcome.artifacts),
+        "details": list(outcome.details),
     }
 
 
@@ -685,6 +822,84 @@ def _build_diarization_quality_block(outcome: "_DiarizationOutcome") -> dict[str
         block["speaker_count"] = outcome.diarization.speaker_count
         block["speakers"] = outcome.diarization.speakers
     return block
+
+
+def _build_selective_quality_repair_block(asr_result: ProductionTranscribeResult) -> dict[str, Any]:
+    if not asr_result.fallback_report:
+        return {"status": "not_triggered"}
+    return dict(asr_result.fallback_report)
+
+
+def _build_vad_gap_repair_block(asr_result: ProductionTranscribeResult) -> dict[str, Any]:
+    report = asr_result.fallback_report
+    if report.get("repair_type") != "vad_gap_repair":
+        return {"status": "not_triggered"}
+    return {
+        "status": report.get("status", "triggered"),
+        "mode": report.get("mode"),
+        "trigger_reason": report.get("trigger_reason"),
+        "uncovered_vad_ranges": list(report.get("uncovered_vad_ranges", ())),
+        "selected_chunk_indexes": list(report.get("selected_chunk_indexes", ())),
+        "quality_chunk_indexes": list(report.get("quality_chunk_indexes", ())),
+        "kept_fast_chunk_indexes": list(report.get("kept_fast_chunk_indexes", ())),
+    }
+
+
+def _build_speaker_word_timeline_block(asr_result: ProductionTranscribeResult) -> dict[str, Any]:
+    segments = list(asr_result.clean_segments)
+    if not segments:
+        return {"status": "not_applicable", "reason": "no_segments"}
+
+    total_segments = len(segments)
+    speaker_segments = sum(1 for segment in segments if segment.speaker_id is not None)
+    timed_segments = sum(1 for segment in segments if segment.word_timestamps)
+    speaker_timed_segments = sum(
+        1 for segment in segments if segment.speaker_id is not None and segment.word_timestamps
+    )
+    timed_words = sum(len(segment.word_timestamps) for segment in segments)
+    speaker_timed_words = sum(
+        len(segment.word_timestamps) for segment in segments if segment.speaker_id is not None
+    )
+
+    if speaker_segments == 0 and timed_segments == 0:
+        status = "not_applicable"
+        reason = "no_speakers_or_word_timestamps"
+    elif speaker_segments == 0:
+        status = "not_applicable"
+        reason = "no_speaker_labels"
+    elif timed_segments == 0:
+        status = "degraded"
+        reason = "word_timestamps_missing"
+    elif speaker_timed_segments == total_segments:
+        status = "ok"
+        reason = None
+    else:
+        status = "degraded"
+        reason = "partial_speaker_word_coverage"
+
+    return {
+        "status": status,
+        "reason": reason,
+        "segments": total_segments,
+        "speaker_segments": speaker_segments,
+        "word_timed_segments": timed_segments,
+        "speaker_word_segments": speaker_timed_segments,
+        "speaker_segment_coverage": round(speaker_segments / total_segments, 6),
+        "word_timed_segment_coverage": round(timed_segments / total_segments, 6),
+        "speaker_word_segment_coverage": round(speaker_timed_segments / total_segments, 6),
+        "timed_words": timed_words,
+        "speaker_timed_words": speaker_timed_words,
+    }
+
+
+def _build_entity_normalization_block(asr_result: ProductionTranscribeResult) -> dict[str, Any]:
+    entities = list(asr_result.normalized_entities)
+    return {
+        "status": "ok" if entities else "not_applicable",
+        "method": "deterministic_lexicon",
+        "count": len(entities),
+        "items": entities,
+    }
 
 
 def _build_timeline_events(
@@ -710,6 +925,10 @@ def _build_timeline_events(
             payload["speaker_id"] = segment.speaker_id
         if segment.channel is not None:
             payload["channel"] = segment.channel
+        if segment.normalized_text is not None:
+            payload["normalized_text"] = segment.normalized_text
+        if segment.word_timestamps:
+            payload["word_timestamps"] = [dict(word) for word in segment.word_timestamps]
         events.append(
             TimelineEvent(
                 event_id=f"{module_run_id}-asr-{index:04d}",
@@ -776,12 +995,19 @@ def _build_module_run(
 
 
 def _build_transcript_review(summary: dict[str, Any], asr_result: ProductionTranscribeResult) -> str:
+    normalized_section = ""
+    if asr_result.normalized_transcript:
+        normalized_section = (
+            "\n## Normalized Transcript\n\n"
+            f"{asr_result.normalized_transcript.strip()}\n"
+        )
     return (
         "# ASR Module Run Transcript Review\n\n"
         "## Summary\n\n"
         f"```json\n{json.dumps(summary, ensure_ascii=False, indent=2)}\n```\n\n"
         "## Clean Transcript\n\n"
         f"{asr_result.clean_transcript.strip() or '[bos transcript]'}\n\n"
+        f"{normalized_section}"
         "## Verbatim Transcript\n\n"
         f"{asr_result.verbatim_transcript.strip() or '[bos transcript]'}\n"
     )
