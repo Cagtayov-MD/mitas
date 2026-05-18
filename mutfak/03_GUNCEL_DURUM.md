@@ -1,7 +1,7 @@
 # 03 — GÜNCEL DURUM
 
-> Son güncelleme: 2026-05-14
-> Son değişen bölüm: §0.3 — ASR audit kapanışı (worktree port + 9 fix + Karar 27) eklendi
+> Son güncelleme: 2026-05-18
+> Son değişen bölüm: §0.5 — RADYO_G_NLER kalibrasyonu: stock artifact, stereo redundancy, channel_mode default, content profile wire
 
 Bu dosya **şu an nerede olduğumuzu** anlatır. Yapılmış olanlar, eksik kalanlar, açık kararlar, riskler. Her gelişme ile güncellenir.
 
@@ -62,6 +62,51 @@ ASR modülü için derinlemesine audit (HIGH-1..HIGH-5, MED-1..MED-6, LOW-1..LOW
 Doğrulama: `cd /e/MITAS && venvs/core/Scripts/python.exe -m pytest tests/ -q` → **166 passed, 6 skipped** (TEST-ASR-AUDIT-001). 6 skip = real_media GPU testleri.
 
 Açık takip için: `mutfak/05_AKTIF_GOREV.md` §0 canlı pano, `mutfak/06_KARARLAR_GUNLUGU.md` Karar 27.
+
+---
+
+## 0.4 2026-05-16 WhisperX ana pipeline ve hybrid kalite ölçümü
+
+WhisperX artık ASR ana pipeline'a bağlı: `word_alignment_mode` default'u `whisperx`; API/WebUI normal upload yolu `content_profile=bulten_haber`, `diarize=auto`, `channel_mode=auto`, `word_alignment_mode=whisperx` ile job açıyor. Split kanal seçilse bile diarization için ayrıca mono mix üretiliyor. Flat WhisperX `word_segments`, zaman örtüşmesiyle orijinal ASR segmentlerine dağıtılıyor; coverage yanlış düşük görünmüyor.
+
+Kalite ölçümü küçük gold-probe setinde yapıldı. Üç gerçek referanslı klipte default `bulten_haber`/`large-v3-turbo` weighted WER `16.57%`, CER `12.98%`; `bulten_haber + quality override`/`large-v3` weighted WER `14.24%`, CER `11.35%` verdi. Her iki hatta WhisperX coverage `3/3 ok, min 1.000`, diarization `3/3 ok`, safety `3/3 safe`.
+
+Karar etkisi: `large-v3` bazı kliplerde daha iyi olsa da turbo önceki TRT-domain geniş koşumlarda birçok alanda daha sağlıklı/stabil davrandığı için production yönü değişmedi: `large-v3-turbo` default, `large-v3` selective/hybrid repair modeli. WhisperX metin doğruluğunu doğrudan artıran model değil; kelime timestamp, timeline, evidence, coverage ve repair sonrası yeniden hizalama omurgasıdır.
+
+Ek uygulama: "ciddi fark" listesinin ilk üç kalite işi ürün yoluna alındı. Selective quality repair artık `fallback_report` ile chunk arbitration raporu veriyor; VAD gap repair `vad_gap_uncovered` pencerelerini selective ASR onarımına bağlıyor; entity/özel isim normalizasyonu `normalized_text`, `normalized_transcript`, `normalized_entities` olarak reviewable çıktı üretiyor ve ASR metnini sessizce ezmiyor.
+
+Kalan uygulama: WhisperX düşük coverage durumunda eksik segmentleri tek retry eder; diarization+WhisperX birleşimi `quality_report.speaker_word_timeline` bloğuyla ölçülür; entity önerileri Qwen/üst-denetim için evidence packet taşır; WebUI timeline seçili/zoomlu segmentlerde kelime timestamp tick'lerini gösterir. Gerçek Qwen hakem çağrısı ve insan etiketli diarization benchmark ayrı Faz2/ölçüm işi olarak kalır.
+
+Retest: ASR hedefli regresyon `46 passed`, ASR wildcard `139 passed, 9 skipped`, WebUI type-check/build geçti. Full `pytest tests -q` `257 passed, 10 skipped, 3 failed`; fail'ler ASR dışı model manifest sayaç beklentisi (`candidate_count` 24 yerine 27). Üç gerçek gold-probe current pipeline retestinde clean transcript eski çıktıyla birebir aynı kaldı; weighted WER `0.1562`, weighted CER `0.1122`, alignment `3/3 ok`, diarization `3/3 ok`. Transcribe süresi aynı seviyede kaldı; toplam runtime artışı ana olarak diarization varyansından geldi. Rapor: `outputs/asr_current_pipeline_retest_20260516/retest_report.md`.
+
+Altın not: ASR+WhisperX tarafında şu an yapılanlar güvenli altyapı ve doğru kalite sinyali tarafını sağlamlaştırdı. Bir sonraki gerçek kalite sıçraması entity sözlüğünü TRT kişi/kurum/program listesiyle büyütmek, gerçek Qwen evidence hakemini bağlamak ve çok-konuşmacılı insan etiketli diarization benchmark kurmaktır.
+
+Referanslar:
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 32
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 33
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 34
+- `mutfak/08_TEST_KLIPLER.md` §8.5-§8.7
+- `outputs/asr_current_pipeline_quality_20260516/report.md`
+
+---
+
+## 0.5 2026-05-18 RADYO_G_NLER kalibrasyonu — stock artifact, stereo redundancy, channel_mode default, content profile wire
+
+Bir radyo müzik programı klibinde (`RADYO_G_NLER.mp4`) üç somut sorun çıktı: müzik/sessizlik üzerine üretilen İngilizce stok hallüsinasyonlar (`Thank you`, `© transcript Emily Beynon`), L ve R kanallarının neredeyse %99 aynı çıkması (aynı sesin iki kez transkribe edilmesi) ve `muzik_programi` content profile'ında tanımlı `initial_prompt="Turkce muzik programi"` + `beam_size=5` parametrelerinin Whisper'a hiç ulaşmaması. Bu üç sorun bu turda kapatıldı, her üçü de `master` üzerinde.
+
+Yapılanlar:
+
+- **STOCK_ARTIFACTS genişletildi:** `quality.py:STOCK_ARTIFACTS` listesine plain English Whisper hallüsinasyon kalıpları eklendi (`thank you`, `transcript emily beynon`, `subtitles by`, `amara org`, vb.). Normalize sonrası eşleştiğinden `thank you.` gibi noktalama varyantı eklenmez. Bu hallüsinasyonlar artık `quality_drop` olarak düşer ve transcript'e sızmaz.
+- **Stereo redundancy analyzer (observable katman):** `channel_analysis.py` içine `analyze_stereo_redundancy()` eklendi. Split mode'da L ve R üzerinde 5 sn pencerelerle Pearson korelasyonu + Mid/Side dB ölçer; `pearson_median ≥ 0.90 AND midside_db ≤ -10.0` olduğunda `is_redundant_stereo=True`. `pipeline.py` bu sonucu summary.json `channels.stereo_analysis` bloğuna yazar; split zorla forced edilmiş (yani `auto_decided=false`) ve aynı zamanda redundant ise `channels.channel_decision_override = "forced_split_despite_redundant_stereo"` flag'ini basıyor ve log'a WARNING düşüyor. Karar 35.
+- **`channel_mode` default `mono → auto`:** `run_asr_pipeline()` ve `_run_asr_pipeline()` (Tedial job runner) varsayılan kanal modu `auto` yapıldı. Artık pipeline kendisi L/R korelasyonuna bakarak mono/split kararını veriyor; varsayılan davranış olarak iki kanal aynı kaynaktan geliyorsa otomatik mono'ya iniyor. Karar 36.
+- **Content profile parametre propagasyonu (DONE-ASR-004 teknik borç kapanışı):** `TranscribeParams` dataclass'ına `beam_size: int | None = None` alanı eklendi (None = model_config default'u kullan). `transcribe()` artık `transcribe_params: TranscribeParams | None` parametresi alıyor ve tüm `_run_single_pass` çağrı noktalarına (quality / fast / fast_with_fallback fast-first + selective fallback + full-quality eskalasyon, 5 nokta) ile `_transcribe_chunk()`'a iletiyor. `pipeline.py` içine `_build_transcribe_params()` helper'ı eklendi; content profile verildiyse `beam_size` ve `initial_prompt` override'larıyla `TranscribeParams` üretip L, R ve mono `transcribe()` çağrılarının üçüne birden geçiriyor. Legacy `content_profile=None` çağrıları `None` aldığından `DEFAULT_TRANSCRIBE_PARAMS`'a düşer, mevcut davranış değişmez. `muzik_programi` artık gerçekten `initial_prompt="Turkce muzik programi"` ile decode ediyor.
+
+Test durumu: Bu turda hedefli ASR regresyonu `tests/test_asr_stereo_redundancy.py tests/test_asr_pipeline.py tests/test_asr_channel_analysis.py` → 16 passed. Gerçek RADYO_G_NLER re-run henüz koşulmadı; üretim sunucusu (asr_server uvicorn, no-reload) elle restart sonrası TRT klibiyle yeniden ölçülmesi gerekiyor.
+
+Referanslar:
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 35 (stereo redundancy observable katman)
+- `mutfak/06_KARARLAR_GUNLUGU.md` Karar 36 (channel_mode default auto)
+- `mutfak/08_TEST_KLIPLER.md` §8.8
 
 ---
 

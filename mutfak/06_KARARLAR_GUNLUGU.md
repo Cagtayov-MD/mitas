@@ -1,7 +1,7 @@
 # 06 — KARARLAR GÜNLÜĞÜ
 
-> Son güncelleme: 2026-05-14
-> Son değişen bölüm: Live STT Preview player-audio WebSocket kararı (Karar 28)
+> Son güncelleme: 2026-05-18
+> Son değişen bölüm: RADYO_G_NLER kalibrasyonu — Karar 35 (stereo redundancy observable) ve Karar 36 (channel_mode default auto)
 
 Bu dosya MITAS projesinde **verilmiş kararların kalıcı kaydıdır**. Her karar tarih, başlık, kararın kendisi, gerekçesi ve varsa ilgili dosya referansıyla yazılır.
 
@@ -351,6 +351,87 @@ recovery (üst üste binen konuşmaları kelime kelime kurtarma) kapsam dışıd
 **Referans:** `core/pipelines/asr/transcribe.py`, `core/pipelines/asr/result.py`, `core/pipelines/asr/pipeline.py`, `tests/test_production_transcribe.py`.
 
 **Durum:** Aktif. Summary/timing alanlarına `fallback_mode`, `fallback_chunk_count`, `fallback_total_chunk_count` eklendi; WebUI job log'u fallback çalışırsa kaç chunk tekrar çözüldüğünü yazar.
+
+### 2026-05-16 / 32 — ASR hybrid + WhisperX: ciddi fark yaratanlar
+
+**Karar:** ASR üretim yönü `large-v3-turbo` default + selective/hybrid kalite onarımı olarak kalır. `large-v3` "her zaman daha doğru ana model" kabul edilmez; TRT-domain örneklerde turbo birçok alanda daha sağlıklı sonuç verdiği için `large-v3` yalnız riskli pencere, tail-gap, düşük güven, özel isim yoğunluğu veya final kalite isteğinde devreye giren kalite/onarım modeli olarak tutulur. WhisperX ise metin doğruluğunu doğrudan artıran model değil, transcript'i kelime zamanına bağlayan alignment/evidence omurgasıdır.
+
+**Ciddi fark sırası:**
+
+1. **WhisperX ana pipeline alignment'ı:** WER'i doğrudan düşürmez; ama kelime timestamp, timeline tıklama, arama sonucu, altyazı, evidence ve kalite coverage için yüksek ürün değeri üretir. Bu yüzden ana hatta kalır.
+2. **Fast-first selective quality repair:** En yüksek metin kalitesi/performance etkisi burada beklenir. Turbo full decode hızlı ve çoğu TRT içeriğinde sağlıklı; sadece riskli pencereleri `large-v3` ile onarmak full quality maliyetini engeller.
+3. **VAD gap repair + selective ASR:** Konuşma var ama transcript yoksa o pencereyi tekrar çözmek gerçek kelime kaybını azaltır. Bu, genel WER'den çok "kaçırılmış cümle" riskini düşürür.
+4. **Entity / özel isim normalizasyonu:** TRT için en kritik metadata etkisi. `Barış Manço`, `Mostar`, `Neretva`, kurum/program adları gibi hatalarda arama ve arşiv değeri WER'den daha fazla etkilenebilir. Otomatik replace dar kapıdan geçer; kanıt/evidence gerekir.
+5. **Diarization + WhisperX:** Tek konuşmacılı klipte az fark yaratır; haber, röportaj, panel, stüdyo tartışması gibi çok konuşmacılı içerikte "kim neyi ne zaman söyledi" çıktısı için ciddi fark yaratır.
+6. **WhisperX kalite denetimi:** `expected_words/aligned_words`, coverage ve alignment status pipeline'ın "tamamlandı ama güvenilir mi?" sorusuna cevap verir; düşük coverage durumda retry/repair kapısı açar.
+
+**Daha düşük öncelikli / tek başına yeterli olmayanlar:** Tüm klibi her zaman `large-v3` ile çözmek, full fast+quality hybrid'i production default yapmak, hotword/manual prompt'u ana çözüm saymak, beam size artırmayı kalıcı kalite stratejisi yapmak.
+
+**Ölçüm notu:** 2026-05-16 küçük gold-probe ölçümünde 3 gerçek referanslı klipte default `bulten_haber`/turbo hattı weighted WER `16.57%`, CER `12.98%`; `bulten_haber + quality override` weighted WER `14.24%`, CER `11.35%` verdi. Her iki varyantta WhisperX coverage `3/3 ok, min 1.000`, diarization `3/3 ok`, safety `3/3 safe`. Bu ölçüm `large-v3`'ün bazı örneklerde daha iyi olduğunu gösterir ama turbo'nun genel production default kararını iptal etmez; hybrid/selective yönü destekler.
+
+**Referans:** `outputs/asr_current_pipeline_quality_20260516/report.md`, `outputs/asr_current_pipeline_quality_20260516/report.json`, `mutfak/08_TEST_KLIPLER.md` §8.5-§8.7, Karar 21, 23, 24, 31.
+
+**Durum:** Aktif. Sonraki uygulama hattı: selective quality repair + VAD gap repair + entity normalization + WhisperX tekrar alignment. Full hybrid yalnız benchmark/araştırma yolu olarak kalır.
+
+### 2026-05-16 / 33 — İlk 3 ASR kalite yatırımı ürün yoluna alındı
+
+**Karar:** Karar 32'de "ciddi fark yaratan" ilk uygulama paketi şu üçlüdür: fast-first selective quality repair, VAD gap repair ve entity/özel isim normalizasyonu. Selective repair ile VAD gap repair production ASR içinde kalıcıdır; her fallback artık `fallback_report` ile hangi chunk'ın neden onarıma gittiğini, hangi chunk'ın turbo kaldığını ve final seçimin nedenini raporlar. Entity normalization ise ASR transcript'ini sessizce değiştirmez; `normalized_text`, `normalized_transcript` ve `normalized_entities` olarak ikinci, reviewable katman üretir.
+
+**Gerekçe:** Bu üçlü doğrudan arşiv değerini artırır. Selective repair kalite/performance dengesini korur; VAD gap repair "konuşma var ama metin yok" riskini azaltır; entity normalization ise kişi/kurum/program adı hatalarının arama ve metadata üzerindeki etkisini WER'den bağımsız biçimde düşürür. Otomatik replace dar kapıdan geçmelidir; bu yüzden ilk sürüm metni ezmez, kanıtlanabilir öneri üretir.
+
+**Uygulama notu:** İlk lexicon `Barış Manço` ve `TRT Haber` gibi güvenli örneklerle sınırlı tutuldu. Qwen/üst-denetim, IMDb/TRT özel isim sözlüğü, OCR/KJ kanıtı ve insan onayı Faz2 kanıt döngüsünde genişletilecek.
+
+**Referans:** `core/pipelines/asr/transcribe.py`, `core/pipelines/asr/result.py`, `core/pipelines/asr/pipeline.py`, `core/pipelines/asr/channel_merge.py`, `core/pipelines/asr/phase2/entity_normalization.py`, `tests/test_production_transcribe.py`, `tests/test_asr_entity_normalization.py`, `mutfak/08_TEST_KLIPLER.md` §8.7.
+
+**Doğrulama:** `venvs/core/Scripts/python.exe -m pytest tests/test_asr_entity_normalization.py tests/test_production_transcribe.py tests/test_asr_pipeline.py tests/test_asr_channel_merge.py tests/test_asr_pipeline_diarization.py tests/test_asr_alignment.py -q` → 45 passed.
+
+**Durum:** Aktif. Eşik kalibrasyonu ve özel isim sözlüğünün TRT-domain büyütülmesi sonraki ölçüm işidir.
+
+### 2026-05-16 / 34 — Kalan ASR+WhisperX kalite yatırımları ürün yoluna alındı
+
+**Karar:** Karar 32/33 sonrası kalan ürün etkili işler şu şekilde production sözleşmesine alınır: WhisperX düşük coverage durumunda eksik segmentler için tek retry dener; diarization+WhisperX birleşimi `quality_report.speaker_word_timeline` ile "konuşmacı etiketi + kelime zamanı birlikte var mı?" sorusunu sayısal raporlar; entity normalization her öneriye Qwen/üst-denetim için kanıt paketi ekler; WebUI timeline seçili veya zoomlu segmentlerde kelime timestamp tick'lerini gösterir.
+
+**Gerekçe:** WhisperX coverage `ok` görünmediğinde tüm işi tekrar koşturmak yerine sorunlu segmenti tekrar hizalamak daha ucuzdur. Diarization tek başına "kim konuştu", WhisperX tek başına "hangi kelime ne zaman"; ikisinin birlikte ölçülmesi arşiv timeline değeri için daha doğru sinyaldir. Entity önerilerinde metni ezmek yerine kanıt paketi üretmek, ileride Qwen/hakem modelin güvenli karar verebilmesi için zorunlu ara adımdır. WebUI tarafında word timestamp ancak kullanıcı timeline'da görebildiğinde ürün değerine dönüşür.
+
+**Sınır:** Gerçek Qwen hakem çağrısı bu kararla yapılmış sayılmaz. Burada yapılan, Qwen'e verilecek kanıt paketini ve deterministik kapıyı hazırlamaktır. İnsan etiketli speaker benchmark da ayrı ölçüm işi olarak kalır.
+
+**Referans:** `core/pipelines/asr/align.py`, `core/pipelines/asr/pipeline.py`, `core/pipelines/asr/phase2/entity_normalization.py`, `tests/test_asr_alignment.py`, `tests/test_asr_pipeline_diarization.py`, `tests/test_asr_entity_normalization.py`, `webui/src/app/asr-api.ts`, `webui/src/app/components/Timeline.tsx`, `mutfak/08_TEST_KLIPLER.md` §8.7.
+
+**Doğrulama:** ASR kapsamı `venvs/core/Scripts/python.exe -m pytest tests/test_asr_entity_normalization.py tests/test_production_transcribe.py tests/test_asr_pipeline.py tests/test_asr_channel_merge.py tests/test_asr_pipeline_diarization.py tests/test_asr_alignment.py -q` → 46 passed. WebUI `pnpm type-check` → passed; `pnpm build` → passed, yalnız mevcut büyük chunk uyarısı var.
+
+**Retest notu:** Aynı gün tam retest yapıldı. ASR wildcard `139 passed, 9 skipped`; full `pytest tests -q` `257 passed, 10 skipped, 3 failed` verdi; fail'ler ASR dışı model manifest sayaç beklentisi (`candidate_count` 24 yerine 27). Üç gerçek gold-probe current pipeline retestinde clean transcript eski çıktıyla birebir aynı kaldı; alignment `3/3 ok`, diarization `3/3 ok`, weighted WER `0.1562`, weighted CER `0.1122`. Yeni retry/entity hit bu üç klipte tetiklenmedi; `speaker_word_timeline` 2/3 klipte degraded diyerek ek güven sinyali üretti. Rapor: `outputs/asr_current_pipeline_retest_20260516/retest_report.md`.
+
+**Altın not:** Bu paket güvenli altyapı ve doğru kalite sinyali tarafını sağlamlaştırdı. Bundan sonraki büyük kalite sıçraması model değiştirmekten önce şu üçlüdür: TRT kişi/kurum/program entity sözlüğü, gerçek Qwen evidence hakemi, insan etiketli çok-konuşmacılı diarization benchmark.
+
+**Durum:** Aktif. Sonraki ölçüm: gerçek düşük-coverage WhisperX klipleri, çok-konuşmacılı insan etiketli diarization seti ve TRT özel isim sözlüğüyle entity hit-rate raporu.
+
+### 2026-05-18 / 35 — Stereo redundancy observable katmanı: forced split + redundant uyarısı
+
+**Karar:** Split mode'da ASR pipeline normalize edilmiş L ve R kanallarını ölçer ve `summary.json` `channels.stereo_analysis` bloğuna yazar. Ölçüm 5 sn pencerelerde Pearson korelasyon medyanı + Mid/Side dB medyanıdır. Eşik: `pearson_median ≥ 0.90 AND midside_db ≤ -10.0` ise `is_redundant_stereo=True`. Operatör `channel_mode="split"` zorlamışsa (`auto_decided=false`) ve sonuç redundant ise `channels.channel_decision_override="forced_split_despite_redundant_stereo"` flag'i ve log WARNING basılır. Pipeline bu durumda kanal modunu otomatik değiştirmez; sadece raporlar.
+
+**Gerekçe:** RADYO_G_NLER klibinde L ve R neredeyse %99 aynı çıktı (aynı kaynaktan iki mikrofon) ama dış çağrı `channel_mode="split"` zorlamıştı; sonuç: aynı ses iki kez transkribe edildi, L/R kanallarda neredeyse aynı segmentler ürerek duplicate drop'ları artırdı ve `selection_reason` yanıltıcı oldu. Eski Pearson tek pencere `min()` mantığı tek müzik penceresinde 0.718'e düşüyor, gerçek decision için fragile. Yeni ölçüm pencere medyanları + Mid/Side dB ile daha sağlam sinyal verir. Karar bilinçli olarak "observable yap, otomatik değiştirme" yönündedir; bilinçsizce override edilen split'i tek başına sessizce mono'ya çevirmek operatör niyetini bozar. WARNING + flag, sebebi summary'den doğrudan okunur.
+
+**Sınır:** Eşikler audit-first observable yaklaşımıyla seçildi (RADYO_G_NLER'in `pearson_median ≈ 0.985`, `midside_db ≈ -17.3` ölçümlerinden geri sayılarak). Gerçek TRT split-kanal kliplerinde (saha + stüdyo, çevirmen + konuşmacı vb. gerçek farklı kanal) `is_redundant_stereo=False` çıkmalı; çıkmazsa eşikler ayarlanacak. Otomatik mode-switch ileride güvenli kanıtlanırsa ayrı karar olarak açılır.
+
+**Referans:** `core/pipelines/asr/channel_analysis.py`, `core/pipelines/asr/pipeline.py`, `tests/test_asr_stereo_redundancy.py`, `mutfak/03_GUNCEL_DURUM.md` §0.5, `mutfak/08_TEST_KLIPLER.md` §8.8.
+
+**Doğrulama:** `./venvs/core/Scripts/python.exe -m pytest tests/test_asr_stereo_redundancy.py tests/test_asr_pipeline.py tests/test_asr_channel_analysis.py -x -q` → 16 passed. Gerçek RADYO_G_NLER re-run henüz koşulmadı; üretim sunucusu (asr_server uvicorn, no-reload) elle restart sonrası TRT klibiyle yeniden ölçülecek.
+
+**Durum:** Aktif.
+
+### 2026-05-18 / 36 — ASR `channel_mode` default `mono` → `auto`
+
+**Karar:** `run_asr_pipeline()` ve Tedial `_run_asr_pipeline()` default `channel_mode` parametresi `"mono"`'dan `"auto"`'ya çevrildi. Pipeline artık L/R korelasyonuna bakarak mono/split kararını kendisi verir. Forced `"split"` ve forced `"mono"` operatör override'ları olarak kalır; observable katman (Karar 35) yanlış override'ı yakalar.
+
+**Gerekçe:** Eski `"mono"` default yanıltıcıydı: stereo girdiler ya sessizce kırpılıyor (ikinci kanal bilgisi kayboluyor) ya da dış çağrıdan bilinçsizce `"split"` zorlanıyordu. RADYO_G_NLER hatasının kök neden zinciri burada başladı: Tedial job runner default'u atlamış, ASR API split forcing ile çağırmış, sonuçta aynı ses iki kez transkribe edilmişti. `"auto"` default'u doğru tarafa eğer: stereo bilgisi varsa pipeline kullanır, redundant ise mono'ya iner, gerçek split ise split yapar.
+
+**Sınır:** Auto kararının kendisi Pearson tabanlı (mevcut `decide_channel_mode`); Karar 35 observable katmanı bu kararı sonradan denetler. Operatör override'ları (`channel_mode="split"` veya `"mono"`) hâlâ saygı görür.
+
+**Referans:** `core/pipelines/asr/pipeline.py`, `core/api/tedial/job_runner.py`, `mutfak/03_GUNCEL_DURUM.md` §0.5, `mutfak/08_TEST_KLIPLER.md` §8.8.
+
+**Doğrulama:** Karar 35 ile aynı koşum: `./venvs/core/Scripts/python.exe -m pytest tests/test_asr_stereo_redundancy.py tests/test_asr_pipeline.py tests/test_asr_channel_analysis.py -x -q` → 16 passed.
+
+**Durum:** Aktif.
 
 ### 2026-05-10 / 3 — STT, ASR streaming_transcription alt moduna taşındı
 
