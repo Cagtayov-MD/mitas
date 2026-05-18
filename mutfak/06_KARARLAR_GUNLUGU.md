@@ -433,6 +433,24 @@ recovery (üst üste binen konuşmaları kelime kelime kurtarma) kapsam dışıd
 
 **Durum:** Aktif.
 
+---
+
+### 2026-05-18 / 37 — TRT müzik tanımada primary KJ + ASR anonsu; fingerprint doğrulayıcı; composition entity ≠ performance event
+
+**Karar:**
+1. TRT müzik programlarında **primary identification = KJ/OCR + ASR Anonsu**; Chromaprint/AcoustID/fingerprint **doğrulayıcı** katmandır, primary değildir. Sinyal güven sırası: KJ/OCR → ASR Anons → Lyric Match → Audio Activity (sınır) → Chromaprint (son).
+2. **Composition (eser) kalıcı entity'dir, timeline event değildir.** `song_performance` event'i `composition_id` foreign key taşır; `EventType`'a composition değeri eklenmez. `EventType`'a tek müzik eklemesi `kj_music_credit`'tir.
+3. **v0.2 Repertuvar Bankası dosya-tabanlıdır** (SQLite veya CSV/JSONL). PostgreSQL/pgvector v0.2'de varsayılmaz; v0.4 yüz bankası altyapısıyla birlikte opsiyon olarak değerlendirilir.
+4. KJ güveni **OCR confidence'ına koşulludur** (`f(ocr_conf)`); düşük OCR conf'ta KJ tek başına `auto` değil `needs_review` üretir (prensip 5.1).
+5. OCR motoru için **yeni karar açılmaz**; mutfak benchmark-gated kararı (03_GUNCEL_DURUM.md §6.3 OCR motoru seçimi) devralınır.
+6. Müzik sprinti **v0.1.x Paket 3 (profile dispatch)** kapanmadan başlamaz; sert önkoşuldur.
+
+**Gerekçe:** AcoustID kayıt (recording) fingerprint tutar, beste (composition) değil; TSM/THM repertuvarı ve canlı stüdyo icrası uluslararası fingerprint DB'lerinde marjinaldir. TRT yapımı kliplerde KJ ve sunucu anonsu bilerek üretilmiş, en güvenilir ground-truth taşıyan sinyallerdir. Mutfak dokümanları yanlış mimari kurmamış; sinyal hiyerarşisini, composition/performance ayrımını ve v0.2 uygulanabilir çekirdeği spesifik bırakmamıştı — bu karar o boşluğu doldurur.
+
+**Referans:** `mutfak/14_MUZIK_TANIMA_PLANI.md` (türetilmiş detaylı analiz), `04_YOL_HARITASI.md` §v0.2, `01_PROJE_VIZYON.md` §3, `core/schemas/common.py:15` (EventType/RelationType doğrulandı), Karar M9 (Candidate≠Identity), Karar M11/M12 (OCR ilk hedef KJ + ROI-first).
+
+**Durum:** Aktif.
+
 ### 2026-05-10 / 3 — STT, ASR streaming_transcription alt moduna taşındı
 
 **Karar:** STT ayrı ana venv/profil/modül değildir. Canlı transcript `ASR > streaming_transcription` alt modudur. Primary runtime `E:\MITAS\venvs\asr`; `E:\MITAS\venvs\stt` legacy olarak korunur.
@@ -614,6 +632,16 @@ Master plan §0.3.15'te "unknown face crop retention: 30 gün" gibi sayılar var
 InsightFace / buffalo_l, YOLO-World, OneOCR, PaddleOCR lisansları benchmark öncesi doğrulanmalı (master plan §0.3.15). Henüz yapılmadı.
 
 **Karar gerekiyor:** Hangi sırayla, hangi haftada?
+
+---
+
+### O8 — TRT Repertuvar Kurulu verisi ve AcoustID dış API (KVKK)
+
+TRT müzik tanıma (v0.2) iki dış bağımlılık bekliyor:
+- **TRT Repertuvar Kurulu verisi:** Repertuvar Bankası seed'i için proje sponsorundan istenmeli; format (CSV/XML/MDB) ve erişim netleşmeli. Gelene kadar MusicBrainz Turkish + elle seed ile küçük başlanır.
+- **AcoustID dış API:** Sadece hash gönderir (ses göndermez) ama yine de dış veri teması; KVKK/kurum onayı olmadan **varsayılan kapalı**. Onay sonrası açılır.
+
+**Durum:** Açık. Karar 37 ile bağlantılı.
 
 ---
 

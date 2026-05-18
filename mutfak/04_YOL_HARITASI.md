@@ -1,7 +1,7 @@
 # 04 — YOL HARİTASI
 
-> Son güncelleme: 2026-05-14
-> Son değişen bölüm: v0.1 ASR dikey dilim TAMAMLANDI; v0.1.x ASR olgunlaşma paketleri eklendi
+> Son güncelleme: 2026-05-18
+> Son değişen bölüm: v0.2 kapsamına Repertuvar Bankası + ASR Anons Parser + composition/performance ayrımı eklendi (Karar 37); fingerprint doğrulayıcı olarak netleşti
 
 Bu dosya MITAS'ın sürüm bazında **nereye gittiğini** anlatır. Tarih hedefleri **bilinçli olarak yazılmaz**; tek kişilik geliştirmede tarih baskısı kararları çarpıtır. Sürüm sırası ve kabul kriteri sabittir; takvim esnektir.
 
@@ -83,16 +83,22 @@ v0.1 dikey dilim kapandı; aşağıdaki 5 iş ASR'yi production v1'e hazırlar. 
 - Temporal merge (frame-frame aynı KJ'yi tek event'e birleştirme)
 - `screen_text` event üretimi
 - YAMNet veya benzeri Audio Activity Layer (speech / music / applause / silence)
-- Chromaprint + AcoustID veya local fingerprint DB
-- `song_performance` event üretimi (KJ + ASR + audio_activity + fingerprint birleşimi)
+- Chromaprint + AcoustID veya local fingerprint DB (**doğrulayıcı katman**, primary değil — Karar 37)
+- `song_performance` event üretimi (Karar 37 karar matrisi; KJ güveni `f(ocr_conf)`)
+- **Repertuvar Bankası** (eser/sanatçı varlık sözlüğü, dosya-tabanlı: SQLite/CSV/JSONL) — KJ/anons çıktısını doğrulayan entity DB (Karar 37)
+- **ASR Anons Parser** (bağımsız modül: "şimdi X'ten Y'yi dinleyeceğiz" → entity extraction) (Karar 37)
+- **composition (eser) entity ≠ song_performance (icra) event** ayrımı; `song_performance` `composition_id` FK taşır (Karar 37)
+- Sinyal hiyerarşisi: KJ/OCR + ASR Anons **primary**, Chromaprint/AcoustID **doğrulayıcı** (Karar 37) — birleşim değil, açık güven sırası
+- Vocal isolation + lyric match v0.2 **çekirdeği dışı**; v0.2.x/v0.3 opsiyonel
 
 **Kabul kriteri:**
 - 1 saatlik müzik programı örneğinde:
   - en az 80% KJ kişi/şarkı adı doğru çıkarımı
   - audio activity speech/music ayrımı insan yargısıyla %90+ uyum
   - song_performance segmentlerinin start/end ±2 saniye toleransla doğru
+  - Repertuvar resolve unit testi: "Selâhattin Pınar" → besteci entity, "ne güzel güldün" → composition entity döner
 
-**Bağımlılıklar:** ASR JSON'u çıktısına yaslanır (song announcement detection için).
+**Bağımlılıklar:** ASR JSON çıktısına yaslanır. **Sert önkoşul:** v0.1.x Paket 3 (profile dispatch / `muzik_programi`) kapanmış olmalı — ASR Anons Parser ve lyric ASR bu profili gerektirir (bkz. §v0.1.x; Karar 37). Detaylı analiz: `mutfak/14_MUZIK_TANIMA_PLANI.md`.
 
 ---
 

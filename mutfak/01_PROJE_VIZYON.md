@@ -1,7 +1,7 @@
 # 01 — PROJE VİZYON
 
-> Son güncelleme: 2026-05-10
-> Son değişen bölüm: ilk sürüm
+> Son güncelleme: 2026-05-18
+> Son değişen bölüm: §3 Song Recognition satırı — primary KJ/anons, fingerprint doğrulayıcı olarak netleştirildi (Karar 37)
 
 ---
 
@@ -36,7 +36,7 @@ MITAS bir tek modül değil, **birbirine bağlanan modüller bütünüdür**. Ç
 - **Görsel Tagleme** — Sahne / nesne / atmosfer için kontrollü tag üretimi (YOLO-World + SigLIP).
 - **OCR & Text Extraction** — KJ / screen text + müzik segment linker. FilmCreditsParser ayrı bağımsız iş paketi.
 - **Audio Activity Layer** — speech / music / applause / silence ayrımı (YAMNet vb.).
-- **Song Recognition** — Chromaprint / AcoustID / kurum içi local fingerprint DB.
+- **Song Recognition** — TRT müzik programlarında primary tanıma **KJ/OCR + ASR anonsu**; Chromaprint / AcoustID / kurum içi local fingerprint DB **doğrulayıcı** katmandır (bkz. `06_KARARLAR_GUNLUGU.md` Karar 37).
 - **Timeline** — Tüm modüllerin sonuçlarını birleştiren ortak omurga.
 - **Review UI** — Sistemin emin olmadığı sonuçları kullanıcı onayına sunan arayüz.
 
