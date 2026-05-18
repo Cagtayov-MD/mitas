@@ -4,12 +4,20 @@ export interface AsrSegment {
   start: number;
   end: number;
   text: string;
+  normalized_text?: string;
   speaker?: string | null;
   language?: string | null;
   avg_logprob?: number;
   no_speech_prob?: number;
   channel?: string | null;
   flags?: string[];
+  word_timestamps?: Array<{
+    word: string;
+    start: number;
+    end: number;
+    source?: string;
+    score?: number;
+  }>;
 }
 
 export type AsrChannelKey = 'L' | 'R';
@@ -17,38 +25,139 @@ export type AsrChannelState = Record<AsrChannelKey, boolean>;
 
 export interface AsrJob {
   job_id: string;
+  clip_id?: string;
+  media_id?: string;
   status: AsrJobStatus;
   filename: string;
   size_bytes: number;
   profile: string;
+  content_profile?: string | null;
+  diarize?: 'auto' | 'on' | 'off';
+  word_alignment_mode?: 'whisperx' | 'interpolated' | 'off';
   channel_mode: string;
   created_at: string;
   started_at?: string | null;
   completed_at?: string | null;
   message?: string | null;
   error?: string | null;
+  input_path?: string;
   output_dir?: string;
+  job_dir?: string;
+  clip_dir?: string;
+  log_path?: string;
+  archive_path?: string;
+  module_run_path?: string;
+  summary_path?: string;
+  transcript_review_path?: string;
+  timeline_events_path?: string;
+  transcript_summary_path?: string;
   progress_percent?: number;
   progress_label?: string | null;
   elapsed_seconds?: number;
   logs?: AsrJobLog[];
   summary?: {
+    pipeline_version?: string;
+    code_version?: string;
+    input_path?: string;
+    normalized_audio_path?: string;
     audio_duration?: number;
     clean_segments?: number;
     raw_segments?: number;
     quality_drops?: number;
+    duplicate_drops?: number;
+    clean_words?: number;
     profile_used?: string;
+    profile_requested?: string;
     model_name?: string;
     fallback_triggered?: boolean;
+    fallback_reason?: string | null;
+    selection_reason?: string | null;
+    normalized_entities?: number;
+    fallback_report?: Record<string, unknown>;
+    word_alignment?: {
+      status?: string;
+      method?: string;
+      fallback_method?: string | null;
+      expected_words?: number;
+      aligned_words?: number;
+      coverage?: number | null;
+      success?: boolean | null;
+      reason?: string | null;
+    };
+    vad?: {
+      speech_seconds?: number;
+      speech_ratio?: number;
+      segment_count?: number;
+    };
+    channels?: {
+      requested_mode?: string;
+      mode?: string;
+      tracks?: string[];
+      duplicate_drops?: number;
+    };
+    quality_report?: {
+      error_flags?: string[];
+      selective_quality_repair?: Record<string, unknown>;
+      vad_gap_repair?: Record<string, unknown>;
+      speaker_word_timeline?: {
+        status?: string;
+        reason?: string | null;
+        segments?: number;
+        speaker_segments?: number;
+        word_timed_segments?: number;
+        speaker_word_segments?: number;
+        speaker_segment_coverage?: number;
+        word_timed_segment_coverage?: number;
+        speaker_word_segment_coverage?: number;
+        timed_words?: number;
+        speaker_timed_words?: number;
+      };
+      entity_normalization?: {
+        status?: string;
+        method?: string;
+        count?: number;
+        items?: unknown[];
+      };
+    };
     safety?: {
       safe?: boolean | null;
       failure_reason?: string | null;
+      diagnostics?: {
+        uncovered_vad_ranges?: Array<{
+          start: number;
+          end: number;
+          range_seconds: number;
+          speech_seconds: number;
+        }>;
+      };
     };
     timing?: {
+      normalize_seconds?: number | null;
+      transcribe_total_seconds?: number | null;
       total_seconds?: number | null;
       decode_seconds?: number | null;
       chunk_count?: number | null;
+      fallback_seconds?: number | null;
+      fallback_chunk_count?: number | null;
+      fallback_total_chunk_count?: number | null;
+      fallback_mode?: string | null;
     };
+  };
+  module_run?: {
+    module_run_id?: string;
+    job_id?: string;
+    media_id?: string;
+    module_name?: string;
+    module_version?: string;
+    model_name?: string;
+    model_version?: string | null;
+    status?: string;
+    started_at?: string | null;
+    completed_at?: string | null;
+    runtime_sec?: number | null;
+    gpu_used?: boolean | null;
+    vram_peak_mb?: number | null;
+    error_msg?: string | null;
   };
   archive?: {
     quality?: {
@@ -58,7 +167,28 @@ export interface AsrJob {
     };
   };
   transcript: string;
+  transcript_summary?: TranscriptSummary;
+  search_match?: {
+    scope: 'metadata' | 'transcript' | string;
+    label?: string;
+    count?: number;
+    snippet?: string;
+  };
   segments: AsrSegment[];
+  timeline_events?: Array<Record<string, unknown>>;
+}
+
+export interface TranscriptSummary {
+  job_id: string;
+  filename?: string | null;
+  created_at: string;
+  elapsed_seconds?: number;
+  provider: string;
+  model: string;
+  summary: string;
+  source_chars?: number;
+  used_chars?: number;
+  note?: string;
 }
 
 export interface AsrJobLog {
@@ -104,6 +234,7 @@ export interface SeekRequest {
 }
 
 export type AnalysisProfile = 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
+export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel';
 
 export interface AnalysisProfileOption {
   value: AnalysisProfile;
@@ -128,11 +259,29 @@ export function defaultAsrChannelState(): AsrChannelState {
   return { L: true, R: true };
 }
 
-export async function startAsrJob(file: File): Promise<AsrJob> {
+export function contentProfileForAnalysisProfile(profile: AnalysisProfile): AsrContentProfile {
+  switch (profile) {
+    case 'documentary':
+      return 'belgesel';
+    case 'music_entertainment':
+      return 'muzik_programi';
+    case 'studio':
+      return 'studio_panel';
+    case 'news':
+    case 'sports':
+    case 'stt':
+    default:
+      return 'bulten_haber';
+  }
+}
+
+export async function startAsrJob(file: File, analysisProfile: AnalysisProfile = 'stt'): Promise<AsrJob> {
   const params = new URLSearchParams({
     filename: file.name,
-    profile: 'fast_with_fallback',
+    content_profile: contentProfileForAnalysisProfile(analysisProfile),
+    diarize: 'auto',
     channel_mode: 'auto',
+    word_alignment_mode: 'whisperx',
   });
   const response = await fetch(`/api/asr/transcribe?${params.toString()}`, {
     method: 'POST',
@@ -156,14 +305,35 @@ export async function fetchAsrJob(jobId: string): Promise<AsrJob> {
   return response.json();
 }
 
-export async function fetchRecentAsrJobs(limit = 1): Promise<AsrJob[]> {
+export async function fetchRecentAsrJobs(limit = 1, options?: { compact?: boolean; query?: string }): Promise<AsrJob[]> {
   const params = new URLSearchParams({ limit: String(limit) });
+  if (options?.compact) {
+    params.set('compact', 'true');
+  }
+  if (options?.query?.trim()) {
+    params.set('q', options.query.trim());
+  }
   const response = await fetch(`/api/jobs?${params.toString()}`);
   if (!response.ok) {
     throw new Error(await readError(response));
   }
   const payload = (await response.json()) as { jobs?: AsrJob[] };
   return payload.jobs ?? [];
+}
+
+export async function summarizeAsrJob(jobId: string, options?: { force?: boolean }): Promise<TranscriptSummary> {
+  const params = new URLSearchParams();
+  if (options?.force) {
+    params.set('force', 'true');
+  }
+  const query = params.toString();
+  const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/transcript-summary${query ? `?${query}` : ''}`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return response.json();
 }
 
 export async function translateAsrSegment(jobId: string, index: number, segment: AsrSegment): Promise<TranslationResult> {

@@ -1,10 +1,7 @@
-import { Activity, Download, Eye, LayoutGrid, ListTodo, Play, UploadCloud } from 'lucide-react';
+import { Activity, Download, ListTodo, Play, UploadCloud } from 'lucide-react';
 import { Button, Badge } from './ui';
-import { Checkbox } from './ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useRef, type ChangeEvent } from 'react';
 import {
-  ANALYSIS_PROFILE_OPTIONS,
   analysisProfileLabel,
   formatClock,
   type AnalysisProfile,
@@ -20,12 +17,10 @@ interface HeaderProps {
   isStartingAsr: boolean;
   isLiveSttBusy: boolean;
   analysisProfile: AnalysisProfile;
-  isSttPreviewEnabled: boolean;
   playback: PlaybackState;
+  mediaResolution: string | null;
   onUpload: (file: File) => void;
   onStartAsr: () => void;
-  onAnalysisProfileChange: (profile: AnalysisProfile) => void;
-  onSttPreviewEnabledChange: (enabled: boolean) => void;
 }
 
 const STATUS_TEXT: Record<AsrJob['status'], string> = {
@@ -43,12 +38,10 @@ export function Header({
   isStartingAsr,
   isLiveSttBusy,
   analysisProfile,
-  isSttPreviewEnabled,
   playback,
+  mediaResolution,
   onUpload,
   onStartAsr,
-  onAnalysisProfileChange,
-  onSttPreviewEnabledChange,
 }: HeaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const duration = playback.duration || asrJob?.summary?.audio_duration;
@@ -147,13 +140,6 @@ export function Header({
       {/* Main Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-app-shell border-b border-border-subtle">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 text-foreground-strong">
-            <LayoutGrid className="h-4 w-4 text-info-strong" />
-            <h1 className="text-base font-bold tracking-tight uppercase">Analiz İstasyonu</h1>
-          </div>
-
-          <div className="h-4 w-px bg-border-subtle"></div>
-
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-foreground-strong">
@@ -179,6 +165,7 @@ export function Header({
 
         <div className="flex flex-col items-center">
           <div className="text-2xl font-mono text-info font-bold tracking-wider drop-shadow-glow-info">
+            {mediaResolution ? `${mediaResolution} · ` : ''}
             {formatClock(playback.currentTime)} / {formatClock(duration)}
           </div>
           <div className="mt-0.5 text-[9px] font-mono uppercase tracking-wider text-foreground-muted">
@@ -228,65 +215,6 @@ export function Header({
             <Play className="h-3.5 w-3.5" />
             {isStartingAsr ? 'Başlatılıyor' : asrJob ? 'STT Tekrar' : 'STT Başlat'}
           </Button>
-        </div>
-      </div>
-
-      {/* Profile / STT controls */}
-      <div className="flex items-center justify-between gap-4 px-4 py-2 bg-surface/80 border-b border-border-subtle text-xs">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-wider text-foreground-muted font-semibold">Profil</span>
-            <Select value={analysisProfile} onValueChange={(value) => onAnalysisProfileChange(value as AnalysisProfile)}>
-              <SelectTrigger
-                size="sm"
-                className="h-7 w-[220px] rounded-sm border-border-mitas bg-app-shell/80 px-2 py-1 text-xs text-foreground-default"
-                title="İşlem profilini seç"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="border-border-mitas bg-surface text-foreground-default">
-                {ANALYSIS_PROFILE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer text-xs focus:bg-surface-elevated focus:text-foreground-strong"
-                  >
-                    <div className="flex flex-col">
-                      <span>{option.label}</span>
-                      <span className="text-[10px] text-foreground-muted normal-case">{option.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="h-4 w-px bg-border-subtle"></div>
-
-          <label
-            className={`inline-flex items-center gap-2 rounded-sm border px-2 py-1 ${
-              isSttSelected
-                ? 'border-info-border bg-info-subtle text-foreground-default'
-                : 'border-border-subtle bg-app-shell/60 text-foreground-disabled'
-            }`}
-            title={isSttSelected ? 'Anlık çeviri/show önizlemesini aç' : 'Preview sadece STT profilinde açılır'}
-          >
-            <Checkbox
-              checked={isSttPreviewEnabled}
-              disabled={!isSttSelected}
-              onCheckedChange={(checked) => onSttPreviewEnabledChange(checked === true)}
-              className="border-info-border data-[state=checked]:bg-info-strong data-[state=checked]:border-info-strong"
-            />
-            <Eye className="h-3.5 w-3.5" />
-            <span className="text-[11px] font-semibold">Preview</span>
-            <span className="text-[10px] text-foreground-muted">Anlık çeviri</span>
-          </label>
-        </div>
-
-        <div className="truncate text-[11px] text-foreground-muted">
-          {isSttSelected
-            ? 'STT seçili: konuşmadan metne işlemi ve preview akışı kullanılabilir.'
-            : `${selectedProfileLabel} seçili: bu profil ileride ilgili modül akışını açacak; konuşmadan metne için STT seç.`}
         </div>
       </div>
 

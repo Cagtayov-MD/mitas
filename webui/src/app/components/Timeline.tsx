@@ -1,6 +1,6 @@
-import { Layers, FileText, User, Type, Tag, Image, AlertTriangle, ZoomIn, ZoomOut, Lock, Volume2, Music, X, Languages } from 'lucide-react';
+import { Layers, FileText, User, Type, Tag, Image, AlertTriangle, ZoomIn, ZoomOut, Lock, Volume2, Music, X, Languages, Maximize2 } from 'lucide-react';
 import { ScrollArea, Button } from './ui';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { PointerEvent, MouseEvent } from 'react';
 import type { AsrChannelKey, AsrChannelState, AsrJob, AsrSegment, PlaybackState } from '../asr-api';
 import { formatClock } from '../asr-api';
@@ -29,6 +29,9 @@ const TIMELINE_TAIL_TRACKS: TimelineTrack[] = [
   { id: 'tags',  label: 'Görsel Etiketler',  icon: Tag,           status: 'wip',    intent: 'muted' },
   { id: 'logos', label: 'Logolar',           icon: Image,         status: 'wip',    intent: 'muted' },
 ];
+
+const LABEL_WIDTH_PX = 176;
+const MIN_TIMELINE_WIDTH_PX = 1000;
 
 const INTENT_BG: Record<TrackIntent, string> = {
   warning: 'bg-warning-subtle',
@@ -78,11 +81,29 @@ function segmentStyle(segment: AsrSegment, duration: number | undefined) {
   return { left: `${left}%`, width: `${width}%` };
 }
 
+function wordMarkerStyle(segment: AsrSegment, word: NonNullable<AsrSegment['word_timestamps']>[number]) {
+  const span = Math.max(0.001, segment.end - segment.start);
+  const left = Math.max(0, Math.min(100, ((word.start - segment.start) / span) * 100));
+  return { left: `${left}%` };
+}
+
 function niceMarkerInterval(durationSec: number): number {
   if (durationSec <= 120) return 10;
   if (durationSec <= 600) return 60;
   if (durationSec <= 3600) return 300;
   return 1800;
+}
+
+function timeMarkers(durationSec: number, interval: number): number[] {
+  if (durationSec <= 0) return [];
+  const markers: number[] = [];
+  for (let t = 0; t < durationSec; t += interval) {
+    markers.push(t);
+  }
+  if (markers[markers.length - 1] !== durationSec) {
+    markers.push(durationSec);
+  }
+  return markers;
 }
 
 interface ContextMenu {
@@ -106,11 +127,14 @@ export function Timeline({
   onTranslateRange,
 }: TimelineProps) {
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [viewportWidth, setViewportWidth] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const segments = asrJob?.segments ?? [];
   const duration = playback.duration || asrJob?.summary?.audio_duration || 0;
   const qualityDrops = asrJob?.summary?.quality_drops ?? 0;
+  const uncoveredRanges = asrJob?.summary?.safety?.diagnostics?.uncovered_vad_ranges ?? [];
   const hasLeftChannel = segments.some((s) => segmentChannelKey(s) === 'L');
   const hasRightChannel = segments.some((s) => segmentChannelKey(s) === 'R');
   const speechTracks: TimelineTrack[] = hasLeftChannel && hasRightChannel
@@ -153,12 +177,30 @@ export function Timeline({
     return () => document.removeEventListener('mousedown', close, { capture: true });
   }, [contextMenu]);
 
-  const contentWidth = Math.max(1000, Math.round(1000 * zoomLevel));
+  useEffect(() => {
+    const root = scrollAreaRef.current;
+    if (!root) return undefined;
+
+    const updateWidth = () => {
+      const width = root.getBoundingClientRect().width;
+      if (Number.isFinite(width) && width > 0) {
+        setViewportWidth(Math.round(width));
+      }
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
+  const fitWidth = viewportWidth || MIN_TIMELINE_WIDTH_PX;
+  const contentWidth = Math.max(1, Math.round(fitWidth * zoomLevel));
 
   const timeFromPointerEvent = (event: { clientX: number; currentTarget: HTMLDivElement }): number | null => {
     if (duration <= 0) return null;
     const rect = event.currentTarget.getBoundingClientRect();
-    const labelWidth = 176;
+    const labelWidth = LABEL_WIDTH_PX;
     const usableWidth = Math.max(1, rect.width - labelWidth);
     const x = Math.max(0, Math.min(usableWidth, event.clientX - rect.left - labelWidth));
     return (x / usableWidth) * duration;
@@ -177,11 +219,17 @@ export function Timeline({
   };
 
   const interval = duration > 0 ? niceMarkerInterval(duration) : 300;
-  const markerCount = duration > 0 ? Math.ceil(duration / interval) : 12;
+  const markers = timeMarkers(duration, interval);
 
   const setZoomPreset = (targetSeconds: number) => {
     if (duration <= 0) return;
     setZoomLevel(Math.max(1, duration / targetSeconds));
+  };
+
+  const fitTimeline = () => {
+    setZoomLevel(1);
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    viewport?.scrollTo({ left: 0 });
   };
 
   return (
@@ -222,8 +270,12 @@ export function Timeline({
           <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(60)}>1dk</Button>
           <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(300)}>5dk</Button>
           <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(1800)}>30dk</Button>
-          <Button variant="ghost" size="xs" className={`h-6 ${zoomLevel === 1 ? 'bg-surface-elevated text-foreground-strong' : 'text-foreground-muted hover:text-foreground-strong'}`} onClick={() => setZoomLevel(1)}>TAM</Button>
+          <Button variant="ghost" size="xs" className={`h-6 ${zoomLevel === 1 ? 'bg-surface-elevated text-foreground-strong' : 'text-foreground-muted hover:text-foreground-strong'}`} onClick={fitTimeline}>TAM</Button>
           <div className="w-px h-3 bg-border-mitas mx-1"></div>
+          <Button variant="ghost" size="xs" className="h-6 gap-1 text-foreground-muted hover:text-foreground-strong" title="Timeline'ı ekrana sığdır" onClick={fitTimeline}>
+            <Maximize2 className="h-3 w-3" />
+            Fit
+          </Button>
           <Button variant="ghost" size="icon-xs" title="Uzaklaştır" onClick={() => setZoomLevel(z => Math.max(1, z / 1.5))}>
             <ZoomOut className="h-3.5 w-3.5 text-foreground-muted" />
           </Button>
@@ -233,7 +285,7 @@ export function Timeline({
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea ref={scrollAreaRef} className="flex-1">
         <div
           className="p-2 relative"
           style={{ width: `${contentWidth}px` }}
@@ -280,12 +332,34 @@ export function Timeline({
           )}
 
           {/* Time markers */}
-          <div className="h-5 flex border-b border-border-subtle/50 mb-1 relative pl-44">
-            {Array.from({ length: markerCount }, (_, i) => (
-              <div key={i} className="flex-1 border-l border-border-subtle/50 text-[9px] font-mono text-foreground-muted pl-1 shrink-0">
-                {formatClock((i + 1) * interval)}
+          <div className="h-5 border-b border-border-subtle/50 mb-1 relative pl-44">
+            {duration > 0 ? (
+              <div className="absolute inset-y-0 left-44 right-0">
+                {markers.map((time, i) => {
+                  const left = Math.max(0, Math.min(100, (time / duration) * 100));
+                  const isEnd = i === markers.length - 1;
+                  return (
+                    <div
+                      key={`${time}-${i}`}
+                      className="absolute top-0 bottom-0 border-l border-border-subtle/50 text-[9px] font-mono text-foreground-muted"
+                      style={{ left: `${left}%` }}
+                    >
+                      <span className={`absolute left-0 top-0 whitespace-nowrap ${isEnd ? '-translate-x-full pr-1' : 'pl-1'}`}>
+                        {formatClock(time)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            ) : (
+              <div className="absolute inset-y-0 left-44 right-0 grid grid-cols-12">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div key={i} className="border-l border-border-subtle/50 text-[9px] font-mono text-foreground-muted pl-1">
+                    {formatClock((i + 1) * interval)}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Tracks */}
@@ -339,26 +413,54 @@ export function Timeline({
                     {track.id === 'warn' && qualityDrops > 0 && (
                       <div className={`absolute left-[45%] w-[1%] h-4 ${markerBg} rounded-sm cursor-pointer hover:scale-y-125 transition-transform`} title={`${qualityDrops} kalite düşümü`} />
                     )}
+                    {track.id === 'warn' && duration > 0 && uncoveredRanges.map((range, idx) => {
+                      const left = Math.max(0, Math.min(99, (range.start / duration) * 100));
+                      const width = Math.max(0.5, Math.min(100 - left, ((range.end - range.start) / duration) * 100));
+                      return (
+                        <div
+                          key={`vad-gap-${idx}`}
+                          className="absolute h-4 bg-warning-strong/70 border border-warning-strong rounded-sm cursor-pointer hover:brightness-125 transition-all"
+                          style={{ left: `${left}%`, width: `${width}%` }}
+                          title={`Kapsanamamış bölge: ${range.start.toFixed(1)}s–${range.end.toFixed(1)}s (≈${Math.round(range.speech_seconds)} sn konuşma)`}
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            onSeek(range.start);
+                          }}
+                        />
+                      );
+                    })}
                     {(track.id === 'asr' || track.id === 'asr-l' || track.id === 'asr-r') && channelEnabled && (
                       <>
                         {segments.map((segment, index) => {
                           if (track.channel && segmentChannelKey(segment) !== track.channel) return null;
                           const isSelected = selectedSegmentIndex === index;
+                          const wordTicks = segment.word_timestamps ?? [];
+                          const showWordTicks = wordTicks.length > 1 && (isSelected || zoomLevel >= 2.25);
                           return (
                             <div
                               key={`${segment.start}-${segment.end}-${index}`}
-                              className={`absolute h-4 border rounded-sm cursor-pointer hover:brightness-125 transition-all ${
+                              className={`absolute h-4 border rounded-sm cursor-pointer hover:brightness-125 transition-all overflow-hidden ${
                                 isSelected
                                   ? 'bg-info border-info-strong shadow-glow-info-strong ring-1 ring-info-strong/70'
                                   : `${blockBg} ${blockBorder}`
                               }`}
                               style={segmentStyle(segment, duration)}
-                              title={`${formatSegmentTime(segment)} ${segment.text}`}
+                              title={`${formatSegmentTime(segment)} ${segment.normalized_text ?? segment.text}`}
                               onPointerDown={(e) => {
                                 e.stopPropagation();
                                 onSelectSegment(index);
                               }}
-                            />
+                            >
+                              {showWordTicks && wordTicks.slice(0, 80).map((word, wordIndex) => (
+                                <span
+                                  key={`${word.start}-${word.end}-${wordIndex}`}
+                                  className="absolute top-0 bottom-0 w-px bg-foreground-strong/60 opacity-70"
+                                  style={wordMarkerStyle(segment, word)}
+                                  title={`${formatClock(word.start)} ${word.word}`}
+                                  aria-hidden="true"
+                                />
+                              ))}
+                            </div>
                           );
                         })}
                         {asrJob?.status === 'running' && (

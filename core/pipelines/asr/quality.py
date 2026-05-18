@@ -22,6 +22,22 @@ STOCK_ARTIFACTS = [
     "subscribe to",
     "thanks for watching",
     "like and subscribe",
+    "thank you",
+    "thank you so much",
+    "thank you for watching",
+    "thanks again",
+    "transcript emily beynon",
+    "emily beynon",
+    "subtitles by",
+    "subtitled by",
+    "subs by",
+    "captions by",
+    "captioned by",
+    "translated by",
+    "translation by",
+    "amara org",
+    "english subtitles",
+    "altyazı çevirisi",
 ]
 
 

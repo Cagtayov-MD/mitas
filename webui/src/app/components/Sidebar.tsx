@@ -1,4 +1,4 @@
-import { Search, SplitSquareHorizontal, Merge, AlertCircle, Info, Lock, Loader2, Radio, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, SplitSquareHorizontal, Merge, AlertCircle, Info, Lock, Loader2, Radio, Trash2, X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent, ScrollArea, Button, Badge } from './ui';
 import { formatClock, segmentConfidence, shouldOfferTurkishTranslation, translateFreeTextToTurkish, type AsrChannelState, type AsrJob, type AsrJobLog, type SegmentTranslationState, type TranslationResult } from '../asr-api';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -104,10 +104,13 @@ export function Sidebar({
   const segmentRefs = useRef<Array<HTMLDivElement | null>>([]);
   const hasLiveTranscript = livePreview.lines.length > 0 || livePreview.partialLine !== null;
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  const [transcriptSearch, setTranscriptSearch] = useState('');
+  const [activeSearchMatchIndex, setActiveSearchMatchIndex] = useState(0);
   const hasLeftChannel = segments.some((segment) => segmentChannelKey(segment) === 'L');
   const hasRightChannel = segments.some((segment) => segmentChannelKey(segment) === 'R');
   const hasSplitChannels = hasLeftChannel && hasRightChannel;
   const translatableSegmentCount = segments.filter(shouldOfferTurkishTranslation).length;
+  const normalizedTranscriptSearch = transcriptSearch.trim();
   const activeChannelFilter = hasSplitChannels ? channelFilter : 'all';
   const visibleSegments = segments
     .map((item, idx) => ({ item, idx }))
@@ -116,6 +119,24 @@ export function Sidebar({
       const channel = segmentChannelKey(item);
       return !hasSplitChannels || !channel || enabledAsrChannels[channel];
     });
+  const searchMatches = useMemo(() => {
+    if (!normalizedTranscriptSearch) {
+      return [];
+    }
+    return visibleSegments.filter(({ item }) => normalizedIncludes(item.text, normalizedTranscriptSearch));
+  }, [normalizedTranscriptSearch, visibleSegments]);
+  const displayedSegments = normalizedTranscriptSearch ? searchMatches : visibleSegments;
+  const activeSearchSegmentIndex = normalizedTranscriptSearch && searchMatches.length > 0
+    ? searchMatches[Math.min(activeSearchMatchIndex, searchMatches.length - 1)]?.idx ?? null
+    : null;
+  const focusSearchMatch = (nextIndex: number) => {
+    if (!normalizedTranscriptSearch || searchMatches.length === 0) {
+      return;
+    }
+    const boundedIndex = ((nextIndex % searchMatches.length) + searchMatches.length) % searchMatches.length;
+    setActiveSearchMatchIndex(boundedIndex);
+    onSelectSegment(searchMatches[boundedIndex].idx);
+  };
 
   useEffect(() => {
     if (selectedSegmentIndex === null) {
@@ -132,6 +153,25 @@ export function Sidebar({
       setChannelFilter('all');
     }
   }, [channelFilter, enabledAsrChannels]);
+
+  useEffect(() => {
+    setTranscriptSearch('');
+    setActiveSearchMatchIndex(0);
+  }, [asrJob?.job_id]);
+
+  useEffect(() => {
+    setActiveSearchMatchIndex(0);
+  }, [normalizedTranscriptSearch, activeChannelFilter]);
+
+  useEffect(() => {
+    if (activeSearchSegmentIndex === null) {
+      return;
+    }
+    segmentRefs.current[activeSearchSegmentIndex]?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    });
+  }, [activeSearchSegmentIndex]);
 
   useEffect(() => {
     if (!isSttPreviewEnabled) {
@@ -229,12 +269,64 @@ export function Sidebar({
           <TabsContent value="transcript" className="p-0 m-0 border-none">
             <div className="p-2 border-b border-border-subtle bg-surface/50 flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-foreground-muted" />
+                <button
+                  type="button"
+                  className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-info disabled:pointer-events-none disabled:opacity-40"
+                  onClick={() => focusSearchMatch(activeSearchMatchIndex)}
+                  disabled={!normalizedTranscriptSearch || searchMatches.length === 0}
+                  title="Transkript içinde ara"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                </button>
                 <input
                   type="text"
                   placeholder="Transkript içinde ara..."
-                  className="w-full bg-app-shell border border-border-mitas rounded-sm py-1 pl-7 pr-2 text-xs text-foreground-default focus:outline-none focus:border-info-strong"
+                  value={transcriptSearch}
+                  onChange={(event) => setTranscriptSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      focusSearchMatch(searchMatches.length > 1 ? activeSearchMatchIndex + 1 : activeSearchMatchIndex);
+                    }
+                    if (event.key === 'Escape') {
+                      setTranscriptSearch('');
+                    }
+                  }}
+                  className="w-full bg-app-shell border border-border-mitas rounded-sm py-1 pl-7 pr-[104px] text-xs text-foreground-default focus:outline-none focus:border-info-strong"
                 />
+                {normalizedTranscriptSearch ? (
+                  <div className="absolute right-1 top-1 flex h-5 items-center gap-0.5">
+                    <span className={`min-w-8 px-1 text-right font-mono text-[10px] ${searchMatches.length > 0 ? 'text-info' : 'text-danger'}`}>
+                      {searchMatches.length > 0 ? `${Math.min(activeSearchMatchIndex + 1, searchMatches.length)}/${searchMatches.length}` : '0'}
+                    </span>
+                    <button
+                      type="button"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
+                      onClick={() => focusSearchMatch(activeSearchMatchIndex - 1)}
+                      disabled={searchMatches.length === 0}
+                      title="Önceki eşleşme"
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
+                      onClick={() => focusSearchMatch(activeSearchMatchIndex + 1)}
+                      disabled={searchMatches.length === 0}
+                      title="Sonraki eşleşme"
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong"
+                      onClick={() => setTranscriptSearch('')}
+                      title="Aramayı temizle"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : null}
               </div>
               {!isSttPreviewEnabled && hasTranscript && translatableSegmentCount > 0 ? (
                 <Button
@@ -333,9 +425,15 @@ export function Sidebar({
                   ASR tamamlandı ama temiz transcript boş kaldı. Ham çıktılar kalite filtresinde elenmiş olabilir; Uyarılar sekmesinde nedeni görünüyor.
                 </div>
               )}
-              {!isSttPreviewEnabled && visibleSegments.map(({ item, idx }) => {
+              {!isSttPreviewEnabled && normalizedTranscriptSearch && hasTranscript && searchMatches.length === 0 ? (
+                <div className="p-4 text-xs text-warning leading-relaxed">
+                  "{normalizedTranscriptSearch}" için transcript içinde sonuç bulunamadı.
+                </div>
+              ) : null}
+              {!isSttPreviewEnabled && displayedSegments.map(({ item, idx }) => {
                 const confidence = segmentConfidence(item);
                 const isSelected = selectedSegmentIndex === idx;
+                const isActiveSearchMatch = activeSearchSegmentIndex === idx;
                 const confidenceLabel = confidence >= 0.85 ? 'yüksek güven' : confidence >= 0.65 ? 'orta güven' : 'düşük güven';
                 const confidenceClass = confidence >= 0.85 ? 'text-success-strong' : confidence >= 0.65 ? 'text-warning-strong' : 'text-danger-strong';
                 const translationState = segmentTranslations[idx];
@@ -356,7 +454,9 @@ export function Sidebar({
                   className={`group flex gap-3 p-3 border-b border-border-subtle/50 text-sm cursor-pointer outline-none ${
                     isSelected
                       ? 'bg-info-subtle border-l-2 border-l-info-strong shadow-inner'
-                      : 'hover:bg-surface/30 border-l-2 border-l-transparent'
+                      : isActiveSearchMatch
+                        ? 'bg-warning-subtle/20 border-l-2 border-l-warning-strong'
+                        : 'hover:bg-surface/30 border-l-2 border-l-transparent'
                   }`}
                 >
                   <div className="w-16 shrink-0 flex flex-col items-start gap-1">
@@ -394,7 +494,7 @@ export function Sidebar({
                       </div>
                     </div>
                     <div className={`text-[12px] leading-relaxed mt-1.5 ${isSelected ? 'text-foreground-strong' : 'text-foreground-muted'}`}>
-                      {item.text}
+                      {highlightTranscriptText(item.text, normalizedTranscriptSearch)}
                     </div>
                     {translationState?.status === 'done' ? (
                       <div className="mt-2 border-l-2 border-l-success-strong bg-success-subtle/40 px-2 py-1.5 text-[11px] leading-relaxed text-foreground-strong">
@@ -678,6 +778,43 @@ function channelLabel(segment: { channel?: string | null }): string | null {
     return 'Kanal 2';
   }
   return null;
+}
+
+function normalizedIncludes(text: string, query: string): boolean {
+  return text.toLocaleLowerCase('tr-TR').includes(query.toLocaleLowerCase('tr-TR'));
+}
+
+function highlightTranscriptText(text: string, query: string) {
+  const needle = query.trim();
+  if (!needle) {
+    return text;
+  }
+  const lowerText = text.toLocaleLowerCase('tr-TR');
+  const lowerNeedle = needle.toLocaleLowerCase('tr-TR');
+  if (!lowerNeedle) {
+    return text;
+  }
+
+  const parts = [];
+  let cursor = 0;
+  let matchIndex = lowerText.indexOf(lowerNeedle);
+  while (matchIndex >= 0) {
+    if (matchIndex > cursor) {
+      parts.push(text.slice(cursor, matchIndex));
+    }
+    const end = matchIndex + needle.length;
+    parts.push(
+      <mark key={`${matchIndex}-${end}`} className="rounded-sm bg-warning-subtle px-0.5 text-foreground-strong">
+        {text.slice(matchIndex, end)}
+      </mark>
+    );
+    cursor = end;
+    matchIndex = lowerText.indexOf(lowerNeedle, cursor);
+  }
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor));
+  }
+  return parts;
 }
 
 function FlowingTypewriterText({ text, active }: { text: string; active: boolean }) {

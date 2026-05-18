@@ -63,9 +63,9 @@ export function SysInfoBar() {
   return (
     <div className="flex items-center gap-4 select-none shrink-0">
       {/* Date + Time */}
-      <div className="flex flex-col items-end gap-0">
-        <span className="text-xs font-mono font-semibold text-foreground-default tabular-nums leading-tight">{timeStr}</span>
-        <span className="text-[10px] font-mono text-foreground-muted tabular-nums leading-tight">{dateStr}</span>
+      <div className="flex flex-col items-end gap-0.5 min-w-[78px]">
+        <span className="text-sm font-mono font-bold text-foreground-strong tabular-nums leading-tight">{timeStr}</span>
+        <span className="text-[11px] font-mono font-semibold text-foreground-muted tabular-nums leading-tight">{dateStr}</span>
       </div>
 
       <div className="w-px h-8 bg-border-mitas" />

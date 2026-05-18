@@ -3,8 +3,11 @@ import { AnalysisWorkspace } from './components/AnalysisWorkspace';
 import { SysInfoBar } from './components/SysInfoBar';
 import { RestartButton } from './components/RestartButton';
 import { FaceBankWorkspace } from './components/FaceBankWorkspace';
-import { Archive, Database, MonitorPlay, Lock } from 'lucide-react';
+import { Eye, MonitorPlay, Lock } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { Checkbox } from './components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger } from './components/ui/select';
+import { JobLogWorkspace } from './components/JobLogWorkspace';
 import { TedialWorkspace } from './components/TedialWorkspace';
 import {
   startTedialAsrJob,
@@ -23,6 +26,8 @@ import {
   startAsrJob,
   translateAsrSegment,
   translateAsrSegments,
+  ANALYSIS_PROFILE_OPTIONS,
+  analysisProfileLabel,
   type AnalysisProfile,
   type AsrChannelKey,
   type AsrChannelState,
@@ -32,8 +37,84 @@ import {
   type SegmentTranslationState,
 } from './asr-api';
 
+interface TopProfileControlsProps {
+  analysisProfile: AnalysisProfile;
+  isSttPreviewEnabled: boolean;
+  onAnalysisProfileChange: (profile: AnalysisProfile) => void;
+  onSttPreviewEnabledChange: (enabled: boolean) => void;
+}
+
+type WorkspaceKey = 'analysis' | 'tedial' | 'facebank' | 'logs';
+
+function TopProfileControls({
+  analysisProfile,
+  isSttPreviewEnabled,
+  onAnalysisProfileChange,
+  onSttPreviewEnabledChange,
+}: TopProfileControlsProps) {
+  const isSttSelected = analysisProfile === 'stt';
+
+  return (
+    <div className="flex items-center gap-2 shrink-0 rounded-sm border border-border-subtle bg-surface/40 px-2 py-1">
+      <Select value={analysisProfile} onValueChange={(value) => onAnalysisProfileChange(value as AnalysisProfile)}>
+        <SelectTrigger
+          size="sm"
+          className="h-7 w-[150px] rounded-sm border-border-mitas bg-app-shell/80 px-2 py-1 text-xs text-foreground-default"
+          title="İşlem profilini seç"
+        >
+          <span className="truncate font-semibold">{analysisProfileLabel(analysisProfile)}</span>
+        </SelectTrigger>
+        <SelectContent className="border-border-mitas bg-surface text-foreground-default">
+          {ANALYSIS_PROFILE_OPTIONS.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className="cursor-pointer text-xs focus:bg-surface-elevated focus:text-foreground-strong"
+            >
+              <div className="flex flex-col">
+                <span>{option.label}</span>
+                <span className="text-[10px] text-foreground-muted normal-case">{option.description}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <label
+        className={`inline-flex h-7 items-center gap-2 rounded-sm border px-2 text-[11px] font-semibold ${
+          isSttSelected
+            ? 'border-info-border bg-info-subtle text-foreground-default'
+            : 'border-border-subtle bg-app-shell/60 text-foreground-disabled'
+        }`}
+        title={isSttSelected ? 'Anlık çeviri önizlemesini aç' : 'Preview sadece STT profilinde açılır'}
+      >
+        <Checkbox
+          checked={isSttPreviewEnabled}
+          disabled={!isSttSelected}
+          onCheckedChange={(checked) => onSttPreviewEnabledChange(checked === true)}
+          className="border-info-border data-[state=checked]:bg-info-strong data-[state=checked]:border-info-strong"
+        />
+        <Eye className="h-3.5 w-3.5" />
+        <span>Preview</span>
+      </label>
+    </div>
+  );
+}
+
+function inferMediaType(filename: string): string | null {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  if (!ext) return null;
+  if (['mp4', 'm4v', 'mov'].includes(ext)) return 'video/mp4';
+  if (ext === 'webm') return 'video/webm';
+  if (ext === 'ogg' || ext === 'ogv') return 'video/ogg';
+  if (ext === 'wav') return 'audio/wav';
+  if (ext === 'mp3') return 'audio/mpeg';
+  if (ext === 'm4a') return 'audio/mp4';
+  return null;
+}
+
 export default function App() {
-  const [activeWorkspace, setActiveWorkspace] = useState<'analysis' | 'tedial' | 'facebank'>('analysis');
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceKey>('analysis');
   const [asrJob, setAsrJob] = useState<AsrJob | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,7 +171,7 @@ export default function App() {
     setSegmentTranslations({});
     setSelectedSegmentIndex(null);
     try {
-      const job = await startAsrJob(file);
+      const job = await startAsrJob(file, analysisProfile);
       setAsrJob(job);
       return job;
     } catch (error) {
@@ -99,7 +180,7 @@ export default function App() {
     } finally {
       setIsStartingAsr(false);
     }
-  }, []);
+  }, [analysisProfile]);
 
   const applyTedialImportResult = useCallback((result: TedialImportResult) => {
     setUploadError(null);
@@ -176,6 +257,32 @@ export default function App() {
     setAnalysisProfile('stt');
     applyTedialImportResult(result);
   }, [applyTedialImportResult]);
+
+  const handleOpenHistoricalJob = useCallback((job: AsrJob) => {
+    setUploadError(null);
+    setAsrJob(job);
+    setSegmentTranslations({});
+    setEnabledAsrChannels(defaultAsrChannelState());
+    setSelectedFile(null);
+    setSelectedMediaName(job.filename);
+    setSelectedTedialItem(null);
+    setSelectedTedialAudioTrack(0);
+    setSelectedTedialChannelMode('split');
+    setSelectedSegmentIndex(null);
+    setIsLiveSttBusy(false);
+    setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
+    setSeekRequest(null);
+    setMediaType(inferMediaType(job.filename));
+    setMediaDurationHint(job.summary?.audio_duration ?? null);
+    setMediaPreviewUrl((currentUrl) => {
+      if (currentUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(currentUrl);
+      }
+      return `/api/jobs/${encodeURIComponent(job.job_id)}/media`;
+    });
+    setAnalysisProfile('stt');
+    setActiveWorkspace('analysis');
+  }, []);
 
   const handleProfileChange = useCallback((profile: AnalysisProfile) => {
     setAnalysisProfile(profile);
@@ -351,47 +458,59 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-app-shell text-foreground-default overflow-hidden font-sans selection:bg-info-subtle relative">
-      <Tabs value={activeWorkspace} onValueChange={(value) => setActiveWorkspace(value as 'analysis' | 'tedial' | 'facebank')} className="flex flex-col h-full w-full">
+      <Tabs value={activeWorkspace} onValueChange={(value) => setActiveWorkspace(value as WorkspaceKey)} className="flex flex-col h-full w-full">
         {/* Global Shell Top Bar */}
-        <div className="h-14 border-b border-border-subtle bg-app-shell flex items-center justify-between px-4 shrink-0">
-          <div className="flex items-center gap-3">
-            <RestartButton />
-             <div className="h-7 w-7 bg-info-strong rounded-sm flex items-center justify-center shadow-glow-info">
+        <div className="h-14 border-b border-border-subtle bg-app-shell grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-5 px-4 shrink-0">
+          <div className="flex min-w-max items-center gap-5">
+            <div className="flex items-center gap-3 shrink-0">
+              <RestartButton />
+              <div className="h-7 w-7 bg-info-strong rounded-sm flex items-center justify-center shadow-glow-info">
                 <MonitorPlay className="h-4 w-4 text-white" />
-             </div>
-             <div className="flex flex-col justify-center">
-               <span className="font-bold text-foreground-strong tracking-widest text-[13px] leading-tight">
-                 MITAS <span className="text-foreground-muted font-normal">SYSTEMS</span>
-               </span>
-               <span className="text-[9px] font-mono text-foreground-muted leading-tight">v0.1 — geliştirme aşaması</span>
-             </div>
+              </div>
+              <div className="flex flex-col justify-center">
+                <span className="font-bold text-foreground-strong tracking-widest text-[13px] leading-tight">
+                  MITAS <span className="text-foreground-muted font-normal">SYSTEMS</span>
+                </span>
+                <span className="text-[9px] font-mono text-foreground-muted leading-tight">v0.1 — geliştirme aşaması</span>
+              </div>
+            </div>
+
+            <TopProfileControls
+              analysisProfile={analysisProfile}
+              isSttPreviewEnabled={isSttPreviewEnabled}
+              onAnalysisProfileChange={handleProfileChange}
+              onSttPreviewEnabledChange={setIsSttPreviewEnabled}
+            />
           </div>
 
-          <TabsList className="bg-transparent h-full border-none p-0 flex gap-4">
+          <TabsList className="bg-transparent h-full border-none p-0 flex gap-2 shrink-0 justify-center">
             <TabsTrigger
               value="analysis"
-              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-muted hover:text-foreground-strong hover:bg-surface/50 text-xs px-4"
+              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-muted hover:text-foreground-strong hover:bg-surface/50 text-xs px-3"
             >
-              <MonitorPlay className="h-3.5 w-3.5 mr-2" />
-              Analiz İstasyonu
+              Mitas
             </TabsTrigger>
             <TabsTrigger
               value="tedial"
-              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-muted hover:text-foreground-strong hover:bg-surface/50 text-xs px-4"
+              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-muted hover:text-foreground-strong hover:bg-surface/50 text-xs px-3"
             >
-              <Archive className="h-3.5 w-3.5 mr-2" />
               Tedial
             </TabsTrigger>
             <TabsTrigger
               value="facebank"
-              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-disabled hover:text-foreground-muted hover:bg-surface/50 text-xs px-4"
+              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-disabled hover:text-foreground-muted hover:bg-surface/50 text-xs px-3"
             >
-              <Database className="h-3.5 w-3.5 mr-2" />
               Yüz Bankası <Lock className="h-2.5 w-2.5 ml-1.5 opacity-50" />
+            </TabsTrigger>
+            <TabsTrigger
+              value="logs"
+              className="h-full rounded-none border-b-[3px] border-transparent data-[state=active]:border-info-strong data-[state=active]:bg-surface/30 data-[state=active]:text-info text-foreground-muted hover:text-foreground-strong hover:bg-surface/50 text-xs px-3"
+            >
+              Log
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center justify-end gap-4">
             <SysInfoBar />
             <div className="w-px h-4 bg-border-mitas" />
             <div className="flex items-center gap-3 text-xs text-foreground-muted font-medium">
@@ -425,8 +544,6 @@ export default function App() {
               segmentTranslations={segmentTranslations}
               onUpload={handleUpload}
               onStartAsr={handleStartAsr}
-              onAnalysisProfileChange={handleProfileChange}
-              onSttPreviewEnabledChange={setIsSttPreviewEnabled}
               onLiveSttBusyChange={setIsLiveSttBusy}
               onPlaybackChange={setPlayback}
               onSeek={handleSeek}
@@ -441,6 +558,9 @@ export default function App() {
           </TabsContent>
           <TabsContent value="facebank" className="h-full w-full p-0 m-0 outline-none data-[state=inactive]:hidden flex-col flex border-none">
             <FaceBankWorkspace />
+          </TabsContent>
+          <TabsContent value="logs" className="h-full w-full p-0 m-0 outline-none data-[state=inactive]:hidden flex-col flex border-none">
+            <JobLogWorkspace currentJobId={asrJob?.job_id} onOpenJob={handleOpenHistoricalJob} />
           </TabsContent>
         </div>
       </Tabs>

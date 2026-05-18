@@ -39,6 +39,7 @@ interface VideoPlayerProps {
   onPlaybackChange: (playback: PlaybackState) => void;
   onSeek: (time: number) => void;
   onMediaElementChange: (mediaElement: HTMLMediaElement | null) => void;
+  onMediaResolutionChange: (resolution: string | null) => void;
 }
 
 const RATES = [0.5, 1, 1.25, 1.5, 2];
@@ -58,6 +59,7 @@ export function VideoPlayer({
   onPlaybackChange,
   onSeek,
   onMediaElementChange,
+  onMediaResolutionChange,
 }: VideoPlayerProps) {
   const mediaRef = useRef<HTMLMediaElement | null>(null);
   const frameRef = useRef<HTMLDivElement | null>(null);
@@ -67,6 +69,7 @@ export function VideoPlayer({
   const audioNodesRef = useRef<{ splitter: ChannelSplitterNode | null; merger: ChannelMergerNode | null }>({ splitter: null, merger: null });
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [mediaResolution, setMediaResolution] = useState<string | null>(null);
   const isVideo = Boolean(mediaPreviewUrl && mediaType?.startsWith('video/'));
   const isDashVideo = Boolean(mediaPreviewUrl && mediaType === 'application/dash+xml');
   const isAudio = Boolean(mediaPreviewUrl && (mediaType?.startsWith('audio/') || (!isVideo && !isDashVideo)));
@@ -100,6 +103,17 @@ export function VideoPlayer({
     });
   }, [duration, onPlaybackChange]);
 
+  const publishMetadata = useCallback(() => {
+    const media = mediaRef.current;
+    let resolution: string | null = null;
+    if (media instanceof HTMLVideoElement && media.videoWidth > 0 && media.videoHeight > 0) {
+      resolution = `${media.videoWidth}x${media.videoHeight}`;
+    }
+    setMediaResolution(resolution);
+    onMediaResolutionChange(resolution);
+    publishState();
+  }, [onMediaResolutionChange, publishState]);
+
   const disconnectAudioGraph = useCallback(() => {
     audioNodesRef.current.splitter?.disconnect();
     audioNodesRef.current.merger?.disconnect();
@@ -110,6 +124,12 @@ export function VideoPlayer({
   const connectAudioGraph = useCallback(() => {
     const media = mediaRef.current;
     if (!mediaPreviewUrl || !media) {
+      disconnectAudioGraph();
+      return;
+    }
+    const hasCurrentSource = Boolean(audioSourceRef.current && audioSourceElementRef.current === media);
+    if (audioListenMode === 'both' && !hasCurrentSource) {
+      disconnectAudioGraph();
       return;
     }
     const AudioContextCtor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -121,7 +141,13 @@ export function VideoPlayer({
 
     if (!audioSourceRef.current || audioSourceElementRef.current !== media) {
       disconnectAudioGraph();
-      audioSourceRef.current = context.createMediaElementSource(media);
+      try {
+        audioSourceRef.current = context.createMediaElementSource(media);
+      } catch {
+        audioSourceRef.current = null;
+        audioSourceElementRef.current = null;
+        return;
+      }
       audioSourceElementRef.current = media;
     } else {
       disconnectAudioGraph();
@@ -161,6 +187,11 @@ export function VideoPlayer({
       media.muted = isMuted;
     }
   }, [isMuted, playbackRate, mediaPreviewUrl]);
+
+  useEffect(() => {
+    setMediaResolution(null);
+    onMediaResolutionChange(null);
+  }, [mediaPreviewUrl, onMediaResolutionChange]);
 
   const togglePlay = useCallback(async () => {
     const media = mediaRef.current;
@@ -266,10 +297,6 @@ export function VideoPlayer({
   useEffect(() => {
     return () => {
       disconnectAudioGraph();
-      void audioContextRef.current?.close();
-      audioContextRef.current = null;
-      audioSourceRef.current = null;
-      audioSourceElementRef.current = null;
     };
   }, [disconnectAudioGraph]);
 
@@ -308,7 +335,7 @@ export function VideoPlayer({
               src={isDashVideo ? undefined : mediaPreviewUrl}
               className="w-full h-full object-contain object-center bg-surface"
               preload="metadata"
-              onLoadedMetadata={publishState}
+              onLoadedMetadata={publishMetadata}
               onTimeUpdate={publishState}
               onPlay={publishState}
               onPause={publishState}
@@ -329,7 +356,7 @@ export function VideoPlayer({
                 ref={setAudioNode}
                 src={mediaPreviewUrl}
                 preload="metadata"
-                onLoadedMetadata={publishState}
+                onLoadedMetadata={publishMetadata}
                 onTimeUpdate={publishState}
                 onPlay={publishState}
                 onPause={publishState}
@@ -375,6 +402,7 @@ export function VideoPlayer({
           ) : null}
         </div>
         <div className="ml-auto text-[10px] font-mono text-foreground-muted">
+          {mediaResolution ? `${mediaResolution} · ` : ''}
           {formatClock(playback.currentTime)} / {formatClock(duration)}
         </div>
       </div>
