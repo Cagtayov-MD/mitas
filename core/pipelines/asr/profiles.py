@@ -47,10 +47,10 @@ class ContentProfile:
       - `denoise`: hint for the optional DeepFilterNet denoise sleeve. v0.1
         does not invoke denoise from the main pipeline; this field is metadata
         for downstream orchestration / future patches.
-      - `beam_size`: faster-whisper `beam_size`. Currently surfaced in summary
-        only; transcribe() consumes it after Paket 1.x propagation.
-      - `initial_prompt`: faster-whisper `initial_prompt`. Same propagation
-        note as `beam_size`.
+      - `beam_size`: faster-whisper `beam_size`. Passed to `transcribe()` via
+        `TranscribeParams`; overrides the model-config default per content type.
+      - `initial_prompt`: faster-whisper `initial_prompt`. Passed to
+        `transcribe()` via `TranscribeParams`.
       - `notes`: short human-readable rationale.
     """
 

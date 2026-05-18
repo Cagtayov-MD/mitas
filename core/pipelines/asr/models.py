@@ -40,6 +40,7 @@ class TranscribeParams:
     """faster-whisper transcribe() parameters."""
 
     language: str | None = "tr"
+    beam_size: int | None = None
     # Karar 14 (2026-05-11): multilingual=True default. TRT haber arsiv
     # code-switching + crash containment icin pipeline genelinde sabit.
     multilingual: bool = True

@@ -106,6 +106,7 @@ def transcribe(
     vad_segments: Sequence[VadSpeechSegment] | None = None,
     quality_config: QualityConfig | None = None,
     safety_config: dict[str, Any] | None = None,
+    transcribe_params: TranscribeParams | None = None,
     ffmpeg_executable: str = DEFAULT_FFMPEG_EXECUTABLE,
     ffprobe_executable: str = "ffprobe",
 ) -> ProductionTranscribeResult:
@@ -159,6 +160,7 @@ def transcribe(
 
     expected_speech_end = _expected_speech_end(vad_segments)
     quality_cfg = quality_config or QualityConfig()
+    effective_params = transcribe_params or DEFAULT_TRANSCRIBE_PARAMS
     safety_kwargs = safety_config or {}
     fallback_triggered = False
     fallback_reason = None
@@ -167,6 +169,7 @@ def transcribe(
     fallback_total_chunk_count = 0
     fallback_mode = None
     selection_reason = None
+    fallback_report: dict[str, Any] = {}
 
     if profile == "quality":
         run_result = _run_single_pass(
@@ -178,6 +181,7 @@ def transcribe(
             vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
+            transcribe_params=effective_params,
         )
         profile_used = "quality"
         model_name = QUALITY_MODEL.name
@@ -192,6 +196,7 @@ def transcribe(
             vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
+            transcribe_params=effective_params,
         )
         profile_used = "fast"
         model_name = FAST_MODEL.name
@@ -206,6 +211,7 @@ def transcribe(
             vad_segments=vad_segments,
             safety_kwargs=safety_kwargs,
             ffmpeg_executable=ffmpeg_executable,
+            transcribe_params=effective_params,
         )
         fast_failure = _fallback_failure_reason(fast_result)
         if fast_failure is None:
@@ -240,6 +246,18 @@ def transcribe(
             fallback_mode = "selective" if gap_repair_fallback else (
                 "full" if fallback_chunk_count == len(chunks) else "selective"
             )
+            fallback_report = {
+                "status": "triggered",
+                "trigger_reason": fast_failure,
+                "repair_type": "vad_gap_repair" if gap_repair_fallback else "quality_repair",
+                "mode": fallback_mode,
+                "selected_chunk_indexes": list(fallback_chunk_indexes),
+                "selected_chunks": [_chunk_report(chunk) for chunk in fallback_chunks],
+                "total_chunk_count": len(chunks),
+                "fallback_chunk_count": fallback_chunk_count,
+            }
+            if gap_repair_fallback:
+                fallback_report["uncovered_vad_ranges"] = list(fast_result.get("uncovered_vad_ranges", ()))
             logger.info(
                 "ASR fallback triggered: reason=%s mode=%s chunks=%d/%d",
                 fast_failure,
@@ -257,6 +275,7 @@ def transcribe(
                 vad_segments=_vad_segments_for_chunks(vad_segments, fallback_chunks),
                 safety_kwargs=safety_kwargs,
                 ffmpeg_executable=ffmpeg_executable,
+                transcribe_params=effective_params,
             )
             fallback_time = perf_counter() - fallback_started
             fallback_triggered = True
@@ -275,6 +294,33 @@ def transcribe(
                     preserve_fast_selected_chunks=gap_repair_fallback,
                 )
             )
+            selective_escalated_to_full = False
+            if fallback_mode == "selective" and _requires_full_quality_after_selective(fallback_candidate):
+                logger.warning(
+                    "ASR selective fallback remained unsafe; escalating to full quality pass: %s",
+                    fallback_candidate["safety"].failure_reason,
+                )
+                full_quality_started = perf_counter()
+                fallback_candidate = _run_single_pass(
+                    path,
+                    chunks,
+                    QUALITY_MODEL,
+                    quality_cfg,
+                    expected_speech_end=expected_speech_end,
+                    vad_segments=vad_segments,
+                    safety_kwargs=safety_kwargs,
+                    ffmpeg_executable=ffmpeg_executable,
+                    transcribe_params=effective_params,
+                )
+                fallback_time += perf_counter() - full_quality_started
+                fallback_chunk_count = len(chunks)
+                fallback_mode = "full_after_selective"
+                selective_escalated_to_full = True
+                fallback_report["mode"] = fallback_mode
+                fallback_report["selected_chunk_indexes"] = [chunk.index for chunk in chunks]
+                fallback_report["selected_chunks"] = [_chunk_report(chunk) for chunk in chunks]
+                fallback_report["fallback_chunk_count"] = fallback_chunk_count
+                fallback_report["escalated_to_full_quality"] = True
             run_result, profile_used, model_name, selection_reason = _select_fallback_result(
                 fast_result,
                 fallback_candidate,
@@ -294,6 +340,16 @@ def transcribe(
                     f"{selection_reason}:kept_fast_chunks={len(kept_fast_chunks)}"
                     f"({','.join(str(index) for index in kept_fast_chunks)})"
                 )
+            if selective_escalated_to_full:
+                selection_reason = f"{selection_reason}:selective_escalated_to_full_quality"
+            if fallback_report:
+                kept_fast_set = set(kept_fast_chunks)
+                selected_set = set(fallback_report.get("selected_chunk_indexes", ()))
+                fallback_report["kept_fast_chunk_indexes"] = sorted(kept_fast_set)
+                fallback_report["quality_chunk_indexes"] = sorted(selected_set - kept_fast_set)
+                fallback_report["final_profile"] = profile_used
+                fallback_report["final_model"] = model_name
+                fallback_report["selection_reason"] = selection_reason
             logger.info(
                 "ASR fallback selected: %s profile=%s model=%s",
                 selection_reason,
@@ -313,6 +369,7 @@ def transcribe(
         model_name=model_name,
         fallback_triggered=fallback_triggered,
         fallback_reason=fallback_reason,
+        fallback_report=fallback_report,
         raw_segments=run_result["raw_segments"],
         clean_segments=clean_segments,
         verbatim_transcript=_build_verbatim(clean_segments),
@@ -491,7 +548,7 @@ def _transcribe_chunk(
         )
         raw_segments, info = model.transcribe(
             str(chunk_path),
-            beam_size=model_config.beam_size,
+            beam_size=params.beam_size if params.beam_size is not None else model_config.beam_size,
             language=params.language,
             multilingual=params.multilingual,
             initial_prompt=params.initial_prompt,
@@ -546,6 +603,15 @@ def _fallback_failure_reason(run_result: dict[str, Any]) -> str | None:
     if not safety.safe:
         return safety.failure_reason or "safety_failed"
     return None
+
+
+def _requires_full_quality_after_selective(run_result: dict[str, Any]) -> bool:
+    """Escalate when a selective repair still leaves confirmed VAD speech uncovered."""
+    safety = run_result["safety"]
+    if safety.safe:
+        return False
+    failure = safety.failure_reason or ""
+    return failure.startswith("vad_gap_uncovered")
 
 
 def _select_fallback_chunk_indexes(
@@ -607,6 +673,16 @@ def _drop_source_chunk_index(run_result: dict[str, Any], drop: DropRecord) -> in
 
 def _expected_chunk_end(chunks: list[MergedChunk]) -> float | None:
     return max((chunk.end for chunk in chunks), default=None)
+
+
+def _chunk_report(chunk: MergedChunk) -> dict[str, Any]:
+    return {
+        "index": chunk.index,
+        "start": chunk.start,
+        "end": chunk.end,
+        "duration": chunk.duration,
+        "source_vad_indices": list(chunk.source_vad_indices),
+    }
 
 
 def _vad_segments_for_chunks(
