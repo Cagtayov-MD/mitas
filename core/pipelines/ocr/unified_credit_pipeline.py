@@ -133,6 +133,9 @@ def run_unified_credit_pipeline(
     scroll_text_lines: list[dict[str, Any]] = []
     scroll_fallback_used = False
     scroll_fallback_reason: str | None = None
+    d_split_x: int | None = None
+    d_split_source: str | None = None
+    paired_lines: list[dict[str, Any]] = []
     if scroll_tracks:
         try:
             from core.pipelines.ocr.text_layer_row_reconstruct import run_text_layer_row_reconstruct
@@ -213,6 +216,28 @@ def run_unified_credit_pipeline(
                         "fallback_reason": reason,
                     })
 
+        # --- D-split: rol|isim sütun ayrımı ---
+        if scroll_text_lines:
+            scroll_dir = output_dir / "scroll"
+            d_split_x, d_split_source = _read_auto_split_x(scroll_dir)
+            if d_split_x is None:
+                derived = _derive_split_x_from_bboxes(scroll_text_lines)
+                if derived is not None:
+                    d_split_x = derived
+                    d_split_source = "bbox_derived"
+            if d_split_x is not None:
+                paired_lines = _pair_lines_by_split(scroll_text_lines, d_split_x)
+                # scroll_text_lines.json'a ek alanlar yaz (overwrite)
+                _write_json(scroll_dir / "scroll_text_lines.json", {
+                    "canvas_path": str(scroll_canvas_path) if scroll_canvas_path else None,
+                    "line_count": len(scroll_text_lines),
+                    "lines": scroll_text_lines,  # geri uyumlu
+                    "split_x": d_split_x,
+                    "split_source": d_split_source,
+                    "paired_lines": paired_lines,
+                    "paired_count": len(paired_lines),
+                })
+
     # --- Step 7: Write summary ---
     runtime_sec = round(perf_counter() - started, 3)
     summary: dict[str, Any] = {
@@ -227,6 +252,9 @@ def run_unified_credit_pipeline(
         "scroll_text_line_count": len(scroll_text_lines),
         "scroll_fallback_used": scroll_fallback_used if scroll_tracks else False,
         "scroll_fallback_reason": scroll_fallback_reason if scroll_tracks else None,
+        "d_split_x": d_split_x if scroll_tracks else None,
+        "d_split_source": d_split_source if scroll_tracks else None,
+        "paired_line_count": len(paired_lines) if scroll_tracks else 0,
         "runtime_sec": runtime_sec,
         "ocr_record_count": len(ocr_records),
         "ocr_error_count": len(ocr_errors),
@@ -288,6 +316,170 @@ def _scroll_track_fallback_lines(scroll_tracks: list[Any], *, min_confidence: fl
         if key not in seen or line["confidence"] > seen[key]["confidence"]:
             seen[key] = line
     return list(seen.values())
+
+
+def _read_auto_split_x(scroll_dir: Path) -> tuple[int | None, str | None]:
+    """row_reconstruct_summary.json'dan auto_split.split_x oku. (split_x, source)."""
+    summary_path = scroll_dir / "row_reconstruct_summary.json"
+    if not summary_path.exists():
+        return None, None
+    try:
+        data = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None, None
+    auto = data.get("auto_split") or {}
+    split_x = auto.get("split_x")
+    if isinstance(split_x, (int, float)) and split_x > 0:
+        return int(split_x), "auto_split_algorithm"
+    return None, None
+
+
+def _derive_split_x_from_bboxes(
+    lines: list[dict[str, Any]],
+    *,
+    y_tolerance: int = 5,
+    min_pairs: int = 3,
+    min_gap_px: int = 8,
+) -> int | None:
+    """Aynı y'deki bbox'lardan sütun gap'inin medyanını hesapla.
+
+    Algoritma:
+      1. Her line için (y_center, x_start, x_end) çıkar
+      2. y_center'ları y_tolerance ile bucket'la (aynı satır demek)
+      3. Bucket'ta 2+ bbox varsa (multi-column), en geniş x_gap'i hesapla
+         (gap = sonraki bbox.x_start - önceki bbox.x_end)
+      4. min_pairs+ bucket gap üretti ise → median(gap_midpoints) döner
+      5. Yoksa None.
+    """
+    if not lines:
+        return None
+    items: list[tuple[float, int, int]] = []
+    for line in lines:
+        bbox = line.get("bbox")
+        if not (isinstance(bbox, (list, tuple)) and len(bbox) >= 4):
+            continue
+        try:
+            x = float(bbox[0]); y = float(bbox[1]); w = float(bbox[2]); h = float(bbox[3])
+        except (TypeError, ValueError):
+            continue
+        if w <= 0 or h <= 0:
+            continue
+        items.append((y + h / 2.0, int(round(x)), int(round(x + w))))
+    if not items:
+        return None
+    # y'ye göre sırala, y_tolerance ile bucket'la
+    items.sort(key=lambda t: t[0])
+    buckets: list[list[tuple[int, int]]] = []
+    current: list[tuple[int, int]] = []
+    current_y_ref: float | None = None
+    for y_c, x0, x1 in items:
+        if current_y_ref is None or abs(y_c - current_y_ref) <= y_tolerance:
+            current.append((x0, x1))
+            if current_y_ref is None:
+                current_y_ref = y_c
+        else:
+            if len(current) >= 2:
+                buckets.append(current)
+            current = [(x0, x1)]
+            current_y_ref = y_c
+    if len(current) >= 2:
+        buckets.append(current)
+    if not buckets:
+        return None
+    # Her bucket'ta en geniş gap'in midpoint'ini topla
+    midpoints: list[int] = []
+    for bucket in buckets:
+        sorted_b = sorted(bucket, key=lambda t: t[0])
+        best_gap = min_gap_px - 1
+        best_mid: int | None = None
+        for i in range(len(sorted_b) - 1):
+            gap_l = sorted_b[i][1]   # sol bbox'ın x_end
+            gap_r = sorted_b[i + 1][0]  # sağ bbox'ın x_start
+            gap = gap_r - gap_l
+            if gap > best_gap:
+                best_gap = gap
+                best_mid = (gap_l + gap_r) // 2
+        if best_mid is not None:
+            midpoints.append(best_mid)
+    if len(midpoints) < min_pairs:
+        return None
+    midpoints.sort()
+    return int(midpoints[len(midpoints) // 2])
+
+
+def _pair_lines_by_split(
+    lines: list[dict[str, Any]],
+    split_x: int,
+    *,
+    y_tolerance: int = 5,
+) -> list[dict[str, Any]]:
+    """split_x'e göre satırları role|name çiftleri olarak pair'le.
+
+    Her bbox'ın merkez x'ine bakar: < split_x → role kolonu, >= split_x → name.
+    Aynı y ± y_tolerance içindeki sol+sağ bbox'ları birleştirir.
+    Tek sütunda kalan satırlar `role`=text, `name`=None (veya tersi) olarak yazılır.
+    """
+    enriched: list[tuple[float, float, dict[str, Any]]] = []  # (y_center, x_center, line)
+    for line in lines:
+        bbox = line.get("bbox")
+        if not (isinstance(bbox, (list, tuple)) and len(bbox) >= 4):
+            continue
+        try:
+            x = float(bbox[0]); y = float(bbox[1]); w = float(bbox[2]); h = float(bbox[3])
+        except (TypeError, ValueError):
+            continue
+        enriched.append((y + h / 2.0, x + w / 2.0, line))
+    enriched.sort(key=lambda t: t[0])
+
+    paired: list[dict[str, Any]] = []
+    i = 0
+    while i < len(enriched):
+        y_c, x_c, line = enriched[i]
+        # Aynı y ± tolerance içinde başka bbox var mı bak
+        partner: tuple[float, float, dict[str, Any]] | None = None
+        for j in range(i + 1, len(enriched)):
+            y_c2, x_c2, line2 = enriched[j]
+            if y_c2 - y_c > y_tolerance:
+                break
+            # Farklı sütunda mı?
+            if (x_c < split_x and x_c2 >= split_x) or (x_c >= split_x and x_c2 < split_x):
+                partner = (y_c2, x_c2, line2)
+                # Partner'ı listeden çıkarmak için index'i kaydet
+                enriched.pop(j)
+                break
+        if partner is None:
+            # Tek sütun
+            if x_c < split_x:
+                paired.append({
+                    "y": round(y_c, 1),
+                    "role": line.get("text"),
+                    "name": None,
+                    "role_confidence": line.get("confidence"),
+                    "name_confidence": None,
+                })
+            else:
+                paired.append({
+                    "y": round(y_c, 1),
+                    "role": None,
+                    "name": line.get("text"),
+                    "role_confidence": None,
+                    "name_confidence": line.get("confidence"),
+                })
+        else:
+            y_c2, x_c2, line2 = partner
+            if x_c < split_x:
+                role_line, name_line = line, line2
+            else:
+                role_line, name_line = line2, line
+            paired.append({
+                "y": round((y_c + y_c2) / 2.0, 1),
+                "role": role_line.get("text"),
+                "name": name_line.get("text"),
+                "role_confidence": role_line.get("confidence"),
+                "name_confidence": name_line.get("confidence"),
+            })
+        i += 1
+    return paired
 
 
 def _write_json(path: Path, data: Any) -> None:

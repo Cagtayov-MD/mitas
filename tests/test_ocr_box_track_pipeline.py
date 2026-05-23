@@ -463,3 +463,70 @@ def test_scroll_track_fallback_lines_dedupes_by_text() -> None:
     lines = _scroll_track_fallback_lines([t1, t2], min_confidence=0.5)
     assert len(lines) == 1
     assert lines[0]["confidence"] == 0.95
+
+
+# ---------------------------------------------------------------------------
+# Test 10: _derive_split_x_from_bboxes — same-y bbox pairs → median split_x
+# ---------------------------------------------------------------------------
+
+
+def test_derive_split_x_from_bboxes_finds_column_gap() -> None:
+    """Aynı y'deki bbox çiftlerinden split_x medyanı hesaplanır."""
+    from core.pipelines.ocr.unified_credit_pipeline import _derive_split_x_from_bboxes
+
+    lines = [
+        # Satır 1: y=100, sol=[100..200], sağ=[250..400] → gap mid=225
+        {"bbox": [100, 100, 100, 15], "text": "DIRECTOR", "confidence": 0.9},
+        {"bbox": [250, 100, 150, 15], "text": "JAMES CAMERON", "confidence": 0.9},
+        # Satır 2: y=120, sol=[110..210], sağ=[260..390] → gap mid=235
+        {"bbox": [110, 120, 100, 15], "text": "PRODUCER", "confidence": 0.9},
+        {"bbox": [260, 120, 130, 15], "text": "LARRY KASANOFF", "confidence": 0.9},
+        # Satır 3: y=140, sol=[105..205], sağ=[255..395] → gap mid=230
+        {"bbox": [105, 140, 100, 15], "text": "EDITOR", "confidence": 0.9},
+        {"bbox": [255, 140, 140, 15], "text": "MARK GOLDBLATT", "confidence": 0.9},
+    ]
+    split_x = _derive_split_x_from_bboxes(lines, min_pairs=3)
+    assert split_x is not None
+    assert 220 <= split_x <= 240, f"Beklenen 220-240 aralığında, görülen: {split_x}"
+
+
+# ---------------------------------------------------------------------------
+# Test 11: _derive_split_x_from_bboxes — single column → None
+# ---------------------------------------------------------------------------
+
+
+def test_derive_split_x_returns_none_when_single_column() -> None:
+    """Tek sütun bbox'larından split türetilemez."""
+    from core.pipelines.ocr.unified_credit_pipeline import _derive_split_x_from_bboxes
+
+    lines = [
+        {"bbox": [100, 100, 200, 15], "text": "A", "confidence": 0.9},
+        {"bbox": [100, 120, 200, 15], "text": "B", "confidence": 0.9},
+        {"bbox": [100, 140, 200, 15], "text": "C", "confidence": 0.9},
+    ]
+    assert _derive_split_x_from_bboxes(lines) is None
+
+
+# ---------------------------------------------------------------------------
+# Test 12: _pair_lines_by_split — sol/sağ pair'leme + tek sütun
+# ---------------------------------------------------------------------------
+
+
+def test_pair_lines_by_split_creates_role_name_pairs() -> None:
+    """split_x'e göre sol/sağ pair'lendi."""
+    from core.pipelines.ocr.unified_credit_pipeline import _pair_lines_by_split
+
+    lines = [
+        {"bbox": [100, 100, 100, 15], "text": "DIRECTOR", "confidence": 0.9},
+        {"bbox": [250, 100, 150, 15], "text": "JAMES CAMERON", "confidence": 0.95},
+        {"bbox": [105, 120, 100, 15], "text": "EDITOR", "confidence": 0.85},
+        # Eşi yok (tek sütun) — sol kolonda
+    ]
+    paired = _pair_lines_by_split(lines, split_x=225)
+    assert len(paired) == 2
+    assert paired[0]["role"] == "DIRECTOR"
+    assert paired[0]["name"] == "JAMES CAMERON"
+    assert paired[0]["role_confidence"] == 0.9
+    assert paired[0]["name_confidence"] == 0.95
+    assert paired[1]["role"] == "EDITOR"
+    assert paired[1]["name"] is None
