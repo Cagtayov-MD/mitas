@@ -1,0 +1,192 @@
+"""Unit tests for K-BoxTrack pipeline helpers and unified pipeline smoke test."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock
+
+from core.pipelines.ocr.box_tracker import (
+    TextTrack,
+    TextTrackObservation,
+    build_text_tracks,
+    classify_track_motion,
+    group_static_tracks_into_cards,
+    select_best_frame_per_card,
+)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _obs(frame_index: int, y: float, confidence: float = 0.95) -> TextTrackObservation:
+    return TextTrackObservation(
+        record_index=frame_index,
+        frame_index=frame_index,
+        frame=f"frame_{frame_index:05d}.png",
+        timestamp_seconds=float(frame_index),
+        bbox=(100.0, y, 80.0, 24.0),
+        text="TEXT",
+        normalized_text="TEXT",
+        confidence=confidence,
+        area=80.0 * 24.0,
+    )
+
+
+def _track(track_id: str, observations: list[TextTrackObservation], vy: float = 0.0) -> TextTrack:
+    return TextTrack(
+        track_id=track_id,
+        engine="fake",
+        observations=tuple(observations),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=vy,
+    )
+
+
+def _record(text: str, frame_index: int, *, x: float = 140.0, y: float = 80.0, confidence: float = 0.99) -> dict:
+    return {
+        "engine": "fake",
+        "frame": f"frame_{frame_index:05d}.png",
+        "timestamp_seconds": float(frame_index),
+        "bbox": [x, y, max(40.0, len(text) * 9.0), 24.0],
+        "text": text,
+        "normalized_text": text,
+        "confidence": confidence,
+    }
+
+
+def _frames(count: int) -> list[str]:
+    return [f"frame_{i:05d}.png" for i in range(count)]
+
+
+# ---------------------------------------------------------------------------
+# Test 1: classify_track_motion — static
+# ---------------------------------------------------------------------------
+
+
+def test_classify_track_motion_static() -> None:
+    """5 observations at a fixed y → static_text."""
+    observations = [_obs(i, y=100.0) for i in range(5)]
+    track = _track("t1", observations, vy=0.3)
+    result = classify_track_motion(track)
+    assert result == "static_text", f"Expected 'static_text', got {result!r}"
+
+
+# ---------------------------------------------------------------------------
+# Test 2: classify_track_motion — scrolling
+# ---------------------------------------------------------------------------
+
+
+def test_classify_track_motion_scroll() -> None:
+    """y increases 5px per frame → scrolling_text."""
+    observations = [_obs(i, y=float(i * 5)) for i in range(5)]
+    # Build via build_text_tracks so velocity is correctly computed
+    records = [_record("SCROLL", i, y=float(i * 5)) for i in range(5)]
+    tracks = build_text_tracks(records, frames=_frames(5), frame_size=(640, 360))
+    assert tracks, "Expected at least one track"
+    track = tracks[0]
+    result = classify_track_motion(track)
+    assert result == "scrolling_text", f"Expected 'scrolling_text', got {result!r} (vy={track.velocity_y_px_frame})"
+
+
+# ---------------------------------------------------------------------------
+# Test 3: group_static_tracks_into_cards — two separate time windows → 2 cards
+# ---------------------------------------------------------------------------
+
+
+def test_group_static_tracks_two_cards() -> None:
+    """Tracks in two distinct time windows (gap > 1.5s) → 2 cards."""
+    # Card 1: frames 0-2
+    group1 = [
+        _track(f"g1_{i}", [_obs(i, y=100.0) for _ in range(3)], vy=0.0)
+        for i in range(3)
+    ]
+    # Card 2: frames 10-12 (gap = 7s)
+    group2 = [
+        _track(f"g2_{i}", [_obs(10 + i, y=100.0) for _ in range(3)], vy=0.0)
+        for i in range(3)
+    ]
+    all_tracks = group1 + group2
+    cards = group_static_tracks_into_cards(all_tracks, max_time_gap_seconds=1.5)
+    assert len(cards) == 2, f"Expected 2 cards, got {len(cards)}: {[c['card_id'] for c in cards]}"
+    assert cards[0]["member_count"] == 3
+    assert cards[1]["member_count"] == 3
+
+
+# ---------------------------------------------------------------------------
+# Test 4: select_best_frame_per_card — highest confidence frame wins
+# ---------------------------------------------------------------------------
+
+
+def test_select_best_frame_uses_max_confidence() -> None:
+    """3 frames; frame 1 has highest confidence → it's selected."""
+    track = TextTrack(
+        track_id="t_conf",
+        engine="fake",
+        observations=(
+            _obs(0, y=100.0, confidence=0.50),
+            _obs(1, y=100.0, confidence=0.99),  # highest
+            _obs(2, y=100.0, confidence=0.70),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=0.0,
+    )
+    card = {
+        "card_id": "card_001",
+        "track_ids": ["t_conf"],
+        "first_timestamp": 0.0,
+        "last_timestamp": 2.0,
+        "y_range": [100.0, 124.0],
+        "member_count": 1,
+    }
+    frame_paths = [f"frame_{i:05d}.png" for i in range(3)]
+    result = select_best_frame_per_card(card, [track], frame_paths)
+    assert result["best_frame_index"] == 1, f"Expected frame 1, got {result['best_frame_index']}"
+    assert result["best_frame_path"] == "frame_00001.png"
+
+
+# ---------------------------------------------------------------------------
+# Test 5: unified pipeline smoke — mock engine, 5 frames, no crash
+# ---------------------------------------------------------------------------
+
+
+def test_unified_pipeline_mock_smoke(tmp_path: Path) -> None:
+    """Minimal mock engine, 5 synthetic frames → pipeline completes without error."""
+    from core.pipelines.ocr.unified_credit_pipeline import run_unified_credit_pipeline
+
+    # Create 5 dummy frame files
+    frame_paths = []
+    for i in range(5):
+        fp = tmp_path / f"frame_{i:05d}.png"
+        fp.write_bytes(b"")  # empty file, engine is mocked
+        frame_paths.append(fp)
+
+    # Mock engine returns minimal OCR records
+    mock_engine = MagicMock()
+    mock_engine.recognize.return_value = [
+        {
+            "engine": "mock",
+            "frame": str(frame_paths[i]),
+            "timestamp_seconds": float(i),
+            "bbox": [100.0, 80.0, 120.0, 24.0],
+            "text": f"LINE{i}",
+            "normalized_text": f"LINE{i}",
+            "confidence": 0.95,
+        }
+        for i in range(5)
+    ]
+
+    result = run_unified_credit_pipeline(
+        frames=frame_paths,
+        output_dir=tmp_path / "unified_out",
+        paddle_engine=mock_engine,
+        detection_stride=1,
+    )
+
+    assert result.summary_path.exists(), "summary.json not written"
+    assert result.runtime_sec >= 0.0
+    assert isinstance(result.summary, dict)
+    assert "total_tracks" in result.summary
+    assert result.cards_dir.exists()

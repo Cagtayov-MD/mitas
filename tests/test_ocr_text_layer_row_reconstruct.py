@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from core.pipelines.ocr.text_layer_row_reconstruct import detect_auto_split, detect_rows, quality_score, run_text_layer_row_reconstruct
+from core.pipelines.ocr.text_layer_row_reconstruct import (
+    _trim_composite_by_row_gap,
+    detect_auto_split,
+    detect_rows,
+    quality_score,
+    run_text_layer_row_reconstruct,
+)
 
 
 def test_row_reconstruct_exports_composite_rows_and_auto_split(tmp_path: Path) -> None:
@@ -73,6 +79,60 @@ def test_detect_rows_finds_physical_rows(tmp_path: Path) -> None:
 
     assert len(rows) == 7
     assert rows[0]["y0"] < rows[0]["peak_y"] < rows[0]["y1"]
+
+
+def test_trim_composite_by_row_gap_drops_tail_after_oversized_gap() -> None:
+    np = pytest.importorskip("numpy")
+    composite = np.zeros((1000, 200, 3), dtype=np.uint8)
+    rows = [
+        {"index": 1, "y0": 0, "y1": 30, "peak_y": 15},
+        {"index": 2, "y0": 40, "y1": 70, "peak_y": 55},
+        {"index": 3, "y0": 80, "y1": 110, "peak_y": 95},
+        {"index": 4, "y0": 120, "y1": 150, "peak_y": 135},
+        {"index": 5, "y0": 160, "y1": 190, "peak_y": 175},
+        {"index": 6, "y0": 600, "y1": 630, "peak_y": 615},
+        {"index": 7, "y0": 750, "y1": 780, "peak_y": 765},
+    ]
+
+    info, trimmed, kept = _trim_composite_by_row_gap(composite, rows)
+
+    assert info["applied"] is True
+    assert info["kept_rows"] == 5
+    assert info["dropped_rows"] == 2
+    assert info["cut_gap_px"] == 410
+    assert trimmed.shape[0] == info["cut_y"]
+    assert trimmed.shape[0] < composite.shape[0]
+    assert [row["index"] for row in kept] == [1, 2, 3, 4, 5]
+
+
+def test_trim_composite_by_row_gap_no_op_when_gaps_are_uniform() -> None:
+    np = pytest.importorskip("numpy")
+    composite = np.zeros((400, 200, 3), dtype=np.uint8)
+    rows = [
+        {"index": idx + 1, "y0": idx * 40, "y1": idx * 40 + 30, "peak_y": idx * 40 + 15}
+        for idx in range(8)
+    ]
+
+    info, trimmed, kept = _trim_composite_by_row_gap(composite, rows)
+
+    assert info["applied"] is False
+    assert info["reason"] == "no_oversized_gap"
+    assert trimmed is composite
+    assert kept is rows
+
+
+def test_trim_composite_by_row_gap_no_op_when_too_few_rows() -> None:
+    np = pytest.importorskip("numpy")
+    composite = np.zeros((400, 200, 3), dtype=np.uint8)
+    rows = [
+        {"index": 1, "y0": 0, "y1": 30, "peak_y": 15},
+        {"index": 2, "y0": 200, "y1": 230, "peak_y": 215},
+    ]
+
+    info, trimmed, kept = _trim_composite_by_row_gap(composite, rows)
+
+    assert info["applied"] is False
+    assert info["reason"] == "too_few_rows"
 
 
 def _make_scrolling_role_name_frames(directory: Path) -> list[Path]:

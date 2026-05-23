@@ -623,6 +623,8 @@ def _run_item(
     preprocess_mode: str,
     ffmpeg_executable: str | None,
 ) -> dict[str, Any]:
+    import os
+    USE_BOX_TRACK = os.environ.get("USE_BOX_TRACK_PIPELINE", "").strip().lower() in {"1", "true", "yes"}
     item_started = perf_counter()
     timings: dict[str, float] = {}
     warnings: list[str] = []
@@ -648,6 +650,7 @@ def _run_item(
         (item_dir / "comparison.md").write_text(_build_item_comparison(summary, {}, {}, {}, {}), encoding="utf-8")
         return summary
 
+    _write_json(item_dir / "item_summary.json", {"id": item.id, "status": "in_progress", "started_at": datetime.now(timezone.utc).isoformat()})
     try:
         segment_detection = _detect_effective_credit_segment(item)
         _write_json(item_dir / "credit_segment_detection.json", segment_detection)
@@ -674,6 +677,27 @@ def _run_item(
         )
         scroll_reconstruct_frames = list(frames)
         timings["extract_frames_sec"] = round(perf_counter() - step_started, 3)
+
+        if USE_BOX_TRACK:
+            from core.pipelines.ocr.unified_credit_pipeline import run_unified_credit_pipeline
+            unified_result = run_unified_credit_pipeline(
+                frames=frames,
+                output_dir=item_dir / "unified",
+                paddle_engine=engines[0] if engines else None,
+            )
+            summary = {
+                "id": item.id,
+                "status": "done",
+                "pipeline": "box_track_unified",
+                "input_path": str(item.path),
+                "start_seconds": segment_start_seconds,
+                "end_seconds": segment_end_seconds,
+                "runtime_sec": unified_result.runtime_sec,
+                "unified_summary": unified_result.summary,
+            }
+            _write_json(item_dir / "item_summary.json", summary)
+            return summary
+        # else: eski yol devam eder (mevcut kod aynen)
         applied_roi = item.roi
         roi_strategy = "full_frame"
         auto_roi_info: dict[str, Any] | None = None
@@ -824,6 +848,7 @@ def _run_item(
         (item_dir / "row_crop_ocr.md").write_text(_build_row_crop_ocr_report(row_ocr), encoding="utf-8")
         _write_json(item_dir / "descroll_canvas.json", canvas)
         _write_json(item_dir / "evaluation.json", evaluation)
+        quality_police = _assess_generated_png_outputs(item_dir, row_reconstruct, temporal_fusion, canvas)
 
         timings["total_item_sec"] = round(perf_counter() - item_started, 3)
         costs = {
@@ -888,6 +913,7 @@ def _run_item(
             "preprocessed_temporal_stable_groups": preprocessed_temporal["stable_groups"],
             "row_reconstruct": _row_reconstruct_summary(row_reconstruct),
             "row_crop_ocr": _row_crop_ocr_summary(row_ocr),
+            "quality_police": quality_police,
             "canvas_size": canvas["canvas_size"],
             "canvas_ocr_records": len(canvas_ocr_records),
             "evaluation": evaluation.get("summary", {}),
@@ -900,7 +926,7 @@ def _run_item(
             encoding="utf-8",
         )
         return summary
-    except Exception as exc:
+    except BaseException as exc:
         summary = {
             "id": item.id,
             "status": "failed",
@@ -958,8 +984,9 @@ def _detect_effective_credit_segment(item: CreditExperimentItem) -> dict[str, An
     overlap_start = max(manifest_start, detected_start)
     overlap_end = min(manifest_end, detected_end)
     overlap = max(0.0, overlap_end - overlap_start)
-    min_overlap = min(manifest_duration, max(30.0, manifest_duration * 0.50))
+    min_overlap = min(manifest_duration, max(30.0, manifest_duration * 0.45))
     detected_duration = max(0.0, detected_end - detected_start)
+    fraction_detected_covered = overlap / max(1.0, detected_duration)
     payload.update(
         {
             "detected_start_seconds": detected_start,
@@ -968,12 +995,16 @@ def _detect_effective_credit_segment(item: CreditExperimentItem) -> dict[str, An
             "detected_confidence": detected.get("confidence"),
             "overlap_seconds": round(overlap, 3),
             "min_overlap_seconds": round(min_overlap, 3),
+            "fraction_detected_covered": round(fraction_detected_covered, 4),
         }
     )
     if detected_duration < 5.0:
         payload["reason"] = "detected_segment_too_short"
         return payload
-    if overlap < min_overlap:
+    # Accept if manifest coverage is met, OR detected segment is mostly within manifest (≥65%).
+    # This prevents rejecting high-confidence short-segment detections that fall fully inside
+    # a broad manifest window (e.g. 80s credit in a 180s safety window).
+    if overlap < min_overlap and fraction_detected_covered < 0.65:
         payload["reason"] = "detected_segment_too_small_or_outside_manifest_window"
         return payload
     if overlap_end - overlap_start < 1.0:
@@ -1057,6 +1088,64 @@ def _row_reconstruct_summary(row_reconstruct: dict[str, Any]) -> dict[str, Any]:
         "motion_status": motion.get("status"),
         "median_dy_per_frame": motion.get("median_dy_per_frame"),
     }
+
+
+def _assess_generated_png_outputs(
+    item_dir: Path,
+    row_reconstruct: dict[str, Any],
+    temporal_fusion: dict[str, Any],
+    canvas: dict[str, Any],
+) -> dict[str, Any]:
+    try:
+        from core.pipelines.ocr.image_quality_police import assess_output
+    except Exception as exc:
+        return {"status": "unavailable", "error": str(exc), "outputs": {}}
+
+    outputs: dict[str, tuple[Path | None, Path | None, str]] = {
+        "row_canvas": (
+            _existing_output_path(row_reconstruct.get("sharpened_path"))
+            or _existing_output_path(row_reconstruct.get("composite_path")),
+            item_dir / "row_crop_ocr.json",
+            "row_canvas",
+        ),
+        "temporal_fusion": (
+            _existing_output_path(temporal_fusion.get("output_path")),
+            item_dir / "temporal_fusion.json",
+            "fused",
+        ),
+        "descroll_canvas": (
+            _existing_output_path(canvas.get("canvas_path")),
+            item_dir / "descroll_canvas.json",
+            "row_canvas",
+        ),
+    }
+    checks: dict[str, Any] = {}
+    for name, (png_path, json_path, expected_kind) in outputs.items():
+        if png_path is None:
+            continue
+        try:
+            checks[name] = assess_output(
+                png_path,
+                json_path if json_path.exists() else None,
+                expected_kind=expected_kind,  # type: ignore[arg-type]
+            )
+        except Exception as exc:
+            checks[name] = {
+                "status": "SUSPICIOUS_NEEDS_REVIEW",
+                "reasons": ["quality_police_error"],
+                "metrics": {"png_path": str(png_path), "ocr_json_path": str(json_path), "error": str(exc)},
+                "suggested_fallback": None,
+            }
+    return {"status": "done", "outputs": checks}
+
+
+def _existing_output_path(value: Any) -> Path | None:
+    if not value:
+        return None
+    path = Path(str(value))
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return path if path.exists() else None
 
 
 def _run_row_crop_ocr(row_reconstruct: dict[str, Any], engines: list[OcrEngine], *, max_rows: int = 120) -> dict[str, Any]:
@@ -1558,7 +1647,7 @@ def _infer_second_pass_roi_info(frames: list[Path], records: list[dict[str, Any]
             {"box_count": len(boxes), "min_boxes": min_boxes, "frame_count": frame_count, "mask_track": mask_roi},
         )
 
-    scroll_like = mode == "credit" and any(token in hints for token in ("scroll", "rolling", "jenerik", "credit", "akan", "kayan", "vertical"))
+    scroll_like = mode == "credit" and _is_explicit_scroll_hint(hints)
     if scroll_like and len(boxes) >= 8:
         x0 = _quantile([box[0] for box in boxes], 0.08)
         x1 = _quantile([box[2] for box in boxes], 0.92)
@@ -1681,7 +1770,7 @@ def _infer_mask_track_second_pass_roi_info(
         }
 
     hints = f"{item.kind} {item.layout_type} {item.motion_type} {item.notes}".lower()
-    scroll_like = mode == "credit" and any(token in hints for token in ("scroll", "rolling", "jenerik", "credit", "akan", "kayan", "vertical"))
+    scroll_like = mode == "credit" and _is_explicit_scroll_hint(hints)
     sample_paths = _evenly_sample_paths(frames, min(len(frames), 18))
     if not sample_paths:
         return _mask_track_skip(prior_reason, "no_frames")
@@ -3302,6 +3391,25 @@ def _float_or_none(value: Any) -> float | None:
 
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+_SCROLL_HINT_KEYWORDS = (
+    "scroll",
+    "rolling",
+    "credit roll",
+    "vertical",
+    "akan",
+    "kayar",
+    "kayan",
+    "kayma",
+)
+
+
+def _is_explicit_scroll_hint(hints: str) -> bool:
+    if not hints:
+        return False
+    text = hints if hints == hints.lower() else hints.lower()
+    return any(keyword in text for keyword in _SCROLL_HINT_KEYWORDS)
 
 
 def _bbox_centers_close(a: Any, b: Any, max_distance: float) -> bool:

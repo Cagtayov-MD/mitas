@@ -61,6 +61,13 @@ def run_text_layer_row_reconstruct(
     if composite is None:
         raise RuntimeError("Composite could not be built")
     quality = selected_candidate.get("quality") or quality_score(composite, cv2)
+
+    split = selected_candidate.get("auto_split") or detect_auto_split(composite)
+    rows = selected_candidate.get("rows") or detect_rows(composite)
+
+    tail_trim, composite, rows = _trim_composite_by_row_gap(composite, rows)
+    if tail_trim.get("applied"):
+        quality = quality_score(composite, cv2)
     quality_warning = bool(quality.get("score", 0.0) < 0.45)
 
     composite_path = output / "row_composite.png"
@@ -69,9 +76,6 @@ def run_text_layer_row_reconstruct(
     sharpened = _sharpen(composite, cv2)
     _cv2_imwrite(sharpened_path, sharpened, cv2)
     _write_candidate_previews(output / "row_candidates", candidates, cv2)
-
-    split = selected_candidate.get("auto_split") or detect_auto_split(composite)
-    rows = selected_candidate.get("rows") or detect_rows(composite)
     rows_dir = output / "rows"
     role_dir = output / "role_crops"
     name_dir = output / "name_crops"
@@ -100,6 +104,7 @@ def run_text_layer_row_reconstruct(
         "auto_split": split,
         "row_count": len(rows),
         "rows": exported_rows,
+        "tail_trim": tail_trim,
     }
     summary_path = output / "row_reconstruct_summary.json"
     report_path = output / "row_reconstruct_report.md"
@@ -186,6 +191,77 @@ def detect_auto_split(image: Any) -> dict[str, Any]:
         "balance": round(float(balance), 4),
         "projection_runs": [[int(a), int(b)] for a, b in runs],
     }
+
+
+def _trim_composite_by_row_gap(
+    composite: Any,
+    rows: list[dict[str, Any]],
+    *,
+    min_gap_px: int = 150,
+    gap_factor: float = 3.0,
+    pad_px: int = 12,
+) -> tuple[dict[str, Any], Any, list[dict[str, Any]]]:
+    """Crop the bottom tail of a composite when a large vertical gap follows the last text rows.
+
+    Credit rolls often outlast their text — the segment ends in a brief post-credit shot or fade,
+    and those non-text frames get aligned into the composite tail. We detect the first oversized
+    inter-row gap and drop everything after it.
+    """
+    if composite is None or getattr(composite, "size", 0) == 0:
+        return {"applied": False, "reason": "no_composite"}, composite, rows
+    if not rows or len(rows) < 4:
+        return {"applied": False, "reason": "too_few_rows"}, composite, rows
+
+    ordered = sorted(rows, key=lambda row: int(row.get("y0", 0)))
+    gaps: list[int] = []
+    for prev, curr in zip(ordered, ordered[1:]):
+        gap = int(curr.get("y0", 0)) - int(prev.get("y1", 0))
+        if gap > 0:
+            gaps.append(gap)
+    if not gaps:
+        return {"applied": False, "reason": "no_positive_gaps"}, composite, rows
+    median_gap = float(median(gaps))
+    threshold = max(float(min_gap_px), median_gap * gap_factor)
+
+    cut_index: int | None = None
+    cut_gap: int | None = None
+    for index in range(len(ordered) - 1):
+        gap = int(ordered[index + 1].get("y0", 0)) - int(ordered[index].get("y1", 0))
+        if gap >= threshold:
+            cut_index = index
+            cut_gap = gap
+            break
+    if cut_index is None:
+        return {
+            "applied": False,
+            "reason": "no_oversized_gap",
+            "median_gap_px": round(median_gap, 2),
+            "threshold_px": round(threshold, 2),
+        }, composite, rows
+
+    kept_rows = ordered[: cut_index + 1]
+    cut_y = min(int(composite.shape[0]), int(kept_rows[-1].get("y1", 0)) + pad_px)
+    if cut_y <= 0:
+        return {"applied": False, "reason": "cut_y_non_positive"}, composite, rows
+    trimmed = composite[:cut_y]
+    relabeled: list[dict[str, Any]] = []
+    for index, row in enumerate(kept_rows, 1):
+        new_row = dict(row)
+        new_row["index"] = index
+        relabeled.append(new_row)
+    info = {
+        "applied": True,
+        "reason": "oversized_inter_row_gap",
+        "median_gap_px": round(median_gap, 2),
+        "threshold_px": round(threshold, 2),
+        "cut_gap_px": int(cut_gap or 0),
+        "cut_y": int(cut_y),
+        "kept_rows": len(relabeled),
+        "dropped_rows": len(ordered) - len(relabeled),
+        "original_height": int(composite.shape[0]),
+        "trimmed_height": int(trimmed.shape[0]),
+    }
+    return info, trimmed, relabeled
 
 
 def detect_rows(image: Any, *, min_dist: int = 15) -> list[dict[str, Any]]:
