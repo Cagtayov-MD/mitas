@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "id": "beyaz_balina_end_credits_4960_10s",
+      "path": "\\\\depo01cifs.int.trt.net.tr\\sas_h264\\testset\\filmtest\\evoArcadmin_SİNEMA FİLM_2017-9031-1-0000-85-1-BEYAZ_BALİNA.mp4",
+      "kind": "end_credits",
+      "layout_type": "page_credits",
+      "motion_type": "static_or_fade_pages",
+      "expected_language": "tr",
+      "start_seconds": 4960,
+      "end_seconds": 5068,
+      "fps": 6,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "Gerçek pilot ikinci pencere. Contact sheet'e göre ilk okunabilir jenerik yazıları yaklaşık 01:22:40 civarında başlıyor."
+    }
+  ]
+}

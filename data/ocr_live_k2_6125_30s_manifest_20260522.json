@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "id": "k2_end_credits_live_6125_30s",
+      "path": "C:/Users/TRT03/Desktop/evoArcadmin_COZUMLEMEV2S17_1991-0339-1-0000-01-1-K-2.mp4",
+      "kind": "end_credits",
+      "layout_type": "rolling_vertical",
+      "motion_type": "text_scrolling",
+      "expected_language": "en",
+      "start_seconds": 6125,
+      "end_seconds": 6155,
+      "fps": 2,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "Canli K-2 jenerik smoke. Kullaniciya gore akan jenerik 01:42:05 itibariyle basliyor."
+    }
+  ]
+}

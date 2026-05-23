@@ -1,13 +1,15 @@
-# MITAS requirements draft
-# Bu dosya taslaktır.
-# Bu sprintte pip install çalıştırılmayacaktır.
-# Ana motor seçimi değildir.
-# Benchmark sonrası sadeleştirilecektir.
+# MITAS OCR active runtime, May 2026.
+# Model files are kept under E:\MITAS\models\ocr and are smoke-tested by
+# scripts/ocr_model_healthcheck.py.
+#
+# EasyOCR is intentionally out of the active OCR candidate set.
+# Tesseract also requires the native binary; on this workstation it is resolved
+# from C:\Program Files\Tesseract-OCR\tesseract.exe.
 
-# OneOCR placeholder: kurum içi/harici runtime durumu ayrıca doğrulanacak.
-# PaddleOCR placeholder: benchmark sonrası sürüm ve CPU/GPU seçimi netleşecek.
-# EasyOCR placeholder: fallback adayı olarak benchmark edilecek.
-# pytesseract placeholder: Tesseract binary bağımlılığı ayrıca yönetilecek.
-opencv-python
-pillow
-numpy
+numpy==2.2.6
+opencv-python==4.13.0.92
+pillow==12.2.0
+paddlepaddle==3.3.1
+paddleocr==3.5.0
+pytesseract==0.3.13
+oneocr==1.0.12

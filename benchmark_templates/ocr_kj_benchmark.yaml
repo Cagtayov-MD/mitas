@@ -5,7 +5,6 @@ models_or_tools:
   - OneOCR
   - PaddleOCR / PP-OCRv5 multilingual
   - VITOS baseline
-  - EasyOCR
   - Tesseract
 test_video_set:
   total_hours: 20
@@ -35,5 +34,6 @@ final_decision: TBD
 decision_date: null
 blocking_before_model_install: true
 notes:
-  - Oncelik sirasi OneOCR, PaddleOCR, VITOS baseline, EasyOCR, Tesseract.
+  - Oncelik sirasi OneOCR, PaddleOCR, VITOS baseline, Tesseract.
+  - EasyOCR 2026-05-21 karariyla aktif benchmark/test kapsamindan cikarildi; PaddleOCR hatti primary adaydir.
   - Bu dosya plan sablonudur; model kurulumu veya benchmark sonucu icermez.

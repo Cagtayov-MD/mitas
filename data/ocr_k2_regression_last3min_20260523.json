@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "k2_regression_last3min_20260523",
+      "path": "C:/Users/TRT03/Desktop/evoArcadmin_COZUMLEMEV2S17_1991-0339-1-0000-01-1-K-2.mp4",
+      "kind": "end_credits",
+      "layout_type": "rolling_vertical",
+      "motion_type": "text_scrolling",
+      "expected_language": "en",
+      "start_seconds": 6070.005,
+      "end_seconds": 6250.005,
+      "fps": 6,
+      "scroll_auto_detect": true,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "K-2 regression smoke: broad last-3-min manifest should auto-trim to the pure scroll segment."
+    }
+  ]
+}
