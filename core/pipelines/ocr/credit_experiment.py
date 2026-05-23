@@ -624,7 +624,11 @@ def _run_item(
     ffmpeg_executable: str | None,
 ) -> dict[str, Any]:
     import os
-    USE_BOX_TRACK = os.environ.get("USE_BOX_TRACK_PIPELINE", "").strip().lower() in {"1", "true", "yes"}
+    # K-BoxTrack pipeline default ON since commit bf2c047 (D-split landed). The K-BoxTrack stack
+    # (B-port strict_global mask + C-kart overlap grouping + A-fb fallback + D-split pairing)
+    # is verified across 4 films and KUKLA. The legacy 8-stage path is kept for regression and
+    # comparison — set USE_BOX_TRACK_PIPELINE=0 (or "false"/"no") to fall back to it.
+    USE_BOX_TRACK = os.environ.get("USE_BOX_TRACK_PIPELINE", "1").strip().lower() not in {"0", "false", "no"}
     item_started = perf_counter()
     timings: dict[str, float] = {}
     warnings: list[str] = []
@@ -684,6 +688,7 @@ def _run_item(
                 frames=frames,
                 output_dir=item_dir / "unified",
                 paddle_engine=engines[0] if engines else None,
+                source_fps=effective_fps,
             )
             summary = {
                 "id": item.id,
