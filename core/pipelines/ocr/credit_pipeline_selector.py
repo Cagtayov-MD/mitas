@@ -72,10 +72,26 @@ def select_credit_pipeline(profile: Mapping[str, Any]) -> PipelineRecommendation
         steps.extend(["crawl_tracking", "temporal_stitching"])
         why.append("horizontal text motion detected")
     elif text_motion == "static_card":
-        temporal = "best_frame_selection"
-        steps.append("temporal_best_frame")
-        fallback.append("temporal_voting")
-        why.append("static text card detected")
+        # Router emits: flat_static, image_static, moving_scene, camera_motion, unknown.
+        # "static" is accepted as a normalized alias for callers that emit it.
+        if background in {"moving_scene", "camera_motion", "transition"}:
+            temporal = "temporal_variance_masking"
+            steps.extend(["temporal_variance_mask", "text_layer_extraction"])
+            fallback.extend(["temporal_median_fusion", "best_frame_selection", "temporal_voting"])
+            why.append("static text on moving background → variance masking")
+        elif background in {"flat_static", "image_static", "static"}:
+            temporal = "temporal_median_fusion"
+            steps.extend(["temporal_median_stack", "noise_reduction"])
+            fallback.extend(["best_frame_selection", "temporal_voting"])
+            why.append("static text on static background → median fusion")
+        else:
+            # Unknown BG: variance masking is the safer default. It also denoises
+            # a truly static BG (less optimally than median), but is robust if BG
+            # turns out to be moving.
+            temporal = "temporal_variance_masking"
+            steps.extend(["temporal_variance_mask", "text_layer_extraction"])
+            fallback.extend(["temporal_median_fusion", "best_frame_selection", "temporal_voting"])
+            why.append("static text + unknown background → variance masking (conservative)")
     elif text_motion == "mixed":
         temporal = "segment_then_route"
         steps.append("split_mixed_credit_segments")

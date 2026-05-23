@@ -782,6 +782,14 @@ def _run_item(
         timings["row_reconstruct_sec"] = round(perf_counter() - step_started, 3)
 
         step_started = perf_counter()
+        temporal_fusion = _run_temporal_fusion_hook(item_dir, scroll_reconstruct_frames, scene_profile)
+        timings["temporal_fusion_sec"] = round(perf_counter() - step_started, 3)
+        if temporal_fusion.get("status") == "done" and temporal_fusion.get("output_path"):
+            step_started_fuse_ocr = perf_counter()
+            temporal_fusion["ocr_records"] = _run_canvas_ocr(Path(temporal_fusion["output_path"]), engines)
+            timings["temporal_fusion_ocr_sec"] = round(perf_counter() - step_started_fuse_ocr, 3)
+
+        step_started = perf_counter()
         row_ocr = _run_row_crop_ocr(row_reconstruct, engines)
         timings["row_crop_ocr_sec"] = round(perf_counter() - step_started, 3)
 
@@ -803,6 +811,7 @@ def _run_item(
         _write_json(item_dir / "preprocessed_temporal_voting.json", preprocessed_temporal)
         _write_json(item_dir / "text_motion.json", motion)
         _write_json(item_dir / "row_reconstruct.json", row_reconstruct)
+        _write_json(item_dir / "temporal_fusion.json", temporal_fusion)
         _write_json(item_dir / "row_crop_ocr.json", row_ocr)
         (item_dir / "row_crop_ocr.md").write_text(_build_row_crop_ocr_report(row_ocr), encoding="utf-8")
         _write_json(item_dir / "descroll_canvas.json", canvas)
@@ -1000,6 +1009,31 @@ def _run_row_reconstruct_hook(item_dir: Path, frames: list[Path], scene_profile:
             "error": str(exc),
             "strategy": "text_layer_row_reconstruct_v1",
         }
+
+
+def _run_temporal_fusion_hook(item_dir: Path, frames: list[Path], scene_profile: dict[str, Any]) -> dict[str, Any]:
+    recommendation = scene_profile.get("recommended_pipeline") if isinstance(scene_profile, dict) else {}
+    temporal = str((recommendation or {}).get("temporal") or "")
+    if temporal not in {"temporal_median_fusion", "temporal_variance_masking"}:
+        return {
+            "status": "skipped",
+            "reason": f"recommended_temporal:{temporal or 'unknown'}",
+            "strategy": "temporal_fusion_v1",
+        }
+    try:
+        from core.pipelines.ocr.temporal_fusion import (
+            run_temporal_median_fusion,
+            run_temporal_variance_masking,
+        )
+        runner = run_temporal_median_fusion if temporal == "temporal_median_fusion" else run_temporal_variance_masking
+        result = runner(frame_paths=frames, output_dir=item_dir / "temporal_fusion", max_frames=None)
+        summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
+        summary["status"] = "done"
+        summary["summary_path"] = str(result.summary_path)
+        summary["output_path"] = str(result.output_path)
+        return summary
+    except Exception as exc:
+        return {"status": "failed", "error": str(exc), "strategy": temporal}
 
 
 def _row_reconstruct_summary(row_reconstruct: dict[str, Any]) -> dict[str, Any]:

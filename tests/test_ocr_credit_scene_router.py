@@ -28,7 +28,10 @@ def test_router_detects_static_lower_third_card(tmp_path: Path) -> None:
     assert profile.text_motion.type == "static_card"
     assert profile.layout.type == "lower_third"
     assert profile.recommended_pipeline["roi"] == "bottom_35"
-    assert profile.recommended_pipeline["temporal"] == "best_frame_selection"
+    # K-3/K-4: static_card now routes to temporal_median_fusion (static BG) or
+    # temporal_variance_masking (moving BG); best_frame_selection drops to fallback.
+    assert profile.recommended_pipeline["temporal"] in {"temporal_median_fusion", "temporal_variance_masking"}
+    assert "best_frame_selection" in profile.recommended_pipeline["fallback_pipelines"]
 
 
 def test_router_marks_low_contrast_as_preprocess_need(tmp_path: Path) -> None:

@@ -372,6 +372,76 @@ def test_run_credit_experiment_writes_outputs_with_fake_engine(tmp_path, monkeyp
     assert json.loads((item_dir / "temporal_voting.json").read_text(encoding="utf-8"))["stable_groups"] == 1
 
 
+def test_temporal_fusion_hook_runs_when_scene_recommends_median(tmp_path, monkeypatch) -> None:
+    """Integration: when scene_router recommends temporal_median_fusion,
+    the experiment hook must actually execute it and write temporal_fusion.json."""
+    cv2 = pytest.importorskip("cv2")
+    np = pytest.importorskip("numpy")
+
+    source = tmp_path / "input.mp4"
+    source.write_bytes(b"fake-video")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps({"items": [{"id": "sample", "path": str(source), "kind": "end_credits", "start_seconds": 0, "end_seconds": 2}]}),
+        encoding="utf-8",
+    )
+
+    def fake_extract(input_path, frames_dir, **kwargs):
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        rng = np.random.default_rng(11)
+        base = np.zeros((120, 200, 3), dtype=np.uint8)
+        cv2.putText(base, "STATIC", (40, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+        frames = []
+        for index in range(5):
+            noisy = (base.astype(np.int32) + rng.integers(-15, 16, size=base.shape)).clip(0, 255).astype(np.uint8)
+            path = frames_dir / f"frame_{index:03d}.png"
+            cv2.imwrite(str(path), noisy)
+            frames.append(path)
+        return frames
+
+    def fake_scene(frames, item, **kwargs):
+        return {
+            "segment_id": "sample",
+            "background": {"type": "flat_static", "confidence": 0.88, "evidence": {}},
+            "text_motion": {"type": "static_card", "confidence": 0.78, "evidence": {}},
+            "layout": {"type": "lower_third", "confidence": 0.85, "evidence": {}},
+            "difficulty": {"labels": [], "score": 0.2, "confidence": 0.7, "evidence": {}},
+            "recommended_pipeline": {"temporal": "temporal_median_fusion", "steps": [], "roi": "full_frame", "preprocess": [], "ocr": "paddle_ppocrv5", "parser": "plain_line_parser", "fallback_pipelines": [], "why": []},
+            "raw_features": {"frame_count": 5},
+        }
+
+    def fake_motion(frames, records, **kwargs):
+        return {"strategy": "text_mask_motion", "frame_count": len(frames), "shifts": [], "mean_text_shift": [0.0, 0.0], "mean_global_shift": [0.0, 0.0]}
+
+    def fake_canvas(frames, motion, *, output_path):
+        output_path.write_bytes(b"fake-canvas")
+        return {"strategy": "descroll_canvas", "frame_count": len(frames), "canvas_path": str(output_path), "canvas_size": [100, 100], "estimated_orientation": "static", "motion_shifts": [], "warnings": []}
+
+    monkeypatch.setattr(ce, "_extract_segment_frames", fake_extract)
+    monkeypatch.setattr(ce, "_analyze_scene_profile", fake_scene)
+    monkeypatch.setattr(ce, "analyze_text_motion", fake_motion)
+    monkeypatch.setattr(ce, "build_descroll_canvas", fake_canvas)
+
+    result = ce.run_credit_experiment(
+        manifest,
+        output_dir=tmp_path / "out",
+        engines=["fake"],
+        preprocess_mode="off",
+        allow_model_download=False,
+        engine_factories={"fake": lambda: FakeOcrEngine()},
+    )
+
+    item_dir = result.output_dir / "items" / "sample"
+    fusion_json_path = item_dir / "temporal_fusion.json"
+    assert fusion_json_path.exists(), "temporal_fusion.json must be written"
+
+    fusion = json.loads(fusion_json_path.read_text(encoding="utf-8"))
+    assert fusion["status"] == "done", f"hook must succeed, got: {fusion}"
+    assert fusion["strategy"] == "temporal_median_fusion"
+    assert Path(fusion["output_path"]).exists()
+    assert (Path(fusion["output_path"]).parent / "report.md").exists()
+
+
 def test_cli_delegates_to_runner(tmp_path, monkeypatch, capsys) -> None:
     from scripts import ocr_credit_experiment as cli
 
