@@ -26,8 +26,8 @@ def test_row_reconstruct_exports_composite_rows_and_auto_split(tmp_path: Path) -
     assert "quality" in summary
     assert summary["quality"]["score"] >= 0.0
     assert "frame_filter" in summary
-    assert summary["candidate_selector"]["selected"] in {"current_displacement", "static_best_frame", "cruise_speed_ema"}
-    assert len(summary["candidate_selector"]["candidates"]) >= 3
+    assert summary["candidate_selector"]["selected"] in {"current_displacement", "static_best_frame"}
+    assert len(summary["candidate_selector"]["candidates"]) >= 2
 
 
 def test_quality_score_flags_blank_lower_than_text_image() -> None:
@@ -80,7 +80,7 @@ def _make_scrolling_role_name_frames(directory: Path) -> list[Path]:
     np = pytest.importorskip("numpy")
 
     directory.mkdir(parents=True, exist_ok=True)
-    frame_count = 36
+    frame_count = 60
     rows = [
         ("Director", "MICHAEL BIEHN"),
         ("Producer", "ANNE DENMAN"),
