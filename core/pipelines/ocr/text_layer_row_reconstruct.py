@@ -391,8 +391,11 @@ def _score_row_candidate(
     penalty = 0.0
     if row_count == 0:
         penalty += 0.45
-    elif row_count > 90:
-        penalty += 0.18
+    elif row_count > 300:
+        # Only penalize *very* dense composites (>300 rows is usually a broken stitch
+        # with ghosting). A long real credit scroll commonly has 100-250 rows and
+        # should NOT be considered worse than a 10-row static best-frame.
+        penalty += 0.10
     height, width = composite.shape[:2]
     if height < 80:
         penalty += 0.16
