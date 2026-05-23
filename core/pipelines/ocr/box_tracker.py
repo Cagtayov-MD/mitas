@@ -506,19 +506,60 @@ def group_static_tracks_into_cards(
     tracks: list[TextTrack],
     *,
     max_time_gap_seconds: float = 1.5,
-    max_y_overlap_ratio: float = 0.4,
+    max_y_overlap_ratio: float = 0.0,
+    mode: str | None = None,
+    min_window_overlap_ratio: float = 0.3,
 ) -> list[dict]:
-    """Group static tracks that share a temporal window AND share/are-close-in y-band into 'cards'.
+    """Group static tracks into cards.
+
+    mode:
+      None/"gap"     → first_ts farkı > max_time_gap_seconds ise yeni kart (mevcut davranış).
+      "overlap"      → yaşam pencereleri [first_ts, last_ts] overlap ediyorsa aynı kart;
+                       ratio = overlap_duration / min(card_duration, track_duration);
+                       ratio < min_window_overlap_ratio ise yeni kart.
+
+    Aynı kartta birden fazla satır farklı stride frame'lerinde doğduğu için
+    "gap" modu over-segment ediyor; "overlap" modu sahnede gerçekten birlikte
+    olan track'leri tek kartta toplar.
 
     Returns list of {card_id, track_ids, first_timestamp, last_timestamp, y_range, member_count}.
-    A new card starts when (a) gap between consecutive static track first_timestamps > max_time_gap_seconds,
-    or (b) y-overlap with existing card y_range < max_y_overlap_ratio.
     Only consumes tracks where classify_track_motion(...) == 'static_text'.
     """
+    if mode is None:
+        mode = _card_grouping_mode()
+
     static_tracks = [t for t in tracks if classify_track_motion(t) == "static_text"]
     if not static_tracks:
         return []
 
+    if mode == "overlap":
+        return _group_by_window_overlap(
+            static_tracks,
+            min_window_overlap_ratio=min_window_overlap_ratio,
+            max_y_overlap_ratio=max_y_overlap_ratio,
+        )
+    # default "gap"
+    return _group_by_first_ts_gap(
+        static_tracks,
+        max_time_gap_seconds=max_time_gap_seconds,
+        max_y_overlap_ratio=max_y_overlap_ratio,
+    )
+
+
+def _card_grouping_mode() -> str:
+    """Env var'dan mode oku. OCR_CARD_GROUPING: gap|overlap. Default gap."""
+    import os
+    value = os.environ.get("OCR_CARD_GROUPING", "gap").strip().lower()
+    return value if value in {"gap", "overlap"} else "gap"
+
+
+def _group_by_first_ts_gap(
+    static_tracks: list[TextTrack],
+    *,
+    max_time_gap_seconds: float,
+    max_y_overlap_ratio: float,
+) -> list[dict]:
+    """first_ts farkı > max_time_gap_seconds ise yeni kart (orijinal davranış)."""
     # Sort by first_timestamp then by median y
     def _sort_key(t: TextTrack) -> tuple[float, float]:
         ts = t.first_timestamp_seconds if t.first_timestamp_seconds is not None else 0.0
@@ -572,7 +613,10 @@ def group_static_tracks_into_cards(
             current_card_tracks.append(track)
             continue
 
-        # Check time gap
+        # Time-gap between consecutive sorted track first_timestamps. Tracks are
+        # sorted by first_ts, so this measures the spacing between adjacent track
+        # birth events. A large gap signals a card boundary (the previous card
+        # stopped spawning lines; a new card began).
         prev_first_ts = current_card_tracks[-1].first_timestamp_seconds
         this_first_ts = track.first_timestamp_seconds
         time_gap = 0.0
@@ -584,15 +628,117 @@ def group_static_tracks_into_cards(
             current_card_tracks = [track]
             continue
 
-        # Check y-overlap
-        y_range = _card_y_range(current_card_tracks)
-        overlap = _y_overlap_ratio(y_range, track)
-        if overlap < max_y_overlap_ratio:
-            _flush_card(current_card_tracks)
-            current_card_tracks = [track]
-            continue
+        # Optional y-overlap gate (disabled by default; only enforced when ratio > 0)
+        if max_y_overlap_ratio > 0:
+            y_range = _card_y_range(current_card_tracks)
+            overlap = _y_overlap_ratio(y_range, track)
+            if overlap < max_y_overlap_ratio:
+                _flush_card(current_card_tracks)
+                current_card_tracks = [track]
+                continue
 
         current_card_tracks.append(track)
+
+    _flush_card(current_card_tracks)
+    return cards
+
+
+def _group_by_window_overlap(
+    static_tracks: list[TextTrack],
+    *,
+    min_window_overlap_ratio: float,
+    max_y_overlap_ratio: float,
+) -> list[dict]:
+    """Yaşam penceresi overlap'ine göre grupla.
+
+    Track A [A.first, A.last] ile card'ın kümülatif penceresi [win_first, win_last]
+    kesişme oranı >= min_window_overlap_ratio ise aynı kart; değilse yeni kart açılır.
+    """
+    def _sort_key(t: TextTrack) -> tuple[float, float]:
+        ts = t.first_timestamp_seconds if t.first_timestamp_seconds is not None else 0.0
+        y = t.median_bbox[1]
+        return (ts, y)
+
+    static_tracks = sorted(static_tracks, key=_sort_key)
+
+    cards: list[dict] = []
+    current_card_tracks: list[TextTrack] = []
+    current_window: tuple[float, float] | None = None  # (first_ts_min, last_ts_max)
+
+    def _track_window(t: TextTrack) -> tuple[float, float]:
+        first = t.first_timestamp_seconds if t.first_timestamp_seconds is not None else 0.0
+        last = t.last_timestamp_seconds if t.last_timestamp_seconds is not None else first
+        return (first, last)
+
+    def _window_overlap_ratio(window: tuple[float, float], track_window: tuple[float, float]) -> float:
+        overlap = max(0.0, min(window[1], track_window[1]) - max(window[0], track_window[0]))
+        card_dur = max(0.0, window[1] - window[0])
+        track_dur = max(0.0, track_window[1] - track_window[0])
+        min_dur = min(card_dur, track_dur)
+        if min_dur <= 0.0:
+            return 1.0 if overlap > 0 else 0.0
+        return overlap / min_dur
+
+    def _flush_card(card_tracks: list[TextTrack]) -> None:
+        if not card_tracks:
+            return
+        card_id = f"card_{len(cards) + 1:03d}"
+        first_ts = min(
+            (t.first_timestamp_seconds for t in card_tracks if t.first_timestamp_seconds is not None),
+            default=0.0,
+        )
+        last_ts = max(
+            (t.last_timestamp_seconds for t in card_tracks if t.last_timestamp_seconds is not None),
+            default=0.0,
+        )
+        y_min = min(t.median_bbox[1] for t in card_tracks)
+        y_max = max(t.median_bbox[1] + t.median_bbox[3] for t in card_tracks)
+        cards.append({
+            "card_id": card_id,
+            "track_ids": [t.track_id for t in card_tracks],
+            "first_timestamp": first_ts,
+            "last_timestamp": last_ts,
+            "y_range": [y_min, y_max],
+            "member_count": len(card_tracks),
+        })
+
+    def _y_overlap_ratio_helper(card_tracks: list[TextTrack], track: TextTrack) -> float:
+        y_min = min(t.median_bbox[1] for t in card_tracks)
+        y_max = max(t.median_bbox[1] + t.median_bbox[3] for t in card_tracks)
+        track_y0 = track.median_bbox[1]
+        track_y1 = track_y0 + track.median_bbox[3]
+        inter = max(0.0, min(y_max, track_y1) - max(y_min, track_y0))
+        union = max(y_max, track_y1) - min(y_min, track_y0)
+        return inter / union if union > 0 else 0.0
+
+    for track in static_tracks:
+        tw = _track_window(track)
+        if not current_card_tracks:
+            current_card_tracks = [track]
+            current_window = tw
+            continue
+
+        ratio = _window_overlap_ratio(current_window, tw)
+        if ratio < min_window_overlap_ratio:
+            _flush_card(current_card_tracks)
+            current_card_tracks = [track]
+            current_window = tw
+            continue
+
+        # Optional y-overlap gate (rare use; default 0.0 → kapalı)
+        if max_y_overlap_ratio > 0:
+            y_overlap = _y_overlap_ratio_helper(current_card_tracks, track)
+            if y_overlap < max_y_overlap_ratio:
+                _flush_card(current_card_tracks)
+                current_card_tracks = [track]
+                current_window = tw
+                continue
+
+        current_card_tracks.append(track)
+        current_window = (
+            min(current_window[0], tw[0]),
+            max(current_window[1], tw[1]),
+        )
 
     _flush_card(current_card_tracks)
     return cards

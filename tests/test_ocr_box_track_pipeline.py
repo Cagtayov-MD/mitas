@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 from core.pipelines.ocr.box_tracker import (
     TextTrack,
     TextTrackObservation,
+    _card_grouping_mode,
     build_text_tracks,
     classify_track_motion,
     group_static_tracks_into_cards,
@@ -190,3 +191,133 @@ def test_unified_pipeline_mock_smoke(tmp_path: Path) -> None:
     assert isinstance(result.summary, dict)
     assert "total_tracks" in result.summary
     assert result.cards_dir.exists()
+
+
+# ---------------------------------------------------------------------------
+# Test 6: group_static_tracks_into_cards — overlap mode merges overlapping lifespans
+# ---------------------------------------------------------------------------
+
+
+def test_group_static_tracks_overlap_mode_merges_overlapping_lifespans() -> None:
+    """3 track aynı sahnede [0,5][1,5.5][2,6] overlap → tek kart. 4. track [10,15] → ayrı kart."""
+
+    def mk_track(tid: str, first: float, last: float, y: float = 100.0) -> TextTrack:
+        mid = (first + last) / 2.0
+        return TextTrack(
+            track_id=tid,
+            engine="fake",
+            observations=tuple([
+                TextTrackObservation(
+                    record_index=int(first * 6),
+                    frame_index=int(first * 6),
+                    frame=f"frame_{int(first*6):05d}.png",
+                    timestamp_seconds=first,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+                TextTrackObservation(
+                    record_index=int(mid * 6),
+                    frame_index=int(mid * 6),
+                    frame=f"frame_{int(mid*6):05d}.png",
+                    timestamp_seconds=mid,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+                TextTrackObservation(
+                    record_index=int(last * 6),
+                    frame_index=int(last * 6),
+                    frame=f"frame_{int(last*6):05d}.png",
+                    timestamp_seconds=last,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+            ]),
+            velocity_x_px_frame=0.0,
+            velocity_y_px_frame=0.0,
+        )
+
+    tracks = [
+        mk_track("t1", 0.0, 5.0, y=100.0),
+        mk_track("t2", 1.0, 5.5, y=150.0),
+        mk_track("t3", 2.0, 6.0, y=200.0),
+        mk_track("t4", 10.0, 15.0, y=100.0),
+    ]
+    cards = group_static_tracks_into_cards(tracks, mode="overlap", min_window_overlap_ratio=0.3)
+    assert len(cards) == 2, f"2 kart bekleniyor, görülen: {[c['track_ids'] for c in cards]}"
+    assert set(cards[0]["track_ids"]) == {"t1", "t2", "t3"}
+    assert cards[1]["track_ids"] == ["t4"]
+
+
+# ---------------------------------------------------------------------------
+# Test 7: group_static_tracks_into_cards — default gap mode unchanged (env var)
+# ---------------------------------------------------------------------------
+
+
+def test_group_static_tracks_gap_mode_default_unchanged(monkeypatch: object) -> None:
+    """OCR_CARD_GROUPING set edilmemişse default 'gap' mode, davranış değişmedi."""
+    import os
+    # monkeypatch is a pytest fixture; type: ignore below for mypy
+    monkeypatch.delenv("OCR_CARD_GROUPING", raising=False)  # type: ignore[attr-defined]
+    assert _card_grouping_mode() == "gap"
+
+    def mk_track(tid: str, first: float, last: float, y: float = 100.0) -> TextTrack:
+        mid = (first + last) / 2.0
+        return TextTrack(
+            track_id=tid,
+            engine="fake",
+            observations=tuple([
+                TextTrackObservation(
+                    record_index=int(first * 6),
+                    frame_index=int(first * 6),
+                    frame=f"frame_{int(first*6):05d}.png",
+                    timestamp_seconds=first,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+                TextTrackObservation(
+                    record_index=int(mid * 6),
+                    frame_index=int(mid * 6),
+                    frame=f"frame_{int(mid*6):05d}.png",
+                    timestamp_seconds=mid,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+                TextTrackObservation(
+                    record_index=int(last * 6),
+                    frame_index=int(last * 6),
+                    frame=f"frame_{int(last*6):05d}.png",
+                    timestamp_seconds=last,
+                    bbox=(100.0, y, 200.0, 30.0),
+                    text="x",
+                    normalized_text="x",
+                    confidence=0.9,
+                    area=200.0 * 30.0,
+                ),
+            ]),
+            velocity_x_px_frame=0.0,
+            velocity_y_px_frame=0.0,
+        )
+
+    # 2 track birbirine 0.5sn yakın (first_ts gap=0.5 < 1.5), 3. track 5sn sonra → gap mode'da 2 kart
+    tracks = [
+        mk_track("a", 0.0, 1.0),
+        mk_track("b", 0.5, 1.5),
+        mk_track("c", 5.0, 6.0),
+    ]
+    cards = group_static_tracks_into_cards(tracks)  # mode=None → env → "gap"
+    assert len(cards) == 2, f"2 kart bekleniyor, görülen: {[c['track_ids'] for c in cards]}"
