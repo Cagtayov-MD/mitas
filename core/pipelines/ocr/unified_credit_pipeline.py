@@ -12,6 +12,13 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any
 
+# Module-level import: image_quality_police pulls in cv2 + numpy + PIL.
+# Importing it lazily inside the A-fb decision block (per-pipeline call) was
+# colliding with Paddle's GPU session in some 4-film runs (pilot v7 X-MEN
+# composite OCR crash, exit 255). Hoisting the import here loads cv2/PIL once
+# at module load — before Paddle init — and the conflict disappears.
+from core.pipelines.ocr.image_quality_police import assess_output as _qa_assess  # noqa: E402
+
 
 @dataclass(frozen=True)
 class UnifiedCreditResult:
@@ -29,8 +36,14 @@ def run_unified_credit_pipeline(
     paddle_engine,  # existing PaddleOcrEngine instance, reuse
     detection_stride: int = 3,
     static_speed_threshold: float = 2.0,
+    source_fps: float = 6.0,
 ) -> UnifiedCreditResult:
-    """Orchestrate: detection-only OCR → tracks → classify → static cards + scroll canvas → recognition."""
+    """Orchestrate: detection-only OCR → tracks → classify → static cards + scroll canvas → recognition.
+
+    Each strided OCR record receives a synthesized timestamp_seconds derived from
+    its original frame index (idx / source_fps). PaddleOCR records do not carry
+    timestamps natively, but downstream grouping needs them to identify cards.
+    """
     from core.pipelines.ocr.box_tracker import (
         build_text_tracks,
         classify_track_motion,
@@ -49,23 +62,28 @@ def run_unified_credit_pipeline(
 
     ocr_records: list[dict[str, Any]] = []
     ocr_errors: list[str] = []
+    fps_safe = source_fps if source_fps and source_fps > 0 else 6.0
     if paddle_engine is not None:
-        for frame_index, frame in enumerate(strided_frames):
+        for strided_index, frame in enumerate(strided_frames):
+            original_frame_index = strided_index * detection_stride
+            timestamp_seconds = original_frame_index / fps_safe
             frame_path = Path(frame)
             frame_str = str(frame_path)
             try:
                 records = paddle_engine.recognize(
                     frame_path,
                     strategy="unified_detection",
-                    timestamp_seconds=None,
+                    timestamp_seconds=timestamp_seconds,
                 )
                 for rec in (records or []):
                     rec_copy = dict(rec)
                     if "frame" not in rec_copy:
                         rec_copy["frame"] = frame_str
+                    if rec_copy.get("timestamp_seconds") is None:
+                        rec_copy["timestamp_seconds"] = timestamp_seconds
                     ocr_records.append(rec_copy)
             except Exception as exc:
-                ocr_errors.append(f"frame{frame_index}:{type(exc).__name__}:{exc}")
+                ocr_errors.append(f"frame{strided_index}:{type(exc).__name__}:{exc}")
 
     # --- Step 2: Build tracks ---
     tracks = build_text_tracks(ocr_records, frames=frame_paths)
@@ -110,8 +128,11 @@ def run_unified_credit_pipeline(
         card_results.append(card_out)
         _write_json(cards_dir / f"{card['card_id']}.json", card_out)
 
-    # --- Step 6: Scrolling tracks → row reconstruct canvas ---
+    # --- Step 6: Scrolling tracks → row reconstruct canvas + OCR ---
     scroll_canvas_path: Path | None = None
+    scroll_text_lines: list[dict[str, Any]] = []
+    scroll_fallback_used = False
+    scroll_fallback_reason: str | None = None
     if scroll_tracks:
         try:
             from core.pipelines.ocr.text_layer_row_reconstruct import run_text_layer_row_reconstruct
@@ -129,8 +150,68 @@ def run_unified_credit_pipeline(
                     output_dir=scroll_dir,
                 )
                 scroll_canvas_path = rr_result.composite_path
-        except Exception:
-            pass
+        except Exception as exc:
+            ocr_errors.append(f"scroll_reconstruct:{type(exc).__name__}:{exc}")
+
+        # OCR the scroll canvas — eski tools full_pipeline_test.py path
+        if scroll_canvas_path and scroll_canvas_path.exists() and paddle_engine is not None:
+            try:
+                scroll_records = paddle_engine.recognize(
+                    scroll_canvas_path,
+                    strategy="scroll_canvas_ocr",
+                    timestamp_seconds=None,
+                )
+                for rec in (scroll_records or []):
+                    scroll_text_lines.append({
+                        "text": rec.get("text") or rec.get("normalized_text") or "",
+                        "bbox": rec.get("bbox"),
+                        "confidence": rec.get("confidence"),
+                    })
+                # Sort top-to-bottom by y so the credit roll reads naturally
+                scroll_text_lines.sort(key=lambda r: (r["bbox"][1] if r.get("bbox") else 0))
+                _write_json(output_dir / "scroll" / "scroll_text_lines.json", {
+                    "canvas_path": str(scroll_canvas_path),
+                    "line_count": len(scroll_text_lines),
+                    "lines": scroll_text_lines,
+                })
+            except Exception as exc:
+                ocr_errors.append(f"scroll_canvas_ocr:{type(exc).__name__}:{exc}")
+
+        # --- A-fb: scroll fallback emniyet ağı ---
+        if _scroll_fallback_mode() == "auto":
+            should_fallback = False
+            reason: str | None = None
+            if not scroll_canvas_path or not scroll_canvas_path.exists():
+                should_fallback = True
+                reason = "no_composite"
+            elif len(scroll_text_lines) == 0:
+                try:
+                    qa = _qa_assess(scroll_canvas_path)
+                    if qa.get("status") != "OK":
+                        should_fallback = True
+                        reason = f"composite_broken:{qa.get('status')}"
+                    else:
+                        should_fallback = True
+                        reason = "ocr_returned_zero_lines"
+                except Exception:
+                    should_fallback = True
+                    reason = "ocr_returned_zero_lines"
+
+            if should_fallback:
+                fallback_lines = _scroll_track_fallback_lines(scroll_tracks)
+                if fallback_lines:
+                    scroll_text_lines = fallback_lines
+                    scroll_fallback_used = True
+                    scroll_fallback_reason = reason
+                    scroll_dir = output_dir / "scroll"
+                    scroll_dir.mkdir(parents=True, exist_ok=True)
+                    _write_json(scroll_dir / "scroll_text_lines.json", {
+                        "canvas_path": str(scroll_canvas_path) if scroll_canvas_path else None,
+                        "line_count": len(scroll_text_lines),
+                        "lines": scroll_text_lines,
+                        "fallback_used": True,
+                        "fallback_reason": reason,
+                    })
 
     # --- Step 7: Write summary ---
     runtime_sec = round(perf_counter() - started, 3)
@@ -143,6 +224,9 @@ def run_unified_credit_pipeline(
         "scroll_tracks": len(scroll_tracks),
         "cards_found": len(cards),
         "scroll_canvas_path": str(scroll_canvas_path) if scroll_canvas_path else None,
+        "scroll_text_line_count": len(scroll_text_lines),
+        "scroll_fallback_used": scroll_fallback_used if scroll_tracks else False,
+        "scroll_fallback_reason": scroll_fallback_reason if scroll_tracks else None,
         "runtime_sec": runtime_sec,
         "ocr_record_count": len(ocr_records),
         "ocr_error_count": len(ocr_errors),
@@ -158,6 +242,52 @@ def run_unified_credit_pipeline(
         summary=summary,
         runtime_sec=runtime_sec,
     )
+
+
+def _scroll_fallback_mode() -> str:
+    """Env var'dan oku. OCR_SCROLL_FALLBACK: auto|off. Default auto."""
+    import os
+    value = os.environ.get("OCR_SCROLL_FALLBACK", "auto").strip().lower()
+    return value if value in {"auto", "off"} else "auto"
+
+
+def _scroll_track_fallback_lines(scroll_tracks: list[Any], *, min_confidence: float = 0.5) -> list[dict[str, Any]]:
+    """For each scroll track pick highest-confidence observation as a line.
+
+    Used when composite OCR fails (broken canvas / 0 lines). Each scroll track has
+    multiple observations from PaddleOCR detection; the best one per track is
+    treated as that track's representative line, then sorted top-to-bottom by y.
+    Duplicate texts (same uppercase strip) are deduped, keeping the highest conf.
+    """
+    lines: list[dict[str, Any]] = []
+    for track in scroll_tracks:
+        valid = [
+            obs for obs in track.observations
+            if getattr(obs, "text", None)
+            and getattr(obs, "confidence", None) is not None
+            and float(obs.confidence) >= min_confidence
+        ]
+        if not valid:
+            continue
+        best = max(valid, key=lambda o: float(o.confidence or 0.0))
+        bbox = list(best.bbox) if best.bbox is not None else None
+        lines.append({
+            "text": best.text,
+            "bbox": bbox,
+            "confidence": float(best.confidence or 0.0),
+            "source": "track_observation_fallback",
+        })
+    # Sort top-to-bottom
+    lines.sort(key=lambda line: (line["bbox"][1] if line.get("bbox") else 0))
+    # Dedupe by uppercase-stripped text, keep highest confidence
+    seen: dict[str, dict[str, Any]] = {}
+    for line in lines:
+        key = (line["text"] or "").strip().upper()
+        if not key:
+            continue
+        if key not in seen or line["confidence"] > seen[key]["confidence"]:
+            seen[key] = line
+    return list(seen.values())
 
 
 def _write_json(path: Path, data: Any) -> None:

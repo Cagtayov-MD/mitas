@@ -321,3 +321,145 @@ def test_group_static_tracks_gap_mode_default_unchanged(monkeypatch: object) -> 
     ]
     cards = group_static_tracks_into_cards(tracks)  # mode=None → env → "gap"
     assert len(cards) == 2, f"2 kart bekleniyor, görülen: {[c['track_ids'] for c in cards]}"
+
+
+# ---------------------------------------------------------------------------
+# Test 8: _scroll_track_fallback_lines — best obs per track, y-sorted, filtered
+# ---------------------------------------------------------------------------
+
+
+def test_scroll_track_fallback_lines_picks_best_per_track() -> None:
+    """Her track için en yüksek conf observation seçilir, y-sıralı döner."""
+    from core.pipelines.ocr.unified_credit_pipeline import _scroll_track_fallback_lines
+
+    t1 = TextTrack(
+        track_id="t1",
+        engine="fake",
+        observations=(
+            TextTrackObservation(
+                record_index=0,
+                frame_index=0,
+                frame="frame_00000.png",
+                timestamp_seconds=0.0,
+                bbox=(100.0, 50.0, 200.0, 30.0),
+                text="HELMUT SCHNEIDER",
+                normalized_text="HELMUT SCHNEIDER",
+                confidence=0.8,
+                area=200.0 * 30.0,
+            ),
+            TextTrackObservation(
+                record_index=3,
+                frame_index=3,
+                frame="frame_00003.png",
+                timestamp_seconds=0.5,
+                bbox=(100.0, 50.0, 200.0, 30.0),
+                text="HELMUT SCHNEIDER",
+                normalized_text="HELMUT SCHNEIDER",
+                confidence=0.99,
+                area=200.0 * 30.0,
+            ),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=3.0,
+    )
+    t2 = TextTrack(
+        track_id="t2",
+        engine="fake",
+        observations=(
+            TextTrackObservation(
+                record_index=0,
+                frame_index=0,
+                frame="frame_00000.png",
+                timestamp_seconds=0.0,
+                bbox=(100.0, 100.0, 200.0, 30.0),
+                text="ALY BEN AYED",
+                normalized_text="ALY BEN AYED",
+                confidence=0.95,
+                area=200.0 * 30.0,
+            ),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=3.0,
+    )
+    t3 = TextTrack(
+        track_id="t3",
+        engine="fake",
+        observations=(
+            TextTrackObservation(
+                record_index=0,
+                frame_index=0,
+                frame="frame_00000.png",
+                timestamp_seconds=0.0,
+                bbox=(100.0, 30.0, 200.0, 30.0),
+                text="BRUNO DIETRICH",
+                normalized_text="BRUNO DIETRICH",
+                confidence=0.45,  # below threshold
+                area=200.0 * 30.0,
+            ),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=3.0,
+    )
+
+    lines = _scroll_track_fallback_lines([t1, t2, t3], min_confidence=0.5)
+
+    # t3 düşük conf, filtrelendi; t1 ve t2 kaldı
+    assert len(lines) == 2
+    # Y-sıralı: t1 (y=50) önce, t2 (y=100) sonra
+    assert lines[0]["text"] == "HELMUT SCHNEIDER"
+    assert lines[0]["confidence"] == 0.99  # best obs seçildi
+    assert lines[0]["source"] == "track_observation_fallback"
+    assert lines[1]["text"] == "ALY BEN AYED"
+
+
+# ---------------------------------------------------------------------------
+# Test 9: _scroll_track_fallback_lines — dedupe by uppercase text
+# ---------------------------------------------------------------------------
+
+
+def test_scroll_track_fallback_lines_dedupes_by_text() -> None:
+    """Aynı text'e sahip iki track varsa en yüksek conf olanı kalır."""
+    from core.pipelines.ocr.unified_credit_pipeline import _scroll_track_fallback_lines
+
+    t1 = TextTrack(
+        track_id="t1",
+        engine="fake",
+        observations=(
+            TextTrackObservation(
+                record_index=0,
+                frame_index=0,
+                frame="frame_00000.png",
+                timestamp_seconds=0.0,
+                bbox=(100.0, 50.0, 200.0, 30.0),
+                text="SAME LINE",
+                normalized_text="SAME LINE",
+                confidence=0.7,
+                area=200.0 * 30.0,
+            ),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=3.0,
+    )
+    t2 = TextTrack(
+        track_id="t2",
+        engine="fake",
+        observations=(
+            TextTrackObservation(
+                record_index=6,
+                frame_index=6,
+                frame="frame_00006.png",
+                timestamp_seconds=1.0,
+                bbox=(100.0, 200.0, 200.0, 30.0),
+                text="same line",  # case-insensitive dupe
+                normalized_text="same line",
+                confidence=0.95,
+                area=200.0 * 30.0,
+            ),
+        ),
+        velocity_x_px_frame=0.0,
+        velocity_y_px_frame=3.0,
+    )
+
+    lines = _scroll_track_fallback_lines([t1, t2], min_confidence=0.5)
+    assert len(lines) == 1
+    assert lines[0]["confidence"] == 0.95
