@@ -261,6 +261,27 @@ def _trim_composite_by_row_gap(
         "original_height": int(composite.shape[0]),
         "trimmed_height": int(trimmed.shape[0]),
     }
+
+    # Self-correction: only revert when an extreme imbalance (≤2 rows kept, ≥5
+    # dropped) signals the trim ate real content, not a tail.  The old 30%-kept
+    # threshold was too wide — it falsely reversed legitimate large-tail trims
+    # (e.g. JURASSIC: 82 kept / 211 dropped).  Keeping the threshold at ≤2
+    # limits reversion to truly degenerate cases like ANJELIK (1 kept / 13 dropped).
+    kept_count = len(relabeled)
+    dropped_count = len(ordered) - kept_count
+    if kept_count <= 2 and dropped_count >= 5:
+        reverted_info = {
+            "applied": False,
+            "reason": "self_corrected_kept_too_few",
+            "median_gap_px": round(median_gap, 2),
+            "threshold_px": round(threshold, 2),
+            "cut_gap_px": int(cut_gap or 0),
+            "would_keep_rows": kept_count,
+            "would_drop_rows": dropped_count,
+            "total_rows": len(ordered),
+        }
+        return reverted_info, composite, rows
+
     return info, trimmed, relabeled
 
 
@@ -770,7 +791,18 @@ def _moving_average(values: list[float], width: int) -> list[float]:
     return np.convolve(padded, kernel, mode="valid")[: len(values)].tolist()
 
 
-def _frame_text_mask(gray: Any, cv2: Any, np: Any) -> Any:
+def _text_mask_mode() -> str:
+    """Env var'dan mode oku. OCR_TEXT_MASK_MODE: current|strict_global|hybrid. Default current."""
+    import os
+
+    value = os.environ.get("OCR_TEXT_MASK_MODE", "current").strip().lower()
+    if value not in {"current", "strict_global", "hybrid"}:
+        return "current"
+    return value
+
+
+def _frame_text_mask_current(gray: Any, cv2: Any, np: Any) -> Any:
+    """Mevcut MITAS davranışı — değiştirme."""
     blur = cv2.GaussianBlur(gray, (0, 0), 3)
     local = cv2.absdiff(gray, blur)
     threshold = max(7.0, float(local.mean()) + float(local.std()) * 1.2)
@@ -779,6 +811,38 @@ def _frame_text_mask(gray: Any, cv2: Any, np: Any) -> Any:
     edges = cv2.Canny(gray, 70, 180)
     mask = cv2.bitwise_or(mask, cv2.bitwise_and(cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1), bright.astype(np.uint8) * 255))
     return cv2.dilate(_filter_text_components(mask, cv2, np), np.ones((7, 7), np.uint8), iterations=1)
+
+
+def _frame_text_mask_strict_global(gray: Any, cv2: Any, np: Any) -> Any:
+    """Eski tools/scroll_reconstructor.py:_text_mask portu.
+
+    Global sıkı parlaklık eşiği — sadece gerçekten parlak pikseller geçer.
+    Hareketli BG dokusunu eler, LK feature tracker'ı text harflerine kilitler.
+    """
+    threshold = max(45.0, float(gray.mean()) + float(gray.std()))
+    _, mask = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+    return cv2.dilate(mask, np.ones((11, 11), np.uint8))
+
+
+def _frame_text_mask(gray: Any, cv2: Any, np: Any, *, mode: str | None = None) -> Any:
+    """LK feature tracker için text mask.
+
+    mode:
+      None/"current" → mevcut lokal kontrast + Canny + filter_text_components (default).
+      "strict_global" → eski tools yaklaşımı (max(45, mean+std) BINARY + dilate(11×11)).
+                         Hareketli BG'li scroll jeneriklerinde LK tracker'ı harflere kilitler.
+      "hybrid" → current AND strict_global (her ikisi de işaret eden pikseller).
+    """
+    if mode is None:
+        mode = _text_mask_mode()
+    if mode == "strict_global":
+        return _frame_text_mask_strict_global(gray, cv2, np)
+    if mode == "hybrid":
+        current = _frame_text_mask_current(gray, cv2, np)
+        strict = _frame_text_mask_strict_global(gray, cv2, np)
+        return cv2.bitwise_and(current, strict)
+    # "current" (default)
+    return _frame_text_mask_current(gray, cv2, np)
 
 
 def _composite_text_mask(image: Any, cv2: Any, np: Any) -> Any:

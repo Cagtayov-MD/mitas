@@ -135,6 +135,91 @@ def test_trim_composite_by_row_gap_no_op_when_too_few_rows() -> None:
     assert info["reason"] == "too_few_rows"
 
 
+def test_trim_composite_self_corrects_when_dropping_almost_everything():
+    """ANJELIK-style: 14 row, ilk büyük gap'te 13 row atıldı → self-correction reverse."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _trim_composite_by_row_gap
+
+    # 14 row: ilk 1 row üstte (y=0..15), sonra 462px gap, sonra 13 row (y=480..960)
+    rows = [{"index": 1, "y0": 0, "y1": 15}]
+    # büyük gap sonrası 13 row, her biri ~15px yüksek, 7px aralık (median≈7)
+    y = 480
+    for i in range(2, 15):
+        rows.append({"index": i, "y0": y, "y1": y + 15})
+        y += 15 + 7  # 7px gap (median_gap=7)
+    composite = np.zeros((1000, 600, 3), dtype=np.uint8)
+
+    info, returned_composite, returned_rows = _trim_composite_by_row_gap(composite, rows)
+
+    # Self-correction tetiklenmeli
+    assert info["applied"] is False, f"Self-correction beklendi, ama applied=True: {info}"
+    assert info["reason"] == "self_corrected_kept_too_few"
+    assert info["would_keep_rows"] == 1
+    assert info["would_drop_rows"] == 13
+    # Composite ve rows orjinal halinde dönmeli (modify edilmemiş)
+    assert returned_composite.shape == composite.shape
+    assert len(returned_rows) == len(rows)
+
+
+def test_trim_composite_normal_tail_still_trimmed():
+    """Normal kuyruk: 12 row başta, 2 row sonda (post-credit shot) → trim çalışmalı."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _trim_composite_by_row_gap
+
+    rows = []
+    y = 0
+    for i in range(1, 13):  # 12 sağlam row
+        rows.append({"index": i, "y0": y, "y1": y + 15})
+        y += 15 + 7
+    # Büyük gap → 2 kuyruk row
+    y += 300
+    rows.append({"index": 13, "y0": y, "y1": y + 15})
+    y += 22
+    rows.append({"index": 14, "y0": y, "y1": y + 15})
+    composite = np.zeros((y + 50, 600, 3), dtype=np.uint8)
+
+    info, returned_composite, returned_rows = _trim_composite_by_row_gap(composite, rows)
+
+    # Trim uygulanmalı, 12 row kalmalı (self-correction tetiklenmez: 12 > max(2, 4.2)=4)
+    assert info["applied"] is True, f"Normal trim beklendi, görülen: {info}"
+    assert info["reason"] == "oversized_inter_row_gap"
+    assert info["kept_rows"] == 12
+    assert info["dropped_rows"] == 2
+    assert len(returned_rows) == 12
+
+
+def test_trim_composite_jurassic_style_long_tail_still_trimmed():
+    """JURASSIC: 82 kept + 211 dropped — makul trim, self-correction tetiklenmemeli.
+
+    Eski gevşek heuristik (kept ≤ 30%*total) bunu yanlışlıkla reverse ediyordu;
+    yeni sıkı heuristik (kept ≤ 2) sadece ekstrem 1-2 row yakalar."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _trim_composite_by_row_gap
+
+    rows = []
+    y = 0
+    # 82 sağlam row (median gap ~7)
+    for i in range(1, 83):
+        rows.append({"index": i, "y0": y, "y1": y + 15})
+        y += 15 + 7
+    # Büyük gap (kuyruk başlangıcı, gerçek post-credit shot)
+    y += 600
+    # 211 kuyruk row (ghost, aligned non-text frame'ler)
+    for i in range(83, 294):
+        rows.append({"index": i, "y0": y, "y1": y + 15})
+        y += 15 + 7
+    composite = np.zeros((y + 50, 600, 3), dtype=np.uint8)
+
+    info, returned_composite, returned_rows = _trim_composite_by_row_gap(composite, rows)
+
+    # Trim uygulanmalı; self-correction tetiklenmemeli (82 > 2)
+    assert info["applied"] is True, f"JURASSIC trim'i normal çalışmalı, görülen: {info}"
+    assert info["reason"] == "oversized_inter_row_gap"
+    assert info["kept_rows"] == 82
+    assert info["dropped_rows"] == 211
+    assert len(returned_rows) == 82
+
+
 def _make_scrolling_role_name_frames(directory: Path) -> list[Path]:
     cv2 = pytest.importorskip("cv2")
     np = pytest.importorskip("numpy")
@@ -168,3 +253,62 @@ def _make_scrolling_role_name_frames(directory: Path) -> list[Path]:
         cv2.imwrite(str(path), image)
         paths.append(path)
     return paths
+
+
+# ---------------------------------------------------------------------------
+# _frame_text_mask mode testleri
+# ---------------------------------------------------------------------------
+
+
+def test_frame_text_mask_strict_global_only_passes_bright_text():
+    """Global sıkı eşik karanlık BG noise'ı eler, sadece parlak text geçer."""
+    import numpy as np
+    import cv2
+    from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask
+
+    # 100×200 sentetik: BG noise 40-90, üst kısımda 20×100 text patch 220-255
+    rng = np.random.default_rng(42)
+    gray = rng.integers(40, 90, size=(100, 200), dtype=np.uint8)
+    gray[10:30, 50:150] = rng.integers(220, 255, size=(20, 100), dtype=np.uint8)
+
+    mask = _frame_text_mask(gray, cv2, np, mode="strict_global")
+    # Text bölgesi maskelenmeli (dilate sonrası geniş)
+    assert (mask[10:30, 50:150] > 0).sum() >= 1500
+    # BG bölgesi büyük ölçüde temiz (dilate sızıntısı hariç)
+    bg_region = mask[50:90, 10:40]
+    assert (bg_region > 0).sum() < 100, f"BG temiz olmalı, görülen: {(bg_region > 0).sum()}"
+
+
+def test_frame_text_mask_current_default_when_env_unset(monkeypatch):
+    """Env var set edilmemişse default current mode kullanılır."""
+    import numpy as np
+    import cv2
+    from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask, _text_mask_mode
+
+    monkeypatch.delenv("OCR_TEXT_MASK_MODE", raising=False)
+    assert _text_mask_mode() == "current"
+
+    gray = np.full((50, 50), 100, dtype=np.uint8)
+    gray[20:30, 20:30] = 230
+    # Default (None) ile çağırıldığında hata vermemeli
+    mask = _frame_text_mask(gray, cv2, np)
+    assert mask.shape == gray.shape
+
+
+def test_frame_text_mask_hybrid_is_intersection():
+    """Hybrid mask = current AND strict_global."""
+    import numpy as np
+    import cv2
+    from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask
+
+    rng = np.random.default_rng(7)
+    gray = rng.integers(30, 100, size=(80, 120), dtype=np.uint8)
+    gray[20:40, 30:90] = 220  # parlak text patch
+
+    current = _frame_text_mask(gray, cv2, np, mode="current")
+    strict = _frame_text_mask(gray, cv2, np, mode="strict_global")
+    hybrid = _frame_text_mask(gray, cv2, np, mode="hybrid")
+
+    # Hybrid piksel sayısı ikisinin de altında veya eşit olmalı
+    assert (hybrid > 0).sum() <= (current > 0).sum()
+    assert (hybrid > 0).sum() <= (strict > 0).sum()
