@@ -803,7 +803,15 @@ def _run_item(
         canvas["ocr_records"] = canvas_ocr_records
         canvas["canvas_advantage"] = _canvas_advantage(frame_ocr["records"], temporal, canvas_ocr_records, item.ground_truth)
 
-        evaluation = _evaluate_item_strategies(item, frame_ocr, preprocessed_ocr, temporal, preprocessed_temporal, canvas_ocr_records)
+        evaluation = _evaluate_item_strategies(
+            item,
+            frame_ocr,
+            preprocessed_ocr,
+            temporal,
+            preprocessed_temporal,
+            canvas_ocr_records,
+            temporal_fusion=temporal_fusion,
+        )
 
         _write_json(item_dir / "frame_ocr.json", frame_ocr)
         _write_json(item_dir / "preprocessed_frame_ocr.json", preprocessed_ocr)
@@ -2644,20 +2652,31 @@ def _evaluate_item_strategies(
     temporal: dict[str, Any],
     preprocessed_temporal: dict[str, Any],
     canvas_records: list[dict[str, Any]],
+    *,
+    temporal_fusion: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     truth = _normalized_truth(item.ground_truth)
     rows: list[dict[str, Any]] = []
+
+    fusion_records: list[dict[str, Any]] = []
+    fusion_strategy_label = "temporal_fusion"
+    if isinstance(temporal_fusion, dict) and temporal_fusion.get("status") == "done":
+        fusion_records = list(temporal_fusion.get("ocr_records") or [])
+        fusion_strategy_label = str(temporal_fusion.get("strategy") or "temporal_fusion")
+
     strategy_candidates = {
         "frame_ocr": _candidate_lines_by_engine(frame_ocr.get("records", [])),
         "preprocessed_frame_ocr": _candidate_lines_by_engine(preprocessed_ocr.get("records", [])),
         "temporal_voting": _candidate_lines_from_groups_by_engine(temporal.get("groups", [])),
         "preprocessed_temporal_voting": _candidate_lines_from_groups_by_engine(preprocessed_temporal.get("groups", [])),
         "descroll_canvas_ocr": _candidate_lines_by_engine(canvas_records),
+        fusion_strategy_label: _candidate_lines_by_engine(fusion_records),
     }
     confidence_by_strategy = {
         "frame_ocr": _mean_confidence_by_engine(frame_ocr.get("records", [])),
         "preprocessed_frame_ocr": _mean_confidence_by_engine(preprocessed_ocr.get("records", [])),
         "descroll_canvas_ocr": _mean_confidence_by_engine(canvas_records),
+        fusion_strategy_label: _mean_confidence_by_engine(fusion_records),
     }
     for strategy, by_engine in strategy_candidates.items():
         for engine, candidates in by_engine.items():

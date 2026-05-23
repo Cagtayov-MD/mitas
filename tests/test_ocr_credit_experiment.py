@@ -441,6 +441,12 @@ def test_temporal_fusion_hook_runs_when_scene_recommends_median(tmp_path, monkey
     assert Path(fusion["output_path"]).exists()
     assert (Path(fusion["output_path"]).parent / "report.md").exists()
 
+    # K-3/K-4 must be present in evaluation.json so reviewers can compare
+    # against frame_ocr / temporal_voting / canvas_ocr objectively.
+    evaluation = json.loads((item_dir / "evaluation.json").read_text(encoding="utf-8"))
+    strategies = {row["strategy"] for row in evaluation["rows"]}
+    assert "temporal_median_fusion" in strategies, f"fusion strategy missing from evaluation: {strategies}"
+
 
 def test_cli_delegates_to_runner(tmp_path, monkeypatch, capsys) -> None:
     from scripts import ocr_credit_experiment as cli
