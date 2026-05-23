@@ -1,0 +1,53 @@
+{
+  "_comment": "K-3 / K-4 pilot manifest. Replace 'path' with real clip paths. scroll_auto_detect=false; bunlar statik metin senaryoları, kayan jenerik değil. Scene router static_card algıladığında selector temporal_median_fusion (statik BG) veya temporal_variance_masking (hareketli BG) seçer.",
+  "items": [
+    {
+      "id": "k3_static_bg_static_text_example",
+      "path": "REPLACE_WITH_CLIP_PATH.mp4",
+      "kind": "lower_third",
+      "layout_type": "lower_third",
+      "motion_type": "static",
+      "expected_language": "tr",
+      "start_seconds": 0.0,
+      "end_seconds": 10.0,
+      "fps": 6,
+      "scroll_auto_detect": false,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "K-3 senaryosu: sabit arka plan (stüdyo / siyah / düz renk) + sabit yazı. temporal_median_fusion bekleniyor."
+    },
+    {
+      "id": "k4_moving_bg_static_kj_example",
+      "path": "REPLACE_WITH_CLIP_PATH.mp4",
+      "kind": "kj_overlay",
+      "layout_type": "lower_third",
+      "motion_type": "static",
+      "expected_language": "tr",
+      "start_seconds": 0.0,
+      "end_seconds": 10.0,
+      "fps": 6,
+      "scroll_auto_detect": false,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "K-4 senaryosu: hareketli arka plan (sahne, kalabalık, trafik) + sabit KJ/altyazı/haber bandı. temporal_variance_masking bekleniyor."
+    },
+    {
+      "id": "k4_news_ticker_example",
+      "path": "REPLACE_WITH_NEWS_CLIP_PATH.mp4",
+      "kind": "kj_overlay",
+      "layout_type": "lower_third",
+      "motion_type": "static",
+      "expected_language": "tr",
+      "start_seconds": 0.0,
+      "end_seconds": 8.0,
+      "fps": 6,
+      "scroll_auto_detect": false,
+      "roi": null,
+      "column_count": 1,
+      "ground_truth": [],
+      "notes": "K-4 alt-örnek: haber/spor bandı. Düşük confidence beklenirse low_var_quantile ayarlanabilir."
+    }
+  ]
+}
