@@ -8,7 +8,7 @@ text-layer motion, and builds a first-pass de-scroll canvas.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 import json
@@ -67,6 +67,9 @@ class CreditExperimentItem:
     ground_truth: tuple[str, ...]
     notes: str
     scroll_auto_detect: bool = False
+    # Faz 2: ham manifest dict'i saklıyoruz (opening_window_min vb. yeni
+    # profil alanları load_manifest'in dataclass'ına eklemeden geçer).
+    raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -102,29 +105,41 @@ def load_manifest(path: str | Path) -> CreditExperimentManifest:
             raise ValueError(f"Duplicate manifest item id: {item_id}")
         seen_ids.add(item_id)
 
-        start = _require_number(raw, "start_seconds", index)
-        end = _require_number(raw, "end_seconds", index)
-        if start < 0:
-            raise ValueError(f"Manifest item {item_id}: start_seconds must be >= 0")
-        if end <= start:
-            raise ValueError(f"Manifest item {item_id}: end_seconds must be greater than start_seconds")
+        # Faz 2: start/end_seconds zorunlu yalnız LEGACY `kind: end_credits` için.
+        # `kind: film_credits` (+ stub kinds) duration'ı ffprobe ile çalışma anında
+        # alır ve pencereyi opening/closing_window_min'den türetir.
+        item_kind = str(raw.get("kind") or "unknown")
+        if item_kind == "end_credits" or "start_seconds" in raw or "end_seconds" in raw:
+            start = _require_number(raw, "start_seconds", index)
+            end = _require_number(raw, "end_seconds", index)
+            if start < 0:
+                raise ValueError(f"Manifest item {item_id}: start_seconds must be >= 0")
+            if end <= start:
+                raise ValueError(f"Manifest item {item_id}: end_seconds must be greater than start_seconds")
+            start_value = float(start)
+            end_value = float(end)
+        else:
+            # Yeni profiller: pencere runtime'da hesaplanacak; placeholder.
+            start_value = 0.0
+            end_value = 0.0
 
         items.append(
             CreditExperimentItem(
                 id=item_id,
                 path=Path(_require_nonempty_string(raw, "path", index)),
-                kind=str(raw.get("kind") or "unknown"),
+                kind=item_kind,
                 layout_type=str(raw.get("layout_type") or raw.get("kind") or "unknown"),
                 motion_type=str(raw.get("motion_type") or "unknown"),
                 expected_language=_optional_string(raw.get("expected_language") or raw.get("language")),
-                start_seconds=float(start),
-                end_seconds=float(end),
+                start_seconds=start_value,
+                end_seconds=end_value,
                 fps=_optional_positive_number(raw.get("fps"), item_id, "fps"),
                 roi=_parse_roi(raw.get("roi"), item_id),
                 column_count=_parse_column_count(raw.get("column_count") or raw.get("columns"), item_id),
                 ground_truth=tuple(_parse_ground_truth(raw, Path(path).parent, item_id)),
                 notes=str(raw.get("notes") or ""),
                 scroll_auto_detect=_optional_bool(raw.get("scroll_auto_detect"), default=False),
+                raw=dict(raw),
             )
         )
     return CreditExperimentManifest(items=items)
@@ -613,6 +628,249 @@ def _disable_modelscope_torch_import() -> None:
     sys.modules["modelscope.hub.errors"] = errors
 
 
+def _run_item_profile_dispatch(
+    item: CreditExperimentItem,
+    *,
+    item_dir: Path,
+    engines: list[OcrEngine],
+    fps: float | None,  # noqa: ARG001  (effective_fps already resolved)
+    max_frames: int | None,
+    ffmpeg_executable: str | None,
+    effective_fps: float,
+    item_started: float,
+    warnings: list[str],
+) -> dict[str, Any]:
+    """Faz 2 dispatch: profil bazlı segment listesi → segment başı unified pipeline.
+
+    Şu an yalnız `kind=film_credits` için çağrılır. `end_credits` LEGACY path
+    `_run_item` içinde (geri uyum için byte-identical) kalır.
+
+    Çıktı yapısı (kind=film_credits):
+        item_dir/unified/<segment_id>/cards/...
+        item_dir/unified/<segment_id>/scroll/...
+        item_dir/unified/<segment_id>/summary.json
+        item_dir/unified/<segment_id>/events.json
+        item_dir/unified/events.json          ← merged (tüm segment'lerin events'i)
+        item_dir/unified/summary.json         ← merged summary
+    """
+    from core.pipelines.ocr import manifest_profiles
+    from core.pipelines.ocr._video_meta import duration_seconds
+    from core.pipelines.ocr.unified_credit_pipeline import run_unified_credit_pipeline
+
+    item_unified_dir = item_dir / "unified"
+    item_unified_dir.mkdir(parents=True, exist_ok=True)
+    frames_root = item_dir / "frames"
+
+    # 1) Video duration (ffprobe) — pencere hesabı için zorunlu
+    try:
+        duration = duration_seconds(item.path)
+    except Exception as exc:
+        summary = {
+            "id": item.id,
+            "status": "failed",
+            "kind": item.kind,
+            "pipeline": "box_track_unified_profile",
+            "error_msg": f"ffprobe failed: {exc}",
+            "runtime_sec": round(perf_counter() - item_started, 3),
+        }
+        _write_json(item_dir / "item_summary.json", summary)
+        return summary
+
+    # 2) Segment listesi (sabit pencereler — dinamik Faz 4'te)
+    try:
+        segments = manifest_profiles.build_segments_for_item(item.raw, duration)
+    except Exception as exc:
+        summary = {
+            "id": item.id,
+            "status": "failed",
+            "kind": item.kind,
+            "pipeline": "box_track_unified_profile",
+            "error_msg": f"segment_build_failed: {type(exc).__name__}: {exc}",
+            "runtime_sec": round(perf_counter() - item_started, 3),
+        }
+        _write_json(item_dir / "item_summary.json", summary)
+        return summary
+
+    # 3) Her segment için frames extract + unified pipeline
+    seg_results: list[dict[str, Any]] = []
+    ffmpeg_exe = ffmpeg_executable or _resolve_ffmpeg()
+    for seg in segments:
+        seg_id = str(seg["segment_id"])
+        seg_start = float(seg["start_sec"])
+        seg_end = float(seg["end_sec"])
+        seg_frames_dir = frames_root / seg_id
+        seg_frames_dir.mkdir(parents=True, exist_ok=True)
+        seg_output_dir = item_unified_dir / seg_id
+        seg_output_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            seg_frames = _extract_segment_frames(
+                item.path,
+                seg_frames_dir,
+                start_seconds=seg_start,
+                end_seconds=seg_end,
+                fps=effective_fps,
+                max_frames=max_frames,
+                ffmpeg_executable=ffmpeg_exe,
+            )
+        except Exception as exc:
+            warnings.append(f"segment_extract_failed:{seg_id}:{type(exc).__name__}:{exc}")
+            seg_results.append({
+                "segment_id": seg_id,
+                "status": "failed",
+                "start_sec": seg_start,
+                "end_sec": seg_end,
+                "error_msg": f"extract: {exc}",
+            })
+            continue
+
+        try:
+            unified = run_unified_credit_pipeline(
+                frames=seg_frames,
+                output_dir=seg_output_dir,
+                paddle_engine=engines[0] if engines else None,
+                source_fps=effective_fps,
+            )
+        except Exception as exc:
+            warnings.append(f"segment_pipeline_failed:{seg_id}:{type(exc).__name__}:{exc}")
+            seg_results.append({
+                "segment_id": seg_id,
+                "status": "failed",
+                "start_sec": seg_start,
+                "end_sec": seg_end,
+                "error_msg": f"pipeline: {exc}",
+            })
+            continue
+
+        seg_results.append({
+            "segment_id": seg_id,
+            "status": "done",
+            "start_sec": seg_start,
+            "end_sec": seg_end,
+            "runtime_sec": unified.runtime_sec,
+            "unified_summary": unified.summary,
+            "events_count": unified.events_count,
+            "events_path": str(unified.events_path) if unified.events_path else None,
+            "summary_path": str(unified.summary_path),
+            "cards_dir": str(unified.cards_dir),
+        })
+
+    # 4) Merge events.json (her segment'in events'lerini tek listede topla)
+    merged_events: list[dict[str, Any]] = []
+    merged_by_type: dict[str, int] = {}
+    total_events = 0
+    any_fallback = False
+    fallback_reasons: list[str] = []
+    for seg_result in seg_results:
+        if seg_result.get("status") != "done":
+            continue
+        evt_path_str = seg_result.get("events_path")
+        if not evt_path_str:
+            continue
+        evt_path = Path(evt_path_str)
+        if not evt_path.exists():
+            continue
+        try:
+            payload = json.loads(evt_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"merge_events_read_failed:{seg_result['segment_id']}:{exc}")
+            continue
+        seg_events = payload.get("events") or []
+        for ev in seg_events:
+            ev_copy = dict(ev)
+            ev_copy["segment_id"] = seg_result["segment_id"]
+            merged_events.append(ev_copy)
+            ev_type = str(ev_copy.get("type") or "unknown")
+            merged_by_type[ev_type] = merged_by_type.get(ev_type, 0) + 1
+            total_events += 1
+        seg_summary = payload.get("summary") or {}
+        if seg_summary.get("fallback_used"):
+            any_fallback = True
+            reason = seg_summary.get("fallback_reason")
+            if reason:
+                fallback_reasons.append(f"{seg_result['segment_id']}:{reason}")
+
+    # Renumber event_ids so the merged list has unique IDs
+    for idx, ev in enumerate(merged_events, start=1):
+        ev["event_id"] = f"evt_{idx:04d}"
+
+    runtime_total = round(perf_counter() - item_started, 3)
+
+    # Read SCHEMA_VERSION lazily so we don't have a hard dep at import time
+    try:
+        from core.pipelines.ocr.text_event import SCHEMA_VERSION
+    except Exception:
+        SCHEMA_VERSION = "1.0.0"
+
+    merged_events_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "video_id": item.id,
+        "source_path": str(item.path),
+        "events": merged_events,
+        "summary": {
+            "engine": "k_box_track_unified_profile",
+            "kind": item.kind,
+            "version": SCHEMA_VERSION,
+            "total_events": total_events,
+            "by_type": merged_by_type,
+            "segments": [
+                {
+                    "segment_id": r["segment_id"],
+                    "start_sec": r["start_sec"],
+                    "end_sec": r["end_sec"],
+                    "status": r.get("status"),
+                    "events_count": r.get("events_count", 0),
+                }
+                for r in seg_results
+            ],
+            "runtime_sec": runtime_total,
+            "low_confidence_count": 0,  # Faz 5
+            "fallback_used": any_fallback,
+            "fallback_reason": ",".join(fallback_reasons) if fallback_reasons else None,
+        },
+    }
+    _write_json(item_unified_dir / "events.json", merged_events_payload)
+
+    # 5) Merged summary
+    item_summary = {
+        "id": item.id,
+        "status": "done",
+        "kind": item.kind,
+        "pipeline": "box_track_unified_profile",
+        "input_path": str(item.path),
+        "video_duration_sec": duration,
+        "segments": [
+            {k: v for k, v in r.items() if k not in {"unified_summary"}}
+            for r in seg_results
+        ],
+        "merged_event_count": total_events,
+        "merged_by_type": merged_by_type,
+        "runtime_sec": runtime_total,
+        "warnings": warnings,
+    }
+    _write_json(item_dir / "item_summary.json", item_summary)
+
+    # Also dump merged unified summary for parity with end_credits flow
+    _write_json(item_unified_dir / "summary.json", {
+        "kind": item.kind,
+        "video_duration_sec": duration,
+        "segments": [
+            {
+                "segment_id": r["segment_id"],
+                "start_sec": r["start_sec"],
+                "end_sec": r["end_sec"],
+                "status": r.get("status"),
+                "unified_summary": r.get("unified_summary"),
+            }
+            for r in seg_results
+        ],
+        "merged_event_count": total_events,
+        "runtime_sec": runtime_total,
+    })
+
+    return item_summary
+
+
 def _run_item(
     item: CreditExperimentItem,
     *,
@@ -656,6 +914,23 @@ def _run_item(
 
     _write_json(item_dir / "item_summary.json", {"id": item.id, "status": "in_progress", "started_at": datetime.now(timezone.utc).isoformat()})
     try:
+        # --- Faz 2: profil dispatch ---
+        # `kind: film_credits` (ve gelecekteki yeni profiller) USE_BOX_TRACK
+        # zorunlu — eski 8-stage path bunlara uygun değil. End_credits LEGACY
+        # davranışı tamamen korunuyor (geri uyum).
+        if USE_BOX_TRACK and item.kind in {"film_credits"}:
+            return _run_item_profile_dispatch(
+                item,
+                item_dir=item_dir,
+                engines=engines,
+                fps=fps,
+                max_frames=max_frames,
+                ffmpeg_executable=ffmpeg_executable,
+                effective_fps=effective_fps,
+                item_started=item_started,
+                warnings=warnings,
+            )
+
         segment_detection = _detect_effective_credit_segment(item)
         _write_json(item_dir / "credit_segment_detection.json", segment_detection)
         segment_start_seconds = float(segment_detection.get("effective_start_seconds") or item.start_seconds)

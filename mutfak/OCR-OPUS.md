@@ -837,4 +837,51 @@ Yer/süre/hareket → sınıflandırma metası, problem değil.
 
 ---
 
+---
+
+## 14. FAZ 2 — Manifest profil sistemi (TAMAMLANDI, COMMIT BEKLİYOR)
+
+**Tarih:** 2026-05-24, ~23:00
+**Sahip:** Sonnet alt-ajanı
+
+### Yapılan
+- `core/pipelines/ocr/manifest_profiles.py` (YENİ, 170 satır) — Profile constants, `normalize_manifest_item()`, `build_segments_for_item()`, `dispatch_runner()`
+- `core/pipelines/ocr/_video_meta.py` (YENİ, 62 satır) — ffprobe `duration_seconds()` helper (FFPROBE_EXECUTABLE env override destekli)
+- `core/pipelines/ocr/credit_experiment.py` (+220 satır) — `CreditExperimentItem.raw` field, `_run_item_profile_dispatch` (film_credits için 2 segment koşum + events merge)
+- `tests/test_ocr_manifest_profiles.py` (YENİ, 148 satır, 14 test)
+
+### Test durumu
+```
+90 passed, 2 pre-existing failed
+```
+14 yeni test pass. Pre-existing 2 fail (temporal_fusion) baseline'da da fail, kapsam dışı.
+
+### Geri uyum (KRİTİK)
+- ROBINSON `kind: end_credits` smoke → eski outputs/ocr_24films... ile karşılaştırma:
+  - 17 cards/*.json + 78 PNG: **byte-identical**
+  - scroll/scroll_text_lines.json, row_reconstruct_summary.json, auto_split.json, summary.json: **byte-identical**
+- `end_credits` early-return ile yeni dispatch koduna girmiyor — LEGACY path sıfır risk
+
+### film_credits smoke
+- 0.5 dk açılış + 1 dk kapanış pencere ile ROBINSON
+- `unified/opening/`: 3 event (2 card + 1 scroll_credit)
+- `unified/closing/`: 3 event
+- `unified/events.json` (merged): 6 event total, segment_id field her event'te dolu
+- `unified/summary.json` (merged): segment listesi + merged_event_count
+- Runtime: 17.4 sn
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ film_credits açılış+kapanış bağımsız soruyor, schema bütünlüğü korunuyor.
+2. **Başka iş bozuluyor mu?** ✗ end_credits LEGACY byte-identical, 24-film mevcut manifest hiç değişmeden çalışıyor.
+3. **Daha iyi yapılabilir mi?** Event merge stratejisi (alt klasör + merged üst seviye) — hem debug hem UI esnekliği için iyi. Faz 4 hook noktası `build_segments_for_item` içinde hazır.
+
+### Notlar
+- ffprobe PATH'te olmalı veya `FFPROBE_EXECUTABLE` env set
+- Frames disk maliyeti film_credits için 2× (2 segment ayrı klasör), kabul edilebilir
+- `kind: film_credits` için `opus_credit_detector` ÇAĞRILMIYOR (text-first felsefe)
+- COMMIT BEKLİYOR
+- Önerilen mesaj: `feat(ocr): add manifest profile dispatch + film_credits 2-window runner (Faz 2)`
+
+---
+
 **Bu dosyayı her büyük adımdan sonra güncelle.** YAPILACAK → YAPILDI → COMMIT EDİLDİ formatı.
