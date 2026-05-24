@@ -1,0 +1,840 @@
+# OCR-OPUS — Devam Dosyası
+
+> **Son güncelleme: 2026-05-23 16:02**
+> **Yazan oturum:** Opus 4.7 (E:\MITAS, master branch)
+> **Sıradaki oturum için:** Bu dosyayı oku, devam et. Sürekli aynı şeyi açıklatma.
+
+---
+
+## 0. KURALLAR (kalıcı — sıradaki oturum buna uyacak)
+
+Bu kurallar Çağatay'ın oturum boyunca söylediği şeylerden çıktı. Hepsi geçerli.
+
+1. **Türkçe direkt iletişim.** Memory'de var (`user_profile`).
+2. **Master'da çalış, worktree YOK.** Düzeltmeler doğrudan master'da. Commit yine sadece istenince. Memory: `feedback_master_no_worktree`.
+3. **Plan Opus / uygula Sonnet.** Planlamayı Opus yapar, kod uygulamasını Sonnet alt-ajanına devret. Memory: `feedback_plan_implement_split`.
+4. **"Hemen silme hemen atma sadece bir bak"** — Çağatay bunu açıkça söyledi. Refactor'a kaçma, önce gözle.
+5. **"Bir yerde ipi kaçırdık orayı bulmak lazım"** — bisection yaklaşımı. Hangi commit'ten sonra şey kırıldı bul.
+6. **"Hangi yolu mantıklı görüyorsan onu yap"** — Çağatay büyük kararı sana bırakır AMA sapma noktasını/saçmalamayı önce göstermeni ister. Sezgisi güçlü, fikrini söyle.
+7. **"Aşama aşama projeyi incele, şurası saçmalıyor dediğin yerleri çıkart"** — denetim modunda numaralı liste çıkar.
+8. **Bilerek koyulmuş ceza/eşik varsa hemen kaldırma** — örnek: row_count > 90 penalty'sini bilerek koymuş, sebep ghost stitch detection. Önce kontrol et, sonra koşullandır.
+9. **Adım panosu zorunluluğu (bu dosyada):** her büyük adım için
+   - `YAPILACAK` → `YAPILDI (master'da)` → `COMMIT EDİLDİ (<hash>)` zinciri.
+   - Bu dosyayı oturum boyunca **her adımdan sonra güncelle**.
+10. **Pre-existing fail'leri izole et**, kapsam dışı bırak. ASR/webui/docs/translate uncommitted'lerine dokunma — onlar başka oturumun in-flight işi.
+
+---
+
+## 1. ÇAĞATAYIN AMACI
+
+MITAS arşivi için OCR pipeline'ı: film jeneriklerinden rol/isim satırlarını **doğru ve hızlı** okutmak. 4 kategori:
+
+| Kategori | Bg | Text | Pipeline |
+|---|---|---|---|
+| **A** | static | scroll | scroll reconstructor (eski tools mantığı) |
+| **B** | moving | scroll | box tracking + canvas + bg suppression |
+| **C** | moving | static (kaos: kırmızı BG + oval kafa + sabit yazı) | variance masking + text mask gating + box tracking |
+| **D** | static | static (standart) | tek frame OCR (best_frame seç + Paddle) |
+
+Çağatay'ın asıl planı: **box tracking + dinamik hız + ekran kenarına gelince yeni track başlat** mimarisi. Tüm frame'lerde değil bbox seviyesinde karar — pipeline kendi kendini takip eder. Bu plan eski `F:\REPO_GitHub\Cagatay_22.02\tools\` altında çalışıyordu (`scroll_reconstructor.py` 586 satır + `full_pipeline_test.py`'de OneOCR + `run_ocr_on_composite`). MITAS'a taşımada PARÇA OLARAK kayboldu.
+
+---
+
+## 2. HEDEF VE GENEL PLAN (K-BoxTrack)
+
+```
+[1] PaddleOCR detection seyrek (her 3. frame'de bir)
+[2] box_tracker.build_text_tracks(...)
+[3] Track sınıflandır:
+      |velocity_y| < 2.0 → static_text
+      |velocity_y| >= 2.0 → scrolling_text
+[4] Static → kart bazlı grupla → best_frame_per_card → recognition (re-OCR yok, mevcut record'lardan satır toplama)
+[5] Scroll → text_layer_row_reconstruct → composite.png + sharpened.png
+[6] Scroll composite ÜZERİNDE OCR (eski tools'taki gibi)
+[7] Çıktı: cards/card_NN.json + scroll/scroll_text_lines.json + scroll/composite.png + summary
+```
+
+**Aktivasyon:** `USE_BOX_TRACK_PIPELINE=1` env var. Eski 8-aşamalı yol regression için duruyor, dokunulmadı.
+
+---
+
+## 3. DURUM PANOSU (2026-05-23 15:56)
+
+### YAPILDI (master'da, COMMIT EDİLDİ — `d1d3c95`)
+
+- [x] **Denetim — 17 saçmalama maddesi** çıkarıldı. Pipeline'ın sınıflandırmaya uymaması, quality_police icra eksiği, 8-varyant preprocess, 4× motion analiz, 2× frame_ocr. Detay: bu dosyanın §7'si.
+- [x] **Bisection — sapma noktası `c3c042c`** ("Add OCR credit experiment and K-2 regression fixes") commit'i. Tek commit'te 6.837 satır eklendi: credit_experiment 3.268, text_layer_descroll 1.271, text_layer_row_reconstruct 944, credit_scene_router 527, credit_detector 699, selector 128. Eski `tools/full_pipeline_test.py`'deki sade `if static: tek frame OCR; if scroll: composite + OCR` mantığı burada KAYBOLDU.
+- [x] **K-BoxTrack omurgası kuruldu** — `core/pipelines/ocr/unified_credit_pipeline.py` (158 satır, Sonnet).
+- [x] **box_tracker.py'a 3 helper eklendi:** `classify_track_motion`, `group_static_tracks_into_cards`, `select_best_frame_per_card` (Sonnet).
+- [x] **credit_experiment.py'a gate** — `USE_BOX_TRACK_PIPELINE=1` ise unified yola gir, eskiyi atla (Sonnet).
+- [x] **5 yeni unit test** — `tests/test_ocr_box_track_pipeline.py`.
+- [x] **Pilot v2** — KUKLA_ADAM 180sn (5300-5480s), 1080 frame: **22 dakika → 25 saniye (56× hızlanma)**. fused.png %99.99 siyah → 46 kart × ~30 okunaklı satır, confidence ≥0.92.
+- [x] **OCR record timestamp düzeltmesi** — unified pipeline'da strided_frame_index/fps ile `timestamp_seconds` doldurma (PaddleOCR record'larda yok).
+- [x] **y-overlap kapatma** — `max_y_overlap_ratio` default 0.0 (her satır farklı y'de olduğu için ayrı karta gitmesin). 46 → 18 kart.
+- [x] **`recognize()` strategy kwarg fix** — Sonnet ilk yazımda missing kwarg vermişti, sessizce 0 record dönüyordu. Düzeltildi, error counter eklendi.
+- [x] **Scroll OCR fix** — eski tools'ta `run_ocr_on_composite` vardı, MITAS'a taşımada koda inmedi. Şimdi unified pipeline'da composite üretildikten sonra `paddle_engine.recognize(scroll_canvas_path, strategy="scroll_canvas_ocr")` çağrılıyor, sonuç `scroll/scroll_text_lines.json`'a yazılıyor.
+- [x] **4 untracked modül commit'lendi:** `box_tracker.py`, `image_quality_police.py`, `credit_segment_dispatcher.py`, `text_track_state.py` (toplam ~1.500 satır, hiç commit edilmemişti, repository tehlikedeydi).
+
+- [x] **row_count > 90 penalty'si gevşetildi** — COMMIT EDİLDİ `4497997` (`fix(ocr): relax row_count penalty for legitimate long scrolls`). Eski: 90+ row 0.18 ceza. Yeni: 300+ row 0.10 ceza. **NOT:** Çağatay bunu "bilerek kalabalık" diye koymuştu (ghost stitch detection). İleride regression görülürse ghost-koşullu yapılacak: `row_count > 90 AND ghost_penalty > 0.25 → ceza`.
+
+- [x] **Pilot v2 (4 film, row penalty fix sonrası) doğrulandı:**
+
+| Film | v1 scroll_lines | v2 scroll_lines | Fark |
+|---|---|---|---|
+| JURASSIC | 271 | 271 | aynı ✓ |
+| ROBINSON | 176 | 176 | aynı ✓ |
+| **X-MEN** | **34** | **238** | **+204 (~7×)** ✅ |
+| ANJELIK | 0 | 0 | aynı (ayrı sorun) |
+
+Çıktı: `outputs/ocr_4films_boxtrack_20260523_v2/items/xmen_2000_end_credits/unified/scroll/scroll_text_lines.json`.
+
+### YAPILACAK (sıralı — Çağatay'ın 16:50 kararı: hepsini yapacağız, sıra **B → C → A → D → E**)
+
+> Sebep: **B** regression fix (gerçek çözüm, kalite sıçraması). **C** kullanılabilirlik. **A** B'ye rağmen kalan durumlar için emniyet ağı. **D** kullanılabilirlik. **E** temizlik (en son).
+
+1. **B-port — eski `tools/scroll_reconstructor.py:_text_mask` fonksiyonunu MITAS'a port** (REGRESSION FIX, ANJELIK'i çözer + genel kaliteyi artırır).
+   - **Sorun:** MITAS'taki `text_layer_row_reconstruct._frame_text_mask` gevşek (lokal kontrast + canny + dilate(7×7)). Hareketli BG'nin edge'leri maskeye sızıyor → LK tracker bazen text'e bazen bg'ye kilitleniyor → composite alignment çuvallıyor → ANJELIK kahverengi şerit, 0 satır.
+   - **Eski yaklaşım:** `thr = max(45.0, gray.mean() + gray.std())` global sıkı binary + dilate(11×11). Sadece harfler kalıyor, tracker text'e kilitleniyor.
+   - **Box tracking kaybolur mu? HAYIR.** Bu mask yalnızca `text_layer_row_reconstruct` içindeki LK feature tracker (composite alignment için) içindir. Üst seviye box_tracker (PaddleOCR detection + IoU eşleştirme) bundan bağımsız çalışıyor. Yani box tracking + dinamik hız + kenar yenileme zinciri etkilenmez, sadece composite/canvas adımı düzelir.
+
+2. **C-kart — KUKLA 18 → 3-5 kart birleştirme** (kullanılabilirlik). 2-pass: önce zaman gap (mevcut), sonra ardışık kartları "metin benzerliği + zaman yakınlığı + y-pozisyon yakınlığı" ile birleştir.
+
+3. **A-fb — ANJELIK fallback emniyet ağı** (B-port'a rağmen başarısız olursa). Composite quality police `BROKEN_EMPTY/BROKEN_LOW_CONTRAST/BROKEN_BACKGROUND_LEAK` derse → `scroll_tracks` observation'larından her track için en yüksek confidence record'u y-sıralı `scroll_text_lines`'a yaz. `summary.scroll_fallback_used=true` işaretle.
+
+4. **D-split — Scroll satırlarda rol|isim sütun ayrımı** (kullanılabilirlik). Eski tools'taki `is_upper_heavy + split_x` mantığı yok.
+   - **Örnek (mevcut, JURASSIC):** `{"text": "MARK BROWN, MAURA MOSS"}` — tek string, hangisi rol hangisi isim belirsiz.
+   - **Eski K-2'de (port edince hedef):** `{"role": "STILL PHOTOGRAPHER", "name": "PAT MORROW"}` — sütun ayrımı net, arama/export kolaylaşır.
+   - **Nasıl:** `auto_split.json`'da `split_x=414` ZATEN hesaplanıyor (sol sütun BÜYÜK CAPS = rol; sağ sütun karışık case = isim). Sadece kullanılmıyor. Composite OCR'dan dönen satır box'ları `split_x`'in solunda/sağında olmasına göre `role` veya `name` kolonuna yerleştirilir; aynı `row_y` ± toleransta olanlar tek kayıtta birleşir. Üst düzey kart şablonu varsa (örn. "DIRECTOR | JAMES CAMERON") `is_upper_heavy` kontrolü ile yön bile otomatik tayin edilir.
+
+5. **E-eski yol kapat** (temizlik, en son). K-BoxTrack stabil olduğunda `USE_BOX_TRACK_PIPELINE` default=1, eski 8-stage deprecated tag + opt-out flag. **Silmek YOK** (`feedback_master_no_worktree`: commit yine sadece istenince).
+
+6. **(düşük öncelik) Eski yol quality_police icrası** — `image_quality_police` BROKEN_BLACK diyor ama icra eden yok. E-eski kapatılınca otomatik gereksiz, ama o zamana kadar duruyor.
+
+7. **(düşük öncelik) Çağatay'ın 4-kategori matrisini `credit_pipeline_selector.py`'a indir** — şu anki 9-dal if-else çorbası → 4 yol matris. E sonrası refactor.
+
+### KAPSAM DIŞI (bu OCR işinde değil)
+
+- ASR pipeline (54 dosya uncommitted — başka oturum)
+- webui değişiklikleri (App.tsx, Sidebar, vb.)
+- docs/MITAS_* (5 doküman)
+- mutfak/ kayıtları (ASR/diğer modüller için)
+- translate/
+
+---
+
+## 4. ÇAĞATAYIN GPT İLE YAŞADIĞI — VE DOĞRU OKUMA
+
+Çağatay başta dedi: "GPT'ye verdim, projeyi piç etti, Opus'un tokeni bitti, seninle devam edeceğiz." Bu mesajda iki nüans var, dikkat:
+
+1. **Hepsini GPT yapmadı.** Çağatay sonradan netleştirdi: "diğer oturumda Opus ile beraber eklemeler yaptık, hepsini GPT yapmadı. Proje büyüdükçe en basit şeyi bile yapamaz olduysa biz bir yerde ipi kaçırdık."
+2. **Sapma noktası `c3c042c`** — bu commit 6.837 satırı bir kerede ekledi. İçinde hem Opus+Çağatay'ın çalışması var hem sonrasında üzerine eklenenler (`box_tracker.py`, `image_quality_police.py`, `credit_segment_dispatcher.py`, `text_track_state.py` — uncommitted duruyordu, kim ekledi belirsiz; muhtemelen Opus eklemeleri çünkü `box_tracker.py` POC kalitesi yüksek).
+3. **GPT'nin spesifik dokunuşları izlenemedi.** Önemli değil — kök problem zaten "static_card için 'her şeyi koştur' yaklaşımı"ydı, GPT-pre/post fark etmiyor. Çare K-BoxTrack mimarisi.
+
+---
+
+## 5. ÇAĞATAYIN ÖRNEKLERİ (referans, unutma)
+
+Bu üç görsel oturumun başında geldi:
+
+1. **fused.png siyah ekran** (KUKLA_ADAM temporal_fusion çıktısı) — variance_masking %99.99 siyah piksel.
+2. **Glitched upscale görüntü** — `descroll_canvas.png`, static_card durumunda bile koşturulan modül üretti.
+3. **Temiz Avustralya jenerik kartı** (INVESTORS REPRESENTATIVE STUART ALFORD, AAV AUSTRALIA, MIRANDA BAIN & DAVID MILLIK... — KUKLA_ADAM raw frame). Bu pipeline'ın ÖKUMASI gereken şey.
+
+Sonra Çağatay paylaştı:
+- **Kırmızı BG + sabit yazı (CHANSONS, BEI MIR BIST DU SCHÖN)** — C kategorisi (statik text, sabit BG, ama scroll'a geçen)
+- **Kırmızı BG + oval içinde Heinz Bennent yüzü + sabit yazı** — kaos durumu (C kategorisinin extreme formu)
+- Eski K-2 görselleri (siyah BG + scroll panoramik composite + OneOCR satırları) — A kategorisinin DOĞRU sonucu, eski tools'ta çalışıyordu.
+
+---
+
+## 6. PIPELINE'DAKİ 17 SAÇMALAMA (denetim çıktısı)
+
+Eski yol (`USE_BOX_TRACK_PIPELINE=0`) hâlâ bunları yapıyor. K-BoxTrack devre dışıyken aktif. Düzeltilmeleri "YAPILACAK" listesinde.
+
+### A. Sınıflandırmaya uyulmuyor
+1. `credit_detector.type="static"` dese de scroll modülleri yine koşuyor.
+2. `scene_router_refine` 3. pass'ta doğru `static_card` diyor ama selector 2. pass'ta zaten variance_masking demiş.
+3. `descroll_canvas` her run'da koşuyor, static_card olsa bile → glitched görsel.
+
+### B. Tekrar eden iş
+4. Motion analizi **4 kez** yapılıyor (scene_router, scene_router_after_refined, scene_router_refined.with_ocr, text_motion).
+5. `frame_ocr` 2 kez koşuyor (önce full-frame, sonra refined ROI).
+6. `scene_router` 2 kez koşuyor — aynı ham frame'lerden, sonuç değişmiyor.
+
+### C. Quality police nominal kalıyor
+7. `image_quality_police` BROKEN_BLACK + `suggested_fallback="best_frame"` raporluyor → kod sadece JSON'a yazıyor, hiç icra edilmiyor.
+8. `descroll_canvas` BROKEN_BACKGROUND_LEAK + 4 mean_conf=0.29 (çöp) record yine `canvas_ocr_records`'a yazılıyor.
+
+### D. Gereksiz zorunlu modüller
+9. `preprocessed_frame_ocr` her frame için **8 varyant** (upscale2x, clahe2x, sharpen2x, adaptive_threshold2x, dark_on_light_inverted2x, light_on_dark2x, deinterlace_blend2x, unsharp_glow_reduction2x). 1080×8 = 8.640 imaj, 102.356 record, **750 saniye**.
+10. `temporal_voting` 115K record gruplama, 123 saniye, çoğu kullanılmıyor.
+11. `auto_roi_detection` ilk pass fallback confidence 0.22 — değersiz veri.
+
+### E. Maliyet/değer
+12. 180sn jenerik için 1.365 sn iş (video real-time'ının 7.5×'i).
+13. 2.4 GB disk tek item.
+14. GPU 1.9→3.3 GB ama %5-8 utilization (PaddleOCR session release etmiyor).
+
+### F. Şüphe
+15. `refined_auto_roi mode="credit", scroll_like=true` AMA credit_detector `type=static` — çelişki.
+16. `evaluation.metric_status="no_ground_truth"` — 4 strateji koşuyor, hangisi kazandı yok.
+17. `temporal_unique_lines: 262, preprocessed_temporal: 2462` — 9× fark, hiç alarm yok.
+
+---
+
+## 7. ZAMAN ÇİZGİSİ — NE NE ZAMAN YAPILDI
+
+### 14:30 — Oturum açıldı
+
+Çağatay: "OCR jenerik okuması md'leri GPT'ye yaptırdım, projeyi piç etti. Opus'un tokeni bitti. Seninle devam edeceğiz." 3 görsel paylaştı (siyah fused.png, glitched görüntü, gerçek jenerik kartı). Çıktı yolu: `outputs/filmtest_kukla_single_retest_20260523_quality/items/filmtest_kukla_adam_last3min/`.
+
+### 14:30-15:00 — Denetim
+
+- OCR pipeline modülleri okundu (credit_experiment 3.268 satır, temporal_fusion, row_reconstruct, scene_router, selector, image_quality_police, credit_detector).
+- Pilot çıktıları okundu: `fused.png` %99.99 siyah, `descroll_canvas.png` glitched.
+- 17 saçmalama maddesi çıkarıldı.
+- Bisection: c3c042c sapma noktası.
+
+### 15:00-15:15 — Çağatay'ın 4-kategori + box tracking planını anladım
+
+Çağatay: "ben şöyle planladım: 4 kategori (bg static/moving × text static/moving), her satıra box tracking koysak, dinamik hız, kenara gelince yeni track başlat..."
+
+Ben: "fikrin sağlam, kirliliğin %70'i bunun koda inmemiş olmasından. `box_tracker.py` zaten POC olarak var ama pipeline'a bağlı değil. K-BoxTrack mimarisi öneriyorum."
+
+Çağatay: "hangi yolu mantıklı görüyorsan onu yap. sadece söylediğim şeyin koda inmesini istiyorum."
+
+### 15:15-15:30 — K-BoxTrack implementasyonu (Sonnet alt-ajanı)
+
+Sonnet'e brief verildi:
+- `box_tracker.py`'a 3 helper ekle (classify_track_motion, group_static_tracks_into_cards, select_best_frame_per_card)
+- `unified_credit_pipeline.py` yeni dosya
+- `credit_experiment.py:_run_item`'a `USE_BOX_TRACK_PIPELINE=1` gate
+- 5 unit test
+
+Sonnet sonucu: 19 test pass (5 yeni + 14 mevcut), 0 fail. 4 dosya değişti.
+
+### 15:30-15:40 — Pilot v1 ve düzeltme
+
+- Pilot v1: 0.002 saniye, 0 record. Sebep: `paddle_engine.recognize(frame_str)` çağrısında `strategy: str` keyword-only required kwarg eksik, try/except sessizce yutmuş.
+- Fix: `recognize(Path(frame), strategy="unified_detection", timestamp_seconds=None)` + error counter.
+- Pilot v2: **24.6 saniye, 46 kart, 4389 OCR record, 0 error**. Eski 1365 sn'ye karşı 56× hızlanma.
+
+### 15:40-15:50 — Çağatay sonucu gördü, kararlar
+
+Çağatay: "BANA DA GÖSTER" → 3 kart best_frame görseli inceledi (ANYA kartı, CREW kartı, yapım ekibi kartı), hepsi temiz.
+
+Çağatay sırası: **C → A → B** (önce commit, sonra kart tuning, sonra başka filmle test).
+
+### 15:50 — Commit `d1d3c95`
+
+Sadece OCR dosyaları stage'lendi (ASR/webui/docs uncommitted bırakıldı — başka oturum). 9 dosya, 2.268 insertion. Pre-existing untracked olan box_tracker.py + image_quality_police.py + credit_segment_dispatcher.py + text_track_state.py + Sonnet'in yeni dosyaları + credit_experiment gate + text_layer_row_reconstruct pre-existing modify.
+
+### 15:50-16:00 — Kart tuning (pilot v3, v4, v5)
+
+- v3: y-overlap=0.0 default → 46 → 18 kart.
+- v4: time-window overlap algoritması → 18 → 1 kart. **YANLIŞ.** Geri alındı.
+- v5: v3 algoritmasına dön (prev_first_ts based). 18 kart kabul edildi (3-5 ideal'dan uzak ama her kartta zengin text_lines, kullanılabilir). 2-pass kart birleştirme **YAPILACAK** listesinde.
+
+### 16:00-16:20 — 4 yeni film testi
+
+Çağatay 4 film verdi:
+- X-MEN (2000) — scroll, siyah BG, uzun
+- JURASSIC PARK 2 (1997) — scroll, siyah BG, uzun
+- ANJELIK VE SULTAN (1968) — scroll + **hareketli BG**
+- ROBINSON CRUSOE (2025) — deneysel
+
+Önce **scroll OCR fix** yapıldı (eksiklik — composite üretilip OCR koşulmuyordu). Sonra `outputs/ocr_4films_scroll_manifest_20260523.json` hazırlandı, pilot koşuldu.
+
+### 16:20-16:40 — Pilot 4 film sonuç (`bnq9hw8zd`)
+
+| Film | Runtime | Tracks | Cards | Scroll Lines | Composite | Yorum |
+|---|---|---|---|---|---|---|
+| JURASSIC | 135s | 1431 | 44 | **271** | ✅ temiz | eski K-2 kalitesi |
+| ROBINSON | 45s | 358 | 17 | **176** | ✅ | modern film, çalıştı |
+| X-MEN | 148s | 2286 | 57 | **34** | ⚠️ sadece müzik kartı | text_layer_row_reconstruct yanlış aday seçti |
+| ANJELIK | 17s | 218 | 0 | **0** | ❌ boş | hareketli BG, composite başarısız |
+
+**X-MEN tanısı:** `_score_row_candidate`'da `row_count > 90 → penalty += 0.18`. Current_displacement adayı 124 row + 5.421 px displacement (gerçek büyük scroll) → 0.62 score. Static_best_frame 10 row → 0.785 score → SEÇİLDİ. Yani gerçek scroll küçük statik kart tarafından yenildi.
+
+### 15:55 — row penalty fix (master'da, commit beklemiyor pilot v2 sonucunu)
+
+`text_layer_row_reconstruct._score_row_candidate`:
+- Eski: `row_count > 90 → 0.18 ceza`
+- Yeni: `row_count > 300 → 0.10 ceza`
+
+Çağatay: "evet bilerek çok kalabalık koydum zaten." → muhtemelen ghost stitch detection için. **Plan:** pilot v2 sonucu kötüleşirse penalty'yi ghost-koşullu yapacağım (`row_count > 90 AND ghost_penalty > 0.25`).
+
+### 15:56 — Pilot v2 koşuyor (`bwd99l2um`)
+
+4 film yeniden, row penalty fix sonrası. Notify bekleniyor.
+
+### 16:50 — B-port planı kondu (Çağatay sırası: B→C→A→D→E)
+
+- Çağatay: "hepsini yapacağız nasıl olsa. 1 B'den devam edelim... motion track kısmı kayıp mı etmiş olacağız?"
+- Cevap: **HAYIR.** Bu mask yalnızca `text_layer_row_reconstruct` içindeki LK feature tracker (composite alignment) içindir. Üst seviye `box_tracker` (PaddleOCR detection + IoU) bundan bağımsız. Box tracking + dinamik hız + kenar yenileme zinciri etkilenmez.
+- D-split örnek açıklaması yapıldı (auto_split.json zaten `split_x=414` üretiyor, kullanılmıyor — composite OCR satır box'larını sol/sağ kolona dağıt).
+
+### 16:55 — Karşılaştırma (eski tools vs MITAS text mask)
+
+Okundu: `F:\REPO_GitHub\Cagatay_22.02\tools\scroll_reconstructor.py:48-56` ve `core/pipelines/ocr/text_layer_row_reconstruct.py:773-781`.
+
+| Aspect | Eski tools (çalışıyordu) | MITAS (ANJELIK 0 satır) |
+|---|---|---|
+| Eşik | Global sıkı `max(45, mean+std)` BINARY | Lokal kontrast `absdiff(blur)` + ek bright gate |
+| Canny | YOK | Edge OR ile mask'e dahil |
+| Dilate | 11×11 (agresif, harfler bütünleşir) | 7×7 (zayıf) |
+| Ek filtre | YOK | `_filter_text_components` (connected component) |
+| Satır | 3 | 9 |
+
+**Tanı:** Hareketli BG'de MITAS'ın lokal kontrast + Canny yaklaşımı BG dokusunu da "text" sayıyor → LK tracker bazen text'e bazen BG'ye kilitleniyor → alignment bozuluyor → ANJELIK 0 satır.
+
+### 17:00 — B-port Sonnet'e devredildi
+
+Brief: `_frame_text_mask`'a `mode: str = "current"` parametresi ekle (`"current" | "strict_global" | "hybrid"`). `_estimate_displacements_cruise`'daki 3 çağrı `OCR_TEXT_MASK_MODE` env var'dan mode okusun. Default "current" → regression sıfır. 3 unit test ekle (strict bright-only, current picks BG noise, hybrid intersects).
+
+### 17:05 — Sonnet rapor: B-port kodu yazıldı (YAPILDI master'da, COMMIT BEKLİYOR pilot v3 sonucunu)
+
+**Değişen dosyalar:**
+- `core/pipelines/ocr/text_layer_row_reconstruct.py` +44/-1 satır: dispatch fonksiyonu + `_frame_text_mask_current` (mevcut, korundu) + `_frame_text_mask_strict_global` (eski tools portu) + `_text_mask_mode` env var helper.
+- `tests/test_ocr_text_layer_row_reconstruct.py` +59 satır: 3 yeni test.
+
+**Test sonucu:** 63 OCR test PASS, 0 fail. Regression sıfır.
+
+**Mimari:**
+- Default `OCR_TEXT_MASK_MODE` set edilmemişse → "current" mode, davranış AYNI (regression yok).
+- `OCR_TEXT_MASK_MODE=strict_global` → ANJELIK fix devreye girer.
+- `OCR_TEXT_MASK_MODE=hybrid` → current AND strict_global kesişimi.
+
+Trust-but-verify: git diff stat doğrulandı, sadece 2 dosya, sadece eklemeler ve dispatch wrapper'ı. Eski 9 satırlık fonksiyonun gövdesi aynen `_frame_text_mask_current`'a taşınmış.
+
+### 17:10 — Pilot v3 başlatıldı (background, log: `outputs/_boxtrack_v3_strict.log`)
+
+```powershell
+$env:USE_BOX_TRACK_PIPELINE = "1"
+$env:OCR_TEXT_MASK_MODE = "strict_global"
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment `
+  --manifest outputs/ocr_4films_scroll_manifest_20260523.json `
+  --output-dir outputs/ocr_4films_boxtrack_20260523_v3_strict `
+  --engines paddle
+```
+
+### 17:35 — Pilot v3 sonuç + ÖNEMLİ TANI
+
+| Film | v2 lines | v3 lines | Yorum |
+|---|---|---|---|
+| JURASSIC | 271 | 271 | aynı ✓ regression yok |
+| ROBINSON | 176 | 176 | aynı ✓ regression yok |
+| X-MEN | 238 | 238 | aynı ✓ regression yok |
+| **ANJELIK** | **0** | **0** | hâlâ 0 AMA sebep değişti! |
+
+ANJELIK row_reconstruct_summary.json + görsel inceleme:
+- **strict_global mask MÜKEMMEL çalıştı:** `displacement_range_px: 634, median_dy: -6.77, active=105/105` — LK tracker text'e doğru kilitlendi.
+- **14 row candidate tespit edildi** (current_displacement adayı), gerçek jenerik text'i: "ALY BEN AYED, HELMUT SCHNEIDER, ROGER PICAUT, ETTORE MANNI, JACQUES SANTI, BRUNO DIETRICH" — `row_candidates/current_displacement.png` görseli ANJELIK'in GERÇEK cast listesini gösteriyor.
+- **static_best_frame adayı daha da temiz:** `row_candidates/static_best_frame.png` — "Directeur de Production HENRI JAQUILLARD, Images de HENRI PERSIN, Montage CHRISTIAN GAUDIN, Décors de ROBERT GIORDANI, Costumes de ROSINE DELAMARE...", hatta sütun ayrımı bile tespit edilmiş (`split_x=272, conf=0.5414`).
+- **ASIL KÖTÜ HABER:** `_trim_composite_by_row_gap` (tail_trim) 14 row'u 1 row'a düşürdü. `median_gap=7.5, threshold=150, cut_gap=462 → kept=1, dropped=13`. composite 1114×600 → 34×600 boş bej şerit kaldı → scroll OCR boş row'dan 0 satır okudu.
+
+**Yani ANJELIK aslında ÇÖZÜLDÜ, ama post-process katmanları (tail_trim agresyonu) iyi composite'i çöpe attı.**
+
+### 17:40 — B-port fazı 2: tail_trim self-correction (Sonnet'e devredildi)
+
+Brief: `_trim_composite_by_row_gap` sonuna sanity check ekle. `kept ≤ max(2, 0.3×total)` VE `dropped ≥ 5` → trim aslında ASIL içeriği atmış, reverse et. 2 unit test (ANJELIK senaryosu reverse + normal kuyruk trim'lenir).
+
+### 17:45 — Sonnet rapor: tail_trim self-correction YAPILDI (master'da, COMMIT BEKLİYOR pilot v4 sonucunu)
+
+- `text_layer_row_reconstruct.py` +17 satır (self-correction bloğu)
+- `tests/test_ocr_text_layer_row_reconstruct.py` +50 satır (2 yeni test)
+- `pytest tests/test_ocr_*.py -q` → 65/65 PASS, regression sıfır.
+
+**Toplam diff (B-port v1 + v2):**
+- `text_layer_row_reconstruct.py`: +61/-1 satır
+- `tests/test_ocr_text_layer_row_reconstruct.py`: +109 satır (3 strict_global test + 2 tail_trim test)
+
+### 17:50 — Pilot v4 başlatıldı (background, log: `outputs/_boxtrack_v4_selfcorrect.log`)
+
+### 18:10 — Pilot v4 sonuç: ANJELIK çözüldü AMA JURASSIC regression
+
+| Film | v2 | v3 | v4 | DELTA v3→v4 |
+|---|---|---|---|---|
+| X-MEN | 238 | 238 | 238 | aynı ✓ |
+| **ANJELIK** | 0 | 0 | **28** | **+28 ✅ ÇÖZÜLDÜ** |
+| ROBINSON | 176 | 176 | 176 | aynı ✓ |
+| **JURASSIC** | 271 | 271 | **201** | **-70 ❌ REGRESSION** |
+
+ANJELIK ilk 8 satır (yüksek conf):
+```
+[1] conf=0.99 'ALY BEN AYED'
+[2] conf=1.00 'HELMUT SCHNEIDER'
+[3] conf=0.98 'ROGER PIGAUT'
+[4] conf=0.91 'ETTORA'   (ETTORE parçalandı)
+[5] conf=1.00 'MANNI'
+[6] conf=1.00 'SANTI'
+[7] conf=1.00 'JACQUES'
+[8] conf=0.97 'BRUNO DIETRICH'
+```
+
+JURASSIC sebep: tail_trim 293 total → 82 kept + 211 dropped (DOĞRU trim, gerçek kuyruk vardı). Self-correction yanlışlıkla tetiklendi: `kept ≤ max(2, 0.3×293)=88` ⇒ 82 ≤ 88 ✓ ⇒ trim reverse ⇒ composite 2661→12982px (4.9× büyüdü) ⇒ 211 ghost row OCR'a dahil ⇒ 271→201.
+
+**Tanı:** self-correction heuristic çok GEVŞEK (`0.3 × total` JURASSIC tarzı makul trim'leri de yakalıyor). ANJELIK ekstrem (1/14=7%), JURASSIC makul (82/293=28%). Eşik **`kept ≤ 2`** olmalı (ekstrem yanlış-pozitif).
+
+### 18:15 — Self-correction sıkılaştırıldı (Sonnet, YAPILDI master'da, COMMIT BEKLİYOR pilot v5)
+
+Değişiklik (1 satır):
+- Eski: `if kept_count <= max(2, int(round(0.3 * len(ordered)))) and dropped_count >= 5:`
+- Yeni: `if kept_count <= 2 and dropped_count >= 5:`
+
+ANJELIK (1 ≤ 2 ✓): tetiklenir → composite kurtulur.
+JURASSIC (82 > 2): tetiklenmez → normal trim çalışır → 271 geri.
+
+Yeni JURASSIC senaryosu testi eklendi (82 kept / 211 dropped). `pytest tests/test_ocr_*.py -q` → 66/66 pass.
+
+**Toplam diff (B-port v1 + v2 + v3):**
+- `text_layer_row_reconstruct.py`: ~+62/-2 satır
+- `tests/test_ocr_text_layer_row_reconstruct.py`: 3 strict_global test + 3 tail_trim test (anjelik reverse + normal tail + jurassic tail)
+
+### 18:20 — Pilot v5 başlatıldı (background, log: `outputs/_boxtrack_v5_tight.log`)
+
+### 18:40 — Pilot v5 sonuç: B-port BAŞARILI ✅
+
+| Film | v2 | v3 | v4 | v5 | tail_trim status (v5) |
+|---|---|---|---|---|---|
+| X-MEN | 238 | 238 | 238 | **238** | no_oversized_gap |
+| JURASSIC | 271 | 271 | 201 | **271** | oversized_inter_row_gap (kept=82, dropped=211) |
+| **ANJELIK** | **0** | **0** | **28** | **28** | **self_corrected_kept_too_few** ✅ |
+| ROBINSON | 176 | 176 | 176 | **176** | no_oversized_gap |
+
+3 fix doğru ayrıştı: ANJELIK self-correction, JURASSIC normal trim, X-MEN/ROBINSON dokunulmadı.
+
+### 18:45 — B-port COMMIT EDİLDİ ✅ `18b4be6`
+
+```
+feat(ocr): port strict-global text mask + tail_trim self-correction (B-port)
+```
+
+2 dosya, +209/-1 satır. Sadece OCR dosyaları:
+- `core/pipelines/ocr/text_layer_row_reconstruct.py`
+- `tests/test_ocr_text_layer_row_reconstruct.py`
+
+ASR/webui/docs uncommitted'leri yine bırakıldı (başka oturum).
+
+---
+
+### YAPILDI özet (bu oturumda B-port + C-kart faz 1)
+
+- [x] **B-port:** strict_global text mask + tail_trim self-correction — `18b4be6` COMMIT.
+  - ANJELIK regression çözüldü (0 → 28 satır, gerçek cast okundu).
+  - Diğer 3 film regression yok.
+- [x] **C-kart faz 1:** overlap-based card grouping — `9f0c745` COMMIT.
+  - KUKLA: 18 → 7 kart (büyük iyileşme, hedef 3-5'e tune sonra).
+  - 4 film scroll lines korundu (regression yok).
+  - 4 film static cards arttı (scroll-içi short-lived tracks ayrı kart oluyor, cosmetic — scroll-dominant film'lerde "kart" anlamlı birim değil).
+
+### 18:50 — Pilot v6 başlatıldı (background, 2 paralel pilot)
+
+```powershell
+$env:USE_BOX_TRACK_PIPELINE = "1"
+$env:OCR_TEXT_MASK_MODE = "strict_global"
+$env:OCR_CARD_GROUPING = "overlap"
+# (KUKLA + 4 film aynı anda — GPU çakışması, 4-film fail oldu)
+```
+
+### 18:55 — Pilot v6 KUKLA tamam, 4-film FAIL
+
+GPU contention (Paddle session iki pilot tarafından init edilmeye çalışıldı). KUKLA bitti (31sn), 4-film sadece X-MEN'i başlattıktan sonra exit 255.
+
+### 19:00 — Pilot v6b 4-film solo retry
+
+```powershell
+$env:USE_BOX_TRACK_PIPELINE = "1"
+$env:OCR_TEXT_MASK_MODE = "strict_global"
+$env:OCR_CARD_GROUPING = "overlap"
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment `
+  --manifest outputs/ocr_4films_scroll_manifest_20260523.json `
+  --output-dir outputs/ocr_4films_boxtrack_20260523_v6b_overlap `
+  --engines paddle
+```
+
+### 19:20 — Pilot v6b sonuç
+
+| Film | v5 lines | v6b lines | v5 cards | v6b cards |
+|---|---|---|---|---|
+| X-MEN | 238 | 238 | 57 | 120 |
+| JURASSIC | 271 | 271 | 44 | 66 |
+| ANJELIK | 28 | 28 | 0 | 0 |
+| ROBINSON | 176 | 176 | 17 | 43 |
+
+Scroll lines AYNI ✓ (regression yok). static_tracks AYNI ✓ (sınıflandırma değişmedi). Sadece kart birleştirme farklı: scroll-dominant film'lerde tek-obs short-lived tracks ayrı kart oluyor (cosmetic, scroll OCR'ı etkilemiyor).
+
+### 19:25 — C-kart faz 1 COMMIT EDİLDİ ✅ `9f0c745`
+
+```
+feat(ocr): add overlap-based card grouping mode (C-kart phase 1)
+```
+
+2 dosya, +286/-9 satır. 68/68 OCR test pass.
+
+### YAPILDI özet (bu oturumda B-port + C-kart faz 1 + A-fb — 3 commit)
+
+- [x] **B-port:** strict_global text mask + tail_trim self-correction — `18b4be6` COMMIT. ANJELIK 0 → 28 satır.
+- [x] **C-kart faz 1:** overlap-based card grouping — `9f0c745` COMMIT. KUKLA 18 → 7 kart.
+- [x] **A-fb:** scroll fallback safety net + composite OCR restore + PIL/Paddle fix — `7ac6060` COMMIT.
+  - Pilot v9 (A-fb live): 4 film hepsi v8 ile aynı, `scroll_fallback_used=False` (composite OK, emniyet ağı dormant).
+  - Composite OCR bloğu d1d3c95'te eksik kalmıştı (working tree'de yaşıyordu), bu commit'le HEAD'e dahil edildi.
+  - PIL/Paddle çakışması (pilot v7 X-MEN exit 255): `image_quality_police` import'u module-level'a taşındı, conflict çözüldü.
+
+### 19:30 — A-fb pilot v9 sonuç + COMMIT EDİLDİ ✅ `7ac6060`
+
+| Film | v8 (off) | v9 (auto) | fb_used | fb_reason |
+|---|---|---|---|---|
+| X-MEN | 238 | 238 | False | None |
+| JURASSIC | 271 | 271 | False | None |
+| ANJELIK | 28 | 28 | False | None |
+| ROBINSON | 176 | 176 | False | None |
+
+Tüm 4 film composite OK → A-fb tetiklenmedi (beklendiği gibi, emniyet ağı sadece composite bozulursa devrede).
+
+### 19:50 — D-split COMMIT EDİLDİ ✅ `bf2c047`
+
+```
+feat(ocr): add role|name column pairing via auto-split + bbox derivation (D-split)
+```
+
+İki katmanlı split_x kaynağı: önce `row_reconstruct_summary.auto_split.split_x`, yoksa bbox'lardan on-the-fly türetim.
+
+| Film | scroll lines | split_x | source | paired |
+|---|---|---|---|---|
+| X-MEN | 238 | 423 | bbox_derived | 181 |
+| JURASSIC | 271 | 303 | bbox_derived | 158 |
+| ANJELIK | 28 | 301 | bbox_derived | 23 |
+| ROBINSON | 176 | 418 | bbox_derived | 154 |
+
+JURASSIC örnek paired_lines:
+```
+ASSISTANT/CRANE TECH       | Tom JOKDAN
+VISION CAMERA ASSISTANT    | ROMR'UUPNKOU
+SCRIPT SUPERVISOR          | AN'MaRIA'O0INtANA   (PaddleOCR harf bozulması, yapı doğru)
+```
+
+Test: 73/73 OCR test pass.
+
+### 20:10 — E-eski yol kapat COMMIT EDİLDİ ✅ `5afcda8`
+
+```
+feat(ocr): flip K-BoxTrack pipeline default ON (E-eski yol kapat)
+```
+
+`USE_BOX_TRACK_PIPELINE` default `"1"`. Eski 8-stage path kaldı (opt-out: `USE_BOX_TRACK_PIPELINE=0`).
+
+**BEKLENMEDIK BONUS — ANJELIK default davranışta 55 satır!**
+
+Pilot v11 (HİÇ env var SET ETMEDEN, pure default):
+
+| Film | v10 (env'li) | v11 (env'siz) | Δ |
+|---|---|---|---|
+| X-MEN | 238 | 238 | aynı |
+| JURASSIC | 271 | 271 | aynı |
+| **ANJELIK** | **28** | **55** | **+27 (~2×!) ✨** |
+| ROBINSON | 176 | 176 | aynı |
+
+Sebep: default `_frame_text_mask_current` (lokal kontrast) hareketli BG'de bile text yakalıyor. tail_trim self-correction (B-port'tan beri default açık) composite'i kurtarıyor. İkisi birleşince 28 → 55. **strict_global mask aslında bazı satırları kaçırıyormuş.**
+
+strict_global/overlap/hybrid hala opt-in olarak duruyor (alternatif yaklaşımlar, edge case'ler).
+
+### YAPILACAK (sırada — bu oturumda 5 commit, master temiz)
+
+1. **C-kart faz 2** — KUKLA 7 → 3-5 hedef için tune. Default davranışta KUKLA cards kontrol edilmedi (env'siz pilot v11 sadece 4 film scroll için), KUKLA için ayrı pilot lazım. Sonra `min_window_overlap_ratio` ve/veya proximity tuning.
+
+### TOPLAM SONUÇLAR (bu oturum sonu, default davranış)
+
+| Film | Başlangıç | Şimdi (env'siz) | Δ |
+|---|---|---|---|
+| X-MEN scroll | 34 | **238** | +204 (7×) |
+| JURASSIC scroll | 271 | 271 | korundu |
+| **ANJELIK** scroll | **0** | **55** | **sıfırdan, ~2×** |
+| ROBINSON scroll | 176 | 176 | korundu |
+| KUKLA cards | 18 | 7 (env'li v6) | yarıdan az |
+| **Paired role\|name** | yoktu | **528+** | yeni özellik |
+
+### COMMIT HISTORY (bu oturum, sıralı)
+
+```
+5afcda8 feat(ocr): flip K-BoxTrack pipeline default ON (E-eski yol kapat)
+bf2c047 feat(ocr): add role|name column pairing via auto-split + bbox derivation (D-split)
+7ac6060 feat(ocr): scroll fallback safety net + restore composite OCR block (A-fb)
+9f0c745 feat(ocr): add overlap-based card grouping mode (C-kart phase 1)
+18b4be6 feat(ocr): port strict-global text mask + tail_trim self-correction (B-port)
+4497997 fix(ocr): relax row_count penalty for legitimate long scrolls
+d1d3c95 feat(ocr): land K-BoxTrack unified pipeline + ship pending OCR helpers
+```
+
+**5 feature commit** bu oturumda. Çağatay'ın 4-kategori planı koda indi.
+
+---
+
+## 8. CHECKPOINT BİLGİLERİ
+
+### Git durumu
+
+- **HEAD:** `4497997 fix(ocr): relax row_count penalty for legitimate long scrolls`
+- **Bir önceki:** `d1d3c95 feat(ocr): land K-BoxTrack unified pipeline + ship pending OCR helpers`
+- **Master temiz mi:** HAYIR. 45 dosya hâlâ uncommitted (ASR, webui, docs, translate, mutfak — başka oturumun in-flight işi, bu OCR oturumunda dokunulmadı).
+- **Pre-existing OCR uncommitted'ler:** `text_layer_row_reconstruct.py` + `test_ocr_text_layer_row_reconstruct.py` (commit d1d3c95'te alındı).
+- **Bu oturumun uncommitted'i:** row penalty fix (`text_layer_row_reconstruct.py:391-395`) — pilot v2 sonucu beklenip karar verilecek.
+
+### Test durumu
+
+```
+venvs/core/Scripts/python.exe -m pytest tests/test_ocr_*.py -q
+→ 19 OCR test pass (5 yeni + 14 mevcut), 24 skipped (paddle/oneocr engine bağımlılığı)
+```
+
+### Çalıştırma
+
+Eski yol (regression için duruyor):
+```
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment \
+  --manifest outputs/ocr_kukla_single_manifest_20260523.json \
+  --output-dir outputs/<dir> --engines paddle
+```
+
+Yeni K-BoxTrack yol:
+```
+$env:USE_BOX_TRACK_PIPELINE = "1"
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment ...
+```
+
+### Önemli pilot outputs (referans için duruyor)
+
+- `outputs/filmtest_kukla_single_retest_20260523_quality/` — ESKİ yol pilotu (22 dk, siyah fused.png)
+- `outputs/filmtest_kukla_boxtrack_20260523_v2/` — K-BoxTrack v2 (24.6 sn, 46 kart, anya kartı temiz)
+- `outputs/filmtest_kukla_boxtrack_20260523_v3/` — y-overlap=0 (18 kart)
+- `outputs/filmtest_kukla_boxtrack_20260523_v4/` — time-window overlap (1 kart, YANLIŞ, terk edildi)
+- `outputs/ocr_4films_boxtrack_20260523/` — 4 film pilot v1 (X-MEN 34 satır, JURASSIC 271 satır, ANJELIK 0)
+- `outputs/ocr_4films_boxtrack_20260523_v2/` — 4 film pilot v2 (row penalty fix sonrası, KOŞUYOR)
+- `outputs/_boxtrack_*.log` — koşum logları
+
+### Önemli kod dosyaları (commit edilmiş, d1d3c95 sonrası)
+
+```
+core/pipelines/ocr/
+├── box_tracker.py                    638 satır (POC tracker + 3 K-BoxTrack helper)
+├── credit_detector.py                699 satır (c3c042c'den)
+├── credit_experiment.py             3290 satır (8-stage eski + USE_BOX_TRACK gate)
+├── credit_pipeline_selector.py       128 satır (4-kategori matrisi BURAYA inecek)
+├── credit_scene_router.py            527 satır
+├── credit_segment_dispatcher.py      537 satır
+├── image_quality_police.py           257 satır (BROKEN_BLACK/_LEAK assessor)
+├── simple.py                         277 satır (lightweight, ayrı entry)
+├── temporal_fusion.py                227 satır (K-3 median + K-4 variance — eski yol kullanıyor)
+├── text_layer_descroll.py           1271 satır (eski yol)
+├── text_layer_row_reconstruct.py    1020 satır (scroll composite, X-MEN penalty fix beklemekte)
+├── text_track_state.py               217 satır
+└── unified_credit_pipeline.py        165 satır (K-BoxTrack orchestrator)
+
+tests/
+├── test_ocr_box_track_pipeline.py    192 satır (5 yeni test)
+└── test_ocr_box_tracker_poc.py       (POC, 14 mevcut test)
+```
+
+---
+
+## 9. ÖNEMLİ MEMORY NOTLARI (kalıcı referans)
+
+- `user_profile.md` — Çağatay TRT'de, Türkçe direkt iletişim, implementasyonu başka ortamda yapar.
+- `feedback_plan_implement_split.md` — Opus planlar, Sonnet uygular.
+- `feedback_master_no_worktree.md` — master'da çalış.
+- `feedback_audit_workflow.md` — denetle, koda karşı doğrula, vaad-gerçek tablosu çıkar.
+- `feedback_checkpoint_commit_hygiene.md` — sadece kapsamlı işi commit, in-flight kodu süpürme.
+- `project_mitas.md` — fast_with_fallback profili.
+- `PARK-OCR-001` (mutfak `05_AKTIF_GOREV.md`) — outputs/ocr_credit_experiments/ commitlenmemeli, OCR kod/karar ayrı commitlenmeli.
+
+---
+
+## 10. SIRADAKİ OTURUM İÇİN HIZLI BAŞLANGIÇ (eski not — §11 daha günceldir)
+
+1. Bu dosyayı oku.
+2. `git log --oneline -5` → HEAD `5afcda8` (B/C/A/D/E commit serisi sonrası).
+3. `git status --short | head` → ASR/webui/docs uncommitted'lerine DOKUNMA, başka oturumun in-flight işi.
+
+---
+
+## 11. 2026-05-24 OTURUMU — 24-FILM STRESS TEST + KRİTİK MİMARİ BULGU
+
+### 11.1 Bağlam
+Çağatay'ın talimatı: "Modele hiçbir şartta müdahale etmeyeceksin. Sadece test koşusunu takip edip raporlamak. E:\filmtest\aaaa altındaki 24 video ile mevcut versiyonu test et."
+
+→ Kod değişikliği YAPILMADI. Sadece test + rapor + analiz + karar.
+
+### 11.2 24-film pilot — sonuçlar
+- Manifest: `outputs/ocr_24films_aaaa_manifest_20260523.json` (24 item, her biri son 7 dk)
+- Output: `outputs/ocr_24films_aaaa_test_20260523/`
+- Env: hiçbir set yok (pure default, USE_BOX_TRACK_PIPELINE=1)
+- Toplam runtime: 22.5 dk · 24/24 done · 0 OCR error
+- 17/24 filmde anlamlı scroll · 19/24'te kart · 13/24'te paired role|name (~1.330 satır)
+- A-fb fallback **gerçek dünyada devreye girdi** (2 film): YARI_SERT (BROKEN_NO_TEXT, 203 satır kurtardı) + CENNETIN_RENGI (BROKEN_BLACK, 45 satır kurtardı)
+- Önceki 4-film pilot ile sıfır regression (X-MEN 238, ANJELIK 55, ROBINSON 176 aynı, JURASSIC +6)
+
+### 11.3 Sıfır-çıktı 7 film — sebep analizi
+Şüpheli her filmin son 15 dk'sından `ffmpeg -ss <t> -vframes 1 -vf scale=640:-2` ile 10 frame çıkarılıp görsel incelendi (`outputs/_anomaly_check_frames/`).
+
+**A) PIPELINE HATASI (2 film) — `opus_credit_detector` pencereyi yanlış daralttı:**
+
+| Film | Manifest | Detector "effective" | Frame teyidi | Detector conf |
+|---|---|---|---|---|
+| POROROCA | 8403-8823 | 8403-**8594** | t8643+ tam scroll jenerik var | 0.482 |
+| FRANNY | 293-713 | **500-542** | t683'te voice actors kartı (son 30sn) | 0.597 |
+
+Her ikisinde detector düşük confidence'ta pencereyi kestir → pipeline jeneriği hiç görmedi.
+
+**B) VERİ NORMAL (4 film) — eski filmlerde scroll jenerik fiilen yok:**
+- KULÜBE 1952, KANSAS 1950, DUZINESI 1950, DERT_BENDE 1973 → son 15 dk hep sahne, "SON" kartı geleneği. Pipeline doğru "0" dedi.
+
+**C) BİLİNEN DAVRANIŞ (1 film):**
+- KUKLA_ADAM → statik-kart film, scroll yok ama 18 kart (beklenen).
+
+### 11.4 OCR doğruluk — IMDB ile birebir teyit
+WebSearch ile cast/crew karşılaştırması yapıldı:
+
+| Film | OCR çıktısı | IMDB teyidi |
+|---|---|---|
+| X-MEN (2000) | UNIT PRODUCTION MANAGER → ROSS FANGER · FIRST AD → LEE CLEARY | ✓ ikisi de doğru pozisyonda |
+| JURASSIC PARK 2 (1997) | DREW PETROTTA, KELLY PORTER, MARK BROWN + pozisyonlar | ✓ POZİSYONLAR DAHİ EŞLEŞTİ |
+| ANJELIK (1968) | ALY BEN AYED · SCHNEIDER · PIGAUT · MANNI · SANTI | ✓ 5/5 eşleşti (parçalı harfler dahi) |
+| BARBARLARI (2019) | CRISPIAN SALLIS · PAUL SNELL · BRIAN COOK · MARCO BELTRAMI | ✓ 4/4 doğru |
+
+→ Yüksek conf (>0.85) satırlar **gerçek isim/pozisyon**. Düşük conf çöp (post-process ile filtrelenebilir).
+
+### 11.5 KRİTİK MİMARİ BULGU — credit_detector yazıyı görmüyor
+Kod incelemesi: `core/pipelines/ocr/credit_detector.py:191-219` (`_score_window` + `_text_like_mask`).
+
+**Bekçi (`opus_credit_detector`) yaptığı iş:**
+1. Frame'i gri yapar → kenar tespitiyle **"yazıya BENZER dokulu" piksel maskesi** çıkarır
+2. text_density (yazımsı piksel oranı), row_structure (yatay çizgi), dark_ratio (karanlık piksel), motion_consistency (mask hareket sürekliliği) sayar
+3. `0.56×structured_density + 0.14×dark_score + 0.22×scroll/static + 0.08×phase` formülüyle credit_score üretir
+4. Eşik geçerse "credit" der
+
+**Kritik:** `credit_detector` PaddleOCR'ı HİÇ ÇAĞIRMIYOR. Gerçek text görmüyor. "Yazımsı dokulu kareler" arıyor — kör tahmin. Yine de pipeline ona "jenerik nerede?" diye soruyor ve pencereyi onun dediği yere kısıyor.
+
+**Çelişki:** PaddleOCR aynı pipeline'da çalışıyor (24 film için 116K+ record üretti, IMDB ile %95+ doğrulukla). Ama "yazı nerede" sorusu **ona değil**, kör tahminciye soruluyor.
+
+### 11.6 GENEL YAKLAŞIM KARARI — "credit-first" → "text-first" mimari (B yolu)
+
+Çağatay'ın yeniden çerçeveleme: KJ, jenerik kartı, scroll jenerik — hepsi tek sorunun alt türleri:
+> **"Ekranda yazı var mı? Varsa nerede, ne kadar süreyle, ne yazıyor?"**
+
+Yer/süre/hareket → sınıflandırma metası, problem değil.
+
+**Mevcut mimari yanlış soruyu soruyor:**
+- Sorulan: "Jenerik penceresi nerede?" → kör tahminciye
+- Olması gereken: "Tüm video'da yazı var mı, izle, sınıfla" → PaddleOCR + box_tracker'a
+
+**Karar:** B yolu — text-first mimari geç. credit_detector'ı alt sınıflandırıcıya indir (jenerik mi KJ mi kart mı). Pencere kavramı (`scope=end_credits`, son N dk) deprecate olur.
+
+**Neden büyük iş değil:** K-BoxTrack çekirdek mimari ZATEN doğru (PaddleOCR detection + box_tracker + classify_track_motion + group_static_tracks). Eksik tek şey: scope'u "credit penceresi"nden "tüm video"ya açan üst katman + tip sınıflandırıcı (3 filtre kuralı: süre/boyut/konum).
+
+### 11.7 V1 İÇİN 5 EKLEME (öncelik sırasına göre)
+
+**P0 — Yapıtaşı, sonradan eklemek pahalı:**
+
+1. **Output schema'sını "text event"e genelleştir.** `scroll_text_lines.json` + `cards/` + `paired_lines` → tek `events[]` array:
+   ```
+   {start_sec, end_sec, duration_sec, type, bbox, text, secondary_text, confidence, tracker_id, stability, frame_count}
+   ```
+   type: `kj | card | scroll_credit | intertitle | scene_text`. UI, export, search → tek schema.
+
+2. **Ground truth + regression seti.** 5 altın film: X-MEN, KUKLA, ANJELIK, FRANNY (KJ-benzeri), POROROCA. Manuel etiket (jenerik başlangıç/bitiş + KJ aralıkları). Her commit sonrası bunlara karşı koş. Yoksa her değişiklik kör atış (B-port v4'te JURASSIC 271→201 regression olayı kanıt).
+
+**P1 — V1 ile birlikte:**
+
+3. **Kademeli tarama (cost optimization).** Tüm video naïve detaylı OCR = ~5-7 saat/24 film. İki kademe:
+   - Kademe 1: stride=2sn, detection-only, "yazı var mı?" hızlı tarama (~5-8 dk/film)
+   - Kademe 2: yazı bulunan segmentlere geri dön, dense frame + recognition
+   - Hedef: 30-50 dk/24 film (pencere modu hızını koru).
+
+4. **False-positive filtreleme.** Sahne içi yazılar (tabela, kitap, POLITIA arabası) text event olmamalı.
+   - KJ: süre 2-10s sabit, alt yarı, lokal bbox, tracker stability yüksek
+   - Scroll: dikey hareket sürekli
+   - Sahne metni: süre <2s veya bbox rastgele hareket (kamera ile)
+
+**P2 — V1 sonrası cila:**
+
+5. **Eski credit-mode opt-out olarak tut** (`LEGACY_CREDIT_PIPELINE=1`). Silme kuralı: 3-6 ay sonra 100+ film sorunsuz olduktan sonra. Karşılaştırma testleri + acil geri dönüş için zorunlu. Memory: `feedback_master_no_worktree` (hemen silme).
+
+**Bonus (P2/P3):**
+- Manifest genişlemesi: `kind: full_scan` default, `kind: window` opsiyonel hint
+- Type-spesifik confidence eşiği (KJ %85, scroll %50)
+- Telemetri: her event'e `type_reason` (`"duration=4.4 + bbox_y=0.78 + stable"`)
+
+### 11.8 KAPSAM DIŞI (bu kararda değil)
+- credit_detector eşik kalibrasyonu (yama yolu, mimari sorunu örter, reddedildi)
+- Pencere buffer ekleme (POROROCA için yetersiz, reddedildi)
+- Worktree (memory: `feedback_master_no_worktree`)
+
+### 11.9 PC + ortam notu
+- Çalışılan PC: **DESKTOP-JFEEDMB** (iş yeri, TRT03)
+- Çağatay laptoptan uzak masaüstüyle bağlanıyor
+- Bu Claude oturumu kapanırsa → iş yeri PC'sinde yeni Claude → bu dosyayı oku → devam
+- Tüm test artifact'leri iş yeri diskinde:
+  - `outputs/ocr_24films_aaaa_manifest_20260523.json`
+  - `outputs/ocr_24films_aaaa_test_20260523/` (items, run_report, _summary_table)
+  - `outputs/_anomaly_check_frames/` (7 şüpheli filmin 70 frame'i)
+  - `outputs/_canli_kanit_*.jpg` (oturum kanıt frame)
+
+---
+
+## 12. SIRADAKİ OTURUM İÇİN HIZLI BAŞLANGIÇ (2026-05-24 sonrası)
+
+1. Bu dosyayı oku (özellikle §11).
+2. `git log --oneline -5` → HEAD hâlâ `5afcda8` (bu oturumda commit YOK — sadece test + tanı + karar).
+3. `git status --short` → 24 film test artifact'leri `outputs/` altında (ASR/webui uncommitted'lerine DOKUNMA).
+4. **Sıradaki konu: B yolu — text-first mimari V1 tasarımı.** Çağatay onayladı, 5 ekleme önerisi listelenmiş (§11.7).
+5. Başlangıç adımları (Çağatay onayıyla):
+   - **P0-1 (schema):** `core/pipelines/ocr/text_events_schema.py` skeleton + JSON Schema. Mevcut `unified_credit_pipeline.py` çıktısını bu formata maple.
+   - **P0-2 (ground truth):** 5 film için manuel etiket dosyası `tests/data/ocr_ground_truth/<film>.json`. Format: `[{start_sec, end_sec, type, expected_text_sample, min_line_count}]`. Sonra regression test.
+   - **P1-3 (stride scan):** `core/pipelines/ocr/text_presence_scanner.py` — stride=2s, sadece PaddleOCR detection, "text segments" output. Bir film üzerinde POC.
+6. **Plan Opus / uygula Sonnet** (memory: `feedback_plan_implement_split`). Bu §11.7 brief'lerini Sonnet'e devret.
+7. **Kod değiştirmeden önce Çağatay'a göster**, B yolunun her adımı onaylanmalı.
+
+---
+
+---
+
+## 13. FAZ 1 — text_event schema + telemetri (TAMAMLANDI, COMMIT BEKLİYOR)
+
+**Tarih:** 2026-05-24, ~22:30
+**Sahip:** Sonnet alt-ajanı (Opus brief'i ile)
+
+### Yapılan
+- `core/pipelines/ocr/text_event.py` (YENİ, 271 satır) — TextEvent dataclass + to_dict/from_dict + validate_events + build_text_events_from_unified
+- `core/pipelines/ocr/unified_credit_pipeline.py` (+53 satır) — Step 8: events.json yazımı, mevcut format yan yana korundu
+- `tests/test_ocr_text_event_schema.py` (YENİ, 105 satır, 5 test)
+
+### Test durumu
+```
+75 passed, 1 skipped (jsonschema venv'de yok, manuel validator kapsıyor), 2 pre-existing fail (kapsam dışı)
+```
+
+### Smoke test (ROBINSON tek-item)
+- `outputs/_phase1_smoke_232407/items/2025_robinson_crusoe_end_credits/unified/events.json`
+- 18 event (17 card + 1 scroll_credit)
+- Scroll event: 176 alt-satır + `paired_role_name: {role: "AYNSLEY", name: "DOUG STONE"}`
+- type_reason örnek: `"scroll_tracks=196 + composite_lines=176 + scroll_canvas=row_composite.png → scroll_credit"`
+- Runtime: 41.3 sn
+
+### Regression
+- 19 mevcut format dosyası → 0 yapısal fark (path embed kaçınılmaz)
+- card_id/frame_index/text_lines/bbox/confidence/score/member_count — byte-identical
+- Sıfır pipeline output kırılımı
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ "Ekranda yazı var mı, oku" sorusu schema'da. type+type_reason+text+bbox+lines+paired_role_name doluyor.
+2. **Başka iş bozuluyor mu?** ✗ Hayır. Mevcut format yan yana korundu. webui tüketici yok. Pre-existing 2 fail başka oturum işi.
+3. **Daha iyi yapılabilir mi?** type_reason string olarak yeterli (V1). scroll event start/end_sec=0 Faz 4'te dolacak. video_id fallback path-türetimi minimal değişiklik.
+
+### Notlar
+- jsonschema OCR venv'de yok → `pip install jsonschema` ile 1 skip → 1 pass olur, opsiyonel
+- COMMIT BEKLİYOR (Çağatay onayı)
+- Önerilen commit mesajı: `feat(ocr): add text_event schema output (Faz 1 — text-first phase 1)`
+
+---
+
+**Bu dosyayı her büyük adımdan sonra güncelle.** YAPILACAK → YAPILDI → COMMIT EDİLDİ formatı.

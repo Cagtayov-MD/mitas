@@ -27,6 +27,8 @@ class UnifiedCreditResult:
     summary_path: Path
     summary: dict[str, Any]
     runtime_sec: float
+    events_path: Path | None = None  # Faz 1: text_event events.json
+    events_count: int = 0
 
 
 def run_unified_credit_pipeline(
@@ -263,12 +265,62 @@ def run_unified_credit_pipeline(
     summary_path = output_dir / "summary.json"
     _write_json(summary_path, summary)
 
+    # --- Step 8 (Faz 1): text_event events.json (yan yana, eski format dokunulmuyor) ---
+    events_path: Path | None = None
+    events_count = 0
+    try:
+        from core.pipelines.ocr.text_event import (
+            SCHEMA_VERSION,
+            build_text_events_from_unified,
+        )
+
+        scroll_lines_path = output_dir / "scroll" / "scroll_text_lines.json"
+        events = build_text_events_from_unified(
+            unified_summary=summary,
+            cards_dir=cards_dir,
+            scroll_lines_path=scroll_lines_path if scroll_lines_path.exists() else None,
+            scroll_canvas_path=scroll_canvas_path,
+            paired_lines=paired_lines if scroll_tracks else None,
+        )
+        by_type: dict[str, int] = {}
+        for ev in events:
+            by_type[ev.type] = by_type.get(ev.type, 0) + 1
+        events_summary = {
+            "engine": "k_box_track_unified",
+            "version": SCHEMA_VERSION,
+            "total_events": len(events),
+            "by_type": by_type,
+            "runtime_sec": runtime_sec,
+            "low_confidence_count": 0,  # Faz 5'te doldurulacak
+            "fallback_used": bool(summary.get("scroll_fallback_used")),
+            "fallback_reason": summary.get("scroll_fallback_reason"),
+        }
+        # video_id: unified dir 'unified' adıyla geliyor; gerçek item id'si parent dir
+        item_id = output_dir.name
+        if item_id == "unified" and output_dir.parent != output_dir:
+            item_id = output_dir.parent.name
+        events_payload = {
+            "schema_version": SCHEMA_VERSION,
+            "video_id": item_id,
+            "source_path": str(frames[0]) if frames else "",
+            "events": [ev.to_dict() for ev in events],
+            "summary": events_summary,
+        }
+        events_path = output_dir / "events.json"
+        _write_json(events_path, events_payload)
+        events_count = len(events)
+    except Exception as exc:
+        # Events yazımı pipeline başarısını bozmamalı
+        ocr_errors.append(f"text_events:{type(exc).__name__}:{exc}")
+
     return UnifiedCreditResult(
         cards_dir=cards_dir,
         scroll_canvas_path=scroll_canvas_path,
         summary_path=summary_path,
         summary=summary,
         runtime_sec=runtime_sec,
+        events_path=events_path,
+        events_count=events_count,
     )
 
 

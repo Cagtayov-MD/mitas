@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mitas.local/schemas/manifest/v2.0.0",
+  "title": "MITAS OCR pipeline manifest v2",
+  "description": "Pipeline girdi formatı. kind field'ı ile profil dispatch. Faz 2 (madde 6).",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "_comment": {"type": "string"},
+    "items": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/ManifestItem"}
+    }
+  },
+  "definitions": {
+    "ManifestItem": {
+      "type": "object",
+      "required": ["id", "path", "kind"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "path": {"type": "string"},
+        "kind": {
+          "type": "string",
+          "enum": [
+            "film_credits",
+            "end_credits",
+            "kj_scan",
+            "scene_text",
+            "full_scan"
+          ],
+          "description": "Profil seçici. film_credits = açılış + kapanış pencereleri (dinamik). end_credits = LEGACY alias, sadece kapanış. kj_scan = stub V1, kj_scan profili V2'de aktif. scene_text = stub V1."
+        },
+        "expected_language": {
+          "type": "string",
+          "default": "tr"
+        },
+        "fps": {
+          "type": "integer",
+          "default": 6
+        },
+        "ground_truth": {
+          "type": ["array", "null"]
+        },
+        "notes": {"type": "string"},
+
+        "opening_window_min": {
+          "type": "number",
+          "default": 3,
+          "description": "film_credits profilinde açılış jeneriği başlangıç penceresi (dakika). Dinamik uzantı bunun üstüne ekler."
+        },
+        "closing_window_min": {
+          "type": "number",
+          "default": 5,
+          "description": "film_credits profilinde kapanış jeneriği başlangıç penceresi (dakika). Dinamik uzantı bunun üstüne ekler."
+        },
+        "max_opening_min": {
+          "type": "number",
+          "default": 8,
+          "description": "Dinamik uzantı için açılış maks limit"
+        },
+        "max_closing_min": {
+          "type": "number",
+          "default": 15,
+          "description": "Dinamik uzantı için kapanış maks limit"
+        },
+        "dynamic_window": {
+          "type": "boolean",
+          "default": true,
+          "description": "false → sabit pencere, true → kuyruk takipli uzantı"
+        },
+
+        "start_seconds": {
+          "type": ["number", "null"],
+          "description": "LEGACY (kind: end_credits için). Yeni profillerde kullanılmaz."
+        },
+        "end_seconds": {
+          "type": ["number", "null"],
+          "description": "LEGACY (kind: end_credits için). Yeni profillerde kullanılmaz."
+        },
+        "scroll_auto_detect": {
+          "type": ["boolean", "null"],
+          "description": "LEGACY"
+        },
+        "roi": {
+          "type": ["array", "null"]
+        },
+        "column_count": {
+          "type": ["integer", "null"]
+        },
+        "layout_type": {
+          "type": ["string", "null"]
+        },
+        "motion_type": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}
