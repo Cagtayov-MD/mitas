@@ -1312,4 +1312,339 @@ Faz 6 sonrası mimari **kapanış** durumunda. V2 adayları:
 
 ---
 
+## 20. 2026-05-25 İLERİ SAATLER — OneOCR KEŞFİ (DEVAM EDİYOR)
+
+> **Bu bölüm canlı çalışma kaydı. Token kesilirse yeni oturum buradan devam etsin.**
+
+### 20.1 Şu an neredeyiz
+Faz 1-6 hepsi commit edildi (HEAD `406914c8`). 10 ground truth IMDB-verified (`tests/data/ocr_ground_truth/*.json`). 24-film Faz 4 doğrulama bitti (`outputs/ocr_24films_aaaa_phase4_verify_20260525/`):
+- Scroll lines 1590 → 1833 (+15%)
+- Cards 402 → 834 (+108%)
+- Ground truth IMDB okuma oranı: %58 (10 film ortalaması)
+- En iyi: X-MEN %100, YARI_SERT %96, ROBINSON %93
+- En kötü: CENNETIN_RENGI %0 (Farsça), FRANNY %0 (composite başarısız)
+
+### 20.2 JURASSIC örnek incelemesi — Paddle vs OneOCR
+Çağatay "neden yanlış okudu, kod mu görüntü mü?" sorusu üzerine:
+- JURASSIC composite kesitinde "JULIANNE MOORE" → Paddle "JULIANNE MOGRE" (O→G hatası), ekran NET → MODEL HATASI
+- OneOCR ile tek crop testi: MOORE ✓, DAYWALT ✓, BOBBY Z ✓ (3 isim Paddle'da yanlıştı)
+
+### 20.3 JURASSIC TAM PIPELINE — Paddle vs OneOCR
+`outputs/_jurassic_oneocr_test/` ile tam pipeline OneOCR koşumu:
+
+| Metrik | Paddle | OneOCR | Kazanan |
+|---|---|---|---|
+| Runtime | 127s | 85s | OneOCR (%33 hızlı) |
+| Cards | 12 | 27 | OneOCR (2.25×) |
+| Scroll lines | 277 | 90 | Paddle |
+| EXACT IMDB (18 isim) | 5/18 (%28) | **14/18 (%78)** | **OneOCR 2.8×** |
+| Ensemble potansiyel | — | — | 15/18 (%83) |
+
+**Tanı:** OneOCR cast kartlarında (Ian Malcolm/Jeff Goldblum, Julianne Moore, Pete Postlethwaite, vs.) çok daha iyi; Paddle scroll detayında (uzun kapanış jeneriği) daha iyi.
+
+### 20.4 SIRADAKİ ADIM — 24-film OneOCR pilot (KANIT ARTTIR)
+Çağatay onayı: tek JURASSIC örneği yeterli değil, 24-film OneOCR ile koşulup Paddle ile karşılaştırılacak.
+
+**Komut (başlatılacak):**
+```powershell
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment `
+  --manifest outputs/ocr_24films_aaaa_film_credits_manifest_20260525.json `
+  --output-dir outputs/ocr_24films_aaaa_oneocr_20260525 `
+  --engines oneocr
+```
+
+Tahmini süre: ~30-45 dk. Karşılaştırma kaynağı: `outputs/ocr_24films_aaaa_phase4_verify_20260525/` (Paddle).
+
+Beklenen rapor formatı:
+- Her film için Paddle vs OneOCR: cards, scroll_lines, runtime
+- 10 ground truth film için OneOCR EXACT match oranı
+- Genel ortalama: Paddle %58 → OneOCR ?
+- En çok kazanan / en çok kaybeden filmler
+- Engine seçim önerisi (default değişiklik, ensemble, per-segment dispatch)
+
+### 20.5 PILOT CANLI DURUMU (snapshot: 2026-05-25 ~12:05)
+- **Pilot başlama:** 11:48:17
+- **Background ID:** `b63y232hs` (harness-tracked)
+- **İlerleme:** 8/24 item bitti (~%33)
+- **Tahmini bitiş:** ~12:30-12:40
+- **Çıktı dizini:** `outputs/ocr_24films_aaaa_oneocr_20260525/items/`
+- **Log dosyası:** `outputs/_oneocr_24films.log` (stdout buffered — dosya yazımı düzgün her item için)
+- **Python PID:** 19032 (yaşıyor)
+
+### 20.6 DOSYA ENVANTERI — Yeni oturum için referans
+
+**Pipeline scripts:**
+- `scripts/ocr_credit_experiment.py` — ana runner, `--engines paddle|oneocr|tesseract` flag
+- `core/pipelines/ocr/credit_experiment.py` — `_run_item_profile_dispatch`, `PaddleOcrEngine` (line 220), `OneOcrEngine` (line 507)
+- `core/pipelines/ocr/unified_credit_pipeline.py` — `run_box_track_pipeline` (paddle_engine DI)
+
+**Manifest'ler:**
+- `outputs/ocr_24films_aaaa_manifest_20260523.json` — LEGACY (kind=end_credits, 24 film son 7dk)
+- `outputs/ocr_24films_aaaa_film_credits_manifest_20260525.json` — YENİ (kind=film_credits + dynamic_window, 24 film)
+- `outputs/_jurassic_only_manifest.json` — tek-item JURASSIC
+
+**Çıktı dizinleri (24-film için 3 koşum elimizde):**
+- `outputs/ocr_24films_aaaa_test_20260523/` — eski end_credits/Paddle baseline
+- `outputs/ocr_24films_aaaa_phase4_verify_20260525/` — yeni film_credits/Paddle (Faz 4 doğrulama)
+- `outputs/ocr_24films_aaaa_oneocr_20260525/` — yeni film_credits/OneOCR (koşuyor)
+
+**Smoke + analiz çıktıları:**
+- `outputs/_jurassic_oneocr_test/items/jurassic_oneocr_test/` — JURASSIC tek-item OneOCR
+- `outputs/_jurassic_julianne_crop.png` — composite kesit JULIANNE bölgesi (görsel kanıt)
+- `outputs/_anomaly_check_frames/` — şüpheli filmlerin 70 frame'i (önceki oturum)
+- `outputs/_canli_kanit_215645.jpg` — PC kanıt frame'i (önceki oturum)
+
+**Ground truth (10 IMDB-verified):**
+- `tests/data/ocr_ground_truth/*.json` × 10 — hepsi `status: approved`
+- `tests/data/ocr_ground_truth/README.md` — format dokümantasyonu
+
+**Karşılaştırma scriptleri (geçici):**
+- `/tmp/ocr_compare.py` — Paddle vs OneOCR tek crop
+- `/tmp/ocr_compare_full.py` — full composite IMDB arama
+- `/tmp/jp_compare.py` — JURASSIC tam pipeline karşılaştırması
+
+### 20.7 KARŞILAŞTIRMA HAZIR SCRIPT (PowerShell)
+
+Pilot bittiğinde 24-film Paddle vs OneOCR karşılaştırması için:
+
+```powershell
+Set-Location E:\MITAS
+$paddleBase = "outputs/ocr_24films_aaaa_phase4_verify_20260525/items"
+$oneocrBase = "outputs/ocr_24films_aaaa_oneocr_20260525/items"
+
+$rows = foreach ($d in Get-ChildItem $paddleBase -Directory) {
+  $id = $d.Name
+  $p = Get-Content "$paddleBase/$id/item_summary.json" -Raw | ConvertFrom-Json
+  $oPath = "$oneocrBase/$id/item_summary.json"
+  if (-not (Test-Path $oPath)) { continue }
+  $o = Get-Content $oPath -Raw | ConvertFrom-Json
+
+  $pEv = Get-Content "$paddleBase/$id/unified/events.json" -Raw | ConvertFrom-Json
+  $oEv = Get-Content "$oneocrBase/$id/unified/events.json" -Raw | ConvertFrom-Json
+
+  $pScroll = ($pEv.events | Where-Object { $_.type -eq "scroll_credit" } | ForEach-Object { if ($_.lines) { $_.lines.Count } else { 0 } } | Measure-Object -Sum).Sum
+  $oScroll = ($oEv.events | Where-Object { $_.type -eq "scroll_credit" } | ForEach-Object { if ($_.lines) { $_.lines.Count } else { 0 } } | Measure-Object -Sum).Sum
+
+  [PSCustomObject]@{
+    Film = $id -replace '_end_credits',''
+    P_Runtime = [math]::Round($p.runtime_sec,1)
+    O_Runtime = [math]::Round($o.runtime_sec,1)
+    P_Cards = $pEv.summary.by_type.card
+    O_Cards = $oEv.summary.by_type.card
+    P_Scroll = $pScroll
+    O_Scroll = $oScroll
+    P_Events = $pEv.summary.total_events
+    O_Events = $oEv.summary.total_events
+  }
+}
+$rows | Format-Table -AutoSize | Out-String -Width 250
+$rows | ConvertTo-Json -Depth 4 | Out-File "outputs/_paddle_vs_oneocr_summary.json" -Encoding utf8
+```
+
+### 20.8 IMDB IsIM EŞLEŞMESI SCRIPT (10 GT film için OneOCR)
+
+Pilot bittikten sonra:
+
+```python
+# /tmp/oneocr_imdb_compare.py
+import sys, re, json
+from pathlib import Path
+sys.path.insert(0, str(Path.cwd()))
+
+def collect_text(item_dir):
+    texts = []
+    ev_path = item_dir / "unified" / "events.json"
+    if not ev_path.exists(): return texts
+    ev = json.loads(ev_path.read_text(encoding="utf-8"))
+    for e in ev.get("events", []):
+        if e.get("text"): texts.append(e["text"])
+        if e.get("secondary_text"): texts.append(e["secondary_text"])
+        for ln in (e.get("lines") or []):
+            if ln.get("text"): texts.append(ln["text"])
+        pr = e.get("paired_role_name") or {}
+        if pr.get("role"): texts.append(pr["role"])
+        if pr.get("name"): texts.append(pr["name"])
+    return texts
+
+def find_match(name, lines):
+    name_clean = re.sub(r'[^A-Z ]', '', name.upper())
+    parts = [p for p in name_clean.split() if len(p) >= 3]
+    for t_raw in lines:
+        t = re.sub(r'[^A-Z ]', '', t_raw.upper())
+        if name_clean in t: return "EXACT"
+        if all(p in t for p in parts): return "EXACT"
+    for t_raw in lines:
+        t = re.sub(r'[^A-Z ]', '', t_raw.upper())
+        if any(p in t for p in parts): return "PARTIAL"
+    return "NONE"
+
+gt_dir = Path("tests/data/ocr_ground_truth")
+oneocr_base = Path("outputs/ocr_24films_aaaa_oneocr_20260525/items")
+
+for gt_file in sorted(gt_dir.glob("*.json")):
+    gt = json.loads(gt_file.read_text(encoding="utf-8"))
+    vid = gt["video_id"]
+    item_dir = oneocr_base / vid
+    if not item_dir.exists(): continue
+    texts = collect_text(item_dir)
+    expected = []
+    for seg in gt.get("expected_segments", []):
+        expected.extend(seg.get("must_contain_text", []))
+    expected = list(set(expected))
+    if not expected: continue
+    e = sum(1 for n in expected if find_match(n, texts) == "EXACT")
+    p = sum(1 for n in expected if find_match(n, texts) == "PARTIAL")
+    n = len(expected) - e - p
+    ratio = (e + p*0.5) / len(expected) * 100
+    print(f"{vid:<45} {e}/{p}/{n}  →  {ratio:.1f}%")
+```
+
+### 20.9 EĞER TOKEN BİTERSE — YENİ OTURUM PROTOKOLÜ
+
+Yeni Claude'da adım adım:
+
+1. **Bağlam yükle:** `mutfak/OCR-OPUS.md` oku (özellikle §20 — bu bölüm)
+2. **Git durumunu kontrol:**
+   ```bash
+   git log --oneline -5
+   # HEAD `406914c8` olmalı (Faz 4+5+6 mimari kapanış)
+   git status --short
+   # Sadece outputs/ ve mutfak/OCR-OPUS.md uncommitted olmalı
+   ```
+3. **Pilot çalışıyor mu kontrol:**
+   ```powershell
+   Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "*venvs\ocr*" }
+   Test-Path "outputs/ocr_24films_aaaa_oneocr_20260525/run_summary.json"
+   (Get-ChildItem "outputs/ocr_24films_aaaa_oneocr_20260525/items" -Directory).Count
+   ```
+4. **Eğer pilot bittiyse:**
+   - 24/24 item dir var, `run_summary.json` mevcut
+   - §20.7'deki PowerShell scripti koş → Paddle vs OneOCR tablosu
+   - §20.8'deki Python scripti koş → IMDB EXACT match oranı
+5. **Eğer pilot hâlâ koşuyorsa:**
+   - Beklemeye devam, log boyutu artıyor mu (bazen 0 byte gözükebilir — stdout buffered, normal)
+   - Bittiğinde harness bildirim verir (background task ID `b63y232hs`)
+   - Veya yeni oturumda eski background kaybolduysa, doğrudan koş:
+     ```powershell
+     venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment `
+       --manifest outputs/ocr_24films_aaaa_film_credits_manifest_20260525.json `
+       --output-dir outputs/ocr_24films_aaaa_oneocr_20260525 `
+       --engines oneocr
+     ```
+6. **Sonuçları işle:**
+   - Bu dosyaya §21 olarak "24-film OneOCR pilot SONUÇLAR" başlığı ekle
+   - Per-film tablo (24 satır × P_runtime/O_runtime/P_cards/O_cards/P_scroll/O_scroll)
+   - 10 GT film için IMDB EXACT oranı (Paddle %58 vs OneOCR ?)
+   - En çok kazanan/kaybeden filmler
+   - Engine seçim önerisi: A) default OneOCR yap | B) ensemble | C) per-segment dispatch
+7. **Commit:**
+   - Sadece `mutfak/OCR-OPUS.md` (kod yok, sadece doc)
+   - Mesaj: `docs(ocr): document 24-film OneOCR pilot results + engine recommendation`
+8. **Çağatay onayıyla:** Eğer OneOCR önemli iyileştirme gösterdi → V2 task: default engine değişikliği için Sonnet brief
+
+### 20.10 ÖNEMLİ HATIRLATMA — DOKUNULMAYACAKLAR
+Bu oturumda ASR/webui/translate/diğer dosyalara dokunulmadı, **devam etmemeli:**
+- `core/api/asr_server.py`, `core/api/tedial/*`
+- `core/pipelines/asr/*`, `core/pipelines/translate/*`
+- `webui/src/app/*`
+- `docs/MITAS_*` (üst seviye, OCR-OPUS hariç)
+- `mutfak/*.md` (OCR-OPUS hariç)
+
+Bunlar başka oturumun in-flight işi (memory: `feedback_master_no_worktree` + `feedback_checkpoint_commit_hygiene`).
+
+---
+
+## 21. 24-FILM ONEOCR PILOT — FINAL SONUÇLAR (2026-05-25)
+
+### 21.1 Pilot bitiş
+- Başlama: 11:48:17 | Bitiş: ~12:53 | Süre: ~65 dk
+- 24/24 done, 0 OCR error
+- Çıktı: `outputs/ocr_24films_aaaa_oneocr_20260525/`
+- Karşılaştırma kaynağı: `outputs/ocr_24films_aaaa_phase4_verify_20260525/` (Paddle baseline)
+
+### 21.2 Genel skor (24 film)
+| Metrik | Paddle | OneOCR | Kazanan |
+|---|---|---|---|
+| Runtime | 1588 sn | 3860 sn | Paddle **2.43× hızlı** |
+| Cards | 834 | 783 | Paddle (%6) |
+| Scroll lines | 1833 | 1079 | Paddle (%70 detay) |
+| Total events | 869 | 815 | Paddle |
+| **IMDB EXACT ortalama (9 GT)** | **%65** | **%75** | **OneOCR +10%** |
+
+### 21.3 IMDB doğruluk per-film (10 GT film)
+| Film | Paddle | OneOCR | Kazanan |
+|---|---:|---:|---|
+| X-MEN | 100% | 97% | Paddle +3% |
+| YARI_SERT | 96% | 96% | Eşit |
+| ROBINSON | 93% | 93% | Eşit |
+| BARBARLARI | 82% | 68% | Paddle +14% |
+| JURASSIC | 68% | 59% | Paddle +9% |
+| ANJELIK | 59% | 50% | Paddle +9% |
+| KUKLA | 42% | 42% | Eşit |
+| **FRANNY** | **0%** | **100%** | **OneOCR +100%** 🎯 |
+| **POROROCA** | 43% | **71%** | **OneOCR +29%** |
+| CENNETIN_RENGI | 0% | 0% | İkisi de Farsça başarısız |
+
+### 21.4 GPU tanısı (sorunun kökü)
+- Paddle: **GPU (RTX 3090 + CUDA 11.8)** — `nvidia-smi` Paddle koşumunda %15-30 GPU
+- OneOCR: **CPU (Windows native DLL)** — `nvidia-smi` OneOCR koşumunda %0 GPU
+- OneOCR/Paddle runtime oranı tutarlı 2.43× (rastgele değil, sistematik CPU/GPU farkı)
+- Çağatay'ın eski OneOCR hızlı deneyimi: muhtemelen o zaman Paddle CPU'daydı
+
+### 21.5 OneOCR GPU araştırması (WebSearch, 2026-05-25)
+**Sonuç: Doğrudan GPU'ya almak İMKANSIZ.**
+- OneOCR = Windows 11 Snipping Tool engine, Microsoft closed-source DLL
+- `.onemodel` formatı standart ONNX değil → ONNX Runtime CUDA/DirectML provider kullanılamaz
+- Microsoft kendisi de GPU desteği vermemiş (WindowsAppSDK Issue #3514, çözülmemiş)
+- RapidOCR projesi GPU denedi, "not very good" deyip vazgeçti
+- **Alternatif:** MeikiOCR (OneOCR kalitesinde + GPU destekli, henüz test edilmedi)
+
+### 21.6 BULGULARIN ÖZÜ
+**OneOCR güçlü alanı:** ZOR vakalar (composite başarısız, hareketli BG, animasyon)
+- FRANNY: Paddle composite çöktü → OneOCR 5/5 ana isim doğru (Phoebe McAuley, George Buza, Tajja Isen, Julie Lemieux, Juan Chioran)
+- POROROCA: Romen scroll, Paddle 43% → OneOCR 71%
+
+**Paddle güçlü alanı:** STANDART modern jenerikler
+- X-MEN, BARBARLARI, ANJELIK, JURASSIC → siyah BG scroll → %5-15 daha doğru
+- Scroll detayında çok daha zengin (%70 fazla satır)
+- 2.43× hızlı
+
+**İkisi de başarısız:** yabancı alfabe (Farsça/Arapça) — V2 dil-spesifik model
+
+### 21.7 KARAR — V2 için öneri: AKILLI FALLBACK
+```
+Strateji:
+1. Paddle ile koş (default, hızlı)
+2. Sonuç check:
+   - composite_broken flag aktif VEYA
+   - scroll_lines < 5 VEYA  
+   - cards == 0
+   → OneOCR ile yeniden koş (sadece sorunlu segment)
+3. Sonuçları birleşik events.json içinde merge et
+```
+
+**Kazanç:**
+- FRANNY 0 → 100% kurtarılır
+- POROROCA 43 → 71% iyileşir
+- ANJELIK/JURASSIC/X-MEN değişmez (Paddle zaten iyi)
+- Runtime artışı ~%10-15 (fallback nadiren tetiklenir)
+
+**Default engine değişikliği YAPILMAMALI** (OneOCR'ı tek başına): hız ve detay kaybı kabul edilmez.
+
+### 21.8 Üretilen artifact'ler (bu oturumda)
+- `outputs/ocr_24films_aaaa_oneocr_20260525/` (24 film OneOCR çıktısı)
+- `outputs/_paddle_vs_oneocr_summary.json` (PowerShell tablo verisi)
+- `/tmp/ocr_compare.py`, `/tmp/ocr_compare_full.py`, `/tmp/jp_compare.py`, `/tmp/oneocr_partial_imdb.py` (analiz scriptleri)
+- `outputs/_jurassic_oneocr_test/` (tek-item JURASSIC OneOCR smoke)
+- `outputs/_jurassic_julianne_crop.png` (composite kanıt görseli)
+- `outputs/_oneocr_24films.log` (pilot log)
+
+### 21.9 SIRADAKİ ADIM (V2 oturumu için)
+1. **Akıllı fallback implementasyonu** — Sonnet brief: `core/pipelines/ocr/unified_credit_pipeline.py` step sonrası kalite kontrol, gerekirse OneOCR re-run
+2. **MeikiOCR araştırması** — OneOCR'ın GPU alternatifi olabilir, kalite testi gerekir
+3. **Yabancı alfabe modeli** — Farsça/Arapça için ayrı Paddle multilingual model veya dil tespiti + dispatch
+4. **Regression test runner** (Faz 3 ikinci yarı) — `tests/test_ocr_regression.py` ground truth dosyalarına karşı assert
+
+---
+
 **Bu dosyayı her büyük adımdan sonra güncelle.** YAPILACAK → YAPILDI → COMMIT EDİLDİ formatı.
