@@ -676,9 +676,19 @@ def _run_item_profile_dispatch(
         _write_json(item_dir / "item_summary.json", summary)
         return summary
 
-    # 2) Segment listesi (sabit pencereler — dinamik Faz 4'te)
+    # 2) Segment listesi — Faz 4: dinamik pencere uzantısı (paddle_engine DI)
+    #    `dynamic_window=True` (manifest default) + paddle_engine verilirse
+    #    boundary frame'lerde "yazı var mı?" probe edilir, varsa pencere uzar.
+    #    `dynamic_window=False` ya da engine yoksa Faz 2 sabit davranış korunur.
+    primary_engine = engines[0] if engines else None
+    ffmpeg_exe = ffmpeg_executable or _resolve_ffmpeg()
     try:
-        segments = manifest_profiles.build_segments_for_item(item.raw, duration)
+        segments = manifest_profiles.build_segments_for_item(
+            item.raw,
+            duration,
+            paddle_engine=primary_engine,
+            ffmpeg_executable=ffmpeg_exe,
+        )
     except Exception as exc:
         summary = {
             "id": item.id,
@@ -693,7 +703,6 @@ def _run_item_profile_dispatch(
 
     # 3) Her segment için frames extract + unified pipeline
     seg_results: list[dict[str, Any]] = []
-    ffmpeg_exe = ffmpeg_executable or _resolve_ffmpeg()
     for seg in segments:
         seg_id = str(seg["segment_id"])
         seg_start = float(seg["start_sec"])
@@ -721,6 +730,7 @@ def _run_item_profile_dispatch(
                 "start_sec": seg_start,
                 "end_sec": seg_end,
                 "error_msg": f"extract: {exc}",
+                "dynamic_window": seg.get("dynamic_window"),
             })
             continue
 
@@ -728,7 +738,7 @@ def _run_item_profile_dispatch(
             unified = run_unified_credit_pipeline(
                 frames=seg_frames,
                 output_dir=seg_output_dir,
-                paddle_engine=engines[0] if engines else None,
+                paddle_engine=primary_engine,
                 source_fps=effective_fps,
             )
         except Exception as exc:
@@ -739,6 +749,7 @@ def _run_item_profile_dispatch(
                 "start_sec": seg_start,
                 "end_sec": seg_end,
                 "error_msg": f"pipeline: {exc}",
+                "dynamic_window": seg.get("dynamic_window"),
             })
             continue
 
@@ -753,6 +764,7 @@ def _run_item_profile_dispatch(
             "events_path": str(unified.events_path) if unified.events_path else None,
             "summary_path": str(unified.summary_path),
             "cards_dir": str(unified.cards_dir),
+            "dynamic_window": seg.get("dynamic_window"),
         })
 
     # 4) Merge events.json (her segment'in events'lerini tek listede topla)
@@ -871,6 +883,30 @@ def _run_item_profile_dispatch(
     return item_summary
 
 
+def _is_legacy_credit_pipeline() -> bool:
+    """Whether the legacy 8-stage credit pipeline should run instead of the
+    text-first (K-BoxTrack unified) pipeline.
+
+    Default: ``False`` (yeni text-first mimari). The legacy 8-stage path is kept
+    for regression/comparison only and must be opted into explicitly.
+
+    Trigger'lar (herhangi biri True ise eski yol açılır):
+      - ``USE_LEGACY_CREDIT_PIPELINE=1`` (yeni, önerilen)
+      - ``USE_BOX_TRACK_PIPELINE=0`` (eski, geri uyum — Çağatay'ın eski
+        kullanımı bozulmasın)
+
+    Only the literal string ``"1"`` (resp. ``"0"``) is recognized — typos like
+    ``"true"`` / ``"yes"`` / ``"xyz"`` deliberately fall back to the text-first
+    default so a mistyped env var cannot silently re-enable the legacy path.
+    """
+    if os.environ.get("USE_LEGACY_CREDIT_PIPELINE", "").strip() == "1":
+        return True
+    # Geri uyum: eski env var explicitly disabled the box-track pipeline.
+    if os.environ.get("USE_BOX_TRACK_PIPELINE", "").strip() == "0":
+        return True
+    return False
+
+
 def _run_item(
     item: CreditExperimentItem,
     *,
@@ -881,12 +917,12 @@ def _run_item(
     preprocess_mode: str,
     ffmpeg_executable: str | None,
 ) -> dict[str, Any]:
-    import os
-    # K-BoxTrack pipeline default ON since commit bf2c047 (D-split landed). The K-BoxTrack stack
-    # (B-port strict_global mask + C-kart overlap grouping + A-fb fallback + D-split pairing)
-    # is verified across 4 films and KUKLA. The legacy 8-stage path is kept for regression and
-    # comparison — set USE_BOX_TRACK_PIPELINE=0 (or "false"/"no") to fall back to it.
-    USE_BOX_TRACK = os.environ.get("USE_BOX_TRACK_PIPELINE", "1").strip().lower() not in {"0", "false", "no"}
+    # Text-first (K-BoxTrack unified) pipeline default ON since commit bf2c047
+    # (D-split landed) and reaffirmed by Faz 6. The legacy 8-stage path is kept
+    # for regression/comparison only — opt in with ``USE_LEGACY_CREDIT_PIPELINE=1``
+    # (preferred) or the legacy ``USE_BOX_TRACK_PIPELINE=0`` (back-compat).
+    # See ``_is_legacy_credit_pipeline()`` for the exact trigger semantics.
+    USE_BOX_TRACK = not _is_legacy_credit_pipeline()
     item_started = perf_counter()
     timings: dict[str, float] = {}
     warnings: list[str] = []

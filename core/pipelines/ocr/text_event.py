@@ -315,4 +315,9 @@ def build_text_events_from_unified(
                 )
                 counter += 1
 
+    # --- Faz 5 (madde 7): tip-spesifik confidence eşiği uygula ---
+    # Eşik altı event'ler low_confidence=True flag'lenir, atılmaz.
+    from core.pipelines.ocr.confidence_thresholds import apply_thresholds
+    apply_thresholds(events)
+
     return events

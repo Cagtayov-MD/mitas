@@ -84,22 +84,32 @@ def normalize_manifest_item(item: dict[str, Any]) -> dict[str, Any]:
 def build_segments_for_item(
     item: dict[str, Any],
     video_duration_sec: float,
+    *,
+    paddle_engine: Any = None,
+    ffmpeg_executable: str | None = None,
 ) -> list[dict[str, Any]]:
     """Build the list of (start_sec, end_sec) segments for this manifest item.
 
-    Each returned segment is `{"segment_id": str, "start_sec": float, "end_sec": float}`.
+    Each returned segment is
+    ``{"segment_id": str, "start_sec": float, "end_sec": float, "dynamic_window": dict|None}``.
+    The optional ``dynamic_window`` key holds telemetry from
+    :func:`core.pipelines.ocr.dynamic_window.find_dynamic_window` (iterations,
+    extension_log, initial bounds, max_reached) when dynamic extension ran.
 
     - `kind: end_credits` → single segment derived from `start_seconds` /
       `end_seconds` (LEGACY behavior; identical to pre-Faz2 path).
     - `kind: film_credits` → opening (0 .. opening_window_min*60) + closing
-      (duration - closing_window_min*60 .. duration). If the windows overlap
-      (short video), they are MERGED into one segment named `full` to avoid
-      double-processing the same frames.
+      (duration - closing_window_min*60 .. duration). If `dynamic_window` is
+      ``True`` (default per schema) and ``paddle_engine`` is supplied, each
+      window's outer boundary is probed and extended in `step_sec` increments
+      up to `max_opening_min` / `max_closing_min`. If the windows overlap after
+      extension, they are MERGED into one segment named `full`.
     - `kind: kj_scan` / `scene_text` / `full_scan` → NotImplementedError.
 
-    NOTE: dynamic window extension (Faz 4) is NOT applied here. Windows are
-    fixed even when `dynamic_window=True`. Faz 4 will extend `closing_window_min`
-    (and `opening_window_min`) up to their `max_*_min` caps via tail-tracking.
+    ``paddle_engine`` is optional. When ``dynamic_window=True`` but
+    ``paddle_engine`` is not supplied, the function falls back to the static
+    Faz 2 behavior and records that fact in the segment's ``dynamic_window``
+    telemetry (``skipped_no_engine: True``).
     """
     if not isinstance(item, dict):
         raise TypeError(f"manifest item must be dict, got {type(item).__name__}")
@@ -118,37 +128,98 @@ def build_segments_for_item(
                 f"kind=end_credits requires start_seconds + end_seconds "
                 f"(item id='{norm.get('id', '?')}')"
             )
-        return [{"segment_id": "legacy", "start_sec": float(start), "end_sec": float(end)}]
+        return [{
+            "segment_id": "legacy",
+            "start_sec": float(start),
+            "end_sec": float(end),
+            "dynamic_window": None,
+        }]
 
     if kind == KIND_FILM_CREDITS:
         opening_min = float(norm["opening_window_min"])
         closing_min = float(norm["closing_window_min"])
+        max_opening_min = float(norm["max_opening_min"])
+        max_closing_min = float(norm["max_closing_min"])
+        dynamic_enabled = bool(norm["dynamic_window"])
         if opening_min < 0 or closing_min < 0:
             raise ValueError("opening/closing_window_min must be >= 0")
 
-        opening_end = min(opening_min * 60.0, duration)
-        closing_start = max(0.0, duration - closing_min * 60.0)
+        video_path = norm.get("path")
 
-        # Overlap → single 'full' segment covers everything (avoids double work)
-        if closing_start <= opening_end:
+        # --- Compute opening bounds (with optional dynamic extension) ---
+        opening_telemetry: dict[str, Any] | None = None
+        if opening_min > 0:
+            base_opening_end = min(opening_min * 60.0, duration)
+            opening_start = 0.0
+            opening_end = base_opening_end
+            if dynamic_enabled and video_path:
+                opening_end, opening_telemetry = _extend_window(
+                    video_path=str(video_path),
+                    anchor_sec=0.0,
+                    direction=1,
+                    initial_window_min=opening_min,
+                    max_window_min=max_opening_min,
+                    duration_cap_sec=duration,
+                    paddle_engine=paddle_engine,
+                    ffmpeg_executable=ffmpeg_executable,
+                )
+        else:
+            opening_start = 0.0
+            opening_end = 0.0
+
+        # --- Compute closing bounds (with optional dynamic extension) ---
+        closing_telemetry: dict[str, Any] | None = None
+        if closing_min > 0:
+            base_closing_start = max(0.0, duration - closing_min * 60.0)
+            closing_start = base_closing_start
+            closing_end = duration
+            if dynamic_enabled and video_path:
+                closing_start, closing_telemetry = _extend_window(
+                    video_path=str(video_path),
+                    anchor_sec=duration,
+                    direction=-1,
+                    initial_window_min=closing_min,
+                    max_window_min=max_closing_min,
+                    duration_cap_sec=duration,
+                    paddle_engine=paddle_engine,
+                    ffmpeg_executable=ffmpeg_executable,
+                )
+        else:
+            closing_start = duration
+            closing_end = duration
+
+        # Overlap (after extension) → single 'full' segment covers everything
+        opening_active = opening_min > 0 and opening_end > 0
+        closing_active = closing_min > 0 and duration > closing_start
+        if opening_active and closing_active and closing_start <= opening_end:
+            merged_telemetry: dict[str, Any] | None = None
+            if opening_telemetry or closing_telemetry:
+                merged_telemetry = {
+                    "merged_from": ["opening", "closing"],
+                    "opening": opening_telemetry,
+                    "closing": closing_telemetry,
+                }
             return [{
                 "segment_id": "full",
                 "start_sec": 0.0,
                 "end_sec": duration,
+                "dynamic_window": merged_telemetry,
             }]
 
         segments: list[dict[str, Any]] = []
-        if opening_min > 0 and opening_end > 0:
+        if opening_active:
             segments.append({
                 "segment_id": "opening",
-                "start_sec": 0.0,
+                "start_sec": opening_start,
                 "end_sec": opening_end,
+                "dynamic_window": opening_telemetry,
             })
-        if closing_min > 0 and duration > closing_start:
+        if closing_active:
             segments.append({
                 "segment_id": "closing",
                 "start_sec": closing_start,
-                "end_sec": duration,
+                "end_sec": closing_end,
+                "dynamic_window": closing_telemetry,
             })
         if not segments:
             raise ValueError(
@@ -164,6 +235,75 @@ def build_segments_for_item(
 
     # Should be unreachable thanks to normalize_manifest_item
     raise ValueError(f"unhandled kind '{kind}'")
+
+
+def _extend_window(
+    *,
+    video_path: str,
+    anchor_sec: float,
+    direction: int,
+    initial_window_min: float,
+    max_window_min: float,
+    duration_cap_sec: float,
+    paddle_engine: Any,
+    ffmpeg_executable: str | None,
+) -> tuple[float, dict[str, Any]]:
+    """Run dynamic window probing and return (new_boundary_sec, telemetry).
+
+    For direction=+1 (opening): returns the new ``end_sec``.
+    For direction=-1 (closing): returns the new ``start_sec``.
+
+    Always returns telemetry — including a `skipped_no_engine` flag when no
+    paddle engine is available (so the static fallback is auditable).
+    """
+    # Local import keeps the cost of dynamic_window (ffmpeg/subprocess) out of
+    # callers that never use film_credits.
+    from core.pipelines.ocr.dynamic_window import find_dynamic_window
+
+    if paddle_engine is None:
+        # Faz 2-equivalent static behavior — still return a structured trace
+        # so the caller knows dynamic was requested but skipped.
+        if direction == 1:
+            boundary = min(anchor_sec + initial_window_min * 60.0, duration_cap_sec)
+        else:
+            boundary = max(anchor_sec - initial_window_min * 60.0, 0.0)
+        return boundary, {
+            "skipped_no_engine": True,
+            "initial_window_min": initial_window_min,
+            "max_window_min": max_window_min,
+            "iterations": 0,
+            "extension_log": ["paddle_engine=None → static fallback"],
+            "max_reached": False,
+        }
+
+    result = find_dynamic_window(
+        video_path,
+        anchor_sec=anchor_sec,
+        direction=direction,  # type: ignore[arg-type]
+        initial_window_min=initial_window_min,
+        max_window_min=max_window_min,
+        paddle_engine=paddle_engine,
+        ffmpeg_executable=ffmpeg_executable,
+    )
+
+    if direction == 1:
+        boundary = min(result.end_sec, duration_cap_sec)
+    else:
+        boundary = max(result.start_sec, 0.0)
+
+    telemetry = {
+        "skipped_no_engine": False,
+        "initial_window_min": initial_window_min,
+        "max_window_min": max_window_min,
+        "iterations": result.iterations,
+        "extension_log": list(result.extension_log),
+        "initial_start_sec": result.initial_start_sec,
+        "initial_end_sec": result.initial_end_sec,
+        "final_start_sec": result.start_sec,
+        "final_end_sec": result.end_sec,
+        "max_reached": result.max_reached,
+    }
+    return boundary, telemetry
 
 
 def dispatch_runner(

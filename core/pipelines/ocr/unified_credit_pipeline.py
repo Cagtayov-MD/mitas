@@ -285,13 +285,16 @@ def run_unified_credit_pipeline(
         by_type: dict[str, int] = {}
         for ev in events:
             by_type[ev.type] = by_type.get(ev.type, 0) + 1
+        # Faz 5: low_confidence flag'i build_text_events_from_unified içinde
+        # apply_thresholds tarafından set edilir (tip-spesifik eşik).
+        low_conf_count = sum(1 for ev in events if ev.low_confidence)
         events_summary = {
             "engine": "k_box_track_unified",
             "version": SCHEMA_VERSION,
             "total_events": len(events),
             "by_type": by_type,
             "runtime_sec": runtime_sec,
-            "low_confidence_count": 0,  # Faz 5'te doldurulacak
+            "low_confidence_count": low_conf_count,
             "fallback_used": bool(summary.get("scroll_fallback_used")),
             "fallback_reason": summary.get("scroll_fallback_reason"),
         }

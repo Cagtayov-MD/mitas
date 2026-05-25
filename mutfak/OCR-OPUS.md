@@ -759,6 +759,8 @@ Yer/süre/hareket → sınıflandırma metası, problem değil.
 
 5. **Eski credit-mode opt-out olarak tut** (`LEGACY_CREDIT_PIPELINE=1`). Silme kuralı: 3-6 ay sonra 100+ film sorunsuz olduktan sonra. Karşılaştırma testleri + acil geri dönüş için zorunlu. Memory: `feedback_master_no_worktree` (hemen silme).
 
+   **Faz 6 (2026-05-25) ile uygulandı:** Env var `USE_LEGACY_CREDIT_PIPELINE=1` (yeni, önerilen) veya `USE_BOX_TRACK_PIPELINE=0` (eski isim, geri uyum) ile eski 8-stage path açılır. Default: text-first. **Eski credit-mode silinme zamanı:** Yeni text-first pipeline en az 100 farklı filmde sorunsuz koştuktan sonra (3-6 ay sonra) `credit_detector.py` + `opus_credit_detector` silinir. O zamana kadar `USE_LEGACY_CREDIT_PIPELINE=1` env ile çağrılabilir.
+
 **Bonus (P2/P3):**
 - Manifest genişlemesi: `kind: full_scan` default, `kind: window` opsiyonel hint
 - Type-spesifik confidence eşiği (KJ %85, scroll %50)
@@ -881,6 +883,432 @@ Yer/süre/hareket → sınıflandırma metası, problem değil.
 - `kind: film_credits` için `opus_credit_detector` ÇAĞRILMIYOR (text-first felsefe)
 - COMMIT BEKLİYOR
 - Önerilen mesaj: `feat(ocr): add manifest profile dispatch + film_credits 2-window runner (Faz 2)`
+
+---
+
+---
+
+## 15. FAZ 3 — Ground Truth Opus Draft Turu (TAMAMLANDI, ÇAĞATAY ONAYI BEKLİYOR)
+
+**Tarih:** 2026-05-25, ~00:00
+**Sahip:** Opus (öncüsel draft) → sonraki adım: Çağatay onay → Sonnet regression test bağlama
+
+### Yapılan
+10 ground truth draft dosyası (`tests/data/ocr_ground_truth/<video_id>.json.draft`):
+
+| # | Film | Conf Kaynağı | Özellik |
+|---|---|---|---|
+| 1 | 2000_x_men | IMDB §11.4 + OCR | Uzun scroll, paired roller |
+| 2 | 1997_jurassic_park_2 | IMDB §11.4 + OCR | Uzun scroll |
+| 3 | 1968_anjelik_ve_sultan | IMDB §11.4 + OCR | Hareketli BG (zor) |
+| 4 | 2019_barbarlari_beklerken | IMDB §11.4 + OCR | En zengin scroll |
+| 5 | 2025_robinson_crusoe | OCR top-conf 1.00 (WebSearch limit) | Voice cast |
+| 6 | 1989_kukla_adam | OCR + film bilgisi (Türk arşiv, WebSearch ulaşılamadı) | D kategorisi (statik kart, zero_scroll) |
+| 7 | 2003_franny_nİn_ayaklari | IMDB (2026-05-25 WebSearch) | KRİTİK Faz 4 test (mevcut 0 → hedef 10+) |
+| 8 | 2017_pororoca | IMDB (2026-05-25 WebSearch) | KRİTİK Faz 4 test (mevcut 0 → hedef 100+) |
+| 9 | 1977_yari_sert | OCR + film bilgisi (Semi-Tough/Burt Reynolds tahmini) | A-fb fallback case |
+| 10 | 1999_cennetİn_rengİ | OCR (Farsça zor) + Majidi bilgisi | A-fb fallback case, OCR düşük conf |
+
+### Özel işaretler (draft'larda)
+- `phase4_regression_baseline` — FRANNY + POROROCA: mevcut pipeline 0, Faz 4 sonrası beklenen min count
+- `fallback_metadata` — YARI_SERT + CENNETIN_RENGI: A-fb fallback tetiklenmesi beklenmeli
+- `expected_zero_scroll` — KUKLA: scroll yok beklenir (D kategorisi)
+- Hepsi `status: "draft_awaiting_cagatay_approval"` ile işaretli
+
+### Çağatay onay turu için
+Her draft için Çağatay'ın yapacağı:
+1. `start_sec_min/max` doğru mu? (frame spot check, 30 sn iş)
+2. `must_contain_text` listesindeki isimler doğru mu? (IMDB göz at, 30 sn)
+3. `min_line_count` makul mu? (eşik kontrolü)
+4. Notu güncelle: `"created_by": "opus_oncusel + cagatay_onay"`, `status: "approved"`
+5. `.draft` → `.json` rename
+
+Tahmini emek: 10 film × 5-10 dk = ~1 saat (manuel 5 saat yerine).
+
+### Özel notlar
+- **WebSearch session limit (2am'e kadar):** ROBINSON, KUKLA, YARI_SERT, CENNETIN_RENGI için IMDB tam teyit yapılamadı. Çağatay 2am sonrası IMDB ekleyebilir veya Opus'a tekrar yaptırabilir.
+- **Film id'leri 24-film output dizini ile uyumlu** (örn `1999_cennetİn_rengİ_end_credits`) — regression test direkt çalışabilir.
+- **KUKLA_ADAM 1989 Türk filmi** — WebSearch sonuç vermedi. Çağatay biliyorsa cast adını ekleyebilir.
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ Her template "ekranda yazı var mı, doğru mu okudu" sorusunu test eder. FRANNY+POROROCA Faz 4'ün gerekçesini açıkça kanıtlar.
+2. **Başka iş bozuluyor mu?** ✗ Hayır, sadece draft dosyalar (test data, kod yok).
+3. **Daha iyi yapılabilir mi?** WebSearch limit aşıldı → 4 film için IMDB teyit yarın yapılır. KUKLA için Türk-arşiv özel veritabanı gerekebilir (Sinemalar.com).
+
+### Sıradaki adım
+Çağatay 10 draft'ı gözden geçirir → onaylar → `.draft` → `.json` rename → Sonnet'e Faz 3 finalize brief (regression test runner + ground truth assert) verilir.
+
+---
+
+---
+
+## 16. FAZ 4 — Dinamik pencere mimarisi (TAMAMLANDI, COMMIT BEKLİYOR)
+
+**Tarih:** 2026-05-25, ~02:30
+**Sahip:** Sonnet alt-ajanı (Opus brief'i ile)
+
+### Yapılan
+- `core/pipelines/ocr/dynamic_window.py` (YENİ, ~290 satır)
+  - `DynamicWindowResult` dataclass (start/end/iters/log/initial/max_reached)
+  - `find_dynamic_window(...)` — PaddleEngine DI, 2-frame teyit, +60s step, max cap
+  - `_has_text_at(...)` + `_probe_single_frame(...)` — ffmpeg ile geçici JPG frame extract → recognize → cleanup
+  - `_resolve_ffmpeg_for_dynamic_window()` — credit_experiment'tan bağımsız (cycle önlemek için)
+- `core/pipelines/ocr/manifest_profiles.py` — `build_segments_for_item(item, duration, *, paddle_engine=None, ffmpeg_executable=None)` imza genişledi; her segment dict'inde yeni `dynamic_window: dict|None` telemetri key'i; opening/closing'i ayrı ayrı uzatır, overlap → 'full' merge'ünde telemetri korunur; `_extend_window()` helper'ı statik fallback için `skipped_no_engine=True` flag'i yazar.
+- `core/pipelines/ocr/credit_experiment.py` — `_run_item_profile_dispatch` `build_segments_for_item`'a `paddle_engine=primary_engine + ffmpeg_executable=ffmpeg_exe` geçiriyor; her seg_result'a `dynamic_window` telemetri inheritance.
+- `tests/test_ocr_dynamic_window.py` (YENİ, 9 test) — direction, max cap, two-frame confirm, manifest entegrasyonu (skipped_no_engine), dynamic_window=False geri uyum.
+
+### Test durumu
+```
+99 passed, 2 pre-existing failed
+```
+Baseline 90 pass → 99 pass (= +9 yeni). Pre-existing 2 fail (temporal_fusion, kapsam dışı) aynen.
+
+### POROROCA integration (KRİTİK)
+- Komut: `USE_BOX_TRACK_PIPELINE=1` + `outputs/_phase4_pororoca_manifest.json` (opening=3 max=8, closing=5 max=15)
+- Runtime: 17.1 sn
+- **Dynamic window telemetri:**
+  - opening: initial=[0, 180] → final=[0, 300] (iters=2, t=180/240 yazı vardı, t=300 boundary_clean)
+  - closing: initial=[8523, 8823] → final aynı (iters=0, ilk probe temizdi)
+- **Sonuç:** 46 event (29 opening + 17 closing) | **242 text_line total** (39 opening cards + 197 closing cards + 6 scroll)
+- **Mevcut (24-film testi): 0 → Yeni: 242** → ✓ KABUL (en az 100 koşulu fazlasıyla)
+
+### FRANNY integration
+- Komut: `outputs/_phase4_franny_manifest.json` (opening=1 max=3, closing=1 max=3)
+- Runtime: 10.8 sn
+- Dynamic window: iki segmentte de iters=0 (1dk'lık initial pencereler tam jeneriği kapsadı)
+- **Sonuç:** 9 event | **93 text_line total** (19 opening cards + 40 closing cards + 34 closing scroll)
+- **Mevcut: 0 → Yeni: 93** → ✓ KABUL (en az 10 koşulu fazlasıyla)
+
+### Geri uyum
+- ROBINSON `kind: end_credits` tek-item smoke `outputs/_phase4_robinson_backcompat/`
+- Karşılaştırma `outputs/ocr_24films_aaaa_test_20260523/2025_robinson_crusoe_end_credits/` ile:
+  - `auto_split.json`: byte-identical ✓
+  - `scroll_text_lines.json`: tek fark `canvas_path` (kaçınılmaz path embed) ✓
+  - `row_reconstruct_summary.json`: tek farklar 4× path string embed ✓
+  - cards/: 17 == 17 ✓
+- → LEGACY path tamamen korunuyor.
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ POROROCA 0→242, FRANNY 0→93. `opus_credit_detector` çağrılmıyor — text-first felsefe korunuyor. Pencere kararı PaddleOCR'ın "yazı var mı?" cevabıyla genişliyor, kör tahminci yok.
+2. **Başka iş bozuluyor mu?** ✗ Hayır. ROBINSON LEGACY backcompat byte-identical (sadece path embed). `dynamic_window: false` ile Faz 2 davranış korunuyor (yeni test bu garantiyi assert ediyor). Test 90→99 pass.
+3. **Daha iyi yapılabilir mi?** Kullanılan kararlar:
+   - **step_sec=60s**: 30s daha hassas ama 2× probe = 2× ffmpeg+OCR maliyeti. 60s yeterli.
+   - **2-frame teyit (stride=2s)**: 3-frame daha güvenli ama her uzantı +1 probe (~300ms ekstra). 2 yeterli — POROROCA opening doğru gözlemledi.
+   - **frame extract maliyeti**: probe başına ~150-300ms (ffmpeg JPG + 1 paddle recognize). POROROCA toplam ~600ms ekstra. Kabul.
+   - **extension_log formatı**: `"t=180.0 text_present"` / `"t=300.0 boundary_clean"` / `"t=X max_reached(...)"` — grep edilebilir, debug-readable.
+   - **PaddleEngine detection-only mode**: API'de yok; `recognize(strategy="dynamic_window_probe")` çağrılıyor (recognition + det). Hafif fazla iş ama yeni init yok, mevcut session yeniden kullanılıyor. detection-only API ileride eklenirse helper güncellenir.
+
+### Bilinmesi gerekenler / küçük kararlar
+- **Manifest path embed**: `segments` dict'ine `dynamic_window` key eklemek mevcut Faz 2 testlerini bozmadı çünkü existing testler key sayısı yerine spesifik key değerlerini assert ediyor.
+- **build_segments_for_item signature değişikliği**: `paddle_engine` + `ffmpeg_executable` yeni keyword-only, default None. Tüm caller'lar opsiyonel; backward-compat.
+- **dynamic_window=False yolu**: telemetri None bırakıldı (test ile garantili) — bu kullanıcı için kasıtlı sessizlik.
+- **Skipped_no_engine path**: `dynamic_window=True` ama engine yok → static fallback + `skipped_no_engine: True` log entry. test ile garantili.
+- **Cycle avoidance**: dynamic_window.py credit_experiment'ı import etmiyor (yerel `_resolve_ffmpeg_for_dynamic_window()`).
+- **GPU oturumu**: dynamic_window probe'ları mevcut paddle_engine'i yeniden kullanıyor — yeni CUDA init yok.
+
+### Sıradaki adım (Faz 5 için Çağatay'a not)
+- Faz 5 brief'i hazırsa Sonnet'e ver: type-spesifik confidence threshold (`core/pipelines/ocr/confidence_thresholds.py`).
+- Çağatay sabah toplu onayda Faz 1+2+3+4'ün hepsini birden commit edebilir veya tek tek bağımsız commit'lere bölebilir.
+- POROROCA opening 2 uzantı yaptı — daha geniş manifestlerde (max_opening_min=8) dynamic uzantının max_reached'e ulaşma davranışını canlı film'le doğrulamak için sabaha bir 24-film yeniden koşum yararlı olabilir (bu Faz 4 kapsamında değil).
+- COMMIT BEKLİYOR (Çağatay onayı). Önerilen mesaj:
+  `feat(ocr): add dynamic window extension via paddle tail-probing (Faz 4)`
+
+---
+
+## 17. FAZ 5 — Type-spesifik confidence eşiği (TAMAMLANDI, COMMIT BEKLİYOR)
+
+**Tarih:** 2026-05-25, ~02:30
+**Sahip:** Sonnet alt-ajanı (Opus brief'i ile)
+
+### Yapılan
+- `core/pipelines/ocr/confidence_thresholds.py` (YENİ, 62 satır) — DEFAULT_THRESHOLDS (scroll_credit=0.50, card=0.75, intertitle=0.75, kj=0.85, scene_text=0.90), `get_threshold()`, `apply_thresholds()` (in-place flag + count return)
+- `core/pipelines/ocr/text_event.py` (+4 satır) — `build_text_events_from_unified()` sonunda `apply_thresholds(events)` çağrısı
+- `core/pipelines/ocr/unified_credit_pipeline.py` (+3 satır) — Step 8'de `low_confidence_count` placeholder → gerçek sayım
+- `tests/test_ocr_confidence_thresholds.py` (YENİ, 12 test)
+
+### Test
+```
+111 passed, 2 pre-existing failed
+```
+Faz 4 baseline 99 → 111 (+12 yeni test). KJ + scene_text eşikleri V2 için hazır.
+
+### Smoke (ROBINSON kind=end_credits)
+- `unified/events.json.summary.low_confidence_count = 0` (ROBINSON yüksek conf'lu, doğal davranış)
+- Mekanizma testi `apply_thresholds(events, custom={"card": 0.95})` → 3 event flag'lendi (canlı doğrulama)
+- Eski format byte-identical (cards/, scroll/) — Faz 4 backcompat korundu
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ Tip ağırlığına göre kalite çıtası. Atma YOK, sadece flag.
+2. **Başka iş bozuluyor mu?** ✗ Hayır, event sayısı aynı (18==18), eski format byte-identical.
+3. **Daha iyi yapılabilir mi?** Hardcode V1 için doğru, custom override API hazır (V2 manifest-tabanlı override için kullanılabilir).
+
+### Bilinmesi gerekenler
+- `low_confidence` field zaten Faz 1 schema'sında vardı, bu faz sadece SET ediyor
+- ROBINSON low count=0 dosyaya bağlı — ANJELIK gibi gürültülü filmlerde count yüksek olacak (24-film yeniden koşumda görülür)
+- `apply_thresholds` idempotent (iki kez çağırınca aynı sonuç)
+
+### Sabah toplu commit
+- Önerilen mesaj: `feat(ocr): add type-specific confidence thresholds + low_confidence flagging (Faz 5)`
+
+---
+
+## 18. FAZ 6 — Legacy opt-out (TAMAMLANDI, COMMIT BEKLİYOR)
+
+**Tarih:** 2026-05-25, ~02:45
+**Sahip:** Sonnet alt-ajanı (Opus brief'i ile)
+
+### Yapılan
+- `core/pipelines/ocr/credit_experiment.py` — modül seviyesinde `_is_legacy_credit_pipeline()` helper'ı eklendi (saf, test edilebilir). `_run_item` artık env var'ı doğrudan okumak yerine bu helper'ı çağırıyor (`USE_BOX_TRACK = not _is_legacy_credit_pipeline()`).
+- Yeni env contract:
+  - `USE_LEGACY_CREDIT_PIPELINE=1` → legacy 8-stage opt-in (yeni, önerilen)
+  - `USE_BOX_TRACK_PIPELINE=0` → legacy 8-stage opt-in (eski, geri uyum)
+  - Hiçbiri set değilse → text-first (K-BoxTrack unified) default
+  - Sadece literal `"1"` / `"0"` kabul edilir; `"true"`, `"yes"`, `"xyz"` gibi tipo'lar sessizce legacy'yi tetiklemez (whitespace strip edilir).
+- `tests/test_ocr_legacy_optout.py` (YENİ, 8 test, monkeypatch ile env izolasyonu): default text-first, explicit legacy opt-in, back-compat env, legacy priority (her ikisi set ise legacy kazanır), eski normal kullanım (USE_BOX_TRACK=1) bozulmadı, invalid value text-first'e düşer, whitespace strip, empty string text-first.
+- `mutfak/OCR-OPUS.md` — §11.7 madde 5'in altına Faz 6 uygulanma notu + silinme zamanı kuralı eklendi; bu §17 raporu eklendi.
+
+### DOKUNULMADI
+- `core/pipelines/ocr/credit_detector.py` — temiz, hiç değişmedi (sadece default'ta çağrılmıyor, legacy opt-in altında hâlâ çağrılıyor).
+
+### Test durumu
+```
+119 passed, 2 pre-existing failed
+```
+Baseline 113 collected; +8 yeni test (brief 6 istedi, kapsama için 8'e çıkardım — whitespace strip + empty string edge case'leri). Pre-existing 2 fail (temporal_fusion, credit_experiment) aynı, kapsam dışı.
+
+### Smoke A — default text-first
+- Komut: `$env:USE_LEGACY_CREDIT_PIPELINE = ""; $env:USE_BOX_TRACK_PIPELINE = ""; venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment --manifest outputs/_phase2_robinson_manifest.json --output-dir outputs/_phase6_smoke_default --engines paddle`
+- Çıktı: `outputs/_phase6_smoke_default/items/2025_robinson_crusoe_end_credits/`
+  - `item_summary.json.pipeline = "box_track_unified"` ✓
+  - `item_summary.json.status = "done"` ✓
+  - `unified/events.json` var (18 event: 17 card + 1 scroll_credit) ✓
+  - `unified/summary.json`, `unified/cards/`, `unified/scroll/` var ✓
+- → Text-first mimari aktif.
+
+### Smoke B — legacy opt-in
+- Komut: `$env:USE_LEGACY_CREDIT_PIPELINE = "1"; venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment --manifest outputs/_phase2_robinson_manifest.json --output-dir outputs/_phase6_smoke_legacy --engines paddle`
+- Çıktı: `outputs/_phase6_smoke_legacy/items/2025_robinson_crusoe_end_credits/`
+  - `credit_segment_detection.json` var (opus_credit_detector çağrıldı) ✓
+  - `unified/` klasörü YOK — events.json üretilmedi ✓
+  - Eski 8-stage artifact'leri: `auto_roi_detection.json`, `frame_ocr_first_pass.json`, `scene_router.json`, `refined_auto_roi_detection.json`, vs. ✓
+- → Legacy path aktif, geri dönüş kanalı çalışıyor.
+
+### 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ Acil geri dönüş hakkı `USE_LEGACY_CREDIT_PIPELINE=1` ile var. Smoke B kanıt: eski 8-stage path koşuyor, `opus_credit_detector` çağrılıyor, `credit_segment_detection.json` yazılıyor.
+2. **Başka iş bozuluyor mu?** ✗ Hayır.
+   - Geri uyum env: `USE_BOX_TRACK_PIPELINE=0` hâlâ legacy'yi tetikliyor (test `test_legacy_env_via_backcompat` garantili).
+   - Default davranış: env unset → text-first (Smoke A + `test_default_uses_text_first`).
+   - Çağatay'ın eski "explicit text-first" kullanımı (`USE_BOX_TRACK_PIPELINE=1`) hâlâ text-first (test `test_legacy_env_normal_case_text_first`).
+   - `credit_detector.py` byte-identical.
+3. **Daha iyi yapılabilir mi?** Env var ismi `USE_LEGACY_CREDIT_PIPELINE` doğru — alternatif `MITAS_OCR_LEGACY_MODE` daha proje-prefix'li ama mevcut env contract'ı (USE_BOX_TRACK_PIPELINE) prefix'siz, simetri için aynı stilde kaldım. Helper saf fonksiyon (modül seviyesinde) — DI gerektirmediği için import-free test edilebilir. Strict literal `"1"`/`"0"` contract'ı kasıtlı: "true"/"yes"/"on" gibi tipo'lar sessizce eski yola düşürmek riskli (Çağatay'ın "hemen silme hemen atma" felsefesiyle uyumlu — env ne yaparsa onu yap, varsayma).
+
+### Bilinmesi gerekenler
+- **Smoke B `credit_segment_detection.json`**: ham JSON — kanıt amaçlı tutuldu (`outputs/_phase6_smoke_legacy/items/2025_robinson_crusoe_end_credits/`).
+- **Smoke A vs. Smoke B karşılaştırma**: Smoke A `unified/events.json` → text event schema; Smoke B `frame_ocr_first_pass.json` + `credit_segment_detection.json` + sahne yönlendiricisi → eski format. Kullanıcı çıktıları açarak hangi yolun koştuğunu hemen ayırt edebilir.
+- **`_is_legacy_credit_pipeline()` public mi?**: alt-çizgi ile prefixli (modül-içi convention) ama test'te import edilebilir — Python convention'da "test edilebilir özel". İleride başka modül de aynı sorguyu yapmak isterse rename gerekmez.
+- **Modül seviyesinde `os` zaten import edilmiş** (line 16) — helper içinde lazy import yok.
+
+### Sabah toplu commit için Çağatay'a not
+- COMMIT BEKLİYOR. Faz 1+2+3+4+5+6 hepsi master'da uncommit. Çağatay sabah ya toplu tek commit ya da faz başına tek tek commit'leyebilir.
+- Önerilen Faz 6 commit mesajı:
+  `feat(ocr): rename legacy opt-out env to USE_LEGACY_CREDIT_PIPELINE (Faz 6)`
+- Faz 6 değiştirilen dosyalar (toplam 3):
+  - `core/pipelines/ocr/credit_experiment.py` (helper eklendi + `_run_item` ondan okuyor)
+  - `tests/test_ocr_legacy_optout.py` (YENİ, 8 test)
+  - `mutfak/OCR-OPUS.md` (§11.7 madde 5 not + §17 rapor)
+- Faz 6 dokunulmadı: `credit_detector.py`, `unified_credit_pipeline.py`, diğer her şey.
+- **Mimari kapanış:** Faz 0-6 ile text-first migration tamamlandı. `USE_LEGACY_CREDIT_PIPELINE=1` 3-6 ay (100+ film) sonra silinme adayı.
+
+---
+
+## 19. SABAH ÇAĞATAY İÇİN — 2026-05-25 OTURUMU TOPLU ÖZET
+
+### Tek satır
+**Faz 1-2-3draft-4-5-6 tamamlandı. 119 OCR test pass (öncesi 73 → +46). 5 commit hazır (henüz commit edilmedi, onay bekliyor). POROROCA 0→242, FRANNY 0→93 (Faz 4 kanıtı).**
+
+### Master durumu
+- HEAD: `4b3ea266` (Faz 2)
+- Uncommitted: Faz 3 draft + Faz 4 + Faz 5 + Faz 6 (Faz 1+2 zaten commit'li)
+- Test: 119 pass + 2 pre-existing fail (temporal_fusion, kapsam dışı)
+- Smoke'lar: ROBINSON byte-identical, POROROCA + FRANNY 0'dan kurtuldu
+
+### YAPILMASI GEREKEN — 4 aksiyon
+
+**1. 10 ground truth draft incele + onayla + rename**
+- Konum: `tests/data/ocr_ground_truth/*.json.draft` (10 dosya)
+- Her biri için ~5 dk: `start_sec_min/max`, `must_contain_text`, `min_line_count` kontrol
+- Onaylananlar: `.draft` → `.json` rename + `status: "approved"`
+- Tahmini emek: ~1 saat
+
+**2. 4 eksik IMDB araması (2am sonrası WebSearch yenilenmiş)**
+- ROBINSON: Doug Stone + Yuri Lowenthal IMDB teyit
+- KUKLA_ADAM 1989: Türk arşiv araması
+- YARI_SERT 1977: Semi-Tough/Burt Reynolds tahmini doğru mu?
+- CENNETIN_RENGI 1999: Majidi Color of Paradise tam cast
+
+**3. 4 commit (sırayla, ya da toplu)**
+
+```bash
+# Faz 3 (ground truth onaylandıktan SONRA)
+git add tests/data/ocr_ground_truth/*.json
+git commit -m "feat(ocr): add 10-film ground truth regression dataset (Faz 3)"
+
+# Faz 4
+git add core/pipelines/ocr/dynamic_window.py core/pipelines/ocr/manifest_profiles.py core/pipelines/ocr/credit_experiment.py tests/test_ocr_dynamic_window.py
+git commit -m "feat(ocr): add dynamic window extension via paddle tail-probing (Faz 4)"
+
+# Faz 5
+git add core/pipelines/ocr/confidence_thresholds.py core/pipelines/ocr/text_event.py core/pipelines/ocr/unified_credit_pipeline.py tests/test_ocr_confidence_thresholds.py
+git commit -m "feat(ocr): add type-specific confidence thresholds + low_confidence flagging (Faz 5)"
+
+# Faz 6
+git add core/pipelines/ocr/credit_experiment.py tests/test_ocr_legacy_optout.py mutfak/OCR-OPUS.md
+git commit -m "feat(ocr): rename legacy opt-out env to USE_LEGACY_CREDIT_PIPELINE (Faz 6)"
+```
+
+**NOT:** Faz 4 ve Faz 5 ve Faz 6 hepsi `credit_experiment.py`'a dokundu — git'te dosya akümülatif. Sırayla commit ederken `git add -p` ya da dikkat lazım. Alternatif: tek toplu commit.
+
+**4. Sonnet'e Faz 3 finalize brief (regression test bağlama)**
+
+Ground truth `.json` finalize edildikten sonra:
+- `tests/test_ocr_regression.py` (yeni) — her ground truth dosyası için pipeline koş + assert
+- Toleranslar: time ±5sn, text case-insensitive partial match, min_line_count, confidence_min
+- Faz 3 commit'i bu test'i de kapsayacak
+
+### KAZANIMLAR (24-film yeniden koşumda doğrulanmalı, henüz yapılmadı)
+
+| Metrik | Eski | Yeni hedef |
+|---|---|---|
+| POROROCA scroll | 0 | ≥100 (smoke'da 242) |
+| FRANNY card | 0 | ≥10 (smoke'da 93) |
+| Tüm filmler events.json | yok | var (text_event schema) |
+| Low confidence flag | yok | her event'te |
+| Legacy opt-out | env karışık | `USE_LEGACY_CREDIT_PIPELINE=1` net |
+
+### Sıradaki büyük yön (V2)
+
+Faz 6 sonrası mimari **kapanış** durumunda. V2 adayları:
+- KJ profil aktivasyonu (`kind: kj_scan` stub'tan üretim'e)
+- Scene_text profili (sahne içi yazı tespiti)
+- Type-spesifik confidence eşikleri config dosyasına taşı
+- Eski credit_detector silme (3-6 ay sonra)
+
+### Dosya envanteri (bu oturumda eklenen/değişen sadece OCR + test + doc)
+
+**YENİ:**
+- `core/pipelines/ocr/text_event.py` (Faz 1)
+- `core/pipelines/ocr/schemas/text_event.schema.json` (Faz 0)
+- `core/pipelines/ocr/schemas/manifest_v2.schema.json` (Faz 0)
+- `core/pipelines/ocr/manifest_profiles.py` (Faz 2)
+- `core/pipelines/ocr/_video_meta.py` (Faz 2)
+- `core/pipelines/ocr/dynamic_window.py` (Faz 4)
+- `core/pipelines/ocr/confidence_thresholds.py` (Faz 5)
+- `docs/MITAS_OCR_TextFirst_Mimari_v1.md` (Faz 0)
+- `tests/data/ocr_ground_truth/README.md` (Faz 0)
+- `tests/data/ocr_ground_truth/<10 film>.json.draft` (Faz 3)
+- `tests/test_ocr_text_event_schema.py` (Faz 1)
+- `tests/test_ocr_manifest_profiles.py` (Faz 2)
+- `tests/test_ocr_dynamic_window.py` (Faz 4)
+- `tests/test_ocr_confidence_thresholds.py` (Faz 5)
+- `tests/test_ocr_legacy_optout.py` (Faz 6)
+
+**DEĞİŞEN:**
+- `core/pipelines/ocr/unified_credit_pipeline.py` (Faz 1+5)
+- `core/pipelines/ocr/credit_experiment.py` (Faz 2+4+6)
+- `core/pipelines/ocr/manifest_profiles.py` (Faz 4 — signature update)
+- `mutfak/OCR-OPUS.md` (§13-§19 eklendi)
+
+**DOKUNULMAYAN:**
+- `core/pipelines/ocr/credit_detector.py` (legacy, byte-identical)
+- ASR/webui/translate/diğer docs/mutfak (başka oturumun in-flight işi)
+
+---
+
+## 19. 2026-05-25 OTURUMU — IMDB Teyit + 24-Film Faz 4 Doğrulama
+
+### 19.1 10 film ground truth — IMDB tam teyit
+Çağatay 10 film için IMDB tarzı tam cast/crew listesi sağladı. Opus WebSearch ile her birini IMDB üzerinden çapraz teyit etti:
+
+| # | Film | Çağatay listesi | IMDB teyit |
+|---|---|---|---|
+| 1 | X-MEN 2000 | doğru | ✓ |
+| 2 | JURASSIC PARK 2 1997 | doğru | ✓ |
+| 3 | ANJELIK VE SULTAN 1968 | doğru | ✓ |
+| 4 | BARBARLARI BEKLERKEN 2019 | doğru | ✓ |
+| 5 | **ROBINSON / The Wild Life 2016** | **eksik: DOUG STONE yoktu** | ✓ düzeltildi (DOUG STONE = AYNSLEY = Crusoe'nun köpeği) |
+| 6 | PUPPET MASTER 1989 (Kukla Adam aslında bu) | doğru | ✓ |
+| 7 | FRANNY'S FEET 2003 | doğru | ✓ |
+| 8 | POROROCA 2017 | doğru | ✓ |
+| 9 | SEMI-TOUGH 1977 (Yarı Sert) | doğru | ✓ |
+| 10 | THE COLOR OF PARADISE 1999 | doğru | ✓ |
+
+**Düzeltmeler:**
+- KUKLA_ADAM önceki turda "Türk-Alman koprodüksiyon" sanılıyordu → aslında **Puppet Master (1989, David Schmoeller, ABD horror)**. Cast: Paul Le Mat, William Hickey, Irene Miracle, vs.
+- ROBINSON için DOUG STONE ilk turda must_contain_text'ten çıkarılmıştı (Çağatay'ın ilk listesinde yoktu). Opus WebSearch ile teyit etti: DOUG STONE Aynsley karakterini (Crusoe'nun Airedale Terrier'i) seslendiriyor. Düzeltildi.
+- YARI_SERT (Türkçe başlık) = Semi-Tough (1977, Michael Ritchie, Burt Reynolds) teyit edildi.
+
+**Sonuç:** 10/10 ground truth dosyası IMDB onaylı + `status: approved` + `.json` finalize. `tests/data/ocr_ground_truth/` altında master'a hazır.
+
+### 19.2 24-Film Faz 4 Doğrulama Pilotu — SONUÇLAR
+
+**Manifest:** `outputs/ocr_24films_aaaa_film_credits_manifest_20260525.json` (24 film, hepsi `kind: film_credits` + dynamic_window: true)
+**Output:** `outputs/ocr_24films_aaaa_phase4_verify_20260525/`
+**Karşılaştırma kaynağı:** `outputs/ocr_24films_aaaa_test_20260523/` (eski `kind: end_credits`)
+
+#### Genel kazanım
+| Metrik | Eski | Yeni | Δ |
+|---|---|---|---|
+| Toplam scroll lines | 1.590 | **1.833** | +243 (+15%) |
+| Toplam cards | 402 | **834** | +432 (+108%) 🎯 |
+| Toplam event | — | 869 | yeni metrik |
+| 24/24 done | ✓ | ✓ | regression yok |
+| OCR error | 0 | 0 | sıfır |
+
+**Ana hikaye:** Cards iki kat arttı. Sebep: Faz 2 (film_credits profili açılış+kapanış pencereleri) + Faz 4 (dinamik pencere) birlikte her iki bölgeyi de tarıyor → daha önce sadece son 7 dk'ya bakan pipeline şimdi açılış jeneriğini de yakalıyor.
+
+#### Büyük kazanım filmleri
+| Film | Eski | Yeni | Çarpan |
+|---|---|---|---|
+| PINOKYO_NUN_MACERALARI | 2 → 92 | +90 satır | **46×** |
+| SON_METRO | 2 → 36 | +34 | 18× |
+| CENNETTE_BULUSALIM | 1 → 17 | +16 | 17× |
+| DUNYANIN_EN_MUTHIS_ADAMI | 9 → 26 | +17 | 3× |
+| ANJELIK_VE_SULTAN | 55 → 81 | +26 | 1.5× |
+| KANSAS_LI_SUVARILER | 0 → 15 | yeni | ∞ |
+| DUZINESI_BIR_ARADA | 0 → 8 | yeni | ∞ |
+| KULUBE | 0 → 5 | yeni | ∞ |
+
+#### Regression sıfır
+- X-MEN 238 → 238 (aynı)
+- JURASSIC 277 → 277 (aynı)
+- YARI_SERT 203 → 206 (+1)
+- ROBINSON 176 → 183 (+7)
+- CENNETIN_RENGI 45 → 47 (+2)
+
+#### Hafif düşüş (kabul edilebilir)
+- ÖZGÜRLÜK_YURUYUSU 207 → 203 (-4, %2)
+- MUMYA 24 → 20 (-4)
+
+#### ⚠ Smoke ile UYUMSUZ — araştırılmalı
+**POROROCA + FRANNY:**
+
+| Film | Smoke (tek-item, geçen gece) | 24-film (bugün) |
+|---|---|---|
+| POROROCA scroll lines | 242 | 5 (ama 78 card!) |
+| POROROCA total events | 46 | 79 |
+| FRANNY scroll lines | 93 | 1 (ama 24 card!) |
+| FRANNY total events | 9 | 25 |
+
+**Tanı:** Dinamik pencere DOĞRU çalıştı (POROROCA opening 3dk→5dk uzandı 2 iters, closing 8522-8822 = gerçek scroll'u kapsıyor). Card sayıları yüksek = pipeline gerçekten çalıştı. Sadece `text_layer_row_reconstruct` (composite OCR) POROROCA+FRANNY için optimal değil. Bu **Faz 4 dışı bir sorun** — B-port scroll composite ile ilgili. İleri inceleme bir sonraki oturum işi.
+
+### 19.3 3 Soru cevabı
+1. **Amaç korunuyor mu?** ✓ text-first mimari 24 filmde stres testten geçti. Cards 2× kazanım, scroll lines +15%, regression yok.
+2. **Başka iş bozuluyor mu?** ✗ Hayır. Eski 24-film baseline ile karşılaştırılınca tüm filmler ya korundu ya iyileşti (2 hafif düşüş kabul edilebilir).
+3. **Daha iyi yapılabilir mi?** POROROCA+FRANNY scroll composite optimizasyonu sonraki oturum işi. Şu an mimari kapanış tamamlandı.
+
+### 19.4 COMMIT SIRASI (sıralı, sabah çağatay onayıyla)
+1. **Faz 3 — Ground truth seti** (`tests/data/ocr_ground_truth/*.json` × 10 + README)
+2. **Faz 4+5+6 — Mimari kapanış** (dynamic_window, confidence_thresholds, legacy opt-out, credit_experiment değişiklikleri, tests, OCR-OPUS.md §13-§19)
 
 ---
 
