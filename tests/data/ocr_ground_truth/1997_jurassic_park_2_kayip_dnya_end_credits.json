@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "1997_jurassic_park_2_kayip_dnya_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S27_1997-0265-1-0000-00-1-JURASSIC_PARK_2_KAYIP_DÜNYA.mp4",
+  "video_duration_sec": 7425.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "The Lost World: Jurassic Park",
+    "year": 1997,
+    "director": "Steven Spielberg",
+    "writer": "David Koepp (senaryo) / Michael Crichton (roman)"
+  },
+  "notes": "JURASSIC PARK 2 — The Lost World (1997, Spielberg). Mevcut pipeline 277 satır + 162 paired.",
+  "expected_segments": [
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 7050.0,
+      "start_sec_max": 7250.0,
+      "end_sec_min": 7350.0,
+      "end_sec_max": 7425.0,
+      "min_line_count": 230,
+      "must_contain_text": [
+        "STEVEN SPIELBERG",
+        "DAVID KOEPP",
+        "JEFF GOLDBLUM",
+        "JULIANNE MOORE",
+        "JOHN WILLIAMS",
+        "JANUSZ KAMINSKI",
+        "MICHAEL KAHN",
+        "RICK CARTER",
+        "DREW PETROTTA",
+        "MARK BROWN",
+        "KELLY PORTER"
+      ],
+      "expected_paired_roles": [
+        {"role": "DIRECTED BY", "name": "STEVEN SPIELBERG"},
+        {"role": "SCREENPLAY BY", "name": "DAVID KOEPP"},
+        {"role": "MUSIC BY", "name": "JOHN WILLIAMS"},
+        {"role": "DIRECTOR OF PHOTOGRAPHY", "name": "JANUSZ KAMINSKI"},
+        {"role": "EDITED BY", "name": "MICHAEL KAHN"},
+        {"role": "PRODUCTION DESIGNER", "name": "RICK CARTER"},
+        {"role": "ASSISTANT PROPERTY MASTER", "name": "DREW PETROTTA"}
+      ],
+      "confidence_min": 0.80
+    }
+  ],
+  "imdb_reference": {
+    "cast_top": ["Jeff Goldblum", "Julianne Moore", "Pete Postlethwaite", "Arliss Howard", "Richard Attenborough", "Vince Vaughn", "Vanessa Lee Chester", "Peter Stormare"],
+    "crew_key": {
+      "director": "Steven Spielberg",
+      "writer": "David Koepp",
+      "producer": ["Gerald R. Molen", "Colin Wilson"],
+      "exec_producer": "Kathleen Kennedy",
+      "music": "John Williams",
+      "dop": "Janusz Kaminski",
+      "editor": "Michael Kahn",
+      "production_design": "Rick Carter"
+    }
+  }
+}

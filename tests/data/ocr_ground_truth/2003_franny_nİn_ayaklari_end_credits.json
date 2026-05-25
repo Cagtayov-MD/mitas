@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "2003_franny_nİn_ayaklari_end_credits",
+  "source_path": "E:/filmtest/aaaa/720p_test_2003-9015-0-0012-40-1-FRANNY'NİN_AYAKLARI.mxf",
+  "video_duration_sec": 713.2,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Franny's Feet",
+    "year": "2003-2010",
+    "type": "animation_tv_series",
+    "creators": ["Cathy Moss", "Susin Nielsen"],
+    "director": "Joanne Boreham",
+    "production": "Decode Entertainment"
+  },
+  "notes": "FRANNY = Franny's Feet (2003-2010 Kanada animasyon TV series). KISA klip ~12 dk. PIPELINE FAILURE BASELINE: mevcut 0 satır. Faz 4 sonrası 10+ bekleniyor (smoke 93).",
+  "expected_segments": [
+    {
+      "segment_id": "closing_voice_cast_card",
+      "type": "card",
+      "start_sec_min": 660.0,
+      "start_sec_max": 700.0,
+      "min_card_count": 1,
+      "must_contain_text": [
+        "PHOEBE MCAULEY",
+        "GEORGE BUZA",
+        "TAJJA ISEN",
+        "JULIE LEMIEUX",
+        "JUAN CHIORAN"
+      ],
+      "expected_paired_roles": [
+        {"role": "FRANNY", "name": "PHOEBE MCAULEY"},
+        {"role": "GRANDPA", "name": "GEORGE BUZA"},
+        {"role": "LACEY", "name": "TAJJA ISEN"},
+        {"role": "BOBBY JEAN", "name": "JULIE LEMIEUX"}
+      ],
+      "confidence_min": 0.75
+    }
+  ],
+  "phase4_regression_baseline": {
+    "current_pipeline_lines": 0,
+    "current_pipeline_cards": 0,
+    "expected_after_phase4_min_lines": 10,
+    "expected_after_phase4_min_cards": 1,
+    "notes": "FRANNY Faz 4 dinamik pencere KRİTİK test (opus_credit_detector 500-542'ye kestir, gerçek jenerik 683+)."
+  },
+  "imdb_reference": {
+    "voice_cast_top": ["Phoebe McAuley", "George Buza", "Tajja Isen", "Julie Lemieux", "Juan Chioran"],
+    "crew_key": {
+      "creators": ["Cathy Moss", "Susin Nielsen"],
+      "director": "Joanne Boreham",
+      "exec_producer": ["Steven DeNure", "Neil Court", "Beth Stevenson"],
+      "producer": ["Elana Adair", "Kym Hyde"],
+      "music": ["Amin Bhatia", "Ari Posner", "Meiro Stamm"]
+    }
+  }
+}

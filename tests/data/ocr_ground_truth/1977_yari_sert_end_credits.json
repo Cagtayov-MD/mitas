@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "1977_yari_sert_end_credits",
+  "source_path": "E:/filmtest/aaaa/720p_test_1977-0207-1-0000-40-1-YARI_SERT.mxf",
+  "video_duration_sec": 5600.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (Semi-Tough teyit)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Semi-Tough",
+    "turkish_title": "Yarı Sert",
+    "year": 1977,
+    "director": "Michael Ritchie",
+    "writer": "Walter Bernstein (senaryo) / Dan Jenkins (roman)",
+    "country": "USA"
+  },
+  "notes": "YARI SERT = Semi-Tough (1977, Michael Ritchie, Burt Reynolds romcom). Mevcut 203 satır + 152 paired. A-FB FALLBACK tetiklendi (composite_broken:BROKEN_NO_TEXT).",
+  "expected_segments": [
+    {
+      "segment_id": "opening_cast_cards",
+      "type": "card",
+      "start_sec_min": 5180.0,
+      "start_sec_max": 5250.0,
+      "min_card_count": 1,
+      "must_contain_text": [
+        "BURT REYNOLDS",
+        "KRIS KRISTOFFERSON",
+        "JILL CLAYBURGH",
+        "ROBERT PRESTON"
+      ],
+      "expected_paired_roles": [
+        {"role": "BILLY CLYDE PUCKETT", "name": "BURT REYNOLDS"},
+        {"role": "SHAKE TILLER", "name": "KRIS KRISTOFFERSON"},
+        {"role": "BARBARA JANE BOOKMAN", "name": "JILL CLAYBURGH"},
+        {"role": "BIG ED BOOKMAN", "name": "ROBERT PRESTON"}
+      ],
+      "confidence_min": 0.80
+    },
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 5230.0,
+      "start_sec_max": 5400.0,
+      "end_sec_min": 5500.0,
+      "end_sec_max": 5600.0,
+      "min_line_count": 170,
+      "must_contain_text": [
+        "MICHAEL RITCHIE",
+        "WALTER BERNSTEIN",
+        "DAVID MERRICK",
+        "JERRY FIELDING",
+        "CHARLES ROSHER",
+        "BURT REYNOLDS",
+        "KRIS KRISTOFFERSON",
+        "JILL CLAYBURGH",
+        "ROBERT PRESTON",
+        "BERT CONVY",
+        "CARL WEATHERS",
+        "BRIAN DENNEHY"
+      ],
+      "expected_paired_roles": [
+        {"role": "DIRECTED BY", "name": "MICHAEL RITCHIE"},
+        {"role": "SCREENPLAY", "name": "WALTER BERNSTEIN"},
+        {"role": "PRODUCED BY", "name": "DAVID MERRICK"},
+        {"role": "MUSIC", "name": "JERRY FIELDING"},
+        {"role": "DIRECTOR OF PHOTOGRAPHY", "name": "CHARLES ROSHER"}
+      ],
+      "confidence_min": 0.70
+    }
+  ],
+  "fallback_metadata": {
+    "expected_fallback_used": true,
+    "expected_fallback_reason": "composite_broken:BROKEN_NO_TEXT",
+    "notes": "A-fb fallback emniyet ağı kanıt vakası."
+  },
+  "imdb_reference": {
+    "cast_top": ["Burt Reynolds", "Kris Kristofferson", "Jill Clayburgh", "Robert Preston", "Bert Convy", "Roger E. Mosley", "Lotte Lenya", "Richard Masur", "Carl Weathers", "Brian Dennehy"],
+    "crew_key": {
+      "director": "Michael Ritchie",
+      "writer_screenplay": "Walter Bernstein",
+      "writer_novel": "Dan Jenkins",
+      "producer": "David Merrick",
+      "music": "Jerry Fielding",
+      "dop": "Charles Rosher Jr."
+    }
+  }
+}

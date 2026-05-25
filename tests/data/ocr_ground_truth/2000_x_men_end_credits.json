@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "2000_x_men_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S27_2000-0433-1-0000-90-1-X-MEN.mp4",
+  "video_duration_sec": 6001.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "X-Men",
+    "year": 2000,
+    "director": "Bryan Singer",
+    "studio": "20th Century Fox / Marvel Entertainment",
+    "duration_min": 104,
+    "release_date": "2000-07-14"
+  },
+  "notes": "X-MEN 2000 (Bryan Singer). IMDB cast+crew tam doğrulamalı. Mevcut pipeline 238 satır + 181 paired.",
+  "expected_segments": [
+    {
+      "segment_id": "opening_cast_cards",
+      "type": "card",
+      "start_sec_min": 5500.0,
+      "start_sec_max": 5720.0,
+      "min_card_count": 5,
+      "must_contain_text": [
+        "HUGH JACKMAN",
+        "PATRICK STEWART",
+        "IAN MCKELLEN",
+        "FAMKE JANSSEN",
+        "HALLE BERRY",
+        "ANNA PAQUIN",
+        "BRYAN SINGER"
+      ],
+      "confidence_min": 0.80,
+      "notes_opus": "Ana cast tanıtım kartları. Hugh Jackman (Wolverine), Patrick Stewart (Prof. X), Ian McKellen (Magneto), Famke Janssen (Jean Grey), Halle Berry (Storm), Anna Paquin (Rogue), Bryan Singer (yönetmen)."
+    },
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 5550.0,
+      "start_sec_max": 5800.0,
+      "end_sec_min": 5950.0,
+      "end_sec_max": 6001.0,
+      "min_line_count": 200,
+      "must_contain_text": [
+        "ROSS FANGER",
+        "LEE CLEARY",
+        "DAVID HAYTER",
+        "MICHAEL KAMEN",
+        "NEWTON THOMAS SIGEL",
+        "LAUREN SHULER DONNER",
+        "RALPH WINTER",
+        "STAN LEE",
+        "JACK KIRBY",
+        "JOHN MYHRE"
+      ],
+      "expected_paired_roles": [
+        {"role": "UNIT PRODUCTION MANAGER", "name": "ROSS FANGER"},
+        {"role": "FIRST ASSISTANT DIRECTOR", "name": "LEE CLEARY"},
+        {"role": "SCREENPLAY", "name": "DAVID HAYTER"},
+        {"role": "MUSIC", "name": "MICHAEL KAMEN"},
+        {"role": "DIRECTOR OF PHOTOGRAPHY", "name": "NEWTON THOMAS SIGEL"},
+        {"role": "PRODUCTION DESIGNER", "name": "JOHN MYHRE"},
+        {"role": "PRODUCERS", "name": "LAUREN SHULER DONNER"},
+        {"role": "EXECUTIVE PRODUCER", "name": "STAN LEE"}
+      ],
+      "confidence_min": 0.80,
+      "notes_opus": "Closing scroll: yapımcılar, görüntü yönetmeni, müzik, kurgu, set, kostüm. Stan Lee + Jack Kirby Marvel kreatörleri olarak credit'te."
+    }
+  ],
+  "imdb_reference": {
+    "cast_top": ["Hugh Jackman", "Patrick Stewart", "Ian McKellen", "Famke Janssen", "James Marsden", "Halle Berry", "Anna Paquin", "Tyler Mane", "Ray Park", "Rebecca Romijn-Stamos", "Bruce Davison"],
+    "crew_key": {
+      "director": "Bryan Singer",
+      "writer_screenplay": "David Hayter",
+      "writer_story": "Tom DeSanto & Bryan Singer",
+      "producer": ["Lauren Shuler Donner", "Ralph Winter"],
+      "exec_producer": ["Avi Arad", "Tom DeSanto", "Richard Donner", "Stan Lee"],
+      "music": "Michael Kamen",
+      "dop": "Newton Thomas Sigel",
+      "editor": ["Steven Rosenblum", "Kevin Stitt", "John Wright"],
+      "production_design": "John Myhre",
+      "costume_design": "Louise Mingenbach"
+    }
+  }
+}

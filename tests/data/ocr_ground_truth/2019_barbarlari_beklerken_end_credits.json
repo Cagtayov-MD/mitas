@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "2019_barbarlari_beklerken_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_SİNEMA FİLM4_2019-1203-1-0000-50-1-BARBARLARI_BEKLERKEN.mp4",
+  "video_duration_sec": 6404.5,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Waiting for the Barbarians",
+    "year": 2019,
+    "director": "Ciro Guerra",
+    "writer": "J.M. Coetzee (roman+senaryo)"
+  },
+  "notes": "BARBARLARI BEKLERKEN (2019, Ciro Guerra). En zengin scroll (309 satır, 215 paired).",
+  "expected_segments": [
+    {
+      "segment_id": "opening_cast_cards",
+      "type": "card",
+      "start_sec_min": 5984.0,
+      "start_sec_max": 6100.0,
+      "min_card_count": 10,
+      "must_contain_text": [
+        "MARK RYLANCE",
+        "JOHNNY DEPP",
+        "ROBERT PATTINSON"
+      ],
+      "confidence_min": 0.85,
+      "notes_opus": "Magistrate (Rylance), Colonel Joll (Depp), Officer Mandel (Pattinson) — ana cast kartları."
+    },
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 6050.0,
+      "start_sec_max": 6250.0,
+      "end_sec_min": 6350.0,
+      "end_sec_max": 6404.5,
+      "min_line_count": 260,
+      "must_contain_text": [
+        "CIRO GUERRA",
+        "GIAMPIERO AMBROSI",
+        "CHRIS MENGES",
+        "JACOPO QUADRI",
+        "CRISPIAN SALLIS",
+        "BRIAN COOK",
+        "PAUL SNELL",
+        "SEBASTIAN BARRACLOUGH"
+      ],
+      "expected_paired_roles": [
+        {"role": "DIRECTED BY", "name": "CIRO GUERRA"},
+        {"role": "MUSIC", "name": "GIAMPIERO AMBROSI"},
+        {"role": "DIRECTOR OF PHOTOGRAPHY", "name": "CHRIS MENGES"},
+        {"role": "EDITOR", "name": "JACOPO QUADRI"},
+        {"role": "PRODUCTION DESIGNER", "name": "CRISPIAN SALLIS"},
+        {"role": "CO-PRODUCER", "name": "BRIAN COOK"}
+      ],
+      "confidence_min": 0.80
+    }
+  ],
+  "imdb_reference": {
+    "cast_top": ["Mark Rylance", "Johnny Depp", "Robert Pattinson", "Gana Bayarsaikhan", "Greta Scacchi", "David Dencik", "Sam Reid", "Harry Melling"],
+    "crew_key": {
+      "director": "Ciro Guerra",
+      "novel": "J.M. Coetzee",
+      "producer": ["Monika Bacardi", "Michael Fitzgerald", "Olga Segura", "Andrea Iervolino"],
+      "co_producer": ["Brian W. Cook", "Luca Matrundola"],
+      "music": "Giampiero Ambrosi",
+      "dop": "Chris Menges",
+      "editor": "Jacopo Quadri"
+    }
+  }
+}

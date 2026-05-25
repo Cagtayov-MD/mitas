@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "1999_cennetİn_rengİ_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S27_1999-0363-1-0000-00-1-CENNETİN_RENGİ.mp4",
+  "video_duration_sec": 5157.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Rang-e Khoda",
+    "english_title": "The Color of Paradise",
+    "turkish_title": "Cennetin Rengi",
+    "year": 1999,
+    "director": "Majid Majidi",
+    "writer": "Majid Majidi",
+    "country": "İran"
+  },
+  "notes": "CENNETIN RENGI = Rang-e Khoda / The Color of Paradise (1999, Majid Majidi, İran). Farsça orijinal jenerik. Mevcut 45 satır + 34 paired. A-FB FALLBACK tetiklendi (composite_broken:BROKEN_BLACK).",
+  "expected_segments": [
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 4800.0,
+      "start_sec_max": 5000.0,
+      "end_sec_min": 5100.0,
+      "end_sec_max": 5157.0,
+      "min_line_count": 30,
+      "must_contain_text": [
+        "MAJID MAJIDI",
+        "HOSSEIN MAHJOUB",
+        "MOHSEN RAMEZANI",
+        "SALAMEH FEYZI",
+        "FARAHNAZ SAFARI",
+        "ELHAM SHARIFI",
+        "MOHAMMAD DAVUDI",
+        "HASSAN HASSANDOOST"
+      ],
+      "expected_paired_roles": [
+        {"role": "DIRECTOR / WRITER", "name": "MAJID MAJIDI"},
+        {"role": "MOHAMMAD", "name": "MOHSEN RAMEZANI"},
+        {"role": "HASHEM (FATHER)", "name": "HOSSEIN MAHJOUB"},
+        {"role": "CINEMATOGRAPHY", "name": "MOHAMMAD DAVUDI"},
+        {"role": "EDITOR", "name": "HASSAN HASSANDOOST"}
+      ],
+      "confidence_min": 0.50
+    }
+  ],
+  "fallback_metadata": {
+    "expected_fallback_used": true,
+    "expected_fallback_reason": "composite_broken:BROKEN_BLACK"
+  },
+  "ocr_difficulty_notes": "Farsça orijinal jenerik (Latin alfabesinde değil). OCR confidence düşük (max 0.89), satırlar parçalı. must_contain_text Çağatay'ın IMDB tam listesinden, partial match + case-insensitive ile beklenir. Bazı isimler OCR'da hiç görünmeyebilir (Farsça karakterler) — beklenen davranış.",
+  "imdb_reference": {
+    "cast_top": ["Hossein Mahjoub", "Mohsen Ramezani", "Salameh Feyzi", "Farahnaz Safari", "Elham Sharifi"],
+    "crew_key": {
+      "director": "Majid Majidi",
+      "writer": "Majid Majidi",
+      "producer": ["Ali Ghaemmaghami", "Mehdi Karimi", "Mehdi Mahabadi", "Mohsen Sarab"],
+      "music": ["Kayvan Jahanshahi", "Alireza Kohan Deyri"],
+      "dop": "Mohammad Davudi",
+      "editor": "Hassan Hassandoost"
+    }
+  }
+}

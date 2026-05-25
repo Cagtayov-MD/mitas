@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "1989_kukla_adam_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S27_1989-0352-1-0000-00-1-KUKLA_ADAM.mp4",
+  "video_duration_sec": 5480.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Puppet Master",
+    "turkish_title": "Kukla Adam",
+    "year": 1989,
+    "director": "David Schmoeller",
+    "writer": "David Schmoeller (Joseph G. Collodi adıyla, senaryo) / Charles Band & Kenneth J. Hall (hikaye)",
+    "genre": "horror",
+    "country": "USA"
+  },
+  "notes": "KUKLA ADAM = Puppet Master (1989, ABD horror, David Schmoeller). Daha önce yanlışlıkla Türk-Alman koprodüksiyon sanılmıştı, Çağatay doğru bilgiyi verdi. STATIK KART filmi — scroll yok, kart serisi (D kategorisi). Mevcut 18 kart bulundu.",
+  "expected_segments": [
+    {
+      "segment_id": "closing_cast_cards",
+      "type": "card",
+      "start_sec_min": 5060.0,
+      "start_sec_max": 5400.0,
+      "min_card_count": 8,
+      "must_contain_text": [
+        "PAUL LE MAT",
+        "WILLIAM HICKEY",
+        "IRENE MIRACLE",
+        "DAVID SCHMOELLER",
+        "CHARLES BAND",
+        "RICHARD BAND"
+      ],
+      "expected_paired_roles": [
+        {"role": "ALEX WHITAKER", "name": "PAUL LE MAT"},
+        {"role": "ANDRE TOULON", "name": "WILLIAM HICKEY"},
+        {"role": "DANA HADLEY", "name": "IRENE MIRACLE"},
+        {"role": "DIRECTED BY", "name": "DAVID SCHMOELLER"},
+        {"role": "MUSIC", "name": "RICHARD BAND"}
+      ],
+      "confidence_min": 0.70,
+      "notes_opus": "Cast kartları + crew kart serisi. Paul Le Mat (Alex Whitaker), William Hickey (Andre Toulon), Irene Miracle (Dana Hadley)."
+    }
+  ],
+  "expected_zero_scroll": true,
+  "notes_zero_scroll": "D kategorisi statik kart film, scroll_credit beklenmez. scroll_text_line_count = 0 doğru sonuç.",
+  "ocr_diagnostic_notes": "Mevcut OCR çıktısı 'ANYA / WOMAN AT HOTEL / ELLA BIEN' (card_003) IMDB cast'inde yer almıyor. Muhtemel açıklama: TRT arşivinde başlık karışıklığı, OCR ham çıktısının yorumlanması, veya OCR harf bozulması. Çağatay doğrulamasına göre film Puppet Master 1989.",
+  "imdb_reference": {
+    "cast_top": ["Paul Le Mat", "William Hickey", "Irene Miracle", "Jimmie F. Skaggs", "Robin Frates", "Matt Roe", "Kathryn O'Reilly", "Mews Small", "Barbara Crampton"],
+    "crew_key": {
+      "director": "David Schmoeller",
+      "writer_screenplay": "David Schmoeller (Joseph G. Collodi)",
+      "story": ["Charles Band", "Kenneth J. Hall"],
+      "producer": "Hope Perello",
+      "exec_producer": "Charles Band",
+      "music": "Richard Band",
+      "dop": "Sergio Salvati",
+      "editor": "Thomas Meshelski"
+    }
+  }
+}

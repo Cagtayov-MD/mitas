@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "2017_pororoca_end_credits",
+  "source_path": "E:/filmtest/aaaa/ÖLÜMCÜL JENERK_SİNEMA FİLM4_2017-2124-1-0000-67-1-POROROCA.mp4",
+  "video_duration_sec": 8823.0,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Pororoca",
+    "year": 2017,
+    "director": "Constantin Popescu",
+    "writer": "Constantin Popescu",
+    "country": "Romanya",
+    "duration_min": 152
+  },
+  "notes": "POROROCA (2017, Constantin Popescu, Romen). 'ÖLÜMCÜL JENERK' işaretli. PIPELINE FAILURE BASELINE: mevcut 0 satır. Faz 4 sonrası 100+ (smoke 242).",
+  "expected_segments": [
+    {
+      "segment_id": "opening_title_card",
+      "type": "card",
+      "start_sec_min": 8530.0,
+      "start_sec_max": 8590.0,
+      "min_card_count": 1,
+      "must_contain_text": ["POROROCA"],
+      "confidence_min": 0.85
+    },
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 8620.0,
+      "start_sec_max": 8700.0,
+      "end_sec_min": 8780.0,
+      "end_sec_max": 8823.0,
+      "min_line_count": 100,
+      "must_contain_text": [
+        "CONSTANTIN POPESCU",
+        "BOGDAN DUMITRACHE",
+        "IULIA LUMÂNARE",
+        "LIVIU MARGHIDAN",
+        "CORINA STAVILA",
+        "LISSANDRA HAULICA"
+      ],
+      "expected_paired_roles": [
+        {"role": "REGIA", "name": "CONSTANTIN POPESCU"},
+        {"role": "SCENARIU", "name": "CONSTANTIN POPESCU"},
+        {"role": "IMAGINEA", "name": "LIVIU MARGHIDAN"},
+        {"role": "MONTAJ", "name": "CORINA STAVILA"}
+      ],
+      "confidence_min": 0.70
+    }
+  ],
+  "phase4_regression_baseline": {
+    "current_pipeline_lines": 0,
+    "current_pipeline_cards": 5,
+    "expected_after_phase4_min_lines": 100,
+    "notes": "POROROCA Faz 4 KRİTİK test (opus_credit_detector 8594'te kestir, gerçek scroll 8643+)."
+  },
+  "imdb_reference": {
+    "cast_top": ["Bogdan Dumitrache", "Iulia Lumânare", "Constantin Dogioiu", "Stefan Raus", "Adela Marghidan", "Ionuț Achivoaie", "Alice Cora Mihalache"],
+    "crew_key": {
+      "director": "Constantin Popescu",
+      "writer": "Constantin Popescu",
+      "producer": ["Liviu Marghidan", "Lissandra Haulica"],
+      "dop": "Liviu Marghidan",
+      "editor": "Corina Stavila",
+      "music_note": "Özgün besteci yok, doğal ses tasarımı"
+    }
+  }
+}

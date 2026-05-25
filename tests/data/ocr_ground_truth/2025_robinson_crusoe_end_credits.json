@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "2025_robinson_crusoe_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_SİNEMA FİLM4_2025-1011-1-0000-50-1-ROBINSON_CRUSOE.mp4",
+  "video_duration_sec": 5200.5,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste, DOUG STONE düzeltmesi)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "The Wild Life",
+    "turkish_title": "Robinson Crusoe",
+    "year_production": 2016,
+    "year_catalog": 2025,
+    "directors": ["Vincent Kesteloot", "Ben Stassen"],
+    "studio": "nWave Pictures / StudioCanal / Illuminata Pictures",
+    "type": "animation"
+  },
+  "notes": "ROBINSON CRUSOE = orijinal 'The Wild Life' (2016, Belçika-Fransa animasyon). Türkiye 2025 kataloğu. Animasyon → voice cast ana cast. DÜZELTME (2026-05-25): DOUG STONE AYNSLEY rolünü seslendiriyor (Crusoe'nun Airedale Terrier'i) — IMDB teyitli. Bazı voice actors pseudonym kullanmış: RON ALLEN = Kirk Thornton, DAVID HOWARD = James Arnold Taylor.",
+  "expected_segments": [
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 4850.0,
+      "start_sec_max": 5050.0,
+      "end_sec_min": 5150.0,
+      "end_sec_max": 5200.5,
+      "min_line_count": 150,
+      "must_contain_text": [
+        "DOUG STONE",
+        "YURI LOWENTHAL",
+        "RON ALLEN",
+        "DAVID HOWARD",
+        "LAILA BERZINS",
+        "JOEY CAMEN",
+        "SANDY FOX",
+        "MARIEVE HERINGTON",
+        "JAY JONES",
+        "RAMIN DJAWADI",
+        "VINCENT KESTELOOT",
+        "BEN STASSEN"
+      ],
+      "expected_paired_roles": [
+        {"role": "AYNSLEY", "name": "DOUG STONE"},
+        {"role": "CRUSOE", "name": "YURI LOWENTHAL"},
+        {"role": "BOSUN", "name": "RON ALLEN"},
+        {"role": "MAK / TUESDAY", "name": "DAVID HOWARD"},
+        {"role": "FRIDAY", "name": "JAY JONES"},
+        {"role": "ROSIE", "name": "LAILA BERZINS"},
+        {"role": "SCRUBBY", "name": "JOEY CAMEN"},
+        {"role": "EPI", "name": "SANDY FOX"},
+        {"role": "KIKI", "name": "MARIEVE HERINGTON"},
+        {"role": "MUSIC", "name": "RAMIN DJAWADI"},
+        {"role": "DIRECTED BY", "name": "VINCENT KESTELOOT"}
+      ],
+      "confidence_min": 0.85,
+      "notes_opus": "Voice cast ana cast. DOUG STONE (AYNSLEY = Crusoe'nun Airedale Terrier köpeği), YURI LOWENTHAL (CRUSOE), RON ALLEN/Kirk Thornton (BOSUN), DAVID HOWARD/James Arnold Taylor (MAK/TUESDAY). Müzik: Ramin Djawadi (Game of Thrones bestecisi). Mevcut pipeline 176 satır + 154 paired, yeni 24-film 183 satır."
+    },
+    {
+      "segment_id": "closing_cards_vfx_credits",
+      "type": "card",
+      "start_sec_min": 4780.0,
+      "start_sec_max": 5000.0,
+      "min_card_count": 10,
+      "must_contain_text": [
+        "Rigging",
+        "Character Fx"
+      ],
+      "confidence_min": 0.80,
+      "notes_opus": "Animation production credits (rigging, FX) kart serisi. Mevcut 17 kart, yeni 43 kart (Faz 2 açılış jeneriği dahil)."
+    }
+  ],
+  "voice_actor_pseudonyms": {
+    "RON ALLEN": "Kirk Thornton",
+    "DAVID HOWARD": "James Arnold Taylor",
+    "notes": "Bazı voice actors farklı isimler altında credit'lenmiş. Credit'teki Latin alfabesi isim (RON ALLEN, DAVID HOWARD) must_contain_text'te aranıyor."
+  },
+  "opus_hatasi_kaydi": "2026-05-25 ilk turda Opus, DOUG STONE'u 'IMDB cast'inde yok' diye hatalı işaretledi (Çağatay'ın ilk paylaştığı listede eksikti). Çağatay düzeltti ve sonra Opus WebSearch ile IMDB'de DOUG STONE'un AYNSLEY rolünü oynadığını teyit etti. Bu kayıt 'hata yapınca kabullen' felsefesi gereği saklanıyor.",
+  "imdb_reference": {
+    "voice_cast_top": ["Doug Stone (Aynsley)", "Yuri Lowenthal (Crusoe)", "Ron Allen / Kirk Thornton (Bosun)", "David Howard / James Arnold Taylor (Mak/Tuesday)", "Laila Berzins", "Joey Camen", "Sandy Fox", "Marieve Herington", "Jay Jones"],
+    "crew_key": {
+      "directors": ["Vincent Kesteloot", "Ben Stassen"],
+      "writers": ["Lee Christopher", "Domonic Paris", "Graham Weldon"],
+      "based_on": "Daniel Defoe",
+      "producer": ["Gina Gallo", "Mimi Maynard", "Domonic Paris", "Ben Stassen", "Caroline Van Iseghem"],
+      "music": "Ramin Djawadi"
+    }
+  }
+}

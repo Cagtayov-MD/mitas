@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "video_id": "1968_anjelik_ve_sultan_end_credits",
+  "source_path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S29_1968-0067-1-0000-00-1-ANJELIK_VE_SULTAN.mp4",
+  "video_duration_sec": 5521.1,
+  "created_at": "2026-05-25",
+  "created_by": "opus_oncusel + cagatay_onay (IMDB tam liste)",
+  "status": "approved",
+  "film_metadata": {
+    "title": "Angélique et le Sultan",
+    "year": 1968,
+    "director": "Bernard Borderie",
+    "writer": "Bernard Borderie, Francis Cosne (senaryo) / Anne & Serge Golon (roman)"
+  },
+  "notes": "ANJELIK VE SULTAN (1968, Bernard Borderie, Fransız). HAREKETLI BG scroll. Mevcut 55 satır + 35 paired. OCR'da harf bozulması bekleniyor.",
+  "expected_segments": [
+    {
+      "segment_id": "closing_scroll",
+      "type": "scroll_credit",
+      "start_sec_min": 5150.0,
+      "start_sec_max": 5400.0,
+      "end_sec_min": 5450.0,
+      "end_sec_max": 5521.0,
+      "min_line_count": 40,
+      "must_contain_text": [
+        "BERNARD BORDERIE",
+        "MICHELE MERCIER",
+        "ROBERT HOSSEIN",
+        "JEAN-CLAUDE PASCAL",
+        "ALY BEN AYED",
+        "HELMUTH SCHNEIDER",
+        "ROGER PIGAUT",
+        "JACQUES SANTI",
+        "ETTORE MANNI",
+        "MICHEL MAGNE",
+        "HENRI PERSIN"
+      ],
+      "expected_paired_roles": [
+        {"role": "REALISATION", "name": "BERNARD BORDERIE"},
+        {"role": "MUSIQUE", "name": "MICHEL MAGNE"},
+        {"role": "IMAGES", "name": "HENRI PERSIN"},
+        {"role": "MONTAGE", "name": "CHRISTIAN GAUDIN"}
+      ],
+      "confidence_min": 0.55,
+      "notes_opus": "Düşük conf (0.55) çünkü hareketli BG'de OCR harf bozulması beklentisi (ROGER PIGAUT→PIGANT, ETTORE MANNI→MAMMI, HELMUTH SCHNEIDER→KGINEIDER). Case-insensitive + partial match şart."
+    }
+  ],
+  "imdb_reference": {
+    "cast_top": ["Michèle Mercier", "Robert Hossein", "Jean-Claude Pascal", "Helmuth Schneider", "Aly Ben Ayed", "Roger Pigaut", "Jacques Santi", "Paul Muller", "Bruno Dietrich", "Henri Cogan", "Ettore Manni"],
+    "crew_key": {
+      "director": "Bernard Borderie",
+      "writer": ["Bernard Borderie", "Francis Cosne"],
+      "novel": ["Anne Golon", "Serge Golon"],
+      "music": "Michel Magne",
+      "dop": "Henri Persin",
+      "editor": "Christian Gaudin"
+    }
+  }
+}
