@@ -1,0 +1,19 @@
+{
+  "_comment": "V2.1 X-MEN regression — Paddle zaten %100 IMDB; fallback TETİKLENMEMELİ ve runtime delta <%5 olmalı.",
+  "schema_version": "2.0.0",
+  "items": [
+    {
+      "id": "xmen_fallback_regression",
+      "path": "E:/filmtest/aaaa/evoArcadmin_COZUMLEMEV2S27_2000-0433-1-0000-90-1-X-MEN.mp4",
+      "kind": "film_credits",
+      "opening_window_min": 3,
+      "closing_window_min": 5,
+      "max_opening_min": 8,
+      "max_closing_min": 15,
+      "dynamic_window": true,
+      "expected_language": "tr",
+      "fps": 6,
+      "notes": "V2.1 fallback regression"
+    }
+  ]
+}

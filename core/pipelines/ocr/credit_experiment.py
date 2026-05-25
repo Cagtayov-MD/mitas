@@ -528,6 +528,27 @@ class OneOcrEngine:
         return {"config_dir": str(self.config_dir), "model": str(self.config_dir / "oneocr.onemodel")}
 
 
+class _LazyOneOcrProxy:
+    """V2.1 fallback için lazy OneOCR proxy.
+
+    Pipeline `oneocr_engine` parametresi `None` değilse fallback enabled
+    sayar; ama gerçek init `recognize()` çağrılana kadar ertelenir. Decision
+    False'da init hiç olmaz (DLL load ~2-4sn tasarruf).
+
+    Factory `() -> OneOcrEngine | None` döner. None dönerse `.recognize()`
+    sessizce boş liste verir (fallback skip edilir).
+    """
+
+    def __init__(self, factory: Any) -> None:
+        self._factory = factory
+
+    def recognize(self, image_path: Path, *, strategy: str, timestamp_seconds: float | None = None) -> list[dict[str, Any]]:
+        engine = self._factory()
+        if engine is None:
+            return []
+        return engine.recognize(image_path, strategy=strategy, timestamp_seconds=timestamp_seconds)
+
+
 class TesseractUnavailableEngine:
     name = "tesseract"
 
@@ -703,6 +724,31 @@ def _run_item_profile_dispatch(
 
     # 3) Her segment için frames extract + unified pipeline
     seg_results: list[dict[str, Any]] = []
+    # V2.1: OneOCR fallback için lazy singleton — ilk fallback ihtiyacı
+    # gelene kadar init etmiyoruz (DLL load pahalı). `_lazy_oneocr` closure
+    # state'i tek instance üretir, sonraki çağrılarda yeniden kullanır.
+    oneocr_holder: dict[str, Any] = {"engine": None, "init_failed": False}
+
+    def _lazy_oneocr() -> Any:
+        # Caller (run_unified_credit_pipeline) decision'ı içeriden veriyor;
+        # decision False olduğunda bu closure çağrılmadığı için engine init
+        # edilmez. Test çevrelerinde OneOCR yoksa init bir kez başarısız
+        # olur (init_failed=True), sonraki çağrılar None döner.
+        if oneocr_holder["init_failed"]:
+            return None
+        if oneocr_holder["engine"] is None:
+            try:
+                # `OneOcrEngine` zaten bu modülde tanımlı (line 507)
+                oneocr_holder["engine"] = OneOcrEngine()
+            except Exception as exc:
+                oneocr_holder["init_failed"] = True
+                warnings.append(f"oneocr_fallback_init_failed:{type(exc).__name__}:{exc}")
+                return None
+        return oneocr_holder["engine"]
+
+    # V2.1: Fallback'i tamamen kapatmak için env var
+    from core.pipelines.ocr.fallback_strategy import fallback_enabled_from_env
+    fallback_enabled = fallback_enabled_from_env()
     for seg in segments:
         seg_id = str(seg["segment_id"])
         seg_start = float(seg["start_sec"])
@@ -735,11 +781,15 @@ def _run_item_profile_dispatch(
             continue
 
         try:
+            # V2.1: fallback için lazy OneOCR proxy — pipeline içinde
+            # decision False ise `.recognize()` hiç çağrılmaz, init olmaz.
+            oneocr_for_pipeline = _LazyOneOcrProxy(_lazy_oneocr) if fallback_enabled else None
             unified = run_unified_credit_pipeline(
                 frames=seg_frames,
                 output_dir=seg_output_dir,
                 paddle_engine=primary_engine,
                 source_fps=effective_fps,
+                oneocr_engine=oneocr_for_pipeline,
             )
         except Exception as exc:
             warnings.append(f"segment_pipeline_failed:{seg_id}:{type(exc).__name__}:{exc}")
@@ -771,8 +821,13 @@ def _run_item_profile_dispatch(
     merged_events: list[dict[str, Any]] = []
     merged_by_type: dict[str, int] = {}
     total_events = 0
-    any_fallback = False
+    any_fallback = False  # eski A-fb (scroll_track_observation_fallback)
     fallback_reasons: list[str] = []
+    # V2.1: OneOCR fallback telemetrisi
+    any_oneocr_fallback = False
+    oneocr_fallback_total_events = 0
+    oneocr_fallback_segments: list[str] = []
+    oneocr_fallback_reasons: list[str] = []
     for seg_result in seg_results:
         if seg_result.get("status") != "done":
             continue
@@ -801,6 +856,14 @@ def _run_item_profile_dispatch(
             reason = seg_summary.get("fallback_reason")
             if reason:
                 fallback_reasons.append(f"{seg_result['segment_id']}:{reason}")
+        # V2.1: OneOCR fallback telemetrisini ROLL UP et
+        if seg_summary.get("fallback_triggered"):
+            any_oneocr_fallback = True
+            oneocr_fallback_total_events += int(seg_summary.get("fallback_event_count") or 0)
+            oneocr_fallback_segments.append(seg_result["segment_id"])
+            r = seg_summary.get("fallback_decision_reason") or seg_summary.get("fallback_reason")
+            if r:
+                oneocr_fallback_reasons.append(f"{seg_result['segment_id']}:{r}")
 
     # Renumber event_ids so the merged list has unique IDs
     for idx, ev in enumerate(merged_events, start=1):
@@ -839,6 +902,12 @@ def _run_item_profile_dispatch(
             "low_confidence_count": 0,  # Faz 5
             "fallback_used": any_fallback,
             "fallback_reason": ",".join(fallback_reasons) if fallback_reasons else None,
+            # V2.1: OneOCR akıllı fallback roll-up
+            "fallback_triggered": any_oneocr_fallback,
+            "fallback_engine": "oneocr" if any_oneocr_fallback else None,
+            "fallback_event_count": oneocr_fallback_total_events,
+            "fallback_segments": oneocr_fallback_segments,
+            "fallback_decision_reasons": oneocr_fallback_reasons,
         },
     }
     _write_json(item_unified_dir / "events.json", merged_events_payload)
@@ -858,6 +927,12 @@ def _run_item_profile_dispatch(
         "merged_event_count": total_events,
         "merged_by_type": merged_by_type,
         "runtime_sec": runtime_total,
+        # V2.1: OneOCR fallback telemetrisi item düzeyinde
+        "fallback_triggered": any_oneocr_fallback,
+        "fallback_engine": "oneocr" if any_oneocr_fallback else None,
+        "fallback_event_count": oneocr_fallback_total_events,
+        "fallback_segments": oneocr_fallback_segments,
+        "fallback_decision_reasons": oneocr_fallback_reasons,
         "warnings": warnings,
     }
     _write_json(item_dir / "item_summary.json", item_summary)

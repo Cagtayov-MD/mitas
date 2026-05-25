@@ -1,0 +1,18 @@
+{
+  "_comment": "V2.1 akıllı OneOCR fallback integration test — FRANNY tek-item. Brief: opening_window_min=1, closing_window_min=1, max_closing_min=3. Beklenen: Paddle composite başarısız → OneOCR fallback tetiklenir → en az 5 ana isim okunur (Phoebe McAuley, George Buza, Tajja Isen, Julie Lemieux, Juan Chioran).",
+  "schema_version": "2.0.0",
+  "items": [
+    {
+      "id": "franny_fallback_test",
+      "path": "E:/filmtest/aaaa/720p_test_2003-9015-0-0012-40-1-FRANNY'NİN_AYAKLARI.mxf",
+      "kind": "film_credits",
+      "opening_window_min": 1,
+      "closing_window_min": 1,
+      "max_closing_min": 3,
+      "dynamic_window": true,
+      "expected_language": "tr",
+      "fps": 6,
+      "notes": "V2.1 fallback smoke"
+    }
+  ]
+}

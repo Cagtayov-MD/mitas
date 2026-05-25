@@ -39,6 +39,7 @@ def run_unified_credit_pipeline(
     detection_stride: int = 3,
     static_speed_threshold: float = 2.0,
     source_fps: float = 6.0,
+    oneocr_engine=None,  # optional OneOcrEngine for V2.1 akıllı fallback (DI)
 ) -> UnifiedCreditResult:
     """Orchestrate: detection-only OCR → tracks → classify → static cards + scroll canvas → recognition.
 
@@ -240,7 +241,112 @@ def run_unified_credit_pipeline(
                     "paired_count": len(paired_lines),
                 })
 
-    # --- Step 7: Write summary ---
+    # --- Step 7 (V2.1): Akıllı OneOCR fallback ---
+    # Paddle çıktısı (line/card sayıları + composite quality) zayıfsa ve
+    # caller bir oneocr_engine verdiyse → OneOCR ile re-run, sonuçları
+    # paddle_lines'la merge et. composite_broken etiketleri (BROKEN_*)
+    # öncelikli tetik. Karar logiği `fallback_strategy.evaluate_fallback_need`.
+    fallback_triggered = False
+    fallback_reason: str | None = None
+    fallback_event_count = 0
+    fallback_source: str | None = None
+    fallback_frames_processed = 0
+
+    from core.pipelines.ocr.fallback_strategy import (
+        evaluate_fallback_need,
+        fallback_enabled_from_env,
+        run_oneocr_fallback,
+    )
+
+    # Provisional summary (decision için minimal alanlar)
+    _provisional = {
+        "scroll_text_line_count": len(scroll_text_lines),
+        "cards_found": len(cards),
+    }
+    # Composite quality probe — yalnızca paddle scroll OCR boş döndüyse anlamlı.
+    # Aksi halde `_qa_assess` ocr_json_path almadığı için record_count=0 sayar ve
+    # her composite'i BROKEN_NO_TEXT damgalar (X-MEN regression'ı tetikleyen bug).
+    _composite_qa: dict[str, Any] | None = None
+    if (
+        scroll_canvas_path
+        and scroll_canvas_path.exists()
+        and len(scroll_text_lines) == 0
+    ):
+        scroll_lines_json = output_dir / "scroll" / "scroll_text_lines.json"
+        try:
+            _composite_qa = _qa_assess(
+                scroll_canvas_path,
+                scroll_lines_json if scroll_lines_json.exists() else None,
+            )
+        except Exception:
+            _composite_qa = None
+
+    if oneocr_engine is not None and fallback_enabled_from_env():
+        decision = evaluate_fallback_need(_provisional, _composite_qa)
+        if decision.should_trigger:
+            # Scroll frames: tracks varsa onların frame indekslerini, yoksa
+            # tüm frames'i kullan (kart bile yoksa içeride bir şey var
+            # olabilir — FRANNY senaryosu).
+            scroll_frame_paths: list[Path] = []
+            if scroll_tracks:
+                idx_set: set[int] = set()
+                for t in scroll_tracks:
+                    for obs in t.observations:
+                        idx_set.add(obs.frame_index)
+                scroll_frame_paths = [frames[i] for i in sorted(idx_set) if i < len(frames)]
+            if not scroll_frame_paths:
+                # Hiç scroll track yok ya da tracks observation eksik → tüm frames
+                scroll_frame_paths = list(frames)
+
+            try:
+                fb_result = run_oneocr_fallback(
+                    oneocr_engine=oneocr_engine,
+                    scroll_canvas_path=scroll_canvas_path,
+                    scroll_frame_paths=scroll_frame_paths,
+                    paddle_lines=scroll_text_lines,
+                )
+                if fb_result.get("fallback_event_count", 0) > 0:
+                    fallback_triggered = True
+                    fallback_reason = decision.reason
+                    fallback_event_count = int(fb_result["fallback_event_count"])
+                    fallback_source = fb_result.get("fallback_source")
+                    fallback_frames_processed = int(fb_result.get("fallback_frames_processed", 0))
+                    # Merged lines'ı scroll_text_lines'a yaz, dosyaya da merge
+                    scroll_text_lines = list(fb_result["lines"])
+                    scroll_dir = output_dir / "scroll"
+                    scroll_dir.mkdir(parents=True, exist_ok=True)
+                    # Debug dump (fallback raw)
+                    _write_json(scroll_dir / "oneocr_fallback_lines.json", {
+                        "reason": decision.reason,
+                        "paddle_metrics": decision.paddle_metrics,
+                        "source": fallback_source,
+                        "frames_processed": fallback_frames_processed,
+                        "extra_event_count": fallback_event_count,
+                        "fallback_lines": fb_result.get("fallback_lines", []),
+                    })
+                    # scroll_text_lines.json'ı yeniden yaz (merged + fallback metadata)
+                    _write_json(scroll_dir / "scroll_text_lines.json", {
+                        "canvas_path": str(scroll_canvas_path) if scroll_canvas_path else None,
+                        "line_count": len(scroll_text_lines),
+                        "lines": scroll_text_lines,
+                        "fallback_used": True,
+                        "fallback_reason": decision.reason,
+                        "fallback_engine": "oneocr",
+                        "fallback_source": fallback_source,
+                        "fallback_extra_lines": fallback_event_count,
+                    })
+                    # D-split'i fallback sonrası yeniden hesapla (yeni bbox'lar)
+                    if scroll_text_lines:
+                        derived = _derive_split_x_from_bboxes(scroll_text_lines)
+                        if derived is not None and d_split_x is None:
+                            d_split_x = derived
+                            d_split_source = "bbox_derived_post_fallback"
+                        if d_split_x is not None:
+                            paired_lines = _pair_lines_by_split(scroll_text_lines, d_split_x)
+            except Exception as exc:
+                ocr_errors.append(f"oneocr_fallback:{type(exc).__name__}:{exc}")
+
+    # --- Step 8: Write summary ---
     runtime_sec = round(perf_counter() - started, 3)
     summary: dict[str, Any] = {
         "total_frames": len(frames),
@@ -257,6 +363,13 @@ def run_unified_credit_pipeline(
         "d_split_x": d_split_x if scroll_tracks else None,
         "d_split_source": d_split_source if scroll_tracks else None,
         "paired_line_count": len(paired_lines) if scroll_tracks else 0,
+        "fallback_triggered": fallback_triggered,
+        "fallback_reason": fallback_reason,
+        "fallback_engine": "oneocr" if fallback_triggered else None,
+        "fallback_source": fallback_source,
+        "fallback_event_count": fallback_event_count,
+        "fallback_frames_processed": fallback_frames_processed,
+        "composite_quality_status": (_composite_qa or {}).get("status"),
         "runtime_sec": runtime_sec,
         "ocr_record_count": len(ocr_records),
         "ocr_error_count": len(ocr_errors),
@@ -265,7 +378,7 @@ def run_unified_credit_pipeline(
     summary_path = output_dir / "summary.json"
     _write_json(summary_path, summary)
 
-    # --- Step 8 (Faz 1): text_event events.json (yan yana, eski format dokunulmuyor) ---
+    # --- Step 9 (Faz 1): text_event events.json (yan yana, eski format dokunulmuyor) ---
     events_path: Path | None = None
     events_count = 0
     try:
@@ -297,6 +410,12 @@ def run_unified_credit_pipeline(
             "low_confidence_count": low_conf_count,
             "fallback_used": bool(summary.get("scroll_fallback_used")),
             "fallback_reason": summary.get("scroll_fallback_reason"),
+            # V2.1: OneOCR akıllı fallback telemetrisi
+            "fallback_triggered": bool(summary.get("fallback_triggered")),
+            "fallback_engine": summary.get("fallback_engine"),
+            "fallback_source": summary.get("fallback_source"),
+            "fallback_event_count": int(summary.get("fallback_event_count") or 0),
+            "fallback_decision_reason": summary.get("fallback_reason"),
         }
         # video_id: unified dir 'unified' adıyla geliyor; gerçek item id'si parent dir
         item_id = output_dir.name
