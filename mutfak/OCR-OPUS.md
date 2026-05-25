@@ -1647,4 +1647,111 @@ Strateji:
 
 ---
 
+## 22. V2.1 AKILLI FALLBACK — UYGULAMA + V2 İŞ KUYRUĞU (2026-05-25)
+
+### 22.1 Durum
+
+| Madde | Durum |
+|---|---|
+| §21.7 önerisi (akıllı fallback) | ✅ Kodlandı (Sonnet) |
+| FRANNY smoke (0% → 100%) | ✅ Kanıtlandı |
+| X-MEN regression | ✅ Sıfır (+1.47% runtime, 76 event aynı) |
+| Unit test | ✅ 28 yeni test (toplam 147 pass) |
+| Commit | ✅ `ff4869eb` |
+
+### 22.2 Yapılan iş
+
+**4 kod dosyası + 2 smoke manifest, toplam 723 ekleme:**
+- `core/pipelines/ocr/fallback_strategy.py` (YENİ, 234 satır)
+  - `evaluate_fallback_need()` karar matrisi (composite_broken > zero_lines+zero_cards > zero_lines+low_cards)
+  - `run_oneocr_fallback()` composite öncelikli, frames fallback'li merge
+  - `fallback_enabled_from_env()` `MITAS_OCR_FALLBACK` env var
+- `core/pipelines/ocr/unified_credit_pipeline.py` (+123/-1)
+  - Step 7 olarak V2.1 fallback bloğu eklendi (önceki Step 7 → Step 8 → 9)
+  - **Bonus bug fix:** `_qa_assess(ocr_json_path)` eksikti, her composite BROKEN_NO_TEXT damgalanıyordu — şimdi yalnızca scroll_text_lines==0 iken çağrılıyor. X-MEN regression bu yüzdendi.
+  - Fallback sonrası D-split yeniden hesaplanıyor (yeni bbox'lar)
+  - Telemetri: `fallback_triggered`, `fallback_reason`, `fallback_engine`, `fallback_source`, `fallback_event_count`, `fallback_frames_processed`, `composite_quality_status` summary.json'a yazılıyor
+- `core/pipelines/ocr/credit_experiment.py` (+77/-2)
+  - `_LazyOneOcrProxy` — pipeline'a verilen oneocr_engine init'i ilk `.recognize()` çağrısına ertelendi (DLL load ~2-4sn tasarruf, decision False ise hiç init olmaz)
+  - `_run_item_profile_dispatch` içinde lazy holder closure
+- `tests/test_ocr_fallback_strategy.py` (YENİ, 255 satır, 28 test)
+
+### 22.3 Smoke kanıtı
+
+**FRANNY (closing, scroll=0, cards=3):**
+- `outputs/_franny_fallback_test_manifest.json` ile tek-item run
+- Paddle: 0 scroll line, 3 kart → decision: `paddle_zero_scroll_low_cards`
+- OneOCR fallback tetiklendi → 5/5 IMDB ana isim okundu:
+  - PHOEBE MCAULEY, GEORGE BUZA, TAJJA ISEN, JULIE LEMIEUX, JUAN CHIORAN
+- IMDB EXACT: 0% → **100%**
+
+**X-MEN (scroll=238, cards=67):**
+- `outputs/_xmen_fallback_test_manifest.json` ile regression smoke
+- Paddle: 238 scroll line, 67 kart → decision: `False`
+- Fallback TETİKLENMEDİ (doğru)
+- Runtime delta: +1.47% (sadece decision çağrısının kendisi), 76 event aynı
+- IMDB EXACT: %100 korundu
+
+### 22.4 V2 İŞ KUYRUĞU (öncelik sırası)
+
+#### P0 — Kanıt artır (1-2 saat, ben koşturup raporlarım)
+- [ ] **V2.1 sonrası 24-film tam pilot** — Paddle + fallback ile yeniden, §21.3 tablosunu yenile. Beklenti: FRANNY 0→100, POROROCA muhtemelen iyileşir, diğerleri korunur.
+- [ ] **Yeni filmlerin pilot'a eklenmesi** — Çağatay yeni filmler getirecek, manifest'e ekle, ground truth eşleştir, regression seti büyüt.
+
+#### P1 — Mimari tamamlama (Sonnet brief'lerine hazır)
+- [ ] **Regression test runner** (Faz 3 ikinci yarı, en kritik eksik)
+  - `tests/test_ocr_regression.py` (YENİ)
+  - 10 ground truth dosyasını parse et, her film için pipeline koş + `must_contain_text` assert
+  - `confidence_min`, `min_line_count`, `expected_paired_roles` kontrolü
+  - `pytest tests/test_ocr_regression.py` → otomatik regression yakalama
+  - **Sebep:** bu olmadan her V2 değişikliği "kör atış" devam eder.
+- [ ] **Yabancı dil dispatcher** — CENNETIN_RENGI %0 sorununu çözer
+  - `core/pipelines/ocr/language_dispatch.py`
+  - Manifest'ten `expected_language` field okuyup uygun engine config'i seç (Paddle multilingual: ar/fa/ru)
+  - Veya OCR sonrası dil tespiti + re-run
+  - Test hedefi: CENNETIN_RENGI 0% → en az 30%
+
+#### P2 — Doğruluk artırma (V2 ana iş)
+- [ ] **Fuzzy match + IMDB cross-check post-process**
+  - `core/pipelines/ocr/text_normalizer.py` (YENİ)
+  - OCR "JULIANNE MOGRE" → IMDB lookup → "JULIANNE MOORE" (Levenshtein ≤ 2)
+  - Confidence threshold: sadece IMDB match var + Lev ≤ 2 ise düzelt
+  - 24-film tahmini: %65 → %80+
+- [ ] **Sahne metni filtreleme**
+  - Pipeline'da "ANYA / WOMAN AT HOTEL" gibi sahne kartı text'lerini filtrele
+  - Süre + bbox boyutu + konum + duration filter
+
+#### P3 — UI / Entegrasyon
+- [ ] **webui events.json okuyucu** — şu an webui `scroll_text_lines.json` (eski format) okuyor; `events.json` text_event schema'sına geçiş
+  - `webui/src/app/asr-api.ts` veya yeni `ocr-api.ts`
+  - React component'leri events array'i render etmeli (paired_role_name, low_confidence flag, type_reason)
+- [ ] **Tedial entegrasyon OCR export** — başka oturumun işi (Tedial uncommitted master'da), bizim oturumun değil.
+
+#### P4 — Production hazırlık
+- [ ] **Engine seçim profili (per-content-type dispatch)** — news → kj_scan, film → film_credits, archive → scene_text
+- [ ] **Eski credit_detector.py silinmesi** — 3-6 ay stabilite sonrası, V3 işi.
+
+### 22.5 Eksiklerimiz / olgunluk durumu
+
+| Eksen | Durum | Hedef sonrası |
+|---|---|---|
+| Mimari | %85 (V2.1 ile +5%) | Regression runner + dil dispatch + fuzzy → %95 |
+| Doğruluk (10 GT) | %65 (Paddle) → ~%70 (V2.1 sonrası tahmini) | Fuzzy/IMDB + dil → %80-85 makul üst sınır |
+| Production | %50 | webui geçişi + Tedial entegrasyon → %85 |
+
+### 22.6 Yeni filmler — eklenme protokolü (Çağatay getirdiğinde)
+
+1. Film dosyalarını `E:\filmtest\aaaa\` altına kopyala (mevcut konvansiyon)
+2. `outputs/ocr_24films_aaaa_film_credits_manifest_20260525.json` benzeri manifest'e ekle
+   - `id`, `path`, `kind=film_credits`, `opening_window_min`, `closing_window_min`, `dynamic_window=true`, `expected_language`, `fps=6`
+3. IMDB sayfasından **ground truth** çıkar:
+   - `tests/data/ocr_ground_truth/<film_id>.json` formatı (mevcut 10 GT örnek)
+   - `must_contain_text`: ana cast + director + writer (zorunlu)
+   - `expected_paired_roles`: opsiyonel rol|isim çiftleri
+4. Pilot koş: `venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment --manifest <yeni manifest> --engines paddle`
+5. Sonuçları §21.3 stilinde tabloya ekle, IMDB EXACT oranını hesapla
+6. Regression test runner P1'de gelince → otomatik assert
+
+---
+
 **Bu dosyayı her büyük adımdan sonra güncelle.** YAPILACAK → YAPILDI → COMMIT EDİLDİ formatı.
