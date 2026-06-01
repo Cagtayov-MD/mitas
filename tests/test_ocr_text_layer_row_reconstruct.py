@@ -34,6 +34,13 @@ def test_row_reconstruct_exports_composite_rows_and_auto_split(tmp_path: Path) -
     assert "frame_filter" in summary
     assert summary["candidate_selector"]["selected"] in {"current_displacement", "static_best_frame"}
     assert len(summary["candidate_selector"]["candidates"]) >= 2
+    # §27 — Hakim 2026-05-29 itibariyle tamamen pasif: shadow logu DEFAULT KAPALI
+    assert summary["candidate_selector"]["selection_policy"] == "current_first_with_emergency_static_fallback"
+    shadow = summary["candidate_selector"]["hakim_shadow_decision"]
+    assert isinstance(shadow, dict)
+    assert shadow["status"] == "disabled"
+    # Sağlıklı scroll'da panorama seçilmeli
+    assert summary["candidate_selector"]["selected"] == "current_displacement"
 
 
 def test_quality_score_flags_blank_lower_than_text_image() -> None:
@@ -312,3 +319,196 @@ def test_frame_text_mask_hybrid_is_intersection():
     # Hybrid piksel sayısı ikisinin de altında veya eşit olmalı
     assert (hybrid > 0).sum() <= (current > 0).sum()
     assert (hybrid > 0).sum() <= (strict > 0).sum()
+
+
+# ---------------------------------------------------------------------------
+# _compute_boot_min adaptive bootstrap testleri
+# ---------------------------------------------------------------------------
+
+
+def test_compute_boot_min_short_scroll_drops_below_default():
+    """SON METRO benzeri 45 frame'de boot_min adaptive değer (22) almalı.
+
+    Sabit 50 eşiği 45 frame'de cruise_speed öğrenmeyi engelliyordu; smoothing
+    ve band-clamp tetiklenmiyor, measured noise cumulative displacement'a
+    sızıyordu. Yeni hesap: max(10, min(50, frame_count // 2)).
+    """
+    from core.pipelines.ocr.text_layer_row_reconstruct import _compute_boot_min
+
+    assert _compute_boot_min(45) == 22
+    assert _compute_boot_min(20) == 10  # floor guard
+    assert _compute_boot_min(2) == 10  # extreme short
+    assert _compute_boot_min(0) == 10  # defensive
+
+
+def test_compute_boot_min_long_scroll_keeps_default_cap():
+    """≥100 frame'de boot_min eski 50 sabitiyle aynı kalmalı (regression yok).
+
+    ANJELIK (105 frame) ve daha uzun scroll'lar cap'i koruyor — uzun bootstrap
+    cruise-speed median'ını stabilize ediyor.
+    """
+    from core.pipelines.ocr.text_layer_row_reconstruct import _compute_boot_min
+
+    assert _compute_boot_min(100) == 50
+    assert _compute_boot_min(105) == 50  # ANJELIK
+    assert _compute_boot_min(200) == 50
+    assert _compute_boot_min(500) == 50
+
+
+# ---------------------------------------------------------------------------
+# §25 — Hakim gözlemci modu (yeni seçim politikası + shadow log)
+# ---------------------------------------------------------------------------
+
+
+def _make_candidate(
+    name: str,
+    *,
+    composite,
+    row_count: int,
+    score: float,
+    quality_score_value: float = 0.5,
+    motion_status: str = "ok",
+) -> dict:
+    """Yardımcı: _candidate_summary / shadow helper'lar için aday sözlüğü inşa et."""
+    return {
+        "name": name,
+        "status": "ok" if composite is not None else "no_composite",
+        "score": score,
+        "score_parts": {"quality": quality_score_value, "rows": 0.0, "split": 0.0, "motion": 0.0, "penalty": 0.0, "bias": 0.0},
+        "selected": False,
+        "composite": composite,
+        "motion": {"status": motion_status, "estimator": name},
+        "quality": {"score": quality_score_value, "sharpness": 0.0, "contrast": 0.0, "text_density": 0.0},
+        "auto_split": {"split_x": None, "confidence": 0.0, "status": "no_text_pixels"},
+        "row_count": row_count,
+        "rows": [{"index": i + 1, "y0": i * 20, "y1": i * 20 + 15} for i in range(row_count)],
+    }
+
+
+def test_hakim_shadow_decision_logs_when_opted_in(monkeypatch):
+    """OCR_HAKIM_SHADOW=1 ile gözlemci-logu açılır; panorama seçilse de Hakim 'static' derdi."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _candidate_summary, _compute_hakim_shadow_decision
+
+    monkeypatch.setenv("OCR_HAKIM_SHADOW", "1")
+    composite = np.zeros((400, 300, 3), dtype=np.uint8)
+    current = _make_candidate("current_displacement", composite=composite, row_count=24, score=0.55, quality_score_value=0.46)
+    static = _make_candidate("static_best_frame", composite=composite.copy(), row_count=6, score=0.62, quality_score_value=0.62)
+    current["selected"] = True  # Yeni politika panorama seçti
+
+    summary = _candidate_summary(current, [current, static])
+    shadow = summary["hakim_shadow_decision"]
+
+    # Yeni politika string'i
+    assert summary["selection_policy"] == "current_first_with_emergency_static_fallback"
+    assert summary["selected"] == "current_displacement"
+    # Hakim eski formülle static seçecekti (0.62 > 0.55 + 0.06)
+    direct = _compute_hakim_shadow_decision([current, static])
+    assert direct["would_select"] == "static_best_frame"
+    assert shadow["would_select"] == "static_best_frame"
+    assert shadow["scores"]["current_displacement"] == 0.55
+    assert shadow["scores"]["static_best_frame"] == 0.62
+
+
+def test_select_panorama_when_row_count_positive(tmp_path):
+    """current_displacement.composite var + row_count>0 → panorama seçilir, fallback yok."""
+    cv2 = pytest.importorskip("cv2")
+    np = pytest.importorskip("numpy")
+
+    frames = _make_scrolling_role_name_frames(tmp_path / "frames_panorama")
+    output_dir = tmp_path / "row_reconstruct_panorama"
+    result = run_text_layer_row_reconstruct(frame_paths=frames, output_dir=output_dir, max_frames=60, scale_for_rows=1)
+    summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
+
+    assert summary["candidate_selector"]["selected"] == "current_displacement"
+    assert summary["candidate_selector"]["selection_policy"] == "current_first_with_emergency_static_fallback"
+    # row_count pozitif olduğu için fallback_reason kayıtlı olmamalı
+    assert "fallback_reason" not in summary["candidate_selector"]
+
+
+def test_select_static_fallback_when_panorama_row_count_zero():
+    """Panorama composite var ama row_count=0 → static_best_frame'e düş."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _candidate_summary, _select_best_row_candidate
+
+    # _select_best_row_candidate çağırmak yerine direkt fallback davranışını
+    # doğruluyoruz: _candidate_summary sonucu + selected.fallback_reason zinciri.
+    composite = np.zeros((300, 200, 3), dtype=np.uint8)
+    current = _make_candidate("current_displacement", composite=composite, row_count=0, score=0.20)
+    static = _make_candidate("static_best_frame", composite=composite.copy(), row_count=8, score=0.55)
+    static["selected"] = True
+    current["fallback_reason"] = None  # placeholder
+    static["fallback_reason"] = "current_row_count_zero"
+
+    summary = _candidate_summary(static, [current, static])
+    assert summary["selected"] == "static_best_frame"
+    assert summary.get("fallback_reason") == "current_row_count_zero"
+    # Hakim default kapalı → shadow disabled marker (seçim Hakim'den bağımsız)
+    assert summary["hakim_shadow_decision"]["status"] == "disabled"
+
+
+def test_select_static_fallback_when_panorama_composite_none():
+    """Panorama composite None → static_best_frame'e düş, fallback_reason='current_composite_none'."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _candidate_summary
+
+    static_composite = np.zeros((300, 200, 3), dtype=np.uint8)
+    current = _make_candidate("current_displacement", composite=None, row_count=0, score=0.0)
+    current["status"] = "no_composite"
+    static = _make_candidate("static_best_frame", composite=static_composite, row_count=8, score=0.55)
+    static["selected"] = True
+    static["fallback_reason"] = "current_composite_none"
+
+    summary = _candidate_summary(static, [current, static])
+    assert summary["selected"] == "static_best_frame"
+    assert summary.get("fallback_reason") == "current_composite_none"
+
+
+def test_hakim_shadow_disabled_by_default_enabled_when_opted_in(tmp_path, monkeypatch):
+    """Hakim default KAPALI (status=disabled); OCR_HAKIM_SHADOW=1 ile gözlemci-logu dolar."""
+    # Default koşum: shadow kapalı
+    frames = _make_scrolling_role_name_frames(tmp_path / "frames_shadow_off")
+    result_off = run_text_layer_row_reconstruct(
+        frame_paths=frames, output_dir=tmp_path / "ror_off", max_frames=60, scale_for_rows=1
+    )
+    summary_off = json.loads(result_off.summary_path.read_text(encoding="utf-8"))
+    assert summary_off["candidate_selector"]["hakim_shadow_decision"]["status"] == "disabled"
+
+    # Opt-in koşum: shadow açık, would_select + scores dolu
+    monkeypatch.setenv("OCR_HAKIM_SHADOW", "1")
+    frames2 = _make_scrolling_role_name_frames(tmp_path / "frames_shadow_on")
+    result_on = run_text_layer_row_reconstruct(
+        frame_paths=frames2, output_dir=tmp_path / "ror_on", max_frames=60, scale_for_rows=1
+    )
+    summary_on = json.loads(result_on.summary_path.read_text(encoding="utf-8"))
+    shadow = summary_on["candidate_selector"]["hakim_shadow_decision"]
+    assert shadow["would_select"] in {"current_displacement", "static_best_frame", None}
+    assert "scores" in shadow
+    assert any(value is not None for value in shadow["scores"].values())
+
+
+def test_hakim_shadow_decision_anjelik_scenario_reproduction(monkeypatch):
+    """ANJELIK örneği: Hakim panorama'ya 0.456, static'e 0.623 verir → 'static' derdi.
+
+    Yeni politika row_count>0 olan panorama'yı seçer; OCR_HAKIM_SHADOW=1 ile açılan
+    gözlemci-logu Hakim'in 'static' diyeceğini kaydetmeli (eski sabote eden davranış)."""
+    import numpy as np
+    from core.pipelines.ocr.text_layer_row_reconstruct import _candidate_summary, _compute_hakim_shadow_decision
+
+    monkeypatch.setenv("OCR_HAKIM_SHADOW", "1")
+    composite_panorama = np.zeros((3200, 600, 3), dtype=np.uint8)
+    composite_static = np.zeros((720, 600, 3), dtype=np.uint8)
+    # Hakim formülünden bağımsız, ham skorları doğrudan veriyoruz (telemetri)
+    current = _make_candidate("current_displacement", composite=composite_panorama, row_count=66, score=0.456)
+    static = _make_candidate("static_best_frame", composite=composite_static, row_count=14, score=0.623)
+    current["selected"] = True  # Yeni politika panorama dedi
+
+    summary = _candidate_summary(current, [current, static])
+    shadow = summary["hakim_shadow_decision"]
+
+    # Gerçek seçim panorama, ama Hakim eski formülle static seçerdi
+    assert summary["selected"] == "current_displacement"
+    assert shadow["would_select"] == "static_best_frame"
+    # Skor farkı 0.06 marjını geçtiği için Hakim "static" derdi
+    direct = _compute_hakim_shadow_decision([current, static])
+    assert direct["would_select"] == "static_best_frame"

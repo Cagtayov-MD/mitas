@@ -321,6 +321,15 @@ def detect_rows(image: Any, *, min_dist: int = 15) -> list[dict[str, Any]]:
 
 
 def _select_best_row_candidate(frames: list[Any], cv2: Any, np: Any) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Aday üret + puanla (Hakim hala çalışır) ama gerçek seçim sade kural.
+
+    Yeni politika (2026-05-26, §25):
+      - Default: current_displacement (panorama, box_tracker'a güven).
+      - İmdat fallback: current_displacement.composite is None VEYA row_count == 0
+        → static_best_frame'e düş.
+    Hakim'in eski formülünün ne seçeceği `_candidate_summary` içinde
+    `hakim_shadow_decision` olarak loglanır — seçimi etkilemez.
+    """
     builders = [
         ("current_displacement", _center_strip_composite),
         ("static_best_frame", _best_frame_composite),
@@ -371,20 +380,81 @@ def _select_best_row_candidate(frames: list[Any], cv2: Any, np: Any) -> tuple[di
         )
     if not candidates:
         raise RuntimeError("No row reconstruction candidates were produced")
-    current = next((candidate for candidate in candidates if candidate.get("name") == "current_displacement"), candidates[0])
-    viable = [candidate for candidate in candidates if candidate.get("composite") is not None]
-    if not viable:
-        return current, candidates
-    best = max(viable, key=lambda candidate: float(candidate.get("score") or 0.0))
-    current_score = float(current.get("score") or 0.0)
-    best_score = float(best.get("score") or 0.0)
-    if best.get("name") != "current_displacement" and best_score < current_score + 0.06:
-        selected = current if current.get("composite") is not None else best
+    current = next((candidate for candidate in candidates if candidate.get("name") == "current_displacement"), None)
+    static_best = next((candidate for candidate in candidates if candidate.get("name") == "static_best_frame"), None)
+
+    # Yeni sade seçim: panorama varsa ve row_count>0 ise onu seç; aksi halde static'e düş.
+    selected: dict[str, Any] | None = None
+    fallback_reason: str | None = None
+    if current is not None and current.get("composite") is not None and int(current.get("row_count") or 0) > 0:
+        selected = current
+    elif static_best is not None and static_best.get("composite") is not None:
+        selected = static_best
+        if current is None:
+            fallback_reason = "no_current_candidate"
+        elif current.get("composite") is None:
+            fallback_reason = "current_composite_none"
+        else:
+            fallback_reason = "current_row_count_zero"
+    elif current is not None and current.get("composite") is not None:
+        # Static da yok ama current var (row_count=0 olsa bile son çare).
+        selected = current
+        fallback_reason = "static_unavailable_kept_current_even_with_zero_rows"
     else:
-        selected = best
+        # İki taraf da boş — eski mantığa benzer şekilde mevcut adayların ilkini ver.
+        selected = candidates[0]
+        fallback_reason = "no_viable_candidates"
+
     for candidate in candidates:
         candidate["selected"] = candidate is selected
+    if fallback_reason is not None:
+        selected.setdefault("fallback_reason", fallback_reason)
     return selected, candidates
+
+
+def _hakim_shadow_enabled() -> bool:
+    """Hakim gözlemci-logu açık mı? 2026-05-29 itibariyle DEFAULT KAPALI (tamamen pasif).
+
+    20-film pilotu (outputs/_hakim_shadow_20films_20260529_1507) Hakim'in eski
+    puanlama formülünü doğrulamak için kullanıldı: 30 segmentin 28'inde uyum,
+    2 segmentte (zengin_olsaydin opening, son_metro closing) Hakim sabote ederdi.
+    Karar: Hakim tamamen pasif. Formül kodu silinmedi; gözlemci-logu yalnızca
+    OCR_HAKIM_SHADOW=1 ile tekrar açılır (regression/araştırma amaçlı).
+    """
+    import os
+
+    return os.environ.get("OCR_HAKIM_SHADOW", "0").strip().lower() in {"1", "true", "on", "yes"}
+
+
+def _compute_hakim_shadow_decision(candidates: list[dict[str, Any]]) -> dict[str, Any]:
+    """Hakim'in eski formülle ne seçeceğini hesaplar — sadece log için.
+
+    Eski politika: "highest_score_with_current_bias_and_006_margin".
+    """
+    viable = [candidate for candidate in candidates if candidate.get("composite") is not None]
+    current = next((candidate for candidate in candidates if candidate.get("name") == "current_displacement"), None)
+    if not viable:
+        return {
+            "would_select": current.get("name") if current is not None else (candidates[0].get("name") if candidates else None),
+            "would_score": 0.0,
+            "reason": "no_viable_candidates",
+            "scores": {candidate.get("name"): float(candidate.get("score") or 0.0) for candidate in candidates},
+        }
+    best = max(viable, key=lambda candidate: float(candidate.get("score") or 0.0))
+    current_score = float(current.get("score") or 0.0) if current is not None else 0.0
+    best_score = float(best.get("score") or 0.0)
+    if best.get("name") != "current_displacement" and best_score < current_score + 0.06:
+        would = current if (current is not None and current.get("composite") is not None) else best
+        reason = "best_within_006_margin_of_current_bias"
+    else:
+        would = best
+        reason = "highest_score" if best.get("name") == "current_displacement" else "best_score_beats_current_by_006"
+    return {
+        "would_select": would.get("name"),
+        "would_score": round(float(would.get("score") or 0.0), 4),
+        "reason": reason,
+        "scores": {candidate.get("name"): round(float(candidate.get("score") or 0.0), 4) for candidate in candidates},
+    }
 
 
 def _score_row_candidate(
@@ -435,9 +505,14 @@ def _score_row_candidate(
 
 
 def _candidate_summary(selected: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
+    summary: dict[str, Any] = {
         "selected": selected.get("name"),
-        "selection_policy": "highest_score_with_current_bias_and_006_margin",
+        "selection_policy": "current_first_with_emergency_static_fallback",
+        "hakim_shadow_decision": (
+            _compute_hakim_shadow_decision(candidates)
+            if _hakim_shadow_enabled()
+            else {"status": "disabled", "note": "Hakim 2026-05-29 itibariyle tamamen pasif; OCR_HAKIM_SHADOW=1 ile acilir"}
+        ),
         "candidates": [
             {
                 "name": candidate.get("name"),
@@ -455,6 +530,10 @@ def _candidate_summary(selected: dict[str, Any], candidates: list[dict[str, Any]
             for candidate in candidates
         ],
     }
+    fallback_reason = selected.get("fallback_reason")
+    if fallback_reason is not None:
+        summary["fallback_reason"] = fallback_reason
+    return summary
 
 
 def _write_candidate_previews(directory: Path, candidates: list[dict[str, Any]], cv2: Any) -> None:
@@ -638,6 +717,17 @@ def _center_strip_composite_from_motion(
     }
 
 
+def _compute_boot_min(frame_count: int) -> int:
+    """Adaptive boot window for cruise-speed bootstrap.
+
+    Default cap stays 50 (long-scroll films, ≥100 frame); short-scroll items
+    (e.g. SON METRO ~45 frame) need a smaller boot window so cruise-speed is
+    learned and smoothing/band-clamp can run instead of measured noise leaking
+    into the cumulative displacement.
+    """
+    return max(10, min(50, frame_count // 2))
+
+
 def _estimate_displacements(frames: list[Any], cv2: Any, np: Any) -> tuple[list[float], list[bool]]:
     return _estimate_displacements_cruise(frames, cv2, np)
 
@@ -654,7 +744,7 @@ def _estimate_displacements_cruise(frames: list[Any], cv2: Any, np: Any) -> tupl
     boot_values: list[float] = []
     cruise_speed: float | None = None
     deviant_streak: list[float] = []
-    boot_min = 50
+    boot_min = _compute_boot_min(len(frames))
     reset_min = 5
     reset_dev = 0.35
     ema_alpha = 0.95
