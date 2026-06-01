@@ -9,6 +9,7 @@ testklipler/
 # Local assistant/session state
 .claude/
 .pytest_cache/
+config/.mitas_access_secret
 /*bookmarks_*.html
 
 # Python build/runtime noise
@@ -46,6 +47,53 @@ outputs/webui_translate_cache/
 # Tedial sensitive session state
 .tedial_sessions/
 tedial_session*.json
+
+# === Generated experiment outputs & scratch (Karar 38 / PARK-OCR-001) ===
+# Already-tracked curated reports stay tracked; these only suppress new scratch.
+outputs/_*
+outputs/outputs/
+outputs/node_modules/
+outputs/package.json
+outputs/package-lock.json
+outputs/pytest_tmp_*/
+outputs/ocr_*/
+outputs/box_tracker_*/
+outputs/filmtest_*/
+outputs/canvas_*/
+outputs/credit_*/
+outputs/all_canvas_*/
+outputs/auto_roi_*/
+outputs/row_*/
+outputs/ui_*.png
+outputs/jenerik_*
+outputs/asr_backfill/
+outputs/asr_current_pipeline_*/
+outputs/asr_*_audit_*/
+outputs/asr_model_audit_*/
+outputs/azeri_comparison/
+outputs/external_scroll_probe/
+outputs/fingerprint_*/
+outputs/flow_queue/
+outputs/k2_compare/
+outputs/language_eval_*/
+outputs/muzik_*/
+outputs/qwen3_*/
+outputs/testklipler_probe*/
+outputs/translate_dialect_smoke*/
+outputs/*manifest*.json
+
+# Scratch / debug scripts (underscore-prefixed)
+scripts/_*
+
+# Local data, assets & exploration dumps (not tracked source)
+/Database/
+/Logolar/
+/Mitas Output/
+/backups/
+/_jenerik_analysis/
+/_probe*.txt
+OCR-worktree/
+mutfak/OCR_*_GORSELLER_*/
 
 # OS/editor noise
 Thumbs.db
