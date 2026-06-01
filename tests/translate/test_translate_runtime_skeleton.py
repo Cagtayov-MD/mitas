@@ -3,7 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from core.pipelines.translate.cache import TranslationCache, build_cache_key
-from core.pipelines.translate.router import NLLB_3B, OPUS_EN_TR, load_router
+from core.pipelines.translate.dialect import detect_arabic_variant, normalize_arabic_dialect_text
+from core.pipelines.translate.router import NLLB_3B, OPUS_EN_TR, load_router, normalize_lang
+from core.pipelines.translate.runtime import _nllb_lang
 from core.pipelines.translate.service import translate_batch, translate_segment
 
 
@@ -34,6 +36,26 @@ def test_default_router_routes_english_to_opus_and_fallback_to_nllb() -> None:
     assert router.resolve(source_lang="fr") == NLLB_3B
 
 
+def test_arabic_language_aliases_normalize_for_nllb() -> None:
+    assert normalize_lang("Arabic") == "ar"
+    assert normalize_lang("arb_Arab") == "ar"
+    assert _nllb_lang("ar") == "arb_Arab"
+    assert _nllb_lang("arabic") == "arb_Arab"
+
+
+def test_levantine_arabic_is_detected_and_normalized_for_mt() -> None:
+    source = "هلأ أنا ليش بد نروح لعندي على البيت يعني"
+
+    assert detect_arabic_variant(source) == "ar-levantine"
+    normalized = normalize_arabic_dialect_text(source, "ar-levantine")
+
+    assert "الآن" in normalized
+    assert "لماذا" in normalized
+    assert "أنا لماذا يجب أن ن" not in normalized
+    assert "يجب أن نذهب" in normalized
+    assert "إلى بيتي" in normalized
+
+
 def test_translate_segment_uses_cache(monkeypatch, tmp_path: Path) -> None:
     calls: list[str] = []
 
@@ -62,6 +84,28 @@ def test_translate_segment_uses_cache(monkeypatch, tmp_path: Path) -> None:
     assert second.cache_hit is True
     assert second.latency_ms == 0
     assert calls == ["hello"]
+
+
+def test_translate_segment_prepares_levantine_source_before_runtime(monkeypatch, tmp_path: Path) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_translate_text(**kwargs: object) -> str:
+        captured.update(kwargs)
+        return "Yani şimdi neden benim eve gitmemiz gerekiyor?"
+
+    monkeypatch.setattr("core.pipelines.translate.service.translate_text", fake_translate_text)
+
+    result = translate_segment(
+        segment_id="seg_1",
+        source_text="هلأ أنا ليش بد نروح لعندي على البيت يعني",
+        source_lang="ar",
+        cache_dir=tmp_path,
+    )
+
+    assert result.source_variant == "ar-levantine"
+    assert result.text == "Yani şimdi neden benim eve gitmemiz gerekiyor?"
+    assert captured["source_lang"] == "ar"
+    assert "يجب أن نذهب" in str(captured["source_text"])
 
 
 def test_translate_batch_preserves_order(monkeypatch, tmp_path: Path) -> None:

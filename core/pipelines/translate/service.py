@@ -9,6 +9,7 @@ from time import perf_counter
 from typing import Any
 
 from core.pipelines.translate.cache import TranslationCache, build_cache_key
+from core.pipelines.translate.dialect import prepare_source_for_translation
 from core.pipelines.translate.post_edit import polish_turkish_broadcast
 from core.pipelines.translate.router import load_router, normalize_lang
 from core.pipelines.translate.runtime import translate_text
@@ -23,6 +24,7 @@ class TranslationResult:
     model: str
     source_lang: str
     target_lang: str
+    source_variant: str | None
     cache_hit: bool
     latency_ms: int
     created_at: str
@@ -34,6 +36,7 @@ def translate_segment(
     source_text: str,
     source_lang: str,
     target_lang: str = "tr",
+    source_variant: str | None = None,
     model_override: str | None = None,
     cache_dir: Path,
 ) -> TranslationResult:
@@ -50,11 +53,16 @@ def translate_segment(
         target_lang=normalized_target,
         model_override=model_override,
     )
+    prepared_source = prepare_source_for_translation(
+        source_text,
+        source_lang=normalized_source,
+        source_variant=source_variant,
+    )
     key = build_cache_key(
         source_text=source_text,
         source_lang=normalized_source,
         target_lang=normalized_target,
-        model=_cache_model_key(model_id, normalized_target),
+        model=_cache_model_key(model_id, normalized_target, prepared_source.source_variant),
     )
     cache = TranslationCache(cache_dir)
     cached = cache.get(key)
@@ -64,7 +72,7 @@ def translate_segment(
     started = perf_counter()
     translated = translate_text(
         model_id=model_id,
-        source_text=source_text,
+        source_text=prepared_source.text,
         source_lang=normalized_source,
         target_lang=normalized_target,
     )
@@ -80,6 +88,7 @@ def translate_segment(
         model=model_id,
         source_lang=normalized_source,
         target_lang=normalized_target,
+        source_variant=prepared_source.source_variant,
         cache_hit=False,
         latency_ms=latency_ms,
         created_at=datetime.now(timezone.utc).isoformat(),
@@ -103,6 +112,7 @@ def translate_batch(
                 source_text=str(item["source_text"]),
                 source_lang=str(item["source_lang"]),
                 target_lang=target_lang,
+                source_variant=str(item["source_variant"]) if item.get("source_variant") else None,
                 model_override=model_override,
                 cache_dir=cache_dir,
             )
@@ -116,13 +126,17 @@ def _result_from_dict(payload: dict[str, Any], *, cache_hit: bool, latency_ms: i
         model=str(payload["model"]),
         source_lang=str(payload["source_lang"]),
         target_lang=str(payload["target_lang"]),
+        source_variant=str(payload["source_variant"]) if payload.get("source_variant") else None,
         cache_hit=cache_hit,
         latency_ms=int(payload["latency_ms"] if latency_ms is None else latency_ms),
         created_at=str(payload["created_at"]),
     )
 
 
-def _cache_model_key(model_id: str, target_lang: str) -> str:
+def _cache_model_key(model_id: str, target_lang: str, source_variant: str | None = None) -> str:
     if target_lang == "tr":
-        return f"{model_id}:{POST_EDIT_PROFILE}"
+        key = f"{model_id}:{POST_EDIT_PROFILE}"
+        if source_variant:
+            key = f"{key}:dialect={source_variant}"
+        return key
     return model_id

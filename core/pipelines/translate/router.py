@@ -39,6 +39,12 @@ LANG_ALIASES = {
     "tur-latn": "tr",
     "turkish": "tr",
     "tr": "tr",
+    "ara": "ar",
+    "arabic": "ar",
+    "arb": "ar",
+    "arb_arab": "ar",
+    "arb-arab": "ar",
+    "ar": "ar",
 }
 
 DEFAULT_ROUTER_CONFIG = {
