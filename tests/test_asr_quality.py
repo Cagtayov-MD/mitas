@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from core.pipelines.asr.quality import (
     QualityConfig,
+    detect_foreign_script_artifact,
     detect_repetition_collapse,
+    detect_short_foreign_phrase_artifact,
     detect_word_density_anomaly,
     evaluate_result_safety,
     evaluate_segment,
@@ -70,6 +72,38 @@ class TestWordDensity:
 
 
 class TestSegmentEvaluation:
+    def test_drops_foreign_script_artifact_in_turkish_output(self) -> None:
+        decision = evaluate_segment(
+            text="하루 날 써잇",
+            no_speech_prob=0.0,
+            avg_logprob=-0.2,
+            language="tr",
+        )
+
+        assert not decision.keep
+        assert decision.drop_reason == "foreign_script_artifact:hangul"
+
+    def test_drops_short_foreign_phrase_artifact_in_turkish_output(self) -> None:
+        decision = evaluate_segment(
+            text="Tchau, lugar.",
+            no_speech_prob=0.0,
+            avg_logprob=-0.2,
+            language="tr",
+        )
+
+        assert not decision.keep
+        assert decision.drop_reason == "short_foreign_phrase_artifact:tchau lugar"
+
+    def test_keeps_short_foreign_phrase_when_language_is_english(self) -> None:
+        decision = evaluate_segment(
+            text="I got time.",
+            no_speech_prob=0.0,
+            avg_logprob=-0.2,
+            language="en",
+        )
+
+        assert decision.keep
+
     def test_drops_stock_artifact(self) -> None:
         decision = evaluate_segment(
             text="İzlediğiniz için teşekkür ederim",
@@ -170,6 +204,17 @@ class TestSegmentEvaluation:
 
         assert decision.keep
         assert "stock_artifact" in decision.flags
+
+
+class TestForeignArtifactHelpers:
+    def test_detects_disallowed_script(self) -> None:
+        assert detect_foreign_script_artifact("サーディ")[0]
+
+    def test_latin_turkish_text_is_not_foreign_script(self) -> None:
+        assert not detect_foreign_script_artifact("Tolga sağ kanatta")[0]
+
+    def test_detects_short_foreign_phrase(self) -> None:
+        assert detect_short_foreign_phrase_artifact("I got time.")[0]
 
 
 class TestResultSafety:

@@ -83,6 +83,7 @@ def merge_channel_results(
         quality_drops=[*left.quality_drops, *right.quality_drops],
         speaker_segments=[*left.speaker_segments, *right.speaker_segments],
         normalized_entities=[*left.normalized_entities, *right.normalized_entities],
+        fallback_report=_merge_fallback_reports(left, right),
         selection_reason=left.selection_reason or right.selection_reason,
         timing=_merge_timing(left.timing, right.timing),
         channel_mode="split",
@@ -105,6 +106,21 @@ def tag_result_channel(result: ProductionTranscribeResult, channel: str) -> Prod
         clean_segments=[replace(segment, channel=channel) for segment in result.clean_segments],
         channel_mode="split",
     )
+
+
+def _merge_fallback_reports(left: ProductionTranscribeResult, right: ProductionTranscribeResult) -> dict[str, object]:
+    reports: dict[str, dict[str, object]] = {}
+    if left.fallback_report:
+        reports["L"] = dict(left.fallback_report)
+    if right.fallback_report:
+        reports["R"] = dict(right.fallback_report)
+    if not reports:
+        return {}
+    return {
+        "status": "triggered",
+        "mode": "split_channel",
+        "tracks": reports,
+    }
 
 
 def _find_duplicate_index(

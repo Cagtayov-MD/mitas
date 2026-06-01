@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 import json
 import logging
@@ -466,6 +466,19 @@ def run_asr_pipeline(
                 stereo_analysis.is_redundant_stereo,
                 stereo_analysis.redundancy_confidence,
             )
+            if (
+                channel_decision.auto_decided
+                and stereo_analysis.is_redundant_stereo
+                and "mono" in normalized_outputs
+            ):
+                asr_logger.info(
+                    "Auto channel decision revised from split to mono after redundancy analysis "
+                    "(pearson_median=%.4f midside_db=%.1f confidence=%s).",
+                    stereo_analysis.pearson_median or 0.0,
+                    stereo_analysis.midside_db_median or 0.0,
+                    stereo_analysis.redundancy_confidence,
+                )
+                channel_decision = replace(channel_decision, effective_mode="mono")
 
         language_intelligence = run_language_intelligence(
             normalized_audio,
@@ -712,17 +725,12 @@ def _build_summary(
             "mode": channel_decision.effective_mode,
             "auto_decided": channel_decision.auto_decided,
             "lr_correlation": channel_decision.lr_correlation,
-            "tracks": sorted(key for key in normalized_outputs if key != "mono"),
+            "tracks": sorted(key for key in normalized_outputs if key != "mono")
+            if channel_decision.effective_mode == "split"
+            else [],
             "duplicate_drops": len(asr_result.duplicate_drops),
             "stereo_analysis": stereo_analysis.to_dict() if stereo_analysis is not None else None,
-            "channel_decision_override": (
-                "forced_split_despite_redundant_stereo"
-                if stereo_analysis is not None
-                and stereo_analysis.is_redundant_stereo
-                and not channel_decision.auto_decided
-                and channel_decision.requested_mode == "split"
-                else None
-            ),
+            "channel_decision_override": _channel_decision_override(channel_decision, stereo_analysis),
         },
         "safety": {
             "safe": safety.safe if safety else None,
@@ -799,6 +807,27 @@ def _build_quality_report(
         "entity_normalization": _build_entity_normalization_block(asr_result),
         "error_flags": error_flags,
     }
+
+
+def _channel_decision_override(
+    channel_decision: ChannelDecision,
+    stereo_analysis: StereoRedundancyAnalysis | None,
+) -> str | None:
+    if stereo_analysis is None or not stereo_analysis.is_redundant_stereo:
+        return None
+    if (
+        channel_decision.auto_decided
+        and channel_decision.requested_mode == "auto"
+        and channel_decision.effective_mode == "mono"
+    ):
+        return "auto_mono_after_redundant_stereo_analysis"
+    if (
+        not channel_decision.auto_decided
+        and channel_decision.requested_mode == "split"
+        and channel_decision.effective_mode == "split"
+    ):
+        return "forced_split_despite_redundant_stereo"
+    return None
 
 
 def _build_alignment_summary_block(outcome: AlignmentOutcome) -> dict[str, Any]:

@@ -7,6 +7,7 @@
 faster-whisper
 # WhisperX placeholder: alignment kullanımı benchmark ve uyumluluk sonrası netleşecek.
 silero-vad
+speechbrain
 # torch placeholder: CUDA/CPU wheel seçimi ortam kararına bağlıdır.
 # torchaudio placeholder: torch sürümüyle kilitli seçilmelidir.
 soundfile

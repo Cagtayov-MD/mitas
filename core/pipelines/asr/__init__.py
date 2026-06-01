@@ -1,5 +1,6 @@
 """ASR v1.0 production pipeline."""
 
+from core.pipelines.asr.align import AlignmentMode, AlignmentOutcome, AudioAlignmentError, align_word_timestamps
 from core.pipelines.asr.chunking import MergedChunk, build_merged_chunks
 from core.pipelines.asr.channel_analysis import ChannelDecision, decide_channel_mode, measure_lr_correlation
 from core.pipelines.asr.channel_merge import merge_channel_results, tag_result_channel
@@ -13,8 +14,24 @@ from core.pipelines.asr.diarize import (
     load_pyannote_pipeline,
     segments_from_pyannote_output,
 )
+from core.pipelines.asr.language_intelligence import (
+    DEFAULT_PILOT_LANGUAGES,
+    LanguageCandidate,
+    LanguageIntelligenceConfig,
+    LanguageIntelligenceResult,
+    LanguagePrediction,
+    LanguageTimelineWindow,
+    config_from_env,
+    run_language_intelligence,
+    select_lid_windows,
+)
 from core.pipelines.asr.models import FAST_MODEL, QUALITY_MODEL, ModelConfig, ProfileName, clear_model_cache
 from core.pipelines.asr.normalize import AudioNormalizeError, AudioStreamInfo, NormalizeResult, normalize_audio, probe_audio_stream
+from core.pipelines.asr.phase2.entity_normalization import (
+    DEFAULT_ENTITY_RULES,
+    EntityNormalizationRule,
+    normalize_entities,
+)
 from core.pipelines.asr.merge import (
     SpeakerMergeConfig,
     SpeakerMergeResult,
@@ -55,6 +72,10 @@ from core.pipelines.asr.vad import AudioVadError, VadResult, VadSpeechSegment, r
 __all__ = [
     "transcribe",
     "run_asr_pipeline",
+    "align_word_timestamps",
+    "AlignmentMode",
+    "AlignmentOutcome",
+    "AudioAlignmentError",
     "ContentProfile",
     "ContentProfileName",
     "CONTENT_PROFILES",
@@ -76,6 +97,9 @@ __all__ = [
     "QUALITY_MODEL",
     "FAST_MODEL",
     "clear_model_cache",
+    "DEFAULT_ENTITY_RULES",
+    "EntityNormalizationRule",
+    "normalize_entities",
     "MergedChunk",
     "build_merged_chunks",
     "decide_channel_mode",
@@ -100,6 +124,15 @@ __all__ = [
     "DiarizationResult",
     "DiarizationSegment",
     "PyannotePipelineConfig",
+    "LanguageCandidate",
+    "LanguageIntelligenceConfig",
+    "LanguageIntelligenceResult",
+    "LanguagePrediction",
+    "LanguageTimelineWindow",
+    "DEFAULT_PILOT_LANGUAGES",
+    "config_from_env",
+    "run_language_intelligence",
+    "select_lid_windows",
     "configure_ffmpeg_shared_dll_directory",
     "load_pyannote_pipeline",
     "segments_from_pyannote_output",

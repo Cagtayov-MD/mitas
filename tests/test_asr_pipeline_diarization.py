@@ -107,6 +107,7 @@ class TestDiarizationDispatch:
             source,
             content_profile="bulten_haber",
             output_dir=tmp_path / "asr_bulten",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -115,6 +116,10 @@ class TestDiarizationDispatch:
         assert diarization["speaker_count"] == 2
         assert diarization["speakers"] == ["SPEAKER_00", "SPEAKER_01"]
         assert diarization["low_confidence_segments"] == 0
+        speaker_word = summary["quality_report"]["speaker_word_timeline"]
+        assert speaker_word["status"] == "ok"
+        assert speaker_word["speaker_word_segments"] == 2
+        assert speaker_word["speaker_timed_words"] > 0
 
         archive = json.loads(result.archive_path.read_text(encoding="utf-8"))
         speakers = [segment["speaker"] for segment in archive["segments"]]
@@ -143,6 +148,7 @@ class TestDiarizationDispatch:
             source,
             content_profile=content_profile,
             output_dir=tmp_path / f"asr_{content_profile}",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -171,6 +177,7 @@ class TestDiarizationDispatch:
             content_profile="film",
             diarize_override=True,
             output_dir=tmp_path / "asr_film_override",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -197,6 +204,7 @@ class TestDiarizationDispatch:
             source,
             profile="fast_with_fallback",
             output_dir=tmp_path / "asr_legacy",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -225,6 +233,7 @@ class TestDiarizationFailure:
             content_profile="bulten_haber",
             diarize_required=False,
             output_dir=tmp_path / "asr_bulten_fail",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
         module_run = json.loads(result.module_run_path.read_text(encoding="utf-8"))
@@ -262,6 +271,7 @@ class TestDiarizationFailure:
                 content_profile="bulten_haber",
                 diarize_required=True,
                 output_dir=tmp_path / "asr_bulten_strict",
+                word_alignment_mode="interpolated",
             )
 
 
@@ -293,6 +303,7 @@ class TestDiarizationDegraded:
             source,
             content_profile="bulten_haber",
             output_dir=tmp_path / "asr_bulten_degraded",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -304,8 +315,8 @@ class TestDiarizationDegraded:
         assert all(segment["speaker"] is None for segment in archive["segments"])
 
 
-class TestSplitChannelDiarizationDeferred:
-    def test_split_channel_with_diarize_profile_marks_skipped(
+class TestSplitChannelDiarization:
+    def test_split_channel_with_diarize_profile_uses_mono_mix_for_speakers(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
@@ -328,8 +339,18 @@ class TestSplitChannelDiarizationDeferred:
                 payload.extend(right.to_bytes(2, "little", signed=True))
             wav_file.writeframes(bytes(payload))
 
-        def diarize_should_not_run(audio_path: Any) -> DiarizationResult:
-            raise AssertionError("split-channel must skip diarization (Paket 2 limit)")
+        diarize_calls: list[Path] = []
+
+        def diarize_record(audio_path: Any) -> DiarizationResult:
+            diarize_calls.append(Path(audio_path))
+            return DiarizationResult(
+                audio_path=Path(audio_path),
+                model_id="pyannote/fake",
+                device="cpu",
+                segments=[DiarizationSegment(start=0.0, end=1.2, duration=1.2, speaker_id="SPEAKER_00")],
+                speaker_count=1,
+                speakers=["SPEAKER_00"],
+            )
 
         def fake_channel_transcribe(audio_path: Any, **kwargs: Any) -> ProductionTranscribeResult:
             channel = "R" if str(audio_path).endswith("_R.wav") else "L"
@@ -362,16 +383,21 @@ class TestSplitChannelDiarizationDeferred:
             )
 
         monkeypatch.setattr(asr_pipeline, "transcribe", fake_channel_transcribe)
-        monkeypatch.setattr(asr_pipeline, "diarize_audio", diarize_should_not_run)
+        monkeypatch.setattr(asr_pipeline, "diarize_audio", diarize_record)
 
         result = run_asr_pipeline(
             source,
             content_profile="studio_panel",
             channel_mode="split",
             output_dir=tmp_path / "asr_split_panel",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
         diarization = summary["quality_report"]["diarization"]
-        assert diarization["status"] == "skipped"
-        assert diarization["reason"] == "split_channel_unsupported_v0_1_x"
+        assert diarization["status"] == "ok"
+        assert diarization["speaker_count"] == 1
+        assert diarize_calls and diarize_calls[0].name == "normalized.wav"
+        archive = json.loads(result.archive_path.read_text(encoding="utf-8"))
+        assert {segment["channel"] for segment in archive["segments"]} == {"L", "R"}
+        assert all(segment["speaker"] == "SPEAKER_00" for segment in archive["segments"])

@@ -35,8 +35,8 @@ asr_pipeline = importlib.import_module("core.pipelines.asr.pipeline")
 
 
 class TestContentProfileRegistry:
-    def test_all_five_profiles_registered(self) -> None:
-        expected = {"bulten_haber", "studio_panel", "muzik_programi", "film", "belgesel"}
+    def test_all_content_profiles_registered(self) -> None:
+        expected = {"bulten_haber", "studio_panel", "muzik_programi", "film", "belgesel", "spor"}
         assert set(CONTENT_PROFILES) == expected
 
     def test_list_returns_sorted_names(self) -> None:
@@ -50,6 +50,7 @@ class TestContentProfileRegistry:
             ("muzik_programi", "fast_with_fallback", True),
             ("film", "fast_with_fallback", False),
             ("belgesel", "quality", False),
+            ("spor", "fast_with_fallback", False),
         ],
     )
     def test_profile_behavior_matrix(self, name: str, model_profile: str, diarize: bool) -> None:
@@ -190,6 +191,7 @@ class TestPipelineDispatch:
             ("muzik_programi", "fast_with_fallback", True),
             ("film", "fast_with_fallback", False),
             ("belgesel", "quality", False),
+            ("spor", "fast_with_fallback", False),
         ],
     )
     def test_each_content_profile_resolves_into_summary(
@@ -214,6 +216,7 @@ class TestPipelineDispatch:
             source,
             content_profile=content_profile,
             output_dir=tmp_path / f"asr_{content_profile}",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -254,6 +257,7 @@ class TestPipelineDispatch:
             content_profile="bulten_haber",
             diarize_required=True,
             output_dir=tmp_path / "asr_strict",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
         assert summary["diarize_required"] is True
@@ -279,6 +283,7 @@ class TestPipelineDispatch:
             content_profile="belgesel",
             model_profile_override="fast_with_fallback",
             output_dir=tmp_path / "asr_belgesel_override",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 
@@ -306,6 +311,7 @@ class TestPipelineDispatch:
             source,
             profile="fast_with_fallback",
             output_dir=tmp_path / "asr_legacy",
+            word_alignment_mode="interpolated",
         )
         summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
 

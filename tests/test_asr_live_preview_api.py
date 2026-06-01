@@ -11,6 +11,7 @@ def test_stt_preview_websocket_transcribes_pcm_chunk(monkeypatch) -> None:
     from fastapi.testclient import TestClient
     from core.api import asr_server
 
+    monkeypatch.setenv("MITAS_ACCESS_SECRET", "test-secret")
     calls: list[dict[str, Any]] = []
 
     def fake_transcribe(
@@ -44,6 +45,8 @@ def test_stt_preview_websocket_transcribes_pcm_chunk(monkeypatch) -> None:
     monkeypatch.setattr(asr_server, "_transcribe_live_pcm16", fake_transcribe)
 
     client = TestClient(asr_server.app)
+    login = client.post("/api/auth/login", json={"username": "mitas", "pwId": "test_61"})
+    assert login.status_code == 200
     with client.websocket_connect("/api/stt/preview/ws") as websocket:
         ready = websocket.receive_json()
         assert ready["type"] == "ready"

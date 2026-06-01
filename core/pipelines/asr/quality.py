@@ -40,6 +40,29 @@ STOCK_ARTIFACTS = [
     "altyazı çevirisi",
 ]
 
+DISALLOWED_TR_SCRIPT_KEYWORDS = (
+    "ARABIC",
+    "CJK",
+    "CYRILLIC",
+    "DEVANAGARI",
+    "HANGUL",
+    "HEBREW",
+    "HIRAGANA",
+    "KATAKANA",
+    "THAI",
+)
+
+SHORT_FOREIGN_PHRASE_ARTIFACTS = (
+    "and i m",
+    "caralho faul",
+    "caralho fauri",
+    "i got time",
+    "je ne sais pas",
+    "merci",
+    "tall guy",
+    "tchau lugar",
+)
+
 
 @dataclass(frozen=True)
 class SegmentQualityDecision:
@@ -59,6 +82,8 @@ class QualityConfig:
     very_low_logprob_short_text_max_tokens: int = 5
     allowed_languages: tuple[str, ...] = ("tr", "en")
     drop_stock_artifacts: bool = True
+    drop_foreign_script_artifacts: bool = True
+    drop_short_foreign_phrase_artifacts: bool = True
     drop_repetition_collapses: bool = True
     segment_repetition_min_run: int = 20
     segment_max_token_length: int = 80
@@ -76,6 +101,36 @@ def is_stock_artifact(text: str) -> tuple[bool, str | None]:
     lowered = normalize_quality_text(text)
     for pattern in STOCK_ARTIFACTS:
         if normalize_quality_text(pattern) in lowered:
+            return True, pattern
+    return False, None
+
+
+def detect_foreign_script_artifact(text: str) -> tuple[bool, str | None]:
+    """Detect scripts that should not appear in Turkish-forced ASR output."""
+    for character in text:
+        if not character.isalpha():
+            continue
+        try:
+            name = unicodedata.name(character)
+        except ValueError:
+            continue
+        for keyword in DISALLOWED_TR_SCRIPT_KEYWORDS:
+            if keyword in name:
+                return True, keyword.casefold()
+    return False, None
+
+
+def detect_short_foreign_phrase_artifact(text: str) -> tuple[bool, str | None]:
+    """Catch short Latin-script hallucinations that slip through as language=tr."""
+    normalized = normalize_quality_text(text)
+    if not normalized:
+        return False, None
+    token_count = len(normalized.split())
+    if token_count > 5:
+        return False, None
+    for pattern in SHORT_FOREIGN_PHRASE_ARTIFACTS:
+        normalized_pattern = normalize_quality_text(pattern)
+        if normalized == normalized_pattern or normalized_pattern in normalized:
             return True, pattern
     return False, None
 
@@ -145,6 +200,24 @@ def evaluate_segment(
                 flags=["stock_artifact"],
             )
         flags.append("stock_artifact")
+
+    if cfg.drop_foreign_script_artifacts and (language is None or language == "tr"):
+        has_foreign_script, script = detect_foreign_script_artifact(text_stripped)
+        if has_foreign_script:
+            return SegmentQualityDecision(
+                keep=False,
+                drop_reason=f"foreign_script_artifact:{script}",
+                flags=["foreign_script_artifact"],
+            )
+
+    if cfg.drop_short_foreign_phrase_artifacts and (language is None or language == "tr"):
+        has_foreign_phrase, phrase = detect_short_foreign_phrase_artifact(text_stripped)
+        if has_foreign_phrase:
+            return SegmentQualityDecision(
+                keep=False,
+                drop_reason=f"short_foreign_phrase_artifact:{phrase}",
+                flags=["foreign_phrase_artifact"],
+            )
 
     is_collapsed, max_run, token = detect_repetition_collapse(
         text_stripped,

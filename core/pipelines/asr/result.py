@@ -27,6 +27,7 @@ class TranscriptSegment:
     normalized_text: str | None = None
     source_vad_index: int | None = None
     channel: str | None = None
+    word_timestamps: tuple[dict[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -88,6 +89,7 @@ class ProductionTranscribeResult:
     timing: TranscribeTiming | None = None
     speaker_segments: list[Any] = field(default_factory=list)
     normalized_entities: list[Any] = field(default_factory=list)
+    fallback_report: dict[str, Any] = field(default_factory=dict)
     selection_reason: str | None = None
     channel_mode: str = "mono"
     channel_auto_decided: bool = False
@@ -106,6 +108,7 @@ class ProductionTranscribeResult:
             "profile": self.profile_used,
             "fallback": self.fallback_triggered,
             "fallback_reason": self.fallback_reason,
+            "fallback_report": dict(self.fallback_report),
             "selection_reason": self.selection_reason,
             "transcript": {
                 "verbatim": self.verbatim_transcript,
@@ -118,6 +121,7 @@ class ProductionTranscribeResult:
                 "drop_reasons": _count_reasons(self.quality_drops),
                 "safety_passed": self.safety.safe if self.safety else None,
             },
+            "normalized_entities": list(self.normalized_entities),
             "timing": {
                 "total_seconds": self.timing.total_seconds if self.timing else None,
                 "chunk_count": self.timing.chunk_count if self.timing else None,
@@ -166,6 +170,10 @@ def _segment_to_dict(segment: TranscriptSegment) -> dict[str, Any]:
         payload["source_vad_index"] = segment.source_vad_index
     if segment.channel is not None:
         payload["channel"] = segment.channel
+    if segment.normalized_text is not None:
+        payload["normalized_text"] = segment.normalized_text
+    if segment.word_timestamps:
+        payload["word_timestamps"] = [dict(word) for word in segment.word_timestamps]
     return payload
 
 

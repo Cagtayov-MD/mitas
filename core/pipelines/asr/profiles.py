@@ -31,6 +31,7 @@ ContentProfileName = Literal[
     "muzik_programi",
     "film",
     "belgesel",
+    "spor",
 ]
 
 
@@ -108,6 +109,15 @@ CONTENT_PROFILES: dict[ContentProfileName, ContentProfile] = {
         beam_size=8,
         initial_prompt=None,
         notes="Anlatici baskin + nadir roportaj; kalite onceligi nedeniyle large-v3 default.",
+    ),
+    "spor": ContentProfile(
+        name="spor",
+        model_profile="fast_with_fallback",
+        diarize=False,
+        denoise=True,
+        beam_size=5,
+        initial_prompt="Türkçe spor müsabakası anlatımı",
+        notes="Canli spor yayini / mac anlatimi; spiker + saha sesi, tempolu konusma. Ozet spor profili soru setini kullanir.",
     ),
 }
 

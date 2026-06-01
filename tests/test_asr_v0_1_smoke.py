@@ -123,15 +123,15 @@ def test_summary_safety_diagnostics_present(summary: dict) -> None:
 def test_quality_report_matches_master_plan_2_1_contract(summary: dict) -> None:
     """Master plan §2.1 ASR kalite raporu beş zorunlu alan ister.
 
-    v0.1'de WhisperX ve pyannote yok; raporlama disiplini gereği `not_applicable`
-    statüsüyle yazılırlar. Bkz. Mutfak Karar 25 ve 05.3.4.
+    Eski demo çıktıları WhisperX yokken `not_applicable` taşır; yeni pipeline
+    koşuları segment-interpolated word timing ile bu alanları doldurabilir.
     """
     report = summary["quality_report"]
     for field in ("word_timestamp_coverage", "alignment_success", "vad_speech_ratio", "diarization", "error_flags"):
         assert field in report, f"quality_report missing §2.1 field: {field}"
 
-    assert report["word_timestamp_coverage"]["status"] == "not_applicable"
-    assert report["alignment_success"]["status"] == "not_applicable"
+    assert report["word_timestamp_coverage"]["status"] in {"not_applicable", "ok", "degraded", "missing", "failed", "skipped"}
+    assert report["alignment_success"]["status"] in {"not_applicable", "ok", "degraded", "missing", "failed", "skipped"}
     assert report["diarization"]["status"] == "not_applicable"
     assert isinstance(report["vad_speech_ratio"], float)
     assert 0.0 < report["vad_speech_ratio"] <= 1.0

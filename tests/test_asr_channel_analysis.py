@@ -50,6 +50,22 @@ def test_different_lr_has_low_correlation_and_auto_split(tmp_path: Path) -> None
     assert decision.effective_mode == "split"
 
 
+def test_late_channel_difference_still_auto_splits(tmp_path: Path) -> None:
+    source = tmp_path / "late_difference.wav"
+    _write_stereo_sine(source, same=True, seconds=12.0, diverge_after_seconds=6.0)
+
+    corr = measure_lr_correlation(source, ffmpeg_executable="ffmpeg")
+    decision = decide_channel_mode(
+        source,
+        requested_mode="auto",
+        input_stream=_stream(source, channels=2),
+        ffmpeg_executable="ffmpeg",
+    )
+
+    assert corr <= 0.92
+    assert decision.effective_mode == "split"
+
+
 def test_mono_input_auto_decides_mono_without_correlation(tmp_path: Path) -> None:
     source = tmp_path / "mono.wav"
     _write_mono_sine(source)
@@ -69,7 +85,14 @@ def _stream(path: Path, *, channels: int) -> AudioStreamInfo:
     return AudioStreamInfo(path=path, codec_name="pcm_s16le", sample_rate=16_000, channels=channels, sample_fmt="s16")
 
 
-def _write_stereo_sine(path: Path, *, same: bool, seconds: float = 1.0, sample_rate: int = 16_000) -> None:
+def _write_stereo_sine(
+    path: Path,
+    *,
+    same: bool,
+    seconds: float = 1.0,
+    sample_rate: int = 16_000,
+    diverge_after_seconds: float | None = None,
+) -> None:
     frames = int(seconds * sample_rate)
     with wave.open(str(path), "wb") as wav_file:
         wav_file.setnchannels(2)
@@ -78,7 +101,8 @@ def _write_stereo_sine(path: Path, *, same: bool, seconds: float = 1.0, sample_r
         payload = bytearray()
         for index in range(frames):
             left = int(12000 * math.sin(2 * math.pi * 440 * index / sample_rate))
-            right_freq = 440 if same else 880
+            diverged = diverge_after_seconds is not None and index >= int(diverge_after_seconds * sample_rate)
+            right_freq = 440 if same and not diverged else 880
             right = int(12000 * math.sin(2 * math.pi * right_freq * index / sample_rate))
             payload.extend(left.to_bytes(2, "little", signed=True))
             payload.extend(right.to_bytes(2, "little", signed=True))
