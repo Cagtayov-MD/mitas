@@ -1,0 +1,19 @@
+[
+  {
+    "film": "20. BULUŞMA 1998-0317-1-0000-00-1",
+    "giris": {
+      "frames": 180,
+      "credit": 25,
+      "kunye": 11,
+      "master_h": 2030,
+      "diegetik": 0.0
+    },
+    "cikis": {
+      "frames": 600,
+      "credit": 301,
+      "kunye": 200,
+      "master_h": 7773,
+      "diegetik": 0.12
+    }
+  }
+]

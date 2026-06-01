@@ -1,0 +1,5 @@
+# OCR-worktree — büyük/türetilmiş çıktılar git'e KONMAZ.
+# Master PNG'ler (409MB) cache'den `recompose100.py` ile yeniden üretilir.
+*.png
+*.npy
+clip_pipeline*/_MASTERS/

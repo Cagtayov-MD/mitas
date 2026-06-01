@@ -1,0 +1,2048 @@
+[
+ {
+  "film": "ALLAH_GELECEK_2010_9284_1_0000_88_1__giris",
+  "n": 1,
+  "clean": 0,
+  "noise": 1,
+  "fid": 0.0,
+  "cls": {
+   "garble": 1
+  }
+ },
+ {
+  "film": "300_SPARTALI_2006_9143_1_0000_90_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "AKIL_OYUNLARI_2025_1304_1_0000_90_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "ALKATRAZ_KUŞÇUSU_1962_0034_1_0000_00_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "AYRI_MASALLAR_1983_0271_1_0000_00_1__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "AYRI_MASALLAR_1983_0271_1_0000_00_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "AYRILIK_2001_9342_1_0000_00_1__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "AYRILIK_2001_9342_1_0000_00_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BABAMIN_BÜYÜDÜĞÜ_YAZ_1993_0301_1_0000_00__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BABAMIN_BÜYÜDÜĞÜ_YAZ_1993_0301_1_0000_00__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BAY_KLOMP_1978_0234_1_0000_00_1__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BAŞKA_TANRININ_ÇOCUKLARI_1986_0271_1_000__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BAŞKA_TANRININ_ÇOCUKLARI_1986_0271_1_000__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BEBEK_JANE_E_NE_OLDU_1962_0015_1_0000_00__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BİR_VARMIŞ_BİR_YOKMUŞ_1987_0364_1_0000_0__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BİR_VARMIŞ_BİR_YOKMUŞ_1987_0364_1_0000_0__giris",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BİZİM_GİBİ_HIRSIZLAR_1974_0184_1_0000_00__cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "BUDAPEŞTE_MASALLARI_1977_0226_1_0000_00___cikis",
+  "n": 0,
+  "clean": 0,
+  "noise": 0,
+  "fid": 0.0,
+  "cls": {}
+ },
+ {
+  "film": "ALLAH_GELECEK_2010_9284_1_0000_88_1__cikis",
+  "n": 57,
+  "clean": 6,
+  "noise": 51,
+  "fid": 0.11,
+  "cls": {
+   "garble": 51,
+   "name": 6
+  }
+ },
+ {
+  "film": "ANTON_ÇEHOV_UN_BİR_AŞKI_1988_1846_1_0000__cikis",
+  "n": 3,
+  "clean": 1,
+  "noise": 2,
+  "fid": 0.33,
+  "cls": {
+   "name": 1,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "BAŞKALARININ_HAYATI_2006_9102_1_0000_00___giris",
+  "n": 4,
+  "clean": 2,
+  "noise": 2,
+  "fid": 0.5,
+  "cls": {
+   "role": 1,
+   "sentence": 2,
+   "name": 1
+  }
+ },
+ {
+  "film": "BABA_1966_0021_1_0000_00_1__cikis",
+  "n": 2,
+  "clean": 1,
+  "noise": 1,
+  "fid": 0.5,
+  "cls": {
+   "name": 1,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AFFEDİLMEYEN_1992_1072_1_0000_50_1__giris",
+  "n": 21,
+  "clean": 12,
+  "noise": 9,
+  "fid": 0.57,
+  "cls": {
+   "name": 12,
+   "sentence": 9
+  }
+ },
+ {
+  "film": "BOYU_BOYUMA_2016_1022_1_0000_60_1__giris",
+  "n": 39,
+  "clean": 23,
+  "noise": 16,
+  "fid": 0.59,
+  "cls": {
+   "name": 21,
+   "sentence": 15,
+   "role": 2,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEŞ_PENİ_VERSENE_1959_0043_1_0000_01_1__giris",
+  "n": 61,
+  "clean": 43,
+  "noise": 18,
+  "fid": 0.7,
+  "cls": {
+   "name": 32,
+   "role": 11,
+   "sentence": 18
+  }
+ },
+ {
+  "film": "BABA_2_1974_0161_1_0000_90_1__giris",
+  "n": 10,
+  "clean": 7,
+  "noise": 3,
+  "fid": 0.7,
+  "cls": {
+   "name": 5,
+   "role": 2,
+   "sentence": 3
+  }
+ },
+ {
+  "film": "BEYAZ_KUĞU_1981_0277_1_0000_00_1__cikis",
+  "n": 28,
+  "clean": 20,
+  "noise": 8,
+  "fid": 0.71,
+  "cls": {
+   "name": 17,
+   "role": 3,
+   "garble": 5,
+   "sentence": 3
+  }
+ },
+ {
+  "film": "BEŞ_PENİ_VERSENE_1959_0043_1_0000_01_1__cikis",
+  "n": 7,
+  "clean": 5,
+  "noise": 2,
+  "fid": 0.71,
+  "cls": {
+   "name": 4,
+   "sentence": 2,
+   "role": 1
+  }
+ },
+ {
+  "film": "AMY_NİN_TALİHSİZLİKLERİ_1999_0489_1_0000__cikis",
+  "n": 8,
+  "clean": 6,
+  "noise": 2,
+  "fid": 0.75,
+  "cls": {
+   "name": 6,
+   "garble": 1,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BUĞDAY_2014_0038_1_0000_90_1__giris",
+  "n": 25,
+  "clean": 20,
+  "noise": 5,
+  "fid": 0.8,
+  "cls": {
+   "role": 8,
+   "name": 12,
+   "sentence": 4,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AFFEDİLMEYENLER_1960_0049_1_0000_00_1__cikis",
+  "n": 10,
+  "clean": 8,
+  "noise": 2,
+  "fid": 0.8,
+  "cls": {
+   "role": 1,
+   "name": 7,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "BABA_NOSTALJİSİ_1990_0283_1_0000_00_1__giris",
+  "n": 59,
+  "clean": 48,
+  "noise": 11,
+  "fid": 0.81,
+  "cls": {
+   "name": 48,
+   "sentence": 11
+  }
+ },
+ {
+  "film": "ALTIN_ADAM_1939_0027_1_0000_00_1__giris",
+  "n": 37,
+  "clean": 31,
+  "noise": 6,
+  "fid": 0.84,
+  "cls": {
+   "name": 31,
+   "sentence": 4,
+   "garble": 2
+  }
+ },
+ {
+  "film": "AİLE_BABASI_2017_1176_1_0000_90_1__cikis",
+  "n": 398,
+  "clean": 338,
+  "noise": 60,
+  "fid": 0.85,
+  "cls": {
+   "role": 43,
+   "name": 295,
+   "sentence": 55,
+   "garble": 5
+  }
+ },
+ {
+  "film": "ANTON_ÇEHOV_UN_BİR_AŞKI_1988_1846_1_0000__giris",
+  "n": 62,
+  "clean": 53,
+  "noise": 9,
+  "fid": 0.85,
+  "cls": {
+   "name": 51,
+   "role": 2,
+   "sentence": 1,
+   "garble": 8
+  }
+ },
+ {
+  "film": "BÜTÜN_KIZLAR_BİLİR_1959_0017_1_0000_00_1__giris",
+  "n": 43,
+  "clean": 37,
+  "noise": 6,
+  "fid": 0.86,
+  "cls": {
+   "role": 6,
+   "name": 31,
+   "sentence": 6
+  }
+ },
+ {
+  "film": "APAÇİ_1954_0025_1_0000_00_1__giris",
+  "n": 62,
+  "clean": 54,
+  "noise": 8,
+  "fid": 0.87,
+  "cls": {
+   "name": 47,
+   "sentence": 6,
+   "role": 7,
+   "garble": 2
+  }
+ },
+ {
+  "film": "BROADWAY_ÜZERİNDE_KURŞUNLAR_1994_0403_1___cikis",
+  "n": 305,
+  "clean": 268,
+  "noise": 37,
+  "fid": 0.88,
+  "cls": {
+   "name": 248,
+   "role": 20,
+   "sentence": 34,
+   "garble": 3
+  }
+ },
+ {
+  "film": "BABA_NOSTALJİSİ_1990_0283_1_0000_00_1__cikis",
+  "n": 91,
+  "clean": 80,
+  "noise": 11,
+  "fid": 0.88,
+  "cls": {
+   "sentence": 10,
+   "name": 79,
+   "garble": 1,
+   "role": 1
+  }
+ },
+ {
+  "film": "ALKATRAZ_KUŞÇUSU_1962_0034_1_0000_00_1__cikis",
+  "n": 51,
+  "clean": 45,
+  "noise": 6,
+  "fid": 0.88,
+  "cls": {
+   "name": 44,
+   "sentence": 6,
+   "role": 1
+  }
+ },
+ {
+  "film": "ACEMİLER_ÇETESİ_1974_0205_1_0000_90_1__giris",
+  "n": 41,
+  "clean": 36,
+  "noise": 5,
+  "fid": 0.88,
+  "cls": {
+   "name": 25,
+   "role": 11,
+   "sentence": 5
+  }
+ },
+ {
+  "film": "AMİRAL_NELSON_1973_0229_1_0000_00_1__cikis",
+  "n": 33,
+  "clean": 29,
+  "noise": 4,
+  "fid": 0.88,
+  "cls": {
+   "sentence": 4,
+   "name": 27,
+   "role": 2
+  }
+ },
+ {
+  "film": "AL_JOLSON_UN_HAYATI_1946_0031_1_0000_00___cikis",
+  "n": 8,
+  "clean": 7,
+  "noise": 1,
+  "fid": 0.88,
+  "cls": {
+   "name": 6,
+   "sentence": 1,
+   "role": 1
+  }
+ },
+ {
+  "film": "AFFEDİLMEYEN_1992_1072_1_0000_50_1__cikis",
+  "n": 215,
+  "clean": 191,
+  "noise": 24,
+  "fid": 0.89,
+  "cls": {
+   "name": 172,
+   "sentence": 23,
+   "role": 19,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BUDAPEŞTE_MASALLARI_1977_0226_1_0000_00___giris",
+  "n": 88,
+  "clean": 78,
+  "noise": 10,
+  "fid": 0.89,
+  "cls": {
+   "name": 78,
+   "garble": 2,
+   "sentence": 8
+  }
+ },
+ {
+  "film": "ACEMİLER_ÇETESİ_1974_0205_1_0000_90_1__cikis",
+  "n": 18,
+  "clean": 16,
+  "noise": 2,
+  "fid": 0.89,
+  "cls": {
+   "name": 16,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BIBI_BLOCKSBERG_2002_9022_1_0000_00_1__giris",
+  "n": 18,
+  "clean": 16,
+  "noise": 2,
+  "fid": 0.89,
+  "cls": {
+   "name": 14,
+   "garble": 2,
+   "role": 2
+  }
+ },
+ {
+  "film": "AŞKIN_BÜYÜSÜ_1998_0438_1_0000_00_1__cikis",
+  "n": 285,
+  "clean": 257,
+  "noise": 28,
+  "fid": 0.9,
+  "cls": {
+   "name": 244,
+   "sentence": 22,
+   "garble": 6,
+   "role": 13
+  }
+ },
+ {
+  "film": "AMERİKAN_HAYDUTLARI_2001_9296_1_0000_90___cikis",
+  "n": 262,
+  "clean": 236,
+  "noise": 26,
+  "fid": 0.9,
+  "cls": {
+   "name": 218,
+   "sentence": 21,
+   "garble": 5,
+   "role": 18
+  }
+ },
+ {
+  "film": "AMAZONDA_YANGIN_1993_0269_1_0000_00_1__cikis",
+  "n": 51,
+  "clean": 46,
+  "noise": 5,
+  "fid": 0.9,
+  "cls": {
+   "name": 40,
+   "sentence": 4,
+   "role": 6,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BENİMLE_DANS_ET_1998_0377_1_0000_00_1__cikis",
+  "n": 48,
+  "clean": 43,
+  "noise": 5,
+  "fid": 0.9,
+  "cls": {
+   "name": 42,
+   "sentence": 5,
+   "role": 1
+  }
+ },
+ {
+  "film": "BRONX_SOKAKLARINDA_1981_0262_1_0000_00_1__giris",
+  "n": 41,
+  "clean": 37,
+  "noise": 4,
+  "fid": 0.9,
+  "cls": {
+   "sentence": 4,
+   "role": 10,
+   "name": 27
+  }
+ },
+ {
+  "film": "AHLAT_AĞACI_2018_9024_1_0000_90_1__giris",
+  "n": 20,
+  "clean": 18,
+  "noise": 2,
+  "fid": 0.9,
+  "cls": {
+   "role": 10,
+   "name": 8,
+   "garble": 2
+  }
+ },
+ {
+  "film": "BELKİ_BİR_GÜN_1992_0442_1_0000_00_1__cikis",
+  "n": 138,
+  "clean": 126,
+  "noise": 12,
+  "fid": 0.91,
+  "cls": {
+   "sentence": 11,
+   "name": 105,
+   "role": 21,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEN_HUR_1959_1205_1_0000_50_1__giris",
+  "n": 11,
+  "clean": 10,
+  "noise": 1,
+  "fid": 0.91,
+  "cls": {
+   "name": 10,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BENİM_KALBİMİ_KIRMA_1999_0418_1_0000_00___cikis",
+  "n": 194,
+  "clean": 179,
+  "noise": 15,
+  "fid": 0.92,
+  "cls": {
+   "name": 163,
+   "role": 16,
+   "sentence": 15
+  }
+ },
+ {
+  "film": "BATIYA_GİDEN_YOL_1967_0052_1_0000_00_1__giris",
+  "n": 88,
+  "clean": 81,
+  "noise": 7,
+  "fid": 0.92,
+  "cls": {
+   "sentence": 5,
+   "name": 72,
+   "role": 9,
+   "garble": 2
+  }
+ },
+ {
+  "film": "ASLANLAR_DİYARI_1950_1149_1_0000_90_1__giris",
+  "n": 59,
+  "clean": 54,
+  "noise": 5,
+  "fid": 0.92,
+  "cls": {
+   "name": 46,
+   "role": 8,
+   "sentence": 5
+  }
+ },
+ {
+  "film": "BOKSÖRÜN_ÖLÜMÜ_1946_0024_1_0000_00_1__giris",
+  "n": 61,
+  "clean": 56,
+  "noise": 5,
+  "fid": 0.92,
+  "cls": {
+   "name": 52,
+   "role": 4,
+   "sentence": 4,
+   "garble": 1
+  }
+ },
+ {
+  "film": "ASLAN_YÜREKLİ_ÇAVUŞ_1941_0017_1_0000_00___giris",
+  "n": 50,
+  "clean": 46,
+  "noise": 4,
+  "fid": 0.92,
+  "cls": {
+   "name": 40,
+   "sentence": 4,
+   "role": 6
+  }
+ },
+ {
+  "film": "BÜTÜN_SAADETLER_MÜMKÜNDÜR_2015_0132_1_00__giris",
+  "n": 38,
+  "clean": 35,
+  "noise": 3,
+  "fid": 0.92,
+  "cls": {
+   "name": 28,
+   "sentence": 3,
+   "role": 7
+  }
+ },
+ {
+  "film": "BEBEK_1995_0320_1_0000_00_1__cikis",
+  "n": 429,
+  "clean": 398,
+  "noise": 31,
+  "fid": 0.93,
+  "cls": {
+   "name": 369,
+   "role": 29,
+   "garble": 4,
+   "sentence": 27
+  }
+ },
+ {
+  "film": "BEKARLIĞA_VEDA_2003_9142_1_0000_00_1__cikis",
+  "n": 316,
+  "clean": 293,
+  "noise": 23,
+  "fid": 0.93,
+  "cls": {
+   "name": 276,
+   "role": 17,
+   "garble": 3,
+   "sentence": 20
+  }
+ },
+ {
+  "film": "BEYAZ_YALANLAR_1998_0522_1_0000_00_1__cikis",
+  "n": 327,
+  "clean": 304,
+  "noise": 23,
+  "fid": 0.93,
+  "cls": {
+   "name": 286,
+   "garble": 3,
+   "role": 18,
+   "sentence": 20
+  }
+ },
+ {
+  "film": "BAŞKALARININ_HAYATI_2006_9102_1_0000_00___cikis",
+  "n": 276,
+  "clean": 257,
+  "noise": 19,
+  "fid": 0.93,
+  "cls": {
+   "name": 252,
+   "sentence": 15,
+   "garble": 4,
+   "role": 5
+  }
+ },
+ {
+  "film": "BUĞDAY_2014_0038_1_0000_90_1__cikis",
+  "n": 266,
+  "clean": 247,
+  "noise": 19,
+  "fid": 0.93,
+  "cls": {
+   "name": 244,
+   "role": 3,
+   "sentence": 18,
+   "garble": 1
+  }
+ },
+ {
+  "film": "20__BULUŞMA_1998_0317_1_0000_00_1__cikis",
+  "n": 204,
+  "clean": 189,
+  "noise": 15,
+  "fid": 0.93,
+  "cls": {
+   "sentence": 14,
+   "name": 169,
+   "role": 20,
+   "garble": 1
+  }
+ },
+ {
+  "film": "ALBAY_VE_BEN_1958_0025_1_0000_00_1__giris",
+  "n": 68,
+  "clean": 63,
+  "noise": 5,
+  "fid": 0.93,
+  "cls": {
+   "name": 56,
+   "role": 7,
+   "garble": 1,
+   "sentence": 4
+  }
+ },
+ {
+  "film": "BAŞKASININ_ÇOCUĞU_1994_0376_1_0000_00_1__cikis",
+  "n": 67,
+  "clean": 62,
+  "noise": 5,
+  "fid": 0.93,
+  "cls": {
+   "name": 50,
+   "role": 12,
+   "sentence": 5
+  }
+ },
+ {
+  "film": "BEYAZ_KUĞU_1981_0277_1_0000_00_1__giris",
+  "n": 45,
+  "clean": 42,
+  "noise": 3,
+  "fid": 0.93,
+  "cls": {
+   "name": 39,
+   "sentence": 2,
+   "role": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BOYU_BOYUMA_2016_1022_1_0000_60_1__cikis",
+  "n": 268,
+  "clean": 253,
+  "noise": 15,
+  "fid": 0.94,
+  "cls": {
+   "name": 250,
+   "sentence": 14,
+   "role": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AT_DELİSİ_2001_9192_1_0000_00_1__cikis",
+  "n": 120,
+  "clean": 113,
+  "noise": 7,
+  "fid": 0.94,
+  "cls": {
+   "name": 101,
+   "sentence": 4,
+   "garble": 3,
+   "role": 12
+  }
+ },
+ {
+  "film": "ASLAN_YÜREKLİ_ÇAVUŞ_1941_0017_1_0000_00___cikis",
+  "n": 108,
+  "clean": 102,
+  "noise": 6,
+  "fid": 0.94,
+  "cls": {
+   "name": 99,
+   "sentence": 5,
+   "role": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEŞ_KOLAY_PARÇA_1970_1009_1_0000_50_1__giris",
+  "n": 93,
+  "clean": 87,
+  "noise": 6,
+  "fid": 0.94,
+  "cls": {
+   "name": 82,
+   "sentence": 5,
+   "role": 5,
+   "garble": 1
+  }
+ },
+ {
+  "film": "ALVAREZ_KELLY_1966_0058_1_0000_00_1__giris",
+  "n": 62,
+  "clean": 58,
+  "noise": 4,
+  "fid": 0.94,
+  "cls": {
+   "name": 45,
+   "role": 13,
+   "garble": 2,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "BATIYA_GİDEN_YOL_1967_0052_1_0000_00_1__cikis",
+  "n": 69,
+  "clean": 65,
+  "noise": 4,
+  "fid": 0.94,
+  "cls": {
+   "name": 62,
+   "role": 3,
+   "garble": 4
+  }
+ },
+ {
+  "film": "BİRKAÇ_DOLAR_İÇİN_1965_0045_1_0000_90_1__giris",
+  "n": 70,
+  "clean": 66,
+  "noise": 4,
+  "fid": 0.94,
+  "cls": {
+   "name": 59,
+   "role": 7,
+   "sentence": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "ALICE_HARİKALAR_DİYARINDA_1951_0030_1_00__cikis",
+  "n": 18,
+  "clean": 17,
+  "noise": 1,
+  "fid": 0.94,
+  "cls": {
+   "name": 15,
+   "role": 2,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "ALTIN_ADAM_1939_0027_1_0000_00_1__cikis",
+  "n": 16,
+  "clean": 15,
+  "noise": 1,
+  "fid": 0.94,
+  "cls": {
+   "role": 1,
+   "name": 14,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BİR_BÜLBÜL_ÖTTÜ_1989_0357_1_0000_00_1__giris",
+  "n": 16,
+  "clean": 15,
+  "noise": 1,
+  "fid": 0.94,
+  "cls": {
+   "name": 12,
+   "role": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AZAP_YOLU_2002_9185_1_0000_90_1__cikis",
+  "n": 346,
+  "clean": 329,
+  "noise": 17,
+  "fid": 0.95,
+  "cls": {
+   "name": 314,
+   "role": 15,
+   "sentence": 15,
+   "garble": 2
+  }
+ },
+ {
+  "film": "AFRİKA_DA_BİR_YERDE_2001_9173_1_0000_00___cikis",
+  "n": 257,
+  "clean": 245,
+  "noise": 12,
+  "fid": 0.95,
+  "cls": {
+   "name": 241,
+   "garble": 5,
+   "sentence": 7,
+   "role": 4
+  }
+ },
+ {
+  "film": "ACI_ÇİKOLATA_1992_0478_1_0000_00_1__cikis",
+  "n": 238,
+  "clean": 227,
+  "noise": 11,
+  "fid": 0.95,
+  "cls": {
+   "name": 224,
+   "role": 3,
+   "sentence": 10,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BIRDY_1984_0257_1_0000_00_1__cikis",
+  "n": 193,
+  "clean": 183,
+  "noise": 10,
+  "fid": 0.95,
+  "cls": {
+   "name": 178,
+   "sentence": 9,
+   "role": 5,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEBEK_1995_0320_1_0000_00_1__giris",
+  "n": 40,
+  "clean": 38,
+  "noise": 2,
+  "fid": 0.95,
+  "cls": {
+   "name": 31,
+   "role": 7,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEKARLIĞA_VEDA_2003_9142_1_0000_00_1__giris",
+  "n": 39,
+  "clean": 37,
+  "noise": 2,
+  "fid": 0.95,
+  "cls": {
+   "name": 31,
+   "sentence": 2,
+   "role": 6
+  }
+ },
+ {
+  "film": "300_SPARTALI_2006_9143_1_0000_90_1__cikis",
+  "n": 498,
+  "clean": 480,
+  "noise": 18,
+  "fid": 0.96,
+  "cls": {
+   "role": 15,
+   "name": 465,
+   "sentence": 15,
+   "garble": 3
+  }
+ },
+ {
+  "film": "BIBI_BLOCKSBERG_2002_9022_1_0000_00_1__cikis",
+  "n": 253,
+  "clean": 244,
+  "noise": 9,
+  "fid": 0.96,
+  "cls": {
+   "name": 243,
+   "role": 1,
+   "garble": 4,
+   "sentence": 5
+  }
+ },
+ {
+  "film": "BERBER_DÜKKANI_2_2004_9115_1_0000_00_1__cikis",
+  "n": 226,
+  "clean": 218,
+  "noise": 8,
+  "fid": 0.96,
+  "cls": {
+   "name": 212,
+   "role": 6,
+   "sentence": 3,
+   "garble": 5
+  }
+ },
+ {
+  "film": "BROOKER_1990_0317_1_0000_00_1__cikis",
+  "n": 114,
+  "clean": 109,
+  "noise": 5,
+  "fid": 0.96,
+  "cls": {
+   "name": 106,
+   "sentence": 4,
+   "role": 3,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BABA_1966_0021_1_0000_00_1__giris",
+  "n": 68,
+  "clean": 65,
+  "noise": 3,
+  "fid": 0.96,
+  "cls": {
+   "name": 65,
+   "sentence": 3
+  }
+ },
+ {
+  "film": "BABAM_VE_BEN_1970_0059_1_0000_00_1__cikis",
+  "n": 69,
+  "clean": 66,
+  "noise": 3,
+  "fid": 0.96,
+  "cls": {
+   "name": 60,
+   "role": 6,
+   "sentence": 3
+  }
+ },
+ {
+  "film": "AYDAKİ_ADAM_1969_0067_1_0000_00_1__giris",
+  "n": 51,
+  "clean": 49,
+  "noise": 2,
+  "fid": 0.96,
+  "cls": {
+   "role": 15,
+   "name": 34,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AMY_NİN_TALİHSİZLİKLERİ_1999_0489_1_0000__giris",
+  "n": 27,
+  "clean": 26,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "name": 22,
+   "role": 4,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AT_DELİSİ_2001_9192_1_0000_00_1__giris",
+  "n": 23,
+  "clean": 22,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "name": 17,
+   "role": 5,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BIRDY_1984_0257_1_0000_00_1__giris",
+  "n": 26,
+  "clean": 25,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "role": 5,
+   "name": 20,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BİR_SİLAHŞÖRÜN_ÖLÜMÜ_1969_0058_1_0000_00__cikis",
+  "n": 24,
+  "clean": 23,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "role": 1,
+   "name": 22,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BORSA_1987_0330_1_0000_00_1__giris",
+  "n": 26,
+  "clean": 25,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "role": 7,
+   "name": 18,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BROOKER_1990_0317_1_0000_00_1__giris",
+  "n": 23,
+  "clean": 22,
+  "noise": 1,
+  "fid": 0.96,
+  "cls": {
+   "name": 21,
+   "garble": 1,
+   "role": 1
+  }
+ },
+ {
+  "film": "AŞK_CİNAYET_VE_YALAN_1997_0258_1_0000_00__cikis",
+  "n": 145,
+  "clean": 141,
+  "noise": 4,
+  "fid": 0.97,
+  "cls": {
+   "name": 128,
+   "role": 13,
+   "sentence": 4
+  }
+ },
+ {
+  "film": "AŞK_RÜZGARI_1947_0031_1_0000_00_1__giris",
+  "n": 63,
+  "clean": 61,
+  "noise": 2,
+  "fid": 0.97,
+  "cls": {
+   "name": 52,
+   "role": 9,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BURADA_MUTLUYUM_1966_0025_1_0000_00_1__giris",
+  "n": 80,
+  "clean": 78,
+  "noise": 2,
+  "fid": 0.97,
+  "cls": {
+   "name": 64,
+   "role": 14,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BAŞKASININ_ÇOCUĞU_1994_0376_1_0000_00_1__giris",
+  "n": 29,
+  "clean": 28,
+  "noise": 1,
+  "fid": 0.97,
+  "cls": {
+   "name": 24,
+   "garble": 1,
+   "role": 4
+  }
+ },
+ {
+  "film": "BEYAZ_YALANLAR_1998_0522_1_0000_00_1__giris",
+  "n": 30,
+  "clean": 29,
+  "noise": 1,
+  "fid": 0.97,
+  "cls": {
+   "name": 26,
+   "garble": 1,
+   "role": 3
+  }
+ },
+ {
+  "film": "AHLAT_AĞACI_2018_9024_1_0000_90_1__cikis",
+  "n": 242,
+  "clean": 237,
+  "noise": 5,
+  "fid": 0.98,
+  "cls": {
+   "name": 227,
+   "sentence": 4,
+   "role": 10,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BABA_2_1974_0161_1_0000_90_1__cikis",
+  "n": 228,
+  "clean": 223,
+  "noise": 5,
+  "fid": 0.98,
+  "cls": {
+   "name": 210,
+   "role": 13,
+   "sentence": 4,
+   "garble": 1
+  }
+ },
+ {
+  "film": "ASRIN_TAKIMI_2002_9101_1_0000_00_1__cikis",
+  "n": 147,
+  "clean": 144,
+  "noise": 3,
+  "fid": 0.98,
+  "cls": {
+   "role": 23,
+   "name": 121,
+   "sentence": 2,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AŞK_SİLAHI_2000_0427_1_0000_00_1__cikis",
+  "n": 137,
+  "clean": 134,
+  "noise": 3,
+  "fid": 0.98,
+  "cls": {
+   "name": 127,
+   "garble": 2,
+   "role": 7,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "ALICE_HARİKALAR_DİYARINDA_1951_0030_1_00__giris",
+  "n": 100,
+  "clean": 98,
+  "noise": 2,
+  "fid": 0.98,
+  "cls": {
+   "name": 95,
+   "role": 3,
+   "garble": 1,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AMELIA_EARHART_1976_0181_1_0000_00_1__cikis",
+  "n": 81,
+  "clean": 79,
+  "noise": 2,
+  "fid": 0.98,
+  "cls": {
+   "name": 73,
+   "garble": 1,
+   "role": 6,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AMERİKAN_OTELİ_1981_0245_1_0000_00_1__cikis",
+  "n": 105,
+  "clean": 103,
+  "noise": 2,
+  "fid": 0.98,
+  "cls": {
+   "name": 99,
+   "role": 4,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "BİR_BÜLBÜL_ÖTTÜ_1989_0357_1_0000_00_1__cikis",
+  "n": 109,
+  "clean": 107,
+  "noise": 2,
+  "fid": 0.98,
+  "cls": {
+   "name": 98,
+   "role": 9,
+   "sentence": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BİR_SİLAHŞÖRÜN_ÖLÜMÜ_1969_0058_1_0000_00__giris",
+  "n": 92,
+  "clean": 90,
+  "noise": 2,
+  "fid": 0.98,
+  "cls": {
+   "name": 85,
+   "role": 5,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "AFFEDİLMEYENLER_1960_0049_1_0000_00_1__giris",
+  "n": 53,
+  "clean": 52,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 45,
+   "role": 7,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AJANS_1980_0201_1_0000_00_1__giris",
+  "n": 41,
+  "clean": 40,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 33,
+   "role": 7,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AL_JOLSON_UN_HAYATI_1946_0031_1_0000_00___giris",
+  "n": 57,
+  "clean": 56,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 55,
+   "sentence": 1,
+   "role": 1
+  }
+ },
+ {
+  "film": "ALVAREZ_KELLY_1966_0058_1_0000_00_1__cikis",
+  "n": 44,
+  "clean": 43,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "role": 1,
+   "name": 42,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AMERİKADAKİ_AMCAM_1980_0155_1_0000_00_1__giris",
+  "n": 58,
+  "clean": 57,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 56,
+   "role": 1,
+   "garble": 1
+  }
+ },
+ {
+  "film": "AŞKIN_GÜCÜ___WELLS__Lİ_TRELAWNY_1993_029__cikis",
+  "n": 65,
+  "clean": 64,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 57,
+   "role": 7,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BEKLENMEDİK_MİRAS_1988_1185_1_0000_00_1__giris",
+  "n": 60,
+  "clean": 59,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 54,
+   "garble": 1,
+   "role": 5
+  }
+ },
+ {
+  "film": "BERBER_DÜKKANI_2_2004_9115_1_0000_00_1__giris",
+  "n": 47,
+  "clean": 46,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 38,
+   "role": 8,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BEYAZ_PERDE_SESSİZ_SEVGİLİLER_1980_0193___cikis",
+  "n": 46,
+  "clean": 45,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 42,
+   "role": 3,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BİTMEYEN_KİN_1975_0224_1_0000_00_1__cikis",
+  "n": 52,
+  "clean": 51,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 51,
+   "garble": 1
+  }
+ },
+ {
+  "film": "BİTMEYEN_KİN_1975_0224_1_0000_00_1__giris",
+  "n": 42,
+  "clean": 41,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 34,
+   "role": 7,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "BROADWAY_ÜZERİNDE_KURŞUNLAR_1994_0403_1___giris",
+  "n": 41,
+  "clean": 40,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 35,
+   "sentence": 1,
+   "role": 5
+  }
+ },
+ {
+  "film": "BRONX_SOKAKLARINDA_1981_0262_1_0000_00_1__cikis",
+  "n": 60,
+  "clean": 59,
+  "noise": 1,
+  "fid": 0.98,
+  "cls": {
+   "name": 57,
+   "role": 2,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "AJANS_1980_0201_1_0000_00_1__cikis",
+  "n": 189,
+  "clean": 187,
+  "noise": 2,
+  "fid": 0.99,
+  "cls": {
+   "name": 184,
+   "role": 3,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "ALTI_HAFTA_1982_0259_1_0000_00_1__cikis",
+  "n": 147,
+  "clean": 145,
+  "noise": 2,
+  "fid": 0.99,
+  "cls": {
+   "name": 132,
+   "role": 13,
+   "sentence": 2
+  }
+ },
+ {
+  "film": "AŞKIN_GÜCÜ_1988_0383_1_0000_00_1__cikis",
+  "n": 81,
+  "clean": 80,
+  "noise": 1,
+  "fid": 0.99,
+  "cls": {
+   "name": 71,
+   "role": 9,
+   "sentence": 1
+  }
+ },
+ {
+  "film": "20__BULUŞMA_1998_0317_1_0000_00_1__giris",
+  "n": 12,
+  "clean": 12,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 6,
+   "name": 6
+  }
+ },
+ {
+  "film": "ACI_ÇİKOLATA_1992_0478_1_0000_00_1__giris",
+  "n": 48,
+  "clean": 48,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 47,
+   "role": 1
+  }
+ },
+ {
+  "film": "AFRİKA_DA_BİR_YERDE_2001_9173_1_0000_00___giris",
+  "n": 5,
+  "clean": 5,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 5
+  }
+ },
+ {
+  "film": "AİLE_BABASI_2017_1176_1_0000_90_1__giris",
+  "n": 19,
+  "clean": 19,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 14,
+   "role": 5
+  }
+ },
+ {
+  "film": "AKIL_OYUNLARI_2025_1304_1_0000_90_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 1
+  }
+ },
+ {
+  "film": "ALBAY_VE_BEN_1958_0025_1_0000_00_1__cikis",
+  "n": 23,
+  "clean": 23,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 21,
+   "role": 2
+  }
+ },
+ {
+  "film": "ALTI_HAFTA_1982_0259_1_0000_00_1__giris",
+  "n": 24,
+  "clean": 24,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 20,
+   "role": 4
+  }
+ },
+ {
+  "film": "ALTI_SİYAH_AT_1962_0029_1_0000_00_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1
+  }
+ },
+ {
+  "film": "ALTI_SİYAH_AT_1962_0029_1_0000_00_1__giris",
+  "n": 27,
+  "clean": 27,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 23,
+   "role": 4
+  }
+ },
+ {
+  "film": "AMAZONDA_YANGIN_1993_0269_1_0000_00_1__giris",
+  "n": 5,
+  "clean": 5,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 5
+  }
+ },
+ {
+  "film": "AMELIA_EARHART_1976_0181_1_0000_00_1__giris",
+  "n": 7,
+  "clean": 7,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 5,
+   "role": 2
+  }
+ },
+ {
+  "film": "AMERİKADAKİ_AMCAM_1980_0155_1_0000_00_1__cikis",
+  "n": 53,
+  "clean": 53,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 52,
+   "role": 1
+  }
+ },
+ {
+  "film": "AMERİKAN_HAYDUTLARI_2001_9296_1_0000_90___giris",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 1
+  }
+ },
+ {
+  "film": "AMERİKAN_OTELİ_1981_0245_1_0000_00_1__giris",
+  "n": 6,
+  "clean": 6,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 6
+  }
+ },
+ {
+  "film": "AMİRAL_NELSON_1973_0229_1_0000_00_1__giris",
+  "n": 63,
+  "clean": 63,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 51,
+   "role": 12
+  }
+ },
+ {
+  "film": "ANA_KALBİ_1992_0269_1_0000_00_1__cikis",
+  "n": 61,
+  "clean": 61,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 61
+  }
+ },
+ {
+  "film": "ANA_KALBİ_1992_0269_1_0000_00_1__giris",
+  "n": 13,
+  "clean": 13,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 13
+  }
+ },
+ {
+  "film": "APAÇİ_1954_0025_1_0000_00_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1
+  }
+ },
+ {
+  "film": "ASLANLAR_DİYARI_1950_1149_1_0000_90_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1
+  }
+ },
+ {
+  "film": "ASRIN_TAKIMI_2002_9101_1_0000_00_1__giris",
+  "n": 8,
+  "clean": 8,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 7,
+   "role": 1
+  }
+ },
+ {
+  "film": "ASTRONOTUN_KARISI_1999_0333_1_0000_00_1__cikis",
+  "n": 25,
+  "clean": 25,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 7,
+   "name": 18
+  }
+ },
+ {
+  "film": "ASTRONOTUN_KARISI_1999_0333_1_0000_00_1__giris",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 2
+  }
+ },
+ {
+  "film": "AYDAKİ_ADAM_1969_0067_1_0000_00_1__cikis",
+  "n": 30,
+  "clean": 30,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 25,
+   "role": 5
+  }
+ },
+ {
+  "film": "AZAP_YOLU_2002_9185_1_0000_90_1__giris",
+  "n": 4,
+  "clean": 4,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 4
+  }
+ },
+ {
+  "film": "AŞK_CİNAYET_VE_YALAN_1997_0258_1_0000_00__giris",
+  "n": 14,
+  "clean": 14,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 10,
+   "role": 4
+  }
+ },
+ {
+  "film": "AŞK_GÖZYAŞLARINA_İNANMIYOR_1980_0202_1_0__cikis",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 2
+  }
+ },
+ {
+  "film": "AŞK_GÖZYAŞLARINA_İNANMIYOR_1980_0202_1_0__giris",
+  "n": 6,
+  "clean": 6,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 4,
+   "role": 2
+  }
+ },
+ {
+  "film": "AŞK_RÜZGARI_1947_0031_1_0000_00_1__cikis",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 2
+  }
+ },
+ {
+  "film": "AŞK_SİLAHI_2000_0427_1_0000_00_1__giris",
+  "n": 31,
+  "clean": 31,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 25,
+   "role": 6
+  }
+ },
+ {
+  "film": "AŞK_ŞARKISI_1989_0452_1_0000_00_1__cikis",
+  "n": 31,
+  "clean": 31,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 29,
+   "role": 2
+  }
+ },
+ {
+  "film": "AŞK_ŞARKISI_1989_0452_1_0000_00_1__giris",
+  "n": 9,
+  "clean": 9,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 9
+  }
+ },
+ {
+  "film": "AŞKIN_BÜYÜSÜ_1998_0438_1_0000_00_1__giris",
+  "n": 15,
+  "clean": 15,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 13,
+   "role": 2
+  }
+ },
+ {
+  "film": "AŞKIN_GÜCÜ_1988_0383_1_0000_00_1__giris",
+  "n": 16,
+  "clean": 16,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 8,
+   "role": 8
+  }
+ },
+ {
+  "film": "AŞKIN_GÜCÜ___WELLS__Lİ_TRELAWNY_1993_029__giris",
+  "n": 6,
+  "clean": 6,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1,
+   "name": 5
+  }
+ },
+ {
+  "film": "BABAM_VE_BEN_1970_0059_1_0000_00_1__giris",
+  "n": 11,
+  "clean": 11,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 10,
+   "role": 1
+  }
+ },
+ {
+  "film": "BAY_KLOMP_1978_0234_1_0000_00_1__cikis",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 2
+  }
+ },
+ {
+  "film": "BEBEK_JANE_E_NE_OLDU_1962_0015_1_0000_00__giris",
+  "n": 13,
+  "clean": 13,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 11,
+   "role": 2
+  }
+ },
+ {
+  "film": "BEKLENMEDİK_MİRAS_1988_1185_1_0000_00_1__cikis",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1,
+   "name": 1
+  }
+ },
+ {
+  "film": "BELKİ_BİR_GÜN_1992_0442_1_0000_00_1__giris",
+  "n": 2,
+  "clean": 2,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 2
+  }
+ },
+ {
+  "film": "BEN_HUR_1959_1205_1_0000_50_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1
+  }
+ },
+ {
+  "film": "BENİM_KALBİMİ_KIRMA_1999_0418_1_0000_00___giris",
+  "n": 12,
+  "clean": 12,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 12
+  }
+ },
+ {
+  "film": "BENİMLE_DANS_ET_1998_0377_1_0000_00_1__giris",
+  "n": 18,
+  "clean": 18,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 17,
+   "role": 1
+  }
+ },
+ {
+  "film": "BEYAZ_PERDE_SESSİZ_SEVGİLİLER_1980_0193___giris",
+  "n": 18,
+  "clean": 18,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 15,
+   "role": 3
+  }
+ },
+ {
+  "film": "BEŞ_KOLAY_PARÇA_1970_1009_1_0000_50_1__cikis",
+  "n": 29,
+  "clean": 29,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 29
+  }
+ },
+ {
+  "film": "BİRKAÇ_DOLAR_İÇİN_1965_0045_1_0000_90_1__cikis",
+  "n": 1,
+  "clean": 1,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 1
+  }
+ },
+ {
+  "film": "BİZİM_GİBİ_HIRSIZLAR_1974_0184_1_0000_00__giris",
+  "n": 3,
+  "clean": 3,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 3
+  }
+ },
+ {
+  "film": "BOKSÖRÜN_ÖLÜMÜ_1946_0024_1_0000_00_1__cikis",
+  "n": 35,
+  "clean": 35,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 4,
+   "name": 31
+  }
+ },
+ {
+  "film": "BORSA_1987_0330_1_0000_00_1__cikis",
+  "n": 4,
+  "clean": 4,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "name": 3,
+   "role": 1
+  }
+ },
+ {
+  "film": "BURADA_MUTLUYUM_1966_0025_1_0000_00_1__cikis",
+  "n": 10,
+  "clean": 10,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 3,
+   "name": 7
+  }
+ },
+ {
+  "film": "BÜTÜN_KIZLAR_BİLİR_1959_0017_1_0000_00_1__cikis",
+  "n": 4,
+  "clean": 4,
+  "noise": 0,
+  "fid": 1.0,
+  "cls": {
+   "role": 2,
+   "name": 2
+  }
+ }
+]

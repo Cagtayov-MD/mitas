@@ -1,0 +1,1370 @@
+[
+ {
+  "film": "ACEMİLER_ÇETESİ_1974_0205_1_0000_90_1__cikis",
+  "n": 18,
+  "low": 0,
+  "medconf": 0.5,
+  "gf": 0.09,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AJANS_1980_0201_1_0000_00_1__cikis",
+  "n": 189,
+  "low": 1,
+  "medconf": 0.5,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALBAY_VE_BEN_1958_0025_1_0000_00_1__cikis",
+  "n": 23,
+  "low": 0,
+  "medconf": 0.5,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKAN_HAYDUTLARI_2001_9296_1_0000_90___cikis",
+  "n": 262,
+  "low": 2,
+  "medconf": 0.5,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AYDAKİ_ADAM_1969_0067_1_0000_00_1__cikis",
+  "n": 30,
+  "low": 3,
+  "medconf": 0.5,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AZAP_YOLU_2002_9185_1_0000_90_1__cikis",
+  "n": 346,
+  "low": 8,
+  "medconf": 0.5,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_SİLAHI_2000_0427_1_0000_00_1__cikis",
+  "n": 137,
+  "low": 4,
+  "medconf": 0.5,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_BÜYÜSÜ_1998_0438_1_0000_00_1__cikis",
+  "n": 285,
+  "low": 6,
+  "medconf": 0.5,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEKARLIĞA_VEDA_2003_9142_1_0000_00_1__cikis",
+  "n": 316,
+  "low": 0,
+  "medconf": 0.5,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BERBER_DÜKKANI_2_2004_9115_1_0000_00_1__cikis",
+  "n": 226,
+  "low": 0,
+  "medconf": 0.5,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BIBI_BLOCKSBERG_2002_9022_1_0000_00_1__cikis",
+  "n": 253,
+  "low": 2,
+  "medconf": 0.5,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİR_BÜLBÜL_ÖTTÜ_1989_0357_1_0000_00_1__cikis",
+  "n": 109,
+  "low": 0,
+  "medconf": 0.5,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BRONX_SOKAKLARINDA_1981_0262_1_0000_00_1__cikis",
+  "n": 60,
+  "low": 1,
+  "medconf": 0.5,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BIRDY_1984_0257_1_0000_00_1__cikis",
+  "n": 193,
+  "low": 2,
+  "medconf": 0.52,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_CİNAYET_VE_YALAN_1997_0258_1_0000_00__cikis",
+  "n": 145,
+  "low": 0,
+  "medconf": 0.53,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AHLAT_AĞACI_2018_9024_1_0000_90_1__cikis",
+  "n": 242,
+  "low": 2,
+  "medconf": 0.57,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABAM_VE_BEN_1970_0059_1_0000_00_1__cikis",
+  "n": 69,
+  "low": 1,
+  "medconf": 0.6,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALICE_HARİKALAR_DİYARINDA_1951_0030_1_00__cikis",
+  "n": 18,
+  "low": 0,
+  "medconf": 0.67,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_NOSTALJİSİ_1990_0283_1_0000_00_1__cikis",
+  "n": 91,
+  "low": 2,
+  "medconf": 0.67,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTI_HAFTA_1982_0259_1_0000_00_1__cikis",
+  "n": 147,
+  "low": 2,
+  "medconf": 0.7,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BENİMLE_DANS_ET_1998_0377_1_0000_00_1__cikis",
+  "n": 48,
+  "low": 0,
+  "medconf": 0.71,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFRİKA_DA_BİR_YERDE_2001_9173_1_0000_00___cikis",
+  "n": 257,
+  "low": 14,
+  "medconf": 0.73,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİR_SİLAHŞÖRÜN_ÖLÜMÜ_1969_0058_1_0000_00__cikis",
+  "n": 24,
+  "low": 1,
+  "medconf": 0.8,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEBEK_1995_0320_1_0000_00_1__cikis",
+  "n": 429,
+  "low": 6,
+  "medconf": 0.92,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BELKİ_BİR_GÜN_1992_0442_1_0000_00_1__cikis",
+  "n": 138,
+  "low": 9,
+  "medconf": 0.93,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "20__BULUŞMA_1998_0317_1_0000_00_1__cikis",
+  "n": 204,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "20__BULUŞMA_1998_0317_1_0000_00_1__giris",
+  "n": 12,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "300_SPARTALI_2006_9143_1_0000_90_1__giris",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ACEMİLER_ÇETESİ_1974_0205_1_0000_90_1__giris",
+  "n": 41,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ACI_ÇİKOLATA_1992_0478_1_0000_00_1__cikis",
+  "n": 238,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ACI_ÇİKOLATA_1992_0478_1_0000_00_1__giris",
+  "n": 48,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFFEDİLMEYEN_1992_1072_1_0000_50_1__cikis",
+  "n": 215,
+  "low": 5,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFFEDİLMEYEN_1992_1072_1_0000_50_1__giris",
+  "n": 21,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFFEDİLMEYENLER_1960_0049_1_0000_00_1__cikis",
+  "n": 10,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.06,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFFEDİLMEYENLER_1960_0049_1_0000_00_1__giris",
+  "n": 53,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AFRİKA_DA_BİR_YERDE_2001_9173_1_0000_00___giris",
+  "n": 5,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AHLAT_AĞACI_2018_9024_1_0000_90_1__giris",
+  "n": 20,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AİLE_BABASI_2017_1176_1_0000_90_1__cikis",
+  "n": 398,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AİLE_BABASI_2017_1176_1_0000_90_1__giris",
+  "n": 19,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AJANS_1980_0201_1_0000_00_1__giris",
+  "n": 41,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.07,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AKIL_OYUNLARI_2025_1304_1_0000_90_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AL_JOLSON_UN_HAYATI_1946_0031_1_0000_00___cikis",
+  "n": 8,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AL_JOLSON_UN_HAYATI_1946_0031_1_0000_00___giris",
+  "n": 57,
+  "low": 2,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALBAY_VE_BEN_1958_0025_1_0000_00_1__giris",
+  "n": 68,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALICE_HARİKALAR_DİYARINDA_1951_0030_1_00__giris",
+  "n": 100,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALKATRAZ_KUŞÇUSU_1962_0034_1_0000_00_1__cikis",
+  "n": 51,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTI_HAFTA_1982_0259_1_0000_00_1__giris",
+  "n": 24,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTI_SİYAH_AT_1962_0029_1_0000_00_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTI_SİYAH_AT_1962_0029_1_0000_00_1__giris",
+  "n": 27,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTIN_ADAM_1939_0027_1_0000_00_1__cikis",
+  "n": 16,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALTIN_ADAM_1939_0027_1_0000_00_1__giris",
+  "n": 37,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALVAREZ_KELLY_1966_0058_1_0000_00_1__cikis",
+  "n": 44,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ALVAREZ_KELLY_1966_0058_1_0000_00_1__giris",
+  "n": 62,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.07,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMAZONDA_YANGIN_1993_0269_1_0000_00_1__cikis",
+  "n": 51,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMAZONDA_YANGIN_1993_0269_1_0000_00_1__giris",
+  "n": 5,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMELIA_EARHART_1976_0181_1_0000_00_1__cikis",
+  "n": 81,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.15,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMELIA_EARHART_1976_0181_1_0000_00_1__giris",
+  "n": 7,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKADAKİ_AMCAM_1980_0155_1_0000_00_1__cikis",
+  "n": 53,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKADAKİ_AMCAM_1980_0155_1_0000_00_1__giris",
+  "n": 58,
+  "low": 6,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKAN_HAYDUTLARI_2001_9296_1_0000_90___giris",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKAN_OTELİ_1981_0245_1_0000_00_1__cikis",
+  "n": 105,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMERİKAN_OTELİ_1981_0245_1_0000_00_1__giris",
+  "n": 6,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMİRAL_NELSON_1973_0229_1_0000_00_1__cikis",
+  "n": 33,
+  "low": 1,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMİRAL_NELSON_1973_0229_1_0000_00_1__giris",
+  "n": 63,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMY_NİN_TALİHSİZLİKLERİ_1999_0489_1_0000__cikis",
+  "n": 8,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.14,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AMY_NİN_TALİHSİZLİKLERİ_1999_0489_1_0000__giris",
+  "n": 27,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ANA_KALBİ_1992_0269_1_0000_00_1__cikis",
+  "n": 61,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ANA_KALBİ_1992_0269_1_0000_00_1__giris",
+  "n": 13,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ANTON_ÇEHOV_UN_BİR_AŞKI_1988_1846_1_0000__giris",
+  "n": 62,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.15,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "APAÇİ_1954_0025_1_0000_00_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "APAÇİ_1954_0025_1_0000_00_1__giris",
+  "n": 62,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.07,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASLAN_YÜREKLİ_ÇAVUŞ_1941_0017_1_0000_00___cikis",
+  "n": 108,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASLAN_YÜREKLİ_ÇAVUŞ_1941_0017_1_0000_00___giris",
+  "n": 50,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASLANLAR_DİYARI_1950_1149_1_0000_90_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASLANLAR_DİYARI_1950_1149_1_0000_90_1__giris",
+  "n": 59,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASRIN_TAKIMI_2002_9101_1_0000_00_1__cikis",
+  "n": 147,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASRIN_TAKIMI_2002_9101_1_0000_00_1__giris",
+  "n": 8,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASTRONOTUN_KARISI_1999_0333_1_0000_00_1__cikis",
+  "n": 25,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "ASTRONOTUN_KARISI_1999_0333_1_0000_00_1__giris",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AT_DELİSİ_2001_9192_1_0000_00_1__cikis",
+  "n": 120,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AT_DELİSİ_2001_9192_1_0000_00_1__giris",
+  "n": 23,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AYDAKİ_ADAM_1969_0067_1_0000_00_1__giris",
+  "n": 51,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AYRILIK_2001_9342_1_0000_00_1__giris",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.2,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AZAP_YOLU_2002_9185_1_0000_90_1__giris",
+  "n": 4,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_CİNAYET_VE_YALAN_1997_0258_1_0000_00__giris",
+  "n": 14,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_GÖZYAŞLARINA_İNANMIYOR_1980_0202_1_0__cikis",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_GÖZYAŞLARINA_İNANMIYOR_1980_0202_1_0__giris",
+  "n": 6,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.25,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_RÜZGARI_1947_0031_1_0000_00_1__cikis",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_RÜZGARI_1947_0031_1_0000_00_1__giris",
+  "n": 63,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_SİLAHI_2000_0427_1_0000_00_1__giris",
+  "n": 31,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.09,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_ŞARKISI_1989_0452_1_0000_00_1__cikis",
+  "n": 31,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞK_ŞARKISI_1989_0452_1_0000_00_1__giris",
+  "n": 9,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_BÜYÜSÜ_1998_0438_1_0000_00_1__giris",
+  "n": 15,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_GÜCÜ_1988_0383_1_0000_00_1__cikis",
+  "n": 81,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_GÜCÜ_1988_0383_1_0000_00_1__giris",
+  "n": 16,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_GÜCÜ___WELLS__Lİ_TRELAWNY_1993_029__cikis",
+  "n": 65,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "AŞKIN_GÜCÜ___WELLS__Lİ_TRELAWNY_1993_029__giris",
+  "n": 6,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_1966_0021_1_0000_00_1__cikis",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_1966_0021_1_0000_00_1__giris",
+  "n": 68,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_2_1974_0161_1_0000_90_1__cikis",
+  "n": 228,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_2_1974_0161_1_0000_90_1__giris",
+  "n": 10,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABA_NOSTALJİSİ_1990_0283_1_0000_00_1__giris",
+  "n": 59,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BABAM_VE_BEN_1970_0059_1_0000_00_1__giris",
+  "n": 11,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BATIYA_GİDEN_YOL_1967_0052_1_0000_00_1__cikis",
+  "n": 69,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BATIYA_GİDEN_YOL_1967_0052_1_0000_00_1__giris",
+  "n": 88,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BAY_KLOMP_1978_0234_1_0000_00_1__cikis",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BAŞKALARININ_HAYATI_2006_9102_1_0000_00___cikis",
+  "n": 276,
+  "low": 1,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BAŞKALARININ_HAYATI_2006_9102_1_0000_00___giris",
+  "n": 4,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.17,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BAŞKASININ_ÇOCUĞU_1994_0376_1_0000_00_1__cikis",
+  "n": 67,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BAŞKASININ_ÇOCUĞU_1994_0376_1_0000_00_1__giris",
+  "n": 29,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEBEK_1995_0320_1_0000_00_1__giris",
+  "n": 40,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEBEK_JANE_E_NE_OLDU_1962_0015_1_0000_00__giris",
+  "n": 13,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.1,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEKARLIĞA_VEDA_2003_9142_1_0000_00_1__giris",
+  "n": 39,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEKLENMEDİK_MİRAS_1988_1185_1_0000_00_1__cikis",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.2,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEKLENMEDİK_MİRAS_1988_1185_1_0000_00_1__giris",
+  "n": 60,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.05,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BELKİ_BİR_GÜN_1992_0442_1_0000_00_1__giris",
+  "n": 2,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEN_HUR_1959_1205_1_0000_50_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEN_HUR_1959_1205_1_0000_50_1__giris",
+  "n": 11,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BENİM_KALBİMİ_KIRMA_1999_0418_1_0000_00___giris",
+  "n": 12,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BENİMLE_DANS_ET_1998_0377_1_0000_00_1__giris",
+  "n": 18,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BERBER_DÜKKANI_2_2004_9115_1_0000_00_1__giris",
+  "n": 47,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_KUĞU_1981_0277_1_0000_00_1__cikis",
+  "n": 28,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.12,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_KUĞU_1981_0277_1_0000_00_1__giris",
+  "n": 45,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_PERDE_SESSİZ_SEVGİLİLER_1980_0193___cikis",
+  "n": 46,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_PERDE_SESSİZ_SEVGİLİLER_1980_0193___giris",
+  "n": 18,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_YALANLAR_1998_0522_1_0000_00_1__cikis",
+  "n": 327,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEYAZ_YALANLAR_1998_0522_1_0000_00_1__giris",
+  "n": 30,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEŞ_KOLAY_PARÇA_1970_1009_1_0000_50_1__cikis",
+  "n": 29,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEŞ_KOLAY_PARÇA_1970_1009_1_0000_50_1__giris",
+  "n": 93,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEŞ_PENİ_VERSENE_1959_0043_1_0000_01_1__cikis",
+  "n": 7,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.06,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BEŞ_PENİ_VERSENE_1959_0043_1_0000_01_1__giris",
+  "n": 61,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BIBI_BLOCKSBERG_2002_9022_1_0000_00_1__giris",
+  "n": 18,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.07,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BIRDY_1984_0257_1_0000_00_1__giris",
+  "n": 26,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİR_BÜLBÜL_ÖTTÜ_1989_0357_1_0000_00_1__giris",
+  "n": 16,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİR_SİLAHŞÖRÜN_ÖLÜMÜ_1969_0058_1_0000_00__giris",
+  "n": 92,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.06,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİR_VARMIŞ_BİR_YOKMUŞ_1987_0364_1_0000_0__cikis",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİRKAÇ_DOLAR_İÇİN_1965_0045_1_0000_90_1__cikis",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.09,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİRKAÇ_DOLAR_İÇİN_1965_0045_1_0000_90_1__giris",
+  "n": 70,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.03,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİTMEYEN_KİN_1975_0224_1_0000_00_1__giris",
+  "n": 42,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BİZİM_GİBİ_HIRSIZLAR_1974_0184_1_0000_00__giris",
+  "n": 3,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BOKSÖRÜN_ÖLÜMÜ_1946_0024_1_0000_00_1__cikis",
+  "n": 35,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BOKSÖRÜN_ÖLÜMÜ_1946_0024_1_0000_00_1__giris",
+  "n": 61,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BORSA_1987_0330_1_0000_00_1__giris",
+  "n": 26,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.08,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BOYU_BOYUMA_2016_1022_1_0000_60_1__giris",
+  "n": 39,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BROADWAY_ÜZERİNDE_KURŞUNLAR_1994_0403_1___cikis",
+  "n": 305,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BROADWAY_ÜZERİNDE_KURŞUNLAR_1994_0403_1___giris",
+  "n": 41,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BRONX_SOKAKLARINDA_1981_0262_1_0000_00_1__giris",
+  "n": 41,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BROOKER_1990_0317_1_0000_00_1__cikis",
+  "n": 114,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BROOKER_1990_0317_1_0000_00_1__giris",
+  "n": 23,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.06,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BUDAPEŞTE_MASALLARI_1977_0226_1_0000_00___giris",
+  "n": 88,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.04,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BURADA_MUTLUYUM_1966_0025_1_0000_00_1__cikis",
+  "n": 10,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BURADA_MUTLUYUM_1966_0025_1_0000_00_1__giris",
+  "n": 80,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BUĞDAY_2014_0038_1_0000_90_1__giris",
+  "n": 25,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.07,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BÜTÜN_KIZLAR_BİLİR_1959_0017_1_0000_00_1__cikis",
+  "n": 4,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BÜTÜN_KIZLAR_BİLİR_1959_0017_1_0000_00_1__giris",
+  "n": 43,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.01,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "BÜTÜN_SAADETLER_MÜMKÜNDÜR_2015_0132_1_00__giris",
+  "n": 38,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.02,
+  "bucket": "GÜVENİLİR"
+ },
+ {
+  "film": "300_SPARTALI_2006_9143_1_0000_90_1__cikis",
+  "n": 498,
+  "low": 60,
+  "medconf": 0.5,
+  "gf": 0.01,
+  "bucket": "GÖZDEN-GEÇİR"
+ },
+ {
+  "film": "BENİM_KALBİMİ_KIRMA_1999_0418_1_0000_00___cikis",
+  "n": 194,
+  "low": 27,
+  "medconf": 0.54,
+  "gf": 0.02,
+  "bucket": "GÖZDEN-GEÇİR"
+ },
+ {
+  "film": "BUĞDAY_2014_0038_1_0000_90_1__cikis",
+  "n": 266,
+  "low": 38,
+  "medconf": 0.67,
+  "gf": 0.02,
+  "bucket": "GÖZDEN-GEÇİR"
+ },
+ {
+  "film": "ANTON_ÇEHOV_UN_BİR_AŞKI_1988_1846_1_0000__cikis",
+  "n": 3,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.39,
+  "bucket": "GÖZDEN-GEÇİR"
+ },
+ {
+  "film": "BORSA_1987_0330_1_0000_00_1__cikis",
+  "n": 4,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.5,
+  "bucket": "GÖZDEN-GEÇİR"
+ },
+ {
+  "film": "BOYU_BOYUMA_2016_1022_1_0000_60_1__cikis",
+  "n": 268,
+  "low": 123,
+  "medconf": 0.36,
+  "gf": 0.02,
+  "bucket": "ZOR"
+ },
+ {
+  "film": "BİTMEYEN_KİN_1975_0224_1_0000_00_1__cikis",
+  "n": 52,
+  "low": 35,
+  "medconf": 0.4,
+  "gf": 0.04,
+  "bucket": "ZOR"
+ },
+ {
+  "film": "ALLAH_GELECEK_2010_9284_1_0000_88_1__cikis",
+  "n": 57,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.77,
+  "bucket": "ZOR(yabancı/garble)"
+ },
+ {
+  "film": "ALLAH_GELECEK_2010_9284_1_0000_88_1__giris",
+  "n": 1,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 1.0,
+  "bucket": "ZOR(yabancı/garble)"
+ },
+ {
+  "film": "BUDAPEŞTE_MASALLARI_1977_0226_1_0000_00___cikis",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.67,
+  "bucket": "ZOR(yabancı/garble)"
+ },
+ {
+  "film": "AKIL_OYUNLARI_2025_1304_1_0000_90_1__giris",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "BOŞ"
+ },
+ {
+  "film": "AYRI_MASALLAR_1983_0271_1_0000_00_1__cikis",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "BOŞ"
+ },
+ {
+  "film": "BABAMIN_BÜYÜDÜĞÜ_YAZ_1993_0301_1_0000_00__cikis",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "BOŞ"
+ },
+ {
+  "film": "BİR_VARMIŞ_BİR_YOKMUŞ_1987_0364_1_0000_0__giris",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "BOŞ"
+ },
+ {
+  "film": "BİZİM_GİBİ_HIRSIZLAR_1974_0184_1_0000_00__cikis",
+  "n": 0,
+  "low": 0,
+  "medconf": 1.0,
+  "gf": 0.0,
+  "bucket": "BOŞ"
+ }
+]
