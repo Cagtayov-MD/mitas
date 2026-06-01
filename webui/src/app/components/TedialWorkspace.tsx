@@ -1,24 +1,28 @@
-import { Database, DownloadCloud, LogIn, RefreshCw, Search, SplitSquareHorizontal, Volume2, XCircle } from 'lucide-react';
+import { Clock3, Database, DownloadCloud, FileText, LogIn, RefreshCw, Search, SplitSquareHorizontal, Volume2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, ScrollArea } from './ui';
+import { fetchRecentAsrJobs, formatClock, type AsrJob } from '../asr-api';
 import {
   autoLoginTedialSession,
+  DEFAULT_TEDIAL_CHANNEL_MODE,
   fetchTedialSession,
   forgetTedialSession,
+  getRememberedTedialJobIds,
+  openTedialMediaInMitas,
   searchTedial,
-  startTedialAsrJob,
   startTedialSession,
   tedialDurationSeconds,
   tedialKeyframeProxyUrl,
   type TedialAsrChannelMode,
   type TedialAudioTrack,
-  type TedialImportResult,
+  type TedialMediaImportResult,
   type TedialSearchResult,
   type TedialSession,
 } from '../tedial-api';
 
 interface TedialWorkspaceProps {
-  onImportToMitas: (result: TedialImportResult) => Promise<void>;
+  onImportToMitas: (result: TedialMediaImportResult) => Promise<void>;
+  onOpenJobLog: (job: AsrJob) => void;
 }
 
 const STATUS_LABEL: Record<TedialSession['status'], string> = {
@@ -29,7 +33,7 @@ const STATUS_LABEL: Record<TedialSession['status'], string> = {
   error: 'Hata',
 };
 
-export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
+export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspaceProps) {
   const [session, setSession] = useState<TedialSession | null>(null);
   const [remember, setRemember] = useState(true);
   const [query, setQuery] = useState('34-*');
@@ -39,7 +43,8 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [audioTrack, setAudioTrack] = useState<TedialAudioTrack>(0);
-  const [channelMode, setChannelMode] = useState<TedialAsrChannelMode>('split');
+  const [channelMode, setChannelMode] = useState<TedialAsrChannelMode>(DEFAULT_TEDIAL_CHANNEL_MODE);
+  const [recentTedialJobs, setRecentTedialJobs] = useState<AsrJob[]>([]);
 
   const selected = items[selectedIndex] ?? null;
   const keyframeUrl = useMemo(() => selected ? tedialKeyframeProxyUrl(selected) : null, [selected]);
@@ -48,6 +53,20 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
     fetchTedialSession(true)
       .then(setSession)
       .catch((error) => setMessage(error instanceof Error ? error.message : 'Tedial durumu alınamadı'));
+  }, []);
+
+  const loadRecentTedialJobs = async () => {
+    const rememberedIds = new Set(getRememberedTedialJobIds());
+    if (rememberedIds.size === 0) {
+      setRecentTedialJobs([]);
+      return;
+    }
+    const jobs = await fetchRecentAsrJobs(100, { compact: true });
+    setRecentTedialJobs(jobs.filter((job) => rememberedIds.has(job.job_id)).slice(0, 8));
+  };
+
+  useEffect(() => {
+    loadRecentTedialJobs().catch(() => undefined);
   }, []);
 
   const refreshSession = async (useHealth = false) => {
@@ -116,9 +135,9 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
       return;
     }
     setIsImporting(true);
-    setMessage(`MITAS stream + STT başlatılıyor · Kanal ${audioTrack + 1}`);
+    setMessage(`MITAS'ta açılıyor · Kanal ${audioTrack + 1}`);
     try {
-      const result = await startTedialAsrJob(selected, { audioTrack, channelMode });
+      const result = openTedialMediaInMitas(selected, { audioTrack, channelMode });
       await onImportToMitas(result);
       setMessage('MITAS Analiz İstasyonu açıldı');
     } catch (error) {
@@ -200,7 +219,39 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
           <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-1 p-2">
               {items.length === 0 ? (
-                <div className="p-6 text-center text-xs text-foreground-muted">Sonuç yok</div>
+                <div className="space-y-2">
+                  <div className="px-2 pt-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                    Son Tedial İşleri
+                  </div>
+                  {recentTedialJobs.length === 0 ? (
+                    <div className="rounded-sm border border-border-subtle bg-app-shell/50 p-4 text-center text-xs text-foreground-muted">
+                      Henüz Tedial STT işi yok. MITAS'ta açtıktan sonra ana ekranda STT başlatınca burada kalır.
+                    </div>
+                  ) : recentTedialJobs.map((job) => (
+                    <div key={job.job_id} className="rounded-sm border border-border-subtle bg-app-shell/45 p-2">
+                      <div className="flex items-start gap-2">
+                        <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-info" />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-semibold text-foreground-strong">{job.filename}</div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-foreground-muted">
+                            <span>{formatTedialDate(job.created_at)}</span>
+                            <span>{formatClock(job.summary?.audio_duration)}</span>
+                            <span>{job.summary?.clean_segments ?? 0} seg</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <Badge variant={job.status === 'done' ? 'success' : job.status === 'failed' ? 'danger' : job.status === 'partial' ? 'warning' : 'secondary'}>
+                          {job.status}
+                        </Badge>
+                        <Button size="xs" variant="outline" className="gap-1" onClick={() => onOpenJobLog(job)}>
+                          <Clock3 className="h-3 w-3" />
+                          Logda aç
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : items.map((item, index) => (
                 <button
                   key={`${item.repository_id}-${item.asset_id}-${index}`}
@@ -259,11 +310,11 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
                   </Button>
                 ))}
               </div>
-              <div className="flex h-8 items-center rounded-sm border border-border-subtle bg-app-shell/70 p-0.5" title="ASR kanal çözümleme modu">
+              <div className="flex h-8 items-center rounded-sm border border-border-subtle bg-app-shell/70 p-0.5" title="Ana ekranda STT başlatılırsa kullanılacak kanal modu">
                 <SplitSquareHorizontal className="mx-1.5 h-3.5 w-3.5 text-foreground-muted" />
                 {([
-                  ['split', '1+2'],
                   ['auto', 'Auto'],
+                  ['split', '1+2'],
                 ] as const).map(([value, label]) => (
                   <Button
                     key={value}
@@ -279,7 +330,7 @@ export function TedialWorkspace({ onImportToMitas }: TedialWorkspaceProps) {
               </div>
               <Button size="sm" className="gap-2 bg-info-strong text-white hover:bg-info" disabled={!selected || isImporting} onClick={handleImport}>
                 <DownloadCloud className="h-3.5 w-3.5" />
-                {isImporting ? 'Başlatılıyor' : 'MITAS’ta Aç + STT'}
+                {isImporting ? 'Açılıyor' : 'MITAS’ta Aç'}
               </Button>
             </div>
           </div>
@@ -319,4 +370,16 @@ function formatTedialDuration(seconds: number | null | undefined): string {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatTedialDate(value: string | null | undefined): string {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }

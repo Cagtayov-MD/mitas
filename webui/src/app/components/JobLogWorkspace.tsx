@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   CheckCircle2,
   Clock3,
   FileText,
   FolderOpen,
+  Globe2,
   ListChecks,
   Loader2,
   PlayCircle,
@@ -25,7 +24,14 @@ import {
   type AsrJob,
   type AsrJobStatus,
 } from '../asr-api';
+import { getRememberedTedialJobIds } from '../tedial-api';
 import { Badge, Button, ScrollArea } from './ui';
+import {
+  loadFeedbackEntries,
+  removeFeedbackEntry,
+  subscribeFeedbackEntries,
+  type FeedbackEntry,
+} from '../feedback-log';
 
 interface JobLogWorkspaceProps {
   currentJobId?: string | null;
@@ -33,6 +39,7 @@ interface JobLogWorkspaceProps {
 }
 
 type BadgeVariant = 'default' | 'outline' | 'secondary' | 'success' | 'warning' | 'danger';
+type LogFilter = 'all' | 'today' | 'tedial' | 'uploads' | 'failed' | 'done' | 'marked';
 
 export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProps) {
   const [jobs, setJobs] = useState<AsrJob[]>([]);
@@ -42,8 +49,10 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [logSearch, setLogSearch] = useState('');
+  const [filterMode, setFilterMode] = useState<LogFilter>('all');
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [activeTranscriptMatchIndex, setActiveTranscriptMatchIndex] = useState(0);
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>(() => loadFeedbackEntries());
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const transcriptBoxRef = useRef<HTMLDivElement | null>(null);
@@ -98,9 +107,11 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
     return () => window.clearInterval(interval);
   }, [loadJobs]);
 
+  useEffect(() => subscribeFeedbackEntries(() => setFeedbackEntries(loadFeedbackEntries())), []);
+
   useEffect(() => {
     if (!currentJobId) return;
-    setSelectedJobId((current) => current ?? currentJobId);
+    setSelectedJobId(currentJobId);
   }, [currentJobId]);
 
   useEffect(() => {
@@ -140,12 +151,38 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
   const selectedStatus = selectedJob?.status ?? jobs.find((job) => job.job_id === selectedJobId)?.status;
   const transcript = selectedJob?.transcript?.trim() ?? '';
   const logs = selectedJob?.logs ?? [];
-  const filteredJobs = jobs;
+  const feedbackJobIds = useMemo(() => new Set(feedbackEntries.map((entry) => entry.jobId).filter(Boolean)), [feedbackEntries]);
+  const feedbackCountByJobId = useMemo(() => {
+    const counts = new Map<string, number>();
+    feedbackEntries.forEach((entry) => {
+      if (entry.jobId) {
+        counts.set(entry.jobId, (counts.get(entry.jobId) ?? 0) + 1);
+      }
+    });
+    return counts;
+  }, [feedbackEntries]);
+  const filteredJobs = useMemo(() => {
+    const tedialIds = new Set(getRememberedTedialJobIds());
+    return jobs.filter((job) => {
+      if (filterMode === 'today') return isToday(job.created_at);
+      if (filterMode === 'tedial') return tedialIds.has(job.job_id);
+      if (filterMode === 'uploads') return !tedialIds.has(job.job_id);
+      if (filterMode === 'failed') return job.status === 'failed';
+      if (filterMode === 'done') return job.status === 'done';
+      if (filterMode === 'marked') return feedbackJobIds.has(job.job_id);
+      return true;
+    });
+  }, [feedbackJobIds, filterMode, jobs]);
+  const selectedFeedbackEntries = useMemo(() => {
+    if (!selectedJob?.job_id) return [];
+    return feedbackEntries.filter((entry) => entry.jobId === selectedJob.job_id);
+  }, [feedbackEntries, selectedJob?.job_id]);
   const transcriptMatchCount = useMemo(() => countTextMatches(transcript, transcriptSearch), [transcript, transcriptSearch]);
   const transcriptSummary = selectedJob?.transcript_summary;
   const uncoveredRanges = selectedJob?.summary?.safety?.diagnostics?.uncovered_vad_ranges ?? [];
   const dropReasons = Object.entries(selectedJob?.archive?.quality?.drop_reasons ?? {});
   const errorFlags = selectedJob?.summary?.quality_report?.error_flags ?? [];
+  const languageIntel = selectedJob?.summary?.language_intelligence;
   const artifactRows = selectedJob ? buildArtifactRows(selectedJob) : [];
   const goToTranscriptMatch = useCallback((nextIndex: number) => {
     if (transcriptMatchCount <= 0) {
@@ -216,7 +253,7 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
               <h1 className="truncate text-sm font-bold uppercase tracking-wider text-foreground-strong">Log</h1>
             </div>
             <p className="mt-0.5 text-[10px] uppercase tracking-wider text-foreground-muted">
-              {logSearch.trim() ? `${filteredJobs.length}/${jobs.length} kayıt` : `Son ${jobs.length} kayıt`}
+              {logSearch.trim() || filterMode !== 'all' ? `${filteredJobs.length}/${jobs.length} kayıt` : `Son ${jobs.length} kayıt`}
             </p>
           </div>
           <Button
@@ -246,7 +283,7 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
               type="text"
               value={logSearch}
               onChange={(event) => setLogSearch(event.target.value)}
-              placeholder="Loglarda ara..."
+              placeholder="Log/transcript içinde ara..."
               className="h-7 w-full rounded-sm border border-border-mitas bg-app-shell py-1 pl-7 pr-7 text-xs text-foreground-default focus:border-info-strong focus:outline-none"
             />
             {logSearch ? (
@@ -259,6 +296,27 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
                 <X className="h-3 w-3" />
               </button>
             ) : null}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {([
+              ['all', 'Tümü'],
+              ['today', 'Bugün'],
+              ['tedial', 'Tedial'],
+              ['uploads', 'Yüklenenler'],
+              ['failed', 'Hatalı'],
+              ['done', 'ASR tamamlandı'],
+              ['marked', `Benim işaretlediklerim${feedbackEntries.length ? ` (${feedbackEntries.length})` : ''}`],
+            ] as const).map(([value, label]) => (
+              <Button
+                key={value}
+                size="xs"
+                variant={filterMode === value ? 'secondary' : 'outline'}
+                className="h-6 text-[10px]"
+                onClick={() => setFilterMode(value)}
+              >
+                {label}
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -300,7 +358,15 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
                         <span>{job.summary?.clean_segments ?? 0} seg</span>
                       </div>
                     </div>
-                    <StatusBadge status={job.status} />
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <StatusBadge status={job.status} />
+                      {(feedbackCountByJobId.get(job.job_id) ?? 0) > 0 ? (
+                        <Badge variant="warning" className="gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {feedbackCountByJobId.get(job.job_id)}
+                        </Badge>
+                      ) : null}
+                    </div>
                   </div>
                   <div className="mt-2 flex items-center gap-2 text-[10px] text-foreground-muted">
                     <span className="truncate">{job.summary?.model_name || 'model yok'}</span>
@@ -358,6 +424,18 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
           <ScrollArea className="min-h-0 flex-1">
             <div className="grid gap-4 p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
               <section className="min-w-0 space-y-4">
+                <Panel title="Benim İşaretlediklerim" icon={<AlertTriangle className="h-4 w-4 text-warning" />}>
+                  {selectedFeedbackEntries.length > 0 ? (
+                    <div className="max-h-[260px] overflow-auto rounded-sm border border-warning/25 bg-warning-subtle/10">
+                      {selectedFeedbackEntries.map((entry) => (
+                        <FeedbackEntryRow key={entry.id} entry={entry} onRemove={() => removeFeedbackEntry(entry.id)} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyLine text={feedbackEntries.length > 0 ? 'Bu iş için işaret yok.' : 'Henüz işaretlenmiş hata yok.'} />
+                  )}
+                </Panel>
+
                 <Panel title="İçerik Özeti" icon={<Sparkles className="h-4 w-4 text-info" />}>
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <div className="min-w-0 text-[10px] uppercase tracking-wider text-foreground-muted">
@@ -408,7 +486,7 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
                             }
                           }}
                           placeholder="Bu transcriptte ara..."
-                          className="h-7 w-full rounded-sm border border-border-mitas bg-app-shell py-1 pl-7 pr-[150px] text-xs text-foreground-default focus:border-info-strong focus:outline-none"
+                          className="h-7 w-full rounded-sm border border-border-mitas bg-app-shell py-1 pl-7 pr-[94px] text-xs text-foreground-default focus:border-info-strong focus:outline-none"
                         />
                         {transcriptSearch ? (
                           <div className="absolute right-1 top-1 flex h-5 items-center gap-1">
@@ -423,24 +501,6 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
                               title="Aktif eşleşmeye git"
                             >
                               Git
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => goToTranscriptMatch(activeTranscriptMatchIndex - 1)}
-                              disabled={transcriptMatchCount === 0}
-                              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
-                              title="Önceki eşleşme"
-                            >
-                              <ChevronUp className="h-3 w-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => goToTranscriptMatch(activeTranscriptMatchIndex + 1)}
-                              disabled={transcriptMatchCount === 0}
-                              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
-                              title="Sonraki eşleşme"
-                            >
-                              <ChevronDown className="h-3 w-3" />
                             </button>
                             <button
                               type="button"
@@ -527,6 +587,51 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
                   <Detail label="Modül" value={selectedJob.module_run?.module_run_id || '-'} mono />
                 </Panel>
 
+                {languageIntel && languageIntel.status !== 'disabled' && (
+                  <Panel title="Dil Gözlemi" icon={<Globe2 className="h-4 w-4 text-info" />}>
+                    <div className="mb-3 grid grid-cols-2 gap-2">
+                      <Metric label="Mod" value={languageIntel.mode || '-'} />
+                      <Metric label="Durum" value={languageIntel.status || '-'} />
+                      <Metric label="Master" value={formatLanguageLabel(languageIntel.master_language)} />
+                      <Metric label="Ham skor" value={formatScore(languageIntel.master_raw_score)} />
+                    </div>
+                    <Detail label="Routing" value={languageIntel.routing?.applied ? 'uygulandı' : 'kapalı'} />
+                    <Detail label="Örnek" value={formatClock(languageIntel.sampled_speech_seconds ?? undefined)} />
+                    <Detail label="Süre" value={formatClock(languageIntel.runtime_sec ?? undefined)} />
+                    <Detail label="Karar" value={languageIntel.decision_reason || languageIntel.skipped_reason || '-'} />
+                    {languageIntel.language_distribution && Object.keys(languageIntel.language_distribution).length > 0 && (
+                      <div className="mt-3 space-y-1">
+                        {Object.entries(languageIntel.language_distribution)
+                          .sort(([, first], [, second]) => second - first)
+                          .slice(0, 4)
+                          .map(([language, share]) => (
+                            <Detail key={language} label={formatLanguageLabel(language)} value={formatShare(share)} />
+                          ))}
+                      </div>
+                    )}
+                    {(languageIntel.mixed_window_count || languageIntel.low_confidence_window_count) ? (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {languageIntel.mixed_window_count ? <Badge variant="warning">mixed {languageIntel.mixed_window_count}</Badge> : null}
+                        {languageIntel.low_confidence_window_count ? <Badge variant="warning">low {languageIntel.low_confidence_window_count}</Badge> : null}
+                        {languageIntel.master_language === 'az' ? <Badge variant="warning">AZ routing kapalı</Badge> : null}
+                      </div>
+                    ) : null}
+                    {languageIntel.windows && languageIntel.windows.length > 0 && (
+                      <div className="mt-3 max-h-[150px] overflow-auto rounded-sm border border-border-subtle bg-app-shell/60">
+                        {languageIntel.windows.slice(0, 8).map((window, index) => (
+                          <div key={`${window.start}-${window.end}-${index}`} className="grid grid-cols-[76px_48px_minmax(0,1fr)] gap-2 border-b border-border-subtle/70 px-2 py-1.5 text-[10px] last:border-b-0">
+                            <span className="font-mono text-foreground-muted">{formatClock(window.start)}-{formatClock(window.end)}</span>
+                            <span className="font-mono uppercase text-info">{formatLanguageLabel(window.language)}</span>
+                            <span className="truncate text-foreground-default" title={window.decision_reason}>
+                              {formatScore(window.raw_score)} · {window.decision_reason || '-'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Panel>
+                )}
+
                 <Panel title="Uyarılar" icon={<AlertTriangle className="h-4 w-4 text-warning" />}>
                   {selectedJob.summary?.safety?.failure_reason && (
                     <Detail label="Sebep" value={selectedJob.summary.safety.failure_reason} mono />
@@ -576,6 +681,48 @@ export function JobLogWorkspace({ currentJobId, onOpenJob }: JobLogWorkspaceProp
       </main>
     </div>
   );
+}
+
+function FeedbackEntryRow({ entry, onRemove }: { entry: FeedbackEntry; onRemove: () => void }) {
+  return (
+    <div className="border-b border-warning/20 px-3 py-2 last:border-b-0">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="warning" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {feedbackKindLabel(entry.kind)}
+            </Badge>
+            <span className="font-mono text-[10px] text-warning">
+              {formatClock(entry.start)}-{formatClock(entry.end)}
+            </span>
+            <span className="text-[10px] text-foreground-muted">{formatDate(entry.createdAt, true)}</span>
+          </div>
+          <div className="mt-1 text-[11px] leading-relaxed text-foreground-default">{entry.text}</div>
+          {entry.translationText ? (
+            <div className="mt-1 border-l-2 border-l-warning-strong bg-warning-subtle/20 px-2 py-1 text-[11px] leading-relaxed text-foreground-strong">
+              {entry.translationText}
+              {entry.translationModel ? (
+                <span className="ml-2 font-mono text-[9px] text-foreground-muted">{entry.translationModel}</span>
+              ) : null}
+            </div>
+          ) : null}
+          <div className="mt-1 truncate font-mono text-[9px] text-foreground-muted" title={entry.sourcePath || entry.filename || '-'}>
+            {entry.filename || '-'} · {entry.sourcePath || '-'}
+          </div>
+        </div>
+        <Button size="icon-xs" variant="ghost" onClick={onRemove} title="İşareti kaldır">
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function feedbackKindLabel(kind: FeedbackEntry['kind']): string {
+  if (kind === 'translation') return 'Translate';
+  if (kind === 'ocr') return 'OCR';
+  return 'Transcript';
 }
 
 function StatusBadge({ status }: { status: AsrJobStatus }) {
@@ -706,7 +853,7 @@ function highlightLogText(text: string, query: string, activeIndex = 0) {
 
 function buildArtifactRows(job: AsrJob): Array<[string, string]> {
   const rows: Array<[string, string]> = [
-    ['Kaynak', job.input_path || job.summary?.input_path || '-'],
+    ['Kaynak', job.original_source_path || job.input_path || job.summary?.input_path || '-'],
     ['Çıktı', job.output_dir || '-'],
     ['Job', job.job_dir || '-'],
     ['Log', job.log_path || '-'],
@@ -733,7 +880,40 @@ function formatDate(value: string | null | undefined, timeOnly = false): string 
   }).format(date);
 }
 
+function isToday(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate();
+}
+
 function formatSpeechRatio(value: number | undefined): string {
   if (!Number.isFinite(value ?? NaN)) return '-';
   return `${Math.round((value ?? 0) * 100)}%`;
+}
+
+function formatScore(value: number | null | undefined): string {
+  if (!Number.isFinite(value ?? NaN)) return '-';
+  return `${Math.round((value ?? 0) * 100)}%`;
+}
+
+function formatShare(value: number | null | undefined): string {
+  if (!Number.isFinite(value ?? NaN)) return '-';
+  return `${Math.round((value ?? 0) * 100)}%`;
+}
+
+function formatLanguageLabel(value: string | null | undefined): string {
+  if (!value) return '-';
+  const labels: Record<string, string> = {
+    ar: 'AR',
+    az: 'AZ',
+    en: 'EN',
+    mixed: 'mixed',
+    tr: 'TR',
+    unknown: 'unknown',
+  };
+  return labels[value] ?? value.toUpperCase();
 }

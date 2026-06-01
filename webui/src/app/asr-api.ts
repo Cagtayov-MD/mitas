@@ -40,6 +40,7 @@ export interface AsrJob {
   completed_at?: string | null;
   message?: string | null;
   error?: string | null;
+  original_source_path?: string | null;
   input_path?: string;
   output_dir?: string;
   job_dir?: string;
@@ -83,6 +84,61 @@ export interface AsrJob {
       coverage?: number | null;
       success?: boolean | null;
       reason?: string | null;
+    };
+    language_intelligence?: {
+      enabled?: boolean;
+      mode?: 'off' | 'shadow' | string;
+      status?: string;
+      model_name?: string;
+      model_source?: string;
+      pilot_languages?: string[];
+      unsupported_asr_languages?: string[];
+      timeline_granularity?: string;
+      runtime_sec?: number | null;
+      runtime_budget_seconds?: number | null;
+      sampled_speech_seconds?: number | null;
+      master_language?: string | null;
+      master_raw_score?: number | null;
+      calibrated_confidence?: number | null;
+      calibration_version?: string | null;
+      language_distribution?: Record<string, number>;
+      mixed_window_count?: number;
+      low_confidence_window_count?: number;
+      unsupported_asr?: boolean;
+      pilot_language?: boolean;
+      decision_reason?: string | null;
+      skipped_reason?: string | null;
+      error?: string | null;
+      routing?: {
+        enabled?: boolean;
+        applied?: boolean;
+        reason?: string;
+        guardrails?: Record<string, string>;
+      };
+      eval_requirements?: {
+        minimum_labeled_segments?: number;
+        az_tr_pair_segments_before_routing?: number;
+        code_switching_category_required?: boolean;
+      };
+      windows?: Array<{
+        start: number;
+        end: number;
+        duration?: number;
+        language?: string;
+        decision?: string;
+        raw_score?: number | null;
+        margin?: number | null;
+        calibrated_confidence?: number | null;
+        calibration_version?: string | null;
+        decision_reason?: string;
+        top_candidates?: Array<{
+          language?: string;
+          raw_score?: number | null;
+          calibrated_confidence?: number | null;
+          calibration_version?: string | null;
+        }>;
+      }>;
+      notes?: string[];
     };
     vad?: {
       speech_seconds?: number;
@@ -174,6 +230,12 @@ export interface AsrJob {
     count?: number;
     snippet?: string;
   };
+  module_summary?: Partial<Record<ClipGeneratedDataKind, {
+    status?: string | null;
+    latest_job_id?: string | null;
+    job_count?: number;
+    updated_at?: string | null;
+  }>>;
   segments: AsrSegment[];
   timeline_events?: Array<Record<string, unknown>>;
 }
@@ -204,6 +266,7 @@ export interface TranslationResult {
   model: string;
   source_lang: string;
   target_lang: string;
+  source_variant?: string | null;
   cache_hit: boolean;
   latency_ms: number;
   created_at: string;
@@ -233,8 +296,9 @@ export interface SeekRequest {
   time: number;
 }
 
-export type AnalysisProfile = 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
-export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel';
+export type AnalysisProfile = 'film' | 'dizi' | 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
+export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel' | 'spor';
+export type ClipGeneratedDataKind = 'asr' | 'ocr' | 'face' | 'tag';
 
 export interface AnalysisProfileOption {
   value: AnalysisProfile;
@@ -243,6 +307,8 @@ export interface AnalysisProfileOption {
 }
 
 export const ANALYSIS_PROFILE_OPTIONS: AnalysisProfileOption[] = [
+  { value: 'film', label: 'Film', description: 'İlk 8 oyuncu + yapımcı/yönetmen + özet (künye → PDF)' },
+  { value: 'dizi', label: 'Dizi', description: 'Tüm oyuncular + özet (künye → PDF)' },
   { value: 'documentary', label: 'Belgesel', description: 'Belgesel içerik profili' },
   { value: 'music_entertainment', label: 'Müzik / Eğlence', description: 'Program, konser, performans ve eğlence akışı' },
   { value: 'sports', label: 'Spor Karşılaşmaları', description: 'Maç ve canlı spor yayını profili' },
@@ -267,15 +333,19 @@ export function contentProfileForAnalysisProfile(profile: AnalysisProfile): AsrC
       return 'muzik_programi';
     case 'studio':
       return 'studio_panel';
-    case 'news':
     case 'sports':
+      return 'spor';
+    case 'film':
+    case 'dizi':
+      return 'film';
+    case 'news':
     case 'stt':
     default:
       return 'bulten_haber';
   }
 }
 
-export async function startAsrJob(file: File, analysisProfile: AnalysisProfile = 'stt'): Promise<AsrJob> {
+export async function startAsrJob(file: File, analysisProfile: AnalysisProfile = 'stt', options: { signal?: AbortSignal; force?: boolean } = {}): Promise<AsrJob> {
   const params = new URLSearchParams({
     filename: file.name,
     content_profile: contentProfileForAnalysisProfile(analysisProfile),
@@ -283,11 +353,19 @@ export async function startAsrJob(file: File, analysisProfile: AnalysisProfile =
     channel_mode: 'auto',
     word_alignment_mode: 'whisperx',
   });
+  if (options.force) {
+    params.set('force', 'full');
+  }
+  const sourcePath = localFileSourcePath(file);
+  if (sourcePath) {
+    params.set('original_source_path', sourcePath);
+  }
   const response = await fetch(`/api/asr/transcribe?${params.toString()}`, {
     method: 'POST',
     headers: {
       'content-type': file.type || 'application/octet-stream',
     },
+    signal: options.signal,
     body: file,
   });
 
@@ -295,6 +373,68 @@ export async function startAsrJob(file: File, analysisProfile: AnalysisProfile =
     throw new Error(await readError(response));
   }
   return response.json();
+}
+
+export async function reprocessClipAsr(clipId: string, analysisProfile: AnalysisProfile = 'stt'): Promise<AsrJob> {
+  const params = new URLSearchParams({
+    content_profile: contentProfileForAnalysisProfile(analysisProfile),
+    diarize: 'auto',
+    channel_mode: 'auto',
+    word_alignment_mode: 'whisperx',
+  });
+  const response = await fetch(`/api/clips/${encodeURIComponent(clipId)}/modules/asr/reprocess?${params.toString()}`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return response.json();
+}
+
+export async function processClipAsrRange(
+  clipId: string,
+  range: { start: number; end: number },
+  analysisProfile: AnalysisProfile = 'stt',
+): Promise<AsrJob> {
+  const params = new URLSearchParams({
+    start_seconds: String(range.start),
+    end_seconds: String(range.end),
+    content_profile: contentProfileForAnalysisProfile(analysisProfile),
+    diarize: 'auto',
+    channel_mode: 'auto',
+    word_alignment_mode: 'whisperx',
+  });
+  const response = await fetch(`/api/clips/${encodeURIComponent(clipId)}/modules/asr/range?${params.toString()}`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return response.json();
+}
+
+export async function deleteClipGeneratedData(clipId: string, kind: ClipGeneratedDataKind): Promise<{
+  clip_id: string;
+  module: ClipGeneratedDataKind;
+  deleted: boolean;
+  artifacts_deleted: boolean;
+  module_record_deleted: boolean;
+  deleted_job_ids: string[];
+}> {
+  const response = await fetch(`/api/clips/${encodeURIComponent(clipId)}/modules/${encodeURIComponent(kind)}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return response.json();
+}
+
+export function localFileSourcePath(file: File): string | null {
+  const desktopPath = (file as File & { path?: string }).path;
+  if (desktopPath) return desktopPath;
+  const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
+  return relativePath || null;
 }
 
 export async function fetchAsrJob(jobId: string): Promise<AsrJob> {
@@ -426,10 +566,14 @@ export async function translateAsrSegments(jobId: string, segments: AsrSegment[]
   return results;
 }
 
-export async function translateFreeTextToTurkish(text: string, sourceLang = 'en'): Promise<TranslationResult> {
+export async function translateFreeTextToTurkish(text: string, sourceLang = 'auto'): Promise<TranslationResult> {
   const normalizedText = text.trim();
   if (!normalizedText) {
     throw new Error('Çevrilecek metin boş.');
+  }
+  const effectiveSourceLang = inferSourceLanguage(normalizedText, sourceLang);
+  if (effectiveSourceLang === 'tr') {
+    return originalTurkishResult(normalizedText);
   }
   const response = await fetch('/api/translate/segments', {
     method: 'POST',
@@ -442,7 +586,7 @@ export async function translateFreeTextToTurkish(text: string, sourceLang = 'en'
         {
           segment_id: `live_${Date.now()}`,
           source_text: normalizedText,
-          source_lang: normalizeSourceLanguage(sourceLang) ?? 'en',
+          source_lang: effectiveSourceLang,
         },
       ],
     }),
@@ -495,7 +639,7 @@ export function segmentConfidence(segment: AsrSegment): number {
 
 export function normalizeSourceLanguage(language: string | null | undefined): string | null {
   const value = (language ?? '').trim().toLowerCase().replace('_', '-');
-  if (!value || value === 'unknown' || value === 'und') {
+  if (!value || value === 'unknown' || value === 'und' || value === 'auto') {
     return null;
   }
   if (value.startsWith('en')) {
@@ -503,6 +647,9 @@ export function normalizeSourceLanguage(language: string | null | undefined): st
   }
   if (value.startsWith('tr') || value.startsWith('tur')) {
     return 'tr';
+  }
+  if (value === 'ar' || value === 'ara' || value === 'arabic' || value.startsWith('arb')) {
+    return 'ar';
   }
   return value.split('-')[0] || null;
 }
@@ -523,10 +670,35 @@ export function guessSegmentSourceLanguage(segment: Pick<AsrSegment, 'text' | 'l
   if (isClearlyTurkishText(segment)) {
     return 'tr';
   }
+  const scriptLanguage = detectScriptLanguage(segment.text);
+  if (scriptLanguage && scriptLanguage !== 'tr') {
+    return scriptLanguage;
+  }
   if (normalized && !isTurkishSourceLanguage(normalized)) {
     return normalized;
   }
   return 'en';
+}
+
+function inferSourceLanguage(text: string, declaredLanguage: string | null | undefined): string {
+  const normalized = normalizeSourceLanguage(declaredLanguage);
+  const scriptLanguage = detectScriptLanguage(text);
+  if (scriptLanguage) {
+    return scriptLanguage;
+  }
+  if (isClearlyTurkishText({ text, language: normalized })) {
+    return 'tr';
+  }
+  return normalized ?? 'en';
+}
+
+function detectScriptLanguage(text: string): string | null {
+  const letters = Array.from(text).filter((char) => /\p{L}/u.test(char));
+  if (letters.length === 0) {
+    return null;
+  }
+  const arabicLetters = letters.filter((char) => /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/u.test(char)).length;
+  return arabicLetters / letters.length >= 0.35 ? 'ar' : null;
 }
 
 function isClearlyTurkishText(segment: Pick<AsrSegment, 'text' | 'language'>): boolean {

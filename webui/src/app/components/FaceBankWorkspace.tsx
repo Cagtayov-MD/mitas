@@ -8,7 +8,7 @@ export function FaceBankWorkspace() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-xl font-bold text-foreground-strong">Yüz Bankası Yapım Aşamasında</h2>
+        <h2 className="text-xl font-bold text-foreground-strong">Banka Yapım Aşamasında</h2>
         <p className="text-sm text-foreground-muted max-w-md mx-auto leading-relaxed">
           Bu modül v0.4 sürümünde aktif olacak. Şu anki sürüm ASR (konuşma → metin) modülüne odaklanmıştır.
         </p>

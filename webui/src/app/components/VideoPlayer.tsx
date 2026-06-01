@@ -70,9 +70,10 @@ export function VideoPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [mediaResolution, setMediaResolution] = useState<string | null>(null);
-  const isVideo = Boolean(mediaPreviewUrl && mediaType?.startsWith('video/'));
-  const isDashVideo = Boolean(mediaPreviewUrl && mediaType === 'application/dash+xml');
-  const isAudio = Boolean(mediaPreviewUrl && (mediaType?.startsWith('audio/') || (!isVideo && !isDashVideo)));
+  const effectiveMediaType = normalizeMediaType(mediaType) || inferMediaType(selectedFileName) || inferMediaType(mediaPreviewUrl);
+  const isVideo = Boolean(mediaPreviewUrl && effectiveMediaType?.startsWith('video/'));
+  const isDashVideo = Boolean(mediaPreviewUrl && effectiveMediaType === 'application/dash+xml');
+  const isAudio = Boolean(mediaPreviewUrl && (effectiveMediaType?.startsWith('audio/') || (!isVideo && !isDashVideo)));
   const isSttSelected = analysisProfile === 'stt';
   const selectedProfileLabel = analysisProfileLabel(analysisProfile);
   const duration = saneDuration(playback.duration) || saneDuration(mediaDurationHint) || saneDuration(asrJob?.summary?.audio_duration) || 0;
@@ -273,7 +274,7 @@ export function VideoPlayer({
 
   useEffect(() => {
     const media = mediaRef.current;
-    if (!mediaPreviewUrl || mediaType !== 'application/dash+xml' || !(media instanceof HTMLVideoElement)) {
+    if (!mediaPreviewUrl || effectiveMediaType !== 'application/dash+xml' || !(media instanceof HTMLVideoElement)) {
       return undefined;
     }
     const player = dashjs.MediaPlayer().create();
@@ -288,7 +289,7 @@ export function VideoPlayer({
     return () => {
       player.reset();
     };
-  }, [mediaPreviewUrl, mediaType]);
+  }, [mediaPreviewUrl, effectiveMediaType]);
 
   useEffect(() => {
     connectAudioGraph();
@@ -379,9 +380,14 @@ export function VideoPlayer({
       </div>
 
       {/* Below Video Info Bar */}
-      <div className="h-8 bg-surface border-t border-border-subtle flex items-center px-4 gap-4 shrink-0">
-        <span className="text-[10px] uppercase tracking-wider text-foreground-muted">Ekranda:</span>
-        <div className="flex gap-2 items-center">
+      <div className="grid h-10 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 bg-surface border-t border-border-subtle px-4 shrink-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="shrink-0 text-[10px] uppercase tracking-wider text-foreground-muted">Klip:</span>
+          <span className="min-w-0 truncate text-[12px] font-semibold text-foreground-strong" title={selectedFileName ?? ''}>
+            {selectedFileName || 'Medya seçilmedi'}
+          </span>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 overflow-hidden">
           <span className="text-[11px] text-foreground-default">STT/ASR durumu:</span>
           <Badge variant="outline" className="border-info-border text-info bg-info-subtle">
             {asrJob?.status || (mediaPreviewUrl ? 'başlatılmadı' : 'bekleniyor')}
@@ -401,9 +407,11 @@ export function VideoPlayer({
             <span className="text-[11px] text-foreground-muted">{asrJob.segments.length} segment</span>
           ) : null}
         </div>
-        <div className="ml-auto text-[10px] font-mono text-foreground-muted">
-          {mediaResolution ? `${mediaResolution} · ` : ''}
-          {formatClock(playback.currentTime)} / {formatClock(duration)}
+        <div className="flex shrink-0 items-center gap-3 justify-self-end">
+          <div className="text-[10px] font-mono text-foreground-muted">
+            {mediaResolution ? `${mediaResolution} · ` : ''}
+            {formatClock(playback.currentTime)} / {formatClock(duration)}
+          </div>
         </div>
       </div>
 
@@ -479,6 +487,31 @@ function saneDuration(value: number | null | undefined): number {
   }
   const seconds = Number(value);
   return seconds > 0 && seconds < 24 * 60 * 60 ? seconds : 0;
+}
+
+function inferMediaType(value: string | null | undefined): string | null {
+  const path = value?.split('?')[0] ?? '';
+  const ext = path.split('.').pop()?.toLowerCase();
+  if (!ext) return null;
+  if (['mp4', 'm4v', 'mov'].includes(ext)) return 'video/mp4';
+  if (ext === 'webm') return 'video/webm';
+  if (ext === 'ogg' || ext === 'ogv') return 'video/ogg';
+  if (ext === 'mpd') return 'application/dash+xml';
+  if (ext === 'wav') return 'audio/wav';
+  if (ext === 'mp3') return 'audio/mpeg';
+  if (ext === 'm4a') return 'audio/mp4';
+  if (['flac', 'aac'].includes(ext)) return `audio/${ext}`;
+  return null;
+}
+
+function normalizeMediaType(value: string | null | undefined): string | null {
+  if (!value || value === 'application/octet-stream') {
+    return null;
+  }
+  if (value === 'application/mp4') {
+    return 'video/mp4';
+  }
+  return value;
 }
 
 function resolveAudioListenMode(channels: AsrChannelState): AudioListenMode {

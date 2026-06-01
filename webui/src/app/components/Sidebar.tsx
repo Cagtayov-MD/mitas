@@ -1,8 +1,19 @@
-import { ChevronDown, ChevronUp, Search, SplitSquareHorizontal, Merge, AlertCircle, Info, Lock, Loader2, Radio, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Search, SplitSquareHorizontal, Merge, Info, Lock, Loader2, Radio, Trash2, X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent, ScrollArea, Button, Badge } from './ui';
-import { formatClock, segmentConfidence, shouldOfferTurkishTranslation, translateFreeTextToTurkish, type AsrChannelState, type AsrJob, type AsrJobLog, type SegmentTranslationState, type TranslationResult } from '../asr-api';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { formatClock, segmentConfidence, shouldOfferTurkishTranslation, translateFreeTextToTurkish, type AsrChannelState, type AsrJob, type SegmentTranslationState, type TranslationResult } from '../asr-api';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LiveSttLine, LiveSttPreviewState, LiveSttStatus } from '../live-stt-preview';
+import { FlowQueuePanel, type FlowQueuedMediaRequest } from './FlowQueuePanel';
+import {
+  buildSegmentFeedbackEntry,
+  feedbackEntryId,
+  loadFeedbackEntries,
+  removeFeedbackEntry,
+  subscribeFeedbackEntries,
+  upsertFeedbackEntry,
+  type FeedbackEntry,
+  type FeedbackKind,
+} from '../feedback-log';
 
 function WipPlaceholder({ title, version }: { title: string, version: string }) {
   return (
@@ -23,39 +34,8 @@ function WipPlaceholder({ title, version }: { title: string, version: string }) 
   );
 }
 
-// Severity → semantik renk haritası.
-// Karar: brief'te tanımlı 3 severity (yüksek/orta/düşük) sırasıyla danger/warning/info'ya bağlanır.
-const SEVERITY_BAR_BG: Record<string, string> = {
-  'yüksek': 'bg-danger-strong',
-  'orta': 'bg-warning-strong',
-  'düşük': 'bg-info-strong',
-};
-const SEVERITY_ICON_TEXT: Record<string, string> = {
-  'yüksek': 'text-danger',
-  'orta': 'text-warning',
-  'düşük': 'text-info',
-};
-
-function describeDropReason(reason: string): string {
-  if (reason.startsWith('stock_artifact:')) {
-    const text = reason.replace('stock_artifact:', '');
-    return `Konuşma yerine hazır kalıp/altyazı artefaktı gibi algılandı: "${text}"`;
-  }
-  if (reason.startsWith('no_speech')) {
-    return 'Model bu parçayı konuşma olarak güvenilir bulmadı.';
-  }
-  if (reason.startsWith('repetition_collapse')) {
-    return 'Tekrar eden bozuk transcript üretimi temizlendi.';
-  }
-  if (reason.startsWith('long_token_artifact')) {
-    return 'Aşırı uzun/bozuk kelime çıktısı temizlendi.';
-  }
-  return reason;
-}
-
 interface SidebarProps {
   asrJob: AsrJob | null;
-  uploadError: string | null;
   hasMedia: boolean;
   isSttPreviewEnabled: boolean;
   livePreview: LiveSttPreviewState;
@@ -63,9 +43,11 @@ interface SidebarProps {
   selectedSegmentIndex: number | null;
   isTranslatingAll: boolean;
   segmentTranslations: Record<number, SegmentTranslationState>;
+  panelMode: 'modules' | 'flow';
   onSelectSegment: (index: number) => void;
   onTranslateSegment: (index: number) => void;
   onTranslateAllSegments: () => void;
+  onOpenQueuedMedia: (request: FlowQueuedMediaRequest) => void;
 }
 
 const LIVE_STATUS_CLASS: Record<LiveSttStatus, string> = {
@@ -81,7 +63,6 @@ type ChannelFilter = 'all' | 'L' | 'R';
 
 export function Sidebar({
   asrJob,
-  uploadError,
   hasMedia,
   isSttPreviewEnabled,
   livePreview,
@@ -89,23 +70,21 @@ export function Sidebar({
   selectedSegmentIndex,
   isTranslatingAll,
   segmentTranslations,
+  panelMode,
   onSelectSegment,
   onTranslateSegment,
   onTranslateAllSegments,
+  onOpenQueuedMedia,
 }: SidebarProps) {
   const segments = asrJob?.segments ?? [];
-  const logs = asrJob?.logs ?? [];
-  const qualityDrops = asrJob?.summary?.quality_drops ?? 0;
-  const rawSegments = asrJob?.summary?.raw_segments ?? 0;
-  const dropReasons = Object.entries(asrJob?.archive?.quality?.drop_reasons ?? {});
   const hasTranscript = segments.length > 0;
   const liveBottomRef = useRef<HTMLDivElement | null>(null);
-  const logBottomRef = useRef<HTMLDivElement | null>(null);
   const segmentRefs = useRef<Array<HTMLDivElement | null>>([]);
   const hasLiveTranscript = livePreview.lines.length > 0 || livePreview.partialLine !== null;
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [activeSearchMatchIndex, setActiveSearchMatchIndex] = useState(0);
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>(() => loadFeedbackEntries());
   const hasLeftChannel = segments.some((segment) => segmentChannelKey(segment) === 'L');
   const hasRightChannel = segments.some((segment) => segmentChannelKey(segment) === 'R');
   const hasSplitChannels = hasLeftChannel && hasRightChannel;
@@ -183,87 +162,47 @@ export function Sidebar({
     });
   }, [isSttPreviewEnabled, livePreview.lines.length, livePreview.partialLine?.text, livePreview.status]);
 
-  useEffect(() => {
-    logBottomRef.current?.scrollIntoView({
-      block: 'end',
-      behavior: 'smooth',
-    });
-  }, [logs.length]);
+  useEffect(() => subscribeFeedbackEntries(() => setFeedbackEntries(loadFeedbackEntries())), []);
+
+  const toggleSegmentFeedback = useCallback((
+    segmentIndex: number,
+    kind: FeedbackKind,
+    translationState: SegmentTranslationState | undefined,
+  ) => {
+    const job = asrJob;
+    const segment = job?.segments?.[segmentIndex];
+    if (!job || !segment) return;
+    const id = feedbackEntryId(kind, job.job_id, segmentIndex);
+    if (feedbackEntries.some((entry) => entry.id === id)) {
+      removeFeedbackEntry(id);
+      return;
+    }
+    upsertFeedbackEntry(buildSegmentFeedbackEntry({
+      kind,
+      job,
+      segment,
+      segmentIndex,
+      translation: translationState?.status === 'done' ? translationState.result : undefined,
+    }));
+  }, [asrJob, feedbackEntries]);
 
   return (
     <div className="w-[450px] bg-app-shell border-l border-border-subtle flex flex-col shrink-0 text-foreground-default">
+      <div className={panelMode === 'flow' ? 'flex min-h-0 flex-1' : 'hidden'}>
+        <FlowQueuePanel onOpenMedia={onOpenQueuedMedia} />
+      </div>
+      <div className={panelMode === 'modules' ? 'flex min-h-0 flex-1' : 'hidden'}>
       <Tabs defaultValue="transcript" className="w-full flex flex-col h-full">
         <div className="border-b border-border-subtle bg-app-shell">
-          <TabsList className="w-full grid grid-cols-8 h-auto bg-transparent p-0 rounded-none border-none">
-            <TabsTrigger value="queue" className="relative">
-              Uyarılar
-              {qualityDrops > 0 && <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-danger-strong rounded-full"></span>}
-            </TabsTrigger>
+          <TabsList className="w-full grid grid-cols-4 h-auto bg-transparent p-0 rounded-none border-none">
             <TabsTrigger value="transcript">ASR</TabsTrigger>
             <TabsTrigger value="faces" className="text-foreground-disabled data-[state=active]:text-foreground-muted">Yüzler</TabsTrigger>
             <TabsTrigger value="tags" className="text-foreground-disabled data-[state=active]:text-foreground-muted">Etiketler</TabsTrigger>
             <TabsTrigger value="ocr" className="text-foreground-disabled data-[state=active]:text-foreground-muted">OCR</TabsTrigger>
-            <TabsTrigger value="meta">Bilgi</TabsTrigger>
-            <TabsTrigger value="evidence">Kanıt</TabsTrigger>
-            <TabsTrigger value="logs">Log</TabsTrigger>
           </TabsList>
         </div>
 
         <ScrollArea className="flex-1 bg-app-shell">
-
-          {/* ASR warnings tab */}
-          <TabsContent value="queue" className="p-0 m-0 border-none h-full">
-            <div className="p-3 bg-surface/50 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground-strong">ASR Uyarıları</h3>
-              <Badge variant={qualityDrops > 0 ? 'danger' : 'success'}>{qualityDrops} uyarı</Badge>
-            </div>
-            <div className="p-3 flex flex-col gap-3">
-              {uploadError || asrJob?.status === 'failed' ? (
-                <div className="bg-surface border border-danger-subtle rounded-sm p-3 shadow-sm relative overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-danger-strong"></div>
-                  <div className="flex justify-between items-start mb-2 pl-2">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-3.5 w-3.5 text-danger" />
-                      <span className="text-xs font-semibold text-foreground-strong">ASR Hatası</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-foreground-muted">şimdi</span>
-                  </div>
-                  <p className="text-[11px] text-foreground-muted pl-2 leading-relaxed">{uploadError || asrJob?.error}</p>
-                </div>
-              ) : qualityDrops > 0 ? (
-                <div className="bg-surface border border-warning-subtle rounded-sm p-3 shadow-sm relative overflow-hidden">
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${SEVERITY_BAR_BG['orta']}`}></div>
-                  <div className="flex justify-between items-start mb-2 pl-2">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className={`h-3.5 w-3.5 ${SEVERITY_ICON_TEXT['orta']}`} />
-                      <span className="text-xs font-semibold text-foreground-strong">ASR temizleme filtresi</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-foreground-muted">{qualityDrops} segment</span>
-                  </div>
-                  <p className="text-[11px] text-foreground-muted pl-2 leading-relaxed">
-                    Ham ASR {rawSegments} segment üretti; {qualityDrops} tanesi güvenilir bulunmadığı için temiz transcript'e alınmadı. Bu OCR/Face hatası değil, sadece ASR çıktısını kirleten parçaları ayıklama adımı.
-                  </p>
-                  {dropReasons.length > 0 && (
-                    <div className="mt-2 pl-2 text-[10px] text-foreground-muted space-y-1">
-                      {dropReasons.map(([reason, count]) => (
-                        <div key={reason}>
-                          <span className="text-warning-strong">{count}x</span> {describeDropReason(reason)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-surface border border-border-subtle rounded-sm p-3 text-[11px] text-foreground-muted">
-                  {asrJob
-                    ? 'ASR uyarısı yok.'
-                    : hasMedia
-                      ? 'Medya hazır. STT başlatılmadan uyarı üretilemez.'
-                      : 'Henüz medya yok.'}
-                </div>
-              )}
-            </div>
-          </TabsContent>
 
           {/* Transcript Tab */}
           <TabsContent value="transcript" className="p-0 m-0 border-none">
@@ -292,7 +231,7 @@ export function Sidebar({
                       setTranscriptSearch('');
                     }
                   }}
-                  className="w-full bg-app-shell border border-border-mitas rounded-sm py-1 pl-7 pr-[104px] text-xs text-foreground-default focus:outline-none focus:border-info-strong"
+                  className="w-full bg-app-shell border border-border-mitas rounded-sm py-1 pl-7 pr-[92px] text-xs text-foreground-default focus:outline-none focus:border-info-strong"
                 />
                 {normalizedTranscriptSearch ? (
                   <div className="absolute right-1 top-1 flex h-5 items-center gap-0.5">
@@ -301,21 +240,12 @@ export function Sidebar({
                     </span>
                     <button
                       type="button"
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
-                      onClick={() => focusSearchMatch(activeSearchMatchIndex - 1)}
+                      className="inline-flex h-5 items-center justify-center rounded-sm px-1 text-[10px] font-semibold text-info hover:bg-surface-elevated disabled:pointer-events-none disabled:opacity-30"
+                      onClick={() => focusSearchMatch(activeSearchMatchIndex)}
                       disabled={searchMatches.length === 0}
-                      title="Önceki eşleşme"
+                      title="Aktif eşleşmeye git"
                     >
-                      <ChevronUp className="h-3 w-3" />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong disabled:pointer-events-none disabled:opacity-30"
-                      onClick={() => focusSearchMatch(activeSearchMatchIndex + 1)}
-                      disabled={searchMatches.length === 0}
-                      title="Sonraki eşleşme"
-                    >
-                      <ChevronDown className="h-3 w-3" />
+                      Git
                     </button>
                     <button
                       type="button"
@@ -422,7 +352,7 @@ export function Sidebar({
               ) : null}
               {!isSttPreviewEnabled && asrJob && !hasTranscript && (asrJob.status === 'done' || asrJob.status === 'partial') && (
                 <div className="p-4 text-xs text-warning leading-relaxed">
-                  ASR tamamlandı ama temiz transcript boş kaldı. Ham çıktılar kalite filtresinde elenmiş olabilir; Uyarılar sekmesinde nedeni görünüyor.
+                  ASR tamamlandı ama temiz transcript boş kaldı. Ham çıktılar kalite filtresinde elenmiş olabilir; Bilgi menüsündeki klip bilgisi ve Log sekmesindeki detaylardan nedeni görülebilir.
                 </div>
               )}
               {!isSttPreviewEnabled && normalizedTranscriptSearch && hasTranscript && searchMatches.length === 0 ? (
@@ -438,6 +368,9 @@ export function Sidebar({
                 const confidenceClass = confidence >= 0.85 ? 'text-success-strong' : confidence >= 0.65 ? 'text-warning-strong' : 'text-danger-strong';
                 const translationState = segmentTranslations[idx];
                 const canTranslate = shouldOfferTurkishTranslation(item);
+                const feedbackKind: FeedbackKind = translationState?.status === 'done' ? 'translation' : 'transcript';
+                const markedFeedbackId = asrJob ? feedbackEntryId(feedbackKind, asrJob.job_id, idx) : '';
+                const isFeedbackMarked = Boolean(markedFeedbackId && feedbackEntries.some((entry) => entry.id === markedFeedbackId));
                 return (
                 <div
                   key={`${item.start}-${item.end}-${idx}`}
@@ -472,6 +405,18 @@ export function Sidebar({
                         <span className="text-[9px] text-foreground-muted font-mono">{(confidence * 100).toFixed(0)}%</span>
                       </div>
                       <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="icon-xs"
+                          className={isFeedbackMarked ? 'border-warning-border bg-warning-subtle text-warning' : 'text-foreground-muted hover:text-warning'}
+                          title={isFeedbackMarked ? 'İşareti kaldır' : 'Sorunlu olarak işaretle'}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleSegmentFeedback(idx, feedbackKind, translationState);
+                          }}
+                        >
+                          <AlertTriangle className="h-3 w-3" />
+                        </Button>
                         {canTranslate ? (
                           <Button
                             variant={translationState?.status === 'done' ? 'success' : 'outline'}
@@ -529,131 +474,11 @@ export function Sidebar({
             <WipPlaceholder title="OCR" version="0.2" />
           </TabsContent>
 
-          {/* Meta Tab */}
-          <TabsContent value="meta" className="p-3 m-0 border-none">
-            <div className="bg-surface border border-border-subtle rounded-sm overflow-hidden">
-              <div className="p-2 bg-surface-elevated/50 border-b border-border-subtle font-semibold text-xs text-foreground-strong">
-                Medya Detayları
-              </div>
-              <div className="p-0">
-                {Object.entries({
-                  'Dosya': asrJob?.filename || '-',
-                  'Durum': asrJob?.status || 'bekleniyor',
-                  'Süre': formatClock(asrJob?.summary?.audio_duration),
-                  'Model': asrJob?.summary?.model_name || '-',
-                  'Profil': asrJob?.summary?.profile_used || asrJob?.profile || 'fast_with_fallback',
-                  'Segment': String(asrJob?.summary?.clean_segments ?? 0),
-                  'Çıktı': asrJob?.output_dir || '-',
-                }).map(([key, value]) => (
-                  <div key={key} className="flex border-b border-border-subtle/50 last:border-0 text-[11px]">
-                    <div className="w-2/5 bg-app-shell p-2 text-foreground-muted uppercase tracking-wider font-semibold border-r border-border-subtle/50">{key}</div>
-                    <div className="w-3/5 p-2 text-foreground-default font-mono">{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Evidence Tab */}
-          <TabsContent value="evidence" className="p-3 m-0 border-none">
-             <div className="flex flex-col gap-2">
-              {!asrJob && (
-                <div className="bg-surface border border-border-subtle rounded-sm p-3 text-[11px] text-foreground-muted">
-                  STT/ASR kanıtı üretmek için STT Başlat düğmesini kullan.
-                </div>
-              )}
-              {asrJob && [
-                {
-                  id: 'asr',
-                  action: 'Konuşma → Metin',
-                  model: asrJob.summary?.model_name || 'faster-whisper',
-                  time: formatClock(0),
-                  result: `${asrJob.segments.length} transcript segmenti`,
-                  confidence: asrJob.summary?.safety?.safe === false ? 0.5 : 0.9,
-                  detail: `Profil: ${asrJob.summary?.profile_used || asrJob.profile}. Çıktı: ${asrJob.output_dir}`,
-                },
-                {
-                  id: 'vad',
-                  action: 'VAD Konuşma Tespiti',
-                  model: 'Silero VAD',
-                  time: formatClock(0),
-                  result: `${asrJob.summary?.raw_segments ?? 0} ham segment`,
-                  confidence: 0.9,
-                  detail: `Toplam süre: ${formatClock(asrJob.summary?.audio_duration)}.`,
-                },
-              ].map(ev => (
-                <div key={ev.id} className="bg-surface border border-border-subtle rounded-sm p-3 flex flex-col gap-2">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <Info className="h-3.5 w-3.5 text-info-strong" />
-                      <span className="text-[11px] font-semibold text-foreground-strong">{ev.action}</span>
-                    </div>
-                    <span className="text-[9px] font-mono text-foreground-muted">{ev.time}</span>
-                  </div>
-                  <div className="bg-app-shell p-2 rounded-sm border border-border-subtle">
-                    <div className="text-[11px] text-foreground-default font-mono mb-1">{ev.result}</div>
-                    <div className="text-[9px] text-foreground-muted">{ev.detail}</div>
-                  </div>
-                  <div className="flex justify-between items-center text-[9px] text-foreground-muted font-mono">
-                    <span>Model: {ev.model}</span>
-                    <span>Güven: {(ev.confidence * 100).toFixed(1)}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Log Tab */}
-          <TabsContent value="logs" className="p-0 m-0 border-none">
-            <div className="p-3 bg-surface/50 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground-strong">İşlem Logu</h3>
-              <Badge variant={asrJob?.status === 'failed' ? 'danger' : logs.length > 0 ? 'secondary' : 'outline'}>
-                {logs.length} kayıt
-              </Badge>
-            </div>
-            <div className="p-3 flex flex-col gap-2">
-              {!asrJob ? (
-                <div className="bg-surface border border-border-subtle rounded-sm p-3 text-[11px] text-foreground-muted">
-                  Henüz kalıcı ASR logu yok. STT Başlat ile yeni job oluşunca kayıtlar burada tutulur.
-                </div>
-              ) : logs.length === 0 ? (
-                <div className="bg-surface border border-border-subtle rounded-sm p-3 text-[11px] text-foreground-muted">
-                  Job var ama log kaydı henüz oluşmadı.
-                </div>
-              ) : (
-                logs.map((entry, index) => (
-                  <LogEntry key={`${entry.ts}-${entry.stage}-${index}`} entry={entry} />
-                ))
-              )}
-              <div ref={logBottomRef} className="h-1" />
-            </div>
-          </TabsContent>
-
         </ScrollArea>
       </Tabs>
-    </div>
-  );
-}
-
-function LogEntry({ entry }: { entry: AsrJobLog }) {
-  const isError = entry.level === 'error';
-  return (
-    <div className={`rounded-sm border px-2.5 py-2 text-[11px] ${isError ? 'border-danger-subtle bg-danger-subtle/30' : 'border-border-subtle bg-surface/60'}`}>
-      <div className="mb-1 flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-wider text-foreground-muted">
-        <span>{formatLogTime(entry.ts)}</span>
-        <span>{entry.stage || 'işlem'}{typeof entry.progress_percent === 'number' ? ` · ${entry.progress_percent}%` : ''}</span>
       </div>
-      <div className={isError ? 'text-danger' : 'text-foreground-default'}>{entry.message}</div>
     </div>
   );
-}
-
-function formatLogTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 function LiveTranscriptFlow({
@@ -686,7 +511,7 @@ function LiveTranscriptFlow({
     }
     setTranslationState({ status: 'loading' });
     try {
-      const result = await translateFreeTextToTurkish(targetText, 'en');
+      const result = await translateFreeTextToTurkish(targetText);
       setTranslationState({ status: 'done', result });
     } catch (error) {
       setTranslationState({
@@ -755,7 +580,25 @@ function translationModelLabel(result: TranslationResult): string {
   if (result.model === 'source-tr') {
     return 'orijinal Türkçe';
   }
-  return `${result.model}${result.cache_hit ? ' · cache' : ''}`;
+  const variant = result.source_variant ? ` · ${sourceVariantLabel(result.source_variant)}` : '';
+  return `${result.model}${variant}${result.cache_hit ? ' · cache' : ''}`;
+}
+
+function sourceVariantLabel(sourceVariant: string): string {
+  switch (sourceVariant) {
+    case 'ar-levantine':
+      return 'Arapça Levant';
+    case 'ar-egyptian':
+      return 'Arapça Mısır';
+    case 'ar-gulf':
+      return 'Arapça Körfez';
+    case 'ar-maghrebi':
+      return 'Arapça Mağrip';
+    case 'ar-standard':
+      return 'Arapça Standart';
+    default:
+      return sourceVariant;
+  }
 }
 
 function segmentChannelKey(segment: { channel?: string | null }): 'L' | 'R' | null {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { HeaderProcessStatus } from './Header';
 
 interface SysInfo {
   cpu: number;
@@ -36,7 +37,39 @@ function StatChip({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function SysInfoBar() {
+function ProcessChip({ status }: { status: HeaderProcessStatus | null }) {
+  if (!status) return null;
+
+  const percent = Math.max(0, Math.min(100, Math.round(status.percent)));
+  const label = status.label.replace(/\s*tamamlandı\s*/i, '').trim();
+  const hasError = /hata|failed/i.test(label);
+  const isComplete = !status.active && percent >= 100 && !hasError;
+  const visibleLabel = isComplete ? 'STT/ASR' : label;
+  const className = hasError
+    ? 'border-danger bg-danger-subtle text-danger'
+    : status.active
+      ? 'border-info-border bg-info-subtle text-info'
+      : isComplete
+        ? 'border-success/40 bg-success-subtle text-success'
+        : 'border-border-subtle bg-surface-elevated text-foreground-muted';
+
+  return (
+    <div
+      className={`flex h-10 min-w-[168px] items-center justify-center gap-2 rounded-sm border px-3 font-mono shadow-sm ${className}`}
+      title={status.label}
+    >
+      <span className={status.active ? 'h-2 w-2 rounded-full bg-current animate-pulse' : 'h-2 w-2 rounded-full bg-current'} />
+      <span className="text-2xl font-black leading-none tabular-nums">{percent}%</span>
+      {visibleLabel ? (
+        <span className="max-w-[120px] truncate text-[10px] font-semibold uppercase tracking-wider">
+          {visibleLabel}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+export function SysInfoBar({ processStatus = null }: { processStatus?: HeaderProcessStatus | null }) {
   const [now, setNow] = useState(() => new Date());
   const [info, setInfo] = useState<SysInfo>({ cpu: -1, ram: -1, gpu: -1 });
 
@@ -62,6 +95,8 @@ export function SysInfoBar() {
 
   return (
     <div className="flex items-center gap-4 select-none shrink-0">
+      <ProcessChip status={processStatus} />
+
       {/* Date + Time */}
       <div className="flex flex-col items-end gap-0.5 min-w-[78px]">
         <span className="text-sm font-mono font-bold text-foreground-strong tabular-nums leading-tight">{timeStr}</span>

@@ -1062,10 +1062,12 @@ def create_app():
     except ImportError as exc:  # pragma: no cover - environment guard
         raise RuntimeError("Tedial POC app requires fastapi in the active runtime") from exc
 
+    from core.api.access import add_mitas_access_gate
     from core.api.tedial.router import create_tedial_router
 
     app = FastAPI(title="MITAS Tedial POC", version="0.1.0")
     app.include_router(create_tedial_router())
+    add_mitas_access_gate(app)
 
     @app.get("/", include_in_schema=False)
     async def index() -> RedirectResponse:

@@ -35,8 +35,10 @@ from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from core.api.access import add_mitas_access_gate, is_websocket_authorized
 from core.api.live_stt_text import LIVE_STT_INITIAL_PROMPT, repair_live_text
 from core.observability import system_events
+from core.pipelines.translate.dialect import detect_arabic_variant, normalize_source_variant
 from core.pipelines.asr.align import AlignmentMode
 from core.pipelines.asr.models import DEFAULT_TRANSCRIBE_PARAMS, FAST_MODEL, ProfileName, load_model
 from core.pipelines.asr.normalize import PROJECT_ROOT
@@ -50,7 +52,10 @@ LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 DiarizeMode = Literal["auto", "on", "off"]
 
 API_VERSION = "asr-api-v0.1"
-CLIPS_ROOT = PROJECT_ROOT / "outputs" / "clips"
+# Klip-merkezli hub artik E:\MITAS\Database altinda (Cagatay karari 2026-06):
+# yeni/gercek veriler buraya gelir; eski outputs/clips test artiklari terk edildi.
+# UI /api/clips bu koku okur. Sunucu restart sonrasi aktif olur.
+CLIPS_ROOT = PROJECT_ROOT / "Database"
 INCOMING_ROOT = CLIPS_ROOT / "_incoming"
 # Legacy roots kept only for reading old development jobs created before the
 # clip-centric layout. New uploads always go under CLIPS_ROOT.
@@ -59,6 +64,25 @@ LEGACY_JOB_ROOT = PROJECT_ROOT / "outputs" / "webui_asr_jobs"
 ASR_MODULE_DIR = "asr"
 SOURCE_DIR = "source"
 TRANSLATIONS_DIR = "translations"
+FLOW_QUEUE_ROOT = PROJECT_ROOT / "outputs" / "flow_queue"
+FLOW_QUEUE_MEDIA_DIR = FLOW_QUEUE_ROOT / "media"
+FLOW_QUEUE_STATE_PATH = FLOW_QUEUE_ROOT / "queue.json"
+DELETABLE_GENERATED_MODULES = {"asr", "ocr", "face", "tag"}
+GENERATED_MODULE_ALIASES = {
+    "asr": "asr",
+    "stt": "asr",
+    "transcript": "asr",
+    "ocr": "ocr",
+    "face": "face",
+    "yuz": "face",
+    "yüz": "face",
+    "tag": "tag",
+    "tags": "tag",
+    "label": "tag",
+    "labels": "tag",
+    "etiket": "tag",
+    "visual_tag": "tag",
+}
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024 * 1024
 LIVE_STT_SAMPLE_RATE = 16_000
 LIVE_STT_MAX_CHUNK_BYTES = LIVE_STT_SAMPLE_RATE * 2 * 15
@@ -79,10 +103,11 @@ app = FastAPI(title="MITAS ASR API", version=API_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+add_mitas_access_gate(app)
 
 _executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-asr")
 _live_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-stt-live")
@@ -111,6 +136,74 @@ def get_version() -> dict[str, Any]:
         "code_version": get_code_version(),
         "pipeline_version": ASR_PIPELINE_VERSION,
     }
+
+
+@app.get("/api/flow-queue")
+def get_flow_queue() -> dict[str, Any]:
+    state = _read_json(FLOW_QUEUE_STATE_PATH)
+    if isinstance(state, dict):
+        return state
+    raise HTTPException(status_code=404, detail="flow_queue_not_found")
+
+
+@app.put("/api/flow-queue")
+async def put_flow_queue(request: Request) -> dict[str, Any]:
+    try:
+        payload = await request.json()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="invalid_json") from exc
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="invalid_payload")
+    state = {
+        "id": "main",
+        "updatedAt": _now_iso(),
+        "bulkProfile": payload.get("bulkProfile") or "stt",
+        "items": payload.get("items") if isinstance(payload.get("items"), list) else [],
+    }
+    _write_json(FLOW_QUEUE_STATE_PATH, state)
+    return state
+
+
+@app.post("/api/flow-queue/uploads/{item_id}")
+async def put_flow_queue_upload(item_id: str, request: Request, filename: str = Query(default="media")) -> dict[str, Any]:
+    safe_item_id = _safe_artifact_id(item_id)
+    safe_name = _safe_filename(filename)
+    item_dir = FLOW_QUEUE_MEDIA_DIR / safe_item_id
+    item_dir.mkdir(parents=True, exist_ok=True)
+    staging_path = item_dir / f"{uuid4().hex}.upload"
+    size, content_hash = await _write_request_body(request, staging_path)
+    if size == 0:
+        staging_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="empty_upload")
+    target_path = item_dir / safe_name
+    if target_path.exists():
+        target_path.unlink()
+    shutil.move(str(staging_path), str(target_path))
+    return {
+        "item_id": safe_item_id,
+        "filename": safe_name,
+        "size_bytes": size,
+        "content_hash": content_hash,
+        "stored_media_url": f"/api/flow-queue/uploads/{safe_item_id}/media",
+        "stored_media_path": str(target_path),
+    }
+
+
+@app.get("/api/flow-queue/uploads/{item_id}/media")
+def get_flow_queue_upload_media(item_id: str) -> FileResponse:
+    safe_item_id = _safe_artifact_id(item_id)
+    item_dir = FLOW_QUEUE_MEDIA_DIR / safe_item_id
+    if not item_dir.exists():
+        raise HTTPException(status_code=404, detail="queue_media_not_found")
+    files = [path for path in item_dir.iterdir() if path.is_file()]
+    if not files:
+        raise HTTPException(status_code=404, detail="queue_media_not_found")
+    media_path = max(files, key=lambda path: path.stat().st_mtime)
+    return FileResponse(
+        media_path,
+        media_type=mimetypes.guess_type(media_path.name)[0] or "application/octet-stream",
+        filename=media_path.name,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +382,7 @@ async def create_asr_job(
     channel_mode: Literal["mono", "split", "auto"] = Query(default="auto"),
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
     force: Literal["none", "full"] = Query(default="none"),
+    original_source_path: str | None = Query(default=None),
 ) -> dict[str, Any]:
     """Store uploaded media and start an ASR job in the background.
 
@@ -307,12 +401,13 @@ async def create_asr_job(
         raise HTTPException(status_code=400, detail="empty_upload")
 
     existing_clip = _find_clip_by_hash(content_hash)
+    existing_asr_job_id = _clip_latest_module_job_id(existing_clip, ASR_MODULE_DIR) if existing_clip is not None else None
 
-    if existing_clip is not None and force != "full":
+    if existing_clip is not None and force != "full" and existing_asr_job_id:
         staging_path.unlink(missing_ok=True)
         return _build_reused_response(existing_clip, content_hash=content_hash)
 
-    if existing_clip is not None and force == "full":
+    if existing_clip is not None:
         clip_id = str(existing_clip["clip_id"])
         clip_dir = CLIPS_ROOT / clip_id
         source_dir = clip_dir / SOURCE_DIR
@@ -373,6 +468,7 @@ async def create_asr_job(
         "completed_at": None,
         "message": "ASR işi kuyruğa alındı.",
         "error": None,
+        "original_source_path": original_source_path,
         "progress_percent": 0,
         "progress_label": "Kuyrukta",
         "log_path": str(job_dir / "job_log.jsonl"),
@@ -596,6 +692,290 @@ def get_clip(clip_id: str) -> dict[str, Any]:
     return payload
 
 
+@app.get("/api/clips/{clip_id}/media")
+def get_clip_media(clip_id: str) -> FileResponse:
+    """Stream the clip source media independently of any generated module data."""
+    safe_clip_id = _safe_artifact_id(clip_id)
+    record = _load_clip_record(safe_clip_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="clip_not_found")
+    media_path = _clip_source_media_path(safe_clip_id, record)
+    media_path = _playback_media_path(media_path)
+    media_type, _ = mimetypes.guess_type(str(media_path))
+    return FileResponse(
+        media_path,
+        media_type=media_type or "application/octet-stream",
+        filename=str(record.get("filename") or media_path.name),
+        content_disposition_type="inline",
+    )
+
+
+@app.delete("/api/clips/{clip_id}/modules/{module}")
+def delete_clip_generated_module(
+    clip_id: str,
+    module: str,
+    allow_running: bool = Query(default=False),
+) -> dict[str, Any]:
+    """Permanently remove generated data for one clip module while preserving source media."""
+    safe_clip_id = _safe_artifact_id(clip_id)
+    canonical_module = _normalize_generated_data_module(module)
+    record = _load_clip_record(safe_clip_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="clip_not_found")
+
+    module_state = (record.get("modules") or {}).get(canonical_module)
+    job_ids = _module_job_ids(module_state)
+    if not allow_running:
+        active_job_id = _first_active_job_id(job_ids)
+        if active_job_id:
+            raise HTTPException(status_code=409, detail=f"module_job_running:{active_job_id}")
+
+    clip_dir = (CLIPS_ROOT / safe_clip_id).resolve()
+    module_dir = (clip_dir / canonical_module).resolve()
+    if not _is_path_under(module_dir, clip_dir):
+        raise HTTPException(status_code=403, detail="module_path_not_allowed")
+
+    artifacts_deleted = False
+    if module_dir.exists():
+        shutil.rmtree(module_dir)
+        artifacts_deleted = True
+
+    modules = record.setdefault("modules", {})
+    module_record_deleted = canonical_module in modules
+    modules.pop(canonical_module, None)
+    record["updated_at"] = _now_iso()
+    _write_json(_clip_record_path(safe_clip_id), record)
+
+    with _jobs_lock:
+        for job_id in job_ids:
+            _jobs.pop(job_id, None)
+
+    system_events.log_event(
+        "generated_data_deleted",
+        summary=f"{record.get('filename') or safe_clip_id} için {canonical_module.upper()} verisi kalıcı silindi.",
+        module=canonical_module,
+        media_id=str(record.get("media_id") or "") or None,
+        filename=str(record.get("filename") or "") or None,
+        detail={
+            "clip_id": safe_clip_id,
+            "requested_module": module,
+            "deleted_job_ids": job_ids,
+            "artifacts_deleted": artifacts_deleted,
+            "module_record_deleted": module_record_deleted,
+        },
+    )
+    return {
+        "clip_id": safe_clip_id,
+        "module": canonical_module,
+        "requested_module": module,
+        "deleted": artifacts_deleted or module_record_deleted,
+        "artifacts_deleted": artifacts_deleted,
+        "module_record_deleted": module_record_deleted,
+        "deleted_job_ids": job_ids,
+    }
+
+
+@app.post("/api/clips/{clip_id}/modules/asr/reprocess")
+def reprocess_clip_asr(
+    clip_id: str,
+    profile: ProfileName | None = Query(default=None),
+    content_profile: ContentProfileName | None = Query(default="bulten_haber"),
+    diarize: DiarizeMode = Query(default="auto"),
+    channel_mode: Literal["mono", "split", "auto"] = Query(default="auto"),
+    word_alignment_mode: AlignmentMode = Query(default="whisperx"),
+) -> dict[str, Any]:
+    """Start a fresh ASR job from a clip's preserved source media."""
+    safe_clip_id = _safe_artifact_id(clip_id)
+    record = _load_clip_record(safe_clip_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="clip_not_found")
+
+    input_path = _clip_source_media_path(safe_clip_id, record)
+    content_hash = str(record.get("content_hash") or _hash_file(input_path))
+    size = int(record.get("size_bytes") or input_path.stat().st_size)
+    filename = _safe_filename(str(record.get("filename") or input_path.name))
+    media_id = str(record.get("media_id") or Path(filename).stem or safe_clip_id)
+    previous_job_id = _clip_latest_module_job_id(record, ASR_MODULE_DIR)
+    job_id = f"asr-{uuid4().hex[:12]}"
+    clip_dir = CLIPS_ROOT / safe_clip_id
+    job_dir = clip_dir / ASR_MODULE_DIR / job_id
+    run_dir = job_dir / "run"
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    _ensure_clip_record(
+        clip_id=safe_clip_id,
+        filename=filename,
+        media_id=media_id,
+        size_bytes=size,
+        source_path=input_path,
+        content_hash=content_hash,
+    )
+    job = {
+        "job_id": job_id,
+        "clip_id": safe_clip_id,
+        "media_id": media_id,
+        "content_hash": content_hash,
+        "status": "queued",
+        "filename": filename,
+        "input_path": str(input_path),
+        "output_dir": str(run_dir),
+        "job_dir": str(job_dir),
+        "clip_dir": str(clip_dir),
+        "module": "asr",
+        "profile": profile or "fast_with_fallback",
+        "model_profile_override": profile,
+        "content_profile": content_profile,
+        "diarize": diarize,
+        "channel_mode": channel_mode,
+        "word_alignment_mode": word_alignment_mode,
+        "size_bytes": size,
+        "reprocessed": True,
+        "previous_job_id": previous_job_id,
+        "created_at": _now_iso(),
+        "started_at": None,
+        "completed_at": None,
+        "message": "ASR tekrar işi kuyruğa alındı.",
+        "error": None,
+        "original_source_path": str(record.get("source_path") or ""),
+        "progress_percent": 0,
+        "progress_label": "Kuyrukta",
+        "log_path": str(job_dir / "job_log.jsonl"),
+    }
+    _save_job(job)
+    _attach_job_to_clip(safe_clip_id, module=ASR_MODULE_DIR, job_id=job_id)
+    _append_job_log(job_id, "ASR tekrar işi kuyruğa alındı.", stage="queued", progress_percent=5)
+    system_events.log_event(
+        "asr_reprocess_started",
+        summary=f"{filename} için ASR tekrar işleniyor.",
+        module="asr",
+        media_id=media_id,
+        filename=filename,
+        job_id=job_id,
+        detail={
+            "clip_id": safe_clip_id,
+            "previous_job_id": previous_job_id,
+            "profile": profile,
+            "content_profile": content_profile,
+            "diarize": diarize,
+            "channel_mode": channel_mode,
+            "word_alignment_mode": word_alignment_mode,
+        },
+    )
+    _executor.submit(_run_job, job_id)
+    response = _public_job(_load_job(job_id) or job)
+    response["reused"] = False
+    response["content_hash"] = content_hash
+    return response
+
+
+@app.post("/api/clips/{clip_id}/modules/asr/range")
+def process_clip_asr_range(
+    clip_id: str,
+    start_seconds: float = Query(ge=0),
+    end_seconds: float = Query(gt=0),
+    profile: ProfileName | None = Query(default=None),
+    content_profile: ContentProfileName | None = Query(default="bulten_haber"),
+    diarize: DiarizeMode = Query(default="auto"),
+    channel_mode: Literal["mono", "split", "auto"] = Query(default="auto"),
+    word_alignment_mode: AlignmentMode = Query(default="whisperx"),
+) -> dict[str, Any]:
+    """Start a fresh ASR job from a bounded time range of a preserved clip."""
+    safe_clip_id = _safe_artifact_id(clip_id)
+    record = _load_clip_record(safe_clip_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="clip_not_found")
+    if end_seconds <= start_seconds:
+        raise HTTPException(status_code=400, detail="invalid_range")
+
+    source_path = _clip_source_media_path(safe_clip_id, record)
+    source_filename = _safe_filename(str(record.get("filename") or source_path.name))
+    media_id = str(record.get("media_id") or Path(source_filename).stem or safe_clip_id)
+    previous_job_id = _clip_latest_module_job_id(record, ASR_MODULE_DIR)
+    job_id = f"asr-{uuid4().hex[:12]}"
+    clip_dir = CLIPS_ROOT / safe_clip_id
+    job_dir = clip_dir / ASR_MODULE_DIR / job_id
+    run_dir = job_dir / "run"
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    range_suffix = _range_media_suffix(source_path)
+    range_filename = _safe_filename(
+        f"{Path(source_filename).stem}_{_range_token(start_seconds)}_{_range_token(end_seconds)}{range_suffix}"
+    )
+    range_path = job_dir / "source" / range_filename
+    try:
+        _trim_media_range(source_path, range_path, start_seconds=start_seconds, end_seconds=end_seconds)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    content_hash = _hash_file(range_path)
+    size = range_path.stat().st_size
+    job = {
+        "job_id": job_id,
+        "clip_id": safe_clip_id,
+        "media_id": media_id,
+        "content_hash": content_hash,
+        "status": "queued",
+        "filename": range_filename,
+        "input_path": str(range_path),
+        "output_dir": str(run_dir),
+        "job_dir": str(job_dir),
+        "clip_dir": str(clip_dir),
+        "module": "asr",
+        "profile": profile or "fast_with_fallback",
+        "model_profile_override": profile,
+        "content_profile": content_profile,
+        "diarize": diarize,
+        "channel_mode": channel_mode,
+        "word_alignment_mode": word_alignment_mode,
+        "size_bytes": size,
+        "reprocessed": True,
+        "previous_job_id": previous_job_id,
+        "range_source_path": str(source_path),
+        "range_start_seconds": start_seconds,
+        "range_end_seconds": end_seconds,
+        "created_at": _now_iso(),
+        "started_at": None,
+        "completed_at": None,
+        "message": "Aralık ASR işi kuyruğa alındı.",
+        "error": None,
+        "original_source_path": str(record.get("source_path") or source_path),
+        "progress_percent": 0,
+        "progress_label": "Kuyrukta",
+        "log_path": str(job_dir / "job_log.jsonl"),
+    }
+    _save_job(job)
+    _attach_job_to_clip(safe_clip_id, module=ASR_MODULE_DIR, job_id=job_id)
+    _append_job_log(
+        job_id,
+        f"Aralık ASR işi kuyruğa alındı: {start_seconds:.3f}-{end_seconds:.3f}s.",
+        stage="queued",
+        progress_percent=5,
+    )
+    system_events.log_event(
+        "asr_range_started",
+        summary=f"{source_filename} için {start_seconds:.1f}-{end_seconds:.1f}s aralığında ASR kuyruğa alındı.",
+        module="asr",
+        media_id=media_id,
+        filename=source_filename,
+        job_id=job_id,
+        detail={
+            "clip_id": safe_clip_id,
+            "previous_job_id": previous_job_id,
+            "start_seconds": start_seconds,
+            "end_seconds": end_seconds,
+            "profile": profile,
+            "content_profile": content_profile,
+            "channel_mode": channel_mode,
+            "word_alignment_mode": word_alignment_mode,
+        },
+    )
+    _executor.submit(_run_job, job_id)
+    response = _public_job(_load_job(job_id) or job)
+    response["reused"] = False
+    response["content_hash"] = content_hash
+    return response
+
+
 @app.get("/api/events")
 def list_events(
     limit: int = Query(default=200, ge=1, le=2000),
@@ -708,6 +1088,9 @@ async def translate_segments(request: Request) -> dict[str, Any]:
 @app.websocket("/api/stt/preview/ws")
 async def stt_preview_socket(websocket: WebSocket) -> None:
     """Stream small 16 kHz PCM16 chunks from the WebUI and return live transcript lines."""
+    if not is_websocket_authorized(websocket):
+        await websocket.close(code=1008)
+        return
     await websocket.accept()
     session_id = f"stt-preview-{uuid4().hex[:10]}"
     state: LiveSessionState = "ready"
@@ -1178,20 +1561,26 @@ def _prepare_translate_payload(payload: Any) -> dict[str, Any]:
             raise ValueError(f"items[{index}] must be an object")
         segment_id = str(raw_item.get("segment_id") or "").strip()
         source_text = str(raw_item.get("source_text") or "").strip()
-        source_lang = _normalize_translate_source_lang(raw_item.get("source_lang"))
+        source_lang = _normalize_translate_source_lang(raw_item.get("source_lang"), source_text=source_text)
+        source_variant = _normalize_translate_source_variant(
+            raw_item.get("source_variant"),
+            source_lang=source_lang,
+            source_text=source_text,
+        )
         if not segment_id:
             raise ValueError(f"items[{index}].segment_id is required")
         if not source_text:
             raise ValueError(f"items[{index}].source_text is required")
         if source_lang is None:
             raise ValueError(f"items[{index}].source_lang is required")
-        items.append(
-            {
-                "segment_id": segment_id,
-                "source_text": source_text,
-                "source_lang": source_lang,
-            }
-        )
+        item = {
+            "segment_id": segment_id,
+            "source_text": source_text,
+            "source_lang": source_lang,
+        }
+        if source_variant:
+            item["source_variant"] = source_variant
+        items.append(item)
 
     target_lang = str(payload.get("target_lang") or "tr").strip().lower() or "tr"
     model_override = payload.get("model_override")
@@ -1206,7 +1595,9 @@ def _prepare_translate_payload(payload: Any) -> dict[str, Any]:
     return prepared
 
 
-def _normalize_translate_source_lang(value: Any) -> str | None:
+def _normalize_translate_source_lang(value: Any, *, source_text: str = "") -> str | None:
+    if _looks_like_arabic_text(source_text):
+        return "ar"
     if value is None:
         return None
     source_lang = str(value).strip().lower().replace("_", "-")
@@ -1216,7 +1607,37 @@ def _normalize_translate_source_lang(value: Any) -> str | None:
         return "en"
     if source_lang.startswith("tr") or source_lang.startswith("tur"):
         return "tr"
+    if source_lang in {"ar", "ara", "arabic"} or source_lang.startswith("arb"):
+        return "ar"
     return source_lang.split("-")[0]
+
+
+def _normalize_translate_source_variant(value: Any, *, source_lang: str | None, source_text: str = "") -> str | None:
+    if source_lang != "ar":
+        return None
+    requested = normalize_source_variant(str(value)) if value is not None else "auto"
+    if requested == "auto":
+        return detect_arabic_variant(source_text)
+    return requested
+
+
+def _looks_like_arabic_text(text: str) -> bool:
+    letters = [char for char in text if char.isalpha()]
+    if not letters:
+        return False
+    arabic_letters = sum(1 for char in letters if _is_arabic_char(char))
+    return arabic_letters / len(letters) >= 0.35
+
+
+def _is_arabic_char(char: str) -> bool:
+    codepoint = ord(char)
+    return (
+        0x0600 <= codepoint <= 0x06FF
+        or 0x0750 <= codepoint <= 0x077F
+        or 0x08A0 <= codepoint <= 0x08FF
+        or 0xFB50 <= codepoint <= 0xFDFF
+        or 0xFE70 <= codepoint <= 0xFEFF
+    )
 
 
 def _translation_cache_dir(job_id: str) -> Path:
@@ -1332,6 +1753,11 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
     if transcript_summary is not None:
         payload["transcript_summary"] = transcript_summary
         payload["transcript_summary_path"] = str(transcript_summary_path)
+    clip_id = str(payload.get("clip_id") or "").strip()
+    if clip_id:
+        clip_record = _load_clip_record(clip_id)
+        if clip_record is not None:
+            payload["module_summary"] = _public_clip(clip_record).get("module_summary", {})
     return payload
 
 
@@ -1446,6 +1872,104 @@ def _generate_transcript_summary(job: dict[str, Any], transcript: str) -> dict[s
         return _summarize_locally(job, transcript)
 
 
+def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, str]]:
+    """Build the chat messages list for the summary LLM call.
+
+    Branches on ``job["content_profile"]``:
+    - ``"spor"``: returns a sports-specific structured question set.
+    - Anything else / None: returns the generic summary prompt unchanged.
+
+    The ``transcript`` argument should already be the trimmed source text
+    (i.e. the output of ``_summary_source_text()``).
+    """
+    summary_block = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+    context_lines = (
+        f"Dosya: {job.get('filename')}\n"
+        f"Süre: {_format_summary_seconds(summary_block.get('audio_duration'))}\n\n"
+    )
+
+    if job.get("content_profile") == "spor":
+        system_msg = (
+            "Sen yayın arşivi spor müsabakası transkriptlerini analiz edip yapılandırılmış, "
+            "doğru ve Türkçe özet çıkaran bir asistansın. Yalnızca transkriptte açıkça geçen "
+            "bilgileri yaz; tahmin veya halüsinasyon yapma. Düşünme/akıl yürütme metni veya "
+            "<think> bloğu üretme; doğrudan nihai Türkçe yapılandırılmış özeti ver."
+        )
+        user_msg = (
+            "Aşağıdaki spor müsabakası transkriptini analiz et.\n\n"
+            "1. Önce transkriptten sporu belirle (futbol mu, basketbol mu, diğer mi).\n\n"
+            "2. FUTBOL ise şu başlıklarla yaz:\n"
+            "   - \"Maç Bilgisi\": (a) hangi takımlar arasında, (b) hangi lig/kupa "
+            "(örn. Süper Lig, Bank Asya 1. Lig, PTT 1. Lig, Türkiye Kupası, hazırlık maçı), "
+            "(c) nerede oynanıyor (şehir/stat) ve kaçıncı hafta / hangi tur "
+            "(final, çeyrek final, 12. hafta, hazırlık vb.).\n"
+            "   - \"Maç Sonucu\": tam skor (kaç-kaç bittiği), golleri kim attı ve kim kaç gol attı, "
+            "kırmızı kart bilgileri, varsa sarı kart bilgileri; mümkünse dakikalarıyla.\n"
+            "   - \"Ek Bilgi (varsa, kısa)\": kadrolar / ilk 11, hakemler, şehir gibi transkriptte "
+            "geçen ufak bilgiler — abartmadan, kısa.\n\n"
+            "3. BASKETBOL veya DİĞER SPOR ise daha sabit ve kısa yaz:\n"
+            "   - \"Maç Bilgisi\": hangi takımlar arasında, hangi lig, hangi hafta/tur "
+            "(final / yarı final / çeyrek final).\n"
+            "   - \"Maç Sonucu\": skor (kim kazandı, kaç-kaç).\n"
+            "   - \"Ek Bilgi (varsa, kısa)\": ilk 5 / kadrolar, hakemler, şehir — "
+            "yalnızca transkriptte geçiyorsa, kısa.\n\n"
+            "4. Herhangi bir bilgi transkriptte yoksa o satıra \"transkriptte belirtilmemiş\" yaz. "
+            "Çıktı Türkçe ve başlıklı olsun.\n\n"
+            f"{context_lines}"
+            f"TRANSKRİPT:\n{transcript}"
+        )
+        return [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg},
+        ]
+
+    # Generic / all other content profiles
+    prompt = (
+        "Aşağıdaki medya transkriptini Türkçe olarak özetle.\n"
+        "İstenen çıktı:\n"
+        "- 1 kısa genel özet paragrafı\n"
+        "- 4-7 maddelik önemli konular\n"
+        "- Varsa kişi/kurum/yer/spor takımı adları\n"
+        "Halüsinasyon yapma; sadece transkriptte geçenleri yaz.\n\n"
+        f"{context_lines}"
+        f"TRANSKRİPT:\n{transcript}"
+    )
+    return [
+        {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın."},
+        {"role": "user", "content": prompt},
+    ]
+
+
+_THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_CHAT_CONTROL_RE = re.compile(
+    r"<\|(?:im_start|im_end|endoftext|eot_id|end|im_sep)\|>|</s>", re.IGNORECASE
+)
+
+
+def _clean_model_output(text: str) -> str:
+    """Sanitize raw chat-model content into a clean summary.
+
+    Handles two failure modes seen with locally imported GGUF models:
+    - <think>…</think> reasoning blocks (Qwen-style) leaking into content.
+    - A correct answer followed by chat control tokens and a re-echo of the
+      prompt (imperfect chat template / stop tokens), e.g.
+      ``…özet<|endoftext|><|im_start|>user …``.
+
+    No-op for well-behaved models (hosted OpenAI never emits these). Falls
+    back to the original text if cleaning would empty it, so the caller never
+    gets a blank summary.
+    """
+    cleaned = _THINK_BLOCK_RE.sub("", text)
+    if "</think>" in cleaned:  # unbalanced / truncated open tag
+        cleaned = cleaned.rsplit("</think>", 1)[-1]
+    cleaned = re.sub(r"</?think>", "", cleaned, flags=re.IGNORECASE)
+    control = _CHAT_CONTROL_RE.search(cleaned)
+    if control:  # truncate the prompt re-echo / junk after the answer
+        cleaned = cleaned[: control.start()]
+    cleaned = cleaned.strip()
+    return cleaned or text.strip()
+
+
 def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, Any]:
     api_key = os.environ.get("OPENAI_API_KEY")
     model = os.environ.get("MITAS_SUMMARY_MODEL") or os.environ.get("OPENAI_SUMMARY_MODEL")
@@ -1454,26 +1978,11 @@ def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, An
 
     base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     source = _summary_source_text(transcript)
-    summary_block = job.get("summary") if isinstance(job.get("summary"), dict) else {}
-    prompt = (
-        "Aşağıdaki medya transkriptini Türkçe olarak özetle.\n"
-        "İstenen çıktı:\n"
-        "- 1 kısa genel özet paragrafı\n"
-        "- 4-7 maddelik önemli konular\n"
-        "- Varsa kişi/kurum/yer/spor takımı adları\n"
-        "Halüsinasyon yapma; sadece transkriptte geçenleri yaz.\n\n"
-        f"Dosya: {job.get('filename')}\n"
-        f"Süre: {_format_summary_seconds(summary_block.get('audio_duration'))}\n\n"
-        f"TRANSKRİPT:\n{source}"
-    )
     body = {
         "model": model,
         "temperature": 0.2,
         "max_tokens": 900,
-        "messages": [
-            {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın."},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": _summary_messages(job, source),
     }
     request = urllib.request.Request(
         f"{base_url}/chat/completions",
@@ -1500,7 +2009,7 @@ def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, An
     return {
         "provider": "openai-compatible",
         "model": model,
-        "summary": content.strip(),
+        "summary": _clean_model_output(content),
         "source_chars": len(transcript),
         "used_chars": len(source),
     }
@@ -1713,6 +2222,53 @@ def _remux_media_for_playback(source_path: Path, playback_path: Path) -> None:
     temp_path.replace(playback_path)
 
 
+def _trim_media_range(source_path: Path, output_path: Path, *, start_seconds: float, end_seconds: float) -> None:
+    from core.pipelines.asr.transcribe import DEFAULT_FFMPEG_EXECUTABLE
+
+    duration = max(0.001, end_seconds - start_seconds)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output_path.with_suffix(output_path.suffix + ".part" + output_path.suffix)
+    temp_path.unlink(missing_ok=True)
+    command = [
+        DEFAULT_FFMPEG_EXECUTABLE,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        f"{start_seconds:.3f}",
+        "-t",
+        f"{duration:.3f}",
+        "-i",
+        str(source_path),
+    ]
+    if output_path.suffix.lower() == ".wav":
+        command.extend(["-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1"])
+    else:
+        command.extend(["-map", "0:v:0?", "-map", "0:a:0?", "-c", "copy", "-movflags", "+faststart"])
+    command.append(str(temp_path))
+    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    if completed.returncode != 0:
+        temp_path.unlink(missing_ok=True)
+        raise RuntimeError((completed.stderr or completed.stdout or "ffmpeg range trim failed").strip())
+    if not temp_path.exists() or temp_path.stat().st_size <= 0:
+        temp_path.unlink(missing_ok=True)
+        raise RuntimeError("ffmpeg range trim produced an empty file")
+    temp_path.replace(output_path)
+
+
+def _range_media_suffix(source_path: Path) -> str:
+    suffix = source_path.suffix.lower()
+    if suffix in {".wav", ".mp3", ".m4a", ".aac", ".flac"}:
+        return ".wav"
+    return ".mp4"
+
+
+def _range_token(seconds: float) -> str:
+    millis = max(0, int(round(seconds * 1000)))
+    return f"{millis}ms"
+
+
 def _load_job(job_id: str) -> dict[str, Any] | None:
     with _jobs_lock:
         if job_id in _jobs:
@@ -1801,6 +2357,62 @@ def _find_clip_by_hash(content_hash: str) -> dict[str, Any] | None:
         if isinstance(record, dict) and record.get("content_hash") == content_hash:
             return record
     return None
+
+
+def _clip_latest_module_job_id(record: dict[str, Any] | None, module: str) -> str | None:
+    if not isinstance(record, dict):
+        return None
+    module_state = (record.get("modules") or {}).get(module)
+    if not isinstance(module_state, dict):
+        return None
+    latest = str(module_state.get("latest_job_id") or "").strip()
+    return latest or None
+
+
+def _normalize_generated_data_module(module: str) -> str:
+    key = str(module or "").strip().lower()
+    canonical = GENERATED_MODULE_ALIASES.get(key, key)
+    if canonical not in DELETABLE_GENERATED_MODULES:
+        raise HTTPException(status_code=400, detail=f"unsupported_generated_module:{module}")
+    return canonical
+
+
+def _module_job_ids(module_state: Any) -> list[str]:
+    if not isinstance(module_state, dict):
+        return []
+    return [str(item) for item in module_state.get("jobs") or [] if str(item)]
+
+
+def _first_active_job_id(job_ids: list[str]) -> str | None:
+    for job_id in job_ids:
+        job = _load_job(job_id)
+        if job and job.get("status") in {"queued", "running"}:
+            return job_id
+    return None
+
+
+def _clip_source_media_path(clip_id: str, record: dict[str, Any]) -> Path:
+    raw_path = record.get("source_path")
+    if not raw_path:
+        raise HTTPException(status_code=404, detail="media_not_found")
+    media_path = Path(str(raw_path))
+    if not media_path.is_absolute():
+        media_path = PROJECT_ROOT / media_path
+    media_path = media_path.resolve()
+    clip_dir = (CLIPS_ROOT / clip_id).resolve()
+    if not _is_path_under(media_path, clip_dir):
+        raise HTTPException(status_code=403, detail="media_path_not_allowed")
+    if not media_path.exists() or not media_path.is_file():
+        raise HTTPException(status_code=404, detail="media_not_found")
+    return media_path
+
+
+def _hash_file(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
 
 
 def _attach_job_to_clip(clip_id: str, *, module: str, job_id: str) -> None:
@@ -2003,6 +2615,10 @@ def _safe_filename(filename: str) -> str:
     name = Path(filename).name.strip() or "media"
     name = re.sub(r"[^A-Za-z0-9._ -]+", "_", name).strip(" .")
     return name or "media"
+
+
+def _safe_artifact_id(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", str(value or "").strip()).strip("._-") or "item"
 
 
 def _now_iso() -> str:

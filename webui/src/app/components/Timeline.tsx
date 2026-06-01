@@ -1,7 +1,15 @@
-import { Layers, FileText, User, Type, Tag, Image, AlertTriangle, ZoomIn, ZoomOut, Lock, Volume2, Music, X, Languages, Maximize2 } from 'lucide-react';
+import { Layers, FileText, User, Type, Tag, Image, AlertTriangle, ZoomIn, ZoomOut, Lock, Volume2, Music, X, Languages, ChevronDown } from 'lucide-react';
 import { ScrollArea, Button } from './ui';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { useState, useEffect, useRef } from 'react';
-import type { PointerEvent, MouseEvent } from 'react';
+import type { PointerEvent, MouseEvent, WheelEvent } from 'react';
 import type { AsrChannelKey, AsrChannelState, AsrJob, AsrSegment, PlaybackState } from '../asr-api';
 import { formatClock } from '../asr-api';
 
@@ -32,6 +40,9 @@ const TIMELINE_TAIL_TRACKS: TimelineTrack[] = [
 
 const LABEL_WIDTH_PX = 176;
 const MIN_TIMELINE_WIDTH_PX = 1000;
+const MIN_ZOOM_LEVEL = 1;
+const MAX_ZOOM_LEVEL = 20;
+const WHEEL_ZOOM_STEP = 1.2;
 
 const INTENT_BG: Record<TrackIntent, string> = {
   warning: 'bg-warning-subtle',
@@ -72,6 +83,8 @@ interface TimelineProps {
   onToggleAsrChannel: (channel: AsrChannelKey) => void;
   onSelectSegment: (index: number) => void;
   onTranslateRange: (from: number, to: number) => void;
+  onStartAsrRange: (from: number, to: number) => void;
+  isStartingAsrRange: boolean;
 }
 
 function segmentStyle(segment: AsrSegment, duration: number | undefined) {
@@ -125,11 +138,15 @@ export function Timeline({
   onToggleAsrChannel,
   onSelectSegment,
   onTranslateRange,
+  onStartAsrRange,
+  isStartingAsrRange,
 }: TimelineProps) {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const [visibleWipTracks, setVisibleWipTracks] = useState<Record<string, boolean>>({});
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement | null>(null);
 
   const segments = asrJob?.segments ?? [];
   const duration = playback.duration || asrJob?.summary?.audio_duration || 0;
@@ -143,7 +160,9 @@ export function Timeline({
         { id: 'asr-r', label: 'ASR Kanal 2', icon: FileText, status: 'active', intent: 'info', channel: 'R' },
       ]
     : [{ id: 'asr', label: 'Konuşma ASR', icon: FileText, status: 'active', intent: 'info' }];
-  const timelineTracks = [...TIMELINE_HEAD_TRACKS, ...speechTracks, ...TIMELINE_TAIL_TRACKS];
+  const optionalTracks = TIMELINE_TAIL_TRACKS.filter((track) => visibleWipTracks[track.id]);
+  const hiddenOptionalTrackCount = TIMELINE_TAIL_TRACKS.length - optionalTracks.length;
+  const timelineTracks = [...TIMELINE_HEAD_TRACKS, ...speechTracks, ...optionalTracks];
 
   const playheadPercent = duration > 0 ? Math.max(0, Math.min(100, (playback.currentTime / duration) * 100)) : 0;
   const playheadStyle = {
@@ -172,9 +191,15 @@ export function Timeline({
   // Close context menu on outside click
   useEffect(() => {
     if (!contextMenu) return;
-    const close = () => setContextMenu(null);
-    document.addEventListener('mousedown', close, { capture: true });
-    return () => document.removeEventListener('mousedown', close, { capture: true });
+    const close = (event: globalThis.MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Node && contextMenuRef.current?.contains(target)) {
+        return;
+      }
+      setContextMenu(null);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
   }, [contextMenu]);
 
   useEffect(() => {
@@ -221,29 +246,103 @@ export function Timeline({
   const interval = duration > 0 ? niceMarkerInterval(duration) : 300;
   const markers = timeMarkers(duration, interval);
 
-  const setZoomPreset = (targetSeconds: number) => {
-    if (duration <= 0) return;
-    setZoomLevel(Math.max(1, duration / targetSeconds));
-  };
-
   const fitTimeline = () => {
-    setZoomLevel(1);
+    setZoomLevel(MIN_ZOOM_LEVEL);
     const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
     viewport?.scrollTo({ left: 0 });
   };
 
+  const handleTimelineWheel = (event: WheelEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const pointerX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+    const currentScrollLeft = viewport?.scrollLeft ?? 0;
+    const anchorRatio = (currentScrollLeft + pointerX) / Math.max(1, contentWidth);
+    const zoomFactor = event.deltaY < 0 ? WHEEL_ZOOM_STEP : 1 / WHEEL_ZOOM_STEP;
+
+    setZoomLevel((current) => {
+      const next = Math.max(MIN_ZOOM_LEVEL, Math.min(MAX_ZOOM_LEVEL, current * zoomFactor));
+      if (next === current) return current;
+
+      window.requestAnimationFrame(() => {
+        const nextContentWidth = Math.max(1, Math.round(fitWidth * next));
+        viewport?.scrollTo({ left: Math.max(0, anchorRatio * nextContentWidth - pointerX) });
+      });
+
+      return next;
+    });
+  };
+
   return (
-    <div className="h-72 border-t border-border-subtle bg-app-shell flex flex-col shrink-0">
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-surface bg-app-shell text-xs">
-        <div className="flex items-center gap-2 text-foreground-muted">
-          <Layers className="h-3.5 w-3.5" />
-          <span className="font-semibold uppercase tracking-wider text-[10px]">AI KANIT KATMANLARI</span>
-        </div>
-        <div className="flex items-center gap-1">
+    <div className="h-64 border-t border-border-subtle bg-app-shell flex flex-col shrink-0">
+      <ScrollArea ref={scrollAreaRef} className="flex-1">
+        <div
+          className="p-2 relative"
+          style={{ width: `${contentWidth}px` }}
+          onPointerDown={seekFromPointer}
+          onPointerMove={(event) => {
+            if (event.buttons === 1) seekFromPointer(event);
+          }}
+          onContextMenu={handleContextMenu}
+          onWheel={handleTimelineWheel}
+        >
+          {/* Vertical timeline tools */}
+          <div
+            className="absolute left-2 top-2 z-30 flex items-start gap-1"
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerMove={(event) => event.stopPropagation()}
+            onContextMenu={(event) => event.stopPropagation()}
+          >
+            <div className="flex flex-col gap-1">
+              <Button variant="outline" size="xs" className="h-6 w-8 px-0 text-[9px] font-semibold" title="Timeline'ı ekrana sığdır" onClick={fitTimeline}>
+                Fit
+              </Button>
+              <Button variant="ghost" size="icon-xs" className="h-6 w-8" title="Yakınlaştır" onClick={() => setZoomLevel(z => Math.min(MAX_ZOOM_LEVEL, z * 1.5))}>
+                <ZoomIn className="h-3.5 w-3.5 text-foreground-muted" />
+              </Button>
+              <Button variant="ghost" size="icon-xs" className="h-6 w-8" title="Uzaklaştır" onClick={() => setZoomLevel(z => Math.max(MIN_ZOOM_LEVEL, z / 1.5))}>
+                <ZoomOut className="h-3.5 w-3.5 text-foreground-muted" />
+              </Button>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="xs" className="h-6 gap-1 px-1.5 text-[10px] text-foreground-muted hover:text-foreground-strong" title="Timeline katmanlarını göster/gizle">
+                  <Layers className="h-3 w-3" />
+                  Katmanlar
+                  {hiddenOptionalTrackCount > 0 ? <span className="font-mono text-[9px] text-foreground-disabled">+{hiddenOptionalTrackCount}</span> : null}
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-60 rounded-sm border-border-mitas bg-app-shell p-1 text-foreground-default">
+                <DropdownMenuLabel className="px-2 py-1 text-[10px] uppercase tracking-wider text-foreground-muted">
+                  Pasif timeline katmanları
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border-subtle" />
+                {TIMELINE_TAIL_TRACKS.map((track) => (
+                  <DropdownMenuCheckboxItem
+                    key={track.id}
+                    checked={Boolean(visibleWipTracks[track.id])}
+                    onCheckedChange={(checked) => {
+                      setVisibleWipTracks((current) => ({ ...current, [track.id]: checked === true }));
+                    }}
+                    className="text-xs text-foreground-default focus:bg-surface-elevated focus:text-foreground-strong"
+                  >
+                    <track.icon className="h-3.5 w-3.5 text-foreground-muted" />
+                    <span>{track.label}</span>
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {/* I/O info + translate button */}
           {(inPoint !== null || outPoint !== null) && (
-            <div className="flex items-center gap-1 mr-2 text-[10px] font-mono text-foreground-muted">
+            <div className="absolute right-2 top-2 z-30 flex items-center gap-1 rounded-sm border border-border-subtle bg-app-shell/90 px-1.5 py-0.5 text-[10px] font-mono text-foreground-muted">
               <span className="text-success font-semibold">I:{inPoint != null ? formatClock(inPoint) : '—'}</span>
               <span>›</span>
               <span className="text-danger font-semibold">O:{outPoint != null ? formatClock(outPoint) : '—'}</span>
@@ -266,35 +365,7 @@ export function Timeline({
               )}
             </div>
           )}
-          {/* Zoom presets */}
-          <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(60)}>1dk</Button>
-          <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(300)}>5dk</Button>
-          <Button variant="ghost" size="xs" className="h-6 text-foreground-muted hover:text-foreground-strong" onClick={() => setZoomPreset(1800)}>30dk</Button>
-          <Button variant="ghost" size="xs" className={`h-6 ${zoomLevel === 1 ? 'bg-surface-elevated text-foreground-strong' : 'text-foreground-muted hover:text-foreground-strong'}`} onClick={fitTimeline}>TAM</Button>
-          <div className="w-px h-3 bg-border-mitas mx-1"></div>
-          <Button variant="ghost" size="xs" className="h-6 gap-1 text-foreground-muted hover:text-foreground-strong" title="Timeline'ı ekrana sığdır" onClick={fitTimeline}>
-            <Maximize2 className="h-3 w-3" />
-            Fit
-          </Button>
-          <Button variant="ghost" size="icon-xs" title="Uzaklaştır" onClick={() => setZoomLevel(z => Math.max(1, z / 1.5))}>
-            <ZoomOut className="h-3.5 w-3.5 text-foreground-muted" />
-          </Button>
-          <Button variant="ghost" size="icon-xs" title="Yakınlaştır" onClick={() => setZoomLevel(z => Math.min(20, z * 1.5))}>
-            <ZoomIn className="h-3.5 w-3.5 text-foreground-muted" />
-          </Button>
-        </div>
-      </div>
 
-      <ScrollArea ref={scrollAreaRef} className="flex-1">
-        <div
-          className="p-2 relative"
-          style={{ width: `${contentWidth}px` }}
-          onPointerDown={seekFromPointer}
-          onPointerMove={(event) => {
-            if (event.buttons === 1) seekFromPointer(event);
-          }}
-          onContextMenu={handleContextMenu}
-        >
           {/* Playhead */}
           <div
             className="absolute top-2 bottom-2 w-px bg-info z-20 shadow-glow-info-strong cursor-ew-resize"
@@ -332,7 +403,7 @@ export function Timeline({
           )}
 
           {/* Time markers */}
-          <div className="h-5 border-b border-border-subtle/50 mb-1 relative pl-44">
+          <div className="h-7 border-b border-border-subtle/50 mb-1 relative pl-44">
             {duration > 0 ? (
               <div className="absolute inset-y-0 left-44 right-0">
                 {markers.map((time, i) => {
@@ -380,7 +451,7 @@ export function Timeline({
 
               return (
                 <div key={track.id} className={`flex h-7 items-center group rounded-sm ${trackBg}`}>
-                  <div className="w-44 shrink-0 flex items-center justify-between px-2 border-r border-border-subtle/50">
+                  <div className="w-44 shrink-0 flex items-center justify-between pl-10 pr-2 border-r border-border-subtle/50">
                     <div className="flex items-center gap-2">
                       <track.icon className={`h-3 w-3 ${iconText} ${!isWip ? 'group-hover:text-foreground-default' : ''}`} />
                       <span className={`text-[10px] uppercase font-semibold tracking-wider ${labelText} ${!isWip ? 'group-hover:text-foreground-strong' : ''}`}>
@@ -486,6 +557,7 @@ export function Timeline({
       {/* Right-click context menu */}
       {contextMenu && (
         <div
+          ref={contextMenuRef}
           className="fixed z-50 min-w-[160px] rounded-sm border border-border-mitas bg-app-shell shadow-lg py-1 text-xs"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onMouseDown={(e) => e.stopPropagation()}
@@ -507,6 +579,19 @@ export function Timeline({
             <span className="text-danger font-bold text-[10px] w-3">O</span>
             Out Point Koy
           </button>
+          {hasSelection && (
+            <button
+              className="w-full text-left px-3 py-1.5 hover:bg-surface-elevated text-info flex items-center gap-2 border-t border-border-subtle/50 mt-1 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isStartingAsrRange}
+              onClick={() => {
+                onStartAsrRange(inPoint!, outPoint!);
+                setContextMenu(null);
+              }}
+            >
+              <FileText className="h-3 w-3" />
+              {isStartingAsrRange ? 'STT Başlatılıyor' : 'Bu Aralıkta STT Başlat'}
+            </button>
+          )}
           {(inPoint !== null || outPoint !== null) && (
             <button
               className="w-full text-left px-3 py-1.5 hover:bg-surface-elevated text-foreground-muted flex items-center gap-2 border-t border-border-subtle/50 mt-1"

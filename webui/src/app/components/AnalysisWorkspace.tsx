@@ -2,7 +2,8 @@ import { Header } from './Header';
 import { VideoPlayer } from './VideoPlayer';
 import { Timeline } from './Timeline';
 import { Sidebar } from './Sidebar';
-import type { AnalysisProfile, AsrChannelKey, AsrChannelState, AsrJob, PlaybackState, SeekRequest, SegmentTranslationState } from '../asr-api';
+import type { AnalysisProfile, AsrChannelKey, AsrChannelState, AsrJob, ClipGeneratedDataKind, PlaybackState, SeekRequest, SegmentTranslationState } from '../asr-api';
+import type { FlowQueuedMediaRequest } from './FlowQueuePanel';
 import { formatClock } from '../asr-api';
 import { useLiveSttPreview } from '../live-stt-preview';
 import { useCallback, useEffect, useState } from 'react';
@@ -12,6 +13,7 @@ interface AnalysisWorkspaceProps {
   asrJob: AsrJob | null;
   uploadError: string | null;
   selectedFileName: string | null;
+  selectedSourcePath: string | null;
   isStartingAsr: boolean;
   isLiveSttBusy: boolean;
   analysisProfile: AnalysisProfile;
@@ -27,6 +29,11 @@ interface AnalysisWorkspaceProps {
   segmentTranslations: Record<number, SegmentTranslationState>;
   onUpload: (file: File) => void;
   onStartAsr: () => void;
+  onStartAsrRange: (from: number, to: number) => void;
+  onResetMedia: () => void;
+  generatedDataAvailability: Record<ClipGeneratedDataKind, boolean>;
+  isDeletingGeneratedData: boolean;
+  onPermanentDeleteGeneratedData: (kind: ClipGeneratedDataKind) => Promise<void>;
   onLiveSttBusyChange: (isBusy: boolean) => void;
   onPlaybackChange: (playback: PlaybackState) => void;
   onSeek: (time: number) => void;
@@ -34,12 +41,14 @@ interface AnalysisWorkspaceProps {
   onSelectSegment: (index: number) => void;
   onTranslateSegment: (index: number) => void;
   onTranslateAllSegments: () => void;
+  onOpenQueuedMedia: (request: FlowQueuedMediaRequest) => void;
 }
 
 export function AnalysisWorkspace({
   asrJob,
   uploadError,
   selectedFileName,
+  selectedSourcePath,
   isStartingAsr,
   isLiveSttBusy,
   analysisProfile,
@@ -55,6 +64,11 @@ export function AnalysisWorkspace({
   segmentTranslations,
   onUpload,
   onStartAsr,
+  onStartAsrRange,
+  onResetMedia,
+  generatedDataAvailability,
+  isDeletingGeneratedData,
+  onPermanentDeleteGeneratedData,
   onLiveSttBusyChange,
   onPlaybackChange,
   onSeek,
@@ -62,12 +76,14 @@ export function AnalysisWorkspace({
   onSelectSegment,
   onTranslateSegment,
   onTranslateAllSegments,
+  onOpenQueuedMedia,
 }: AnalysisWorkspaceProps) {
   const [mediaElement, setMediaElement] = useState<HTMLMediaElement | null>(null);
   const [mediaResolution, setMediaResolution] = useState<string | null>(null);
   const [inPoint, setInPoint] = useState<number | null>(null);
   const [outPoint, setOutPoint] = useState<number | null>(null);
   const [dismissedWarningJobId, setDismissedWarningJobId] = useState<string | null>(null);
+  const [rightPanelMode, setRightPanelMode] = useState<'modules' | 'flow'>('modules');
   const isLivePreviewEnabled = isSttPreviewEnabled && analysisProfile === 'stt' && Boolean(mediaPreviewUrl);
   const livePreview = useLiveSttPreview({
     enabled: isLivePreviewEnabled,
@@ -107,13 +123,20 @@ export function AnalysisWorkspace({
         asrJob={asrJob}
         uploadError={uploadError}
         selectedFileName={selectedFileName}
+        selectedSourcePath={selectedSourcePath}
         isStartingAsr={isStartingAsr}
         isLiveSttBusy={isLiveSttBusy}
         analysisProfile={analysisProfile}
+        rightPanelMode={rightPanelMode}
         playback={playback}
+        mediaResolution={mediaResolution}
         onUpload={onUpload}
         onStartAsr={onStartAsr}
-        mediaResolution={mediaResolution}
+        onResetMedia={onResetMedia}
+        generatedDataAvailability={generatedDataAvailability}
+        isDeletingGeneratedData={isDeletingGeneratedData}
+        onPermanentDeleteGeneratedData={onPermanentDeleteGeneratedData}
+        onRightPanelModeChange={setRightPanelMode}
       />
       {showPartialWarning && (
         <div className="shrink-0 flex items-start gap-2 px-4 py-2 bg-warning-subtle border-b border-warning-border text-warning text-[11px] font-semibold">
@@ -186,11 +209,12 @@ export function AnalysisWorkspace({
             onToggleAsrChannel={onToggleAsrChannel}
             onSelectSegment={onSelectSegment}
             onTranslateRange={handleTranslateRange}
+            onStartAsrRange={onStartAsrRange}
+            isStartingAsrRange={isStartingAsr}
           />
         </div>
         <Sidebar
           asrJob={asrJob}
-          uploadError={uploadError}
           hasMedia={Boolean(mediaPreviewUrl)}
           isSttPreviewEnabled={isLivePreviewEnabled}
           livePreview={livePreview}
@@ -198,9 +222,11 @@ export function AnalysisWorkspace({
           selectedSegmentIndex={selectedSegmentIndex}
           isTranslatingAll={isTranslatingAll}
           segmentTranslations={segmentTranslations}
+          panelMode={rightPanelMode}
           onSelectSegment={onSelectSegment}
           onTranslateSegment={onTranslateSegment}
           onTranslateAllSegments={onTranslateAllSegments}
+          onOpenQueuedMedia={onOpenQueuedMedia}
         />
       </div>
     </div>

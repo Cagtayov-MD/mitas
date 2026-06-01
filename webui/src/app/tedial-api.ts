@@ -1,4 +1,4 @@
-import type { AsrJob } from './asr-api';
+import { contentProfileForAnalysisProfile, type AnalysisProfile, type AsrJob } from './asr-api';
 
 export interface TedialSession {
   status: 'disconnected' | 'connecting' | 'connected' | 'expired' | 'error';
@@ -26,24 +26,29 @@ export interface TedialSearchResult {
 
 export type TedialAudioTrack = 0 | 1;
 export type TedialAsrChannelMode = 'auto' | 'split' | 'mono';
+export const DEFAULT_TEDIAL_CHANNEL_MODE: TedialAsrChannelMode = 'auto';
 
 export interface TedialImportOptions {
   audioTrack?: TedialAudioTrack;
   channelMode?: TedialAsrChannelMode;
+  analysisProfile?: AnalysisProfile;
+  signal?: AbortSignal;
 }
 
-export interface TedialImportResult {
+export interface TedialMediaImportResult {
   item: TedialSearchResult;
   filename: string;
   mediaType: 'video/mp4' | 'application/dash+xml';
   streamUrl: string;
   audioTrack: TedialAudioTrack;
   channelMode: TedialAsrChannelMode;
+}
+
+export interface TedialImportResult extends TedialMediaImportResult {
   job: AsrJob;
 }
 
 const TEDIAL_API = '/tedial-api';
-const TEDIAL_LOGIN_ORIGIN = 'http://127.0.0.1:8765';
 
 export async function fetchTedialSession(useHealth = false): Promise<TedialSession> {
   const response = await fetch(`${TEDIAL_API}/session${useHealth ? '/health' : ''}`);
@@ -64,7 +69,7 @@ export async function startTedialSession(remember: boolean): Promise<TedialSessi
   }
   const payload = await response.json();
   if (payload.login_url?.startsWith('/')) {
-    payload.login_url = `${TEDIAL_LOGIN_ORIGIN}${payload.login_url}`;
+    payload.login_url = `${window.location.origin}${payload.login_url}`;
   }
   return payload;
 }
@@ -120,18 +125,37 @@ function compactTrtId(value: string): string | null {
   return trimmed.replace(/-/g, '');
 }
 
+export function openTedialMediaInMitas(item: TedialSearchResult, options: TedialImportOptions = {}): TedialMediaImportResult {
+  if (!item.repository_id || !item.asset_id) {
+    throw new Error('Tedial asset bilgisi eksik.');
+  }
+  const audioTrack = normalizeTedialAudioTrack(options.audioTrack);
+  const channelMode = options.channelMode ?? DEFAULT_TEDIAL_CHANNEL_MODE;
+  const streamUrl = tedialManifestUrl(item, audioTrack);
+  const filename = buildTedialFilename(item, 'application/dash+xml', streamUrl);
+  return {
+    item: { ...item, duration_seconds: tedialDurationSeconds(item) },
+    filename,
+    mediaType: 'application/dash+xml',
+    streamUrl,
+    audioTrack,
+    channelMode,
+  };
+}
+
 export async function startTedialAsrJob(item: TedialSearchResult, options: TedialImportOptions = {}): Promise<TedialImportResult> {
   if (!item.repository_id || !item.asset_id) {
     throw new Error('Tedial asset bilgisi eksik.');
   }
   const audioTrack = normalizeTedialAudioTrack(options.audioTrack);
-  const channelMode = options.channelMode ?? 'split';
+  const channelMode = options.channelMode ?? DEFAULT_TEDIAL_CHANNEL_MODE;
+  const analysisProfile = options.analysisProfile ?? 'stt';
   const streamUrl = tedialStreamUrl(item, audioTrack);
   const filename = buildTedialFilename(item, 'video/mp4', streamUrl);
   const params = new URLSearchParams({
     repository_id: item.repository_id,
     title: item.title || item.asset_id,
-    content_profile: 'bulten_haber',
+    content_profile: contentProfileForAnalysisProfile(analysisProfile),
     diarize: 'auto',
     channel_mode: channelMode,
     word_alignment_mode: 'whisperx',
@@ -139,11 +163,13 @@ export async function startTedialAsrJob(item: TedialSearchResult, options: Tedia
   });
   const response = await fetch(`${TEDIAL_API}/assets/${encodeURIComponent(item.asset_id)}/asr?${params.toString()}`, {
     method: 'POST',
+    signal: options.signal,
   });
   if (!response.ok) {
     throw new Error(await readTedialError(response));
   }
   const job = await response.json() as AsrJob;
+  rememberTedialAsrJob(job.job_id);
   const normalizedItem = { ...item, duration_seconds: tedialDurationSeconds(item) };
   return {
     item: normalizedItem,
@@ -154,6 +180,74 @@ export async function startTedialAsrJob(item: TedialSearchResult, options: Tedia
     channelMode,
     job,
   };
+}
+
+export async function startTedialAsrRangeJob(
+  item: TedialSearchResult,
+  range: { start: number; end: number },
+  options: TedialImportOptions = {},
+): Promise<TedialImportResult> {
+  if (!item.repository_id || !item.asset_id) {
+    throw new Error('Tedial asset bilgisi eksik.');
+  }
+  if (range.end <= range.start) {
+    throw new Error('Geçerli bir in/out aralığı seç.');
+  }
+  const audioTrack = normalizeTedialAudioTrack(options.audioTrack);
+  const channelMode = options.channelMode ?? DEFAULT_TEDIAL_CHANNEL_MODE;
+  const analysisProfile = options.analysisProfile ?? 'stt';
+  const params = new URLSearchParams({
+    repository_id: item.repository_id,
+    title: item.title || item.asset_id,
+    content_profile: contentProfileForAnalysisProfile(analysisProfile),
+    diarize: 'auto',
+    channel_mode: channelMode,
+    word_alignment_mode: 'whisperx',
+    audio_track: String(audioTrack),
+    start_seconds: String(range.start),
+    end_seconds: String(range.end),
+  });
+  const response = await fetch(`${TEDIAL_API}/assets/${encodeURIComponent(item.asset_id)}/asr?${params.toString()}`, {
+    method: 'POST',
+    signal: options.signal,
+  });
+  if (!response.ok) {
+    throw new Error(await readTedialError(response));
+  }
+  const job = await response.json() as AsrJob;
+  rememberTedialAsrJob(job.job_id);
+  return {
+    item: { ...item, duration_seconds: Math.max(0, range.end - range.start) },
+    filename: job.filename || buildTedialFilename(item, 'video/mp4', tedialStreamUrl(item, audioTrack)),
+    mediaType: 'video/mp4',
+    streamUrl: `/api/jobs/${encodeURIComponent(job.job_id)}/media`,
+    audioTrack,
+    channelMode,
+    job,
+  };
+}
+
+const TEDIAL_JOB_IDS_KEY = 'mitas.tedial.asrJobIds';
+
+export function getRememberedTedialJobIds(): string[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(TEDIAL_JOB_IDS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string' && item.length > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberTedialAsrJob(jobId: string | null | undefined) {
+  const id = String(jobId || '').trim();
+  if (!id || typeof window === 'undefined') {
+    return;
+  }
+  const next = [id, ...getRememberedTedialJobIds().filter((item) => item !== id)].slice(0, 100);
+  window.localStorage.setItem(TEDIAL_JOB_IDS_KEY, JSON.stringify(next));
 }
 
 export function tedialDurationSeconds(item: TedialSearchResult | null | undefined): number | null {
@@ -205,6 +299,7 @@ function sanitizeName(value: string): string {
 
 function suffixFromContentType(contentType: string | null): string | null {
   const type = (contentType || '').split(';', 1)[0].trim().toLowerCase();
+  if (type === 'application/dash+xml') return '.mpd';
   if (type === 'video/mp4') return '.mp4';
   if (type === 'audio/mpeg') return '.mp3';
   if (type === 'audio/wav' || type === 'audio/x-wav') return '.wav';

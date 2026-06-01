@@ -13,6 +13,7 @@ import re
 from typing import Any
 from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
 
+from core.api.access import access_cookie_header_from_request
 from core.api.tedial.import_queue import TedialImportQueue
 from core.api.tedial.job_runner import TedialJobRunner
 from core.api.tedial.media_resolver import TedialMediaResolveError, keep_mpd_audio_track, safe_artifact_id, select_mpd_audio_video_urls
@@ -447,7 +448,15 @@ def create_tedial_router(service: TedialProxyService | None = None, import_queue
         channel_mode: str = "auto",
         word_alignment_mode: str = "whisperx",
         audio_track: int = 0,
+        start_seconds: float | None = None,
+        end_seconds: float | None = None,
     ) -> JSONResponse:
+        if start_seconds is not None and start_seconds < 0:
+            raise HTTPException(status_code=400, detail="invalid_range")
+        if end_seconds is not None and start_seconds is None:
+            raise HTTPException(status_code=400, detail="invalid_range")
+        if start_seconds is not None and end_seconds is not None and end_seconds <= start_seconds:
+            raise HTTPException(status_code=400, detail="invalid_range")
         user_id = _user_id_from_request(request)
         raw_mpd = await fetch_asset_manifest_text(
             user_id=user_id,
@@ -464,13 +473,16 @@ def create_tedial_router(service: TedialProxyService | None = None, import_queue
             audio_url=audio_url,
             cookie_header=cookie_header,
             verify_tls=svc.config.verify_tls,
+            start_seconds=start_seconds,
+            end_seconds=end_seconds,
         )
         stderr_task = asyncio.create_task(process.stderr.read() if process.stderr else _empty_bytes())
         try:
-            filename = _tedial_asset_filename(title=title, asset_id=asset_id)
+            filename = _tedial_asset_filename(title=title, asset_id=asset_id, start_seconds=start_seconds, end_seconds=end_seconds)
             asr_response = await _post_ffmpeg_stream_to_asr(
                 httpx=httpx,
                 process=process,
+                access_cookie_header=access_cookie_header_from_request(request),
                 filename=filename,
                 profile=profile,
                 content_profile=content_profile,
@@ -695,15 +707,16 @@ async def _perform_auto_login(
         trust_env=False,
     ) as client:
         first = await client.get(health_url, headers={"Accept": "text/html"})
-        if first.status_code < 400 and not _looks_like_login(first):
+        current = await _follow_allowed_redirects(client, first, service=service)
+        if current.status_code < 400 and not _looks_like_login(current):
             cookie_header = _httpx_cookie_header(client)
             if cookie_header:
                 service.broker.attach_cookie_header(user_id, cookie_header, remember=True)
                 return service.broker.mark_checked(user_id, connected=True)
 
         login_url, payload = _auto_login_request_from_html(
-            first.text,
-            base_url=str(first.url),
+            current.text,
+            base_url=str(current.url),
             service=service,
             config=config,
         )
@@ -711,24 +724,14 @@ async def _perform_auto_login(
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Content-Type": "application/x-www-form-urlencoded",
             "Origin": service.config.base_url,
-            "Referer": str(first.url),
+            "Referer": str(current.url),
         }
         login_resp = await client.post(
             login_url,
             headers=login_headers,
             content=urlencode(payload).encode("utf-8"),
         )
-        current = login_resp
-        for _index in range(5):
-            if current.status_code not in (301, 302, 303, 307, 308):
-                break
-            location = current.headers.get("location", "")
-            if not location:
-                break
-            next_url = urljoin(str(current.url), location)
-            if not service.config.is_allowed_upstream_url(next_url):
-                break
-            current = await client.get(next_url, headers={"Accept": "text/html"})
+        current = await _follow_allowed_redirects(client, login_resp, service=service)
 
         verify_resp = await client.get(health_url, headers={"Accept": "text/html"})
         connected = verify_resp.status_code < 400 and not _looks_like_login(verify_resp)
@@ -741,24 +744,70 @@ async def _perform_auto_login(
     raise TedialAutoLoginError(snapshot.error or "Tedial auto-login failed")
 
 
+async def _follow_allowed_redirects(client: Any, response: Any, *, service: TedialProxyService, limit: int = 5) -> Any:
+    current = response
+    for _index in range(limit):
+        if current.status_code not in (301, 302, 303, 307, 308):
+            break
+        location = current.headers.get("location", "")
+        if not location:
+            break
+        next_url = urljoin(str(current.url), location)
+        if not service.config.is_allowed_upstream_url(next_url):
+            break
+        current = await client.get(next_url, headers={"Accept": "text/html"})
+    return current
+
+
 def _auto_login_config_from_env() -> TedialAutoLoginConfig:
     enabled = _env_bool("MITAS_TEDIAL_AUTO_LOGIN", "0")
-    username = os.environ.get("MITAS_TEDIAL_USERNAME") or os.environ.get("TEDIAL_USERNAME") or ""
-    password = os.environ.get("MITAS_TEDIAL_PASSWORD") or os.environ.get("TEDIAL_PASSWORD") or ""
+    username = _env_value("MITAS_TEDIAL_USERNAME") or _env_value("TEDIAL_USERNAME") or ""
+    password = _env_value("MITAS_TEDIAL_PASSWORD") or _env_value("TEDIAL_PASSWORD") or ""
     return TedialAutoLoginConfig(
         enabled=enabled,
         username=username.strip(),
         password=password,
-        username_field=(os.environ.get("MITAS_TEDIAL_USERNAME_FIELD") or "j_username").strip() or "j_username",
-        password_field=(os.environ.get("MITAS_TEDIAL_PASSWORD_FIELD") or "j_password").strip() or "j_password",
-        login_submit_path=(os.environ.get("MITAS_TEDIAL_LOGIN_PATH") or "/iTClient/j_security_check").strip() or "/iTClient/j_security_check",
-        remember_field=(os.environ.get("MITAS_TEDIAL_REMEMBER_FIELD") or "").strip(),
-        remember_value=os.environ.get("MITAS_TEDIAL_REMEMBER_VALUE") or "on",
+        username_field=(_env_value("MITAS_TEDIAL_USERNAME_FIELD") or "j_username").strip() or "j_username",
+        password_field=(_env_value("MITAS_TEDIAL_PASSWORD_FIELD") or "j_password").strip() or "j_password",
+        login_submit_path=(_env_value("MITAS_TEDIAL_LOGIN_PATH") or "/iTClient/j_security_check").strip() or "/iTClient/j_security_check",
+        remember_field=(_env_value("MITAS_TEDIAL_REMEMBER_FIELD") or "").strip(),
+        remember_value=_env_value("MITAS_TEDIAL_REMEMBER_VALUE") or "on",
     )
 
 
 def _env_bool(name: str, default: str = "0") -> bool:
-    return (os.environ.get(name, default) or "").strip().lower() in {"1", "true", "yes", "on"}
+    return (_env_value(name, default) or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_value(name: str, default: str = "") -> str:
+    value = os.environ.get(name)
+    if value is not None:
+        return value
+    windows_value = _windows_persisted_env_value(name)
+    if windows_value is not None:
+        return windows_value
+    return default
+
+
+def _windows_persisted_env_value(name: str) -> str | None:
+    if os.name != "nt":
+        return None
+    try:
+        import winreg
+    except ImportError:
+        return None
+    for root, path in (
+        (winreg.HKEY_CURRENT_USER, "Environment"),
+        (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+    ):
+        try:
+            with winreg.OpenKey(root, path) as key:
+                value, _value_type = winreg.QueryValueEx(key, name)
+        except OSError:
+            continue
+        if value is not None:
+            return str(value)
+    return None
 
 
 def _auto_login_request_from_html(
@@ -950,6 +999,8 @@ async def _start_tedial_ffmpeg_mp4_stream(
     audio_url: str | None,
     cookie_header: str | None,
     verify_tls: bool,
+    start_seconds: float | None = None,
+    end_seconds: float | None = None,
 ):
     from core.pipelines.asr.transcribe import DEFAULT_FFMPEG_EXECUTABLE
 
@@ -960,9 +1011,11 @@ async def _start_tedial_ffmpeg_mp4_stream(
         "-loglevel",
         "error",
     ]
+    _append_ffmpeg_range_options(command, start_seconds=start_seconds, end_seconds=end_seconds)
     _append_ffmpeg_http_input_options(command, cookie_header=cookie_header, verify_tls=verify_tls)
     command.extend(["-i", video_url])
     if audio_url:
+        _append_ffmpeg_range_options(command, start_seconds=start_seconds, end_seconds=end_seconds)
         _append_ffmpeg_http_input_options(command, cookie_header=cookie_header, verify_tls=verify_tls)
         command.extend(["-i", audio_url])
         command.extend(["-map", "0:v:0", "-map", "1:a:0"])
@@ -986,6 +1039,14 @@ async def _start_tedial_ffmpeg_mp4_stream(
     )
 
 
+def _append_ffmpeg_range_options(command: list[str], *, start_seconds: float | None, end_seconds: float | None) -> None:
+    if start_seconds is None:
+        return
+    command.extend(["-ss", f"{max(0.0, start_seconds):.3f}"])
+    if end_seconds is not None and end_seconds > start_seconds:
+        command.extend(["-t", f"{end_seconds - start_seconds:.3f}"])
+
+
 def _append_ffmpeg_http_input_options(command: list[str], *, cookie_header: str | None, verify_tls: bool) -> None:
     if not verify_tls:
         command.extend(["-tls_verify", "0"])
@@ -997,6 +1058,7 @@ async def _post_ffmpeg_stream_to_asr(
     *,
     httpx: Any,
     process: Any,
+    access_cookie_header: str,
     filename: str,
     profile: str,
     content_profile: str,
@@ -1014,6 +1076,9 @@ async def _post_ffmpeg_stream_to_asr(
             yield chunk
 
     asr_url = os.environ.get("MITAS_ASR_TRANSCRIBE_URL", "http://127.0.0.1:8787/api/asr/transcribe")
+    headers = {"content-type": "video/mp4"}
+    if access_cookie_header:
+        headers["cookie"] = access_cookie_header
     async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=180.0, write=1800.0), trust_env=False) as client:
         response = await client.post(
             asr_url,
@@ -1025,7 +1090,7 @@ async def _post_ffmpeg_stream_to_asr(
                 "channel_mode": channel_mode,
                 "word_alignment_mode": word_alignment_mode,
             },
-            headers={"content-type": "video/mp4"},
+            headers=headers,
             content=_body(),
         )
     if not response.is_success:
@@ -1049,9 +1114,22 @@ def _response_detail(response: Any) -> str:
     return str(payload)
 
 
-def _tedial_asset_filename(*, title: str | None, asset_id: str) -> str:
+def _tedial_asset_filename(
+    *,
+    title: str | None,
+    asset_id: str,
+    start_seconds: float | None = None,
+    end_seconds: float | None = None,
+) -> str:
     stem = safe_artifact_id(title or asset_id or "tedial_asset")
+    if start_seconds is not None and end_seconds is not None:
+        stem = f"{stem}_{_range_token(start_seconds)}_{_range_token(end_seconds)}"
     return f"{stem}.mp4"
+
+
+def _range_token(seconds: float) -> str:
+    millis = max(0, int(round(seconds * 1000)))
+    return f"{millis}ms"
 
 
 async def _empty_bytes() -> bytes:
