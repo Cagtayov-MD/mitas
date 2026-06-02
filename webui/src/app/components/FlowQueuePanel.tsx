@@ -17,7 +17,9 @@ import {
   fetchAsrJob,
   isAsrJobFinished,
   localFileSourcePath,
+  profileRunsOcr,
   startAsrJob,
+  startPipelineJob,
   type AnalysisProfile,
   type AsrJob,
 } from '../asr-api';
@@ -400,7 +402,9 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
         ? item.file ?? await fileFromStoredQueueMedia(item)
         : undefined;
       started = item.source === 'upload'
-        ? await startAsrJob(uploadFile as File, item.profile, { signal: abortController.signal })
+        ? profileRunsOcr(item.profile)
+          ? await startPipelineJob(uploadFile as File, item.profile, { signal: abortController.signal })
+          : await startAsrJob(uploadFile as File, item.profile, { signal: abortController.signal })
         : (await startTedialAsrJob(item.tedialItem as TedialSearchResult, {
           analysisProfile: item.profile,
           channelMode: DEFAULT_TEDIAL_CHANNEL_MODE,

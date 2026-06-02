@@ -113,10 +113,30 @@ def parse_filename(video: Path):
         profile = "film" if typ == "1" else ("dizi" if typ == "0" else None)
         if typ == "0":
             bolum = f"{int(m.group(4))}. BÖLÜM"
-        title = (stem[:m.start()] + " " + stem[m.end():]).replace("_", " ").strip(" -_")
+        # başlık = TRT id'den SONRAKİ kısım (içerik adı). TRT öncesi sistem önekidir
+        # (web_client_CAG1_, evoArcadmin_COZUMLEMEV2S20_ vb.) → başlığa KATMA.
+        # (KÖPRÜ _hile_manifest ile aynı kural.)
+        title = stem[m.end():].lstrip("-_ ").replace("_", " ").strip(" -_")
+        if not title:                       # ad nadiren TRT'den önceyse geri düş
+            title = stem[:m.start()].replace("_", " ").strip(" -_")
     else:
         title = stem.replace("_", " ").strip()
     return trt, title or stem, profile, bolum
+
+
+def xml_original(video: Path) -> str:
+    """Video yanindaki <stem>.xml sidecar'dan orijinal adi (<TITLE>) oku → afiş icin.
+    Yabancı filmde TRT başlığı Türkçe ("SİYAH İNCİ"), XML <TITLE> orijinal ("BLACK BEAUTY").
+    Yoksa "" (afiş Türkçe başlıkla denenir; bulunamazsa afiş yok, ses/altyazı bloğu kalır)."""
+    try:
+        import xml.etree.ElementTree as ET
+        xp = video.with_suffix(".xml")
+        if not xp.exists():
+            return ""
+        tt = ET.parse(str(xp)).getroot().find(".//TITLE")
+        return (tt.text or "").strip() if tt is not None else ""
+    except Exception:  # noqa: BLE001
+        return ""
 
 
 def ffprobe_specs(video: Path):
@@ -208,6 +228,8 @@ def main(argv=None) -> int:
         return 2
 
     trt, title, prof_from_id, bolum = parse_filename(video)
+    original = xml_original(video)              # XML <TITLE> → afiş orijinal ad (yabancı film)
+    film_year = trt.split("-")[0] if trt else ""  # TRT katalog yılı (zayıf ayraç; afişte kadro birincil)
     raw_profile = (args.profile or "").strip().lower()
     if raw_profile in ("", "film_dizi", "filmdizi", "film/dizi", "auto"):
         # TEK 'Film/Dizi' profili → tip TRT 3. parselden otomatik (1→film, 0→dizi)
@@ -367,6 +389,10 @@ def main(argv=None) -> int:
                "--resolution", res, "--fps", fps_s, "--duration", dur, "--ozet", ozet]
         if bolum:
             cmd += ["--bolum", bolum]
+        if original:                       # afiş: orijinal ad birincil sorgu (yabancı film)
+            cmd += ["--original", original]
+        if film_year:                      # afiş: çok-sürümde yedek ayraç (kadro teyidi birincil)
+            cmd += ["--year", film_year]
         # film/dizi → ses & altyazı bloğu: kaynak video + (ASR yazdıysa) kanal-dil JSON
         _pa_pdf = PROFILE_ASR.get(profile)
         if _pa_pdf and _pa_pdf.get("language") == "auto":
