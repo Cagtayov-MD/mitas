@@ -69,7 +69,6 @@ Bu sprintte bilinçli olarak kesin paket/sürüm haline getirilmemiş, benchmark
 
 - OneOCR runtime durumu
 - PaddleOCR sürüm ve CPU/GPU seçimi
-- EasyOCR fallback kararı
 - pytesseract / Tesseract binary bağlantısı
 - WhisperX alignment kararı
 - torch wheel kararı
@@ -90,7 +89,7 @@ Bu sprintte bilinçli olarak kesin paket/sürüm haline getirilmemiş, benchmark
 
 - Lightweight: `pillow`, `numpy`
 - Medium: `opencv-python`
-- Placeholder: OneOCR, PaddleOCR, EasyOCR, pytesseract
+- Placeholder: OneOCR, PaddleOCR, pytesseract
 - External binary riski: Tesseract
 
 ### asr
@@ -139,7 +138,6 @@ Bu sprintte bilinçli olarak kesin paket/sürüm haline getirilmemiş, benchmark
 
 - OneOCR yerel runtime/import doğrulaması
 - PaddleOCR kesin sürüm ve CPU/GPU kararı
-- EasyOCR fallback olarak korunacak mı
 - pytesseract ile Tesseract binary ilişkisinin netleşmesi
 - WhisperX alignment kullanımı ve bağımlılık etkisi
 - torch CUDA/CPU wheel seçimi

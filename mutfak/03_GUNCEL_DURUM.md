@@ -1,9 +1,50 @@
 # 03 — GÜNCEL DURUM
 
-> Son güncelleme: 2026-05-18
-> Son değişen bölüm: §0.5 — RADYO_G_NLER kalibrasyonu: stock artifact, stereo redundancy, channel_mode default, content profile wire
+> Son güncelleme: 2026-06-02
+> Son değişen bölüm: §0.6 — 2026-06-02 durum senkronu: üç canlı pipeline (ASR/OCR/Translate), test gerçeği, commit temizliği
 
 Bu dosya **şu an nerede olduğumuzu** anlatır. Yapılmış olanlar, eksik kalanlar, açık kararlar, riskler. Her gelişme ile güncellenir.
+
+---
+
+## 0.6 2026-06-02 durum senkronu — üç canlı pipeline, test gerçeği, commit temizliği
+
+Bu dosya 2026-05-18'de (§0.5) donmuştu; aradaki ~2 haftada gerçek ilerledi. Bu bölüm
+gerçeği yakalar.
+
+**Artık üç üretim pipeline'ı + Tedial entegrasyonu var** (eskiden "sadece ASR" idi):
+
+- **ASR — 🟢 en olgun.** `core/pipelines/asr/` (19 modül) + `asr_server.py` + WebUI.
+  v0.1 + derin audit + WhisperX hizalama + 5 içerik profili + diarization + stereo/channel
+  auto + entity normalizasyon + canlı STT preview. Yeni modüller: `align.py`,
+  `language_intelligence.py`, `word_timing.py`, `version.py`.
+- **OCR (künye/jenerik) — 🟡 yoğun POC, yarısı entegre.** İki paralel hat (Karar: MODEL 1/2
+  karışmasın). **MODEL 1 (frame-first)** `core/pipelines/ocr/`: text-first göç + K-BoxTrack
+  + slit-scan + credit motion state machine + mosaic yöntemleri + V2.1 OneOCR fallback.
+  **MODEL 2 (panorama-first)** `model2/` paket iskeleti + `E:\MITAS\OCR-worktree/` keşif alanı
+  (kanonik `ocr-opus-final.md`). Reconstruction 2×2 matrisi **kapandı**; tek açık gerçek iş
+  **"bekçi"** (film ↔ jenerik ayrımı, GÖZ `qwen2.5vl` + `dy`). En taze iş 2026-06-01:
+  panorama + qwen_transcribe + consensus (OCR-worktree, commit'siz keşif).
+- **Translate (MT) — 🟢 YENİ, çalışır, entegre.** `core/pipelines/translate/` (8 modül, ~930 satır).
+  OPUS-MT EN→TR hızlı yol + NLLB-3.3B çok-dilli; Arapça/Levanten lehçe tespiti (`dialect.py`);
+  izole `translate` venv'de subprocess; `asr_server` `/api/translate/segments` endpoint'ine bağlı.
+  Bu pipeline 05-18 dokümanında hiç yoktu.
+- **Tedial — 🟡 PoC.** `core/api/tedial/` arşiv arama+izleme; router artık fastapi'yi sert import ediyor.
+
+Henüz **yazılmamış** (§5.1 hâlâ geçerli): Face, Audio Activity, Song Recognition, Visual Tag,
+Timeline merge, Review UI backend. (Face için v0.4 planı yazıldı: `docs/MITAS_v0_4_Face_Recognition_Plan_Final.md`.)
+
+**Test gerçeği (dürüst):** Proje per-modül venv mimarisinde; **tek venv'den tüm suite koşmuyor.**
+`core` venv'de `pytest tests/` → 366 passed, 37 skipped, **23 "failed" — hepsi ortamsal**
+(numpy/fastapi `core` venv'de yok). Doğrulandı: OCR row-reconstruct testleri `ocr` venv'de 21/21
+geçiyor; translate/tedial testleri `asr` venv'de (fastapi) geçer. Tedial paketi artık `core`
+venv'de collect bile olmuyor (fastapi import zinciri). Yani kod yeşil ama suite venv'e göre bölünmüş.
+
+**Commit temizliği (2026-06-02):** Çalışma ağacında ~250 untracked + 56 modified birikmişti
+(çoğu generated). `.gitignore` genişletildi (Karar 38 / PARK-OCR-001: `outputs/_*`, experiment
+dizinleri, scratch `scripts/_*`, data dump'ları, `OCR-worktree/`, GORSELLER). Gerçek kaynak 6
+mantıklı commit'e bölündü: gitignore, asr, translate, ocr (MODEL 1), model2 iskeleti, api+webui,
+docs. Push yapılmadı.
 
 ---
 
@@ -253,7 +294,7 @@ Sonraki çekirdek odak: **v0.1 — ASR dikey dilim**. Düzgün şekilde ayağa k
 | **alignment** | `venvs/alignment` | WhisperX word-level alignment sleeve | whisperx 3.8.5, torch/torchaudio 2.8.0+cu126, torchcodec 0.7.0 | torchcodec direct decode FFmpeg 8 ile uyumsuz ama alignment yolunda dormant |
 | **denoise** | `venvs/denoise` | DeepFilterNet denoise sleeve | DeepFilterNet 0.5.6, DeepFilterLib 0.5.6, numpy 1.26.4, torch/torchaudio 2.8.0+cu126, soundfile 0.12.1 | Python 3.10 fallback; 3.11 sistemde yok |
 | **stt** | `venvs/stt` | Legacy STT venv | legacy_stt_venv, deprecated_as_primary_runtime, do_not_delete_yet | primary runtime değil |
-| **ocr** | `venvs/ocr` | OCR | oneocr 1.0.12, paddleocr 3.5.0, paddlepaddle 3.3.1, easyocr 1.7.2, pytesseract 0.3.13, opencv 4.13 | sistem `tesseract.exe` yok |
+| **ocr** | `venvs/ocr` | OCR | oneocr 1.0.12, paddleocr 3.5.0, paddlepaddle 3.3.1, pytesseract 0.3.13, opencv 4.13 | EasyOCR ignore edildi; sistem `tesseract.exe` yok |
 | **face** | `venvs/face` | Yüz tespit/track | insightface 0.7.3, onnxruntime-gpu 1.23.2, supervision 0.28.0, opencv 4.13, hdbscan 0.8.42, pgvector 0.4.2, torch+CUDA | fastapi yok |
 | **visual** | `venvs/visual` | Görsel tag | ultralytics 8.4.48, transformers 5.8.0, scenedetect 0.7, torch+CUDA | GroundingDINO, RAM paket olarak yok |
 | **audio** | `venvs/audio` | Ses sınıflandırma | tensorflow 2.21.0, tensorflow-hub 0.16.1, librosa, soundfile, pydub | torch yok (TF tabanlı) |
@@ -322,7 +363,7 @@ Detay: `06_KARARLAR_GUNLUGU.md`'de listelenir, burada özet:
 
 1. **Demo backend için venv stratejisi** — canlı transcript `ASR > streaming_transcription` olarak `asr` venv içinde ele alınır; face tarafı ayrı karar bekler.
 2. **Sunum hedefi** — axle.ai bağlamı nedeniyle 3-5 günde stream demo planlanmıştı; geliştirici "acele kararları geri çekiyorum, önce ASR'yi düzgün ayağa kaldırmak" dedi. Sunum hâlâ ileride ama bu klasör artık demo değil ana proje takibi.
-3. **OCR motoru seçimi** — benchmark gated. OneOCR / PaddleOCR / EasyOCR / Tesseract aday. Sıralama master plan §0.3.3'te. Tesseract binary yok, fallback için kurulması gerekir.
+3. **OCR motoru seçimi** — PaddleOCR hattıyla ilerlenir; OneOCR/Tesseract sadece karşılaştırma/fallback bağlamında kalır. EasyOCR 2026-05-21 kararıyla aktif test/benchmark kapsamından çıkarıldı. Tesseract binary yok, fallback için kurulması gerekir.
 4. **WhisperX / alignment** — karar verildi: `asr` venv'e kurulmaz, `alignment` venv'de subprocess sleeve olarak çalışır. Word-level alignment smoke yeşil.
 5. **Pyannote** — `asr` venv'inde var. Torchcodec/FFmpeg hazırlığı tamamlandı; v0.1 smoke'da kullanımı sprint başlangıcında yeniden değerlendirilecek.
 6. **ASR model politikası** — karar verildi: default `large-v3-turbo`; `large-v3` selective fallback / üst-denetim modeli. TRT transcriptleri gelince eşik kalibrasyonu yapılacak.

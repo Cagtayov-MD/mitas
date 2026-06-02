@@ -44,8 +44,9 @@ Güncel OCR test önceliği:
 1. OneOCR
 2. PaddleOCR
 3. VITOS baseline
-4. EasyOCR
-5. Tesseract
+4. Tesseract
+
+EasyOCR aktif test kapsamindan cikarildi; PaddleOCR hatti ile devam edilir.
 
 Notlar:
 

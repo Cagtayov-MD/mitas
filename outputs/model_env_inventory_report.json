@@ -1,4 +1,33 @@
 {
+  "active_venvs": [
+    "core",
+    "ocr",
+    "asr",
+    "face",
+    "visual",
+    "audio",
+    "tag"
+  ],
+  "legacy_venvs": [
+    "stt"
+  ],
+  "venv_status": {
+    "core": "active_primary_runtime",
+    "ocr": "active_primary_runtime",
+    "asr": "active_primary_runtime",
+    "face": "active_primary_runtime",
+    "visual": "active_primary_runtime",
+    "audio": "active_primary_runtime",
+    "tag": "active_primary_runtime",
+    "stt": "legacy_stt_venv/deprecated_as_primary_runtime/do_not_delete_yet"
+  },
+  "asr_submodules": [
+    "file_transcription",
+    "streaming_transcription",
+    "vad",
+    "diarization",
+    "alignment"
+  ],
   "checked_venvs": [
     {
       "name": "core",
@@ -123,7 +152,6 @@
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
@@ -131,6 +159,9 @@
         "insightface": null,
         "onnxruntime": null,
         "onnxruntime-gpu": null,
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -138,18 +169,17 @@
       "status": "passed"
     },
     "ocr": {
-      "package_count": 5,
+      "package_count": 99,
       "important_packages": {
-        "pydantic": null,
-        "pytest": null,
-        "PyYAML": null,
-        "torch": null,
+        "pydantic": "2.13.4",
+        "pytest": "9.0.3",
+        "PyYAML": "6.0.2",
+        "torch": "2.11.0+cu126",
         "torchaudio": null,
-        "torchvision": null,
-        "paddleocr": null,
-        "paddlepaddle": null,
+        "torchvision": "0.26.0",
+        "paddleocr": "3.5.0",
+        "paddlepaddle": "3.3.1",
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
@@ -157,6 +187,9 @@
         "insightface": null,
         "onnxruntime": null,
         "onnxruntime-gpu": null,
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -164,10 +197,10 @@
       "status": "passed"
     },
     "asr": {
-      "package_count": 64,
+      "package_count": 152,
       "important_packages": {
-        "pydantic": null,
-        "pytest": null,
+        "pydantic": "2.13.4",
+        "pytest": "9.0.3",
         "PyYAML": "6.0.3",
         "torch": "2.11.0+cu126",
         "torchaudio": "2.11.0+cu126",
@@ -175,14 +208,16 @@
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": "4.7.1",
-        "easyocr": null,
         "faster-whisper": "1.2.1",
         "whisperx": null,
-        "silero-vad": null,
+        "silero-vad": "6.2.1",
         "pyannote.audio": null,
         "insightface": null,
         "onnxruntime": "1.23.2",
         "onnxruntime-gpu": null,
+        "fastapi": "0.136.1",
+        "uvicorn": "0.46.0",
+        "websockets": "16.0",
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -190,44 +225,45 @@
       "status": "passed"
     },
     "face": {
-      "package_count": 5,
+      "package_count": 66,
       "important_packages": {
-        "pydantic": null,
+        "pydantic": "2.13.4",
         "pytest": null,
-        "PyYAML": null,
-        "torch": null,
+        "PyYAML": "6.0.3",
+        "torch": "2.11.0+cu126",
         "torchaudio": null,
         "torchvision": null,
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
         "pyannote.audio": null,
-        "insightface": null,
+        "insightface": "0.7.3",
         "onnxruntime": null,
-        "onnxruntime-gpu": null,
-        "supervision": null,
+        "onnxruntime-gpu": "1.23.2",
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
+        "supervision": "0.28.0",
         "ultralytics": null,
         "transformers": null
       },
       "status": "passed"
     },
     "visual": {
-      "package_count": 5,
+      "package_count": 60,
       "important_packages": {
         "pydantic": null,
         "pytest": null,
-        "PyYAML": null,
-        "torch": null,
-        "torchaudio": null,
-        "torchvision": null,
+        "PyYAML": "6.0.3",
+        "torch": "2.11.0+cu126",
+        "torchaudio": "2.11.0+cu126",
+        "torchvision": "0.26.0",
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
@@ -235,14 +271,17 @@
         "insightface": null,
         "onnxruntime": null,
         "onnxruntime-gpu": null,
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
         "supervision": null,
-        "ultralytics": null,
-        "transformers": null
+        "ultralytics": "8.4.48",
+        "transformers": "5.8.0"
       },
       "status": "passed"
     },
     "audio": {
-      "package_count": 28,
+      "package_count": 53,
       "important_packages": {
         "pydantic": null,
         "pytest": null,
@@ -253,7 +292,6 @@
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
@@ -261,6 +299,9 @@
         "insightface": null,
         "onnxruntime": null,
         "onnxruntime-gpu": null,
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -268,7 +309,7 @@
       "status": "passed"
     },
     "tag": {
-      "package_count": 10,
+      "package_count": 16,
       "important_packages": {
         "pydantic": "2.13.4",
         "pytest": null,
@@ -279,7 +320,6 @@
         "paddleocr": null,
         "paddlepaddle": null,
         "ctranslate2": null,
-        "easyocr": null,
         "faster-whisper": null,
         "whisperx": null,
         "silero-vad": null,
@@ -287,6 +327,9 @@
         "insightface": null,
         "onnxruntime": null,
         "onnxruntime-gpu": null,
+        "fastapi": null,
+        "uvicorn": null,
+        "websockets": null,
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -294,25 +337,27 @@
       "status": "passed"
     },
     "stt": {
-      "package_count": 7,
+      "package_count": 58,
       "important_packages": {
-        "pydantic": null,
+        "pydantic": "2.13.4",
         "pytest": null,
-        "PyYAML": null,
-        "torch": null,
-        "torchaudio": null,
+        "PyYAML": "6.0.3",
+        "torch": "2.11.0+cu126",
+        "torchaudio": "2.11.0+cu126",
         "torchvision": null,
         "paddleocr": null,
         "paddlepaddle": null,
-        "ctranslate2": null,
-        "easyocr": null,
-        "faster-whisper": null,
+        "ctranslate2": "4.7.1",
+        "faster-whisper": "1.2.1",
         "whisperx": null,
         "silero-vad": null,
         "pyannote.audio": null,
         "insightface": null,
-        "onnxruntime": null,
+        "onnxruntime": "1.23.2",
         "onnxruntime-gpu": null,
+        "fastapi": "0.136.1",
+        "uvicorn": "0.46.0",
+        "websockets": "16.0",
         "supervision": null,
         "ultralytics": null,
         "transformers": null
@@ -325,7 +370,11 @@
       "status": "missing"
     },
     "ocr": {
-      "status": "missing"
+      "status": "installed",
+      "torch_version": "2.11.0+cu126",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "asr": {
       "status": "installed",
@@ -335,10 +384,18 @@
       "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "face": {
-      "status": "missing"
+      "status": "installed",
+      "torch_version": "2.11.0+cu126",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "visual": {
-      "status": "missing"
+      "status": "installed",
+      "torch_version": "2.11.0+cu126",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "audio": {
       "status": "missing"
@@ -347,7 +404,11 @@
       "status": "missing"
     },
     "stt": {
-      "status": "missing"
+      "status": "installed",
+      "torch_version": "2.11.0+cu126",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     }
   },
   "cuda_status": {
@@ -358,10 +419,10 @@
       "cuda_device_name": null
     },
     "ocr": {
-      "status": "missing",
-      "cuda_available": null,
-      "cuda_device_count": null,
-      "cuda_device_name": null
+      "status": "installed",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "asr": {
       "status": "installed",
@@ -370,16 +431,16 @@
       "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "face": {
-      "status": "missing",
-      "cuda_available": null,
-      "cuda_device_count": null,
-      "cuda_device_name": null
+      "status": "installed",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "visual": {
-      "status": "missing",
-      "cuda_available": null,
-      "cuda_device_count": null,
-      "cuda_device_name": null
+      "status": "installed",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     },
     "audio": {
       "status": "missing",
@@ -394,16 +455,16 @@
       "cuda_device_name": null
     },
     "stt": {
-      "status": "missing",
-      "cuda_available": null,
-      "cuda_device_count": null,
-      "cuda_device_name": null
+      "status": "installed",
+      "cuda_available": true,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
     }
   },
   "binary_tools": {
     "fpcalc": {
-      "status": "missing",
-      "path": null
+      "status": "available",
+      "path": "C:\\Users\\TRT03\\AppData\\Local\\Microsoft\\WinGet\\Links\\fpcalc.EXE"
     },
     "chromaprint": {
       "status": "missing",
@@ -415,7 +476,7 @@
     }
   },
   "manifest_candidates_seen": {
-    "count": 24,
+    "count": 28,
     "items": [
       {
         "module_area": "OCR",
@@ -456,6 +517,22 @@
       {
         "module_area": "ASR",
         "candidate_name": "Silero VAD"
+      },
+      {
+        "module_area": "Language Intelligence",
+        "candidate_name": "SpeechBrain VoxLingua107 ECAPA-TDNN LID"
+      },
+      {
+        "module_area": "MT",
+        "candidate_name": "nllb-200-3.3B-ct2-int8"
+      },
+      {
+        "module_area": "MT",
+        "candidate_name": "nllb-200-distilled-1.3B-ct2-int8"
+      },
+      {
+        "module_area": "MT",
+        "candidate_name": "opus-mt-tc-big-en-tr-ct2-int8"
       },
       {
         "module_area": "Diarization",
@@ -566,16 +643,11 @@
     ]
   },
   "manifest_candidates_ready_for_real_smoke": {
-    "count": 13,
+    "count": 14,
     "items": [
       {
         "module_area": "OCR",
         "candidate_name": "PaddleOCR",
-        "reason": "venv ocr available"
-      },
-      {
-        "module_area": "OCR",
-        "candidate_name": "EasyOCR",
         "reason": "venv ocr available"
       },
       {
@@ -601,6 +673,11 @@
       {
         "module_area": "ASR",
         "candidate_name": "Silero VAD",
+        "reason": "venv asr available"
+      },
+      {
+        "module_area": "Language Intelligence",
+        "candidate_name": "SpeechBrain VoxLingua107 ECAPA-TDNN LID",
         "reason": "venv asr available"
       },
       {
@@ -632,6 +709,11 @@
         "module_area": "Visual Tag",
         "candidate_name": "SigLIP",
         "reason": "venv tag available"
+      },
+      {
+        "module_area": "Song Recognition",
+        "candidate_name": "Chromaprint / fpcalc",
+        "reason": "fpcalc available"
       }
     ]
   },
@@ -640,6 +722,8 @@
     "Audio Activity": 3,
     "Diarization": 2,
     "Face": 3,
+    "Language Intelligence": 1,
+    "MT": 3,
     "OCR": 5,
     "Song Recognition": 3,
     "Visual Tag": 3

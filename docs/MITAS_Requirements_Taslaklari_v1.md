@@ -33,7 +33,6 @@ Benchmark ve smoke test sonuçlarından sonra paketler sadeleştirilecek, sürü
 
 - OneOCR placeholder
 - PaddleOCR placeholder
-- EasyOCR placeholder
 - pytesseract placeholder
 - opencv-python
 - pillow

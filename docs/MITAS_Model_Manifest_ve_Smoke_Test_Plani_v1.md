@@ -44,8 +44,9 @@ Her aday şu alanları taşır:
 1. OneOCR
 2. PaddleOCR
 3. VITOS baseline
-4. EasyOCR
-5. Tesseract
+4. Tesseract
+
+EasyOCR aktif smoke/benchmark kapsamindan cikarildi; PaddleOCR hattiyla devam edilir.
 
 ### ASR
 

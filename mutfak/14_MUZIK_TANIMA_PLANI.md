@@ -190,11 +190,10 @@ mutfakta karar gated (`03_GUNCEL_DURUM.md`'de PaddleOCR PP-OCRv5 aday). Bunu dev
 | Model | Türkçe karakter | Kalite | Hız (3090) | Lisans |
 |---|---|---|---|---|
 | **PaddleOCR PP-OCRv5** | iyi (multilingual) | yüksek | hızlı | Apache 2.0 |
-| **EasyOCR** | orta (ı/İ karışıklığı) | orta | orta | Apache 2.0 |
 | **OneOCR (Windows)** | iyi | yüksek | hızlı | Windows lisansı ⚠️ |
 | **Tesseract** | zayıf | düşük | CPU OK | Apache 2.0 |
 
-**OCR motoru — benchmark-gated (mutfak kararı devralınır):** `04_YOL_HARITASI.md:81` ve `03_GUNCEL_DURUM.md:325` OCR motorunu hâlâ benchmark sonrası kararlaştırılacak **aday** sayar. PaddleOCR PP-OCRv5 güçlü adaydır ama bu rapor **yeni OCR kararı açmaz**; mutfak benchmark kararını devralır. Türkçe karakter post-processing altyapısı `core/pipelines/asr/phase2/entity_normalization.py`'de mevcut; müzik KJ alanları için genişletilir.
+**OCR motoru:** PaddleOCR PP-OCRv5 hattıyla ilerlenir. EasyOCR 2026-05-21 kararıyla aktif test/benchmark kapsamından çıkarıldı; Torch tabanlı OCR fallback taşınmaz. Türkçe karakter post-processing altyapısı `core/pipelines/asr/phase2/entity_normalization.py`'de mevcut; müzik KJ alanları için genişletilir.
 
 **KJ Parser — yeni alt-modül:**
 TRT müzik KJ formatı kalıplaşmış:

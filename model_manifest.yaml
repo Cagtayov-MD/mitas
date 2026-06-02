@@ -44,17 +44,16 @@ candidates:
     notes: "Existing reference point, not a production selection."
   - module_area: OCR
     candidate_name: EasyOCR
-    priority: 4
-    status: candidate
-    venv: ocr
-    install_state: not_installed_or_unverified
-    smoke_test_command: "python -c \"import easyocr; print('import_ok')\""
+    priority: 99
+    status: ignored
+    venv: none
+    install_state: ignored_by_decision
+    smoke_test_command: "disabled: EasyOCR ignored; PaddleOCR is the active OCR path"
     expected_outputs:
-      - import_ok
-      - version
-    benchmark_required: true
+      - ignored
+    benchmark_required: false
     selected_as_engine: false
-    notes: "Fallback OCR candidate."
+    notes: "Ignored as of 2026-05-21 to avoid Torch/Paddle coupling in OCR; continue with PaddleOCR."
   - module_area: OCR
     candidate_name: Tesseract
     priority: 5
@@ -133,6 +132,19 @@ candidates:
     benchmark_required: true
     selected_as_engine: false
     notes: "VAD support candidate."
+  - module_area: Language Intelligence
+    candidate_name: SpeechBrain VoxLingua107 ECAPA-TDNN LID
+    priority: 1
+    status: shadow_candidate
+    venv: asr
+    install_state: installed_unverified
+    smoke_test_command: "python -c \"import speechbrain; print('import_ok')\""
+    expected_outputs:
+      - import_ok
+      - language_id_shadow_summary
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Language Intelligence v0 shadow model only; ASR routing remains disabled until eval/calibration."
   - module_area: MT
     candidate_name: nllb-200-3.3B-ct2-int8
     priority: 1

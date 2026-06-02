@@ -1,7 +1,7 @@
 # 05 — AKTİF GÖREV
 
-> Son güncelleme: 2026-05-18
-> Son değişen bölüm: RADYO_G_NLER kalibrasyonu — DONE-ASR-009..012, TEST-ASR-RADYO-001, Karar 35 ve 36 eklendi
+> Son güncelleme: 2026-06-02
+> Son değişen bölüm: §0.1 — 2026-06-02 senkron: Translate pipeline + OCR build-out kayda geçti, test gerçeği, commit temizliği, aktif cephe = OCR bekçi
 
 Bu dosya **şu an aktif olarak üzerinde çalışılan sprinttir**. Her sprint biterken arşivlenir veya tamamen yeniden yazılır. Genellikle tek bir sürümün dikey dilimine odaklanır.
 
@@ -13,6 +13,19 @@ Bu bölüm "nerede kaldık?" ve "şunu yaptık mı?" sorularının ilk cevabıd�
 
 ### 0.1 Nerede kaldık? / Şunu yaptık mı?
 
+- **2026-06-02 SENKRON (bu dosya 05-18'de donmuştu, gerçek ilerledi):**
+  - Artık **üç canlı pipeline + Tedial** var: ASR (en olgun) · OCR künye (MODEL 1 entegre + MODEL 2
+    iskeleti/keşif) · **Translate (MT) — YENİ** (OPUS+NLLB, lehçe, `asr_server /api/translate/segments`).
+    Tam tablo + test gerçeği: `03_GUNCEL_DURUM.md` §0.6.
+  - **Aktif gerçek cephe = OCR "bekçi"** (film ↔ jenerik ayrımı). Reconstruction 2×2 kapandı;
+    yanlış segment (footage) beslenince çöp üretiyor. Aday GÖZ `qwen2.5vl` + `dy`; test seti hazır,
+    ground-truth koşumu bekliyor. Detay: `OCR-worktree/ocr-opus-final.md` "BEKÇİ TEST SETİ".
+  - **Test gerçeği:** `core` venv `pytest tests/` → 366 passed + 23 ortam-kaynaklı fail (numpy/fastapi
+    `core`'da yok; `ocr`/`asr` venv'de geçer). Tek venv'den full-suite koşmuyor — per-modül venv.
+  - **Commit temizliği yapıldı:** `.gitignore` genişletildi (generated/scratch/worktree), gerçek
+    kaynak 6 mantıklı commit'e bölündü (gitignore/asr/translate/ocr/model2/api+webui/docs). Push yok.
+  - Commit'siz bilinçli bırakılanlar: standalone `scripts/*.py` araçları, `OCR-worktree/` keşfi,
+    generated `outputs/`. Bunlar in-flight; istenince ayrıca ele alınır.
 - ASR v0.1 dikey dilimi kodca büyük ölçüde tamamlandı; ASR derin audit (HIGH-1..HIGH-5, MED-1..MED-6, LOW-1..LOW-3) ana `E:\MITAS` workspace üzerinde kapatıldı, worktree port + Karar 27 tamamlandı.
 - Audit kapanış komutu: `cd /e/MITAS && venvs/core/Scripts/python.exe -m pytest tests/ -q` → 166 passed, 6 skipped (TEST-ASR-AUDIT-001).
 - Canonical workspace `E:\MITAS`; `.claude/worktrees/...` altında yapılan işler ana workspace'e otomatik geçmiş sayılmaz.
@@ -37,6 +50,7 @@ Bu not unutulmayacak: sıradaki "daha iyi kalite" işi model değiştirmekten ö
 |---|---|---|---|---|---|
 | PARK-ASR-001 | 2026-05-14 | Opus worktree'sindeki 4 ASR düzeltmesini ana `E:\MITAS` workspace'e port etme | Düzeltmeler `.claude/worktrees/awesome-gould-1ee408` altında kaldı; ana workspace'e uygulanmadı | — | Kapatıldı (2026-05-14, DONE-ASR-001) |
 | PARK-ASR-002 | 2026-05-14 | ASR `condition_on_previous_text` production default kararı | Audit False öneriyor; mevcut production test True bekliyor; Karar Günlüğü'nde net kayıt yok | — | Kapatıldı (2026-05-14, Karar 27 / DONE-ASR-003) |
+| PARK-OCR-001 | 2026-05-21 | OCR çalışma ağacı temizliği ve PaddleOCR GPU hattı | EasyOCR aktif kapsamdan çıkarıldı; `outputs/ocr_credit_experiments/` gibi üretilmiş çıktılar commitlenmemeli, OCR kod/karar değişiklikleri ayrı commitlenmeli | PaddleOCR GPU/cu126 kurulumu öncesi `.gitignore` ve stage planı uygulanır | Açık |
 
 ### 0.3 Son yapılanlar / kapananlar
 
@@ -90,6 +104,7 @@ Bu not unutulmayacak: sıradaki "daha iyi kalite" işi model değiştirmekten ö
 | DEC-ASR-K34-001 | 2026-05-16 | Kalan ASR+WhisperX kalite yatırımları uygulama kapsamı: düşük coverage retry, speaker+word timeline coverage raporu, entity evidence packet ve WebUI word-level timeline görünümü production sözleşmesine alınır. Gerçek Qwen hakemliği ayrı Faz2 motoru olarak kalır. | Kapatıldı | `06_KARARLAR_GUNLUGU.md` Karar 34, `08_TEST_KLIPLER.md` §8.7 |
 | DEC-ASR-K35-001 | 2026-05-18 | Stereo redundancy detection observable katmanı: split mode'da L ve R üzerinde Pearson + Mid/Side dB ölçülür, `summary.json` `channels.stereo_analysis` bloğuna yazılır; forced split + redundant durumda `channel_decision_override` flag'i + log WARNING basılır. Eşikler audit-first observable yaklaşımıyla seçildi (pearson_median ≥ 0.90 AND midside_db ≤ -10.0); gerçek TRT split-kanal kliplerinde kalibre edilecek. | Kapatıldı | `06_KARARLAR_GUNLUGU.md` Karar 35, `08_TEST_KLIPLER.md` §8.8 |
 | DEC-ASR-K36-001 | 2026-05-18 | `run_asr_pipeline()` ve Tedial `_run_asr_pipeline()` default `channel_mode` `auto`. Pipeline kendi L/R korelasyonuna bakar; aynı kaynak iki kanala düştüyse otomatik mono'ya iner. Forced `channel_mode="split"` operatör override'ı olarak kalır; DEC-ASR-K35 observable katmanı yanlış override'ı yakalar. | Kapatıldı | `06_KARARLAR_GUNLUGU.md` Karar 36, `08_TEST_KLIPLER.md` §8.8 |
+| DEC-OCR-K38-001 | 2026-05-21 | EasyOCR artık ignore edilir; OCR hattı PaddleOCR ile ilerler. `outputs/ocr_credit_experiments/` üretilmiş çıktı kabul edilir ve commitlenmez; gerçek küçük manifestler ayrıca karar verilerek takip edilir. | Açık | `06_KARARLAR_GUNLUGU.md` Karar 38 |
 
 ---
 

@@ -1,11 +1,12 @@
 {
   "manifest_parse_status": "passed",
-  "candidate_count": 27,
+  "candidate_count": 28,
   "module_area_counts": {
     "ASR": 5,
     "Audio Activity": 3,
     "Diarization": 2,
     "Face": 3,
+    "Language Intelligence": 1,
     "MT": 3,
     "OCR": 5,
     "Song Recognition": 3,

@@ -451,6 +451,23 @@ recovery (üst üste binen konuşmaları kelime kelime kurtarma) kapsam dışıd
 
 **Durum:** Aktif.
 
+### 2026-05-21 / 38 — EasyOCR ignore; PaddleOCR primary OCR hattı; OCR output commit disiplini
+
+**Karar:**
+1. EasyOCR artık aktif OCR test/benchmark/kurulum kapsamından çıkarılır. Torch tabanlı OCR fallback taşınmaz.
+2. OCR geliştirme yönü PaddleOCR/PP-OCRv5 hattıdır. GPU için PaddleOCR ortamı ayrı ve temiz kilitlenecek; Paddle/Torch aynı OCR venv içinde zorlanmayacak.
+3. `outputs/ocr_credit_experiments/` üretilmiş deney çıktısıdır; commitlenmez, `.gitignore` kapsamına alınır.
+4. OCR kaynak kodu, küçük benchmark manifestleri ve karar dokümanları ayrı commitlenir. Büyük frame/canvas/output klasörleri commit kapsamına alınmaz.
+5. Mevcut çalışma ağacındaki ASR/UI/translate değişikliklerine OCR temizliği bahanesiyle dokunulmaz; ilgisiz değişiklikler kullanıcı/önceki iş kabul edilir.
+
+**Gerekçe:** EasyOCR, PaddleOCR'a kıyasla üretim planında net bir kazanım taşımıyor ve Torch bağımlılığı Windows/CUDA/DLL riskini OCR ortamına geri sokuyor. MITAS'ın kalıcı subprocess/venv izolasyon deseni PaddleOCR hattını sade tutmayı gerektirir. Üretilmiş OCR deney çıktılarının görünür kalması çalışma ağacını kalabalıklaştırıyor ve kaynak değişiklikleriyle ölçüm çıktısını karıştırıyor.
+
+**Referans:** `model_manifest.yaml`, `benchmark_templates/ocr_kj_benchmark.yaml`, `requirements/ocr.txt`, `core/pipelines/ocr/credit_experiment.py`, `mutfak/05_AKTIF_GOREV.md` PARK-OCR-001.
+
+**Doğrulama:** `venvs/core/Scripts/python.exe -m pytest tests/test_ocr_credit_experiment.py tests/test_benchmark_yaml_parse.py` → 10 passed, 1 skipped. `scripts/validate_model_manifest.py` ve `scripts/validate_benchmark_yaml.py benchmark_templates/ocr_kj_benchmark.yaml` passed.
+
+**Durum:** Aktif.
+
 ### 2026-05-10 / 3 — STT, ASR streaming_transcription alt moduna taşındı
 
 **Karar:** STT ayrı ana venv/profil/modül değildir. Canlı transcript `ASR > streaming_transcription` alt modudur. Primary runtime `E:\MITAS\venvs\asr`; `E:\MITAS\venvs\stt` legacy olarak korunur.

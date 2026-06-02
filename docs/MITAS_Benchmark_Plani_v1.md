@@ -67,7 +67,8 @@ Her benchmark kaydi su alanlari tasir:
 
 Amac:
 
-- OneOCR, PaddleOCR, VITOS baseline, EasyOCR ve Tesseract karsilastirmasi.
+- OneOCR, PaddleOCR, VITOS baseline ve Tesseract karsilastirmasi.
+- EasyOCR 2026-05-21 karariyla aktif test/benchmark kapsamindan cikarildi.
 
 Metrikler:
 
@@ -83,8 +84,7 @@ Oncelik:
 1. OneOCR
 2. PaddleOCR / PP-OCRv5 multilingual
 3. VITOS baseline
-4. EasyOCR
-5. Tesseract
+4. Tesseract
 
 ## ASR Benchmark
 

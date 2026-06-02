@@ -1754,4 +1754,643 @@ Strateji:
 
 ---
 
+## 23. 50-FILM V2.1 REGRESSION PILOT (2026-05-25)
+
+### 23.1 Çalıştırma
+
+- **Manifest:** `outputs/ocr_50films_aaaa_v21_paddle_20260525_manifest.json` (24 eski ID reuse + 26 yeni slug, builder: `scripts/build_50film_manifest.py`)
+- **Output:** `outputs/ocr_50films_aaaa_v21_paddle_20260525/`
+- **Engine:** Paddle (default) + V2.1 OneOCR fallback (env var `MITAS_OCR_FALLBACK` default açık)
+- **Karşılaştırma baseline:** `outputs/ocr_24films_aaaa_phase4_verify_20260525/` (eski Paddle, V2.1 öncesi)
+- **Karşılaştırma scripti:** `scripts/compare_50film_pilot.py` → `outputs/_ocr_50films_v21_paddle_compare.{json,txt}`
+- **Süre:** 3527 sn (~59 dk), 50/50 done, 0 hata
+- **Pilot ID:** background `bi2bfyadm`
+
+### 23.2 ANA SORU — Eskiden daha mı iyiyiz, daha mı kötüyüz?
+
+**Net cevap: AYNIYIZ. Hiçbir film kötüleşmedi, hiçbir film daha iyi de olmadı.**
+
+24 eski filmin TAMAMI **cards / scroll_lines / events sayılarında ±0** ile çıktı.
+Sadece runtime farkı var: **+5.5% yavaşlama** (1496 → 1578 sn). Bu yalnızca V2.1
+decision-call overhead (lazy proxy + `evaluate_fallback_need` çağrısı). OneOCR
+DLL load HİÇ olmadı çünkü hiçbir filmde fallback tetiklenmedi.
+
+| Eksen | Eski 24 (Paddle) | Yeni 24 (Paddle + V2.1) | Δ |
+|---|---:|---:|---|
+| Runtime toplam | 1496 sn | 1578.7 sn | **+82.6 sn (+5.5%)** |
+| Cards toplam | 834 | 834 | **0** |
+| Scroll lines toplam | 1833 | 1833 | **0** |
+| Total events | 869 | 869 | **0** |
+| Fallback tetikleyen film | (yok) | **0/24** | — |
+| Hata sayısı | 0 | 0 | — |
+
+### 23.3 KRITIK BULGU — FRANNY paradoksu (V2.1 fallback tetiklenmedi!)
+
+**Smoke test'te FRANNY için fallback 0% → 100% IMDB iyileşmesi göstermişti** (§22.3).
+50-film pilot'unda **aynı film için fallback HİÇ tetiklenmedi** (cards=24, scroll=1).
+
+**Sebep:** Pencere genişliği farkı.
+- Smoke manifest: `closing_window_min=1, max_closing_min=3` (kısa pencere)
+  - → Paddle az frame gördü, scroll=0, cards=3 → koşul "scroll==0 AND cards<=3" tetiklendi → OneOCR fallback → 5/5 isim ✓
+- 50-film manifest: `closing_window_min=5, max_closing_min=15` (geniş pencere)
+  - → Paddle çok frame gördü, scroll=1, cards=24 → hiçbir tetik koşulu sağlanmadı → fallback yok
+  - → AMA 24 "kart"ın ne kadarı gerçek isim, ne kadarı sahne metni belirsiz (IMDB doğrulaması yapılmadı)
+
+**V2.2 için tasarım sorusu:** Fallback decision'a "kart kalitesi" sinyali eklenmeli mi?
+Şu an `cards > 3` her zaman güvenilir kabul ediliyor — ama composite çuvallayıp
+scroll'u bile çıkaramadığında, kartların sahne metni olma olasılığı yüksek.
+Belki: `scroll_lines == 0 AND cards > 3` durumunda kart örneklerinin
+confidence ortalaması düşükse / paired_role_name oranı düşükse → yine tetikle.
+
+### 23.4 YENİ 26 FILM — baseline tablo (V2.1 ilk pilot)
+
+26 yeni filmin hepsi başarıyla işlendi, hata yok, fallback hiçbirinde tetiklenmedi.
+
+Toplam runtime: 1720 sn (1 saatten az). Per-film breakdown:
+
+| Film | run (s) | cards | scroll | events |
+|---|---:|---:|---:|---:|
+| 1953_kizgin_silah | 39 | 20 | 1 | 21 |
+| 1960_drakula_nin_gelinleri | 39 | 19 | 11 | 20 |
+| 1964_zengin_olsaydin | 41 | 98 | 2 | 99 |
+| 1968_guzel_bir_olum | 37 | 24 | 58 | 26 |
+| 1977_beyaz_bizon | 43 | 43 | 32 | 44 |
+| 1980_dag_adamlari | 68 | 25 | 5 | 26 |
+| 1983_hayat_bir_romandir | 52 | 42 | 190 | 44 |
+| 1985_uyari_isareti | 73 | 69 | 9 | 71 |
+| 1993_maksim_in_kapicisi | 36 | 53 | 1 | 54 |
+| 2000_bizim_evin_halleri | 81 | 39 | 3 | 41 |
+| 2000_yedi_numara | 75 | 46 | 6 | 48 |
+| 2001_altin_yumruk_istanbulda | 36 | 41 | 207 | 43 |
+| 2013_attila_marcel | 72 | 68 | 22 | 70 |
+| 2014_yabandan_gelen_adam | 64 | 32 | 93 | 33 |
+| 2015_babam | **133** | 78 | **479** | 79 |
+| 2015_monte_kristo_kontu | 62 | 28 | 16 | 30 |
+| 2016_marie_currie | 50 | 66 | 142 | 67 |
+| 2017_kardesim_icin_der_a | 33 | 31 | 103 | 33 |
+| 2018_don_kisot_u_olduren_adam | 82 | **125** | 205 | **127** |
+| 2018_mavzer | 53 | 10 | 202 | 11 |
+| 2020_elestirel_dusunme | **131** | 77 | **517** | 79 |
+| 2024_eski_sehir | 61 | 16 | 155 | 18 |
+| 2024_kazananlar_kulubu | **137** | 54 | 15 | 56 |
+| 2024_sansimi_seveyim | 96 | 39 | **346** | 41 |
+| 2024_senin_hikayen | 81 | 45 | 40 | 46 |
+| unknown_e_3j2xlc | 46 | 17 | 1 | 18 |
+| **TOPLAM 26** | **1720** | **1205** | **2861** | **1245** |
+
+### 23.5 Şüphe sinyalleri (V2.2'de bakılacak)
+
+Düşük scroll_lines ile yüksek cards: olası "sahne metni karşılığı":
+- `1953_kizgin_silah` (20 card, 1 scroll)
+- `1964_zengin_olsaydin` (98 card, 2 scroll) — 98 kart çok yüksek
+- `1993_maksim_in_kapicisi` (53 card, 1 scroll)
+- `2000_bizim_evin_halleri` (39 card, 3 scroll)
+- `2018_mavzer` (10 card, 202 scroll) — tam tersi: scroll çok kart az (normal endcredit gibi)
+- `2024_kazananlar_kulubu` (54 card, 15 scroll)
+
+**Eylem:** P1'deki regression test runner (`tests/test_ocr_regression.py`) bittikten sonra,
+bu filmler için IMDB ground truth eklenip "card sayısı şişiyor mu?" testi koymak gerek.
+
+### 23.6 Hata özeti — temiz
+
+- 50 film × 2 segment (opening + closing) = 100 segment koşumu
+- `ocr_error_count`: 0 (her segment)
+- `errors`: yok
+- `warnings`: yok
+- `bad_segment_status`: yok
+- Paddle GPU hatası yok, sadece "Resized image size exceeds max_side_limit" 7 kez (composite >4000px, Paddle otomatik resize etti — bilgilendirme, sorun değil)
+
+### 23.7 SONUÇ — net karne
+
+| Soru | Cevap |
+|---|---|
+| **V2.1 ile eskiden daha mı iyiyiz?** | **HAYIR** (output sayıları aynı, IMDB doğrulaması yapılmadı) |
+| **V2.1 ile daha mı kötüyüz?** | **HAYIR** (regression sıfır, tek delta +5.5% runtime overhead) |
+| **V2.1 fallback gerçek koşum'da işe yarıyor mu?** | **EHE** — 50 filmin hiçbirinde tetiklenmedi (decision koşulları geniş pencerede aşırı muhafazakar) |
+| **Yeni 26 film hatasız işleniyor mu?** | **EVET** (50/50, 0 hata, 0 warning) |
+| **Net karar** | Mevcut Paddle baseline'ı korunmuş; V2.1 kodu zarar vermiyor ama smoke-test-dışı şartlarda işe yaramıyor. **V2.2 = decision logic genişletme** öncelik kazandı. |
+
+### 23.8 V2.2 ÖNERİSİ — Fallback decision genişletme
+
+Şu an `fallback_strategy.evaluate_fallback_need` koşulları (`fallback_strategy.py:43-76`):
+1. `composite_quality_report.status` `BROKEN_*` → tetik
+2. `scroll_lines == 0 AND cards == 0` → tetik
+3. `scroll_lines == 0 AND cards <= 3` → tetik
+
+**Sorun:** Geniş pencerede Paddle'ın sahne metni olarak yakaladığı "şişirilmiş" kart sayısı, fallback'i sessizce devre dışı bırakıyor.
+
+**Önerilen ek koşullar (V2.2):**
+4. `scroll_lines == 0 AND cards > 3 AND avg_card_confidence < 0.55` → tetik
+   (sahne metni şüphesi: çok kart ama düşük confidence)
+5. `scroll_lines == 0 AND cards > 3 AND paired_role_name_ratio < 0.10` → tetik
+   (cards görünüyor ama hiçbiri "ROL | İSİM" yapısında değil — sahne metni sinyali)
+6. `closing segment'inde scroll_lines == 0` (kapanış jeneriği genelde scroll'lu olmalı)
+
+Implementasyonu: Sonnet brief, ~3-4 saat iş, `tests/test_ocr_fallback_strategy.py`'a yeni karar matrisi testleri eklenir.
+
+### 23.9 SIRADAKİ ADIM
+
+1. **IMDB ground truth genişletme** — 50 filmin en az 25'i için `tests/data/ocr_ground_truth/<id>.json` çıkar
+2. **Regression test runner** (P1 ana iş) — `tests/test_ocr_regression.py` yaz, 25 GT için pass/fail oluştur
+3. **V2.2 fallback decision genişletme** (üstte §23.8) — Sonnet brief
+4. **V2.2 sonrası 50-film tekrar pilot** — bu §23 tablosuna karşı delta ölç
+
+---
+
+## §24 — Yeni doğrultu: Sınıflandırma katmanı + disiplin reset (2026-05-26)
+
+> Bu bölüm §22-23'ün **post-mortem**'idir aynı zamanda. V2.1 yanlış varsayımla çıkıldı, 50-film pilot yanlış varsayımı kanıtladı, asıl mimari boşluk Çağatay'ın işaret ettiği "altyazılı film" gözleminden netleşti. Faz 7-12 yol haritası burada.
+
+### 24.1 V2.1 post-mortem — Asıl hatamız teşhisti, kod değildi
+
+**Yanlış teşhis**: "Paddle yanlış-pozitif veriyor, sahne metnini kart sayıyor" dedik. V2.1 fallback'i Paddle çuvallayınca devreye girecek şekilde kurduk. 50-film pilotta **0/50 tetiklendi** çünkü Paddle çuvallamıyordu — **iş yapıyordu**.
+
+**Doğru teşhis (Çağatay'ın katkısı)**: Paddle **ekrandaki her metni doğru okuyor**. Hata bizde:
+- `1964_zengin_olsaydin` closing = altyazılı sahne (jenerik YOK)
+- Paddle 74 altyazıyı doğru okudu
+- **Aggregator** hepsini `card` etiketleyip "98 kart" çıkardı
+- Pipeline'da **"bu metin altyazı mı kart mı?"** karar veren katman **yok**
+
+V2.1 fallback'i ne kadar tune'larsak tune'layalım, OneOCR'ı çağırsak o da aynı altyazıyı okurdu. **Problem motorda değil, sınıflandırmada.**
+
+### 24.2 Eksik 2 katman — text_type classifier + segment credit-presence
+
+Mevcut pipeline:
+```
+[1] OCR motoru (Paddle/OneOCR)  →  text + bbox + zaman   ✓ var
+[2] Text Type Classifier        →  card/subtitle/scene/scroll/title/unknown   ✗ YOK
+[3] Segment Credit-Presence     →  jenerik var/yok karar  ✗ YOK
+[4] Aggregator → film_credits   →  sadece card+scroll_credit topla   ✓ var (ama [2]'yi varsaymıyor)
+```
+
+**[2] Text Type Classifier**: Her event için type alanı doldurur. Sinyaller:
+- Y-konum (alt=subtitle, merkez=card, akıcı=scroll)
+- Süre (1-3sn=subtitle, 3-8sn=card)
+- Frame_count (1-3=subtitle, çoklu=card)
+- Cümle yapısı (`-` prefix=Türkçe dialog; UPPERCASE=card)
+- Zaman aralığı (opening/closing içi mi, ortada mı)
+
+**[3] Segment Credit-Presence**: Per-segment "burada jenerik var mı?" sorusu. Eğer segment'teki event'lerin %X+'ı `subtitle` etiketliyse → `credit_presence=absent` (B/C sınıfı filmler için).
+
+### 24.3 Somut kanıt — 1964_zengin_olsaydin events.json
+
+**Closing (74 event, hepsi `card` etiketli ama gerçekte subtitle):**
+```
+evt_0001: "-Afedersiniz, beni mi çağırdınız?"   bbox.y=331  süre=1.0s
+evt_0002: "-Telgrafınız var."                    bbox.y=331  süre=1.0s
+evt_0005: "-Biletimi iptal edin, bavulumu verin." bbox.y=329  süre=1.5s
+evt_0007: "-Hoş geldiniz Bay Warren."            bbox.y=334  süre=1.0s
+evt_0009: "-Neden bu kadar geciktin?"            bbox.y=330  süre=1.5s
+```
+**Subtitle pattern**: `-` prefix, Y > 280 (alt bölge), süre < 4sn, frame_count 1-3.
+
+**Opening (25 event, gerçek jenerik):**
+```
+evt_0001: "UNIVERSAL\nPICTURE\nEDWARD MUHL"     bbox.y=219  süre=8.0s
+evt_0003: "SANDRa\nDEE"                           bbox.y=95   süre=5.0s
+evt_0004: "ROBERT\nGOULET"                        bbox.y=115  süre=2.0s
+evt_0007: "I'D RATHER BE RICH\nYine de zengin..." bbox.y=79   süre=5.5s
+evt_0009: "Co-starring\nCHaRLIe RUGGLES..."       bbox.y=89   süre=5.0s
+```
+**Card pattern**: Y < 250 (üst-merkez), süre ≥ 3sn, frame_count ≥ 2, UPPERCASE baskın.
+
+**Ayrımı yapan 3 sinyal yeterli**: Y-konum + süre + dash-prefix. Rule-based classifier ile %85-90 doğruluk yakalanır.
+
+### 24.4 Yeni disiplin kuralları (kalıcı, §0 Ground Rules'a eklenecek)
+
+Bu 6 kural V2.1 post-mortem'in çıktısı. Her birinin altında **bir önceki hatamız** var:
+
+1. **Smoke test = prod parametreleri.** Yapay daraltma yasak (FRANNY 1dk pencere hatası tekrar etmesin).
+2. **GT olmadan deney koşulmaz.** En az 25 GT film, sonra 50-film pilot.
+3. **A/B koşusu zorunlu.** Yeni feature → 2 koşu (aktif + kapalı). Tek koşulu "aynı oldu, regression yok" yanıltıcı.
+4. **Tek commit = tek faz.** Faz 4+5+6 birleşik commit hatası tekrar etmesin. Bisect imkanı korunsun.
+5. **"Regression yok" başlığı yasak.** Negatif kanıt ≠ pozitif kanıt. "İyileşme var mı?" sorusu zorunlu.
+6. **OCR/ASR bağımsız tasarlanır** ([[feedback-ocr-asr-fusion]]). Fusion ayrı katman.
+
+### 24.5 Film sınıflandırma şeması A/B/C/D
+
+50 filmlik dataset bilinçli olarak temsiliyet için kuruldu. Her film aşağıdaki 4 sınıftan birine girer:
+
+| Sınıf | Tanım | Tahmin örnek |
+|---|---|---|
+| **A** | Opening jenerik + closing jenerik (ikisi de) | X-MEN, JURASSIC, BARBARLARI, modern büyük yapım |
+| **B** | Sadece opening jenerik (closing altyazılı sahne) | **1964_zengin_olsaydin**, eski Türk filmleri |
+| **C** | Sadece closing jenerik (opening sade title) | 2020_elestirel_dusunme, 2015_babam (modern Türk) |
+| **D** | İkisinde de zayıf jenerik (sadece title kartı) | 1950_dzinesi, çok eski/tv film |
+
+**Aksiyon**: Çağatay 50 filmi manuel sınıflandıracak (1-2 saat). JSON çıktı:
+```json
+{
+  "1964_zengin_olsaydin_end_credits": "B",
+  "2000_x_men_end_credits": "A",
+  ...
+}
+```
+Bu çıktı **classifier'ın ground truth'u** olur. Pipeline çıkarımı bu etiketlere karşı ölçülür.
+
+### 24.6 text_type etiket seti
+
+```
+type ∈ {
+  "card",          # rol-isim plakası (jenerik kartı)
+  "subtitle",      # altyazı (Türkçe dialog)
+  "scene_text",    # sahne içi metin (tabela, gazete, mektup)
+  "scroll_credit", # akıcı jenerik (uzun isim listesi)
+  "lower_third",   # alt-üçte-bir banner (haber, isim/unvan)
+  "title",         # film başlığı / bölüm başlığı
+  "unknown",       # hiçbir sınıfa net uymadı (sınıflandırma katmanı için ham etiket)
+}
+```
+
+Not: `unknown` şu an için sadece "kural seti bu event'i sınıflandıramadı" anlamında. Bu etiketin pipeline'da nasıl raporlanacağı (toplama dahil mi, ayrı mı, eşik mi) **en son aşamaya** ertelendi — Faz 7-12 boyunca classifier oturana kadar bu konu açılmıyor.
+
+### 24.7 Yeni Faz 7-12 yol haritası
+
+| # | Faz | Tek commit'te ne var | Doğrulama kriteri |
+|---:|---|---|---|
+| 7 | **text_type schema** | `text_event`'a `type`, `type_confidence`, `type_source` alanları; mevcut event'lara `type=unknown` doldur | Şema değişti, çıktı şekli sağlam |
+| 8 | **Rule-based classifier** | `core/pipelines/ocr/text_type_classifier.py` — Y/süre/dash/uppercase kuralları | 1964 closing'in %85+'ı `subtitle` olarak işaretlenir |
+| 9 | **Frame-level GT genişletme** | Mevcut 10 GT film → her event için type etiketi; 50 film için A/B/C/D etiket | Sınıflandırma evaluation aracı oluşur |
+| 10 | **Classifier evaluation** | Precision/recall/F1 per-type | her sınıf F1 ≥ 0.80 |
+| 11 | **Aggregator update** | Sadece `card` ve `scroll_credit` etiketli event'ler film_credits'e topla; segment credit-presence rule | 1964 doğru rapor: 25 kart (opening), 0 kart (closing absent) |
+| 12 | **Re-pilot 50-film + A/B** | Classifier aktif vs kapalı | Doğruluk delta + sınıflandırma sınıf-bazlı performans |
+
+**Her faz = ayrı commit. Her faz = doğrulama kriterini geçmeden bir sonrakine geçilmez.**
+
+### 24.8 Eski V2.1 fallback'in durumu
+
+Silinmiyor, ama **devre dışı dondurulur**:
+- `MITAS_OCR_FALLBACK=0` default olarak ayarlanır (`fallback_enabled_from_env()` zaten env-driven)
+- Kod kalır (lazy proxy, decision matrix, merge logic) — Faz 11+ sonrası "düşük confidence kart için cross-check" senaryosunda yeniden değerlendirilebilir
+- Şu an için **kod ölü ama saklı**. Re-pilot'larda fallback metriği çıkmayacak.
+
+Yani V2.1 **silinmiyor, ertesi sefer için saklanıyor**. Önce classifier oturur, sonra "classifier emin değilse OneOCR cross-check çağır" diye fallback'i **doğru yere bağlarız**.
+
+### 24.9 Önceki §22-23'ün statüsü
+
+**Silmiyoruz, post-mortem olarak işaretliyoruz.** §22-23 belgeleri V2.1 yolculuğunun kanıtıdır. Gelecekte birisi "V2.1 ne oldu?" diye sorduğunda §22-23-24'ü sırayla okuyacak ve hatadan-derse zinciri görecek.
+
+**Mevcut V2.1 kodu (`ff4869eb`)**: Master'da kalıyor, **revert edilmiyor**. Sadece env-default değişikliği yeterli.
+
+**Önceki "V2 work queue P1" (§22.4)** — `avg_card_confidence < 0.55` koşulu artık fallback'e değil **classifier'a** giriyor. Yani fikir doğruydu, yanlış yerdeydi.
+
+### 24.10 Sıradaki adım — paralel iş
+
+**Çağatay (1-2 saat, ofise döner dönmez):**
+- 50 filmi A/B/C/D'ye böl (manuel, frame'lere bakarak)
+- JSON çıktısı: `tests/data/ocr_film_class_labels.json`
+
+**Claude (paralel, aynı sürede):**
+- Faz 7 `text_type` schema değişikliği — TEK commit, küçük PR
+- `text_type_classifier.py` iskelet — rule-based, 4 sınıf, Y/süre/dash/uppercase
+- 1964 closing üzerinde gözle %85+ subtitle yakalandığını doğrula
+- §24'ü mutfak'a ekle (bu commit'le)
+
+**Birleşim (Çağatay döndüğünde):**
+- Classifier'ı 50 filme uygula
+- A/B/C/D otomatik tahmin vs Çağatay'ın manuel sınıflandırması: confusion matrix
+- Yanlış sınıflandırılan filmler için kural setini tune et
+
+---
+
+## §25 — Hakim emekliye değil gözlemciye (2026-05-26)
+
+> Bu bölüm Çağatay'ın oturum içi tespitlerinden çıkan kararı belgeliyor. SON METRO + ANJELIK closing scroll'unu çözmek için yola çıktık, kök neden olarak `text_layer_row_reconstruct._score_row_candidate` (Hakim) ortaya çıktı. Mimari geçici düzeltme + 10-film kontrol noktası.
+
+### 25.1 Sorun zinciri
+
+- ANJELIK closing (50-film pilot): Sonnet'in B düzeltmesi (band sıkılaştırma) **doğru panorama** üretti — 66 satır, "ALY BEN AYED... COMMISSARIAT TUNISIEN" tamamen okunabilir
+- `_score_row_candidate` (Hakim) onu eledi: panorama quality.score 0.456, tek-frame 0.623 → tek-frame seçildi (14 satır)
+- Hakim'in formülü piksel keskinliğine (%46 ağırlık) ve "uzun composite cezasına" (height > 3000 → −0.08) öncelik veriyor; gözle okunabilirlikten kopuk
+- `box_tracker.classify_track_motion` zaten "scrolling_text" demiş (median_dy=−10.31, displacement=958px) — Hakim üst katmanın doğru kararını çift-tahmin edip atıyor
+- Pipeline'da Hakim'in dış kullanıcısı yok: `grep _score_row_candidate / candidate_selector / static_best_frame / current_displacement` sadece `text_layer_row_reconstruct.py` + test dosyasında
+
+### 25.2 Karar — Hakim'i yetkisiz kıl, görev tanımını sadeleştir
+
+Hakim öldürülmüyor, **görevden alındı + gözlemci modu**:
+
+- `_score_row_candidate` aynen çalışmaya devam ediyor (puanları üretiyor)
+- Seçim mantığı (`_run` içi) sadeleşiyor:
+  - Default: `current_displacement` seçilir (panorama, box_tracker'a güven)
+  - İmdat: `current_displacement.composite` is `None` **OR** `row_count == 0` → `static_best_frame`'e düş
+- Hakim'in eski formülle ne seçeceği `row_reconstruct_summary.json` içinde yeni alan olarak loglanır: `hakim_shadow_decision` (örn. `"static_best_frame (score=0.616 > current=0.550)"`). Seçimi etkilemez.
+
+Diğer Hakim işlevleri (preview yazımı, candidate_summary metadata, scoring telemetry) korunuyor.
+
+### 25.3 Kontrol noktası — 10 filmlik shadow pilot
+
+10 film seçilir:
+1. **ANJELIK closing** + **SON METRO closing** (bu kararı doğuran iki örnek, zorunlu)
+2. + 8 ground truth filmi (`tests/data/ocr_ground_truth/*.json` IMDB-verified — X-MEN, JURASSIC, BARBARLARI, ROBINSON, KUKLA, FRANNY, POROROCA, YARI_SERT, CENNETIN_RENGI'den 8 tanesi)
+
+Manifest: `outputs/_hakim_shadow_10films_manifest.json` (24-film film_credits manifest'inden filtre).
+
+Pilot çıktı: `outputs/_hakim_shadow_10films_<ts>/items/<film>/unified/<segment>/scroll/row_reconstruct_summary.json` → her dosyada `hakim_shadow_decision` vs gerçek `selected` alanları.
+
+Rapor (Çağatay'la birlikte bakılacak):
+- Kaç segment'te Hakim eski formülle "static" seçecekti, gerçekte "panorama" seçildi? (kurtarılmış mı? bozulmuş mu?)
+- Kaç segment'te Hakim "panorama" diyor, yeni davranış da panorama (uyum)?
+- Kaç segment'te imdat refleksi devreye girdi (row_count=0)?
+
+### 25.4 Memory bağı
+
+[[hakim-shadow-50film-checkpoint]] — Yeni Claude oturum bu kararı hatırlayacak. Çağatay "Hakim", "shadow log", "Hakim'siz ne yaptı?" derse açılan dosya.
+
+### 25.5 Sıradaki adım
+
+- Sonnet brief: kod uygulaması (`_score_row_candidate` aynen + seçim mantığı sadeleştir + shadow log alanı) + manifest hazırlama + 10-film pilot koşum + pytest
+- Çıktı: shadow log tablosu
+- Çağatay'la inceleme: Hakim 10 filmde ne yaptı, görevde tutalım mı tamamen atalım mı
+
+### 25.6 KAPSAM DIŞI (bu işte değil)
+
+- §24 text_type classifier (subtitle/card/scroll ayrımı) — paralel hat, bu işte karışmıyor
+- 50-film tam pilot — 10 sonucuna bakıp karar
+- ASR/webui/translate uncommitted'leri — başka oturumun in-flight işi
+
+---
+
+## §26 — Hakim shadow 20-film pilot CANLI (2026-05-29 15:07) — YENİ OTURUM BURADAN DEVAM
+
+> **DURUM: Pilot arka planda KOŞUYOR. Bu oturum token bitiyor, başka oturumdan devam edilecek.**
+> Bu bölüm tek başına yeterli — yeni Claude bunu okuyup devam edebilir. §25'i de oku (karar gerekçesi).
+
+### 26.1 Şu an ne koşuyor
+
+- **Pilot:** Hakim gözlemci-modu doğrulama, 20 film
+- **Background ID:** `bzgwuvq7e` (bu oturuma bağlı — yeni oturumda kaybolur, aşağıdaki "devam" bak)
+- **Çıktı dizini:** `outputs/_hakim_shadow_20films_20260529_1507/`
+  - (kesin path: `outputs/_hakim_shadow20_outdir.txt` dosyasında yazılı)
+- **Manifest:** `outputs/_hakim_shadow_20films_manifest.json` (20 item, kind=film_credits + dynamic_window)
+- **Log:** `outputs/_hakim_shadow20_log.txt`
+- **Başlama:** 2026-05-29 15:07. Tahmini süre ~30-40 dk (20 film × ~1.5dk + Paddle init).
+- **Env:** `USE_BOX_TRACK_PIPELINE=1`, `MITAS_OCR_FALLBACK=0`, `OCR_TEXT_MASK_MODE=''` (default current mask)
+- **Engine:** paddle (GPU, RTX 3090)
+
+**Çalıştırma komutu (yeniden gerekirse):**
+```powershell
+$env:USE_BOX_TRACK_PIPELINE='1'; $env:MITAS_OCR_FALLBACK='0'; $env:OCR_TEXT_MASK_MODE=''
+venvs/ocr/Scripts/python.exe -m scripts.ocr_credit_experiment `
+  --manifest outputs/_hakim_shadow_20films_manifest.json `
+  --output-dir outputs/_hakim_shadow_20films_<yeni_ts> `
+  --engines paddle
+```
+
+### 26.2 Kod değişikliği durumu (Sonnet uyguladı, COMMIT EDİLMEDİ)
+
+**Dosya:** `core/pipelines/ocr/text_layer_row_reconstruct.py`
+- `_score_row_candidate` (line ~390): **DEĞİŞMEDİ** — Hakim'in puanlama formülü aynen duruyor (memory: bilerek koyulmuş eşiği kaldırma).
+- Seçim mantığı (`_run` içi): **DEĞİŞTİ**. Eski "highest_score_with_006_margin" → yeni `current_first_with_emergency_static_fallback`:
+  - Default: `current_displacement` (panorama) seçilir — box_tracker'ın "scrolling_text" kararına güven
+  - İmdat: panorama composite `None` VEYA `row_count == 0` → `static_best_frame`
+- Yeni telemetri: `row_reconstruct_summary.json` → `candidate_selector.hakim_shadow_decision` = `{would_select, would_score, reason, scores}` (Hakim eski formülle ne seçerdi, log).
+
+**Test:** `tests/test_ocr_text_layer_row_reconstruct.py` güncellendi (Sonnet). Doğrulama komutu:
+`venvs/ocr/Scripts/python.exe -m pytest tests/test_ocr_text_layer_row_reconstruct.py -q`
+
+**ÖNEMLİ — B-band fix durumu:** `_estimate_displacements_cruise` içindeki band sıkılaştırması (`band = max(4.0, cruise*1.0)`) **GERİ ALINDI** (önceki oturum, §yok). Şu an default `band = max(6.0, cruise*2.0)`. Yani bu pilotta ANJELIK closing 21 satır (66 değil). Adaptif `boot_min = max(10, min(50, len(frames)//2))` değişikliği ise **DURUYOR** (SON METRO için, kabul edildi).
+
+### 26.3 20 film + beklenen değerler
+
+İlk 10 = ground truth verified (`tests/data/ocr_ground_truth/*.json`). İkinci 10 = 50-film pilotundan seçildi, beklenen değerler §23.4 tablosundan.
+
+| # | Film (item_id) | Tür | Beklenen scroll (50-film baseline) | Beklenen card | Not |
+|---|---|---|---|---|---|
+| 1 | 1968_anjelik_ve_sultan_end_credits | scroll+hareketli BG | open 55 / close 81 | — | KARAR FİLMİ; closing puslu panorama |
+| 2 | 1980_son_metro_end_credits | static kart (scroll değil) | düşük | parçalı | KARAR FİLMİ; closing kıpkırmızı→static |
+| 3 | 2000_x_men_end_credits | uzun scroll, siyah BG | 238 | ~67 | sağlıklı referans, IMDB %100 |
+| 4 | 1997_jurassic_park_2_kayip_dnya_end_credits | uzun scroll | 271-277 | ~12 | sağlıklı referans |
+| 5 | 2019_barbarlari_beklerken_end_credits | scroll | zengin | — | GT |
+| 6 | 2025_robinson_crusoe_end_credits | scroll | 176-183 | 17 | GT |
+| 7 | 1989_kukla_adam_end_credits | static kart | 0 (scroll yok) | 18 | D kategorisi |
+| 8 | 2003_franny_nin_ayaklari_end_credits | KJ-benzeri | 0→fallback | 24 | V2.1 fallback off bu pilotta |
+| 9 | 2017_pororoca_end_credits | scroll | değişken | 78 | dinamik pencere testi |
+| 10 | 1977_yari_sert_end_credits | scroll | 203-206 | — | A-fb test edilen |
+| 11 | 1999_cennetin_rengi_end_credits | Farsça | ~0 (%0 OCR) | — | yabancı alfabe, zor |
+| 12 | 1964_zengin_olsaydin_end_credits | B sınıfı (closing altyazı!) | open ~25 / close 2 | 98 | §24 örneği; closing jenerik YOK |
+| 13 | 2020_elestirel_dusunme_end_credits | uzun scroll | **517** | 77 | en uzun closing — Hakim uzun-ceza testi |
+| 14 | 2015_babam_end_credits | uzun scroll | **479** | 78 | uzun composite |
+| 15 | 2024_sansimi_seveyim_end_credits | scroll | 346 | 39 | yeni TRT |
+| 16 | 2001_altin_yumruk_istanbulda_end_credits | scroll | 207 | 41 | Türk |
+| 17 | 2018_don_kisot_u_olduren_adam_end_credits | yüksek kart | 205 | **125** | statik-baskın |
+| 18 | 1953_kizgin_silah_end_credits | static şüpheli | 1 | 20 | imdat refleksi testi |
+| 19 | 1960_drakula_nin_gelinleri_end_credits | orta scroll | 11 | 19 | eski Avrupa |
+| 20 | 2024_kazananlar_kulubu_end_credits | scroll | 15 | 54 | en uzun runtime (137s) |
+
+**Beklenen ana hipotez:** Yeni davranış (panorama-first) scroll lines'ı KORUMALI veya artırmalı, hiçbir filmde düşürmemeli. Özellikle 13-14 (517/479 satır uzun composite) Hakim'in eski formülünde "uzun-ceza + dar margin" yüzünden static'e kaçabilirdi — yeni davranış bunları kurtarmalı. shadow_decision logu bunu kanıtlayacak.
+
+### 26.4 Pilot bitince NE YAPILACAK (yeni oturum adımları)
+
+1. **Bittiğini doğrula:**
+   ```powershell
+   $out = Get-Content outputs/_hakim_shadow20_outdir.txt
+   (Get-ChildItem "$out/items" -Directory).Count   # 20 olmalı
+   Test-Path "$out/run_summary.json"
+   ```
+2. **Shadow raporu çalıştır** (BU SCRIPT HAZIR, bu oturumda yazıldı):
+   ```powershell
+   venvs/ocr/Scripts/python.exe scripts/_hakim_shadow_report.py outputs/_hakim_shadow_20films_20260529_1507
+   ```
+   Çıktı: her film/segment için `selected` vs `hakim_shadow_decision.would_select`, satır sayısı, skorlar + özet (kaç segment Hakim'siz kurtuldu / uyum / imdat).
+3. **Regression kontrolü:** Her filmin scroll_text_line sayısını 50-film baseline (`outputs/ocr_50films_aaaa_v21_paddle_20260525/`) ile karşılaştır. DÜŞEN var mı? (yeni davranış zarar vermemeli)
+4. **Görsel doğrula:** ANJELIK + SON METRO + 2020_elestirel + 2015_babam closing `row_composite.png`'leri Read ile aç.
+5. **Sonuçları buraya §27 olarak yaz:** shadow tablosu + özet + regression + Çağatay'a "Hakim'i tamamen atalım mı / gözlemcide tutalım mı" sorusu.
+
+### 26.5 Bu oturumda üretilen script'ler (kalıcı)
+
+- `scripts/_build_hakim_20film_manifest.py` — 20-film manifest builder (ilk 10 shadow + 50-filmden ikinci 10)
+- `scripts/_hakim_shadow_report.py` — shadow log tablo + özet raporu (herhangi pilot dizini argüman)
+
+### 26.6 Şimdiye kadar bilinen erken bulgu (2 film, eski koşum 2147)
+
+3 segment incelendi (ANJELIK open/close, SON METRO open). Hepsinde `selected == hakim_shadow_decision.would_select == current_displacement`. ANJELIK closing: curr=0.611 vs stat=0.616 (%0.6 margin içinde, panorama bias'la kazanıyor) → **bu pilotta Hakim ANJELIK'i sabote ETMEZ** çünkü B-band fix yok (21 satır, uzun-ceza tetiklenmiyor).
+
+**Kritik teori (20-film ile doğrulanacak):** Hakim'in zararı SADECE iyi composite çok satırlı olduğunda (uzun-composite cezası −0.08 + skoru %0.6 margin altına düşürünce) ortaya çıkıyor. 13-14 numara (517/479 satır) bu teorinin canlı testi.
+
+### 26.7 KAPSAM DIŞI / DOKUNULMAYAN
+- §24 text_type classifier (subtitle/card ayrımı) — paralel hat
+- ASR/webui/translate uncommitted — başka oturum
+- commit yok (Çağatay onayı bekliyor)
+
+---
+
+## §27 — Hakim shadow 20-film pilot SONUÇ + Hakim TAMAMEN PASİF (2026-05-29)
+
+> **DURUM: Pilot bitti, analiz yapıldı, Çağatay kararı alındı, Hakim pasife çekildi. COMMIT BEKLİYOR (Çağatay onayı).**
+
+### 27.1 Pilot bitiş
+- Çıktı: `outputs/_hakim_shadow_20films_20260529_1507/` — **20/20 film done, 0 OCR error**, runtime 1541s (~25.7dk).
+- run_report.md'deki `frames=0` aldatıcı: eski-yol sayacı, K-BoxTrack doldurmuyor. Her film gerçekte ~76s koştu.
+
+### 27.2 Shadow raporu (`scripts/_hakim_shadow_report.py`)
+30 row-reconstruct segmenti. **Hakim eski formülü 28/30 uyumlu, 2 segmenti sabote ederdi:**
+
+| Film | Segment | Gerçek (current) | Hakim derdi | Skorlar |
+|---|---|---|---|---|
+| 1964_zengin_olsaydin | opening | current (7 satır) | **static** | curr=0.410 < stat=0.555 |
+| 1980_son_metro | closing | current (1 satır) | **static** | curr=0.458 < stat=0.648 |
+
+İmdat refleksi (row=0→static): 0 segment.
+
+### 27.3 Kritik teori TERSİNE döndü
+§26.8 hipotezi "Hakim uzun-çok-satırlı iyi composite'leri sabote eder" YANLIŞ çıktı:
+- 2020_elestirel closing: 224 row → curr=**0.800** vs stat=0.698 → sabote edilmez
+- 2015_babam closing: 170 row → curr=**0.800** vs stat=0.648 → sabote edilmez
+
+Uzun composite'ler curr=0.800 tavanına oturuyor, static ~0.65-0.70'te kalıyor (margin geniş). **Asıl risk KISA/zayıf scroll segmentleri** (zengin 7, son_metro 1 satır) — orada static frame skoru öne geçiyor.
+
+### 27.4 Regression doğrulaması (`scripts/_hakim_regression_compare.py`)
+Nihai `scroll_text_lines` sayıları 50-film baseline (`ocr_50films_aaaa_v21_paddle_20260525`) ile karşılaştırıldı:
+- **17/20 film AYNI** (+0)
+- 2 film ARTTI: **SON_METRO +19** (36→55), franny +1
+- 1 film küçük düşüş: kazananlar -3 (gürültü)
+- **Anlamlı düşüş (<-5): SIFIR**
+
+ÖNEMLİ: shadow raporundaki "ROWS" kolonu seçilen adayın composite row_count'u, nihai çıktı DEĞİL. İlk kaygı (elestirel 517→224 vb.) yanlış alarmdı; gerçek scroll_text_lines tam baseline ile uyuşuyor (elestirel 517, babam 479, X-MEN 238 aynen).
+
+### 27.5 ÇAĞATAY KARARI: Hakim TAMAMEN PASİF (silme)
+Kod değişikliği (`text_layer_row_reconstruct.py`):
+- `_hakim_shadow_enabled()` eklendi → `OCR_HAKIM_SHADOW` env, **DEFAULT KAPALI**.
+- `_candidate_summary`: shadow açıkken `_compute_hakim_shadow_decision`, kapalıyken `{"status":"disabled",...}`.
+- `_score_row_candidate` + `_compute_hakim_shadow_decision` fonksiyonları **SİLİNMEDİ** (Çağatay: "silme"). Diagnostik skorlar candidate listesinde kalıyor. Gözlemci-logu sadece `OCR_HAKIM_SHADOW=1` ile açılır (regression/araştırma).
+- Seçim zaten §26'dan beri panorama-first (`current_first_with_emergency_static_fallback`) — Hakim'in karar yetkisi yoktu, şimdi gölge-logu da default kapalı.
+
+Test: `tests/test_ocr_text_layer_row_reconstruct.py` 5 test default-off davranışına güncellendi (3'ü `OCR_HAKIM_SHADOW=1` opt-in, 1'i disabled-marker, 1 yeni default-off+opt-in testi). **21/21 pass.**
+
+### 27.6 Kontrol paketi (Çağatay'a teslim)
+`outputs/_hakim_KONTROL_20260529/` (43 dosya, `scripts/_hakim_kontrol_paketi.py`):
+- ANJELIK / SON_METRO / ELESTIREL / BABAM × opening+closing
+- Her segment: `*_composite.png` + `*_composite_sharp.png` (FOTO) + `*_lines.txt` (ham OCR) + `*_paired.txt` (rol|isim) + `*_CAND_current/static.png` (aday kıyas)
+- `INDEX.md` özet tablo.
+- Görsel teyit: ANJELIK closing temiz Fransız-İtalyan jeneriği; SON_METRO closing kırmızı perde + 29 temiz şarkı kredisi; ELESTIREL/BABAM uzun temiz panorama.
+
+### 27.7 Pre-existing fail (kapsam dışı, DOKUNULMADI)
+`tests/test_ocr_credit_experiment.py` 2 test (`...writes_outputs_with_fake_engine`, `temporal_fusion_hook_runs...`) FAIL. Sebep: `USE_BOX_TRACK_PIPELINE` default ON (`5afcda8` commit'i) → eski-yol temporal_fusion atlanıyor. `USE_BOX_TRACK_PIPELINE=0` ile koşunca 2/2 pass — yani benim Hakim değişikliğimle ALAKASIZ, pre-existing. Box-track default kararına ait, ayrı ele alınmalı.
+
+### 27.8 SIRADAKİ ADIM
+1. Çağatay onayı → commit (sadece OCR dosyaları: `text_layer_row_reconstruct.py` + `test_ocr_text_layer_row_reconstruct.py`). ASR/webui/docs uncommitted'lerine dokunma.
+2. (opsiyonel) §27.7 pre-existing fail'i box-track default sahibiyle çöz.
+3. (opsiyonel) `scripts/_hakim_*` yardımcıları kalıcı mı geçici mi — Çağatay'a sor.
+
+---
+
+## §28 — TEK-PNG jenerik birleştirici "Credit Sheet Composer" (2026-05-29)
+
+> **DURUM: YAPILDI master'da, COMMIT BEKLİYOR (Çağatay onayı). Standalone post-process script — pipeline iç mantığına DOKUNMADI, regression riski sıfır.**
+
+### 28.1 Çağatay'ın talebi + teşhis
+Talep: "jenerik scroll/sabit, BG sabit/hareketli fark etmez — tüm jeneriği TEK PNG'de topla, filmlerin sonunu tek png getir."
+
+Teşhis (akış araması): pipeline bir filmi (a) opening+closing segmentlere böler, (b) her segmenti scroll (→`row_composite.png`, zaten tek png) vs static cards (→`cards/card_NN.json`, sadece JSON + ham frame referansı, **birleşik resim YOK**) diye ayırır. **Eksik olan: parçaları tek tuvalde toplayan birleştirici son-adım.** Asıl dağınıklık kaynağı bu boşluk + çok-katmanlı fallback yığını (kanon tek çıktı yok).
+
+### 28.2 Karar (Çağatay)
+**Her film = 2 PNG** (`<film>__opening.png` + `<film>__closing.png`). Segmentler ayrı kalır (açılış/kapanış birleştirilmez).
+
+### 28.3 Çözüm — `scripts/_credit_sheet_composer.py`
+Kategori-agnostik kural:
+- Segmentte geçerli scroll çıktısı (scroll_text_lines>0) varsa → kanonik panorama (`row_composite.png`) tek blok.
+- Yoksa → `cards/card_NN.json` zaman sırasına dizilir, her kartın best_frame'inden `y_range` bandı kırpılıp üst üste yapıştırılır.
+- İkisi de yoksa → 'bos'.
+Her blok başına ince başlık bandı (SCROLL / KART nn t=..s, satır sayısı). Çıktı: `<film>__<seg>.png` + `<film>__<seg>.txt` (scroll'da rol|isim eşleşmesi; kartlarda kart-kart metin) + `INDEX.md`. Hepsi TEK düz klasörde.
+
+**Unicode-güvenli IO kritik:** cv2.imread/imwrite Windows'ta Türkçe `İ` içeren yolları (cennetİn, franny_nİn) OKUYAMAZ → `np.fromfile`+`cv2.imdecode` / `cv2.imencode`+`tofile` ile çözüldü.
+
+### 28.4 Sonuç — 20 film, 40 PNG
+Çıktı: **`outputs/_CREDIT_SHEETS_20260529/`** (40 PNG + 40 txt + INDEX.md). Komut:
+```
+venvs/ocr/Scripts/python.exe scripts/_credit_sheet_composer.py outputs/_hakim_shadow_20films_20260529_1507 --out outputs/_CREDIT_SHEETS_20260529
+```
+Görsel doğrulama:
+- KUKLA closing (18 kart) → CAST/CREW/THANKS kartları temiz tek görselde ✅
+- X-MEN closing (scroll) → tam end-credit roll, rol|isim çift sütun ✅
+- ANJELIK/elestirel/babam → uzun temiz panorama ✅
+- cennetİn/franny (İ) → düzeldi ✅
+
+### 28.5 Bilinen gerçek (composer hatası DEĞİL)
+1964_zengin closing 74 "kart" → aslında sahne kareleri + altyazı; bu filmde kapanış jeneriği YOK (§24'te belgeli). Composer ne tespit edildiyse onu sadakatle gösteriyor. Gerçek kredi-olmayan içeriği elemek üst-katman işi (§24 text_type classifier — ayrı hat), composer'a yük bindirme.
+
+### 28.6 SIRADAKİ (opsiyonel)
+- Faz 2: composer'ı `unified_credit_pipeline.py`'a Step 10 olarak bağla → her koşumda otomatik kanon çıktı. (Şimdi yapılmadı; Çağatay önce composer çıktısını görsün.)
+- Kart-gürültü filtresi (zengin tipi) — §24 classifier'a bağlı, composer'da değil.
+
+---
+
+## §29 — BoxTracking (A) vs SlitScan (B) POC kıyası (2026-05-29 gece)
+
+> **DURUM: İki POC kuruldu + SON METRO'da koşuldu. Sonuç HÂLÂ PÜRÜZLÜ — üretim-hazır
+> değil. HİÇBİRİ TAM DEĞİL: A oyuncu kadrosunu, B şarkı/teknik kredileri aldı — ikisi de
+> YARIM (tamamlayıcı). SON METRO closing'i baştan sona veren çıktı YOK. Commit yok, entegrasyon yok.
+> Çağatay sonuçtan memnun değil ("bok gibi sonuç çıktı yine"). Dürüst kayıt aşağıda.**
+
+### 29.1 Çağatay'ın fikri (BoxMotionTrack)
+Jeneriği box'la, motion-track et: durursa kart, kayarsa panorama (faz-agnostik, sınıf yok),
+box üst %15'e girince alttan yeni box'a devret (handoff), cut/dissolve'da bir satır alttan
+sürdür. Çekirdek doğru; mesele MOTOR. Prensip dokümanı: `core/pipelines/ocr/boxtracking/PRENSIPLER.md`.
+
+### 29.2 Neden bu işe giriştik — SON METRO faz-geçişi
+Jenerikler tek tip değil: aynı jeneriğin bir kısmı statik bir kısmı scroll olabiliyor.
+SON METRO closing kanıt: şarkı kredileri (CHANSONS/BEI MIR BIST DU SCHÖN/PRIERE A ZUMBA/
+SOMBREROS ET MANTILLES) kırmızı zeminde önce DURUYOR sonra SCROLL ediyor. Mevcut
+`text_layer_row_reconstruct` (LK global stitch) bunu kırmızıda çözemedi → boş kırmızı bant,
+metin sadece A-fb fallback'iyle kurtarıldı, temiz görsel kayboldu (kanıt: `scroll_fallback_reason
+=composite_broken:BROKEN_NO_TEXT`, `source=track_observation_fallback`).
+
+### 29.3 Üç koşum (hepsi Sonnet alt-ajanı, Opus plan + araştırma)
+1. **A v1 (boxtracking, box-LK):** SON METRO closing → BAŞARISIZ. Panorama = düz SAHNE
+   kareleri (odadaki insanlar), kredi değil, line_count=1. Kök sebep (kod okundu): (a) dikiş
+   ham kareden şerit alıyordu (box sadece kayma ölçümü için), (b) yazı yokken median_dy=0 →
+   "statik kart" sanıp tüm sahne karesini basıyordu. Text-gating YOK.
+2. **A v2 (boxtracking, düzeltilmiş):** 3 fix — text-gating (yazısız kare atlanır), maskeli
+   şerit (kutu dışı siyah), statik blok=text crop. Sonuç: sahne ELENDİ ✅, kadro yakalandı
+   (DENEUVE/DEPARDIEU/FERRÉOL/BERBERT/BOHRINGER) AMA **şarkı kredileri KAYIP ❌**, panorama
+   600×**11969** (çoğu boş/seyrek), 16 satır. Sebep: box-içi LK kırmızı düz zeminde feature
+   bulamıyor → akan şarkı kredilerini takip edemedi.
+3. **B (slitscan + faz-korelasyon):** faz-korelasyon (text-maskeli karede) + slit-scan
+   pushbroom + text-gating. SON METRO closing: 600×4252, 50 satır — **şarkı/teknik krediler
+   OKUNAKLI (CHANSONS/BEI MIR/PRIERE A ZUMBA/SOMBREROS + L.T.C./EURO-TITRES...) AMA oyuncu
+   kadrosu (DENEUVE/DEPARDIEU/POIRET...) HİÇ YOK — lines.json'da 0 kadro ismi doğrulandı.
+   Yani YARIM.** Pürüz ayrıca: üstte birkaç sahne karesi sızdı; X-MEN closing 23 parça fragmentasyon.
+
+### 29.4 Kıyas (SON METRO closing — kritik test)
+| | A v2 boxtracking | B slitscan |
+|---|---|---|
+| Sahne elendi | Evet (1 kare sızdı) | Büyük ölçüde (üstte birkaç) |
+| **Şarkı/teknik krediler (kırmızı scroll)** | **YOK ❌** | **VAR ✅** |
+| **Oyuncu kadrosu (statik)** | **VAR ✅** | **YOK ❌** |
+| Satır | 16 | 50 |
+| Panorama | 600×11969 (şişkin) | 600×4252 (kompakt) |
+
+### 29.5 Sonuç + araştırma — DÜZELTME (ilk "B geçti" değerlendirmesi YANLIŞTI)
+Çağatay haklı: **HİÇBİRİ TAM DEĞİL.** A ve B birbirini TAMAMLIYOR ama tek başına ikisi de YARIM:
+- **A** oyuncu kadrosunu (statik) aldı, şarkı-scroll'u kaçırdı (box-içi LK kırmızı scroll'da çöküyor).
+- **B** şarkı/teknik kredileri (scroll) aldı, ekran-altı tek-satır statik kadroyu kaçırdı.
+- **Composer (§28)** dağınık (ayrı kartlar + bozuk scroll bandı).
+SON METRO closing'i baştan sona veren çıktı YOK. Sebep: segment İKİ ayrı kredi tarzı içeriyor
+(kırmızı şarkı-scroll + ekran-altı statik kadro); ne A ne B tek motorda ikisini birden topluyor.
+Araştırma yine geçerli (B'nin faz-korelasyon+slit-scan'i scroll'da sağlam; LK featuresız kırmızıda
+çöker — Peleg pushbroom + scrolling-text faz-korelasyonu; ML alternatifi TransDETR/VimTS). AMA
+"B kazandı" demek yüzeyseldi — B yalnız scroll yarısını çözüyor. Gerçek çözüm muhtemelen
+ikisinin birleşimi: B'nin scroll motoru + ekran-altı/statik kadroyu da yakalayan ayrı bir geçiş.
+
+### 29.6 Kalan iş (tune) — YAPILMADI
+1. B: üstteki sahne sızıntısı → text-gate eşiğini sıkılaştır.
+2. B: X-MEN 23-parça fragmentasyonu → bölüm-kırılma (cut/dissolve) eşiğini gevşet.
+3. A'nın diğer 3 vakası koşulmadı (GPU ekonomisi).
+4. Karar verilince B'yi tune'layıp ana pipeline'a entegre (mevcut row_reconstruct yerine).
+
+### 29.7 Dosyalar / komutlar / çıktılar (gelecek oturum)
+- A motor: `core/pipelines/ocr/boxtracking/box_motion_track.py` + `run_boxtracking_test.py` + PRENSIPLER.md
+- B motor: `core/pipelines/ocr/slitscan/slitscan_panorama.py` + `run_slitscan_test.py` + PRENSIPLER.md
+- Test (GPU, sıralı koş — Paddle tek session): `venvs/ocr/Scripts/python.exe core/pipelines/ocr/<modül>/run_*_test.py [--cases <film>__<seg>]`
+- Çıktılar: A → `outputs/_boxtracking_test_20260529_235350/`, B → `outputs/_slitscan_test_20260529_234847/`
+- Test kareleri: `outputs/_hakim_shadow_20films_20260529_1507/items/<film>/frames/<seg>/`
+- **Hiçbiri commit edilmedi. Mevcut pipeline'a DOKUNULMADI** (ayrı POC klasörleri).
+
+### 29.8 Bu oturumun diğer işleri (referans)
+- §27 Hakim TAMAMEN PASİF (OCR_HAKIM_SHADOW default off) — commit bekliyor.
+- §28 Credit Sheet Composer (`scripts/_credit_sheet_composer.py`, `outputs/_CREDIT_SHEETS_20260529/`) — commit bekliyor.
+- Hepsi uncommitted, Çağatay onayı bekliyor.
+
+---
+
 **Bu dosyayı her büyük adımdan sonra güncelle.** YAPILACAK → YAPILDI → COMMIT EDİLDİ formatı.
