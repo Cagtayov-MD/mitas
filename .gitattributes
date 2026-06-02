@@ -1,0 +1,72 @@
+# MITAS — satır sonu normalizasyonu
+# Tüm metin dosyaları DEPODA LF; çalışma kopyasında platforma göre (Windows=CRLF).
+# git metin/binary'yi otomatik algılar (null-byte) → binary'ye DOKUNMAZ.
+* text=auto
+
+# Satır sonu zorunlu olan betikler
+*.sh   text eol=lf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# --- BINARY: git asla EOL/charset çevirisi yapmasın ---
+# NOT: *.ts TypeScript kaynağıdır → binary DEĞİL (text=auto ile yönetilir).
+# Görüntü
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.bmp  binary
+*.tif  binary
+*.tiff binary
+# Video / ses
+*.mp4  binary
+*.mkv  binary
+*.mov  binary
+*.avi  binary
+*.mxf  binary
+*.webm binary
+*.wav  binary
+*.mp3  binary
+*.m4a  binary
+*.flac binary
+*.aac  binary
+*.ogg  binary
+# Model / tensör / veri
+*.bin        binary
+*.pt         binary
+*.pth        binary
+*.onnx       binary
+*.safetensors binary
+*.ct2        binary
+*.npy        binary
+*.npz        binary
+*.pkl        binary
+*.h5         binary
+*.gguf       binary
+# Arşiv
+*.zip binary
+*.gz  binary
+*.tgz binary
+*.tar binary
+*.7z  binary
+*.rar binary
+# Font
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+# Ofis / belge
+*.pdf  binary
+*.xlsx binary
+*.xls  binary
+*.docx binary
+*.pptx binary
+# Derlenmiş
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.pyd   binary
