@@ -91,6 +91,7 @@ TRANSLATE_API_SCRIPT = PROJECT_ROOT / "scripts" / "translate_api_call.py"
 TRANSLATE_TIMEOUT_SECONDS = 600
 SUMMARY_TIMEOUT_SECONDS = 90
 SUMMARY_MAX_SOURCE_CHARS = 60000
+SUMMARY_MAX_TOKENS = 1500
 TURKISH_SUMMARY_STOPWORDS = {
     "acaba", "ama", "ancak", "artık", "aslında", "az", "bazı", "belki", "ben", "beni", "benim", "beri",
     "bir", "biraz", "birçok", "biz", "bizim", "bu", "buna", "bunu", "burada", "böyle", "çok", "çünkü",
@@ -2125,16 +2126,44 @@ def _search_snippet(text: str, query: str, *, radius: int = 90) -> str:
 
 
 def _generate_transcript_summary(job: dict[str, Any], transcript: str) -> dict[str, Any]:
+    is_film = job.get("content_profile") == "film"
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        try:
+            return _summarize_with_anthropic(job, transcript)
+        except RuntimeError:
+            pass
+    # Film/dizi ozetinde OpenAI-compat (yerel qwen35local) fallback'i KULLANMA:
+    # terk edilen qwen film prompt'unu tutmuyor, bozuk ozet uretir. Sonnet
+    # basarisizsa dogrudan local-extractive'e dus. Diger profiller eski zinciri korur.
+    if not is_film:
+        try:
+            return _summarize_with_openai(job, transcript)
+        except RuntimeError:
+            pass
+    return _summarize_locally(job, transcript)
+
+
+def _load_film_summary_prompt() -> str | None:
+    """Film/dizi ozet system prompt'unu dosyadan oku.
+
+    Once MITAS_FILM_OZET_PROMPT_PATH env'ine bakar; yoksa paket icindeki
+    core/api/prompts/ozet_film.txt kullanilir. Dosya okunamazsa None doner
+    (cagiran generic prompt'a duser)."""
+    override = os.environ.get("MITAS_FILM_OZET_PROMPT_PATH")
+    path = Path(override) if override else Path(__file__).resolve().parent / "prompts" / "ozet_film.txt"
     try:
-        return _summarize_with_openai(job, transcript)
-    except RuntimeError:
-        return _summarize_locally(job, transcript)
+        text = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return text or None
 
 
 def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, str]]:
     """Build the chat messages list for the summary LLM call.
 
     Branches on ``job["content_profile"]``:
+    - ``"film"``: film/dizi olay-orgusu ozet prompt'u (prompts/ozet_film.txt);
+      dosya bulunamazsa generic dala duser.
     - ``"spor"``: returns a sports-specific structured question set.
     - Anything else / None: returns the generic summary prompt unchanged.
 
@@ -2146,6 +2175,19 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
         f"Dosya: {job.get('filename')}\n"
         f"Süre: {_format_summary_seconds(summary_block.get('audio_duration'))}\n\n"
     )
+
+    if job.get("content_profile") == "film":
+        film_prompt = _load_film_summary_prompt()
+        if film_prompt:
+            user_msg = (
+                f"{context_lines}"
+                f"TRANSKRİPT:\n{transcript}"
+            )
+            return [
+                {"role": "system", "content": film_prompt},
+                {"role": "user", "content": user_msg},
+            ]
+        # film_prompt yoksa asagidaki generic dala dusulur
 
     if job.get("content_profile") == "spor":
         system_msg = (
@@ -2229,6 +2271,50 @@ def _clean_model_output(text: str) -> str:
     return cleaned or text.strip()
 
 
+def _summarize_with_anthropic(job: dict[str, Any], transcript: str) -> dict[str, Any]:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("anthropic_api_key_not_set")
+    model = os.environ.get("MITAS_ANTHROPIC_MODEL", "claude-sonnet-4-6")
+    source = _summary_source_text(transcript)
+    messages = _summary_messages(job, source)
+    system_content = next((m["content"] for m in messages if m["role"] == "system"), "")
+    user_messages = [m for m in messages if m["role"] != "system"]
+    body = {
+        "model": model,
+        "max_tokens": SUMMARY_MAX_TOKENS,
+        "temperature": 0.2,
+        "system": system_content,
+        "messages": user_messages,
+    }
+    request = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=SUMMARY_TIMEOUT_SECONDS) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"anthropic_summary_failed:{exc}") from exc
+    content_blocks = payload.get("content", [])
+    content = next((b.get("text") for b in content_blocks if b.get("type") == "text"), None)
+    if not isinstance(content, str) or not content.strip():
+        raise RuntimeError("anthropic_summary_empty")
+    return {
+        "provider": "anthropic",
+        "model": payload.get("model", model),
+        "summary": _clean_model_output(content),
+        "source_chars": len(transcript),
+        "used_chars": len(source),
+    }
+
+
 def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, Any]:
     api_key = os.environ.get("OPENAI_API_KEY")
     model = os.environ.get("MITAS_SUMMARY_MODEL") or os.environ.get("OPENAI_SUMMARY_MODEL")
@@ -2240,7 +2326,7 @@ def _summarize_with_openai(job: dict[str, Any], transcript: str) -> dict[str, An
     body = {
         "model": model,
         "temperature": 0.2,
-        "max_tokens": 900,
+        "max_tokens": SUMMARY_MAX_TOKENS,
         "messages": _summary_messages(job, source),
     }
     request = urllib.request.Request(
