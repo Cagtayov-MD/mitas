@@ -33,6 +33,15 @@ FFPROBE = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-sh
 PY_OCR = PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"
 PY_ASR = PROJECT_ROOT / "venvs" / "asr" / "Scripts" / "python.exe"
 PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
+
+# Profil → ASR aksiyon konfigi (PROFIL_KONFIG.md ile SENKRON).
+# film_dizi (film/dizi) → LEAN: özet için sadece METİN (turbo tek-pass; align/diarize/fallback YOK).
+# Tanımsız profil = full ASR (eski davranış, run_asr_pipeline). Çağatay buraya ekler (eklemeler gelecek).
+PROFILE_ASR: dict = {
+    "film": dict(lean=True, model="large-v3-turbo", beam_size=1, vad="on", language="auto"),
+    "dizi": dict(lean=True, model="large-v3-turbo", beam_size=1, vad="on", language="auto"),  # ses işi dizide de geçerli
+    # "belgesel": ...  "muzik": ...  "spor": ...  "studio": ...  "haber": ...  "stt": ...   (DOLDURULACAK)
+}
 TRT_RE = re.compile(r"(\d{4})-(\d{3,4})-(\d)-(\d{3,4})-(\d{2})-(\d)")
 
 
@@ -315,6 +324,14 @@ def main(argv=None) -> int:
             asr_in = audio_path if audio_path.exists() else video
             cmd = [PY_ASR, HERE / "_pipe_asr.py", "--input", str(asr_in), "--out", str(asr_out),
                    "--media-id", media_id, "--job-id", asr_job, "--content-profile", content_profile]
+            _pa = PROFILE_ASR.get(profile)
+            if _pa and _pa.get("lean"):  # PROFIL_KONFIG: film_dizi → lean (özet-transcript)
+                cmd += ["--lean", "--model", _pa["model"],
+                        "--beam-size", str(_pa["beam_size"]), "--vad", _pa["vad"]]
+                if _pa.get("language") == "auto":      # film → kanal-dil tespiti
+                    cmd += ["--auto-language"]
+                elif _pa.get("language"):              # dizi → tr (sabit)
+                    cmd += ["--language", _pa["language"]]
             if args.asr_max_seconds and args.asr_max_seconds > 0:
                 cmd += ["--max-seconds", str(args.asr_max_seconds)]
             rc, out, err = run(cmd, timeout=7200)
@@ -350,7 +367,14 @@ def main(argv=None) -> int:
                "--resolution", res, "--fps", fps_s, "--duration", dur, "--ozet", ozet]
         if bolum:
             cmd += ["--bolum", bolum]
-        rc, out, err = run(cmd, timeout=600)
+        # film/dizi → ses & altyazı bloğu: kaynak video + (ASR yazdıysa) kanal-dil JSON
+        _pa_pdf = PROFILE_ASR.get(profile)
+        if _pa_pdf and _pa_pdf.get("language") == "auto":
+            cmd += ["--video", str(video)]
+            _chl = asr_out / "chlang.json"
+            if _chl.exists():
+                cmd += ["--chlang", str(_chl)]
+        rc, out, err = run(cmd, timeout=1800)  # altyazı Paddle taraması / kanal-dil self-run payı
         pdf_info = last_json(out) or {"status": "failed", "pdf_error": err[-300:]}
         timings["pdf"] = round(time.perf_counter() - t0, 2)
         log_event("pdf_completed" if pdf_info.get("status") == "done" else "pdf_partial",
