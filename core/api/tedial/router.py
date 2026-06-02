@@ -505,6 +505,74 @@ def create_tedial_router(service: TedialProxyService | None = None, import_queue
                 raise HTTPException(status_code=502, detail=stderr or f"Tedial stream ffmpeg failed ({process.returncode})")
             return JSONResponse(content=asr_response)
 
+    @router.post("/assets/{asset_id}/pipeline")
+    async def asset_pipeline(
+        asset_id: str,
+        request: Request,
+        repository_id: str,
+        title: str | None = None,
+        profile: str = "film_dizi",
+        audio_track: int = 0,
+        start_seconds: float | None = None,
+        end_seconds: float | None = None,
+    ) -> JSONResponse:
+        """Stream a Tedial asset into the full MITAS pipeline (OCR künye + ASR + PDF).
+
+        Mirrors ``asset_asr`` but forwards the muxed mp4 stream to the ASR
+        server's ``/api/pipeline/run`` endpoint instead of ASR-only transcribe.
+        Routed here for künye-producing analysis profiles (film_dizi, documentary,
+        music_entertainment, studio).
+        """
+        if start_seconds is not None and start_seconds < 0:
+            raise HTTPException(status_code=400, detail="invalid_range")
+        if end_seconds is not None and start_seconds is None:
+            raise HTTPException(status_code=400, detail="invalid_range")
+        if start_seconds is not None and end_seconds is not None and end_seconds <= start_seconds:
+            raise HTTPException(status_code=400, detail="invalid_range")
+        user_id = _user_id_from_request(request)
+        raw_mpd = await fetch_asset_manifest_text(
+            user_id=user_id,
+            repository_id=repository_id,
+            asset_id=asset_id,
+        )
+        try:
+            video_url, audio_url = select_mpd_audio_video_urls(raw_mpd, svc.config, audio_track_index=audio_track)
+        except TedialMediaResolveError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        cookie_header = svc.broker.cookie_header_if_any(user_id)
+        process = await _start_tedial_ffmpeg_mp4_stream(
+            video_url=video_url,
+            audio_url=audio_url,
+            cookie_header=cookie_header,
+            verify_tls=svc.config.verify_tls,
+            start_seconds=start_seconds,
+            end_seconds=end_seconds,
+        )
+        stderr_task = asyncio.create_task(process.stderr.read() if process.stderr else _empty_bytes())
+        try:
+            filename = _tedial_asset_filename(title=title, asset_id=asset_id, start_seconds=start_seconds, end_seconds=end_seconds)
+            pipeline_response = await _post_ffmpeg_stream_to_pipeline(
+                httpx=httpx,
+                process=process,
+                access_cookie_header=access_cookie_header_from_request(request),
+                filename=filename,
+                profile=profile,
+            )
+        except Exception as exc:
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+            stderr = (await stderr_task).decode("utf-8", errors="replace").strip()
+            detail = str(exc) or stderr or "Tedial stream could not be sent to pipeline"
+            raise HTTPException(status_code=502, detail=detail) from exc
+        else:
+            if process.returncode is None:
+                await process.wait()
+            stderr = (await stderr_task).decode("utf-8", errors="replace").strip()
+            if process.returncode not in (0, None):
+                raise HTTPException(status_code=502, detail=stderr or f"Tedial stream ffmpeg failed ({process.returncode})")
+            return JSONResponse(content=pipeline_response)
+
     @router.get("/assets/{asset_id}/import-plan")
     async def import_plan(
         asset_id: str,
@@ -1101,6 +1169,45 @@ async def _post_ffmpeg_stream_to_asr(
         raise RuntimeError("MITAS ASR API returned non-JSON response") from exc
     if not isinstance(payload, dict):
         raise RuntimeError("MITAS ASR API returned unexpected response")
+    return payload
+
+
+async def _post_ffmpeg_stream_to_pipeline(
+    *,
+    httpx: Any,
+    process: Any,
+    access_cookie_header: str,
+    filename: str,
+    profile: str,
+) -> dict[str, Any]:
+    async def _body():
+        if process.stdout is None:
+            return
+        while True:
+            chunk = await process.stdout.read(1024 * 256)
+            if not chunk:
+                break
+            yield chunk
+
+    pipeline_url = os.environ.get("MITAS_PIPELINE_RUN_URL", "http://127.0.0.1:8787/api/pipeline/run")
+    headers = {"content-type": "video/mp4"}
+    if access_cookie_header:
+        headers["cookie"] = access_cookie_header
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=180.0, write=1800.0), trust_env=False) as client:
+        response = await client.post(
+            pipeline_url,
+            params={"filename": filename, "profile": profile},
+            headers=headers,
+            content=_body(),
+        )
+    if not response.is_success:
+        raise RuntimeError(f"MITAS pipeline API failed ({response.status_code}): {_response_detail(response)}")
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise RuntimeError("MITAS pipeline API returned non-JSON response") from exc
+    if not isinstance(payload, dict):
+        raise RuntimeError("MITAS pipeline API returned unexpected response")
     return payload
 
 

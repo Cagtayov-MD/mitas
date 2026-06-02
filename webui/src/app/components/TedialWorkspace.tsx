@@ -1,5 +1,6 @@
-import { Clock3, Database, DownloadCloud, FileText, LogIn, RefreshCw, Search, SplitSquareHorizontal, Volume2, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Clock3, Database, DownloadCloud, FileText, LogIn, Maximize, Pause, Play, RefreshCw, Search, SkipBack, SkipForward, SplitSquareHorizontal, Square, Volume2, VolumeX, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import * as dashjs from 'dashjs';
 import { Badge, Button, ScrollArea } from './ui';
 import { fetchRecentAsrJobs, formatClock, type AsrJob } from '../asr-api';
 import {
@@ -13,6 +14,7 @@ import {
   startTedialSession,
   tedialDurationSeconds,
   tedialKeyframeProxyUrl,
+  tedialManifestUrl,
   type TedialAsrChannelMode,
   type TedialAudioTrack,
   type TedialMediaImportResult,
@@ -48,6 +50,54 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
 
   const selected = items[selectedIndex] ?? null;
   const keyframeUrl = useMemo(() => selected ? tedialKeyframeProxyUrl(selected) : null, [selected]);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const previewFrameRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<dashjs.MediaPlayerClass | null>(null);
+  const previewManifestUrl = useMemo(() => (selected ? tedialManifestUrl(selected, audioTrack) : ''), [selected, audioTrack]);
+  const [previewPlaying, setPreviewPlaying] = useState(false);
+  const [previewMuted, setPreviewMuted] = useState(false);
+  const [previewTime, setPreviewTime] = useState(0);
+  const [previewDuration, setPreviewDuration] = useState(0);
+  // DASH süreyi geç/eksik (Infinity/NaN) verebiliyor; o durumda Tedial meta süresini yedek al.
+  const previewKnownDuration = previewDuration > 0 ? previewDuration : (selected ? (tedialDurationSeconds(selected) ?? 0) : 0);
+  const previewProgress = previewKnownDuration > 0 ? Math.max(0, Math.min(100, (previewTime / previewKnownDuration) * 100)) : 0;
+
+  const seekPreviewTo = (time: number) => {
+    const v = videoRef.current;
+    if (!v) return;
+    const target = previewKnownDuration > 0 ? Math.max(0, Math.min(previewKnownDuration, time)) : Math.max(0, time);
+    v.currentTime = target;
+    setPreviewTime(target);
+  };
+  const togglePreviewPlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) { void v.play(); } else { v.pause(); }
+  };
+  const stopPreview = () => {
+    seekPreviewTo(0);
+    videoRef.current?.pause();
+  };
+  const skipPreview = (delta: number) => {
+    const v = videoRef.current;
+    if (!v) return;
+    seekPreviewTo((v.currentTime || previewTime) + delta);
+  };
+  const togglePreviewMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setPreviewMuted(v.muted);
+  };
+  const seekPreviewFromPointer = (event: PointerEvent<HTMLDivElement>) => {
+    if (previewKnownDuration <= 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    seekPreviewTo(ratio * previewKnownDuration);
+  };
+  const enterPreviewFullscreen = () => {
+    void previewFrameRef.current?.requestFullscreen?.();
+  };
 
   useEffect(() => {
     fetchTedialSession(true)
@@ -68,6 +118,26 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
   useEffect(() => {
     loadRecentTedialJobs().catch(() => undefined);
   }, []);
+
+  // Onizleme oynaticisi: secili Tedial asset'ini ana ekrandaki gibi DASH ile oynat.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !previewManifestUrl) {
+      return undefined;
+    }
+    setPreviewPlaying(false);
+    setPreviewMuted(video.muted);
+    setPreviewTime(0);
+    setPreviewDuration(0);
+    const player = dashjs.MediaPlayer().create();
+    player.updateSettings({ streaming: { buffer: { fastSwitchEnabled: true } } });
+    player.initialize(video, previewManifestUrl, false);
+    playerRef.current = player;
+    return () => {
+      playerRef.current = null;
+      player.reset();
+    };
+  }, [previewManifestUrl]);
 
   const refreshSession = async (useHealth = false) => {
     const next = await fetchTedialSession(useHealth);
@@ -282,7 +352,7 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
           </ScrollArea>
         </aside>
 
-        <section className="flex min-w-0 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-border-subtle bg-surface/60 px-4 py-3">
             <div className="min-w-0">
               <h2 className="truncate text-sm font-bold text-foreground-strong">{selected?.title || 'Tedial asset seç'}</h2>
@@ -335,13 +405,81 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
             </div>
           </div>
 
-          <div className="grid flex-1 grid-rows-[minmax(240px,1fr)_auto] gap-3 p-4">
-            <div className="flex items-center justify-center overflow-hidden rounded-sm border border-border-subtle bg-black">
-              {keyframeUrl ? (
-                <img src={keyframeUrl} alt="" className="max-h-full max-w-full object-contain" />
-              ) : (
-                <div className="text-xs text-foreground-muted">Önizleme yok</div>
-              )}
+          <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 p-4">
+            <div ref={previewFrameRef} className="flex min-h-0 flex-col overflow-hidden rounded-md border border-border-mitas bg-black">
+              <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black">
+                {selected && previewManifestUrl ? (
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full cursor-pointer object-contain bg-black"
+                    playsInline
+                    preload="metadata"
+                    poster={keyframeUrl ?? undefined}
+                    muted={previewMuted}
+                    onClick={togglePreviewPlay}
+                    onVolumeChange={(event) => setPreviewMuted(event.currentTarget.muted)}
+                    onPlay={() => setPreviewPlaying(true)}
+                    onPause={() => setPreviewPlaying(false)}
+                    onEnded={() => setPreviewPlaying(false)}
+                    onTimeUpdate={(event) => setPreviewTime(event.currentTarget.currentTime || 0)}
+                    onDurationChange={(event) => { const d = saneSeconds(event.currentTarget.duration); if (d > 0) setPreviewDuration(d); }}
+                    onLoadedMetadata={(event) => setPreviewDuration(saneSeconds(event.currentTarget.duration))}
+                  />
+                ) : keyframeUrl ? (
+                  <img src={keyframeUrl} alt="" className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <div className="text-xs text-foreground-muted">Önizleme yok — soldan bir Tedial sonucu seç</div>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col gap-1.5 border-t border-border-subtle bg-app-shell px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="relative h-2 flex-1 cursor-pointer overflow-hidden rounded-sm bg-surface-elevated"
+                    onPointerDown={seekPreviewFromPointer}
+                    onPointerMove={(event) => { if (event.buttons === 1) seekPreviewFromPointer(event); }}
+                    title="Konum"
+                  >
+                    <div className="absolute left-0 top-0 h-full bg-info-strong" style={{ width: `${previewProgress}%` }} />
+                  </div>
+                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-foreground-muted">
+                    {formatClock(previewTime)} / {formatClock(previewKnownDuration)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={() => skipPreview(-10)} title="10 sn geri">
+                    <SkipBack className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={() => skipPreview(-1)} title="1 sn geri">
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon-xs"
+                    variant="default"
+                    disabled={!previewManifestUrl}
+                    onClick={togglePreviewPlay}
+                    className="h-7 w-7 rounded-sm bg-foreground-strong text-app-shell hover:bg-foreground-strong/90"
+                    title={previewPlaying ? 'Duraklat' : 'Oynat'}
+                  >
+                    {previewPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="ml-0.5 h-3.5 w-3.5" />}
+                  </Button>
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={stopPreview} title="Durdur">
+                    <Square className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={() => skipPreview(1)} title="1 sn ileri">
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={() => skipPreview(10)} title="10 sn ileri">
+                    <SkipForward className="h-3.5 w-3.5" />
+                  </Button>
+                  <div className="flex-1" />
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={togglePreviewMute} title={previewMuted ? 'Sesi aç' : 'Sesi kapat'}>
+                    {previewMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button size="icon-xs" variant="ghost" disabled={!previewManifestUrl} onClick={enterPreviewFullscreen} title="Tam ekran">
+                    <Maximize className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
             <div className="rounded-sm border border-border-subtle bg-surface/60 p-3 text-xs text-foreground-muted">
               <div className="font-semibold uppercase tracking-wider text-foreground-strong">Durum</div>
@@ -356,6 +494,15 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
       </div>
     </div>
   );
+}
+
+function saneSeconds(value: number | null | undefined): number {
+  if (!Number.isFinite(value ?? NaN)) {
+    return 0;
+  }
+  const seconds = Number(value);
+  // DASH bazen süreyi MAX_SAFE_INTEGER/sonsuz verir; 0 < süre < 24sa değilse yok say.
+  return seconds > 0 && seconds < 24 * 60 * 60 ? seconds : 0;
 }
 
 function formatTedialDuration(seconds: number | null | undefined): string {

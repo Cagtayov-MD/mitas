@@ -227,6 +227,39 @@ export async function startTedialAsrRangeJob(
   };
 }
 
+export async function startTedialPipelineJob(
+  item: TedialSearchResult,
+  options: TedialImportOptions & { startSeconds?: number; endSeconds?: number } = {},
+): Promise<AsrJob> {
+  if (!item.repository_id || !item.asset_id) {
+    throw new Error('Tedial asset bilgisi eksik.');
+  }
+  const audioTrack = normalizeTedialAudioTrack(options.audioTrack);
+  const analysisProfile = options.analysisProfile ?? 'film_dizi';
+  const params = new URLSearchParams({
+    repository_id: item.repository_id,
+    title: item.title || item.asset_id,
+    profile: analysisProfile,
+    audio_track: String(audioTrack),
+  });
+  if (Number.isFinite(options.startSeconds)) {
+    params.set('start_seconds', String(options.startSeconds));
+    if (Number.isFinite(options.endSeconds)) {
+      params.set('end_seconds', String(options.endSeconds));
+    }
+  }
+  const response = await fetch(`${TEDIAL_API}/assets/${encodeURIComponent(item.asset_id)}/pipeline?${params.toString()}`, {
+    method: 'POST',
+    signal: options.signal,
+  });
+  if (!response.ok) {
+    throw new Error(await readTedialError(response));
+  }
+  const job = await response.json() as AsrJob;
+  rememberTedialAsrJob(job.job_id);
+  return job;
+}
+
 const TEDIAL_JOB_IDS_KEY = 'mitas.tedial.asrJobIds';
 
 export function getRememberedTedialJobIds(): string[] {

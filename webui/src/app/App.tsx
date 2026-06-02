@@ -18,6 +18,7 @@ import {
   searchTedial,
   startTedialAsrRangeJob,
   startTedialAsrJob,
+  startTedialPipelineJob,
   tedialDurationSeconds,
   tedialManifestUrl,
   type TedialAsrChannelMode,
@@ -335,6 +336,18 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setEnabledAsrChannels(defaultAsrChannelState());
     setSelectedSegmentIndex(null);
     try {
+      // film/dizi + OCR'lı profiller → Tedial videoda da TAM pipeline (OCR künye + ASR + PDF),
+      // tıpkı yüklemede olduğu gibi; stt/haber → ASR-only.
+      if (profileRunsOcr(analysisProfile)) {
+        const job = await startTedialPipelineJob(item, {
+          audioTrack: selectedTedialAudioTrack,
+          channelMode: selectedTedialChannelMode,
+          analysisProfile,
+        });
+        setAsrJob(job);
+        setSelectedClipId(job.clip_id ?? null);
+        return job;
+      }
       const result = await startTedialAsrJob(item, {
         audioTrack: selectedTedialAudioTrack,
         channelMode: selectedTedialChannelMode,
@@ -347,7 +360,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     } finally {
       setIsStartingAsr(false);
     }
-  }, [applyTedialImportResult, selectedTedialAudioTrack, selectedTedialChannelMode]);
+  }, [analysisProfile, applyTedialImportResult, selectedTedialAudioTrack, selectedTedialChannelMode]);
 
   const startAsrForClip = useCallback(async (clipId: string) => {
     setUploadError(null);
