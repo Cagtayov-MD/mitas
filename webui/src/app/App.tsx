@@ -242,6 +242,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
   const [segmentTranslations, setSegmentTranslations] = useState<Record<number, SegmentTranslationState>>({});
   const [enabledAsrChannels, setEnabledAsrChannels] = useState<AsrChannelState>(() => defaultAsrChannelState());
   const [autoLoadRecentEnabled, setAutoLoadRecentEnabled] = useState(true);
+  const [pendingStoredMedia, setPendingStoredMedia] = useState<{ url: string; name: string; mediaType?: string } | null>(null);
 
   const prepareSelectedMedia = useCallback((file: File) => {
     setAutoLoadRecentEnabled(false);
@@ -258,6 +259,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSelectedTedialItem(null);
     setSelectedTedialAudioTrack(0);
     setSelectedTedialChannelMode(DEFAULT_TEDIAL_CHANNEL_MODE);
+    setPendingStoredMedia(null);
     setSelectedSegmentIndex(null);
     setIsLiveSttBusy(false);
     setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -313,6 +315,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSelectedTedialItem(result.item);
     setSelectedTedialAudioTrack(result.audioTrack);
     setSelectedTedialChannelMode(result.channelMode);
+    setPendingStoredMedia(null);
     setSelectedSegmentIndex(null);
     setIsLiveSttBusy(false);
     setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -393,8 +396,19 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     }
   }, [analysisProfile]);
 
+  const ensureClipFromPendingStoredMedia = useCallback(async (): Promise<string | null> => {
+    if (!pendingStoredMedia) return null;
+    const resp = await fetch(pendingStoredMedia.url);
+    if (!resp.ok) throw new Error('Akıştaki medya okunamadı.');
+    const blob = await resp.blob();
+    const file = new File([blob], pendingStoredMedia.name || 'media', { type: pendingStoredMedia.mediaType || blob.type || 'application/octet-stream' });
+    const { clip_id } = await prepareClip(file);
+    setSelectedClipId(clip_id);
+    return clip_id;
+  }, [pendingStoredMedia]);
+
   const handleStartAsr = useCallback(async () => {
-    if (!selectedFile && !selectedTedialItem && !selectedClipId) {
+    if (!selectedFile && !selectedTedialItem && !selectedClipId && !pendingStoredMedia) {
       setUploadError('STT başlatmak için önce medya yükle.');
       return;
     }
@@ -414,8 +428,17 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     }
     if (selectedClipId) {
       await startAsrForClip(selectedClipId).catch(() => undefined);
+      return;
     }
-  }, [analysisProfile, isLiveSttBusy, selectedClipId, selectedFile, selectedTedialItem, startAsrForClip, startAsrForFile, startAsrForTedial]);
+    if (pendingStoredMedia) {
+      try {
+        const id = await ensureClipFromPendingStoredMedia();
+        if (id) await startAsrForClip(id).catch(() => undefined);
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : 'Akıştan medya hazırlama hatası');
+      }
+    }
+  }, [analysisProfile, ensureClipFromPendingStoredMedia, isLiveSttBusy, pendingStoredMedia, selectedClipId, selectedFile, selectedTedialItem, startAsrForClip, startAsrForFile, startAsrForTedial]);
 
   const handleStartAsrRange = useCallback(async (from: number, to: number) => {
     const start = Math.max(0, Math.min(from, to));
@@ -446,7 +469,9 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
         setRangeAsrState({ start, end, jobId: result.job.job_id, starting: false });
         return;
       }
-      const clipId = selectedClipId ?? (selectedFile ? (await prepareClip(selectedFile)).clip_id : null);
+      const clipId = selectedClipId
+        ?? (selectedFile ? (await prepareClip(selectedFile)).clip_id : null)
+        ?? (pendingStoredMedia ? await ensureClipFromPendingStoredMedia() : null);
       if (clipId) {
         if (!selectedClipId) setSelectedClipId(clipId);
         const job = await processClipAsrRange(clipId, { start, end }, analysisProfile);
@@ -481,7 +506,9 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
   }, [
     analysisProfile,
     applyTedialImportResult,
+    ensureClipFromPendingStoredMedia,
     isLiveSttBusy,
+    pendingStoredMedia,
     selectedClipId,
     selectedFile,
     selectedTedialAudioTrack,
@@ -547,6 +574,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSelectedTedialItem(null);
     setSelectedTedialAudioTrack(0);
     setSelectedTedialChannelMode(DEFAULT_TEDIAL_CHANNEL_MODE);
+    setPendingStoredMedia(null);
     setSelectedSegmentIndex(null);
     setIsLiveSttBusy(false);
     setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -584,6 +612,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
       setSelectedTedialItem(null);
       setSelectedTedialAudioTrack(0);
       setSelectedTedialChannelMode(DEFAULT_TEDIAL_CHANNEL_MODE);
+      setPendingStoredMedia({ url: request.storedMediaUrl, name: request.name, mediaType: request.mediaType });
       setSelectedSegmentIndex(null);
       setIsLiveSttBusy(false);
       setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -611,6 +640,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
         setSelectedFile(null);
         setSelectedClipId(null);
         setSelectedTedialItem(null);
+        setPendingStoredMedia(null);
         setSelectedMediaName(request.name || 'Tedial klip');
         setSelectedMediaSourcePath('Tedial');
         setMediaType(null);
@@ -637,6 +667,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
       setSelectedTedialItem(tedialItem);
       setSelectedTedialAudioTrack(0);
       setSelectedTedialChannelMode(DEFAULT_TEDIAL_CHANNEL_MODE);
+      setPendingStoredMedia(null);
       setSelectedSegmentIndex(null);
       setIsLiveSttBusy(false);
       setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -674,6 +705,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSelectedTedialItem(null);
     setSelectedTedialAudioTrack(0);
     setSelectedTedialChannelMode(DEFAULT_TEDIAL_CHANNEL_MODE);
+    setPendingStoredMedia(null);
     setSelectedSegmentIndex(null);
     setIsLiveSttBusy(false);
     setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
@@ -696,6 +728,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSelectedFile(null);
     setSelectedClipId(job.clip_id ?? null);
     setSelectedTedialItem(null);
+    setPendingStoredMedia(null);
     setSelectedSegmentIndex(null);
     setActiveWorkspace('logs');
   }, []);
