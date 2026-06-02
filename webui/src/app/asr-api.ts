@@ -296,10 +296,10 @@ export interface SeekRequest {
   time: number;
 }
 
-export type AnalysisProfile = 'film' | 'dizi' | 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
+export type AnalysisProfile = 'film_dizi' | 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
 export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel' | 'spor';
 
-export const OCR_ANALYSIS_PROFILES: readonly AnalysisProfile[] = ['film', 'dizi', 'documentary', 'music_entertainment', 'studio'];
+export const OCR_ANALYSIS_PROFILES: readonly AnalysisProfile[] = ['film_dizi', 'documentary', 'music_entertainment', 'studio'];
 export function profileRunsOcr(profile: AnalysisProfile): boolean { return OCR_ANALYSIS_PROFILES.includes(profile); }
 export type ClipGeneratedDataKind = 'asr' | 'ocr' | 'face' | 'tag';
 
@@ -310,8 +310,7 @@ export interface AnalysisProfileOption {
 }
 
 export const ANALYSIS_PROFILE_OPTIONS: AnalysisProfileOption[] = [
-  { value: 'film', label: 'Film', description: 'İlk 8 oyuncu + yapımcı/yönetmen + özet (künye → PDF)' },
-  { value: 'dizi', label: 'Dizi', description: 'Tüm oyuncular + özet (künye → PDF)' },
+  { value: 'film_dizi', label: 'Film/Dizi', description: 'TRT kimliğe göre otomatik Film/Dizi (3. parsel) → künye/PDF' },
   { value: 'documentary', label: 'Belgesel', description: 'Belgesel içerik profili' },
   { value: 'music_entertainment', label: 'Müzik / Eğlence', description: 'Program, konser, performans ve eğlence akışı' },
   { value: 'sports', label: 'Spor Karşılaşmaları', description: 'Maç ve canlı spor yayını profili' },
@@ -338,8 +337,7 @@ export function contentProfileForAnalysisProfile(profile: AnalysisProfile): AsrC
       return 'studio_panel';
     case 'sports':
       return 'spor';
-    case 'film':
-    case 'dizi':
+    case 'film_dizi':
       return 'film';
     case 'news':
     case 'stt':
