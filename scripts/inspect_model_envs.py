@@ -34,7 +34,6 @@ IMPORTANT_PACKAGES = [
     "paddleocr",
     "paddlepaddle",
     "ctranslate2",
-    "easyocr",
     "faster-whisper",
     "whisperx",
     "silero-vad",

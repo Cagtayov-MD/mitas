@@ -60,7 +60,6 @@ FORBIDDEN_PACKAGES = {
     "whisperx",
     "faster-whisper",
     "paddleocr",
-    "easyocr",
     "insightface",
     "ultralytics",
     "transformers",
