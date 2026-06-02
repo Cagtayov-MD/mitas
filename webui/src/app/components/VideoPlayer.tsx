@@ -74,7 +74,7 @@ export function VideoPlayer({
   const isVideo = Boolean(mediaPreviewUrl && effectiveMediaType?.startsWith('video/'));
   const isDashVideo = Boolean(mediaPreviewUrl && effectiveMediaType === 'application/dash+xml');
   const isAudio = Boolean(mediaPreviewUrl && (effectiveMediaType?.startsWith('audio/') || (!isVideo && !isDashVideo)));
-  const isSttSelected = analysisProfile === 'stt';
+  const isSttSelected = true;
   const selectedProfileLabel = analysisProfileLabel(analysisProfile);
   const duration = saneDuration(playback.duration) || saneDuration(mediaDurationHint) || saneDuration(asrJob?.summary?.audio_duration) || 0;
   const progress = duration > 0 ? Math.max(0, Math.min(100, (playback.currentTime / duration) * 100)) : 0;
@@ -351,7 +351,7 @@ export function VideoPlayer({
                     ? `${selectedFileName} STT için hazır.`
                     : `${selectedFileName} yüklendi. Konuşmadan metne için STT seç.`
                   : 'Ses dosyası yüklendi.'}
-                {isSttSelected ? ' STT için STT Başlat düğmesini kullan.' : ''}
+                {' Başlat düğmesini kullan.'}
               </div>
               <audio
                 ref={setAudioNode}

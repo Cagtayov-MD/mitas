@@ -112,6 +112,19 @@ add_mitas_access_gate(app)
 _executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-asr")
 _live_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-stt-live")
 _translate_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-translate")
+
+SCRIPTS_DIR = PROJECT_ROOT / "scripts"
+MITAS_PIPELINE = SCRIPTS_DIR / "mitas_pipeline.py"
+_pipeline_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-pipeline")
+PIPELINE_PROFILE_MAP: dict[str, str] = {
+    "film_dizi": "film_dizi",
+    "documentary": "belgesel",
+    "music_entertainment": "muzik",
+    "studio": "studio",
+    "sports": "spor",
+    "news": "haber",
+    "stt": "stt",
+}
 _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
 _media_remux_lock = threading.Lock()
@@ -528,6 +541,250 @@ async def create_asr_job(
     response["reused"] = False
     response["content_hash"] = content_hash
     return response
+
+
+@app.post("/api/clips/prepare")
+async def prepare_clip(
+    request: Request,
+    filename: str = Query(default="media"),
+    original_source_path: str | None = Query(default=None),
+) -> dict[str, Any]:
+    """Store an uploaded file as a clip (dedup-aware) without starting any job.
+
+    Returns clip metadata including ``clip_id``.  Use this to obtain a
+    ``clip_id`` before calling a range-ASR endpoint when no prior job exists.
+    """
+    safe_name = _safe_filename(filename)
+    media_id = Path(safe_name).stem or "media"
+    job_id = f"prep-{uuid4().hex[:12]}"
+    staging_path = INCOMING_ROOT / f"{job_id}.bin"
+
+    size, content_hash = await _write_request_body(request, staging_path)
+    if size == 0:
+        staging_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="empty_upload")
+
+    existing_clip = _find_clip_by_hash(content_hash)
+    if existing_clip is not None:
+        staging_path.unlink(missing_ok=True)
+        return _public_clip(existing_clip)
+
+    clip_id = _allocate_clip_id(media_id)
+    clip_dir = CLIPS_ROOT / clip_id
+    source_dir = clip_dir / SOURCE_DIR
+    source_dir.mkdir(parents=True, exist_ok=True)
+    input_path = source_dir / safe_name
+    shutil.move(str(staging_path), str(input_path))
+
+    _ensure_clip_record(
+        clip_id=clip_id,
+        filename=safe_name,
+        media_id=media_id,
+        size_bytes=size,
+        source_path=input_path,
+        content_hash=content_hash,
+    )
+    record = _load_clip_record(clip_id) or {}
+    if original_source_path:
+        record["original_source_path"] = original_source_path
+    return _public_clip(record)
+
+
+@app.post("/api/pipeline/run")
+async def create_pipeline_job(
+    request: Request,
+    filename: str = Query(default="media"),
+    profile: str = Query(default="film_dizi"),
+) -> dict[str, Any]:
+    """Store uploaded media and start a full MITAS pipeline job in the background.
+
+    Only künye-producing profiles (film_dizi, documentary, music_entertainment, studio)
+    should be routed here. The ASR-only path is untouched.
+    """
+    job_id = f"pipe-{uuid4().hex[:12]}"
+    safe_name = _safe_filename(filename)
+    job_incoming_dir = INCOMING_ROOT / job_id
+    job_incoming_dir.mkdir(parents=True, exist_ok=True)
+    # Write to a staging path then rename to keep the real filename
+    staging_path = job_incoming_dir / f"{job_id}.bin"
+
+    size, _content_hash = await _write_request_body(request, staging_path)
+    if size == 0:
+        staging_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="empty_upload")
+
+    input_path = job_incoming_dir / safe_name
+    if input_path.exists():
+        input_path.unlink()
+    shutil.move(str(staging_path), str(input_path))
+
+    pipeline_profile = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")
+    job_log_path = job_incoming_dir / "job_log.jsonl"
+    job: dict[str, Any] = {
+        "job_id": job_id,
+        "module": "pipeline",
+        "status": "queued",
+        "clip_id": None,
+        "analysis_profile": profile,
+        "pipeline_profile": pipeline_profile,
+        "filename": safe_name,
+        "input_path": str(input_path),
+        "size_bytes": size,
+        "created_at": _now_iso(),
+        "started_at": None,
+        "completed_at": None,
+        "message": "Pipeline işi kuyruğa alındı.",
+        "error": None,
+        "progress_percent": 0,
+        "progress_label": "Kuyrukta",
+        "log_path": str(job_log_path),
+        # Pipeline-specific output fields (populated by worker)
+        "karar": None,
+        "neden": None,
+        "hub": None,
+        "teslim": None,
+        "pdf_path": None,
+        # output_dir placeholder so _public_job can safely skip artifact reads
+        "output_dir": str(job_incoming_dir),
+        "job_dir": str(job_incoming_dir),
+    }
+    _save_job(job)
+    _append_job_log(job_id, "Medya yüklendi.", stage="upload", progress_percent=3)
+    _append_job_log(job_id, "Pipeline işi kuyruğa alındı.", stage="queued", progress_percent=5)
+    system_events.log_event(
+        "media_imported",
+        summary=f"{safe_name} pipeline için içe aktarıldı ({_format_size(size)}).",
+        module="pipeline",
+        filename=safe_name,
+        job_id=job_id,
+        detail={
+            "size_bytes": size,
+            "analysis_profile": profile,
+            "pipeline_profile": pipeline_profile,
+        },
+    )
+    _pipeline_executor.submit(_run_pipeline_job, job_id)
+    response = _public_job(_load_job(job_id) or job)
+    response["reused"] = False
+    return response
+
+
+def _run_pipeline_job(job_id: str) -> None:
+    job = _load_job(job_id)
+    if job is None:
+        return
+
+    filename = str(job.get("filename") or "")
+    _append_job_log(job_id, "Pipeline worker başladı.", stage="worker", progress_percent=8)
+    _update_job(
+        job_id,
+        status="running",
+        started_at=_now_iso(),
+        message="MITAS pipeline çalışıyor.",
+        progress_percent=10,
+        progress_label="Pipeline çalışıyor",
+    )
+    try:
+        cmd = [
+            sys.executable,
+            str(MITAS_PIPELINE),
+            "--video", job["input_path"],
+            "--profile", job["pipeline_profile"],
+        ]
+        completed = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(PROJECT_ROOT),
+            timeout=14400,
+            check=False,
+        )
+        # Parse the last stdout line that starts with '{'
+        result: dict[str, Any] | None = None
+        for line in reversed(completed.stdout.splitlines()):
+            line = line.strip()
+            if line.startswith("{"):
+                try:
+                    result = json.loads(line)
+                except json.JSONDecodeError:
+                    pass
+                else:
+                    break
+
+        if completed.returncode != 0 or result is None:
+            tail = (completed.stderr or completed.stdout or "pipeline_failed")[-800:]
+            raise RuntimeError(tail)
+
+        hub = result.get("hub")
+        clip_id = Path(hub).name if hub else None
+        karar = result.get("karar")
+        neden = result.get("neden")
+
+        status: JobState
+        if karar == "Hazır":
+            status = "done"
+        elif karar == "Kontrol":
+            status = "partial"
+        else:
+            status = "done"
+
+        # Read _DURUM.json for pdf and teslim paths
+        pdf_path: str | None = None
+        teslim: str | None = result.get("teslim")
+        if hub:
+            durum = _read_json(Path(hub) / "_DURUM.json")
+            if isinstance(durum, dict):
+                pdf_path = str(durum.get("pdf") or "") or None
+                teslim = str(durum.get("teslim") or teslim or "") or teslim
+
+        _update_job(
+            job_id,
+            status=status,
+            completed_at=_now_iso(),
+            clip_id=clip_id,
+            message=f"Pipeline tamamlandı: {karar}." if karar else "Pipeline tamamlandı.",
+            progress_percent=100,
+            progress_label="Tamamlandı" if status == "done" else "Kontrol gerekli",
+            karar=karar,
+            neden=neden,
+            hub=hub,
+            teslim=teslim,
+            pdf_path=pdf_path,
+        )
+        _append_job_log(
+            job_id,
+            f"Pipeline tamamlandı: {karar}." if karar else "Pipeline tamamlandı.",
+            stage=status,
+            progress_percent=100,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _update_job(
+            job_id,
+            status="failed",
+            completed_at=_now_iso(),
+            message="Pipeline başarısız oldu.",
+            error=str(exc),
+            progress_percent=100,
+            progress_label="Hata",
+        )
+        _append_job_log(
+            job_id,
+            f"Pipeline başarısız oldu: {exc}",
+            stage="failed",
+            level="error",
+            progress_percent=100,
+        )
+        system_events.log_event(
+            "pipeline_failed",
+            summary=f"{filename or job_id} için pipeline başarısız oldu.",
+            level="error",
+            module="pipeline",
+            filename=filename or None,
+            job_id=job_id,
+            error=str(exc),
+        )
 
 
 def _build_reused_response(existing_clip: dict[str, Any], *, content_hash: str) -> dict[str, Any]:

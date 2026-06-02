@@ -87,15 +87,10 @@ export function Header({
   const isAsrBusy = isStartingAsr || isLiveSttBusy || asrJob?.status === 'queued' || asrJob?.status === 'running';
   const progressPercent = Math.max(0, Math.min(100, Math.round(asrJob?.progress_percent ?? (isStartingAsr ? 3 : 0))));
   const elapsedSeconds = asrJob?.elapsed_seconds ?? 0;
-  const isSttSelected = analysisProfile === 'stt';
+  const isSttSelected = true;
   const isMediaReadyForAsr = Boolean(selectedFileName && !asrJob && !isStartingAsr);
   const hasDeletableGeneratedData = Object.values(generatedDataAvailability).some(Boolean);
   const selectedProfileLabel = analysisProfileLabel(analysisProfile);
-  const mediaReadyText = selectedFileName
-    ? isSttSelected
-      ? `${selectedFileName} STT için hazır`
-      : `${selectedFileName} yüklendi - STT için profil değiştir`
-    : null;
   const statusText = isStartingAsr
     ? 'STT başlatılıyor'
     : isLiveSttBusy
@@ -122,7 +117,7 @@ export function Header({
       ? 'STT işi başlatılıyor.'
       : isLiveSttBusy
         ? 'Canlı STT Preview player sesini dinliyor.'
-      : asrJob?.message || (mediaReadyText ?? 'Medya yükle; konuşmadan metne işlemi STT seçilince başlar.');
+      : asrJob?.message || (selectedFileName ? '' : 'Medya yükle; konuşmadan metne işlemi STT seçilince başlar.');
 
   const handleExport = () => {
     if (!asrJob || !asrJob.segments.length) return;
@@ -205,18 +200,14 @@ export function Header({
           <div className="flex min-w-0 flex-col">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold text-foreground-strong">
-                {asrJob?.filename || selectedFileName || 'Gerçek medya yok'}
+                {asrJob?.filename || selectedFileName || ''}
               </span>
-              <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'partial' ? 'warning' : asrJob?.status === 'done' ? 'success' : isSttSelected ? 'outline' : 'warning'}>
-                {statusText}
-              </Badge>
+              {statusText !== 'Medya hazır' && statusText !== 'Medya bekleniyor' && (
+                <Badge variant={asrJob?.status === 'failed' ? 'danger' : asrJob?.status === 'partial' ? 'warning' : asrJob?.status === 'done' ? 'success' : isSttSelected ? 'outline' : 'warning'}>
+                  {statusText}
+                </Badge>
+              )}
             </div>
-            {isMediaReadyForAsr && mediaReadyText && (
-              <div className="mt-1 inline-flex items-center gap-2 rounded-sm border border-info-border bg-info-subtle px-2 py-1 text-[11px] font-semibold text-info">
-                <span className="h-1.5 w-1.5 rounded-full bg-info-strong"></span>
-                <span>{mediaReadyText}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -368,10 +359,10 @@ export function Header({
             className="gap-2 bg-info-strong hover:bg-info text-white border-transparent"
             disabled={!selectedFileName || !isSttSelected || isAsrBusy}
             onClick={onStartAsr}
-            title={isLiveSttBusy ? 'Canlı STT Preview çalışırken batch STT başlatılmaz' : isSttSelected ? 'STT işlemini başlat' : 'Konuşmadan metne için STT profilini seç'}
+            title={isLiveSttBusy ? 'Canlı STT Preview çalışırken başlatılmaz' : 'İşlemi başlat'}
           >
             <Play className="h-3.5 w-3.5" />
-            {isStartingAsr ? 'Başlatılıyor' : asrJob ? 'STT Tekrar' : 'STT Başlat'}
+            {isStartingAsr ? 'Başlatılıyor' : asrJob ? 'Tekrar Başlat' : 'Başlat'}
           </Button>
         </div>
       </div>

@@ -297,6 +297,9 @@ export interface SeekRequest {
 }
 
 export type AnalysisProfile = 'film_dizi' | 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
+const LEAN_PROFILES: readonly AnalysisProfile[] = ['film_dizi'];
+function wordAlignmentMode(profile: AnalysisProfile): string { return LEAN_PROFILES.includes(profile) ? 'off' : 'whisperx'; }
+function diarizeMode(profile: AnalysisProfile): string { return LEAN_PROFILES.includes(profile) ? 'off' : 'auto'; }
 export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel' | 'spor';
 
 export const OCR_ANALYSIS_PROFILES: readonly AnalysisProfile[] = ['film_dizi', 'documentary', 'music_entertainment', 'studio'];
@@ -350,9 +353,9 @@ export async function startAsrJob(file: File, analysisProfile: AnalysisProfile =
   const params = new URLSearchParams({
     filename: file.name,
     content_profile: contentProfileForAnalysisProfile(analysisProfile),
-    diarize: 'auto',
+    diarize: diarizeMode(analysisProfile),
     channel_mode: 'auto',
-    word_alignment_mode: 'whisperx',
+    word_alignment_mode: wordAlignmentMode(analysisProfile),
   });
   params.set('ocr', profileRunsOcr(analysisProfile) ? 'auto' : 'off');
   if (options.force) {
@@ -377,12 +380,44 @@ export async function startAsrJob(file: File, analysisProfile: AnalysisProfile =
   return response.json();
 }
 
+export async function prepareClip(file: File): Promise<{ clip_id: string }> {
+  const params = new URLSearchParams({ filename: file.name });
+  const sourcePath = localFileSourcePath(file);
+  if (sourcePath) params.set('original_source_path', sourcePath);
+  const response = await fetch(`/api/clips/prepare?${params.toString()}`, {
+    method: 'POST',
+    headers: { 'content-type': file.type || 'application/octet-stream' },
+    body: file,
+  });
+  if (!response.ok) throw new Error(await readError(response));
+  return response.json();
+}
+
+export async function startPipelineJob(file: File, analysisProfile: AnalysisProfile = 'film_dizi', options: { signal?: AbortSignal } = {}): Promise<AsrJob> {
+  const params = new URLSearchParams({
+    filename: file.name,
+    profile: analysisProfile,
+  });
+  const response = await fetch(`/api/pipeline/run?${params.toString()}`, {
+    method: 'POST',
+    headers: {
+      'content-type': file.type || 'application/octet-stream',
+    },
+    signal: options.signal,
+    body: file,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return response.json();
+}
+
 export async function reprocessClipAsr(clipId: string, analysisProfile: AnalysisProfile = 'stt'): Promise<AsrJob> {
   const params = new URLSearchParams({
     content_profile: contentProfileForAnalysisProfile(analysisProfile),
-    diarize: 'auto',
+    diarize: diarizeMode(analysisProfile),
     channel_mode: 'auto',
-    word_alignment_mode: 'whisperx',
+    word_alignment_mode: wordAlignmentMode(analysisProfile),
   });
   const response = await fetch(`/api/clips/${encodeURIComponent(clipId)}/modules/asr/reprocess?${params.toString()}`, {
     method: 'POST',
@@ -402,9 +437,9 @@ export async function processClipAsrRange(
     start_seconds: String(range.start),
     end_seconds: String(range.end),
     content_profile: contentProfileForAnalysisProfile(analysisProfile),
-    diarize: 'auto',
+    diarize: diarizeMode(analysisProfile),
     channel_mode: 'auto',
-    word_alignment_mode: 'whisperx',
+    word_alignment_mode: wordAlignmentMode(analysisProfile),
   });
   const response = await fetch(`/api/clips/${encodeURIComponent(clipId)}/modules/asr/range?${params.toString()}`, {
     method: 'POST',

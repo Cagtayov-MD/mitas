@@ -589,7 +589,7 @@ export function Timeline({
               }}
             >
               <FileText className="h-3 w-3" />
-              {isStartingAsrRange ? 'STT Başlatılıyor' : 'Bu Aralıkta STT Başlat'}
+              {isStartingAsrRange ? 'Başlatılıyor' : 'Bu Aralıkta Başlat'}
             </button>
           )}
           {(inPoint !== null || outPoint !== null) && (

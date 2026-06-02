@@ -32,10 +32,13 @@ import {
   deleteClipGeneratedData,
   isAsrJobFinished,
   localFileSourcePath,
+  prepareClip,
   processClipAsrRange,
+  profileRunsOcr,
   reprocessClipAsr,
   shouldOfferTurkishTranslation,
   startAsrJob,
+  startPipelineJob,
   translateAsrSegment,
   translateAsrSegments,
   ANALYSIS_PROFILE_OPTIONS,
@@ -280,7 +283,10 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     setSegmentTranslations({});
     setSelectedSegmentIndex(null);
     try {
-      const job = await startAsrJob(file, analysisProfile);
+      // film/dizi + OCR'lı profiller → TAM pipeline (OCR künye + ASR + PDF); stt/haber → ASR-only
+      const job = profileRunsOcr(analysisProfile)
+        ? await startPipelineJob(file, analysisProfile)
+        : await startAsrJob(file, analysisProfile);
       setAsrJob(job);
       setSelectedClipId(job.clip_id ?? null);
       return job;
@@ -380,12 +386,8 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
       return;
     }
 
-    if (analysisProfile !== 'stt') {
-      setUploadError('Konuşmadan metne işlemi için önce STT profilini seç.');
-      return;
-    }
     if (isLiveSttBusy) {
-      setUploadError('Canlı STT Preview çalışırken STT Başlat kapalı.');
+      setUploadError('Canlı STT Preview çalışırken Başlat kapalı.');
       return;
     }
 
@@ -409,12 +411,8 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
       setUploadError('Geçerli bir in/out aralığı seç.');
       return;
     }
-    if (analysisProfile !== 'stt') {
-      setUploadError('Konuşmadan metne işlemi için önce STT profilini seç.');
-      return;
-    }
     if (isLiveSttBusy) {
-      setUploadError('Canlı STT Preview çalışırken STT Başlat kapalı.');
+      setUploadError('Canlı STT Preview çalışırken Başlat kapalı.');
       return;
     }
 
@@ -435,28 +433,31 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
         setRangeAsrState({ start, end, jobId: result.job.job_id, starting: false });
         return;
       }
-      if (selectedClipId) {
-        const job = await processClipAsrRange(selectedClipId, { start, end }, analysisProfile);
+      const clipId = selectedClipId ?? (selectedFile ? (await prepareClip(selectedFile)).clip_id : null);
+      if (clipId) {
+        if (!selectedClipId) setSelectedClipId(clipId);
+        const job = await processClipAsrRange(clipId, { start, end }, analysisProfile);
         setRangeAsrState({ start, end, jobId: job.job_id, starting: false });
         setAsrJob(job);
-        setSelectedFile(null);
-        setSelectedClipId(job.clip_id ?? selectedClipId);
-        setSelectedTedialItem(null);
-        setSelectedMediaName(job.filename);
-        setSelectedMediaSourcePath(job.original_source_path || job.input_path || job.summary?.input_path || null);
-        setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
-        setSeekRequest(null);
-        setMediaType(inferMediaType(job.filename));
-        setMediaDurationHint(Math.max(0, end - start));
-        setMediaPreviewUrl((currentUrl) => {
-          if (currentUrl?.startsWith('blob:')) {
-            URL.revokeObjectURL(currentUrl);
-          }
-          return `/api/jobs/${encodeURIComponent(job.job_id)}/media`;
-        });
+        setSelectedClipId(job.clip_id ?? clipId);
+        if (!selectedFile) {
+          setSelectedTedialItem(null);
+          setSelectedMediaName(job.filename);
+          setSelectedMediaSourcePath(job.original_source_path || job.input_path || job.summary?.input_path || null);
+          setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
+          setSeekRequest(null);
+          setMediaType(inferMediaType(job.filename));
+          setMediaDurationHint(Math.max(0, end - start));
+          setMediaPreviewUrl((currentUrl) => {
+            if (currentUrl?.startsWith('blob:')) {
+              URL.revokeObjectURL(currentUrl);
+            }
+            return `/api/jobs/${encodeURIComponent(job.job_id)}/media`;
+          });
+        }
         return;
       }
-      setUploadError('Aralık STT için önce Tedial klibi veya kayıtlı klip aç.');
+      setUploadError('Aralık STT için medya yükle veya Tedial klibi seç.');
       setRangeAsrState(null);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Aralık STT başlatma hatası');
@@ -469,6 +470,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     applyTedialImportResult,
     isLiveSttBusy,
     selectedClipId,
+    selectedFile,
     selectedTedialAudioTrack,
     selectedTedialChannelMode,
     selectedTedialItem,

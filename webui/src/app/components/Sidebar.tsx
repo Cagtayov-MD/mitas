@@ -341,8 +341,8 @@ export function Sidebar({
               ) : !asrJob && (
                 <div className="p-4 text-xs text-foreground-muted leading-relaxed">
                   {hasMedia
-                    ? 'Medya hazır. STT Başlat düğmesine basınca transcript burada görünecek.'
-                    : 'Mock transcript kapalı. Medya yükle, sonra STT Başlat ile model çalıştır.'}
+                    ? 'Medya hazır. Başlat düğmesine basınca transcript burada görünecek.'
+                    : 'Mock transcript kapalı. Medya yükle, sonra Başlat ile model çalıştır.'}
                 </div>
               )}
               {!isSttPreviewEnabled && (asrJob?.status === 'queued' || asrJob?.status === 'running') ? (
