@@ -383,6 +383,7 @@ async def create_asr_job(
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
     force: Literal["none", "full"] = Query(default="none"),
     original_source_path: str | None = Query(default=None),
+    ocr: Literal["auto", "off"] = Query(default="off"),
 ) -> dict[str, Any]:
     """Store uploaded media and start an ASR job in the background.
 
@@ -460,6 +461,7 @@ async def create_asr_job(
         "diarize": diarize,
         "channel_mode": channel_mode,
         "word_alignment_mode": word_alignment_mode,
+        "ocr_intent": ocr,
         "size_bytes": size,
         "reprocessed": reprocessed,
         "previous_job_id": previous_job_id,

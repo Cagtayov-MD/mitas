@@ -298,6 +298,9 @@ export interface SeekRequest {
 
 export type AnalysisProfile = 'film' | 'dizi' | 'documentary' | 'music_entertainment' | 'sports' | 'studio' | 'news' | 'stt';
 export type AsrContentProfile = 'bulten_haber' | 'studio_panel' | 'muzik_programi' | 'film' | 'belgesel' | 'spor';
+
+export const OCR_ANALYSIS_PROFILES: readonly AnalysisProfile[] = ['film', 'dizi', 'documentary', 'music_entertainment', 'studio'];
+export function profileRunsOcr(profile: AnalysisProfile): boolean { return OCR_ANALYSIS_PROFILES.includes(profile); }
 export type ClipGeneratedDataKind = 'asr' | 'ocr' | 'face' | 'tag';
 
 export interface AnalysisProfileOption {
@@ -353,6 +356,7 @@ export async function startAsrJob(file: File, analysisProfile: AnalysisProfile =
     channel_mode: 'auto',
     word_alignment_mode: 'whisperx',
   });
+  params.set('ocr', profileRunsOcr(analysisProfile) ? 'auto' : 'off');
   if (options.force) {
     params.set('force', 'full');
   }
