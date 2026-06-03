@@ -130,6 +130,14 @@ _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
 _media_remux_lock = threading.Lock()
 
+# ---------------------------------------------------------------------------
+# Flow-queue worker — global state
+# ---------------------------------------------------------------------------
+_flow_worker_thread: threading.Thread | None = None
+_flow_worker_stop = threading.Event()
+_flow_worker_lock = threading.Lock()
+_flow_worker_current: dict | None = None
+
 import logging as _logging
 _server_logger = _logging.getLogger("mitas.asr.server")
 
@@ -218,6 +226,226 @@ def get_flow_queue_upload_media(item_id: str) -> FileResponse:
         media_type=mimetypes.guess_type(media_path.name)[0] or "application/octet-stream",
         filename=media_path.name,
     )
+
+
+# ---------------------------------------------------------------------------
+# Flow-queue worker — helper functions
+# ---------------------------------------------------------------------------
+
+def _flow_clip_id(video_path: str) -> str:
+    """Derive clip_id from a video path — identical logic to mitas_pipeline sanitize."""
+    stem = Path(video_path).stem
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("._-")
+
+
+def _flow_update_item(item_id: str, **changes: Any) -> None:
+    """Atomically update a single item inside queue.json.
+
+    Other items are NEVER overwritten — only the matching id is patched.
+    """
+    with _flow_worker_lock:
+        state = _read_json(FLOW_QUEUE_STATE_PATH)
+        if not isinstance(state, dict):
+            state = {"id": "main", "updatedAt": _now_iso(), "bulkProfile": "film", "items": []}
+        items = state.get("items")
+        if not isinstance(items, list):
+            items = []
+            state["items"] = items
+        for item in items:
+            if item.get("id") == item_id:
+                item.update(changes)
+                break
+        state["updatedAt"] = _now_iso()
+        _write_json(FLOW_QUEUE_STATE_PATH, state)
+
+
+def _flow_queue_worker_loop() -> None:
+    """Process waiting items in queue.json one at a time (GPU-serial)."""
+    global _flow_worker_current
+    try:
+        while not _flow_worker_stop.is_set():
+            try:
+                state = _read_json(FLOW_QUEUE_STATE_PATH)
+                if not isinstance(state, dict) or "items" not in state:
+                    break  # queue gone / corrupt — stop worker
+
+                target: dict | None = None
+                for it in state.get("items", []):
+                    if it.get("status") == "waiting":
+                        target = it
+                        break
+
+                if target is None:
+                    break  # kuyruk bitti
+
+                video_path: str = target.get("storedMediaPath") or target.get("sourcePath") or ""
+                if not video_path or not Path(video_path).exists():
+                    _flow_update_item(target["id"], status="failed", message="Video bulunamadı")
+                    system_events.log_event(
+                        "flow_item_failed",
+                        summary=f"Flow item {target.get('name', target['id'])}: video bulunamadı.",
+                        level="error",
+                        module="flow",
+                        detail={"item_id": target["id"], "video_path": video_path},
+                    )
+                    continue
+
+                # Reused-skip: already processed in Database
+                clip_id = _flow_clip_id(video_path)
+                if (CLIPS_ROOT / clip_id / "_DURUM.json").exists():
+                    _flow_update_item(
+                        target["id"],
+                        status="done",
+                        message="Zaten işlenmiş (Database'de), atlandı.",
+                    )
+                    system_events.log_event(
+                        "flow_item_skipped",
+                        summary=f"Flow item {target.get('name', target['id'])} zaten Database'de — atlandı.",
+                        module="flow",
+                        detail={"item_id": target["id"], "clip_id": clip_id},
+                    )
+                    continue
+
+                _flow_worker_current = target
+                _flow_update_item(target["id"], status="running", message="İşleniyor")
+
+                profile: str = target.get("profile") or "film"
+                pipeline_profile: str = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")
+
+                try:
+                    cmd = [
+                        sys.executable,
+                        str(MITAS_PIPELINE),
+                        "--video", video_path,
+                        "--profile", pipeline_profile,
+                    ]
+                    completed = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        cwd=str(PROJECT_ROOT),
+                        timeout=14400,
+                        check=False,
+                    )
+
+                    # Parse last JSON line from stdout
+                    result: dict[str, Any] | None = None
+                    for line in reversed(completed.stdout.splitlines()):
+                        line = line.strip()
+                        if line.startswith("{"):
+                            try:
+                                result = json.loads(line)
+                            except json.JSONDecodeError:
+                                pass
+                            else:
+                                break
+
+                    if result is None:
+                        tail = (completed.stderr or completed.stdout or "pipeline_failed")[-600:]
+                        raise RuntimeError(tail)
+
+                    karar = result.get("karar")
+                    neden = result.get("neden") or []
+                    if isinstance(neden, list):
+                        neden_str = ", ".join(neden)
+                    else:
+                        neden_str = str(neden)
+
+                    if karar == "Hazır":
+                        item_status = "done"
+                    elif karar == "Kontrol":
+                        item_status = "partial"
+                    else:
+                        item_status = "done"
+
+                    message = str(karar or "Tamamlandı")
+                    if neden_str:
+                        message = f"{message} — {neden_str}"
+
+                    _flow_update_item(target["id"], status=item_status, message=message)
+                    system_events.log_event(
+                        "flow_item_done",
+                        summary=f"Flow item {target.get('name', target['id'])}: {karar}.",
+                        module="flow",
+                        detail={"item_id": target["id"], "clip_id": clip_id, "karar": karar, "neden": neden},
+                    )
+
+                except Exception as exc:  # noqa: BLE001
+                    _flow_update_item(
+                        target["id"],
+                        status="failed",
+                        message=str(exc)[:300],
+                    )
+                    system_events.log_event(
+                        "flow_item_failed",
+                        summary=f"Flow item {target.get('name', target['id'])} başarısız oldu.",
+                        level="error",
+                        module="flow",
+                        detail={"item_id": target["id"], "error": str(exc)[:300]},
+                    )
+
+            except Exception as outer_exc:  # noqa: BLE001 — worker must never die
+                system_events.log_event(
+                    "flow_worker_error",
+                    summary="Flow worker beklenmedik hata — devam ediyor.",
+                    level="error",
+                    module="flow",
+                    detail={"error": str(outer_exc)[:300]},
+                )
+    finally:
+        _flow_worker_current = None
+
+
+# ---------------------------------------------------------------------------
+# Flow-queue worker — endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/flow-queue/run")
+def post_flow_queue_run() -> dict[str, Any]:
+    """Start the server-side flow-queue worker (no-op if already running)."""
+    global _flow_worker_thread
+    with _flow_worker_lock:
+        if _flow_worker_thread is not None and _flow_worker_thread.is_alive():
+            return {"status": "already_running"}
+        _flow_worker_stop.clear()
+        _flow_worker_thread = threading.Thread(
+            target=_flow_queue_worker_loop,
+            daemon=True,
+            name="flow-queue-worker",
+        )
+        _flow_worker_thread.start()
+    system_events.log_event(
+        "flow_worker_started",
+        summary="Flow queue worker başlatıldı.",
+        module="flow",
+    )
+    return {"status": "started"}
+
+
+@app.post("/api/flow-queue/stop")
+def post_flow_queue_stop() -> dict[str, Any]:
+    """Signal the worker to stop after the current item finishes."""
+    _flow_worker_stop.set()
+    system_events.log_event(
+        "flow_worker_stop_requested",
+        summary="Flow queue worker durduruluyor (mevcut klip bittikten sonra).",
+        module="flow",
+    )
+    return {"status": "stopping"}
+
+
+@app.get("/api/flow-queue/worker")
+def get_flow_queue_worker() -> dict[str, Any]:
+    """Return the current worker state."""
+    running = _flow_worker_thread is not None and _flow_worker_thread.is_alive()
+    current_name = (_flow_worker_current or {}).get("name")
+    return {
+        "running": running,
+        "current": current_name,
+        "stop_requested": _flow_worker_stop.is_set(),
+    }
 
 
 # ---------------------------------------------------------------------------
