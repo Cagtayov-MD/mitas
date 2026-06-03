@@ -153,28 +153,60 @@ def _is_tr_name(n: str) -> bool:
     return toks[0] in _TR_GIVEN or toks[0] in _TR_SUR
 
 
+_MITAS_DB = r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb"
+
+
+_MITAS_TR_QID = "Q43"   # Wikidata: Turkiye (mitas_people_index = DUNYA kisi DB'si, ulkeye gore ayir)
+
+
+def _mitas_people_set(names):
+    """Saf-ASCII isimleri mitas_people_index (Wikidata DUNYA kisi DB'si) icinde TOPLU ara,
+    countries='Q43' (Turkiye) olanlari Turk say. Doner (db_calisti, turk_isimler).
+    Nuri Bilge Ceylan/Murat Cemcir -> Q43 (Turk); Stefan Kitanov -> Q219 (Bulgar),
+    Fabian Gasmia -> ulke yok -> yabanci. DB/duckdb yoksa (False, set()) -> CSV fallback."""
+    if not names:
+        return True, set()
+    try:
+        import duckdb
+        con = duckdb.connect(_MITAS_DB, read_only=True)
+        keys = [ascii_fold(n).upper() for n in names]
+        ph = ",".join(["?"] * len(keys))
+        sql = (f"SELECT UPPER(strip_accents(name)) nm, countries FROM main.mitas_people_index "
+               f"WHERE UPPER(strip_accents(name)) IN ({ph}) "
+               f"OR UPPER(strip_accents(ascii_name)) IN ({ph})")
+        rows = con.execute(sql, keys + keys).fetchall()
+        con.close()
+        tr_keys = {nm for nm, c in rows if nm and c and _MITAS_TR_QID in str(c).split("|")}
+        return True, {n for n in names if ascii_fold(n).upper() in tr_keys}
+    except Exception:  # noqa: BLE001 - DB/duckdb yoksa CSV fallback
+        return False, set()
+
+
 def upper_names(names, *, use_qwen: bool = False):
     """Isimleri BUYUK harfe cevir (kunye kurali, Cagatay):
       • Turkce isim  -> Turkce upper:  irfan->İRFAN, gökhan->GÖKHAN (i->İ; ç ğ ı ö ş ü KORUNUR)
       • Yabanci isim -> ASCII upper:   ivan ->IVAN, fabian->FABIAN (i->I, aksan duser)
-    Karar sirasi (qwen YOK — guvenilmez, yabanci isimi Turk sanabiliyor):
+    Karar sirasi (qwen YOK):
       1) Turkce-ozel karakter (ç ğ ı İ ö ş ü) iceren -> KESIN Turk, KORU.
       2) Yabanci aksan (é,ñ,ø...) -> kesin yabanci, fold.
-      3) Saf-ASCII -> Turkce-ad DB'de mi? Evet=Turk (i->İ), Hayir=yabanci (i->I, guvenli).
-    DB yoksa saf-ASCII guvenli tarafta ASCII upper (Turkce karakterli isimler yine korunur)."""
+      3) Saf-ASCII -> mitas_people_index (Turk-kisi DB): VAR=Turk (i->İ), YOK=yabanci (i->I).
+         (Nuri Bilge Ceylan VAR, Fabian Gasmia YOK.) DB erissizse given+sur CSV fallback."""
     if not names:
         return names
     tr_all = _TR_STRONG | _TR_AMBIG       # tum Turkce-ozel karakter (ışğİı + çöüÇÖÜ)
+    pure = [n for n in names
+            if not any(c in tr_all for c in n)
+            and not any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n)]
+    db_ok, mitas_tr = _mitas_people_set(pure)
     out = []
     for n in names:
         if any(c in tr_all for c in n):
             out.append(tr_upper(n))                       # Turkce karakter VAR -> koru
         elif any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n):
             out.append(ascii_fold(n).upper())             # yabanci aksan -> fold
-        elif _is_tr_name(n):
-            out.append(tr_upper(n))                        # saf-ASCII, DB'de Turk -> i->İ
-        else:
-            out.append(ascii_fold(n).upper())             # saf-ASCII, DB'de yok -> yabanci i->I
+        else:                                             # saf-ASCII -> koken
+            is_tr = (n in mitas_tr) if db_ok else _is_tr_name(n)
+            out.append(tr_upper(n) if is_tr else ascii_fold(n).upper())
     return out
 
 
