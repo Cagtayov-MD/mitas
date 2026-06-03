@@ -86,6 +86,10 @@ outputs/*manifest*.json
 # Scratch / debug scripts (underscore-prefixed) — pipeline _pipe_*.py HARIC (izlenir)
 scripts/_*
 !scripts/_pipe_*.py
+# pipeline RUNTIME bagimliligi (_pipe_* disinda ama production kodu kullaniyor) — izlenir
+!scripts/_channel_lang.py
+!scripts/_subtitle_detect.py
+!scripts/_kunye_classify.py
 
 # Root-level scratch & debug artifacts (fix/hile/probe/render/test dumps)
 /_*
@@ -105,6 +109,17 @@ OCR-worktree/*
 !OCR-worktree/pdf-mitas/
 OCR-worktree/pdf-mitas/*
 !OCR-worktree/pdf-mitas/*.py
+# _pipe_ocr.py'nin RUNTIME yukledigi pipeline100 OCR zinciri (8 dosya) — izlenir; geri kalan py/ deneysel ignored
+!OCR-worktree/py/
+OCR-worktree/py/*
+!OCR-worktree/py/20260601_pipeline100.py
+!OCR-worktree/py/20260601_clip_probe.py
+!OCR-worktree/py/20260601_clean.py
+!OCR-worktree/py/20260601_slitscan2.py
+!OCR-worktree/py/20260601_stitch.py
+!OCR-worktree/py/20260531_2330_read_3way.py
+!OCR-worktree/py/20260531_credit_read_v1.py
+!OCR-worktree/py/20260530_1744_full_pipeline.py
 mutfak/OCR_*_GORSELLER_*/
 
 # OS/editor noise
