@@ -82,8 +82,9 @@ outputs/testklipler_probe*/
 outputs/translate_dialect_smoke*/
 outputs/*manifest*.json
 
-# Scratch / debug scripts (underscore-prefixed)
+# Scratch / debug scripts (underscore-prefixed) — pipeline _pipe_*.py HARIC (izlenir)
 scripts/_*
+!scripts/_pipe_*.py
 
 # Local data, assets & exploration dumps (not tracked source)
 /Database/
@@ -92,7 +93,11 @@ scripts/_*
 /backups/
 /_jenerik_analysis/
 /_probe*.txt
-OCR-worktree/
+# OCR-worktree deneysel mutfak ignored; AMA production pdf-mitas/*.py izlenir
+OCR-worktree/*
+!OCR-worktree/pdf-mitas/
+OCR-worktree/pdf-mitas/*
+!OCR-worktree/pdf-mitas/*.py
 mutfak/OCR_*_GORSELLER_*/
 
 # OS/editor noise
