@@ -109,17 +109,7 @@ OCR-worktree/*
 !OCR-worktree/pdf-mitas/
 OCR-worktree/pdf-mitas/*
 !OCR-worktree/pdf-mitas/*.py
-# _pipe_ocr.py'nin RUNTIME yukledigi pipeline100 OCR zinciri (8 dosya) — izlenir; geri kalan py/ deneysel ignored
-!OCR-worktree/py/
-OCR-worktree/py/*
-!OCR-worktree/py/20260601_pipeline100.py
-!OCR-worktree/py/20260601_clip_probe.py
-!OCR-worktree/py/20260601_clean.py
-!OCR-worktree/py/20260601_slitscan2.py
-!OCR-worktree/py/20260601_stitch.py
-!OCR-worktree/py/20260531_2330_read_3way.py
-!OCR-worktree/py/20260531_credit_read_v1.py
-!OCR-worktree/py/20260530_1744_full_pipeline.py
+# NOT: OCR-worktree/py/ pipeline100 zinciri eski commit'te zaten tracked; _pipe_ocr.py onu RUNTIME yukler.
 mutfak/OCR_*_GORSELLER_*/
 
 # OS/editor noise
