@@ -213,6 +213,10 @@ def main(argv=None) -> int:
     # (belirsiz ç/ö/ü isimleri Qwen'e sorulur — name_normalize)
     cast = nn.normalize_names(cast)
     crew = nn.normalize_crew(crew)
+    # kunye BUYUK harf: Turkce isim Turkce-upper (irfan->İRFAN, i->İ),
+    # yabanci ASCII-upper (ivan->IVAN, i->I); koken Qwen ile (saf-ASCII).
+    cast = nn.upper_names(cast)
+    crew = nn.upper_crew(crew)
     # afiş: güvenli IMDb eşleşmesi → out/afis.jpg.
     # yabancı film: orijinal ad (XML) birincil sorgu + kadro çapraz-kontrolü (TRT yılı güvenilmez).
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
