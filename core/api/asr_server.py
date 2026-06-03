@@ -2143,29 +2143,18 @@ def _generate_transcript_summary(job: dict[str, Any], transcript: str) -> dict[s
     return _summarize_locally(job, transcript)
 
 
-def _load_film_summary_prompt() -> str | None:
-    """Film/dizi ozet system prompt'unu dosyadan oku.
-
-    Once MITAS_FILM_OZET_PROMPT_PATH env'ine bakar; yoksa paket icindeki
-    core/api/prompts/ozet_film.txt kullanilir. Dosya okunamazsa None doner
-    (cagiran generic prompt'a duser)."""
-    override = os.environ.get("MITAS_FILM_OZET_PROMPT_PATH")
-    path = Path(override) if override else Path(__file__).resolve().parent / "prompts" / "ozet_film.txt"
-    try:
-        text = path.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
-    return text or None
-
-
 def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, str]]:
     """Build the chat messages list for the summary LLM call.
 
     Branches on ``job["content_profile"]``:
-    - ``"film"``: film/dizi olay-orgusu ozet prompt'u (prompts/ozet_film.txt);
-      dosya bulunamazsa generic dala duser.
-    - ``"spor"``: returns a sports-specific structured question set.
-    - Anything else / None: returns the generic summary prompt unchanged.
+    - ``"spor"``: futbol / diger-brans yapilandirilmis soru seti (transkriptte
+      VARSA doldur, yoksa atla; uydurma yok).
+    - Anything else / None (film, dizi, haber, ...): "alttaki metin ne anlatiyor"
+      generic ozeti (Onemli Konular + gecen isim/kurum).
+
+    NOT: Film/dizi olay-orgusu+SPOILER ozeti (ozet_film.txt) BURADA DEGIL; o
+    yalniz PDF kunyede uretilir (scripts/mitas_pipeline.py _generate_ozet).
+    WebUI log "icerik ozeti" film icin de generic "ne anlatiyor" verir.
 
     The ``transcript`` argument should already be the trimmed source text
     (i.e. the output of ``_summary_source_text()``).
@@ -2176,46 +2165,34 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
         f"Süre: {_format_summary_seconds(summary_block.get('audio_duration'))}\n\n"
     )
 
-    if job.get("content_profile") == "film":
-        film_prompt = _load_film_summary_prompt()
-        if film_prompt:
-            user_msg = (
-                f"{context_lines}"
-                f"TRANSKRİPT:\n{transcript}"
-            )
-            return [
-                {"role": "system", "content": film_prompt},
-                {"role": "user", "content": user_msg},
-            ]
-        # film_prompt yoksa asagidaki generic dala dusulur
-
     if job.get("content_profile") == "spor":
         system_msg = (
             "Sen yayın arşivi spor müsabakası transkriptlerini analiz edip yapılandırılmış, "
-            "doğru ve Türkçe özet çıkaran bir asistansın. Yalnızca transkriptte açıkça geçen "
-            "bilgileri yaz; tahmin veya halüsinasyon yapma. Düşünme/akıl yürütme metni veya "
-            "<think> bloğu üretme; doğrudan nihai Türkçe yapılandırılmış özeti ver."
+            "doğru ve Türkçe özet çıkaran bir asistansın. SADECE transkriptte AÇIKÇA geçen "
+            "bilgiyi yaz. Tahmin, hayal, uydurma KESİNLİKLE YOK (halüsinasyon sıfır). Bir "
+            "bilgi transkriptte yoksa o başlığı HİÇ YAZMA (boş geç). Düşünme/akıl yürütme "
+            "metni veya <think> bloğu üretme; doğrudan nihai Türkçe özeti ver."
         )
         user_msg = (
-            "Aşağıdaki spor müsabakası transkriptini analiz et.\n\n"
-            "1. Önce transkriptten sporu belirle (futbol mu, basketbol mu, diğer mi).\n\n"
-            "2. FUTBOL ise şu başlıklarla yaz:\n"
-            "   - \"Maç Bilgisi\": (a) hangi takımlar arasında, (b) hangi lig/kupa "
-            "(örn. Süper Lig, Bank Asya 1. Lig, PTT 1. Lig, Türkiye Kupası, hazırlık maçı), "
-            "(c) nerede oynanıyor (şehir/stat) ve kaçıncı hafta / hangi tur "
-            "(final, çeyrek final, 12. hafta, hazırlık vb.).\n"
-            "   - \"Maç Sonucu\": tam skor (kaç-kaç bittiği), golleri kim attı ve kim kaç gol attı, "
-            "kırmızı kart bilgileri, varsa sarı kart bilgileri; mümkünse dakikalarıyla.\n"
-            "   - \"Ek Bilgi (varsa, kısa)\": kadrolar / ilk 11, hakemler, şehir gibi transkriptte "
-            "geçen ufak bilgiler — abartmadan, kısa.\n\n"
-            "3. BASKETBOL veya DİĞER SPOR ise daha sabit ve kısa yaz:\n"
-            "   - \"Maç Bilgisi\": hangi takımlar arasında, hangi lig, hangi hafta/tur "
-            "(final / yarı final / çeyrek final).\n"
-            "   - \"Maç Sonucu\": skor (kim kazandı, kaç-kaç).\n"
-            "   - \"Ek Bilgi (varsa, kısa)\": ilk 5 / kadrolar, hakemler, şehir — "
-            "yalnızca transkriptte geçiyorsa, kısa.\n\n"
-            "4. Herhangi bir bilgi transkriptte yoksa o satıra \"transkriptte belirtilmemiş\" yaz. "
-            "Çıktı Türkçe ve başlıklı olsun.\n\n"
+            "Aşağıdaki spor müsabakası transkriptini analiz et. Önce sporu belirle "
+            "(futbol mu, başka branş mı).\n\n"
+            "FUTBOL ise, aşağıdakilerden transkriptte AÇIKÇA geçenleri başlıklı yaz "
+            "(geçmeyeni hiç yazma):\n"
+            "   - Karşılaşma: hangi takımlar arasında\n"
+            "   - Skor: maçın skoru\n"
+            "   - Yer: nerede oynanıyor (şehir/stat)\n"
+            "   - Lig: hangi ligde/kupada\n"
+            "   - Hakemler: maçın hakemleri\n"
+            "   - Kırmızı kart: kırmızı kart çıktı mı, çıktıysa kime\n"
+            "   - Goller: golleri kim attı\n\n"
+            "DİĞER BRANŞLAR ise, aşağıdakilerden transkriptte AÇIKÇA geçenleri yaz "
+            "(geçmeyeni hiç yazma):\n"
+            "   - Karşılaşma: hangi takımlar/sporcular arasında\n"
+            "   - Skor: maçın skoru\n"
+            "   - Yer: nerede oynanıyor\n"
+            "   - Lig: hangi ligde/turnuvada\n\n"
+            "KURAL: Yalnız transkriptte geçen bilgiyi yaz; geçmeyen başlığı atla. "
+            "Tahmin/hayal/uydurma YOK. Çıktı Türkçe ve başlıklı.\n\n"
             f"{context_lines}"
             f"TRANSKRİPT:\n{transcript}"
         )
