@@ -1978,6 +1978,53 @@ async def _write_request_body(request: Request, destination: Path) -> tuple[int,
     return written, hasher.hexdigest()
 
 
+def _parse_transcript_txt(path: Path) -> list[dict[str, Any]]:
+    """[HH:MM:SS] satırlı transcript.txt → {start,end,text} segmentleri (segments.json yoksa yedek)."""
+    segs: list[dict[str, Any]] = []
+    try:
+        for ln in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            m = re.match(r"\[(\d+):(\d+):(\d+)\]\s*(.*)", ln.strip())
+            if not m:
+                continue
+            h, mi, s, txt = m.groups()
+            start = float(int(h) * 3600 + int(mi) * 60 + int(s))
+            if segs:
+                segs[-1]["end"] = start
+            segs.append({"start": start, "end": start + 3.0, "text": txt.strip()})
+    except Exception:  # noqa: BLE001
+        return []
+    return segs
+
+
+def _load_pipeline_transcript(hub: Any) -> tuple[list[dict[str, Any]], str]:
+    """Pipeline klibinin en son ASR run'undan segment + transcript oku (webui timeline için).
+
+    Önce segments.json (lean ASR start/end/text), yoksa transcript.txt çözümlenir. Yoksa ([], "")."""
+    if not hub:
+        return [], ""
+    try:
+        runs = sorted((Path(hub) / "asr").glob("*/run"), key=lambda p: p.stat().st_mtime, reverse=True)
+    except Exception:  # noqa: BLE001
+        return [], ""
+    for run in runs:
+        segs: list[dict[str, Any]] = []
+        seg_file = run / "segments.json"
+        if seg_file.exists():
+            data = _read_json(seg_file)
+            if isinstance(data, list):
+                segs = data
+        if not segs and (run / "transcript.txt").exists():
+            segs = _parse_transcript_txt(run / "transcript.txt")
+        if segs:
+            plain = run / "transcript_plain.txt"
+            if plain.exists():
+                txt = plain.read_text(encoding="utf-8", errors="replace").strip()
+            else:
+                txt = "\n".join(str(s.get("text", "")).strip() for s in segs).strip()
+            return segs, txt
+    return [], ""
+
+
 def _public_job(job: dict[str, Any]) -> dict[str, Any]:
     payload = dict(job)
     summary_path = payload.get("summary_path") or str(Path(payload["output_dir"]) / "summary.json")
@@ -2000,6 +2047,11 @@ def _public_job(job: dict[str, Any]) -> dict[str, Any]:
         transcript = archive.get("transcript") or {}
         payload["transcript"] = transcript.get("clean") or transcript.get("verbatim") or ""
         payload["segments"] = archive.get("segments") or []
+    elif str(payload.get("module")) == "pipeline":
+        # pipeline job: lean ASR transcript/segments'i klip hub'ından al → webui timeline + transcript
+        p_segs, p_txt = _load_pipeline_transcript(payload.get("hub"))
+        payload["segments"] = payload.get("segments") or p_segs
+        payload["transcript"] = payload.get("transcript") or p_txt
     else:
         payload["transcript"] = ""
         payload["segments"] = []
@@ -2459,6 +2511,9 @@ def _load_recent_jobs(limit: int, *, search_query: str = "") -> list[dict[str, A
 def _find_job_json(job_id: str) -> Path | None:
     if not job_id:
         return None
+    incoming = INCOMING_ROOT / job_id / "job.json"   # pipeline (pipe-*) işleri burada saklanır
+    if incoming.exists():
+        return incoming
     if CLIPS_ROOT.exists():
         for path in CLIPS_ROOT.glob(f"*/asr/{job_id}/job.json"):
             return path
