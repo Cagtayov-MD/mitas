@@ -488,7 +488,22 @@ def main(argv=None) -> int:
     if asr_proc is not None:
         try:
             out, err = asr_proc.communicate(timeout=7200)
-            asr_info = last_json(out) or {"status": "failed", "error": err[-400:]}
+            asr_info = last_json(out) or {}
+            # SAVUNMA: CTranslate2/CUDA cikis-crash'i (0xC0000409) stdout JSON'unu silebilir;
+            # transcript diske yazildiysa (gercek kanit) ASR'i basarili say. _pipe_asr os._exit
+            # korumasina EK katman — boylece transcript varken ASLA "failed/Kontrol"e dusmez.
+            _tp = asr_out / "transcript_plain.txt"
+            if asr_info.get("status") != "done" and _tp.exists():
+                try:
+                    _txt = _tp.read_text(encoding="utf-8").strip()
+                except Exception:  # noqa: BLE001
+                    _txt = ""
+                if _txt:
+                    _nseg = sum(1 for _l in _txt.splitlines() if _l.strip())
+                    asr_info = {**asr_info, "status": "done", "clean_segments": _nseg,
+                                "transcript_chars": len(_txt), "recovered_from_disk": True}
+            if not asr_info:
+                asr_info = {"status": "failed", "error": (err or "")[-400:]}
             asr_status = asr_info.get("status", "failed")
             timings["asr"] = round(time.perf_counter() - t_asr, 2)
             update_clip_module(clip_dir, "asr", "done" if asr_status == "done" else ("partial" if asr_status == "partial" else "failed"), asr_job)

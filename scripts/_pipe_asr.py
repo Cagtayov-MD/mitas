@@ -7,7 +7,7 @@ run_asr_pipeline'i cagirir; ciktiyi <out>/ altina yazar (archive/summary/...).
 stdout'a tek satir JSON sonuc basar.
 """
 from __future__ import annotations
-import sys, json, time, argparse, subprocess
+import sys, os, json, time, argparse, subprocess
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -99,7 +99,7 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
             chlang_path.write_text(json.dumps(detect_info, ensure_ascii=False), encoding="utf-8")
         except Exception:  # noqa: BLE001
             chlang_path = None
-    return {
+    result = {
         "status": "done" if n else "partial",
         "mode": "lean", "model": args.model,
         "transcript_path": str(tscr),
@@ -112,6 +112,13 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
         "chlang_path": str(chlang_path) if chlang_path else None,
         "runtime_sec": round(time.perf_counter() - t0, 3),
     }
+    # KRITIK: CTranslate2/CUDA, uzun (film) transcribe SONRASI process cikis/cleanup'inda
+    # native crash edebiliyor (0xC0000409); JSON block-buffered stdout'tan silinir → mitas "failed" sanir.
+    # Cozum: sonucu BURADA (transcript yazimina en yakin, return/json.dumps/main zincirine GIRMEDEN)
+    # yaz+flush, sonra os._exit ile Python+CUDA cleanup'ini ATLAYARAK ANINDA cik → crash penceresi kapanir.
+    sys.stdout.write(json.dumps(result, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+    os._exit(0)
 
 
 def main(argv=None) -> int:
@@ -143,8 +150,8 @@ def main(argv=None) -> int:
 
         # LEAN: özet-transcript modu → run_asr_pipeline'i (whisperx/diarize/fallback) ATLA
         if args.lean:
-            print(json.dumps(_lean_transcribe(src, out, args), ensure_ascii=False))
-            return 0
+            _lean_transcribe(src, out, args)   # sonucu kendi yazip flush+os._exit ile cikar (crash-guvenli)
+            return 0                            # ulasilmaz (os._exit); butunluk icin birakildi
 
         from core.pipelines.asr.pipeline import run_asr_pipeline
         result = run_asr_pipeline(
@@ -184,17 +191,19 @@ def main(argv=None) -> int:
             "fallback_seconds": timing.get("fallback_seconds"),
             "runtime_sec": round(time.perf_counter() - started, 3),
         }
-        print(json.dumps(payload, ensure_ascii=False))
-        return 0
+        sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
+        os._exit(0)   # lean ile ayni cikis-crash korumasi (bkz. yukarisi)
     except Exception as exc:  # noqa: BLE001
         import traceback
-        print(json.dumps({
+        sys.stdout.write(json.dumps({
             "status": "failed",
             "error": f"{type(exc).__name__}: {exc}",
             "traceback": traceback.format_exc()[-1500:],
             "runtime_sec": round(time.perf_counter() - started, 3),
-        }, ensure_ascii=False))
-        return 1
+        }, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
+        os._exit(1)
 
 
 if __name__ == "__main__":
