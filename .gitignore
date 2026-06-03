@@ -33,6 +33,7 @@ outputs/tedial/
 
 # Runtime artifacts
 *.log
+*.log.err
 *.har
 *.cookiejar
 *.cookies
