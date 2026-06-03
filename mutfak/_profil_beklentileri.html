@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>MITAS — İçerik Profilleri</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Calibri", Arial, sans-serif; color: #222b36; font-size: 10.4pt; line-height: 1.42; margin: 0; }
+  h1 { margin: 0; }
+  .cover { background: linear-gradient(135deg, #16315c 0%, #1f4a7a 60%, #2a6ea3 100%); color: #fff; padding: 40px 36px 34px 36px; border-radius: 8px; margin-bottom: 22px; }
+  .cover .kicker { font-size: 10.5pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
+  .cover h1 { font-size: 28pt; font-weight: 700; margin: 8px 0 6px 0; }
+  .cover .sub { font-size: 12pt; opacity: .95; }
+  .cover .meta { margin-top: 16px; font-size: 9.2pt; opacity: .8; }
+  .intro { font-size: 9.8pt; color: #3c4654; margin: 0 0 6px 0; }
+  h2.sec { font-size: 14.5pt; color: #16315c; border-bottom: 2px solid #1f4a7a; padding-bottom: 5px; margin: 26px 0 8px 0; page-break-after: avoid; }
+  .q { font-weight: 700; font-style: italic; color: #16315c; margin: 7px 0 1px 0; page-break-after: avoid; }
+  .a { margin: 0 0 0 16px; color: #2b3a52; }
+  .a .src { color: #586577; }
+  .plan { color: #9a5712; font-style: italic; }
+  .note { font-size: 8.8pt; color: #6b7a92; font-style: italic; margin: 12px 0 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">TRT · MITAS</div>
+  <h1>İçerik Profilleri</h1>
+  <div class="sub">Her içerik türünde hangi soruları soruyoruz, sistem bunları nasıl cevaplıyor</div>
+  <div class="meta">3 Haziran 2026 · Film/Dizi · Stüdyo · Müzik · Spor</div>
+</div>
+
+<p class="intro">MITAS her içerik türünü kendi beklentileriyle ele alır. Aşağıda her profil için temel sorular ve bu soruları hangi modülün nasıl cevapladığı verilmiştir. <span class="plan">İtalik turuncu</span> ile işaretli satırlar henüz yazılmamış, planlı yeteneklerdir.</p>
+
+<!-- FİLM / DİZİ -->
+<h2 class="sec">Film / Dizi</h2>
+
+<div class="q">1. Film kaç ses kanalından oluşuyor?</div>
+<div class="a">→ <span class="src">ffprobe</span> dosya künyesini okur: mono / stereo / çok kanal.</div>
+
+<div class="q">2. Ses kanalları birbirinden farklı içerik mi taşıyor?</div>
+<div class="a">→ ASR'ın stereo karşılaştırma katmanı L ve R'yi korelasyon + Mid/Side dB ile ölçer. Aynıysa tek kanal işler (aynı sesi boşa iki kez yazmaz), gerçekten farklıysa ikisini ayrı transkript eder.</div>
+
+<div class="q">3. Filmin ana dili nedir?</div>
+<div class="a">→ <span class="src">SpeechBrain dil tanıma</span> 107 dil içinden klibin ana dilini bulur (tr / en / ar / az…).</div>
+
+<div class="q">4. Film altyazılı mı (ekrana gömülü altyazı var mı)?</div>
+<div class="a">→ <span class="plan">Planlı: ekrana gömülü altyazı tespiti şu an yok; ileride OCR alt-bant taramasıyla eklenebilir.</span></div>
+
+<div class="q">5. Filmin giriş ve çıkış jeneriği nerede başlar, nerede biter?</div>
+<div class="a">→ "Bekçi" (görsel-dil modeli) kareye bakıp jenerik mi / film görüntüsü mü ayırır; jenerik aralığının sınırını verir.</div>
+
+<div class="q">6. Jenerik tipi nedir?</div>
+<div class="a">→ Bekçi + hareket ölçümü: akan mı / duran kart mı, arka plan sabit mi / hareketli mi belirler; buna göre doğru birleştirme yöntemini seçer (slit-scan / satır-inşa / kart yakalama).</div>
+
+<div class="q">7. Cast'taki isimleri düzgün nasıl okuruz?</div>
+<div class="a">→ Jenerik tek temiz görüntüye birleştirilir, sonra OCR okur (PaddleOCR; zorlanınca OneOCR / görsel-dil modelleri). İlke: okunamayan yeri yanlış okumaktansa "okunamadı" denir.</div>
+
+<div class="q">8. Özet tutarlı mı, dil bilgisine uygun mu?</div>
+<div class="a">→ Claude/Sonnet özet motoru transcript'ten dilbilgisine uygun, tutarlı Türkçe künye/özet üretir.</div>
+
+<div class="q">9. Filmde yabancı dil sahneleri var mı, çeviri gerekiyor mu?</div>
+<div class="a">→ Dil tanıma yabancı segmenti işaretler, çeviri motoru (OPUS / NLLB) Türkçeye çevirir.</div>
+
+<div class="q">10. Filmde yüz tanıma yapıyor muyuz?</div>
+<div class="a">→ Hayır. Karar gereği filmde kimlik kapalı (yanlış kimlik riski yüksek); sadece "yüz var" bilgisi tutulur, isim jenerikten gelir.</div>
+
+<!-- STÜDYO -->
+<h2 class="sec">Stüdyo Programları</h2>
+
+<div class="q">1. Program kaç ses kanalından oluşuyor?</div>
+<div class="a">→ <span class="src">ffprobe</span> kanal sayısını okur: mono / stereo / çok kanal.</div>
+
+<div class="q">2. Ses kanalları farklı kişilerin konuşmaları mı (transkript için kıymetli)?</div>
+<div class="a">→ ASR stereo karşılaştırma katmanı kanalların farklı içerik taşıyıp taşımadığını ölçer; gerçekten farklıysa her kanalı ayrı transkript eder, böylece üst üste binen konuşmalar daha temiz çıkar.</div>
+
+<div class="q">3. Kim ne zaman konuştu (zaman damgası)?</div>
+<div class="a">→ <span class="src">pyannote</span> konuşmacı ayrımı (SPEAKER_00/01…) + <span class="src">WhisperX</span> kelime düzeyi zaman damgası.</div>
+
+<div class="q">4. Ne zaman sessizlik oldu?</div>
+<div class="a">→ <span class="src">Silero VAD</span> konuşma aralıklarını verir; aralarda kalan boşluklar sessizlik/müzik olarak işaretlenir.</div>
+
+<div class="q">5. Programın giriş ve çıkış jeneriği nerede başlar, nerede biter?</div>
+<div class="a">→ Bekçi kareye bakıp jenerik / program görüntüsü ayrımını yapar ve sınırı verir.</div>
+
+<div class="q">6. Jenerik tipi nedir?</div>
+<div class="a">→ Bekçi + hareket ölçümü akan / duran ve sabit / hareketli zemin ayrımını yapıp doğru birleştirme yöntemini seçer.</div>
+
+<div class="q">7. Yapım ekibi isimlerini düzgün nasıl okuruz?</div>
+<div class="a">→ Jenerik birleştirilip OCR ile okunur (PaddleOCR + zor durumda OneOCR / görsel-dil modelleri).</div>
+
+<div class="q">8. Konuşmacılar kim, yüz bankasında mevcut mu?</div>
+<div class="a">→ <span class="plan">Planlı (Yüz Tanıma modülü): yüz tespiti + kimlik vektörü çıkarılır, kişi bankasında en yakın kişi aranır; eşleşme aday olarak gelir, onay olmadan kesin kimlik atanmaz.</span></div>
+
+<div class="q">9. Ekranda konuşmacı künyesi (KJ) ne zaman göründü?</div>
+<div class="a">→ <span class="plan">Planlı: ekranın alt bandı sürekli OCR ile taranır; KJ'nin belirdiği ve kaybolduğu anlar zaman damgalı işaretlenir.</span></div>
+
+<div class="q">10. Sürekli (sabit) KJ'lerde neler yazıyor?</div>
+<div class="a">→ <span class="plan">Planlı: alt-bant OCR okuması; program adı, konuşmacı adı-unvanı gibi sabit künye metinleri çıkarılır.</span></div>
+
+<div class="q">11. Program boyunca VTR girdi mi?</div>
+<div class="a">→ <span class="plan">Planlı: sahne bölme + içerik değişimiyle stüdyodan hazır video pakete (VTR) geçişler tespit edilir.</span></div>
+
+<div class="q">12. VTR'lerde neler mevcut?</div>
+<div class="a">→ <span class="plan">Planlı: VTR segmentine ayrıca ASR + OCR + sahne tanıma uygulanır; içindeki konuşma, yazı ve sahneler çıkarılır.</span></div>
+
+<!-- MÜZİK -->
+<h2 class="sec">Müzik Programları</h2>
+
+<div class="q">1. Program kaç ses kanalından oluşuyor?</div>
+<div class="a">→ <span class="src">ffprobe</span> kanal sayısını okur.</div>
+
+<div class="q">2. Ses kanalları farklı kişilerin konuşmaları mı (transkript için kıymetli)?</div>
+<div class="a">→ ASR stereo karşılaştırma katmanı kanalların farklı içerik taşıyıp taşımadığını ölçer; farklıysa ayrı transkript eder.</div>
+
+<div class="q">3. Sesler ne kadar temiz; gürültülü yerde temiz sesi nasıl transkript ederiz?</div>
+<div class="a">→ <span class="src">Silero VAD</span> konuşma bölgelerini ayırır; <span class="plan">ses temizleme (DeepFilterNet) planlı olarak arka plan müziğini/gürültüyü bastırıp konuşmayı öne çıkaracak.</span></div>
+
+<div class="q">4. Programda şarkı blokları ne zaman başladı, ne zaman bitti?</div>
+<div class="a">→ <span class="plan">Planlı (PANNs ses sınıflandırma): sesi konuşma / müzik / alkış / sessizlik olarak ayırıp müzik bloklarının baş/bitiş sınırını verir.</span></div>
+
+<div class="q">5. Programda çalan şarkıları kim seslendirdi?</div>
+<div class="a">→ <span class="plan">Planlı: önce ekran künyesi (KJ) ve sunucu anonsu okunur, Repertuvar Bankası'yla eşleştirilip seslendiren bulunur; parmak izi doğrulayıcı katmandır.</span></div>
+
+<div class="q">6. Programda çalan şarkıların bestesi kime ait?</div>
+<div class="a">→ <span class="plan">Planlı: Repertuvar Bankası eseri kanonik kaydına bağlar; besteci/söz yazarı bilgisi buradan gelir.</span></div>
+
+<div class="q">7. Programın giriş ve çıkış jeneriği nerede başlar, nerede biter?</div>
+<div class="a">→ Bekçi jenerik / program ayrımını yapar ve sınırı verir.</div>
+
+<div class="q">8. Jenerik tipi nedir?</div>
+<div class="a">→ Bekçi + hareket ölçümü akan / duran ve sabit / hareketli zemin ayrımını yapıp doğru birleştirme yöntemini seçer.</div>
+
+<div class="q">9. Yapım ekibi isimlerini düzgün nasıl okuruz?</div>
+<div class="a">→ Jenerik birleştirilip OCR ile okunur (PaddleOCR + zor durumda OneOCR / görsel-dil modelleri).</div>
+
+<div class="q">10. Programdakiler kim, yüz bankasında mevcut mu?</div>
+<div class="a">→ <span class="plan">Planlı (Yüz Tanıma modülü): yüz tespiti + kimlik vektörü; kişi bankasında aday eşleşme aranır.</span></div>
+
+<div class="q">11. Ekranda künye (KJ) ne zaman göründü?</div>
+<div class="a">→ <span class="plan">Planlı: alt-bant sürekli OCR taraması; KJ'nin belirme/kaybolma anları zaman damgalı işaretlenir.</span></div>
+
+<div class="q">12. Sürekli (sabit) KJ'lerde neler yazıyor?</div>
+<div class="a">→ <span class="plan">Planlı: alt-bant OCR; "BESTE / GÜFTE / OKUYAN" gibi künye alanları çıkarılır.</span></div>
+
+<div class="q">13. Program boyunca VTR girdi mi?</div>
+<div class="a">→ <span class="plan">Planlı: sahne bölme + içerik değişimiyle VTR geçişleri tespit edilir.</span></div>
+
+<div class="q">14. VTR'lerde neler mevcut?</div>
+<div class="a">→ <span class="plan">Planlı: VTR segmentine ASR + OCR + sahne tanıma uygulanır.</span></div>
+
+<!-- SPOR -->
+<h2 class="sec">Spor Yayınları</h2>
+
+<div class="q">1. Maç kaç ses kanalından oluşuyor?</div>
+<div class="a">→ <span class="src">ffprobe</span> kanal sayısını okur.</div>
+
+<div class="q">2. Spiker sesi hangi kanalda, efekt (saha) sesi hangi kanalda?</div>
+<div class="a">→ ASR stereo karşılaştırma katmanı kanalların farklı içerik taşıdığını tespit eder; spiker kanalı ile saha/efekt kanalı ayrıysa spiker kanalı ayrı ve temiz transkript edilir.</div>
+
+<div class="q">3. Sesler ne kadar temiz; saha uğultusu/gürültü içinde nasıl transkript ederiz?</div>
+<div class="a">→ <span class="src">Silero VAD</span> spikerin konuştuğu anları ayırır; <span class="plan">ses temizleme (DeepFilterNet) planlı olarak stadyum uğultusunu bastırıp spiker sesini öne çıkaracak.</span></div>
+
+<div class="q">4. Maçta ne zaman KJ (skor/grafik bandı) girdi?</div>
+<div class="a">→ <span class="plan">Planlı: skor/grafik bandı bölgesi sürekli OCR ile taranır; bandın belirdiği anlar işaretlenir.</span></div>
+
+<div class="q">5. Maçta grafikten skor takibini en verimli nasıl yaparız?</div>
+<div class="a">→ <span class="plan">Planlı: skor bandının sabit olduğu ekran bölgesi (ROI) belirli aralıklarla OCR ile okunur; yalnız skorun değiştiği anlar kaydedilir, böylece tüm kareyi okumadan verimli skor zaman çizelgesi çıkar.</span></div>
+
+<div class="note">İtalik turuncu satırlar planlı yeteneklerdir (Müzik, Yüz Tanıma, KJ/alt-bant okuma, VTR ve skor takibi henüz yazılmadı). Diğerleri çalışır durumdadır.</div>
+
+</body>
+</html>

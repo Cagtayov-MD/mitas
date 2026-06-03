@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>MITAS — Model Envanteri</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Calibri", Arial, sans-serif; color: #222b36; font-size: 10.5pt; line-height: 1.52; margin: 0; }
+  h1 { margin: 0; }
+
+  .cover {
+    background: linear-gradient(135deg, #16315c 0%, #1f4a7a 60%, #2a6ea3 100%);
+    color: #fff; padding: 40px 36px 34px 36px; border-radius: 8px; margin-bottom: 24px;
+  }
+  .cover .kicker { font-size: 10.5pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
+  .cover h1 { font-size: 30pt; font-weight: 700; margin: 8px 0 6px 0; }
+  .cover .sub { font-size: 12.5pt; opacity: .95; }
+  .cover .meta { margin-top: 16px; font-size: 9.2pt; opacity: .8; }
+
+  .intro { font-size: 9.8pt; color: #3c4654; margin: 0 0 8px 0; }
+
+  h2.sec { font-size: 14pt; color: #16315c; border-bottom: 2px solid #1f4a7a; padding-bottom: 5px; margin: 30px 0 4px 0; page-break-after: avoid; }
+  .sdesc { font-size: 9.3pt; color: #586577; font-style: italic; margin: 0 0 14px 0; }
+
+  .m { margin: 0 0 13px 0; page-break-inside: avoid; }
+  .mn { font-weight: 700; color: #16315c; font-size: 11.4pt; margin-bottom: 2px; }
+  .r { margin: 1.5px 0; }
+  .r .l { font-weight: 700; color: #33445e; }
+  .ex { font-family: "Consolas", "Courier New", monospace; font-size: 8.8pt; color: #4a5568; margin: 2px 0 2px 14px; white-space: pre-wrap; }
+
+  table.dropped { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 6px; }
+  table.dropped th { background: #16315c; color: #fff; text-align: left; padding: 7px 9px; font-size: 8.7pt; }
+  table.dropped td { border-bottom: 1px solid #e3e8f0; padding: 6px 9px; vertical-align: top; }
+  .note { font-size: 8.8pt; color: #6b7a92; font-style: italic; margin: 10px 0 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">TRT · MITAS</div>
+  <h1>Model Envanteri</h1>
+  <div class="sub">Sistemde kullanılan ve planlanan yapay zeka modelleri</div>
+  <div class="meta">3 Haziran 2026 · ASR · Çeviri · OCR · Üst Denetim · Müzik · Altyapı · Yüz · Sahne</div>
+</div>
+
+<p class="intro">Bu belge MITAS'ta kullanılan ve planlanan modelleri modül modül listeler. Her model için ne işe yaradığı, nasıl çalıştığı, bir örnek ve çözdüğü sorun verilmiştir. ASR, OCR ve Çeviri modülleri çalışır durumdadır; Müzik, Yüz ve Sahne tanıma planlı olduğu için belgenin sonunda yer alır. Denenip seçilmeyen modeller en sonda toplanmıştır.</p>
+
+<!-- ASR -->
+<h2 class="sec">1 · ASR — Konuşmayı Yazıya Dönüştürme</h2>
+<div class="sdesc">Sesi alır, kim ne zaman ne söyledi sorusuna zaman damgalı metinle cevap verir. Sistemin en olgun ve tamamlanmış modülü.</div>
+
+<div class="m">
+  <div class="mn">faster-whisper · large-v3-turbo</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Ana konuşma tanıma motoru; varsayılan hızlı yolda sesi metne çevirir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> OpenAI Whisper mimarisinin hızlandırılmış (int8/float16) hâli. Encoder-decoder bir yapay sinir ağı; 16 kHz sesi dinler ve dikkat mekanizmasıyla her ses parçasını metne, dil etiketine ve güven skoruna çevirir. Turbo sürümü tam modelin küçültülmüş hâlidir — gerçek zamanın yaklaşık 25 katı hızda çalışır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">16 kHz mono ses → (0.5–3.2sn) "İyi akşamlar, gündemdeki gelişmeler..." | dil: tr | güven: 0.94</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Türkçe ve çok dilli arşivi hızlı, makul maliyetle yazıya dökmek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">faster-whisper · large-v3</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Kalite öncelikli ağır model; hızlı model bir bölümde takılırsa veya şüpheli sonuç verirse devreye girer.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Turbo ile aynı mimari ama tam boy decoder (yaklaşık 1.5 milyar parametre); daha geniş bağlam, daha düşük hata. Tüm dosyayı baştan çözmez — sadece riskli işaretlenen parçaları yeniden çözüp temiz transcript'in içine yamalar (seçici onarım).</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Tetik: bir cümlede erken bitiş şüphesi → sadece o 8 saniyelik parça large-v3 ile yeniden çözülür → eksik cümle geri gelir</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Hızı korurken kritik anlarda kelime kaybını ve hatayı engellemek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Silero VAD</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Seste konuşma var mı, varsa nerede — onu bulur (Voice Activity Detection).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Hafif bir sinir ağı, sesi 30 milisaniyelik küçük pencerelere bölüp her birine "burada konuşma var mı?" olasılığı verir. Eşiği geçen ardışık pencereleri birleştirip konuşma aralıkları listesi çıkarır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">60 dakikalık ses → konuşma aralıkları [ (0.5–3.2sn), (5.1–8.8sn), ... ] (sessiz/müzik bölgeleri ayıklanır)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Sessiz ve müzikli bölgeleri ASR'a sokmayarak hayalet metni ve boşa zaman harcamayı önlemek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">WhisperX</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Cümle bazlı zaman damgasını kelime bazına indirir — her kelimenin tam kaçıncı saniyede söylendiğini bulur.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Whisper'ın ürettiği cümle metnini ses dalgasıyla hizalar (forced-alignment). Her kelimeye başlangıç/bitiş ve güven skoru atar. Bağımlılık çakışmasını önlemek için ayrı bir ortamda alt-süreç olarak çağrılır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"merhaba dünya" (0.5–1.8sn) → merhaba (0.50–0.92) · dünya (0.95–1.80)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Altyazı senkronu ve "bu kelimeye tıkla, videoda oraya git" türü kelime düzeyinde arama.</div>
+</div>
+
+<div class="m">
+  <div class="mn">pyannote-audio · konuşmacı ayrımı</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Konuşmacı ayrımı yapar: kim, ne zaman konuştu (diarization).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Her konuşmacının ses imzasını çıkarır ve benzer imzaları kümeleyerek SPEAKER_00, SPEAKER_01 gibi etiketler verir. Güven eşiğinin altında kalan parçaya etiket basmaz — yanlış atama yapmaktansa boş bırakmak ilkesi.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">2 sunuculu haber bülteni → SPEAKER_00 (0.2–4.5sn), SPEAKER_01 (5.0–9.3sn) → her transcript satırına konuşmacı eklenir</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Panel, röportaj, haber gibi çok kişili içerikte "kim söyledi" bilgisini üretmek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">SpeechBrain · dil tanıma (VoxLingua107)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Sesin hangi dilde olduğunu tespit eder (107 dil: tr, ar, az, ku, en...).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Sesten dil imzası çıkaran bir sinir ağı; kısa pencerelere bakıp 107 dil üzerinde olasılık dağılımı verir. Klibin ana dilini, pencerelerin yarısından fazlasına hakim olan dil olarak belirler. Şu an sadece ölçüm/raporlama yapıyor; otomatik yönlendirme henüz kapalı.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">20 pencerelik ses → { tr: 0.78, ar: 0.12, en: 0.10 } → ana dil: Türkçe</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Arşivdeki Arapça/Azerice/Kürtçe içeriği otomatik ayırmak ve doğru çeviri rotasına hazırlamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">DeepFilterNet · ses temizleme</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Arka plan gürültüsünü/müziğini konuşmadan ayırarak ASR doğruluğunu artırır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Derin öğrenme tabanlı gürültü bastırma filtresi; zaman-frekans maskesiyle gürültü bileşenini söker. Şu an profil ayarlarında işaretli (stüdyo/film/belgesel/spor) ama pipeline'a henüz bağlanmadı — niyet kayıtlı, çağrı bekliyor.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Arka planda müzik olan film diyaloğu → sadece konuşma kalan temiz ses</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Stüdyo dışı, gürültülü arşiv kaydında ASR hatalarını azaltmak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Özel İsim Düzeltme</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> ASR'ın ses benzerliği yüzünden yanlış yazdığı bilinen özel adları doğru biçimine düzeltir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Yapay zeka değil, "yanlış → doğru" kural listesi. Her segment metninde arar ve düzeltir. Önemlisi: orijinal metni silmez, düzeltilmiş hâli ayrı bir alanda durur (incelenebilir ikinci katman).</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"Barış Mango konseri" → "Barış Manço konseri"</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Tahmin edilebilir özel ad hatalarını arşiv aramasını bozmadan, güvenli biçimde gidermek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Tahmini Kelime Zamanlama</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> WhisperX başarısız olursa kelime zaman damgalarını yine de üretir (yedek mekanizma).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Model değil basit hesap: cümlenin süresini kelime sayısına eşit aralıklara böler ve her kelimeye yaklaşık bir başlangıç/bitiş verir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"merhaba dünya" (0.5–1.8sn) → merhaba (0.50–1.15) · dünya (1.15–1.80)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Hizalama motoru çökse bile her çıktının kelime zamanına sahip olmasını garanti etmek.</div>
+</div>
+
+<!-- ÇEVİRİ -->
+<h2 class="sec">2 · Çeviri — Yabancı Dili Türkçeye</h2>
+<div class="sdesc">ASR'dan çıkan yabancı dil satırlarını Türkçeye çevirir. Çalışıyor ve sisteme entegre.</div>
+
+<div class="m">
+  <div class="mn">OPUS-MT · İngilizce → Türkçe</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> İngilizceden Türkçeye hızlı ve kaliteli çeviri uzmanı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Encoder-decoder çeviri modeli; metni alt-kelime parçalarına bölüp hedef dile çevirir. Yalnız İngilizce → Türkçe yapar; diğer diller çok dilli modele yönlendirilir. Düşük bellekte hızlı çalışır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"The parliament voted on the budget." → "Meclis bütçe üzerinde oy kullandı."</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> En sık karşılaşılan İngilizce kaynakları hızlı ve ucuz çevirmek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">NLLB-200-3.3B · çok dilli çeviri</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> İngilizce dışı tüm dillerden (özellikle Arapça) Türkçeye çeviren çok dilli ana model.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> 200 dili destekleyen tek çeviri modeli. Kaynak ve hedef dil kodlarıyla belirtilir (örn. Arapça → Türkçe) ve hedef dil zorlanarak çeviri üretilir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"البرلمان صوت على الميزانية" → "Meclis bütçeyi oyladı."</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Tek modelle 200+ dilden Türkçeye çeviri — Arapça başta olmak üzere bölgesel diller.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Arapça Lehçe Normalizasyonu</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Suriye/Mısır/Körfez/Mağrip lehçelerini standart Arapçaya çevirerek çeviri kalitesini yükseltir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Lehçeye özgü sinyal kelimeleri sayarak lehçeyi tespit eder, sonra kural tabanlı değiştirmeyle standart Arapçaya çevirir. Bu temiz metin çeviri modeline gönderilir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"هلق وين رايح؟" (Levanten) → "الآن أين تذهب؟" (standart) → ardından Türkçeye çevrilir</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Çeviri modelinin standart Arapça ağırlıklı eğitiminden kaynaklanan lehçe zayıflığını gidermek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">NLLB-200-distilled-1.3B (yedek)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> 3.3B modelin küçültülmüş, hızlı versiyonu; kurulu tutuluyor ama şu an rotaya bağlı değil.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Aynı mimari, daha küçük parametre. Kalitesi 3.3B'nin biraz altında, hızı belirgin yüksek.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Aynı Arapça girdi → daha hızlı çeviri, hafif kalite farkı</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> 3.3B çok yavaş kalırsa veya bellek yetmezse devreye alınacak hız yedeği.</div>
+</div>
+
+<!-- OCR -->
+<h2 class="sec">3 · OCR & Görsel-Dil — Ekrandaki Yazıyı Okuma</h2>
+<div class="sdesc">Jenerik, künye, alt yazı ve tabelaları okur. Okuma motorları aşağıdadır; akan/duran jeneriği tek okunabilir görüntüye dönüştüren yöntemler ayrı belgede (Jenerik Birleştirme Yöntemleri) anlatılır.</div>
+
+<div class="m">
+  <div class="mn">PaddleOCR (birincil)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Ana OCR motoru; karelerden metin kutularını bulup içlerini okur.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> İki aşamalı: önce bir tespit modeli görüntüdeki yazı bölgelerini kutu olarak işaretler, sonra bir tanıma modeli her kutunun içindeki yazıyı okur. GPU üzerinde çalışır; çok uzun jenerik görüntülerini dikey dilimlere bölerek işler.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Jenerik karesi → [ "YÖNETMEN" kutu(x,y,w,h) güven 0.94 ], [ "AHMET TEKİN" ... ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Büyük ölçekli, çok satırlı jeneriklerde hızlı ve doğru metin tespiti ve okuma.</div>
+</div>
+
+<div class="m">
+  <div class="mn">OneOCR (yedek)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Windows'un kendi OCR motoru; birincil motor bozuk/anlamsız metin ürettiğinde devreye giren akıllı yedek.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Windows yerleşik OCR altyapısını çağırır; görüntüyü alır, satır satır metin + kutu + güven döner. Pipeline'a yalnız gerektiğinde çağrılır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Birleştirilmiş jenerik görüntüsü → temiz satırlar [ "YÖNETMEN", "GÖRÜNTÜ YÖNETMENİ", ... ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Birincil motorun çuvalladığı zor görüntülerde ikinci bir okuma şansı vermek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">qwen2.5vl — "Bekçi / GÖZ"</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> OCR yapmaz, karar verir: "Bu kare jenerik yazısı mı, yoksa film görüntüsü mü?" Yanlış görüntünün OCR'a gitmesini engelleyen bekçi.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Tek kareye bakan bir görsel-dil modeli; yapılandırılmış cevap döner (jenerik mi, akıyor mu, arka plan hareketli mi, kaç sütun, hangi yöntem önerilir). Hareket ölçümünü matematik yapar, görünüm yorumunu model yapar, kod ikisini birleştirip doğru motoru seçer.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">akan jenerik karesi → { jenerik: evet, hareket: kayan, arka plan: hareketli sahne }
+kadın yüzü karesi → { jenerik: hayır } → bu kare OCR'a gönderilmez</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Projenin en kritik açığı: film görüntüsünün yanlışlıkla "jenerik" sanılıp çöp üretmesi. Testte 5/5 doğru ayırdı.</div>
+</div>
+
+<div class="m">
+  <div class="mn">GLM-OCR</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Görsel-dil tabanlı OCR; özellikle kırpılmış küçük metin kutularını hızlı ve temiz okur. Karşılaştırmanın kazananı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Yerel olarak çalışır; görüntü + komut alır, yazıyı döndürür. Düşük sıcaklık ve tekrar cezasıyla döngüye girmeden kararlı okur. Tam sayfa veya küçük kırpıntı kabul eder.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Bir metin kutusunun 3× büyütülmüş kırpıntısı → "YÖNETMEN" (yaklaşık 0.3–1.0 sn)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Hızlı, kurulumu kolay ve OneOCR ile çapraz doğrulamaya uygun bir OCR ikinci görüşü.</div>
+</div>
+
+<div class="m">
+  <div class="mn">InternVL3-8B</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Zor Türkçe jenerikleri en iyi okuyan görsel-dil modeli (kıyaslamada birinci).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Görüntüyü dinamik karolara bölüp işleyen bir model. "Ekrandaki her şeyi satır satır yaz" komutuyla tam sayfa metni döndürür.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Bulanık Türkçe jenerik sayfası → "YÖNETMEN / AHMET TEKİN / SENARYO / ..." (Ş,Ğ,İ doğru)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Diğer modellerin kaçırdığı Türkçe karakterleri (Ş, Ğ, İ) zor koşullarda doğru okumak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">LocateAnything-3B</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> OCR yapmaz; görüntüde metnin nerede olduğunu (kutu koordinatları) bulur. GLM-OCR ile zincir kurulur.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> "Tüm metni kutu olarak tespit et" komutuyla koordinatlar döndüren bir model. Bulduğu her kutu kırpılıp ayrıca okutulur.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Jenerik karesi → 8–12 kutu koordinatı → her kutu kırpılıp okunur → "YÖNETMEN": 0.95</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Tam sayfa yerine sadece yazı bölgelerini yüksek çözünürlükte okuyarak doğruluğu artırmak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">MiniCPM-V 2.6</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Tek görüntüden Türkçe jenerik metni çıkaran görsel-dil modeli (kıyaslamada üçüncü).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Çok modlu model; görüntü ve komutu birlikte alıp metin döndürür. Mevcut donanımda çalışır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Jenerik sayfası → "YÖNETMEN BARIŞ PİRHASAN / SENARYO ..."</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Genel amaçlı VLM-OCR alternatifi; kazananların yanında karşılaştırma noktası.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Tesseract (planlı)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Klasik, kütüphanesiz OCR alternatifi; karşılaştırma adayı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Karakter segmentasyonu + dil modeliyle çalışan köklü açık kaynak OCR. Kelime düzeyinde kutu ve güven üretir. Motor listesinde tanımlı ama henüz üretimde aktif değil.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kart görüntüsü → [ "KAMERA" kutu güven 0.87 ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Platform bağımsız, kütüphane gerektirmeyen yedek OCR ve karşılaştırma referansı.</div>
+</div>
+
+<!-- ÜST DENETİM -->
+<h2 class="sec">4 · Üst Denetim & Özet — Büyük Dil Modelleri</h2>
+<div class="sdesc">ASR/OCR çıktısının üstünde çalışan akıl katmanı: hata/şüphe yakalar, kanıt ister, özet çıkarır. "Hâkim değil, kanıt isteyen denetçi" ilkesiyle tasarlandı.</div>
+
+<div class="m">
+  <div class="mn">Claude (Sonnet) · özet motoru</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Transcript'ten özet ve film/dizi künye metni üretir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Büyük dil modeli; içerik profiline göre (spor / genel) farklı komut setiyle çağrılır. Yerel modeller özet formatını tutmadığı için bu işin birincil çözümü buraya bağlandı; yerel model ve özetleyici yedek zinciri arkada durur.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">40 dk transcript → "Önemli Konular: 1)... 2)... · Geçen İsimler: ..."</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Tutarlı kalitede Türkçe özet — yerel modellerin başaramadığı görev.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Kimi-K2.6 (güçlü aday)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Üst denetimde en güçlü yeni aday; özel isim/bağlam testinde diğerlerini geçti.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Büyük dil modeli. Transcript'i değiştirmez; "şu isim şüpheli", "bu bir tabela, dokunma", "tarihsel olarak imkânsız" gibi yapılandırılmış bulgular üretir. Zor vakaları (yanlış harfli OCR adı, çift bağlamlı isim) doğru sınıflandırdı.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"C. AUBREY SMlTH" (OCR hatası) → { aksiyon: sadece-bağlantı-kur, kanonik: "C. Aubrey Smith", ocr_hatası: evet }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Yerel isim/tabela tuzaklarına düşmeden güvenilir denetim kararı.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Gemma-4-26b (varsayılan aday)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Üst denetimin mevcut varsayılan metin modeli (hız/kalite dengesi iyi).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Büyük dil modeli. İzinli aksiyonlar listesi içinde yanıt verir (bağlantı kur, düzeltme öner, kırmızı bayrak, kare iste...) ve doğrudan metni değiştirmez; sisteme öneri döndürür.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"1936 filminde Ahmet Necdet Sezer oyuncuydu" → { tarihsel imkânsızlık, kare/kaynak doğrulaması iste }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> 100.000 video ölçeğinde insan onayı olmadan güvenli, izlenebilir denetim.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Qwen3.6-27b (kalite / ikinci görüş)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> En dengeli bağlam ayrımı; belirsiz vakalarda ikinci görüş/hakem.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Yoğun büyük model. "Normal konuşma mı, alıntı mı, tabela mı?" ayrımını en tutarlı yapan model; ancak yavaş olabiliyor.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"Barış Mango geçiyor" → normal konuşmaysa düzeltme öner, ekranda tabelaysa sadece incele</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Diğer modelin kaçırdığı ince bağlam kırıklarını yakalamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Qwen3-30b-a3b (hızlı alternatif)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Qwen 27B'nin daha hızlı alternatifi.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Seyrek-uzman model; yoğun modele yakın kalite, belirgin hız avantajı. Bazı sınır vakalarında kaçırma yapabiliyor.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Uzun belgesel bloğu → Qwen 27B'ye yakın kalite, yaklaşık %30 daha hızlı</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Üretimde verim/kalite dengesini tutmak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Llama-3.3-70b (denetçi / hakem)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Yüksek riskli kararların son hakemi; çok temkinli çalışır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Büyük model. Doğru komutla "düzeltme önermekten kaçınan", emin değilse incelemeye yönlendiren konservatif bir hakem. Maliyeti yüksek olduğu için ana akışta değil, doğrulama turunda.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Başka model "değiştir" dediğinde Llama "güven düşük → sadece incele" diyerek frene basabilir</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Otomatik değiştirmenin ikinci güvenlik kilidi.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Nemotron-3-nano-omni (planlı · görsel kanıt)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Üst denetim kare/kırpıntı kanıtı istediğinde görüntüyü okuyup metin üreten çok modlu model.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Görüntü + metni birlikte işler. Denetim ikinci turunda "şu kareyi/künyeyi oku" aksiyonundan gelen görseli okuyarak kanıt sağlar.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"künyeyi tekrar oku" aksiyonu → künye kırpıntısı → "BESTE: Selâhattin Pınar"</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Metin denetiminin görsel kanıta ihtiyaç duyduğu vakalar.</div>
+</div>
+
+<div class="m">
+  <div class="mn">qwen3-vl · video soru-cevap</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Videoya soru sorup cevap almak için kullanılan görsel-dil modeli (deneysel araç).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Çıkarılan kareler + soru modele verilir. Düşünme modu kapalı çalıştırılır (aksi halde döngüye giriyor), tekrar cezasıyla stabilize edilir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kare + "Bu sahnede kim/ne var?" → sahne/karakter tanımı</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Görsel doğrulama ve sahne soru-cevap için yardımcı araç.</div>
+</div>
+
+<!-- MÜZİK -->
+<h2 class="sec">5 · Müzik Tanıma — Planlı (v0.2 hedefi)</h2>
+<div class="sdesc">Müzik programlarında "hangi eser, kim seslendirdi" sorusunu çözecek katman. Sinyal sırası: ekran künyesi → sunucu anonsu → şarkı sözü → ses sınıfı → parmak izi. Hedef: zamanla büyüyen TRT Müzik Kütüphanesi.</div>
+
+<div class="m">
+  <div class="mn">Repertuvar Bankası (çekirdek)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Eser ve sanatçı varlık sözlüğü — Müzik Kütüphanesi'nin temeli. Okunan adları doğru kanonik kayda bağlar.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> İki tablo: Eser (kanonik ad, takma adlar, besteci, makam, söz) ve Sanatçı (ad, roller). Türkçe karaktere duyarlı bulanık eşleştirmeyle sorgulanır. Seed: TRT Repertuvar Kurulu verisi + MusicBrainz Türkçe alt kümesi.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">sorgu("ne güzel güldün") → { eser: "Ne Güzel Güldün", besteci: "Selâhattin Pınar" }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Parmak izi eşleşmese bile künye/anonstan eser kimliği üretmek; kütüphanenin büyümesini sağlamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">ASR Anons Parser</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Sunucunun "şimdi sizlere X'ten Y'yi dinleteceğiz" anonsunu yakalayıp eser+sanatçı çıkarır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Müzik bölümünden önceki yaklaşık 30 saniyelik transcript'te Türkçe anons kalıplarını arar; eşleşen kısmı Repertuvar Bankası ile eşleştirip aday üretir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"Şimdi Bülent Ersoy'dan Ne Güzel Güldün'ü dinleteceğiz" → { sanatçı: Bülent Ersoy, eser: Ne Güzel Güldün }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Künye yokken veya künyeden önce en erken müzik kimlik sinyalini yakalamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">PANNs CNN14 · ses sınıflandırma</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Sesi sınıflandırır: konuşma / müzik / alkış / sessizlik. Müziğin nerede başlayıp bittiğini bulur.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Geniş ses veri kümesinde eğitilmiş bir sinir ağı. 1 saniyelik pencerelerle sınıflandırır, sonra başlangıç/bitiş sınırlarını tespit eder. Şarkı ve alkış alt sınıflarına sahip olması müzik programı için kritik.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">90 sn klip → [ konuşma 0–12sn, müzik 12–74sn, alkış 74–79sn ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Müzik/konuşma sınırını yaklaşık ±2 sn toleransla bulup performans segmentini işaretlemek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Demucs · vokal ayırma (ileri aşama)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Müzikte vokali enstrümandan ayırır; sonra vokal üzerinde ASR koşup şarkı sözünden eseri bulur.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Kaynak ayırma modeli sesi vokal/davul/bas/diğer olarak böler. Ayrılan vokal ASR'a verilir, çıkan söz şarkı sözü veritabanıyla eşleştirilir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">90 sn müzik → vokal.wav → ASR → "Ağlasam mı gülsem mi" → eser eşleşmesi</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Künye ve anons yokken şarkı sözünden eser tespiti.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Chromaprint + AcoustID · parmak izi (doğrulayıcı)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Akustik parmak izi: bir kayıt daha önce tanımlandıysa eşleştirir. Birincil değil, doğrulayıcı katman.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Sesten kompakt bir parmak izi üretir; bu izi yerel veritabanına veya dış servise (yalnız iz gider, ses gitmez) sorar. Canlı stüdyo icrasında eşleşme beklenmez; arşiv kayıt tekrarında işe yarar. Dış servis için kurum onayı bekleniyor.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Arşiv kaydı çalıyor → iz → yerel veritabanı → { eşleşme: "Barış Manço - Gülpembe", 0.97 }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Künye/anons varsa onları doğrulayan ek güven sinyali.</div>
+</div>
+
+<div class="note">Müzik künyesini ekrandan okumak için ana OCR motoru PaddleOCR kullanılır (bkz. Bölüm 3). Ses sınıflandırmada hafif yedek olarak YAMNet de kuruludur.</div>
+
+<!-- ALTYAPI -->
+<h2 class="sec">6 · Altyapı Araçları</h2>
+<div class="sdesc">Tüm modülleri besleyen, doğrudan "yapay zeka" olmayan ama olmazsa hiçbir şeyin çalışmadığı temel araçlar.</div>
+
+<div class="m">
+  <div class="mn">ffmpeg</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Medya İsviçre çakısı: videodan ses çıkarır, kare çıkarır, format dönüştürür, kanal ayırır. Her modülün giriş kapısı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Komut satırı aracı; çağrılır, sonucu geçici dosyaya yazar, modüller o dosyayı okur. Her codec'i (arşivin eski formatları dahil) açabilir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Ses çıkarma: film.mp4 → 16 kHz mono ses (ASR'ın beklediği format)
+Kare çıkarma: film.mp4 → saniyede 2.5 kare, 640×360 görüntü (OCR/yüz/sahne için)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Doğrudan okunamayan arşiv formatlarını tüm modellerin anlayacağı standart girdiye çevirmek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">ffprobe</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Medya dosyasının künyesini okur: süre, codec, kanal sayısı, kare hızı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Dosyayı açar, başlık bilgisini döndürür (içeriği çözmeden). Pipeline hangi profili/modeli seçeceğine bunun verisine bakarak karar verir; süre doğrulaması zorunlu adımdır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">ffprobe film.mp4 → { süre: 5432.17sn, kanal: 2, codec: h264, örnekleme: 48000 }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> İşlemeden önce medyanın ne olduğunu bilmek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">PyTorch + CUDA</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> GPU üzerinde derin öğrenme hesaplamasının temel altyapısı.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Modeller GPU belleğine yüklenip tensor hesapları kartta yapılır. MITAS modelleri sıralı yükler (biri biter, bellekten boşaltılır, diğeri yüklenir) — 24 GB sınırını aşmamak için.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Mevcut GPU'da faster-whisper → gerçek zamanın yaklaşık 25 katı hız</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> CPU'da dakikalar sürecek işi saniyelere indirmek; 1 saatlik klip hedefini mümkün kılmak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">CTranslate2</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> ASR ve çeviri modellerini düşük bellekte, hızlı çalıştıran çıkarım motoru.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Modelleri sıkıştırılmış (int8/float16) olarak çalıştırır. faster-whisper ve çeviri modelleri bu motorun üzerinde koşar.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">large-v3-turbo'yu yaklaşık 1–2 GB bellekle çalıştırır (resmi sürüme göre yaklaşık 4× hız)</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> GPU belleğini verimli kullanıp hızı katlamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">ONNX Runtime</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> ONNX formatındaki modelleri GPU'da çalıştırır (özellikle yüz tanıma modellerinin motoru olacak).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Model grafiğini optimize edip GPU üzerinde çalıştırır; daha küçük bellek ve hızlı başlangıç sağlar.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Yüz tanıma modeli → GPU'da toplu kimlik vektörü çıkarımı</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> ONNX modelleri için hafif, hızlı çalıştırma katmanı.</div>
+</div>
+
+<div class="m">
+  <div class="mn">OpenCV</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Tüm görüntü işleme: kare okuma/yazma, hız ölçümü, hareket takibi, keskinlik.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Görüntü kütüphanesi. Faz korelasyonu (kayma hızı), optik akış (hareket), keskinlik ölçümü, yazı maskesi gibi işlemleri sağlar. Türkçe-İ içeren Windows yollarında özel okuma yöntemiyle çalışır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">İki ardışık kare → "yazı 8.4 piksel/kare kayıyor"</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> GPU gerektirmeyen, OCR yöntemlerinin dayandığı görüntü işleme tabanı.</div>
+</div>
+
+<div class="m">
+  <div class="mn">Modüler Sanal Ortam İzolasyonu</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Her modül kendi izole ortamında çalışır; biri diğerini bozamaz.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> ASR, OCR, ses sınıflandırma gibi çakışan bağımlılıklar ayrı ortamlarda yaşar. Modüller birbiriyle doğrudan değil, alt-süreç veya servis üzerinden konuşur.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">WhisperX ayrı ortamda → ASR onu alt-süreç olarak çağırıp sonucu alır</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Bir kurulumun diğer modülleri bozmasını önlemek; her parçayı bağımsız güncellenebilir kılmak.</div>
+</div>
+
+<!-- YÜZ -->
+<h2 class="sec">7 · Yüz Tanıma — Planlı (v0.3 hedefi)</h2>
+<div class="sdesc">Henüz yazılmadı; kütüphaneler kurulu, plan hazır. Hedef: arşivdeki kişileri tespit, takip ve kümeleme; kendini geliştiren bir kişi bankası. Filmde kimlik kapalı (sadece "yüz var"), haber/program/belgeselde önemli kişi takibi.</div>
+
+<div class="m">
+  <div class="mn">InsightFace / buffalo_l</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Tek pakette hem yüz tespiti hem yüz tanıma (kimlik vektörü) sağlayan çerçeve.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Hazır modeller (tespit + tanıma) tek paket olarak gelir. Tek çağrıyla hem yüz konumunu hem 512 boyutlu kimlik imzasını döndürür. Lisans onayı kurum hukukunda bekliyor.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kare → [ { kutu, güven 0.94, kimlik vektörü (512 sayı) } ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> İki ayrı model yükleme ve senkron yükünü ortadan kaldırmak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">SCRFD · yüz tespiti</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Karelerde yüzleri hızla tespit eder ve 5 nirengi noktası verir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Hızlı bir yüz dedektörü; büyük ve küçük yüzleri ayrı katmanlarda örnekler. İki geçişte kullanılır: önce hızlı tarama (yüz var mı?), sonra yoğun tespit.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">1080p kare → [ { kutu [420,180,612,410], güven 0.92, nirengi noktaları } ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> 1 saatlik klibi sadece yüz olan anlara odaklanarak hızlı taramak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">ArcFace · kimlik vektörü</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Hizalanmış yüzü 512 boyutlu kimlik vektörüne çevirir; kişiler bu vektörle karşılaştırılır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Eğitimde aynı kişiyi yakın, farklı kişiyi uzak vektörlere yerleştiren bir model. Karşılaştırma benzerlik skoruyla yapılır (eşik üstü ise aynı kişi).</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">112×112 hizalı yüz → 512 sayılık vektör → bankadaki vektörlerle kıyas</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Işık, poz ve yaşlanmaya dayanıklı kimlik karşılaştırması.</div>
+</div>
+
+<div class="m">
+  <div class="mn">ByteTrack · yüz takibi</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Ardışık karelerde aynı yüzü tek kimlik altında takip eder.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Hareket tahmini + kutu örtüşmesiyle takip; düşük güvenli tespitleri de değerlendirerek kalabalıkta kimlik kaybını azaltır.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kare 100 ve kare 107 (kesme sonrası) aynı kimliği korur</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Kare bazlı tespitleri tek kişinin sürekli görünümüne bağlamak; ekran süresi sinyali.</div>
+</div>
+
+<div class="m">
+  <div class="mn">HDBSCAN · kümeleme</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Aynı videodaki farklı yüz izlerini kişi bazlı gruplara ayırır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Küme sayısını önceden bilmeden yoğunluk tabanlı kümeleme yapar; gürültüyü ayrı tutar. Az sayıda yüzde bile kararlı sonuç verir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">8 yüz izi → 3 küme: { Sunucu, Konuk A, Konuk B }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Farklı kesimlerdeki aynı yüzü tek kişi altında toplamak.</div>
+</div>
+
+<div class="m">
+  <div class="mn">pgvector · kişi bankası</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Yüz kimlik vektörlerini veritabanında saklayıp hızlı benzerlik araması yapar.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Veritabanına vektör tipi ve benzerlik operatörü ekler. Bir yüz için en yakın kişiler milisaniyeler içinde döner. Vektörler hiçbir arayüzden dışarı verilmez.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Yeni yüz vektörü → bankada en yakın 5 kişi → [ (kişi_001, 0.91), (kişi_002, 0.72) ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Kimliği kalıcı saklamak; yeni klipleri eski kişilerle eşleştiren büyüyen banka — "kendini geliştiren" sistemin belleği.</div>
+</div>
+
+<!-- SAHNE -->
+<h2 class="sec">8 · Sahne / Cisim Tanıma — Planlı (v0.4 hedefi)</h2>
+<div class="sdesc">Henüz yazılmadı; kütüphaneler kurulu. Hedef: sahneye bakıp içindekini anlamak. Buraya TRT'ye özel kültürel veri seti gelecek — camii, köprü, dağ, bayrak, tören gibi bu coğrafyaya ait unsurları tanıyan, kendi verimizle eğitilmiş katman.</div>
+
+<div class="m">
+  <div class="mn">YOLO-World · nesne tespiti (ana motor)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Serbest kelime sözlüğüyle karelerde nesne/kişi/ortam tespit eder ("kürsü", "mikrofon", "bayrak").</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Açık-sözlük tanımayı hızlı bir dedektörle birleştirir; eğitimde görmediği kategorileri bile metin tanımından tanıyabilir. Her sahneden birkaç anahtar kare örneklenip sözlükteki sınıflar denenir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kare + sözlük ["kürsü","mikrofon","Türk bayrağı"] → [ "Türk bayrağı" 0.89, kutu ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> "Bayrak sahnesi", "stüdyo paneli" gibi semantik arşiv aramasını besleyen görsel etiketler.</div>
+</div>
+
+<div class="m">
+  <div class="mn">SigLIP · atmosfer skorlama</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Sahnenin genel atmosferini/ortamını skorlar ("kapalı stüdyo", "açık alan", "gece çekimi"). Logo benzerliğinde de kullanılır.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Görüntü-metin benzerliği modeli. Kareyi aday metin açıklamalarıyla eşleyip her birine benzerlik skoru verir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">Kare + ["kapalı stüdyo","açık alan","gece"] → { kapalı stüdyo: 0.91, ... }</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Nesne listesinin ötesinde sahnenin bağlamını/atmosferini etiketlemek.</div>
+</div>
+
+<div class="m">
+  <div class="mn">PySceneDetect · sahne bölme</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Videoyu sahnelere böler (kesme noktası tespiti); her sahneye anahtar kare üretir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Ardışık kareler arası renk/parlaklık farkını ölçer; fark eşiği aşılınca yeni sahne ilan eder.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">60 dk haber → yaklaşık 300 sahne segmenti [ (0–12.4sn), (12.4–31.7sn), ... ]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Kare kare yerine sahne bazlı işleme — GPU ve hesap yükünü dramatik düşürür.</div>
+</div>
+
+<div class="m">
+  <div class="mn">GroundingDINO + RAM (yedek)</div>
+  <div class="r"><span class="l">Ne işe yarar:</span> Ana motorun lisansı geçmezse yedek nesne dedektörü (GroundingDINO); etiket sözlüğünü genişletmek için keşif aracı (RAM).</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> GroundingDINO metin tanımından nesne bulur. RAM kapalı sözlük olmadan görüntüdeki her şeyi etiketler, "arşivde ne tür nesneler geçiyor" sorusunu veri-odaklı keşfeder.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">RAM: kare → ["kürsü","mikrofon","kravat","Türk bayrağı","stüdyo aydınlatması"]</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Lisans riskine karşı güvence + kültürel etiket sözlüğünü elle yazmadan büyütmek.</div>
+</div>
+
+<!-- ELENENLER -->
+<h2 class="sec">9 · Denendi ve Elendi</h2>
+<div class="sdesc">Test edilen ama seçilmeyen modeller. Bunları denemek, doğru kararı verebilmek için yapıldı — "neyi neden kullanmıyoruz" da bir bilgidir.</div>
+
+<table class="dropped">
+  <tr><th style="width:24%">Model</th><th style="width:28%">Ne için denendi</th><th>Neden elendi</th></tr>
+  <tr><td>EasyOCR</td><td>OCR adayı</td><td>PaddleOCR'a göre net kazanım yok; bağımlılığı OCR ortamına Windows/sürücü riski sokuyor.</td></tr>
+  <tr><td>deepseek-ocr</td><td>Görsel-dil OCR</td><td>Tam başarısız: sayfaların hepsine yazı yerine "/" veya komut tekrarı döndürdü.</td></tr>
+  <tr><td>LLaVA-NeXT-Video</td><td>Video modeliyle jenerik okuma</td><td>Kıyaslamada sonuç yetersiz kaldı.</td></tr>
+  <tr><td>granite-3.2-8b</td><td>Üst denetim modeli</td><td>Bağlam tuzaklarına düştü, yanlış kanonik ad üretti.</td></tr>
+  <tr><td>glm-4.7-flash</td><td>Üst denetim modeli</td><td>Çok uzun düşünme, eksik çıktı, normal konuşma ayrımı zayıf.</td></tr>
+  <tr><td>qwq-32b</td><td>Üst denetim modeli</td><td>Format sorunu ve agresif değiştirme riski.</td></tr>
+  <tr><td>gpt-oss-20b</td><td>Üst denetim modeli</td><td>Bu görevde zayıf/orta-alt performans.</td></tr>
+  <tr><td>mistral-nemo</td><td>Üst denetim modeli</td><td>Karar politikası tutarsız.</td></tr>
+  <tr><td>Qwen3-14B</td><td>Üst denetim modeli</td><td>Değiştirme çok agresif; ek düzeltici gerektiriyor.</td></tr>
+  <tr><td>qwen3.6:35b (yerel)</td><td>Özet motoru (yerel)</td><td>Özet formatını tutmadı; soru sorup makale yazdı → Claude'a geçildi.</td></tr>
+  <tr><td>qwen2.5-vl (metin)</td><td>Üst denetim (metin)</td><td>Metin-only testte döngüye girdi. (Görsel/bekçi rolünde başarılı — bkz. Bölüm 3.)</td></tr>
+</table>
+
+<div class="note" style="margin-top:16px;">Bu belge MITAS mutfak kayıtlarındaki karar günlüğü, güncel durum ve OCR karar dosyalarından, doğrudan koddaki yapılandırmaya bakılarak hazırlanmıştır.</div>
+
+</body>
+</html>

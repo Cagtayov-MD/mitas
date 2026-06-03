@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>MITAS — Jenerik Birleştirme Yöntemleri</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Calibri", Arial, sans-serif; color: #222b36; font-size: 10.5pt; line-height: 1.52; margin: 0; }
+  h1 { margin: 0; }
+  .cover { background: linear-gradient(135deg, #16315c 0%, #1f4a7a 60%, #2a6ea3 100%); color: #fff; padding: 40px 36px 34px 36px; border-radius: 8px; margin-bottom: 22px; }
+  .cover .kicker { font-size: 10.5pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
+  .cover h1 { font-size: 27pt; font-weight: 700; margin: 8px 0 6px 0; }
+  .cover .sub { font-size: 12pt; opacity: .95; }
+  .cover .meta { margin-top: 16px; font-size: 9.2pt; opacity: .8; }
+  .intro { font-size: 9.8pt; color: #3c4654; margin: 0 0 14px 0; }
+  h2.sec { font-size: 14pt; color: #16315c; border-bottom: 2px solid #1f4a7a; padding-bottom: 5px; margin: 24px 0 4px 0; page-break-after: avoid; }
+  .m { margin: 0 0 13px 0; page-break-inside: avoid; }
+  .r { margin: 1.5px 0; }
+  .r .l { font-weight: 700; color: #33445e; }
+  .ex { font-family: "Consolas", "Courier New", monospace; font-size: 8.8pt; color: #4a5568; margin: 2px 0 2px 14px; white-space: pre-wrap; }
+  table.matrix { width: 100%; border-collapse: collapse; font-size: 9.2pt; margin: 8px 0 4px 0; }
+  table.matrix th { background: #16315c; color: #fff; text-align: left; padding: 7px 9px; font-size: 8.7pt; }
+  table.matrix td { border: 1px solid #e3e8f0; padding: 7px 9px; vertical-align: top; }
+  table.matrix td.h { background: #eef3f9; font-weight: 700; color: #16315c; width: 20%; }
+  .note { font-size: 8.8pt; color: #6b7a92; font-style: italic; margin: 10px 0 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">TRT · MITAS · OCR</div>
+  <h1>Jenerik Birleştirme Yöntemleri</h1>
+  <div class="sub">Akan ve duran jeneriği tek okunabilir görüntüye dönüştüren OCR kararları</div>
+  <div class="meta">3 Haziran 2026 · Bu belge model değil, yöntem/karar anlatır</div>
+</div>
+
+<p class="intro">Jenerikteki yazıyı OCR'a vermeden önce, kareler arasına dağılmış metni tek bir temiz görüntüye toplamak gerekir. Jeneriğin biçimi (akan mı, duran mı; arka plan sabit mi, hareketli mi) hangi yöntemin kullanılacağını belirler. Doğru yöntemi "Bekçi" (görsel-dil modeli) seçer; ardından aşağıdaki yöntemlerden uygun olanı görüntüyü kurar, sonra OCR okur. Bu yöntemler model değil, kanıtlanmış kararlardır.</p>
+
+<table class="matrix">
+  <tr><th>Jenerik biçimi</th><th>Arka plan sabit (siyah/düz renk)</th><th>Arka plan hareketli (oynayan film)</th></tr>
+  <tr><td class="h">Akan (scroll)</td><td>KARAR 1 — Slit-Scan</td><td>KARAR 3 — Satır-Yeniden-İnşa</td></tr>
+  <tr><td class="h">Duran kart</td><td>KARAR 2 — Durağan Kart Yakalama</td><td>KARAR 2 (metin dedektörlü sürüm)</td></tr>
+</table>
+
+<h2 class="sec">KARAR 1 · Slit-Scan (Photo-finish)</h2>
+<div class="m">
+  <div class="r"><span class="l">Ne işe yarar:</span> Sabit zeminde (siyah/düz renk) akan dikey jeneriği hayaletsiz, tek uzun görüntüye dönüştürür.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> İki kare arasındaki kayma hızını ölçer, sonra her kareden tam o hız kadar yükseklikte ince bir şerit kesip alt alta dizer. Ortalama/harman yok — gerçek piksel kopyalanır, bu yüzden keskin kalır. Yarış fotoğrafı (photo-finish) tekniğiyle aynı mantık.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">X-MEN kapanışı: 3240 kare → 854 × 19.846 piksel tek görüntü, her isim tam bir kez, keskin</div>
+  <div class="r"><span class="l">Nerede kullanılır:</span> Siyah veya düz renk zeminli kapanış scroll'ları (en sık karşılaşılan jenerik türü).</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Akan jeneriği "hayalet / çift satır" olmadan okunabilir tek sayfaya indirmek.</div>
+</div>
+
+<h2 class="sec">KARAR 2 · Durağan Kart Yakalama</h2>
+<div class="m">
+  <div class="r"><span class="l">Ne işe yarar:</span> Akmayan, ekranda birkaç saniye duran isim kartlarını (örn. açılış cast kartları) tespit edip her kartın en net karesini seçer.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Kayma yoksa (kare duruyor) ve üstünde yazı varsa "kart tutuluyor" der; yazı bölgesi değişince yeni kart olduğunu anlar. Her benzersiz kartın en keskin karesini alır. Arka plan hareketliyse metin dedektörlü sürüm devreye girer.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">SON METRO açılışı: 10 ham kare → 28 benzersiz kart, cast + ekip tam</div>
+  <div class="r"><span class="l">Nerede kullanılır:</span> Açılış isim kartları, dissolve ile geçen kadro kartları.</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Saniyelerce duran kartları tekrarlamadan, her birini bir kez yakalamak.</div>
+</div>
+
+<h2 class="sec">KARAR 3 · Satır-Yeniden-İnşa (Row-Reconstruct)</h2>
+<div class="m">
+  <div class="r"><span class="l">Ne işe yarar:</span> Hareketli arka plan (oynayan film görüntüsü) üzerinde akan jeneriği temiz birleştirir.</div>
+  <div class="r"><span class="l">Nasıl çalışır:</span> Yazıyı metin olarak takip eder — hızı yalnızca harf piksellerinden ölçer. Yazı her karede aynı hızla kaydığı için şeritler üst üste temiz oturur; arka plandaki film kareden kareye tutarsız olduğu için birikemez, zararsız bir bulanıklığa dönüşüp silinir.</div>
+  <div class="r"><span class="l">Örnek:</span></div>
+  <div class="ex">"Duck You Sucker" kapanışı (oynayan sahne üstünde): tüm cast her isim bir kez, footage dikey bulanıklık oldu</div>
+  <div class="r"><span class="l">Nerede kullanılır:</span> Oyuncu yüzü / manzara / sahne üstünden kayan kapanış jenerikleri.</div>
+  <div class="r"><span class="l">Çözdüğü sorun:</span> Arka plan oynarken yazıyı arka plandan ayırmak — hareket farkını kullanarak.</div>
+</div>
+
+<div class="note">Bu üç yöntemin önüne yanlış segment (yazısız film görüntüsü) konursa hepsi çöp üretir. Doğru segmenti doğru yönteme yollayan "Bekçi" (görsel-dil modeli) bu yüzden kritiktir; model envanteri belgesinde anlatılmıştır.</div>
+
+</body>
+</html>
