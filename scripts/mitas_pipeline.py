@@ -14,7 +14,8 @@ Kullanim:
   (test icin hizli:) --asr-max-seconds 120 --ocr-head 60 --ocr-tail 120 --fps 2
 """
 from __future__ import annotations
-import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata
+import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os
+import urllib.request, urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -139,6 +140,37 @@ def xml_original(video: Path) -> str:
         return ""
 
 
+def xml_roles(video: Path) -> dict:
+    """Video yanindaki <stem>.xml sidecar'dan rol listelerini cikar (rol akli ankraji).
+
+    BEAN/PROPERTY: isim = V_ROL_FIRST + V_ROL_LAST, rol = V_ROLE_TYPE.
+    (_hile_manifest.xml_data ile AYNI mantik: YONETMEN->yonetmen, YAPIM->yapimci,
+    OYUNCU/ROL->oyuncu.) XML yoksa/bossa {} doner → _pipe_pdf'e arg verilmez."""
+    oy, yon, yap = [], [], []
+    try:
+        import xml.etree.ElementTree as ET
+        xp = video.with_suffix(".xml")
+        if not xp.exists():
+            return {}
+        root = ET.parse(str(xp)).getroot()
+        for b in root.iter("BEAN"):
+            d = {p.attrib.get("NAME", ""): (p.text or "").strip() for p in b.findall("PROPERTY")}
+            nm = (d.get("V_ROL_FIRST", "") + " " + d.get("V_ROL_LAST", "")).strip()
+            rt = d.get("V_ROLE_TYPE", "").upper()
+            if not nm:
+                continue
+            if "YÖNETMEN" in rt or "YONETMEN" in rt:
+                yon.append(nm)
+            elif "YAPIM" in rt:
+                yap.append(nm)
+            elif "OYUNCU" in rt or "ROL" in rt:
+                oy.append(nm)
+    except Exception:  # noqa: BLE001
+        return {}
+    roles = {"oyuncu": oy, "yonetmen": yon, "yapimci": yap}
+    return roles if (oy or yon or yap) else {}
+
+
 def ffprobe_specs(video: Path):
     res = fps = dur = "—"
     dur_sec = 0.0
@@ -207,6 +239,81 @@ def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
     write_json(cj, rec)
 
 
+# --- Sonnet ozet (asr_server film dali ile AYNI mantik; bagimsiz kopya) ---
+# asr_server'i komple import ETMEYIZ (FastAPI app + agir yan etki); buraya hafif
+# bir kopya konur. Prompt/parametreler core/api/asr_server.py ile SENKRON tutulur.
+OZET_PROMPT_PATH = PROJECT_ROOT / "core" / "api" / "prompts" / "ozet_film.txt"
+OZET_MAX_SOURCE_CHARS = 60000     # asr_server SUMMARY_MAX_SOURCE_CHARS
+OZET_MAX_TOKENS = 1500            # asr_server SUMMARY_MAX_TOKENS
+OZET_TIMEOUT_SECONDS = 90         # asr_server SUMMARY_TIMEOUT_SECONDS
+
+
+def _ozet_source_text(transcript: str) -> str:
+    """Uzun transcript'i kirp (asr_server._summary_source_text ile ayni)."""
+    if len(transcript) <= OZET_MAX_SOURCE_CHARS:
+        return transcript
+    head = transcript[:25000]
+    middle_start = max(0, len(transcript) // 2 - 7500)
+    middle = transcript[middle_start:middle_start + 15000]
+    tail = transcript[-20000:]
+    return f"{head}\n\n[... orta bolumden secki ...]\n\n{middle}\n\n[... son bolum ...]\n\n{tail}"
+
+
+def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
+    """Transcript'ten Sonnet ile film/dizi olay-orgusu ozeti uretir (spoiler dahil).
+
+    ANTHROPIC_API_KEY yoksa, prompt dosyasi yoksa, transcript bossa veya istek
+    cokerse None doner — cagiran taraf placeholder'a geri duser. Pipeline'i ASLA
+    cokertmez (tum hatalar yutulur).
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None
+    text = (transcript_text or "").strip()
+    if not text:
+        return None
+    try:
+        system_content = OZET_PROMPT_PATH.read_text(encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        return None
+    if not system_content.strip():
+        return None
+    source = _ozet_source_text(text)
+    user_msg = (
+        f"Dosya: {title or '—'}\n"
+        f"Süre: {duration or '—'}\n\n"
+        f"TRANSKRİPT:\n{source}"
+    )
+    model = os.environ.get("MITAS_ANTHROPIC_MODEL", "claude-sonnet-4-6")
+    body = {
+        "model": model,
+        "max_tokens": OZET_MAX_TOKENS,
+        "temperature": 0.2,
+        "system": system_content,
+        "messages": [{"role": "user", "content": user_msg}],
+    }
+    request = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=OZET_TIMEOUT_SECONDS) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        blocks = payload.get("content", [])
+        content = next((b.get("text") for b in blocks if b.get("type") == "text"), None)
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+    except Exception:  # noqa: BLE001 — timeout/URLError/JSON vs.: sessiz fallback
+        return None
+    return None
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
@@ -229,6 +336,7 @@ def main(argv=None) -> int:
 
     trt, title, prof_from_id, bolum = parse_filename(video)
     original = xml_original(video)              # XML <TITLE> → afiş orijinal ad (yabancı film)
+    xml_role_map = xml_roles(video)             # XML rol listeleri → rol aklı ankrajı (yoksa {})
     film_year = trt.split("-")[0] if trt else ""  # TRT katalog yılı (zayıf ayraç; afişte kadro birincil)
     raw_profile = (args.profile or "").strip().lower()
     if raw_profile in ("", "film_dizi", "filmdizi", "film/dizi", "auto"):
@@ -299,26 +407,65 @@ def main(argv=None) -> int:
         log_event("cozumleme_failed", level="error", summary=f"ÇÖZ blogu hata: {exc}",
                   module="pipeline", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
-    # ===== BLOK OCR (kunye) =====
+    # ===== BLOK OCR + ASR (paralel) =====
     ocr_bucket = "ATLANDI"
     ocr_lines = 0
     ocr_job = f"ocr-{uuid4().hex[:8]}"
     ocr_out = clip_dir / "ocr" / ocr_job
     kunye_path = ocr_out / "kunye.txt"
+    asr_status = "ATLANDI"
+    asr_job = f"asr-{uuid4().hex[:8]}"
+    asr_out = clip_dir / "asr" / asr_job / "run"
+    asr_info = {}
+
+    # OCR komutu hazırla
+    ocr_proc = None
+    t_ocr = None
     if not args.no_ocr:
-        t0 = time.perf_counter()
+        frame_dirs = [str(giris_frames)]
+        if cikis_frames.exists() and any(cikis_frames.glob("*.png")):
+            frame_dirs.append(str(cikis_frames))
+        ocr_cmd = [str(PY_OCR), str(HERE / "_pipe_ocr.py"), "--frames", *frame_dirs,
+                   "--out", str(ocr_out), "--profile", profile]
         log_event("ocr_started", summary=f"{video.name} icin OCR kunye basladi.",
                   module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, detail={"clip_id": clip_id})
+        ocr_proc = subprocess.Popen(ocr_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    text=True, encoding="utf-8", errors="replace")
+        t_ocr = time.perf_counter()
+
+    # ASR komutu hazırla ve başlat
+    asr_proc = None
+    t_asr = None
+    if not args.no_asr:
+        asr_in = audio_path if audio_path.exists() else video
+        asr_cmd = [str(PY_ASR), str(HERE / "_pipe_asr.py"), "--input", str(asr_in),
+                   "--out", str(asr_out), "--media-id", media_id, "--job-id", asr_job,
+                   "--content-profile", content_profile]
+        _pa = PROFILE_ASR.get(profile)
+        if _pa and _pa.get("lean"):
+            asr_cmd += ["--lean", "--model", _pa["model"],
+                        "--beam-size", str(_pa["beam_size"]), "--vad", _pa["vad"]]
+            if _pa.get("language") == "auto":
+                asr_cmd += ["--auto-language"]
+            elif _pa.get("language"):
+                asr_cmd += ["--language", _pa["language"]]
+        if args.asr_max_seconds and args.asr_max_seconds > 0:
+            asr_cmd += ["--max-seconds", str(args.asr_max_seconds)]
+        log_event("asr_started", summary=f"{video.name} icin ASR basladi (profil={content_profile}).",
+                  module="asr", media_id=media_id, filename=video.name, job_id=asr_job, detail={"clip_id": clip_id, "content_profile": content_profile})
+        asr_proc = subprocess.Popen(asr_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    text=True, encoding="utf-8", errors="replace")
+        t_asr = time.perf_counter()
+
+    # OCR sonucunu topla
+    if ocr_proc is not None:
         try:
-            frame_dirs = [str(giris_frames)]
-            if cikis_frames.exists() and any(cikis_frames.glob("*.png")):
-                frame_dirs.append(str(cikis_frames))
-            rc, out, err = run([PY_OCR, HERE / "_pipe_ocr.py", "--frames", *frame_dirs,
-                                "--out", str(ocr_out), "--profile", profile], timeout=3600)
+            out, err = ocr_proc.communicate(timeout=3600)
+            rc = ocr_proc.returncode
             j = last_json(out) or {}
             ocr_bucket = j.get("bucket", "HATA")
             ocr_lines = int(j.get("kunye_line_count") or 0)
-            timings["ocr"] = round(time.perf_counter() - t0, 2)
+            timings["ocr"] = round(time.perf_counter() - t_ocr, 2)
             st = j.get("status", "failed")
             update_clip_module(clip_dir, "ocr", "done" if st == "done" else "partial", ocr_job)
             log_event("ocr_completed" if st == "done" else "ocr_partial",
@@ -327,39 +474,23 @@ def main(argv=None) -> int:
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, duration_seconds=timings["ocr"],
                       detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "engine": j.get("engine"), "stderr": err[-300:] if rc else None})
         except Exception as exc:  # noqa: BLE001
-            timings["ocr"] = round(time.perf_counter() - t0, 2)
+            timings["ocr"] = round(time.perf_counter() - (t_ocr or time.perf_counter()), 2)
             ocr_bucket = "HATA"
+            try:
+                ocr_proc.kill()
+            except Exception:  # noqa: BLE001
+                pass
             update_clip_module(clip_dir, "ocr", "failed", ocr_job)
             log_event("ocr_failed", level="error", summary=f"OCR blogu hata: {exc}",
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, error=str(exc), detail={"clip_id": clip_id})
 
-    # ===== BLOK ASR (transcript) =====
-    asr_status = "ATLANDI"
-    asr_job = f"asr-{uuid4().hex[:8]}"
-    asr_out = clip_dir / "asr" / asr_job / "run"
-    asr_info = {}
-    if not args.no_asr:
-        t0 = time.perf_counter()
-        log_event("asr_started", summary=f"{video.name} icin ASR basladi (profil={content_profile}).",
-                  module="asr", media_id=media_id, filename=video.name, job_id=asr_job, detail={"clip_id": clip_id, "content_profile": content_profile})
+    # ASR sonucunu topla
+    if asr_proc is not None:
         try:
-            asr_in = audio_path if audio_path.exists() else video
-            cmd = [PY_ASR, HERE / "_pipe_asr.py", "--input", str(asr_in), "--out", str(asr_out),
-                   "--media-id", media_id, "--job-id", asr_job, "--content-profile", content_profile]
-            _pa = PROFILE_ASR.get(profile)
-            if _pa and _pa.get("lean"):  # PROFIL_KONFIG: film_dizi → lean (özet-transcript)
-                cmd += ["--lean", "--model", _pa["model"],
-                        "--beam-size", str(_pa["beam_size"]), "--vad", _pa["vad"]]
-                if _pa.get("language") == "auto":      # film → kanal-dil tespiti
-                    cmd += ["--auto-language"]
-                elif _pa.get("language"):              # dizi → tr (sabit)
-                    cmd += ["--language", _pa["language"]]
-            if args.asr_max_seconds and args.asr_max_seconds > 0:
-                cmd += ["--max-seconds", str(args.asr_max_seconds)]
-            rc, out, err = run(cmd, timeout=7200)
+            out, err = asr_proc.communicate(timeout=7200)
             asr_info = last_json(out) or {"status": "failed", "error": err[-400:]}
             asr_status = asr_info.get("status", "failed")
-            timings["asr"] = round(time.perf_counter() - t0, 2)
+            timings["asr"] = round(time.perf_counter() - t_asr, 2)
             update_clip_module(clip_dir, "asr", "done" if asr_status == "done" else ("partial" if asr_status == "partial" else "failed"), asr_job)
             kind = {"done": "asr_completed", "partial": "asr_partial"}.get(asr_status, "asr_failed")
             log_event(kind, level="info" if asr_status in ("done", "partial") else "error",
@@ -369,8 +500,12 @@ def main(argv=None) -> int:
                               "fallback_triggered": asr_info.get("fallback_triggered"), "profile_used": asr_info.get("profile_used"),
                               "error": asr_info.get("error")})
         except Exception as exc:  # noqa: BLE001
-            timings["asr"] = round(time.perf_counter() - t0, 2)
+            timings["asr"] = round(time.perf_counter() - (t_asr or time.perf_counter()), 2)
             asr_status = "failed"
+            try:
+                asr_proc.kill()
+            except Exception:  # noqa: BLE001
+                pass
             update_clip_module(clip_dir, "asr", "failed", asr_job)
             log_event("asr_failed", level="error", summary=f"ASR blogu hata: {exc}",
                       module="asr", media_id=media_id, filename=video.name, job_id=asr_job, error=str(exc), detail={"clip_id": clip_id})
@@ -380,10 +515,36 @@ def main(argv=None) -> int:
     pdf_info = {}
     t0 = time.perf_counter()
     try:
-        # ozet: simdilik transcript onizleme (kalip ozet sonraki adim)
+        # ozet: ASR transcript'inden Sonnet ile gercek olay-orgusu ozeti.
+        # transcript_plain.txt = _pipe_asr.py'nin yazdigi tam temiz metin (asr_out/).
+        # Key yok / transcript yok / istek coker → eski placeholder davranisi korunur.
         ozet = "(Özet ayrı bir adımda üretilecektir.)"
         if asr_info.get("transcript_head"):
             ozet = "(Ham transcript önizleme — kalıp özet sonra) " + asr_info["transcript_head"]
+        transcript_txt_path = asr_out / "transcript_plain.txt"
+        transcript_text = ""
+        if transcript_txt_path.exists():
+            try:
+                transcript_text = transcript_txt_path.read_text(encoding="utf-8").strip()
+            except Exception:  # noqa: BLE001
+                transcript_text = ""
+        if transcript_text:
+            real_ozet = _generate_ozet(transcript_text, title=title, duration=dur)
+            if real_ozet:
+                ozet = real_ozet
+                log_event("ozet_completed",
+                          summary=f"{video.name}: Sonnet ozeti uretildi ({len(real_ozet)} karakter).",
+                          module="summary", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "ozet_chars": len(real_ozet), "transcript_chars": len(transcript_text)})
+            else:
+                log_event("ozet_atlandi", level="warn",
+                          summary=f"{video.name}: Sonnet ozeti uretilemedi (key yok / istek bos / hata) — placeholder kaldi.",
+                          module="summary", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "transcript_chars": len(transcript_text)})
+        else:
+            log_event("ozet_atlandi", level="info",
+                      summary=f"{video.name}: transcript yok (ASR atlandi/bos) — ozet uretilmedi.",
+                      module="summary", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
         cmd = [PY_PDF, HERE / "_pipe_pdf.py", "--kunye", str(kunye_path), "--out", str(pdf_out),
                "--title", title, "--trt-id", trt or "", "--profile", "film" if is_film else "dizi",
                "--resolution", res, "--fps", fps_s, "--duration", dur, "--ozet", ozet]
@@ -393,6 +554,8 @@ def main(argv=None) -> int:
             cmd += ["--original", original]
         if film_year:                      # afiş: çok-sürümde yedek ayraç (kadro teyidi birincil)
             cmd += ["--year", film_year]
+        if xml_role_map:                   # rol aklı: XML rol ankrajı (yoksa arg verilmez → eski davranış)
+            cmd += ["--xml-roles", json.dumps(xml_role_map, ensure_ascii=False)]
         # film/dizi → ses & altyazı bloğu: kaynak video + (ASR yazdıysa) kanal-dil JSON
         _pa_pdf = PROFILE_ASR.get(profile)
         if _pa_pdf and _pa_pdf.get("language") == "auto":
