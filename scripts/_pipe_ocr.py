@@ -28,6 +28,11 @@ PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
 CLEAN = PY_OCR_DIR / "20260601_clean.py"
 
+# Kare-secim KALICILIK esikleri (Cagatay yontemi): gercek jenerik = KESINTISIZ uzun blok.
+# Acilis sahne-ustu kredi + altyazi KISA-aralikli bloklar verir -> elenir.
+CREDIT_MIN_RUN = 10   # CLIP-kredi blogu en az bu kadar kare KESINTISIZ surmeli (fps2 -> ~5 sn)
+CREDIT_RUN_GAP = 3    # blok ici tolere edilen bosluk (CLIP tek kare kacirsa blok kopmasin)
+
 
 def _load(name: str, path: Path):
     """importlib mutlak-yol modul yukleyici (credit_parse/_pipe_pdf _load kalibi)."""
@@ -180,7 +185,13 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         cred = cp.class_embed(model, tok, cp.CREDIT_PROMPTS)
         scene = cp.class_embed(model, tok, cp.SCENE_PROMPTS)
         ps = cp.med_smooth(cp.score_frames(model, preprocess, frame_paths, cred, scene, ls), 5)
-        idx = [i for i in range(len(ps)) if ps[i] >= THR]
+        # KALICILIK (Cagatay): dağınık tek-tük yuksek kare DEGIL, KESINTISIZ uzun blok = jenerik.
+        # Acilis sahne-ustu kredi+altyazi kisa-aralikli bloklar verir (elenir); gercek jenerik
+        # (acilista uzun VEYA kapanista surekli) >=CREDIT_MIN_RUN kare suren blok = alinir.
+        _runs = cp.runs_of(ps >= THR, gap=CREDIT_RUN_GAP, minlen=CREDIT_MIN_RUN)
+        idx = [i for a, b in _runs for i in range(int(a), int(b) + 1)]
+        if not idx:  # hicbir uzun blok yok (kisa-jenerikli/dip-kalite) -> eski davranisa dus, kapsama kaybetme
+            idx = [i for i in range(len(ps)) if ps[i] >= THR]
     except Exception as exc:  # noqa: BLE001 - CLIP coker -> tum kareler
         print(f"[pipeline100] CLIP bekci atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
         clip_ok = False

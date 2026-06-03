@@ -51,6 +51,7 @@ def classify(t):
     if n == 1: return "frag"                                # tek-kelime satır kredi olamaz (isimler >=2 kelime)
     if not has_role(low):
         bare = set(re.sub(r"[.,!?\"]", " ", low).split())
+        if "?" in t: return "sentence"                      # soru işareti = diyalog/altyazı (künyede soru olmaz; isim/rol asla elenmez)
         if n >= 7: return "sentence"
         if (bare & VERBS) and n >= 3: return "sentence"
         if n >= 4 and sum(1 for w in bare if w in FUNC) >= 2: return "sentence"
