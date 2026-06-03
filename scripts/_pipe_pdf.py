@@ -71,19 +71,41 @@ def _load_json(path):
     return None
 
 
+_LANG_CODES = {
+    "türkçe": "TR", "turkce": "TR", "türk": "TR", "tr": "TR",
+    "ingilizce": "EN", "english": "EN", "en": "EN",
+    "almanca": "DE", "german": "DE", "de": "DE",
+    "fransızca": "FR", "french": "FR", "fr": "FR",
+    "arapça": "AR", "arabic": "AR", "ar": "AR",
+    "rusça": "RU", "russian": "RU", "ispanyolca": "ES", "italyanca": "IT",
+}
+
+
+def _lang_code(s):
+    """Dil adini koda cevir: Türkçe->TR, English->EN. Bilinmeyen->ilk 2 harf (BUYUK)."""
+    t = (s or "").strip().lower()
+    if not t:
+        return "—"
+    for k, v in _LANG_CODES.items():
+        if k in t:
+            return v
+    return t.upper()[:2]
+
+
 def _derive_audio(cl):
     """cl = _channel_lang.main() çıktısı VEYA _pipe_asr detect_info ({units, selected}).
-    → (ses_kanallari[:4], ana_dil, sesler_ic_ice) | None."""
+    → (ses_kanallari[:4] dil-KODU, ana_dil KODU, sesler_ic_ice) | None.
+    Dil adlari TR/EN/... koduna cevrilir (kullanici kurali: 'Türkçe' degil 'TR')."""
     if not cl:
         return None
     units = cl.get("units") or []
     speech = [u for u in units if u.get("role") == "konuşma"]
-    ses = [u.get("label", "—") for u in units[:4]] or None
+    ses = [_lang_code(u.get("label", "")) for u in units[:4]] or None
     ana = cl.get("summary_language") or (cl.get("selected") or {}).get("language")
     ic = cl.get("sesler_ic_ice")
     if ic is None:
         ic = any(u.get("mixed") for u in speech)
-    return ses, (ana or "—").upper(), bool(ic)
+    return ses, _lang_code(ana), bool(ic)
 
 
 def audio_subtitle_block(args) -> dict:

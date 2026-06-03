@@ -158,7 +158,7 @@ def build(path, d):
         hair(c, sy - 24, RM, RW - RM, RAIL_HAIR, 0.5)
         sy -= 42
 
-    _stamp = d.get("stamp", "ÖRNEK · TEMSİLÎ VERİ")
+    _stamp = d.get("stamp", "")  # gercek belge: damga yok (istenirse d["stamp"] verilir)
     if _stamp:
         tracked(c, RM, 46, _stamp, SANS_SB, 6.6, ACCENT, 1.3)
 
