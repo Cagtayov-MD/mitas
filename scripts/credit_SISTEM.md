@@ -18,7 +18,8 @@ credit_video_read.py   ── VLM ensemble: gemma4:26b + qwen2.5vl:7b (think=Fal
    ▼
 credit_video_batch.py  ── seri üzerinde resumable koşar → outputs/credit_video/<film>.json + _OZET.tsv
    ▼
-[production: → role_reconcile + XML + _pipe_pdf → kunye.pdf]   ← BEKLEYEN entegrasyon
+[production: mitas_pipeline ──(flag MITAS_USE_VIDEO_CREDITS)── _pipe_credit_video → _pipe_pdf --video-credits
+              AUGMENT (cast birleştir + yönetmen/yapımcı crew'e ekle) → role_reconcile+XML → kunye.pdf]  ✅ ENTEGRE
    ▼
 credit_qc.py           ── teslimat KALİTE KONTROL (MÜDAHALE ETMEZ, SINIFLANDIRIR)
        • deterministik: yönetmen boş/alt-rol/çöp, yapımcı, cast, özet hata/mojibake, ses&altyazı(v4)
@@ -47,7 +48,9 @@ python scripts/credit_qc.py [--visual]                          # teslimatları 
 python scripts/credit_role_lexicon.py                           # lexicon self-test
 ```
 
-## BEKLEYEN (Çağatay: "MUTLAKA HATIRLAT")
-1. Bu sistemi **production `mitas_pipeline`'a göm** (master-OCR yerine/yanında → role_reconcile + QC → Hazır/Kontrol).
-2. **Otonom XML/IMDb çapraz-kontrol** — kimlik = XML orijinal-ad + cast (katalog numarası DEĞİL); asla otomatik düzeltmez, örtüşme/çelişki raporlar.
-3. Ufak: yazım-kayması (Smight→Smith) düzeltmesi; şüphelileri içerikten doğrulama.
+## ENTEGRASYON DURUMU
+✅ **Pipeline entegrasyonu TAMAM** (flag `MITAS_USE_VIDEO_CREDITS=1`). mitas_pipeline'da ASR sonrası (GPU serbest) video bloğu → `_pipe_pdf --video-credits` AUGMENT. Flag KAPALI = sıfır etki (production varsayılanı). 4 adım smoke-test'ten geçti (flag-ON video_kunye+olay+Hazır; flag-OFF regresyon temiz). **Açmak için:** akış worker'ı/asr_server ortamına `MITAS_USE_VIDEO_CREDITS=1` ekle (maliyet ~+60s/film).
+
+## BEKLEYEN
+1. **Otonom XML/IMDb çapraz-kontrol** — kimlik = XML orijinal-ad + cast (katalog numarası DEĞİL); asla otomatik düzeltmez, örtüşme/çelişki raporlar.
+2. Ufak: cast augment önceliği (video-önce mi OCR-önce mi), yazım-kayması (Smight→Smith) düzeltmesi, QC `--visual` GPU testi.
