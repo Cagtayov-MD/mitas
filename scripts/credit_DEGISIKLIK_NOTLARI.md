@@ -33,6 +33,14 @@ Her satır: NE eklendi + NASIL yeniden doğrulanır (smoke). Bağımsız çalı�
 | teslimat klasörleri | `teslimat/{export,hazir,kontrol}` | mevcut |
 | süre raporu | `pipeline_timing.py` | `python scripts/pipeline_timing.py` → klip başına dk + ort/min/max |
 
+## E. Idea 2 — otonom çapraz-kontrol (Wikidata + IMDb, birinci-sınıf)
+| Değişiklik | Dosya | Yeniden-doğrulama |
+|---|---|---|
+| Çapraz-kontrol modülü (Wikidata mitas.duckdb + IMDb imdb.duckdb) — kimlik Türkçe-başlık-önce, otoriter yön/cast, TEYİT/ÇELİŞKİ/KAYNAK_YOK, **düzeltmez raporlar** | `credit_crosscheck.py` | `python scripts/credit_crosscheck.py --baslik "AHLAT AĞACI" --yonetmen "Nuri Bilge Ceylan" --yil 2018` → TEYİT |
+| Klasik gold testi | `credit_crosscheck_goldtest.py` | `python scripts/credit_crosscheck_goldtest.py` → **16/16** (14 TEYİT + 2 ÇELİŞKİ yakalama) |
+
+**Kaynaklar (kalıcı/birinci-sınıf):** Wikidata `works_master` (label_tr/director/cast_member/imdb_id) + `qid_labels` (Türkçe isim); IMDb `titles/akas/crew/principals/names`. Kimlik = Türkçe başlık (katalog no DEĞİL — Yabandan→Sergio Leone kanıtı). 300 gibi kısa başlıkta **exact-first** retrieval. Çelişki yakalama: Murat Cemir / Jean-Louis Godfroy → ÇELİŞKİ.
+
 ## Bilinen sınırlar / tunable
 - cast augment OCR-önce (video cast OCR 8 doluysa eleniyor) — video-önce yapılabilir.
 - mutabakat bile nadir yanılır (içerik nihai hakem; katalog/XML ~%90).
