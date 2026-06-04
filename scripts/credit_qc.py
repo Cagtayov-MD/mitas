@@ -161,23 +161,40 @@ def _fold_in(name, lst):
     return False
 
 def xml_check(d, clipdir, durum):
-    """Teslimat XML V_ROLE_TYPE ile uyumlu mu? (XML YOKSA boş = kontrol yok)."""
+    """XML ile İSİM eşleşmesi: yönetmen + oyuncu (başka alan DEĞİL). XML YOKSA boş.
+    Not: XML ~%90 güvenilir, KESİN değil -> 'uyumsuz' = KARŞILIKLI uyarı (XML otomatik kazanmaz)."""
     xmlp = find_xml(clipdir, durum)
     if not xmlp:
         return []
     xr = xml_roles(xmlp)
     flags = []
+    # YÖNETMEN ismi tutuyor mu
     if xr["yonetmen"]:
         if _empty(d["yonetmen"]):
-            flags.append(("XML_YON_VAR_TESLIM_YOK", f"XML'de yönetmen var, teslimde yok: {xr['yonetmen'][0]}"))
+            flags.append(("XML_YON_VAR_TESLIM_YOK", f"XML yönetmen var, teslimde yok: {xr['yonetmen'][0]}"))
         elif not _fold_in(d["yonetmen"], xr["yonetmen"]):
-            flags.append(("XML_YON_UYUMSUZ", f"yönetmen uyumsuz: XML '{xr['yonetmen'][0]}' ≠ teslim '{d['yonetmen'][:30]}'"))
-    if xr["yapimci"]:
-        if _empty(d["yapimci"]):
-            flags.append(("XML_YAP_VAR_TESLIM_YOK", f"XML'de yapımcı var, teslimde yok: {xr['yapimci'][0]}"))
-        elif not _fold_in(d["yapimci"], xr["yapimci"]):
-            flags.append(("XML_YAP_UYUMSUZ", f"yapımcı uyumsuz: XML '{xr['yapimci'][0]}'"))
+            flags.append(("XML_YON_UYUMSUZ", f"yönetmen: XML '{xr['yonetmen'][0]}' ≠ teslim '{d['yonetmen'][:30]}'"))
+    # OYUNCU isimleri örtüşüyor mu (XML aktörlerinden hiçbiri teslim cast'inde yoksa)
+    cast = [c for c in d["oyuncular"] if not _empty(c)]
+    if xr["oyuncu"] and cast and not any(_fold_in(a, cast) for a in xr["oyuncu"]):
+        flags.append(("XML_CAST_UYUMSUZ", f"oyuncu örtüşmüyor: XML {', '.join(xr['oyuncu'][:2])}"))
     return flags
+
+def stamp_pdf_warning(pdf_path, cats):
+    """Dağıtım KOPYASININ PDF'ine küçük uyarı damgası (orijinal Database'e DOKUNMAZ).
+    XML isim uyuşmazlığında 'tutmadı' işareti — fitz ile, sağ üst köşe, küçük kırmızı."""
+    try:
+        import fitz
+        doc = fitz.open(pdf_path)
+        pg = doc[0]
+        msg = "(!) XML uyusmuyor: " + ", ".join(c.replace("XML_", "").replace("_", " ").lower() for c in cats)
+        pg.insert_text((pg.rect.width - 250, 16), msg[:70], fontsize=7, color=(0.85, 0, 0))
+        doc.save(pdf_path, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+        doc.close()
+        return True
+    except Exception as e:
+        sys.stderr.write(f"[uyari] pdf damga: {type(e).__name__} {e}\n")
+        return False
 
 def visual_check(png, model=VISUAL_MODEL):
     """qwen-VL/gemma onizleme gorseli QC -> [(kategori,sebep)]. GPU gerektirir."""
@@ -221,6 +238,12 @@ def route_and_log(clip, title, pdfdir, flags, dest):
         if os.path.exists(src):
             try: shutil.copy2(src, target)
             except Exception: pass
+    # XML isim uyuşmazlığı -> dağıtım kopyasının PDF'ine küçük uyarı damgası ("o kadar")
+    xml_cats = [c for c, _ in flags if c.startswith("XML_")]
+    if xml_cats:
+        p = os.path.join(target, "kunye.pdf")
+        if os.path.exists(p):
+            stamp_pdf_warning(p, xml_cats)
     if flags:
         _excel_append(os.path.join(kontrol, "_kontrol_kayit.xlsx"), clip, title, flags)
     return "kontrol" if flags else "hazir"
