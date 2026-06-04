@@ -81,11 +81,29 @@ def is_abstain(v):
     s = re.sub(r"^[^a-z0-9]+|[^a-z0-9]+$", "", fold(v))   # <NAME>, <yok>, ":" gibi kenar işaretlerini soy
     return s in ABSTAIN_TOKENS or s == "" or s in {"isim", "name", "ad"}
 
+# prompt-echo / rol-başlık çöpü: model bazen prompt format metnini ("Producer/Yapımcı/... yanındaki isim")
+# isim sanıp yazıyor -> bunları ele
+_ROLE_HEAD_WORDS = {"yapimci", "yapim", "producer", "produced", "production", "executive",
+                    "yonetmen", "yoneten", "rejisor", "director", "directed", "direction",
+                    "oyuncular", "oyuncu", "cast", "starring", "isim", "isimler", "name"}
+def _is_junk(name):
+    if any(ch in name for ch in "<>|"):
+        return True
+    f = fold(name)
+    if any(w in f for w in ("yanindaki", "isimler", "veya", " yok")):
+        return True
+    toks = f.split()
+    if not toks:
+        return True
+    if toks[0] in _ROLE_HEAD_WORDS or all(t in _ROLE_HEAD_WORDS for t in toks):
+        return True
+    return False
+
 def split_names(v):
     if is_abstain(v):
         return []
     parts = re.split(r"[,/|]| ve ", v)
-    return [p.strip() for p in parts if p.strip() and not is_abstain(p)]
+    return [p.strip() for p in parts if p.strip() and not is_abstain(p) and not _is_junk(p)]
 
 def parse_field(text, key):
     for line in (text or "").splitlines():
@@ -109,7 +127,9 @@ def sample_basson(frames, budget=BUDGET, long_thr=LONG_THR, end_win=END_WIN):
     return _even(frames, budget)
 
 def list_frames(d):
-    return sorted(glob.glob(os.path.join(d, "f_*.png")) + glob.glob(os.path.join(d, "*.jpg")))
+    # f_*: tester/batch · g_*/c_*: production (extract_window giris/cikis) · *.jpg: ffmpeg
+    return sorted(glob.glob(os.path.join(d, "f_*.png")) + glob.glob(os.path.join(d, "g_*.png"))
+                  + glob.glob(os.path.join(d, "c_*.png")) + glob.glob(os.path.join(d, "*.jpg")))
 
 # ------------------------- VLM cagrisi -------------------------
 def _encode(path):
