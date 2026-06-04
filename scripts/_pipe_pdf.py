@@ -210,6 +210,7 @@ def main(argv=None) -> int:
     ap.add_argument("--xml-yonetmen", default="")
     ap.add_argument("--xml-yapimci", default="")
     ap.add_argument("--xml-roles", default="")   # tek JSON: {"oyuncu":[...],"yonetmen":[...],"yapimci":[...]}
+    ap.add_argument("--video-credits", default="")  # video-künye JSON {yonetmen,yapimci,cast} (flag; "" → atla, eski davranış)
     args = ap.parse_args(argv)
 
     out = Path(args.out)
@@ -221,6 +222,34 @@ def main(argv=None) -> int:
     dizi = cp.is_dizi(args.profile, args.trt_id or args.title)
     profile_label = "DİZİ" if dizi else "FİLM"
     cast, crew = cp.parse_credits(raw, args.title, dizi=dizi)
+    # --- video-künye AUGMENT (flag): cast birleştir + yönetmen/yapımcı crew'e ekle ---
+    # Sadece --video-credits verildiyse (mitas_pipeline flag açıkken) çalışır; "" → atla.
+    # reconcile (aşağıda) augmented veriyi XML+KB ile temizler = ikinci savunma. REPLACE değil AUGMENT.
+    if args.video_credits:
+        try:
+            _vc = json.loads(args.video_credits)
+        except Exception:  # noqa: BLE001
+            _vc = {}
+        def _vfold(s):
+            for a, b in (("ö","o"),("ü","u"),("ı","i"),("ş","s"),("ğ","g"),("ç","c"),("İ","i")):
+                s = s.replace(a, b)
+            return s.lower()
+        _vcast = [c for c in (_vc.get("cast") or []) if c and str(c).strip()]
+        if _vcast:
+            cast = cp._dedup(list(cast) + _vcast)
+            if not dizi:
+                cast = cast[:8]
+        def _aug_crew(crew, kw, label, names):
+            names = [n for n in (names or []) if n and str(n).strip()]
+            if not names:
+                return crew
+            crew = list(crew)
+            for i, (rol, lst) in enumerate(crew):
+                if kw in _vfold(rol):
+                    crew[i] = (rol, cp._dedup(list(lst) + names)); return crew
+            crew.append((label, cp._dedup(names))); return crew
+        crew = _aug_crew(crew, "yonet", "Yönetmen", _vc.get("yonetmen"))
+        crew = _aug_crew(crew, "yapim", "Yapımcı", _vc.get("yapimci"))
     # --- rol aklı: OCR rollerini XML (birincil) + meslek-DB (ikincil) ile düzelt ---
     # normalize'den ÖNCE (XML eşleşmesi ham OCR isimleriyle, fold credit_parse'tan).
     # DB/duckdb global python'da çökerse reconcile XML-only veya no-op; ASLA pipeline'ı bozma.
