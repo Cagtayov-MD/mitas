@@ -41,6 +41,17 @@ python scripts/credit_video_read.py --giris <dir> --cikis <dir>
 # ortam: MITAS_CREDIT_MODELS, MITAS_IMDB_DUCKDB, MITAS_OLLAMA
 ```
 
+## GÜNCELLEME 2026-06-04 — model seçimi: gemma4:26b primary
+12-film yönetmen skoru (baş+son + KB):
+- **gemma4:26b: 8/12 doğru, 0 yanlış, ~17GB (RAHAT)** ← en iyi tek model
+- qwen2.5vl:7b: 8/12, **1 yanlış**, ~6GB (bol ama gürültülü cast)
+- qwen3-vl:30b: 5/12, 0 yanlış, ~23GB (sınırda, bazen boş) → **emekli edildi**
+- gemma4:e4b: **elendi** (1964 filmine "Steve Martin/Belushi" halüsinasyonu)
+
+**Varsayılan ensemble = `gemma4:26b` + `qwen2.5vl:7b`.** Mutabakat (ikisi aynı) → YÜKSEK güven; çelişki → KB-onaylı; ikisi de yoksa "okunamadı". Doğrulama (XMEN): YÖNETMEN Bryan Singer [mutabakat], YAPIMCI Richard Donner/Tom DeSanto, 8 temiz oyuncu.
+
+**Verim:** `read_credits` model-dış döngü (film başına model başına 1 yükleme) + `keep_alive=10m` → gemma↔7b swap'i en aza. Süre ~92s/film (gemma ~66 + 7b ~29). Tek-gemma ~66s/film.
+
 ## Sıradaki iyileştirmeler (açık)
 - **OCR-çapalı hedefli okuma:** ucuz per-frame OCR (OneOCR/glm-ocr) ile "Yönetmen/Directed by" kartını LOKALİZE et, sadece o kareleri VLM'e ver → abstain'leri düşürür, daha verimli, halüsinasyonu azaltır.
 - **Kare dedup:** ardışık aynı kartları ele, yalnız benzersiz kartları gönder.

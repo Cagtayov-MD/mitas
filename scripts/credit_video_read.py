@@ -11,8 +11,9 @@ NEDEN bu yaklasim (2026-06-04, E:\\filmtest\\aaaa 12-film dogrulamasi):
     BAŞINDA (cast+producer) ve bazen SONUNDA (kapanis "Directed by" karti) olur;
     ortadaki dev crew scroll bizim icin gereksiz. Ilk END_WIN + son END_WIN kareye
     yogun ornek, ortayi atla. (JURASSIC yonetmeni basta, XMEN yonetmeni sonda -> ikisi de yakalandi.)
-  - 2-MODEL ENSEMBLE: qwen3-vl:30b (precision, 0 yanlis ama bazen bos/dusuk kapsam)
-    + qwen2.5vl:7b (yuksek kapsam + bol cast ama gurultulu/nadiren yanlis). Tamamlayicilar.
+  - 2-MODEL ENSEMBLE: gemma4:26b (EN IYI tek model: 12-film 8/12 dogru, 0 yanlis, ~17GB rahat sigar)
+    + qwen2.5vl:7b (kapsam + bol cast; nadiren yanlis/gurultulu). Tamamlayicilar; KB+mutabakat birlestirir.
+    (qwen3-vl:30b denendi: 5/12 + 23GB'de sinirda/bazen bos -> gemma4:26b ile degistirildi. gemma4:e4b elendi: halusinasyon.)
   - KB-FUSION: imdb.duckdb meslekleriyle NET rol-uyumsuzlugunu REDDET (ornek: senaristi
     "yapimci" diye okumayi keser). 0-kayitta REDDETME (Turkce/varyant olabilir) -> XML'e birak.
   - CELISKI COZUMU: iki model farkli yonetmen derse, KB-onaylananı sec; ikisi de onaysiz/celiskili
@@ -21,7 +22,7 @@ NEDEN bu yaklasim (2026-06-04, E:\\filmtest\\aaaa 12-film dogrulamasi):
 OPS DERSLERI:
   - Video coklu-kare /api/chat'te `think=False` SART (think=True yogun karede over-think->BOS).
     (Tek master PNG /api/generate'de TAM TERSI: think=True gerekiyordu — bu modul video-only.)
-  - qwen3-vl:30b ~19-23GB VRAM (24GB'de sinirda, bazen bos doner); qwen2.5vl:7b ~6GB (rahat, akisla paralel).
+  - VRAM: gemma4:26b ~17GB (24GB'de RAHAT, guvenilir); qwen2.5vl:7b ~6GB; (qwen3-vl:30b ~23GB sinirda idi).
   - Yonetmen/yapimci coğu PRODUKSIYON filminde XML'de zaten otoriter (role_reconcile); bu modul
     onun TAMAMLAYICISI ve XML'siz/yabanci filmler + CAST icin birincil.
 
@@ -45,7 +46,7 @@ import urllib.request
 
 # ------------------------- yapilandirma -------------------------
 OLLAMA_CHAT = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434") + "/api/chat"
-MODELS = os.environ.get("MITAS_CREDIT_MODELS", "qwen3-vl:30b,qwen2.5vl:7b").split(",")
+MODELS = os.environ.get("MITAS_CREDIT_MODELS", "gemma4:26b,qwen2.5vl:7b").split(",")
 IMDB_DUCKDB = os.environ.get("MITAS_IMDB_DUCKDB", r"Y:\DIGER\Mitas_Files\IMDB\db\imdb.duckdb")
 
 BUDGET = 36          # segment basina VLM'e gidecek kare sayisi
@@ -126,6 +127,7 @@ def read_segment(model, frames):
         "messages": [{"role": "user", "content": PROMPT, "images": [_encode(f) for f in frames]}],
         "stream": False,
         "think": False,
+        "keep_alive": "10m",   # modeli sicak tut -> ardisik cagrilarda yeniden yukleme yok
         "options": {"temperature": 0.1, "top_p": 0.9, "num_ctx": NUM_CTX,
                     "num_predict": NUM_PREDICT, "repeat_penalty": 1.3, "repeat_last_n": 256},
     }
@@ -230,16 +232,19 @@ def fuse(model_outputs, kb):
 def read_credits(giris_dir=None, cikis_dir=None, models=None, kb=None):
     models = models or MODELS
     kb = kb or KB()
-    outputs = {m: {} for m in models}
+    # kareleri segment basina BIR KEZ ornekle
+    seg_frames = {}
     for seg, d in (("giris", giris_dir), ("cikis", cikis_dir)):
-        if not d or not os.path.isdir(d):
-            continue
-        frames = sample_basson(list_frames(d))
-        if not frames:
-            continue
-        for m in models:
+        if d and os.path.isdir(d):
+            fr = sample_basson(list_frames(d))
+            if fr:
+                seg_frames[seg] = fr
+    # MODEL DISTA dongu: film basina her model 1 kez yuklenir (gemma<->7b swap'ini azaltir)
+    outputs = {m: {} for m in models}
+    for m in models:
+        for seg, fr in seg_frames.items():
             try:
-                outputs[m][seg] = read_segment(m, frames)
+                outputs[m][seg] = read_segment(m, fr)
             except Exception as e:
                 outputs[m][seg] = ""
                 sys.stderr.write(f"[uyari] {m}/{seg}: {type(e).__name__} {e}\n")
