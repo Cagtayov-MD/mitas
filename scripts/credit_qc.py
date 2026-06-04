@@ -1,0 +1,229 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+credit_qc.py — Final künye teslimat KALİTE KONTROL'ü (QC). MÜDAHALE ETMEZ; sadece SINIFLANDIRIR.
+
+Akış: Database/<clip>/pdf/{kunye_teslim.md, kunye_onizleme.png} okur ->
+  - DETERMİNİSTİK metin kontrolleri (yönetmen boş/şüpheli, yapımcı, cast, özet hata/mojibake/büyükharf,
+    ses&altyazı mantığı, anahtar garble)  [credit_role_lexicon ile rol/alt-rol farkı]
+  - (opsiyonel) qwen-VL GÖRSEL kontrol (önizleme PNG: İ/Ğ/Ü glyph, afiş var mı, özet tutarlı/altyazı kaçmış mı)
+  -> temizse  dagitim/hazir/<clip>/   sorunluysa  dagitim/kontrol/<clip>/  (dosyalar KOPYALANIR, değişmez)
+  -> kontrol nedenleri  dagitim/kontrol/_kontrol_kayit.xlsx  'e işlenir (sebep+kategori -> patern analizi)
+
+Kullanim:
+  python scripts/credit_qc.py                       # tum Database cliplerini tara, route+excel
+  python scripts/credit_qc.py --clip 1              # tek clip
+  python scripts/credit_qc.py --visual              # qwen-VL gorsel QC de ekle (GPU)
+  python scripts/credit_qc.py --source <dir> --dest <dir>
+"""
+import argparse
+import base64
+import glob
+import json
+import os
+import re
+import shutil
+import sys
+import urllib.request
+from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import credit_role_lexicon as lex
+
+SRC = r"E:\MITAS\Database"
+DEST = r"E:\MITAS\dagitim"
+OLLAMA_CHAT = "http://127.0.0.1:11434/api/chat"
+VISUAL_MODEL = "gemma4:26b"
+
+VOWELS = set("AEIOUÜÖİIAEİÂÎÛ")
+def is_garble(w):
+    w2 = re.sub(r"[^A-Za-zĞÜŞİÖÇğüşıöç]", "", w)
+    return len(w2) >= 5 and not any(c.upper() in VOWELS for c in w2)
+
+def has_mojibake(s):
+    return bool(re.search(r"[ÃÂÄÅÆ�]|Ä±|Ã¼|Ã§|Ä", s or ""))
+
+DISCLAIMER = ("IZLEYECEGINIZ", "KABUL EDIYOR", "OLMADIGINDAN", "UYARI", "SORUMLU", "TELIF",
+              "BU FILM", "BU PROGRAM", "SADECE", "AMACLIDIR")
+
+def parse_md(path):
+    txt = open(path, encoding="utf-8", errors="replace").read()
+    data = {"_raw": txt, "oyuncular": [], "yonetmen": "", "yapimci": "",
+            "ozet": "", "ana_dil": "", "altyazi": "", "anahtar": ""}
+    sec = None
+    for line in txt.splitlines():
+        s = line.strip()
+        if s.startswith("## "):
+            sec = lex.norm(s[3:]); continue
+        if sec and "OYUNCULAR" in sec and s.startswith("- "):
+            data["oyuncular"].append(s[2:].strip())
+        elif sec and ("YAPIM" in sec) and s.startswith("-"):
+            v = s.lstrip("- ").strip()
+            if lex.norm(v).startswith("YAPIMCI"): data["yapimci"] = v.split(":",1)[-1].strip()
+            elif lex.norm(v).startswith("YONETMEN"): data["yonetmen"] = v.split(":",1)[-1].strip()
+        elif sec and ("SES" in sec or "ALTYAZ" in sec) and s.startswith("-"):
+            v = lex.norm(s)
+            if "ANA DIL" in v: data["ana_dil"] = v.split("ANA DIL")[-1].strip(" :")
+            if "ALTYAZ" in v: data["altyazi"] = v.split("ALTYAZ")[-1].replace("I","").strip(" :I")
+        elif sec and "OZET" in sec and s and not s.startswith("#"):
+            data["ozet"] += (" " + s)
+        elif sec and "ANAHTAR" in sec and s and not s.startswith("#"):
+            data["anahtar"] += (" " + s)
+    data["ozet"] = data["ozet"].strip()
+    return data
+
+EMPTY = {"", "-", "—", "–", "YOK", "OKUNAMADI", "N/A"}
+def _empty(v): return lex.norm(v) in {lex.norm(x) for x in EMPTY} or not v.strip()
+
+def det_checks(d, profile="film"):
+    """Deterministik kontroller -> [(kategori, sebep)]. Bos liste = temiz."""
+    flags = []
+    # YONETMEN
+    if _empty(d["yonetmen"]):
+        flags.append(("YONETMEN_BOS", "yönetmen alanı boş"))
+    else:
+        nv = lex.norm(d["yonetmen"])
+        if any(x in nv for x in lex.EXCLUDE):
+            flags.append(("YONETMEN_ALTROL", f"yönetmen alt-rol/şüpheli: {d['yonetmen'][:40]}"))
+        elif any(x in nv for x in DISCLAIMER) or any(is_garble(w) for w in d["yonetmen"].split()):
+            flags.append(("YONETMEN_COP", f"yönetmen çöp/disclaimer: {d['yonetmen'][:40]}"))
+    # YAPIMCI
+    if _empty(d["yapimci"]):
+        flags.append(("YAPIMCI_BOS", "yapımcı alanı boş"))
+    elif any(x in lex.norm(d["yapimci"]) for x in DISCLAIMER):
+        flags.append(("YAPIMCI_COP", f"yapımcı disclaimer: {d['yapimci'][:40]}"))
+    # CAST
+    cast = [c for c in d["oyuncular"] if not _empty(c)]
+    if profile == "film" and len(cast) == 0:
+        flags.append(("CAST_BOS", "hiç oyuncu yok"))
+    if any(is_garble(c) for c in cast):
+        flags.append(("CAST_GARBLE", "oyuncuda garble isim"))
+    # OZET
+    oz = d["ozet"]
+    if _empty(oz) or len(oz) < 25:
+        flags.append(("OZET_KISA", "özet yok/çok kısa"))
+    if re.search(r"transcript|paylaş|belirsiz|yetersiz|lütfen", oz, re.I):
+        flags.append(("OZET_HATA", "özet hata/yer-tutucu metin"))
+    if has_mojibake(oz):
+        flags.append(("OZET_MOJIBAKE", "özette bozuk karakter (i/ü/ğ/İ)"))
+    # SES & ALTYAZI (v4: ana_dil != TR + altyazı yok = mantıksız; ana_dil TR değilse SES_TEYIT)
+    if d["ana_dil"] and d["ana_dil"] != "TR":
+        if d["altyazi"] and "HAYIR" in d["altyazi"]:
+            flags.append(("SES_MANTIKSIZ", f"ana_dil {d['ana_dil']} ama altyazı YOK"))
+        else:
+            flags.append(("SES_TEYIT", f"ana_dil {d['ana_dil']} (TRT TR bekler)"))
+    # GENEL mojibake
+    if has_mojibake(d["_raw"]):
+        flags.append(("MOJIBAKE", "teslim metninde bozuk karakter"))
+    return flags
+
+def visual_check(png, model=VISUAL_MODEL):
+    """qwen-VL/gemma onizleme gorseli QC -> [(kategori,sebep)]. GPU gerektirir."""
+    prompt = ("Bu bir film künye sayfasının önizlemesi. SADECE şu kontrolleri yap ve JSON döndür:\n"
+              '{"afis_var": true/false, "turkce_harf_bozuk": true/false, '
+              '"ozet_tutarli": true/false, "altyazi_kacmis": true/false, "duzen_ok": true/false}\n'
+              "afis_var: sayfada gerçek bir afiş/poster görseli var mı. turkce_harf_bozuk: İ Ğ Ü Ş Ö Ç "
+              "kutu/bozuk mu görünüyor. ozet_tutarli: özet anlamlı bir paragraf mı. altyazi_kacmis: künyeye "
+              "film altyazısı/diyalog karışmış mı. duzen_ok: genel düzen düzgün mü. Sadece JSON, açıklama yok.")
+    with open(png, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    payload = {"model": model, "messages": [{"role": "user", "content": prompt, "images": [b64]}],
+               "stream": False, "think": False, "keep_alive": "10m",
+               "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 200}}
+    try:
+        req = urllib.request.Request(OLLAMA_CHAT, data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=300) as r:
+            content = (json.loads(r.read().decode()).get("message", {}).get("content") or "")
+        m = re.search(r"\{.*\}", content, re.S)
+        j = json.loads(m.group(0)) if m else {}
+    except Exception as e:
+        return [("GORSEL_HATA", f"görsel QC çalışmadı: {type(e).__name__}")]
+    flags = []
+    if j.get("afis_var") is False: flags.append(("AFIS_YOK", "önizlemede afiş görünmüyor"))
+    if j.get("turkce_harf_bozuk") is True: flags.append(("GLYPH_BOZUK", "Türkçe harf glyph bozuk (görsel)"))
+    if j.get("ozet_tutarli") is False: flags.append(("OZET_TUTARSIZ", "özet tutarsız (görsel)"))
+    if j.get("altyazi_kacmis") is True: flags.append(("ALTYAZI_KACMIS", "künyeye altyazı karışmış (görsel)"))
+    if j.get("duzen_ok") is False: flags.append(("DUZEN", "düzen bozuk (görsel)"))
+    return flags
+
+def route_and_log(clip, title, pdfdir, flags, dest):
+    hazir = os.path.join(dest, "hazir"); kontrol = os.path.join(dest, "kontrol")
+    os.makedirs(hazir, exist_ok=True); os.makedirs(kontrol, exist_ok=True)
+    target_root = kontrol if flags else hazir
+    safe = re.sub(r"[^0-9A-Za-zĞÜŞİÖÇğüşıöç._-]", "_", str(clip)) or "clip"  # benzersiz + Türkçe korunur
+    target = os.path.join(target_root, safe)
+    os.makedirs(target, exist_ok=True)
+    for fn in ("kunye.pdf", "kunye_teslim.md", "kunye_onizleme.png"):
+        src = os.path.join(pdfdir, fn)
+        if os.path.exists(src):
+            try: shutil.copy2(src, target)
+            except Exception: pass
+    if flags:
+        _excel_append(os.path.join(kontrol, "_kontrol_kayit.xlsx"), clip, title, flags)
+    return "kontrol" if flags else "hazir"
+
+def _excel_append(path, clip, title, flags):
+    import openpyxl
+    if os.path.exists(path):
+        wb = openpyxl.load_workbook(path); ws = wb.active
+    else:
+        wb = openpyxl.Workbook(); ws = wb.active; ws.title = "kontrol"
+        ws.append(["zaman", "clip", "baslik", "sebep_sayisi", "kategoriler", "sebepler"])
+    ts = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
+    ws.append([ts, str(clip), str(title)[:60], len(flags),
+               ", ".join(sorted(set(c for c, _ in flags))),
+               " | ".join(s for _, s in flags)])
+    wb.save(path)
+
+def process(clipdir, dest, do_visual):
+    pdfdir = os.path.join(clipdir, "pdf")
+    md = os.path.join(pdfdir, "kunye_teslim.md")
+    durum = os.path.join(clipdir, "_DURUM.json")
+    if not os.path.exists(md):
+        return None
+    title = clip = os.path.basename(clipdir); profile = "film"
+    if os.path.exists(durum):
+        try:
+            dj = json.load(open(durum, encoding="utf-8"))
+            title = dj.get("title") or clip; profile = dj.get("profile") or "film"
+        except Exception: pass
+    d = parse_md(md)
+    flags = det_checks(d, profile)
+    png = os.path.join(pdfdir, "kunye_onizleme.png")
+    if do_visual and os.path.exists(png):
+        flags += visual_check(png)
+    karar = route_and_log(clip, title, pdfdir, flags, dest)
+    return clip, karar, flags
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    ap = argparse.ArgumentParser(description="Künye teslimat QC (sınıflandırır, müdahale etmez)")
+    ap.add_argument("--source", default=SRC); ap.add_argument("--dest", default=DEST)
+    ap.add_argument("--clip", default=None); ap.add_argument("--visual", action="store_true")
+    ap.add_argument("--limit", type=int, default=0)
+    args = ap.parse_args()
+    if args.clip:
+        clips = [os.path.join(args.source, args.clip)]
+    else:
+        clips = [d for d in sorted(glob.glob(os.path.join(args.source, "*")))
+                 if os.path.isdir(d) and os.path.exists(os.path.join(d, "pdf", "kunye_teslim.md"))]
+        if args.limit: clips = clips[:args.limit]
+    haz = kon = 0; cats = {}
+    for c in clips:
+        r = process(c, args.dest, args.visual)
+        if not r: continue
+        clip, karar, flags = r
+        if karar == "hazir": haz += 1
+        else:
+            kon += 1
+            for cat, _ in flags: cats[cat] = cats.get(cat, 0) + 1
+        print(f"[{karar.upper():7}] {clip[:46]:46} {'· '+', '.join(c for c,_ in flags) if flags else ''}", flush=True)
+    print(f"\n=== QC BITTI: hazir {haz}, kontrol {kon} -> {args.dest} ===")
+    if cats:
+        print("kontrol sebep dagilimi (en cok):")
+        for cat, n in sorted(cats.items(), key=lambda x: -x[1]):
+            print(f"   {n:3}  {cat}")
+
+if __name__ == "__main__":
+    main()
