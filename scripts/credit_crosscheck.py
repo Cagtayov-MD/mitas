@@ -28,6 +28,21 @@ def fold(s):
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()
     return re.sub(r"[^a-z0-9 ]", " ", s).strip()
 
+_TR = (("İ","i"),("I","i"),("ı","i"),("Ş","s"),("ş","s"),("Ğ","g"),("ğ","g"),
+       ("Ü","u"),("ü","u"),("Ö","o"),("ö","o"),("Ç","c"),("ç","c"))
+def _tfold(s):
+    """Türkçe-duyarlı katlama (ı→i, ğ→g…) — strip_accents'in ı tuzağını çözer."""
+    s = (s or "")
+    for a, b in _TR:
+        s = s.replace(a, b)
+    return s.lower().strip()
+def _sqlfold(col):
+    """col için SQL Türkçe-fold ifadesi (REPLACE zinciri + lower) — _tfold ile eşleşir."""
+    e = col
+    for a, b in _TR:
+        e = f"replace({e},'{a}','{b}')"
+    return f"lower({e})"
+
 def name_match(a, b):
     """iki isim aynı kişi mi (soyad + tokenların çoğu)."""
     fa, fb = fold(a), fold(b)
@@ -90,15 +105,18 @@ class CreditKB:
                 if qid not in cands:
                     cands[qid] = {"src": "wikidata", "id": qid, "name": nm, "tr": ltr, "year": yr,
                                   "imdb_id": imdb, "director": self._wd_resolve(dr), "cast": self._wd_resolve(cast)}
-        # PASS 1: TAM-eşleşme (wildcard YOK) — kısa/yaygın başlıkta exact öncelik
+        sf_tr, sf_en, sf_nm = _sqlfold("label_tr"), _sqlfold("label_en"), _sqlfold("name")
+        ft = _tfold(title_tr) if title_tr else None
+        fo = _tfold(original) if original else None
+        # PASS 1: TAM-eşleşme (Türkçe-fold) — kısa/yaygın başlıkta exact öncelik
         c1, p1 = [], []
-        if title_tr: c1.append("label_tr ILIKE ?"); p1.append(title_tr)
-        if original: c1 += ["label_en ILIKE ?", "name ILIKE ?"]; p1 += [original, original]
+        if ft: c1.append(f"{sf_tr}=?"); p1.append(ft)
+        if fo: c1 += [f"{sf_en}=?", f"{sf_nm}=?"]; p1 += [fo, fo]
         run(c1, p1)
-        # PASS 2: substring fallback
+        # PASS 2: substring (Türkçe-fold) fallback
         c2, p2 = [], []
-        if title_tr: c2.append("label_tr ILIKE ?"); p2.append(f"%{title_tr}%")
-        if original: c2 += ["label_en ILIKE ?", "name ILIKE ?"]; p2 += [f"%{original}%", f"%{original}%"]
+        if ft: c2.append(f"{sf_tr} LIKE ?"); p2.append(f"%{ft}%")
+        if fo: c2 += [f"{sf_en} LIKE ?", f"{sf_nm} LIKE ?"]; p2 += [f"%{fo}%", f"%{fo}%"]
         run(c2, p2)
         return list(cands.values())
 

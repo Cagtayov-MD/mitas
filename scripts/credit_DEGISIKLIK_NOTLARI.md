@@ -38,6 +38,8 @@ Her satır: NE eklendi + NASIL yeniden doğrulanır (smoke). Bağımsız çalı�
 |---|---|---|
 | Çapraz-kontrol modülü (Wikidata mitas.duckdb + IMDb imdb.duckdb) — kimlik Türkçe-başlık-önce, otoriter yön/cast, TEYİT/ÇELİŞKİ/KAYNAK_YOK, **düzeltmez raporlar** | `credit_crosscheck.py` | `python scripts/credit_crosscheck.py --baslik "AHLAT AĞACI" --yonetmen "Nuri Bilge Ceylan" --yil 2018` → TEYİT |
 | Klasik gold testi | `credit_crosscheck_goldtest.py` | `python scripts/credit_crosscheck_goldtest.py` → **16/16** (14 TEYİT + 2 ÇELİŞKİ yakalama) |
+| Türkçe-fold (ı→i, ğ→g…) — title-only eşleşme (İ/ı tuzağı) | credit_crosscheck.py `_tfold/_sqlfold` | "AHLAT AĞACI" (sadece Türkçe başlık) → film bulunur (öncesi: original gerekiyordu) |
+| **QC'ye flag'li bağlandı** | `credit_qc.py` (`--crosscheck` / `MITAS_USE_CROSSCHECK`) | `--crosscheck` ile ÇELİŞKİ → `CROSSCHECK_CELISKI` flag + PDF damga + kontrol. Flag KAPALI (vars.)=sıfır etki (kb=None). Birim: Murat Cemir/AHLAT→flag, NBC→yok |
 
 **Kaynaklar (kalıcı/birinci-sınıf):** Wikidata `works_master` (label_tr/director/cast_member/imdb_id) + `qid_labels` (Türkçe isim); IMDb `titles/akas/crew/principals/names`. Kimlik = Türkçe başlık (katalog no DEĞİL — Yabandan→Sergio Leone kanıtı). 300 gibi kısa başlıkta **exact-first** retrieval. Çelişki yakalama: Murat Cemir / Jean-Louis Godfroy → ÇELİŞKİ.
 

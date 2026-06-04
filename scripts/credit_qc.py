@@ -180,6 +180,39 @@ def xml_check(d, clipdir, durum):
         flags.append(("XML_CAST_UYUMSUZ", f"oyuncu örtüşmüyor: XML {', '.join(xr['oyuncu'][:2])}"))
     return flags
 
+def _xml_original_title(clipdir, durum):
+    """XML'den orijinal başlık (kimlik için). Yoksa None."""
+    xmlp = find_xml(clipdir, durum)
+    if not xmlp:
+        return None
+    try:
+        import xml.etree.ElementTree as ET
+        for prop in ET.parse(xmlp).getroot().iter("PROPERTY"):
+            if (prop.get("NAME") or "").upper() in ("TITLE", "V_TITLE", "ORIGINAL_TITLE", "V_ORIGINAL_TITLE", "V_ORIJINAL_AD"):
+                if (prop.text or "").strip():
+                    return prop.text.strip()
+    except Exception:
+        pass
+    return None
+
+def crosscheck_check(d, clipdir, durum, kb):
+    """Idea 2 (flag): okunan yönetmen Wikidata/IMDb otoritesiyle ÇELİŞİYOR mu? Düzeltmez, flag'ler."""
+    if kb is None:
+        return []
+    title_tr = (durum.get("title") or os.path.basename(clipdir) or "").strip()
+    rd = (d.get("yonetmen") or "").strip()
+    if not title_tr or _empty(rd):
+        return []
+    cast = [c for c in d.get("oyuncular", []) if not _empty(c)]
+    try:
+        r = kb.crosscheck(rd, cast, title_tr=title_tr, original=_xml_original_title(clipdir, durum))
+    except Exception:
+        return []
+    if r.get("verdict") == "ÇELİŞKİ":
+        oto = (r.get("otoriter_yonetmen") or [""])[0]
+        return [("CROSSCHECK_CELISKI", f"yönetmen '{rd[:24]}' ≠ {r.get('kaynak')} '{str(oto)[:24]}' ({r.get('eslesen_film')})")]
+    return []
+
 def stamp_pdf_warning(pdf_path, cats):
     """Dağıtım KOPYASININ PDF'ine küçük uyarı damgası (orijinal Database'e DOKUNMAZ).
     XML isim uyuşmazlığında 'tutmadı' işareti — fitz ile, sağ üst köşe, küçük kırmızı."""
@@ -187,7 +220,7 @@ def stamp_pdf_warning(pdf_path, cats):
         import fitz
         doc = fitz.open(pdf_path)
         pg = doc[0]
-        msg = "(!) XML uyusmuyor: " + ", ".join(c.replace("XML_", "").replace("_", " ").lower() for c in cats)
+        msg = "(!) isim uyusmazligi: " + ", ".join(c.replace("XML_", "").replace("CROSSCHECK_", "").replace("_", " ").lower() for c in cats)
         pg.insert_text((pg.rect.width - 250, 16), msg[:70], fontsize=7, color=(0.85, 0, 0))
         doc.save(pdf_path, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
         doc.close()
@@ -238,12 +271,12 @@ def route_and_log(clip, title, pdfdir, flags, dest):
         if os.path.exists(src):
             try: shutil.copy2(src, target)
             except Exception: pass
-    # XML isim uyuşmazlığı -> dağıtım kopyasının PDF'ine küçük uyarı damgası ("o kadar")
-    xml_cats = [c for c, _ in flags if c.startswith("XML_")]
-    if xml_cats:
+    # XML/cross-check isim uyuşmazlığı -> dağıtım kopyasının PDF'ine küçük uyarı damgası ("o kadar")
+    stamp_cats = [c for c, _ in flags if c.startswith("XML_") or c.startswith("CROSSCHECK_")]
+    if stamp_cats:
         p = os.path.join(target, "kunye.pdf")
         if os.path.exists(p):
-            stamp_pdf_warning(p, xml_cats)
+            stamp_pdf_warning(p, stamp_cats)
     if flags:
         _excel_append(os.path.join(kontrol, "_kontrol_kayit.xlsx"), clip, title, flags)
     return "kontrol" if flags else "hazir"
@@ -261,7 +294,7 @@ def _excel_append(path, clip, title, flags):
                " | ".join(s for _, s in flags)])
     wb.save(path)
 
-def process(clipdir, dest, do_visual):
+def process(clipdir, dest, do_visual, kb=None):
     pdfdir = os.path.join(clipdir, "pdf")
     md = os.path.join(pdfdir, "kunye_teslim.md")
     durum = os.path.join(clipdir, "_DURUM.json")
@@ -276,6 +309,7 @@ def process(clipdir, dest, do_visual):
     d = parse_md(md)
     flags = det_checks(d, profile)
     flags += xml_check(d, clipdir, durum_dict)     # XML V_ROLE_TYPE uyum (XML varsa)
+    flags += crosscheck_check(d, clipdir, durum_dict, kb)   # Idea 2: Wikidata/IMDb çapraz-kontrol (flag açıkken)
     png = os.path.join(pdfdir, "kunye_onizleme.png")
     if do_visual and os.path.exists(png):
         flags += visual_check(png)
@@ -287,6 +321,7 @@ def main():
     ap = argparse.ArgumentParser(description="Künye teslimat QC (sınıflandırır, müdahale etmez)")
     ap.add_argument("--source", default=SRC); ap.add_argument("--dest", default=DEST)
     ap.add_argument("--clip", default=None); ap.add_argument("--visual", action="store_true")
+    ap.add_argument("--crosscheck", action="store_true", help="Wikidata/IMDb çapraz-kontrol (Idea 2)")
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
     if args.clip:
@@ -295,9 +330,17 @@ def main():
         clips = [d for d in sorted(glob.glob(os.path.join(args.source, "*")))
                  if os.path.isdir(d) and os.path.exists(os.path.join(d, "pdf", "kunye_teslim.md"))]
         if args.limit: clips = clips[:args.limit]
+    use_cc = args.crosscheck or os.environ.get("MITAS_USE_CROSSCHECK", "").strip().lower() in ("1", "true", "yes", "on")
+    kb = None
+    if use_cc:
+        try:
+            import credit_crosscheck as _ccm
+            kb = _ccm.CreditKB()
+        except Exception as e:
+            sys.stderr.write(f"[uyari] crosscheck kb acilamadi: {e}\n")
     haz = kon = 0; cats = {}
     for c in clips:
-        r = process(c, args.dest, args.visual)
+        r = process(c, args.dest, args.visual, kb)
         if not r: continue
         clip, karar, flags = r
         if karar == "hazir": haz += 1
@@ -310,6 +353,8 @@ def main():
         print("kontrol sebep dagilimi (en cok):")
         for cat, n in sorted(cats.items(), key=lambda x: -x[1]):
             print(f"   {n:3}  {cat}")
+    if kb:
+        kb.close()
 
 if __name__ == "__main__":
     main()
