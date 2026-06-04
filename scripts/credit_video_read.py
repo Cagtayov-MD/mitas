@@ -78,7 +78,8 @@ def fold(s):
     return re.sub(r"\s+", " ", s).strip()
 
 def is_abstain(v):
-    return fold(v) in ABSTAIN_TOKENS
+    s = re.sub(r"^[^a-z0-9]+|[^a-z0-9]+$", "", fold(v))   # <NAME>, <yok>, ":" gibi kenar işaretlerini soy
+    return s in ABSTAIN_TOKENS or s == "" or s in {"isim", "name", "ad"}
 
 def split_names(v):
     if is_abstain(v):
