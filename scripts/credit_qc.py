@@ -117,6 +117,68 @@ def det_checks(d, profile="film"):
         flags.append(("MOJIBAKE", "teslim metninde bozuk karakter"))
     return flags
 
+def xml_roles(xml_path):
+    """Kaynak video XML sidecar'ından otoriter rolleri çıkar (BEAN/PROPERTY V_ROLE_TYPE)."""
+    import xml.etree.ElementTree as ET
+    out = {"yonetmen": [], "yapimci": [], "oyuncu": []}
+    try:
+        root = ET.parse(xml_path).getroot()
+    except Exception:
+        return out
+    for bean in root.iter("BEAN"):
+        first = last = rtype = ""
+        for prop in bean.iter("PROPERTY"):
+            nm = (prop.get("NAME") or "").upper(); val = (prop.text or "").strip()
+            if nm == "V_ROL_FIRST": first = val
+            elif nm == "V_ROL_LAST": last = val
+            elif nm == "V_ROLE_TYPE": rtype = lex.norm(val)
+        name = (first + " " + last).strip()
+        if not name or not rtype:
+            continue
+        if "YONETMEN" in rtype or "YONETEN" in rtype: out["yonetmen"].append(name)
+        elif "YAPIM" in rtype: out["yapimci"].append(name)
+        elif "OYUNCU" in rtype or rtype == "ROL": out["oyuncu"].append(name)
+    return out
+
+def find_xml(clipdir, durum):
+    cands = []
+    vid = (durum or {}).get("video")
+    if vid:
+        cands.append(os.path.splitext(vid)[0] + ".xml")
+    cands += glob.glob(os.path.join(clipdir, "source", "*.xml")) + glob.glob(os.path.join(clipdir, "*.xml"))
+    for c in cands:
+        if c and os.path.exists(c):
+            return c
+    return None
+
+def _fold_in(name, lst):
+    """name, lst içindeki herhangi biriyle (soyad+çoğu token) eşleşiyor mu?"""
+    nn = lex.norm(name)
+    for x in lst:
+        xt = [t for t in lex.norm(x).split() if len(t) > 2]
+        if xt and sum(1 for t in xt if t in nn) >= max(1, len(xt) - 1):
+            return True
+    return False
+
+def xml_check(d, clipdir, durum):
+    """Teslimat XML V_ROLE_TYPE ile uyumlu mu? (XML YOKSA boş = kontrol yok)."""
+    xmlp = find_xml(clipdir, durum)
+    if not xmlp:
+        return []
+    xr = xml_roles(xmlp)
+    flags = []
+    if xr["yonetmen"]:
+        if _empty(d["yonetmen"]):
+            flags.append(("XML_YON_VAR_TESLIM_YOK", f"XML'de yönetmen var, teslimde yok: {xr['yonetmen'][0]}"))
+        elif not _fold_in(d["yonetmen"], xr["yonetmen"]):
+            flags.append(("XML_YON_UYUMSUZ", f"yönetmen uyumsuz: XML '{xr['yonetmen'][0]}' ≠ teslim '{d['yonetmen'][:30]}'"))
+    if xr["yapimci"]:
+        if _empty(d["yapimci"]):
+            flags.append(("XML_YAP_VAR_TESLIM_YOK", f"XML'de yapımcı var, teslimde yok: {xr['yapimci'][0]}"))
+        elif not _fold_in(d["yapimci"], xr["yapimci"]):
+            flags.append(("XML_YAP_UYUMSUZ", f"yapımcı uyumsuz: XML '{xr['yapimci'][0]}'"))
+    return flags
+
 def visual_check(png, model=VISUAL_MODEL):
     """qwen-VL/gemma onizleme gorseli QC -> [(kategori,sebep)]. GPU gerektirir."""
     prompt = ("Bu bir film künye sayfasının önizlemesi. SADECE şu kontrolleri yap ve JSON döndür:\n"
@@ -182,14 +244,15 @@ def process(clipdir, dest, do_visual):
     durum = os.path.join(clipdir, "_DURUM.json")
     if not os.path.exists(md):
         return None
-    title = clip = os.path.basename(clipdir); profile = "film"
+    title = clip = os.path.basename(clipdir); profile = "film"; durum_dict = {}
     if os.path.exists(durum):
         try:
-            dj = json.load(open(durum, encoding="utf-8"))
-            title = dj.get("title") or clip; profile = dj.get("profile") or "film"
+            durum_dict = json.load(open(durum, encoding="utf-8"))
+            title = durum_dict.get("title") or clip; profile = durum_dict.get("profile") or "film"
         except Exception: pass
     d = parse_md(md)
     flags = det_checks(d, profile)
+    flags += xml_check(d, clipdir, durum_dict)     # XML V_ROLE_TYPE uyum (XML varsa)
     png = os.path.join(pdfdir, "kunye_onizleme.png")
     if do_visual and os.path.exists(png):
         flags += visual_check(png)
