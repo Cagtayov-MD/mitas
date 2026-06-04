@@ -32,6 +32,8 @@ Her satır: NE eklendi + NASIL yeniden doğrulanır (smoke). Bağımsız çalı�
 |---|---|---|
 | teslimat klasörleri | `teslimat/{export,hazir,kontrol}` | mevcut |
 | süre raporu | `pipeline_timing.py` | `python scripts/pipeline_timing.py` → klip başına dk + ort/min/max |
+| **teslim akışı** (export→qwen→hazır/kontrol) | `credit_export.py` | `python scripts/credit_export.py [--crosscheck] [--visual]` → teslimat/export + hazır/kontrol + Excel. Smoke: 5 clip → export 5, hazır 2/kontrol 3 |
+| çöp/kısa başlık koruması (cross-check) | credit_qc.py crosscheck_check (≥4 harf) | title="3" → cross-check atlanır (yanlış-eşleşme önlenir) |
 
 ## E. Idea 2 — otonom çapraz-kontrol (Wikidata + IMDb, birinci-sınıf)
 | Değişiklik | Dosya | Yeniden-doğrulama |

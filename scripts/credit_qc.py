@@ -201,7 +201,8 @@ def crosscheck_check(d, clipdir, durum, kb):
         return []
     title_tr = (durum.get("title") or os.path.basename(clipdir) or "").strip()
     rd = (d.get("yonetmen") or "").strip()
-    if not title_tr or _empty(rd):
+    # önemsiz/çöp başlık (örn. "3", "1") yanlış-eşleşme üretir -> cross-check'i atla (en az 4 harf)
+    if not title_tr or _empty(rd) or len(re.sub(r"[^A-Za-zĞÜŞİÖÇğüşıöç]", "", title_tr)) < 4:
         return []
     cast = [c for c in d.get("oyuncular", []) if not _empty(c)]
     try:
