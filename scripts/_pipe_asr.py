@@ -76,9 +76,10 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
         subprocess.run(cmd, check=True)
 
     # --- YABANCI ses → FULL large-v3 (turbo yabancıda çöp üretiyor; full TEMİZ okur — POROROCA kanıtı) ---
-    # turbo dili "tr" DIŞI tespit ettiyse: full large-v3'e geç + beam=5 + language=None
-    # (full KENDİ yeniden-tespit etsin — turbo yanlış tespit etmiş olabilir [müzik→Arapça], full daha
-    #  güvenilir dedektör; bu (b) dil-tespit hatasını da düzeltir). Türkçe'de turbo KALIR (hız).
+    # turbo dili "tr" DIŞI tespit ettiyse: full large-v3'e geç + beam=5, AMA turbo'nun TESPİT ETTİĞİ
+    # DİLDE transkribe et — YENİDEN-TESPİT ETME. DERS (DERT BENDE, net Arapça DUBLAJ): turbo AR'ı DOĞRU
+    # bildi; language=None ile full'e yeniden-tespit ettirince ru'ya KAYDI = doğru tespiti bozdu.
+    # full SADECE transkript kalitesi için; DİL turbo'nundur. Türkçe'de turbo KALIR (hız).
     beam, tr_language = args.beam_size, language
     if bool(language) and language != "tr":
         try:
@@ -86,9 +87,9 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
             model = (WhisperModel(str(fp), device="cuda", compute_type="float16", local_files_only=True)
                      if fp and fp.exists()
                      else WhisperModel("large-v3", device="cuda", compute_type="float16"))
-            beam, tr_language = max(args.beam_size, 5), None
+            beam, tr_language = max(args.beam_size, 5), language   # turbo'nun dilini KORU (yeniden-tespit YOK)
             detect_info = detect_info or {}
-            detect_info["asr_upgrade"] = f"large-v3 (yabanci ses: turbo->{language})"
+            detect_info["asr_upgrade"] = f"large-v3 (yabanci ses, dil={language} korundu)"
         except Exception as exc:  # noqa: BLE001 - full yuklenemezse turbo'da devam
             detect_info = detect_info or {}
             detect_info["fullv3_error"] = f"{type(exc).__name__}: {exc}"
