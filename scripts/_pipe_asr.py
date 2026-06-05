@@ -75,11 +75,31 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
         cmd += ["-acodec", "pcm_s16le", str(wav)]
         subprocess.run(cmd, check=True)
 
+    # --- YABANCI ses → FULL large-v3 (turbo yabancıda çöp üretiyor; full TEMİZ okur — POROROCA kanıtı) ---
+    # turbo dili "tr" DIŞI tespit ettiyse: full large-v3'e geç + beam=5 + language=None
+    # (full KENDİ yeniden-tespit etsin — turbo yanlış tespit etmiş olabilir [müzik→Arapça], full daha
+    #  güvenilir dedektör; bu (b) dil-tespit hatasını da düzeltir). Türkçe'de turbo KALIR (hız).
+    beam, tr_language = args.beam_size, language
+    if bool(language) and language != "tr":
+        try:
+            fp = _MODEL_PATHS.get("large-v3")
+            model = (WhisperModel(str(fp), device="cuda", compute_type="float16", local_files_only=True)
+                     if fp and fp.exists()
+                     else WhisperModel("large-v3", device="cuda", compute_type="float16"))
+            beam, tr_language = max(args.beam_size, 5), None
+            detect_info = detect_info or {}
+            detect_info["asr_upgrade"] = f"large-v3 (yabanci ses: turbo->{language})"
+        except Exception as exc:  # noqa: BLE001 - full yuklenemezse turbo'da devam
+            detect_info = detect_info or {}
+            detect_info["fullv3_error"] = f"{type(exc).__name__}: {exc}"
+
     segs, info = model.transcribe(
-        str(wav), language=language, beam_size=args.beam_size,
+        str(wav), language=tr_language, beam_size=beam,
         vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
         condition_on_previous_text=False, word_timestamps=False,
     )
+    if not tr_language:                          # full-v3 oto-tespit ettiyse GERÇEK dili al (result/chlang için)
+        language = getattr(info, "language", None) or language
     lines, plain, n = [], [], 0
     for s in segs:
         n += 1
