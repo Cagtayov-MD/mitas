@@ -4,11 +4,15 @@
 Girdi: bir veya daha cok frame dizini (acilis/kapanis kredi pencereleri).
 Cikti: <out>/kunye.txt (tek satir bir isim/rol) + <out>/ocr_summary.json.
 
-IKI AKIS VAR:
+UC AKIS VAR:
   1) "scroll-aware" pipeline100 zinciri (OCR-worktree/py): CLIP bekci ile kredi
      karelerini sec -> konumlu OneOCR oku -> OCR-uzayinda dik (stitch) -> temizle
      (clean). Akan jenerikte 900-garble cozumu; her satir tek temiz okuma.
-  2) Eski kare-kare OneOCR akisi (FALLBACK): zincir importu/DB/CLIP cokerse
+  2) GLM-OCR consensus (2. motor, OPSIYONEL): pipeline100 ciktisina ek olarak
+     secili credit karelerini GLM-OCR ile okur; GLM-only satirlari EKLER (hicbir
+     stitch satiri silinmez). MITAS_OCR_GLM_CONSENSUS=0 ile kapanir. Herhangi
+     bir hata (ollama kapali, GLM yok, timeout) durumunda stitch korunur, REGRESYON YOK.
+  3) Eski kare-kare OneOCR akisi (FALLBACK): zincir importu/DB/CLIP cokerse
      buna duser. Asla cokmez; kunye.txt MUTLAKA uretilir (bosken BOS bucket).
 
 NOT: downscale YOK; kareler native cozunurlukte gelir. Fidelity: ne okunduysa
@@ -16,7 +20,7 @@ aynen yazilir, isim DROP edilmez (stitch KEEP-ALL). stdout'a tek satir JSON
 sonuc basar; sema (status/kunye_path/kunye_line_count/bucket/engine) DEGISMEZ.
 """
 from __future__ import annotations
-import sys, json, glob, time, unicodedata, argparse, importlib.util
+import os, sys, json, glob, time, unicodedata, argparse, importlib.util
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -27,6 +31,20 @@ CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
 CLEAN = PY_OCR_DIR / "20260601_clean.py"
+# GLM-consensus POC (2. motor): gerekli fonksiyonlar buradan alinir.
+CONSENSUS_GLM = PY_OCR_DIR / "20260601_consensus_glm.py"
+
+# GLM consensus sabitleri (consensus_glm'den BURAYA tasindi; import edilmeden kullanilabilir).
+_GLM_OLLAMA = "http://localhost:11434/api/generate"
+_GLM_MODEL = "glm-ocr:latest"
+_GLM_PROMPT = (
+    "Transcribe the film-credit text in this image EXACTLY, top to bottom, one entry per line. "
+    "Use '?' for unreadable characters. Do NOT guess, do NOT add names not visible. "
+    "Preserve Turkish letters: ç ğ ı İ ö ş ü. "
+    "Return JSON: {\"lines\":[\"...\",\"...\"]}"
+)
+# Kare ornekleme ust siniri (cok kare varsa esit-aralikli at-at sec).
+_GLM_MAX_FRAMES = 16
 
 # Kare-secim KALICILIK esikleri (Cagatay yontemi): gercek jenerik = KESINTISIZ uzun blok.
 # Acilis sahne-ustu kredi + altyazi KISA-aralikli bloklar verir -> elenir.
@@ -45,6 +63,124 @@ def _load(name: str, path: Path):
 
 def fold(s: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", (s or "").casefold()) if not unicodedata.combining(c)).strip()
+
+
+# ── GLM-consensus yardimci fonksiyonlari (consensus_glm POC'undan) ───────────
+
+def _glm_extract_lines(text: str) -> list[str]:
+    """GLM/VLM ham metin ciktisini temiz satir listesine donustur.
+
+    GLM bazen JSON string icine gercek satir sonlari (literal LF) gomuyor
+    (RFC-7159 ihlali). Bunu yakala: JSON parse once ham, sonra LF-sanitize ile dene.
+    Basarisizsa satir-satir fallback."""
+    import re
+    if not text:
+        return []
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S | re.I).strip()
+    m = re.search(r"\{.*\"lines\".*\}", text, flags=re.S)
+    if m:
+        blob = m.group(0)
+        # 1. Direkt parse dene (duzgun JSON).
+        for attempt in (blob, re.sub(r'\n', r'\\n', blob)):
+            try:
+                obj = json.loads(attempt)
+                if isinstance(obj.get("lines"), list):
+                    # lines icinde gercek \n olabilir -> her birini satirlara bol.
+                    out: list[str] = []
+                    for entry in obj["lines"]:
+                        for part in str(entry).splitlines():
+                            part = part.strip()
+                            if part:
+                                out.append(part)
+                    return out
+            except Exception:
+                pass
+        # 2. JSON parse basarisiz; JSON blob icinden ciplak satir cek
+        #    (GLM bazen { "lines": [ satir1\nsatir2 ] } formatinda dondurur).
+        inner = re.sub(r'[{}\[\]"\']', " ", blob)
+        candidate: list[str] = []
+        for ln in inner.splitlines():
+            t = ln.strip().strip("`").strip("-*•,:").strip()
+            if not t or t.lower().startswith(("lines", "here", "sure", "json")):
+                continue
+            candidate.append(t)
+        if candidate:
+            return candidate
+    # 3. JSON yok / eslesme yok -> satir-satir fallback.
+    out2: list[str] = []
+    for ln in text.splitlines():
+        t = ln.strip().strip("`").strip("-*•").strip()
+        if not t or t in ("{", "}", "[", "]"):
+            continue
+        if t.lower().startswith(("here", "sure", "```", "json")):
+            continue
+        if t.startswith('"') and t.endswith('",'):
+            t = t[1:-2]
+        out2.append(t)
+    return out2
+
+
+def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = 300) -> list[str]:
+    """Bir cv2 BGR goruntusunu tile'layarak GLM-OCR ile okur; fold-dedup satir listesi dondurur.
+    Herhangi bir network/encode hatasi susturulur (cagiran try/except ile yakalamali)."""
+    import base64, urllib.request
+    try:
+        import numpy as np
+        import cv2
+    except ImportError:
+        return []
+
+    H = img_bgr.shape[0]
+    seen: dict[str, str] = {}
+    order: list[str] = []
+    step = tile - ov
+    y = 0
+    while y < H:
+        tile_img = img_bgr[y: min(y + tile, H), :]
+        if tile_img.shape[0] < 20:
+            break
+        ok, buf = cv2.imencode(".png", tile_img)
+        if ok:
+            b64 = base64.b64encode(buf.tobytes()).decode()
+            payload = {
+                "model": _GLM_MODEL,
+                "prompt": _GLM_PROMPT,
+                "stream": False,
+                "think": False,
+                "keep_alive": "10m",
+                "options": {"temperature": 0},
+                "images": [b64],
+            }
+            req = urllib.request.Request(
+                _GLM_OLLAMA,
+                json.dumps(payload).encode(),
+                {"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                raw = json.loads(r.read())
+            for ln in _glm_extract_lines(raw.get("response", "")):
+                fk = fold(ln)
+                if fk and fk not in seen:
+                    seen[fk] = ln
+                    order.append(ln)
+        y += step
+    return order
+
+
+def _glm_fuzzy_in(f: str, fset_list: list[str]) -> bool:
+    """f ile fset_list icindeki herhangi bir string arasinda >= 0.85 benzerlik var mi?"""
+    import difflib
+    return any(difflib.SequenceMatcher(None, f, g).ratio() >= 0.85 for g in fset_list)
+
+
+def _glm_imread(path: str):
+    """Turkce-yol guvenli cv2 imread (numpy frombuffer ile)."""
+    try:
+        import numpy as np
+        import cv2
+        return cv2.imdecode(np.fromfile(str(path), np.uint8), cv2.IMREAD_COLOR)
+    except Exception:
+        return None
 
 
 def alpha_ratio(s: str) -> float:
@@ -252,6 +388,83 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
     #    clean Turkce-BUYUK yazimi tr_upper ile verir (pipeline100 ile ayni cikti).
     lines = [tr_upper(t) for t, _how, _votes in merged]
 
+    # ── f) GLM-OCR consensus (2. motor, OPSIYONEL, ADDITIVE) ─────────────────
+    # Sadece: lines bos degilse + env switch kapali degilse + idx var.
+    # TUM blok try/except: herhangi bir hata -> lines AYNEN korunur (REGRESYON YOK).
+    glm_used = False
+    glm_lines_count = 0
+    agree_count = 0
+    glm_only_count = 0
+    final_engine = "pipeline100"
+
+    if lines and idx and os.environ.get("MITAS_OCR_GLM_CONSENSUS", "1") != "0":
+        try:
+            # Esit-aralikli ornekleme: en fazla _GLM_MAX_FRAMES kare sec.
+            sample_idx = idx
+            if len(idx) > _GLM_MAX_FRAMES:
+                step_s = len(idx) / _GLM_MAX_FRAMES
+                sample_idx = [idx[int(i * step_s)] for i in range(_GLM_MAX_FRAMES)]
+
+            # Her secili kareyi GLM ile oku; fold-dedup ile GLM satir listesi olustur.
+            glm_seen: dict[str, str] = {}
+            glm_order: list[str] = []
+            glm_t0 = time.perf_counter()
+            for si in sample_idx:
+                frame_path = frame_paths[si]
+                img = _glm_imread(frame_path)
+                if img is None:
+                    continue
+                for ln in _glm_read_img(img):
+                    fk = fold(ln)
+                    if fk and fk not in glm_seen:
+                        glm_seen[fk] = ln
+                        glm_order.append(ln)
+            glm_elapsed = round(time.perf_counter() - glm_t0, 2)
+            print(
+                f"[glm-consensus] {len(sample_idx)} kare, {len(glm_order)} satir, "
+                f"{glm_elapsed}s",
+                file=sys.stderr,
+            )
+
+            # Uzlastir: fold karsilastirmasi + fuzzy match.
+            fg = [fold(x) for x in glm_order]  # GLM fold listesi
+            fl = [fold(x) for x in lines]       # stitch fold listesi
+            fl_set = set(fl)
+
+            agree_count = sum(
+                1 for x in glm_order
+                if fold(x) in fl_set or _glm_fuzzy_in(fold(x), fl)
+            )
+
+            # GLM-only: GLM'de olup stitch'te OLMAYAN (fold eslesmiyor + fuzzy yok).
+            glm_only_raw: list[str] = []
+            glm_only_seen: set[str] = set()
+            for x in glm_order:
+                fk = fold(x)
+                if fk in fl_set or _glm_fuzzy_in(fk, fl):
+                    continue  # stitch zaten biliyor
+                if fk in glm_only_seen:
+                    continue  # kendi icinde dedup
+                glm_only_seen.add(fk)
+                glm_only_raw.append(x)
+
+            # Additive: stitch satirlari KORUNUR + GLM-only EKLENIR (tr_upper ile).
+            glm_only_upper = [tr_upper(x) for x in glm_only_raw]
+            lines = lines + glm_only_upper  # stitch satirlari oncelikli
+
+            glm_used = True
+            glm_lines_count = len(glm_order)
+            glm_only_count = len(glm_only_raw)
+            final_engine = "pipeline100+glm"
+
+        except Exception as exc:  # noqa: BLE001 — her kosulda stitch korunur
+            print(
+                f"[glm-consensus] ATLAINDI (stitch korunuyor): {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            # glm_used=False, final_engine="pipeline100" — zaten set edilmedi.
+    # ── /GLM consensus ────────────────────────────────────────────────────────
+
     # bucket: yeni sinyallerle, mevcut degerler korunarak.
     low_frac = (len(low_conf) / len(placed_raw)) if placed_raw else 0.0
     if not lines:
@@ -266,7 +479,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
 
     return {
         "lines": lines,
-        "engine": "pipeline100",
+        "engine": final_engine,
         "engine_error": None,
         "frame_read_errors": 0,
         "raw_line_count": raw_count,
@@ -278,6 +491,11 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         "stitched_lines": len(placed_raw),
         "low_conf_frac": round(low_frac, 4),
         "diegetik_frac": round(dieg, 4),
+        # GLM-consensus tani alanlari
+        "glm_used": glm_used,
+        "glm_lines": glm_lines_count,
+        "agree_count": agree_count,
+        "glm_only_count": glm_only_count,
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
@@ -333,7 +551,8 @@ def main(argv=None) -> int:
         "runtime_sec": round(time.perf_counter() - started, 3),
     }
     # pipeline100'e ozgu tani alanlari (varsa) ekle — sema icin zorunlu degil.
-    for k in ("clip_used", "db_used", "credit_frames", "stitched_lines", "low_conf_frac", "diegetik_frac"):
+    for k in ("clip_used", "db_used", "credit_frames", "stitched_lines", "low_conf_frac", "diegetik_frac",
+              "glm_used", "glm_lines", "agree_count", "glm_only_count"):
         if k in res:
             summary[k] = res[k]
     summary_path = out / "ocr_summary.json"
