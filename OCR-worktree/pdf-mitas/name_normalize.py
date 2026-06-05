@@ -154,17 +154,16 @@ except Exception:  # noqa: BLE001 - DB/pandas yoksa qwen'e dus
 
 
 def _is_tr_name(n: str) -> bool:
-    """Saf-ASCII ismi ad+soyad DB'sinden Turkce mi diye karar ver.
-    >=2 token: bir token GIVEN'da VE bir token SUR'da. Tek token: GIVEN veya SUR'da."""
+    """Saf-ASCII ismi ad+soyad DB'sinden Turkce mi (duckDB KAPALI fallback). SIKI (Cagatay:
+    'duckDB kapaliyken fallback gevsek olmasin; belirsizde YABANCI varsay'):
+      • >=2 token: ilk GIVEN'da VE son SUR'da (IKISI DE) → Turk.  Yabanci soyad (Gasmia/Kitanov) eler.
+      • TEK token: BELIRSIZ → YABANCI say (False) — tek isim kokeni guvenilmez, ASCII'de birak."""
     if not (_TR_GIVEN or _TR_SUR):
         return False
     toks = ascii_fold(n).upper().split()
-    if not toks:
-        return False
-    if len(toks) >= 2:
-        # ad (ilk token) GIVEN'da VE soyad (son token) SUR'da — yabanci soyad (Gasmia/Kitanov) elenir
-        return toks[0] in _TR_GIVEN and toks[-1] in _TR_SUR
-    return toks[0] in _TR_GIVEN or toks[0] in _TR_SUR
+    if len(toks) < 2:
+        return False  # tek token belirsiz → yabanci (i->I), Turkce-kasa (İ) verme
+    return toks[0] in _TR_GIVEN and toks[-1] in _TR_SUR
 
 
 _MITAS_DB = r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb"

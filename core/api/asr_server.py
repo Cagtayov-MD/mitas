@@ -2489,7 +2489,8 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
             "doğru ve Türkçe özet çıkaran bir asistansın. SADECE transkriptte AÇIKÇA geçen "
             "bilgiyi yaz. Tahmin, hayal, uydurma KESİNLİKLE YOK (halüsinasyon sıfır). Bir "
             "bilgi transkriptte yoksa o başlığı HİÇ YAZMA (boş geç). Düşünme/akıl yürütme "
-            "metni veya <think> bloğu üretme; doğrudan nihai Türkçe özeti ver."
+            "metni veya <think> bloğu üretme; doğrudan nihai Türkçe özeti ver. "
+            "Çıktı SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap gibi başka alfabe YAZMA, yabancı adı Latin'e çevir."
         )
         user_msg = (
             "Aşağıdaki spor müsabakası transkriptini analiz et. Önce sporu belirle "
@@ -2531,7 +2532,7 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
         f"TRANSKRİPT:\n{transcript}"
     )
     return [
-        {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın."},
+        {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın. Çıktı TAMAMEN Türkçe ve SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap gibi başka alfabe YAZMA, yabancı adı Latin harflere çevir."},
         {"role": "user", "content": prompt},
     ]
 

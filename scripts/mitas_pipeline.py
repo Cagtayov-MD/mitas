@@ -260,6 +260,16 @@ def _ozet_source_text(transcript: str) -> str:
     return f"{head}\n\n[... orta bolumden secki ...]\n\n{middle}\n\n[... son bolum ...]\n\n{tail}"
 
 
+def _latin_only(s: str) -> str:
+    """Ozet KURALI (Cagatay): SADECE Latin alfabesi — Kiril/Cince/Arap/Yunan/CJK HARFLERI DUSER.
+    Latin harfler (aksanli dahil) + ASCII + harf-disi (bosluk/rakam/noktalama) KORUNUR.
+    Deterministik kemer: prompt slip etse bile non-Latin ozetin hicbir asamasina sizmaz."""
+    return "".join(ch for ch in (s or "")
+                   if ch.isascii()
+                   or unicodedata.category(ch)[0] != "L"
+                   or "LATIN" in unicodedata.name(ch, ""))
+
+
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
     """Transcript'ten Sonnet ile film/dizi olay-orgusu ozeti uretir (spoiler dahil).
 
@@ -309,7 +319,7 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
         blocks = payload.get("content", [])
         content = next((b.get("text") for b in blocks if b.get("type") == "text"), None)
         if isinstance(content, str) and content.strip():
-            return content.strip()
+            return _latin_only(content.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
     except Exception:  # noqa: BLE001 — timeout/URLError/JSON vs.: sessiz fallback
         return None
     return None

@@ -7,8 +7,12 @@ bir özet yazacaksın. ASR gürültüsünü/tekrarları yok say; yalnızca ana o
 ═══════════════════════════════════════════════════════════
 
 UZUNLUK : 4–5 cümle, 55–75 kelime. Tek paragraf, satır sonu yok.
-DİL     : Türkçe. Yabancı özel adlar orijinal Latin yazımıyla, sade (Gideon, Edison,
-          New York). Yabancı adda Türkçe karakter (ç/ğ/ı/ö/ş/ü/İ) ve köşeli parantez YOK.
+DİL     : Özet KOMPLE Türkçe — Türkçe sözcükler TÜRKÇE harflerle yazılır (ç ğ ı i ö ş ü KORUNUR,
+          ASCII'ye İNDİRME: "çalışan", "kız kardeş" — "calisan" DEĞİL). Alfabe SADECE Latin
+          (Türkçe dahil) — Kiril/Çince/Arap/Yunan/Japon vb. BAŞKA ALFABE YASAK; yabancı adı
+          Latin'e çevir (Иван→IVAN, 李安→ANG LEE, 北京→PEKIN). YALNIZ yabancı ÖZEL ADLAR ASCII
+          BÜYÜK HARFLE: GIDEON, NEW YORK, BEI, EDISON — aksan/Türkçe-karakter YOK, küçük harf YOK.
+          Köşeli parantez YOK.
 
 TEMEL İLKE: HER CÜMLE GERÇEK BİR OLAY BEATIDIR (neden → sonuç). Her ifade NE olduğunu
 söyler. Olay taşımayan, betimleyici/süsleyici cümle YOK. Özet = ne oluyor; süs değil.
@@ -17,7 +21,7 @@ YAPI — ana karakterin NEDEN-SONUÇ ZİNCİRİNİ ŞU SIRADA İLERLET:
 
   1) AÇILIŞ (1 cümle): Ana karakteri ADIYLA + 1-2 SIFATLA tanıt ve onu harekete geçiren
      SOMUT tetikleyici olayı/problemi ver.
-     DOĞRU : "Başarılı bir reklamcı olan David, babasının şeker hastalığı yüzünden
+     DOĞRU : "Başarılı bir reklamcı olan DAVID, babasının şeker hastalığı yüzünden
              bacağının kesileceğini öğrenir."
      YANLIŞ: "Bir adam zor bir döneme girer." (adsız, sıfatsız, olaysız)
 
@@ -25,13 +29,13 @@ YAPI — ana karakterin NEDEN-SONUÇ ZİNCİRİNİ ŞU SIRADA İLERLET:
      DOĞRU : "Kariyeri için hayati bir sunum ile babasının ameliyatı aynı güne denk gelir."
 
   3) KARAR/EYLEM (1 cümle): Karakterin verdiği SOMUT kararı veya eylemi yaz.
-     DOĞRU : "İşi ve sevgilisini bırakıp babasını seçen David, hastanede yanında kalır."
+     DOĞRU : "İşi ve sevgilisini bırakıp babasını seçen DAVID, hastanede yanında kalır."
 
   4) SONUÇ — SPOILER ZORUNLU (1 cümle): Kararın SOMUT sonucunu, ortaya çıkan gerçeği,
      hastalığı, ölümü, ihaneti veya kritik dönüşü AÇIKÇA SÖYLE. "Bir sırrı vardır" deyip
      bırakma — NE OLDUĞUNU yaz.
      DOĞRU : "Annesi bakımı reddedince, ameliyattan sakat çıkan babasının tüm sorumluluğu
-             David'e kalır."
+             DAVID'e kalır."
 
   5) FİNAL (1 cümle): Filmin BİTİŞİNİ somut yaz — kim ölür/kazanır/barışır/öğrenir.
      Belirsiz/temalı bitiş YASAK.
@@ -60,11 +64,11 @@ KESİN YASAKLAR
 ═══════════════════════════════════════════════════════════
 ALTIN ÖRNEK (BU STİL VE YOĞUNLUKTA YAZ)
 ═══════════════════════════════════════════════════════════
-Başarılı bir reklamcı olan David, önemli bir müşteriyle ilişki yaşarken babasının şeker
+Başarılı bir reklamcı olan DAVID, önemli bir müşteriyle ilişki yaşarken babasının şeker
 hastalığı yüzünden bacağının kesileceğini öğrenir. Kariyeri için hayati bir sunum ile
-babasının ameliyatı aynı güne denk gelir. İşi ve sevgilisini bırakıp babasını seçen David,
+babasının ameliyatı aynı güne denk gelir. İşi ve sevgilisini bırakıp babasını seçen DAVID,
 hastanede onun yanında kalır. Annesi hastabakıcılığı reddedince, ameliyattan sakat çıkan
-babasının tüm sorumluluğu David'e kalır. Film, yıllarca uzak kalan baba-oğulun geçmişi
+babasının tüm sorumluluğu DAVID'e kalır. Film, yıllarca uzak kalan baba-oğulun geçmişi
 geride bırakıp yeni bir hayata başlamasıyla biter.
 
 ═══════════════════════════════════════════════════════════
