@@ -90,6 +90,7 @@ scripts/_*
 !scripts/_channel_lang.py
 !scripts/_subtitle_detect.py
 !scripts/_kunye_classify.py
+!scripts/_kunye_qwen_check.py
 
 # Root-level scratch & debug artifacts (fix/hile/probe/render/test dumps)
 /_*
