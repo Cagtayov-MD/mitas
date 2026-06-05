@@ -9,8 +9,8 @@ kanalı — DOWNMIX'e DÜŞME. Kürtçe-ailesi "ku" → whisper çeviremez (üst
   venvs/asr/Scripts/python.exe scripts/_channel_lang.py "<video>"
 """
 import sys, os, json, subprocess
-os.environ.setdefault("USE_TF", "0")          # transformers TF'yi import etmesin (numpy2 çakışması)
-os.environ.setdefault("USE_FLAX", "0")
+os.environ["USE_TF"] = "0"          # transformers TF'yi import etmesin (TF↔numpy2 çökmesi) — hard-set (setdefault değil)
+os.environ["USE_FLAX"] = "0"
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 

@@ -8,6 +8,8 @@ stdout'a tek satir JSON sonuc basar.
 """
 from __future__ import annotations
 import sys, os, json, time, argparse, subprocess
+os.environ["USE_TF"] = "0"        # MMS-LID ŞART: transformers TF'yi import etmesin (TF↔numpy2 çökmesi).
+os.environ["USE_FLAX"] = "0"      # EN TEPEDE olmalı — faster_whisper/_channel_lang'den ÖNCE (geç set = TF zaten yüklü, MMS ölür).
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -65,12 +67,21 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
     # --- KÜRTÇE-ailesi (ku): whisper ÇEVİREMEZ → ASR ATLA (boş transcript), dürüst işaretle.
     #     Özet ayrı adımda İNTERNETTEN gelir (mitas_pipeline, bizim prompt). ---
     if language == "ku":
+        # Kürtçe'de de chlang.json YAZ — yoksa _pipe_pdf kanal-dili SIFIRDAN tekrar koşar (MMS+whisper
+        # yeniden yüklenir = ağır performans israfı). Bug-3.
+        chlang_path = None
+        if detect_info is not None:
+            try:
+                chlang_path = out / "chlang.json"
+                chlang_path.write_text(json.dumps(detect_info, ensure_ascii=False), encoding="utf-8")
+            except Exception:  # noqa: BLE001
+                chlang_path = None
         result = {
             "status": "skipped_unsupported_lang", "mode": "lean", "model": "none", "language": "ku",
             "transcript_path": None, "clean_segments": 0, "transcript_chars": 0, "transcript_head": "",
             "audio_duration": 0.0, "fallback_triggered": False, "profile_used": "lean-skip-ku",
             "summary_channel": (f"a:{sel['stream']}/c{sel['channel']}" if sel else "—"),
-            "channel_detect": detect_info, "chlang_path": None,
+            "channel_detect": detect_info, "chlang_path": str(chlang_path) if chlang_path else None,
             "note": "Kurtce-ailesi (whisper ceviremez) -> ASR atlandi; ozet internetten",
             "runtime_sec": round(time.perf_counter() - t0, 3),
         }

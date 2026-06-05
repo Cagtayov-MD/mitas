@@ -723,14 +723,51 @@ def main(argv=None) -> int:
             log_event("v4_finalize_failed", level="warn", summary=f"v4 final hata (atlandi): {exc}",
                       module="pdf", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
+    # ===== qwen FINAL-QC: render edilen v4 künyeyi GÖR + beklentileri doğrula (Hazır kapısına ek) =====
+    # qwen2.5vl önizleme PNG'sine bakar; SADECE-gördüğüyle eksik bulursa (placeholder özet / eksik afiş /
+    # küçük-harf / bozuk-İ / yön+yapımcı yok) → Kontrol. Ollama yok/hata → atla (kapıyı BOZMA, kural-tabanlıya düş).
+    qwen_qc = None
+    _qc_png = pdf_out / "kunye_onizleme.png"
+    if profile in ("film", "dizi") and _qc_png.exists():
+        _t_qc = time.perf_counter()
+        try:
+            sys.path.insert(0, str(HERE))
+            import _kunye_qwen_check as _kqc
+            qwen_qc = _kqc.check(str(_qc_png))
+            timings["qwen_qc"] = round(time.perf_counter() - _t_qc, 2)
+            log_event("qwen_final_qc",
+                      summary=f"{video.name}: qwen final-QC ({timings.get('qwen_qc')} sn) — {(qwen_qc or {}).get('notlar') or 'ok'}",
+                      module="qc", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id, "qwen_qc": qwen_qc})
+        except Exception as exc:  # noqa: BLE001 — qwen-QC pipeline'i ASLA bozmaz (ollama yok/model yok vb.)
+            qwen_qc = {"error": f"{type(exc).__name__}: {exc}"}
+            log_event("qwen_final_qc_skipped", level="warn",
+                      summary=f"{video.name}: qwen final-QC atlandi: {exc}",
+                      module="qc", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []
     if ocr_bucket not in ("GUVENILIR",):
         reasons.append(f"OCR bucket={ocr_bucket}")
-    if asr_status not in ("done", "ATLANDI"):
+    if asr_status not in ("done", "ATLANDI", "skipped_unsupported_lang"):  # Kürtçe-atla = kasıtlı, Kontrol DEĞİL
         reasons.append(f"ASR={asr_status}")
     if not pdf_info.get("pdf_path"):
         reasons.append("PDF render yok (md teslim)")
+    if qwen_qc and not qwen_qc.get("error"):   # qwen final-QC: model gözüyle son kapı (PDF'i gören)
+        if not qwen_qc.get("ozet_var"):
+            reasons.append("qwen: özet yok/placeholder")
+        if (qwen_qc.get("oyuncu_sayisi") or 0) < 1:
+            reasons.append("qwen: oyuncu yok")
+        if not qwen_qc.get("yonetmen_var") and not qwen_qc.get("yapimci_var"):
+            reasons.append("qwen: yön+yapımcı yok")
+        if not qwen_qc.get("ses_dil_var"):
+            reasons.append("qwen: ses/dil yok")
+        if not qwen_qc.get("afis_var"):
+            reasons.append("qwen: afiş yok")
+        if not qwen_qc.get("hepsi_buyuk_harf"):
+            reasons.append("qwen: büyük-harf değil")
+        if qwen_qc.get("turkce_karakter_bozuk_var"):
+            reasons.append("qwen: Türkçe karakter bozuk")
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
     dest = dest_root / clip_id
@@ -745,7 +782,7 @@ def main(argv=None) -> int:
 
     summary_obj = {
         "clip_id": clip_id, "video": str(video), "profile": profile, "trt_id": trt, "title": title,
-        "karar": karar, "neden": reasons, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
+        "karar": karar, "neden": reasons, "qwen_qc": qwen_qc, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
         "asr_status": asr_status, "asr_segments": asr_info.get("clean_segments"),
         "transcript_chars": asr_info.get("transcript_chars"),
         "resolution": res, "fps": fps_s, "duration": dur, "timings_sec": timings,
