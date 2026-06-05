@@ -4,6 +4,7 @@ import { formatClock, segmentConfidence, shouldOfferTurkishTranslation, translat
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LiveSttLine, LiveSttPreviewState, LiveSttStatus } from '../live-stt-preview';
 import { FlowQueuePanel, type FlowQueuedMediaRequest } from './FlowQueuePanel';
+import { LogPanel } from './LogPanel';
 import {
   buildSegmentFeedbackEntry,
   feedbackEntryId,
@@ -43,7 +44,7 @@ interface SidebarProps {
   selectedSegmentIndex: number | null;
   isTranslatingAll: boolean;
   segmentTranslations: Record<number, SegmentTranslationState>;
-  panelMode: 'modules' | 'flow';
+  panelMode: 'modules' | 'flow' | 'log';
   onSelectSegment: (index: number) => void;
   onTranslateSegment: (index: number) => void;
   onTranslateAllSegments: () => void;
@@ -190,6 +191,9 @@ export function Sidebar({
     <div className="w-[450px] bg-app-shell border-l border-border-subtle flex flex-col shrink-0 text-foreground-default">
       <div className={panelMode === 'flow' ? 'flex min-h-0 flex-1' : 'hidden'}>
         <FlowQueuePanel onOpenMedia={onOpenQueuedMedia} />
+      </div>
+      <div className={panelMode === 'log' ? 'flex min-h-0 flex-1' : 'hidden'}>
+        <LogPanel />
       </div>
       <div className={panelMode === 'modules' ? 'flex min-h-0 flex-1' : 'hidden'}>
       <Tabs defaultValue="transcript" className="w-full flex flex-col h-full">

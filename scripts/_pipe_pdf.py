@@ -81,11 +81,18 @@ _LANG_CODES = {
 }
 
 
+# "efekt" ailesi — ses kanalı konuşma içermiyor; bunlar ses listesinden elenir.
+_EFEKT_LABELS = {"efekt", "ef", "efekt/zayıf", "efekt/sessiz", "boş", "sessiz"}
+
+
 def _lang_code(s):
-    """Dil adini koda cevir: Türkçe->TR, English->EN. Bilinmeyen->ilk 2 harf (BUYUK)."""
+    """Dil adini koda cevir: Türkçe->TR, English->EN. Bilinmeyen->ilk 2 harf (BUYUK).
+    'efekt' ailesi → 'EF' (konuşmasız kanal); None/boş → '—'."""
     t = (s or "").strip().lower()
     if not t:
         return "—"
+    if t in _EFEKT_LABELS or t.startswith("efekt"):
+        return "EF"
     for k, v in _LANG_CODES.items():
         if k in t:
             return v
@@ -95,17 +102,24 @@ def _lang_code(s):
 def _derive_audio(cl):
     """cl = _channel_lang.main() çıktısı VEYA _pipe_asr detect_info ({units, selected}).
     → (ses_kanallari[:4] dil-KODU, ana_dil KODU, sesler_ic_ice) | None.
-    Dil adlari TR/EN/... koduna cevrilir (kullanici kurali: 'Türkçe' degil 'TR')."""
+    Dil adlari TR/EN/... koduna cevrilir (kullanici kurali: 'Türkçe' degil 'TR').
+    EF kanalları ses listesinden elenir; hepsi EF ise ses=None.
+    summary_language=None ise ana_dil='—' (düşük-güven fallback atanmaz)."""
     if not cl:
         return None
     units = cl.get("units") or []
     speech = [u for u in units if u.get("role") == "konuşma"]
-    ses = [_lang_code(u.get("label", "")) for u in units[:4]] or None
-    ana = cl.get("summary_language") or (cl.get("selected") or {}).get("language")
+    # Tüm kanallar için kod üret; EF olmayanları al (konuşma kanalları)
+    all_codes = [_lang_code(u.get("label", "")) for u in units[:4]]
+    non_ef = [c for c in all_codes if c != "EF"]
+    ses = non_ef if non_ef else None   # hepsi EF ise ses=None → PDF ses satırı basmasın
+    # summary_language None ise ana_dil "—" (konuşma yok veya belirsiz → atama yok)
+    raw_ana = cl.get("summary_language") or (cl.get("selected") or {}).get("language")
+    ana = _lang_code(raw_ana) if raw_ana else "—"
     ic = cl.get("sesler_ic_ice")
     if ic is None:
         ic = any(u.get("mixed") for u in speech)
-    return ses, _lang_code(ana), bool(ic)
+    return ses, ana, bool(ic)
 
 
 def audio_subtitle_block(args) -> dict:
@@ -130,6 +144,12 @@ def audio_subtitle_block(args) -> dict:
             sub = _run_json([PY_OCR, SUBTITLE_SCRIPT, args.video])
         if sub is not None and "altyazili" in sub:
             block["altyazi"] = "EVET" if sub.get("altyazili") else "HAYIR"
+        # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
+        # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
+        _ana = block.get("ana_dil", "—")
+        _alt = block.get("altyazi")
+        if _ana not in ("TR", "—", None) and _alt == "HAYIR":
+            block["ses_uyari"] = "SES_MANTIKSIZ"
     except Exception:  # noqa: BLE001 - ses/altyazı bloğu PDF'i ASLA bozmaz
         pass
     return block

@@ -107,9 +107,134 @@ def _cand_has_name(cand: dict, names_norm: list) -> bool:
     return bool(s) and any(n in s for n in (names_norm or []))
 
 
+def _save_image(data: bytes, out_path) -> str | None:
+    """Boyut/bütünlük kontrolünden geçen görseli diske yaz. Hatalıysa None."""
+    if len(data) < 5000:
+        return None
+    try:
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(out_path).write_bytes(data)
+        return str(out_path)
+    except Exception:
+        return None
+
+
+def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, year=None) -> bytes | None:
+    """TMDB API ile afiş çek. MITAS_TMDB/TMDB_API_KEY env yoksa None.
+    Sıra: tmdb_id → IMDb id (/find) → başlık araması (orijinal önce, sonra TR; yıl ile daralt)."""
+    import os
+    key = os.environ.get("MITAS_TMDB") or os.environ.get("TMDB_API_KEY")
+    if not key:
+        return None
+
+    def _data(path):
+        if not path:
+            return None
+        try:
+            return _get(f"https://image.tmdb.org/t/p/w780{path}", binary=True)
+        except Exception:
+            return None
+
+    try:
+        if tmdb_id:
+            meta = json.loads(_get(f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={key}"))
+            d = _data(meta.get("poster_path"))
+            if d:
+                return d
+        if imdb_id:                                  # IMDb id → /find (DOĞRU endpoint; /movie/{tt} 404 verir)
+            fr = json.loads(_get(f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={key}&external_source=imdb_id"))
+            for kk in ("movie_results", "tv_results"):       # film + DİZİ (Diriliş = tv_results)
+                for m in (fr.get(kk) or []):
+                    d = _data(m.get("poster_path"))
+                    if d:
+                        return d
+        for q in (original, title):                  # başlık araması (yabancı orijinal önce)
+            if not q:
+                continue
+            for kind in ("movie", "tv"):             # FİLM ve DİZİ ara (Diriliş Ertuğrul = tv)
+                url = (f"https://api.themoviedb.org/3/search/{kind}?api_key={key}"
+                       f"&query={urllib.parse.quote(q)}&include_adult=false")
+                if year:
+                    url += (f"&year={year}" if kind == "movie" else f"&first_air_date_year={year}")
+                res = (json.loads(_get(url)).get("results") or [])
+                if res:
+                    d = _data(res[0].get("poster_path"))
+                    if d:
+                        return d
+    except Exception:
+        return None
+    return None
+
+
+def _fetch_omdb_poster(imdb_id=None, title=None, year=None) -> bytes | None:
+    """OMDb API ile afiş çek (IMDb/Amazon posteri). MITAS_OMDB/OMDB_API_KEY env yoksa None.
+    IMDb id (i=) önce — en güveniliri; sonra başlık (t=) + yıl."""
+    import os
+    key = os.environ.get("MITAS_OMDB") or os.environ.get("OMDB_API_KEY")
+    if not key:
+        return None
+    urls = []
+    if imdb_id:
+        urls.append(f"http://www.omdbapi.com/?i={imdb_id}&apikey={key}")
+    if title:
+        u = f"http://www.omdbapi.com/?t={urllib.parse.quote(title)}&apikey={key}"
+        if year:
+            u += f"&y={year}"
+        urls.append(u)
+    for u in urls:
+        try:
+            meta = json.loads(_get(u))
+            poster = meta.get("Poster")
+            if poster and poster != "N/A":
+                data = _get(poster, binary=True)
+                if data and len(data) >= 5000:
+                    return data
+        except Exception:
+            continue
+    return None
+
+
+def _fetch_wikipedia_poster(title: str, original: str | None = None) -> bytes | None:
+    """Wikipedia pageimages API ile afiş verisi çek (anahtarsız). TR + EN wiki dene."""
+    titles_to_try = []
+    if original:
+        titles_to_try.append(("en", original))
+        clean = _clean_title_for_search(original)
+        if clean and clean != original:
+            titles_to_try.append(("en", clean))
+    if title:
+        titles_to_try.append(("tr", title))
+        titles_to_try.append(("en", title))
+        clean = _clean_title_for_search(title)
+        if clean and clean != title:
+            titles_to_try.append(("tr", clean))
+            titles_to_try.append(("en", clean))
+    seen = set()
+    for lang, t in titles_to_try:
+        key = (lang, _norm(t))
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            enc = urllib.parse.quote(t)
+            url = (f"https://{lang}.wikipedia.org/w/api.php?action=query&prop=pageimages"
+                   f"&format=json&piprop=original&titles={enc}")
+            resp = json.loads(_get(url))
+            pages = (resp.get("query") or {}).get("pages") or {}
+            for page in pages.values():
+                img_url = (page.get("original") or {}).get("source")
+                if img_url:
+                    data = _get(img_url, binary=True)
+                    if data and len(data) >= 5000:
+                        return data
+        except Exception:
+            continue
+    return None
+
+
 def fetch_poster(title: str, out_path, *, original: str | None = None,
                  year: str | int | None = None, cast=None, crew=None,
-                 also_query: str | None = None) -> str | None:
+                 also_query: str | None = None, tmdb_id=None, imdb_id=None) -> str | None:
     """Güvenli afiş indir → out_path (jpg). Bulunamaz/belirsizse None.
 
     title      : TRT/Türkçe ad (yedek sorgu).
@@ -117,6 +242,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
     year       : varsa yıl-teyidi (çok sonuçta yedek ayraç — TRT yılı güvenilmez olabilir).
     cast, crew : parse edilmiş kadro — çok sonuçta ASIL ayraç (IMDb 's' eşleşmesi).
     also_query : ek aday.
+    tmdb_id    : Wikidata'dan gelen TMDB film id'si (yedek zinciri için).
     """
     names = _names_norm(cast, crew)
     # Aday sorgular: orijinal ad (yabanci film) ve TRT/Turkce ad; her birinin
@@ -136,13 +262,39 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
                 continue
             try:
                 data = _get(_big(img), binary=True)
-                if len(data) < 5000:              # bozuk/çok küçük → atla
-                    continue
-                Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-                Path(out_path).write_bytes(data)
-                return str(out_path)
+                result = _save_image(data, out_path)
+                if result:
+                    return result
             except Exception:  # noqa: BLE001
                 continue
+    # --- Yedek zinciri: IMDb Suggestion başarısız ---
+    # (a) TMDB (sadece env'de anahtar varsa)
+    try:
+        data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year)
+        if data:
+            result = _save_image(data, out_path)
+            if result:
+                return result
+    except Exception:
+        pass
+    # (b) OMDb (env anahtarı varsa — IMDb/Amazon posteri)
+    try:
+        data = _fetch_omdb_poster(imdb_id, original or title, year)
+        if data:
+            result = _save_image(data, out_path)
+            if result:
+                return result
+    except Exception:
+        pass
+    # (c) Wikipedia/Wikimedia (anahtarsız)
+    try:
+        data = _fetch_wikipedia_poster(title, original)
+        if data:
+            result = _save_image(data, out_path)
+            if result:
+                return result
+    except Exception:
+        pass
     return None
 
 

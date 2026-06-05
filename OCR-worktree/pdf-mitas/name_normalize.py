@@ -21,6 +21,8 @@ import urllib.request
 _SPECIAL = {
     "ø": "o", "Ø": "O", "ł": "l", "Ł": "L", "đ": "d", "Đ": "D", "þ": "th", "Þ": "Th",
     "ß": "ss", "æ": "ae", "Æ": "Ae", "œ": "oe", "Œ": "Oe", "ð": "d", "Ð": "D",
+    # Azerice schwa — NFKD ile decompose olmaz, açık çeviri şart (U+018F / U+0259)
+    "Ə": "E", "ə": "e",
 }
 _TR_STRONG = set("ışğİıŞĞ")       # ı, ş, ğ, İ — güçlü Türkçe sinyali
 _TR_AMBIG = set("çöüÇÖÜ")          # ç, ö, ü — Türkçe VEYA Almanca/Fransızca (belirsiz)
@@ -123,8 +125,12 @@ def normalize_crew(crew, *, use_qwen: bool = True):
 
 
 def tr_upper(s: str) -> str:
-    """Turkce buyuk harf: i->İ, ı->I; digerleri standart upper (ş->Ş, ç->Ç, ğ->Ğ...)."""
-    return (s or "").replace("ı", "I").replace("i", "İ").upper()
+    """Turkce buyuk harf: i->İ, ı->I; digerleri standart upper (ş->Ş, ç->Ç, ğ->Ğ...).
+    Latin-disi ozel harfler (Ə, ø, ł...) Latin'e cevrilir; Turkce harfler _SPECIAL'da yok -> korunur."""
+    s = s or ""
+    if any(ch in _SPECIAL for ch in s):
+        s = "".join(_SPECIAL.get(ch, ch) for ch in s)   # Ə->E vb. (isim Ş icerip Turkce sanilsa bile)
+    return s.replace("ı", "I").replace("i", "İ").upper()
 
 
 # Turkce ad DB (saf-ASCII isim kokeni icin; qwen'den guvenilir). Yoksa bos -> qwen.
@@ -161,25 +167,39 @@ _MITAS_TR_QID = "Q43"   # Wikidata: Turkiye (mitas_people_index = DUNYA kisi DB'
 
 def _mitas_people_set(names):
     """Saf-ASCII isimleri mitas_people_index (Wikidata DUNYA kisi DB'si) icinde TOPLU ara,
-    countries='Q43' (Turkiye) olanlari Turk say. Doner (db_calisti, turk_isimler).
+    countries='Q43' (Turkiye) olanlari Turk say. Doner (db_calisti, ascii_key->canonical_name).
+    canonical_name: DB'deki Turkce yazim (Ayşenil Şamlıoğlu) — tr_upper icin dogru base.
     Nuri Bilge Ceylan/Murat Cemcir -> Q43 (Turk); Stefan Kitanov -> Q219 (Bulgar),
-    Fabian Gasmia -> ulke yok -> yabanci. DB/duckdb yoksa (False, set()) -> CSV fallback."""
+    Fabian Gasmia -> ulke yok -> yabanci. DB/duckdb yoksa (False, {}) -> CSV fallback."""
     if not names:
-        return True, set()
+        return True, {}
     try:
         import duckdb
         con = duckdb.connect(_MITAS_DB, read_only=True)
         keys = [ascii_fold(n).upper() for n in names]
         ph = ",".join(["?"] * len(keys))
-        sql = (f"SELECT UPPER(strip_accents(name)) nm, countries FROM main.mitas_people_index "
+        sql = (f"SELECT name, UPPER(strip_accents(name)) nm, UPPER(strip_accents(ascii_name)) an, countries "
+               f"FROM main.mitas_people_index "
                f"WHERE UPPER(strip_accents(name)) IN ({ph}) "
                f"OR UPPER(strip_accents(ascii_name)) IN ({ph})")
         rows = con.execute(sql, keys + keys).fetchall()
         con.close()
-        tr_keys = {nm for nm, c in rows if nm and c and _MITAS_TR_QID in str(c).split("|")}
-        return True, {n for n in names if ascii_fold(n).upper() in tr_keys}
+        # ascii_key (nm veya an) → kanonik Türkçe isim (name sutunu)
+        tr_canonical: dict[str, str] = {}
+        for canon_name, nm, an, c in rows:
+            if canon_name and c and _MITAS_TR_QID in str(c).split("|"):
+                for ak in (nm, an):
+                    if ak:
+                        tr_canonical[ak] = canon_name
+        # giren ismin ascii_fold.upper() anahtar ile eşleştir → {giren_isim: kanonik_ad}
+        result = {}
+        for n in names:
+            k = ascii_fold(n).upper()
+            if k in tr_canonical:
+                result[n] = tr_canonical[k]
+        return True, result
     except Exception:  # noqa: BLE001 - DB/duckdb yoksa CSV fallback
-        return False, set()
+        return False, {}
 
 
 def upper_names(names, *, use_qwen: bool = False):
@@ -198,6 +218,7 @@ def upper_names(names, *, use_qwen: bool = False):
             if not any(c in tr_all for c in n)
             and not any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n)]
     db_ok, mitas_tr = _mitas_people_set(pure)
+    # mitas_tr: {giren_isim: kanonik_Turkce_ad} (ornek: "Aysenil Samlioglu" -> "Ayşenil Şamlıoğlu")
     out = []
     for n in names:
         if any(c in tr_all for c in n):
@@ -205,8 +226,15 @@ def upper_names(names, *, use_qwen: bool = False):
         elif any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n):
             out.append(ascii_fold(n).upper())             # yabanci aksan -> fold
         else:                                             # saf-ASCII -> koken
-            is_tr = (n in mitas_tr) if db_ok else _is_tr_name(n)
-            out.append(tr_upper(n) if is_tr else ascii_fold(n).upper())
+            if db_ok:
+                canonical = mitas_tr.get(n)              # DB'den Turkce kanonik (ornek: "Ayşenil Şamlıoğlu")
+                if canonical is not None:
+                    out.append(tr_upper(canonical))       # kanonik uzerinde tr_upper -> Turkce buyuk harf
+                else:
+                    out.append(ascii_fold(n).upper())     # DB'de yok -> yabanci
+            else:
+                is_tr = _is_tr_name(n)
+                out.append(tr_upper(n) if is_tr else ascii_fold(n).upper())
     return out
 
 

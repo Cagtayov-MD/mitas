@@ -83,7 +83,7 @@ export function AnalysisWorkspace({
   const [inPoint, setInPoint] = useState<number | null>(null);
   const [outPoint, setOutPoint] = useState<number | null>(null);
   const [dismissedWarningJobId, setDismissedWarningJobId] = useState<string | null>(null);
-  const [rightPanelMode, setRightPanelMode] = useState<'modules' | 'flow'>('modules');
+  const [rightPanelMode, setRightPanelMode] = useState<'modules' | 'flow' | 'log'>('modules');
   const isLivePreviewEnabled = isSttPreviewEnabled && analysisProfile === 'stt' && Boolean(mediaPreviewUrl);
   const livePreview = useLiveSttPreview({
     enabled: isLivePreviewEnabled,

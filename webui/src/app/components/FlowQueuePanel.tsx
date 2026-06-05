@@ -14,16 +14,11 @@ import { Badge, Button, ScrollArea } from './ui';
 import {
   ANALYSIS_PROFILE_OPTIONS,
   analysisProfileLabel,
-  fetchAsrJob,
-  isAsrJobFinished,
   localFileSourcePath,
-  profileRunsOcr,
-  startAsrJob,
-  startPipelineJob,
   type AnalysisProfile,
   type AsrJob,
 } from '../asr-api';
-import { DEFAULT_TEDIAL_CHANNEL_MODE, searchTedial, startTedialAsrJob, type TedialSearchResult } from '../tedial-api';
+import { searchTedial, type TedialSearchResult } from '../tedial-api';
 import { Select, SelectContent, SelectItem, SelectTrigger } from './ui/select';
 import {
   ContextMenu,
@@ -94,13 +89,11 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const itemsRef = useRef<FlowQueueItem[]>([]);
   const isProcessingRef = useRef(false);
   const stopModeRef = useRef<FlowStopMode>('none');
-  const runningItemIdRef = useRef<string | null>(null);
-  const activeAbortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedPersistedQueueRef = useRef(false);
   const skipNextPersistenceEffectRef = useRef(true);
   const [items, setItems] = useState<FlowQueueItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
-  const [bulkProfile, setBulkProfile] = useState<AnalysisProfile>('stt');
+  const [bulkProfile, setBulkProfile] = useState<AnalysisProfile>('film_dizi');
   const [tedialQuery, setTedialQuery] = useState('');
   const [tedialCandidate, setTedialCandidate] = useState<TedialSearchResult | null>(null);
   const [lastTedialQuery, setLastTedialQuery] = useState('');
@@ -122,7 +115,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       .then((state) => {
         if (cancelled) return;
         const restoredItems = (state?.items ?? []).map(restorePersistedFlowItem);
-        const restoredBulkProfile = state?.bulkProfile ?? 'stt';
+        const restoredBulkProfile = state?.bulkProfile ?? 'film_dizi';
         itemsRef.current = restoredItems;
         setItems(restoredItems);
         if (state?.bulkProfile) {
@@ -161,6 +154,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       skipNextPersistenceEffectRef.current = false;
       return;
     }
+    if (isProcessingRef.current) return;  // SUNUCU worker koşarken queue.json'a YAZMA — worker sahibi; poll-PUT yarışı (worker 'done'unu geri-sarma) önlenir
     saveFlowQueueState({ items, bulkProfile })
       .then(() => setPersistenceStatus('saved'))
       .catch(() => setPersistenceStatus('error'));
@@ -170,7 +164,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
     setItems((current) => {
       const next = updater(current);
       itemsRef.current = next;
-      if (hasLoadedPersistedQueueRef.current) {
+      if (hasLoadedPersistedQueueRef.current && !isProcessingRef.current) {
         saveFlowQueueState({ items: next, bulkProfile })
           .then(() => setPersistenceStatus('saved'))
           .catch(() => setPersistenceStatus('error'));
@@ -178,6 +172,51 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       return next;
     });
   };
+
+  // SUNUCU worker durumunu izle — yenileme/kapatma sonrası YENİDEN BAĞLANIR (koşu sayfadan bağımsız sürer).
+  const pollServerQueue = async () => {
+    try {
+      const [wr, qr] = await Promise.all([
+        fetch('/api/flow-queue/worker', { cache: 'no-store' }),
+        fetch('/api/flow-queue', { cache: 'no-store' }),
+      ]);
+      let running = false;
+      if (wr.ok) {
+        const w = await wr.json();
+        running = Boolean(w?.running);
+      }
+      if (qr.ok) {
+        const q = await qr.json();
+        const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string }> = Array.isArray(q?.items) ? q.items : [];
+        if (serverItems.length) {
+          const byId = new Map(serverItems.map((s) => [s.id, s] as const));
+          setItems((current) => {
+            const next = current.map((it) => {
+              const s = byId.get(it.id);
+              return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message } : it;
+            });
+            itemsRef.current = next;
+            return next;
+          });
+        }
+      }
+      isProcessingRef.current = running;
+      setIsProcessing(running);
+      if (!running && stopModeRef.current !== 'none') {
+        stopModeRef.current = 'none';
+        setStopMode('none');
+      }
+    } catch {
+      /* geçici ağ hatası — sonraki tick'te tekrar */
+    }
+  };
+
+  useEffect(() => {
+    void pollServerQueue();
+    const id = window.setInterval(() => { void pollServerQueue(); }, 2000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const addFiles = (fileList: FileList | File[]) => {
     const files = Array.from(fileList).filter(Boolean);
@@ -354,19 +393,17 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
     isProcessingRef.current = true;
     setIsProcessing(true);
     try {
-      while (true) {
-        if (stopModeRef.current !== 'none') break;
-        const target = itemsRef.current.find((item) => item.status === 'waiting');
-        if (!target) break;
-        await processItem(target);
-        if (stopModeRef.current !== 'none') break;
-      }
-    } finally {
-      isProcessingRef.current = false;
-      stopModeRef.current = 'none';
-      activeAbortControllerRef.current = null;
-      setIsProcessing(false);
-      setStopMode('none');
+      // Kuyruğu sunucuya yaz (worker queue.json'dan okur) + SUNUCU-TARAFI worker'ı başlat.
+      await saveFlowQueueServerState({
+        id: FLOW_QUEUE_STATE_ID,
+        updatedAt: new Date().toISOString(),
+        bulkProfile,
+        items: itemsRef.current.map(toFallbackFlowItem),
+      });
+      await fetch('/api/flow-queue/run', { method: 'POST' });
+      await pollServerQueue();
+    } catch {
+      // başlatılamazsa pollServerQueue gerçek durumu yansıtır
     }
   };
 
@@ -374,79 +411,20 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
     if (!isProcessingRef.current || stopModeRef.current === 'force') return;
     stopModeRef.current = 'safe';
     setStopMode('safe');
+    // Nazik: o anki film biter, kuyruk durur. "Başlat" kaldığı yerden devam eder.
+    void fetch('/api/flow-queue/stop', { method: 'POST' }).catch(() => {});
   };
 
   const requestForceStop = () => {
     if (!isProcessingRef.current) return;
     stopModeRef.current = 'force';
     setStopMode('force');
-    activeAbortControllerRef.current?.abort();
-    const runningId = runningItemIdRef.current;
-    if (runningId) {
-      updateItems((current) => current.map((currentItem) => currentItem.id === runningId
-        ? { ...currentItem, status: 'stopped', message: 'Zorla durduruldu. Backend işi başlamışsa logda tamamlanabilir.' }
-        : currentItem));
-    }
+    // SUNUCU worker'ı durdur + çalışan pipeline'ı process-AĞACIYLA öldür (gerçek "net kes")
+    void fetch('/api/flow-queue/stop', { method: 'POST' }).catch(() => {});
+    void fetch('/api/pipeline/abort', { method: 'POST' }).catch(() => {});
   };
 
-  const processItem = async (item: FlowQueueItem) => {
-    let started: AsrJob | null = null;
-    const abortController = new AbortController();
-    activeAbortControllerRef.current = abortController;
-    runningItemIdRef.current = item.id;
-    updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-      ? { ...currentItem, status: 'running', message: 'Başlatılıyor' }
-      : currentItem));
-    try {
-      const uploadFile = item.source === 'upload'
-        ? item.file ?? await fileFromStoredQueueMedia(item)
-        : undefined;
-      started = item.source === 'upload'
-        ? profileRunsOcr(item.profile)
-          ? await startPipelineJob(uploadFile as File, item.profile, { signal: abortController.signal })
-          : await startAsrJob(uploadFile as File, item.profile, { signal: abortController.signal })
-        : (await startTedialAsrJob(item.tedialItem as TedialSearchResult, {
-          analysisProfile: item.profile,
-          channelMode: DEFAULT_TEDIAL_CHANNEL_MODE,
-          signal: abortController.signal,
-        })).job;
-      if (stopModeRef.current === 'force') {
-        throw new FlowForceStoppedError();
-      }
-      const activeJob = started;
-      updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-        ? { ...currentItem, job: activeJob, message: activeJob.message || 'Kuyrukta' }
-        : currentItem));
-      const completed = await waitForAsrCompletion(activeJob.job_id, () => stopModeRef.current === 'force');
-      const nextStatus: FlowItemStatus = completed.status === 'done'
-        ? 'done'
-        : completed.status === 'partial'
-          ? 'partial'
-          : completed.status === 'failed'
-            ? 'failed'
-            : 'done';
-      updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-        ? { ...currentItem, status: nextStatus, job: completed, message: completed.message || STATUS_META[nextStatus].label }
-        : currentItem));
-    } catch (error) {
-      if (error instanceof FlowForceStoppedError || (stopModeRef.current === 'force' && isAbortError(error))) {
-        updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-          ? { ...currentItem, status: 'stopped', ...(started ? { job: started } : {}), message: 'Zorla durduruldu. Backend işi başlamışsa logda tamamlanabilir.' }
-          : currentItem));
-        return;
-      }
-      updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-        ? { ...currentItem, status: 'failed', message: error instanceof Error ? error.message : 'İşlem başarısız' }
-        : currentItem));
-    } finally {
-      if (activeAbortControllerRef.current === abortController) {
-        activeAbortControllerRef.current = null;
-      }
-      if (runningItemIdRef.current === item.id) {
-        runningItemIdRef.current = null;
-      }
-    }
-  };
+  // (eski client-tarafı processItem KALDIRILDI — kuyruk artık SUNUCU worker'da koşuyor: /api/flow-queue/run)
 
   const selectedCount = selectedIds.size;
   const pendingCount = items.filter((item) => item.status === 'waiting').length;
@@ -765,18 +743,6 @@ async function persistQueueUpload(itemId: string, file: File): Promise<{
   return response.json();
 }
 
-async function fileFromStoredQueueMedia(item: FlowQueueItem): Promise<File> {
-  if (!item.storedMediaUrl) {
-    throw new Error('Yerel dosya geri yüklenemedi; yeniden yükle.');
-  }
-  const response = await fetch(item.storedMediaUrl);
-  if (!response.ok) {
-    throw new Error('Queue log medyası okunamadı.');
-  }
-  const blob = await response.blob();
-  return new File([blob], item.name || 'media', { type: item.mediaType || blob.type || 'application/octet-stream' });
-}
-
 function mediaTypeForQueueFile(file: File): string | undefined {
   if (file.type && file.type !== 'application/octet-stream') return file.type;
   const ext = file.name.split('.').pop()?.toLowerCase();
@@ -804,50 +770,6 @@ function TedialSearchIndicator({ state }: { state: 'idle' | 'searching' | 'found
   if (state === 'found') return <CheckCircle2 className="absolute right-2 top-2 h-3.5 w-3.5 text-success" />;
   if (state === 'missing' || state === 'error') return <AlertCircle className="absolute right-2 top-2 h-3.5 w-3.5 text-danger" />;
   return null;
-}
-
-async function waitForAsrCompletion(jobId: string, shouldForceStop?: () => boolean): Promise<AsrJob> {
-  let job = await fetchAsrJob(jobId);
-  while (!isAsrJobFinished(job)) {
-    if (shouldForceStop?.()) {
-      throw new FlowForceStoppedError();
-    }
-    await sleep(2500, shouldForceStop);
-    if (shouldForceStop?.()) {
-      throw new FlowForceStoppedError();
-    }
-    job = await fetchAsrJob(jobId);
-  }
-  return job;
-}
-
-function sleep(ms: number, shouldForceStop?: () => boolean): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const startedAt = Date.now();
-    const tick = () => {
-      if (shouldForceStop?.()) {
-        reject(new FlowForceStoppedError());
-        return;
-      }
-      if (Date.now() - startedAt >= ms) {
-        resolve();
-        return;
-      }
-      window.setTimeout(tick, 100);
-    };
-    tick();
-  });
-}
-
-class FlowForceStoppedError extends Error {
-  constructor() {
-    super('Akış zorla durduruldu.');
-    this.name = 'FlowForceStoppedError';
-  }
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError';
 }
 
 const FLOW_QUEUE_DB_NAME = 'mitas-flow-queue';
@@ -917,7 +839,7 @@ async function saveFlowQueueState(state: { items: FlowQueueItem[]; bulkProfile: 
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(FLOW_QUEUE_STORE, 'readwrite');
     const store = transaction.objectStore(FLOW_QUEUE_STORE);
-    store.put(payload);
+    store.put(metadataPayload);  // File objesi (büyük video) DEĞİL — sadece metadata. 50 büyük dosyada IndexedDB kota patlamasını (KAYIT HATASI) önler.
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
     transaction.onabort = () => reject(transaction.error);

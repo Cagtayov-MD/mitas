@@ -118,6 +118,7 @@ def parse_filename(video: Path):
         # (web_client_CAG1_, evoArcadmin_COZUMLEMEV2S20_ vb.) → başlığa KATMA.
         # (KÖPRÜ _hile_manifest ile aynı kural.)
         title = stem[m.end():].lstrip("-_ ").replace("_", " ").strip(" -_")
+        title = re.sub(r" {2,}", " ", title)                # Fix 5: çoklu boşluk sıkıştır (ESK   EH R → ESKEHR)
         if not title:                       # ad nadiren TRT'den önceyse geri düş
             title = stem[:m.start()].replace("_", " ").strip(" -_")
     else:
@@ -528,7 +529,10 @@ def main(argv=None) -> int:
     # ===== BLOK VIDEO-KÜNYE (opsiyonel: MITAS_USE_VIDEO_CREDITS) =====
     # ASR communicate() BİTTİKTEN sonra (GPU serbest), PDF'ten ÖNCE → gemma+7b ile whisper ÇAKIŞMAZ.
     # Flag KAPALI (vars.) → blok hiç çalışmaz, video_credits=None, PDF'e arg eklenmez (sıfır etki). Asla çökmez.
-    USE_VIDEO_CREDITS = os.environ.get("MITAS_USE_VIDEO_CREDITS", "").strip().lower() in ("1", "true", "yes", "on")
+    # film/dizi'de TEMİZ künye için video-okuma + v4 final VARSAYILAN AÇIK (eski OCR-only çöp üretiyordu:
+    # yönetmen yok, "SERVING GIRL" yapımcı, cast boş). Acil geri dönüş: MITAS_NO_VIDEO_CREDITS=1.
+    _vc_off = os.environ.get("MITAS_NO_VIDEO_CREDITS", "").strip().lower() in ("1", "true", "yes", "on")
+    USE_VIDEO_CREDITS = not _vc_off
     video_credits = None
     if USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi"):
         t_vc = time.perf_counter()
@@ -615,6 +619,45 @@ def main(argv=None) -> int:
         timings["pdf"] = round(time.perf_counter() - t0, 2)
         log_event("pdf_failed", level="error", summary=f"PDF blogu hata: {exc}",
                   module="pdf", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+
+    # ===== BLOK V4 FİNAL (film/dizi: temiz video-okuma + cross-check → kunye.pdf'i v4'e çevir) =====
+    # tek_film_kunye.py (PY_PDF): video_credits (yukarıda) + KB yapımcı/yönetmen-dolgu/TÜR/afiş + v4 düzen
+    # (efekt-siz kanal, sadece Yön+Yap, BÜYÜK-harf özet). kunye_teslim.md'den özet/kanal/süre okur.
+    # GÜVENLİ: kunye_v4.pdf'e yazar, BAŞARIRSA kunye.pdf üzerine taşır; hata olursa eski PDF olduğu gibi kalır.
+    if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
+        t_v4 = time.perf_counter()
+        try:
+            v4_tmp = pdf_out / "kunye_v4.pdf"
+            v4_cmd = [str(PY_PDF), str(HERE / "tek_film_kunye.py"),
+                      "--clip", str(clip_dir), "--title", title, "--out", str(v4_tmp)]
+            if original:
+                v4_cmd += ["--original", original]
+            if film_year:
+                v4_cmd += ["--year", str(film_year)]
+            if video_credits:
+                v4_cmd += ["--video-credits", json.dumps(video_credits, ensure_ascii=False)]
+            v4_cmd += ["--profile", profile]               # Fix 3b: film/dizi → tek_film_kunye.py'e ilet
+            if bolum:
+                v4_cmd += ["--bolum", bolum]               # Fix 3b: BİZİM EVİN HALLERİ vb. bölüm numarası
+            rc_v4, out_v4, err_v4 = run(v4_cmd, timeout=900)
+            if rc_v4 == 0 and v4_tmp.exists() and v4_tmp.stat().st_size > 10000:
+                os.replace(str(v4_tmp), pdf_info["pdf_path"])
+                v4_png = pdf_out / "kunye_v4_onizleme.png"
+                if v4_png.exists():
+                    os.replace(str(v4_png), str(pdf_out / "kunye_onizleme.png"))
+                timings["v4_final"] = round(time.perf_counter() - t_v4, 2)
+                log_event("v4_finalize_completed",
+                          summary=f"{video.name}: kunye v4'e cevrildi ({timings['v4_final']} sn).",
+                          module="pdf", media_id=media_id, filename=video.name,
+                          duration_seconds=timings["v4_final"], detail={"clip_id": clip_id})
+            else:
+                log_event("v4_finalize_skipped", level="warn",
+                          summary=f"{video.name}: v4 final atlandi (rc={rc_v4}); pre-v4 PDF kaldi.",
+                          module="pdf", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "stderr": (err_v4 or "")[-200:]})
+        except Exception as exc:  # noqa: BLE001 — v4 final akışı/PDF'i ASLA bozmaz
+            log_event("v4_finalize_failed", level="warn", summary=f"v4 final hata (atlandi): {exc}",
+                      module="pdf", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []

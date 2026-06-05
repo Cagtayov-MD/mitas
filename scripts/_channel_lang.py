@@ -103,7 +103,9 @@ def main():
     elif speech:
         summary, reason = speech[0], "türkçe yok → ilk konuşma kanalı, kendi dilinde"
     else:
-        summary, reason = (units[0] if units else {"stream": 0, "channel": 0, "language": None}), "konuşma yok → fallback kanal 0"
+        # Konuşma kanalı YOK → dil belirlenemez; units[0]'ın düşük-güven tahmini atanmaz.
+        summary = {"stream": 0, "channel": 0, "language": None}
+        reason = "konuşma yok → dil belirlenemedi"
 
     others = [{"stream": u["stream"], "channel": u["channel"], "language": u["language"]}
               for u in speech if (u["stream"], u["channel"]) != (summary["stream"], summary["channel"])]

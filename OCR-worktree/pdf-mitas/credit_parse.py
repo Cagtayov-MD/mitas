@@ -17,6 +17,9 @@ from __future__ import annotations
 import re
 import unicodedata
 
+# "&" veya " ve " (kelime-sınırlı, büyük/küçük duyarsız) ile birleşik kişi satırlarını böl
+_AMPERSAND_RE = re.compile(r"\s*&\s*|\s+ve\s+", re.IGNORECASE)
+
 
 # casefold sonrası Türkçe küçük harfleri ASCII'ye indir — KRİTİK: ı (U+0131) NFKD ile
 # 'i'ye inmez, bu yüzden açık çeviri. Aksi halde "Yapımcı" anahtar "yapimci" ile eşleşmez.
@@ -180,6 +183,34 @@ def parse_credits(lines, title: str = "", *, dizi: bool = False):
                 roles.setdefault(r, [])
             continue
         if not is_person(l, title_f):
+            # "&" / " ve " ile birleşik satır olabilir; parçalara böl ve her birini dene
+            parts = [p.strip() for p in _AMPERSAND_RE.split(l) if p.strip()]
+            if len(parts) < 2:
+                continue
+            for part in parts:
+                if not is_person(part, title_f):
+                    continue
+                if cur == "CAST":
+                    cast.append(part)
+                elif cur in roles:
+                    if len(roles[cur]) < cap:
+                        roles[cur].append(part)
+                elif cur is None and not seen_crew and not has_cast_h:
+                    cast.append(part)
+            continue
+        # "&" / " ve " ile birleşik ama is_person geçti (nadir: çok kısa satır) → yine böl
+        parts = [p.strip() for p in _AMPERSAND_RE.split(l) if p.strip()]
+        if len(parts) >= 2:
+            for part in parts:
+                if not is_person(part, title_f):
+                    continue
+                if cur == "CAST":
+                    cast.append(part)
+                elif cur in roles:
+                    if len(roles[cur]) < cap:
+                        roles[cur].append(part)
+                elif cur is None and not seen_crew and not has_cast_h:
+                    cast.append(part)
             continue
         if cur == "CAST":
             cast.append(l)

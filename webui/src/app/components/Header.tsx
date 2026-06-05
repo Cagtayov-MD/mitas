@@ -27,7 +27,7 @@ interface HeaderProps {
   isStartingAsr: boolean;
   isLiveSttBusy: boolean;
   analysisProfile: AnalysisProfile;
-  rightPanelMode: 'modules' | 'flow';
+  rightPanelMode: 'modules' | 'flow' | 'log';
   playback: PlaybackState;
   mediaResolution: string | null;
   onUpload: (file: File) => void;
@@ -36,7 +36,7 @@ interface HeaderProps {
   generatedDataAvailability: Record<ClipGeneratedDataKind, boolean>;
   isDeletingGeneratedData: boolean;
   onPermanentDeleteGeneratedData: (kind: ClipGeneratedDataKind) => Promise<void>;
-  onRightPanelModeChange: (mode: 'modules' | 'flow') => void;
+  onRightPanelModeChange: (mode: 'modules' | 'flow' | 'log') => void;
 }
 
 export interface HeaderProcessStatus {
@@ -453,6 +453,17 @@ export function Header({
             }`}
           >
             Akış
+          </button>
+          <button
+            type="button"
+            onClick={() => onRightPanelModeChange('log')}
+            className={`inline-flex h-7 items-center justify-center rounded-sm border px-4 py-0 text-sm font-bold uppercase tracking-wider transition-colors ${
+              rightPanelMode === 'log'
+                ? 'border-info-border bg-info-subtle text-info shadow-sm'
+                : 'border-transparent text-foreground-muted hover:border-border-subtle hover:bg-app-shell/70 hover:text-foreground-strong'
+            }`}
+          >
+            Log
           </button>
         </div>
       </div>

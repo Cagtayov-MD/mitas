@@ -43,6 +43,12 @@ def _sqlfold(col):
         e = f"replace({e},'{a}','{b}')"
     return f"lower({e})"
 
+def _castfold(s):
+    """isim eşleştirme: aksan-sız + küçük + alnum-tek-boşluk.
+    SQL `trim(regexp_replace(lower(strip_accents(primaryName)),'[^a-z0-9]+',' ','g'))` ile EŞLEŞİR."""
+    s = unicodedata.normalize("NFKD", (s or "")).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", " ", s).strip()
+
 def name_match(a, b):
     """iki isim aynı kişi mi (soyad + tokenların çoğu)."""
     fa, fb = fold(a), fold(b)
@@ -95,16 +101,17 @@ class CreditKB:
         def run(clauses, params):
             if not clauses:
                 return
-            q = ("SELECT qid,name,label_tr,publication_year,director,cast_member,imdb_id FROM works_master "
+            q = ("SELECT qid,name,label_tr,publication_year,director,cast_member,imdb_id,tmdb_movie_id FROM works_master "
                  "WHERE (" + " OR ".join(clauses) + ") AND director IS NOT NULL LIMIT 60")
             try:
                 rows = self.wd.execute(q, params).fetchall()
             except Exception:
                 rows = []
-            for qid, nm, ltr, yr, dr, cast, imdb in rows:
+            for qid, nm, ltr, yr, dr, cast, imdb, tmdb in rows:
                 if qid not in cands:
                     cands[qid] = {"src": "wikidata", "id": qid, "name": nm, "tr": ltr, "year": yr,
-                                  "imdb_id": imdb, "director": self._wd_resolve(dr), "cast": self._wd_resolve(cast)}
+                                  "imdb_id": imdb, "tmdb_movie_id": tmdb,
+                                  "director": self._wd_resolve(dr), "cast": self._wd_resolve(cast)}
         sf_tr, sf_en, sf_nm = _sqlfold("label_tr"), _sqlfold("label_en"), _sqlfold("name")
         ft = _tfold(title_tr) if title_tr else None
         fo = _tfold(original) if original else None
@@ -153,11 +160,14 @@ class CreditKB:
         if not self.imdb:
             return []
         tconsts = {}
+        sf = _sqlfold("title")                       # akas.title Türkçe-fold (ı/İ tuzağı — wd_find ile aynı)
+        ft = _tfold(title_tr) if title_tr else None
         try:
-            # PASS 1: TAM-eşleşme öncelik
-            if title_tr:
-                for (tc,) in self.imdb.execute("SELECT DISTINCT tconst FROM akas WHERE title ILIKE ? LIMIT 20",
-                                               [title_tr]).fetchall():
+            # PASS 1: Türkçe başlık TAM-eşleşme (TÜRKÇE-FOLD) — yabancı filmin TR release adı akas'ta
+            # (ör. "BARBARLARI BEKLERKEN" → "Barbarları Beklerken" = tt6149154; düz ILIKE ı/İ yüzünden kaçırıyordu)
+            if ft:
+                for (tc,) in self.imdb.execute(
+                        f"SELECT DISTINCT tconst FROM akas WHERE {sf}=? LIMIT 20", [ft]).fetchall():
                     tconsts.setdefault(tc, 1)
             if original:
                 for (tc,) in self.imdb.execute(
@@ -165,10 +175,10 @@ class CreditKB:
                         "AND titleType IN ('movie','tvMovie','tvSeries','tvMiniSeries') LIMIT 20",
                         [original, original]).fetchall():
                     tconsts.setdefault(tc, 1)
-            # PASS 2: substring fallback
-            if title_tr:
-                for (tc,) in self.imdb.execute("SELECT DISTINCT tconst FROM akas WHERE title ILIKE ? LIMIT 20",
-                                               [f"%{title_tr}%"]).fetchall():
+            # PASS 2: substring fallback (Türkçe-fold TR başlık + orijinal)
+            if ft:
+                for (tc,) in self.imdb.execute(
+                        f"SELECT DISTINCT tconst FROM akas WHERE {sf} LIKE ? LIMIT 20", [f"%{ft}%"]).fetchall():
                     tconsts.setdefault(tc, 1)
             if original:
                 for (tc,) in self.imdb.execute(
@@ -189,10 +199,57 @@ class CreditKB:
                           "year": (r and r[2]), "imdb_id": tc, "director": d, "cast": c})
         return cands
 
+    def cast_find(self, read_cast, year=None):
+        """KADEME 1 — okunan CAST'tan kimlik: oyuncuları IMDb'de bul → en çok örtüşen film.
+        Başlık DB'de olmasa da çalışır. Rastlantı önleme: ≥2 tanınan oyuncu + filmde ≥2 örtüşme."""
+        if not self.imdb or not read_cast:
+            return []
+        folded = sorted({f for f in (_castfold(n) for n in read_cast) if len(f) >= 5})  # kısa/tek-kelime ele
+        if len(folded) < 2:
+            return []
+        ph = ",".join(["?"] * len(folded))
+        expr = "trim(regexp_replace(lower(strip_accents(primaryName)),'[^a-z0-9]+',' ','g'))"
+        rows = None
+        for e in (expr, "trim(regexp_replace(lower(primaryName),'[^a-z0-9]+',' ','g'))"):  # strip_accents yoksa yedek
+            try:
+                rows = self.imdb.execute(f"SELECT nconst FROM names WHERE {e} IN ({ph})", folded).fetchall()
+                break
+            except Exception:
+                continue
+        if not rows:
+            return []
+        nconsts = list({r[0] for r in rows})
+        if len(nconsts) < 2:
+            return []
+        ph2 = ",".join(["?"] * len(nconsts))
+        try:
+            trows = self.imdb.execute(
+                f"SELECT tconst, count(DISTINCT nconst) c FROM principals WHERE nconst IN ({ph2}) "
+                f"GROUP BY tconst HAVING count(DISTINCT nconst) >= 2 ORDER BY c DESC LIMIT 8", nconsts).fetchall()
+        except Exception:
+            return []
+        cands = []
+        for tc, ov in trows:
+            try:
+                r = self.imdb.execute(
+                    "SELECT primaryTitle,originalTitle,startYear,titleType FROM titles WHERE tconst=?", [tc]).fetchone()
+            except Exception:
+                r = None
+            if not r or r[3] not in ("movie", "tvMovie", "tvSeries", "tvMiniSeries"):
+                continue
+            d, c = self.imdb_credits(tc)
+            cands.append({"src": "imdb-cast", "id": tc, "name": r[0], "tr": None, "year": r[2],
+                          "imdb_id": tc, "director": d, "cast": c})
+        return cands
+
     # ---------- birleşik çapraz-kontrol ----------
     def crosscheck(self, read_director, read_cast=None, *, title_tr=None, original=None, year=None):
         read_cast = read_cast or []
         cands = self.wd_find(title_tr, original, year) + self.imdb_find(title_tr, original, year)
+        # KADEME 1: başlık-eşleşmesi zayıf/yok (cast-örtüşme<2) → CAST'tan kimlik kur (başlık DB'de olmasa da)
+        best_ov = max((cast_overlap(read_cast, c.get("cast")) for c in cands), default=0)
+        if read_cast and best_ov < 2:
+            cands += self.cast_find(read_cast, year)
         if not cands:
             return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [], "neden": "film bulunamadı"}
         # en iyi aday: cast örtüşmesi (birincil) -> yıl yakınlığı -> director dolu
@@ -205,6 +262,11 @@ class CreditKB:
             return (ov, yp, 1 if c.get("director") else 0)
         cands.sort(key=score, reverse=True)
         best = cands[0]
+        # KADEME 1 güven kapısı: YALNIZ-cast eşleşmesi zayıfsa (ov<4) GÜVENME — yanlış kimlik > okunamadı
+        # (başlık-tabanlı wikidata/imdb adaylarına dokunmaz; onlar başlık-teyitli)
+        if best.get("src") == "imdb-cast" and cast_overlap(read_cast, best.get("cast")) < 4:
+            return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [],
+                    "neden": "cast-eşleşmesi zayıf (güvenilmez)"}
         auth_dir = best.get("director") or []
         if not read_director:
             verdict = "OKUNAN_YOK"
@@ -216,7 +278,12 @@ class CreditKB:
             verdict = "KAYNAK_YOK"
         return {"verdict": verdict, "kaynak": best["src"], "eslesen_film": best.get("name") or best.get("tr"),
                 "eslesen_yil": best.get("year"), "cast_ortusme": cast_overlap(read_cast, best.get("cast")),
-                "otoriter_yonetmen": auth_dir, "otoriter_cast": (best.get("cast") or [])[:8], "okunan_yonetmen": read_director}
+                "otoriter_yonetmen": auth_dir,
+                "otoriter_cast": list(dict.fromkeys((best.get("cast") or [])[:8])),
+                "okunan_yonetmen": read_director,
+                "matched_imdb_id": best.get("imdb_id"),    # KADEME 1: cast_find dahil her kaynağın imdb_id'si
+                "wikidata_imdb_id": best.get("imdb_id") if best.get("src") == "wikidata" else None,
+                "wikidata_tmdb_id": best.get("tmdb_movie_id") if best.get("src") == "wikidata" else None}
 
     def close(self):
         for c in (self.wd, self.imdb):

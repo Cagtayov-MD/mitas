@@ -117,6 +117,8 @@ _translate_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mita
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 MITAS_PIPELINE = SCRIPTS_DIR / "mitas_pipeline.py"
 _pipeline_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-pipeline")
+_pipeline_proc: "subprocess.Popen | None" = None   # çalışan mitas_pipeline (Zorla Durdur ile ağaç-öldürmek için)
+_pipeline_abort = threading.Event()                  # Zorla Durdur işareti
 PIPELINE_PROFILE_MAP: dict[str, str] = {
     "film_dizi": "film_dizi",
     "documentary": "belgesel",
@@ -262,6 +264,7 @@ def _flow_update_item(item_id: str, **changes: Any) -> None:
 def _flow_queue_worker_loop() -> None:
     """Process waiting items in queue.json one at a time (GPU-serial)."""
     global _flow_worker_current
+    processed: set[str] = set()  # bu oturumda işlenen öğe id'leri — panel durum geri-sarmasına BAĞIŞIK (tekrar işleme yok)
     try:
         while not _flow_worker_stop.is_set():
             try:
@@ -271,12 +274,13 @@ def _flow_queue_worker_loop() -> None:
 
                 target: dict | None = None
                 for it in state.get("items", []):
-                    if it.get("status") == "waiting":
+                    if it.get("status") == "waiting" and it.get("id") not in processed:
                         target = it
                         break
 
                 if target is None:
-                    break  # kuyruk bitti
+                    break  # kuyruk bitti (tüm bekleyenler bu oturumda işlendi)
+                processed.add(target["id"])  # bir kez işle — durum 'waiting'e geri sarsa bile tekrar etme
 
                 video_path: str = target.get("storedMediaPath") or target.get("sourcePath") or ""
                 if not video_path or not Path(video_path).exists():
@@ -898,6 +902,32 @@ async def create_pipeline_job(
     return response
 
 
+@app.post("/api/pipeline/abort")
+def post_pipeline_abort() -> dict[str, Any]:
+    """ZORLA DURDUR: çalışan mitas_pipeline'ı process-AĞACIYLA öldür (net kes)."""
+    _pipeline_abort.set()
+    proc = _pipeline_proc
+    killed = False
+    pid = proc.pid if (proc is not None and proc.poll() is None) else None
+    if pid is not None:
+        try:
+            # Windows: alt-süreçler (PY_OCR/PY_ASR/PY_PDF) ile birlikte ağaç-öldür
+            subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
+            killed = True
+        except Exception:
+            try:
+                proc.kill()
+                killed = True
+            except Exception:
+                pass
+    system_events.log_event(
+        "pipeline_aborted",
+        summary=f"Pipeline ZORLA durduruldu (pid={pid}, killed={killed}).",
+        level="warn", module="pipeline", detail={"pid": pid, "killed": killed},
+    )
+    return {"status": "aborted", "killed": killed, "pid": pid}
+
+
 def _run_pipeline_job(job_id: str) -> None:
     job = _load_job(job_id)
     if job is None:
@@ -920,19 +950,27 @@ def _run_pipeline_job(job_id: str) -> None:
             "--video", job["input_path"],
             "--profile", job["pipeline_profile"],
         ]
-        completed = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=str(PROJECT_ROOT),
-            timeout=14400,
-            check=False,
+        global _pipeline_proc
+        _pipeline_abort.clear()
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
         )
+        _pipeline_proc = proc
+        try:
+            try:
+                out, err = proc.communicate(timeout=14400)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.communicate()
+                raise
+        finally:
+            _pipeline_proc = None
+        if _pipeline_abort.is_set():
+            raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
         # Parse the last stdout line that starts with '{'
         result: dict[str, Any] | None = None
-        for line in reversed(completed.stdout.splitlines()):
+        for line in reversed((out or "").splitlines()):
             line = line.strip()
             if line.startswith("{"):
                 try:
@@ -942,8 +980,8 @@ def _run_pipeline_job(job_id: str) -> None:
                 else:
                     break
 
-        if completed.returncode != 0 or result is None:
-            tail = (completed.stderr or completed.stdout or "pipeline_failed")[-800:]
+        if proc.returncode != 0 or result is None:
+            tail = (err or out or "pipeline_failed")[-800:]
             raise RuntimeError(tail)
 
         hub = result.get("hub")
@@ -3218,7 +3256,9 @@ def _format_size(size_bytes: int) -> str:
 
 def _safe_filename(filename: str) -> str:
     name = Path(filename).name.strip() or "media"
-    name = re.sub(r"[^A-Za-z0-9._ -]+", "_", name).strip(" .")
+    # Türkçe harfleri + apostrofu KORU; yalnız gerçekten tehlikeli karakterleri _ yap.
+    # (Eski [^A-Za-z0-9._ -] İ/Ğ/Ş'yi _ yapıyordu → başlık "BİR DAHA DENEYELİM" → "B_R DAHA DENEYEL_M".)
+    name = re.sub(r"[^A-Za-z0-9._ ÇçĞğİıÖöŞşÜü'-]+", "_", name).strip(" .")
     return name or "media"
 
 

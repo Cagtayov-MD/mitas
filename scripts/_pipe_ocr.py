@@ -278,6 +278,9 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         "stitched_lines": len(placed_raw),
         "low_conf_frac": round(low_frac, 4),
         "diegetik_frac": round(dieg, 4),
+        # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
+        "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
+        "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
     }
 
 
@@ -310,6 +313,12 @@ def main(argv=None) -> int:
     kunye = res["lines"]
     kunye_path = out / "kunye.txt"
     kunye_path.write_text("\n".join(kunye) + ("\n" if kunye else ""), encoding="utf-8")
+
+    # HAM yazi dokumu (kunye DEGIL): clean-oncesi stitch + en-ham her-kare okuma.
+    if res.get("placed_raw"):
+        (out / "ocr_ham.txt").write_text("\n".join(res["placed_raw"]) + "\n", encoding="utf-8")
+    if res.get("raw_reads"):
+        (out / "ocr_raw_all.txt").write_text("\n".join(res["raw_reads"]) + "\n", encoding="utf-8")
 
     summary = {
         "engine": res["engine"],

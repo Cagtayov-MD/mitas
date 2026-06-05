@@ -205,7 +205,7 @@ def build(path, d):
         c.setFont(SERIF_I, 13.5)
         c.drawString(X0, ty, d["subtitle"])
         ty -= 18
-    elif d.get("bolum"):
+    if d.get("bolum"):                              # elif->if: dizi bolumu subtitle olsa da bassin
         tracked(c, X0, ty, d["bolum"], SANS_SB, 10.5, MUTE, 1.6)
         ty -= 18
     ty -= 8
