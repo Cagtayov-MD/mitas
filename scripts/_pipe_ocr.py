@@ -45,6 +45,10 @@ _GLM_PROMPT = (
 )
 # Kare ornekleme ust siniri (cok kare varsa esit-aralikli at-at sec).
 _GLM_MAX_FRAMES = 16
+# Ollama retry/timeout ayarlari (1.6).
+_GLM_TIMEOUT = 120          # saniye; tek tile basi HTTP timeout
+_GLM_RETRY = 2              # maksimum deneme sayisi (ilk + 1 tekrar)
+_GLM_RETRY_BACKOFF = 2.0    # saniye; denemeler arasi bekleme
 
 # Kare-secim KALICILIK esikleri (Cagatay yontemi): gercek jenerik = KESINTISIZ uzun blok.
 # Acilis sahne-ustu kredi + altyazi KISA-aralikli bloklar verir -> elenir.
@@ -120,10 +124,15 @@ def _glm_extract_lines(text: str) -> list[str]:
     return out2
 
 
-def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = 300) -> list[str]:
+def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = None) -> list[str]:
     """Bir cv2 BGR goruntusunu tile'layarak GLM-OCR ile okur; fold-dedup satir listesi dondurur.
-    Herhangi bir network/encode hatasi susturulur (cagiran try/except ile yakalamali)."""
-    import base64, urllib.request
+    Herhangi bir network/encode hatasi susturulur (cagiran try/except ile yakalamali).
+
+    1.6: Her tile icin _GLM_RETRY deneme + _GLM_TIMEOUT HTTP timeout uygulanir.
+    Tum denemeler tukenir/HTTP hatasi -> tile atlanir (diger tile'lar devam eder).
+    Cagiran tarafta butun tile'lar basar -> OllamaError yukselir: status="failed" yoluna duser."""
+    import base64, urllib.request, urllib.error
+    _timeout = _GLM_TIMEOUT if timeout is None else timeout
     try:
         import numpy as np
         import cv2
@@ -135,6 +144,7 @@ def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = 300) 
     order: list[str] = []
     step = tile - ov
     y = 0
+    _any_ollama_err = False
     while y < H:
         tile_img = img_bgr[y: min(y + tile, H), :]
         if tile_img.shape[0] < 20:
@@ -151,19 +161,45 @@ def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = 300) 
                 "options": {"temperature": 0},
                 "images": [b64],
             }
-            req = urllib.request.Request(
-                _GLM_OLLAMA,
-                json.dumps(payload).encode(),
-                {"Content-Type": "application/json"},
-            )
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                raw = json.loads(r.read())
-            for ln in _glm_extract_lines(raw.get("response", "")):
-                fk = fold(ln)
-                if fk and fk not in seen:
-                    seen[fk] = ln
-                    order.append(ln)
+            raw_response = None
+            last_exc = None
+            for attempt in range(_GLM_RETRY):
+                try:
+                    req = urllib.request.Request(
+                        _GLM_OLLAMA,
+                        json.dumps(payload).encode(),
+                        {"Content-Type": "application/json"},
+                    )
+                    with urllib.request.urlopen(req, timeout=_timeout) as r:
+                        raw_response = json.loads(r.read())
+                    last_exc = None
+                    break  # basarili
+                except Exception as exc:  # noqa: BLE001 - network/timeout
+                    last_exc = exc
+                    if attempt < _GLM_RETRY - 1:
+                        time.sleep(_GLM_RETRY_BACKOFF)
+            if raw_response is not None:
+                for ln in _glm_extract_lines(raw_response.get("response", "")):
+                    fk = fold(ln)
+                    if fk and fk not in seen:
+                        seen[fk] = ln
+                        order.append(ln)
+            elif last_exc is not None:
+                # Bu tile icin tum denemeler basarisiz: merkezi hataya rapor et.
+                _any_ollama_err = True
+                print(
+                    f"[glm-consensus] tile y={y} ollama basarisiz "
+                    f"({_GLM_RETRY} deneme): {type(last_exc).__name__}: {last_exc}",
+                    file=sys.stderr,
+                )
         y += step
+
+    if _any_ollama_err and not order:
+        # Hicbir tile basarili olmadi -> cagiran "failed" yoluna dusmeli.
+        raise RuntimeError(
+            f"ollama_unreachable_or_timeout: tum tile'lar basarisiz "
+            f"(timeout={_timeout}s, retry={_GLM_RETRY})"
+        )
     return order
 
 
@@ -355,6 +391,10 @@ def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dic
         "raw_line_count": raw_count,
         "garble_frac": round(gf, 4),
         "bucket": bucket,
+        # 1.7 telemetri: oneocr-fallback yolunda GLM hic denenmez
+        "glm_attempted": False,
+        "glm_status": "skipped",
+        "glm_skip_reason": "oneocr_fallback",
     }
 
 
@@ -473,9 +513,24 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
     glm_only_filtered_count = 0
     final_engine = "pipeline100"
 
+    # 1.7 telemetri alanlari: HER yolda yazilir (alan-YOK=eski kod, alan-VAR=neden acik).
+    glm_attempted: bool = False
+    glm_status: str = "skipped"         # "succeeded"|"skipped"|"failed"|"disabled"
+    glm_skip_reason: str = ""
+
     # GLM ikinci-motor: env=0/false/no/"" KAPALI, diger durumlarda AÇIK (default "1").
     _glm_env = os.environ.get("MITAS_OCR_GLM_CONSENSUS", "1").strip().lower()
     _glm_enabled = _glm_env not in ("0", "false", "no", "off", "")
+    if not _glm_enabled:
+        glm_status = "disabled"
+        glm_skip_reason = "env_disabled"
+    elif not idx:
+        glm_status = "skipped"
+        glm_skip_reason = "no_frames"
+    elif not lines:
+        glm_status = "skipped"
+        glm_skip_reason = "empty_stitch"
+
     if lines and idx and _glm_enabled:
         try:
             # Esit-aralikli ornekleme: en fazla _GLM_MAX_FRAMES kare sec.
@@ -552,8 +607,17 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
             glm_lines_count = len(glm_order)
             glm_only_count = len(glm_only_clean)
             final_engine = "pipeline100+glm"
+            # 1.7 telemetri — basarili yol
+            glm_attempted = True
+            glm_status = "succeeded"
+            glm_skip_reason = ""
 
         except Exception as exc:  # noqa: BLE001 — her kosulda stitch korunur
+            # 1.7 telemetri — hata yolu: denemis ama basarisiz.
+            glm_attempted = True
+            _is_ollama_err = "ollama" in str(exc).lower() or "timeout" in str(exc).lower() or "unreachable" in str(exc).lower()
+            glm_status = "failed"
+            glm_skip_reason = "ollama_unreachable_or_timeout" if _is_ollama_err else f"exception:{type(exc).__name__}"
             print(
                 f"[glm-consensus] ATLAINDI (stitch korunuyor): {type(exc).__name__}: {exc}",
                 file=sys.stderr,
@@ -593,6 +657,10 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         "agree_count": agree_count,
         "glm_only_count": glm_only_count,
         "glm_only_filtered_count": glm_only_filtered_count,
+        # 1.7 telemetri: HER yolda yazilir (alan-YOK=eski kod)
+        "glm_attempted": glm_attempted,
+        "glm_status": glm_status,
+        "glm_skip_reason": glm_skip_reason,
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
@@ -652,6 +720,10 @@ def main(argv=None) -> int:
               "glm_used", "glm_lines", "agree_count", "glm_only_count", "glm_only_filtered_count"):
         if k in res:
             summary[k] = res[k]
+    # 1.7 telemetri: HER yolda sabit yazilir (alan-YOK=eski kod, alan-VAR=neden acik).
+    summary["glm_attempted"] = res.get("glm_attempted", False)
+    summary["glm_status"] = res.get("glm_status", "skipped")
+    summary["glm_skip_reason"] = res.get("glm_skip_reason", "")
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 

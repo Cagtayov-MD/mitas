@@ -139,9 +139,14 @@ def audio_subtitle_block(args) -> dict:
             block["ses_kanallari"] = der[0]
             block["ana_dil"] = der[1]
             block["sesler_ic_ice"] = der[2]
-        sub = _load_json(args.subtitle) if args.subtitle else None
+        sub = _load_json(args.subtitle) if (args.subtitle and Path(args.subtitle).exists()) else None
         if sub is None and args.video and Path(args.video).exists():
             sub = _run_json([PY_OCR, SUBTITLE_SCRIPT, args.video])
+            if sub is not None and args.subtitle:   # 1.3 cache'e yaz: sonraki PDF kosusu altyaziyi yeniden taramasin
+                try:
+                    Path(args.subtitle).write_text(json.dumps(sub, ensure_ascii=False), encoding="utf-8")
+                except Exception:  # noqa: BLE001
+                    pass
         if sub is not None and "altyazili" in sub:
             block["altyazi"] = "EVET" if sub.get("altyazili") else "HAYIR"
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı

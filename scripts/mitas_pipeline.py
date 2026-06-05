@@ -233,7 +233,25 @@ def extract_audio(video: Path, dst: Path, timeout=1800):
 
 def write_json(p: Path, obj):
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp = p.with_name(p.name + ".tmp")            # 1.10 atomik yazim: kismi/bozuk JSON birakma
+    tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(str(tmp), str(p))
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        v = os.environ.get(name)
+        return int(v) if v else default
+    except (ValueError, TypeError):
+        return default
+
+
+# 1.5 Alt-adim subprocess timeout'lari — env ile override edilebilir; default = onceki sabit degerler
+OCR_TIMEOUT = _env_int("MITAS_OCR_TIMEOUT", 3600)
+ASR_TIMEOUT = _env_int("MITAS_ASR_TIMEOUT", 7200)
+PDF_TIMEOUT = _env_int("MITAS_PDF_TIMEOUT", 1800)
+V4_TIMEOUT = _env_int("MITAS_V4_TIMEOUT", 900)
+VC_TIMEOUT = _env_int("MITAS_VIDEO_CREDIT_TIMEOUT", 1800)
 
 
 def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
@@ -527,7 +545,7 @@ def main(argv=None) -> int:
     # OCR sonucunu topla
     if ocr_proc is not None:
         try:
-            out, err = ocr_proc.communicate(timeout=3600)
+            out, err = ocr_proc.communicate(timeout=OCR_TIMEOUT)
             rc = ocr_proc.returncode
             j = last_json(out) or {}
             ocr_bucket = j.get("bucket", "HATA")
@@ -554,7 +572,7 @@ def main(argv=None) -> int:
     # ASR sonucunu topla
     if asr_proc is not None:
         try:
-            out, err = asr_proc.communicate(timeout=7200)
+            out, err = asr_proc.communicate(timeout=ASR_TIMEOUT)
             asr_info = last_json(out) or {}
             # SAVUNMA: CTranslate2/CUDA cikis-crash'i (0xC0000409) stdout JSON'unu silebilir;
             # transcript diske yazildiysa (gercek kanit) ASR'i basarili say. _pipe_asr os._exit
@@ -606,7 +624,7 @@ def main(argv=None) -> int:
         try:
             vc_cmd = [str(PY_OCR), str(HERE / "_pipe_credit_video.py"),
                       "--giris", str(giris_frames), "--cikis", str(cikis_frames)]
-            rc_vc, out_vc, err_vc = run(vc_cmd, timeout=1800)
+            rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
             timings["video_kunye"] = round(time.perf_counter() - t_vc, 2)
             log_event("credit_video_completed",
@@ -690,7 +708,8 @@ def main(argv=None) -> int:
             _chl = asr_out / "chlang.json"
             if _chl.exists():
                 cmd += ["--chlang", str(_chl)]
-        rc, out, err = run(cmd, timeout=1800)  # altyazı Paddle taraması / kanal-dil self-run payı
+            cmd += ["--subtitle", str(asr_out / "subtitle.json")]   # 1.3 altyazi cache: yoksa _pipe_pdf hesaplar+yazar, varsa okur (yeniden tarama yok)
+        rc, out, err = run(cmd, timeout=PDF_TIMEOUT)  # altyazı Paddle taraması / kanal-dil self-run payı
         pdf_info = last_json(out) or {"status": "failed", "pdf_error": err[-300:]}
         timings["pdf"] = round(time.perf_counter() - t0, 2)
         log_event("pdf_completed" if pdf_info.get("status") == "done" else "pdf_partial",
@@ -722,7 +741,7 @@ def main(argv=None) -> int:
             v4_cmd += ["--profile", profile]               # Fix 3b: film/dizi → tek_film_kunye.py'e ilet
             if bolum:
                 v4_cmd += ["--bolum", bolum]               # Fix 3b: BİZİM EVİN HALLERİ vb. bölüm numarası
-            rc_v4, out_v4, err_v4 = run(v4_cmd, timeout=900)
+            rc_v4, out_v4, err_v4 = run(v4_cmd, timeout=V4_TIMEOUT)
             if rc_v4 == 0 and v4_tmp.exists() and v4_tmp.stat().st_size > 10000:
                 os.replace(str(v4_tmp), pdf_info["pdf_path"])
                 v4_png = pdf_out / "kunye_v4_onizleme.png"
