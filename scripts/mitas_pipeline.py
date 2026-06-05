@@ -763,6 +763,42 @@ def main(argv=None) -> int:
         reasons.append(f"ASR={asr_status}")
     if not pdf_info.get("pdf_path"):
         reasons.append("PDF render yok (md teslim)")
+    # --- B-4: XML↔PDF cast tutarlılık kapısı (yanlış-film yakala) ---
+    # XML oyuncu listesi ≥2 isim VE üretilen cast ≥2 isim VE fold/fuzzy kesişim == 0 → şüphe.
+    # Tek-isim/boş listede FLAG YOK (dizi kısmi-kadro false-positive'ini önle).
+    # credit_crosscheck.name_match/cast_overlap helper'larını YENİDEN YAZMADAN kullan.
+    try:
+        _xml_cast = [n for n in (xml_role_map.get("oyuncu") or []) if str(n).strip()]
+        _pdf_cast = [n for n in (pdf_info.get("cast") or []) if str(n).strip() and str(n).strip() != "—"]
+        if len(_xml_cast) >= 2 and len(_pdf_cast) >= 2:
+            sys.path.insert(0, str(HERE))
+            import credit_crosscheck as _cc
+            if _cc.cast_overlap(_pdf_cast, _xml_cast) == 0:
+                reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
+    except Exception:  # noqa: BLE001 — kesişim kapısı kararı ASLA bozmaz (helper yoksa/hata → atla)
+        pass
+    # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
+    # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
+    # basar (last_json tek-satır arar, tutmaz) → ilk '{'tan raw_decode ile blok-parse.
+    # verdict/kimlik_dogru rapor["adimlar"]["cross_check"] altında (top-level değil).
+    try:
+        if USE_VIDEO_CREDITS and profile in ("film", "dizi") and "out_v4" in dir():
+            _v4j = None
+            _i = out_v4.find("{")
+            if _i >= 0:
+                try:
+                    _v4j, _ = json.JSONDecoder().raw_decode(out_v4[_i:])
+                except Exception:  # noqa: BLE001
+                    _v4j = None
+            _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
+            if _cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False:
+                reasons.append("kimlik çelişkisi (KB cross-check)")
+    except Exception:  # noqa: BLE001 — parse hatası kararı bozmasın
+        pass
+    # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik
+    # büyük-harf zaten deterministik tr_upper/ozet_v4, afiş poster_fetch ile garanti) → bu İKİ sinyal
+    # Kontrol TETİKLEMEZ, yalnız qwen_uyari'ya (log/QC görünürlüğü) yazılır. Diğer 5 sinyal reasons'ta KALIR.
+    qwen_uyari = []
     if qwen_qc and not qwen_qc.get("error"):   # qwen final-QC: model gözüyle son kapı (PDF'i gören)
         if not qwen_qc.get("ozet_var"):
             reasons.append("qwen: özet yok/placeholder")
@@ -772,12 +808,13 @@ def main(argv=None) -> int:
             reasons.append("qwen: yön+yapımcı yok")
         if not qwen_qc.get("ses_dil_var"):
             reasons.append("qwen: ses/dil yok")
-        if not qwen_qc.get("afis_var"):
-            reasons.append("qwen: afiş yok")
-        if not qwen_qc.get("hepsi_buyuk_harf"):
-            reasons.append("qwen: büyük-harf değil")
         if qwen_qc.get("turkce_karakter_bozuk_var"):
             reasons.append("qwen: Türkçe karakter bozuk")
+        # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt
+        if not qwen_qc.get("afis_var"):
+            qwen_uyari.append("qwen: afiş yok (deterministik poster_fetch garanti — uyarı)")
+        if not qwen_qc.get("hepsi_buyuk_harf"):
+            qwen_uyari.append("qwen: büyük-harf değil (deterministik tr_upper — uyarı)")
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
     dest = dest_root / clip_id
@@ -792,7 +829,7 @@ def main(argv=None) -> int:
 
     summary_obj = {
         "clip_id": clip_id, "video": str(video), "profile": profile, "trt_id": trt, "title": title,
-        "karar": karar, "neden": reasons, "qwen_qc": qwen_qc, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
+        "karar": karar, "neden": reasons, "qwen_uyari": qwen_uyari, "qwen_qc": qwen_qc, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
         "asr_status": asr_status, "asr_segments": asr_info.get("clean_segments"),
         "transcript_chars": asr_info.get("transcript_chars"),
         "resolution": res, "fps": fps_s, "duration": dur, "timings_sec": timings,

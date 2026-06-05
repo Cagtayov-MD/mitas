@@ -206,6 +206,81 @@ def is_noise(s: str) -> bool:
     return False
 
 
+def _glm_garble(t: str) -> bool:
+    """VLM-tarzi 'cop okuma' / garble mi? (glm_only icin EK guvenlik suzgeci).
+
+    cl.classify isim-bicimine TOLERANSLI (OneOCR nadiren saf-cop uretir diye
+    guvenir); ama GLM/VLM makul-gorunen rastgele token dizisi uydurabiliyor
+    ("ASTTIUK MEE xq9 zzkq"). Gercek kunye isim/rol satirlarini ELEMEDEN bu tur
+    gurultuyu yakalayacak DAR sinyaller:
+      - harf+rakam KARISIK token (xq9, a1b)  -> gercek isimde olmaz
+      - satirda hic harf yok / cogunluk harf-disi (alpha_ratio dusuk)
+      - kisa, sesli-harfsiz harf-yiginlari cogunlukta (zzkq, xq) = telaffuz-disi
+    Tutucu: supheliyse garble DEME (False) — eleme sadece net cop icin.
+    """
+    import re
+    t = (t or "").strip()
+    if not t:
+        return True
+    if alpha_ratio(t) < 0.55:        # harf-disi agirlikli
+        return True
+    toks = [w for w in re.split(r"\s+", t) if w]
+    alpha_toks = [w for w in toks if any(c.isalpha() for c in w)]
+    if not alpha_toks:
+        return True
+    # harf+rakam karisik token (gercek isim/rolde gorulmez) = cop sinyali
+    for w in alpha_toks:
+        if any(c.isalpha() for c in w) and any(c.isdigit() for c in w):
+            return True
+    # sesli-harfsiz, >=3 harfli token-yigini orani (zzkq/xq tipi telaffuz-disi)
+    vowels = set("aeiouAEIOUâîûéüöıçşğAEIOUÂÎÛÉÜÖİÇŞĞ")
+    def _voweless(w):
+        letters = [c for c in w if c.isalpha()]
+        return len(letters) >= 3 and not any(c in vowels for c in letters)
+    if alpha_toks and sum(_voweless(w) for w in alpha_toks) / len(alpha_toks) >= 0.5:
+        return True
+    return False
+
+
+def _glm_only_keep(line: str, classify_fn=None) -> bool:
+    """GLM-only bir satir kunyeye GIRMELI mi? (B-2 fix: glm_only kalite-filtresi)
+
+    GLM'in eklediği (stitch'te olmayan) satirlar HALUSINASYON/COP olabilir
+    (rastgele harf dizisi, prose cumle, salt rakam, dağıtıcı/legal artigi).
+    Kural: "okunamadi > yanlis oku" — sadece isim/rol gorunumlu GERCEK kunye
+    satiri gecsin.
+
+    IKI kademeli (belt-and-suspenders), HER IKISI de gecmeli:
+      1) BIRINCIL = stitch tarafiyla AYNI proje filtresi: clean.classify(t).
+         clean.clean() her satiri classify ile kovaliyor ve YALNIZ 'credit'
+         bucket'i kunyeye aliyor (logo/legal/sentence/junk/company/frag ELENIR).
+         Ayni esigi glm_only'ye uygulariz -> davranis stitch ile birebir tutarli.
+      2) EK garble suzgeci (_glm_garble): classify isim-bicimine toleransli, ama
+         GLM rastgele-token uydurabilir; net cop'u burada yakalariz.
+    classify_fn None ise (proje classify yuklenemedi) VEYA cagri patlarsa:
+    birincil yerine bu dosyadaki minimal guvenli filtreye duser; satir
+    filtresiz ASLA gecmez.
+    """
+    t = (line or "").strip()
+    if not t:
+        return False
+    if classify_fn is not None:
+        try:
+            if classify_fn(t) != "credit":   # proje filtresi: credit degilse at
+                return False
+            return not _glm_garble(t)        # credit gorunse de net-cop ise at
+        except Exception:  # noqa: BLE001 - classify patlarsa minimal filtreye dus
+            pass
+    # Minimal guvenli fallback (proje classify'i yoksa): gurultu/prose/garble ele.
+    if is_noise(t):
+        return False
+    if len(t.split()) < 2:  # tek-kelime satir kredi olamaz (isimler >=2 kelime)
+        return False
+    if _glm_garble(t):
+        return False
+    return True
+
+
 def build_engine():
     """OneOCR motorunu kur; basarisizsa (None, hata)."""
     try:
@@ -395,6 +470,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
     glm_lines_count = 0
     agree_count = 0
     glm_only_count = 0
+    glm_only_filtered_count = 0
     final_engine = "pipeline100"
 
     if lines and idx and os.environ.get("MITAS_OCR_GLM_CONSENSUS", "1") != "0":
@@ -449,12 +525,29 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
                 glm_only_raw.append(x)
 
             # Additive: stitch satirlari KORUNUR + GLM-only EKLENIR (tr_upper ile).
-            glm_only_upper = [tr_upper(x) for x in glm_only_raw]
+            # Ham JSON blob artiklari ({... ile baslayan satirlar) dogrudan atla.
+            glm_only_nojson = [x for x in glm_only_raw if not x.strip().startswith("{")]
+
+            # B-2 FIX: glm_only satirlarini stitch ile AYNI kalite-filtresinden gecir.
+            # stitch satirlari cl.clean() -> classify ile 'credit' suzgecinden geciyor;
+            # glm_only ise eskiden YALNIZ tr_upper'dan gecip dogrudan ekleniyordu ->
+            # GLM halusinasyonu/cop kunyeye sizardi. Ayni cl.classify esigini uygula:
+            # sadece 'credit' gorunumlu satir kalsin, gurultu/prose/garble/legal ELENSIN.
+            glm_only_clean = [x for x in glm_only_nojson if _glm_only_keep(x, cl.classify)]
+            glm_only_filtered_count = len(glm_only_nojson) - len(glm_only_clean)
+            if glm_only_filtered_count:
+                print(
+                    f"[glm-consensus] glm_only kalite-filtresi: "
+                    f"{glm_only_filtered_count}/{len(glm_only_nojson)} satir elendi (cop/garble/prose)",
+                    file=sys.stderr,
+                )
+
+            glm_only_upper = [tr_upper(x) for x in glm_only_clean]
             lines = lines + glm_only_upper  # stitch satirlari oncelikli
 
             glm_used = True
             glm_lines_count = len(glm_order)
-            glm_only_count = len(glm_only_raw)
+            glm_only_count = len(glm_only_clean)
             final_engine = "pipeline100+glm"
 
         except Exception as exc:  # noqa: BLE001 — her kosulda stitch korunur
@@ -496,6 +589,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         "glm_lines": glm_lines_count,
         "agree_count": agree_count,
         "glm_only_count": glm_only_count,
+        "glm_only_filtered_count": glm_only_filtered_count,
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
@@ -552,7 +646,7 @@ def main(argv=None) -> int:
     }
     # pipeline100'e ozgu tani alanlari (varsa) ekle — sema icin zorunlu degil.
     for k in ("clip_used", "db_used", "credit_frames", "stitched_lines", "low_conf_frac", "diegetik_frac",
-              "glm_used", "glm_lines", "agree_count", "glm_only_count"):
+              "glm_used", "glm_lines", "agree_count", "glm_only_count", "glm_only_filtered_count"):
         if k in res:
             summary[k] = res[k]
     summary_path = out / "ocr_summary.json"

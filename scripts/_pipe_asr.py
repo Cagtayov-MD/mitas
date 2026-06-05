@@ -36,12 +36,15 @@ _MODEL_PATHS = {
 }
 
 
-def _lean_transcribe(src: Path, out: Path, args) -> dict:
+def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) -> dict:
     """transcript-only HIZLI ASR: faster-whisper TEK-PASS (align/diarize/fallback YOK).
 
     PROFIL_KONFIG.md film_dizi lean modu. Çıktı: <out>/transcript.txt ([HH:MM:SS] satır) +
     transcript_plain.txt. mitas_pipeline ile uyumlu JSON döner.
-    """
+
+    B-1: dil tespiti (MMS-LID) ORİJİNAL çok-stream girdi üstünde koşar (lid_src); `src` yalnız
+    transkripsiyon içindir. --max-seconds'la src bir .wav klibe iner ama LID klipten ETKİLENMEZ
+    (yoksa capped-test'te dil hep "tr"ye düşer, yabancı/Kürtçe görünmez)."""
     import time
     t0 = time.perf_counter()
     from faster_whisper import WhisperModel
@@ -50,13 +53,16 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
     model = None   # transkripsiyon modeli LID'den SONRA yüklenir (Kürtçe'de hiç yüklenmez)
 
     # --- kanal-dil tespiti: MMS-LID (1024 dil; Kürtçe/Azerice/Arapça dahil, whisper'dan DOĞRU) ---
+    # B-1: tespit ORİJİNAL girdi (lid_src) üstünde; max-seconds klip-extraction'dan BAĞIMSIZ.
+    # lid_src verilmezse src'ye düş (cap'siz tam-film yolu — eski davranış, BOZULMAZ).
+    lid_src = lid_src or src
     language, sel, detect_info = args.language, None, None
-    if getattr(args, "auto_language", False) and src.suffix.lower() != ".wav":
+    if getattr(args, "auto_language", False) and lid_src.suffix.lower() != ".wav":
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             import _channel_lang as cl
-            streams = cl.audio_streams(str(src))
-            units = [cl.detect(str(src), s, c) for s, nch in enumerate(streams) for c in range(nch)]
+            streams = cl.audio_streams(str(lid_src))
+            units = [cl.detect(str(lid_src), s, c) for s, nch in enumerate(streams) for c in range(nch)]
             sel, sel_reason = cl.select_summary(units)   # TR>diğer konuşma>(net yoksa) en iyi diyalog; downmix'e DÜŞME
             if sel and sel.get("language"):
                 language = sel["language"]
@@ -189,13 +195,15 @@ def main(argv=None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
     try:
-        src = Path(args.input)
+        orig = Path(args.input)              # B-1: ORİJİNAL çok-stream girdi (MMS-LID bunun üstünde koşar)
+        src = orig
         if args.max_seconds and args.max_seconds > 0:
             src = _extract_clip(src, out / "_asr_input_clip.wav", args.max_seconds)
 
         # LEAN: özet-transcript modu → run_asr_pipeline'i (whisperx/diarize/fallback) ATLA
         if args.lean:
-            _lean_transcribe(src, out, args)   # sonucu kendi yazip flush+os._exit ile cikar (crash-guvenli)
+            # B-1: src (gerekirse klip) transkripsiyon için; lid_src=orig dil tespiti için (klipten ETKİLENMEZ).
+            _lean_transcribe(src, out, args, lid_src=orig)   # sonucu kendi yazip flush+os._exit ile cikar (crash-guvenli)
             return 0                            # ulasilmaz (os._exit); butunluk icin birakildi
 
         from core.pipelines.asr.pipeline import run_asr_pipeline

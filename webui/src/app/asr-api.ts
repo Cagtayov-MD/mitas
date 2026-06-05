@@ -46,6 +46,12 @@ export interface AsrJob {
   job_dir?: string;
   clip_dir?: string;
   log_path?: string;
+  // Pipeline (film/dizi) künye çıktısı — STT yolunda boş kalır
+  pdf_path?: string | null;
+  karar?: string | null;
+  neden?: string | string[] | null;
+  teslim?: string | null;
+  hub?: string | null;
   archive_path?: string;
   module_run_path?: string;
   summary_path?: string;

@@ -1,4 +1,4 @@
-import { Activity, ChevronDown, Download, Info, Lock, Play, RotateCcw, Trash2, UploadCloud } from 'lucide-react';
+import { Activity, ChevronDown, Download, FileText, Info, Lock, Play, RotateCcw, Trash2, UploadCloud } from 'lucide-react';
 import { Button, Badge, TabsList, TabsTrigger } from './ui';
 import {
   DropdownMenu,
@@ -89,6 +89,15 @@ export function Header({
   const elapsedSeconds = asrJob?.elapsed_seconds ?? 0;
   const isSttSelected = true;
   const isMediaReadyForAsr = Boolean(selectedFileName && !asrJob && !isStartingAsr);
+  // Pipeline (film/dizi) künye PDF'i: STT yolu üretmez. Yalnız pipeline işi
+  // tamamlanıp pdf_path geldiğinde "Künye PDF" indir/aç butonu + karar rozeti gösterilir.
+  const isPipelineJob = asrJob?.profile === 'film_dizi' || Boolean(asrJob?.hub) || Boolean(asrJob?.pdf_path);
+  const pipelinePdfReady = Boolean(
+    isPipelineJob
+    && asrJob?.pdf_path
+    && (asrJob.status === 'done' || asrJob.status === 'partial'),
+  );
+  const pipelineKarar = isPipelineJob ? (asrJob?.karar ?? null) : null;
   const hasDeletableGeneratedData = Object.values(generatedDataAvailability).some(Boolean);
   const selectedProfileLabel = analysisProfileLabel(analysisProfile);
   const statusText = isStartingAsr
@@ -207,6 +216,11 @@ export function Header({
                   {statusText}
                 </Badge>
               )}
+              {pipelineKarar && (
+                <Badge variant={pipelineKarar === 'Hazır' ? 'success' : 'warning'} title="Künye pipeline kararı">
+                  Künye: {pipelineKarar}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -248,6 +262,18 @@ export function Header({
             <UploadCloud className="h-3.5 w-3.5 text-foreground-muted" />
             Yükle
           </Button>
+          {pipelinePdfReady && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => asrJob && window.open(`/api/jobs/${encodeURIComponent(asrJob.job_id)}/pdf`, '_blank', 'noopener')}
+              title="Pipeline künye PDF'ini aç / indir"
+            >
+              <FileText className="h-3.5 w-3.5 text-foreground-muted" />
+              Künye PDF
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

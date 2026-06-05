@@ -283,6 +283,29 @@ def _flow_queue_worker_loop() -> None:
                 processed.add(target["id"])  # bir kez işle — durum 'waiting'e geri sarsa bile tekrar etme
 
                 video_path: str = target.get("storedMediaPath") or target.get("sourcePath") or ""
+                # Tedial kuyruk öğeleri burada otomatik indirilemez: indirme helper'ı
+                # Tedial router'ında per-kullanıcı oturum cookie'sine + async istek
+                # bağlamına bağlı (worker'da yok). Yarım/hang riski almak yerine
+                # kullanıcıyı Tedial sekmesinden Pipeline'a yönlendir (dürüst-akış).
+                is_tedial_item = (
+                    target.get("source") == "tedial"
+                    or bool(target.get("tedialItem"))
+                    or str(target.get("id", "")).startswith("tedial-")
+                )
+                if is_tedial_item and (not video_path or not Path(video_path).exists()):
+                    _flow_update_item(
+                        target["id"],
+                        status="failed",
+                        message="Tedial klip kuyrukta otomatik işlenemiyor — Tedial sekmesinden Pipeline'a gönder.",
+                    )
+                    system_events.log_event(
+                        "flow_item_failed",
+                        summary=f"Flow item {target.get('name', target['id'])}: Tedial klip kuyrukta otomatik işlenemiyor.",
+                        level="error",
+                        module="flow",
+                        detail={"item_id": target["id"], "source": "tedial"},
+                    )
+                    continue
                 if not video_path or not Path(video_path).exists():
                     _flow_update_item(target["id"], status="failed", message="Video bulunamadı")
                     system_events.log_event(
@@ -1194,6 +1217,39 @@ def get_job_media(job_id: str) -> FileResponse:
         media_path,
         media_type=media_type or "application/octet-stream",
         filename=str(job.get("filename") or media_path.name),
+        content_disposition_type="inline",
+    )
+
+
+@app.get("/api/jobs/{job_id}/pdf")
+def get_job_pdf(job_id: str) -> FileResponse:
+    """Serve the künye PDF produced by a pipeline (film/dizi) job.
+
+    The pipeline writes ``pdf_path`` onto the job (read from ``_DURUM.json``);
+    only pipeline jobs have it. Path-traversal is guarded with the same
+    allowed-roots + ``_is_path_under`` pattern as ``get_job_media`` so only PDFs
+    under server-owned output roots are served. STT jobs have no PDF → 404.
+    """
+    job = _load_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job_not_found")
+    raw_path = job.get("pdf_path")
+    if not raw_path:
+        raise HTTPException(status_code=404, detail="pdf_not_found")
+    pdf_path = Path(str(raw_path)).resolve()
+    allowed_roots = [
+        CLIPS_ROOT.resolve(),          # canonical hub copy: Database/<clip>/pdf/kunye.pdf
+        LEGACY_JOB_ROOT.resolve(),     # legacy per-job output dirs
+        (PROJECT_ROOT / "Mitas Output").resolve(),  # teslim (Hazır/Kontrol) delivery copy
+    ]
+    if not any(_is_path_under(pdf_path, root) for root in allowed_roots):
+        raise HTTPException(status_code=403, detail="pdf_path_not_allowed")
+    if not pdf_path.exists() or not pdf_path.is_file():
+        raise HTTPException(status_code=404, detail="pdf_not_found")
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename=pdf_path.name,
         content_disposition_type="inline",
     )
 

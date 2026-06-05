@@ -592,13 +592,25 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
           <Button size="sm" variant="outline" className="w-full justify-center px-2" onClick={handleTedialSearch} disabled={!tedialQuery.trim() || tedialSearchState === 'searching'}>
             Ara
           </Button>
-          <Button size="sm" className="w-full justify-center px-2" disabled={!tedialCandidate} onClick={addTedialCandidate}>
+          <Button
+            size="sm"
+            className="w-full justify-center px-2"
+            disabled={!tedialCandidate}
+            onClick={addTedialCandidate}
+            title="Tedial klibini kuyruğa ekler. Not: kuyruk worker'ı Tedial klibini otomatik İŞLEYEMEZ — analiz için Tedial sekmesinden Pipeline'a gönderin."
+          >
             Ekle
           </Button>
         </div>
         {tedialMessage ? (
           <div className={`mt-1 truncate text-[10px] ${tedialSearchState === 'found' ? 'text-success' : tedialSearchState === 'error' ? 'text-danger' : 'text-foreground-muted'}`} title={tedialMessage}>
             {tedialMessage}
+          </div>
+        ) : null}
+        {tedialCandidate ? (
+          <div className="mt-1 flex items-start gap-1 text-[10px] leading-4 text-warning" title="Tedial klipleri kuyrukta otomatik işlenmez">
+            <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+            <span>Tedial klibi kuyrukta otomatik işlenmez. Analiz için Tedial sekmesinden Pipeline'a gönderin; buradaki öğe yalnız önizleme/açma içindir.</span>
           </div>
         ) : null}
       </div>

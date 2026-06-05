@@ -354,7 +354,9 @@ def main(argv=None) -> int:
         "md_path": str(md_path),
         "profile": profile_label,
         "cast_count": len(cast),
+        "cast": cast,                       # B-4: üretilen oyuncu İSİMLERİ (XML↔PDF kesişim kapısı için)
         "crew_roles": [r for r, _ in crew],
+        "crew": [(r, (n if isinstance(n, list) else [n])) for r, n in crew],  # B-4: rol+isim listesi
         "role_reconcile": reconcile_meta,   # {moved, unverified, xml_used, kb_used} | None
         "altyazi": audio.get("altyazi"),
         "ana_dil": audio.get("ana_dil"),
