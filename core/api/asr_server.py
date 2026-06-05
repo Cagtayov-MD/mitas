@@ -2499,22 +2499,40 @@ def _search_snippet(text: str, query: str, *, radius: int = 90) -> str:
     return f"{prefix}{text[start:end].strip()}{suffix}"
 
 
+def _latin_only(text: str) -> str:
+    """Ozet KURALI (Cagatay): cikti SADECE Latin alfabesi — Kiril/Cince/Arap/Yunan/CJK
+    HARFLERI DUSER. Latin (aksanli dahil) + ASCII + harf-disi (bosluk/rakam/noktalama)
+    KORUNUR. Deterministik kemer: model prompt'a uymasa bile baska-alfabe ozete sizmaz.
+    (mitas_pipeline._latin_only ile ayni; ozet ureten her yolda tutarli.)"""
+    import unicodedata
+    return "".join(ch for ch in (text or "")
+                   if ch.isascii()
+                   or unicodedata.category(ch)[0] != "L"
+                   or "LATIN" in unicodedata.name(ch, ""))
+
+
 def _generate_transcript_summary(job: dict[str, Any], transcript: str) -> dict[str, Any]:
     is_film = job.get("content_profile") == "film"
+    result: dict[str, Any] | None = None
     if os.environ.get("ANTHROPIC_API_KEY"):
         try:
-            return _summarize_with_anthropic(job, transcript)
+            result = _summarize_with_anthropic(job, transcript)
         except RuntimeError:
-            pass
+            result = None
     # Film/dizi ozetinde OpenAI-compat (yerel qwen35local) fallback'i KULLANMA:
     # terk edilen qwen film prompt'unu tutmuyor, bozuk ozet uretir. Sonnet
     # basarisizsa dogrudan local-extractive'e dus. Diger profiller eski zinciri korur.
-    if not is_film:
+    if result is None and not is_film:
         try:
-            return _summarize_with_openai(job, transcript)
+            result = _summarize_with_openai(job, transcript)
         except RuntimeError:
-            pass
-    return _summarize_locally(job, transcript)
+            result = None
+    if result is None:
+        result = _summarize_locally(job, transcript)
+    # SADECE Latin (Cagatay ozet kurali) — TUM backend ciktilarina deterministik kemer
+    if isinstance(result.get("summary"), str):
+        result["summary"] = _latin_only(result["summary"])
+    return result
 
 
 def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, str]]:
@@ -2546,7 +2564,10 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
             "bilgiyi yaz. Tahmin, hayal, uydurma KESİNLİKLE YOK (halüsinasyon sıfır). Bir "
             "bilgi transkriptte yoksa o başlığı HİÇ YAZMA (boş geç). Düşünme/akıl yürütme "
             "metni veya <think> bloğu üretme; doğrudan nihai Türkçe özeti ver. "
-            "Çıktı SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap gibi başka alfabe YAZMA, yabancı adı Latin'e çevir."
+            "Çıktı KOMPLE Türkçe ve SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap/Yunan gibi "
+            "BAŞKA ALFABE YAZMA. Yabancı ÖZEL ADLARI (kişi/yer/kurum) ASCII BÜYÜK HARFLE yaz — "
+            "aksan ve Türkçe harf YOK (José→JOSE, New York→NEW YORK, Иван→IVAN); Türkçe sözcükler "
+            "normal Türkçe yazımıyla (ç ğ ı ö ş ü korunur)."
         )
         user_msg = (
             "Aşağıdaki spor müsabakası transkriptini analiz et. Önce sporu belirle "
@@ -2588,7 +2609,7 @@ def _summary_messages(job: dict[str, Any], transcript: str) -> list[dict[str, st
         f"TRANSKRİPT:\n{transcript}"
     )
     return [
-        {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın. Çıktı TAMAMEN Türkçe ve SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap gibi başka alfabe YAZMA, yabancı adı Latin harflere çevir."},
+        {"role": "system", "content": "Sen yayın arşivi transkriptlerini kısa, doğru ve Türkçe özetleyen bir asistansın. Çıktı KOMPLE Türkçe ve SADECE Latin alfabesiyle olsun; Kiril/Çince/Arap/Yunan gibi BAŞKA ALFABE YAZMA. Yabancı ÖZEL ADLARI (kişi/yer/kurum) ASCII BÜYÜK HARFLE yaz — aksan ve Türkçe harf YOK (José→JOSE, New York→NEW YORK, Иван→IVAN); Türkçe sözcükler normal Türkçe yazımıyla (ç ğ ı ö ş ü korunur)."},
         {"role": "user", "content": prompt},
     ]
 
