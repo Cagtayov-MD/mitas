@@ -162,11 +162,17 @@ class TedialSessionBroker:
     def start(self, user_id: str, remember: bool = False) -> TedialSessionSnapshot:
         with self._lock:
             session = self._session_for(user_id)
-            if remember and session.cookies:
-                session.status = TedialSessionStatus.connected
-                session.connected_at = session.connected_at or utc_now()
-            else:
-                session.status = TedialSessionStatus.connecting
+            # Never trust a remembered cookie's *presence* as proof of liveness.
+            # A persisted (but expired) JSESSIONID would otherwise flip the
+            # session straight to `connected`, and login_proxy's
+            # `_should_return_to_poc_ui` gate (status == "connected") would
+            # bounce the login iframe back to /tedial without ever showing the
+            # Tedial login form — the "Bağlan + bayat cookie" bug. Always start
+            # in `connecting`; the login proxy / health check decides if the
+            # remembered cookie still authenticates (valid cookie => the default
+            # page load marks connected and redirects seamlessly; stale cookie
+            # => Tedial returns the login form, which now renders in the iframe).
+            session.status = TedialSessionStatus.connecting
             session.remember = remember
             session.updated_at = utc_now()
             session.error = None
@@ -282,7 +288,14 @@ class TedialSessionBroker:
         return session
 
     def _persist_or_delete(self, session: TedialUserSession) -> None:
-        if session.remember and session.cookies and session.status == TedialSessionStatus.connected:
+        # Keep a remembered cookie jar on disk for the active session lifecycle
+        # (connected OR connecting). `start()` now lands in `connecting` until the
+        # login proxy confirms liveness, so persisting on `connecting` keeps the
+        # remembered cookie durable across a server restart. Dead states
+        # (expired/disconnected/error) still purge — note mark_checked(False)
+        # sets `expired`, so the expire-purge contract is unchanged.
+        keepable_statuses = (TedialSessionStatus.connected, TedialSessionStatus.connecting)
+        if session.remember and session.cookies and session.status in keepable_statuses:
             self._storage_dir.mkdir(parents=True, exist_ok=True)
             payload = {
                 "user_id": session.user_id,

@@ -55,6 +55,38 @@ def test_session_broker_persists_remembered_cookie_jar(tmp_path) -> None:
     assert not (storage_dir / "user-1.cookies").exists()
 
 
+def test_start_does_not_trust_stale_remembered_cookie() -> None:
+    # Regression: "Bağlan + bayat cookie" — a remembered cookie's mere presence
+    # must NOT flip start() straight to connected (which made login_proxy skip
+    # the Tedial login form). start() always lands in `connecting`; liveness is
+    # decided later by the login proxy / health check.
+    broker = TedialSessionBroker()
+    broker.attach_cookie_header("user-1", "JSESSIONID=stale", remember=True)
+    assert broker.get("user-1").status == TedialSessionStatus.connected
+
+    started = broker.start("user-1", remember=True)
+
+    assert started.status == TedialSessionStatus.connecting
+    # The remembered cookie is still available for the login proxy to forward.
+    assert broker.cookie_header_if_any("user-1") == "JSESSIONID=stale"
+
+
+def test_remembered_cookie_survives_start_for_restart_durability(tmp_path) -> None:
+    storage_dir = tmp_path / "sessions"
+    broker = TedialSessionBroker(storage_dir=storage_dir)
+    broker.start("user-1", remember=True)
+    broker.attach_cookie_header("user-1", "JSESSIONID=abc123")
+    assert (storage_dir / "user-1.cookies").exists()
+
+    # Clicking "Bağlan" again (start) drops status back to connecting but must
+    # not delete the persisted remembered cookie — it survives a server restart.
+    broker.start("user-1", remember=True)
+    assert (storage_dir / "user-1.cookies").exists()
+
+    reloaded = TedialSessionBroker(storage_dir=storage_dir)
+    assert reloaded.cookie_header_for("user-1") == "JSESSIONID=abc123"
+
+
 def test_config_allows_only_tedial_cache_lowres_media() -> None:
     cfg = TedialConfig()
 
