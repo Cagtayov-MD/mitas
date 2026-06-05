@@ -45,54 +45,67 @@ def _lean_transcribe(src: Path, out: Path, args) -> dict:
     from faster_whisper import WhisperModel
 
     mp = _MODEL_PATHS.get(args.model, _MODEL_PATHS["large-v3-turbo"])
-    model = WhisperModel(str(mp), device="cuda", compute_type="float16", local_files_only=True)
+    model = None   # transkripsiyon modeli LID'den SONRA yüklenir (Kürtçe'de hiç yüklenmez)
 
-    # --- kanal-dil tespiti (film): türkçe kanaldan, yoksa kanal-1 kendi dilinde ---
+    # --- kanal-dil tespiti: MMS-LID (1024 dil; Kürtçe/Azerice/Arapça dahil, whisper'dan DOĞRU) ---
     language, sel, detect_info = args.language, None, None
     if getattr(args, "auto_language", False) and src.suffix.lower() != ".wav":
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             import _channel_lang as cl
             streams = cl.audio_streams(str(src))
-            units = [cl.detect(model, str(src), s, c) for s, nch in enumerate(streams) for c in range(nch)]
-            speech = [u for u in units if u["role"] == "konuşma"]
-            sel = next((u for u in speech if u["language"] == "tr"), None) or (speech[0] if speech else None)
-            if sel:
+            units = [cl.detect(str(src), s, c) for s, nch in enumerate(streams) for c in range(nch)]
+            sel, sel_reason = cl.select_summary(units)   # TR>diğer konuşma>(net yoksa) en iyi diyalog; downmix'e DÜŞME
+            if sel and sel.get("language"):
                 language = sel["language"]
-            detect_info = {"selected": sel, "units": units}
+            detect_info = {"selected": sel, "select_reason": sel_reason, "units": units, "lid": "mms-lid-1024"}
         except Exception as exc:  # noqa: BLE001 - tespit hata verirse downmix+tr'ye düş
             detect_info = {"error": f"{type(exc).__name__}: {exc}"}
 
-    # ses çıkar: seçili kanal varsa SADECE onu (pan), yoksa downmix
-    wav = src
-    if src.suffix.lower() != ".wav":
-        wav = out / "_asr_16k.wav"
-        cmd = [str(FFMPEG) if FFMPEG.exists() else "ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src)]
-        if sel is not None:
-            cmd += ["-map", f"0:a:{sel['stream']}", "-af", f"pan=mono|c0=c{sel['channel']}", "-ar", "16000"]
-        else:
-            cmd += ["-vn", "-ac", "1", "-ar", "16000"]
-        cmd += ["-acodec", "pcm_s16le", str(wav)]
-        subprocess.run(cmd, check=True)
+    # --- KÜRTÇE-ailesi (ku): whisper ÇEVİREMEZ → ASR ATLA (boş transcript), dürüst işaretle.
+    #     Özet ayrı adımda İNTERNETTEN gelir (mitas_pipeline, bizim prompt). ---
+    if language == "ku":
+        result = {
+            "status": "skipped_unsupported_lang", "mode": "lean", "model": "none", "language": "ku",
+            "transcript_path": None, "clean_segments": 0, "transcript_chars": 0, "transcript_head": "",
+            "audio_duration": 0.0, "fallback_triggered": False, "profile_used": "lean-skip-ku",
+            "summary_channel": (f"a:{sel['stream']}/c{sel['channel']}" if sel else "—"),
+            "channel_detect": detect_info, "chlang_path": None,
+            "note": "Kurtce-ailesi (whisper ceviremez) -> ASR atlandi; ozet internetten",
+            "runtime_sec": round(time.perf_counter() - t0, 3),
+        }
+        sys.stdout.write(json.dumps(result, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
+        os._exit(0)
 
-    # --- YABANCI ses → FULL large-v3 (turbo yabancıda çöp üretiyor; full TEMİZ okur — POROROCA kanıtı) ---
-    # turbo dili "tr" DIŞI tespit ettiyse: full large-v3'e geç + beam=5, AMA turbo'nun TESPİT ETTİĞİ
-    # DİLDE transkribe et — YENİDEN-TESPİT ETME. DERS (DERT BENDE, net Arapça DUBLAJ): turbo AR'ı DOĞRU
-    # bildi; language=None ile full'e yeniden-tespit ettirince ru'ya KAYDI = doğru tespiti bozdu.
-    # full SADECE transkript kalitesi için; DİL turbo'nundur. Türkçe'de turbo KALIR (hız).
-    beam, tr_language = args.beam_size, language
+    # --- transkripsiyon modeli: Türkçe→turbo (hız), yabancı(desteklenen)→large-v3 (kalite, tespit edilen dilde) ---
+    beam, tr_language = args.beam_size, (language or "tr")
     if bool(language) and language != "tr":
         try:
             fp = _MODEL_PATHS.get("large-v3")
             model = (WhisperModel(str(fp), device="cuda", compute_type="float16", local_files_only=True)
                      if fp and fp.exists()
                      else WhisperModel("large-v3", device="cuda", compute_type="float16"))
-            beam, tr_language = max(args.beam_size, 5), language   # turbo'nun dilini KORU (yeniden-tespit YOK)
+            beam, tr_language = max(args.beam_size, 5), language   # tespit edilen dilde transkribe (yeniden-tespit YOK)
             detect_info = detect_info or {}
-            detect_info["asr_upgrade"] = f"large-v3 (yabanci ses, dil={language} korundu)"
-        except Exception as exc:  # noqa: BLE001 - full yuklenemezse turbo'da devam
+            detect_info["asr_model"] = f"large-v3 (yabanci ses: {language})"
+        except Exception as exc:  # noqa: BLE001 - full yuklenemezse turbo'ya düş
             detect_info = detect_info or {}
             detect_info["fullv3_error"] = f"{type(exc).__name__}: {exc}"
+    if model is None:
+        model = WhisperModel(str(mp), device="cuda", compute_type="float16", local_files_only=True)  # turbo (tr/varsayılan)
+
+    # ses çıkar: seçili kanal (downmix'e DÜŞME — select_summary en iyi diyalog kanalını verdi)
+    wav = src
+    if src.suffix.lower() != ".wav":
+        wav = out / "_asr_16k.wav"
+        cmd = [str(FFMPEG) if FFMPEG.exists() else "ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src)]
+        if sel and sel.get("language") is not None:
+            cmd += ["-map", f"0:a:{sel['stream']}", "-af", f"pan=mono|c0=c{sel['channel']}", "-ar", "16000"]
+        else:
+            cmd += ["-vn", "-ac", "1", "-ar", "16000"]
+        cmd += ["-acodec", "pcm_s16le", str(wav)]
+        subprocess.run(cmd, check=True)
 
     segs, info = model.transcribe(
         str(wav), language=tr_language, beam_size=beam,
