@@ -315,6 +315,49 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     return None
 
 
+def _fetch_internet_ozet(*, title="", original="", year="", duration=""):
+    """Kürtçe/desteklenmeyen-dil filmi: ASR çeviremez → film kimliğinden (TMDB) internet plot çek,
+    BİZİM özet promptumuzla (ozet_film.txt) özetle. Bulunamazsa None → çağıran dürüst placeholder'a düşer.
+    (Çağatay direktifi: Kürtçe çıkarsa ASR uğraşmasın, özeti internetten bizim promptla çek.)"""
+    key = os.environ.get("MITAS_TMDB")
+    if not key:
+        return None
+    import urllib.parse
+    import urllib.request
+
+    def _overview(q, kind, lang):
+        try:
+            params = {"api_key": key, "query": q, "language": lang}
+            if year and kind == "movie":
+                params["year"] = year
+            url = f"https://api.themoviedb.org/3/search/{kind}?" + urllib.parse.urlencode(params)
+            with urllib.request.urlopen(url, timeout=15) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            for res in (data.get("results") or [])[:1]:
+                ov = (res.get("overview") or "").strip()
+                if ov and len(ov) > 60:
+                    return ov
+        except Exception:  # noqa: BLE001
+            return None
+        return None
+
+    overview = None
+    for q in [x for x in (original, title) if x]:
+        for lang in ("tr-TR", "en-US"):
+            for kind in ("movie", "tv"):
+                overview = _overview(q, kind, lang)
+                if overview:
+                    break
+            if overview:
+                break
+        if overview:
+            break
+    if not overview:
+        return None
+    # BİZİM özet promptumuzla internet plotunu özetle (tutarlı v4 format)
+    return _generate_ozet(overview, title=title, duration=duration)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
@@ -561,32 +604,48 @@ def main(argv=None) -> int:
         # transcript_plain.txt = _pipe_asr.py'nin yazdigi tam temiz metin (asr_out/).
         # Key yok / transcript yok / istek coker → eski placeholder davranisi korunur.
         ozet = "(Özet ayrı bir adımda üretilecektir.)"
-        if asr_info.get("transcript_head"):
-            ozet = "(Ham transcript önizleme — kalıp özet sonra) " + asr_info["transcript_head"]
-        transcript_txt_path = asr_out / "transcript_plain.txt"
-        transcript_text = ""
-        if transcript_txt_path.exists():
-            try:
-                transcript_text = transcript_txt_path.read_text(encoding="utf-8").strip()
-            except Exception:  # noqa: BLE001
-                transcript_text = ""
-        if transcript_text:
-            real_ozet = _generate_ozet(transcript_text, title=title, duration=dur)
-            if real_ozet:
-                ozet = real_ozet
-                log_event("ozet_completed",
-                          summary=f"{video.name}: Sonnet ozeti uretildi ({len(real_ozet)} karakter).",
+        if asr_info.get("language") == "ku":
+            # Kürtçe-ailesi: whisper ÇEVİREMEZ (ASR atlandı) → özeti İNTERNETTEN çek (bizim prompt). Çağatay direktifi.
+            # NOT: başlık eşleşmesi belirsizse yanlış film gelebilir — kadro-tabanlı kimlik ileride bağlanacak.
+            net_ozet = _fetch_internet_ozet(title=title, original=original, year=film_year, duration=dur)
+            if net_ozet:
+                ozet = net_ozet
+                log_event("ozet_internet",
+                          summary=f"{video.name}: Kurtce -> internet ozeti uretildi ({len(net_ozet)} karakter).",
                           module="summary", media_id=media_id, filename=video.name,
-                          detail={"clip_id": clip_id, "ozet_chars": len(real_ozet), "transcript_chars": len(transcript_text)})
+                          detail={"clip_id": clip_id, "ozet_chars": len(net_ozet), "source": "tmdb-internet"})
             else:
+                ozet = "Bu kopya Kürtçe/desteklenmeyen dilde; transkript çıkarılamadı, internette de eşleşme bulunamadı."
                 log_event("ozet_atlandi", level="warn",
-                          summary=f"{video.name}: Sonnet ozeti uretilemedi (key yok / istek bos / hata) — placeholder kaldi.",
-                          module="summary", media_id=media_id, filename=video.name,
-                          detail={"clip_id": clip_id, "transcript_chars": len(transcript_text)})
+                          summary=f"{video.name}: Kurtce + internet ozeti bulunamadi.",
+                          module="summary", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
         else:
-            log_event("ozet_atlandi", level="info",
-                      summary=f"{video.name}: transcript yok (ASR atlandi/bos) — ozet uretilmedi.",
-                      module="summary", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+            if asr_info.get("transcript_head"):
+                ozet = "(Ham transcript önizleme — kalıp özet sonra) " + asr_info["transcript_head"]
+            transcript_txt_path = asr_out / "transcript_plain.txt"
+            transcript_text = ""
+            if transcript_txt_path.exists():
+                try:
+                    transcript_text = transcript_txt_path.read_text(encoding="utf-8").strip()
+                except Exception:  # noqa: BLE001
+                    transcript_text = ""
+            if transcript_text:
+                real_ozet = _generate_ozet(transcript_text, title=title, duration=dur)
+                if real_ozet:
+                    ozet = real_ozet
+                    log_event("ozet_completed",
+                              summary=f"{video.name}: Sonnet ozeti uretildi ({len(real_ozet)} karakter).",
+                              module="summary", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, "ozet_chars": len(real_ozet), "transcript_chars": len(transcript_text)})
+                else:
+                    log_event("ozet_atlandi", level="warn",
+                              summary=f"{video.name}: Sonnet ozeti uretilemedi (key yok / istek bos / hata) — placeholder kaldi.",
+                              module="summary", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, "transcript_chars": len(transcript_text)})
+            else:
+                log_event("ozet_atlandi", level="info",
+                          summary=f"{video.name}: transcript yok (ASR atlandi/bos) — ozet uretilmedi.",
+                          module="summary", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
         cmd = [PY_PDF, HERE / "_pipe_pdf.py", "--kunye", str(kunye_path), "--out", str(pdf_out),
                "--title", title, "--trt-id", trt or "", "--profile", "film" if is_film else "dizi",
                "--resolution", res, "--fps", fps_s, "--duration", dur, "--ozet", ozet]
