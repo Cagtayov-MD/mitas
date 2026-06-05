@@ -113,6 +113,23 @@ OCR-worktree/pdf-mitas/*
 # NOT: OCR-worktree/py/ pipeline100 zinciri eski commit'te zaten tracked; _pipe_ocr.py onu RUNTIME yukler.
 mutfak/OCR_*_GORSELLER_*/
 
+# Geçici outputs — scratch/test/run artefaktları (untracked, git'te yok)
+outputs/model_test/
+outputs/model_test2/
+outputs/fix_verify/
+outputs/glm_proof_korkunc/
+outputs/_102_afis_cache/
+outputs/_102_chunks/
+outputs/_102_oz_chunks/
+_102_fix/
+_DUP_DROPPED/
+_fix_backup/
+outputs/*.err
+outputs/svc_*.log
+outputs/gece_rapor.md
+outputs/gece_rapor.tsv
+outputs/DENETIM_RAPORU_*.md
+
 # OS/editor noise
 Thumbs.db
 Desktop.ini
