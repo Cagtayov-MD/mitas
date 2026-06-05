@@ -481,11 +481,15 @@ def main(argv=None) -> int:
     asr_proc = None
     t_asr = None
     if not args.no_asr:
-        asr_in = audio_path if audio_path.exists() else video
+        _pa = PROFILE_ASR.get(profile)
+        # KRİTİK: auto-language'da _pipe_asr'e VİDEO ver (downmix değil). Kanal-LID (MMS-LID) +
+        # Kürtçe-atla + internet-özet ANCAK videoyla çalışır; audio16k.wav verilirse _pipe_asr
+        # LID'i atlar (suffix==.wav) -> bu özellikler ÖLÜR (B-1 ölü-nokta). Sabit-dil profilde wav yeter.
+        _auto = bool(_pa and _pa.get("lean") and _pa.get("language") == "auto")
+        asr_in = video if _auto else (audio_path if audio_path.exists() else video)
         asr_cmd = [str(PY_ASR), str(HERE / "_pipe_asr.py"), "--input", str(asr_in),
                    "--out", str(asr_out), "--media-id", media_id, "--job-id", asr_job,
                    "--content-profile", content_profile]
-        _pa = PROFILE_ASR.get(profile)
         if _pa and _pa.get("lean"):
             asr_cmd += ["--lean", "--model", _pa["model"],
                         "--beam-size", str(_pa["beam_size"]), "--vad", _pa["vad"]]
@@ -550,9 +554,10 @@ def main(argv=None) -> int:
                 asr_info = {"status": "failed", "error": (err or "")[-400:]}
             asr_status = asr_info.get("status", "failed")
             timings["asr"] = round(time.perf_counter() - t_asr, 2)
-            update_clip_module(clip_dir, "asr", "done" if asr_status == "done" else ("partial" if asr_status == "partial" else "failed"), asr_job)
-            kind = {"done": "asr_completed", "partial": "asr_partial"}.get(asr_status, "asr_failed")
-            log_event(kind, level="info" if asr_status in ("done", "partial") else "error",
+            _asr_ok = asr_status in ("done", "partial", "skipped_unsupported_lang")  # ku-atla = kasıtlı, hata DEĞİL
+            update_clip_module(clip_dir, "asr", "done" if asr_status == "done" else ("partial" if asr_status in ("partial", "skipped_unsupported_lang") else "failed"), asr_job)
+            kind = {"done": "asr_completed", "partial": "asr_partial", "skipped_unsupported_lang": "asr_skipped_kurtce"}.get(asr_status, "asr_failed")
+            log_event(kind, level="info" if _asr_ok else "error",
                       summary=f"{video.name}: ASR {asr_status}, {asr_info.get('clean_segments', 0)} segment, {asr_info.get('transcript_chars', 0)} karakter ({timings['asr']} sn).",
                       module="asr", media_id=media_id, filename=video.name, job_id=asr_job, duration_seconds=timings["asr"],
                       detail={"clip_id": clip_id, "asr_total_seconds": asr_info.get("asr_total_seconds"),
