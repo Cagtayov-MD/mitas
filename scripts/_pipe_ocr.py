@@ -473,7 +473,10 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
     glm_only_filtered_count = 0
     final_engine = "pipeline100"
 
-    if lines and idx and os.environ.get("MITAS_OCR_GLM_CONSENSUS", "1") != "0":
+    # GLM ikinci-motor: env=0/false/no/"" KAPALI, diger durumlarda AÇIK (default "1").
+    _glm_env = os.environ.get("MITAS_OCR_GLM_CONSENSUS", "1").strip().lower()
+    _glm_enabled = _glm_env not in ("0", "false", "no", "off", "")
+    if lines and idx and _glm_enabled:
         try:
             # Esit-aralikli ornekleme: en fazla _GLM_MAX_FRAMES kare sec.
             sample_idx = idx

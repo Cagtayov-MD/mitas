@@ -223,25 +223,25 @@ def upper_names(names, *, use_qwen: bool = False):
          (Nuri Bilge Ceylan VAR, Fabian Gasmia YOK.) DB erissizse given+sur CSV fallback."""
     if not names:
         return names
-    tr_all = _TR_STRONG | _TR_AMBIG       # tum Turkce-ozel karakter (ışğİı + çöüÇÖÜ)
+    # _TR_STRONG (ı,İ,ş,ğ) KESIN Turk; _TR_AMBIG (ç,ö,ü) yabanci dillerde de var (François, Müller) → DB'ye sor.
     pure = [n for n in names
-            if not any(c in tr_all for c in n)
+            if not any(c in _TR_STRONG for c in n)
             and not any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n)]
     db_ok, mitas_tr = _mitas_people_set(pure)
     # mitas_tr: {giren_isim: kanonik_Turkce_ad} (ornek: "Aysenil Samlioglu" -> "Ayşenil Şamlıoğlu")
     out = []
     for n in names:
-        if any(c in tr_all for c in n):
-            out.append(tr_upper(n))                       # Turkce karakter VAR -> koru
-        elif any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n):
-            out.append(ascii_fold(n).upper())             # yabanci aksan -> fold
-        else:                                             # saf-ASCII -> koken
+        if any(c in _TR_STRONG for c in n):
+            out.append(tr_upper(n))                       # ı/İ/ş/ğ KESIN Turk -> koru
+        elif any((not c.isascii()) and unicodedata.category(c).startswith("L") and c not in _TR_AMBIG for c in n):
+            out.append(ascii_fold(n).upper())             # baska yabanci aksan (é,ñ,ø...) -> fold
+        else:                                             # saf-ASCII veya yalniz ç/ö/ü -> koken
             if db_ok:
                 canonical = mitas_tr.get(n)              # DB'den Turkce kanonik (ornek: "Ayşenil Şamlıoğlu")
                 if canonical is not None:
                     out.append(tr_upper(canonical))       # kanonik uzerinde tr_upper -> Turkce buyuk harf
                 else:
-                    out.append(ascii_fold(n).upper())     # DB'de yok -> yabanci
+                    out.append(ascii_fold(n).upper())     # DB'de yok -> yabanci (François->FRANCOIS, Müller->MULLER)
             else:
                 is_tr = _is_tr_name(n)
                 out.append(tr_upper(n) if is_tr else ascii_fold(n).upper())

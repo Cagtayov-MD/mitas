@@ -131,6 +131,24 @@ PIPELINE_PROFILE_MAP: dict[str, str] = {
 _jobs: dict[str, dict[str, Any]] = {}
 _jobs_lock = threading.Lock()
 _media_remux_lock = threading.Lock()
+_JOBS_MAX = 500  # RAM'de tutulan job kapasitesi; aşılırsa en eski "done/failed/cancelled" silinir
+
+
+def _trim_jobs_if_needed() -> None:
+    """RAM'deki _jobs dict'i >_JOBS_MAX ise en eski terminal job'ları sil (disk kopyaları kalır)."""
+    if len(_jobs) <= _JOBS_MAX:
+        return
+    terminal = {"done", "failed", "cancelled", "stopped", "partial"}
+    candidates = [
+        (jid, j.get("updated_at") or j.get("created_at") or "")
+        for jid, j in _jobs.items()
+        if (j.get("status") or "") in terminal
+    ]
+    # Eski → yeni; en eski silinir.
+    candidates.sort(key=lambda x: x[1])
+    drop_n = max(0, len(_jobs) - _JOBS_MAX)
+    for jid, _ in candidates[:drop_n]:
+        _jobs.pop(jid, None)
 
 # ---------------------------------------------------------------------------
 # Flow-queue worker — global state
@@ -3014,6 +3032,7 @@ def _job_json_target(job: dict[str, Any]) -> Path:
 def _save_job(job: dict[str, Any]) -> None:
     with _jobs_lock:
         _jobs[job["job_id"]] = dict(job)
+        _trim_jobs_if_needed()
     _write_json(_job_json_target(job), job)
 
 

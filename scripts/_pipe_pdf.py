@@ -316,11 +316,15 @@ def main(argv=None) -> int:
     # ses & altyazı (film/dizi): kanal-dil + altyazı tespiti → sol ray bloğu
     audio = audio_subtitle_block(args)
 
+    # Title de büyük harfle gitsin (TR-İ, yabancı ASCII): args.title ham OCR/XML olabilir.
+    title_norm = nn.tr_upper((args.title or "—")[:60]) if (args.title or "").strip() else "—"
+    # Özet Sonnet'ten zaten BÜYÜK gelir; emniyet için son bir kez tr_upper-Latin-only:
+    ozet_norm = nn.tr_upper(ozet) if ozet else ozet
     d = {
-        "profile": profile_label, "trt": args.trt_id, "title": (args.title or "—")[:60],
+        "profile": profile_label, "trt": args.trt_id, "title": title_norm,
         "res": args.resolution, "fps": args.fps, "dur": args.duration, "bolum": bolum or None,
         "cast": cast or ["—"], "crew": crew or [("Yapımcı", ["—"]), ("Yönetmen", ["—"])],
-        "ozet": ozet, "date": datetime.datetime.now().strftime("%d.%m.%Y · %H:%M"),
+        "ozet": ozet_norm, "date": datetime.datetime.now().strftime("%d.%m.%Y · %H:%M"),
         **audio,
     }
     md_path = write_md(out, d)

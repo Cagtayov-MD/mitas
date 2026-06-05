@@ -77,10 +77,19 @@ _ROLE_MATCH = [
     ("Yönetmen", ("yonetmen", "directed by", "yoneten", "director",
                   "realise par", "mise en scene", "un film de", "film by",
                   "regie", "ein film von", "regia", "un film di",
-                  "dirigida por", "dirigido por")),
+                  "dirigida por", "dirigido por",
+                  "rejissor", "rejisor",  # RU/AZ/KU (режиссёр fold->rejissor)
+                  "skinothetis",  # GR (σκηνοθέτης fold)
+                  "muharrij", "muharrac",  # AR (مخرج / المخرج fold yaklaşımı)
+                  "daoyan")),  # ZH pinyin (导演)
     ("Yapımcı", ("yapimci", "produced by", "executive produc", "producer", "yapim ",
                  "produit par", "producteur", "produzent", "produziert von",
-                 "prodotto da", "produttore", "productor")),
+                 "prodotto da", "produttore", "productor",
+                 "prodyuser",  # RU (продюсер fold)
+                 "paragogos",  # GR (παραγωγός fold)
+                 "muntij", "muntic",  # AR (منتج fold)
+                 "zhizuoren", "zhipianren",  # ZH pinyin (制作人 / 制片人)
+                 "berhemkar", "berhemvan", "berhemdar")),  # KU
     ("Senaryo", ("senaryo", "screenplay", "written by", "yazan", "screen story", "writer")),
     ("Kurgu", ("kurgu", "edited by", "film editor", "editor", "montaj")),
     ("Müzik", ("muzik", "music by", "besteci", "original score", "score by", "composer")),
@@ -238,6 +247,8 @@ def parse_credits(lines, title: str = "", *, dizi: bool = False):
                         roles[cur].append(part)
                 elif cur is None and not seen_crew and not has_cast_h:
                     cast.append(part)
+            continue
+        if not is_person(l, title_f):
             continue
         if cur == "CAST":
             cast.append(l)

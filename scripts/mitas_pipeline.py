@@ -70,6 +70,15 @@ def log_event(kind, *, summary, level="info", module=None, media_id=None, filena
     if detail:
         ev["detail"] = detail
     EVENTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # Basit rotasyon: dosya >5MB ise .1.jsonl'a kaydır (sadece 1 onceki, eski .1 silinir).
+    try:
+        if EVENTS_PATH.exists() and EVENTS_PATH.stat().st_size > 5_000_000:
+            backup = EVENTS_PATH.with_suffix(".1.jsonl")
+            if backup.exists():
+                backup.unlink()
+            EVENTS_PATH.rename(backup)
+    except Exception:  # noqa: BLE001 — rotasyon log akışını bozmasın
+        pass
     with EVENTS_PATH.open("a", encoding="utf-8") as h:
         h.write(json.dumps(ev, ensure_ascii=False) + "\n")
     return ev
