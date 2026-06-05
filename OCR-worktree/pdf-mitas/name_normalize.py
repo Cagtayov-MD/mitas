@@ -126,10 +126,18 @@ def normalize_crew(crew, *, use_qwen: bool = True):
 
 def tr_upper(s: str) -> str:
     """Turkce buyuk harf: i->İ, ı->I; digerleri standart upper (ş->Ş, ç->Ç, ğ->Ğ...).
-    Latin-disi ozel harfler (Ə, ø, ł...) Latin'e cevrilir; Turkce harfler _SPECIAL'da yok -> korunur."""
+    Latin-disi ozel harfler (Ə, ø, ł...) Latin'e cevrilir; Turkce harfler _SPECIAL'da yok -> korunur.
+    Latin-disi ALFABE harfleri (Kiril/Yunan/Arap/CJK...) ELENIR — kunye yalniz Latin/Turkce (kural B:
+    'baska bir dil alfabeyle cikti gelmeyecek'); ozellikle ozet prozasina yabanci-alfabe sizmasini onler."""
     s = s or ""
     if any(ch in _SPECIAL for ch in s):
         s = "".join(_SPECIAL.get(ch, ch) for ch in s)   # Ə->E vb. (isim Ş icerip Turkce sanilsa bile)
+    # Latin-disi harf (Kiril/Yunan/Arap/CJK...) sizintisini ele; ASCII + Latin/Turkce harfler ve
+    # harf-disi (bosluk, rakam, noktalama) korunur. Cevrilemeyen alfabe DUSER (translit degil, drop).
+    s = "".join(ch for ch in s
+                if ch.isascii()
+                or unicodedata.category(ch)[0] != "L"
+                or "LATIN" in unicodedata.name(ch, ""))
     return s.replace("ı", "I").replace("i", "İ").upper()
 
 
@@ -198,7 +206,10 @@ def _mitas_people_set(names):
             if k in tr_canonical:
                 result[n] = tr_canonical[k]
         return True, result
-    except Exception:  # noqa: BLE001 - DB/duckdb yoksa CSV fallback
+    except Exception as e:  # noqa: BLE001 - DB/duckdb yoksa CSV fallback
+        import sys
+        sys.stderr.write(f"[name_normalize][UYARI] mitas.duckdb erisilemedi -> CSV fallback "
+                         f"(yabanci isim Turkce-kasa alabilir): {e}\n")
         return False, {}
 
 

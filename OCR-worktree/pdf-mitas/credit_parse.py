@@ -74,8 +74,13 @@ _ROLE_MATCH = [
     ("Sanat Yönetmeni", ("sanat yonet", "production design", "art director")),  # "yonetmeni" Yönetmen'e düşmesin
     ("Kameraman Yardımcısı", ("kameraman yard", "assistant camera", "focus puller", "asst camera")),
     ("Kameraman", ("kameraman", "cameraman", "camera operator")),
-    ("Yönetmen", ("yonetmen", "directed by", "yoneten", "director")),
-    ("Yapımcı", ("yapimci", "produced by", "executive produc", "producer", "yapim ")),
+    ("Yönetmen", ("yonetmen", "directed by", "yoneten", "director",
+                  "realise par", "mise en scene", "un film de", "film by",
+                  "regie", "ein film von", "regia", "un film di",
+                  "dirigida por", "dirigido por")),
+    ("Yapımcı", ("yapimci", "produced by", "executive produc", "producer", "yapim ",
+                 "produit par", "producteur", "produzent", "produziert von",
+                 "prodotto da", "produttore", "productor")),
     ("Senaryo", ("senaryo", "screenplay", "written by", "yazan", "screen story", "writer")),
     ("Kurgu", ("kurgu", "edited by", "film editor", "editor", "montaj")),
     ("Müzik", ("muzik", "music by", "besteci", "original score", "score by", "composer")),
@@ -106,12 +111,29 @@ _GENERIC_ROLE_HINTS = (
     "koordinator", "kordinator", "muhendis", "teknisyen", "mudur", "amir", "sef ",
     "operatoru", "uzman", "danisman", "egitmen", "sorumlusu", "yardimcisi",
 )
+# Bare "Yönetmen"/"Yapımcı" eşleşmesini GEÇERSİZ kılan nitelikçiler (D2: künyede
+# YAPIM EKİBİ yalnız GERÇEK Yönetmen + GERÇEK Yapımcı). Bu kelimeler satırda
+# geçiyorsa "director"/"produced by"/"producer" KİŞİYİ yönetmen/yapımcı yapmaz:
+#   • "FINANCIAL/MUSIC/TECHNICAL/CASTING DIRECTOR", "DIRECTOR POSTPRODUCTIE/OF DEVELOPMENT"
+#     → yönetmen DEĞİL  ·  • "EXECUTIVE/ASSOCIATE/LINE/SCORE ... PRODUCER/PRODUCED BY",
+#   "YÜRÜTÜCÜ/ORTAK YAPIMCI" → (D2) GERÇEK yapımcı DEĞİL.
+# Eşleşme bu yüzden "Diğer"e düşer (FİLM'de görünmez, DİZİ'de teknik başlık) — sızıntı yerine boş.
+_ROLE_DISQUALIFY = (
+    "financial", "finansal", "mali", "music", "muzik", "technical", "teknik", "casting",
+    "post produc", "postproduc", "postprodüksiyon", "post prodüksiyon", "postproductie",
+    "of development", "of photography", "score", "vocal", "voice", "dialogue", "dialog",
+    "stunt", "fight", "stage", "floor", "second unit", "2nd unit", "unit ",
+    "executive", "executif", "associate", "associe", "line produc", "co produc", "co-produc", "ortak yapim",
+    "yurutucu", "delegate", "delege", "supervising produc", "field", "creative direct",
+    "brand", "art ",  # "art director" zaten Sanat Yön.; emniyet için
+)
 _CAST_KW = ("oyuncular", "oyuncu", "cast", "starring", "oynayanlar", "rol dagilimi", "roller")
 _CORP_KW = ("film", "films", "production", "produksiyon", "prodüksiyon", "yapim", "yapimevi", "pictures",
             "picture", "studio", "entertainment", "media", "medya", "agency", "ajans", "fund", "fonu",
             "academy", "international", "gmbh", " inc", " llc", " ltd", "company", "distribution", "sales",
             "institute", "enstitu", "kurumu", "group", "grup", "sinema", "cinema", "televizyon", "arte",
-            "radyo", "eurimages", "presents", "present", "organisation", "organization")
+            "radyo", "eurimages", "presents", "present", "organisation", "organization",
+            "management", "menajerlik", "menajer", "iletisim")  # menajerlik/iletisim ajansi cast'e sizmasin
 
 
 def role_of(line: str):
@@ -121,11 +143,16 @@ def role_of(line: str):
         return None
     if any(k in f for k in _CAST_KW):
         return "CAST"
+    # bare Yönetmen/Yapımcı niteliklendirilmişse (financial/executive/score...) → o etiketi atla,
+    # satır aşağıda "Diğer"e düşsün (D2: yalnız GERÇEK yönetmen/yapımcı bu kovalara girer).
+    disq = any(d in f for d in _ROLE_DISQUALIFY)
     for label, kws in _ROLE_MATCH:
+        if disq and label in ("Yönetmen", "Yapımcı"):
+            continue
         if any(k in f for k in kws):
             return label
-    if any(h in f for h in _GENERIC_ROLE_HINTS):
-        return "Diğer"  # bilinmeyen ama açık rol/ekip etiketi
+    if any(h in f for h in _GENERIC_ROLE_HINTS) or disq:
+        return "Diğer"  # bilinmeyen ama açık rol/ekip etiketi (veya niteliklendirilmiş yön/yapımcı)
     return None
 
 
