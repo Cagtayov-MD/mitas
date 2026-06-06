@@ -521,48 +521,31 @@ def _ram_percent() -> int:
 
 _NO_WIN = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
+_prev_cpu = {"idle": 0, "total": 0}
+
 def _cpu_percent() -> int:
-    # 1) typeperf — fastest Windows perf counter reader, always available
+    """Instant CPU% via Windows GetSystemTimes delta — subprocess YOK (sysinfo poller hot-path).
+    Eski typeperf/wmic/powershell subprocess'leri kaldirildi (5sn'de bir ~340ms blok + CPU/log yuku);
+    GetSystemTimes, _ram_percent'in GlobalMemoryStatusEx'i kadar guvenilir cekirdek (kernel32) API."""
     try:
-        r = subprocess.run(
-            ["typeperf", r"\Processor(_Total)\% Processor Time", "-sc", "1"],
-            capture_output=True, text=True, timeout=6, creationflags=_NO_WIN,
-        )
-        if r.returncode == 0:
-            for line in r.stdout.strip().splitlines()[1:]:
-                parts = line.split(",")
-                if len(parts) >= 2:
-                    try:
-                        return round(float(parts[-1].strip().strip('"')))
-                    except ValueError:
-                        pass
+        idle = ctypes.c_ulonglong(0)
+        kernel = ctypes.c_ulonglong(0)
+        user = ctypes.c_ulonglong(0)
+        if not ctypes.windll.kernel32.GetSystemTimes(
+            ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
+        ):
+            return -1
+        total = kernel.value + user.value          # Windows'ta kernel idle'i de icerir
+        first = _prev_cpu["total"] == 0
+        d_idle = idle.value - _prev_cpu["idle"]
+        d_total = total - _prev_cpu["total"]
+        _prev_cpu["idle"] = idle.value
+        _prev_cpu["total"] = total
+        if first or d_total <= 0:
+            return -1                              # ilk okuma / delta yok → cache onceki degeri tutar
+        return max(0, min(100, round(100.0 * (d_total - d_idle) / d_total)))
     except Exception:
-        pass
-    # 2) wmic (plain, no /format:value — more portable across Win versions)
-    try:
-        r = subprocess.run(
-            ["wmic", "cpu", "get", "LoadPercentage"],
-            capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
-        )
-        for line in r.stdout.strip().splitlines():
-            stripped = line.strip()
-            if stripped.isdigit():
-                return int(stripped)
-    except Exception:
-        pass
-    # 3) PowerShell last resort
-    try:
-        r = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command",
-             "(Get-CimInstance Win32_Processor).LoadPercentage"],
-            capture_output=True, text=True, timeout=10, creationflags=_NO_WIN,
-        )
-        val = r.stdout.strip()
-        if r.returncode == 0 and val.isdigit():
-            return int(val)
-    except Exception:
-        pass
-    return -1
+        return -1
 
 _NVIDIA_SMI_PATHS = [
     "nvidia-smi",
@@ -570,8 +553,21 @@ _NVIDIA_SMI_PATHS = [
     r"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe",
 ]
 
+try:
+    import pynvml as _pynvml
+    _pynvml.nvmlInit()
+    _NVML_HANDLE = _pynvml.nvmlDeviceGetHandleByIndex(0)
+    _HAS_NVML = True
+except Exception:  # pynvml yok/init basarisiz → nvidia-smi fallback (mevcut davranis korunur)
+    _HAS_NVML = False
+
 def _gpu_percent() -> int:
-    for cmd in _NVIDIA_SMI_PATHS:
+    if _HAS_NVML:                                  # in-process pynvml — subprocess YOK
+        try:
+            return int(_pynvml.nvmlDeviceGetUtilizationRates(_NVML_HANDLE).gpu)
+        except Exception:
+            return -1
+    for cmd in _NVIDIA_SMI_PATHS:                  # fallback: nvidia-smi (pynvml yoksa; interval 10sn'de seyrek)
         try:
             r = subprocess.run(
                 [cmd, "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
@@ -597,7 +593,7 @@ def _sysinfo_worker() -> None:
         gpu = _gpu_percent()
         with _sysinfo_lock:
             _sysinfo_cache.update({"cpu": cpu, "gpu": gpu})
-        time.sleep(5)
+        time.sleep(10)   # 5->10: sysinfo poll yukunu yarila (UI metrik 10sn'de bir guncellenir)
 
 threading.Thread(target=_sysinfo_worker, daemon=True, name="sysinfo-poller").start()
 
