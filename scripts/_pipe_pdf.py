@@ -341,7 +341,7 @@ def main(argv=None) -> int:
         import fitz
         pdf_dict = dict(
             profile=profile_label, date=d["date"], title=d["title"],
-            subtitle=None, bolum=d["bolum"], poster=poster_path,
+            subtitle=args.original or None, bolum=d["bolum"], poster=poster_path,
             specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("KARE HIZI", args.fps),
                    ("TOPLAM SÜRE", args.duration), ("TRT KİMLİK", args.trt_id or "—")],
             keywords=" ; ".join(cast) if cast else "—", cast=cast or ["—"],
