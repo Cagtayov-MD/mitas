@@ -167,7 +167,7 @@ def write_md(out: Path, d: dict) -> Path:
         f"Üretim: {d['date']}", "",
         "## Künye",
         f"- ID: {d['trt'] or '—'}",
-        f"- Çözünürlük: {d['res']}  ·  Kare: {d['fps']}  ·  Süre: {d['dur']}",
+        f"- Çözünürlük: {d['res']}  ·  Tür: {d['tur']}  ·  Süre: {d['dur']}",
     ]
     if d["bolum"]:
         lines.append(f"- Bölüm: {d['bolum']}")
@@ -220,7 +220,7 @@ def main(argv=None) -> int:
     ap.add_argument("--trt-id", default="")
     ap.add_argument("--profile", default="film_dizi")  # tek profil; tip TRT'den otomatik
     ap.add_argument("--resolution", default="—")
-    ap.add_argument("--fps", default="—")
+    ap.add_argument("--tur", default="—")        # v4: KARE HIZI KALDIRILDI → TÜR (DRAM/KOMEDİ…); KB/v4-final doldurur, yoksa "—"
     ap.add_argument("--duration", default="—")
     ap.add_argument("--bolum", default="")
     ap.add_argument("--ozet", default="(Özet ayrı bir adımda üretilecektir.)")
@@ -327,7 +327,7 @@ def main(argv=None) -> int:
     ozet_norm = nn.tr_upper(ozet) if ozet else ozet
     d = {
         "profile": profile_label, "trt": args.trt_id, "title": title_norm,
-        "res": args.resolution, "fps": args.fps, "dur": args.duration, "bolum": bolum or None,
+        "res": args.resolution, "tur": args.tur, "dur": args.duration, "bolum": bolum or None,
         "cast": cast or ["—"], "crew": crew or [("Yapımcı", ["—"]), ("Yönetmen", ["—"])],
         "ozet": ozet_norm, "date": datetime.datetime.now().strftime("%d.%m.%Y · %H:%M"),
         **audio,
@@ -342,7 +342,7 @@ def main(argv=None) -> int:
         pdf_dict = dict(
             profile=profile_label, date=d["date"], title=d["title"],
             subtitle=args.original or None, bolum=d["bolum"], poster=poster_path,
-            specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("KARE HIZI", args.fps),
+            specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("TÜR", args.tur),
                    ("TOPLAM SÜRE", args.duration), ("TRT KİMLİK", args.trt_id or "—")],
             keywords=" ; ".join(cast) if cast else "—", cast=cast or ["—"],
             crew=crew or [("Yapımcı", ["—"]), ("Yönetmen", ["—"])], ozet=ozet,
