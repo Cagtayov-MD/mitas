@@ -42,10 +42,13 @@ import re
 import sys
 import time
 import unicodedata
-import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _ollama import ollama_chat as _ollama_chat  # noqa: E402  merkezi retry/timeout
 
 # ------------------------- yapilandirma -------------------------
-OLLAMA_CHAT = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434") + "/api/chat"
+OLLAMA_HOST = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
+OLLAMA_CHAT = OLLAMA_HOST + "/api/chat"  # geriye-donuk uyum (ollama_up'ta kullanilmaz)
 MODELS = os.environ.get("MITAS_CREDIT_MODELS", "gemma4:26b,qwen2.5vl:7b").split(",")
 IMDB_DUCKDB = os.environ.get("MITAS_IMDB_DUCKDB", r"Y:\DIGER\Mitas_Files\IMDB\db\imdb.duckdb")
 
@@ -142,20 +145,21 @@ def _encode(path):
     return base64.b64encode(buf.getvalue()).decode()
 
 def read_segment(model, frames):
-    """Bir kare dizisini video-tag olarak VLM'e ver, ham cevabi dondur. think=False (video icin SART)."""
-    payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": PROMPT, "images": [_encode(f) for f in frames]}],
-        "stream": False,
-        "think": False,
-        "keep_alive": "10m",   # modeli sicak tut -> ardisik cagrilarda yeniden yukleme yok
-        "options": {"temperature": 0.1, "top_p": 0.9, "num_ctx": NUM_CTX,
-                    "num_predict": NUM_PREDICT, "repeat_penalty": 1.3, "repeat_last_n": 256},
-    }
-    req = urllib.request.Request(OLLAMA_CHAT, data=json.dumps(payload).encode(),
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=900) as r:
-        resp = json.loads(r.read().decode())
+    """Bir kare dizisini video-tag olarak VLM'e ver, ham cevabi dondur. think=False (video icin SART).
+    _ollama.ollama_chat uzerinden (retry+timeout merkezi). Basarisizsa bos string."""
+    msgs = [{"role": "user", "content": PROMPT, "images": [_encode(f) for f in frames]}]
+    resp = _ollama_chat(
+        model=model,
+        messages=msgs,
+        timeout=900,
+        host=OLLAMA_HOST,
+        think=False,
+        keep_alive="10m",
+        options={"temperature": 0.1, "top_p": 0.9, "num_ctx": NUM_CTX,
+                 "num_predict": NUM_PREDICT, "repeat_penalty": 1.3, "repeat_last_n": 256},
+    )
+    if resp is None:
+        return ""
     return (resp.get("message", {}).get("content") or "").strip()
 
 # ------------------------- KB (imdb.duckdb) -------------------------

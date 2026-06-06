@@ -128,10 +128,12 @@ def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = None)
     """Bir cv2 BGR goruntusunu tile'layarak GLM-OCR ile okur; fold-dedup satir listesi dondurur.
     Herhangi bir network/encode hatasi susturulur (cagiran try/except ile yakalamali).
 
-    1.6: Her tile icin _GLM_RETRY deneme + _GLM_TIMEOUT HTTP timeout uygulanir.
+    1.6: _ollama.ollama_chat wrapper uzerinden (retry+timeout merkezi). Her tile icin
+    _GLM_RETRY deneme + _GLM_TIMEOUT HTTP timeout uygulanir.
     Tum denemeler tukenir/HTTP hatasi -> tile atlanir (diger tile'lar devam eder).
     Cagiran tarafta butun tile'lar basar -> OllamaError yukselir: status="failed" yoluna duser."""
-    import base64, urllib.request, urllib.error
+    import base64
+    from _ollama import ollama_chat
     _timeout = _GLM_TIMEOUT if timeout is None else timeout
     try:
         import numpy as np
@@ -152,44 +154,30 @@ def _glm_read_img(img_bgr, tile: int = 1200, ov: int = 100, timeout: int = None)
         ok, buf = cv2.imencode(".png", tile_img)
         if ok:
             b64 = base64.b64encode(buf.tobytes()).decode()
-            payload = {
-                "model": _GLM_MODEL,
-                "prompt": _GLM_PROMPT,
-                "stream": False,
-                "think": False,
-                "keep_alive": "10m",
-                "options": {"temperature": 0},
-                "images": [b64],
-            }
-            raw_response = None
-            last_exc = None
-            for attempt in range(_GLM_RETRY):
-                try:
-                    req = urllib.request.Request(
-                        _GLM_OLLAMA,
-                        json.dumps(payload).encode(),
-                        {"Content-Type": "application/json"},
-                    )
-                    with urllib.request.urlopen(req, timeout=_timeout) as r:
-                        raw_response = json.loads(r.read())
-                    last_exc = None
-                    break  # basarili
-                except Exception as exc:  # noqa: BLE001 - network/timeout
-                    last_exc = exc
-                    if attempt < _GLM_RETRY - 1:
-                        time.sleep(_GLM_RETRY_BACKOFF)
+            host = _GLM_OLLAMA.rsplit("/api/", 1)[0]
+            raw_response = ollama_chat(
+                model=_GLM_MODEL,
+                prompt=_GLM_PROMPT,
+                images=[b64],
+                timeout=_timeout,
+                retries=_GLM_RETRY,
+                host=host,
+                think=False,
+                keep_alive="10m",
+                options={"temperature": 0},
+            )
             if raw_response is not None:
                 for ln in _glm_extract_lines(raw_response.get("response", "")):
                     fk = fold(ln)
                     if fk and fk not in seen:
                         seen[fk] = ln
                         order.append(ln)
-            elif last_exc is not None:
-                # Bu tile icin tum denemeler basarisiz: merkezi hataya rapor et.
+            else:
+                # ollama_chat None dondu: tum denemeler tukendi, merkezi hataya rapor et.
                 _any_ollama_err = True
                 print(
                     f"[glm-consensus] tile y={y} ollama basarisiz "
-                    f"({_GLM_RETRY} deneme): {type(last_exc).__name__}: {last_exc}",
+                    f"({_GLM_RETRY} deneme): ollama_chat None dondu",
                     file=sys.stderr,
                 )
         y += step

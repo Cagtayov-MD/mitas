@@ -5,10 +5,11 @@ Kullanım: python _kunye_qwen_check.py <kunye_onizleme.png>
 Çıktı: JSON {ozet_var, oyuncu_sayisi, yapimci_var, yonetmen_var, ses_dil_var, afis_var,
              hepsi_buyuk_harf, turkce_karakter_dogru, notlar}
 """
-import sys, json, base64, urllib.request
+import sys, json, base64
 from pathlib import Path
+from _ollama import ollama_chat
 
-OLLAMA = "http://127.0.0.1:11434/api/generate"
+OLLAMA_HOST = "http://127.0.0.1:11434"
 MODEL = "qwen2.5vl:7b"
 PROMPT = (
     "Bu bir MİTAS içerik künye belgesinin görüntüsü. ÇOK KATI ol. SADECE GÖRDÜĞÜNÜ "
@@ -30,13 +31,17 @@ PROMPT = (
 
 def check(png_path: str) -> dict:
     b64 = base64.b64encode(Path(png_path).read_bytes()).decode()
-    body = json.dumps({
-        "model": MODEL, "prompt": PROMPT, "images": [b64],
-        "stream": False, "format": "json", "options": {"temperature": 0},
-    }).encode("utf-8")
-    req = urllib.request.Request(OLLAMA, data=body, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=300) as r:
-        resp = json.loads(r.read())
+    resp = ollama_chat(
+        model=MODEL,
+        prompt=PROMPT,
+        images=[b64],
+        fmt="json",
+        timeout=300,
+        host=OLLAMA_HOST,
+        options={"temperature": 0},
+    )
+    if resp is None:
+        return {}
     return json.loads(resp.get("response", "{}"))
 
 
