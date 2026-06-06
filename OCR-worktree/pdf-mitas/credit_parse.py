@@ -262,6 +262,13 @@ def parse_credits(lines, title: str = "", *, dizi: bool = False):
             cast.append(l)
 
     cast = _dedup(cast)
+    # tek-kelime cast girisleri (karakter-adi/crew-etiketi/OCR-cop: "Asuman"/"Cutter"/":"/"DI") sizar;
+    # COK-kelime gercek isim VARSA tek-kelimeleri ele. Olcum (57 kunye / 505 cast): 27 tek-kelimenin
+    # TAMAMI karakter/etiket/cop, 0 gercek mononim oyuncu. HEPSI tek-kelime ise DOKUNMA (nadir; cast'i
+    # komple silme + haber anahtar-soz EKONOMI/HABER da tek-kelime, korunmali).
+    _multi = [c for c in cast if len(c.split()) >= 2]
+    if _multi:
+        cast = _multi
     if not dizi:
         cast = cast[:8]
         order = [k for k in ("Yapımcı", "Yönetmen") if k in roles]
