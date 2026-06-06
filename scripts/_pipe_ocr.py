@@ -31,8 +31,8 @@ CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
 CLEAN = PY_OCR_DIR / "20260601_clean.py"
-# GLM-consensus POC (2. motor): gerekli fonksiyonlar buradan alinir.
-CONSENSUS_GLM = PY_OCR_DIR / "20260601_consensus_glm.py"
+# GLM-consensus POC (2. motor): gerekli fonksiyonlar bu dosyaya INLINE edildi (asagida);
+# 20260601_consensus_glm.py runtime'da YUKLENMIYOR — olu referans kaldirildi.
 
 # GLM consensus sabitleri (consensus_glm'den BURAYA tasindi; import edilmeden kullanilabilir).
 _GLM_OLLAMA = "http://localhost:11434/api/generate"
@@ -611,7 +611,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
             glm_status = "failed"
             glm_skip_reason = "ollama_unreachable_or_timeout" if _is_ollama_err else f"exception:{type(exc).__name__}"
             print(
-                f"[glm-consensus] ATLAINDI (stitch korunuyor): {type(exc).__name__}: {exc}",
+                f"[glm-consensus] ATLANDI (stitch korunuyor): {type(exc).__name__}: {exc}",
                 file=sys.stderr,
             )
             # glm_used=False, final_engine="pipeline100" — zaten set edilmedi.

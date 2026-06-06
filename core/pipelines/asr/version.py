@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import functools
 import subprocess
 
 from core.pipelines.asr.normalize import PROJECT_ROOT
 
 
+@functools.lru_cache(maxsize=1)
 def get_code_version() -> str:
     """Return short git SHA, appending '-dirty' if working tree is modified.
 

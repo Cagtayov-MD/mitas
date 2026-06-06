@@ -14,7 +14,7 @@ Kullanim:
   (test icin hizli:) --asr-max-seconds 120 --ocr-head 60 --ocr-tail 120 --fps 2
 """
 from __future__ import annotations
-import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os
+import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os, sys
 import urllib.request, urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
@@ -563,6 +563,7 @@ def main(argv=None) -> int:
             ocr_bucket = "HATA"
             try:
                 ocr_proc.kill()
+                ocr_proc.communicate(timeout=10)   # pipe drenaji + reaping (zombie/handle birakma)
             except Exception:  # noqa: BLE001
                 pass
             update_clip_module(clip_dir, "ocr", "failed", ocr_job)
@@ -605,6 +606,7 @@ def main(argv=None) -> int:
             asr_status = "failed"
             try:
                 asr_proc.kill()
+                asr_proc.communicate(timeout=10)   # pipe drenaji + reaping (zombie/handle birakma)
             except Exception:  # noqa: BLE001
                 pass
             update_clip_module(clip_dir, "asr", "failed", asr_job)

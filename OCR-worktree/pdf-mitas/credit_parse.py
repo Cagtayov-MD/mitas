@@ -134,7 +134,7 @@ _ROLE_DISQUALIFY = (
     "stunt", "fight", "stage", "floor", "second unit", "2nd unit", "unit ",
     "executive", "executif", "associate", "associe", "line produc", "co produc", "co-produc", "ortak yapim",
     "yurutucu", "delegate", "delege", "supervising produc", "field", "creative direct",
-    "brand", "art ",  # "art director" zaten Sanat Yön.; emniyet için
+    "brand", "art direct",  # "art director/direction"; dar tutuldu ki "Art Malik" gibi adı elemesin
 )
 _CAST_KW = ("oyuncular", "oyuncu", "cast", "starring", "oynayanlar", "rol dagilimi", "roller")
 # "cast" substring eşleşmesi "casting director" gibi satırları yanlış CAST başlığına dönüştürüyor.

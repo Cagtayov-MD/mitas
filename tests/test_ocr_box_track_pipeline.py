@@ -6,6 +6,10 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
+import pytest
+
+pytest.importorskip("cv2")  # OCR testleri cv2 gerektirir (venvs\ocr); cv2 yoksa (asr venv) zarif atla
+
 from core.pipelines.ocr.box_tracker import (
     TextTrack,
     TextTrackObservation,

@@ -345,7 +345,7 @@ def main(argv=None) -> int:
             specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("TÜR", args.tur),
                    ("TOPLAM SÜRE", args.duration), ("TRT KİMLİK", args.trt_id or "—")],
             keywords=" ; ".join(cast) if cast else "—", cast=cast or ["—"],
-            crew=crew or [("Yapımcı", ["—"]), ("Yönetmen", ["—"])], ozet=ozet,
+            crew=crew or [("Yapımcı", ["—"]), ("Yönetmen", ["—"])], ozet=ozet_norm,
             **audio,
         )
         pdf_path = out / "kunye.pdf"

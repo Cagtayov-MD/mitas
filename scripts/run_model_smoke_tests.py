@@ -61,9 +61,9 @@ def dry_result(candidate: dict[str, Any]) -> dict[str, Any]:
 def run_candidate(candidate: dict[str, Any], timeout: int) -> dict[str, Any]:
     result = dry_result(candidate)
     command = str(candidate.get("smoke_test_command", "")).strip()
-    if not command or command.upper().startswith("TBD"):
+    if not command or command.upper().startswith("TBD") or command.lower().startswith("disabled"):
         result["status"] = "skipped"
-        result["reason"] = "smoke_test_command is TBD"
+        result["reason"] = "smoke_test_command TBD/disabled (calistirilamaz aday)"
         return result
 
     args, command_error = command_for_venv(command, str(candidate.get("venv", "")))

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("cv2")  # OCR testleri cv2 gerektirir (venvs\ocr); cv2 yoksa (asr venv) zarif atla
+
 from core.pipelines.ocr.image_quality_police import assess_output
 
 

@@ -317,11 +317,25 @@ def _search(query: str, year=None, names_norm=None):
                  or (len(_norm(x.get("l"))) >= 5 and o.startswith(_norm(x.get("l"))))]
     if not cands:
         return None
-    # Tam başlık eşleşmesi (o == imdb_norm) → tek aday güvenli, direkt dön.
-    # Gevşek eşleşme → tek aday bile olsa kadro/yıl teyidi istenir (yanlış afiş engeli).
+    # Tam başlık eşleşmesi (o == imdb_norm) → kural olarak güvenli tek aday.
+    # ANCAK yabancı-başlık tuzağı: gerçek film (ör. "Ahlat Ağacı") IMDb'de farklı
+    # başlıkla ("The Wild Pear Tree") kayıtlıyken, aynı adı taşıyan ALAKASIZ bir yapım
+    # tek-exact olarak kazanıyordu. Kadro biliniyor + exact adayın 's' alanı DOLU ama
+    # kadrodan kimse geçmiyorsa (POZİTİF çelişki) → havuzda kadrosu TUTAN adayı tercih et;
+    # net değilse yanlış afiş yerine None. ('s' boşsa kanıt yok → exact'e DOKUNMA, regresyon-güvenli.)
     is_exact = [x for x in cands if _norm(x.get("l")) == o]
     if len(is_exact) == 1:
-        return is_exact[0]
+        ex = is_exact[0]
+        if names_norm and (ex.get("s") or "").strip() and not _cand_has_name(ex, names_norm):
+            named = [x for x in tt if _cand_has_name(x, names_norm)]
+            if len(named) == 1:
+                return named[0]
+            if len(named) > 1 and year:
+                ym = [x for x in named if str(x.get("y")) == str(year)]
+                if len(ym) == 1:
+                    return ym[0]
+            return None  # kadro çelişiyor + net alternatif yok → afiş YOK (yanlış afiş > afiş yok)
+        return ex
     if names_norm:                                                         # ASIL ayraç: kadro teyidi
         named = [x for x in cands if _cand_has_name(x, names_norm)]
         if len(named) == 1:

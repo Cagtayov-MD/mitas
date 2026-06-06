@@ -270,7 +270,7 @@ def _make_scrolling_role_name_frames(directory: Path) -> list[Path]:
 def test_frame_text_mask_strict_global_only_passes_bright_text():
     """Global sıkı eşik karanlık BG noise'ı eler, sadece parlak text geçer."""
     import numpy as np
-    import cv2
+    cv2 = pytest.importorskip("cv2")
     from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask
 
     # 100×200 sentetik: BG noise 40-90, üst kısımda 20×100 text patch 220-255
@@ -289,7 +289,7 @@ def test_frame_text_mask_strict_global_only_passes_bright_text():
 def test_frame_text_mask_current_default_when_env_unset(monkeypatch):
     """Env var set edilmemişse default current mode kullanılır."""
     import numpy as np
-    import cv2
+    cv2 = pytest.importorskip("cv2")
     from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask, _text_mask_mode
 
     monkeypatch.delenv("OCR_TEXT_MASK_MODE", raising=False)
@@ -305,7 +305,7 @@ def test_frame_text_mask_current_default_when_env_unset(monkeypatch):
 def test_frame_text_mask_hybrid_is_intersection():
     """Hybrid mask = current AND strict_global."""
     import numpy as np
-    import cv2
+    cv2 = pytest.importorskip("cv2")
     from core.pipelines.ocr.text_layer_row_reconstruct import _frame_text_mask
 
     rng = np.random.default_rng(7)

@@ -3341,7 +3341,11 @@ def _read_json(path_like: str | Path) -> Any | None:
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # Atomik yazim: yari-yazilmis/bozuk JSON birakma. Flow-queue state'ini kilitsiz okuyan
+    # worker (D3 idempotency riski) bozuk okumayla sessizce olmesin / "done"u geri sarmasin.
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(str(tmp), str(path))
 
 
 def _format_size(size_bytes: int) -> str:
