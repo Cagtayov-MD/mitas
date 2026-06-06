@@ -311,11 +311,17 @@ def _search(query: str, year=None, names_norm=None):
     tt = [x for x in d if str(x.get("id", "")).startswith("tt") and (x.get("i") or {}).get("imageUrl")]
     cands = [x for x in tt if _norm(x.get("l")) == o]                       # tam başlık
     if not cands and len(o) >= 5:                                          # gevşek (uzun başlık)
-        cands = [x for x in tt if _norm(x.get("l")).startswith(o) or o.startswith(_norm(x.get("l")))]
+        # FIX: o.startswith(imdb_norm) yönünde imdb_norm'un da en az 5 karakter olması şart;
+        # kısa IMDb başlığı ("Siyah") uzun sorgunun ("siyahinci") öneki olarak yanlış afiş getirmesin.
+        cands = [x for x in tt if _norm(x.get("l")).startswith(o)
+                 or (len(_norm(x.get("l"))) >= 5 and o.startswith(_norm(x.get("l"))))]
     if not cands:
         return None
-    if len(cands) == 1:
-        return cands[0]
+    # Tam başlık eşleşmesi (o == imdb_norm) → tek aday güvenli, direkt dön.
+    # Gevşek eşleşme → tek aday bile olsa kadro/yıl teyidi istenir (yanlış afiş engeli).
+    is_exact = [x for x in cands if _norm(x.get("l")) == o]
+    if len(is_exact) == 1:
+        return is_exact[0]
     if names_norm:                                                         # ASIL ayraç: kadro teyidi
         named = [x for x in cands if _cand_has_name(x, names_norm)]
         if len(named) == 1:

@@ -455,6 +455,10 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
             "frame_read_errors": 0, "raw_line_count": 0, "garble_frac": 0.0,
             "bucket": "BOS", "clip_used": clip_ok, "credit_frames": 0,
             "diegetik_frac": 0.0, "low_conf_frac": 0.0,
+            # 1.7 telemetri: CLIP hicbir kare secmedi -> GLM denenmedi
+            "glm_attempted": False,
+            "glm_status": "skipped",
+            "glm_skip_reason": "no_frames",
         }
 
     # b) Konumlu oku: secili karelerde read_pos -> ocr_pos[i] = [(fold,raw,y0,y1)]

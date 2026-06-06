@@ -137,6 +137,9 @@ _ROLE_DISQUALIFY = (
     "brand", "art ",  # "art director" zaten Sanat Yön.; emniyet için
 )
 _CAST_KW = ("oyuncular", "oyuncu", "cast", "starring", "oynayanlar", "rol dagilimi", "roller")
+# "cast" substring eşleşmesi "casting director" gibi satırları yanlış CAST başlığına dönüştürüyor.
+# Kelime-sınırlı regex ile kontrol: "casting director" → miss, "CAST" / "oyuncular" → hit.
+_CAST_KW_RE = [re.compile(r"\b" + re.escape(k) + r"\b") for k in _CAST_KW]
 _CORP_KW = ("film", "films", "production", "produksiyon", "prodüksiyon", "yapim", "yapimevi", "pictures",
             "picture", "studio", "entertainment", "media", "medya", "agency", "ajans", "fund", "fonu",
             "academy", "international", "gmbh", " inc", " llc", " ltd", "company", "distribution", "sales",
@@ -150,7 +153,7 @@ def role_of(line: str):
     w = f.split()
     if not w or len(w) > 6:
         return None
-    if any(k in f for k in _CAST_KW):
+    if any(r.search(f) for r in _CAST_KW_RE):
         return "CAST"
     # bare Yönetmen/Yapımcı niteliklendirilmişse (financial/executive/score...) → o etiketi atla,
     # satır aşağıda "Diğer"e düşsün (D2: yalnız GERÇEK yönetmen/yapımcı bu kovalara girer).

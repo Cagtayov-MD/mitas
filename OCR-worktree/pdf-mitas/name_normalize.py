@@ -223,10 +223,14 @@ def upper_names(names, *, use_qwen: bool = False):
          (Nuri Bilge Ceylan VAR, Fabian Gasmia YOK.) DB erissizse given+sur CSV fallback."""
     if not names:
         return names
-    # _TR_STRONG (ı,İ,ş,ğ) KESIN Turk; _TR_AMBIG (ç,ö,ü) yabanci dillerde de var (François, Müller) → DB'ye sor.
+    # _TR_STRONG (ı,İ,ş,ğ) KESIN Turk; _TR_AMBIG (ç,ö,ü) belirsiz → DB'ye sor.
+    # pure: DB'ye sorulacaklar — _TR_STRONG YOK ve _TR_AMBIG dışında non-ASCII Latin harf YOK.
+    # (Önceki hata: tüm non-ASCII-L içereni dışlıyordu; _TR_AMBIG içerenleri de dışlıyordu
+    #  → Ali Öztürk/Eslem Öztürk DB'ye sorulmadan ascii_fold.upper()=ASCII çıkıyordu.)
     pure = [n for n in names
             if not any(c in _TR_STRONG for c in n)
-            and not any((not c.isascii()) and unicodedata.category(c).startswith("L") for c in n)]
+            and all(c.isascii() or unicodedata.category(c)[0] != "L" or c in _TR_AMBIG
+                    for c in n)]
     db_ok, mitas_tr = _mitas_people_set(pure)
     # mitas_tr: {giren_isim: kanonik_Turkce_ad} (ornek: "Aysenil Samlioglu" -> "Ayşenil Şamlıoğlu")
     out = []
