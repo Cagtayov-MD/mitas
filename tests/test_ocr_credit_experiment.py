@@ -348,6 +348,9 @@ def test_run_credit_experiment_writes_outputs_with_fake_engine(tmp_path, monkeyp
             "warnings": [],
         }
 
+    # Legacy kol etkinleştirilmeli: frame_ocr.json / temporal_fusion.json sadece
+    # legacy (8-stage) pathte yazılır; default env unified kolu kullanır.
+    monkeypatch.setenv("USE_BOX_TRACK_PIPELINE", "0")
     monkeypatch.setattr(ce, "_extract_segment_frames", fake_extract)
     monkeypatch.setattr(ce, "analyze_text_motion", fake_motion)
     monkeypatch.setattr(ce, "build_descroll_canvas", fake_canvas)
@@ -417,6 +420,8 @@ def test_temporal_fusion_hook_runs_when_scene_recommends_median(tmp_path, monkey
         output_path.write_bytes(b"fake-canvas")
         return {"strategy": "descroll_canvas", "frame_count": len(frames), "canvas_path": str(output_path), "canvas_size": [100, 100], "estimated_orientation": "static", "motion_shifts": [], "warnings": []}
 
+    # Legacy kol etkinleştirilmeli: temporal_fusion.json sadece legacy pathte yazılır.
+    monkeypatch.setenv("USE_BOX_TRACK_PIPELINE", "0")
     monkeypatch.setattr(ce, "_extract_segment_frames", fake_extract)
     monkeypatch.setattr(ce, "_analyze_scene_profile", fake_scene)
     monkeypatch.setattr(ce, "analyze_text_motion", fake_motion)

@@ -36,10 +36,14 @@ def test_spor_profile_uses_sports_question_set() -> None:
 
     assert "spor müsabakası" in user
     assert "FUTBOL" in user
-    assert "BASKETBOL" in user
-    assert "Maç Sonucu" in user
+    # Güncel prompt "futbol / DİĞER BRANŞLAR" yapısına geçti; BASKETBOL başlığı yok.
+    assert "DİĞER BRANŞLAR" in user
+    # Skor başlığı "Maç Sonucu" yerine "Skor:" olarak güncellendi.
+    assert "Skor:" in user
     assert "kırmızı kart" in user
-    assert "transkriptte belirtilmemiş" in user
+    # Anti-halüsinasyon sözleşmesi: "transkriptte belirtilmemiş" değil,
+    # "geçmeyeni hiç yazma" talimatı kullanılıyor.
+    assert "geçmeyeni hiç yazma" in user
     assert TRANSCRIPT in user
     # Anti-hallucination contract must be stated to the model.
     assert "halüsinasyon" in system or "tahmin" in system

@@ -420,7 +420,7 @@ def main():
         lines_per_frame = [[] for _ in paths]
 
     if args.dedup == "text":
-        canvas = stitch_text_dedup(frames, lines_per_frame)
+        canvas, _ = stitch_text_dedup(frames, lines_per_frame)
         if args.write_txt:
             seen, ordered = set(), []
             for lns in lines_per_frame:

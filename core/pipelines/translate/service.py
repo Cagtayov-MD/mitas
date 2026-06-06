@@ -48,6 +48,20 @@ def translate_segment(
     router = load_router()
     normalized_source = normalize_lang(source_lang)
     normalized_target = normalize_lang(target_lang)
+
+    # F10b: kaynak == hedef ise gereksiz NLLB çağrısını atla; metni aynen döndür.
+    if normalized_source == normalized_target:
+        return TranslationResult(
+            text=source_text,
+            model="none",
+            source_lang=normalized_source,
+            target_lang=normalized_target,
+            source_variant=source_variant,
+            cache_hit=False,
+            latency_ms=0,
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+
     model_id = router.resolve(
         source_lang=normalized_source,
         target_lang=normalized_target,

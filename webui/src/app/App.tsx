@@ -354,6 +354,7 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
       const result = await startTedialAsrJob(item, {
         audioTrack: selectedTedialAudioTrack,
         channelMode: selectedTedialChannelMode,
+        analysisProfile,
       });
       applyTedialImportResult(result);
       return result.job;
@@ -478,20 +479,21 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
         setRangeAsrState({ start, end, jobId: job.job_id, starting: false });
         setAsrJob(job);
         setSelectedClipId(job.clip_id ?? clipId);
+        // Tedial range yoluyla simetrik: her iki kaynakta da player kırpılmış job medyasına geçer.
+        setSelectedMediaName(job.filename);
+        setSelectedMediaSourcePath(job.original_source_path || job.input_path || job.summary?.input_path || null);
+        setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
+        setSeekRequest(null);
+        setMediaType(inferMediaType(job.filename));
+        setMediaDurationHint(Math.max(0, end - start));
+        setMediaPreviewUrl((currentUrl) => {
+          if (currentUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(currentUrl);
+          }
+          return `/api/jobs/${encodeURIComponent(job.job_id)}/media`;
+        });
         if (!selectedFile) {
           setSelectedTedialItem(null);
-          setSelectedMediaName(job.filename);
-          setSelectedMediaSourcePath(job.original_source_path || job.input_path || job.summary?.input_path || null);
-          setPlayback({ currentTime: 0, duration: 0, isPlaying: false });
-          setSeekRequest(null);
-          setMediaType(inferMediaType(job.filename));
-          setMediaDurationHint(Math.max(0, end - start));
-          setMediaPreviewUrl((currentUrl) => {
-            if (currentUrl?.startsWith('blob:')) {
-              URL.revokeObjectURL(currentUrl);
-            }
-            return `/api/jobs/${encodeURIComponent(job.job_id)}/media`;
-          });
         }
         return;
       }

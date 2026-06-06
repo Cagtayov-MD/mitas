@@ -2302,15 +2302,19 @@ async def _write_request_body(request: Request, destination: Path) -> tuple[int,
     written = 0
     hasher = hashlib.sha256()
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with destination.open("wb") as handle:
-        async for chunk in request.stream():
-            if not chunk:
-                continue
-            written += len(chunk)
-            if written > MAX_UPLOAD_BYTES:
-                raise HTTPException(status_code=413, detail="upload_too_large")
-            hasher.update(chunk)
-            handle.write(chunk)
+    try:
+        with destination.open("wb") as handle:
+            async for chunk in request.stream():
+                if not chunk:
+                    continue
+                written += len(chunk)
+                if written > MAX_UPLOAD_BYTES:
+                    raise HTTPException(status_code=413, detail="upload_too_large")
+                hasher.update(chunk)
+                handle.write(chunk)
+    except BaseException:
+        destination.unlink(missing_ok=True)
+        raise
     return written, hasher.hexdigest()
 
 
