@@ -13,8 +13,8 @@ def test_smoke_runner_dry_run_does_not_execute_commands(monkeypatch) -> None:
     report = run_smoke_tests(real_run=False)
 
     assert report["run_mode"] == "dry_run"
-    assert report["candidate_count"] == 24
-    assert report["planned_count"] == 24
+    assert report["candidate_count"] == 28
+    assert report["planned_count"] == 28
     assert report["executed_count"] == 0
     assert report["passed_count"] == 0
     assert report["failed_count"] == 0

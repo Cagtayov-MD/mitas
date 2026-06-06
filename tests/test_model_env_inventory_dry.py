@@ -8,7 +8,7 @@ def test_env_inventory_runs_without_model_loading() -> None:
 
     assert report["status"] == "passed"
     assert "core" in report["existing_venvs"]
-    assert report["manifest_candidates_seen"]["count"] == 24
+    assert report["manifest_candidates_seen"]["count"] == 28
     assert report["selected_as_engine_count"] == 0
 
 

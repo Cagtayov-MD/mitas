@@ -15,7 +15,7 @@ def test_model_manifest_validation_passes() -> None:
     report = validate_manifest()
     assert report["manifest_parse_status"] == "passed"
     assert report["status"] == "passed"
-    assert report["candidate_count"] == 24
+    assert report["candidate_count"] == 28
     assert report["selected_as_engine_count"] == 0
     assert report["errors"] == []
 
