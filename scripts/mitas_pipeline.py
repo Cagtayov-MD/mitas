@@ -690,7 +690,9 @@ def main(argv=None) -> int:
                           module="summary", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
         cmd = [PY_PDF, HERE / "_pipe_pdf.py", "--kunye", str(kunye_path), "--out", str(pdf_out),
                "--title", title, "--trt-id", trt or "", "--profile", "film" if is_film else "dizi",
-               "--resolution", res, "--fps", fps_s, "--duration", dur, "--ozet", ozet]
+               "--resolution", res, "--duration", dur, "--ozet", ozet]
+        # KARE HIZI KALDIRILDI (v4): _pipe_pdf artık fps basmaz; TÜR'ü v4-final (tek_film_kunye, KB) doldurur.
+        # fps_s yalnız telemetride (clip.json/_DURUM) kalır — künyeye girmez.
         if bolum:
             cmd += ["--bolum", bolum]
         if original:                       # afiş: orijinal ad birincil sorgu (yabancı film)

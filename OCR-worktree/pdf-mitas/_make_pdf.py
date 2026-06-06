@@ -284,7 +284,7 @@ FILM = dict(
     title="BAŞLANGIÇ",
     subtitle="INCEPTION",
     poster=OUT + r"\afis_inception.jpg",
-    specs=[("ÇÖZÜNÜRLÜK", "1920×1080"), ("KARE HIZI", "24 fps"),
+    specs=[("ÇÖZÜNÜRLÜK", "1920×1080"), ("TÜR", "BİLİM KURGU"),
            ("TOPLAM SÜRE", "02:28:00"), ("TRT KİMLİK", "2010-0147-1-0000-00-1")],
     keywords="LEONARDO DICAPRIO ; JOSEPH GORDON-LEVITT ; ELLIOT PAGE ; TOM HARDY ; "
              "KEN WATANABE ; MARION COTILLARD ; CILLIAN MURPHY ; MICHAEL CAINE",
@@ -305,7 +305,7 @@ DIZI = dict(
     title="BİZİM EVİN HALLERİ",
     bolum="13. BÖLÜM",
     poster=OUT + r"\afis_bizimevinhalleri.jpg",
-    specs=[("ÇÖZÜNÜRLÜK", "720×576"), ("KARE HIZI", "25 fps"),
+    specs=[("ÇÖZÜNÜRLÜK", "720×576"), ("TÜR", "AİLE"),
            ("TOPLAM SÜRE", "00:45:20"), ("TRT KİMLİK", "1998-0042-0-0013-00-1")],
     keywords="AYŞE YILDIZ ; KEMAL DEMİR ; FATMA ŞEN ; HASAN KAYA ; ZEYNEP AK",
     cast=["AYŞE YILDIZ", "KEMAL DEMİR", "FATMA ŞEN", "HASAN KAYA", "ZEYNEP AK"],
