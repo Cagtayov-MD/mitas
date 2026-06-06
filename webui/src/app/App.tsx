@@ -5,7 +5,7 @@ import { AccessGate } from './components/AccessGate';
 import { SysInfoBar } from './components/SysInfoBar';
 import { RestartButton } from './components/RestartButton';
 import { FaceBankWorkspace } from './components/FaceBankWorkspace';
-import { Lock, LogOut } from 'lucide-react';
+import { Lock, LogOut, AlertTriangle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from './components/ui/select';
 import { JobLogWorkspace } from './components/JobLogWorkspace';
@@ -982,6 +982,17 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
     };
   }, [mediaPreviewUrl]);
 
+  // 1.9: TMDB anahtarı yoksa afiş çekilemez — sessiz başarısızlık yerine kullanıcıyı uyar.
+  const [tmdbMissing, setTmdbMissing] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/health', { signal: AbortSignal.timeout(4000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d) setTmdbMissing(d.tmdb_key_present === false); })
+      .catch(() => { /* health alınamadı → uyarı gösterme (gürültü yok) */ });
+    return () => { cancelled = true; };
+  }, []);
+
   const generatedDataAvailability = generatedDataAvailabilityForJob(asrJob);
   const activeRangeJob = rangeAsrState?.jobId && asrJob?.job_id === rangeAsrState.jobId ? asrJob : null;
   const activeAsrProcessStatus: HeaderProcessStatus | null = isStartingAsr || asrJob
@@ -1021,7 +1032,13 @@ function AuthenticatedApp({ onSignOut }: AuthenticatedAppProps) {
 
   return (
     <div className="flex flex-col h-screen w-full bg-app-shell text-foreground-default overflow-hidden font-sans selection:bg-info-subtle relative">
-      <Tabs value={activeWorkspace} onValueChange={(value) => setActiveWorkspace(value as WorkspaceKey)} className="flex flex-col h-full w-full">
+      {tmdbMissing && (
+        <div className="shrink-0 flex items-center justify-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-300">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          <span>TMDB anahtarı tanımlı değil — afişler çekilemiyor (MITAS_TMDB ortam değişkenini ayarlayın).</span>
+        </div>
+      )}
+      <Tabs value={activeWorkspace} onValueChange={(value) => setActiveWorkspace(value as WorkspaceKey)} className="flex flex-col min-h-0 flex-1 w-full">
         {/* Global Shell Top Bar */}
         <div className="relative grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 border-b border-border-subtle bg-app-shell px-4">
           <div className="flex min-w-0 items-center gap-5">

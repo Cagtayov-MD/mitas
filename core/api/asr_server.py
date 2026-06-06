@@ -652,6 +652,8 @@ def health() -> dict[str, Any]:
             "mt-opus-en-tr": (PROJECT_ROOT / "models" / "translate" / "opus-mt-tc-big-en-tr-ct2-int8" / "model.bin").exists(),
             "mt-nllb-3b": (PROJECT_ROOT / "models" / "translate" / "nllb-200-3.3B-ct2-int8" / "model.bin").exists(),
         },
+        # 1.9: TMDB anahtari yoksa UI uyari gostersin (afis cekilemez). Sadece var/yok — anahtar degeri DONDURULMEZ.
+        "tmdb_key_present": bool(os.environ.get("MITAS_TMDB")),
     }
 
 
