@@ -15,6 +15,10 @@ Aşağıdaki tablo, kaynak taramasıyla (`MITAS_`, `ANTHROPIC_`, `OPENAI_`, `USE
 | `OPENAI_API_KEY` | OpenAI veya uyumlu API anahtarı (opsiyonel özet yolu) | — | `core/api/asr_server.py` |
 | `OPENAI_SUMMARY_MODEL` | `MITAS_SUMMARY_MODEL` yoksa fallback model adı | — | `core/api/asr_server.py` |
 | `OPENAI_BASE_URL` | OpenAI uyumlu base URL | `https://api.openai.com/v1` | `core/api/asr_server.py` |
+| `MITAS_DEEPSEEK` | DeepSeek API anahtarı (OpenAI-uyumlu chat/completions) | — (yok → DeepSeek atlanır) | `scripts/_deepseek.py` |
+| `DEEPSEEK_API_KEY` | `MITAS_DEEPSEEK` yoksa fallback DeepSeek anahtarı | — | `scripts/_deepseek.py` |
+| `MITAS_DEEPSEEK_BASE` | DeepSeek base URL | `https://api.deepseek.com` | `scripts/_deepseek.py` |
+| `MITAS_DEEPSEEK_TIMEOUT` | DeepSeek HTTP timeout (saniye) | `120` | `scripts/_deepseek.py` |
 
 ---
 
