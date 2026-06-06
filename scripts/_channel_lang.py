@@ -12,7 +12,8 @@ import sys, os, json, subprocess
 os.environ["USE_TF"] = "0"          # transformers TF'yi import etmesin (TF↔numpy2 çökmesi) — hard-set (setdefault değil)
 os.environ["USE_FLAX"] = "0"
 from pathlib import Path
-sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")  # pytest/redirect altında reconfigure olmayabilir
 
 ROOT = Path(r"E:\MITAS")
 FF = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
@@ -56,11 +57,18 @@ def audio_streams(video) -> list:
 
 
 def extract(video, s, c, start, dur, dst) -> bool:
-    subprocess.run([str(FF), "-y", "-hide_banner", "-loglevel", "error",
-                    "-ss", str(start), "-t", str(dur), "-i", video,
-                    "-map", f"0:a:{s}", "-af", f"pan=mono|c0=c{c}",
-                    "-ar", "16000", "-acodec", "pcm_s16le", str(dst)], capture_output=True)
-    return dst.exists() and dst.stat().st_size > 1000
+    # KRİTİK: ffmpeg başarısızsa (ses yok / kodek hatası / map tutmazsa) ÖNCEKİ filmden kalan
+    # aynı-adlı (s_c_t) bayat wav'ı sınıflandırma → filmler-arası dil KONTAMİNASYONU. Önce hedefi
+    # sil, sonra ffmpeg dönüş kodunu kontrol et. (TMP sabit ve filmler arası paylaşımlı.)
+    try:
+        dst.unlink()
+    except FileNotFoundError:
+        pass
+    r = subprocess.run([str(FF), "-y", "-hide_banner", "-loglevel", "error",
+                        "-ss", str(start), "-t", str(dur), "-i", video,
+                        "-map", f"0:a:{s}", "-af", f"pan=mono|c0=c{c}",
+                        "-ar", "16000", "-acodec", "pcm_s16le", str(dst)], capture_output=True)
+    return r.returncode == 0 and dst.exists() and dst.stat().st_size > 1000
 
 
 _MMS = None
