@@ -75,6 +75,33 @@ def _append(event: dict[str, Any]) -> None:
             handle.write(line)
 
 
+def _iter_lines_reversed(path: Path, *, block_size: int = 64 * 1024) -> Any:
+    """Yield raw text lines from ``path`` newest-first (son satirdan basa).
+
+    Dosyayi SONDAN okur: yalnizca gereken kadar byte seek edilir, dosyanin
+    tamami RAM'e alinmaz. Kucuk dosyada da dogru calisir (tek blok ile basa
+    ulasilinca kalan ilk parca da satir olarak verilir). Bozuk/yarim son satir
+    cagiranin json.loads'unda elenir.
+    """
+    with path.open("rb") as handle:
+        handle.seek(0, 2)  # dosya sonu
+        pos = handle.tell()
+        carry = b""  # blok sinirinda kalan, henuz tamamlanmamis (en eski) parca
+        while pos > 0:
+            read_size = min(block_size, pos)
+            pos -= read_size
+            handle.seek(pos)
+            chunk = handle.read(read_size) + carry
+            parts = chunk.split(b"\n")
+            # parts[0] bu blogun en basindaki parca; daha geride veri varsa
+            # bir sonraki (daha eski) blokla birlesmesi gerek → carry'ye sakla.
+            carry = parts[0]
+            for raw in reversed(parts[1:]):
+                yield raw.decode("utf-8", "replace")
+        if carry:
+            yield carry.decode("utf-8", "replace")
+
+
 def read_events(
     *,
     limit: int = 200,
@@ -89,41 +116,46 @@ def read_events(
 
     ``since`` accepts an ISO-8601 timestamp; events with ``ts <= since`` are
     skipped (useful for polling). ``limit`` is clamped to [1, 2000].
+
+    Dosya SONDAN okunur (tail): append-only JSONL'in son satirlari en yeni
+    olaylardir, bu yuzden newest-first sonuc icin tum dosyayi okumaya gerek
+    yoktur. Filtreli sorgularda yeterli eslesme bulunana kadar geriye dogru
+    okumaya devam edilir; sonuc (filtre + en yeni ``limit``, newest-first)
+    eski tam-dosya okumasiyla AYNIDIR.
     """
     if not EVENTS_PATH.exists():
         return []
+    cap = max(1, min(int(limit), 2000))
+    out: list[dict[str, Any]] = []
     try:
-        text = EVENTS_PATH.read_text(encoding="utf-8")
+        for line in _iter_lines_reversed(EVENTS_PATH):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if since and str(payload.get("ts") or "") <= since:
+                continue
+            if kind and payload.get("kind") != kind:
+                continue
+            if level and payload.get("level") != level:
+                continue
+            if job_id and payload.get("job_id") != job_id:
+                continue
+            if module and payload.get("module") != module:
+                continue
+            if media_id and payload.get("media_id") != media_id:
+                continue
+            out.append(payload)
+            if len(out) >= cap:
+                break
     except OSError:
         return []
-
-    out: list[dict[str, Any]] = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            payload = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if not isinstance(payload, dict):
-            continue
-        if since and str(payload.get("ts") or "") <= since:
-            continue
-        if kind and payload.get("kind") != kind:
-            continue
-        if level and payload.get("level") != level:
-            continue
-        if job_id and payload.get("job_id") != job_id:
-            continue
-        if module and payload.get("module") != module:
-            continue
-        if media_id and payload.get("media_id") != media_id:
-            continue
-        out.append(payload)
-
-    out.reverse()
-    return out[: max(1, min(int(limit), 2000))]
+    return out
 
 
 def find_event(event_id: str) -> dict[str, Any] | None:

@@ -1,4 +1,4 @@
-export type AsrJobStatus = 'queued' | 'running' | 'done' | 'partial' | 'failed';
+export type AsrJobStatus = 'queued' | 'running' | 'done' | 'partial' | 'failed' | 'interrupted';
 
 export interface AsrSegment {
   start: number;
@@ -656,7 +656,12 @@ async function readError(response: Response): Promise<string> {
 }
 
 export function isAsrJobFinished(job: AsrJob | null): boolean {
-  return job?.status === 'done' || job?.status === 'partial' || job?.status === 'failed';
+  return (
+    job?.status === 'done' ||
+    job?.status === 'partial' ||
+    job?.status === 'failed' ||
+    job?.status === 'interrupted'
+  );
 }
 
 export function formatClock(seconds: number | undefined | null): string {

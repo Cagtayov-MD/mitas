@@ -154,3 +154,31 @@
 
 ---
 *Tüm düzeltmeler py_compile + hedefli canlı testle doğrulandı. Test artefaktları: `Database/AHLAT_AGACI_son4dk_4/` (künye PDF dahil) + `Mitas Output/Kontrol/AHLAT_AGACI_son4dk_4/`.*
+
+---
+
+## 6. TAKİP TURU (Çağatay onayı sonrası — 2026-06-07)
+
+### 6.1 İsim Latinleştirme (ASCII sorunu) — DERİN ARAŞTIRMA + DÜZELTME (deterministik)
+**Araştırma:** Wikipedia/IMDb verisi + DeepSeek/qwen/gemma karşılaştırıldı. Sonuç → **DATA-odaklı (deterministik) en iyi**: qwen3:8b/gemma yapısal-JSON çıktısı BOZUK (kullanılamaz); DeepSeek 10/10 ama sözleşmeyle-deterministik değil (künye kuralına aykırı). **IMDb `akas` kişi-adı tutmuyor (yalnız film başlığı) → Wikidata tek güvenilir Türkçe-yazım kaynağı.**
+
+**Kök nedenler + uygulanan fix (`name_normalize.py`):**
+1. Q43-only ülke filtresi → `{Q43, Q23681}` (KKTC dahil) — Hazar Ergüçlü Q23681'di, yabancı sanılıp ASCII oluyordu.
+2. `ascii_fold` Türkçe `ı`'yı siliyordu (NFKD: "Tarık"→"TARK" ≠ DB "TARIK") → Türkçe-duyarlı fold (`_tr_fold_key`/`_sql_tr_fold`; `credit_crosscheck._sqlfold` deseni).
+3. Gevşek fuzzy KALDIRILDI — isim TAMAMLAMA (Nuri Bilge→Ceylan, orta-token) içerik değişimi + 13M-satır LIKE (perf); tamamlama KB cross-check'in işi, kasa fonksiyonunun değil.
+
+**Canlı test (deterministik, model yok):** Hazar Ergüçlü→HAZAR ERGÜÇLÜ (ASCII OCR'dan bile diakritik kurtarıldı), Türk isimler korundu, yabancılar ASCII (**0 regresyon**), Özbatur Atakan güvenli ASCII (yanlış kişi YOK).
+
+**Açık (flag):** özet PROZASINDA yabancı isim (François→FRANÇOİS) — ç/ö/ü Türkçe ile paylaşıldığı için karakter-düzeyi ayrım imkânsız → DOKUNULMADI. Çözüm yolu: özete ham yabancı yerine zaten-normalize cast/crew formunu enjekte (özet-üretimi dokunuşu, follow-up).
+
+### 6.2 Diğer onaylı fixler
+- **Startup-reconcile** (`asr_server.py`): başlangıçta diskteki queued/running TEKİL işler → `interrupted` (hayalet "%92 running" biter; 2 gerçek hayalet vardı: asr-c53209523a4c, asr-5fa4474e2e63). `interrupted` first-class statü + frontend uyarlaması (asr-api.ts / JobLogWorkspace / Header).
+- **Perf P2** (`system_events.py`): `read_events` artık tail-okuma (tüm dosyayı parse etmiyor) — byte-identik oracle testi geçti.
+- **Perf P1**: zaten optimizeymiş (early-cut `break` mevcut, commit 5c394c99); no-match araması doğası gereği tam-tarama (index kapsam dışı). A13 burada kısmen yanılmış.
+- **#5 (8765 global Python)**: `start_mitas.ps1` restart ile venvs\asr'ye taşındı — **ÇÖZÜLDÜ**.
+
+### 6.3 Açık kalan (Çağatay kararı bekliyor)
+- **pyannote/protobuf**: TF2.11 (`protobuf<3.20`) ↔ pyannote4/opentelemetry (`≥3.20`) çatışması; varsayılan özet profilini ETKİLEMEZ → ayrı venv veya TF-upgrade (büyük karar).
+- **flow-queue sunucu-kilit + GPU tek-semafor** (eşzamanlılık sağlamlaştırma).
+- **özet-proza yabancı-ASCII** (6.1 flag).
+- **DeepSeek+cache hibrit (C)**: istenirse opsiyonel flag arkasında, yalnız DB-miss isimler için (determinizm cache ile korunur).

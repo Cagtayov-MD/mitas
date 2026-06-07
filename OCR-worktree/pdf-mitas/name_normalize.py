@@ -43,6 +43,32 @@ def ascii_fold(s: str) -> str:
     return "".join(out)
 
 
+# Türkçe harfleri ASCII karşılığına AÇIKÇA çevir (NFKD 'ı'yı SİLER → "Tarık"→"TARK"≠DB;
+# bu eşleme ile "Tarık"→"TARIK" DB'deki ascii_name/strip_accents(name) ile eşleşir).
+# Desen scripts/credit_crosscheck.py:31-44 (_tfold/_sqlfold) ile AYNI — DB-eşleştirme anahtarı.
+_TR_FOLD_MAP = (("İ", "i"), ("I", "i"), ("ı", "i"), ("Ş", "s"), ("ş", "s"), ("Ğ", "g"), ("ğ", "g"),
+                ("Ü", "u"), ("ü", "u"), ("Ö", "o"), ("ö", "o"), ("Ç", "c"), ("ç", "c"))
+
+
+def _tr_fold_key(s: str) -> str:
+    """DB-eşleştirme anahtarı: Türkçe harf→ASCII (ı→i…) ÖNCE, sonra accent-strip, UPPER.
+    Sonuç DuckDB tarafı UPPER(strip_accents(...)) ile eşleşir ('TARIK AKAN')."""
+    s = s or ""
+    for a, b in _TR_FOLD_MAP:
+        s = s.replace(a, b)
+    dec = "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+    return dec.upper().strip()
+
+
+def _sql_tr_fold(col: str) -> str:
+    """col için SQL Türkçe-fold ifadesi (REPLACE zinciri + strip_accents + UPPER) —
+    _tr_fold_key ile EŞLEŞİR (DuckDB UPPER sürüm-farkı riskini ortadan kaldırır)."""
+    e = col
+    for a, b in _TR_FOLD_MAP:
+        e = f"replace({e},'{a}','{b}')"
+    return f"UPPER(strip_accents({e}))"
+
+
 def classify(name: str) -> str:
     """'tr' (Türkçe, koru) | 'ascii' (yabancı, indir) | 'ask' (belirsiz → Qwen) | 'keep' (saf ASCII)."""
     if any(c in _TR_STRONG for c in name):
@@ -169,41 +195,52 @@ def _is_tr_name(n: str) -> bool:
 _MITAS_DB = r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb"
 
 
-_MITAS_TR_QID = "Q43"   # Wikidata: Turkiye (mitas_people_index = DUNYA kisi DB'si, ulkeye gore ayir)
+# Wikidata Turk ulke kumesi: Q43=Turkiye, Q23681=KKTC (Kuzey Kibris). mitas_people_index DUNYA
+# kisi DB'si; countries '|' ile coklu olabilir (Q43|Q23681, sadece Q23681...). Hazar Erguclu=Q23681.
+_MITAS_TR_QIDS = {"Q43", "Q23681"}
 
 
 def _mitas_people_set(names):
-    """Saf-ASCII isimleri mitas_people_index (Wikidata DUNYA kisi DB'si) icinde TOPLU ara,
-    countries='Q43' (Turkiye) olanlari Turk say. Doner (db_calisti, ascii_key->canonical_name).
-    canonical_name: DB'deki Turkce yazim (Ayşenil Şamlıoğlu) — tr_upper icin dogru base.
-    Nuri Bilge Ceylan/Murat Cemcir -> Q43 (Turk); Stefan Kitanov -> Q219 (Bulgar),
-    Fabian Gasmia -> ulke yok -> yabanci. DB/duckdb yoksa (False, {}) -> CSV fallback."""
+    """Isimleri mitas_people_index (Wikidata DUNYA kisi DB'si) icinde TOPLU ara, countries
+    Q43 (Turkiye) VEYA Q23681 (KKTC) olanlari Turk say. Doner (db_calisti, giren_isim->canonical_name).
+    canonical_name: DB'deki Turkce yazim (Ayşenil Şamlıoğlu / Hazar Ergüçlü) — tr_upper icin dogru base.
+    Anahtar Turkce-duyarli fold (_tr_fold_key: 'Tarık'→'TARIK'); exact-miss icin GUVENLI fuzzy
+    (unique+conf>=0.7+ilk&son token DB'de). Nuri Bilge Ceylan/Murat Cemcir/Hazar Ergüçlü -> Turk;
+    François Truffaut -> Q142 (Fransa, yabanci); Fabian Gasmia -> ulke yok -> yabanci.
+    DB/duckdb yoksa (False, {}) -> CSV fallback."""
     if not names:
         return True, {}
     try:
         import duckdb
         con = duckdb.connect(_MITAS_DB, read_only=True)
-        keys = [ascii_fold(n).upper() for n in names]
+        # (1) Turkce-duyarli anahtar: _tr_fold_key ('Tarık'→'TARIK') DB UPPER(strip_accents)=_sql_tr_fold
+        #     ile eşleşir; eski ascii_fold 'ı'yı silip 'TARK' uretiyor, DB miss'e yol aciyordu.
+        keys = [_tr_fold_key(n) for n in names]
+        nm_e, an_e = _sql_tr_fold("name"), _sql_tr_fold("ascii_name")
         ph = ",".join(["?"] * len(keys))
-        sql = (f"SELECT name, UPPER(strip_accents(name)) nm, UPPER(strip_accents(ascii_name)) an, countries "
+        sql = (f"SELECT name, {nm_e} nm, {an_e} an, countries "
                f"FROM main.mitas_people_index "
-               f"WHERE UPPER(strip_accents(name)) IN ({ph}) "
-               f"OR UPPER(strip_accents(ascii_name)) IN ({ph})")
+               f"WHERE {nm_e} IN ({ph}) OR {an_e} IN ({ph})")
         rows = con.execute(sql, keys + keys).fetchall()
-        con.close()
-        # ascii_key (nm veya an) → kanonik Türkçe isim (name sutunu)
+        # ascii_key (nm veya an) → kanonik Türkçe isim (name sutunu).
+        # (2) countries '|' kume; Q43 (Turkiye) VEYA Q23681 (KKTC) HERHANGI biri varsa Turk.
         tr_canonical: dict[str, str] = {}
         for canon_name, nm, an, c in rows:
-            if canon_name and c and _MITAS_TR_QID in str(c).split("|"):
+            if canon_name and c and (_MITAS_TR_QIDS & set(str(c).split("|"))):
                 for ak in (nm, an):
                     if ak:
                         tr_canonical[ak] = canon_name
-        # giren ismin ascii_fold.upper() anahtar ile eşleştir → {giren_isim: kanonik_ad}
+        # giren ismin _tr_fold_key anahtar ile eşleştir → {giren_isim: kanonik_ad}
         result = {}
-        for n in names:
-            k = ascii_fold(n).upper()
+        for n, k in zip(names, keys):
             if k in tr_canonical:
                 result[n] = tr_canonical[k]
+        # NOT: Gevsek "fuzzy isim tamamlama" KASITLI eklenmedi. Exact-fold (yukarisi) ayni ismi
+        # (yalniz diakritik/kasa farkli) deterministik+hizli (tek batch IN sorgusu) yakalar. Token
+        # ekleyen/degistiren fuzzy ("Nuri Bilge"->"...Ceylan", orta-token tamamlama) ICERIGI degistirir
+        # ("okunamadi>yanlis oku" ihlali) + isim basina 13M-satirda LIKE taramasi (perf) getirir.
+        # Isim TAMAMLAMA/cozumleme KB cross-check'in (credit_crosscheck) isi, kasa fonksiyonunun degil.
+        con.close()
         return True, result
     except Exception as e:  # noqa: BLE001 - DB/duckdb yoksa CSV fallback
         import sys

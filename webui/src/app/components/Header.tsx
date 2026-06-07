@@ -51,6 +51,7 @@ const STATUS_TEXT: Record<AsrJob['status'], string> = {
   done: 'STT/ASR',
   partial: 'Kısmi Sonuç',
   failed: 'Hata',
+  interrupted: 'İş Kesildi',
 };
 
 const GENERATED_DATA_OPTIONS: Array<{ kind: ClipGeneratedDataKind; label: string }> = [

@@ -47,7 +47,7 @@ from core.pipelines.asr.profiles import ContentProfileName
 from core.pipelines.asr.version import get_code_version
 
 
-JobState = Literal["queued", "running", "done", "partial", "failed"]
+JobState = Literal["queued", "running", "done", "partial", "failed", "interrupted"]
 LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 DiarizeMode = Literal["auto", "on", "off"]
 
@@ -138,7 +138,7 @@ def _trim_jobs_if_needed() -> None:
     """RAM'deki _jobs dict'i >_JOBS_MAX ise en eski terminal job'ları sil (disk kopyaları kalır)."""
     if len(_jobs) <= _JOBS_MAX:
         return
-    terminal = {"done", "failed", "cancelled", "stopped", "partial"}
+    terminal = {"done", "failed", "cancelled", "stopped", "partial", "interrupted"}
     candidates = [
         (jid, j.get("updated_at") or j.get("created_at") or "")
         for jid, j in _jobs.items()
@@ -169,6 +169,14 @@ async def _log_startup_version() -> None:
         get_code_version(),
         ASR_PIPELINE_VERSION,
     )
+    # Restart hayaleti temizligi: executor olduyse yarim kalan tekil ASR/PIPE
+    # isleri diskte hala 'running/queued' gorunur. Bunlari 'interrupted' yap.
+    try:
+        n = _reconcile_interrupted_jobs()
+        if n:
+            _server_logger.info("startup reconcile: %d bayat is 'interrupted' olarak kapatildi", n)
+    except Exception as exc:  # noqa: BLE001 — reconcile hatasi sunucu acilisini bloklamasin
+        _server_logger.warning("startup reconcile basarisiz: %s", exc)
 
 
 @app.get("/version")
@@ -2860,6 +2868,9 @@ def _load_recent_jobs(limit: int, *, search_query: str = "") -> list[dict[str, A
     CLIPS_ROOT.mkdir(parents=True, exist_ok=True)
     jobs: list[dict[str, Any]] = []
     query = search_query.strip()
+    # Dosyalar mtime-sirali (en yeni once). Aramada AKIS halinde oku: istenen
+    # `limit` kadar eslesme bulununca DUR; kalan (daha eski) dosyalari hic acma.
+    # `q` yokken davranis aynidir: en yeni `limit` job.json okunur.
     for path in _job_json_paths(limit=None if query else limit):
         payload = _read_json(path)
         if not isinstance(payload, dict):
@@ -2870,6 +2881,64 @@ def _load_recent_jobs(limit: int, *, search_query: str = "") -> list[dict[str, A
         if len(jobs) >= limit:
             break
     return jobs
+
+
+def _all_job_json_paths_for_reconcile() -> list[Path]:
+    """Reconcile icin TUM tekil-is job.json yollari: ASR/legacy + pipeline (pipe-*).
+
+    ``_job_json_paths`` sadece clip (``*/asr/*``) ve legacy duzenini tarar;
+    pipeline isleri ``INCOMING_ROOT/<job_id>/job.json`` altinda durur ve oraya
+    bakmaz. Reconcile her iki kulvardaki tekil isleri de gormeli.
+    Flow-queue (kendi ``queue.json`` state'i) bu kapsamin DISINDADIR.
+    """
+    paths = list(_job_json_paths(limit=None))
+    if INCOMING_ROOT.exists():
+        paths.extend(INCOMING_ROOT.glob("*/job.json"))
+    return paths
+
+
+def _reconcile_interrupted_jobs() -> int:
+    """Sunucu acilisinda diskteki bayat ``queued``/``running`` isleri kapat.
+
+    Restart'ta executor thread'leri olur; o anda yurumekte olan tekil ASR/PIPE
+    isleri asla bitmez ve UI'de sonsuza dek "calisiyor / %92" gorunur (gercek
+    vaka: ``asr-c53209523a4c``). Bu islerin durumunu ``interrupted`` yapar.
+
+    Idempotenttir: zaten terminal (done/partial/failed/interrupted/...) olan
+    isler degistirilmez. Sadece tekil is kayitlari (job.json) ele alinir;
+    flow-queue'ya (queue.json) DOKUNULMAZ.
+    """
+    reconciled = 0
+    seen: set[str] = set()
+    for path in _all_job_json_paths_for_reconcile():
+        payload = _read_json(path)
+        if not isinstance(payload, dict):
+            continue
+        job_id = str(payload.get("job_id") or "").strip()
+        if job_id:
+            if job_id in seen:
+                continue
+            seen.add(job_id)
+        status_before = str(payload.get("status") or "")
+        if status_before not in {"queued", "running"}:
+            continue
+        payload["status"] = "interrupted"
+        payload["message"] = "Sunucu yeniden başladı, iş kesildi."
+        payload["error"] = payload.get("error") or "server_restart_interrupted"
+        payload["completed_at"] = payload.get("completed_at") or _now_iso()
+        payload["updated_at"] = _now_iso()
+        try:
+            _save_job(payload)
+        except Exception as exc:  # noqa: BLE001 — tek bir bozuk kayit acilisi bloklamasin
+            _server_logger.warning("reconcile: %s yazilamadi: %s", job_id or path, exc)
+            continue
+        reconciled += 1
+        _server_logger.info(
+            "reconcile: %s '%s' -> interrupted (restart'ta kesildi)",
+            job_id or path.parent.name,
+            status_before,
+        )
+    return reconciled
 
 
 def _find_job_json(job_id: str) -> Path | None:
@@ -3304,7 +3373,7 @@ def _job_elapsed_seconds(job: dict[str, Any]) -> int:
 def _job_progress_percent(job: dict[str, Any]) -> int:
     status = str(job.get("status") or "")
     stored = int(max(0, min(100, int(job.get("progress_percent") or 0))))
-    if status in {"done", "partial", "failed"}:
+    if status in {"done", "partial", "failed", "interrupted"}:
         return 100
     if status == "queued":
         return max(stored, 5)

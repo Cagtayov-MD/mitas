@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  AlertCircle,
   AlertTriangle,
   CheckCircle2,
   Clock3,
@@ -733,7 +734,9 @@ function StatusIcon({ status }: { status: AsrJobStatus }) {
   if (status === 'done') return <CheckCircle2 className="h-4 w-4 text-success" />;
   if (status === 'partial') return <AlertTriangle className="h-4 w-4 text-warning" />;
   if (status === 'failed') return <XCircle className="h-4 w-4 text-danger" />;
-  return <Loader2 className="h-4 w-4 animate-spin text-info" />;
+  if (status === 'interrupted') return <AlertCircle className="h-4 w-4 text-foreground-muted" />;
+  if (status === 'queued' || status === 'running') return <Loader2 className="h-4 w-4 animate-spin text-info" />;
+  return <AlertCircle className="h-4 w-4 text-foreground-muted" />;
 }
 
 function statusVariant(status: AsrJobStatus): BadgeVariant {
@@ -744,13 +747,16 @@ function statusVariant(status: AsrJobStatus): BadgeVariant {
 }
 
 function statusLabel(status: AsrJobStatus): string {
-  return {
-    queued: 'kuyruk',
-    running: 'çalışıyor',
-    done: 'tamam',
-    partial: 'kısmi',
-    failed: 'hata',
-  }[status];
+  return (
+    {
+      queued: 'kuyruk',
+      running: 'çalışıyor',
+      done: 'tamam',
+      partial: 'kısmi',
+      failed: 'hata',
+      interrupted: 'kesildi',
+    } as Record<AsrJobStatus, string>
+  )[status] ?? status;
 }
 
 function Stat({ label, value, tone = 'muted' }: { label: string; value: string; tone?: 'muted' | 'success' | 'warning' | 'danger' | 'info' }) {
