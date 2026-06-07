@@ -11,6 +11,7 @@ import {
   getRememberedTedialJobIds,
   openTedialMediaInMitas,
   searchTedial,
+  startTedialPipelineJob,
   startTedialSession,
   tedialDurationSeconds,
   tedialKeyframeProxyUrl,
@@ -44,6 +45,7 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
   const [message, setMessage] = useState('Hazır');
   const [isSearching, setIsSearching] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isKunye, setIsKunye] = useState(false);
   const [audioTrack, setAudioTrack] = useState<TedialAudioTrack>(0);
   const [channelMode, setChannelMode] = useState<TedialAsrChannelMode>(DEFAULT_TEDIAL_CHANNEL_MODE);
   const [recentTedialJobs, setRecentTedialJobs] = useState<AsrJob[]>([]);
@@ -215,6 +217,26 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
       await refreshSession(false).catch(() => undefined);
     } finally {
       setIsImporting(false);
+    }
+  };
+
+  // Tedial varlığını DOĞRUDAN tam künye pipeline'ına gönder (OCR + ASR + künye PDF + qwen QC
+  // → Hazır/Kontrol). Backend: /assets/{id}/pipeline → asr_server /api/pipeline/run (mitas_pipeline).
+  const handleKunye = async () => {
+    if (!selected) {
+      return;
+    }
+    setIsKunye(true);
+    setMessage('Tam künye pipeline başlatılıyor (OCR + ASR + künye PDF + qwen QC → Hazır/Kontrol)…');
+    try {
+      const job = await startTedialPipelineJob(selected, { audioTrack });
+      setMessage(`Künye işi başladı: ${job.job_id} — ilerleme iş kaydında`);
+      onOpenJobLog(job);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Künye pipeline başlatılamadı');
+      await refreshSession(false).catch(() => undefined);
+    } finally {
+      setIsKunye(false);
     }
   };
 
@@ -398,7 +420,11 @@ export function TedialWorkspace({ onImportToMitas, onOpenJobLog }: TedialWorkspa
                   </Button>
                 ))}
               </div>
-              <Button size="sm" className="gap-2 bg-info-strong text-white hover:bg-info" disabled={!selected || isImporting} onClick={handleImport}>
+              <Button size="sm" variant="outline" className="gap-2" disabled={!selected || isImporting || isKunye} onClick={handleKunye} title="Tedial varlığını DOĞRUDAN tam künye pipeline'ına gönder (OCR + ASR + künye PDF + qwen QC → Hazır/Kontrol)">
+                <FileText className="h-3.5 w-3.5" />
+                {isKunye ? 'Künye üretiliyor…' : 'Künye Üret'}
+              </Button>
+              <Button size="sm" className="gap-2 bg-info-strong text-white hover:bg-info" disabled={!selected || isImporting || isKunye} onClick={handleImport}>
                 <DownloadCloud className="h-3.5 w-3.5" />
                 {isImporting ? 'Açılıyor' : 'MITAS’ta Aç'}
               </Button>
