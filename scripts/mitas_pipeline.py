@@ -930,6 +930,33 @@ def main(argv=None) -> int:
             qwen_uyari.append("qwen: büyük-harf değil (deterministik tr_upper — uyarı)")
         if qwen_qc.get("yabanci_ad_ascii_degil"):              # yabancı ad aksanlı: kemer+Sonnet birincil, qwen ince-aksanda güvenilmez → uyarı
             qwen_uyari.append("qwen: yabancı ad aksanlı/ASCII değil (deterministik kemer+Sonnet birincil — uyarı)")
+    # --- ZİNCİR SONU: DETERMİNİSTİK isim/künye TESPİT-QC (karakter→DB→DeepSeek→ASCII zincirinin SON kapısı) ---
+    # Kural: künye SADECE Latin; TÜRKÇE ad Türkçe-harf, YABANCI ad SADE ASCII. Türkçe harf (çğıİöşü) SERBEST;
+    # non-ASCII + non-Türkçe HARF (é/ñ/ø/Kiril/Yunan/CJK...) = NET İHLAL → Kontrol. qwen-QC görsel+kırılgan;
+    # bu kemer karakter düzeyinde %100 deterministik — isim/özet çıktısında KAÇANI yakalar. Paylaşımlı ç/ö/ü
+    # yabancıda ayırt edilemez (onu Sonnet/DB+qwen kapsar); bu yalnız KESİN ihlalleri Kontrol'e düşürür.
+    try:
+        _TR_OK = set("çÇğĞıİöÖşŞüÜ")
+        def _bad_chars(_s):
+            return sorted({c for c in str(_s or "")
+                           if (not c.isascii()) and unicodedata.category(c).startswith("L") and c not in _TR_OK})
+        _name_qc = []
+        for _nm in (pdf_info.get("cast") or []):
+            _b = _bad_chars(_nm)
+            if _b:
+                _name_qc.append(f"oyuncu '{_nm}'→{''.join(_b)}")
+        for _role, _nms in (pdf_info.get("crew") or []):
+            for _nm in (_nms if isinstance(_nms, list) else [_nms]):
+                _b = _bad_chars(_nm)
+                if _b:
+                    _name_qc.append(f"{_role} '{_nm}'→{''.join(_b)}")
+        _bo = _bad_chars(ozet)
+        if _bo:
+            _name_qc.append(f"özet→{''.join(_bo)}")
+        if _name_qc:
+            reasons.append("isim-QC: Latin-dışı/yabancı-aksan kalıntısı (" + " ; ".join(_name_qc[:5]) + ")")
+    except Exception:  # noqa: BLE001 — tespit-QC kararı ASLA bozmaz (alan yok/hata → atla)
+        pass
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
     dest = dest_root / clip_id
