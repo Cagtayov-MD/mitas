@@ -30,6 +30,34 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+# Kredi/erisim durumu kaydi (best-effort). Import patlarsa _deepseek calismaya devam eder.
+try:
+    import _api_status  # ayni scripts/ dizininde
+except Exception:  # noqa: BLE001 - sys.path'te degilse modul-yolu ile dene
+    try:
+        import importlib.util as _ilu
+        _asp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_api_status.py")
+        _spec = _ilu.spec_from_file_location("_api_status", _asp)
+        _api_status = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_api_status)
+    except Exception:  # noqa: BLE001 - hala yoksa no-op stub (mark/read_all cokme yok)
+        _api_status = None
+
+
+def _status_mark(api: str, ok: bool, detail: str = "") -> None:
+    """_api_status.mark guvenli sarmal — modul yoksa/patlarsa sessiz."""
+    try:
+        if _api_status is not None:
+            _api_status.mark(api, ok, detail)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+# Kalici (retry'siz) HTTP kodlari: 401 yetki, 402 kredi-bitti, 403 yasak.
+_PERMANENT_HTTP = {401, 402, 403}
+# Yanit/gerekce metninde kredi-tukenmesi sinyalleri (kuckuk harf eslesme).
+_CREDIT_SIGNALS = ("insufficient", "balance", "quota")
+
 
 def deepseek_chat(
     prompt: str | None = None,
@@ -81,11 +109,28 @@ def deepseek_chat(
     for attempt in range(max(1, retries)):
         try:
             with urllib.request.urlopen(req, timeout=_timeout) as r:
-                return json.loads(r.read())
+                resp = json.loads(r.read())
+            _status_mark("deepseek", True)   # basarili yanit -> ok
+            return resp
         except urllib.error.HTTPError as exc:
-            # 429 / 5xx gecicidir -> retry; diger 4xx (400/401/403 ...) kalici -> hemen None
+            reason = str(getattr(exc, "reason", "") or "")
+            # Gerekce + govde metninde kredi/kota sinyali var mi? (429 da kota olabilir)
+            body_txt = ""
+            try:
+                body_txt = exc.read().decode("utf-8", "replace")
+            except Exception:  # noqa: BLE001
+                body_txt = ""
+            credit_hit = any(sig in (reason + " " + body_txt).lower() for sig in _CREDIT_SIGNALS)
+            detail = f"HTTP {exc.code} {reason}".strip()
+            # KALICI hata (401/402/403 ya da kredi-sinyali): retry YOK, durumu error isaretle, hemen None.
+            # 402 = kredi bitti -> burada yakalanir (eski liste 429/5xx idi, 402 yanlislikla "kalici-sessiz"di).
+            if exc.code in _PERMANENT_HTTP or credit_hit:
+                _log_warn(f"[_deepseek] {detail} — kalici hata (retry yok), durum: error")
+                _status_mark("deepseek", False, detail)
+                return None
+            # 429 / 5xx gecici -> retry; diger 4xx (400/404...) -> kalici ama kredi-disi, mark YOK.
             if exc.code not in (429, 500, 502, 503, 504):
-                _log_warn(f"[_deepseek] HTTP {exc.code} {exc.reason} — retry yok (kalici hata)")
+                _log_warn(f"[_deepseek] {detail} — retry yok (kalici hata)")
                 return None
             last_exc = exc
         except (urllib.error.URLError, OSError, TimeoutError) as exc:

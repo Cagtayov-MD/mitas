@@ -15,6 +15,9 @@ Kullanan: scripts/_pipe_pdf.py + py/20260601_kunye_to_pdf.py (cast + crew isimle
 """
 from __future__ import annotations
 import json
+import os
+import sys
+import tempfile
 import unicodedata
 import urllib.request
 
@@ -249,6 +252,115 @@ def _mitas_people_set(names):
         return False, {}
 
 
+# ---------------------------------------------------------------------------
+# DeepSeek + cache HIBRIT fallback (denetim "Approach C") — SADECE DB-MISS isimler.
+# Deterministik DB (mitas_people_index) ismi BULAMAYINCA, MITAS_DEEPSEEK anahtari
+# VARSA DeepSeek'e "Turk mu yabanci mi + kanonik yazim" sorulur, sonuc CACHE'lenir
+# (isim basina deterministik). Anahtar yok / DeepSeek None / parse-fail -> MEVCUT
+# davranis (ascii_fold(isim).upper()); ASLA cokme.
+# ---------------------------------------------------------------------------
+
+# Bu dosya OCR-worktree/pdf-mitas altinda; ana proje koku iki ust dizin.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_NAME_CACHE_PATH = os.path.join(_PROJECT_ROOT, "outputs", "name_norm_cache.json")
+_SCRIPTS_DIR = os.path.join(_PROJECT_ROOT, "scripts")
+
+
+def _deepseek_available() -> bool:
+    """MITAS_DEEPSEEK (veya DEEPSEEK_API_KEY) anahtari var mi? (cagri-oncesi ucuz kontrol)."""
+    return bool(os.environ.get("MITAS_DEEPSEEK") or os.environ.get("DEEPSEEK_API_KEY"))
+
+
+def _name_cache_load() -> dict:
+    """name_norm_cache.json oku. Yoksa/bozuksa {} (asla cokme)."""
+    try:
+        with open(_NAME_CACHE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _name_cache_store(cache: dict) -> None:
+    """cache'i ATOMIK (temp + os.replace) yaz. Tum hatalari yut."""
+    try:
+        out_dir = os.path.dirname(_NAME_CACHE_PATH)
+        os.makedirs(out_dir, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=out_dir, prefix=".name_norm_", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(cache, f, ensure_ascii=False, indent=2)
+            os.replace(tmp, _NAME_CACHE_PATH)
+        finally:
+            try:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+            except Exception:  # noqa: BLE001
+                pass
+    except Exception:  # noqa: BLE001 - cache best-effort
+        return
+
+
+def _load_deepseek():
+    """scripts/_deepseek modulunu yukle (sys.path'e scripts/ ekleyerek). Yoksa None."""
+    try:
+        if _SCRIPTS_DIR not in sys.path:
+            sys.path.insert(0, _SCRIPTS_DIR)
+        import _deepseek  # noqa: WPS433
+        return _deepseek
+    except Exception:  # noqa: BLE001 - _deepseek yoksa/patlarsa sessiz
+        return None
+
+
+_DEEPSEEK_PROMPT_TMPL = (
+    "Bu bir kişi ADI: '{name}'. Türk ismi mi yabancı mı? "
+    "Türk ise Türkçe-diakritikli (ç ğ ı İ ö ş ü) KANONİK yazımını; "
+    "yabancı ise SADE ASCII halini ver. "
+    'SADECE JSON döndür: {{"turk": true/false, "yazim": "..."}}'
+)
+
+
+def _deepseek_resolve(name: str, cache: dict) -> str | None:
+    """DB-MISS ismi DeepSeek+cache ile cozumle. Donus:
+      • Turk  -> tr_upper(yazim)        (diakritik korunur)
+      • Yabanci -> ascii_fold(yazim).upper()
+      • cozulemedi/anahtar-yok/parse-fail -> None  (cagiran MEVCUT davranisa duser)
+    Cache HIT -> DeepSeek CAGRILMAZ. MISS -> cagir, sonucu ATOMIK cache'le.
+    cache dict YERINDE guncellenir (cagiran tek sefer diske yazar)."""
+    key = _fold(name)
+    if not key:
+        return None
+    rec = cache.get(key)
+    if not isinstance(rec, dict):
+        # MISS -> anahtar varsa DeepSeek'e sor
+        if not _deepseek_available():
+            return None
+        ds = _load_deepseek()
+        if ds is None:
+            return None
+        try:
+            txt = ds.deepseek_text(
+                prompt=_DEEPSEEK_PROMPT_TMPL.format(name=name),
+                temperature=0,
+                fmt={"type": "json_object"},
+                max_tokens=100,
+            )
+            if not txt:
+                return None
+            parsed = json.loads(txt)
+            rec = {"turk": bool(parsed.get("turk")), "yazim": str(parsed.get("yazim") or "")}
+        except Exception:  # noqa: BLE001 - parse/cagri hatasi -> MEVCUT davranis
+            return None
+        cache[key] = rec          # yerinde guncelle (cagiran diske yazacak)
+    # HIT ya da taze sonuc -> uygula
+    try:
+        if rec.get("turk"):
+            return tr_upper(rec.get("yazim") or name)
+        return ascii_fold(rec.get("yazim") or name).upper()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def upper_names(names, *, use_qwen: bool = False):
     """Isimleri BUYUK harfe cevir (kunye kurali, Cagatay):
       • Turkce isim  -> Turkce upper:  irfan->İRFAN, gökhan->GÖKHAN (i->İ; ç ğ ı ö ş ü KORUNUR)
@@ -270,6 +382,11 @@ def upper_names(names, *, use_qwen: bool = False):
                     for c in n)]
     db_ok, mitas_tr = _mitas_people_set(pure)
     # mitas_tr: {giren_isim: kanonik_Turkce_ad} (ornek: "Aysenil Samlioglu" -> "Ayşenil Şamlıoğlu")
+    # DeepSeek+cache (Approach C): SADECE DB-MISS isimler icin, anahtar VARSA. Cache bir kez yuklenir,
+    # _deepseek_resolve cache'i yerinde gunceller; en sonda (degistiyse) bir kez diske yazilir.
+    _ds_on = db_ok and _deepseek_available()
+    _ds_cache = _name_cache_load() if _ds_on else {}
+    _ds_cache_before = len(_ds_cache)
     out = []
     for n in names:
         if any(c in _TR_STRONG for c in n):
@@ -280,12 +397,17 @@ def upper_names(names, *, use_qwen: bool = False):
             if db_ok:
                 canonical = mitas_tr.get(n)              # DB'den Turkce kanonik (ornek: "Ayşenil Şamlıoğlu")
                 if canonical is not None:
-                    out.append(tr_upper(canonical))       # kanonik uzerinde tr_upper -> Turkce buyuk harf
+                    out.append(tr_upper(canonical))       # DB-HIT (Approach A) -> Turkce buyuk harf, DEGISMEZ
                 else:
-                    out.append(ascii_fold(n).upper())     # DB'de yok -> yabanci (François->FRANCOIS, Müller->MULLER)
+                    # DB-MISS: once DeepSeek+cache (anahtar varsa); cozulemezse MEVCUT davranis.
+                    ds_val = _deepseek_resolve(n, _ds_cache) if _ds_on else None
+                    out.append(ds_val if ds_val is not None else ascii_fold(n).upper())
             else:
                 is_tr = _is_tr_name(n)
                 out.append(tr_upper(n) if is_tr else ascii_fold(n).upper())
+    # Cache'e yeni kayit eklendiyse (DeepSeek cagrildi) bir kez ATOMIK yaz.
+    if _ds_on and len(_ds_cache) != _ds_cache_before:
+        _name_cache_store(_ds_cache)
     return out
 
 

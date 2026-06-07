@@ -116,7 +116,74 @@ _translate_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mita
 
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 MITAS_PIPELINE = SCRIPTS_DIR / "mitas_pipeline.py"
+
+# Dis API kredi/kota durum kaydi (DeepSeek + Anthropic). Tek kaynak: scripts/_api_status.py
+# (atomik outputs/api_status.json). Import/çağrı patlarsa no-op — özet/health ASLA etkilenmez.
+try:
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    import _api_status as _api_status_mod  # type: ignore
+except Exception:  # noqa: BLE001 - modul yok/bozuk -> None, helper'lar no-op olur
+    _api_status_mod = None  # type: ignore
+
+
+def _api_status_read_all() -> dict:
+    """api_status.json'u oku (DeepSeek+Anthropic durumu). Hata/yok -> {} (asla çökme)."""
+    try:
+        if _api_status_mod is not None:
+            data = _api_status_mod.read_all()
+            return data if isinstance(data, dict) else {}
+    except Exception:  # noqa: BLE001
+        pass
+    return {}
+
+
+def _api_status_mark(api: str, ok: bool, detail: str = "") -> None:
+    """api_status'a durum yaz (best-effort). mark patlarsa sessiz."""
+    try:
+        if _api_status_mod is not None:
+            _api_status_mod.mark(api, ok, detail)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+# Anthropic yanit govdesinde kredi/kota sinyalleri (kuckuk harf eslesme).
+_ANTHROPIC_CREDIT_SIGNALS = ("credit", "balance", "quota", "insufficient", "too low")
+
+
+def _mark_anthropic_http_error(exc: "urllib.error.HTTPError") -> None:
+    """Anthropic HTTPError'i kredi/kota acisindan siniflandirip api_status'a yaz.
+
+    mark False (kredi/kota) sayilir: code==400 + govdede credit/balance/too low,
+    VEYA code in (402,429), VEYA govdede credit/balance/quota/insufficient/too low.
+    Diger HTTP hatalari (401/404/5xx ...) yanlis-alarm olmasin diye mark EDILMEZ.
+    """
+    try:
+        code = int(getattr(exc, "code", 0) or 0)
+        body_txt = ""
+        try:
+            body_txt = exc.read().decode("utf-8", "replace")
+        except Exception:  # noqa: BLE001
+            body_txt = ""
+        low = (str(getattr(exc, "reason", "") or "") + " " + body_txt).lower()
+        credit_sig = any(s in low for s in _ANTHROPIC_CREDIT_SIGNALS)
+        is_credit = (
+            (code == 400 and any(s in low for s in ("credit", "balance", "too low")))
+            or code in (402, 429)
+            or credit_sig
+        )
+        if is_credit:
+            snippet = body_txt.strip().replace("\n", " ")[:120]
+            _api_status_mark("anthropic", False, f"HTTP {code} {snippet}".strip())
+    except Exception:  # noqa: BLE001
+        return
+
+
 _pipeline_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-pipeline")
+# Tüm GPU-ağır pipeline/ASR yürütmelerini serileştirir (tek RTX 3090, OOM önleme).
+# 3 yol (_run_pipeline_job tek-upload, _flow_queue_worker_loop kuyruk, _run_job ASR)
+# her biri kendi içinde seri ama BİRBİRİNE karşı değildi; bu kilit hepsini tek sıraya alır.
+_gpu_lock = threading.Lock()
 _pipeline_proc: "subprocess.Popen | None" = None   # çalışan mitas_pipeline (Zorla Durdur ile ağaç-öldürmek için)
 _pipeline_abort = threading.Event()                  # Zorla Durdur işareti
 PIPELINE_PROFILE_MAP: dict[str, str] = {
@@ -372,16 +439,20 @@ def _flow_queue_worker_loop() -> None:
                         "--video", video_path,
                         "--profile", pipeline_profile,
                     ]
-                    completed = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        encoding="utf-8",
-                        errors="replace",
-                        cwd=str(PROJECT_ROOT),
-                        timeout=14400,
-                        check=False,
-                    )
+                    # GPU semaforu: aynı anda yalnız 1 GPU-ağır iş koşsun (RTX 3090 OOM önleme).
+                    # Sadece bu item'ın pipeline koşusunu sar — worker döngüsünün geri
+                    # kalanı (durum okuma/yazma, atlama) kilitsiz akar.
+                    with _gpu_lock:
+                        completed = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
+                            cwd=str(PROJECT_ROOT),
+                            timeout=14400,
+                            check=False,
+                        )
 
                     # Parse last JSON line from stdout
                     result: dict[str, Any] | None = None
@@ -662,6 +733,9 @@ def health() -> dict[str, Any]:
         },
         # 1.9: TMDB anahtari yoksa UI uyari gostersin (afis cekilemez). Sadece var/yok — anahtar degeri DONDURULMEZ.
         "tmdb_key_present": bool(os.environ.get("MITAS_TMDB")),
+        # Dis API kredi/kota durumu (DeepSeek + Anthropic). UI header'i bunu okur.
+        # Henuz cagri yapilmamissa {} (UI notr gosterir; yanlis-alarm yok). Anahtar degeri ASLA donmez.
+        "api_status": _api_status_read_all(),
     }
 
 
@@ -999,20 +1073,23 @@ def _run_pipeline_job(job_id: str) -> None:
         ]
         global _pipeline_proc
         _pipeline_abort.clear()
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
-        )
-        _pipeline_proc = proc
-        try:
+        # GPU semaforu: aynı anda yalnız 1 GPU-ağır iş koşsun (RTX 3090 OOM önleme).
+        # Sadece subprocess koşusu boyunca tutulur; çıktı parse'ı kilitsiz.
+        with _gpu_lock:
+            proc = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
+            )
+            _pipeline_proc = proc
             try:
-                out, err = proc.communicate(timeout=14400)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.communicate()
-                raise
-        finally:
-            _pipeline_proc = None
+                try:
+                    out, err = proc.communicate(timeout=14400)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.communicate()
+                    raise
+            finally:
+                _pipeline_proc = None
         if _pipeline_abort.is_set():
             raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
         # Parse the last stdout line that starts with '{'
@@ -1844,19 +1921,22 @@ def _run_job(job_id: str) -> None:
     try:
         content_profile = job.get("content_profile") or None
         model_profile_override = job.get("model_profile_override") or None
-        result = run_asr_pipeline(
-            job["input_path"],
-            content_profile=content_profile,
-            profile=None if content_profile else model_profile_override,
-            model_profile_override=model_profile_override if content_profile else None,
-            diarize_override=_diarize_override(job.get("diarize")),
-            channel_mode=job["channel_mode"],
-            word_alignment_mode=job.get("word_alignment_mode") or "whisperx",
-            output_dir=job["output_dir"],
-            media_id=Path(job["filename"]).stem,
-            job_id=job_id,
-            module_run_id=f"{job_id}-module",
-        )
+        # GPU semaforu: aynı anda yalnız 1 GPU-ağır iş koşsun (RTX 3090 OOM önleme).
+        # Sadece GPU transkripsiyon koşusu boyunca tutulur; artefakt/log işleri kilitsiz.
+        with _gpu_lock:
+            result = run_asr_pipeline(
+                job["input_path"],
+                content_profile=content_profile,
+                profile=None if content_profile else model_profile_override,
+                model_profile_override=model_profile_override if content_profile else None,
+                diarize_override=_diarize_override(job.get("diarize")),
+                channel_mode=job["channel_mode"],
+                word_alignment_mode=job.get("word_alignment_mode") or "whisperx",
+                output_dir=job["output_dir"],
+                media_id=Path(job["filename"]).stem,
+                job_id=job_id,
+                module_run_id=f"{job_id}-module",
+            )
         _append_job_log(job_id, "ASR pipeline çıktı dosyalarını üretti.", stage="artifacts", progress_percent=95)
         summary = result.module_run.output_summary
         if summary.get("fallback_triggered"):
@@ -2720,12 +2800,16 @@ def _summarize_with_anthropic(job: dict[str, Any], transcript: str) -> dict[str,
     try:
         with urllib.request.urlopen(request, timeout=SUMMARY_TIMEOUT_SECONDS) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:  # HTTPError ⊂ URLError → ÖNCE yakala: kredi/kota işaretle
+        _mark_anthropic_http_error(exc)     # timeout/URLError'da mark YOK (yanlış-alarm önlenir)
+        raise RuntimeError(f"anthropic_summary_failed:{exc}") from exc
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"anthropic_summary_failed:{exc}") from exc
     content_blocks = payload.get("content", [])
     content = next((b.get("text") for b in content_blocks if b.get("type") == "text"), None)
     if not isinstance(content, str) or not content.strip():
         raise RuntimeError("anthropic_summary_empty")
+    _api_status_mark("anthropic", True)   # başarılı içerik -> durum ok
     return {
         "provider": "anthropic",
         "model": payload.get("model", model),

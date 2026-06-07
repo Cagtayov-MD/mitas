@@ -35,6 +35,25 @@ PY_OCR = PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"
 PY_ASR = PROJECT_ROOT / "venvs" / "asr" / "Scripts" / "python.exe"
 PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
 
+# Dis API kredi/kota durum kaydi (best-effort). HERE (=scripts) zaten _generate_ozet
+# cagrildiginda sys.path'e ekleniyor (798/828) ama import'u burada da deneyelim;
+# patlarsa _status_mark no-op olur — OZET URETIMI ASLA ETKILENMEZ.
+try:
+    sys.path.insert(0, str(HERE))
+    from _api_status import mark as _api_mark  # noqa: E402
+except Exception:  # noqa: BLE001 - modul yok/bozuk -> no-op stub, ozet etkilenmesin
+    def _api_mark(api: str, ok: bool, detail: str = "") -> None:  # type: ignore[misc]
+        return None
+
+
+def _status_mark(api: str, ok: bool, detail: str = "") -> None:
+    """_api_mark guvenli sarmal — mark patlarsa sessiz (ozet/pipeline cokmesin)."""
+    try:
+        _api_mark(api, ok, detail)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 # Profil → ASR aksiyon konfigi (PROFIL_KONFIG.md ile SENKRON).
 # film_dizi (film/dizi) → LEAN: özet için sadece METİN (turbo tek-pass; align/diarize/fallback YOK).
 # Tanımsız profil = full ASR (eski davranış, run_asr_pipeline). Çağatay buraya ekler (eklemeler gelecek).
@@ -319,6 +338,40 @@ def _latin_only(s: str) -> str:
                    or "LATIN" in unicodedata.name(ch, ""))
 
 
+# Anthropic yanit govdesinde kredi/kota tukenmesi sinyalleri (kuckuk harf eslesme).
+_ANTHROPIC_CREDIT_SIGNALS = ("credit", "balance", "quota", "insufficient", "too low")
+
+
+def _mark_anthropic_http_error(exc: "urllib.error.HTTPError") -> None:
+    """Anthropic HTTPError'i kredi/kota acisindan siniflandirip durum kaydina yaz.
+
+    KREDI/KOTA isareti (mark False) sayilan durumlar:
+      - code == 400 ve govdede "credit"/"balance"/"too low" (Anthropic dusuk-bakiye 400 doner),
+      - code in (402, 429)  (kredi-bitti / rate-kota),
+      - govdede kredi sinyali ("credit"/"balance"/"quota"/"insufficient"/"too low").
+    Diger HTTP hatalari (401 yetki, 404, 5xx vb.) YANLIS-ALARM olmasin diye mark EDILMEZ.
+    """
+    try:
+        code = int(getattr(exc, "code", 0) or 0)
+        body_txt = ""
+        try:
+            body_txt = exc.read().decode("utf-8", "replace")
+        except Exception:  # noqa: BLE001
+            body_txt = ""
+        low = (str(getattr(exc, "reason", "") or "") + " " + body_txt).lower()
+        credit_sig = any(s in low for s in _ANTHROPIC_CREDIT_SIGNALS)
+        is_credit = (
+            (code == 400 and any(s in low for s in ("credit", "balance", "too low")))
+            or code in (402, 429)
+            or credit_sig
+        )
+        if is_credit:
+            snippet = body_txt.strip().replace("\n", " ")[:120]
+            _status_mark("anthropic", False, f"HTTP {code} {snippet}".strip())
+    except Exception:  # noqa: BLE001 - siniflandirma best-effort
+        return
+
+
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
     """Transcript'ten Sonnet ile film/dizi olay-orgusu ozeti uretir (spoiler dahil).
 
@@ -368,8 +421,12 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
         blocks = payload.get("content", [])
         content = next((b.get("text") for b in blocks if b.get("type") == "text"), None)
         if isinstance(content, str) and content.strip():
+            _status_mark("anthropic", True)   # basarili icerik -> durum ok
             return _latin_only(content.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
-    except Exception:  # noqa: BLE001 — timeout/URLError/JSON vs.: sessiz fallback
+    except urllib.error.HTTPError as exc:  # kredi/kota ise durumu işaretle, sonra sessiz fallback
+        _mark_anthropic_http_error(exc)
+        return None
+    except Exception:  # noqa: BLE001 — timeout/URLError/JSON vs.: mark YOK (yanlış-alarm olmasın)
         return None
     return None
 

@@ -1,4 +1,4 @@
-import { Activity, ChevronDown, Download, FileText, Info, Lock, Play, RotateCcw, Trash2, UploadCloud } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, ChevronDown, Download, FileText, Info, Lock, Play, RotateCcw, Trash2, UploadCloud } from 'lucide-react';
 import { Button, Badge, TabsList, TabsTrigger } from './ui';
 import {
   DropdownMenu,
@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import {
   analysisProfileLabel,
   formatClock,
@@ -44,6 +44,14 @@ export interface HeaderProcessStatus {
   percent: number;
   active: boolean;
 }
+
+// /api/health -> api_status[<api>] = { ok, detail, ts }. Alan yoksa undefined (UI nötr "—" gösterir).
+interface ApiStatusEntry {
+  ok?: boolean;
+  detail?: string;
+  ts?: string;
+}
+type ApiStatusMap = Record<string, ApiStatusEntry>;
 
 const STATUS_TEXT: Record<AsrJob['status'], string> = {
   queued: 'Kuyrukta',
@@ -84,6 +92,25 @@ export function Header({
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [pendingDeleteKind, setPendingDeleteKind] = useState<ClipGeneratedDataKind | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // API kredi/kota durumu (DeepSeek + Claude). /api/health'ten 60sn'de bir çekilir — kredi yavaş
+  // değişir. Alınamazsa/alan yoksa {} kalır → gösterge nötr ("—"), YANLIŞ-ALARM yok.
+  const [apiStatus, setApiStatus] = useState<ApiStatusMap>({});
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      fetch('/api/health', { signal: AbortSignal.timeout(4000) })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (cancelled || !d) return;
+          const next = d.api_status;
+          if (next && typeof next === 'object') setApiStatus(next as ApiStatusMap);
+        })
+        .catch(() => { /* health alınamadı → mevcut durumu koru, gürültü yok */ });
+    };
+    poll();
+    const id = window.setInterval(poll, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, []);
   const duration = playback.duration || asrJob?.summary?.audio_duration;
   const isAsrBusy = isStartingAsr || isLiveSttBusy || asrJob?.status === 'queued' || asrJob?.status === 'running';
   const progressPercent = Math.max(0, Math.min(100, Math.round(asrJob?.progress_percent ?? (isStartingAsr ? 3 : 0))));
@@ -223,6 +250,12 @@ export function Header({
                 </Badge>
               )}
             </div>
+          </div>
+          {/* API kredi/kota göstergesi: küçük iki satır (DeepSeek / Claude). ✓ yeşil = son çağrı OK,
+              uyarı sarı = kredi/kota sorunu (tooltip'te detay), nötr "—" = henüz çağrı yok. */}
+          <div className="flex shrink-0 flex-col gap-0.5 leading-none">
+            <ApiStatusPill label="DeepSeek" entry={apiStatus.deepseek} />
+            <ApiStatusPill label="Claude" entry={apiStatus.anthropic} />
           </div>
         </div>
 
@@ -495,6 +528,35 @@ export function Header({
         </div>
       </div>
     </header>
+  );
+}
+
+function ApiStatusPill({ label, entry }: { label: string; entry?: ApiStatusEntry }) {
+  // Üç durum: ok=true → yeşil ✓ ; ok=false → sarı uyarı (+ tooltip detay) ; alan yok → nötr "—".
+  const hasStatus = entry != null && typeof entry.ok === 'boolean';
+  const ok = entry?.ok === true;
+  const detail = (entry?.detail || '').trim();
+  const title = !hasStatus
+    ? `${label}: durum bilgisi yok (henüz çağrı yapılmadı)`
+    : ok
+      ? `${label}: erişim normal`
+      : `${label}: kredi/kota uyarısı${detail ? ` — ${detail}` : ''}`;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 text-[10px] font-medium tabular-nums ${
+        !hasStatus ? 'text-foreground-disabled' : ok ? 'text-success' : 'text-warning'
+      }`}
+      title={title}
+    >
+      {!hasStatus ? (
+        <span className="inline-block w-3 text-center text-foreground-disabled">—</span>
+      ) : ok ? (
+        <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden />
+      ) : (
+        <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+      )}
+      <span>{label}</span>
+    </span>
   );
 }
 
