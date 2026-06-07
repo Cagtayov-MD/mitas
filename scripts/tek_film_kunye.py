@@ -33,6 +33,15 @@ def _load(n, p):
 mp = _load("mp", os.path.join(PDFMITAS, "_make_pdf.py"))
 nn = _load("nn", os.path.join(PDFMITAS, "name_normalize.py"))
 
+# OCR cast LİSTESİ otorite; KB yalnız OKUNAN ismin YAZIMINI düzeltir → name_match gerekir.
+# credit_crosscheck top-level'da duckdb import etmez (sadece CreditKB.__init__'te) → global python'da güvenli.
+sys.path.insert(0, HERE)
+try:
+    import credit_crosscheck as _cc
+except Exception as _e:                              # import edilemezse cast'a DOKUNMA (graceful)
+    _cc = None
+    sys.stderr.write(f"[uyari] credit_crosscheck import edilemedi (cast yazım düzeltme atlandı): {_e}\n")
+
 def run_ocr_json(script, args, timeout=1800):
     """venvs/ocr alt-süreci koş, stdout'tan son JSON satırını çöz."""
     cmd = [PY_OCR, os.path.join(HERE, script)] + args
@@ -175,14 +184,22 @@ def main():
             # kareden OKUNAMADI → KB'den DOLDUR (uydurma değil, kimlik cast ile doğrulandı)
             yon = auth_yon
             yon_kaynak = "KB (kareden okunamadı; kimlik cast ile doğrulandı)"
-        elif verdict == "ÇELİŞKİ":
-            # kareden okunan yönetmen otoriteyle ÇELİŞTİ (ör. görüntü yön. yönetmen sanıldı) → OTORİTEYİ kullan
-            yon_kaynak = f"KB (kareden '{(yon or [''])[0]}' okundu, otoriteyle çelişti → düzeltildi)"
-            yon = auth_yon
+        # ÇELİŞKİ: OCR yönetmeni OTORİTE — KB ile EZİLMEZ (KESİN İLKE 3). Çelişki zaten
+        # mitas_pipeline'da Kontrol'e düşürür; burada OKUNAN yönetmeni KORU.
         # else TEYİT → kareden okunan otoriteyle eşleşti, KALSIN
-    # cast: kimlik doğrulandıysa TEYİTLİ otoriter listeyi kullan (kareden okuma hatalarını eler); değilse kareden
-    if kimlik_dogru and cc.get("otoriter_cast"):
-        cast = cc["otoriter_cast"]
+    # cast: OCR/jenerik kadrosu MUTLAK OTORİTE — liste (uzunluk+sıra) OCR'dan, KB ile EZİLMEZ.
+    # KB yalnız OKUNAN ismin YAZIMINI düzeltir (Ahmet Cimcir→Cemcir): her OCR ismi için
+    # otoriter_cast'ta name_match ile eş ara; eşleşirse SADECE o ismi kanonik haliyle değiştir,
+    # eşleşmezse OCR ismini AYNEN koru. KB'de olup OCR'da olmayan ismi EKLEME.
+    auth = cc.get("otoriter_cast") or []
+    if kimlik_dogru and auth and _cc is not None:
+        duz = []
+        for nm in cast:
+            # önce SIKI eşitlik (aynı kişi kesin), tutmazsa OCR-misread yazım düzeltmesi (Cimcir→Cemcir)
+            es = next((a for a in auth if _cc.name_match(nm, a)), None) \
+                 or next((a for a in auth if _cc.name_close(nm, a)), None)
+            duz.append(es if es else nm)
+        cast = duz
     if not yap and cc.get("yapimci"):
         yap = cc["yapimci"]
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
@@ -201,7 +218,10 @@ def main():
     sk = [x for x in meta.get("ses_kanallari", []) if x and str(x).strip().upper() not in ("EFEKT", "EF")]  # Fix 4
     poster = afis if (afis and os.path.exists(afis) and os.path.getsize(afis) > 5000) else None
     now = datetime.datetime.now().strftime("%d.%m.%Y · %H:%M")
-    _orig_raw = a.original or (cc.get("eslesen_film") if kimlik_dogru else None)  # Fix 2: orijinal-ad yedek
+    # Altyazı/orijinal: YALNIZ gerçek XML orijinal-ad (a.original). KB'nin "eslesen_film"i
+    # (yanlış olabilen KB başlığı) altyazı olarak KULLANILMAZ — KÖK SEBEP: title-only yanlış
+    # çakışmada "Red Flag" gibi alakasız KB adı altyazıya sızıyordu. Orijinal yoksa altyazı YOK.
+    _orig_raw = a.original or None
     _sub = up_o(_orig_raw) if _orig_raw else None
     if _sub and nn.ascii_fold(_sub).upper() == nn.ascii_fold(title).upper() \
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):

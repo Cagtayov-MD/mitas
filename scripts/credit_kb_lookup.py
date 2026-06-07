@@ -71,19 +71,28 @@ def main():
     # Wikidata crosscheck sonucundan imdb_id ve tmdb_id al (IMDb bulamazsa yedek)
     wd_imdb_id = r.get("wikidata_imdb_id")
     wd_tmdb_id = r.get("wikidata_tmdb_id")
+    # KÖK SEBEP koruması: imdb_find başlık-tabanlıdır ve title-only YANLIŞ filmi (ör. Filipinli
+    # "Red Flag" tt32033162) cands[0] olarak döndürebilir. crosscheck'in cast ile DOĞRULADIĞI film
+    # (matched_imdb_id) BİRİNCİL otoritedir. imdb_find'in best'i YALNIZ kimlikle TUTARLIYSA (okunan
+    # yönetmeni eşliyor VEYA zaten matched_imdb_id'ye eşit) kullanılır; aksi halde matched_imdb_id.
+    matched_id = r.get("matched_imdb_id")
     cands = kb.imdb_find(title_tr=a.baslik, original=a.orijinal, year=a.yil)
     best = None
-    for c in cands:
-        if c.get("director") and any(cc.name_match(rd, x) for x in c["director"]):
+    for c in cands:                              # 1) okunan yönetmen + yıl ile TUTARLI aday
+        if c.get("director") and rd and any(cc.name_match(rd, x) for x in c["director"]):
             if (not a.yil) or (c.get("year") and abs(int(c["year"]) - int(a.yil)) <= 1):
                 best = c
                 break
-    if not best and cands:
-        best = cands[0]
+    if not best and matched_id:                  # 2) crosscheck'in DOĞRULADIĞI film (cast-teyitli) öncelik
+        best = next((c for c in cands if c.get("id") == matched_id), None) \
+               or {"id": matched_id, "director": r.get("otoriter_yonetmen") or []}
+    # NOT: title-only cands[0] fallback'i KASTEN KALDIRILDI — kimlik doğrulanmadan (matched_id yok,
+    # okunan yönetmen de tutmuyor) title-only YANLIŞ film TÜR/yapımcı/afiş'e sızıyordu (KÖK SEBEP).
+    # Doğrulanmamışsa imdb_id boş kalır → TÜR/yapımcı boş, afiş gate zaten engeller.
     if best:
         imdb_id = best.get("id")
-    if not imdb_id:                              # KADEME 1: imdb_find tutmadıysa crosscheck'in (cast) bulduğu film
-        imdb_id = r.get("matched_imdb_id")
+    if not imdb_id:                              # KADEME 1: hiçbiri tutmadıysa crosscheck'in (cast) bulduğu film
+        imdb_id = matched_id
     if imdb_id and kb.imdb:
         try:
             rows = kb.imdb.execute(
@@ -115,6 +124,13 @@ def main():
     out["imdb_id"] = imdb_id
 
     # 3) afiş (istenirse)
+    # AFİŞ KAPISI (KESİN İLKE 4): imdb_id/tmdb_id ile KADRO-KONTROLSÜZ afiş indirme YALNIZ
+    # kimlik DOĞRULANMIŞSA verilir (verdict TEYİT veya GERÇEK cast_overlap>=2). Aksi halde id'ler
+    # VERİLMEZ → poster_fetch kadro-teyitli _search yoluna düşer; tutmazsa afiş YOK.
+    # KÖK SEBEP: zayıf/yanlış kimlikte (title-only çakışma) yanlış filmin imdb_id'siyle yanlış afiş iniyordu.
+    kimlik_dogrulandi = (r.get("verdict") == "TEYİT") or ((r.get("cast_ortusme") or 0) >= 2)
+    afis_imdb_id = imdb_id if kimlik_dogrulandi else None
+    afis_tmdb_id = tmdb_id if kimlik_dogrulandi else None
     out["afis"] = None
     if a.afis_out:
         try:
@@ -122,9 +138,20 @@ def main():
             pf = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(pf)
             os.makedirs(os.path.dirname(os.path.abspath(a.afis_out)), exist_ok=True)
-            pf.fetch_poster(a.baslik, a.afis_out, original=a.orijinal, year=a.yil,
-                            cast=rc, crew=None, tmdb_id=tmdb_id, imdb_id=imdb_id)
-            if os.path.exists(a.afis_out) and os.path.getsize(a.afis_out) > 5000:
+            # POSTER-CACHE ZEHİRLENMESİ koruması: afis_out SABİT bir cache yolu (trt-anahtarlı).
+            # Önceki YANLIŞ koşudan kalan bayat afiş orada duruyorsa, bu koşu afiş ÜRETMESE bile
+            # (kimlik doğrulanmadı → id verilmedi → fetch None döner) eski dosya "var + >5KB"
+            # kontrolünü geçip TESLİME sızardı (KÖK SEBEP: Red Flag afişi cache'e yazılmıştı).
+            # Çözüm: (1) fetch'ten ÖNCE bayat dosyayı sil → yalnız bu koşu doldurabilsin;
+            #        (2) out["afis"]'i fetch_poster'ın GERÇEK dönüşüne bağla (dosya-var'a değil).
+            try:
+                if os.path.exists(a.afis_out):
+                    os.remove(a.afis_out)
+            except OSError:
+                pass
+            res = pf.fetch_poster(a.baslik, a.afis_out, original=a.orijinal, year=a.yil,
+                                  cast=rc, crew=None, tmdb_id=afis_tmdb_id, imdb_id=afis_imdb_id)
+            if res and os.path.exists(a.afis_out) and os.path.getsize(a.afis_out) > 5000:
                 out["afis"] = a.afis_out
         except Exception as e:
             sys.stderr.write(f"[uyari] afis indirilemedi: {e}\n")

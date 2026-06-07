@@ -268,33 +268,40 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
             except Exception:  # noqa: BLE001
                 continue
     # --- Yedek zinciri: IMDb Suggestion başarısız ---
-    # (a) TMDB (sadece env'de anahtar varsa)
-    try:
-        data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year)
-        if data:
-            result = _save_image(data, out_path)
-            if result:
-                return result
-    except Exception:
-        pass
-    # (b) OMDb (env anahtarı varsa — IMDb/Amazon posteri)
-    try:
-        data = _fetch_omdb_poster(imdb_id, original or title, year)
-        if data:
-            result = _save_image(data, out_path)
-            if result:
-                return result
-    except Exception:
-        pass
-    # (c) Wikipedia/Wikimedia (anahtarsız)
-    try:
-        data = _fetch_wikipedia_poster(title, original)
-        if data:
-            result = _save_image(data, out_path)
-            if result:
-                return result
-    except Exception:
-        pass
+    # KADRO-TEYİTLİ KAPI (KESİN İLKE 4): id-tabanlı dış aramalar (tmdb_id / imdb_id → TMDB /find)
+    # YALNIZ kimlik doğrulanmışsa çalışır — çünkü credit_kb_lookup bu id'leri SADECE doğrulanmış
+    # kimlikte verir; verilmediyse (None) BAŞLIK-tabanlı dış arama KADRO-KONTROLSÜZdür → yanlış afiş
+    # riski. Doğrulanmış-id yoksa, başlık-tabanlı TMDB/OMDb/Wikipedia fallback'leri ATLA: tek geçerli
+    # yol yukarıdaki kadro-teyitli IMDb _search; tutmadıysa afiş YOK.
+    have_verified_id = bool(tmdb_id or imdb_id)
+    if have_verified_id:
+        # (a) TMDB (sadece env'de anahtar varsa) — doğrulanmış id ile
+        try:
+            data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year)
+            if data:
+                result = _save_image(data, out_path)
+                if result:
+                    return result
+        except Exception:
+            pass
+        # (b) OMDb (env anahtarı varsa — IMDb/Amazon posteri) — doğrulanmış imdb_id ile
+        try:
+            data = _fetch_omdb_poster(imdb_id, original or title, year)
+            if data:
+                result = _save_image(data, out_path)
+                if result:
+                    return result
+        except Exception:
+            pass
+        # (c) Wikipedia/Wikimedia (anahtarsız) — kimlik doğrulanmışken başlıkla afiş
+        try:
+            data = _fetch_wikipedia_poster(title, original)
+            if data:
+                result = _save_image(data, out_path)
+                if result:
+                    return result
+        except Exception:
+            pass
     return None
 
 

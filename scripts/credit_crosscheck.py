@@ -50,15 +50,76 @@ def _castfold(s):
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 def name_match(a, b):
-    """iki isim aynı kişi mi (soyad + tokenların çoğu)."""
+    """iki isim aynı kişi mi — SIKI token eşitliği (substring DEĞİL).
+
+    KÖK SEBEP düzeltmesi: eski gevşek `t in fb` (substring) "Scott Paulin"~"Pauline Chan"
+    ve "Kavi Raz"~"Micaella Raz" gibi YANLIŞ eşleşmeler üretiyordu (paulin⊂pauline,
+    raz⊂micaella değil ama tek-token kesişimi yetiyordu). Artık:
+      • karşılaştırma token-EŞİTLİĞİ üzerinden (substring yok),
+      • 2+ kelimelik adlarda İLK ve SON anlamlı token DA eşit olmalı (tam ad güvencesi),
+      • tek anlamlı tokenlı adlarda o token birebir eşit olmalı.
+    """
     fa, fb = fold(a), fold(b)
     if not fa or not fb:
         return False
     ta = [t for t in fa.split() if len(t) > 2]
-    if not ta:
+    tb = [t for t in fb.split() if len(t) > 2]
+    if not ta or not tb:
         return False
-    hit = sum(1 for t in ta if t in fb)
-    return hit >= max(1, len(ta) - 1)
+    sb = set(tb)
+    # tek anlamlı token: birebir eşitlik (substring değil)
+    if len(ta) == 1:
+        return ta[0] in sb
+    # 2+ token: İLK + SON anlamlı token eşitlik ŞART (ad+soyad çapası)
+    if ta[0] not in sb or ta[-1] not in sb:
+        return False
+    # ek güvence: tokenların çoğu (n-1) birebir eşleşsin
+    hit = sum(1 for t in ta if t in sb)
+    return hit >= max(2, len(ta) - 1)
+
+def _lev(a, b, cap=3):
+    """küçük Levenshtein (cap'lı) — OCR tek-harf misread'i ölçer."""
+    if a == b:
+        return 0
+    la, lb = len(a), len(b)
+    if abs(la - lb) > cap:
+        return cap + 1
+    prev = list(range(lb + 1))
+    for i in range(1, la + 1):
+        cur = [i] + [0] * lb
+        for j in range(1, lb + 1):
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1,
+                         prev[j - 1] + (0 if a[i - 1] == b[j - 1] else 1))
+        prev = cur
+    return prev[lb]
+
+def name_close(a, b):
+    """AYNI kişinin OCR-misread varyantı mı — YAZIM düzeltme için (gating DEĞİL).
+
+    KESIN İLKE 2: web/KB okunan ismin YAZIMINI düzeltir (Ahmet Cimcir→Cemcir). name_match
+    (gating) bunun için fazla SIKI (son token cimcir≠cemcir). Burada: aynı sayıda anlamlı
+    token, tokenların TÜMÜ ya birebir eşit ya da küçük edit-mesafeli (≤2, uzunluk≥4 token'da);
+    en fazla BİR token misread olabilir. Böylece "Murat Cimcir"~"Murat Cemcir" eşleşir ama
+    "Scott Paulin"~"Pauline Chan" (token sayısı/ilk-token farkı) EŞLEŞMEZ."""
+    fa, fb = fold(a), fold(b)
+    if not fa or not fb:
+        return False
+    ta = [t for t in fa.split() if len(t) > 2]
+    tb = [t for t in fb.split() if len(t) > 2]
+    if not ta or not tb or len(ta) != len(tb):
+        return False
+    fuzzy_used = 0
+    for x, y in zip(ta, tb):
+        if x == y:
+            continue
+        # token misread: yalnız uzun token'da (≥4) ve küçük edit-mesafesinde; en fazla 1 token
+        if min(len(x), len(y)) >= 4 and _lev(x, y, 2) <= 2:
+            fuzzy_used += 1
+            if fuzzy_used > 1:
+                return False
+        else:
+            return False
+    return True
 
 def cast_overlap(read_cast, auth_cast):
     if not read_cast or not auth_cast:
@@ -246,9 +307,13 @@ class CreditKB:
     def crosscheck(self, read_director, read_cast=None, *, title_tr=None, original=None, year=None):
         read_cast = read_cast or []
         cands = self.wd_find(title_tr, original, year) + self.imdb_find(title_tr, original, year)
-        # KADEME 1: başlık-eşleşmesi zayıf/yok (cast-örtüşme<2) → CAST'tan kimlik kur (başlık DB'de olmasa da)
+        # KADEME 1: başlık adaylarının cast-örtüşmesi GÜÇLÜ değilse (>=4 yoksa) CAST'tan da
+        # kimlik kur (başlık DB'de olmasa/yanlış-başlık çakışsa da gerçek film havuza girsin).
+        # Eski eşik (best_ov<2) "Uyarı İşareti"→"Warning Sign" gibi yanlış title-only çakışmada
+        # cast_find'i hiç çalıştırmıyordu (best_ov=3 ama o 3 SAHTE name_match'ti); artık SIKI
+        # name_match ile gerçek örtüşme düşük → cast_find devreye girer ve doğru filmi getirir.
         best_ov = max((cast_overlap(read_cast, c.get("cast")) for c in cands), default=0)
-        if read_cast and best_ov < 2:
+        if read_cast and best_ov < 4:
             cands += self.cast_find(read_cast, year)
         if not cands:
             return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [], "neden": "film bulunamadı"}
@@ -262,11 +327,16 @@ class CreditKB:
             return (ov, yp, 1 if c.get("director") else 0)
         cands.sort(key=score, reverse=True)
         best = cands[0]
-        # KADEME 1 güven kapısı: YALNIZ-cast eşleşmesi zayıfsa (ov<4) GÜVENME — yanlış kimlik > okunamadı
-        # (başlık-tabanlı wikidata/imdb adaylarına dokunmaz; onlar başlık-teyitli)
-        if best.get("src") == "imdb-cast" and cast_overlap(read_cast, best.get("cast")) < 4:
+        # KİMLİK KAPISI (TÜM kaynaklara): bir filmi "tanındı" saymadan önce GERÇEK cast_overlap
+        # (yeni SIKI name_match ile) >=2 olmalı. Aksi halde KAYNAK_YOK.
+        # KÖK SEBEP: klip XML'siz → orijinal-ad yok → title-only "UYARI İŞARETİ" Filipinli
+        # "Red Flag"in resmi TR adıyla çakıştı; eski kapı yalnız src=="imdb-cast"'e bakıyordu,
+        # başlık-tabanlı yanlış adayı (cast_ov SAHTE 3) geçiriyordu. Artık başlık-tabanlı dahil
+        # her kaynak gerçek cast örtüşmesiyle kapıdan geçer (yanlış kimlik > okunamadı).
+        # İstisna: read_cast HİÇ verilmediyse (cast'sız sorgu) eski başlık-teyidi davranışı korunur.
+        if read_cast and cast_overlap(read_cast, best.get("cast")) < 2:
             return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [],
-                    "neden": "cast-eşleşmesi zayıf (güvenilmez)"}
+                    "neden": "cast-eşleşmesi zayıf (güvenilmez kimlik)"}
         auth_dir = best.get("director") or []
         if not read_director:
             verdict = "OKUNAN_YOK"
