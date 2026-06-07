@@ -152,14 +152,26 @@ def main():
     trt = meta.get("trt_id") or "—"
     rapor = {"adimlar": {}}
 
-    # 1) VIDEO-OKUMA (pipeline önceden hesapladıysa onu kullan, tekrar GPU'ya gitme)
+    # 1) KÜNYE-OKUMA (pipeline önceden hesapladıysa onu kullan; yoksa OneOCR+GLM METNİNDEN rol-eşle)
+    #    VLM (credit_video_read) ÇIKARILDI — okuma OneOCR+GLM, isim kaynağı ocr/kunye.txt (Çağatay 2026-06-08).
     if a.video_credits:
         try:
             vc = json.loads(a.video_credits)
         except Exception:
             vc = None
     else:
-        vc, _ = run_ocr_json("_pipe_credit_video.py", ["--giris", giris, "--cikis", cikis])
+        vc = None
+        try:
+            import glob as _glob
+            _ocrtxt = sorted(_glob.glob(os.path.join(clip, "ocr", "*", "kunye.txt")),
+                             key=os.path.getmtime)
+            if _ocrtxt:
+                sys.path.insert(0, HERE)
+                import credit_text_read as _ctr
+                _lines = open(_ocrtxt[-1], encoding="utf-8", errors="ignore").read().splitlines()
+                vc = _ctr.read_credits_auto(_lines, title, dizi=(a.profile == "dizi"))
+        except Exception as _e:  # noqa: BLE001
+            sys.stderr.write(f"[uyari] OneOCR+GLM metin-okuma hata: {_e}\n")
     vc = vc or {}
     yon = vc.get("yonetmen") or []
     cast = vc.get("cast") or []

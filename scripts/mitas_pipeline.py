@@ -692,30 +692,33 @@ def main(argv=None) -> int:
             log_event("asr_failed", level="error", summary=f"ASR blogu hata: {exc}",
                       module="asr", media_id=media_id, filename=video.name, job_id=asr_job, error=str(exc), detail={"clip_id": clip_id})
 
-    # ===== BLOK VIDEO-KÜNYE (opsiyonel: MITAS_USE_VIDEO_CREDITS) =====
-    # ASR communicate() BİTTİKTEN sonra (GPU serbest), PDF'ten ÖNCE → gemma+7b ile whisper ÇAKIŞMAZ.
-    # Flag KAPALI (vars.) → blok hiç çalışmaz, video_credits=None, PDF'e arg eklenmez (sıfır etki). Asla çökmez.
-    # film/dizi'de TEMİZ künye için video-okuma + v4 final VARSAYILAN AÇIK (eski OCR-only çöp üretiyordu:
-    # yönetmen yok, "SERVING GIRL" yapımcı, cast boş). Acil geri dönüş: MITAS_NO_VIDEO_CREDITS=1.
+    # ===== BLOK KÜNYE-OKUMA (OneOCR+GLM METNİNDEN rol-eşleme; VLM DEVRE DIŞI) =====
+    # KURAL (Çağatay 2026-06-08): okuma OneOCR+GLM ile yapılır → isim kaynağı = ocr/kunye.txt.
+    # _pipe_credit_text LLM ile yalnız ROL-EŞLEME yapar (pikselden OKUMAZ; halüsinasyon kalkanlı:
+    # her isim OCR metninde olmalı). Eski VLM (credit_video_read: gemma4+qwen2.5vl) ÇIKARILDI —
+    # pikselden okuyup HALÜSİNE ediyordu (KÖTÜ EVLAT: metin "Henry Hathaway" iken VLM "John Ford").
+    # ASR'den sonra (GPU serbest), PDF'ten önce. KAPALI (MITAS_NO_VIDEO_CREDITS=1) → blok çalışmaz,
+    # video_credits=None, PDF credit_parse-only'ye düşer (acil geri dönüş). Asla çökmez.
     _vc_off = os.environ.get("MITAS_NO_VIDEO_CREDITS", "").strip().lower() in ("1", "true", "yes", "on")
     USE_VIDEO_CREDITS = not _vc_off
     video_credits = None
     if USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi"):
         t_vc = time.perf_counter()
         try:
-            vc_cmd = [str(PY_OCR), str(HERE / "_pipe_credit_video.py"),
-                      "--giris", str(giris_frames), "--cikis", str(cikis_frames)]
+            vc_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_text.py"),
+                      "--ocr", str(kunye_path), "--title", title or "", "--profile", profile]
             rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
             timings["video_kunye"] = round(time.perf_counter() - t_vc, 2)
-            log_event("credit_video_completed",
-                      summary=f"{video.name}: video-kunye guven={(video_credits or {}).get('guven')} yon={(video_credits or {}).get('yonetmen')} ({timings.get('video_kunye')} sn).",
+            log_event("credit_text_completed",
+                      summary=f"{video.name}: kunye-okuma(metin) model={(video_credits or {}).get('model')} guven={(video_credits or {}).get('guven')} yon={(video_credits or {}).get('yonetmen')} ({timings.get('video_kunye')} sn).",
                       module="ocr", media_id=media_id, filename=video.name, duration_seconds=timings.get("video_kunye"),
                       detail={"clip_id": clip_id, "guven": (video_credits or {}).get("guven"),
                               "yonetmen": (video_credits or {}).get("yonetmen"),
+                              "model": (video_credits or {}).get("model"),
                               "stderr": (err_vc or "")[-200:] if rc_vc else None})
-        except Exception as exc:  # noqa: BLE001 — video-kunye akışı/PDF'i ASLA bozmaz
-            log_event("credit_video_failed", level="warn", summary=f"video-kunye blogu hata (atlandi): {exc}",
+        except Exception as exc:  # noqa: BLE001 — kunye-okuma akışı/PDF'i ASLA bozmaz
+            log_event("credit_text_failed", level="warn", summary=f"kunye-okuma(metin) blogu hata (atlandi): {exc}",
                       module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
     # ===== BLOK PDF / teslim =====
