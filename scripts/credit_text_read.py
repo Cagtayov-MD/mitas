@@ -108,9 +108,22 @@ def _ollama_json(model, prompt, schema, timeout=180):
     return {}
 
 
+# Disclaimer/bağlaç/rol-etiketi kelimeleri — bir "isim"de geçiyorsa o cümle parçasıdır, isim DEĞİL.
+# Deterministik junk-filtre (çok-dilli): LLM bazen "PELÍCULA SUBVENCİONADA POR EL" gibi disclaimer
+# satırını cast'e koyuyor → exact-token eşleşmeyle düşür (alt-dize değil; "connery"≠"con").
+_JUNK_WORDS = {
+    "por", "the", "del", "della", "con", "apoyo", "subvencionada", "presenta", "presents",
+    "presente", "avec", "mit", "und", "von", "par", "fund", "fondo", "support", "courtesy",
+    "arrangement", "association", "produced", "directed", "production", "produccion", "pelicula",
+    "film", "films", "colaboracion", "gracias", "thanks", "tarafindan", "destek", "katki", "sunar",
+    "ile", "tarafından", "yapim", "yapimi", "music", "starring", "cast", "story", "screenplay",
+    "written", "based", "company", "pictures", "studio", "media", "entertainment", "all", "rights",
+}
+
+
 def _guard(names, ocr_fold_tokens, title_f):
-    """Anti-halüsinasyon: her ismin anlamlı tokenlarının TÜMÜ OCR metninde geçmeli.
-    Aksi halde isim UYDURMA → atılır. Şirket/etiket/başlık da elenir."""
+    """Anti-halüsinasyon + junk-filtre: her ismin anlamlı tokenlarının TÜMÜ OCR metninde geçmeli;
+    1-4 kelime; disclaimer/bağlaç kelimesi içermemeli. Aksi halde uydurma/çöp → atılır."""
     out, seen = [], set()
     for nm in names or []:
         nm = (nm or "").strip()
@@ -121,6 +134,12 @@ def _guard(names, ocr_fold_tokens, title_f):
             continue
         # TÜM anlamlı tokenlar OCR metninde olmalı (halüsinasyon kalkanı)
         if not all(t in ocr_fold_tokens for t in tk):
+            continue
+        # isim 1-4 anlamlı kelime; daha uzunu cümle/disclaimer
+        if len(tk) > 4:
+            continue
+        # disclaimer/bağlaç/etiket kelimesi içeren "isim" = cümle parçası → düş
+        if any(t in _JUNK_WORDS for t in tk):
             continue
         if _fold(nm).strip() == title_f:  # film adının kendisi isim değil
             continue
