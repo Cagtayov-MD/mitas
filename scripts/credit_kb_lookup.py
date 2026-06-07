@@ -124,11 +124,13 @@ def main():
     out["imdb_id"] = imdb_id
 
     # 3) afiş (istenirse)
-    # AFİŞ KAPISI (KESİN İLKE 4): imdb_id/tmdb_id ile KADRO-KONTROLSÜZ afiş indirme YALNIZ
-    # kimlik DOĞRULANMIŞSA verilir (verdict TEYİT veya GERÇEK cast_overlap>=2). Aksi halde id'ler
-    # VERİLMEZ → poster_fetch kadro-teyitli _search yoluna düşer; tutmazsa afiş YOK.
-    # KÖK SEBEP: zayıf/yanlış kimlikte (title-only çakışma) yanlış filmin imdb_id'siyle yanlış afiş iniyordu.
-    kimlik_dogrulandi = (r.get("verdict") == "TEYİT") or ((r.get("cast_ortusme") or 0) >= 2)
+    # AFİŞ KAPISI (KESİN İLKE 4 + Çağatay 2026-06-07: "afişi yönetmen+oyuncu TEYİT aldıktan SONRA,
+    # doğru olduğuna EMİN olup çekeceğiz; yanlış afiş YOK"): id-tabanlı afiş indirme YALNIZ kimlik
+    # GÜÇLÜ doğrulanmışsa verilir — verdict TEYİT (OCR yönetmeni KB ile eşleşti) VEYA ≥3 SIKI
+    # cast örtüşmesi. (Eşik 2→3 yükseltildi: afiş en görünür yanlış-veri; "gerekli tedbir".)
+    # Aksi halde id'ler VERİLMEZ → poster_fetch kadro-teyitli _search'e düşer; tutmazsa afiş YOK.
+    # KÖK SEBEP: zayıf/yanlış kimlikte (title-only çakışma) yanlış filmin id'siyle yanlış afiş iniyordu.
+    kimlik_dogrulandi = (r.get("verdict") == "TEYİT") or ((r.get("cast_ortusme") or 0) >= 3)
     afis_imdb_id = imdb_id if kimlik_dogrulandi else None
     afis_tmdb_id = tmdb_id if kimlik_dogrulandi else None
     out["afis"] = None

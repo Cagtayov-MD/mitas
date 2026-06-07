@@ -23,6 +23,9 @@ PY_OCR = os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe")
 PDFMITAS = r"E:\MITAS\OCR-worktree\pdf-mitas"
 AFIS_CACHE = r"E:\MITAS\_102_afis_cache"
 OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
+# KB cast-ekleme (eksik isim TAMAMLAMA, asla ezme) — default KAPALI. Açıkken bile kimlik GERÇEKTEN
+# emin olmalı (OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI cast → ORTA/Kontrol).
+_ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "").strip().lower() in ("1", "true", "on", "yes")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)
@@ -178,36 +181,68 @@ def main():
     auth_yon = cc.get("otoriter_yonetmen") or []
     # KİMLİK DOĞRULANDI mı: read yönetmeni TEYİT aldı YA DA okunan cast otoriteyle >=2 örtüştü
     kimlik_dogru = (verdict == "TEYİT") or (cast_ov >= 2)
+    # YÖNETMEN — KIRMIZI ÇİZGİ (2026-06-07, Çağatay): KB-fill YOK. Yönetmen OCR-otorite.
+    #   • OCR boş → "okunamadı" (KB'den DOLDURMA — "her şeyi okuyacağız" diye bir şey yok).
+    #   • OCR var + kimlik doğrulandı + KB yönetmeni var:
+    #       OCR ~ KB (name_match/name_close) → KANONİK KB yazımı (fuzzy YAZIM düzelt). ✅
+    #       eşleşmezse (ör. "ABRURRAK ROROSKO" garble) → fuzzy hiçbir yere koyamaz → "okunamadı".
+    #   • OCR var + (KB yok / kimlik yok) → OCR'ı AYNEN koru (doğrulayacak şey yok).
     yon_kaynak = "kareler"
-    if kimlik_dogru and auth_yon:
-        if not yon:
-            # kareden OKUNAMADI → KB'den DOLDUR (uydurma değil, kimlik cast ile doğrulandı)
-            yon = auth_yon
-            yon_kaynak = "KB (kareden okunamadı; kimlik cast ile doğrulandı)"
-        # ÇELİŞKİ: OCR yönetmeni OTORİTE — KB ile EZİLMEZ (KESİN İLKE 3). Çelişki zaten
-        # mitas_pipeline'da Kontrol'e düşürür; burada OKUNAN yönetmeni KORU.
-        # else TEYİT → kareden okunan otoriteyle eşleşti, KALSIN
+    yon_ocr_teyit = False                       # OCR yönetmeni KB ile BAĞIMSIZ teyit edildi mi (cast-ADD çapası)
+    if yon and _cc is not None and kimlik_dogru and auth_yon:
+        _yeni = []
+        for _d in yon:
+            _m = next((a for a in auth_yon if _cc.name_match(_d, a)), None) \
+                 or next((a for a in auth_yon if _cc.name_close(_d, a)), None)
+            if _m and _m not in _yeni:
+                _yeni.append(_m)
+        if _yeni:
+            yon = _yeni; yon_kaynak = "kareler (KB yazım teyitli)"; yon_ocr_teyit = True
+        else:
+            yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
+    elif not yon:
+        yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"
+    # else: OCR var ama KB yok/kimlik yok → OCR korunur (kaynak=kareler)
     # cast: OCR/jenerik kadrosu MUTLAK OTORİTE — liste (uzunluk+sıra) OCR'dan, KB ile EZİLMEZ.
     # KB yalnız OKUNAN ismin YAZIMINI düzeltir (Ahmet Cimcir→Cemcir): her OCR ismi için
     # otoriter_cast'ta name_match ile eş ara; eşleşirse SADECE o ismi kanonik haliyle değiştir,
     # eşleşmezse OCR ismini AYNEN koru. KB'de olup OCR'da olmayan ismi EKLEME.
     auth = cc.get("otoriter_cast") or []
+    cast_add_tier = None                        # KB cast-ekleme kademesi (rapora yazılır; ORTA→Kontrol)
     if kimlik_dogru and auth and _cc is not None:
         duz = []
+        strict_hits = 0                         # OCR isminin KB'de SIKI tam-ad karşılığı (kimlik gücü)
         for nm in cast:
             # önce SIKI eşitlik (aynı kişi kesin), tutmazsa OCR-misread yazım düzeltmesi (Cimcir→Cemcir)
-            es = next((a for a in auth if _cc.name_match(nm, a)), None) \
-                 or next((a for a in auth if _cc.name_close(nm, a)), None)
+            _se = next((a for a in auth if _cc.name_match(nm, a)), None)
+            if _se:
+                strict_hits += 1
+            es = _se or next((a for a in auth if _cc.name_close(nm, a)), None)
             duz.append(es if es else nm)
         cast = duz
+        # CAST-ADD (flag MITAS_KB_CAST_ADD, default KAPALI): KB'nin OCR'da OLMAYAN kadrosunu EKLE.
+        # ASLA ezme/yeniden sırala — OCR isimleri ÖNDE kalır, eklenenler SONRA. Kimlik GERÇEKTEN
+        # emin olmalı (iki bağımsız çapa). GÜÇLÜ: OCR-teyitli yönetmen + ≥3 SIKI cast → Hazır.
+        # ORTA: yönetmen yok ama ≥4 SIKI cast ve OCR-cast'ın ÇOĞUNLUĞU → Kontrol (insan göz atsın).
+        if _ADD_ON:
+            _ocr_n = max(1, len([c for c in cast if str(c).strip()]))
+            if yon_ocr_teyit and strict_hits >= 3:
+                cast_add_tier = "GUCLU"
+            elif strict_hits >= 4 and strict_hits >= (_ocr_n + 1) // 2:
+                cast_add_tier = "ORTA"
+            if cast_add_tier:
+                for _an in auth:                # NOT: 'a' argparse namespace'i — döngüde EZME (bug)
+                    if not any(_cc.name_match(_an, x) or _cc.name_close(_an, x) for x in cast):
+                        cast.append(_an)        # OCR'dan SONRA ekle (otorite sırası korunur)
     if not yap and cc.get("yapimci"):
         yap = cc["yapimci"]
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
     tur = cc.get("tur") or "—"
     afis = cc.get("afis")
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
-                                       "yonetmen_kaynak": yon_kaynak, "yapimci": yap, "tur": tur,
-                                       "cast_ortusme": cast_ov, "afis": bool(afis)}
+                                       "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
+                                       "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
+                                       "cast_add_tier": cast_add_tier, "afis": bool(afis)}
 
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)

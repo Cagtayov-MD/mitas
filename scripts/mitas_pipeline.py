@@ -904,6 +904,13 @@ def main(argv=None) -> int:
             _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
             if _cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False:
                 reasons.append("kimlik çelişkisi (KB cross-check)")
+            # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
+            # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
+            if not (((_v4j or {}).get("v4") or {}).get("yonetmen") or []):
+                reasons.append("yönetmen okunamadı (KB-fill yok — kırmızı çizgi)")
+            # KB cast-ekleme ORTA güven (yönetmen teyitsiz, sadece cast) → insan göz atsın
+            if _cc4.get("cast_add_tier") == "ORTA":
+                reasons.append("KB cast-ekleme ORTA güven (insan teyidi gerek)")
     except Exception:  # noqa: BLE001 — parse hatası kararı bozmasın
         pass
     # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik
