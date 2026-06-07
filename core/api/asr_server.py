@@ -2527,13 +2527,32 @@ def _search_snippet(text: str, query: str, *, radius: int = 90) -> str:
     return f"{prefix}{text[start:end].strip()}{suffix}"
 
 
+# Yabanci (TURKCE-OLMAYAN) Latin aksanlarini ASCII'ye katla; PAYLASIMLI ç/ğ/ı/İ/ö/ş/ü haritada YOK
+# (Turkce ile ayni kod-noktasi -> Sonnet'e kalir). mitas_pipeline._FOREIGN_ACCENT_FOLD ile AYNI.
+_FOREIGN_ACCENT_FOLD = str.maketrans({
+    "à": "a", "á": "a", "â": "a", "ã": "a", "ä": "a", "å": "a", "ā": "a", "ą": "a",
+    "À": "A", "Á": "A", "Â": "A", "Ã": "A", "Ä": "A", "Å": "A", "Ā": "A", "Ą": "A",
+    "è": "e", "é": "e", "ê": "e", "ë": "e", "ē": "e", "ę": "e", "ě": "e",
+    "È": "E", "É": "E", "Ê": "E", "Ë": "E", "Ē": "E", "Ę": "E", "Ě": "E",
+    "ì": "i", "í": "i", "î": "i", "ï": "i", "ī": "i",
+    "Ì": "I", "Í": "I", "Î": "I", "Ï": "I", "Ī": "I",
+    "ò": "o", "ó": "o", "ô": "o", "õ": "o", "ø": "o", "ō": "o",
+    "Ò": "O", "Ó": "O", "Ô": "O", "Õ": "O", "Ø": "O", "Ō": "O",
+    "ù": "u", "ú": "u", "û": "u", "ū": "u", "Ù": "U", "Ú": "U", "Û": "U", "Ū": "U",
+    "ñ": "n", "ń": "n", "Ñ": "N", "Ń": "N", "ć": "c", "č": "c", "Ć": "C", "Č": "C",
+    "ś": "s", "š": "s", "Ś": "S", "Š": "S", "ź": "z", "ż": "z", "ž": "z", "Ź": "Z", "Ż": "Z", "Ž": "Z",
+    "ý": "y", "ÿ": "y", "Ý": "Y", "ł": "l", "Ł": "L", "đ": "d", "Đ": "D",
+    "ß": "ss", "æ": "ae", "Æ": "AE", "œ": "oe", "Œ": "OE",
+})
+
+
 def _latin_only(text: str) -> str:
     """Ozet KURALI (Cagatay): cikti SADECE Latin alfabesi — Kiril/Cince/Arap/Yunan/CJK
-    HARFLERI DUSER. Latin (aksanli dahil) + ASCII + harf-disi (bosluk/rakam/noktalama)
-    KORUNUR. Deterministik kemer: model prompt'a uymasa bile baska-alfabe ozete sizmaz.
-    (mitas_pipeline._latin_only ile ayni; ozet ureten her yolda tutarli.)"""
+    HARFLERI DUSER. Once yabanci-aksan ASCII'ye katlanir (Turkce ç/ğ/ı/İ/ö/ş/ü KORUNUR), sonra
+    Latin-disi duser. Deterministik kemer: model prompt'a uymasa bile baska-alfabe/yabanci-aksan
+    ozete sizmaz (José->Jose). (mitas_pipeline._latin_only ile ayni; ozet ureten her yolda tutarli.)"""
     import unicodedata
-    return "".join(ch for ch in (text or "")
+    return "".join(ch for ch in (text or "").translate(_FOREIGN_ACCENT_FOLD)
                    if ch.isascii()
                    or unicodedata.category(ch)[0] != "L"
                    or "LATIN" in unicodedata.name(ch, ""))
