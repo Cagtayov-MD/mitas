@@ -864,11 +864,15 @@ def main(argv=None) -> int:
             reasons.append("qwen: ses/dil yok")
         if qwen_qc.get("turkce_karakter_bozuk_var"):
             reasons.append("qwen: Türkçe karakter bozuk")
+        if qwen_qc.get("latin_disi_alfabe_var"):                # başka alfabe (Kiril/Yunan/Arap/CJK) PDF'e sızmamalı
+            reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
         # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt
         if not qwen_qc.get("afis_var"):
             qwen_uyari.append("qwen: afiş yok (deterministik poster_fetch garanti — uyarı)")
         if not qwen_qc.get("hepsi_buyuk_harf"):
             qwen_uyari.append("qwen: büyük-harf değil (deterministik tr_upper — uyarı)")
+        if qwen_qc.get("yabanci_ad_ascii_degil"):              # yabancı ad aksanlı: kemer+Sonnet birincil, qwen ince-aksanda güvenilmez → uyarı
+            qwen_uyari.append("qwen: yabancı ad aksanlı/ASCII değil (deterministik kemer+Sonnet birincil — uyarı)")
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
     dest = dest_root / clip_id
