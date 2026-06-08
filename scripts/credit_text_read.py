@@ -118,6 +118,11 @@ _JUNK_WORDS = {
     "film", "films", "colaboracion", "gracias", "thanks", "tarafindan", "destek", "katki", "sunar",
     "ile", "tarafından", "yapim", "yapimi", "music", "starring", "cast", "story", "screenplay",
     "written", "based", "company", "pictures", "studio", "media", "entertainment", "all", "rights",
+    # TR rol-etiketi / ajans token'ları (bir "isim"de geçerse o etiket/kurum, kişi DEĞİL):
+    "direktoru", "direktor", "yonetmeni", "yonetmen", "menajerlik", "menajer", "ajans", "ajansi",
+    "ekibi", "amiri", "sefi", "sorumlusu", "operatoru", "koordinator", "kordinator", "muhendis",
+    "teknisyen", "asistani", "yardimcisi", "supervisor", "coordinator", "manager", "designer",
+    "casting", "editor", "mixer", "gaffer", "grip",
 }
 
 
