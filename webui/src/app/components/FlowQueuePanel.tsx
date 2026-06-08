@@ -7,10 +7,9 @@ import {
   Loader2,
   Play,
   Search,
-  UploadCloud,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { Badge, Button, ScrollArea } from './ui';
 import {
   ANALYSIS_PROFILE_OPTIONS,
@@ -50,6 +49,7 @@ interface FlowQueueItem {
   tedialItem?: TedialSearchResult;
   job?: AsrJob;
   message?: string;
+  uploading?: boolean;
 }
 
 export interface FlowQueuedMediaRequest {
@@ -66,6 +66,7 @@ export interface FlowQueuedMediaRequest {
 
 interface FlowQueuePanelProps {
   onOpenMedia: (request: FlowQueuedMediaRequest) => void;
+  browseSignal?: number;  // Header'daki "Gözat" butonundan artan sayaç → gözat tarayıcısını aç
 }
 
 interface PersistedFlowQueueState {
@@ -84,15 +85,17 @@ const STATUS_META: Record<FlowItemStatus, { label: string; variant: 'secondary' 
   stopped: { label: 'Durduruldu', variant: 'secondary' },
 };
 
-export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const directoryInputRef = useRef<HTMLInputElement | null>(null);
+export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProps) {
   const itemsRef = useRef<FlowQueueItem[]>([]);
   const isProcessingRef = useRef(false);
   const stopModeRef = useRef<FlowStopMode>('none');
   const hasLoadedPersistedQueueRef = useRef(false);
   const skipNextPersistenceEffectRef = useRef(true);
+  const uploadsRef = useRef<Map<string, Promise<void>>>(new Map());  // devam eden klip yüklemeleri (id → söz); Başlat bunları bekler
+  const lastPctRef = useRef<Record<string, number>>({});            // son raporlanan tam yüzde — gereksiz render önler
+  const isPreparingRef = useRef(false);                              // Başlat yüklemeleri beklerken poll'un isProcessing'i ezmesini engeller
   const [items, setItems] = useState<FlowQueueItem[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});  // SADECE görsel — kalıcılaştırılmaz
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [bulkProfile, setBulkProfile] = useState<AnalysisProfile>('film_dizi');
   const [tedialQuery, setTedialQuery] = useState('');
@@ -102,33 +105,38 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const [tedialMessage, setTedialMessage] = useState('');
   const [isDragActive, setIsDragActive] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPreparing, setIsPreparing] = useState(false);
   const [stopMode, setStopMode] = useState<FlowStopMode>('none');
   const [persistenceStatus, setPersistenceStatus] = useState<'loading' | 'saved' | 'error'>('loading');
-  const [localDir, setLocalDir] = useState('');
   const [localDirBusy, setLocalDirBusy] = useState(false);
+  const [selectedFilms, setSelectedFilms] = useState<Set<string>>(() => new Set());  // gözatta tek tek seçilen videolar (klasör başına)
   const [browseOpen, setBrowseOpen] = useState(false);
   const [browsePath, setBrowsePath] = useState('');
   const [browseLoading, setBrowseLoading] = useState(false);
   const [browseData, setBrowseData] = useState<{ path: string; parent: string | null; dirs: string[]; films: string[]; film_count: number } | null>(null);
 
   useEffect(() => {
-    directoryInputRef.current?.setAttribute('webkitdirectory', '');
-    directoryInputRef.current?.setAttribute('directory', '');
-  }, []);
-
-  useEffect(() => {
     let cancelled = false;
-    loadFlowQueueState()
-      .then((state) => {
+    // SUNUCU worker durumunu da çek: koşuyorsa server queue.json OTORİTEDİR. Yenileme/remount'ta
+    // 'running' öğeyi 'stopped'a çevirip geri-YAZMA → worker'ı ezme ("İşleniyor" iken "Durduruldu" görünme).
+    Promise.all([
+      loadFlowQueueState(),
+      fetch('/api/flow-queue/worker', { cache: 'no-store' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((worker) => Boolean(worker?.running))
+        .catch(() => false),
+    ])
+      .then(([state, workerRunning]) => {
         if (cancelled) return;
-        const restoredItems = (state?.items ?? []).map(restorePersistedFlowItem);
+        const restoredItems = (state?.items ?? []).map((item) => restorePersistedFlowItem(item, workerRunning));
         const restoredBulkProfile = state?.bulkProfile ?? 'film_dizi';
         itemsRef.current = restoredItems;
         setItems(restoredItems);
         if (state?.bulkProfile) {
           setBulkProfile(restoredBulkProfile);
         }
-        if (restoredItems.length > 0) {
+        // Worker koşarken geri-yazma YOK (server otoritedir; poll 2 sn'de gerçek durumu getirir).
+        if (restoredItems.length > 0 && !workerRunning) {
           void saveFlowQueueServerState({
             id: FLOW_QUEUE_STATE_ID,
             updatedAt: new Date().toISOString(),
@@ -167,17 +175,17 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       .catch(() => setPersistenceStatus('error'));
   }, [items, bulkProfile]);
 
+  // itemsRef.current'i SENKRON güncelle (React state flush'ını bekleme). Başlat, yüklemeler
+  // bittiği an itemsRef'ten storedMediaPath'i okuyup sunucuya yazıyor — flush gecikmesi yarış yaratmasın.
   const updateItems = (updater: (current: FlowQueueItem[]) => FlowQueueItem[]) => {
-    setItems((current) => {
-      const next = updater(current);
-      itemsRef.current = next;
-      if (hasLoadedPersistedQueueRef.current && !isProcessingRef.current) {
-        saveFlowQueueState({ items: next, bulkProfile })
-          .then(() => setPersistenceStatus('saved'))
-          .catch(() => setPersistenceStatus('error'));
-      }
-      return next;
-    });
+    const next = updater(itemsRef.current);
+    itemsRef.current = next;
+    setItems(next);
+    if (hasLoadedPersistedQueueRef.current && !isProcessingRef.current) {
+      saveFlowQueueState({ items: next, bulkProfile })
+        .then(() => setPersistenceStatus('saved'))
+        .catch(() => setPersistenceStatus('error'));
+    }
   };
 
   // SUNUCU worker durumunu izle — yenileme/kapatma sonrası YENİDEN BAĞLANIR (koşu sayfadan bağımsız sürer).
@@ -197,21 +205,24 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
         const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string }> = Array.isArray(q?.items) ? q.items : [];
         if (serverItems.length) {
           const byId = new Map(serverItems.map((s) => [s.id, s] as const));
-          setItems((current) => {
-            const next = current.map((it) => {
-              const s = byId.get(it.id);
-              return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message } : it;
-            });
-            itemsRef.current = next;
-            return next;
+          const next = itemsRef.current.map((it) => {
+            if (it.uploading) return it;  // aktif yükleme — yerel "Yükleniyor" durumunu sunucu durumuyla ezme
+            const s = byId.get(it.id);
+            return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message } : it;
           });
+          itemsRef.current = next;
+          setItems(next);
         }
       }
-      isProcessingRef.current = running;
-      setIsProcessing(running);
-      if (!running && stopModeRef.current !== 'none') {
-        stopModeRef.current = 'none';
-        setStopMode('none');
+      // Başlat yüklemeleri beklerken (isPreparing) worker henüz koşmaz → poll isProcessing'i false'a
+      // çekip guard'ları açmasın / çift-Başlat'a izin vermesin.
+      if (!isPreparingRef.current) {
+        isProcessingRef.current = running;
+        setIsProcessing(running);
+        if (!running && stopModeRef.current !== 'none') {
+          stopModeRef.current = 'none';
+          setStopMode('none');
+        }
       }
     } catch {
       /* geçici ağ hatası — sonraki tick'te tekrar */
@@ -228,7 +239,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const addFiles = (fileList: FileList | File[]) => {
     const files = Array.from(fileList).filter(Boolean);
     if (!files.length) return;
-    const nextItems = files.map((file) => ({
+    const nextItems: FlowQueueItem[] = files.map((file) => ({
       id: `upload-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       source: 'upload' as const,
       name: file.name,
@@ -238,29 +249,42 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       sourcePath: uploadSourcePath(file),
       mediaType: mediaTypeForQueueFile(file),
       sizeBytes: file.size,
-      message: formatBytes(file.size),
+      uploading: true,           // klip sunucuya kopyalanıyor — Başlat bunu bekler
+      message: 'Yükleniyor…',
     }));
     updateItems((current) => [...current, ...nextItems]);
     nextItems.forEach((item) => {
-      persistQueueUpload(item.id, item.file)
+      const file = item.file;
+      if (!file) return;
+      const uploadPromise = persistQueueUpload(item.id, file, (pct) => {
+        const rounded = Math.round(pct);
+        if (lastPctRef.current[item.id] === rounded) return;  // sadece yüzde değişince güncelle
+        lastPctRef.current[item.id] = rounded;
+        setUploadProgress((current) => ({ ...current, [item.id]: rounded }));  // ayrı state — kalıcılaştırılmaz
+      })
         .then((stored) => {
           updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-            ? withStoredUploadMedia(currentItem, stored)
+            ? { ...withStoredUploadMedia({ ...currentItem, uploading: false }, stored), message: formatBytes(stored.size_bytes) }
             : currentItem));
         })
         .catch((error) => {
+          // Yükleme başarısızsa NET hata + 'failed' → worker'a yarım/yolsuz öğe gitmez ("Video bulunamadı" gizemini önler).
           updateItems((current) => current.map((currentItem) => currentItem.id === item.id
-            ? { ...currentItem, message: `Queue log kopyası yazılamadı: ${error instanceof Error ? error.message : 'hata'}` }
+            ? { ...currentItem, uploading: false, status: 'failed', message: `Yükleme başarısız: ${error instanceof Error ? error.message : 'hata'}` }
             : currentItem));
+        })
+        .finally(() => {
+          uploadsRef.current.delete(item.id);
+          delete lastPctRef.current[item.id];
+          setUploadProgress((current) => {
+            if (!(item.id in current)) return current;
+            const next = { ...current };
+            delete next[item.id];
+            return next;
+          });
         });
+      uploadsRef.current.set(item.id, uploadPromise);
     });
-  };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      addFiles(event.target.files);
-      event.target.value = '';
-    }
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -399,8 +423,31 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
     setStopMode('none');
     isProcessingRef.current = true;
     setIsProcessing(true);
+    isPreparingRef.current = true;
+    setIsPreparing(true);
+    let started = false;
     try {
-      // Kuyruğu sunucuya yaz (worker queue.json'dan okur) + SUNUCU-TARAFI worker'ı başlat.
+      // 1) DEVAM EDEN YÜKLEMELERİ BİTİR — "yükle → hemen Başlat" yarışını kapatır.
+      //    Klip sunucuya kopyalanmadan worker'a gidilirse storedMediaPath yok → "Video bulunamadı".
+      if (uploadsRef.current.size > 0) {
+        await Promise.allSettled([...uploadsRef.current.values()]);
+      }
+      // 2) Hâlâ sunucu-yolu olmayan upload öğelerini NET mesajla 'failed' yap (worker'a gönderme).
+      const unresolvedIds = new Set(
+        itemsRef.current
+          .filter((it) => it.status === 'waiting' && it.source === 'upload' && !it.storedMediaPath && !it.storedMediaUrl)
+          .map((it) => it.id),
+      );
+      if (unresolvedIds.size > 0) {
+        updateItems((current) => current.map((it) => unresolvedIds.has(it.id)
+          ? { ...it, status: 'failed', uploading: false, message: 'Yükleme tamamlanamadı — dosyayı tekrar ekleyin.' }
+          : it));
+      }
+      // 3) Başlatılacak gerçek bekleyen iş kaldı mı?
+      if (!itemsRef.current.some((it) => it.status === 'waiting')) {
+        return;  // hepsi yarım/başarısız — worker'ı boşuna başlatma
+      }
+      // 4) Kuyruğu sunucuya yaz (worker queue.json'dan okur) + SUNUCU-TARAFI worker'ı başlat.
       await saveFlowQueueServerState({
         id: FLOW_QUEUE_STATE_ID,
         updatedAt: new Date().toISOString(),
@@ -408,9 +455,18 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
         items: itemsRef.current.map(toFallbackFlowItem),
       });
       await fetch('/api/flow-queue/run', { method: 'POST' });
+      started = true;
       await pollServerQueue();
     } catch {
       // başlatılamazsa pollServerQueue gerçek durumu yansıtır
+    } finally {
+      isPreparingRef.current = false;
+      setIsPreparing(false);
+      if (!started) {
+        // Worker başlamadı (başlatacak iş yok / hata) → butonu serbest bırak.
+        isProcessingRef.current = false;
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -435,6 +491,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
 
   const selectedCount = selectedIds.size;
   const pendingCount = items.filter((item) => item.status === 'waiting').length;
+  const uploadingCount = items.filter((item) => item.uploading).length;
   const doneCount = items.filter((item) => item.status === 'done' || item.status === 'partial').length;
   const stoppedCount = items.filter((item) => item.status === 'stopped').length;
   const canSafeStop = isProcessing && stopMode !== 'safe';
@@ -447,26 +504,31 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
 
   // YEREL KLASÖR (PATH ile, UPLOAD YOK): tarayıcı yerel dosya yolunu göremez → server-tarafı
   // okuma. /api/flow-queue/enqueue-local dizini okur, sourcePath öğeleri ekler, worker'ı başlatır.
-  const enqueueLocalDir = async (dirArg?: string) => {
-    const dir = (dirArg ?? localDir).trim();
-    if (!dir || localDirBusy) return;
+  // Klasörün TAMAMINI (dir) ya da SEÇİLİ videoları (paths) PATH ile kuyruğa ekle (UPLOAD YOK).
+  const enqueueLocal = async (opts: { dir?: string; paths?: string[] }) => {
+    const dir = (opts.dir ?? '').trim();
+    const paths = opts.paths ?? [];
+    if ((!dir && paths.length === 0) || localDirBusy) return;
     setLocalDirBusy(true);
     try {
+      const body: Record<string, unknown> = { profile: bulkProfile, replace: false };
+      if (dir) body.dir = dir;
+      if (paths.length) body.paths = paths;
       const res = await fetch('/api/flow-queue/enqueue-local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dir, profile: bulkProfile, replace: false }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        window.alert(`Klasör eklenemedi: ${data?.detail ?? res.status}`);
+        window.alert(`Eklenemedi: ${data?.detail ?? res.status}`);
         return;
       }
-      window.alert(`${data.added} film PATH ile eklendi (upload yok). Toplam: ${data.total}. Worker başladı.`);
-      setLocalDir('');
+      window.alert(`${data.added} video PATH ile eklendi (upload yok). Toplam: ${data.total}. Worker başladı.`);
+      setSelectedFilms(new Set());
       setBrowseOpen(false);
     } catch (err) {
-      window.alert(`Klasör eklenemedi: ${String(err)}`);
+      window.alert(`Eklenemedi: ${String(err)}`);
     } finally {
       setLocalDirBusy(false);
     }
@@ -481,6 +543,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       const data = await res.json();
       setBrowseData(data);
       setBrowsePath(data.path ?? '');
+      setSelectedFilms(new Set());  // klasör değişti → seçimi temizle (seçim klasöre özel)
     } catch (err) {
       window.alert(`Gezgin hatası: ${String(err)}`);
     } finally {
@@ -490,40 +553,18 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const openBrowser = () => { setBrowseOpen(true); void fsBrowse(browseData?.path ?? ''); };
   const joinPath = (base: string, name: string) => (base ? base.replace(/[\\/]+$/, '') + '\\' : '') + name;
 
+  // Header'daki tek "Gözat" butonu (browseSignal sayacı artar) → gözat tarayıcısını aç.
+  useEffect(() => {
+    if (browseSignal && browseSignal > 0) {
+      openBrowser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [browseSignal]);
+
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden bg-app-shell">
       <div className="border-b border-border-subtle bg-surface/40 p-2.5">
-        <div className="grid grid-cols-2 gap-1.5">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            accept="audio/*,video/*,.wav,.mp3,.mp4,.m4a,.mkv,.flac,.aac,.ogg"
-            onChange={handleFileChange}
-          />
-          <input
-            ref={directoryInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            accept="audio/*,video/*,.wav,.mp3,.mp4,.m4a,.mkv,.flac,.aac,.ogg"
-            onChange={handleFileChange}
-          />
-          <Button size="sm" variant="outline" className="w-full justify-center gap-1 px-1.5" onClick={() => fileInputRef.current?.click()}>
-            <UploadCloud className="h-3.5 w-3.5" />
-            Yükle
-          </Button>
-          <Button size="sm" variant="outline" className="w-full justify-center gap-1 px-1.5" onClick={() => directoryInputRef.current?.click()}>
-            Klasör
-          </Button>
-        </div>
-        <div className="mt-1.5 grid grid-cols-1 gap-1.5">
-          <Button size="sm" variant="outline" className="w-full justify-center gap-1 px-2" onClick={openBrowser}>
-            <FolderOpen className="h-3.5 w-3.5" />
-            Yerel filmlerden ekle (gözat — upload yok)
-          </Button>
-        </div>
+        {/* Kaynak ekleme TEK noktadan: Header'daki "Gözat" butonu (browseSignal) bu tarayıcıyı açar. */}
         {browseOpen ? (
           <div className="mt-1.5 rounded-sm border border-border-mitas bg-app-shell/60 p-2">
             <div className="mb-1 flex items-center gap-1">
@@ -568,15 +609,35 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
                 ))}
                 {(browseData?.films ?? []).length > 0 ? (
                   <div className="mt-0.5 border-t border-border-subtle pt-0.5">
+                    <button
+                      type="button"
+                      className="mb-0.5 w-full rounded-sm px-1.5 py-0.5 text-left text-[10px] font-semibold text-foreground-muted hover:bg-surface-elevated"
+                      onClick={() => {
+                        const all = browseData?.films ?? [];
+                        setSelectedFilms((current) => current.size === all.length ? new Set() : new Set(all));
+                      }}
+                    >
+                      {selectedFilms.size === (browseData?.films?.length ?? 0) && (browseData?.films?.length ?? 0) > 0 ? '☑ Seçimi bırak' : '☐ Tümünü seç'} — {browseData?.film_count ?? 0} video {selectedFilms.size > 0 ? `(${selectedFilms.size} seçili)` : ''}
+                    </button>
                     {(browseData?.films ?? []).map((filmName) => (
-                      <div
+                      <label
                         key={filmName}
-                        className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] text-foreground-muted"
+                        className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] text-foreground-muted hover:bg-surface-elevated"
                         title={filmName}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedFilms.has(filmName)}
+                          onChange={() => setSelectedFilms((current) => {
+                            const next = new Set(current);
+                            if (next.has(filmName)) { next.delete(filmName); } else { next.add(filmName); }
+                            return next;
+                          })}
+                          className="shrink-0"
+                        />
                         <FileVideo className="h-2.5 w-2.5 shrink-0 text-info" />
                         <span className="truncate">{filmName}</span>
-                      </div>
+                      </label>
                     ))}
                   </div>
                 ) : null}
@@ -585,21 +646,33 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
                 ) : null}
               </div>
             </ScrollArea>
-            <Button
-              size="sm"
-              className="mt-1.5 w-full justify-center gap-1 px-2"
-              disabled={!browseData?.path || (browseData?.film_count ?? 0) === 0 || localDirBusy}
-              onClick={() => void enqueueLocalDir(browseData?.path)}
-            >
-              {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
-              Bu klasörü ekle ({browseData?.film_count ?? 0} film)
-            </Button>
+            {selectedFilms.size > 0 ? (
+              <Button
+                size="sm"
+                className="mt-1.5 w-full justify-center gap-1 px-2"
+                disabled={localDirBusy}
+                onClick={() => void enqueueLocal({ paths: [...selectedFilms].map((name) => joinPath(browseData?.path ?? '', name)) })}
+              >
+                {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                Seçili videoları ekle ({selectedFilms.size})
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="mt-1.5 w-full justify-center gap-1 px-2"
+                disabled={!browseData?.path || (browseData?.film_count ?? 0) === 0 || localDirBusy}
+                onClick={() => void enqueueLocal({ dir: browseData?.path })}
+              >
+                {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                Bu klasörü ekle ({browseData?.film_count ?? 0} film)
+              </Button>
+            )}
           </div>
         ) : null}
         <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-          <Button size="sm" className="w-full justify-center gap-1 px-1.5" onClick={processQueue} disabled={isProcessing || pendingCount === 0}>
+          <Button size="sm" className="w-full justify-center gap-1 px-1.5" onClick={processQueue} disabled={isProcessing || pendingCount === 0} title={uploadingCount > 0 ? 'Yüklemeler bitince otomatik başlar' : undefined}>
             {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
-            Başlat
+            {isPreparing ? 'Hazırlanıyor…' : uploadingCount > 0 ? `Başlat (${uploadingCount} yükleniyor)` : 'Başlat'}
           </Button>
           <Button size="sm" variant="outline" className="w-full justify-center px-1.5" onClick={requestSafeStop} disabled={!canSafeStop}>
             {stopMode === 'safe' ? 'Duruyor' : 'Durdur'}
@@ -672,6 +745,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
             <FlowQueueRow
               key={item.id}
               item={item}
+              uploadPct={uploadProgress[item.id]}
               selected={selectedIds.has(item.id)}
               contextRemoveCount={removableContextIdsForItem(item).size}
               onToggleSelected={() => toggleSelected(item.id)}
@@ -750,6 +824,7 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
 
 function FlowQueueRow({
   item,
+  uploadPct,
   selected,
   contextRemoveCount,
   onToggleSelected,
@@ -759,6 +834,7 @@ function FlowQueueRow({
   onOpen,
 }: {
   item: FlowQueueItem;
+  uploadPct?: number;
   selected: boolean;
   contextRemoveCount: number;
   onToggleSelected: () => void;
@@ -769,7 +845,7 @@ function FlowQueueRow({
 }) {
   const meta = STATUS_META[item.status];
   const isOpenable = Boolean(item.job || item.file || item.storedMediaUrl || item.tedialItem);
-  const detailLine = flowItemDetail(item);
+  const detailLine = flowItemDetail(item, uploadPct);
   const sourceLabel = item.source === 'tedial' ? 'Tedial' : 'Yüklenen';
   return (
     <ContextMenu>
@@ -780,8 +856,8 @@ function FlowQueueRow({
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-1.5">
                 <div className="min-w-0 truncate text-xs font-semibold leading-5 text-foreground-strong" title={item.name}>{item.name}</div>
-                <StatusIcon status={item.status} />
-                <Badge variant={meta.variant} className="shrink-0 px-1.5 py-0 text-[9px]">{meta.label}</Badge>
+                {item.uploading ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-info" /> : <StatusIcon status={item.status} />}
+                <Badge variant={item.uploading ? 'outline' : meta.variant} className="shrink-0 px-1.5 py-0 text-[9px]">{item.uploading ? 'Yükleniyor' : meta.label}</Badge>
               </div>
               <div className="flex min-w-0 items-center gap-1.5 text-[10px] leading-4 text-foreground-muted">
                 <Badge variant="outline" className="px-1.5 py-0 text-[9px]">{sourceLabel}</Badge>
@@ -818,8 +894,13 @@ function FlowQueueRow({
   );
 }
 
-function flowItemDetail(item: FlowQueueItem): string {
+function flowItemDetail(item: FlowQueueItem, uploadPct?: number): string {
   if (item.source === 'upload') {
+    if (item.uploading) {
+      const size = item.file ? formatBytes(item.file.size) : item.sizeBytes ? formatBytes(item.sizeBytes) : '';
+      const pctText = typeof uploadPct === 'number' ? ` %${uploadPct}` : '…';
+      return `Yükleniyor${pctText}${size ? ` · ${size}` : ''}`;
+    }
     const path = item.job?.original_source_path || item.job?.input_path || item.job?.summary?.input_path || displaySourcePath(item) || uploadSourcePath(item.file);
     const size = item.file ? formatBytes(item.file.size) : item.sizeBytes ? formatBytes(item.sizeBytes) : item.message || '-';
     const statusMessage = item.status !== 'waiting' && item.message && item.message !== size ? ` · ${item.message}` : '';
@@ -866,23 +947,42 @@ function uploadSourcePath(file?: File): string {
   return file.name;
 }
 
-async function persistQueueUpload(itemId: string, file: File): Promise<{
+function persistQueueUpload(
+  itemId: string,
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<{
   stored_media_url: string;
   stored_media_path: string;
   size_bytes: number;
 }> {
+  // XHR (fetch DEĞİL): yükleme ilerlemesi (upload.onprogress) yalnız XHR'de var → büyük klipte
+  // kullanıcı "Yükleniyor %x" görür ve Başlat bu söz bitene kadar bekler.
   const params = new URLSearchParams({ filename: file.name });
-  const response = await fetch(`/api/flow-queue/uploads/${encodeURIComponent(itemId)}?${params.toString()}`, {
-    method: 'POST',
-    headers: {
-      'content-type': file.type || 'application/octet-stream',
-    },
-    body: file,
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `/api/flow-queue/uploads/${encodeURIComponent(itemId)}?${params.toString()}`);
+    xhr.setRequestHeader('content-type', file.type || 'application/octet-stream');
+    xhr.upload.onprogress = (event) => {
+      if (onProgress && event.lengthComputable && event.total > 0) {
+        onProgress((event.loaded / event.total) * 100);
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          reject(new Error('Yükleme yanıtı çözümlenemedi'));
+        }
+      } else {
+        reject(new Error(xhr.responseText || `Yükleme başarısız (HTTP ${xhr.status})`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Ağ hatası — yükleme tamamlanamadı'));
+    xhr.onabort = () => reject(new Error('Yükleme iptal edildi'));
+    xhr.send(file);
   });
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-  return response.json();
 }
 
 function mediaTypeForQueueFile(file: File): string | undefined {
@@ -1039,6 +1139,7 @@ function toFallbackFlowItem(item: FlowQueueItem): FlowQueueItem {
   return {
     ...item,
     file: undefined,
+    uploading: undefined,  // geçici bayrak — kalıcı duruma yazma
     job: item.job ? compactAsrJob(item.job) : undefined,
   };
 }
@@ -1071,10 +1172,14 @@ function openFlowQueueDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function restorePersistedFlowItem(item: FlowQueueItem): FlowQueueItem {
+function restorePersistedFlowItem(item: FlowQueueItem, workerRunning = false): FlowQueueItem {
   const source: FlowItemSource = item.source || (item.tedialItem || item.id?.startsWith('tedial-') ? 'tedial' : 'upload');
-  const restored = { ...item, source };
+  const restored = { ...item, source, uploading: undefined };  // yenilemede aktif yükleme olamaz
   if (restored.status === 'running') {
+    if (workerRunning) {
+      // SUNUCU worker hâlâ koşuyor — 'running' KORU; poll 2 sn'de gerçek (server) durumu getirir.
+      return restored;
+    }
     return {
       ...restored,
       status: 'stopped',

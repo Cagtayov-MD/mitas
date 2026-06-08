@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, CheckCircle2, ChevronDown, Download, FileText, Info, Lock, Play, RotateCcw, Trash2, UploadCloud } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, ChevronDown, Download, FileText, FolderOpen, Info, Lock, Play, RotateCcw, Trash2 } from 'lucide-react';
 import { Button, Badge, TabsList, TabsTrigger } from './ui';
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ interface HeaderProps {
   isDeletingGeneratedData: boolean;
   onPermanentDeleteGeneratedData: (kind: ClipGeneratedDataKind) => Promise<void>;
   onRightPanelModeChange: (mode: 'modules' | 'flow' | 'log') => void;
+  onOpenBrowse: () => void;  // TEK kaynak-ekleme: Akış panelindeki gözat tarayıcısını aç (batch, upload yok)
 }
 
 export interface HeaderProcessStatus {
@@ -87,6 +88,7 @@ export function Header({
   isDeletingGeneratedData,
   onPermanentDeleteGeneratedData,
   onRightPanelModeChange,
+  onOpenBrowse,
 }: HeaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
@@ -290,11 +292,11 @@ export function Header({
             variant="outline"
             size="sm"
             className="gap-2"
-            disabled={isAsrBusy}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={onOpenBrowse}
+            title="Klasör/video gözat — sıraya ekle (batch, upload yok)"
           >
-            <UploadCloud className="h-3.5 w-3.5 text-foreground-muted" />
-            Yükle
+            <FolderOpen className="h-3.5 w-3.5 text-foreground-muted" />
+            Gözat
           </Button>
           {pipelinePdfReady && (
             <Button

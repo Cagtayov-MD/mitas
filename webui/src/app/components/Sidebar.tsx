@@ -45,6 +45,7 @@ interface SidebarProps {
   isTranslatingAll: boolean;
   segmentTranslations: Record<number, SegmentTranslationState>;
   panelMode: 'modules' | 'flow' | 'log';
+  browseSignal: number;
   onSelectSegment: (index: number) => void;
   onTranslateSegment: (index: number) => void;
   onTranslateAllSegments: () => void;
@@ -72,6 +73,7 @@ export function Sidebar({
   isTranslatingAll,
   segmentTranslations,
   panelMode,
+  browseSignal,
   onSelectSegment,
   onTranslateSegment,
   onTranslateAllSegments,
@@ -190,7 +192,7 @@ export function Sidebar({
   return (
     <div className="w-[450px] bg-app-shell border-l border-border-subtle flex flex-col shrink-0 text-foreground-default">
       <div className={panelMode === 'flow' ? 'flex min-h-0 flex-1' : 'hidden'}>
-        <FlowQueuePanel onOpenMedia={onOpenQueuedMedia} />
+        <FlowQueuePanel onOpenMedia={onOpenQueuedMedia} browseSignal={browseSignal} />
       </div>
       <div className={panelMode === 'log' ? 'flex min-h-0 flex-1' : 'hidden'}>
         <LogPanel />

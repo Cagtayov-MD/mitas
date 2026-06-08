@@ -568,6 +568,10 @@ def _flow_queue_worker_loop() -> None:
                         str(MITAS_PIPELINE),
                         "--video", video_path,
                         "--profile", pipeline_profile,
+                        # KAYNAK YERİNDE KALIR: ağ yolundaki büyük filmi Database/<clip>/source'a
+                        # KOPYALAMA (extraction zaten orijinal yoldan okur; kopya sadece arşivdi).
+                        # 500 filmde ~350GB gereksiz kopyayı önler. (Cagatay_22.02 gibi: path-tabanlı.)
+                        "--no-copy-source",
                     ]
                     # GPU semaforu: aynı anda yalnız 1 GPU-ağır iş koşsun (RTX 3090 OOM önleme).
                     # Sadece bu item'ın pipeline koşusunu sar — worker döngüsünün geri

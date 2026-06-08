@@ -84,6 +84,7 @@ export function AnalysisWorkspace({
   const [outPoint, setOutPoint] = useState<number | null>(null);
   const [dismissedWarningJobId, setDismissedWarningJobId] = useState<string | null>(null);
   const [rightPanelMode, setRightPanelMode] = useState<'modules' | 'flow' | 'log'>('modules');
+  const [browseSignal, setBrowseSignal] = useState(0);  // Header "Gözat" → Akış panelindeki gözat tarayıcısını aç
   const isLivePreviewEnabled = isSttPreviewEnabled && analysisProfile === 'stt' && Boolean(mediaPreviewUrl);
   const livePreview = useLiveSttPreview({
     enabled: isLivePreviewEnabled,
@@ -137,6 +138,7 @@ export function AnalysisWorkspace({
         isDeletingGeneratedData={isDeletingGeneratedData}
         onPermanentDeleteGeneratedData={onPermanentDeleteGeneratedData}
         onRightPanelModeChange={setRightPanelMode}
+        onOpenBrowse={() => { setRightPanelMode('flow'); setBrowseSignal((n) => n + 1); }}
       />
       {showPartialWarning && (
         <div className="shrink-0 flex items-start gap-2 px-4 py-2 bg-warning-subtle border-b border-warning-border text-warning text-[11px] font-semibold">
@@ -223,6 +225,7 @@ export function AnalysisWorkspace({
           isTranslatingAll={isTranslatingAll}
           segmentTranslations={segmentTranslations}
           panelMode={rightPanelMode}
+          browseSignal={browseSignal}
           onSelectSegment={onSelectSegment}
           onTranslateSegment={onTranslateSegment}
           onTranslateAllSegments={onTranslateAllSegments}
