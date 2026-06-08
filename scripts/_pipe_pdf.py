@@ -296,15 +296,39 @@ def main(argv=None) -> int:
     # afiş: güvenli IMDb eşleşmesi → out/afis.jpg.
     # yabancı film: orijinal ad (XML) birincil sorgu + kadro çapraz-kontrolü (TRT yılı güvenilmez).
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
+    orig = (args.original or "").strip()   # XML <TITLE> = BİRİNCİL orijinal-ad (temizlenmiş)
     poster_path = None
     try:
         poster_path = pf.fetch_poster(
             args.title, out / "afis.jpg",
-            original=args.original or None, year=args.year or None,
+            original=orig or None, year=args.year or None,
             cast=cast, crew=crew,
         )
     except Exception:  # noqa: BLE001
         poster_path = None
+    # XML <TITLE> yok/bozuk → afiş tutmadı → KADRO-KONSENSÜS FALLBACK (kadrodan kimlik → orijinal ad + afiş).
+    # Çağatay 2026-06-08: XML her zaman olmayabilir, çalışsın. SADECE KESİN; exception-safe (pipeline'ı ASLA bozmaz).
+    if not poster_path:
+        try:
+            import credit_identity as _ci
+            _director = None
+            for _role, _names in (crew or []):
+                if ("yönet" in str(_role).lower() or "director" in str(_role).lower()) and _names:
+                    _director = _names[0]; break
+            _ident = _ci.resolve(cast, _director, max_year=(args.year or None))
+            if _ident and _ident.get("status") == "KESIN":
+                _fb_orig = (_ident.get("original_title") or "").strip()
+                _fb_poster = pf.fetch_poster(
+                    args.title, out / "afis.jpg",
+                    original=_fb_orig or None, year=args.year or None,
+                    cast=cast, crew=crew, tmdb_id=_ident.get("tmdb_id"),
+                )
+                if _fb_poster:                      # afiş kadro-teyitli id ile tuttu → orijinal adı güncelle
+                    poster_path = _fb_poster
+                    if _fb_orig:
+                        orig = _fb_orig
+        except Exception:  # noqa: BLE001 — fallback pipeline'ı ASLA bozmaz
+            pass
 
     bolum = args.bolum
     if dizi and not bolum:
@@ -341,7 +365,7 @@ def main(argv=None) -> int:
         import fitz
         pdf_dict = dict(
             profile=profile_label, date=d["date"], title=d["title"],
-            subtitle=args.original or None, bolum=d["bolum"], poster=poster_path,
+            subtitle=orig or None, bolum=d["bolum"], poster=poster_path,
             specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("TÜR", args.tur),
                    ("TOPLAM SÜRE", args.duration), ("TRT KİMLİK", args.trt_id or "—")],
             keywords=" ; ".join(cast) if cast else "—", cast=cast or ["—"],

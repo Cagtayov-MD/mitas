@@ -277,6 +277,29 @@ def main():
     # "Red Flag" gibi YANLIŞ title-only çakışma (kimlik doğrulanmaz → afiş de yok) altyazıya GİREMEZ.
     _kimlik_guclu = (verdict == "TEYİT") or (cast_ov >= 3)
     _orig_raw = a.original or (cc.get("eslesen_film") if _kimlik_guclu else None)
+    # XML <TITLE> yok + yerel-KB kimlik de zayıf → KADRO-KONSENSÜS fallback (credit_identity:
+    # BAŞLIK değil KADRODAN keşfeder; başlık yokken yerel-KB bulamadığında tek çare). 3. kademe
+    # (öncelik XML > yerel-IMDb KB > TMDB-kadro). Çağatay 2026-06-08: XML her zaman olmayabilir,
+    # çalışsın. SADECE KESİN; afiş çift-teyitli (id + poster_fetch cast-doğrulaması); exception-safe.
+    if not _orig_raw:
+        try:
+            import credit_identity as _ci
+            _id2 = _ci.resolve(cast, (yon[0] if yon else None), max_year=(a.year or None))
+            if _id2 and _id2.get("status") == "KESIN":
+                _orig_raw = _id2.get("original_title") or None
+                if not poster and _id2.get("tmdb_id"):
+                    try:
+                        _pf = _load("pf", os.path.join(PDFMITAS, "poster_fetch.py"))
+                        _pp = _pf.fetch_poster(title, afis_out, original=(_orig_raw or None),
+                                               year=(a.year or None), cast=cast,
+                                               crew=([("Yönetmen", yon)] if yon else None),
+                                               tmdb_id=_id2.get("tmdb_id"))
+                        if _pp and os.path.exists(_pp) and os.path.getsize(_pp) > 5000:
+                            poster = _pp
+                    except Exception:  # noqa: BLE001
+                        pass
+        except Exception:  # noqa: BLE001 — fallback PDF'i ASLA bozmaz
+            pass
     _sub = up_o(_orig_raw) if _orig_raw else None
     if _sub and nn.ascii_fold(_sub).upper() == nn.ascii_fold(title).upper() \
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):

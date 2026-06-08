@@ -157,17 +157,28 @@ def parse_filename(video: Path):
     return trt, title or stem, profile, bolum
 
 
+def _clean_xml_title(s: str) -> str:
+    """XML <TITLE> temizliği: zero-width / yön / soft-hyphen / kontrol karakterleri at, boşluğu
+    normalize et. (Türkçe harfler KORUNUR — görünüm okunur kalsın; poster_fetch sorgu için kendi
+    ASCII-fold'unu yapar.) ~%10 bozuk XML başlığını (encoding tuzağı) kullanılabilir hale getirir."""
+    s = s or ""
+    s = re.sub(r"[​‌‍‎‏‪-‮﻿­]", "", s)  # zero-width/yon/soft-hyphen
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
 def xml_original(video: Path) -> str:
-    """Video yanindaki <stem>.xml sidecar'dan orijinal adi (<TITLE>) oku → afiş icin.
+    """Video yanindaki <stem>.xml sidecar'dan orijinal adi (<TITLE>) oku → afiş + ses/altyazı orijinal-ad.
     Yabancı filmde TRT başlığı Türkçe ("SİYAH İNCİ"), XML <TITLE> orijinal ("BLACK BEAUTY").
-    Yoksa "" (afiş Türkçe başlıkla denenir; bulunamazsa afiş yok, ses/altyazı bloğu kalır)."""
+    BİRİNCİL kaynak (491/491 dolu, sıfır halüsinasyon). Yoksa/bozuksa "" → _pipe_pdf kadro-konsensüs
+    fallback'i (credit_identity) devreye girer (Çağatay 2026-06-08: XML eksik olabilir, çalışsın)."""
     try:
         import xml.etree.ElementTree as ET
         xp = video.with_suffix(".xml")
         if not xp.exists():
             return ""
         tt = ET.parse(str(xp)).getroot().find(".//TITLE")
-        return (tt.text or "").strip() if tt is not None else ""
+        return _clean_xml_title(tt.text or "") if tt is not None else ""
     except Exception:  # noqa: BLE001
         return ""
 
