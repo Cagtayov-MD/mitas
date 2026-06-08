@@ -23,11 +23,14 @@ from uuid import uuid4
 PROJECT_ROOT = Path(r"E:\MITAS")
 DB_ROOT = PROJECT_ROOT / "Database"
 OUT_ROOT = PROJECT_ROOT / "Mitas Output"
-HAZIR = OUT_ROOT / "Hazır"
-KONTROL = OUT_ROOT / "Kontrol"
+# SABİT KURAL (Çağatay 2026-06-08): tüm çıktı export/ altında. QC onaylarsa → export/ONAYLI (ad sonuna _ONAYLI),
+# onaylamazsa → export/KONTROL. Başka teslim klasörü YOK.
+EXPORT_ROOT = OUT_ROOT / "export"
+HAZIR = EXPORT_ROOT / "ONAYLI"
+KONTROL = EXPORT_ROOT / "KONTROL"
 EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
-MASTER_MD = OUT_ROOT / "_ISLEM_LOG.md"
-MASTER_JSONL = OUT_ROOT / "_ISLEM_LOG.jsonl"
+MASTER_MD = EXPORT_ROOT / "_ISLEM_LOG.md"
+MASTER_JSONL = EXPORT_ROOT / "_ISLEM_LOG.jsonl"
 HERE = Path(__file__).resolve().parent
 FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
 FFPROBE = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
@@ -969,7 +972,8 @@ def main(argv=None) -> int:
         pass
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
-    dest = dest_root / clip_id
+    # QC onayladıysa klasör adının SONUNA _ONAYLI (export/ONAYLI/<clip>_ONAYLI); aksi export/KONTROL/<clip>
+    dest = dest_root / (f"{clip_id}_ONAYLI" if karar == "Hazır" else clip_id)
     dest.mkdir(parents=True, exist_ok=True)
     # teslim parcalari kopyala
     for src in [kunye_path, Path(pdf_info.get("pdf_path") or ""), Path(pdf_info.get("preview_path") or ""),

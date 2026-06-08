@@ -70,8 +70,8 @@ const NODES: NodeDef[] = [
   { key: 'pdf',    x: 400, y: 610, label: 'PDF',          sub: 'künye + özet + ses/altyazı',  icon: FileText,    stage: 'pdf' },
   { key: 'v4',     x: 400, y: 710, label: 'V4-Final',     sub: 'büyük harf · afiş · format',  icon: Sparkles,    stage: 'v4' },
   { key: 'qc',     x: 400, y: 810, label: 'QC',           sub: 'qwen kalite kontrol',         icon: ShieldCheck, stage: 'qc' },
-  { key: 'hazir',  x: 270, y: 918, label: 'HAZIR',        sub: 'teslime hazır',               icon: FolderCheck, stage: 'route_hazir' },
-  { key: 'kontrol',x: 530, y: 918, label: 'KONTROL',      sub: 'gözden geçmeli',              icon: FolderClock, stage: 'route_kontrol' },
+  { key: 'hazir',  x: 270, y: 918, label: 'ONAYLI',       sub: 'export\\ONAYLI',              icon: FolderCheck, stage: 'route_hazir' },
+  { key: 'kontrol',x: 530, y: 918, label: 'KONTROL',      sub: 'export\\KONTROL',             icon: FolderClock, stage: 'route_kontrol' },
 ];
 
 const EDGES: EdgeDef[] = [
@@ -98,8 +98,8 @@ const NODE_DETAILS: Record<string, string[]> = {
   pdf:     ['Künye + özet + ses&altyazı → PDF', 'Afiş çekilir (TMDB)', 'Ses / altyazı kanal-dil bloğu eklenir'],
   v4:      ['BÜYÜK HARF (TR-İ duyarlı)', 'Yapım ekibi: SADECE Yönetmen + Yapımcı', 'KB ile TÜR / afiş dolgu', 'Final düzen (efektsiz)'],
   qc:      ['Afiş durumu kontrol edilir', 'Özet durumu kontrol edilir', 'Büyük-harf kontrol edilir', 'Latin-dışı alfabe kontrol edilir', 'Türkçe karakter bozukluğu kontrol edilir', '(yerel qwen kalite kontrol)'],
-  hazir:   ['Karar = HAZIR', 'HAZIR/ klasörüne teslim edilir'],
-  kontrol: ['Karar = KONTROL (gözden geçmeli)', 'KONTROL/ klasörüne ayrılır'],
+  hazir:   ['QC ONAYLADI → adına _ONAYLI eklenir', 'Mitas Output\\export\\ONAYLI\\<film>_ONAYLI'],
+  kontrol: ['QC onaylamadı → gözden geçmeli', 'Mitas Output\\export\\KONTROL\\<film>'],
 };
 
 function tsMs(s?: string): number { const v = s ? Date.parse(s) : NaN; return Number.isFinite(v) ? v : NaN; }
@@ -242,7 +242,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
   const edgeActive = (e: EdgeDef) => stateOf(nodeById(e.to)).status === 'active';
   const edgeDone = (e: EdgeDef) => ['done', 'skipped', 'partial'].includes(stateOf(nodeById(e.to)).status);
 
-  const headline = !focusFile ? 'Şu an işlenen film yok' : failedNode ? `TAKILDI: ${failedNode.label}` : activeNode ? `İşleniyor: ${activeNode.label}` : karar ? `Bitti → ${karar === 'hazir' ? 'HAZIR' : 'KONTROL'}` : 'Hazırlanıyor';
+  const headline = !focusFile ? 'Şu an işlenen film yok' : failedNode ? `TAKILDI: ${failedNode.label}` : activeNode ? `İşleniyor: ${activeNode.label}` : karar ? `Bitti → ${karar === 'hazir' ? 'ONAYLI' : 'KONTROL'}` : 'Hazırlanıyor';
 
   // "Yeniden çöz": bu filmi SIFIRDAN tekrar dene (stale sil + kuyruğa 'waiting'). Kuyruk akmaya devam eder.
   const doRetry = async () => {

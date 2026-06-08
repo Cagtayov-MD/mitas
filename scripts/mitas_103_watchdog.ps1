@@ -3,7 +3,7 @@
 #   2) Biten filmlerin PDF'lerini toplar (collect_103_pdfs.ps1).
 # Log: outputs\103_KUNYE_PDF\watchdog.log
 $base = 'http://127.0.0.1:8787'
-$logDir = 'E:\MITAS\Mitas Output\103_TESLIM_20260608'
+$logDir = 'E:\MITAS\Mitas Output\export'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $log = Join-Path $logDir 'watchdog.log'
 function Log($m){ ("[" + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + "] " + $m) | Out-File -Append -FilePath $log -Encoding UTF8 }
@@ -69,9 +69,4 @@ try {
   Log ("oto-retry blok HATA: " + $_.Exception.Message)
 }
 
-try {
-  & pwsh -ExecutionPolicy Bypass -File E:\MITAS\scripts\collect_103_pdfs.ps1 *> $null
-  Log "collector kosuldu"
-} catch {
-  Log ("collector HATA: " + $_.Exception.Message)
-}
+# NOT: collector kaldırıldı — pipeline artık çıktıyı DOĞRUDAN Mitas Output\export\{ONAYLI,KONTROL}'a yazıyor.
