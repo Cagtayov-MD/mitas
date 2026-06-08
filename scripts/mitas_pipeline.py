@@ -972,14 +972,18 @@ def main(argv=None) -> int:
         pass
     karar = "Hazır" if not reasons else "Kontrol"
     dest_root = HAZIR if karar == "Hazır" else KONTROL
-    # QC onayladıysa klasör adının SONUNA _ONAYLI (export/ONAYLI/<clip>_ONAYLI); aksi export/KONTROL/<clip>
-    dest = dest_root / (f"{clip_id}_ONAYLI" if karar == "Hazır" else clip_id)
-    dest.mkdir(parents=True, exist_ok=True)
-    # teslim parcalari kopyala
-    for src in [kunye_path, Path(pdf_info.get("pdf_path") or ""), Path(pdf_info.get("preview_path") or ""),
-                Path(pdf_info.get("md_path") or "")]:
-        if src and src.exists():
-            shutil.copy2(src, dest / src.name)
+    dest_root.mkdir(parents=True, exist_ok=True)
+    # ÇIKTI ADI — TEK FORMAT (Çağatay 2026-06-08): "<TRT-ID> <BAŞLIK>" (+ " ONAYLI" QC onaylıysa).
+    # Düz dosya (alt-klasör yok): export\ONAYLI\1999-2020-1-0000-90-1 PİNOKYO ONAYLI.pdf
+    _safe_title = re.sub(r'[\\/:*?"<>|]+', " ", (title or "")).strip()
+    base_name = (f"{trt} {_safe_title}").strip() + (" ONAYLI" if karar == "Hazır" else "")
+    pdf_src = Path(pdf_info.get("pdf_path") or "")
+    md_src = Path(pdf_info.get("md_path") or "")
+    src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
+    ext = ".pdf" if (pdf_src and pdf_src.exists()) else (".md" if (md_src and md_src.exists()) else "")
+    dest = dest_root / f"{base_name}{ext}"
+    if src_file:
+        shutil.copy2(src_file, dest)
     total = round(time.perf_counter() - t_all, 2)
     timings["toplam"] = total
 

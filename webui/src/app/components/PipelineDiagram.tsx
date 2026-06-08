@@ -98,8 +98,8 @@ const NODE_DETAILS: Record<string, string[]> = {
   pdf:     ['Künye + özet + ses&altyazı → PDF', 'Afiş çekilir (TMDB)', 'Ses / altyazı kanal-dil bloğu eklenir'],
   v4:      ['BÜYÜK HARF (TR-İ duyarlı)', 'Yapım ekibi: SADECE Yönetmen + Yapımcı', 'KB ile TÜR / afiş dolgu', 'Final düzen (efektsiz)'],
   qc:      ['Afiş durumu kontrol edilir', 'Özet durumu kontrol edilir', 'Büyük-harf kontrol edilir', 'Latin-dışı alfabe kontrol edilir', 'Türkçe karakter bozukluğu kontrol edilir', '(yerel qwen kalite kontrol)'],
-  hazir:   ['QC ONAYLADI → adına _ONAYLI eklenir', 'Mitas Output\\export\\ONAYLI\\<film>_ONAYLI'],
-  kontrol: ['QC onaylamadı → gözden geçmeli', 'Mitas Output\\export\\KONTROL\\<film>'],
+  hazir:   ['QC ONAYLADI → adına ONAYLI eklenir', 'export\\ONAYLI\\<TRT-ID> <BAŞLIK> ONAYLI.pdf'],
+  kontrol: ['QC onaylamadı → gözden geçmeli', 'export\\KONTROL\\<TRT-ID> <BAŞLIK>.pdf'],
 };
 
 function tsMs(s?: string): number { const v = s ? Date.parse(s) : NaN; return Number.isFinite(v) ? v : NaN; }
