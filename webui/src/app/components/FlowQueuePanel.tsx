@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock3,
   FileVideo,
+  FolderOpen,
   Loader2,
   Play,
   Search,
@@ -105,6 +106,10 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const [persistenceStatus, setPersistenceStatus] = useState<'loading' | 'saved' | 'error'>('loading');
   const [localDir, setLocalDir] = useState('');
   const [localDirBusy, setLocalDirBusy] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const [browsePath, setBrowsePath] = useState('');
+  const [browseLoading, setBrowseLoading] = useState(false);
+  const [browseData, setBrowseData] = useState<{ path: string; parent: string | null; dirs: string[]; films: string[]; film_count: number } | null>(null);
 
   useEffect(() => {
     directoryInputRef.current?.setAttribute('webkitdirectory', '');
@@ -442,8 +447,8 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
 
   // YEREL KLASÖR (PATH ile, UPLOAD YOK): tarayıcı yerel dosya yolunu göremez → server-tarafı
   // okuma. /api/flow-queue/enqueue-local dizini okur, sourcePath öğeleri ekler, worker'ı başlatır.
-  const enqueueLocalDir = async () => {
-    const dir = localDir.trim();
+  const enqueueLocalDir = async (dirArg?: string) => {
+    const dir = (dirArg ?? localDir).trim();
     if (!dir || localDirBusy) return;
     setLocalDirBusy(true);
     try {
@@ -459,12 +464,31 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       }
       window.alert(`${data.added} film PATH ile eklendi (upload yok). Toplam: ${data.total}. Worker başladı.`);
       setLocalDir('');
+      setBrowseOpen(false);
     } catch (err) {
       window.alert(`Klasör eklenemedi: ${String(err)}`);
     } finally {
       setLocalDirBusy(false);
     }
   };
+
+  // Server-tarafı klasör gezgini (localhost = kullanıcının makinesi): sürücü/klasör tıkla, film say, ekle.
+  const fsBrowse = async (path: string) => {
+    setBrowseLoading(true);
+    try {
+      const res = await fetch(`/api/fs/browse?path=${encodeURIComponent(path)}`, { cache: 'no-store' });
+      if (!res.ok) { window.alert('Klasör açılamadı'); return; }
+      const data = await res.json();
+      setBrowseData(data);
+      setBrowsePath(data.path ?? '');
+    } catch (err) {
+      window.alert(`Gezgin hatası: ${String(err)}`);
+    } finally {
+      setBrowseLoading(false);
+    }
+  };
+  const openBrowser = () => { setBrowseOpen(true); void fsBrowse(browseData?.path ?? ''); };
+  const joinPath = (base: string, name: string) => (base ? base.replace(/[\\/]+$/, '') + '\\' : '') + name;
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden bg-app-shell">
@@ -494,20 +518,63 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
             Klasör
           </Button>
         </div>
-        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
-          <input
-            type="text"
-            value={localDir}
-            onChange={(event) => setLocalDir(event.target.value)}
-            onKeyDown={(event) => { if (event.key === 'Enter') void enqueueLocalDir(); }}
-            placeholder="Yerel klasör yolu (UPLOAD YOK) — ör. E:\filmler"
-            className="h-8 min-w-0 rounded-sm border border-border-mitas bg-app-shell/80 px-2 text-xs text-foreground-default placeholder:text-foreground-muted"
-          />
-          <Button size="sm" variant="outline" className="justify-center gap-1 whitespace-nowrap px-2" onClick={enqueueLocalDir} disabled={!localDir.trim() || localDirBusy}>
-            {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-            Klasör ekle (yol)
+        <div className="mt-1.5 grid grid-cols-1 gap-1.5">
+          <Button size="sm" variant="outline" className="w-full justify-center gap-1 px-2" onClick={openBrowser}>
+            <FolderOpen className="h-3.5 w-3.5" />
+            Yerel filmlerden ekle (gözat — upload yok)
           </Button>
         </div>
+        {browseOpen ? (
+          <div className="mt-1.5 rounded-sm border border-border-mitas bg-app-shell/60 p-2">
+            <div className="mb-1 flex items-center gap-1">
+              <Button size="xs" variant="ghost" className="px-1" onClick={() => setBrowseOpen(false)} title="Kapat">
+                <X className="h-3 w-3" />
+              </Button>
+              <input
+                type="text"
+                value={browsePath}
+                onChange={(event) => setBrowsePath(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') void fsBrowse(browsePath); }}
+                placeholder="Sürücü/klasör — aşağıdan tıkla veya yol yaz"
+                className="h-7 min-w-0 flex-1 rounded-sm border border-border-mitas bg-app-shell/80 px-2 text-[11px] text-foreground-default placeholder:text-foreground-muted"
+              />
+              <Button size="xs" variant="outline" className="px-2" onClick={() => void fsBrowse(browsePath)}>Git</Button>
+            </div>
+            <ScrollArea className="max-h-40">
+              <div className="flex flex-col gap-0.5 pr-1">
+                {browseData?.parent != null ? (
+                  <button type="button" className="rounded-sm px-1.5 py-1 text-left text-[11px] text-foreground-muted hover:bg-surface-elevated" onClick={() => void fsBrowse(browseData?.parent ?? '')}>
+                    ↑ üst klasör
+                  </button>
+                ) : null}
+                {browseLoading ? <span className="px-1.5 py-1 text-[11px] text-foreground-muted">Yükleniyor…</span> : null}
+                {(browseData?.dirs ?? []).map((dirName) => (
+                  <button
+                    type="button"
+                    key={dirName}
+                    className="flex items-center gap-1 rounded-sm px-1.5 py-1 text-left text-[11px] hover:bg-surface-elevated"
+                    onClick={() => void fsBrowse(joinPath(browseData?.path ?? '', dirName))}
+                  >
+                    <FolderOpen className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{dirName}</span>
+                  </button>
+                ))}
+                {!browseLoading && (browseData?.dirs?.length ?? 0) === 0 && (browseData?.film_count ?? 0) === 0 ? (
+                  <span className="px-1.5 py-1 text-[11px] text-foreground-muted">(boş)</span>
+                ) : null}
+              </div>
+            </ScrollArea>
+            <Button
+              size="sm"
+              className="mt-1.5 w-full justify-center gap-1 px-2"
+              disabled={!browseData?.path || (browseData?.film_count ?? 0) === 0 || localDirBusy}
+              onClick={() => void enqueueLocalDir(browseData?.path)}
+            >
+              {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+              Bu klasörü ekle ({browseData?.film_count ?? 0} film)
+            </Button>
+          </div>
+        ) : null}
         <div className="mt-1.5 grid grid-cols-3 gap-1.5">
           <Button size="sm" className="w-full justify-center gap-1 px-1.5" onClick={processQueue} disabled={isProcessing || pendingCount === 0}>
             {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}

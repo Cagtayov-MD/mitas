@@ -281,6 +281,34 @@ async def put_flow_queue(request: Request) -> dict[str, Any]:
     return state
 
 
+@app.get("/api/fs/browse")
+def fs_browse(path: str = Query(default="")) -> dict[str, Any]:
+    """Yerel dosya sistemini gez (localhost = kullanıcının kendi makinesi) — UI klasör gezgini.
+    path boşsa sürücü köklerini döndürür; aksi halde alt-klasörler + film dosyalarını listeler."""
+    exts = {"mp4", "mxf", "mkv", "avi", "mov"}
+    if not path or not path.strip():
+        drives = [f"{c}:\\" for c in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.isdir(f"{c}:\\")]
+        return {"path": "", "parent": None, "dirs": drives, "films": [], "film_count": 0}
+    p = Path(path)
+    if not p.is_dir():
+        raise HTTPException(status_code=400, detail="dir_not_found")
+    dirs: list[str] = []
+    films: list[str] = []
+    try:
+        for child in sorted(p.iterdir(), key=lambda c: c.name.lower()):
+            try:
+                if child.is_dir():
+                    dirs.append(child.name)
+                elif child.suffix.lower().lstrip(".") in exts:
+                    films.append(child.name)
+            except (OSError, PermissionError):
+                continue
+    except (OSError, PermissionError) as exc:
+        raise HTTPException(status_code=400, detail="cannot_list") from exc
+    parent = str(p.parent) if str(p.parent) != str(p) else None
+    return {"path": str(p), "parent": parent, "dirs": dirs, "films": films, "film_count": len(films)}
+
+
 @app.post("/api/flow-queue/enqueue-local")
 async def enqueue_local(request: Request) -> dict[str, Any]:
     """YEREL film dizinini/yollarını flow-queue'ya PATH ile ekle (UPLOAD YOK) — büyük yerel toplu-iş.
