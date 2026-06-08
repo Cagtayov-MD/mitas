@@ -265,10 +265,12 @@ def main():
     sk = [x for x in meta.get("ses_kanallari", []) if x and str(x).strip().upper() not in ("EFEKT", "EF")]  # Fix 4
     poster = afis if (afis and os.path.exists(afis) and os.path.getsize(afis) > 5000) else None
     now = datetime.datetime.now().strftime("%d.%m.%Y · %H:%M")
-    # Altyazı/orijinal: YALNIZ gerçek XML orijinal-ad (a.original). KB'nin "eslesen_film"i
-    # (yanlış olabilen KB başlığı) altyazı olarak KULLANILMAZ — KÖK SEBEP: title-only yanlış
-    # çakışmada "Red Flag" gibi alakasız KB adı altyazıya sızıyordu. Orijinal yoksa altyazı YOK.
-    _orig_raw = a.original or None
+    # Altyazı/orijinal: XML orijinal-ad (a.original) BİRİNCİL; yoksa KB'nin doğrulanmış orijinal
+    # adı (eslesen_film) — AMA YALNIZ kimlik GÜÇLÜ doğrulanmışsa (verdict TEYİT veya ≥3 SIKI cast,
+    # AFİŞ kapısıyla AYNI eşik). Böylece "Cheaper by the Dozen" gibi DOĞRU orijinal ad gösterilir;
+    # "Red Flag" gibi YANLIŞ title-only çakışma (kimlik doğrulanmaz → afiş de yok) altyazıya GİREMEZ.
+    _kimlik_guclu = (verdict == "TEYİT") or (cast_ov >= 3)
+    _orig_raw = a.original or (cc.get("eslesen_film") if _kimlik_guclu else None)
     _sub = up_o(_orig_raw) if _orig_raw else None
     if _sub and nn.ascii_fold(_sub).upper() == nn.ascii_fold(title).upper() \
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):
