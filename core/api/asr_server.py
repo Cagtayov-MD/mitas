@@ -281,6 +281,70 @@ async def put_flow_queue(request: Request) -> dict[str, Any]:
     return state
 
 
+@app.post("/api/flow-queue/enqueue-local")
+async def enqueue_local(request: Request) -> dict[str, Any]:
+    """YEREL film dizinini/yollarını flow-queue'ya PATH ile ekle (UPLOAD YOK) — büyük yerel toplu-iş.
+
+    KALICI ÇÖZÜM: tarayıcı yerel dosya YOLUNU göremez (sandbox) → büyük yerel filmleri upload
+    etmeye çalışır → kopar (ClientDisconnect) + ad kaybolur + disk şişer. Worker ZATEN
+    ``sourcePath`` destekler; bu endpoint dizini server-tarafı okuyup ``sourcePath`` öğeleri
+    olarak ekler + worker'ı başlatır. Body: {"dir": "...", "profile": "film", "replace": false}.
+    """
+    global _flow_worker_thread
+    try:
+        payload = await request.json()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="invalid_json") from exc
+    directory = str(payload.get("dir") or "").strip()
+    extra = payload.get("paths") if isinstance(payload.get("paths"), list) else []
+    profile = payload.get("profile") or "film"
+    replace = bool(payload.get("replace"))
+    only_trt = payload.get("onlyTrt", True)
+    exts = {"mp4", "mxf", "mkv", "avi", "mov"}
+    files: list[str] = []
+    if directory:
+        d = Path(directory)
+        if not d.is_dir():
+            raise HTTPException(status_code=400, detail="dir_not_found")
+        for p in sorted(d.iterdir()):
+            if p.is_file() and p.suffix.lower().lstrip(".") in exts:
+                files.append(str(p))
+    files += [p for p in extra if isinstance(p, str) and Path(p).is_file()]
+    if only_trt:
+        files = [f for f in files if re.search(r"\d{4}-\d{3,4}-\d-\d{3,4}", Path(f).name)]
+    files = list(dict.fromkeys(files))  # sıra koru + tekille
+    if not files:
+        raise HTTPException(status_code=400, detail="no_films_found")
+    state = _read_json(FLOW_QUEUE_STATE_PATH)
+    if not isinstance(state, dict) or replace:
+        state = {"id": "main", "updatedAt": _now_iso(), "bulkProfile": profile, "items": []}
+    items = state.get("items") if isinstance(state.get("items"), list) else []
+    have = {it.get("sourcePath") for it in items if isinstance(it, dict)}
+    added = 0
+    for f in files:
+        if f in have:
+            continue
+        items.append({"id": f"local-{uuid4().hex[:12]}", "name": Path(f).name,
+                      "sourcePath": f, "status": "waiting", "profile": profile})
+        added += 1
+    state["items"] = items
+    state["id"] = "main"
+    state["bulkProfile"] = profile
+    state["updatedAt"] = _now_iso()
+    _write_json(FLOW_QUEUE_STATE_PATH, state)
+    with _flow_worker_lock:
+        if _flow_worker_thread is None or not _flow_worker_thread.is_alive():
+            _flow_worker_stop.clear()
+            _flow_worker_thread = threading.Thread(
+                target=_flow_queue_worker_loop, daemon=True, name="flow-queue-worker")
+            _flow_worker_thread.start()
+    system_events.log_event(
+        "flow_enqueue_local",
+        summary=f"Yerel dizinden {added} film PATH ile kuyruğa eklendi (upload yok) + worker başlatıldı.",
+        module="flow", detail={"dir": directory, "added": added, "total": len(items)})
+    return {"added": added, "total": len(items), "files_found": len(files), "worker": "started"}
+
+
 @app.post("/api/flow-queue/uploads/{item_id}")
 async def put_flow_queue_upload(item_id: str, request: Request, filename: str = Query(default="media")) -> dict[str, Any]:
     safe_item_id = _safe_artifact_id(item_id)
