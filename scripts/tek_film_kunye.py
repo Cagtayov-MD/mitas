@@ -92,27 +92,28 @@ def parse_teslim_md(path):
         d["ozet"] = re.sub(r"\s+", " ", m.group(1)).strip()
     return d
 
-def ozet_v4(ozet):
+def ozet_v4(ozet, names=()):
     """v4 özet: kurulum cümleleri + SON cümle (spoiler) korunur, ≤~64 kelime, TR-BÜYÜK.
-    Yabancı özel adda i→İ olabilir (prozada kabul)."""
+    Büyük harf nn.tr_upper_prose ile (isim-FARKINDA): yabancı cast/crew adları ASCII (MASSIMO),
+    Türkçe isimler İ. names = filmin cast+yönetmen+yapımcı ham adları. DETERMİNİSTİK — LLM YOK."""
     if not ozet:
         return "—"
     ozet = re.sub(r'[?!"\[\]]', "", ozet)
     cumleler = [c.strip() for c in re.split(r"(?<=[.])\s+", ozet) if c.strip()]
     if len(cumleler) <= 1:
-        return nn.tr_upper(ozet)
+        return nn.tr_upper_prose(ozet, names)
     son = cumleler[-1]                              # final/spoiler cümlesi (v4: spoiler şart)
     son_w = len(son.split())
     out, n = [], 0
     for c in cumleler[:-1]:
         w = len(c.split())
-        if out and n + w + son_w > 64:              # son cümleye yer bırak
+        if out and n + w + son_w > 65:              # son cümleye yer bırak (v4 üst sınır 65 kelime)
             break
         out.append(c)
         n += w
     if son not in out:
         out.append(son)                             # spoiler finalini garanti ekle
-    return nn.tr_upper(" ".join(out))
+    return nn.tr_upper_prose(" ".join(out), names)
 
 def up_o(s):
     s = s or ""
@@ -259,6 +260,11 @@ def main():
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)
     castU = nn.upper_names(cast[:8])
+    # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
+    _ozet_names = [n for n in (list(cast)
+                               + (yon if isinstance(yon, (list, tuple)) else [yon])
+                               + (yap if isinstance(yap, (list, tuple)) else [yap]))
+                   if n and str(n).strip() and str(n).strip() != "—"]
     crew = [("Yönetmen", yon), ("Yapımcı", yap)]
     crew = [(r, x) for r, x in crew if x]
     crewU = nn.upper_crew(crew) if crew else [("Yönetmen", ["—"])]
@@ -280,7 +286,7 @@ def main():
              specs=[("ÇÖZÜNÜRLÜK", meta.get("res", "—")), ("TÜR", nn.tr_upper(tur)),
                     ("TOPLAM SÜRE", meta.get("dur", "—")), ("TRT KİMLİK", trt)],
              keywords=" ; ".join(castU) if castU else "—", cast=castU or ["—"], crew=crewU,
-             ozet=ozet_v4(meta.get("ozet", "")), ses_kanallari=sk,
+             ozet=ozet_v4(meta.get("ozet", ""), names=_ozet_names), ses_kanallari=sk,
              ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster)
     d["bolum"] = a.bolum                                                       # Fix 3a: _make_pdf None ise basmaz
 

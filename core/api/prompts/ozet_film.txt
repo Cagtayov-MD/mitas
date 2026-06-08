@@ -6,7 +6,9 @@ bir özet yazacaksın. ASR gürültüsünü/tekrarları yok say; yalnızca ana o
 ÇIKTI KURALLARI — TAVİZSİZ
 ═══════════════════════════════════════════════════════════
 
-UZUNLUK : 4–5 cümle, 55–75 kelime. Tek paragraf, satır sonu yok.
+UZUNLUK : EN FAZLA 65 kelime — bu KESİN üst sınır. Cümle SAYISI serbest (sabit cümle sayısı YOK).
+          Cümleyi tamamlamak/bağlamak için ASLA uzatma; 65 kelimeyi geçeceğine cümleyi kısa kes.
+          Olay örgüsü kısa anlatılabiliyorsa KISA bırak — doldurma yapma. Tek paragraf, satır sonu yok.
 DİL     : Özet KOMPLE Türkçe — Türkçe sözcükler TÜRKÇE harflerle yazılır (ç ğ ı i ö ş ü KORUNUR,
           ASCII'ye İNDİRME: "çalışan", "kız kardeş" — "calisan" DEĞİL). Alfabe SADECE Latin
           (Türkçe dahil) — Kiril/Çince/Arap/Yunan/Japon vb. BAŞKA ALFABE YASAK; yabancı adı
@@ -17,32 +19,34 @@ DİL     : Özet KOMPLE Türkçe — Türkçe sözcükler TÜRKÇE harflerle yaz
 TEMEL İLKE: HER CÜMLE GERÇEK BİR OLAY BEATIDIR (neden → sonuç). Her ifade NE olduğunu
 söyler. Olay taşımayan, betimleyici/süsleyici cümle YOK. Özet = ne oluyor; süs değil.
 
-YAPI — ana karakterin NEDEN-SONUÇ ZİNCİRİNİ ŞU SIRADA İLERLET:
+YAPI — ana karakterin NEDEN-SONUÇ ZİNCİRİNİ ŞU SIRADA İLERLET (bunlar KAPSANACAK UNSURLAR;
+her biri AYRI cümle olmak ZORUNDA değil — birleştir, kısalt; 65 kelime sınırı her şeyin önünde):
 
-  1) AÇILIŞ (1 cümle): Ana karakteri ADIYLA + 1-2 SIFATLA tanıt ve onu harekete geçiren
+  1) AÇILIŞ (kısa): Ana karakteri ADIYLA + 1-2 SIFATLA tanıt ve onu harekete geçiren
      SOMUT tetikleyici olayı/problemi ver.
      DOĞRU : "Başarılı bir reklamcı olan DAVID, babasının şeker hastalığı yüzünden
              bacağının kesileceğini öğrenir."
      YANLIŞ: "Bir adam zor bir döneme girer." (adsız, sıfatsız, olaysız)
 
-  2) ÇATIŞMA (1 cümle): Karakteri sıkıştıran MERKEZÎ, SOMUT çatışmayı/ikilemi ver.
+  2) ÇATIŞMA (kısa): Karakteri sıkıştıran MERKEZÎ, SOMUT çatışmayı/ikilemi ver.
      DOĞRU : "Kariyeri için hayati bir sunum ile babasının ameliyatı aynı güne denk gelir."
 
-  3) KARAR/EYLEM (1 cümle): Karakterin verdiği SOMUT kararı veya eylemi yaz.
+  3) KARAR/EYLEM (kısa): Karakterin verdiği SOMUT kararı veya eylemi yaz.
      DOĞRU : "İşi ve sevgilisini bırakıp babasını seçen DAVID, hastanede yanında kalır."
 
-  4) SONUÇ — SPOILER ZORUNLU (1 cümle): Kararın SOMUT sonucunu, ortaya çıkan gerçeği,
+  4) SONUÇ — SPOILER ZORUNLU (kısa): Kararın SOMUT sonucunu, ortaya çıkan gerçeği,
      hastalığı, ölümü, ihaneti veya kritik dönüşü AÇIKÇA SÖYLE. "Bir sırrı vardır" deyip
      bırakma — NE OLDUĞUNU yaz.
      DOĞRU : "Annesi bakımı reddedince, ameliyattan sakat çıkan babasının tüm sorumluluğu
              DAVID'e kalır."
 
-  5) FİNAL (1 cümle): Filmin BİTİŞİNİ somut yaz — kim ölür/kazanır/barışır/öğrenir.
+  5) FİNAL (kısa): Filmin BİTİŞİNİ somut yaz — kim ölür/kazanır/barışır/öğrenir.
      Belirsiz/temalı bitiş YASAK.
      DOĞRU : "Film, yıllarca uzak kalan baba-oğulun geçmişi geride bırakıp yeni bir
              hayata başlamasıyla biter."
 
-  (3. ve 4. veya 2. ve 3. birleşip 4 cümleye inebilir; zincir bozulmasın.)
+  (Unsurları SERBESTÇE birleştir/kısalt — hepsini ayrı cümle yapma zorunluluğu YOK. 65 kelime
+   sınırı önceliklidir; cümleyi bağlamak için uzatma. Yalnızca neden-sonuç zinciri + spoiler bozulmasın.)
 
 ═══════════════════════════════════════════════════════════
 KESİN YASAKLAR

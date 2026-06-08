@@ -16,6 +16,7 @@ Kullanan: scripts/_pipe_pdf.py + py/20260601_kunye_to_pdf.py (cast + crew isimle
 from __future__ import annotations
 import json
 import os
+import re
 import sys
 import tempfile
 import unicodedata
@@ -168,6 +169,58 @@ def tr_upper(s: str) -> str:
                 or unicodedata.category(ch)[0] != "L"
                 or "LATIN" in unicodedata.name(ch, ""))
     return s.replace("ı", "I").replace("i", "İ").upper()
+
+
+def _turkish_name_set(names) -> tuple[bool, set]:
+    """names icinden TURK olanlari OTORITER belirle (duckDB mitas_people_index, countries Q43/Q23681).
+    DeepSeek YOK (sadece duckDB sorgusu). Doner (db_calisti, {turk_isim...}).
+    duckDB yoksa (False, {}) -> cagiran _is_tr_name heuristigine duser. 'Julia McKenzie'/'Eric Roberts'
+    -> Wikidata'da Turk DEGIL -> yabanci; 'Şener Şen' -> Q43 -> Turk. (_is_tr_name gevsek seti bunlari
+    yanlis Turk sayiyordu: JULIA ad-setinde, MCKENZIE soyad-setinde tesadufen var.)"""
+    try:
+        db_ok, tr_map = _mitas_people_set([n for n in names if n])
+        if db_ok:
+            return True, set(tr_map.keys())
+    except Exception:  # noqa: BLE001
+        pass
+    return False, set()
+
+
+def tr_upper_prose(text: str, names=(), tr_set=None) -> str:
+    """Ozet PROZASI icin Turkce buyuk harf — isim-FARKINDA, DETERMINISTIK (LLM/uppercase-LLM YOK).
+    Govde tr_upper (i->İ). ANCAK verilen cast/crew YABANCI isimleri ASCII buyuk harf kalir:
+    'MASSİMO' DEGIL 'MASSIMO', 'KİNSKİ' DEGIL 'KINSKI'. Turkce isimler (Şener, Deniz) DOKUNULMAZ
+    (İ korunur). names = filmin cast+yonetmen+yapimci ham adlari.
+    tr_set: ONCEDEN hesaplanmis OTORITER Turk-isim kumesi (toplu duckDB; batch'te film-basi baglanti
+    KILITLENMESINI onler). None ise burada duckDB (Q43) sorgulanir; duckDB cokerse _is_tr_name'e duser
+    (Turkce ismi ASLA bozmaz, yabanciyi guvenli tarafta İ birakir)."""
+    up = tr_upper(text or "")
+    names = [n for n in (names or ()) if n]
+    if not names:
+        return up
+    if tr_set is not None:
+        db_ok = True                       # cagiran otoriter kume verdi
+    else:
+        db_ok, tr_set = _turkish_name_set(names)
+    repl: dict[str, str] = {}
+    for name in names:
+        if any(c in _TR_STRONG for c in name):
+            continue  # ışğİı -> KESIN Turk (tr_upper dogru)
+        is_tr = (name in tr_set) if db_ok else _is_tr_name(name)
+        if is_tr:
+            continue  # Turkce isim: İ korunur
+        for tok in re.split(r"[\s'’/&,.]+", str(name)):
+            tok = tok.strip()
+            if len(tok) < 2:
+                continue
+            bad = tr_upper(tok)              # 'Massimo' -> 'MASSİMO' (yanlis: yabancida İ)
+            good = ascii_fold(tok).upper()  # 'Massimo' -> 'MASSIMO' (dogru: ASCII)
+            if bad != good:
+                repl[bad] = good
+    for bad, good in repl.items():
+        # SADECE tam kelime/ek siniri: 'MASSİMO'YU' -> 'MASSIMO'YU; 'ELİ' icin 'ELİF'i BOZMA.
+        up = re.sub(r"(?<![A-Za-zÇĞİıŞÖÜçğşöü])" + re.escape(bad) + r"(?![A-Za-zÇĞİıŞÖÜçğşöü])", good, up)
+    return up
 
 
 # Turkce ad DB (saf-ASCII isim kokeni icin; qwen'den guvenilir). Yoksa bos -> qwen.
