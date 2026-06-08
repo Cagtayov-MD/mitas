@@ -535,12 +535,19 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
                 value={browsePath}
                 onChange={(event) => setBrowsePath(event.target.value)}
                 onKeyDown={(event) => { if (event.key === 'Enter') void fsBrowse(browsePath); }}
-                placeholder="Sürücü/klasör — aşağıdan tıkla veya yol yaz"
+                placeholder="Örn: E:\filmler  veya  V:\klasör  (UNC için eşlenmiş sürücü harfi)"
                 className="h-7 min-w-0 flex-1 rounded-sm border border-border-mitas bg-app-shell/80 px-2 text-[11px] text-foreground-default placeholder:text-foreground-muted"
               />
               <Button size="xs" variant="outline" className="px-2" onClick={() => void fsBrowse(browsePath)}>Git</Button>
             </div>
-            <ScrollArea className="max-h-40">
+            {/* UNC yolu için bilgi notu */}
+            {(browsePath.startsWith('\\') || browsePath.startsWith('/')) ? (
+              <div className="mb-1 rounded-sm bg-warning-subtle/40 px-2 py-1 text-[10px] text-warning">
+                UNC yolu (\\sunucu\paylaşım) doğrudan erişilemiyor olabilir. Sürücü harfiyle eşlenmiş yolu kullanın —
+                örn. \\depo01cifs...\sas_h264 → V:\
+              </div>
+            ) : null}
+            <ScrollArea className="max-h-52">
               <div className="flex flex-col gap-0.5 pr-1">
                 {browseData?.parent != null ? (
                   <button type="button" className="rounded-sm px-1.5 py-1 text-left text-[11px] text-foreground-muted hover:bg-surface-elevated" onClick={() => void fsBrowse(browseData?.parent ?? '')}>
@@ -559,8 +566,22 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
                     <span className="truncate">{dirName}</span>
                   </button>
                 ))}
+                {(browseData?.films ?? []).length > 0 ? (
+                  <div className="mt-0.5 border-t border-border-subtle pt-0.5">
+                    {(browseData?.films ?? []).map((filmName) => (
+                      <div
+                        key={filmName}
+                        className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] text-foreground-muted"
+                        title={filmName}
+                      >
+                        <FileVideo className="h-2.5 w-2.5 shrink-0 text-info" />
+                        <span className="truncate">{filmName}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 {!browseLoading && (browseData?.dirs?.length ?? 0) === 0 && (browseData?.film_count ?? 0) === 0 ? (
-                  <span className="px-1.5 py-1 text-[11px] text-foreground-muted">(boş)</span>
+                  <span className="px-1.5 py-1 text-[11px] text-foreground-muted">(boş — desteklenen format: mp4, mxf, mkv, avi, mov)</span>
                 ) : null}
               </div>
             </ScrollArea>

@@ -284,14 +284,30 @@ async def put_flow_queue(request: Request) -> dict[str, Any]:
 @app.get("/api/fs/browse")
 def fs_browse(path: str = Query(default="")) -> dict[str, Any]:
     """Yerel dosya sistemini gez (localhost = kullanıcının kendi makinesi) — UI klasör gezgini.
-    path boşsa sürücü köklerini döndürür; aksi halde alt-klasörler + film dosyalarını listeler."""
+    path boşsa sürücü köklerini döndürür; aksi halde alt-klasörler + film dosyalarını listeler.
+    UNC yolları (\\\\server\\share) desteklenir — eşlenmiş sürücüler kök listesine dahil edilir."""
     exts = {"mp4", "mxf", "mkv", "avi", "mov"}
     if not path or not path.strip():
+        # Yerel sürücüler
         drives = [f"{c}:\\" for c in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.isdir(f"{c}:\\")]
         return {"path": "", "parent": None, "dirs": drives, "films": [], "film_count": 0}
-    p = Path(path)
-    if not p.is_dir():
-        raise HTTPException(status_code=400, detail="dir_not_found")
+    # UNC yolu normalise: tek \ → çift \\ (URL decode sonrası kaybolabilir)
+    raw = path.strip()
+    if raw.startswith("\\") and not raw.startswith("\\\\"):
+        raw = "\\" + raw  # \server\share → \\server\share
+    p = Path(raw)
+    try:
+        is_dir = p.is_dir()
+    except (OSError, PermissionError) as exc:
+        raise HTTPException(status_code=400, detail=f"dir_access_error: {exc}") from exc
+    if not is_dir:
+        # UNC paylaşımı erişilemez olabilir — kullanıcıya net hata ver
+        detail = (
+            f"dir_not_found: {raw!r} — UNC paylaşımı erişilemiyor olabilir. "
+            "Sürücü harfiyle eşlenmiş paylaşımı kullanın (örn. V:\\) veya ağ kimlik bilgisini kontrol edin."
+            if raw.startswith("\\\\") else f"dir_not_found: {raw!r}"
+        )
+        raise HTTPException(status_code=400, detail=detail)
     dirs: list[str] = []
     films: list[str] = []
     try:
@@ -304,7 +320,7 @@ def fs_browse(path: str = Query(default="")) -> dict[str, Any]:
             except (OSError, PermissionError):
                 continue
     except (OSError, PermissionError) as exc:
-        raise HTTPException(status_code=400, detail="cannot_list") from exc
+        raise HTTPException(status_code=400, detail=f"cannot_list: {exc}") from exc
     parent = str(p.parent) if str(p.parent) != str(p) else None
     return {"path": str(p), "parent": parent, "dirs": dirs, "films": films, "film_count": len(films)}
 
@@ -327,22 +343,44 @@ async def enqueue_local(request: Request) -> dict[str, Any]:
     extra = payload.get("paths") if isinstance(payload.get("paths"), list) else []
     profile = payload.get("profile") or "film"
     replace = bool(payload.get("replace"))
-    only_trt = payload.get("onlyTrt", True)
+    # onlyTrt: True ise yalnız TRT-ID formatındaki dosyaları al; False ise tümünü al.
+    # Varsayılan False — kullanıcı UNC/ağ klasöründen her video formatını ekleyebilmeli.
+    only_trt = bool(payload.get("onlyTrt", False))
     exts = {"mp4", "mxf", "mkv", "avi", "mov"}
     files: list[str] = []
     if directory:
-        d = Path(directory)
-        if not d.is_dir():
-            raise HTTPException(status_code=400, detail="dir_not_found")
-        for p in sorted(d.iterdir()):
-            if p.is_file() and p.suffix.lower().lstrip(".") in exts:
-                files.append(str(p))
+        # UNC yolu normalise: tek \ → çift \\
+        raw_dir = directory
+        if raw_dir.startswith("\\") and not raw_dir.startswith("\\\\"):
+            raw_dir = "\\" + raw_dir
+        d = Path(raw_dir)
+        try:
+            is_dir = d.is_dir()
+        except (OSError, PermissionError) as exc:
+            raise HTTPException(status_code=400, detail=f"dir_access_error: {exc}") from exc
+        if not is_dir:
+            detail = (
+                f"dir_not_found: {raw_dir!r} — UNC paylaşımı erişilemiyor. "
+                "Eşlenmiş sürücü harfi kullanın (örn. V:\\) veya ağ kimlik bilgisini kontrol edin."
+                if raw_dir.startswith("\\\\") else f"dir_not_found: {raw_dir!r}"
+            )
+            raise HTTPException(status_code=400, detail=detail)
+        try:
+            for p in sorted(d.iterdir()):
+                try:
+                    if p.is_file() and p.suffix.lower().lstrip(".") in exts:
+                        files.append(str(p))
+                except (OSError, PermissionError):
+                    continue
+        except (OSError, PermissionError) as exc:
+            raise HTTPException(status_code=400, detail=f"cannot_list: {exc}") from exc
     files += [p for p in extra if isinstance(p, str) and Path(p).is_file()]
     if only_trt:
         files = [f for f in files if re.search(r"\d{4}-\d{3,4}-\d-\d{3,4}", Path(f).name)]
     files = list(dict.fromkeys(files))  # sıra koru + tekille
     if not files:
-        raise HTTPException(status_code=400, detail="no_films_found")
+        trt_note = " (onlyTrt=True filtresi uygulandı — TRT-ID formatı dışında dosyalar atlandı)" if only_trt else ""
+        raise HTTPException(status_code=400, detail=f"no_films_found{trt_note}")
     state = _read_json(FLOW_QUEUE_STATE_PATH)
     if not isinstance(state, dict) or replace:
         state = {"id": "main", "updatedAt": _now_iso(), "bulkProfile": profile, "items": []}
