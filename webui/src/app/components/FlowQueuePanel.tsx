@@ -103,6 +103,8 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [stopMode, setStopMode] = useState<FlowStopMode>('none');
   const [persistenceStatus, setPersistenceStatus] = useState<'loading' | 'saved' | 'error'>('loading');
+  const [localDir, setLocalDir] = useState('');
+  const [localDirBusy, setLocalDirBusy] = useState(false);
 
   useEffect(() => {
     directoryInputRef.current?.setAttribute('webkitdirectory', '');
@@ -438,6 +440,32 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
       ? 'Kayıt hatası'
       : 'Kalıcı';
 
+  // YEREL KLASÖR (PATH ile, UPLOAD YOK): tarayıcı yerel dosya yolunu göremez → server-tarafı
+  // okuma. /api/flow-queue/enqueue-local dizini okur, sourcePath öğeleri ekler, worker'ı başlatır.
+  const enqueueLocalDir = async () => {
+    const dir = localDir.trim();
+    if (!dir || localDirBusy) return;
+    setLocalDirBusy(true);
+    try {
+      const res = await fetch('/api/flow-queue/enqueue-local', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dir, profile: bulkProfile, replace: false }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.alert(`Klasör eklenemedi: ${data?.detail ?? res.status}`);
+        return;
+      }
+      window.alert(`${data.added} film PATH ile eklendi (upload yok). Toplam: ${data.total}. Worker başladı.`);
+      setLocalDir('');
+    } catch (err) {
+      window.alert(`Klasör eklenemedi: ${String(err)}`);
+    } finally {
+      setLocalDirBusy(false);
+    }
+  };
+
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden bg-app-shell">
       <div className="border-b border-border-subtle bg-surface/40 p-2.5">
@@ -464,6 +492,20 @@ export function FlowQueuePanel({ onOpenMedia }: FlowQueuePanelProps) {
           </Button>
           <Button size="sm" variant="outline" className="w-full justify-center gap-1 px-1.5" onClick={() => directoryInputRef.current?.click()}>
             Klasör
+          </Button>
+        </div>
+        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
+          <input
+            type="text"
+            value={localDir}
+            onChange={(event) => setLocalDir(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter') void enqueueLocalDir(); }}
+            placeholder="Yerel klasör yolu (UPLOAD YOK) — ör. E:\filmler"
+            className="h-8 min-w-0 rounded-sm border border-border-mitas bg-app-shell/80 px-2 text-xs text-foreground-default placeholder:text-foreground-muted"
+          />
+          <Button size="sm" variant="outline" className="justify-center gap-1 whitespace-nowrap px-2" onClick={enqueueLocalDir} disabled={!localDir.trim() || localDirBusy}>
+            {localDirBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            Klasör ekle (yol)
           </Button>
         </div>
         <div className="mt-1.5 grid grid-cols-3 gap-1.5">
