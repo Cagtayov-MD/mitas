@@ -694,6 +694,66 @@ def post_flow_queue_stop() -> dict[str, Any]:
     return {"status": "stopping"}
 
 
+@app.post("/api/flow-queue/retry")
+async def post_flow_queue_retry(request: Request) -> dict[str, Any]:
+    """Tek filmi SIFIRDAN yeniden çöz: stale Database sonucunu sil + kuyruğa YENİ 'waiting' öğe ekle
+    (yeni id → worker'ın 'processed' setinde değil → tekrar işlenir). Kuyruk akmaya devam eder.
+    Hem diyagramdaki 'Yeniden çöz' butonu hem watchdog oto-retry bunu çağırır. Body: {"filename": "..."}.
+    """
+    global _flow_worker_thread
+    try:
+        payload = await request.json()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="invalid_json") from exc
+    filename = str(payload.get("filename") or "").strip()
+    if not filename:
+        raise HTTPException(status_code=400, detail="filename_required")
+    removed = False
+    clip_id = ""
+    with _flow_worker_lock:
+        state = _read_json(FLOW_QUEUE_STATE_PATH)
+        items = state.get("items") if isinstance(state, dict) and isinstance(state.get("items"), list) else []
+        target = None
+        for it in items:
+            nm = it.get("name") or ""
+            sp = it.get("sourcePath") or it.get("storedMediaPath") or ""
+            if nm == filename or (sp and Path(sp).name == filename):
+                target = it
+                break
+        if target is None:
+            raise HTTPException(status_code=404, detail="film_not_found_in_queue")
+        src = target.get("sourcePath") or target.get("storedMediaPath")
+        if not src:
+            raise HTTPException(status_code=400, detail="no_source_path")
+        clip_id = _flow_clip_id(src)
+        clip_dir = CLIPS_ROOT / clip_id
+        if clip_dir.exists():
+            shutil.rmtree(clip_dir, ignore_errors=True)  # reused-skip atlamasın + taze koşu
+            removed = True
+        # eski öğeyi çıkar + YENİ 'waiting' (yeni id → worker tekrar işler)
+        new_items = [it for it in items if it is not target]
+        new_items.append({
+            "id": f"retry-{uuid4().hex[:12]}", "name": target.get("name") or Path(src).name,
+            "sourcePath": src, "status": "waiting", "profile": target.get("profile") or "film_dizi",
+        })
+        if not isinstance(state, dict):
+            state = {"id": "main", "bulkProfile": "film_dizi"}
+        state["items"] = new_items
+        state["id"] = "main"
+        state["updatedAt"] = _now_iso()
+        _write_json(FLOW_QUEUE_STATE_PATH, state)
+        if _flow_worker_thread is None or not _flow_worker_thread.is_alive():
+            _flow_worker_stop.clear()
+            _flow_worker_thread = threading.Thread(
+                target=_flow_queue_worker_loop, daemon=True, name="flow-queue-worker")
+            _flow_worker_thread.start()
+    system_events.log_event(
+        "flow_item_retry",
+        summary=f"{filename}: SIFIRDAN yeniden çöz (stale silindi={removed}) → kuyruğa 'waiting' eklendi.",
+        module="flow", detail={"filename": filename, "clip_id": clip_id, "removed_db": removed})
+    return {"status": "requeued", "clip_id": clip_id, "removed_db": removed}
+
+
 @app.get("/api/flow-queue/worker")
 def get_flow_queue_worker() -> dict[str, Any]:
     """Return the current worker state."""

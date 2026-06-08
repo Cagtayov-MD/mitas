@@ -195,6 +195,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
   const [running, setRunning] = useState(false);
   const [now, setNow] = useState(() => 0);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
   const openRef = useRef(open);
   openRef.current = open;
 
@@ -243,6 +244,21 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
 
   const headline = !focusFile ? 'Şu an işlenen film yok' : failedNode ? `TAKILDI: ${failedNode.label}` : activeNode ? `İşleniyor: ${activeNode.label}` : karar ? `Bitti → ${karar === 'hazir' ? 'HAZIR' : 'KONTROL'}` : 'Hazırlanıyor';
 
+  // "Yeniden çöz": bu filmi SIFIRDAN tekrar dene (stale sil + kuyruğa 'waiting'). Kuyruk akmaya devam eder.
+  const doRetry = async () => {
+    if (!focusFile || retrying) return;
+    setRetrying(true);
+    try {
+      const r = await fetch('/api/flow-queue/retry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ filename: focusFile }) });
+      if (!r.ok) { window.alert(`Yeniden çöz başarısız: ${await r.text()}`); return; }
+      window.alert(`"${focusFile}" sıfırdan yeniden çözülmek üzere kuyruğa eklendi (kuyruk akmaya devam eder).`);
+    } catch (e) {
+      window.alert(`Yeniden çöz hatası: ${String(e)}`);
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <style>{`
@@ -258,6 +274,13 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
             <span className={`ml-2 truncate text-xs ${failedNode ? 'text-danger font-semibold' : activeNode ? 'text-warning font-semibold' : 'text-foreground-muted'}`}>{headline}</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            {focusFile && (failedNode || karar) ? (
+              <button type="button" onClick={doRetry} disabled={retrying}
+                className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${failedNode ? 'bg-danger-subtle text-danger hover:bg-danger-subtle/70' : 'bg-surface text-foreground-muted hover:bg-surface-elevated'} disabled:opacity-50`}
+                title="Bu filmi sıfırdan yeniden çöz (kuyruk akmaya devam eder)">
+                {retrying ? 'Gönderiliyor…' : '⟳ Yeniden çöz'}
+              </button>
+            ) : null}
             <span className="rounded-sm bg-surface px-2 py-0.5 text-[10px] text-foreground-muted">{doneCount}/8 aşama</span>
             <button type="button" onClick={onClose} className="rounded-sm p-1 text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong" title="Kapat"><X className="h-4 w-4" /></button>
           </div>

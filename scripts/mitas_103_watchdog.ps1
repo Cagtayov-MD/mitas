@@ -35,6 +35,40 @@ try {
   Log ("API HATA: " + $_.Exception.Message)
 }
 
+# 3) OTO-RETRY: asr=failed filmleri SIFIRDAN yeniden dene (max 2). Gecici VRAM cakismasi cogu retry'da duzelir.
+try {
+  if ($s) {
+    $retryFile = Join-Path $logDir 'retries.json'
+    $retries = @{}
+    if (Test-Path $retryFile) { try { (Get-Content $retryFile -Raw -Encoding UTF8 | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $retries[$_.Name] = [int]$_.Value } } catch {} }
+    $changed = $false
+    Get-ChildItem 'E:\MITAS\Database' -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+      $dj = Join-Path $_.FullName '_DURUM.json'
+      if (-not (Test-Path $dj)) { return }
+      try { $d = Get-Content $dj -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return }
+      if ($d.asr_status -ne 'failed') { return }
+      $trt = [string]$d.trt_id
+      if (-not $trt) { return }
+      $cnt = [int]($retries[$trt])
+      if ($cnt -ge 2) { return }   # max 2 deneme — sonsuz dongu yok
+      $fn = if ($d.video) { Split-Path -Leaf $d.video } else { '' }
+      if (-not $fn) { return }
+      try {
+        Invoke-RestMethod -Method Post -Uri "$base/api/flow-queue/retry" -ContentType 'application/json' `
+          -Body (@{ filename = $fn } | ConvertTo-Json) -WebSession $s -TimeoutSec 25 | Out-Null
+        $retries[$trt] = $cnt + 1
+        $changed = $true
+        Log "OTO-RETRY: $fn (asr=failed) -> yeniden cozulecek (deneme $($cnt+1)/2)"
+      } catch {
+        Log ("OTO-RETRY HATA ($fn): " + $_.Exception.Message)
+      }
+    }
+    if ($changed) { ($retries | ConvertTo-Json) | Out-File -FilePath $retryFile -Encoding UTF8 }
+  }
+} catch {
+  Log ("oto-retry blok HATA: " + $_.Exception.Message)
+}
+
 try {
   & pwsh -ExecutionPolicy Bypass -File E:\MITAS\scripts\collect_103_pdfs.ps1 *> $null
   Log "collector kosuldu"
