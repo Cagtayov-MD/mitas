@@ -1,5 +1,6 @@
-import { Activity, AlertTriangle, CheckCircle2, ChevronDown, Download, FileText, FolderOpen, Info, Lock, Play, RotateCcw, Trash2 } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, ChevronDown, Download, FileText, FolderOpen, Network, Lock, Play, RotateCcw, Trash2 } from 'lucide-react';
 import { Button, Badge, TabsList, TabsTrigger } from './ui';
+import { PipelineDiagram } from './PipelineDiagram';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +92,7 @@ export function Header({
   onOpenBrowse,
 }: HeaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [pipelineOpen, setPipelineOpen] = useState(false);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [pendingDeleteKind, setPendingDeleteKind] = useState<ClipGeneratedDataKind | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -432,42 +434,16 @@ export function Header({
       {/* Models Bar */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-4 py-1.5 bg-app-shell border-b border-border-subtle/50">
         <div className="flex min-w-0 items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="xs" className="gap-1.5 text-foreground-muted">
-                <Info className="h-3 w-3" />
-                Bilgi
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-96 rounded-sm border-border-mitas bg-app-shell p-2 text-foreground-default">
-              <div className="rounded-sm border border-border-subtle bg-surface/35">
-                <div className="border-b border-border-subtle px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-strong">
-                  Klip Bilgisi
-                </div>
-                <div className="p-2">
-                  <ModuleInfoRow label="Dosya" value={asrJob?.filename || selectedFileName || '-'} />
-                  <ModuleInfoRow label="Kaynak" value={asrJob?.original_source_path || selectedSourcePath || asrJob?.input_path || asrJob?.summary?.input_path || '-'} />
-                  <ModuleInfoRow label="Durum" value={asrJob?.status || (selectedFileName ? 'medya hazır' : 'bekleniyor')} />
-                  <ModuleInfoRow label="Çözünürlük" value={mediaResolution || '-'} />
-                  <ModuleInfoRow label="Süre" value={formatClock(duration)} />
-                  <ModuleInfoRow label="Profil" value={selectedProfileLabel} />
-                  <ModuleInfoRow label="Temiz segment" value={String(asrJob?.summary?.clean_segments ?? asrJob?.segments?.length ?? 0)} />
-                </div>
-              </div>
-
-              <div className="mt-2 rounded-sm border border-border-subtle bg-surface/25">
-                <div className="border-b border-border-subtle px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-strong">
-                  Kanıt Özeti
-                </div>
-                <div className="p-2">
-                  <ModuleInfoRow label="ASR" value={asrJob ? `${asrJob.segments.length} transcript segmenti` : '-'} />
-                  <ModuleInfoRow label="VAD" value={asrJob ? `${asrJob.summary?.raw_segments ?? 0} ham segment` : '-'} />
-                  <ModuleInfoRow label="Güven" value={asrJob?.summary?.safety?.safe === false ? 'kontrol gerekli' : asrJob ? 'normal' : '-'} />
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="xs"
+            className="gap-1.5 text-foreground-muted"
+            onClick={() => setPipelineOpen(true)}
+            title="Pipeline diyagramı — hangi aşamadayız, süreler, % ve nerede takıldı"
+          >
+            <Network className="h-3 w-3" />
+            Pipeline
+          </Button>
           <Badge variant={modelBadgeVariant}>STT/ASR: {modelName}</Badge>
           <div className="flex items-center gap-1.5 text-[10px] font-mono ml-1">
             <Activity className={`h-3 w-3 shrink-0 ${asrJob?.status === 'running' ? 'animate-pulse text-info' : uploadError || asrJob?.status === 'failed' ? 'text-danger' : 'text-foreground-disabled'}`} />
@@ -529,6 +505,15 @@ export function Header({
           </button>
         </div>
       </div>
+
+      <PipelineDiagram
+        open={pipelineOpen}
+        onClose={() => setPipelineOpen(false)}
+        fallbackFilename={asrJob?.filename || selectedFileName || undefined}
+        mediaResolution={mediaResolution}
+        sourcePath={asrJob?.original_source_path || selectedSourcePath}
+        profileLabel={selectedProfileLabel}
+      />
     </header>
   );
 }
@@ -559,17 +544,6 @@ function ApiStatusPill({ label, entry }: { label: string; entry?: ApiStatusEntry
       )}
       <span>{label}</span>
     </span>
-  );
-}
-
-function ModuleInfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2 py-1 text-[11px]">
-      <span className="truncate uppercase tracking-wider text-foreground-muted">{label}</span>
-      <span className="min-w-0 truncate font-mono text-[10px] text-foreground-default" title={value}>
-        {value || '-'}
-      </span>
-    </div>
   );
 }
 
