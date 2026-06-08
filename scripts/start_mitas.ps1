@@ -17,11 +17,26 @@ Write-Host '== 1) Kalıcı (User) env yükleniyor: MITAS_/ANTHROPIC_/OPENAI_  (P
   Where-Object { $_.Key -match '^(MITAS_|ANTHROPIC_|OPENAI_)' } |
   ForEach-Object { Set-Item -Path ("Env:" + $_.Key) -Value $_.Value; Write-Host ("   + " + $_.Key) }
 
-Write-Host '== 2) Mevcut 8765/8787 uvicorn süreçleri durduruluyor =='
+Write-Host '== 2) Mevcut 8765/8787 uvicorn/asr_server/tedial süreçleri GÜÇLÜ durduruluyor (zombi/shim dahil) =='
+$kill = @{}
+# (a) komut-satırı eşleşmesi: port VE/VEYA app adı (shim/zombi de yakalanır)
 Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-  Where-Object { $_.CommandLine -match '--port 87(65|87)\b' } |
-  ForEach-Object { Write-Host ("   x PID " + $_.ProcessId); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-Start-Sleep -Seconds 1
+  Where-Object { $_.CommandLine -match '--port 87(65|87)\b' -or $_.CommandLine -match 'asr_server:app' -or $_.CommandLine -match 'tedial\.app' } |
+  ForEach-Object { $kill[$_.ProcessId] = $true }
+# (b) portu GERÇEKTE tutan süreç (cmdline kaçsa bile)
+foreach ($p in 8787, 8765) {
+  foreach ($op in (Get-NetTCPConnection -State Listen -LocalPort $p -ErrorAction SilentlyContinue).OwningProcess) {
+    if ($op) { $kill[$op] = $true }
+  }
+}
+foreach ($k in $kill.Keys) { Write-Host ("   x PID " + $k); Stop-Process -Id $k -Force -ErrorAction SilentlyContinue }
+# (c) portlar boşalana kadar bekle (max ~5 sn) — yeni başlatma 'port in use' yememeli
+foreach ($p in 8787, 8765) {
+  for ($i = 0; $i -lt 25; $i++) {
+    if (-not (Get-NetTCPConnection -State Listen -LocalPort $p -ErrorAction SilentlyContinue)) { break }
+    Start-Sleep -Milliseconds 200
+  }
+}
 
 Write-Host '== 3) Servisler DOĞRU app ile başlatılıyor (detached) =='
 function Start-Svc([int]$Port, [string]$App, [string[]]$Extra) {

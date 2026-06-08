@@ -285,6 +285,7 @@ ASR_TIMEOUT = _env_int("MITAS_ASR_TIMEOUT", 7200)
 PDF_TIMEOUT = _env_int("MITAS_PDF_TIMEOUT", 1800)
 V4_TIMEOUT = _env_int("MITAS_V4_TIMEOUT", 900)
 VC_TIMEOUT = _env_int("MITAS_VIDEO_CREDIT_TIMEOUT", 1800)
+VL_TIMEOUT = _env_int("MITAS_VL_FALLBACK_TIMEOUT", 900)   # VL-fallback (2 model × kare); fail-safe
 
 
 def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
@@ -734,6 +735,35 @@ def main(argv=None) -> int:
         except Exception as exc:  # noqa: BLE001 — kunye-okuma akışı/PDF'i ASLA bozmaz
             log_event("credit_text_failed", level="warn", summary=f"kunye-okuma(metin) blogu hata (atlandi): {exc}",
                       module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+
+    # ===== BLOK VL-FALLBACK (additif, FAIL-SAFE) — Çağatay 2026-06-09 =====
+    # Metin künye-okuma (qwen3) YÖNETMEN boş VEYA cast<3 ise → jenerik KARELERİNDEN VL re-read
+    # (qwen2.5vl+gemma4; tiebreak: mutabakat→cross-cast→KB). Metnin BOŞ alanını DOLDURUR, EZMEZ.
+    # Hata / kare-yok / ollama-kapalı → video_credits AYNEN kalır (pipeline'ı ASLA bozmaz).
+    # Kill-switch: MITAS_NO_VL_FALLBACK=1. OneOCR/GLM zaten okuduysa buraya HİÇ gelmez.
+    _vl_off = os.environ.get("MITAS_NO_VL_FALLBACK", "").strip().lower() in ("1", "true", "yes", "on")
+    if USE_VIDEO_CREDITS and not _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
+        _vl_need = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
+        if _vl_need:
+            t_vl = time.perf_counter()
+            try:
+                vl_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_vl.py"), "--clip", str(clip_dir),
+                          "--title", title or "", "--profile", profile,
+                          "--text-credits", json.dumps(video_credits, ensure_ascii=False)]
+                rc_vl, out_vl, err_vl = run(vl_cmd, timeout=VL_TIMEOUT)
+                _merged = last_json(out_vl)
+                if _merged:
+                    video_credits = _merged
+                timings["vl_fallback"] = round(time.perf_counter() - t_vl, 2)
+                log_event("credit_vl_fallback",
+                          summary=f"{video.name}: VL-fallback ({(_merged or {}).get('vl')}) yon={(_merged or {}).get('yonetmen')} ({timings.get('vl_fallback')} sn).",
+                          module="ocr", media_id=media_id, filename=video.name, duration_seconds=timings.get("vl_fallback"),
+                          detail={"clip_id": clip_id, "vl": (_merged or {}).get("vl"),
+                                  "yonetmen": (_merged or {}).get("yonetmen"),
+                                  "cast_supplement": (_merged or {}).get("vl_cast_supplement")})
+            except Exception as exc:  # noqa: BLE001 — FAIL-SAFE: pipeline'ı ASLA bozma
+                log_event("credit_vl_failed", level="warn", summary=f"VL-fallback hata (atlandi): {exc}",
+                          module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
     # ===== BLOK PDF / teslim =====
     pdf_out = clip_dir / "pdf"

@@ -18,15 +18,9 @@ try {
   $running = @($q.items | Where-Object { $_.status -eq 'running' }).Count
   $done    = @($q.items | Where-Object { $_.status -eq 'done' -or $_.status -eq 'partial' }).Count
   $failed  = @($q.items | Where-Object { $_.status -eq 'failed' }).Count
-  if (-not $w.running -and ($waiting -gt 0 -or $running -gt 0)) {
-    # Worker dustuyse (orn. asr_server restart): yarida kalan 'running' filmi 'waiting'e cevir
-    # (worker yalniz 'waiting' alir; yoksa o film takili kalir), sonra devam ettir.
-    if ($running -gt 0) {
-      foreach ($it in $q.items) { if ($it.status -eq 'running') { $it.status = 'waiting' } }
-      Invoke-RestMethod -Method Put -Uri "$base/api/flow-queue" -ContentType 'application/json' `
-        -Body ($q | ConvertTo-Json -Depth 8) -WebSession $s -TimeoutSec 25 | Out-Null
-      Log "yarida kalan $running 'running' -> 'waiting' sifirlandi"
-    }
+  # F5: PUT-rewind KALDIRILDI (UI/server desync kaynagiydi). Server baslangicta bayat 'running'->'waiting'
+  # yapiyor (server-otorite). Watchdog yalniz: worker DUSMUS + kullanici DURDURMAMIS + bekleyen var -> /run.
+  if (-not $w.running -and -not $w.stop_requested -and $waiting -gt 0) {
     Invoke-RestMethod -Method Post -Uri "$base/api/flow-queue/run" -WebSession $s -TimeoutSec 25 | Out-Null
     Log "WORKER DOWN + bekleyen=$waiting -> /run (devam ettirildi)"
   }

@@ -135,15 +135,8 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
         if (state?.bulkProfile) {
           setBulkProfile(restoredBulkProfile);
         }
-        // Worker koşarken geri-yazma YOK (server otoritedir; poll 2 sn'de gerçek durumu getirir).
-        if (restoredItems.length > 0 && !workerRunning) {
-          void saveFlowQueueServerState({
-            id: FLOW_QUEUE_STATE_ID,
-            updatedAt: new Date().toISOString(),
-            bulkProfile: restoredBulkProfile,
-            items: restoredItems.map(toFallbackFlowItem),
-          });
-        }
+        // F5: SERVER = tek otorite — UI yükleme/yenilemede durumu GERİ-YAZMAZ (writeback desync'i biter).
+        // Kuyruk yalnız enqueue/stop/retry/clear endpoint'leriyle değişir; UI okur + komut gönderir.
         setPersistenceStatus('saved');
       })
       .catch(() => {
@@ -363,7 +356,12 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   };
 
   const clearCompleted = () => {
-    updateItems((current) => current.filter((item) => item.status !== 'done' && item.status !== 'partial'));
+    // F6: terminal öğeleri hem yerel görünümden hem SUNUCU kuyruğundan sil (server-otorite temizlik).
+    const terminal = new Set(['done', 'partial', 'failed', 'stopped']);
+    updateItems((current) => current.filter((item) => !terminal.has(item.status)));
+    void fetch('/api/flow-queue/clear', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ all: false }),
+    }).catch(() => {});
   };
 
   const handleTedialSearch = async () => {
@@ -482,8 +480,11 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     if (!isProcessingRef.current) return;
     stopModeRef.current = 'force';
     setStopMode('force');
-    // SUNUCU worker'ı durdur + çalışan pipeline'ı process-AĞACIYLA öldür (gerçek "net kes")
-    void fetch('/api/flow-queue/stop', { method: 'POST' }).catch(() => {});
+    // SUNUCU worker'ı durdur + çalışan pipeline'ı process-AĞACIYLA öldür (gerçek "net kes").
+    // F3: stop'a {force:true} → worker alt-sürecini taskkill /T /F; abort da _pipeline_proc'u öldürür (F2).
+    void fetch('/api/flow-queue/stop', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force: true }),
+    }).catch(() => {});
     void fetch('/api/pipeline/abort', { method: 'POST' }).catch(() => {});
   };
 
