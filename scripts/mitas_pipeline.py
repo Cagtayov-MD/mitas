@@ -310,6 +310,27 @@ OZET_MAX_TOKENS = 1500            # asr_server SUMMARY_MAX_TOKENS
 OZET_TIMEOUT_SECONDS = 90         # asr_server SUMMARY_TIMEOUT_SECONDS
 
 
+def _load_sibling(_name):
+    """scripts/ içindeki kardeş modülü güvenle yükle (import edilemezse None)."""
+    try:
+        import importlib
+        return importlib.import_module(_name)
+    except Exception:  # noqa: BLE001 — sys.path'te değilse modül-yolu ile dene
+        try:
+            import importlib.util as _ilu
+            _spec = _ilu.spec_from_file_location(_name, str(HERE / (_name + ".py")))
+            _m = _ilu.module_from_spec(_spec)
+            _spec.loader.exec_module(_m)
+            return _m
+        except Exception:  # noqa: BLE001 — hâlâ yoksa None (sağlayıcı atlanır)
+            return None
+
+
+# Özet sağlayıcı istemcileri (yoksa None → o sağlayıcı atlanır, zincir sıradakine düşer).
+_gemini = _load_sibling("_gemini")
+_deepseek = _load_sibling("_deepseek")
+
+
 def _ozet_source_text(transcript: str) -> str:
     """Uzun transcript'i kirp (asr_server._summary_source_text ile ayni)."""
     if len(transcript) <= OZET_MAX_SOURCE_CHARS:
@@ -387,31 +408,11 @@ def _mark_anthropic_http_error(exc: "urllib.error.HTTPError") -> None:
         return
 
 
-def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
-    """Transcript'ten Sonnet ile film/dizi olay-orgusu ozeti uretir (spoiler dahil).
-
-    ANTHROPIC_API_KEY yoksa, prompt dosyasi yoksa, transcript bossa veya istek
-    cokerse None doner — cagiran taraf placeholder'a geri duser. Pipeline'i ASLA
-    cokertmez (tum hatalar yutulur).
-    """
+def _ozet_anthropic(system_content: str, user_msg: str) -> str | None:
+    """Sonnet (Anthropic) ile özet. Anahtar/yanıt yoksa None; kredi/kota → durum işaretlenir."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         return None
-    text = (transcript_text or "").strip()
-    if not text:
-        return None
-    try:
-        system_content = OZET_PROMPT_PATH.read_text(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        return None
-    if not system_content.strip():
-        return None
-    source = _ozet_source_text(text)
-    user_msg = (
-        f"Dosya: {title or '—'}\n"
-        f"Süre: {duration or '—'}\n\n"
-        f"TRANSKRİPT:\n{source}"
-    )
     model = os.environ.get("MITAS_ANTHROPIC_MODEL", "claude-sonnet-4-6")
     body = {
         "model": model,
@@ -437,12 +438,77 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
         content = next((b.get("text") for b in blocks if b.get("type") == "text"), None)
         if isinstance(content, str) and content.strip():
             _status_mark("anthropic", True)   # basarili icerik -> durum ok
-            return _latin_only(content.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
+            return content.strip()
     except urllib.error.HTTPError as exc:  # kredi/kota ise durumu işaretle, sonra sessiz fallback
         _mark_anthropic_http_error(exc)
         return None
     except Exception:  # noqa: BLE001 — timeout/URLError/JSON vs.: mark YOK (yanlış-alarm olmasın)
         return None
+    return None
+
+
+def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
+    """Gemini (Google) ile özet. _gemini istemcisi/anahtar yoksa None."""
+    if _gemini is None:
+        return None
+    return _gemini.gemini_text(
+        system=system_content, prompt=user_msg,
+        model=os.environ.get("MITAS_GEMINI_MODEL", "gemini-3.5-flash"),
+        temperature=0.2, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
+    )
+
+
+def _ozet_deepseek(system_content: str, user_msg: str) -> str | None:
+    """DeepSeek (V3) ile özet. _deepseek istemcisi/anahtar yoksa None."""
+    if _deepseek is None:
+        return None
+    return _deepseek.deepseek_text(
+        messages=[{"role": "system", "content": system_content},
+                  {"role": "user", "content": user_msg}],
+        model=os.environ.get("MITAS_DEEPSEEK_MODEL", "deepseek-chat"),
+        temperature=0.2, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
+    )
+
+
+# Özet SAĞLAYICI ZİNCİRİ (Çağatay 2026-06-09): Gemini → Sonnet → DeepSeek; ilk başarılı kazanır.
+# Gemini birincil (A/B jürisi: 4/4 filmde en tutarlı DOĞRU final + ucuz + 1M bağlam);
+# biri kredisiz/çökerse (ör. 402/429) sessizce sıradakine düşer.
+_OZET_SAGLAYICILAR = (
+    ("gemini", _ozet_gemini),
+    ("sonnet", _ozet_anthropic),
+    ("deepseek", _ozet_deepseek),
+)
+
+
+def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
+    """Transcript'ten Gemini→Sonnet→DeepSeek zinciriyle film/dizi olay-örgüsü özeti (spoiler dahil).
+
+    Prompt dosyası/transcript yoksa VEYA tüm sağlayıcılar başarısızsa None döner — çağıran
+    placeholder'a düşer. Pipeline'ı ASLA çökertmez (tüm hatalar yutulur). Kazanan çıktıya
+    _latin_only kemeri (Kiril/Çince düşer, yabancı aksan ASCII'ye katlanır) uygulanır.
+    """
+    text = (transcript_text or "").strip()
+    if not text:
+        return None
+    try:
+        system_content = OZET_PROMPT_PATH.read_text(encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        return None
+    if not system_content.strip():
+        return None
+    source = _ozet_source_text(text)
+    user_msg = (
+        f"Dosya: {title or '—'}\n"
+        f"Süre: {duration or '—'}\n\n"
+        f"TRANSKRİPT:\n{source}"
+    )
+    for _ad, _fn in _OZET_SAGLAYICILAR:
+        try:
+            out = _fn(system_content, user_msg)
+        except Exception:  # noqa: BLE001 — bir sağlayıcı çökerse sıradakine düş
+            out = None
+        if isinstance(out, str) and out.strip():
+            return _latin_only(out.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
     return None
 
 
@@ -949,7 +1015,12 @@ def main(argv=None) -> int:
                 except Exception:  # noqa: BLE001
                     _v4j = None
             _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
-            if _cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False:
+            # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
+            # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
+            _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
+            _qc2_resolved = str(_cc4.get("yonetmen_kaynak", "")).startswith("QC2")
+            if (_cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False) \
+                    and not (_qc2_on and _qc2_resolved):
                 reasons.append("kimlik çelişkisi (KB cross-check)")
             # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
             # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
