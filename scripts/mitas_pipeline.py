@@ -483,9 +483,13 @@ _OZET_SAGLAYICILAR = (
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
     """Transcript'ten Gemini→Sonnet→DeepSeek zinciriyle film/dizi olay-örgüsü özeti (spoiler dahil).
 
-    Prompt dosyası/transcript yoksa VEYA tüm sağlayıcılar başarısızsa None döner — çağıran
+    Prompt dosyası/transcript yoksa VEYA tüm denemeler başarısızsa None döner — çağıran
     placeholder'a düşer. Pipeline'ı ASLA çökertmez (tüm hatalar yutulur). Kazanan çıktıya
     _latin_only kemeri (Kiril/Çince düşer, yabancı aksan ASCII'ye katlanır) uygulanır.
+
+    DAYANIKLILIK (Çağatay 2026-06-09): zincirin TAMAMI başarısız olursa özeti HEMEN BIRAKMAZ —
+    kısa bekleyip TEKRAR dener (MITAS_OZET_RETRIES, default 3 tur). Geçici rate-limit/503'te
+    bir film placeholder'a düşmeden önce 3 tam tur şans alır.
     """
     text = (transcript_text or "").strip()
     if not text:
@@ -502,13 +506,26 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
         f"Süre: {duration or '—'}\n\n"
         f"TRANSKRİPT:\n{source}"
     )
-    for _ad, _fn in _OZET_SAGLAYICILAR:
-        try:
-            out = _fn(system_content, user_msg)
-        except Exception:  # noqa: BLE001 — bir sağlayıcı çökerse sıradakine düş
-            out = None
-        if isinstance(out, str) and out.strip():
-            return _latin_only(out.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
+    try:
+        _turlar = max(1, int(os.environ.get("MITAS_OZET_RETRIES", "3") or "3"))
+    except Exception:  # noqa: BLE001
+        _turlar = 3
+    for _tur in range(_turlar):
+        for _ad, _fn in _OZET_SAGLAYICILAR:
+            try:
+                out = _fn(system_content, user_msg)
+            except Exception:  # noqa: BLE001 — bir sağlayıcı çökerse sıradakine düş
+                out = None
+            if isinstance(out, str) and out.strip():
+                return _latin_only(out.strip())   # SADECE Latin (Kiril/Çince düşer) — özet kuralı (kemer)
+        # Bu turda HİÇBİR sağlayıcı özet veremedi → geçici hata (rate-limit/503) olabilir;
+        # bekle ve TEKRAR dene (son turda bekleme yok).
+        if _tur < _turlar - 1:
+            try:
+                _bo = float(os.environ.get("MITAS_OZET_RETRY_BACKOFF", "6") or "6")
+            except Exception:  # noqa: BLE001
+                _bo = 6.0
+            time.sleep(_bo * (_tur + 1))   # 6s, 12s, ... (artan backoff)
     return None
 
 
