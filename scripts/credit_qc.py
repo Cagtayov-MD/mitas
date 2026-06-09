@@ -232,6 +232,14 @@ def stamp_pdf_warning(pdf_path, cats):
 
 def visual_check(png, model=VISUAL_MODEL):
     """qwen-VL/gemma onizleme gorseli QC -> [(kategori,sebep)]. GPU gerektirir."""
+    # Ağır model ise (gemma4:26b) süreçler-arası VRAM mutex al — fail-open.
+    try:
+        from _vram_guard import heavy_gpu_guard as _heavy_gpu_guard
+    except ImportError:
+        from contextlib import nullcontext as _heavy_noop
+        def _heavy_gpu_guard(m, **kw):  # type: ignore[misc]
+            return _heavy_noop()
+
     prompt = ("Bu bir film künye sayfasının önizlemesi. SADECE şu kontrolleri yap ve JSON döndür:\n"
               '{"afis_var": true/false, "turkce_harf_bozuk": true/false, '
               '"ozet_tutarli": true/false, "altyazi_kacmis": true/false, "duzen_ok": true/false}\n'
@@ -246,8 +254,9 @@ def visual_check(png, model=VISUAL_MODEL):
     try:
         req = urllib.request.Request(OLLAMA_CHAT, data=json.dumps(payload).encode(),
                                      headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=300) as r:
-            content = (json.loads(r.read().decode()).get("message", {}).get("content") or "")
+        with _heavy_gpu_guard(model, label="credit_qc"):
+            with urllib.request.urlopen(req, timeout=300) as r:
+                content = (json.loads(r.read().decode()).get("message", {}).get("content") or "")
         m = re.search(r"\{.*\}", content, re.S)
         j = json.loads(m.group(0)) if m else {}
     except Exception as e:
