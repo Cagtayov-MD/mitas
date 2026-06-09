@@ -17,6 +17,13 @@ Write-Host '== 1) Kalıcı (User) env yükleniyor: MITAS_/ANTHROPIC_/OPENAI_  (P
   Where-Object { $_.Key -match '^(MITAS_|ANTHROPIC_|OPENAI_)' } |
   ForEach-Object { Set-Item -Path ("Env:" + $_.Key) -Value $_.Value; Write-Host ("   + " + $_.Key) }
 
+Write-Host '== 1b) QC2 + perf defaultlari (User env onceliklidir; yoksa AKTIF varsayilan) =='
+# QC2 = kunye temizleme/dogrulama (garble-kapisi + yonetmen KB-fill + web/kopru kimlik). Uretimde AKTIF.
+if (-not $env:MITAS_QC2)               { $env:MITAS_QC2 = '1';               Write-Host '   + MITAS_QC2=1 (default AKTIF)' }
+if (-not $env:MITAS_QC2_WEB)           { $env:MITAS_QC2_WEB = '1';           Write-Host '   + MITAS_QC2_WEB=1 (default AKTIF)' }
+# OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
+if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
+
 Write-Host '== 2) Mevcut 8765/8787 uvicorn/asr_server/tedial süreçleri GÜÇLÜ durduruluyor (zombi/shim dahil) =='
 $kill = @{}
 # (a) komut-satırı eşleşmesi: port VE/VEYA app adı (shim/zombi de yakalanır)

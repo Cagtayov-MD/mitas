@@ -92,8 +92,10 @@ def parse_teslim_md(path):
         d["ozet"] = re.sub(r"\s+", " ", m.group(1)).strip()
     return d
 
-def ozet_v4(ozet, names=()):
-    """v4 özet: kurulum cümleleri + SON cümle (spoiler) korunur, ≤~64 kelime, TR-BÜYÜK.
+def ozet_v4(ozet, names=(), cap=72):
+    """v5 özet: SON cümle (spoiler) HER ZAMAN korunur; toplam ~cap (72) kelimeyi aşarsa
+    yalnızca ortadaki kurulum cümleleri kırpılır. Yeni ozet_film.txt promptu zaten ≤70 sıkı
+    yazdığı için bu fonksiyon ÇOĞU özette HİÇ kırpmaz (anlam kaybı yok) — yalnız güvenlik ağı.
     Büyük harf nn.tr_upper_prose ile (isim-FARKINDA): yabancı cast/crew adları ASCII (MASSIMO),
     Türkçe isimler İ. names = filmin cast+yönetmen+yapımcı ham adları. DETERMİNİSTİK — LLM YOK."""
     if not ozet:
@@ -102,12 +104,15 @@ def ozet_v4(ozet, names=()):
     cumleler = [c.strip() for c in re.split(r"(?<=[.])\s+", ozet) if c.strip()]
     if len(cumleler) <= 1:
         return nn.tr_upper_prose(ozet, names)
-    son = cumleler[-1]                              # final/spoiler cümlesi (v4: spoiler şart)
+    toplam = sum(len(c.split()) for c in cumleler)
+    if toplam <= cap:                               # zaten sığıyor → HİÇ kırpma (cümle düşürme yok)
+        return nn.tr_upper_prose(" ".join(cumleler), names)
+    son = cumleler[-1]                              # final/spoiler cümlesi (v5: spoiler şart)
     son_w = len(son.split())
     out, n = [], 0
     for c in cumleler[:-1]:
         w = len(c.split())
-        if out and n + w + son_w > 65:              # son cümleye yer bırak (v4 üst sınır 65 kelime)
+        if out and n + w + son_w > cap:             # son cümleye yer bırak (üst eşik ~72 kelime)
             break
         out.append(c)
         n += w
@@ -247,11 +252,111 @@ def main():
                 for _an in auth:                # NOT: 'a' argparse namespace'i — döngüde EZME (bug)
                     if not any(_cc.name_match(_an, x) or _cc.name_close(_an, x) for x in cast):
                         cast.append(_an)        # OCR'dan SONRA ekle (otorite sırası korunur)
+    # ── QC2 (flag MITAS_QC2, default KAPALI): kimlik-önce yönetmen-fill + cast garble "imza-yokluğu" temizleme ──
+    #    credit_qc_gates İZOLE modül (saf name_match, duckdb yok). YALNIZ kimlik KİLİTLİ (verdict==TEYİT veya
+    #    cast_ov>=2) iken çalışır. Fail-safe: herhangi hata → mevcut yon/cast AYNEN (pipeline ASLA bozulmaz).
+    _web_afis = None   # QC2-web afişi line 357'deki cc.get("afis") yeniden-atamasında KAYBOLMASIN
+    if os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes"):
+        try:
+            import credit_qc_gates as _qc2
+            # ── QC2 katman-b: WEB/KÖPRÜ KİMLİK KATMANI ──
+            # Kimlik cast-örtüşmesiyle KURULAMAZSA (cast boş/çöp → cast_ov<2 → kimlik_dogru=False)
+            # ÇAPA-1 (yönetmen-çapası, KB) veya ÇAPA-2 (TMDB) ile kimlik kur.
+            # Flag: MITAS_QC2_WEB — default AÇIK (MITAS_QC2'ye bağlı).
+            # Yanlış>boş kuralı: çapalardan hiçbiri GÜVENLE kilitlenemezse → BOŞ bırak (KONTROL).
+            _qc2_web_on = os.environ.get("MITAS_QC2_WEB", "1").strip().lower() not in ("0", "false", "off", "no")
+            if _qc2_web_on and not kimlik_dogru:
+                try:
+                    _afis_now = cc.get("afis")  # afis henüz atanmamış — cc'den al
+                    _kb2 = _cc.CreditKB() if _cc is not None else None
+                    if _kb2 is not None:
+                        _web = _qc2.web_identity(
+                            title, a.original, a.year,
+                            ocr_director=(yon[0] if yon else None),
+                            summary=None, kb=_kb2
+                        )
+                        _kb2.close()
+                        if _web.get("locked"):
+                            # kimlik web-çapasıyla kilitlendi → KB verilerini uygula
+                            _web_dir = _web.get("director") or []
+                            _web_cast = _web.get("cast") or []
+                            _web_imdb = _web.get("imdb_id")
+                            _web_tmdb = _web.get("tmdb_id")
+                            # Yönetmen: OCR boşsa veya eşleşme yoksa web'den doldur (KIRMIZI ÇİZGİ: OCR+çapa)
+                            if not yon and _web_dir:
+                                yon = [_web_dir[0]]
+                                yon_kaynak = f"QC2-web: yönetmen-doldur ({_web.get('method')})"
+                            # cast: web'den gelen gerçek cast'i kimlik referansı olarak kullan
+                            # identity_first_cast mantığıyla: OCR cast'i boşsa doğrudan web cast'ini al
+                            if not cast and _web_cast:
+                                cast = _web_cast[:8]
+                                rapor["adimlar"]["qc2_web_cast_kaynak"] = "web"
+                            elif cast and _web_cast:
+                                # OCR cast çöp (cast_ov=0) → web cast'ini otorite olarak kullan
+                                _ref_web = _qc2.identity_first_cast(cast, _web_cast, max_out=8)
+                                if _ref_web.get("temiz_cast"):
+                                    cast = _ref_web["temiz_cast"]
+                                    if _ref_web.get("dususler"):
+                                        rapor["adimlar"]["qc2_web_cast_dususler"] = _ref_web["dususler"]
+                                else:
+                                    cast = _web_cast[:8]
+                            # afiş: web kimlik ID'siyle çek
+                            if not _afis_now and (_web_imdb or _web_tmdb):
+                                try:
+                                    _pf2 = _load("pf2", os.path.join(PDFMITAS, "poster_fetch.py"))
+                                    _pp2 = _pf2.fetch_poster(
+                                        title, afis_out,
+                                        original=a.original, year=a.year,
+                                        cast=(_web_cast or []),
+                                        crew=([("Yönetmen", [_web_dir[0]])] if _web_dir else None),
+                                        imdb_id=_web_imdb, tmdb_id=_web_tmdb
+                                    )
+                                    if _pp2 and os.path.exists(_pp2) and os.path.getsize(_pp2) > 5000:
+                                        afis = _pp2
+                                        _web_afis = _pp2   # line 357 cc.get("afis") EZMESİN
+                                except Exception as _pfe:
+                                    sys.stderr.write(f"[uyari] QC2-web afiş hatası: {_pfe}\n")
+                            # auth'ları güncelle — sonraki QC2 graftlar web verisiyle çalışsın
+                            auth = _web_cast[:8] if _web_cast else auth
+                            auth_yon = _web_dir[:3] if _web_dir else auth_yon
+                            kimlik_dogru = True  # web-çapası kilitledi
+                            rapor["adimlar"]["qc2_web"] = {
+                                "method": _web.get("method"),
+                                "kaynak_izi": _web.get("kaynak_izi"),
+                                "imdb_id": _web_imdb, "tmdb_id": _web_tmdb,
+                                "web_yonetmen": _web_dir, "web_cast_n": len(_web_cast),
+                            }
+                        else:
+                            rapor["adimlar"]["qc2_web"] = {
+                                "method": None, "kaynak_izi": _web.get("kaynak_izi"),
+                                "neden": "çapa kilitlenemedi → KONTROL (yanlış>boş)"
+                            }
+                except Exception as _we:  # noqa: BLE001
+                    sys.stderr.write(f"[uyari] QC2-web atlandı: {_we}\n")
+                    rapor["adimlar"]["qc2_web"] = {"method": None, "kaynak_izi": f"hata: {_we}"}
+            # ── QC2 katman-a: mevcut graftlar (kimlik kilitliyse) ──
+            if (not yon) and kimlik_dogru and auth_yon:     # boş/çelişki-temizlenmiş yönetmen + kimlik kilitli → KB-fill
+                yon = [auth_yon[0]]
+                yon_kaynak = "QC2: KB-fill (kimlik-kilitli)"
+            if kimlik_dogru and auth:                       # cast: garble (imza-yok) düş + KB-kanonik tamamla
+                _ref = _qc2.identity_first_cast(cast, auth, max_out=8)
+                if _ref.get("temiz_cast"):
+                    if _ref.get("dususler"):
+                        rapor["adimlar"]["qc2_cast_dususler"] = _ref["dususler"]
+                    cast = _ref["temiz_cast"]
+            if kimlik_dogru:                                # yapımcı: garble/şirket (imza-yok) düş + KB kişileri tamamla
+                _refp = _qc2.identity_first_producer(yap, cc.get("yapimci") or [], max_out=3)
+                if _refp.get("temiz_yapimci"):
+                    if _refp.get("dususler"):
+                        rapor["adimlar"]["qc2_yap_dususler"] = _refp["dususler"]
+                    yap = _refp["temiz_yapimci"]
+        except Exception as _qe:  # noqa: BLE001 — QC2 fail-safe: pipeline'ı ASLA bozma
+            sys.stderr.write(f"[uyari] QC2 atlandı: {_qe}\n")
     if not yap and cc.get("yapimci"):
         yap = cc["yapimci"]
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
     tur = cc.get("tur") or "—"
-    afis = cc.get("afis")
+    afis = _web_afis or cc.get("afis")   # QC2-web afişi ÖNCELİKLİ (KB'de afiş yok ama web bulduysa korunur)
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,

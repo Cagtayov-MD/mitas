@@ -118,8 +118,10 @@ def vl_fallback(clip, title, text_credits, profile="film"):
             if vlyon:
                 out["yonetmen"] = ctr._only_persons(vlyon)
                 out["vl_yon_kaynak"] = how
-        # CAST-supplement (#3): text cast<3 → VL cast'ten ekle (KESİN KURAL + dedup)
-        if len(tcast) < 3:
+        # CAST-supplement: VARSAYILAN KAPALI (2026-06-09 ölçüm: VL cast HALÜSİNE — brad pitt/julia roberts
+        # uyduruyor, temp=0'da bile). VL artık YÖNETMEN-ONLY; cast = OCR otorite + KB (QC2 tamamlar).
+        # Geri-almak için MITAS_VL_CAST=1 (önerilmez). KESİN KURAL + dedup yine uygulanır.
+        if os.environ.get("MITAS_VL_CAST", "0").strip().lower() in ("1", "true", "on", "yes") and len(tcast) < 3:
             add = []
             for nm in qc + gc:
                 if not any(_fold(nm) == _fold(x) for x in tcast + add):

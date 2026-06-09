@@ -148,6 +148,10 @@ def read_segment(model, frames):
     """Bir kare dizisini video-tag olarak VLM'e ver, ham cevabi dondur. think=False (video icin SART).
     _ollama.ollama_chat uzerinden (retry+timeout merkezi). Basarisizsa bos string."""
     msgs = [{"role": "user", "content": PROMPT, "images": [_encode(f) for f in frames]}]
+    # VL örnekleme env-ayarlı (default = mevcut 0.1/0.9). MITAS_VL_TEMP=0 + MITAS_VL_TOPP=1 → tam greedy.
+    import os as _os
+    _vl_temp = float(_os.environ.get("MITAS_VL_TEMP", "0"))    # greedy default (2026-06-09): yönetmen deterministik
+    _vl_topp = float(_os.environ.get("MITAS_VL_TOPP", "1"))
     resp = _ollama_chat(
         model=model,
         messages=msgs,
@@ -155,7 +159,7 @@ def read_segment(model, frames):
         host=OLLAMA_HOST,
         think=False,
         keep_alive="10m",
-        options={"temperature": 0.1, "top_p": 0.9, "num_ctx": NUM_CTX,
+        options={"temperature": _vl_temp, "top_p": _vl_topp, "num_ctx": NUM_CTX,
                  "num_predict": NUM_PREDICT, "repeat_penalty": 1.3, "repeat_last_n": 256},
     )
     if resp is None:
