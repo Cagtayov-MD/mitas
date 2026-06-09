@@ -91,8 +91,6 @@ scripts/_*
 !scripts/_subtitle_detect.py
 !scripts/_kunye_classify.py
 !scripts/_kunye_qwen_check.py
-# 2-paralel VRAM guard (_ollama.ollama_chat + asr_server + credit_qc RUNTIME kullanir) — izlenir
-!scripts/_vram_guard.py
 
 # Root-level scratch & debug artifacts (fix/hile/probe/render/test dumps)
 /_*

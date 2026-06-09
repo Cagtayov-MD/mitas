@@ -179,31 +179,14 @@ def _mark_anthropic_http_error(exc: "urllib.error.HTTPError") -> None:
         return
 
 
-# FAZ 2: Adaptif 2-paralel eşzamanlılık (ENV-GATED, varsayılan KAPALI).
-# MITAS_FLOW_PARALLEL=2 + restart → flow-queue'da en fazla 2 pipeline eşzamanlı koşar.
-# MITAS_FLOW_PARALLEL=1 (default) → BUGÜNKÜ DAVRANIŞI BİREBİR KORUR, hiçbir regresyon yok.
-# Gemma4 çakışması _vram_guard.py süreçler-arası mutex ile alt-süreç İÇİNDE engellenir.
-# Ollama tavsiyesi (MITAS_FLOW_PARALLEL>1 ise açılması önerilir):
-#   OLLAMA_NUM_PARALLEL=2   — ollama'nın aynı anda 2 isteğe yanıt vermesine izin ver
-#   OLLAMA_MAX_LOADED_MODELS=2 — belleğe aynı anda 2 model sığdır
-_FLOW_PARALLEL: int = max(1, int(os.environ.get("MITAS_FLOW_PARALLEL", "1")))
-
-_pipeline_executor = ThreadPoolExecutor(
-    max_workers=_FLOW_PARALLEL, thread_name_prefix="mitas-pipeline"
-)
+_pipeline_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mitas-pipeline")
 # Tüm GPU-ağır pipeline/ASR yürütmelerini serileştirir (tek RTX 3090, OOM önleme).
 # 3 yol (_run_pipeline_job tek-upload, _flow_queue_worker_loop kuyruk, _run_job ASR)
 # her biri kendi içinde seri ama BİRBİRİNE karşı değildi; bu kilit hepsini tek sıraya alır.
-# _FLOW_PARALLEL>1'de kaba kilit yerine BoundedSemaphore kullanılır (aşağıda worker'da).
 _gpu_lock = threading.Lock()
 _pipeline_proc: "subprocess.Popen | None" = None   # çalışan mitas_pipeline (Zorla Durdur ile ağaç-öldürmek için)
 _pipeline_abort = threading.Event()                  # Zorla Durdur işareti
 _flow_worker_proc: "subprocess.Popen | None" = None  # F2: çalışan FLOW-WORKER pipeline'ı (zorla-dur ile öldürmek için)
-# _FLOW_PARALLEL>1 modunda eşzamanlı çalışan tüm subprocess PID'leri — abort hepsini öldürür.
-_running_procs: set["subprocess.Popen"] = set()
-_running_procs_lock = threading.Lock()
-# Paralel mod semaforu — sadece _FLOW_PARALLEL>1'de etkin.
-_flow_semaphore = threading.BoundedSemaphore(_FLOW_PARALLEL)
 _singleton_mutex_handle = None                       # F1: tek-instance named mutex (GC olmasın diye saklanır)
 PIPELINE_PROFILE_MAP: dict[str, str] = {
     "film_dizi": "film_dizi",
@@ -584,422 +567,192 @@ def _cleanup_flow_queue_terminal() -> int:
     return changed
 
 
-def _process_flow_item(
-    target: dict,
-    cmd: list[str],
-    clip_id: str,
-    *,
-    _run_fn: "Any | None" = None,
-) -> None:
-    """Tek bir flow-queue öğesini çalıştır — Popen + communicate + durum güncelleme.
-
-    _run_fn: test enjeksiyon noktası. None ise gerçek Popen+communicate çalışır.
-    Geçilirse _run_fn(target, cmd) çağrılır (stub callable).
-
-    Bu fonksiyon KENDİ exception'larını yakalar → bir iş patlarsa dağıtıcı ölmez,
-    diğer işler etkilenmez. Popen oluşturulduğunda proc HEM _running_procs'a eklenir
-    HEM best-effort tekil _pipeline_proc/_flow_worker_proc'a yazılır (abort/force-stop için).
-    """
-    global _pipeline_proc, _flow_worker_proc
-    try:
-        if _run_fn is not None:
-            # ── Test modu: stub callable — gerçek subprocess YOK ──
-            _run_fn(target, cmd)
-            return
-
-        # ── Gerçek mod: Popen + communicate ──
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
-        )
-        # Best-effort tekil global'ler (UI / abort için); paralel modda sonuncusu kazanır.
-        _pipeline_proc = proc
-        _flow_worker_proc = proc
-        with _running_procs_lock:
-            _running_procs.add(proc)
-        try:
-            try:
-                _out, _err = proc.communicate(timeout=14400)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.communicate()
-                raise
-        finally:
-            with _running_procs_lock:
-                _running_procs.discard(proc)
-            _pipeline_proc = None
-            _flow_worker_proc = None
-
-        if _pipeline_abort.is_set():
-            raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
-
-        # Parse last JSON line from stdout
-        result: dict[str, Any] | None = None
-        for line in reversed((_out or "").splitlines()):
-            line = line.strip()
-            if line.startswith("{"):
-                try:
-                    result = json.loads(line)
-                except json.JSONDecodeError:
-                    pass
-                else:
-                    break
-
-        if result is None:
-            tail = (_err or _out or "pipeline_failed")[-600:]
-            raise RuntimeError(tail)
-
-        karar = result.get("karar")
-        neden = result.get("neden") or []
-        if isinstance(neden, list):
-            neden_str = ", ".join(neden)
-        else:
-            neden_str = str(neden)
-
-        if karar == "Hazır":
-            item_status = "done"
-        elif karar == "Kontrol":
-            item_status = "partial"
-        else:
-            item_status = "done"
-
-        message = str(karar or "Tamamlandı")
-        if neden_str:
-            message = f"{message} — {neden_str}"
-
-        _flow_update_item(target["id"], status=item_status, message=message)
-        system_events.log_event(
-            "flow_item_done",
-            summary=f"Flow item {target.get('name', target['id'])}: {karar}.",
-            module="flow",
-            detail={"item_id": target["id"], "clip_id": clip_id, "karar": karar, "neden": neden},
-        )
-
-    except Exception as exc:  # noqa: BLE001
-        # F3: abort kaynaklıysa 'stopped' (kullanıcı durdurdu), değilse 'failed'.
-        if _pipeline_abort.is_set() or "ZORLA DURDURULDU" in str(exc):
-            _flow_update_item(target["id"], status="stopped",
-                              message="Zorla durduruldu (kullanıcı)")
-            system_events.log_event(
-                "flow_item_stopped",
-                summary=f"Flow item {target.get('name', target['id'])}: ZORLA durduruldu.",
-                level="warn", module="flow",
-                detail={"item_id": target["id"], "clip_id": clip_id})
-        else:
-            _flow_update_item(target["id"], status="failed", message=str(exc)[:300])
-            system_events.log_event(
-                "flow_item_failed",
-                summary=f"Flow item {target.get('name', target['id'])} başarısız oldu.",
-                level="error", module="flow",
-                detail={"item_id": target["id"], "error": str(exc)[:300]})
-
-
-def _run_item_and_release(
-    target: dict,
-    cmd: list[str],
-    clip_id: str,
-    *,
-    _run_fn: "Any | None" = None,
-) -> None:
-    """Paralel mod için ThreadPoolExecutor sarmalayıcısı.
-
-    _process_flow_item'i çalıştırır, ardından semaforu serbest bırakır.
-    finally garantisi: iş patlarsa bile semafor açılır → dağıtıcı sıradaki item'ı alabilir.
-    """
-    try:
-        _process_flow_item(target, cmd, clip_id, _run_fn=_run_fn)
-    finally:
-        _flow_semaphore.release()
-
-
-def _flow_queue_worker_loop(
-    *,
-    _run_fn: "Any | None" = None,
-) -> None:
-    """Process waiting items in queue.json — seri (default) veya N-paralel (MITAS_FLOW_PARALLEL>1).
-
-    _FLOW_PARALLEL==1: mevcut _gpu_lock kaba kilidi, tek-proc, birebir aynı davranış.
-    _FLOW_PARALLEL>1 : bloklamayan dağıtıcı — _flow_semaphore ile en fazla N subprocess
-                       GERÇEKTEN EŞ ZAMANLI koşar; _running_procs set'i ile abort HEPSİNİ öldürür.
-    Gemma4 çakışması: _vram_guard.py subprocess İÇİNDE mutex ile engellenir — worker seviyesinde
-    ek koruma gerekmez.
-
-    _run_fn: test enjeksiyon noktası — None ise gerçek Popen; stub geçilirse test modunda çalışır.
-    """
+def _flow_queue_worker_loop() -> None:
+    """Process waiting items in queue.json one at a time (GPU-serial)."""
     global _flow_worker_current, _pipeline_proc, _flow_worker_proc
     processed: set[str] = set()  # bu oturumda işlenen öğe id'leri — panel durum geri-sarmasına BAĞIŞIK (tekrar işleme yok)
-
-    # ── Paralel mod için uçuşta future takibi ──
-    from concurrent.futures import Future as _Future
-    _inflight: list[_Future] = []   # submit edilmiş ama henüz bitmemiş gelecekler
-
-    def _build_cmd_for(target: dict) -> tuple[list[str], str] | None:
-        """target için (cmd, clip_id) üret; geçersizse None döner (durum güncellendi)."""
-        video_path: str = target.get("storedMediaPath") or target.get("sourcePath") or ""
-        # Tedial kuyruk öğeleri burada otomatik indirilemez: indirme helper'ı
-        # Tedial router'ında per-kullanıcı oturum cookie'sine + async istek
-        # bağlamına bağlı (worker'da yok). Yarım/hang riski almak yerine
-        # kullanıcıyı Tedial sekmesinden Pipeline'a yönlendir (dürüst-akış).
-        is_tedial_item = (
-            target.get("source") == "tedial"
-            or bool(target.get("tedialItem"))
-            or str(target.get("id", "")).startswith("tedial-")
-        )
-        if is_tedial_item and (not video_path or not Path(video_path).exists()):
-            _flow_update_item(
-                target["id"],
-                status="failed",
-                message="Tedial klip kuyrukta otomatik işlenemiyor — Tedial sekmesinden Pipeline'a gönder.",
-            )
-            system_events.log_event(
-                "flow_item_failed",
-                summary=f"Flow item {target.get('name', target['id'])}: Tedial klip kuyrukta otomatik işlenemiyor.",
-                level="error",
-                module="flow",
-                detail={"item_id": target["id"], "source": "tedial"},
-            )
-            return None
-        if not video_path or not Path(video_path).exists():
-            _flow_update_item(target["id"], status="failed", message="Video bulunamadı")
-            system_events.log_event(
-                "flow_item_failed",
-                summary=f"Flow item {target.get('name', target['id'])}: video bulunamadı.",
-                level="error",
-                module="flow",
-                detail={"item_id": target["id"], "video_path": video_path},
-            )
-            return None
-
-        # Reused-skip: zaten Database'de işlenmişse atla — AMA item force=true ise ATLAMA-yı atla
-        # (stale Database'i sil, taze koş). F4: tek-film yeniden-testi sessizce engellenmesin.
-        clip_id = _flow_clip_id(video_path)
-        _force_item = bool(target.get("force"))
-        _clip_db = CLIPS_ROOT / clip_id
-        if _force_item and _clip_db.exists():
-            shutil.rmtree(_clip_db, ignore_errors=True)   # zorla yeniden çöz → stale Database sil
-        elif (_clip_db / "_DURUM.json").exists():
-            _flow_update_item(
-                target["id"],
-                status="done",
-                message="Zaten işlenmiş (Database'de), atlandı.",
-            )
-            system_events.log_event(
-                "flow_item_skipped",
-                summary=f"Flow item {target.get('name', target['id'])} zaten Database'de — atlandı.",
-                module="flow",
-                detail={"item_id": target["id"], "clip_id": clip_id},
-            )
-            return None
-
-        profile: str = target.get("profile") or "film"
-        pipeline_profile: str = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")
-        cmd = [
-            sys.executable,
-            str(MITAS_PIPELINE),
-            "--video", video_path,
-            "--profile", pipeline_profile,
-            # KAYNAK YERİNDE KALIR: ağ yolundaki büyük filmi Database/<clip>/source'a
-            # KOPYALAMA (extraction zaten orijinal yoldan okur; kopya sadece arşivdi).
-            # 500 filmde ~350GB gereksiz kopyayı önler. (Cagatay_22.02 gibi: path-tabanlı.)
-            "--no-copy-source",
-        ]
-        return cmd, clip_id
-
     try:
-        if _FLOW_PARALLEL == 1:
-            # ══════════════════════════════════════════════════════════════════════
-            # SERİ DAL — MEVCUT DAVRANIŞI BİREBİR KORUR.
-            # _gpu_lock kaba kilidi, tek-proc, orijinal sıralı davranış.
-            # ══════════════════════════════════════════════════════════════════════
-            while not _flow_worker_stop.is_set():
+        while not _flow_worker_stop.is_set():
+            try:
+                state = _read_json(FLOW_QUEUE_STATE_PATH)
+                if not isinstance(state, dict) or "items" not in state:
+                    break  # queue gone / corrupt — stop worker
+
+                target: dict | None = None
+                for it in state.get("items", []):
+                    if it.get("status") == "waiting" and it.get("id") not in processed:
+                        target = it
+                        break
+
+                if target is None:
+                    break  # kuyruk bitti (tüm bekleyenler bu oturumda işlendi)
+                processed.add(target["id"])  # bir kez işle — durum 'waiting'e geri sarsa bile tekrar etme
+
+                video_path: str = target.get("storedMediaPath") or target.get("sourcePath") or ""
+                # Tedial kuyruk öğeleri burada otomatik indirilemez: indirme helper'ı
+                # Tedial router'ında per-kullanıcı oturum cookie'sine + async istek
+                # bağlamına bağlı (worker'da yok). Yarım/hang riski almak yerine
+                # kullanıcıyı Tedial sekmesinden Pipeline'a yönlendir (dürüst-akış).
+                is_tedial_item = (
+                    target.get("source") == "tedial"
+                    or bool(target.get("tedialItem"))
+                    or str(target.get("id", "")).startswith("tedial-")
+                )
+                if is_tedial_item and (not video_path or not Path(video_path).exists()):
+                    _flow_update_item(
+                        target["id"],
+                        status="failed",
+                        message="Tedial klip kuyrukta otomatik işlenemiyor — Tedial sekmesinden Pipeline'a gönder.",
+                    )
+                    system_events.log_event(
+                        "flow_item_failed",
+                        summary=f"Flow item {target.get('name', target['id'])}: Tedial klip kuyrukta otomatik işlenemiyor.",
+                        level="error",
+                        module="flow",
+                        detail={"item_id": target["id"], "source": "tedial"},
+                    )
+                    continue
+                if not video_path or not Path(video_path).exists():
+                    _flow_update_item(target["id"], status="failed", message="Video bulunamadı")
+                    system_events.log_event(
+                        "flow_item_failed",
+                        summary=f"Flow item {target.get('name', target['id'])}: video bulunamadı.",
+                        level="error",
+                        module="flow",
+                        detail={"item_id": target["id"], "video_path": video_path},
+                    )
+                    continue
+
+                # Reused-skip: zaten Database'de işlenmişse atla — AMA item force=true ise ATLAMA-yı atla
+                # (stale Database'i sil, taze koş). F4: tek-film yeniden-testi sessizce engellenmesin.
+                clip_id = _flow_clip_id(video_path)
+                _force_item = bool(target.get("force"))
+                _clip_db = CLIPS_ROOT / clip_id
+                if _force_item and _clip_db.exists():
+                    shutil.rmtree(_clip_db, ignore_errors=True)   # zorla yeniden çöz → stale Database sil
+                elif (_clip_db / "_DURUM.json").exists():
+                    _flow_update_item(
+                        target["id"],
+                        status="done",
+                        message="Zaten işlenmiş (Database'de), atlandı.",
+                    )
+                    system_events.log_event(
+                        "flow_item_skipped",
+                        summary=f"Flow item {target.get('name', target['id'])} zaten Database'de — atlandı.",
+                        module="flow",
+                        detail={"item_id": target["id"], "clip_id": clip_id},
+                    )
+                    continue
+
+                _flow_worker_current = target
+                _flow_update_item(target["id"], status="running", message="İşleniyor")
+
+                profile: str = target.get("profile") or "film"
+                pipeline_profile: str = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")
+
                 try:
-                    state = _read_json(FLOW_QUEUE_STATE_PATH)
-                    if not isinstance(state, dict) or "items" not in state:
-                        break  # queue gone / corrupt — stop worker
-
-                    target: dict | None = None
-                    for it in state.get("items", []):
-                        if it.get("status") == "waiting" and it.get("id") not in processed:
-                            target = it
-                            break
-
-                    if target is None:
-                        break  # kuyruk bitti (tüm bekleyenler bu oturumda işlendi)
-                    processed.add(target["id"])  # bir kez işle — durum 'waiting'e geri sarsa bile tekrar etme
-
-                    built = _build_cmd_for(target)
-                    if built is None:
-                        continue   # geçersiz item, atla (durum güncellendi)
-                    cmd, clip_id = built
-
-                    _flow_worker_current = target
-                    _flow_update_item(target["id"], status="running", message="İşleniyor")
-
+                    cmd = [
+                        sys.executable,
+                        str(MITAS_PIPELINE),
+                        "--video", video_path,
+                        "--profile", pipeline_profile,
+                        # KAYNAK YERİNDE KALIR: ağ yolundaki büyük filmi Database/<clip>/source'a
+                        # KOPYALAMA (extraction zaten orijinal yoldan okur; kopya sadece arşivdi).
+                        # 500 filmde ~350GB gereksiz kopyayı önler. (Cagatay_22.02 gibi: path-tabanlı.)
+                        "--no-copy-source",
+                    ]
                     # GPU semaforu + ABORT-GÖRÜNÜR koşu (F2): subprocess.run DEĞİL Popen → çocuk PID'i
                     # _pipeline_proc/_flow_worker_proc'a yaz ki /api/pipeline/abort ve zorla-dur GERÇEKTEN
                     # öldürebilsin. _run_pipeline_job ile AYNI kanıtlı desen (deadlock'suz).
                     _pipeline_abort.clear()
-                    # ── Seri mod: tek-process, orijinal _gpu_lock davranışı birebir ──
                     with _gpu_lock:
-                        if _run_fn is not None:
-                            # test stub
-                            _run_fn(target, cmd)
-                        else:
-                            proc = subprocess.Popen(
-                                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
-                            )
-                            _pipeline_proc = proc
-                            _flow_worker_proc = proc
+                        proc = subprocess.Popen(
+                            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
+                        )
+                        _pipeline_proc = proc
+                        _flow_worker_proc = proc
+                        try:
                             try:
-                                try:
-                                    _out, _err = proc.communicate(timeout=14400)
-                                except subprocess.TimeoutExpired:
-                                    proc.kill()
-                                    proc.communicate()
-                                    raise
-                            finally:
-                                _pipeline_proc = None
-                                _flow_worker_proc = None
+                                _out, _err = proc.communicate(timeout=14400)
+                            except subprocess.TimeoutExpired:
+                                proc.kill()
+                                proc.communicate()
+                                raise
+                        finally:
+                            _pipeline_proc = None
+                            _flow_worker_proc = None
+                    if _pipeline_abort.is_set():
+                        raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
 
-                            if _pipeline_abort.is_set():
-                                raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
-
-                            # Parse last JSON line from stdout
-                            result: dict[str, Any] | None = None
-                            for line in reversed((_out or "").splitlines()):
-                                line = line.strip()
-                                if line.startswith("{"):
-                                    try:
-                                        result = json.loads(line)
-                                    except json.JSONDecodeError:
-                                        pass
-                                    else:
-                                        break
-
-                            if result is None:
-                                tail = (_err or _out or "pipeline_failed")[-600:]
-                                raise RuntimeError(tail)
-
-                            karar = result.get("karar")
-                            neden = result.get("neden") or []
-                            if isinstance(neden, list):
-                                neden_str = ", ".join(neden)
+                    # Parse last JSON line from stdout
+                    result: dict[str, Any] | None = None
+                    for line in reversed((_out or "").splitlines()):
+                        line = line.strip()
+                        if line.startswith("{"):
+                            try:
+                                result = json.loads(line)
+                            except json.JSONDecodeError:
+                                pass
                             else:
-                                neden_str = str(neden)
+                                break
 
-                            if karar == "Hazır":
-                                item_status = "done"
-                            elif karar == "Kontrol":
-                                item_status = "partial"
-                            else:
-                                item_status = "done"
+                    if result is None:
+                        tail = (_err or _out or "pipeline_failed")[-600:]
+                        raise RuntimeError(tail)
 
-                            message = str(karar or "Tamamlandı")
-                            if neden_str:
-                                message = f"{message} — {neden_str}"
+                    karar = result.get("karar")
+                    neden = result.get("neden") or []
+                    if isinstance(neden, list):
+                        neden_str = ", ".join(neden)
+                    else:
+                        neden_str = str(neden)
 
-                            _flow_update_item(target["id"], status=item_status, message=message)
-                            system_events.log_event(
-                                "flow_item_done",
-                                summary=f"Flow item {target.get('name', target['id'])}: {karar}.",
-                                module="flow",
-                                detail={"item_id": target["id"], "clip_id": clip_id, "karar": karar, "neden": neden},
-                            )
+                    if karar == "Hazır":
+                        item_status = "done"
+                    elif karar == "Kontrol":
+                        item_status = "partial"
+                    else:
+                        item_status = "done"
+
+                    message = str(karar or "Tamamlandı")
+                    if neden_str:
+                        message = f"{message} — {neden_str}"
+
+                    _flow_update_item(target["id"], status=item_status, message=message)
+                    system_events.log_event(
+                        "flow_item_done",
+                        summary=f"Flow item {target.get('name', target['id'])}: {karar}.",
+                        module="flow",
+                        detail={"item_id": target["id"], "clip_id": clip_id, "karar": karar, "neden": neden},
+                    )
 
                 except Exception as exc:  # noqa: BLE001
                     # F3: abort kaynaklıysa 'stopped' (kullanıcı durdurdu), değilse 'failed'.
-                    # outer_exc guard: worker asla ölmemeli.
-                    try:
-                        if _pipeline_abort.is_set() or "ZORLA DURDURULDU" in str(exc):
-                            _flow_update_item(target["id"], status="stopped",
-                                              message="Zorla durduruldu (kullanıcı)")
-                            system_events.log_event(
-                                "flow_item_stopped",
-                                summary=f"Flow item {target.get('name', target['id'])}: ZORLA durduruldu.",
-                                level="warn", module="flow",
-                                detail={"item_id": target["id"], "clip_id": clip_id})
-                        else:
-                            _flow_update_item(target["id"], status="failed", message=str(exc)[:300])
-                            system_events.log_event(
-                                "flow_item_failed",
-                                summary=f"Flow item {target.get('name', target['id'])} başarısız oldu.",
-                                level="error", module="flow",
-                                detail={"item_id": target["id"], "error": str(exc)[:300]})
-                    except Exception as inner_exc:  # noqa: BLE001 — worker must never die
+                    if _pipeline_abort.is_set() or "ZORLA DURDURULDU" in str(exc):
+                        _flow_update_item(target["id"], status="stopped",
+                                          message="Zorla durduruldu (kullanıcı)")
                         system_events.log_event(
-                            "flow_worker_error",
-                            summary="Flow worker beklenmedik hata — devam ediyor.",
-                            level="error",
-                            module="flow",
-                            detail={"error": str(inner_exc)[:300]},
-                        )
+                            "flow_item_stopped",
+                            summary=f"Flow item {target.get('name', target['id'])}: ZORLA durduruldu.",
+                            level="warn", module="flow",
+                            detail={"item_id": target["id"], "clip_id": clip_id})
+                    else:
+                        _flow_update_item(target["id"], status="failed", message=str(exc)[:300])
+                        system_events.log_event(
+                            "flow_item_failed",
+                            summary=f"Flow item {target.get('name', target['id'])} başarısız oldu.",
+                            level="error", module="flow",
+                            detail={"item_id": target["id"], "error": str(exc)[:300]})
 
-        else:
-            # ══════════════════════════════════════════════════════════════════════
-            # PARALEL DAL — bloklamayan dağıtıcı (MITAS_FLOW_PARALLEL > 1).
-            #
-            # Dağıtıcı döngüsü:
-            #   1. Sıradaki 'waiting' item'ı bul.
-            #   2. processed.add → tekrar işleme yok.
-            #   3. _flow_semaphore.acquire() — N doluysa burada bloklar (backpressure).
-            #   4. executor.submit(_run_item_and_release, ...) → communicate'i BEKLEMEDEN devam.
-            #   5. Waiting item kalmadı VE tüm uçuştakiler bitti → döngüden çık.
-            # ══════════════════════════════════════════════════════════════════════
-            _pipeline_abort.clear()
-            while not _flow_worker_stop.is_set():
-                try:
-                    # Biten future'ları temizle (bellek sızıntısı önleme)
-                    _inflight[:] = [f for f in _inflight if not f.done()]
-
-                    state = _read_json(FLOW_QUEUE_STATE_PATH)
-                    if not isinstance(state, dict) or "items" not in state:
-                        break  # queue gone / corrupt
-
-                    target = None
-                    for it in state.get("items", []):
-                        if it.get("status") == "waiting" and it.get("id") not in processed:
-                            target = it
-                            break
-
-                    if target is None:
-                        # Yeni waiting item yok — uçuştakilerin bitmesini bekle, sonra çık.
-                        if _inflight:
-                            # En az bir uçuşta future var; kısa bekle ve döngüye dön.
-                            time.sleep(0.2)
-                            continue
-                        break  # kuyruk bitti + uçuşta iş yok → çıkış
-
-                    processed.add(target["id"])
-
-                    built = _build_cmd_for(target)
-                    if built is None:
-                        continue   # geçersiz item, atla (durum güncellendi)
-                    cmd, clip_id = built
-
-                    # Best-effort UI güncellemesi (en son dağıtılan item)
-                    _flow_worker_current = target
-                    _flow_update_item(target["id"], status="running", message="İşleniyor")
-
-                    # Semafor DAĞITICIDA alınır; release _run_item_and_release finally'sinde.
-                    # N iş uçuştaysa acquire() burada bloklar → doğal backpressure.
-                    _flow_semaphore.acquire()
-                    fut = _pipeline_executor.submit(
-                        _run_item_and_release,
-                        target, cmd, clip_id,
-                        _run_fn=_run_fn,
-                    )
-                    _inflight.append(fut)
-
-                except Exception as outer_exc:  # noqa: BLE001 — dağıtıcı asla ölmemeli
-                    system_events.log_event(
-                        "flow_worker_error",
-                        summary="Flow worker (paralel) beklenmedik hata — devam ediyor.",
-                        level="error",
-                        module="flow",
-                        detail={"error": str(outer_exc)[:300]},
-                    )
-
+            except Exception as outer_exc:  # noqa: BLE001 — worker must never die
+                system_events.log_event(
+                    "flow_worker_error",
+                    summary="Flow worker beklenmedik hata — devam ediyor.",
+                    level="error",
+                    module="flow",
+                    detail={"error": str(outer_exc)[:300]},
+                )
     finally:
         _flow_worker_current = None
 
@@ -1045,19 +798,9 @@ async def post_flow_queue_stop(request: Request) -> dict[str, Any]:
     killed = False
     if force:
         _pipeline_abort.set()
-        # Paralel modda _running_procs SET'indeki HEPSİNİ öldür;
-        # seri modda (veya set boşsa) eski tekil proc fallback'e düş.
-        procs_to_kill: list = []
-        with _running_procs_lock:
-            if _running_procs:
-                procs_to_kill = [p for p in _running_procs if p.poll() is None]
-        if not procs_to_kill:
-            # Seri mod veya set henüz dolu değil — eski tekil davranış
-            single = _flow_worker_proc or _pipeline_proc
-            if single is not None and single.poll() is None:
-                procs_to_kill = [single]
-        for proc in procs_to_kill:
-            pid = proc.pid
+        proc = _flow_worker_proc or _pipeline_proc
+        pid = proc.pid if (proc is not None and proc.poll() is None) else None
+        if pid is not None:
             try:
                 subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
                 killed = True
@@ -1631,43 +1374,26 @@ async def create_pipeline_job(
 
 @app.post("/api/pipeline/abort")
 def post_pipeline_abort() -> dict[str, Any]:
-    """ZORLA DURDUR: çalışan mitas_pipeline'ı process-AĞACIYLA öldür (net kes).
-    Paralel modda (_FLOW_PARALLEL>1) _running_procs SET'indeki HEPSİNİ öldürür."""
+    """ZORLA DURDUR: çalışan mitas_pipeline'ı process-AĞACIYLA öldür (net kes)."""
     _pipeline_abort.set()
+    proc = _pipeline_proc
     killed = False
-    killed_pids: list[int] = []
-
-    # Paralel modda SET'teki tüm canlı proc'ları öldür
-    procs_to_kill: list = []
-    with _running_procs_lock:
-        if _running_procs:
-            procs_to_kill = [p for p in _running_procs if p.poll() is None]
-    # Seri modda (veya set boş/dolu-değil): tekil proc fallback
-    if not procs_to_kill:
-        single = _pipeline_proc
-        if single is not None and single.poll() is None:
-            procs_to_kill = [single]
-
-    for proc in procs_to_kill:
-        pid = proc.pid
+    pid = proc.pid if (proc is not None and proc.poll() is None) else None
+    if pid is not None:
         try:
             # Windows: alt-süreçler (PY_OCR/PY_ASR/PY_PDF) ile birlikte ağaç-öldür
             subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
             killed = True
-            killed_pids.append(pid)
         except Exception:
             try:
                 proc.kill()
                 killed = True
-                killed_pids.append(pid)
             except Exception:
                 pass
-
-    pid = killed_pids[0] if killed_pids else None   # geriye dönük uyumluluk (tek pid)
     system_events.log_event(
         "pipeline_aborted",
-        summary=f"Pipeline ZORLA durduruldu (pids={killed_pids}, killed={killed}).",
-        level="warn", module="pipeline", detail={"pids": killed_pids, "killed": killed},
+        summary=f"Pipeline ZORLA durduruldu (pid={pid}, killed={killed}).",
+        level="warn", module="pipeline", detail={"pid": pid, "killed": killed},
     )
     return {"status": "aborted", "killed": killed, "pid": pid}
 

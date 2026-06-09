@@ -96,43 +96,32 @@ def ollama_chat(
         url, data=body, headers={"Content-Type": "application/json"}, method="POST"
     )
 
-    # Ağır modeller (gemma4:26b vb.) için süreçler-arası VRAM mutex.
-    # Hafif modeller (qwen3, glm-ocr vb.) için guard tamamen no-op → ek yük yok.
-    # Import hatası olursa guard'sız devam et (fail-open).
-    try:
-        from _vram_guard import heavy_gpu_guard as _heavy_gpu_guard
-    except ImportError:
-        from contextlib import nullcontext as _heavy_noop
-        def _heavy_gpu_guard(m, **kw):  # type: ignore[misc]
-            return _heavy_noop()
-
     last_exc: Exception | None = None
-    with _heavy_gpu_guard(model, label="ollama_chat"):
-        for attempt in range(max(1, retries)):
-            try:
-                with urllib.request.urlopen(req, timeout=_timeout) as r:
-                    return json.loads(r.read())
-            except urllib.error.HTTPError as exc:
-                # 4xx / 5xx: retry etme, hemen None
+    for attempt in range(max(1, retries)):
+        try:
+            with urllib.request.urlopen(req, timeout=_timeout) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as exc:
+            # 4xx / 5xx: retry etme, hemen None
+            _log_warn(
+                f"[_ollama] HTTP {exc.code} {exc.reason} (model={model}, url={url}) — retry yok"
+            )
+            return None
+        except (urllib.error.URLError, OSError, socket.timeout, TimeoutError) as exc:
+            last_exc = exc
+            if attempt < retries - 1:
+                wait = 2 ** attempt   # 1s, 2s
                 _log_warn(
-                    f"[_ollama] HTTP {exc.code} {exc.reason} (model={model}, url={url}) — retry yok"
+                    f"[_ollama] deneme {attempt + 1}/{retries} basarisiz "
+                    f"({type(exc).__name__}: {exc}) — {wait}s bekle"
                 )
-                return None
-            except (urllib.error.URLError, OSError, socket.timeout, TimeoutError) as exc:
-                last_exc = exc
-                if attempt < retries - 1:
-                    wait = 2 ** attempt   # 1s, 2s
-                    _log_warn(
-                        f"[_ollama] deneme {attempt + 1}/{retries} basarisiz "
-                        f"({type(exc).__name__}: {exc}) — {wait}s bekle"
-                    )
-                    time.sleep(wait)
+                time.sleep(wait)
 
-        _log_warn(
-            f"[_ollama] tum denemeler tukendi ({retries}x) model={model}: "
-            f"{type(last_exc).__name__}: {last_exc}"
-        )
-        return None
+    _log_warn(
+        f"[_ollama] tum denemeler tukendi ({retries}x) model={model}: "
+        f"{type(last_exc).__name__}: {last_exc}"
+    )
+    return None
 
 
 # ---------------------------------------------------------------------------
