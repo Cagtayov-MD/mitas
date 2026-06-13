@@ -306,6 +306,7 @@ def main():
     #    credit_qc_gates İZOLE modül (saf name_match, duckdb yok). YALNIZ kimlik KİLİTLİ (verdict==TEYİT veya
     #    cast_ov>=2) iken çalışır. Fail-safe: herhangi hata → mevcut yon/cast AYNEN (pipeline ASLA bozulmaz).
     _web_afis = None   # QC2-web afişi line 357'deki cc.get("afis") yeniden-atamasında KAYBOLMASIN
+    _cast_garble = []  # OCR-otorite (A+A): KB-imzasız (garble şüpheli) OCR cast isimleri → SİLİNMEZ, KONTROL bayrağı
     if os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes"):
         try:
             import credit_qc_gates as _qc2
@@ -387,18 +388,15 @@ def main():
             if (not yon) and kimlik_dogru and auth_yon:     # boş/çelişki-temizlenmiş yönetmen + kimlik kilitli → KB-fill
                 yon = [auth_yon[0]]
                 yon_kaynak = "QC2: KB-fill (kimlik-kilitli)"
-            if kimlik_dogru and auth:                       # cast: garble (imza-yok) düş + KB-kanonik tamamla
-                _ref = _qc2.identity_first_cast(cast, auth, max_out=8)
-                if _ref.get("temiz_cast"):
-                    if _ref.get("dususler"):
-                        rapor["adimlar"]["qc2_cast_dususler"] = _ref["dususler"]
-                    cast = _ref["temiz_cast"]
-            if kimlik_dogru:                                # yapımcı: garble/şirket (imza-yok) düş + KB kişileri tamamla
-                _refp = _qc2.identity_first_producer(yap, cc.get("yapimci") or [], max_out=3)
-                if _refp.get("temiz_yapimci"):
-                    if _refp.get("dususler"):
-                        rapor["adimlar"]["qc2_yap_dususler"] = _refp["dususler"]
-                    yap = _refp["temiz_yapimci"]
+            # cast: OCR-OTORİTE KANUNU (A+A 2026-06-13) — KB ile DÜŞÜRME/EKLEME YOK. Cast ana-blokta
+            # (yukarıda) KB-kanonik yazıma çevrildi + okunan KORUNDU; burada DOKUNULMAZ.
+            # (Eski identity_first_cast drop+add KALDIRILDI → Ahmet→Mehmet + non-OCR-ekleme önlendi.)
+            # NOT: "garble→KONTROL" otomatik bayrağı DEVRE DIŞI — KB-imza sinyali GÜVENİLMEZ: KB'de yalnız
+            # top-billed cast var, GERÇEK yan-oyuncuyu (Marvin J. McIntyre / John Santucci) da garble
+            # işaretliyor → kütlesel yanlış-KONTROL. Güvenilir garble tespiti (KB-dışı sinyal) AYRI İŞ.
+            # _cast_garble [] kalır → cross_check.cast_garble=False (plumbing hazır, detektör gelince açılır).
+            # yapımcı: OCR-OTORİTE — KB ile DÜŞÜRME/EKLEME YOK (eski identity_first_producer KALDIRILDI).
+            # OCR yapımcısı korunur; boşsa alt-satırda KB'den DOLDURULUR (destek).
         except Exception as _qe:  # noqa: BLE001 — QC2 fail-safe: pipeline'ı ASLA bozma
             sys.stderr.write(f"[uyari] QC2 atlandı: {_qe}\n")
     if not yap and cc.get("yapimci"):
@@ -409,7 +407,8 @@ def main():
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
-                                       "cast_add_tier": cast_add_tier, "afis": bool(afis)}
+                                       "cast_add_tier": cast_add_tier, "afis": bool(afis),
+                                       "cast_garble": bool(_cast_garble)}
 
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)

@@ -1048,6 +1048,10 @@ def main(argv=None) -> int:
                 _qc2_web4 = ((_v4j or {}).get("adimlar") or {}).get("qc2_web") or {}
                 if str(_qc2_web4.get("method")) == "tmdb":
                     reasons.append("versiyon cast-teyitsiz (web title+year kilidi — insan onayı)")
+                # OCR-OTORİTE (A+A 2026-06-13): cast'te KB-imzasız garble OCR ismi var → SİLİNMEDİ
+                # (OCR otorite), insan temizlesin → KONTROL.
+                if _cc4.get("cast_garble"):
+                    reasons.append("cast garble şüphesi (OCR-otorite — KB-imzasız isim, insan teyidi)")
                 # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
                 # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
                 _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
