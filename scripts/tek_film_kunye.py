@@ -342,14 +342,12 @@ def main():
                                 cast = _web_cast[:8]
                                 rapor["adimlar"]["qc2_web_cast_kaynak"] = "web"
                             elif cast and _web_cast:
-                                # OCR cast çöp (cast_ov=0) → web cast'ini otorite olarak kullan
-                                _ref_web = _qc2.identity_first_cast(cast, _web_cast, max_out=8)
-                                if _ref_web.get("temiz_cast"):
-                                    cast = _ref_web["temiz_cast"]
-                                    if _ref_web.get("dususler"):
-                                        rapor["adimlar"]["qc2_web_cast_dususler"] = _ref_web["dususler"]
-                                else:
-                                    cast = _web_cast[:8]
+                                # OCR-OTORİTE KANUNU (2026-06-13): OCR cast OKUDUYSA (garble olsa bile),
+                                # versiyon-belirsiz web cast'iyle EZME YOK — ne değiştir, ne at, ne kanonikle.
+                                # (Web title+year kilidi yanlış-versiyon olabilir; OCR'ı ezmek = Ahmet→Mehmet.)
+                                # Web cast yalnız ÖNERİ olarak rapora yazılır; film zaten KONTROL'e gider
+                                # (versiyon cast-teyitsiz) → insan OCR'ı görür, web önerisini değerlendirir.
+                                rapor["adimlar"]["qc2_web_cast_oneri"] = _web_cast[:8]
                             # afiş: web kimlik ID'siyle çek
                             if not _afis_now and (_web_imdb or _web_tmdb):
                                 try:
@@ -366,8 +364,9 @@ def main():
                                         _web_afis = _pp2   # line 357 cc.get("afis") EZMESİN
                                 except Exception as _pfe:
                                     sys.stderr.write(f"[uyari] QC2-web afiş hatası: {_pfe}\n")
-                            # auth'ları güncelle — sonraki QC2 graftlar web verisiyle çalışsın
-                            auth = _web_cast[:8] if _web_cast else auth
+                            # auth_yon güncellenir (boş-yönetmen web'den DOLDURULABİLİR = destek).
+                            # auth (cast) web'den GÜNCELLENMEZ: katman-a identity_first_cast OCR cast'i
+                            # web ile EZMESİN (OCR-otorite kanunu). Web cast yalnız öneri (yukarıda raporda).
                             auth_yon = _web_dir[:3] if _web_dir else auth_yon
                             kimlik_dogru = True  # web-çapası kilitledi
                             rapor["adimlar"]["qc2_web"] = {

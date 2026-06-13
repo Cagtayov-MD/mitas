@@ -1041,6 +1041,13 @@ def main(argv=None) -> int:
                     except Exception:  # noqa: BLE001
                         _v4j = None
                 _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
+                # VERSİYON GÜVENLİĞİ (OCR-otorite kanunu 2026-06-13): web YALNIZ title+year ile kilitlediyse
+                # (qc2_web method=tmdb; cast/yönetmen bağımsız teyit YOK) = versiyon BELİRSİZ (aynı başlık
+                # 88/96 farklı film riski). Asla otomatik ONAYLI değil → KONTROL (insan versiyonu onaylar).
+                # ANCHOR-1 (method=director, OCR-yönetmen eşleşti) versiyon-teyitli → bu kural onu TUTMAZ.
+                _qc2_web4 = ((_v4j or {}).get("adimlar") or {}).get("qc2_web") or {}
+                if str(_qc2_web4.get("method")) == "tmdb":
+                    reasons.append("versiyon cast-teyitsiz (web title+year kilidi — insan onayı)")
                 # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
                 # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
                 _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
