@@ -247,8 +247,37 @@ def main():
     cast_ov = cc.get("cast_ortusme") or 0
     verdict = cc.get("verdict")
     auth_yon = cc.get("otoriter_yonetmen") or []
-    # KİMLİK DOĞRULANDI mı: read yönetmeni TEYİT aldı YA DA okunan cast otoriteyle >=2 örtüştü
-    kimlik_dogru = (verdict == "TEYİT") or (cast_ov >= 2)
+    # FUZZY-DBQC (flag MITAS_FUZZY_DBQC, default KAPALI; Çağatay 2026-06-14): garble OCR cast'i DB-otoriteye
+    # GÖMÜLÜ-PENCERE ile eşle. name_match/name_close GARBLE'da (karakter-adı karışık: 'VAHAP EFE NARAMAN'
+    # = karakter VAHAP + aktör Efe Karaman) token-sayısı farkı yüzünden FİRE ETMEZ → kimlik kapısı açılmaz
+    # → düzeltme hiç çalışmaz (BEYAZ BALİNA 6 garble isimle kaldı). Pencere-overlap kapıyı açar; yanlış-film
+    # OCR'a uymadığından fuzzy_ov<2 kalır → açılmaz (güvenli, validation'da kanıtlandı). Fail-safe.
+    _FUZZY_DBQC = os.environ.get("MITAS_FUZZY_DBQC", "").strip().lower() in ("1", "true", "on", "yes")
+    _auth_cast = cc.get("otoriter_cast") or []
+    # credit_kb_lookup garble cast'le crosscheck'i çağırınca VERIFICATION başarısız → KAYNAK_YOK → otoriter_cast
+    # NULL döner (film DB'de title+year ile VAR olsa bile; BEYAZ BALİNA imdb_id=tt7377934 bulundu ama cast=null).
+    # Flag açıkken cast'i title+year ile DOĞRUDAN çek (cast-verification BYPASS). Wrong-film koruması = aşağıdaki
+    # ≥2 window-overlap gate'i: yanlış filmin kadrosu OCR'a uymaz → fuzzy_ov<2 → kimlik açılmaz. Fail-safe.
+    if _FUZZY_DBQC and not _auth_cast and title:
+        try:
+            # NOT: run_ocr_json TEK-SATIR JSON arar; credit_crosscheck PRETTY-PRINT (çok-satır) basar →
+            # run_ocr_json parse edemez. Kendi çok-satır regex parse'ımızla doğrudan çağır (PY_OCR=duckdb'li).
+            _r = subprocess.run([PY_OCR, os.path.join(HERE, "credit_crosscheck.py"),
+                                 "--baslik", title, "--yonetmen", "", "--yil", str(a.year or "")],
+                                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+            _m = re.search(r"\{.*\}", _r.stdout or "", re.S)
+            if _m:
+                _auth_cast = (json.loads(_m.group(0)).get("otoriter_cast") or [])
+        except Exception:
+            _auth_cast = []
+    _fuzzy_ov = 0
+    if _FUZZY_DBQC and _cc is not None and hasattr(_cc, "cast_overlap_fuzzy"):
+        try:
+            _fuzzy_ov = _cc.cast_overlap_fuzzy(cast, _auth_cast)
+        except Exception:
+            _fuzzy_ov = 0
+    # KİMLİK DOĞRULANDI mı: read yönetmeni TEYİT aldı YA DA okunan cast otoriteyle >=2 örtüştü (fuzzy dahil)
+    kimlik_dogru = (verdict == "TEYİT") or (cast_ov >= 2) or (_fuzzy_ov >= 2)
     # YÖNETMEN — KIRMIZI ÇİZGİ (2026-06-07, Çağatay): KB-fill YOK. Yönetmen OCR-otorite.
     #   • OCR boş → "okunamadı" (KB'den DOLDURMA — "her şeyi okuyacağız" diye bir şey yok).
     #   • OCR var + kimlik doğrulandı + KB yönetmeni var:
@@ -275,7 +304,7 @@ def main():
     # KB yalnız OKUNAN ismin YAZIMINI düzeltir (Ahmet Cimcir→Cemcir): her OCR ismi için
     # otoriter_cast'ta name_match ile eş ara; eşleşirse SADECE o ismi kanonik haliyle değiştir,
     # eşleşmezse OCR ismini AYNEN koru. KB'de olup OCR'da olmayan ismi EKLEME.
-    auth = cc.get("otoriter_cast") or []
+    auth = cc.get("otoriter_cast") or _auth_cast   # FUZZY-DBQC: title+year fallback cast dahil (flag-kapılı)
     cast_add_tier = None                        # KB cast-ekleme kademesi (rapora yazılır; ORTA→Kontrol)
     if kimlik_dogru and auth and _cc is not None:
         duz = []
@@ -286,6 +315,10 @@ def main():
             if _se:
                 strict_hits += 1
             es = _se or next((a for a in auth if _cc.name_close(nm, a)), None)
+            # FUZZY-DBQC: name_match/name_close tutmadıysa GÖMÜLÜ-PENCERE ile dene (garble+karakter-adı:
+            # 'VAHAP EFE NARAMAN'→'Efe Karaman'). Flag-kapılı; yüksek eşik (0.80) yanlış-snap'i keser.
+            if not es and _FUZZY_DBQC and hasattr(_cc, "name_close_window"):
+                es = next((a for a in auth if _cc.name_close_window(nm, a)), None)
             duz.append(es if es else nm)
         cast = duz
         # CAST-ADD (flag MITAS_KB_CAST_ADD, default KAPALI): KB'nin OCR'da OLMAYAN kadrosunu EKLE.

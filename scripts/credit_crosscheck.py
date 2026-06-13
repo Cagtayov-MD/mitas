@@ -121,6 +121,36 @@ def name_close(a, b):
             return False
     return True
 
+def name_close_window(ocr_line, db_name, thr=0.80):
+    """GÖMÜLÜ-isim fuzzy (flag-kapılı kullan): OCR cast satırında karakter-adı/rol-etiketi
+    karışmışsa (ör. 'VAHAP EFE NARAMAN', 'BAKKAL / THE GROCER ZÜLTİKAR GÜRLEK') db_name'i
+    kayan-pencere SequenceMatcher ile ara. name_close token-sayısı-eşit ister → fazladan
+    token olunca çöker; bu onu yakalar. YÜKSEK eşik (0.80) → yanlış-snap düşük."""
+    import difflib, unicodedata
+    _TRW = {'İ':'i','I':'i','ı':'i','Ş':'s','ş':'s','Ğ':'g','ğ':'g','Ü':'u','ü':'u','Ö':'o','ö':'o','Ç':'c','ç':'c'}
+    def _f(s):
+        s = ''.join(_TRW.get(c, c) for c in (s or ''))
+        s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().lower()
+        return ''.join(c for c in s if c.isalnum())
+    a = _f(db_name); b = _f(ocr_line)
+    if len(a) < 5 or not b:
+        return False
+    best = difflib.SequenceMatcher(None, a, b).ratio()
+    if len(b) > len(a):
+        for i in range(0, len(b) - len(a) + 1):
+            r = difflib.SequenceMatcher(None, a, b[i:i + len(a)]).ratio()
+            if r > best:
+                best = r
+                if best >= thr:
+                    break
+    return best >= thr
+
+def cast_overlap_fuzzy(read_cast, auth_cast, thr=0.80):
+    """auth_cast'tan kaç isim read_cast satırlarında gömülü-pencere ile bulunuyor (gate için)."""
+    if not read_cast or not auth_cast:
+        return 0
+    return sum(1 for a in auth_cast if any(name_close_window(r, a, thr) for r in read_cast))
+
 def cast_overlap(read_cast, auth_cast):
     if not read_cast or not auth_cast:
         return 0
