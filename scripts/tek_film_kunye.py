@@ -89,7 +89,13 @@ def parse_teslim_md(path):
         d["altyazi"] = m.group(1).strip().upper()
     m = re.search(r"##\s*Özet\s*\n(.+)", txt, re.S)
     if m:
-        d["ozet"] = re.sub(r"\s+", " ", m.group(1)).strip()
+        _oz = re.sub(r"\s+", " ", m.group(1)).strip()
+        # KESKİN KAPI: "(HAM TRANSCRİPT ÖNİZLEME — KALIP ÖZET SONRA)" = gerçek özet DEĞİL,
+        # ham ASR önizleme placeholder'ı. Orijinal pipeline gerçek özeti üretmediğinde kalır.
+        # Bu çöp ASLA özet olarak kullanılmamalı → boşalt (üretici gerçek özet sağlamalı).
+        if re.search(r"HAM\s*TRANSCR|KAL[İIı]P\s*[ÖO]ZET", _oz, re.I):
+            _oz = ""
+        d["ozet"] = _oz
     return d
 
 def ozet_v4(ozet, names=(), cap=72):
@@ -99,6 +105,9 @@ def ozet_v4(ozet, names=(), cap=72):
     Büyük harf nn.tr_upper_prose ile (isim-FARKINDA): yabancı cast/crew adları ASCII (MASSIMO),
     Türkçe isimler İ. names = filmin cast+yönetmen+yapımcı ham adları. DETERMİNİSTİK — LLM YOK."""
     if not ozet:
+        return "—"
+    # KESKİN KAPI (2. katman): ham-transcript/placeholder özet asla biçimlenip geçmesin.
+    if re.search(r"HAM\s*TRANSCR|KAL[İIı]P\s*[ÖO]ZET", ozet, re.I):
         return "—"
     ozet = re.sub(r'[?!"\[\]]', "", ozet)
     cumleler = [c.strip() for c in re.split(r"(?<=[.])\s+", ozet) if c.strip()]
@@ -123,6 +132,26 @@ def ozet_v4(ozet, names=(), cap=72):
 def up_o(s):
     s = s or ""
     return nn.tr_upper(s) if any(c in nn._TR_STRONG for c in s) else nn.ascii_fold(s).upper()
+
+def poster_ok(path):
+    """AFİŞ KAPISI (QC2-sistemik): geçerli afiş = dosya var + >5KB + PORTRE (dikey, w<h).
+    poster_fetch gerçek afiş bulamayınca videodan YATAY (16:9) frame-grab/backdrop döndürebilir →
+    'afiş yerine foto' tuzağı (çocuk yüzü vb.). Yatay/kare RED. PIL yoksa eski boyut-kontrolüne düş (fail-safe)."""
+    try:
+        if not (path and os.path.exists(path) and os.path.getsize(path) > 5000):
+            return False
+        from PIL import Image
+        with Image.open(path) as im:
+            w, h = im.size
+        if w >= h:
+            sys.stderr.write(f"[afiş-reddet] yatay görsel {w}x{h} afiş değil → atıldı\n")
+            return False
+        return True
+    except Exception:
+        try:
+            return bool(path and os.path.exists(path) and os.path.getsize(path) > 5000)
+        except Exception:
+            return False
 
 def _split_dedup_names(lst):
     """KB'den gelen yapimci/cast birlesik satirlarini ('&'/'ve'/'/'/',') bol + fold-bazli tekrar ele."""
@@ -182,6 +211,27 @@ def main():
     yon = vc.get("yonetmen") or []
     cast = vc.get("cast") or []
     yap = vc.get("yapimci") or []
+
+    # FIX-1: Credit-cümle filtresi — "BASED ON THE POPEYE CHARACTERS..." gibi OCR jenerik
+    # metinleri yönetmen olarak geçmesin. Kapı: uzun (>60 karakter) veya bilinen credit ifadesi.
+    _CREDIT_STARTS = (
+        "BASED ON", "CREATED BY", "CHARACTERS CREATED", "CHARACTERS BY",
+        "ADAPTED FROM", "ADAPTED BY", "WRITTEN BY", "SCREENPLAY BY",
+        "STORY BY", "ORIGINAL STORY", "FROM THE NOVEL", "FROM THE BOOK",
+        "PRODUCED BY", "EXECUTIVE PRODUCER", "A FILM BY",
+    )
+    def _is_credit_phrase(name: str) -> bool:
+        n = name.strip().upper()
+        if len(n) > 60:
+            return True
+        return any(n.startswith(p) for p in _CREDIT_STARTS)
+
+    yon_filtered = [d for d in yon if not _is_credit_phrase(d)]
+    if len(yon_filtered) < len(yon):
+        _dropped = [d for d in yon if _is_credit_phrase(d)]
+        sys.stderr.write(f"[fix1] credit-cümle filtre: {_dropped} → yönetmen dışı bırakıldı\n")
+    yon = yon_filtered
+
     rapor["adimlar"]["video_okuma"] = {"yon": yon, "cast_okunan": cast, "guven": vc.get("guven")}
 
     # 2) CROSS-CHECK + YAPIMCI + TÜR + AFİŞ
@@ -311,7 +361,7 @@ def main():
                                         crew=([("Yönetmen", [_web_dir[0]])] if _web_dir else None),
                                         imdb_id=_web_imdb, tmdb_id=_web_tmdb
                                     )
-                                    if _pp2 and os.path.exists(_pp2) and os.path.getsize(_pp2) > 5000:
+                                    if poster_ok(_pp2):
                                         afis = _pp2
                                         _web_afis = _pp2   # line 357 cc.get("afis") EZMESİN
                                 except Exception as _pfe:
@@ -374,7 +424,7 @@ def main():
     crew = [(r, x) for r, x in crew if x]
     crewU = nn.upper_crew(crew) if crew else [("Yönetmen", ["—"])]
     sk = [x for x in meta.get("ses_kanallari", []) if x and str(x).strip().upper() not in ("EFEKT", "EF")]  # Fix 4
-    poster = afis if (afis and os.path.exists(afis) and os.path.getsize(afis) > 5000) else None
+    poster = afis if poster_ok(afis) else None
     now = datetime.datetime.now().strftime("%d.%m.%Y · %H:%M")
     # Altyazı/orijinal: XML orijinal-ad (a.original) BİRİNCİL; yoksa KB'nin doğrulanmış orijinal
     # adı (eslesen_film) — AMA YALNIZ kimlik GÜÇLÜ doğrulanmışsa (verdict TEYİT veya ≥3 SIKI cast,
@@ -399,7 +449,7 @@ def main():
                                                year=(a.year or None), cast=cast,
                                                crew=([("Yönetmen", yon)] if yon else None),
                                                tmdb_id=_id2.get("tmdb_id"))
-                        if _pp and os.path.exists(_pp) and os.path.getsize(_pp) > 5000:
+                        if poster_ok(_pp):
                             poster = _pp
                     except Exception:  # noqa: BLE001
                         pass

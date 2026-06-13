@@ -939,6 +939,7 @@ def main(argv=None) -> int:
     # tek_film_kunye.py (PY_PDF): video_credits (yukarıda) + KB yapımcı/yönetmen-dolgu/TÜR/afiş + v4 düzen
     # (efekt-siz kanal, sadece Yön+Yap, BÜYÜK-harf özet). kunye_teslim.md'den özet/kanal/süre okur.
     # GÜVENLİ: kunye_v4.pdf'e yazar, BAŞARIRSA kunye.pdf üzerine taşır; hata olursa eski PDF olduğu gibi kalır.
+    rc_v4, out_v4, err_v4, v4_exc = None, "", "", None   # A-1: v4 çökse bile karar kapıları sinyali görsün
     if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
         t_v4 = time.perf_counter()
         try:
@@ -971,6 +972,7 @@ def main(argv=None) -> int:
                           module="pdf", media_id=media_id, filename=video.name,
                           detail={"clip_id": clip_id, "stderr": (err_v4 or "")[-200:]})
         except Exception as exc:  # noqa: BLE001 — v4 final akışı/PDF'i ASLA bozmaz
+            v4_exc = f"{type(exc).__name__}: {exc}"
             log_event("v4_finalize_failed", level="warn", summary=f"v4 final hata (atlandi): {exc}",
                       module="pdf", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
@@ -1018,34 +1020,53 @@ def main(argv=None) -> int:
                 reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
     except Exception:  # noqa: BLE001 — kesişim kapısı kararı ASLA bozmaz (helper yoksa/hata → atla)
         pass
+    # A-3: ana_dil yabancı + altyazı YOK = SES_MANTIKSIZ (v4 kuralı: KESİN olamaz) → insan teyidi
+    if pdf_info.get("ses_uyari") == "SES_MANTIKSIZ":
+        reasons.append("ana_dil yabancı + altyazı yok (SES_MANTIKSIZ)")
     # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
     # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
     # basar (last_json tek-satır arar, tutmaz) → ilk '{'tan raw_decode ile blok-parse.
     # verdict/kimlik_dogru rapor["adimlar"]["cross_check"] altında (top-level değil).
     try:
-        if USE_VIDEO_CREDITS and profile in ("film", "dizi") and "out_v4" in dir():
-            _v4j = None
-            _i = out_v4.find("{")
-            if _i >= 0:
-                try:
-                    _v4j, _ = json.JSONDecoder().raw_decode(out_v4[_i:])
-                except Exception:  # noqa: BLE001
-                    _v4j = None
-            _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
-            # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
-            # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
-            _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
-            _qc2_resolved = str(_cc4.get("yonetmen_kaynak", "")).startswith("QC2")
-            if (_cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False) \
-                    and not (_qc2_on and _qc2_resolved):
-                reasons.append("kimlik çelişkisi (KB cross-check)")
-            # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
-            # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
-            if not (((_v4j or {}).get("v4") or {}).get("yonetmen") or []):
-                reasons.append("yönetmen okunamadı (KB-fill yok — kırmızı çizgi)")
-            # KB cast-ekleme ORTA güven (yönetmen teyitsiz, sadece cast) → insan göz atsın
-            if _cc4.get("cast_add_tier") == "ORTA":
-                reasons.append("KB cast-ekleme ORTA güven (insan teyidi gerek)")
+        if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
+            if v4_exc is not None or rc_v4 != 0:
+                # A-1: v4 koşamadı/çöktü → kapılar değerlendirilemedi; SESSİZCE ONAYLI'ya GİDEMEZ
+                reasons.append("v4 final çalışmadı (" + (("exc: " + v4_exc[:80]) if v4_exc else f"rc={rc_v4}") + ") — yönetmen/özet/kimlik doğrulanamadı")
+            else:
+                _v4j = None
+                _i = out_v4.find("{")
+                if _i >= 0:
+                    try:
+                        _v4j, _ = json.JSONDecoder().raw_decode(out_v4[_i:])
+                    except Exception:  # noqa: BLE001
+                        _v4j = None
+                _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
+                # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
+                # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
+                _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
+                _qc2_resolved = str(_cc4.get("yonetmen_kaynak", "")).startswith("QC2")
+                if (_cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False) \
+                        and not (_qc2_on and _qc2_resolved):
+                    reasons.append("kimlik çelişkisi (KB cross-check)")
+                # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
+                # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
+                _v4_yon = (((_v4j or {}).get("v4") or {}).get("yonetmen") or [])
+                if not _v4_yon:
+                    reasons.append("yönetmen okunamadı (KB-fill yok — kırmızı çizgi)")
+                elif len(_v4_yon) > 2:
+                    # A-2: tek/çift yönetmen normal; 3+ isim = crew karışması şüphesi → insan baksın
+                    reasons.append(f"yönetmen listesi şüpheli ({len(_v4_yon)} isim — crew karışması olası)")
+                elif any(len(str(_n).strip()) > 45 for _n in _v4_yon):
+                    reasons.append("yönetmen adı şüpheli (>45 karakter — OCR cümle karışması)")
+                # ÖZET KAPISI (QC2-sistemik, DETERMİNİSTİK — qwen-QC'ye bağlı DEĞİL, her zaman çalışır):
+                # v4 özeti placeholder reddi sonrası "—"/boş ya da çok kısa (gerçek özet _generate_ozet ile
+                # üretilmemiş; film yarım kalmış olabilir) → KONTROL. Placeholder ÇÖPÜ ASLA ONAYLI'ya gitmez.
+                _v4_ozk = ((_v4j or {}).get("v4") or {}).get("ozet_kelime", 0) or 0
+                if _v4_ozk < 20:
+                    reasons.append(f"özet yok/kısa ({_v4_ozk}k — gerçek özet üretilmemiş)")
+                # KB cast-ekleme ORTA güven (yönetmen teyitsiz, sadece cast) → insan göz atsın
+                if _cc4.get("cast_add_tier") == "ORTA":
+                    reasons.append("KB cast-ekleme ORTA güven (insan teyidi gerek)")
     except Exception:  # noqa: BLE001 — parse hatası kararı bozmasın
         pass
     # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik

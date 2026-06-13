@@ -395,6 +395,7 @@ def main(argv=None) -> int:
         "ana_dil": audio.get("ana_dil"),
         "ses_kanallari": audio.get("ses_kanallari"),
         "sesler_ic_ice": audio.get("sesler_ic_ice"),
+        "ses_uyari": audio.get("ses_uyari"),
         "pdf_error": pdf_error,
     }, ensure_ascii=False))
     return 0

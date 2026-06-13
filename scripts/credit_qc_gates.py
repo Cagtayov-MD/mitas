@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-"""credit_qc_gates.py — İZOLE QC graft mantığı + ÖLÇÜM (üretim dosyasına DOKUNMAZ).
+"""credit_qc_gates.py — QC2 graft mantığı (PRODUCTION'A BAĞLI: tek_film_kunye.py MITAS_QC2 bloğu).
 
-Turnuva-sentezi 3 cerrahi graftın ÇEKİRDEK mantığı, mevcut credit_crosscheck parçalarıyla:
+Turnuva-sentezi cerrahi graftların ÇEKİRDEK mantığı, mevcut credit_crosscheck parçalarıyla:
   GRAFT-1: garble = "imza-yokluğu" kapısı. Bir OCR cast ismi KB-otoriter_cast'ten (cross-cast dahil)
            name_match/name_close imzası taşımıyorsa + kimlik KİLİTLİ ise → SUSPECT (KONTROL-işaretle, SİLME).
            _looks_garble'ın kör-noktasını ("GEORCE STOAD ALRRDED" geçerli-harf garble) ayrı sözlük olmadan kapatır.
 
-Bu dosya henüz pipeline'a BAĞLI DEĞİL — yalnız ölçüm (çok-örnekli, altın-set + bilinen vaka).
+BAĞLANTI DURUMU (2026-06-12):
+  • CANLI (tek_film_kunye QC2): identity_first_cast, identity_first_producer, web_identity (katman-b).
+    Yalnız kimlik KİLİTLİ iken çalışır; kilitlenemeyen film zaten mitas_pipeline'da KONTROL'e gider.
+  • ÖLÇÜM-ONLY (henüz bağlı değil): director_decision (KB-değiştir → KIRMIZI ÇİZGİ ile çelişir, kasıtlı),
+    garble_no_signature_gate (raporlama). main() bunları altın-set + bilinen vakada ölçer.
+  • İLGİLİ KAPILAR (başka dosyalarda CANLI): özet placeholder (tek_film_kunye parse_teslim_md+ozet_v4 +
+    mitas_pipeline ozet_kelime<20→KONTROL), afiş portre/frame-grab reddi (tek_film_kunye poster_ok).
 """
 import os
 import sys
