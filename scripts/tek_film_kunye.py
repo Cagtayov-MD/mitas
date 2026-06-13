@@ -336,23 +336,6 @@ def main():
                             if not yon and _web_dir:
                                 yon = [_web_dir[0]]
                                 yon_kaynak = f"QC2-web: yönetmen-doldur ({_web.get('method')})"
-                            # GARBLE-DÜZELT (Çağatay onaylı dar Option-B, 2026-06-13): web imdb-KİLİTLİ +
-                            # OCR yönetmen AÇIKÇA garble (3+ isim) + kilitli filmin yönetmeniyle hiçbiri
-                            # eşleşmiyor → garble İÇİNDEN gerçek-yönetmen kurtar; yoksa KB ile DEĞİŞTİR.
-                            # TEMİZ tek/çift-isim okumaya ASLA dokunmaz (>=3 eşiği = A-2 garble sinyali).
-                            elif yon and len(yon) >= 3 and _web_dir and _web_imdb and _cc is not None:
-                                _kurtarilan = []
-                                for _d in yon:
-                                    _m = next((a for a in _web_dir
-                                               if _cc.name_match(_d, a) or _cc.name_close(_d, a)), None)
-                                    if _m and _m not in _kurtarilan:
-                                        _kurtarilan.append(_m)
-                                if _kurtarilan:
-                                    yon = _kurtarilan
-                                    yon_kaynak = f"QC2-web: garble-içinden-KB-teyit ({_web.get('method')})"
-                                else:
-                                    yon = [_web_dir[0]]
-                                    yon_kaynak = f"QC2-web: garble-yönetmen→KB-değiştir ({_web.get('method')})"
                             # cast: web'den gelen gerçek cast'i kimlik referansı olarak kullan
                             # identity_first_cast mantığıyla: OCR cast'i boşsa doğrudan web cast'ini al
                             if not cast and _web_cast:
