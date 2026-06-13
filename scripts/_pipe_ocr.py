@@ -387,7 +387,7 @@ def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dic
 
 
 # ── YENI scroll-aware akis (pipeline100 zinciri) ────────────────────────────
-def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | None:
+def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "Path | None" = None) -> dict | None:
     """CLIP bekci -> konumlu OneOCR -> OCR-uzayinda dik -> temizle.
     Her adim try/except; herhangi biri coker (CLIP/duckdb/oneocr yok) -> None
     dondurur ve cagiran eski OneOCR akisina graceful duser.
@@ -494,6 +494,57 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
     # e) kunye satirlari (mevcut formatla ayni: satir basina bir metin, # yok).
     #    clean Turkce-BUYUK yazimi tr_upper ile verir (pipeline100 ile ayni cikti).
     lines = [tr_upper(t) for t, _how, _votes in merged]
+
+    # ── e.1) MASTER-PNG blogu: compose_hybrid -> master.png + additive OCR ────
+    # Hedef mimari: lines hazirlandiktan sonra, return'den once.
+    # TUM blok tek try/except: herhangi bir hata -> lines AYNEN korunur (REGRESYON YOK).
+    # Cikti dict'ine master_png + master_lines_count alanlari eklenir.
+    _master_png: str | None = None
+    _master_lines_count: int = 0
+    _master_error: str | None = None
+    # BAYRAK: MITAS_MASTER_PNG (default KAPALI). Tesisat hazir+fail-safe ama uctan-uca
+    # kunye kalitesi (LLM rol-eval + gercek-zemin) HENUZ olculmedi -> canliyi riske atma.
+    # GPU bosalip 10-film altin sette olculunce default-acik yapilir.
+    _master_on = os.environ.get("MITAS_MASTER_PNG", "").strip().lower() in ("1", "true", "on", "yes")
+    if _master_on and ocr_out is not None and idx:
+        try:
+            # compose_hybrid -> (master_arr, stitch_text) — pipeline100 kanonik
+            _compose = pl.compose_hybrid  # type: ignore[attr-defined]
+            _read_pos_fn = pl.read_pos    # type: ignore[attr-defined]
+            _master_arr, _stitch_text = _compose(frame_paths, idx, imgs, ocr_pos)
+            if _master_arr is not None:
+                _mpath = Path(ocr_out) / "master.png"
+                fp.wr(_mpath, _master_arr)           # Turkce-path guvenli yazmak icin fp.wr
+                _master_png = str(_mpath)
+                # master PNG uzerinde OneOCR koş (dikey tile dongüsü)
+                _master_ocr_res = _read_pos_fn(_master_arr)
+                # additive: stitch fold-seti olustur; master-only satirlari ekle
+                _stitch_folds = {cl.fold(l) for l in lines}
+                _master_only: list[str] = []
+                _master_seen: set[str] = set()
+                for _mln in _master_ocr_res:
+                    _fk = _mln[0]  # fold edilmis metin (tuple[0])
+                    if not _fk:
+                        continue
+                    if _fk in _stitch_folds or _fk in _master_seen:
+                        continue
+                    _master_seen.add(_fk)
+                    _master_only.append(_mln[1])  # raw metin
+                # kalite filtresi: stitch ile ayni cl.classify esigi (GLM kalibina uygun)
+                _master_only_clean = [x for x in _master_only if _glm_only_keep(x, cl.classify)]
+                _master_only_upper = [tr_upper(x) for x in _master_only_clean]
+                lines = lines + _master_only_upper   # stitch satirlari oncelikli; additive
+                _master_lines_count = len(_master_only_upper)
+                print(
+                    f"[master-png] yazildi: {_mpath} | master-only eklendi: {_master_lines_count}",
+                    file=sys.stderr,
+                )
+            else:
+                print("[master-png] compose_hybrid None dondurdu (footage/bos?)", file=sys.stderr)
+        except Exception as _exc:  # noqa: BLE001
+            _master_error = f"{type(_exc).__name__}: {_exc}"
+            print(f"[master-png] ATLANDI (lines korunuyor): {_master_error}", file=sys.stderr)
+    # ── /MASTER-PNG blogu ─────────────────────────────────────────────────────
 
     # ── f) GLM-OCR consensus (2. motor, OPSIYONEL, ADDITIVE) ─────────────────
     # Sadece: lines bos degilse + env switch kapali degilse + idx var.
@@ -653,6 +704,10 @@ def run_pipeline100(frames: list[Path], started: float, profile: str) -> dict | 
         "glm_attempted": glm_attempted,
         "glm_status": glm_status,
         "glm_skip_reason": glm_skip_reason,
+        # master-PNG alanlari (e.1 blogu)
+        "master_png": _master_png,
+        "master_lines_count": _master_lines_count,
+        "master_error": _master_error,
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
@@ -678,7 +733,7 @@ def main(argv=None) -> int:
     res = None
     if frames:
         try:
-            res = run_pipeline100(frames, started, args.profile)
+            res = run_pipeline100(frames, started, args.profile, ocr_out=out)
         except Exception as exc:  # noqa: BLE001 - hicbir kosulda cokme
             print(f"[pipeline100] beklenmeyen hata, fallback: {type(exc).__name__}: {exc}", file=sys.stderr)
             res = None
@@ -716,6 +771,10 @@ def main(argv=None) -> int:
     summary["glm_attempted"] = res.get("glm_attempted", False)
     summary["glm_status"] = res.get("glm_status", "skipped")
     summary["glm_skip_reason"] = res.get("glm_skip_reason", "")
+    # master-PNG telemetrisi
+    summary["master_png"] = res.get("master_png")
+    summary["master_lines_count"] = res.get("master_lines_count", 0)
+    summary["master_error"] = res.get("master_error")
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
