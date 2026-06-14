@@ -21,23 +21,29 @@ Uzunluğu sen değil, OLAY belirler. Sen olayı eksiksiz ve fazlasız anlat; uzu
 Tek paragraf, satır sonu yok.
 
 ═══════════════════════════════════════════════════════════
-CÜMLE ÜSLUBU — KISA VE NET (Türkçe okunurluk)
+CÜMLE ÜSLUBU — KISA, NET, AMA AKAN
 ═══════════════════════════════════════════════════════════
-Her cümle TEK fikir taşır. KISA, düz, AKAN cümleler yaz. Uzun iç-içe ("10 km") cümle YASAK.
-HER cümle ≤ 14 kelime. Cümlede en fazla BİR virgül. Bir olay halkasını tek dev cümleye sıkıştırma.
+İKİ UÇTAN DA KAÇIN: ne soluksuz "10 km" iç-içe cümle, ne de "X olur. Y olur. Z olur." kuru/telgraf liste.
+Cümleler kısa-orta (çoğu ≤15 kelime), AMA "ve / ama / -ınca / -dığı için / da / böylece" gibi
+bağlaçlarla DOĞAL AKAR. Kısa ve biraz daha uzun cümleyi karıştır (ritim olsun). Tek paragraf, satır sonu yok.
 
-EN KRİTİK KURAL — KARAKTERİ SIFAT-FİİLLE TANITMA:
-Bir karakteri "-en/-an/-dığı" sıfat-fiiliyle tanıtıp araya olay SIKIŞTIRMA. Önce KİM olduğunu
-düz ve kısa söyle (özne + yüklem), olayı AYRI cümlede ver. Özneden önce olay yığma.
+EN KRİTİK KURAL — KARAKTERİ SIFAT-FİİLLE GÖMME:
+Bir karakteri "-en/-an" sıfat-fiiliyle tanıtıp araya olay zinciri yığma. Önce KİM olduğunu düz söyle
+(özne + yüklem); olayı bağlaçla sürdür VEYA ayrı cümleye geç. Özneden ÖNCE iki ya da daha çok olay YASAK.
 
-✗ YANLIŞ ("terk edilen ... JADE" — özne sıfat-fiil zinciriyle gömülü):
-  "Eski eşi Nick tarafından terk edilen moda tasarımcısı JADE, ortak mülkleri yüzünden eski eşi
-   Maria ile aynı evde yaşamak zorunda kalır."
-✓ DOĞRU (düz özne-yüklem, kısa cümleler):
-  "JADE başarılı bir moda tasarımcısıdır. Kocası Nick onu terk eder. Nick evi iki eski eşine
-   birden bırakır. JADE, ilk eş Maria ile aynı evi paylaşmak zorunda kalır."
+✗ YANLIŞ (özne sıfat-fiil zinciriyle gömülü, soluksuz):
+  "Eski eşi Nick tarafından terk edilen ve ortak mülkleri yüzünden eski eşi Maria ile çatışan
+   moda tasarımcısı JADE, hayatını yeniden kurmaya çalışır."
+✗ YANLIŞ (aşırı düzeltme — kuru staccato liste, hepsi aynı kısalıkta, bağlaçsız):
+  "JADE moda tasarımcısıdır. Nick onu terk eder. Nick evi böler. Jade evde kalır."
+✓ DOĞRU (düz özne, bağlaçlarla akan, kısa+orta karışık — HEDEF BU):
+  "Moda tasarımcısı JADE'i kocası NICK, genç bir model için terk eder. NICK evi, JADE ile ilk eşi
+   MARIA arasında paylaştırır; iki kadın aynı evde yaşamak zorunda kalır. Başta birbirine düşman
+   olsalar da, MARIA'nın botanikçi kızının yardımıyla JADE başarılı bir parfüm yaratır ve kadınlar
+   dostlaşır. Sonunda NICK pişman olup geri döner. JADE onu ancak 'ikimizi birden alırsan' diyerek
+   reddeder; Nick'i, kurdukları kadın dayanışmasıyla alt eder."
 
-Tek paragraf kuralı bozulmaz: cümleler kısa ama metin yine TEK paragraf, satır sonu yok.
+Tek paragraf kuralı bozulmaz: cümleler kısa-orta ama metin yine TEK paragraf, satır sonu yok.
 
 ═══════════════════════════════════════════════════════════
 NE YAZACAKSIN — sabit cümle sayısı YOK
