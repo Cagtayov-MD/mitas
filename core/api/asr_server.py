@@ -272,13 +272,12 @@ async def _log_startup_version() -> None:
             _server_logger.info("startup reconcile: %d bayat is 'interrupted' olarak kapatildi", n)
     except Exception as exc:  # noqa: BLE001 — reconcile hatasi sunucu acilisini bloklamasin
         _server_logger.warning("startup reconcile basarisiz: %s", exc)
-    # F6: başlangıçta biriken TERMİNAL flow-queue öğelerini temizle (done/failed/stopped) — kuyruk şişmesin.
+    # Startup: kuyruk yedeği al + bayat 'running' → 'waiting' (resume). Terminal öğeler
+    # (done/partial/failed/...) kullanıcı istemedikçe silinmez — sadece açık /clear ile.
     try:
-        m = _cleanup_flow_queue_terminal()
-        if m:
-            _server_logger.info("startup flow-queue cleanup: %d terminal öğe silindi", m)
+        _backup_and_resume_flow_queue()
     except Exception as exc:  # noqa: BLE001
-        _server_logger.warning("startup flow-queue cleanup başarısız: %s", exc)
+        _server_logger.warning("startup flow-queue resume başarısız: %s", exc)
 
 
 @app.get("/version")
@@ -540,31 +539,32 @@ def _flow_update_item(item_id: str, **changes: Any) -> None:
 _FLOW_TERMINAL = {"done", "partial", "failed", "stopped", "interrupted", "cancelled"}
 
 
-def _cleanup_flow_queue_terminal() -> int:
-    """Başlangıç (server-otorite) kuyruk hijyeni — UI PUT'a gerek yok:
-      F6: TERMİNAL öğeleri (done/partial/failed/stopped/...) sil — kuyruk şişmesin.
-      F5: bayat 'running' → 'waiting' (server yokken running = ölü oturumdan kalma; resume için).
-    Çıktılar export/ + Database'de; reused-skip biteni zaten atlar. Bekleyenler KORUNUR."""
+def _backup_and_resume_flow_queue() -> None:
+    """Startup güvenliği:
+      1. Mevcut queue.json'u queue.backup.json olarak yedekle (üzerine yaz — son-iyi-durum).
+      2. Bayat 'running' → 'waiting' (resume için); başka hiçbir öğeye dokunma.
+    Terminal öğeler (done/partial/failed/...) kullanıcı /clear çağırana kadar korunur."""
     state = _read_json(FLOW_QUEUE_STATE_PATH)
     if not isinstance(state, dict) or not isinstance(state.get("items"), list):
-        return 0
+        return
+    # Yedek al
+    backup_path = FLOW_QUEUE_ROOT / "queue.backup.json"
+    try:
+        _write_json(backup_path, state)
+        _server_logger.info("startup flow-queue yedeklendi: %s", backup_path)
+    except Exception as exc:  # noqa: BLE001
+        _server_logger.warning("flow-queue yedek yazılamadı: %s", exc)
+    # Bayat running → waiting (resume)
     items = state["items"]
-    kept: list = []
     changed = 0
-    for it in items:
-        st = (it.get("status") or "waiting") if isinstance(it, dict) else "waiting"
-        if st in _FLOW_TERMINAL:
+    for i, it in enumerate(items):
+        if isinstance(it, dict) and it.get("status") == "running":
+            items[i] = {**it, "status": "waiting"}
             changed += 1
-            continue                              # terminal → sil
-        if st == "running":
-            it = {**it, "status": "waiting"}      # bayat running → waiting (resume)
-            changed += 1
-        kept.append(it)
     if changed:
-        state["items"] = kept
         state["updatedAt"] = _now_iso()
         _write_json(FLOW_QUEUE_STATE_PATH, state)
-    return changed
+        _server_logger.info("startup flow-queue resume: %d bayat 'running' → 'waiting'", changed)
 
 
 def _flow_queue_worker_loop() -> None:

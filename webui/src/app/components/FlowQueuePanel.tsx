@@ -33,7 +33,7 @@ import {
 } from './ui/context-menu';
 
 type FlowItemStatus = 'waiting' | 'running' | 'done' | 'partial' | 'failed' | 'stopped';
-type FlowItemSource = 'upload' | 'tedial';
+type FlowItemSource = 'upload' | 'tedial' | 'local';
 type FlowStopMode = 'none' | 'safe' | 'force';
 
 interface FlowQueueItem {
@@ -436,7 +436,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       // 2) Hâlâ sunucu-yolu olmayan upload öğelerini NET mesajla 'failed' yap (worker'a gönderme).
       const unresolvedIds = new Set(
         itemsRef.current
-          .filter((it) => it.status === 'waiting' && it.source === 'upload' && !it.storedMediaPath && !it.storedMediaUrl)
+          .filter((it) => it.status === 'waiting' && it.source === 'upload' && !it.storedMediaPath && !it.storedMediaUrl && !it.sourcePath)
           .map((it) => it.id),
       );
       if (unresolvedIds.size > 0) {
@@ -850,7 +850,7 @@ function FlowQueueRow({
   const meta = STATUS_META[item.status];
   const isOpenable = Boolean(item.job || item.file || item.storedMediaUrl || item.tedialItem);
   const detailLine = flowItemDetail(item, uploadPct);
-  const sourceLabel = item.source === 'tedial' ? 'Tedial' : 'Yüklenen';
+  const sourceLabel = item.source === 'tedial' ? 'Tedial' : item.source === 'local' ? 'Yerel' : 'Yüklenen';
   const isRunning = item.status === 'running';
   const clipId = item.clipId || deriveClipId(item.name);  // sunucu yoksa dosya adından türet (pipeline sanitize ile aynı)
   const [expanded, setExpanded] = useState(isRunning);
@@ -927,7 +927,7 @@ function FlowQueueRow({
 }
 
 function flowItemDetail(item: FlowQueueItem, uploadPct?: number): string {
-  if (item.source === 'upload') {
+  if (item.source === 'upload' || item.source === 'local') {
     if (item.uploading) {
       const size = item.file ? formatBytes(item.file.size) : item.sizeBytes ? formatBytes(item.sizeBytes) : '';
       const pctText = typeof uploadPct === 'number' ? ` %${uploadPct}` : '…';
@@ -1377,7 +1377,15 @@ function openFlowQueueDatabase(): Promise<IDBDatabase> {
 }
 
 function restorePersistedFlowItem(item: FlowQueueItem, workerRunning = false): FlowQueueItem {
-  const source: FlowItemSource = item.source || (item.tedialItem || item.id?.startsWith('tedial-') ? 'tedial' : 'upload');
+  // Kaynak çıkarımı YAPISAL belirleyiciye dayanır (id öneki + sourcePath), bayat 'upload'
+  // etiketini EZER: enqueue_local_films.py öğeleri (id 'local-', sourcePath var, upload-medyası YOK)
+  // worker'da sourcePath ile işlenir; 'upload' sayılırsa yanlışlıkla "Yükleme tamamlanamadı" düşer.
+  const source: FlowItemSource =
+    item.tedialItem || item.id?.startsWith('tedial-')
+      ? 'tedial'
+      : item.id?.startsWith('local-') || (!!item.sourcePath && !item.file && !item.storedMediaUrl)
+        ? 'local'
+        : item.source || 'upload';
   const restored = { ...item, source, uploading: undefined };  // yenilemede aktif yükleme olamaz
   if (restored.status === 'running') {
     if (workerRunning) {
@@ -1392,7 +1400,7 @@ function restorePersistedFlowItem(item: FlowQueueItem, workerRunning = false): F
         : 'Uygulama yeniden açıldı; tekrar başlatılabilir.',
     };
   }
-  if (restored.source === 'upload' && !restored.file && !restored.job && !restored.storedMediaUrl) {
+  if (restored.source === 'upload' && !restored.file && !restored.job && !restored.storedMediaUrl && !restored.sourcePath) {
     return {
       ...restored,
       status: 'failed',
