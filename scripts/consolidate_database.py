@@ -28,6 +28,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(r"E:\MITAS")
 DB_ROOT = PROJECT_ROOT / "Database"
 OUT_ROOT = PROJECT_ROOT / "Mitas Output"
+EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
 TRT_RE = re.compile(r"(\d{4})-(\d{3,4})-(\d)-(\d{3,4})-(\d{2})-(\d)")
 
 # --- adlandırma (mitas_pipeline.py ile birebir aynı; bağımsız kopya) ---
@@ -77,6 +78,85 @@ def md_to_readable(md: str) -> str:
         else:
             out.append(line)
     return re.sub(r"\n{3,}", "\n\n", "\n".join(out).strip() + "\n")
+
+
+# --- insan-okunur _teknik.txt + per-film _log.jsonl (mitas_pipeline ile birebir) ---
+def _fmt_mb(b) -> str:
+    try:
+        return f"{int(b) / (1024 * 1024):.1f} MB"
+    except Exception:
+        return "—"
+
+
+def _md_section(md: str, header: str) -> list:
+    out, grab = [], False
+    for ln in (md or "").splitlines():
+        s = ln.strip()
+        if s.startswith("## "):
+            grab = (s[3:].strip().lower() == header.lower())
+            continue
+        if grab and s.startswith("- "):
+            out.append(s[2:].strip())
+    return out
+
+
+def build_teknik(clipj: dict, durum: dict, teslim_md: str) -> str:
+    c, d = (clipj or {}), (durum or {})
+    title = c.get("title") or d.get("title") or ""
+    trt = c.get("trt_id") or d.get("trt_id") or ""
+    bar, sub = "=" * 65, "-" * 65
+    L = [bar, "  BLOK 1 — VİDEO / İŞLEM BİLGİLERİ", bar, ""]
+    L.append(f"  Dosya        : {c.get('filename') or os.path.basename(d.get('video', '') or '')}")
+    L.append(f"  Film/Program : {title}")
+    L.append(f"  TRT Kimlik   : {trt}")
+    if c.get("bolum"):
+        L.append(f"  Bölüm        : {c.get('bolum')}")
+    L.append(f"  Süre         : {d.get('duration', '—')}")
+    L.append(f"  Çözünürlük   : {d.get('resolution', '—')} @ {d.get('fps', '—')} FPS")
+    L.append(f"  Boyut        : {_fmt_mb(c.get('size_bytes'))}")
+    L.append(f"  Profil       : {d.get('profile') or c.get('profile') or '—'}")
+    L.append(f"  OCR          : {d.get('ocr_bucket', '—')} ({d.get('ocr_lines', '—')} satır)")
+    seg, ch = d.get("asr_segments"), d.get("transcript_chars")
+    L.append(f"  ASR          : {d.get('asr_status', '—')}" + (f" ({seg} segment, {ch} karakter)" if seg else ""))
+    L += ["", sub, "  KARAR", sub, ""]
+    L.append(f"  Durum        : {(d.get('karar') or '—').upper()}")
+    nedenler = d.get("neden") or []
+    L += ([f"    - {n}" for n in nedenler] if nedenler else ["    (tüm bloklar temiz)"])
+    tm = d.get("timings_sec") or {}
+    if tm:
+        L += ["", sub, "  PIPELINE (saniye)", sub, ""]
+        order = ["coz", "ocr", "video_kunye", "credit_text", "credit_vl", "name_verify", "asr", "pdf", "toplam"]
+        keys = [k for k in order if k in tm] + [k for k in tm if k not in order]
+        L += [f"  {k:<14}: {tm[k]}" for k in keys]
+    cast = _md_section(teslim_md, "Oyuncular")
+    L += ["", bar, "  BLOK 2 — OYUNCULAR", bar, ""]
+    L += ([f"  {x}" for x in cast] if cast else ["  (yok)"])
+    crew = _md_section(teslim_md, "Yapım Ekibi")
+    L += ["", bar, "  BLOK 3 — YAPIM EKİBİ", bar, ""]
+    L += ([f"  {x}" for x in crew] if crew else ["  (yok)"])
+    return "\n".join(L) + "\n"
+
+
+def extract_clip_events(media_id: str) -> list:
+    evs = []
+    if not media_id:
+        return evs
+    for p in (EVENTS_PATH, EVENTS_PATH.with_suffix(".1.jsonl")):
+        if not p.exists():
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                if media_id in line:
+                    try:
+                        o = json.loads(line)
+                    except Exception:
+                        continue
+                    if o.get("media_id") == media_id:
+                        evs.append(o)
+        except Exception:
+            continue
+    evs.sort(key=lambda e: e.get("ts", ""))
+    return evs
 
 
 # --- metadata çözümleme ---
@@ -172,10 +252,23 @@ def surface(d: Path, trt: str, title: str) -> dict:
             shutil.copy2(afis, d / "afis.jpg")
         got["afis"] = True
     md = pdfdir / "kunye_teslim.md"
+    md_txt = ""
     if md.exists():
-        (d / f"{base}.txt").write_text(
-            md_to_readable(md.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
+        md_txt = md.read_text(encoding="utf-8", errors="replace")
+        (d / f"{base}.txt").write_text(md_to_readable(md_txt), encoding="utf-8")
         got["txt"] = True
+    # insan-okunur _teknik.txt + per-film _log.jsonl (DATABASE düzeni — herşey tek klasörde)
+    clipj = _read_json(d / "clip.json") or {}
+    durum = _read_json(d / "_DURUM.json") or {}
+    (d / f"{base}_teknik.txt").write_text(build_teknik(clipj, durum, md_txt), encoding="utf-8")
+    got["teknik"] = True
+    media_id = clipj.get("media_id") or durum.get("clip_id") or ""
+    evs = extract_clip_events(media_id)
+    if evs:
+        with (d / "_log.jsonl").open("w", encoding="utf-8") as h:
+            for e in evs:
+                h.write(json.dumps(e, ensure_ascii=False) + "\n")
+        got["log"] = len(evs)
     return got
 
 
@@ -267,10 +360,15 @@ def main() -> int:
         while dest.exists() and dest != d:
             dest = DB_ROOT / f"{target} {n}"
             n += 1
-        if dest == d:                         # zaten temiz (suffix dahil)
+        if dest == d:                         # zaten temiz (suffix dahil) → sadece log/teknik yüzeyle
             res["already_clean"] += 1
             if apply:
-                surface(d, trt, title)
+                inflight, _why = is_inflight(d, live, trt, stale_sec)
+                if not inflight:                  # canlı klasörü pipeline kendisi yazar
+                    try:
+                        surface(d, trt, title)
+                    except Exception as e:  # noqa: BLE001
+                        res.setdefault("surface_errors", []).append({"folder": d.name, "error": str(e)})
             continue
         durum = (d / "_DURUM.json").exists()
         if not durum and not args.include_partial:

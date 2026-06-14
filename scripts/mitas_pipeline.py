@@ -213,6 +213,113 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict) -
             md_to_readable(md.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
 
 
+def _read_json_safe(p: Path):
+    try:
+        return json.loads(Path(p).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _fmt_mb(b) -> str:
+    try:
+        return f"{int(b) / (1024 * 1024):.1f} MB"
+    except Exception:  # noqa: BLE001
+        return "—"
+
+
+def _md_section(md: str, header: str) -> list:
+    """kunye_teslim.md '## <header>' altındaki '- ' satırlarını döndür."""
+    out, grab = [], False
+    for ln in (md or "").splitlines():
+        s = ln.strip()
+        if s.startswith("## "):
+            grab = (s[3:].strip().lower() == header.lower())
+            continue
+        if grab and s.startswith("- "):
+            out.append(s[2:].strip())
+    return out
+
+
+def build_teknik(clipj: dict, durum: dict, teslim_md: str) -> str:
+    """Referans _teknik.txt benzeri insan-okunur teknik rapor (eldeki clip.json/_DURUM.json/künye'den)."""
+    c, d = (clipj or {}), (durum or {})
+    title = c.get("title") or d.get("title") or ""
+    trt = c.get("trt_id") or d.get("trt_id") or ""
+    bar, sub = "=" * 65, "-" * 65
+    L = [bar, "  BLOK 1 — VİDEO / İŞLEM BİLGİLERİ", bar, ""]
+    L.append(f"  Dosya        : {c.get('filename') or os.path.basename(d.get('video', '') or '')}")
+    L.append(f"  Film/Program : {title}")
+    L.append(f"  TRT Kimlik   : {trt}")
+    if c.get("bolum"):
+        L.append(f"  Bölüm        : {c.get('bolum')}")
+    L.append(f"  Süre         : {d.get('duration', '—')}")
+    L.append(f"  Çözünürlük   : {d.get('resolution', '—')} @ {d.get('fps', '—')} FPS")
+    L.append(f"  Boyut        : {_fmt_mb(c.get('size_bytes'))}")
+    L.append(f"  Profil       : {d.get('profile') or c.get('profile') or '—'}")
+    L.append(f"  OCR          : {d.get('ocr_bucket', '—')} ({d.get('ocr_lines', '—')} satır)")
+    seg, ch = d.get("asr_segments"), d.get("transcript_chars")
+    L.append(f"  ASR          : {d.get('asr_status', '—')}" + (f" ({seg} segment, {ch} karakter)" if seg else ""))
+    L += ["", sub, "  KARAR", sub, ""]
+    L.append(f"  Durum        : {(d.get('karar') or '—').upper()}")
+    nedenler = d.get("neden") or []
+    L += [f"    - {n}" for n in nedenler] if nedenler else ["    (tüm bloklar temiz)"]
+    tm = d.get("timings_sec") or {}
+    if tm:
+        L += ["", sub, "  PIPELINE (saniye)", sub, ""]
+        order = ["coz", "ocr", "video_kunye", "credit_text", "credit_vl", "name_verify", "asr", "pdf", "toplam"]
+        keys = [k for k in order if k in tm] + [k for k in tm if k not in order]
+        L += [f"  {k:<14}: {tm[k]}" for k in keys]
+    cast = _md_section(teslim_md, "Oyuncular")
+    L += ["", bar, "  BLOK 2 — OYUNCULAR", bar, ""]
+    L += ([f"  {x}" for x in cast] if cast else ["  (yok)"])
+    crew = _md_section(teslim_md, "Yapım Ekibi")
+    L += ["", bar, "  BLOK 3 — YAPIM EKİBİ", bar, ""]
+    L += ([f"  {x}" for x in crew] if crew else ["  (yok)"])
+    return "\n".join(L) + "\n"
+
+
+def extract_clip_events(media_id: str) -> list:
+    """Global system_events(.1).jsonl'den bu filmin (media_id) olaylarını çek (kronolojik)."""
+    evs = []
+    if not media_id:
+        return evs
+    for p in (EVENTS_PATH, EVENTS_PATH.with_suffix(".1.jsonl")):
+        if not p.exists():
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                if media_id in line:
+                    try:
+                        o = json.loads(line)
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if o.get("media_id") == media_id:
+                        evs.append(o)
+        except Exception:  # noqa: BLE001
+            continue
+    evs.sort(key=lambda e: e.get("ts", ""))
+    return evs
+
+
+def surface_logs(clip_dir: Path, trt: str = "", title: str = "") -> None:
+    """Köke '<TRT> <BAŞLIK>_teknik.txt' (insan-okunur) + '_log.jsonl' (filmin olayları) yaz.
+    Tüm veri klasörden okunur → pipeline ve backfill AYNI çıktıyı verir. Çağıran try/except ile sarmalı."""
+    clipj = _read_json_safe(clip_dir / "clip.json") or {}
+    durum = _read_json_safe(clip_dir / "_DURUM.json") or {}
+    trt = trt or clipj.get("trt_id") or durum.get("trt_id") or ""
+    title = title or clipj.get("title") or durum.get("title") or ""
+    base = file_base(trt, title)
+    mdp = clip_dir / "pdf" / "kunye_teslim.md"
+    md_txt = mdp.read_text(encoding="utf-8", errors="replace") if mdp.exists() else ""
+    (clip_dir / f"{base}_teknik.txt").write_text(build_teknik(clipj, durum, md_txt), encoding="utf-8")
+    media_id = clipj.get("media_id") or durum.get("clip_id") or ""
+    evs = extract_clip_events(media_id)
+    if evs:
+        with (clip_dir / "_log.jsonl").open("w", encoding="utf-8") as h:
+            for e in evs:
+                h.write(json.dumps(e, ensure_ascii=False) + "\n")
+
+
 def hash_file(p: Path) -> str:
     h = hashlib.sha256()
     with p.open("rb") as f:
@@ -1306,6 +1413,12 @@ def main(argv=None) -> int:
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)
+    # Köke insan-okunur _teknik.txt + per-film _log.jsonl (DATABASE düzeni — herşey tek klasörde).
+    try:
+        surface_logs(clip_dir, trt, title)
+    except Exception as exc:  # noqa: BLE001 — log/teknik yüzeyleme ASLA kararı bozmaz
+        log_event("surface_failed", summary=f"log/teknik yuzeyleme hata: {exc}", module="pipeline",
+                  media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
     # master log (jsonl + md)
     MASTER_JSONL.parent.mkdir(parents=True, exist_ok=True)
     with MASTER_JSONL.open("a", encoding="utf-8") as h:
