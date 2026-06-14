@@ -32,6 +32,12 @@ FUNC = {"the", "of", "and", "in", "is", "a", "an", "to", "with", "for", "on", "a
         "were", "this", "all", "any", "or", "at", "that", "be", "been", "novel", "ve", "bir", "bu", "ile",
         "için", "da", "de", "ki", "ama", "çok", "daha", "olan", "gibi", "ya", "the"}
 VERBS = {"is", "are", "was", "were", "has", "have", "will", "dead", "living", "killed", "said"}
+# Gap-1 (Çağatay 2026-06-14): isimde/rolde ASLA geçmeyen net Türkçe diyalog/söylem belirteçleri.
+# Kısa altyazı ("Çünkü çok geç", "Evet tamam") VERBS(İngilizce) + FUNC eşiğini geçemeyince kaçıyordu.
+# Bu set GÜVENLİ: hiçbiri "Ad Soyad" parçası değil (Ben/Sen/Kim gibi isim-riskli olanlar KASTEN dışarıda).
+DIALOG = {"çünkü", "fakat", "ancak", "yani", "zaten", "belki", "değil", "nasıl", "neden",
+          "niçin", "evet", "hayır", "tabii", "galiba", "sanki", "şey", "hadi", "lütfen",
+          "asla", "tamam", "elbette", "üzgünüm", "merhaba", "teşekkür", "günaydın"}
 COMPANY = {"corporation", "productions", "company", "pictures", "studios", "inc", "ltd", "enterprises", "entertainment"}
 MPAA = ["motion picture association of america", "approved", "trade mark"]
 FUZZ_TARGETS = list(DISTRIB_F) + [fold(x) for x in MPAA]
@@ -55,6 +61,8 @@ def classify(t):
         if n >= 7: return "sentence"
         if (bare & VERBS) and n >= 3: return "sentence"
         if n >= 4 and sum(1 for w in bare if w in FUNC) >= 2: return "sentence"
+        if bare & DIALOG: return "sentence"             # net diyalog-belirteci (kısa altyazı; isimde asla geçmez)
+        if "!" in t or "..." in t: return "sentence"    # ünlem/elips = diyalog/disclaimer (künyede olmaz)
     return "credit"
 
 def near(a, b):
