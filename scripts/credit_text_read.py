@@ -26,7 +26,7 @@ import unicodedata
 import urllib.request
 
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
-DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "qwen3:8b")
+DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "qwen3.6:35b-a3b")
 
 _TR_FOLD = str.maketrans("ışğçöüİIÄ", "isgcouiia")
 
@@ -609,15 +609,19 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
 
 def model_chain():
     """Metin model zinciri.
-    KARAR (2026-06-09, 43-film ölçümü): TEK MODEL **qwen3:8b + think=False** (isabet %87, 2 yanlış).
-    gemma3:12b ÇIKARILDI (isabet %64, 8 yanlış — gürültü + model-swap maliyeti; mutabakat artık
-    VL aşamasında qwen2.5vl+gemma4 ile yapılır). Tek-model → fuse: yönetmen yalnız KB-onaylıysa
-    metinde kalır, değilse abstain → VL-fallback devralır.
+    KARAR (2026-06-14, 20-film benchmark — web-doğrulanmış GT + web-yargı): TEK MODEL
+    **qwen3.6:35b-a3b + think=False**. qwen3:8b'yi her eksende yendi: yönetmen 9/20 (8b: 5/20),
+    cast-recall %28 (8b: %22), precision %80 (8b: %61), yanlış 22 (8b: 47), üstelik DAHA HIZLI
+    (7.4s vs 26.2s — 8b uzun/gürültülü künyede runaway yapıp JSON şişirip kesiliyor→boş).
+    Non-thinking adaylar geride kaldı (qwen3-instruct yönetmende kör 1/20; gemma4 en çok pes eden).
+    NOT: 35b=23GB VRAM → CLIP/OCR ile aynı anda GPU'da olamaz; N=2 paralelde Ayıklayıcı aşaması
+    ollama'da tek 35b paylaşır (ops takibi). Rapor: E:\\QwenModels\\ayikla_bench\\.
+    _ollama_json zaten qwen3* için think=False gönderir (qwen3.6 kapsanır).
     Override: MITAS_CREDIT_TEXT_MODEL (virgüllü). DeepSeek opt-in: MITAS_CREDIT_TEXT_MODEL=deepseek-chat."""
     envm = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "").strip()
     if envm:
         return [m.strip() for m in envm.split(",") if m.strip()]
-    return ["qwen3:8b"]
+    return ["qwen3.6:35b-a3b"]
 
 
 def read_credits_auto(lines, title="", *, dizi=False):
