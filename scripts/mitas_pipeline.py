@@ -190,7 +190,7 @@ def md_to_readable(md: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(out).strip() + "\n")
 
 
-def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict) -> None:
+def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, tur_override: str = "") -> None:
     """Köke temiz teslimat yüzeyle: '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
     Mevcut artefaktları KOPYALAR (yeniden üretmez). Çağıran try/except ile sarmalı — pipeline'ı bozmaz."""
     base = file_base(trt, title)
@@ -209,8 +209,12 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict) -
         shutil.copy2(afis, clip_dir / "afis.jpg")
     md = pdf_out / "kunye_teslim.md"
     if md.exists():
+        md_text = md.read_text(encoding="utf-8", errors="replace")
+        if tur_override:
+            import re as _re
+            md_text = _re.sub(r"(Tür:)\s*—", f"\\1 {tur_override}", md_text, count=1)
         (clip_dir / f"{base}.txt").write_text(
-            md_to_readable(md.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
+            md_to_readable(md_text), encoding="utf-8")
 
 
 def _read_json_safe(p: Path):
@@ -1523,7 +1527,7 @@ def main(argv=None) -> int:
         shutil.copy2(src_file, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
     try:
-        surface_deliverables(clip_dir, trt, title, pdf_info)
+        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_xml)
     except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
         log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
                   media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
