@@ -725,10 +725,37 @@ def _ozet_deepseek(system_content: str, user_msg: str) -> str | None:
     )
 
 
-# Özet SAĞLAYICI ZİNCİRİ (Çağatay 2026-06-09): Gemini → Sonnet → DeepSeek; ilk başarılı kazanır.
-# Gemini birincil (A/B jürisi: 4/4 filmde en tutarlı DOĞRU final + ucuz + 1M bağlam);
-# biri kredisiz/çökerse (ör. 402/429) sessizce sıradakine düşer.
+def _ozet_gemma_local(system_content: str, user_msg: str) -> str | None:
+    """Yerel gemma4 (ollama) ile özet — think=FALSE (zincir-düşünce KAPALI → doğrudan akıcı prose).
+
+    2026-06-14 Çağatay: gemma4 bir DÜŞÜNME modeli; Google API'de (gemma-4-31b-it) düşünce-dökümü
+    telgraf/kesik özet veriyordu. ollama'da `think:false` düşünmeyi KAPATIR → temiz akıcı tek-paragraf
+    (ESKİ_KOCAM'da 70 kelime, nedensellik tam, 17s, kanıtlı). Yerel + bedava + kotasız (gemini 429 yok),
+    ATLAS için zaten RAM'de. _generate_ozet'te BİRİNCİL; ollama yoksa/boşsa sıradaki sağlayıcıya düşer."""
+    model = os.environ.get("MITAS_OZET_OLLAMA_MODEL", "gemma4:26b")
+    base = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434").rstrip("/")
+    body = json.dumps({
+        "model": model, "system": system_content, "prompt": user_msg,
+        "stream": False, "think": False,
+        "options": {"temperature": 0.0, "num_predict": OZET_MAX_TOKENS},
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(base + "/api/generate", data=body,
+                                     headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=OZET_TIMEOUT_SECONDS) as resp:
+            out = json.loads(resp.read().decode("utf-8"))
+        text = (out.get("response") or "").strip()
+        return text or None
+    except Exception:  # noqa: BLE001 — ollama yok/kapalı/timeout → None (sıradaki sağlayıcı)
+        return None
+
+
+# Özet SAĞLAYICI ZİNCİRİ: gemma-local (think=false) → Gemini → Sonnet → DeepSeek; ilk başarılı kazanır.
+# BİRİNCİL yerel gemma4 think=false (2026-06-14 Çağatay): temiz akıcı prose, bedava, kotasız, RAM'de hazır.
+# Google gemma-4-31b düşünce-dökümü telgraf/kesik veriyordu → yerel think=false bunu çözer.
+# Yerel ollama yoksa/boşsa sırayla bulut sağlayıcılara düşer (biri kredisiz/429 ise sonraki).
 _OZET_SAGLAYICILAR = (
+    ("gemma-local", _ozet_gemma_local),
     ("gemini", _ozet_gemini),
     ("sonnet", _ozet_anthropic),
     ("deepseek", _ozet_deepseek),
