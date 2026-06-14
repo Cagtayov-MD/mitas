@@ -759,8 +759,18 @@ def _run_paddle_sidecar(frames: list[Path], out: Path) -> None:
         paddle_path = out / "paddle_kunye.txt"
         paddle_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         print(f"[paddle] {len(lines)} satir -> {paddle_path}", file=sys.stderr)
+        try:
+            (out / "paddle_status.txt").write_text(f"OK {len(lines)} satir, {len(sample)} kare\n", encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as exc:  # noqa: BLE001 — PaddleOCR yok / GPU hatasi -> sessiz atla
         print(f"[paddle] atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
+        try:  # GÖZLEMLENEBİLİRLİK: gerçek hatayı diske yaz (sessiz-yutma teşhisi imkansız kılıyordu)
+            import traceback
+            (out / "paddle_status.txt").write_text(
+                f"HATA {type(exc).__name__}: {exc}\n{traceback.format_exc()}", encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def main(argv=None) -> int:
@@ -778,13 +788,12 @@ def main(argv=None) -> int:
     for d in args.frames:
         frames += sorted(Path(p) for p in glob.glob(str(Path(d) / "*.png")))
 
-    # PaddleOCR side-channel: OneOCR ile paralel kostur (daemon thread).
-    _paddle_thread: threading.Thread | None = None
-    if frames:
-        _paddle_thread = threading.Thread(
-            target=_run_paddle_sidecar, args=(frames, out), daemon=True, name="paddle-sidecar"
-        )
-        _paddle_thread.start()
+    # PaddleOCR side-channel: ARTIK pipeline100 ile EŞZAMANLI DEĞİL (2026-06-14, Çağatay teşhisi).
+    # ESKİ daemon-thread paddle, pipeline100 ile AYNI ANDA `from paddleocr import` yapınca Python
+    # asyncio'sunu "yarı-başlatılmış" hale getiriyordu (filelock→asyncio eşzamanlı-import yarışı):
+    # paddle çıktı üretmiyordu VE pipeline100 import'unu da bozup zayıf OneOCR'a düşürüyordu.
+    # ÇÖZÜM: paddle'ı ana OCR okumasından SONRA (CLIP bitti, import yarışı yok), whisper hâlâ ayrı
+    # süreçte koştuğu için ONUNLA PARALEL, senkron çağır (aşağıda, kunye yazıldıktan sonra).
 
     # Once scroll-aware pipeline100 zincirini dene; coker/None -> eski OneOCR.
     res = None
@@ -835,9 +844,10 @@ def main(argv=None) -> int:
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Paddle thread'ini bekle (en fazla 180s; daemon oldugu icin process bitse de olur).
-    if _paddle_thread is not None:
-        _paddle_thread.join(timeout=180)
+    # PaddleOCR yan-kanalı: ana OCR okuması (pipeline100/OneOCR + CLIP) BİTTİ → import yarışı yok.
+    # SENKRON koş (thread değil); whisper hâlâ ayrı süreçte koştuğu için onunla PARALEL kalır.
+    if frames:
+        _run_paddle_sidecar(frames, out)
 
     paddle_lines = 0
     _ppath = out / "paddle_kunye.txt"
