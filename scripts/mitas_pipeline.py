@@ -652,7 +652,7 @@ def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
     raw = _gemini.gemini_text(
         system=system_content, prompt=user_msg,
         model=os.environ.get("MITAS_GEMINI_MODEL", "gemma-4-31b-it"),
-        temperature=0.2, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
+        temperature=0.0, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
     )
     if not isinstance(raw, str) or not raw.strip():
         return None
