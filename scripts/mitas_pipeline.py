@@ -656,26 +656,61 @@ def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
     )
     if not isinstance(raw, str) or not raw.strip():
         return None
-    # Zincir-düşünce temizleyici: gerçek özet her zaman sonda gelir.
-    # 1) \n\n bloklarından markdown-ağır olanları at, son prose bloğu al
-    blocks = [b.strip() for b in raw.split("\n\n") if b.strip()]
-    def _md_heavy(b: str) -> bool:
-        lines = b.splitlines()
-        md = sum(1 for l in lines if l.strip().startswith(("*", "#", "-", "•", "`", ">")))
-        return bool(lines) and md > len(lines) // 2
-    prose = [b for b in blocks if not _md_heavy(b)] or blocks
-    last = prose[-1]
-    # 2) Son blok içindeki markdown satırlarını da at
-    clean = [l.strip() for l in last.splitlines()
-             if l.strip() and not l.strip().startswith(("*", "#", "-", "•", "`", ">"))]
-    text = " ".join(clean) if clean else last
-    # 3) Çift kopya tespiti: Gemma bazen özeti ardarda yapıştırır (Gemma artefaktı)
-    head = text[:25]
-    if head and len(text) > 80:
-        second = text.find(head, len(text) // 4)
-        if second > len(text) // 4:
-            text = text[:second].rstrip(" .")  + "."
-    return text.strip() or None
+    # Gemma-4 zincir-düşünce DÖKÜYOR (sistem-promptu tekrar + Draft 1/2 + Final Polish +
+    # Self-Correction; sık sık max_token'a takılıp cümle ortasında kesilir). Gerçek özet bu
+    # kaosun içinde gömülü TAM bir Türkçe paragraf. Eski "son blok + çift-kopya" sezgisi
+    # bunları 29-77 karakterlik çöpe parçalıyordu (2026-06-14 ESKİ_KOCAM kanıtı). Sağlam fix:
+    # son TAM-geçerli Türkçe özet adayını çıkar; yoksa None → zincir Sonnet/DeepSeek'e düşer.
+    cleaned = _gemma_extract_summary(raw)
+    return cleaned   # geçersiz/bulunamadı → None: _generate_ozet temiz sağlayıcıya düşer
+
+
+# Gemma ham CoT çıktısından geçerli özet adaylarını ayıkla (meta/draft/kesik ele).
+_GEMMA_META_LABEL = re.compile(
+    r"^\s*(Draft\s*\d+|Final\s*Polish[^:]*|Refining[^:]*|Self-?Correction[^:]*"
+    r"|Characters?|Setting|Plot|Ending|Trigger|Conflict|Decision|Action|Main\s*Character)\s*:?\s*\**\s*",
+    re.I)
+_GEMMA_META_WORD = re.compile(
+    r"\b(draft|polish|refining|self-?correction|spoiler|paragraph|ceiling|adjective|transcript|ascii)\b", re.I)
+
+
+def _gemma_extract_summary(raw: str) -> str | None:
+    """Gemma-4 zincir-düşünce ham çıktısından SON tam Türkçe özet paragrafını çıkar.
+
+    Aday = nokta ile biten, 25-95 kelime, meta-işaretsiz, harf-içeren Türkçe prose.
+    Draft/Final-Polish gibi etiketler (satır-başı veya satır-içi) ve "(NN words) - *...*"
+    açıklamaları soyulur. En sondaki geçerli aday alınır (genelde 'Final Polish' = en iyi).
+    Hiç geçerli aday yoksa None → çağıran zinciri temiz sağlayıcıya düşürür."""
+    if not raw:
+        return None
+    cands: list[str] = []
+    for block in raw.split("\n\n"):
+        kept: list[str] = []
+        for ln in block.splitlines():
+            s = ln.strip().lstrip("*#>-•`\t ").strip()
+            if not s:
+                continue
+            s = _GEMMA_META_LABEL.sub("", s).strip()   # satır-başı/içi "Draft 2:" vb. etiketi soy
+            if not s:
+                continue
+            kept.append(s)
+        if not kept:
+            continue
+        txt = " ".join(kept).strip()
+        txt = re.sub(r"\(\s*\d+\s*words?\s*\).*$", "", txt, flags=re.I).strip()  # "(66 words) - *Better.*" soy
+        txt = re.sub(r"\s*[-–]\s*\*[^*]*\*\s*$", "", txt).strip()
+        txt = txt.strip("*").strip()
+        if not txt.endswith("."):
+            continue                                   # kesik/yarım → ele
+        wc = len(txt.split())
+        if not (25 <= wc <= 95):
+            continue                                   # çok kısa (çöp) / çok uzun (analiz) → ele
+        if _GEMMA_META_WORD.search(txt):
+            continue                                   # İngilizce meta/analiz sızıntısı → ele
+        if not re.search(r"[A-Za-zğüşıöçİĞÜŞÖÇ]", txt):
+            continue
+        cands.append(txt)
+    return cands[-1] if cands else None
 
 
 def _ozet_deepseek(system_content: str, user_msg: str) -> str | None:
