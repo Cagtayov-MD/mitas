@@ -751,14 +751,14 @@ def _ozet_gemma_local(system_content: str, user_msg: str) -> str | None:
         return None
 
 
-# Özet SAĞLAYICI ZİNCİRİ (2026-06-14 Çağatay A/B): gemini-2.5-flash → gemma-local → Sonnet → DeepSeek.
-# BİRİNCİL gemini-2.5-flash: en kısa-net cümle + en doğru plot (3-yönlü kıyas kazananı). Kota dolunca
-# (429) gemma-local (think=false) YEDEK: bedava, kotasız, RAM'de hazır, hiç boş bırakmaz. Sonnet (boş/
-# kredisiz) + DeepSeek (402) şu an ölü ama zararsız son-çare. İlk başarılı kazanır.
+# Özet SAĞLAYICI ZİNCİRİ (2026-06-14 Çağatay, kredi yüklendi): Sonnet → gemini-2.5-flash → gemma-local → DeepSeek.
+# BİRİNCİL Sonnet (claude-sonnet-4-6): A/B kazananı — kısa-net cümle + DOĞRU length (~72, gemini'nin
+# 116-şişkinliği yok) + en doğru plot + spoiler-bağlı final. Sonnet kredisiz/çökerse gemini-2.5-flash
+# (temiz ama bazen uzun) → o da 429 ise gemma-local (think=false, bedava/kotasız, hiç boş bırakmaz).
 _OZET_SAGLAYICILAR = (
+    ("sonnet", _ozet_anthropic),
     ("gemini", _ozet_gemini),
     ("gemma-local", _ozet_gemma_local),
-    ("sonnet", _ozet_anthropic),
     ("deepseek", _ozet_deepseek),
 )
 
