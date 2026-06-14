@@ -60,6 +60,69 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (s or "").translate(_TR_FOLD).lower())
 
 
+# ── VERSİYON/SEKEL AYRACI (Çağatay 2026-06-14) ──────────────────────────────────
+# Yıl GÜVENİLMEZ (TRT katalog yılı) → versiyon ayrımında KULLANILMAZ. Bunun yerine
+# okunan başlıktaki sekel imzası ("KORSANLARI-2-...", "/2", "ROCKY II") + alt-başlık
+# ("DEAD MAN'S CHEST" / "ÖLÜ ADAMIN SANDIĞI") AYRAÇ yapılır. Sekel imzası YOKSA guard
+# tamamen ATIL (sıradan film hiç etkilenmez). Aktifken YALNIZ aday ELER → asla yeni
+# yanlış afiş üretmez; en kötü hâlde afiş yok ("yanlış afiş > afiş yok" ilkesi).
+# Karayip Korsanları 1↔2 gibi sekel karışmasını keser (KÖK: title-only matcher'a
+# sekel/versiyon ayırt etme görevi VERİLMEMİŞTİ — bu o görevi atar).
+_VER_ROMAN = {"ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6, "vii": 7, "viii": 8, "ix": 9}
+
+
+def _vfold(s: str) -> str:
+    return re.sub(r"[^a-z0-9 ]", " ", (s or "").translate(_TR_FOLD).lower())
+
+
+def _version_seq(text: str):
+    f = " " + _vfold(text)
+    m = re.search(r"[\/\-\s\.]\s*([2-9])(?![0-9])", f)        # ayraç+tek hane 2-9 (yıl/çok haneli değil)
+    if m:
+        return int(m.group(1))
+    mr = re.search(r"\b(ii|iii|iv|v|vi|vii|viii|ix)\b", f)    # roman II-IX
+    return _VER_ROMAN[mr.group(1)] if mr else None
+
+
+def _version_subs(s: str) -> list:
+    if not s:
+        return []
+    m = re.search(r"[\/\-\s\.]\s*[2-9](?![0-9])[\s\-\/:]*(.+)$", " " + s)   # numara SONRASI (ham; tire korunur)
+    tail = m.group(1) if (m and m.group(1).strip()) else ""
+    if not tail:
+        parts = re.split(r"\s*[:/]\s*|\s+-\s+|(?<=\w)-(?=\w)", s)           # ayraç SONRASI son parça
+        if len(parts) > 1:
+            tail = parts[-1]
+    return [w for w in _vfold(tail).split() if len(w) >= 4]                 # franchise tabanı hariç, anlamlı kelime
+
+
+def _version_sig(title: str, original: str | None = None) -> dict:
+    """Okunan başlık+orijinalden versiyon imzası: {seq, subs, active}. seq yoksa active=False (atıl)."""
+    seq = _version_seq(" ".join(t for t in (title, original) if t))
+    subs = []
+    for s in (title, original):
+        for w in _version_subs(s or ""):
+            if w not in subs:
+                subs.append(w)
+    return {"seq": seq, "subs": subs, "active": bool(seq)}
+
+
+def _version_ok(sig, cand_title) -> bool:
+    """Aday IMDb başlığı okunan versiyonla tutarlı mı (sekel-no VEYA alt-başlık örtüşmesi). Atıl ise daima True."""
+    if not sig or not sig.get("active"):
+        return True
+    cf = _vfold(cand_title)
+    seq = sig.get("seq")
+    if seq:
+        rom = {2: "ii", 3: "iii", 4: "iv", 5: "v", 6: "vi", 7: "vii", 8: "viii", 9: "ix"}[seq]
+        if re.search(r"(?<![a-z0-9])%d(?![0-9])" % seq, cf) or re.search(r"\b%s\b" % rom, cf):
+            return True
+    subs = sig.get("subs") or []
+    if subs and any(s in cf for s in subs):
+        return True
+    return False
+
+
 def _clean_title_for_search(title: str) -> str:
     """Kirli basligi IMDb sorgusuna uygun temiz bir ada indir.
 
@@ -245,6 +308,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
     tmdb_id    : Wikidata'dan gelen TMDB film id'si (yedek zinciri için).
     """
     names = _names_norm(cast, crew)
+    vsig = _version_sig(title, original)   # sekel/versiyon ayracı (yıl kullanılmaz; sekel-imzası yoksa atıl)
     # Aday sorgular: orijinal ad (yabanci film) ve TRT/Turkce ad; her birinin
     # hem HAM hem TEMIZLENMIS hali denenir. Ham IMDb'de zaten temizse calisir;
     # temiz hali "son4dk" gibi test/OCR eklerini atip dogru filmi getirir.
@@ -255,7 +319,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
             if variant and variant not in queries:
                 queries.append(variant)
     for q in queries:
-        pick = _search(q, year, names)
+        pick = _search(q, year, names, vsig)
         if pick:
             img = (pick.get("i") or {}).get("imageUrl")
             if not img:
@@ -305,8 +369,16 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
     return None
 
 
-def _search(query: str, year=None, names_norm=None):
-    """IMDb suggestion → güvenli tek aday. Çok sonuçta: kadro > yıl ile teyit. Yoksa None."""
+def _search(query: str, year=None, names_norm=None, vsig=None):
+    """IMDb suggestion → güvenli tek aday. Çok sonuçta: kadro > yıl ile teyit. Yoksa None.
+    vsig verilirse (sekel/versiyon imzası aktif) → versiyon-tutarsız adaylar ELENİR (Karayip 1↔2)."""
+    # KADRO-ZORUNLU KAPI (Çağatay 2026-06-14): kadro/crew sinyali HİÇ yoksa başlık-tabanlı eşleşme YAPMA.
+    # Boş-kadroda tek-exact başlık körlemesine dönüyordu → "şans ile yürümez": doğrulayacak isim yoksa
+    # afiş YOK. AKIL OYUNLARI (boş kadro + "Beautiful Mind" → yanlış Kore dizisi) tam buradan sızmıştı;
+    # remake'lerde de (Notre Dame 1955/1996) tek ayraç güvenilmez yıl kalıyordu. Kimlik BAŞKA yolla
+    # (yönetmen-TEYİT / web-çapa) doğrulanmışsa afiş yine gelir: fetch_poster'ın id-tabanlı yolu AYRIDIR.
+    if not names_norm:
+        return None
     o = _norm(query)
     if len(o) < 2:
         return None
@@ -316,6 +388,12 @@ def _search(query: str, year=None, names_norm=None):
     except Exception:  # noqa: BLE001
         return None
     tt = [x for x in d if str(x.get("id", "")).startswith("tt") and (x.get("i") or {}).get("imageUrl")]
+    # VERSİYON AYRACI: okunan başlıkta sekel imzası varsa (KORSANLARI-2-/ROCKY II), aday başlığı
+    # o versiyonla tutarsızsa ELE (yanlış sekel afişini keser). İmza yoksa _version_ok hep True → atıl.
+    if vsig and vsig.get("active"):
+        tt = [x for x in tt if _version_ok(vsig, x.get("l"))]
+        if not tt:
+            return None
     cands = [x for x in tt if _norm(x.get("l")) == o]                       # tam başlık
     if not cands and len(o) >= 5:                                          # gevşek (uzun başlık)
         # FIX: o.startswith(imdb_norm) yönünde imdb_norm'un da en az 5 karakter olması şart;
@@ -337,25 +415,18 @@ def _search(query: str, year=None, names_norm=None):
             named = [x for x in tt if _cand_has_name(x, names_norm)]
             if len(named) == 1:
                 return named[0]
-            if len(named) > 1 and year:
-                ym = [x for x in named if str(x.get("y")) == str(year)]
-                if len(ym) == 1:
-                    return ym[0]
-            return None  # kadro çelişiyor + net alternatif yok → afiş YOK (yanlış afiş > afiş yok)
+            return None  # kadro çelişiyor + tek-net alternatif yok → afiş YOK (yıl ile TAHMİN YOK)
         return ex
     if names_norm:                                                         # ASIL ayraç: kadro teyidi
         named = [x for x in cands if _cand_has_name(x, names_norm)]
         if len(named) == 1:
             return named[0]
-        if len(named) > 1 and year:                                        # birden çok → yıl ile daralt
-            ym = [x for x in named if str(x.get("y")) == str(year)]
-            if len(ym) == 1:
-                return ym[0]
-    if year:                                                               # yedek: yıl ile teyit
-        ym = [x for x in cands if str(x.get("y")) == str(year)]
-        if len(ym) == 1:
-            return ym[0]
-    return None                                                            # belirsiz → yok
+    # YIL-TABANLI VERSİYON SEÇİMİ KALDIRILDI (Çağatay 2026-06-14): TRT yılı GÜVENİLMEZ (katalog yılı).
+    # Kadro (remake'te farklı kadro) ya da versiyon-imzası (sekelde numara/alt-başlık) tek adaya
+    # indiremiyorsa, güvenilmez yıla düşüp versiyon seçmek = ŞANS. 85↔99 remake / Karayip 1-2-3 yanlış
+    # eşleşmesi tam buradan sızıyordu (kanıt: Hunchback yanlış-yıl→yanlış versiyon; Pirates year=2017
+    # → 5. film). Deterministik kural: tek adaya KADRO/VERSİYON ile inemiyorsak → afiş YOK.
+    return None
 
 
 if __name__ == "__main__":
