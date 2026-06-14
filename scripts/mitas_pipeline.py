@@ -649,20 +649,21 @@ def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
     """
     if _gemini is None:
         return None
+    # BİRİNCİL: gemini-2.5-flash (2026-06-14 Çağatay A/B: en kısa-net cümle + en doğru plot +
+    # ÇALIŞIYOR; Sonnet boş/kredisiz, DeepSeek 402). gemini-2.5 düşünmeyi API-içi yapar → TEMİZ
+    # final döner (gemma-4-31b gibi ham zincir-düşünce DÖKMEZ). Kota dolunca (429) zincir gemma-local'e düşer.
+    model = os.environ.get("MITAS_GEMINI_MODEL", "gemini-2.5-flash")
     raw = _gemini.gemini_text(
         system=system_content, prompt=user_msg,
-        model=os.environ.get("MITAS_GEMINI_MODEL", "gemma-4-31b-it"),
-        temperature=0.0, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
+        model=model, temperature=0.0, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
     )
     if not isinstance(raw, str) or not raw.strip():
         return None
-    # Gemma-4 zincir-düşünce DÖKÜYOR (sistem-promptu tekrar + Draft 1/2 + Final Polish +
-    # Self-Correction; sık sık max_token'a takılıp cümle ortasında kesilir). Gerçek özet bu
-    # kaosun içinde gömülü TAM bir Türkçe paragraf. Eski "son blok + çift-kopya" sezgisi
-    # bunları 29-77 karakterlik çöpe parçalıyordu (2026-06-14 ESKİ_KOCAM kanıtı). Sağlam fix:
-    # son TAM-geçerli Türkçe özet adayını çıkar; yoksa None → zincir Sonnet/DeepSeek'e düşer.
-    cleaned = _gemma_extract_summary(raw)
-    return cleaned   # geçersiz/bulunamadı → None: _generate_ozet temiz sağlayıcıya düşer
+    # gemini-2.5 zaten temiz prose döner → doğrudan. Yalnız gemma-* ham zincir-düşünce dökerse
+    # _gemma_extract_summary ile son TAM Türkçe özeti ayıkla (yoksa None → sıradaki sağlayıcı).
+    if str(model).lower().startswith("gemma"):
+        return _gemma_extract_summary(raw)
+    return raw.strip()
 
 
 # Gemma ham CoT çıktısından geçerli özet adaylarını ayıkla (meta/draft/kesik ele).
@@ -750,13 +751,13 @@ def _ozet_gemma_local(system_content: str, user_msg: str) -> str | None:
         return None
 
 
-# Özet SAĞLAYICI ZİNCİRİ: gemma-local (think=false) → Gemini → Sonnet → DeepSeek; ilk başarılı kazanır.
-# BİRİNCİL yerel gemma4 think=false (2026-06-14 Çağatay): temiz akıcı prose, bedava, kotasız, RAM'de hazır.
-# Google gemma-4-31b düşünce-dökümü telgraf/kesik veriyordu → yerel think=false bunu çözer.
-# Yerel ollama yoksa/boşsa sırayla bulut sağlayıcılara düşer (biri kredisiz/429 ise sonraki).
+# Özet SAĞLAYICI ZİNCİRİ (2026-06-14 Çağatay A/B): gemini-2.5-flash → gemma-local → Sonnet → DeepSeek.
+# BİRİNCİL gemini-2.5-flash: en kısa-net cümle + en doğru plot (3-yönlü kıyas kazananı). Kota dolunca
+# (429) gemma-local (think=false) YEDEK: bedava, kotasız, RAM'de hazır, hiç boş bırakmaz. Sonnet (boş/
+# kredisiz) + DeepSeek (402) şu an ölü ama zararsız son-çare. İlk başarılı kazanır.
 _OZET_SAGLAYICILAR = (
-    ("gemma-local", _ozet_gemma_local),
     ("gemini", _ozet_gemini),
+    ("gemma-local", _ozet_gemma_local),
     ("sonnet", _ozet_anthropic),
     ("deepseek", _ozet_deepseek),
 )
