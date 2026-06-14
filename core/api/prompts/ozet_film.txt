@@ -57,6 +57,12 @@ taşımıyorsa o halkayı ATLA — olmayan bir çatışmayı UYDURMA.
   3) KARAR/EYLEM: Karakterin verdiği somut karar veya yaptığı eylem.
   4) FİNAL = ÇÖZÜM + NEDEN (SPOILER ZORUNLU): Filmin nasıl bittiğini AÇIKÇA söyle —
      kim ölür / kazanır / kavuşur / yıkılır / ayrılır VE NİÇİN. Okuyan "ee sonra?" dememeli.
+     AÇIK-UÇLU / PUNCHLINE BİTEN FİLM: Film bir replik/soruda kesiliyorsa (karakter bir şart söyler
+     ya da soru sorar, karşı taraf CEVAP VERMEDEN film biter), o son repliği ASKIDA bırakma. Cevabı
+     UYDURMA — onun yerine olayın ANLAMINI/GÜÇ DENGESİNİ çöz: kim galip geldi, kim mağlup, ne değişti.
+     ✗ ASKIDA : "...'ikimizi birden alırsan' diyerek kabul eder."   (adam kabul etti mi? — ee sonra?)
+     ✓ BAĞLI  : "...artık ona muhtaç değildir; 'ikimizi birden alırsan' diyerek Nick'i, Maria'yla
+                kurduğu birlikle alt eder — kadınlar kazanır."   (güç kadınlarda, olay net biter)
 
 ═══════════════════════════════════════════════════════════
 KESİN YASAKLAR
