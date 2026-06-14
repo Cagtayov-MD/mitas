@@ -32,9 +32,19 @@ def shift_in_range(sa, sb, lo, hi):
         if v > bv: bv, best = v, s
     return best, bv
 
+def textbot(im, H):
+    """yazı bölgesinin en alt satırını döndür (tophat → renk-bağımsız).
+    Karenin altındaki siyah margin'i atlamak için slitscan2'de kullanılır."""
+    g = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) if im.ndim == 3 else im
+    th = fp.tophat(g)
+    rows = (th > 0).sum(axis=1)
+    br = np.where(rows > 3)[0]
+    return int(br[-1]) + 1 if len(br) else H
+
 def slitscan2(paths):
     """HİZALAMA-MOZAİĞİ + ZAMAN-TUTARLILIĞI: ardışık kareleri hizala, sadece YENİ giren alt-şeridi ekle.
-    Kayma scroll hızının MEDYANINA yakın zorlanır -> periyodik kredi satırlarında aliasing yırtığı OLMAZ."""
+    Kayma scroll hızının MEDYANINA yakın zorlanır -> periyodik kredi satırlarında aliasing yırtığı OLMAZ.
+    FIX-B: şerit frame-altından değil YAZI-BÖLGESİNİN altından alınır (siyah margin atlanır)."""
     imgs = [fp.rd(p) for p in paths]
     H, W = imgs[0].shape[:2]
     sigs = [row_sig(im) for im in imgs]
@@ -43,7 +53,7 @@ def slitscan2(paths):
     speeds = sorted(s for s, c in raw if c > 0.4 and s > 2)
     med = speeds[len(speeds)//2] if speeds else 0
     # pass 2: kaymayı medyana yakın zorla
-    canvas = imgs[0].copy()
+    canvas = imgs[0][:textbot(imgs[0], H)].copy()
     for k in range(1, len(imgs)):
         if med >= 2:
             s, conf = shift_in_range(sigs[k-1], sigs[k], int(med*0.6), int(med*1.5)+1)
@@ -52,7 +62,9 @@ def slitscan2(paths):
             s, conf = best_shift(sigs[k-1], sigs[k])
             if s <= 1 or conf < 0.30: continue
         s = min(max(s, 1), H)
-        canvas = np.vstack([canvas, imgs[k][H-s:H, :]])
+        yb = textbot(imgs[k], H); y0 = max(0, yb - s)
+        strip = imgs[k][y0:yb, :]
+        if strip.shape[0] > 0: canvas = np.vstack([canvas, strip])
     return canvas
 
 if __name__ == "__main__":

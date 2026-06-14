@@ -57,8 +57,23 @@ def is_scroll(run, imgs):
     if not sh: return False
     return float(np.median([s for s, c in sh])) >= 3 and float(np.median([c for s, c in sh])) >= 0.4
 
+def _band_dup(a, b, thr=0.95):
+    """FIX-A: a yeni band, b son eklenen band; görsel NCC >= thr ise True (dissolve-kart tekrar dedup)."""
+    if a is None or b is None: return False
+    ga = cv2.cvtColor(a, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gb = cv2.cvtColor(b, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    h = min(ga.shape[0], gb.shape[0]); w = min(ga.shape[1], gb.shape[1])
+    if h < 12 or w < 12: return False
+    ga = ga[:h, :w]; gb = gb[:h, :w]
+    try:
+        r = cv2.matchTemplate(ga, gb, cv2.TM_CCORR_NORMED)
+        return float(r.max()) >= thr
+    except Exception:
+        return False
+
 def line_mosaic_run(run, imgs, ocr_pos, placed, W, pad=4):
-    """hareketsiz run: her kareden GÖRÜLMEMİŞ satırların bandını kırp (drift/kart/footage sınırlı)."""
+    """hareketsiz run: her kareden GÖRÜLMEMİŞ satırların bandını kırp (drift/kart/footage sınırlı).
+    FIX-A: son eklenen banda görsel NCC >= 0.95 ise band atlanır (dissolve-logo tekrarı biter)."""
     bands = []; lines = []
     for i in run:
         H = imgs[i].shape[0]
@@ -68,6 +83,10 @@ def line_mosaic_run(run, imgs, ocr_pos, placed, W, pad=4):
         if y1 <= y0: continue
         b = imgs[i][y0:y1, :]
         if b.shape[1] < W: b = cv2.copyMakeBorder(b, 0, 0, 0, W-b.shape[1], cv2.BORDER_CONSTANT, value=(0, 0, 0))
+        # görsel dedup: son band ile aynıysa metni placed'e ekle ama görsel band ekleme
+        if _band_dup(b, bands[-1] if bands else None):
+            for L in new: placed.append(L[0]); lines.append(L[1])
+            continue
         bands.append(b)
         for L in new: placed.append(L[0]); lines.append(L[1])
     return bands, lines
@@ -88,7 +107,13 @@ def compose_hybrid(frames, idx, imgs, ocr_pos):
             blk = sl.slitscan2([frames[i] for i in run])
             if blk is not None and getattr(blk, "size", 0) and blk.shape[0] >= 60:
                 if len([L for L in read_pos(blk) if L[0]]) >= 5:
-                    blocks.append(blk); continue
+                    # FIX-C: saf-footage/logo bloğu at (parlak-piksel oranı < %0.5 → gerçek yazı yok)
+                    g = cv2.cvtColor(blk, cv2.COLOR_BGR2GRAY) if blk.ndim == 3 else blk
+                    bright_ratio = float((g > 150).sum()) / max(1, g.size)
+                    if bright_ratio < 0.005:
+                        pass  # footage smear: line_mosaic'e düş
+                    else:
+                        blocks.append(blk); continue
         bands, _ = line_mosaic_run(run, imgs, ocr_pos, vplaced, W)
         blocks += bands
     if not blocks: return None, text
