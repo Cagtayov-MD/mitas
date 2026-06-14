@@ -133,7 +133,11 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
             model = (WhisperModel(str(fp), device="cuda", compute_type="float16", local_files_only=True)
                      if fp and fp.exists()
                      else WhisperModel("large-v3", device="cuda", compute_type="float16"))
-            beam, tr_language = max(args.beam_size, 5), language   # tespit edilen dilde transkribe (yeniden-tespit YOK)
+            # beam: yabanci large-v3 yolu. ESKI max(beam,5)=5 KORKUNC YAVASTI (97dk film ~20dk).
+            # Cagatay_22.02 altin-standardi (FilmDizi-Hybrid: large-v3 + beam=1) ayni modelle
+            # iyi sure+kalite verdi; beam=5 orada yalniz saf STT profilinde. Varsayilan 1, env-ayarli.
+            _foreign_beam = max(1, int(os.environ.get("MITAS_ASR_FOREIGN_BEAM", "1") or "1"))
+            beam, tr_language = _foreign_beam, language   # tespit edilen dilde transkribe (yeniden-tespit YOK)
             detect_info = detect_info or {}
             detect_info["asr_model"] = f"large-v3 (yabanci ses: {language})"
         except Exception as exc:  # noqa: BLE001 - full yuklenemezse turbo'ya düş
