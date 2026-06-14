@@ -408,6 +408,22 @@ def xml_roles(video: Path) -> dict:
     return roles if (oy or yon or yap) else {}
 
 
+def xml_genre(video: Path) -> str:
+    """XML JT:CLASSIFICATION:EDIT_FMT_NAME → tür (DRAMA/EĞLENCE-SHOW/vb.) veya ''."""
+    try:
+        import xml.etree.ElementTree as ET
+        xp = video.with_suffix(".xml")
+        if not xp.exists():
+            return ""
+        root = ET.parse(str(xp)).getroot()
+        for p in root.iter("PROPERTY"):
+            if p.attrib.get("NAME") == "JT:CLASSIFICATION:EDIT_FMT_NAME":
+                return (p.text or "").strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
 def ffprobe_specs(video: Path):
     res = fps = dur = "—"
     dur_sec = 0.0
@@ -878,6 +894,7 @@ def main(argv=None) -> int:
     trt, title, prof_from_id, bolum = parse_filename(video)
     original = xml_original(video)              # XML <TITLE> → afiş orijinal ad (yabancı film)
     xml_role_map = xml_roles(video)             # XML rol listeleri → rol aklı ankrajı (yoksa {})
+    tur_xml = xml_genre(video)                  # XML JT:CLASSIFICATION:EDIT_FMT_NAME → tür
     film_year = trt.split("-")[0] if trt else ""  # TRT katalog yılı (zayıf ayraç; afişte kadro birincil)
     raw_profile = (args.profile or "").strip().lower()
     if raw_profile in ("", "film_dizi", "filmdizi", "film/dizi", "auto"):
@@ -918,7 +935,7 @@ def main(argv=None) -> int:
         "clip_id": clip_id, "media_id": media_id, "filename": video.name,
         "imported_at": now_iso(), "size_bytes": size, "source_path": str(source_path),
         "profile": profile, "trt_id": trt, "title": title, "bolum": bolum, "modules": {},
-        "folder_name": dir_name, "content_hash": "",
+        "folder_name": dir_name, "content_hash": "", "tur": tur_xml,
     })
     log_event("media_imported", summary=f"{video.name} pipeline'a alindi ({size // (1024*1024)} MB, profil={profile}).",
               module="pipeline", media_id=media_id, filename=video.name, detail={"clip_id": clip_id, "profile": profile, "trt_id": trt})
