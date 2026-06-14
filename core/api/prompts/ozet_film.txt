@@ -21,6 +21,25 @@ Uzunluğu sen değil, OLAY belirler. Sen olayı eksiksiz ve fazlasız anlat; uzu
 Tek paragraf, satır sonu yok.
 
 ═══════════════════════════════════════════════════════════
+CÜMLE ÜSLUBU — KISA VE NET (Türkçe okunurluk)
+═══════════════════════════════════════════════════════════
+Her cümle TEK fikir taşır. KISA, düz, AKAN cümleler yaz. Uzun iç-içe ("10 km") cümle YASAK.
+HER cümle ≤ 14 kelime. Cümlede en fazla BİR virgül. Bir olay halkasını tek dev cümleye sıkıştırma.
+
+EN KRİTİK KURAL — KARAKTERİ SIFAT-FİİLLE TANITMA:
+Bir karakteri "-en/-an/-dığı" sıfat-fiiliyle tanıtıp araya olay SIKIŞTIRMA. Önce KİM olduğunu
+düz ve kısa söyle (özne + yüklem), olayı AYRI cümlede ver. Özneden önce olay yığma.
+
+✗ YANLIŞ ("terk edilen ... JADE" — özne sıfat-fiil zinciriyle gömülü):
+  "Eski eşi Nick tarafından terk edilen moda tasarımcısı JADE, ortak mülkleri yüzünden eski eşi
+   Maria ile aynı evde yaşamak zorunda kalır."
+✓ DOĞRU (düz özne-yüklem, kısa cümleler):
+  "JADE başarılı bir moda tasarımcısıdır. Kocası Nick onu terk eder. Nick evi iki eski eşine
+   birden bırakır. JADE, ilk eş Maria ile aynı evi paylaşmak zorunda kalır."
+
+Tek paragraf kuralı bozulmaz: cümleler kısa ama metin yine TEK paragraf, satır sonu yok.
+
+═══════════════════════════════════════════════════════════
 NE YAZACAKSIN — sabit cümle sayısı YOK
 ═══════════════════════════════════════════════════════════
 Şu dördü İÇERİK olarak kapsanır (cümle değil). Birleştir, kısalt; bir film bunlardan birini
