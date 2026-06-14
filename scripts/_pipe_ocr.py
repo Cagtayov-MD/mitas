@@ -741,14 +741,19 @@ def _run_paddle_sidecar(frames: list[Path], out: Path) -> None:
         for fp in sample:
             try:
                 result = paddle.predict(str(fp))
-                for rec in ((result or {}).get("rec_texts") or []):
-                    rec = (rec or "").strip()
-                    if not rec:
-                        continue
-                    fk = fold(rec)
-                    if fk and fk not in seen:
-                        seen[fk] = rec
-                        lines.append(rec)
+                # BUG-FIX: predict() LISTE doner (sayfa basina dict), dict DEGIL.
+                # Eski kod result.get() cagiriyordu -> 'list' has no attribute 'get' -> her kare
+                # AttributeError -> sessiz yutuluyor -> paddle hep BOS uretiyordu (2026-06-14 dogrulandi).
+                for page in (result or []):
+                    recs = page.get("rec_texts") if hasattr(page, "get") else None
+                    for rec in (recs or []):
+                        rec = (rec or "").strip()
+                        if not rec:
+                            continue
+                        fk = fold(rec)
+                        if fk and fk not in seen:
+                            seen[fk] = rec
+                            lines.append(rec)
             except Exception:  # noqa: BLE001 — tek kare hatasi bloklamaz
                 pass
         paddle_path = out / "paddle_kunye.txt"
