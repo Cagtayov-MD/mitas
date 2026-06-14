@@ -1327,6 +1327,8 @@ def main(argv=None) -> int:
             if video_credits:
                 v4_cmd += ["--video-credits", json.dumps(video_credits, ensure_ascii=False)]
             v4_cmd += ["--profile", profile]               # Fix 3b: film/dizi → tek_film_kunye.py'e ilet
+            if tur_xml:
+                v4_cmd += ["--tur", tur_xml]
             if bolum:
                 v4_cmd += ["--bolum", bolum]               # Fix 3b: BİZİM EVİN HALLERİ vb. bölüm numarası
             rc_v4, out_v4, err_v4 = run(v4_cmd, timeout=V4_TIMEOUT)

@@ -176,6 +176,7 @@ def main():
     ap.add_argument("--video-credits", default=None, help="önceden hesaplanmış video-okuma JSON (verilirse 1. adım atlanır)")
     ap.add_argument("--profile", default="film", choices=["film", "dizi"])    # Fix 3a
     ap.add_argument("--bolum", default=None)                                   # Fix 3a
+    ap.add_argument("--tur", default=None, help="XML'den gelen tür (DRAMA vb.)")
     a = ap.parse_args()
 
     clip = a.clip
@@ -435,7 +436,7 @@ def main():
     if not yap and cc.get("yapimci"):
         yap = cc["yapimci"]
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
-    tur = cc.get("tur") or "—"
+    tur = cc.get("tur") or a.tur or "—"
     afis = _web_afis or cc.get("afis")   # QC2-web afişi ÖNCELİKLİ (KB'de afiş yok ama web bulduysa korunur)
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
