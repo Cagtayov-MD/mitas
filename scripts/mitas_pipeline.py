@@ -20,6 +20,17 @@ from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
 
+# Windows: alt-sürecin stdout/stderr codec'i ANSI (TR Windows'ta cp1254) olur. ensure_ascii=False
+# basılan son JSON'daki cp1254-DIŞI karakter (ör. isim-QC nedenindeki '→' U+2192, ya da yabancı
+# film özetindeki œ/ø) print()'i UnicodeEncodeError ile ÇÖKERTİR → film 'failed' görünür (künye
+# KONTROL'e düşmüş olsa bile flow-worker JSON satırını alamaz). utf-8'e sabitle: çökmeyi önler +
+# flow-worker'ın okuduğu mesajdaki � bozulmasını da giderir (parent zaten utf-8 decode ediyor).
+for _std in (sys.stdout, sys.stderr):
+    try:
+        _std.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:  # noqa: BLE001 — reconfigure yoksa (eski py)/pipe değilse sessiz geç
+        pass
+
 PROJECT_ROOT = Path(r"E:\MITAS")
 DB_ROOT = PROJECT_ROOT / "Database"
 OUT_ROOT = PROJECT_ROOT / "Mitas Output"
@@ -124,6 +135,82 @@ def last_json(stdout: str):
 
 def sanitize(s: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", (s or "").strip()).strip("._-") or "media"
+
+
+# Arşiv klasör/dosya adlandırma (DATABASE düzeni). sanitize()'tan AYRI: Türkçe harf/apostrof/
+# boşluğu KORUR, yalnız Windows-yasak karakter + kontrol karakterlerini çıkarır.
+_ILLEGAL_WIN = re.compile(r'[\\/:*?"<>|\x00-\x1f]+')
+_TRAIL = " . \t"
+
+
+def _ad_clean(s: str) -> str:
+    return re.sub(r"\s{2,}", " ", _ILLEGAL_WIN.sub(" ", (s or "").strip())).strip(_TRAIL)
+
+
+def folder_name(title: str, trt: str, fallback_stem: str = "") -> str:
+    """Arşiv klasör adı '<BAŞLIK> <TRT>' (ad önce). Türkçe/apostrof/boşluk KORUNUR; ASCII'ye EZMEZ."""
+    t = _ad_clean(title)
+    tr = (trt or "").strip()
+    if t and tr:
+        name = f"{t} {tr}"
+    elif t:
+        name = t
+    elif tr:
+        name = tr
+    else:
+        name = _ad_clean(fallback_stem) or "media"
+    return _ad_clean(name)[:180].strip(_TRAIL) or "media"
+
+
+def file_base(trt: str, title: str) -> str:
+    """Kök teslimat dosya tabanı '<TRT> <BAŞLIK>' (TRT önce — DATABASE dosya + export kuralı)."""
+    t = _ad_clean(title)
+    tr = (trt or "").strip()
+    name = f"{tr} {t}".strip() if (tr or t) else "media"
+    return _ad_clean(name)[:180].strip(_TRAIL) or "media"
+
+
+def md_to_readable(md: str) -> str:
+    """kunye_teslim.md → insan-okunur .txt (saf string dönüşümü; model çağrısı YOK). Bölüm sırası korunur."""
+    out = []
+    for raw in (md or "").splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            out.append("")
+        elif line.startswith("# "):                       # '# MİTAS • FİLM • BAŞLIK' → başlık
+            parts = [p.strip() for p in line[2:].split("•")]
+            title = parts[-1] if parts else line[2:].strip()
+            out += ["=" * 64, f"  {title}", "=" * 64]
+        elif line.startswith("## "):                       # '## Bölüm' → ayraçlı başlık
+            out += ["", f"--- {line[3:].strip()} ---"]
+        elif line.startswith("- "):                        # '- madde' → girintili madde
+            out.append(f"  {line[2:].strip()}")
+        else:
+            out.append(line)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out).strip() + "\n")
+
+
+def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict) -> None:
+    """Köke temiz teslimat yüzeyle: '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
+    Mevcut artefaktları KOPYALAR (yeniden üretmez). Çağıran try/except ile sarmalı — pipeline'ı bozmaz."""
+    base = file_base(trt, title)
+    pdf_out = clip_dir / "pdf"
+    pdf_src = Path((pdf_info or {}).get("pdf_path") or "")
+    if not (pdf_src and pdf_src.exists()):
+        for cand in ("kunye_fixed.pdf", "kunye.pdf"):
+            p = pdf_out / cand
+            if p.exists():
+                pdf_src = p
+                break
+    if pdf_src and pdf_src.exists():
+        shutil.copy2(pdf_src, clip_dir / f"{base}.pdf")
+    afis = pdf_out / "afis.jpg"
+    if afis.exists():
+        shutil.copy2(afis, clip_dir / "afis.jpg")
+    md = pdf_out / "kunye_teslim.md"
+    if md.exists():
+        (clip_dir / f"{base}.txt").write_text(
+            md_to_readable(md.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
 
 
 def hash_file(p: Path) -> str:
@@ -608,11 +695,14 @@ def main(argv=None) -> int:
         "belgesel" if profile == "belgesel" else
         "muzik_programi" if profile in ("muzik", "muzik_eglence") else "film")
     media_id = sanitize(video.stem)
-    clip_id = media_id
+    clip_id = media_id                            # internal ASCII id (event/master log/subprocess --media-id)
+    # Klasör adı DATABASE düzeninde temiz: '<BAŞLIK> <TRT>' (ad önce, Türkçe korunur). clip_id AYRI kalır.
+    clean = folder_name(title, trt, video.stem)
+    dir_name = clean
     n = 2
-    while (DB_ROOT / clip_id).exists():
-        clip_id = f"{media_id}_{n}"; n += 1
-    clip_dir = DB_ROOT / clip_id
+    while (DB_ROOT / dir_name).exists():
+        dir_name = f"{clean} {n}"; n += 1
+    clip_dir = DB_ROOT / dir_name
     (clip_dir / "source").mkdir(parents=True, exist_ok=True)
     (clip_dir / "frames").mkdir(parents=True, exist_ok=True)
     (clip_dir / "ocr").mkdir(parents=True, exist_ok=True)
@@ -632,7 +722,7 @@ def main(argv=None) -> int:
         "clip_id": clip_id, "media_id": media_id, "filename": video.name,
         "imported_at": now_iso(), "size_bytes": size, "source_path": str(source_path),
         "profile": profile, "trt_id": trt, "title": title, "bolum": bolum, "modules": {},
-        "content_hash": "",
+        "folder_name": dir_name, "content_hash": "",
     })
     log_event("media_imported", summary=f"{video.name} pipeline'a alindi ({size // (1024*1024)} MB, profil={profile}).",
               module="pipeline", media_id=media_id, filename=video.name, detail={"clip_id": clip_id, "profile": profile, "trt_id": trt})
@@ -647,12 +737,64 @@ def main(argv=None) -> int:
     t0 = time.perf_counter()
     try:
         res, fps_s, dur, dur_sec = ffprobe_specs(video)
+        # GİRİŞ penceresi (sabit default; MITAS_CREDIT_DETECT=1 ise detect_both'tan dinamik güncellenir)
         head = min(args.ocr_head, dur_sec or args.ocr_head)
-        nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps, start=0, length=head)
         nf_c = 0
         if dur_sec > (args.ocr_head + args.ocr_tail + 5):
+            # JENERİK-SINIR TESPİTİ (flag MITAS_CREDIT_DETECT, default KAPALI; Çağatay 2026-06-14):
+            # OpusCreditDetector detect_both() → GİRİŞ + ÇIKIŞ jeneriğini TEK cap geçişinde bulur.
+            # GİRİŞ no-regress: head asla args.ocr_head(180s) altına inmez, gerekirse uzar (max 720s).
+            # ÇIKIŞ no-regress: _cik_start = min(tespit−5s, eski-pencere) → asla eski pencerenin gerisine.
+            # Fail-safe: detector kapalı/patlar/bulamaz → sabit pencereler (head ve _cik_start değişmez).
+            _cik_start = max(0.0, dur_sec - args.ocr_tail)
+            _cik_len = args.ocr_tail
+            if os.environ.get("MITAS_CREDIT_DETECT", "").strip().lower() in ("1", "true", "on", "yes"):
+                try:
+                    _rcd, _outd, _errd = run([str(PY_OCR), str(HERE / "_credit_detect.py"),
+                                              "--video", str(video)], timeout=240)
+                    _both = last_json(_outd) or {}
+                    _opening = _both.get("opening") or {}
+                    _closing = _both.get("closing") or {}
+                    # --- GİRİŞ penceresi (head) ---
+                    if _opening.get("found") and _opening.get("end_sec") is not None:
+                        _new_head = max(args.ocr_head, float(_opening["end_sec"]) + 5.0)
+                        _new_head = min(_new_head, 720.0)
+                        head = min(_new_head, dur_sec or _new_head)
+                        log_event("credit_detect_opening",
+                                  summary=f"{video.name}: GİRİŞ jenerik {_opening.get('type')} "
+                                          f"@ {float(_opening.get('start_sec', 0)):.0f}s–{float(_opening['end_sec']):.0f}s "
+                                          f"(conf {_opening.get('confidence')}) → head={head:.0f}s",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "opening": _opening})
+                    else:
+                        log_event("credit_detect_opening",
+                                  summary=f"{video.name}: GİRİŞ jenerik bulunamadı — sabit head={head:.0f}s",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "opening": _opening})
+                    # --- ÇIKIŞ penceresi (_cik_start) ---
+                    if _closing.get("found") and _closing.get("start_sec") is not None:
+                        _ds = max(0.0, float(_closing["start_sec"]) - 5.0)   # 5s emniyet payı
+                        _cik_start = min(_ds, _cik_start)                    # asla eski-pencereden GEÇ başlama
+                        _cik_len = min(dur_sec - _cik_start, 600.0)          # tüm roll + cap
+                        log_event("credit_detect_closing",
+                                  summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
+                                          f"@ {float(_closing['start_sec']):.0f}s "
+                                          f"(conf {_closing.get('confidence')}) → pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "closing": _closing})
+                    else:
+                        log_event("credit_detect_closing",
+                                  summary=f"{video.name}: ÇIKIŞ jenerik bulunamadı — sabit pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "closing": _closing})
+                except Exception as _de:  # noqa: BLE001 — fail-safe: sabit pencereler
+                    log_event("credit_detect_skip", level="warn",
+                              summary=f"{video.name}: credit-detect atlandı ({_de}) — sabit pencereler",
+                              module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
             nf_c = extract_window(video, cikis_frames, prefix="c", fps=args.fps,
-                                  start=max(0, dur_sec - args.ocr_tail), length=args.ocr_tail)
+                                  start=_cik_start, length=_cik_len)
+        # GİRİŞ kareleri: head artık dinamik (MITAS_CREDIT_DETECT=1 ise) veya sabit (kapalıysa)
+        nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps, start=0, length=head)
         ok_audio, aerr = extract_audio(video, audio_path)
         timings["coz"] = round(time.perf_counter() - t0, 2)
         log_event("cozumleme_completed",
@@ -1145,6 +1287,12 @@ def main(argv=None) -> int:
     dest = dest_root / f"{base_name}{ext}"
     if src_file:
         shutil.copy2(src_file, dest)
+    # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
+    try:
+        surface_deliverables(clip_dir, trt, title, pdf_info)
+    except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
+        log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
+                  media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
     total = round(time.perf_counter() - t_all, 2)
     timings["toplam"] = total
 

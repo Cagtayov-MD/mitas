@@ -519,6 +519,93 @@ class OpusCreditDetector:
             "strategy": "opus_credit_detector",
         }
 
+    def detect_both(
+        self,
+        video_path: str | Path,
+        *,
+        open_search_min: float = 12.0,
+        close_search_min: float | None = None,
+        verbose: bool = False,
+    ) -> dict[str, Any]:
+        """GİRİŞ ve ÇIKIŞ jeneriğini tek VideoCapture geçişinde tespit eder.
+
+        Döndürür: {"opening": <region>, "closing": <region>}
+        Her region, detect() ile aynı dict yapısı (found, type, start_sec, end_sec,
+        scroll_speed, confidence, strategy [, reason]).
+        """
+        import cv2
+        import numpy as np
+
+        path = Path(video_path)
+        cap = cv2.VideoCapture(str(path))
+        if not cap.isOpened():
+            no = self._no_result("video_not_opened")
+            return {"opening": no, "closing": no}
+
+        fps = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+        duration = total / fps if total > 0 else 0.0
+
+        end_m = close_search_min if close_search_min is not None else self.search_end_min
+        close_search_start = max(0.0, duration - float(end_m) * 60.0)
+        open_search_end = min(float(open_search_min) * 60.0, duration)
+
+        # --- ÇIKIŞ (mevcut detect() mantığının aynısı) ---
+        closing_result = self._no_result("not_found")
+        try:
+            close_probes = self._broad_scan(cap, cv2, np, fps, close_search_start, duration)
+            close_seg = self._find_segment(close_probes, np, prefer_early=False)
+            if close_seg is None and close_search_start > 0:
+                close_probes = self._broad_scan(cap, cv2, np, fps, 0.0, duration)
+                close_seg = self._find_segment(close_probes, np, prefer_early=False)
+            if close_seg is not None:
+                raw_start, raw_end, ctype, speed, confidence = close_seg
+                start_c = self._refine(cap, cv2, np, fps, raw_start - self.probe_sec, raw_start + self.probe_sec, "start", ctype)
+                end_c = self._refine(cap, cv2, np, fps, raw_end - self.probe_sec, raw_end + self.probe_sec, "end", ctype)
+                if ctype == "scroll":
+                    measured = self._measure_speed(cap, cv2, np, fps, start_c, end_c)
+                    if abs(measured) > 0.3:
+                        speed = measured
+                closing_result = {
+                    "found": True,
+                    "type": ctype,
+                    "start_sec": round(float(start_c), 3),
+                    "end_sec": round(float(end_c), 3),
+                    "scroll_speed": round(float(speed), 3),
+                    "confidence": round(float(confidence), 3),
+                    "strategy": "opus_credit_detector",
+                }
+        except Exception as exc:  # noqa: BLE001
+            closing_result = self._no_result(f"closing_error:{type(exc).__name__}:{exc}")
+
+        # --- GİRİŞ (prefer_early=True — en erkek geçerli kredi-bloğu) ---
+        opening_result = self._no_result("not_found")
+        try:
+            open_probes = self._broad_scan(cap, cv2, np, fps, 0.0, open_search_end)
+            open_seg = self._find_segment(open_probes, np, prefer_early=True)
+            if open_seg is not None:
+                raw_start, raw_end, ctype, speed, confidence = open_seg
+                start_o = self._refine(cap, cv2, np, fps, raw_start - self.probe_sec, raw_start + self.probe_sec, "start", ctype)
+                end_o = self._refine(cap, cv2, np, fps, raw_end - self.probe_sec, raw_end + self.probe_sec, "end", ctype)
+                if ctype == "scroll":
+                    measured = self._measure_speed(cap, cv2, np, fps, start_o, end_o)
+                    if abs(measured) > 0.3:
+                        speed = measured
+                opening_result = {
+                    "found": True,
+                    "type": ctype,
+                    "start_sec": round(float(start_o), 3),
+                    "end_sec": round(float(end_o), 3),
+                    "scroll_speed": round(float(speed), 3),
+                    "confidence": round(float(confidence), 3),
+                    "strategy": "opus_credit_detector",
+                }
+        except Exception as exc:  # noqa: BLE001
+            opening_result = self._no_result(f"opening_error:{type(exc).__name__}:{exc}")
+
+        cap.release()
+        return {"opening": opening_result, "closing": closing_result}
+
     def _broad_scan(self, cap: Any, cv2: Any, np: Any, fps: float, start: float, end: float) -> list[OpusProbeResult]:
         probes = []
         t = float(start)
@@ -527,7 +614,7 @@ class OpusCreditDetector:
             t += self.probe_sec
         return probes
 
-    def _find_segment(self, probes: list[OpusProbeResult], np: Any) -> tuple[float, float, str, float, float] | None:
+    def _find_segment(self, probes: list[OpusProbeResult], np: Any, *, prefer_early: bool = False) -> tuple[float, float, str, float, float] | None:
         if not probes:
             return None
         flags = [probe.is_credit for probe in probes]
@@ -555,7 +642,11 @@ class OpusCreditDetector:
         def score(pair: tuple[int, int]) -> float:
             left, right = pair
             length_w = (right - left + 1) / max(1, len(probes))
-            pos_w = probes[right].t / max(1.0, last_t)
+            if prefer_early:
+                # Erkeni ödüllendir: daha küçük t → daha yüksek pos_w
+                pos_w = 1.0 - (probes[left].t / max(1.0, last_t))
+            else:
+                pos_w = probes[right].t / max(1.0, last_t)
             credit_probes = [probes[i] for i in range(left, right + 1) if probes[i].is_credit]
             quality = float(np.mean([max(probe.scroll_score, probe.static_score) for probe in credit_probes])) if credit_probes else 0.0
             return length_w * 0.20 + pos_w * 0.60 + quality * 0.20
