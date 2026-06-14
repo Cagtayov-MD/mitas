@@ -35,7 +35,7 @@ _VL_PROMPT = (
     "YÖNETMEN: <isim | yok>\nYAPIMCI: <Producer/Yapımcı yanındaki isim(ler) | yok>\n"
     "OYUNCULAR: <görünen başrol oyuncu adları, en fazla 8, virgülle | yok>"
 )
-VL_MODELS = ["qwen2.5vl:7b", "gemma4:26b"]  # #4 iki model (mutabakat)
+VL_MODELS = ["gemma4:26b"]  # tek model: gemma4 VL-fallback (qwen2.5vl kaldırıldı)
 
 
 def _fold(s):
@@ -92,8 +92,12 @@ def _tiebreak(q, g, all_cast_fold, kb):
     return [], "pes(tek-model, mutabakat yok)"
 
 
-def vl_fallback(clip, title, text_credits, profile="film"):
-    """Metnin boş yönetmenini/eksik cast'ini VL ile doldur. Her hata → text_credits AYNEN."""
+def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
+    """Metnin boş yönetmenini/eksik cast'ini gemma4 VL ile doldur. Her hata → text_credits AYNEN.
+
+    fill_cast=True (QC1-RED yolundan çağrılınca): cast<3 ise gemma4'ün cast'ini de ekle.
+    fill_cast=False (eski yol): MITAS_VL_CAST=1 env yoksa sadece yönetmen doldurulur.
+    """
     out = dict(text_credits or {})
     out.setdefault("yonetmen", [])
     out.setdefault("yapimci", [])
@@ -108,22 +112,22 @@ def vl_fallback(clip, title, text_credits, profile="film"):
             out["vl"] = "kare-yok"
             return out
         kb = cv.KB()
-        q, qc = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
-        g, gc = _vl_one(cv, ctr, giris, cikis, VL_MODELS[1], kb)
+        yon, vl_cast = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
         tcast = out.get("cast") or []
-        all_cast_fold = {_fold(x) for x in (tcast + qc + gc)}
-        # YÖNETMEN: yalnız BOŞSA doldur (metni EZME)
+        all_cast_fold = {_fold(x) for x in (tcast + vl_cast)}
+        # YÖNETMEN: yalnız BOŞSA doldur (metni EZME), cross-cast filtresi
         if not out.get("yonetmen"):
-            vlyon, how = _tiebreak(q, g, all_cast_fold, kb)
-            if vlyon:
-                out["yonetmen"] = ctr._only_persons(vlyon)
-                out["vl_yon_kaynak"] = how
-        # CAST-supplement: VARSAYILAN KAPALI (2026-06-09 ölçüm: VL cast HALÜSİNE — brad pitt/julia roberts
-        # uyduruyor, temp=0'da bile). VL artık YÖNETMEN-ONLY; cast = OCR otorite + KB (QC2 tamamlar).
-        # Geri-almak için MITAS_VL_CAST=1 (önerilmez). KESİN KURAL + dedup yine uygulanır.
-        if os.environ.get("MITAS_VL_CAST", "0").strip().lower() in ("1", "true", "on", "yes") and len(tcast) < 3:
+            yon_clean = [y for y in yon if _fold(y) not in all_cast_fold]
+            yon_persons = ctr._only_persons(yon_clean)
+            if yon_persons:
+                out["yonetmen"] = yon_persons
+                out["vl_yon_kaynak"] = "gemma4"
+        # CAST-supplement: fill_cast=True (QC1-RED) veya MITAS_VL_CAST=1 env.
+        # QC1-RED yolunda metin-OCR cast<3 zaten doğrulandı → gemma4 cast dene.
+        _fill = fill_cast or os.environ.get("MITAS_VL_CAST", "0").strip().lower() in ("1", "true", "on", "yes")
+        if _fill and len(tcast) < 3:
             add = []
-            for nm in qc + gc:
+            for nm in vl_cast:
                 if not any(_fold(nm) == _fold(x) for x in tcast + add):
                     add.append(nm)
             if add:
@@ -142,12 +146,13 @@ def main():
     ap.add_argument("--title", default="")
     ap.add_argument("--profile", default="film")
     ap.add_argument("--text-credits", default="{}", help="metin künye-okuma JSON (qwen3 sonucu)")
+    ap.add_argument("--fill-cast", action="store_true", help="QC1-RED yolu: cast<3 ise gemma4 cast'ini de ekle")
     a = ap.parse_args()
     try:
         tc = json.loads(a.text_credits)
     except Exception:
         tc = {}
-    res = vl_fallback(a.clip, a.title, tc, a.profile)
+    res = vl_fallback(a.clip, a.title, tc, a.profile, fill_cast=a.fill_cast)
     print(json.dumps(res, ensure_ascii=False))
 
 

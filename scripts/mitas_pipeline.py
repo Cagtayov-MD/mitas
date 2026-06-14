@@ -976,14 +976,16 @@ def main(argv=None) -> int:
             j = last_json(out) or {}
             ocr_bucket = j.get("bucket", "HATA")
             ocr_lines = int(j.get("kunye_line_count") or 0)
+            paddle_lines = int(j.get("paddle_line_count") or 0)
             timings["ocr"] = round(time.perf_counter() - t_ocr, 2)
             st = j.get("status", "failed")
             update_clip_module(clip_dir, "ocr", "done" if st == "done" else "partial", ocr_job)
+            _paddle_info = f" | Paddle {paddle_lines} satir" if paddle_lines else ""
             log_event("ocr_completed" if st == "done" else "ocr_partial",
                       level="info" if st == "done" else "warn",
-                      summary=f"{video.name}: OCR kunye {ocr_lines} satir, bucket={ocr_bucket}, motor={j.get('engine')} ({timings['ocr']} sn).",
+                      summary=f"{video.name}: OCR kunye {ocr_lines} satir{_paddle_info}, bucket={ocr_bucket}, motor={j.get('engine')} ({timings['ocr']} sn).",
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, duration_seconds=timings["ocr"],
-                      detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "engine": j.get("engine"), "stderr": err[-300:] if rc else None})
+                      detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "paddle_lines": paddle_lines, "engine": j.get("engine"), "stderr": err[-300:] if rc else None})
         except Exception as exc:  # noqa: BLE001
             timings["ocr"] = round(time.perf_counter() - (t_ocr or time.perf_counter()), 2)
             ocr_bucket = "HATA"
@@ -1068,19 +1070,23 @@ def main(argv=None) -> int:
             log_event("credit_text_failed", level="warn", summary=f"kunye-okuma(metin) blogu hata (atlandi): {exc}",
                       module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
 
-    # ===== BLOK VL-FALLBACK (additif, FAIL-SAFE) — Çağatay 2026-06-09 =====
-    # Metin künye-okuma (qwen3) YÖNETMEN boş VEYA cast<3 ise → jenerik KARELERİNDEN VL re-read
-    # (qwen2.5vl+gemma4; tiebreak: mutabakat→cross-cast→KB). Metnin BOŞ alanını DOLDURUR, EZMEZ.
-    # Hata / kare-yok / ollama-kapalı → video_credits AYNEN kalır (pipeline'ı ASLA bozmaz).
-    # Kill-switch: MITAS_NO_VL_FALLBACK=1. OneOCR/GLM zaten okuduysa buraya HİÇ gelmez.
+    # ===== BLOK VL-FALLBACK — QC1 kapılı, çift-kontrollü (2026-06-14) =====
+    # Akış: OneOCR → 35b Ayıklayıcı → QC1 → RED ise gemma4 VL → QC1 tekrar → hâlâ RED → _qc1_failed işareti
+    # QC1 kriteri: yönetmen BOŞSA veya cast < 3  →  RED.
+    # gemma4 VL (tek model): kare oku → yönetmen doldur + cast<3 ise cast'i de doldur (--fill-cast).
+    # Kill-switch: MITAS_NO_VL_FALLBACK=1. Her hata → video_credits AYNEN (FAIL-SAFE).
     _vl_off = os.environ.get("MITAS_NO_VL_FALLBACK", "").strip().lower() in ("1", "true", "yes", "on")
     if USE_VIDEO_CREDITS and not _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
         _vl_need = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
         if _vl_need:
+            log_event("credit_qc1_red",
+                      summary=f"{video.name}: QC1-RED — yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, cast={len(video_credits.get('cast') or [])}, gemma4 VL-fallback başlıyor.",
+                      module="ocr", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id, "yonetmen": video_credits.get("yonetmen"), "cast_count": len(video_credits.get("cast") or [])})
             t_vl = time.perf_counter()
             try:
                 vl_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_vl.py"), "--clip", str(clip_dir),
-                          "--title", title or "", "--profile", profile,
+                          "--title", title or "", "--profile", profile, "--fill-cast",
                           "--text-credits", json.dumps(video_credits, ensure_ascii=False)]
                 rc_vl, out_vl, err_vl = run(vl_cmd, timeout=VL_TIMEOUT)
                 _merged = last_json(out_vl)
@@ -1088,7 +1094,7 @@ def main(argv=None) -> int:
                     video_credits = _merged
                 timings["vl_fallback"] = round(time.perf_counter() - t_vl, 2)
                 log_event("credit_vl_fallback",
-                          summary=f"{video.name}: VL-fallback ({(_merged or {}).get('vl')}) yon={(_merged or {}).get('yonetmen')} ({timings.get('vl_fallback')} sn).",
+                          summary=f"{video.name}: gemma4 VL-fallback ({(_merged or {}).get('vl')}) yon={(_merged or {}).get('yonetmen')} cast={len((_merged or {}).get('cast') or [])} ({timings.get('vl_fallback')} sn).",
                           module="ocr", media_id=media_id, filename=video.name, duration_seconds=timings.get("vl_fallback"),
                           detail={"clip_id": clip_id, "vl": (_merged or {}).get("vl"),
                                   "yonetmen": (_merged or {}).get("yonetmen"),
@@ -1096,6 +1102,19 @@ def main(argv=None) -> int:
             except Exception as exc:  # noqa: BLE001 — FAIL-SAFE: pipeline'ı ASLA bozma
                 log_event("credit_vl_failed", level="warn", summary=f"VL-fallback hata (atlandi): {exc}",
                           module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+            # QC1 tekrar: VL sonrası durumu değerlendir
+            _vl_need_2 = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
+            if _vl_need_2:
+                video_credits["_qc1_failed"] = True
+                log_event("credit_qc1_failed", level="warn",
+                          summary=f"{video.name}: QC1 VL sonrası da RED — yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, cast={len(video_credits.get('cast') or [])} → KONTROL.",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "yonetmen": video_credits.get("yonetmen"), "cast_count": len(video_credits.get("cast") or [])})
+            else:
+                log_event("credit_qc1_passed",
+                          summary=f"{video.name}: QC1-PASS (VL sonrası) — yön={video_credits.get('yonetmen')} cast={len(video_credits.get('cast') or [])}.",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id})
 
     # ===== BLOK PDF / teslim =====
     pdf_out = clip_dir / "pdf"

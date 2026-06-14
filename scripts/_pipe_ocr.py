@@ -20,7 +20,7 @@ aynen yazilir, isim DROP edilmez (stitch KEEP-ALL). stdout'a tek satir JSON
 sonuc basar; sema (status/kunye_path/kunye_line_count/bucket/engine) DEGISMEZ.
 """
 from __future__ import annotations
-import os, sys, json, glob, time, unicodedata, argparse, importlib.util
+import os, sys, json, glob, time, unicodedata, argparse, importlib.util, threading
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -714,6 +714,50 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
     }
 
 
+def _run_paddle_sidecar(frames: list[Path], out: Path) -> None:
+    """PaddleOCR-GPU side-channel (paralel thread). FAIL-SAFE: hata = sessiz, paddle_kunye.txt yazilmaz.
+
+    OneOCR ile ayni anda kosar; sonuc `out/paddle_kunye.txt`'ye kaydedilir.
+    Zaman icinde OneOCR'in tokezdigi yerlerde karsilastirma icin kullanilir.
+    head+tail ornekleme: ilk yarim + ikinci yarim (reader500.py basson ile ayni).
+    """
+    try:
+        from paddleocr import PaddleOCR  # type: ignore
+        paddle = PaddleOCR(
+            lang="en", device="gpu",
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+        )
+        k = 16
+        n = len(frames)
+        if n <= k:
+            sample = list(frames)
+        else:
+            h = k // 2
+            sample = list(frames[:h]) + list(frames[max(h, n - k + h):])
+        seen: dict[str, str] = {}
+        lines: list[str] = []
+        for fp in sample:
+            try:
+                result = paddle.predict(str(fp))
+                for rec in ((result or {}).get("rec_texts") or []):
+                    rec = (rec or "").strip()
+                    if not rec:
+                        continue
+                    fk = fold(rec)
+                    if fk and fk not in seen:
+                        seen[fk] = rec
+                        lines.append(rec)
+            except Exception:  # noqa: BLE001 — tek kare hatasi bloklamaz
+                pass
+        paddle_path = out / "paddle_kunye.txt"
+        paddle_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        print(f"[paddle] {len(lines)} satir -> {paddle_path}", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 — PaddleOCR yok / GPU hatasi -> sessiz atla
+        print(f"[paddle] atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--frames", nargs="+", required=True, help="frame dizin(ler)i")
@@ -728,6 +772,14 @@ def main(argv=None) -> int:
     frames: list[Path] = []
     for d in args.frames:
         frames += sorted(Path(p) for p in glob.glob(str(Path(d) / "*.png")))
+
+    # PaddleOCR side-channel: OneOCR ile paralel kostur (daemon thread).
+    _paddle_thread: threading.Thread | None = None
+    if frames:
+        _paddle_thread = threading.Thread(
+            target=_run_paddle_sidecar, args=(frames, out), daemon=True, name="paddle-sidecar"
+        )
+        _paddle_thread.start()
 
     # Once scroll-aware pipeline100 zincirini dene; coker/None -> eski OneOCR.
     res = None
@@ -778,12 +830,25 @@ def main(argv=None) -> int:
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    # Paddle thread'ini bekle (en fazla 180s; daemon oldugu icin process bitse de olur).
+    if _paddle_thread is not None:
+        _paddle_thread.join(timeout=180)
+
+    paddle_lines = 0
+    _ppath = out / "paddle_kunye.txt"
+    if _ppath.exists():
+        try:
+            paddle_lines = sum(1 for l in _ppath.read_text(encoding="utf-8").splitlines() if l.strip())
+        except Exception:  # noqa: BLE001
+            pass
+
     status = "done" if (res["bucket"] not in ("MOTOR_YOK",) and kunye) else "partial"
     print(json.dumps({
         "status": status,
         "kunye_path": str(kunye_path),
         "summary_path": str(summary_path),
         "kunye_line_count": len(kunye),
+        "paddle_line_count": paddle_lines,
         "bucket": res["bucket"],
         "engine": res["engine"],
         "runtime_sec": summary["runtime_sec"],
