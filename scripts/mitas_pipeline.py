@@ -642,14 +642,40 @@ def _ozet_anthropic(system_content: str, user_msg: str) -> str | None:
 
 
 def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
-    """Gemini (Google) ile özet. _gemini istemcisi/anahtar yoksa None."""
+    """Gemini (Google) ile özet. _gemini istemcisi/anahtar yoksa None.
+
+    Gemma/Gemini modelleri zaman zaman yanıt öncesinde zincir-düşünce (taslak/analiz)
+    üretir. Gerçek özet her zaman SON paragraftır — önceki her şeyi at.
+    """
     if _gemini is None:
         return None
-    return _gemini.gemini_text(
+    raw = _gemini.gemini_text(
         system=system_content, prompt=user_msg,
-        model=os.environ.get("MITAS_GEMINI_MODEL", "gemini-3.5-flash"),
+        model=os.environ.get("MITAS_GEMINI_MODEL", "gemma-4-31b-it"),
         temperature=0.2, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
     )
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    # Zincir-düşünce temizleyici: gerçek özet her zaman sonda gelir.
+    # 1) \n\n bloklarından markdown-ağır olanları at, son prose bloğu al
+    blocks = [b.strip() for b in raw.split("\n\n") if b.strip()]
+    def _md_heavy(b: str) -> bool:
+        lines = b.splitlines()
+        md = sum(1 for l in lines if l.strip().startswith(("*", "#", "-", "•", "`", ">")))
+        return bool(lines) and md > len(lines) // 2
+    prose = [b for b in blocks if not _md_heavy(b)] or blocks
+    last = prose[-1]
+    # 2) Son blok içindeki markdown satırlarını da at
+    clean = [l.strip() for l in last.splitlines()
+             if l.strip() and not l.strip().startswith(("*", "#", "-", "•", "`", ">"))]
+    text = " ".join(clean) if clean else last
+    # 3) Çift kopya tespiti: Gemma bazen özeti ardarda yapıştırır (Gemma artefaktı)
+    head = text[:25]
+    if head and len(text) > 80:
+        second = text.find(head, len(text) // 4)
+        if second > len(text) // 4:
+            text = text[:second].rstrip(" .")  + "."
+    return text.strip() or None
 
 
 def _ozet_deepseek(system_content: str, user_msg: str) -> str | None:

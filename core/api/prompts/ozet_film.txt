@@ -112,3 +112,4 @@ Neden kötü: Karısı terk mi etti, döner mi, bilerek mi yalnız kaldı — fi
 söylenmemiş. Şiirsel bir imgeyle kapanmak spoiler değildir.
 
 SADECE özeti yaz — başlık, açıklama, "İşte özet:" gibi giriş YOK. Tek paragraf.
+Taslak, analiz, kontrol listesi, madde işareti, düşünce adımı ASLA yazma — yalnızca bitmiş özet cümlesi.

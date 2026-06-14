@@ -8,13 +8,13 @@ Kullanım:
     from _gemini import gemini_text
     txt = gemini_text(system="...", prompt="...", model="gemini-3.5-flash", max_tokens=1500)
 
-Model: MITAS_GEMINI_MODEL (default "gemini-3.5-flash"). A/B jürisi (2026-06-09) birincil seçti:
-4/4 filmde en tutarlı DOĞRU final + ucuz + 1M bağlam.
+Model: MITAS_GEMINI_MODEL (default "gemma-4-31b-it"). 1500 RPD / unlimited TPM (ücretsiz);
+gemini-3.5-flash 20 RPD sınırını sürekli aşıyordu → Gemma 4 31B'ye geçildi (2026-06-14).
 Endpoint: POST {base}/v1beta/models/{model}:generateContent?key=...
 
 Env:
     MITAS_GEMINI / GEMINI_API_KEY / GOOGLE_API_KEY  — API anahtarı (zorunlu; yoksa None)
-    MITAS_GEMINI_MODEL    — model (default gemini-3.5-flash)
+    MITAS_GEMINI_MODEL    — model (default gemma-4-31b-it)
     MITAS_GEMINI_BASE     — base URL (default https://generativelanguage.googleapis.com)
     MITAS_GEMINI_TIMEOUT  — HTTP timeout sn (default 120)
 
@@ -80,7 +80,7 @@ def gemini_text(
     key = _key()
     if not key:
         return None
-    model = model or os.environ.get("MITAS_GEMINI_MODEL", "gemini-3.5-flash")
+    model = model or os.environ.get("MITAS_GEMINI_MODEL", "gemma-4-31b-it")
     base = os.environ.get("MITAS_GEMINI_BASE", "https://generativelanguage.googleapis.com").rstrip("/")
     url = f"{base}/v1beta/models/{model}:generateContent?key={key}"
     _timeout = timeout if timeout is not None else int(os.environ.get("MITAS_GEMINI_TIMEOUT", "120"))
