@@ -645,7 +645,9 @@ def _flow_queue_worker_loop() -> None:
                     continue
 
                 _flow_worker_current = target
-                _flow_update_item(target["id"], status="running", message="İşleniyor")
+                # clipId = pipeline'in system_events'e yazdigi media_id (AYNI sanitize). UI bu id ile
+                # /api/events?media_id=<clipId> sorgulayip o filmin canli adim-logunu satir altinda gosterir.
+                _flow_update_item(target["id"], status="running", message="İşleniyor", clipId=clip_id)
 
                 profile: str = target.get("profile") or "film"
                 pipeline_profile: str = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")

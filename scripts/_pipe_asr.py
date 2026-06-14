@@ -18,6 +18,36 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
 
+# --- Canlı log: system_events.jsonl'e tek-satir olay yaz (UI per-film adim-logu icin). ---
+# mitas_pipeline.log_event ile AYNI format/dosya; ASR uzun transkripsiyon boyunca "donuk" gorunmesin
+# diye periyodik ilerleme basar. observability'yi import ETME (agir dep, ayri venv) — dogrudan append.
+_EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
+
+
+def _fmt_hms(sec) -> str:
+    sec = int(max(0, sec or 0))
+    return f"{sec // 3600:02d}:{(sec % 3600) // 60:02d}:{sec % 60:02d}"
+
+
+def _emit_event(kind: str, summary: str, *, level: str = "info", media_id=None, detail=None) -> None:
+    """system_events.jsonl'e canli-log olayi yaz. Hata ASR'yi ASLA bozmaz (best-effort)."""
+    try:
+        from datetime import datetime, timezone
+        from uuid import uuid4
+        ev = {"event_id": f"evt-{uuid4().hex[:12]}",
+              "ts": datetime.now(timezone.utc).isoformat(),
+              "kind": kind, "level": level if level in ("info", "warn", "error") else "info",
+              "summary": summary, "module": "asr"}
+        if media_id:
+            ev["media_id"] = media_id
+        if detail:
+            ev["detail"] = detail
+        _EVENTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _EVENTS_PATH.open("a", encoding="utf-8") as h:
+            h.write(json.dumps(ev, ensure_ascii=False) + "\n")
+    except Exception:  # noqa: BLE001 — log akisi ASR'yi bozmasin
+        pass
+
 
 def _extract_clip(src: Path, dst: Path, max_seconds: float) -> Path:
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -131,6 +161,13 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
     )
     if not tr_language:                          # full-v3 oto-tespit ettiyse GERÇEK dili al (result/chlang için)
         language = getattr(info, "language", None) or language
+    # --- canli log: transkripsiyon ilerlemesi (en uzun asama; UI'da "donuk" gorunmesin) ---
+    _mid = getattr(args, "media_id", None)
+    _audio_dur = float(getattr(info, "duration", 0.0) or 0.0)
+    _emit_event("asr_progress",
+                f"ASR transkripsiyon basladi (ses {_fmt_hms(_audio_dur)}, dil={tr_language or language or 'tr'}).",
+                media_id=_mid, detail={"percent": 0, "audio_seconds": round(_audio_dur, 1)})
+    _last_emit = time.perf_counter()
     lines, plain, n = [], [], 0
     for s in segs:
         n += 1
@@ -138,6 +175,14 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
         txt = s.text.strip()
         lines.append(f"[{hh:02d}:{mm:02d}:{ss:02d}] {txt}")
         plain.append(txt)
+        # ~15 sn'de bir ilerleme: yuzde = islenen-ses / toplam-ses (faster-whisper segment-akisli)
+        _now = time.perf_counter()
+        if _now - _last_emit >= 15.0:
+            _last_emit = _now
+            _pct = int(min(99, (float(s.end) / _audio_dur) * 100)) if _audio_dur > 0 else 0
+            _emit_event("asr_progress",
+                        f"ASR transkripsiyon: %{_pct} ({_fmt_hms(s.end)} / {_fmt_hms(_audio_dur)}, {n} segment).",
+                        media_id=_mid, detail={"percent": _pct, "segments": n})
     tscr = out / "transcript.txt"
     tscr.write_text("\n".join(lines) + "\n", encoding="utf-8")
     clean = "\n".join(plain)

@@ -1,6 +1,8 @@
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Clock3,
   FileVideo,
   FolderOpen,
@@ -50,6 +52,7 @@ interface FlowQueueItem {
   job?: AsrJob;
   message?: string;
   uploading?: boolean;
+  clipId?: string;  // sunucu worker'in pipeline media_id'si — canli adim-logu (/api/events?media_id) icin
 }
 
 export interface FlowQueuedMediaRequest {
@@ -195,13 +198,13 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       }
       if (qr.ok) {
         const q = await qr.json();
-        const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string }> = Array.isArray(q?.items) ? q.items : [];
+        const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string; clipId?: string }> = Array.isArray(q?.items) ? q.items : [];
         if (serverItems.length) {
           const byId = new Map(serverItems.map((s) => [s.id, s] as const));
           const next = itemsRef.current.map((it) => {
             if (it.uploading) return it;  // aktif yükleme — yerel "Yükleniyor" durumunu sunucu durumuyla ezme
             const s = byId.get(it.id);
-            return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message } : it;
+            return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message, clipId: s.clipId ?? it.clipId } : it;
           });
           itemsRef.current = next;
           setItems(next);
@@ -848,6 +851,21 @@ function FlowQueueRow({
   const isOpenable = Boolean(item.job || item.file || item.storedMediaUrl || item.tedialItem);
   const detailLine = flowItemDetail(item, uploadPct);
   const sourceLabel = item.source === 'tedial' ? 'Tedial' : 'Yüklenen';
+  const isRunning = item.status === 'running';
+  const clipId = item.clipId || deriveClipId(item.name);  // sunucu yoksa dosya adından türet (pipeline sanitize ile aynı)
+  const [expanded, setExpanded] = useState(isRunning);
+  // Çalışmaya başlayınca adım-logunu kendiliğinden aç + bu koşunun başlangıç anını yakala (eski koşu olaylarını ele)
+  const runSinceRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (isRunning) {
+      setExpanded(true);
+      if (!runSinceRef.current) {
+        runSinceRef.current = new Date(Date.now() - 8000).toISOString();  // 8 sn pay: media_imported gibi ilk olayları da içine al
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning]);
+  const logActive = isRunning || item.status === 'waiting';
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -873,6 +891,19 @@ function FlowQueueRow({
               </Button>
             </div>
           </div>
+          {/* Canlı adım-logu: VİTOS gibi her aşama tek tek görünür (filme-bağlı /api/events?media_id). */}
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="mt-1 flex w-full items-center gap-1 rounded-sm px-0.5 py-0.5 text-[10px] text-foreground-muted transition-colors hover:text-foreground-strong"
+          >
+            {expanded ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
+            <span className="font-semibold">Adımlar</span>
+            {isRunning ? <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-info" /> : null}
+          </button>
+          {expanded ? (
+            <FlowItemLog clipId={clipId} active={logActive} since={runSinceRef.current} />
+          ) : null}
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="border-border-mitas bg-app-shell text-foreground-default">
@@ -1005,6 +1036,175 @@ function StatusIcon({ status }: { status: FlowItemStatus }) {
   if (status === 'stopped') return <AlertCircle className="h-3.5 w-3.5 text-foreground-muted" />;
   if (status === 'running') return <Loader2 className="h-3.5 w-3.5 animate-spin text-info" />;
   return <Clock3 className="h-3.5 w-3.5 text-warning" />;
+}
+
+// ---------------------------------------------------------------------------
+// Canlı adım-logu (per-film) — VİTOS tarzı: her pipeline aşaması tek tek, sıralı,
+// renkli, süreli. Pipeline zaten zengin olayları system_events.jsonl'e media_id ile
+// yazıyor; burada o filmin olaylarını /api/events?media_id ile canlı çekip gösteriyoruz.
+// ---------------------------------------------------------------------------
+
+type LogTone = 'info' | 'success' | 'warn' | 'error' | 'progress' | 'muted';
+
+const TONE_CLASS: Record<LogTone, string> = {
+  info: 'text-info',
+  success: 'text-success',
+  warn: 'text-warning',
+  error: 'text-danger',
+  progress: 'text-info',
+  muted: 'text-foreground-muted',
+};
+
+// olay türü → insan-okunur aşama etiketi + renk tonu (VİTOS'un [n/6] AŞAMA satırlarının karşılığı)
+const KIND_META: Record<string, { label: string; tone: LogTone }> = {
+  media_imported: { label: 'İçe alındı', tone: 'info' },
+  cozumleme_completed: { label: 'Çözümleme', tone: 'success' },
+  cozumleme_failed: { label: 'Çözümleme', tone: 'error' },
+  credit_detect_opening: { label: 'Jenerik (giriş)', tone: 'info' },
+  credit_detect_closing: { label: 'Jenerik (çıkış)', tone: 'info' },
+  credit_detect_skip: { label: 'Jenerik tespit', tone: 'warn' },
+  ocr_started: { label: 'OCR başladı', tone: 'info' },
+  ocr_completed: { label: 'OCR künye', tone: 'success' },
+  ocr_partial: { label: 'OCR künye', tone: 'warn' },
+  ocr_failed: { label: 'OCR künye', tone: 'error' },
+  asr_started: { label: 'ASR başladı', tone: 'info' },
+  asr_progress: { label: 'ASR ilerleme', tone: 'progress' },
+  asr_completed: { label: 'ASR bitti', tone: 'success' },
+  asr_partial: { label: 'ASR bitti', tone: 'warn' },
+  asr_failed: { label: 'ASR', tone: 'error' },
+  asr_skipped_kurtce: { label: 'ASR atlandı', tone: 'warn' },
+  credit_text_completed: { label: 'Künye metin', tone: 'success' },
+  credit_text_failed: { label: 'Künye metin', tone: 'warn' },
+  credit_vl_fallback: { label: 'VL yedek', tone: 'info' },
+  credit_vl_failed: { label: 'VL yedek', tone: 'warn' },
+  ozet_completed: { label: 'Özet', tone: 'success' },
+  ozet_internet: { label: 'Özet (internet)', tone: 'info' },
+  ozet_atlandi: { label: 'Özet atlandı', tone: 'muted' },
+  pdf_completed: { label: 'PDF', tone: 'success' },
+  pdf_partial: { label: 'PDF', tone: 'warn' },
+  pdf_failed: { label: 'PDF', tone: 'error' },
+  v4_finalize_completed: { label: 'Final (v4)', tone: 'success' },
+  v4_finalize_skipped: { label: 'Final (v4)', tone: 'muted' },
+  v4_finalize_failed: { label: 'Final (v4)', tone: 'warn' },
+  qwen_final_qc: { label: 'Son kontrol', tone: 'info' },
+  qwen_final_qc_skipped: { label: 'Son kontrol', tone: 'muted' },
+  routed_hazir: { label: '✓ HAZIR', tone: 'success' },
+  routed_kontrol: { label: '⚠ KONTROL', tone: 'warn' },
+  surface_failed: { label: 'Yüzeyleme', tone: 'warn' },
+  flow_item_done: { label: 'Tamamlandı', tone: 'success' },
+  flow_item_skipped: { label: 'Atlandı', tone: 'muted' },
+  flow_item_failed: { label: 'Başarısız', tone: 'error' },
+  flow_item_stopped: { label: 'Durduruldu', tone: 'warn' },
+};
+
+interface PipeEvent {
+  event_id?: string;
+  ts?: string;
+  kind?: string;
+  level?: string;
+  module?: string;
+  summary?: string;
+  duration_seconds?: number;
+  detail?: { percent?: number; [key: string]: unknown };
+}
+
+function kindMeta(kind: string, level: string): { label: string; tone: LogTone } {
+  const hit = KIND_META[kind];
+  if (hit) return hit;
+  const tone: LogTone = level === 'error' ? 'error' : level === 'warn' || level === 'warning' ? 'warn' : 'muted';
+  const label = (kind || 'olay').replace(/_/g, ' ');
+  return { label: label.charAt(0).toUpperCase() + label.slice(1), tone };
+}
+
+function fmtClock(ts?: string): string {
+  if (!ts) return '--:--:--';
+  const d = new Date(ts);
+  return Number.isNaN(d.getTime()) ? '--:--:--' : d.toLocaleTimeString('tr-TR', { hour12: false });
+}
+
+// "AHLAT.mp4: OCR kunye 187 satir" → "OCR kunye 187 satir" (per-film logda dosya adı tekrarı gereksiz)
+function cleanSummary(summary?: string): string {
+  if (!summary) return '';
+  return summary.replace(/^.*?\.(mp4|mkv|mov|avi|mxf|m4v|webm)\s*(?::|için|icin)\s*/i, '');
+}
+
+// pipeline media_id = sanitize(video.stem); dosya adından aynı kuralla türet (sunucu clipId yoksa yedek)
+function deriveClipId(name: string): string {
+  const stem = (name || '').replace(/\.[^./\\]+$/, '');
+  return stem.replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[._-]+|[._-]+$/g, '');
+}
+
+function FlowItemLog({ clipId, active, since }: { clipId: string; active: boolean; since?: string }) {
+  const [events, setEvents] = useState<PipeEvent[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const stickRef = useRef(true);  // kullanıcı en alttaysa yeni olayda otomatik kaydır
+
+  useEffect(() => {
+    if (!clipId) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const params = new URLSearchParams({ media_id: clipId, limit: '150' });
+        if (since) params.set('since', since);
+        const r = await fetch(`/api/events?${params.toString()}`, { cache: 'no-store' });
+        if (!r.ok) { if (!cancelled) setErr(`HTTP ${r.status}`); return; }
+        const d = await r.json();
+        if (cancelled) return;
+        const evs: PipeEvent[] = Array.isArray(d.events) ? d.events : [];
+        evs.reverse();  // API newest-first → kronolojik (eski→yeni, akış gibi)
+        setEvents(evs);
+        setErr(null);
+      } catch {
+        if (!cancelled) setErr('bağlantı');
+      }
+    };
+    void poll();
+    const id = window.setInterval(poll, active ? 1500 : 6000);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [clipId, active, since]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
+  }, [events]);
+
+  if (!clipId) {
+    return <div className="mt-1 rounded-sm border border-border-subtle bg-app-shell/70 px-2 py-1.5 text-[10px] text-foreground-muted">Bu öğe için adım-logu yok.</div>;
+  }
+
+  return (
+    <div
+      ref={scrollRef}
+      onScroll={(event) => {
+        const el = event.currentTarget;
+        stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+      }}
+      className="mt-1 max-h-48 overflow-y-auto rounded-sm border border-border-subtle bg-app-shell/70 p-1.5 font-mono text-[10px] leading-4"
+    >
+      {events.length === 0 ? (
+        <div className="px-1 py-1 text-foreground-muted">{active ? 'Adımlar bekleniyor…' : err ? `log: ${err}` : 'Kayıtlı adım yok.'}</div>
+      ) : (
+        events.map((e, i) => {
+          const m = kindMeta(e.kind || '', e.level || 'info');
+          const pct = e.detail && typeof e.detail.percent === 'number' ? e.detail.percent : undefined;
+          return (
+            <div key={e.event_id || `${i}-${e.ts || ''}`} className="flex items-start gap-1.5 px-0.5 py-0.5">
+              <span className="shrink-0 tabular-nums text-foreground-disabled">{fmtClock(e.ts)}</span>
+              <span className={`shrink-0 ${TONE_CLASS[m.tone]}`}>●</span>
+              <span className={`w-[88px] shrink-0 truncate font-semibold ${TONE_CLASS[m.tone]}`} title={m.label}>{m.label}</span>
+              <span className="min-w-0 flex-1 break-words text-foreground-default">{cleanSummary(e.summary)}</span>
+              {typeof pct === 'number' ? (
+                <span className="shrink-0 tabular-nums text-info">%{pct}</span>
+              ) : typeof e.duration_seconds === 'number' ? (
+                <span className="shrink-0 tabular-nums text-foreground-disabled">{e.duration_seconds.toFixed(1)}s</span>
+              ) : null}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
 }
 
 function TedialSearchIndicator({ state }: { state: 'idle' | 'searching' | 'found' | 'missing' | 'error' }) {
