@@ -909,47 +909,79 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     return None
 
 
-def _fetch_internet_ozet(*, title="", original="", year="", duration=""):
+def _ozet_name_tokens(s):
+    """İsmi aksan-bağımsız ≥3-harf token kümesine çevir (soyad-eşleşme için)."""
+    import unicodedata
+    a = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().upper()
+    return {t for t in re.split(r"[^A-Z]+", a) if len(t) >= 3}
+
+
+def _ozet_identity_matches(tmdb_dir, tmdb_cast, verify_director, verify_cast):
+    """TMDB sonucunun kimliği, OCR'ın okuduğuyla örtüşüyor mu? (same-title tuzağı kapısı)
+      • yönetmen: OCR-yön ile TMDB-yön ≥1 ortak ≥3-harf token (soyad) → EŞLEŞTİ
+      • ya da cast: OCR-cast ile TMDB-cast ≥2 ortak isim → EŞLEŞTİ
+    Doğrulanamıyorsa False → özet KULLANILMAZ (yanlış film plotunu basmaktansa placeholder)."""
+    vd = [d for d in (verify_director or []) if d]
+    vc = [c for c in (verify_cast or []) if c]
+    # yönetmen eşleşmesi (en güçlü sinyal)
+    for d in vd:
+        dt = _ozet_name_tokens(d)
+        for td in (tmdb_dir or []):
+            if dt and (dt & _ozet_name_tokens(td)):
+                return True
+    # cast örtüşmesi (≥2 isim soyad-token paylaşıyor)
+    hits = 0
+    for c in vc:
+        ct = _ozet_name_tokens(c)
+        if ct and any(ct & _ozet_name_tokens(tc) for tc in (tmdb_cast or [])):
+            hits += 1
+    return hits >= 2
+
+
+def _fetch_internet_ozet(*, title="", original="", year="", duration="", verify_director=None, verify_cast=None):
     """Kürtçe/desteklenmeyen-dil filmi: ASR çeviremez → film kimliğinden (TMDB) internet plot çek,
     BİZİM özet promptumuzla (ozet_film.txt) özetle. Bulunamazsa None → çağıran dürüst placeholder'a düşer.
-    (Çağatay direktifi: Kürtçe çıkarsa ASR uğraşmasın, özeti internetten bizim promptla çek.)"""
+    SAME-TITLE KAPISI (2026-06-15 Çağatay): TMDB sonucunun yönetmeni/oyuncusu OCR'ın okuduğuyla
+    DOĞRULANMADIKÇA plot KULLANILMAZ — "Beyaz Balon" arayıp ünlü Panahi 1995'i kapmasın (BEYAZ BALON
+    Ghasemi 2021). Doğrulayacak OCR-kimlik yoksa → None (placeholder → KONTROL). 'Bulamadım > uydur'."""
     key = os.environ.get("MITAS_TMDB")
     if not key:
         return None
+    if not (verify_director or verify_cast):
+        return None                       # doğrulayacak OCR-kimlik yok → güvenli reddet (uydurma yok)
     import urllib.parse
     import urllib.request
 
-    def _overview(q, kind, lang):
+    def _get(path, params):
         try:
-            params = {"api_key": key, "query": q, "language": lang}
-            if year and kind == "movie":
-                params["year"] = year
-            url = f"https://api.themoviedb.org/3/search/{kind}?" + urllib.parse.urlencode(params)
+            url = f"https://api.themoviedb.org/3/{path}?" + urllib.parse.urlencode({"api_key": key, **params})
             with urllib.request.urlopen(url, timeout=15) as r:
-                data = json.loads(r.read().decode("utf-8"))
-            for res in (data.get("results") or [])[:1]:
-                ov = (res.get("overview") or "").strip()
-                if ov and len(ov) > 60:
-                    return ov
+                return json.loads(r.read().decode("utf-8"))
         except Exception:  # noqa: BLE001
             return None
-        return None
 
-    overview = None
+    def _credits_match(kind, mid):
+        cr = _get(f"{kind}/{mid}/credits", {})
+        if not cr:
+            return False
+        tmdb_dir = [c.get("name") for c in (cr.get("crew") or []) if c.get("job") == "Director"]
+        tmdb_cast = [c.get("name") for c in (cr.get("cast") or [])[:12]]
+        return _ozet_identity_matches(tmdb_dir, tmdb_cast, verify_director, verify_cast)
+
     for q in [x for x in (original, title) if x]:
         for lang in ("tr-TR", "en-US"):
             for kind in ("movie", "tv"):
-                overview = _overview(q, kind, lang)
-                if overview:
-                    break
-            if overview:
-                break
-        if overview:
-            break
-    if not overview:
-        return None
-    # BİZİM özet promptumuzla internet plotunu özetle (tutarlı v4 format)
-    return _generate_ozet(overview, title=title, duration=duration)
+                params = {"query": q, "language": lang}
+                if year and kind == "movie":
+                    params["year"] = year
+                data = _get(f"search/{kind}", params)
+                for res in (data or {}).get("results", [])[:3]:     # ilk 3 adayı kimlikle ele
+                    ov = (res.get("overview") or "").strip()
+                    if not ov or len(ov) <= 60 or not res.get("id"):
+                        continue
+                    if _credits_match(kind, res["id"]):              # OCR-kimlik DOĞRULANDI mı?
+                        return _generate_ozet(ov, title=title, duration=duration)
+    return None                                                     # doğrulanan aday yok → placeholder
 
 
 def main(argv=None) -> int:
@@ -1336,7 +1368,9 @@ def main(argv=None) -> int:
         if asr_info.get("language") == "ku":
             # Kürtçe-ailesi: whisper ÇEVİREMEZ (ASR atlandı) → özeti İNTERNETTEN çek (bizim prompt). Çağatay direktifi.
             # NOT: başlık eşleşmesi belirsizse yanlış film gelebilir — kadro-tabanlı kimlik ileride bağlanacak.
-            net_ozet = _fetch_internet_ozet(title=title, original=original, year=film_year, duration=dur)
+            net_ozet = _fetch_internet_ozet(title=title, original=original, year=film_year, duration=dur,
+                                            verify_director=(video_credits or {}).get("yonetmen") or [],
+                                            verify_cast=(video_credits or {}).get("cast") or [])
             if net_ozet:
                 ozet = net_ozet
                 log_event("ozet_internet",
