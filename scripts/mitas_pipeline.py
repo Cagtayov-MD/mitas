@@ -1303,6 +1303,27 @@ def main(argv=None) -> int:
                           module="ocr", media_id=media_id, filename=video.name,
                           detail={"clip_id": clip_id})
 
+    # ===== BLOK YÖNETMEN-DOĞRULAMA (credit_validate; flag MITAS_CREDIT_VALIDATE, fail-safe) =====
+    # 35B çıktısını mitas.duckdb (IMDb+Wikidata) + XML ile DOĞRULA → CELISKI/OKUNAMADI = KONTROL sinyali.
+    # ADDITIVE: yalnız 'reasons'a sinyal ekler (yönetmen/PDF AKIŞINI DEĞİŞTİRMEZ). Hata → atlanır (asla bozmaz).
+    cv_result = None
+    if os.environ.get("MITAS_CREDIT_VALIDATE", "").strip().lower() in ("1", "true", "on", "yes") \
+            and video_credits and profile in ("film", "dizi"):
+        try:
+            cv_cmd = [str(PY_OCR), str(HERE / "_pipe_credit_validate.py"),
+                      "--video-credits", json.dumps(video_credits, ensure_ascii=False),
+                      "--video", str(video), "--title", title or "", "--ocr", str(kunye_path),
+                      "--profile", profile]
+            _rc_cv, _out_cv, _err_cv = run(cv_cmd, timeout=180)
+            cv_result = last_json(_out_cv)
+            log_event("credit_validate",
+                      summary=f"{video.name}: yön-doğrulama={(cv_result or {}).get('yonetmen', {}).get('status')}",
+                      module="ocr", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id, "result": cv_result})
+        except Exception as exc:  # noqa: BLE001 — doğrulama pipeline'ı ASLA bozmaz
+            log_event("credit_validate_failed", level="warn", summary=f"yön-doğrulama atlandı: {exc}",
+                      module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+
     # ===== BLOK PDF / teslim =====
     pdf_out = clip_dir / "pdf"
     pdf_info = {}
@@ -1566,6 +1587,15 @@ def main(argv=None) -> int:
             reasons.append("qwen: Türkçe karakter bozuk")
         if qwen_qc.get("latin_disi_alfabe_var"):                # başka alfabe (Kiril/Yunan/Arap/CJK) PDF'e sızmamalı
             reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
+
+    # yönetmen doğrulama (credit_validate, flag-gated): kaynak-çelişkisi/okunamadı → KONTROL sinyali
+    if cv_result:
+        _cvd = cv_result.get("yonetmen") or {}
+        if _cvd.get("status") == "CELISKI":
+            _ad = ", ".join((_cvd.get("conflict_candidates") or [])[:3])
+            reasons.append(f"yönetmen doğrulama: kaynak-çelişkisi (aday: {_ad})" if _ad else "yönetmen doğrulama: kaynak-çelişkisi")
+        elif _cvd.get("status") == "OKUNAMADI":
+            reasons.append("yönetmen doğrulama: okunamadı (yeniden-okuma/insan)")
         # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt
         if not qwen_qc.get("afis_var"):
             qwen_uyari.append("qwen: afiş yok (deterministik poster_fetch garanti — uyarı)")
