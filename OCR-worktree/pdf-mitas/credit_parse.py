@@ -14,6 +14,7 @@ API:
 Not: tek profil 'Film/Dizi' — tip TRT 3. parselden otomatik (1→FİLM, 0→DİZİ).
 """
 from __future__ import annotations
+import os
 import re
 import unicodedata
 
@@ -200,13 +201,144 @@ def _dedup(xs):
     return o
 
 
-def parse_credits(lines, title: str = "", *, dizi: bool = False):
+# ───────────────────────────────────────────────────────────────────────────
+# FIX-1 (flag MITAS_CREDIT_PARSE_V2, default KAPALI): parse_credits ÇÖP-SERTLEŞTİRME.
+# Kök-neden (2026-06-15 forensic): _pipe_pdf BİRİNCİL parse_credits kullanıyor; bu mekanik
+# parser (a) "UN FILM DE <İSİM>" satırını etiket sayıp İSMİ DÜŞÜRÜYOR, (b) etiketten sonra
+# gelen oyuncu satırlarını cap=3'e dek role DOLDURUYOR (overreach), (c) disclaimer/garble
+# rol-etiketini (is_person harf-oranı geçer) role/cast'e SIZDIRIYOR. qwen (credit_text_read)
+# bu süzgeçlere ZATEN sahip; buraya YÜKSEK-İSABET kopyaları taşınır. FLAG-OFF = davranış AYNI.
+# İlke: yalnız ELE (uydurma yok), gerçek isim DÜŞMEZ (yüksek-isabet garble/junk/disclaimer).
+_V2_STOP = "\x00V2STOP\x00"   # ön-geçiş işareti: inline-kurtarılan isimden SONRA bleed'i durdurur
+
+# çok-kelime disclaimer/teknik-credit alt-dizeleri (fold'lu substring)
+_V2_DISCLAIMER_SUB = (
+    "tous droit", "droit reserve", "droits reserve", "all right", "right reserved",
+    "rights reserved", "copyright", "tutti i diritti", "todos los derecho", "alle rechte",
+    "with the participation", "avec la participation", "avec le soutien", "with the support",
+    "in association with", "en association", "with support of", "made with the",
+    "courtesy of", "developed with", "filmed with", "shot on", "filmed on", "color by",
+    "pellicule", "eastmancolor", "kodak", "dolby", "in collaboration",
+)
+# tek-token junk (rol/etiket/şirket/disclaimer parçası) — credit_text_read._JUNK_WORDS portu
+_V2_JUNK_TOK = {
+    "por", "del", "della", "apoyo", "subvencionada", "presenta", "presents", "presente",
+    "avec", "mit", "und", "von", "par", "fund", "fondo", "support", "courtesy", "arrangement",
+    "association", "produced", "directed", "production", "produccion", "pelicula",
+    "colaboracion", "gracias", "thanks", "tarafindan", "destek", "katki", "sunar",
+    "starring", "screenplay", "written", "based", "entertainment", "rights", "reserved",
+    "droits", "tous", "pellicule", "kodak", "eastmancolor",
+    "direktoru", "direktor", "menajerlik", "menajer", "ajans", "ajansi", "amiri",
+    "sefi", "sorumlusu", "operatoru", "koordinator", "kordinator", "muhendis", "teknisyen",
+    "supervisor", "coordinator", "mixer", "gaffer", "grip",
+    "assistee", "assiste", "province", "council", "councl", "regional",
+}
+_V2_ROLE_REF = ("DESIGNER", "DIRECTOR", "PRODUCER", "EDITOR", "OPERATOR", "CAMERAMAN",
+                "SUPERVISOR", "ASSISTANT", "COMPOSER", "PRESENTS", "MANAGER")
+_V2_VERB_SUFFIX = ("DIGI", "DUGU", "DIGINI", "ERKEN", "EREK", "MEKTE", "MAKTA",
+                   "TIGI", "TUGU", "MISTIR", "MUSTUR")
+# inline etiket-prefix → rol (fold'lu prefix). "<PREFIX> <İSİM>" satırında İSİM kurtarılır.
+_V2_INLINE_LABELS = (
+    ("directed by", "Yönetmen"), ("a film by", "Yönetmen"), ("an film by", "Yönetmen"),
+    ("un film de", "Yönetmen"), ("ein film von", "Yönetmen"), ("realise par", "Yönetmen"),
+    ("mise en scene", "Yönetmen"), ("dirigida por", "Yönetmen"), ("dirigido por", "Yönetmen"),
+    ("regia di", "Yönetmen"), ("un film di", "Yönetmen"), ("yoneten", "Yönetmen"),
+    ("produced by", "Yapımcı"), ("written by", "Senaryo"), ("screenplay by", "Senaryo"),
+)
+
+
+def _v2_on(v2):
+    if v2 is not None:
+        return bool(v2)
+    return os.environ.get("MITAS_CREDIT_PARSE_V2", "").strip().lower() in ("1", "true", "on", "yes")
+
+
+def _fold_lp(s: str) -> str:
+    """Uzunluk-koruyan fold (NFKD YOK) — inline split'te konum eşlemesi için."""
+    return (s or "").casefold().translate(_TR_FOLD)
+
+
+def _lev(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
+def _v2_garble_rolelabel(name: str) -> bool:
+    """Yüksek-isabet garble rol-etiketi: Türkçe fiil-eki veya rol-sözcüğüne fuzzy(≤2) yakın token.
+    Ör. 'FİRET AZTİSTANT DİRSETAR' → AZTISTANT~ASSISTANT (lev=2) → True. Gerçek isimde nadir."""
+    f = fold(name).upper()
+    for t in f.split():
+        if any(t.endswith(s) and len(t) > 5 for s in _V2_VERB_SUFFIX):
+            return True
+        if len(t) >= 6:
+            for r in _V2_ROLE_REF:
+                if 0 < _lev(t, r) <= 2:
+                    return True
+    return False
+
+
+def _v2_reject_name(name: str) -> bool:
+    """v2: disclaimer/junk-token/garble-rol-etiketi/şirket ise True (role/cast'tan düş).
+    GERÇEK 'İsim Soyisim' → False (düşmez). Yüksek-isabet — recall korunur."""
+    if any(ch in (name or "") for ch in '/\\|<>@&"'):   # isimde olmayan noktalama → kişi değil
+        return True
+    f = fold(name)
+    if not f:
+        return True
+    if any(sub in f for sub in _V2_DISCLAIMER_SUB):
+        return True
+    if any(t in _V2_JUNK_TOK for t in f.split()):
+        return True
+    if is_company(name):
+        return True
+    if _v2_garble_rolelabel(name):
+        return True
+    return False
+
+
+def _v2_split_inline(lines):
+    """v2 ön-geçiş: 'UN FILM DE NICOLAS VANIER' → ['UN FILM DE', 'NICOLAS VANIER', STOP].
+    İSİM kurtarılır + STOP işareti sonraki oyuncu-satırı bleed'ini durdurur (overreach freni)."""
+    out = []
+    for l in lines:
+        lf = _fold_lp(l).strip()
+        hit = None
+        for pref, _rol in _V2_INLINE_LABELS:
+            if lf.startswith(pref + " "):
+                rest = l[len(pref):].strip(" :.-")
+                if rest and is_person(rest) and not _v2_reject_name(rest):
+                    hit = (l[:len(pref)], rest)
+                break
+        if hit:
+            out.append(hit[0])     # etiket parçası (role_of yine eşler → cur=rol)
+            out.append(hit[1])     # kurtarılan isim
+            out.append(_V2_STOP)   # bleed-stop: takip eden cast satırları role dolmasın
+        else:
+            out.append(l)
+    return out
+
+
+def parse_credits(lines, title: str = "", *, dizi: bool = False, v2=None):
     """OCR künye satırları → (cast, crew). crew = [(rol, [isim,...])], §5.4 kanonik sıra.
 
     FİLM (dizi=False): cast ilk 8 · crew yalnız {Yapımcı, Yönetmen}.
     DİZİ (dizi=True):  cast tümü   · crew bulunan TÜM rol, kanonik sırayla (+ bilinmeyen roller sona).
     """
     title_f = fold(title)
+    v2 = _v2_on(v2)
+    if v2:
+        lines = _v2_split_inline(lines)   # "UN FILM DE X" → isim kurtar + bleed-stop
     has_cast_h = any(role_of(l) == "CAST" for l in lines)
     cast: list[str] = []
     roles: dict[str, list[str]] = {}
@@ -214,6 +346,9 @@ def parse_credits(lines, title: str = "", *, dizi: bool = False):
     seen_crew = False
     cap = 99 if dizi else 3
     for l in lines:
+        if v2 and l == _V2_STOP:       # inline-kurtarılan isimden sonra bleed'i durdur
+            cur = None
+            continue
         r = role_of(l)
         if r is not None:
             cur = r
@@ -262,6 +397,9 @@ def parse_credits(lines, title: str = "", *, dizi: bool = False):
             cast.append(l)
 
     cast = _dedup(cast)
+    if v2:   # FIX-1 post-filtre: disclaimer/junk/garble-rol-etiketi/şirket → role+cast'tan düş
+        cast = [c for c in cast if not _v2_reject_name(c)]
+        roles = {rol: [n for n in names if not _v2_reject_name(n)] for rol, names in roles.items()}
     # tek-kelime cast girisleri (karakter-adi/crew-etiketi/OCR-cop: "Asuman"/"Cutter"/":"/"DI") sizar;
     # COK-kelime gercek isim VARSA tek-kelimeleri ele. Olcum (57 kunye / 505 cast): 27 tek-kelimenin
     # TAMAMI karakter/etiket/cop, 0 gercek mononim oyuncu. HEPSI tek-kelime ise DOKUNMA (nadir; cast'i
