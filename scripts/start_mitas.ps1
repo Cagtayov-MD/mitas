@@ -21,6 +21,10 @@ Write-Host '== 1b) QC2 + perf defaultlari (User env onceliklidir; yoksa AKTIF va
 # QC2 = kunye temizleme/dogrulama (garble-kapisi + yonetmen KB-fill + web/kopru kimlik). Uretimde AKTIF.
 if (-not $env:MITAS_QC2)               { $env:MITAS_QC2 = '1';               Write-Host '   + MITAS_QC2=1 (default AKTIF)' }
 if (-not $env:MITAS_QC2_WEB)           { $env:MITAS_QC2_WEB = '1';           Write-Host '   + MITAS_QC2_WEB=1 (default AKTIF)' }
+# CREDIT_DETECT = jenerik GIRIS/CIKIS sinirini OpusCreditDetector ile dinamik bul (sabit 180/240s pencere
+# kadroyu kacirir: KARAYIP lead kadro 8116-8420s'de, sabit pencere 8419s+ yalnizca kuyrugu aliyordu).
+# No-regress: pencereyi yalnizca GENISLETIR (sabit tabanin altina inmez); CLIP footage'i zaten suzer. Uretimde AKTIF.
+if (-not $env:MITAS_CREDIT_DETECT)     { $env:MITAS_CREDIT_DETECT = '1';     Write-Host '   + MITAS_CREDIT_DETECT=1 (default AKTIF)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
 
