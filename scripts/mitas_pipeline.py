@@ -1058,6 +1058,8 @@ def main(argv=None) -> int:
     giris_frames = clip_dir / "frames" / "giris"
     cikis_frames = clip_dir / "frames" / "cikis"
     audio_path = clip_dir / "audio" / "audio16k.wav"
+    _detect_changed = False   # SONUÇ-TEMELLİ YEDEK: detect penceresi sabit-varsayılandan saptı mı?
+    dur_sec = 0.0
 
     # ===== BLOK ÇÖZ (ffmpeg: specs + native frame + ses) =====
     t0 = time.perf_counter()
@@ -1129,6 +1131,9 @@ def main(argv=None) -> int:
                     log_event("credit_detect_skip", level="warn",
                               summary=f"{video.name}: credit-detect atlandı ({_de}) — sabit pencereler",
                               module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+            # SONUÇ-TEMELLİ YEDEK bayrağı: detect pencereyi sabit-varsayılandan saptırdı mı?
+            _detect_changed = (abs(head - min(args.ocr_head, dur_sec or args.ocr_head)) > 0.5
+                               or abs(_cik_start - max(0.0, dur_sec - args.ocr_tail)) > 0.5)
             nf_c = extract_window(video, cikis_frames, prefix="c", fps=args.fps,
                                   start=_cik_start, length=_cik_len)
         # GİRİŞ kareleri: head artık dinamik (MITAS_CREDIT_DETECT=1 ise) veya sabit (kapalıysa)
@@ -1229,6 +1234,52 @@ def main(argv=None) -> int:
             log_event("ocr_failed", level="error", summary=f"OCR blogu hata: {exc}",
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, error=str(exc), detail={"clip_id": clip_id})
 
+    # ===== SONUÇ-TEMELLİ YEDEK (Çağatay 2026-06-15): detect-penceresi OCR'ı düşürdüyse re-OCR =====
+    # detect pencereyi SABİT-varsayılandan saptırdı VE OCR satırı şüpheli az (<eşik) → eski sabit
+    # pencerelerle (giriş 0–head + çıkış son-tail) YENİDEN çıkar+OCR; ÇOK-satırlı sonucu TUT.
+    # VL'den ÖNCE çalışır: 35B'ye İYİ METİN ver (oyuncu-hatalı VL'e hiç düşmesin). Güvene değil ÇIKAN
+    # sonuca bakar → yüksek-güvenli detect mis-fire'ını bile yakalar. FAIL-SAFE: hata → detect sonucu.
+    # ASR hâlâ paralel koşuyor (ayrı subprocess) → re-OCR onunla örtüşür, ek bekleme yok.
+    if (ocr_proc is not None and not args.no_ocr and _detect_changed
+            and dur_sec and dur_sec > (args.ocr_head + args.ocr_tail + 5)):
+        _MIN_OCR_LINES = int(os.environ.get("MITAS_OCR_MIN_LINES", "30") or 30)
+        if ocr_lines < _MIN_OCR_LINES:
+            try:
+                _fb_gir = clip_dir / "frames" / "giris_fb"
+                _fb_cik = clip_dir / "frames" / "cikis_fb"
+                _fb_head = min(args.ocr_head, dur_sec)
+                _fb_cs = max(0.0, dur_sec - args.ocr_tail)
+                extract_window(video, _fb_gir, prefix="g", fps=args.fps, start=0, length=_fb_head)
+                extract_window(video, _fb_cik, prefix="c", fps=args.fps, start=_fb_cs, length=args.ocr_tail)
+                _fb_dirs = [str(_fb_gir)]
+                if _fb_cik.exists() and any(_fb_cik.glob("*.png")):
+                    _fb_dirs.append(str(_fb_cik))
+                _fb_out = clip_dir / "ocr" / f"{ocr_job}-fb"
+                _rcfb, _ofb, _efb = run([str(PY_OCR), str(HERE / "_pipe_ocr.py"),
+                                         "--frames", *_fb_dirs, "--out", str(_fb_out),
+                                         "--profile", profile], timeout=OCR_TIMEOUT)
+                _jfb = last_json(_ofb) or {}
+                _fb_lines = int(_jfb.get("kunye_line_count") or 0)
+                if _fb_lines > ocr_lines:
+                    ocr_out = _fb_out
+                    kunye_path = ocr_out / "kunye.txt"
+                    ocr_bucket = _jfb.get("bucket", ocr_bucket)
+                    log_event("ocr_fallback_default", level="warn",
+                              summary=f"{video.name}: detect-OCR {ocr_lines} satır (<{_MIN_OCR_LINES}) → "
+                                      f"sabit-pencere re-OCR {_fb_lines} satır KULLANILDI (detect mis-fire yakalandı).",
+                              module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job,
+                              detail={"clip_id": clip_id, "detect_lines": ocr_lines, "fallback_lines": _fb_lines})
+                    ocr_lines = _fb_lines
+                else:
+                    log_event("ocr_fallback_default", level="info",
+                              summary=f"{video.name}: sabit-pencere re-OCR {_fb_lines} ≤ detect {ocr_lines} → detect sonucu korundu.",
+                              module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job,
+                              detail={"clip_id": clip_id, "detect_lines": ocr_lines, "fallback_lines": _fb_lines})
+            except Exception as _fbe:  # noqa: BLE001 — yedek pipeline'ı ASLA bozmaz
+                log_event("ocr_fallback_failed", level="warn",
+                          summary=f"{video.name}: sonuç-temelli yedek atlandı ({_fbe}) — detect sonucu korunur.",
+                          module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+
     # ASR sonucunu topla
     if asr_proc is not None:
         try:
@@ -1310,6 +1361,8 @@ def main(argv=None) -> int:
     if USE_VIDEO_CREDITS and not _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
         _vl_need = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
         if _vl_need:
+            _dir_before = list(video_credits.get("yonetmen") or [])   # VL-sertleştirme: VL-EKLEDİĞİ yönetmeni ayırt et
+            _cast_before = list(video_credits.get("cast") or [])
             log_event("credit_qc1_red",
                       summary=f"{video.name}: QC1-RED — yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, cast={len(video_credits.get('cast') or [])}, gemma4 VL-fallback başlıyor.",
                       module="ocr", media_id=media_id, filename=video.name,
@@ -1323,6 +1376,22 @@ def main(argv=None) -> int:
                 _merged = last_json(out_vl)
                 if _merged:
                     video_credits = _merged
+                # VL-SERTLEŞTİRME (Çağatay 2026-06-15): VL pikselden yönetmen "doldurduysa" ama o isim
+                # CAST'te de geçiyorsa → açılış-kartı BAŞROLÜ yönetmen sanılmış (BAŞKA BİR DÜNYA: VL
+                # 'Anthony Bajon'=oyuncu dedi). "okunamadı > yanlış" → o yönetmeni DÜŞÜR (boş bırak → KONTROL).
+                if _merged and not _dir_before and (_merged.get("yonetmen")):
+                    _nf = lambda s: " ".join(str(s or "").casefold().split())
+                    _cast_fold = {_nf(c) for c in ((_merged.get("cast") or []) + _cast_before)}
+                    _vl_dir = _merged.get("yonetmen") or []
+                    _keep = [d for d in _vl_dir if _nf(d) not in _cast_fold]
+                    if _keep != _vl_dir:
+                        _drop = [d for d in _vl_dir if _nf(d) in _cast_fold]
+                        video_credits["yonetmen"] = _keep
+                        log_event("credit_vl_director_dropped", level="warn",
+                                  summary=f"{video.name}: VL-yönetmen {_drop} CAST'te de var → açılış-kartı oyuncusu "
+                                          f"yönetmen sanıldı, DÜŞÜRÜLDÜ (okunamadı>yanlış).",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "dropped": _drop, "vl_cast": _merged.get("cast")})
                 timings["vl_fallback"] = round(time.perf_counter() - t_vl, 2)
                 log_event("credit_vl_fallback",
                           summary=f"{video.name}: gemma4 VL-fallback ({(_merged or {}).get('vl')}) yon={(_merged or {}).get('yonetmen')} cast={len((_merged or {}).get('cast') or [])} ({timings.get('vl_fallback')} sn).",
