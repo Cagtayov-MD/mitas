@@ -210,9 +210,13 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, t
     md = pdf_out / "kunye_teslim.md"
     if md.exists():
         md_text = md.read_text(encoding="utf-8", errors="replace")
+        # TÜR'ü PDF-nihai değerle hizala (divergence fix): kunye_teslim.md _pipe_pdf'te yalnız tur_xml
+        # taşıyordu; tur_override (v4 nihai = IMDb/Wikidata fallback'li) ile değiştir. SADECE tur_override
+        # doluyken; boşsa md'deki mevcut değere DOKUNMA (uydurma/wipe yok). "Tür: <X>  ·  Süre" sınırlı.
         if tur_override:
             import re as _re
-            md_text = _re.sub(r"(Tür:)\s*—", f"\\1 {tur_override}", md_text, count=1)
+            md_text = _re.sub(r"(Tür:)\s*[^·\n]*?(\s*·\s*Süre:|\s*\n|$)",
+                              lambda m: f"{m.group(1)} {tur_override}{m.group(2)}", md_text, count=1)
         (clip_dir / f"{base}.txt").write_text(
             md_to_readable(md_text), encoding="utf-8")
 
@@ -413,19 +417,92 @@ def xml_roles(video: Path) -> dict:
 
 
 def xml_genre(video: Path) -> str:
-    """XML JT:CLASSIFICATION:EDIT_FMT_NAME → tür (DRAMA/EĞLENCE-SHOW/vb.) veya ''."""
+    """XML tür — KADEMELİ (tek-alan bağımlılığı tür-eksikliğine yol açıyordu, 2026-06-15):
+      1) JT:CLASSIFICATION:EDIT_FMT_NAME      (birincil: DRAMA/EĞLENCE-SHOW…)
+      2) boşsa JT:CLASSIFICATION:EDIT_CONTENT_NAME  ("KURMACA / DRAMA" → DRAMA)
+      3) boşsa JT:CLASSIFICATION:PEV_INTENTION_NAME (EĞLENCE…)
+    Hepsi aynı TRT-kataloğu (doldurma değil, yedek-alan). IMDb/Wiki türü v4/validate katmanında."""
     try:
         import xml.etree.ElementTree as ET
         xp = video.with_suffix(".xml")
         if not xp.exists():
             return ""
         root = ET.parse(str(xp)).getroot()
+        fmt = content = intent = ""
         for p in root.iter("PROPERTY"):
-            if p.attrib.get("NAME") == "JT:CLASSIFICATION:EDIT_FMT_NAME":
-                return (p.text or "").strip()
+            n = p.attrib.get("NAME")
+            t = (p.text or "").strip()
+            if not t:
+                continue
+            if n == "JT:CLASSIFICATION:EDIT_FMT_NAME" and not fmt:
+                fmt = t
+            elif n == "JT:CLASSIFICATION:EDIT_CONTENT_NAME" and not content:
+                content = t
+            elif n == "JT:CLASSIFICATION:PEV_INTENTION_NAME" and not intent:
+                intent = t
+        if fmt:
+            return fmt
+        if content:                                   # "KURMACA / DRAMA" → tür kısmı
+            return content.split("/")[-1].strip()
+        return intent or ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+# ── ÖZEL-TÜR SINIFLANDIRICI (Çağatay 2026-06-15): müzikal/belgesel/animasyon AYRI klasör ──
+# İKİ sinyal birleşir (keskin tespit):
+#   (1) XML EDIT_FMT_NAME/CONTENT imzası — TRT katalogcusunun İNSAN-ELİ işareti, yüksek isabet
+#       (ölçüm 2026-06-15: 2060 arşiv XML; ÇİZGİ/ANİMASYON=22, KURMACA OLMAYAN=14, MÜZİK/BALE=10).
+#   (2) final TÜR string (KB/IMDb türevli) — XML'in 'DRAMA' catch-all'ı belgeseli GİZLEDİĞİNDE
+#       yakalar (İKİZLER örneği: XML=DRAMA ama IMDb 'Documentary'→TÜR=BELGESEL).
+# XML imzası ÖNCE (same-title KB yanlış-eşleşmesi klasör kararını bozmasın); yoksa final-TÜR keyword.
+_GENRE_XML_SIG = {        # EDIT_FMT_NAME → kanonik sınıf (ölçülmüş gerçek değerler)
+    "KURMACA OLMAYAN": "BELGESEL", "BELGESEL": "BELGESEL", "DÖKÜDRAMA": "BELGESEL",
+    "ÇİZGİ/ANİMASYON": "ANİMASYON",
+    "MÜZİK / BALE / DANS / SANATSAL GÖSTERİ": "MÜZİKAL",
+}
+_GENRE_CONTENT_SIG = {    # EDIT_CONTENT_NAME yedek imza
+    "KURMACA OLMAYAN / BİLGİLENDİRME": "BELGESEL",
+    "MÜZİK, BALE, DANS": "MÜZİKAL", "BALE": "MÜZİKAL",
+}
+
+
+def _genre_fold(s: str) -> str:
+    """Aksan/Türkçe-harf bağımsız BÜYÜK-harf (keyword eşleşmesi için)."""
+    import unicodedata
+    return unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().upper()
+
+
+def genre_class(video: Path, final_tur: str = "") -> str:
+    """Filmi özel-tür sınıfına sok: BELGESEL / MÜZİKAL / ANİMASYON / DİĞER (klasör-yönlendirme için).
+    1) XML EDIT_FMT_NAME/CONTENT imzası varsa onu döndür (yüksek-isabet, TRT katalog).
+    2) yoksa final TÜR string anahtar kelimesi (KB/IMDb; XML 'DRAMA' catch-all'ı yakalar).
+    3) DİĞER. (Görünür PDF TÜR'ünü DEĞİŞTİRMEZ — yalnız iç klasör-yönlendirme sinyali.)"""
+    fmt = content = ""
+    try:
+        import xml.etree.ElementTree as ET
+        xp = video.with_suffix(".xml")
+        if xp.exists():
+            for p in ET.parse(str(xp)).getroot().iter("PROPERTY"):
+                n, t = p.attrib.get("NAME"), (p.text or "").strip()
+                if n == "JT:CLASSIFICATION:EDIT_FMT_NAME" and not fmt:
+                    fmt = t
+                elif n == "JT:CLASSIFICATION:EDIT_CONTENT_NAME" and not content:
+                    content = t
     except Exception:  # noqa: BLE001
         pass
-    return ""
+    if fmt in _GENRE_XML_SIG:
+        return _GENRE_XML_SIG[fmt]
+    if content in _GENRE_CONTENT_SIG:
+        return _GENRE_CONTENT_SIG[content]
+    tf = _genre_fold(final_tur)               # 'Belgesel'/'BELGESEL'/'MÜZİKAL / DRAM' → ASCII-büyük
+    if "BELGESEL" in tf:
+        return "BELGESEL"
+    if "ANIMASYON" in tf:
+        return "ANİMASYON"
+    if "MUZIKAL" in tf:                        # 'MÜZİK' (music) DEĞİL — yalnız 'MÜZİKAL'
+        return "MÜZİKAL"
+    return "DİĞER"
 
 
 def ffprobe_specs(video: Path):
@@ -1318,6 +1395,10 @@ def main(argv=None) -> int:
     # (efekt-siz kanal, sadece Yön+Yap, BÜYÜK-harf özet). kunye_teslim.md'den özet/kanal/süre okur.
     # GÜVENLİ: kunye_v4.pdf'e yazar, BAŞARIRSA kunye.pdf üzerine taşır; hata olursa eski PDF olduğu gibi kalır.
     rc_v4, out_v4, err_v4, v4_exc = None, "", "", None   # A-1: v4 çökse bile karar kapıları sinyali görsün
+    # TÜR DIVERGENCE FIX (2026-06-15): .txt yüzeyi şimdiye dek SADECE tur_xml görüyordu; PDF (v4) ise
+    # IMDb/Wikidata fallback'li nihai TÜR'ü basıyordu → .txt ≠ PDF. v4 başarınca nihai TÜR'ü (rapor JSON)
+    # yakala ve surface'a ilet. v4 koşmaz/başarısızsa tur_xml fallback (eski davranış, additive).
+    tur_final = tur_xml
     if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
         t_v4 = time.perf_counter()
         try:
@@ -1341,6 +1422,14 @@ def main(argv=None) -> int:
                 v4_png = pdf_out / "kunye_v4_onizleme.png"
                 if v4_png.exists():
                     os.replace(str(v4_png), str(pdf_out / "kunye_onizleme.png"))
+                # Nihai TÜR'ü v4 rapor JSON'ından al (PDF ile .txt'i hizala). "—"/boş ise tur_xml kalır.
+                try:
+                    _v4j = last_json(out_v4) or {}
+                    _v4tur = ((_v4j.get("v4") or {}).get("tur") or "").strip()
+                    if _v4tur and _v4tur != "—":
+                        tur_final = _v4tur
+                except Exception:  # noqa: BLE001 — TÜR yakalama yüzeylemeyi ASLA bozmaz
+                    pass
                 timings["v4_final"] = round(time.perf_counter() - t_v4, 2)
                 log_event("v4_finalize_completed",
                           summary=f"{video.name}: kunye v4'e cevrildi ({timings['v4_final']} sn).",
@@ -1547,6 +1636,17 @@ def main(argv=None) -> int:
         route_info = _r
     except Exception as _rexc:  # noqa: BLE001 — FAIL-SAFE: router hatası → ESKİ karar geçerli kalır
         route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
+    # ── TÜR-AYRIM ÜST-GEÇİŞİ (Çağatay 2026-06-15): müzikal/belgesel/animasyon TÜR'e göre AYRI klasör.
+    #    QC'den BAĞIMSIZ — temiz olsa bile bu 3 tür ayrılır ("ayır direkt"). XML imzası + final TÜR keskin.
+    try:
+        _gk = genre_class(video, tur_final)
+        if _gk in ("BELGESEL", "MÜZİKAL", "ANİMASYON"):
+            karar = "TürAyrı"
+            dest_root = EXPORT_ROOT / "KONTROL" / "MÜZİKAL-BELGESEL-ANİMASYON"
+            route_info = {"genre_separated": _gk,
+                          **(route_info if isinstance(route_info, dict) else {})}
+    except Exception as _gexc:  # noqa: BLE001 — FAIL-SAFE: tür-tespit hatası kararı bozmaz
+        pass
     dest_root.mkdir(parents=True, exist_ok=True)
     # ÇIKTI ADI — TEK FORMAT: "<TRT-ID> <BAŞLIK>". Teslime hazır → "_onaylı" eki + ONAYLI klasörü
     # (Çağatay 2026-06-15: ayrı "teslime hazır" klasörü YOK, hazırsa doğrudan ONAYLI'ya).
@@ -1554,7 +1654,9 @@ def main(argv=None) -> int:
     _safe_title = re.sub(r'[\\/:*?"<>|]+', " ", (title or "")).strip()
     # KONTROL filmlerinin dosya adına SORUN ETİKETİ yaz (örn. '_YONETMEN_KIMLIK') → açmadan görünür
     _kontrol_lbl = ""
-    if isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
+    if isinstance(route_info, dict) and route_info.get("genre_separated"):
+        _kontrol_lbl = " _" + str(route_info["genre_separated"])      # _BELGESEL / _MÜZİKAL / _ANİMASYON
+    elif isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
         _kontrol_lbl = " _" + str(route_info["kontrol_tip"]).replace("+", "_")
     base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
     pdf_src = Path(pdf_info.get("pdf_path") or "")
@@ -1566,7 +1668,7 @@ def main(argv=None) -> int:
         shutil.copy2(src_file, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
     try:
-        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_xml)
+        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final)
     except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
         log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
                   media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
