@@ -46,6 +46,34 @@ HAFIF_FIX = {
 }
 
 
+# Sınırlı-kombine politikası: tip-KÜMESİ → klasör (~8 klasör, kullanıcı seçimi 2026-06-15)
+ALL_KONTROL_FOLDERS = ["KONTROL_YONETMEN", "KONTROL_YONETMEN_KIMLIK", "KONTROL_KIMLIK",
+                       "KONTROL_CAST", "KONTROL_OZET", "KONTROL_RENDER", "KONTROL_COKLU", "SES_TEYIT"]
+
+
+def folder_for_set(types) -> tuple:
+    """Ağır tip-KÜMESİ → (klasör, etiket). SINIRLI KOMBİNE + YÖNETMEN-BASKIN:
+      • YÖNETMEN sorunu VARSA → yönetmen-ailesi (izole, kullanıcı #1 önceliği):
+            +kimlik → KONTROL_YONETMEN_KIMLIK   ; yalnız yön → KONTROL_YONETMEN
+            (etiket ekstra sorunları gösterir: 'YONETMEN+KIMLIK(+OZET)')
+      • yönetmen YOK + tek tip → kendi klasörü (KONTROL_KIMLIK / _CAST / _OZET / _RENDER)
+      • yönetmen YOK + 2+ tip  → KONTROL_COKLU (etiket tam kümeyi taşır)
+      • yalnız SES             → SES_TEYIT (SES kademe; başka tiple birlikteyse içerik dominant)"""
+    t = set(types) - {"SES"}
+    if not t and "SES" in types:
+        return "SES_TEYIT", "SES"
+    if "YONETMEN" in t:                                  # YÖNETMEN BASKIN — her zaman izole
+        ekstra = sorted(t - {"YONETMEN", "KIMLIK"})
+        suffix = ("(+" + "+".join(ekstra) + ")") if ekstra else ""
+        if "KIMLIK" in t:
+            return "KONTROL_YONETMEN_KIMLIK", "YONETMEN+KIMLIK" + suffix
+        return "KONTROL_YONETMEN", "YONETMEN" + suffix
+    if len(t) == 1:
+        only = next(iter(t))
+        return AGIR_TIP.get(only, {}).get("folder", "KONTROL"), only
+    return "KONTROL_COKLU", "+".join(sorted(t))
+
+
 # ───────────────────────── ÇEKİRDEK SINIFLANDIRICI ─────────────────────────
 def classify(sig: dict) -> dict:
     """sig = normalize edilmiş sinyaller (bool/int). from_durum() veya from_signals() üretir.
@@ -96,12 +124,13 @@ def classify(sig: dict) -> dict:
     if sig.get("char_broken") and sig.get("char_broken_autofixable", True):
         hafif.append("CASING")
 
-    # ===== KARAR =====
+    # ===== KARAR (set-temelli — sınırlı kombine) =====
     if agir:
-        tip = next(t for t in ONCELIK_SIRASI if any(a[0] == t for a in agir))
-        return {"tier": "KONTROL", "kontrol_tip": tip, "folder": AGIR_TIP[tip]["folder"],
+        types = {t for t, _ in agir}
+        folder, etiket = folder_for_set(types)
+        return {"tier": "KONTROL", "kontrol_tip": etiket, "folder": folder,
                 "agir": agir, "hafif": sorted(set(hafif)),
-                "aciklama": f"AĞIR/{tip} → {AGIR_TIP[tip]['folder']} ({AGIR_TIP[tip]['aciklama']})"}
+                "aciklama": f"AĞIR {sorted(types)} → {folder}"}
     if hafif:
         return {"tier": "AUTOFIX", "kontrol_tip": None, "folder": "AUTOFIX",
                 "agir": [], "hafif": sorted(set(hafif)),
@@ -194,7 +223,7 @@ def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\ex
             dst = os.path.join(export, r["folder"]); os.makedirs(dst, exist_ok=True)
             shutil.move(f, os.path.join(dst, base))
     print(f"=== RE-SORT: {folder_name} ({len(pdfs)} film) {'[UYGULANDI]' if apply else '[DRY-RUN]'} ===")
-    for k in list(AGIR_TIP[t]["folder"] for t in ONCELIK_SIRASI) + ["AUTOFIX", "TEMIZ"]:
+    for k in ALL_KONTROL_FOLDERS + ["AUTOFIX", "TEMIZ"]:
         rows = plan.get(k, [])
         if rows:
             print(f"\n{k} ({len(rows)}):")
