@@ -364,10 +364,14 @@ class CreditKB:
         # başlık-tabanlı yanlış adayı (cast_ov SAHTE 3) geçiriyordu. Artık başlık-tabanlı dahil
         # her kaynak gerçek cast örtüşmesiyle kapıdan geçer (yanlış kimlik > okunamadı).
         # İstisna: read_cast HİÇ verilmediyse (cast'sız sorgu) eski başlık-teyidi davranışı korunur.
-        if read_cast and cast_overlap(read_cast, best.get("cast")) < 2:
-            return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [],
-                    "neden": "cast-eşleşmesi zayıf (güvenilmez kimlik)"}
+        # KİLİT ≥3 (Çağatay 2026-06-15): same-title yanlış-kilit riskini düşür. D2 İSTİSNASI (onaylı):
+        # ≥2 cast + yönetmen-eşleşmesi → yine kilitle (yön + 2 cast aynı anda yanlış-filme düşemez).
+        _ov = cast_overlap(read_cast, best.get("cast"))
         auth_dir = best.get("director") or []
+        _dir_ok = bool(read_director) and any(name_match(read_director, a) for a in auth_dir)
+        if read_cast and _ov < 3 and not (_ov >= 2 and _dir_ok):
+            return {"verdict": "KAYNAK_YOK", "kaynak": None, "otoriter_yonetmen": [],
+                    "neden": f"cast-eşleşmesi zayıf (kilit ≥3 ya da ≥2+yön; ov={_ov})"}
         if not read_director:
             verdict = "OKUNAN_YOK"
         elif any(name_match(read_director, a) for a in auth_dir):
