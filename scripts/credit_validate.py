@@ -392,10 +392,38 @@ def validate_cast(ocr_cast, ref_cast, lock_strength, ocr_text):
 
 
 # ───────────────────── ANA GİRİŞ ─────────────────────
-def validate(extracted, *, xml_roles=None, title="", ocr_text=None, kb=None):
+def _recover_raw(title, ocr_raw, kb):
+    """STITCH-DROP kurtarma: 35B-yön boş AMA başlık-adayı bir filmin yönetmeni HAM OCR'da TAM var
+    (stitch düşürmüş). Yalnız TÜM anlamlı token'ları (≥4 harf) raw'da geçen TEK aday → kurtar.
+    Fragman (ör. 'Kore') eşleşmez (token-tam şartı). Pixel-kaynaklı (katalog 'neye bak'ı söyler)."""
+    if not (title and ocr_raw and kb.con):
+        return None
+    rf = _fold(ocr_raw)
+    cands = set()
+    for tconst in kb.imdb_candidates(title):
+        for d in kb.imdb_directors(tconst):
+            cands.add(d)
+    for (qid, dq, cq, country, imdb_id) in kb.wiki_candidates(title):
+        for d in kb._names_wiki(dq):
+            cands.add(d)
+    hits = []
+    for d in cands:
+        toks = [t for t in _fold(d).split() if len(t) >= 4]
+        if len(toks) >= 1 and all(t in rf for t in toks):   # her anlamlı token HAM OCR'da TAM
+            hits.append(d)
+    return hits[0] if len(hits) == 1 else None
+
+
+def validate(extracted, *, xml_roles=None, title="", ocr_text=None, ocr_raw=None, kb=None):
     kb = kb or _KB()
     xml_roles = xml_roles or {}
     ocr_dir = [d for d in (extracted.get("yonetmen") or []) if d and str(d).strip()]
+    # STITCH-DROP kurtarma: 35B boş ama yönetmen HAM OCR'da tam → pixel-teyitli kurtar (no-fill korunur)
+    if not ocr_dir and ocr_raw:
+        _rec = _recover_raw(title, ocr_raw, kb)
+        if _rec:
+            ocr_dir = [_rec]
+            extracted = dict(extracted); extracted["_recovered_raw"] = _rec
     if "cast" in extracted:
         ocr_cast = extracted.get("cast") or []
     else:

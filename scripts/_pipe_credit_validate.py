@@ -57,10 +57,14 @@ def main():
         xr, xt = xml_roles(a.video)
         title = a.title or xt
         ocr_text = ""
+        ocr_raw = ""
         if a.ocr and os.path.exists(a.ocr):
             ocr_text = open(a.ocr, encoding="utf-8", errors="ignore").read()
+            _raw = os.path.join(os.path.dirname(a.ocr), "ocr_raw_all.txt")   # stitch-öncesi (STITCH-DROP kurtarma)
+            if os.path.exists(_raw):
+                ocr_raw = open(_raw, encoding="utf-8", errors="ignore").read()
         import credit_validate as cvmod
-        out = cvmod.validate(ext, xml_roles=xr, title=title, ocr_text=ocr_text)
+        out = cvmod.validate(ext, xml_roles=xr, title=title, ocr_text=ocr_text, ocr_raw=ocr_raw)
     except Exception as e:  # noqa: BLE001 — pipeline'ı ASLA bozma
         out = {"yonetmen": {"status": "HATA", "hata": f"{type(e).__name__}: {e}"}}
     print(json.dumps(out, ensure_ascii=False))
