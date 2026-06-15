@@ -33,7 +33,7 @@ AGIR_TIP = {
     "CAST":     {"folder": "KONTROL/SADECE OYUNCU KONTROL EDİLECEK",   "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
     "OZET":     {"folder": "KONTROL/SADECE ÖZET KONTROL EDİLECEK",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
     "RENDER":   {"folder": "KONTROL/SADECE RENDER KONTROL EDİLECEK",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
-    "SES":      {"folder": "SES_TEYIT",        "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz (mevcut kademe)"},
+    "SES":      {"folder": "KONTROL/SES TEYİT", "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz (artık KONTROL içinde)"},
 }
 ONCELIK_SIRASI = sorted(AGIR_TIP, key=lambda t: AGIR_TIP[t]["oncelik"])
 
@@ -49,11 +49,12 @@ HAFIF_FIX = {
 
 
 # Klasör politikası (kullanıcı 2026-06-15): TEK-sorunlu → adlı "SADECE ... KONTROL EDİLECEK"
-# klasörleri ; ÇOK-sorunlu (2+) → KONTROL kökünde AÇIKTA (dosya adında tam kombo etiketi).
+# klasörü ; ÇOK-sorunlu (2+) → KONTROL/SORUNLU ; SES teyit → KONTROL/SES TEYİT.
+# HEPSİ KONTROL'ün ALTINDA (üst-düzey SES_TEYIT/SORUNLU kaldırıldı, kullanıcı 2026-06-15).
 ALL_KONTROL_FOLDERS = [
     "KONTROL/SADECE YÖNETMEN KONTROL EDİLECEK", "KONTROL/SADECE KİMLİK KONTROL EDİLECEK",
     "KONTROL/SADECE OYUNCU KONTROL EDİLECEK", "KONTROL/SADECE ÖZET KONTROL EDİLECEK",
-    "KONTROL/SADECE RENDER KONTROL EDİLECEK", "KONTROL", "SES_TEYIT",
+    "KONTROL/SADECE RENDER KONTROL EDİLECEK", "KONTROL/SORUNLU", "KONTROL/SES TEYİT",
 ]
 
 
@@ -63,17 +64,17 @@ def tip_label(types) -> str:
 
 
 def folder_for_set(types) -> tuple:
-    """KLASÖR = sorun SAYISI ; ETİKET = TAM küme (dosya adına yazılır).
-      • yalnız SES         → SES_TEYIT
+    """KLASÖR = sorun SAYISI ; ETİKET = TAM küme (dosya adına yazılır). HEPSİ KONTROL altında.
+      • yalnız SES         → KONTROL/SES TEYİT
       • TEK ağır sorun     → KONTROL/SADECE <TİP> KONTROL EDİLECEK  (izole, adı kendini anlatır)
-      • 2+ ağır sorun      → KONTROL  (KÖK, AÇIKTA — karışık değil, dosya adı tam komboyu taşır)
+      • 2+ ağır sorun      → KONTROL/SORUNLU  (çoklu sorunlular bir arada; dosya adı tam komboyu taşır)
       Dosya adı etiketi (örn. '_YONETMEN_OZET') her durumda TAM kümeyi taşır → kontrol kolay."""
     t = set(types) - {"SES"}
     if not t and "SES" in types:
-        return "SES_TEYIT", "SES"
+        return "KONTROL/SES TEYİT", "SES"
     lbl = tip_label(t)
     if len(t) >= 2:
-        return "KONTROL", lbl          # çoklu → kök KONTROL (açıkta)
+        return "KONTROL/SORUNLU", lbl   # çoklu → KONTROL/SORUNLU
     primary = next(p for p in ONCELIK_SIRASI if p in t)
     return AGIR_TIP[primary]["folder"], lbl
 
