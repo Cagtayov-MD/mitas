@@ -220,6 +220,11 @@ def main():
         "ADAPTED FROM", "ADAPTED BY", "WRITTEN BY", "SCREENPLAY BY",
         "STORY BY", "ORIGINAL STORY", "FROM THE NOVEL", "FROM THE BOOK",
         "PRODUCED BY", "EXECUTIVE PRODUCER", "A FILM BY",
+        # müzik/kurgu/foto/sunum kredisi — gerçek yönetmen adı bunlarla BAŞLAMAZ (2026-06-15)
+        "ARRANGED BY", "SONGS BY", "SONGS ARRANGED", "MUSIC BY", "SCORE BY",
+        "ORIGINAL SCORE", "ORIGINAL MUSIC", "SUPERVISED BY", "PRESENTED BY",
+        "EDITED BY", "EDITING BY", "PHOTOGRAPHY BY", "CINEMATOGRAPHY BY",
+        "LYRICS BY", "NARRATED BY", "DESIGNED BY", "PRODUCTION DESIGN",
     )
     def _is_credit_phrase(name: str) -> bool:
         n = name.strip().upper()

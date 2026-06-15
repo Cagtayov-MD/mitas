@@ -552,6 +552,14 @@ _NONPERSON_TOK = {
     "bros", "brothers", "sons", "enterprises", "enterprise", "corp", "corporation", "limited",
     "distribution", "releasing", "classics", "animation", "filmworks", "worldwide", "global",
     "networks", "network", "channel", "broadcasting", "partners", "associates",
+    # kurum / vakıf / sendika / kuruluş (çok-dilli; gerçek "İsim Soyisim" token'ı değil)
+    "foundation", "fondation", "fondazione", "stiftung", "agency", "agence",
+    "association", "associazione", "guild", "union", "syndicate", "syndicat",
+    "society", "societe", "societa", "institute", "institut", "instituto",
+    "federation", "council", "conseil", "committee", "comite", "ministry",
+    "ministere", "ministerio", "authority", "government", "gouvernement",
+    "cinema", "cinematografica", "filmes", "filmproduktion", "produzione",
+    "produktion", "telewizja", "presente", "presenta", "records", "rights", "reserved",
     # rol / sıfat / etiket
     "director", "directed", "producer", "produced", "executive", "associate", "yonetmen", "yapimci",
     "yoneten", "rejisor", "sunan", "anlatan", "music", "von", "der", "die",
