@@ -25,13 +25,14 @@ import os, sys, json, glob, shutil, argparse, re
 HAFIF, AGIR = "HAFIF", "AGIR"
 
 # Ağır tip → hedef klasör + öncelik (küçük = daha temel/öncelikli)
-# Tip klasörleri KONTROL'ün İÇİNDE (alt-klasör): export\KONTROL\<TIP>\ . SES/AUTOFIX ayrı kademe (üst düzey).
+# POLİTİKA (kullanıcı 2026-06-15): TEK sorunlu film → "SADECE <TİP> KONTROL EDİLECEK" adlı klasör
+# (kontrolcü ne yapacağını klasör adından anlar). ÇOK sorunlu (2+) → KONTROL kökünde AÇIKTA (folder_for_set).
 AGIR_TIP = {
-    "YONETMEN": {"folder": "KONTROL/YONETMEN", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
-    "KIMLIK":   {"folder": "KONTROL/KIMLIK",   "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
-    "CAST":     {"folder": "KONTROL/CAST",     "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
-    "OZET":     {"folder": "KONTROL/OZET",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
-    "RENDER":   {"folder": "KONTROL/RENDER",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
+    "YONETMEN": {"folder": "KONTROL/SADECE YÖNETMEN KONTROL EDİLECEK", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
+    "KIMLIK":   {"folder": "KONTROL/SADECE KİMLİK KONTROL EDİLECEK",   "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
+    "CAST":     {"folder": "KONTROL/SADECE OYUNCU KONTROL EDİLECEK",   "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
+    "OZET":     {"folder": "KONTROL/SADECE ÖZET KONTROL EDİLECEK",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
+    "RENDER":   {"folder": "KONTROL/SADECE RENDER KONTROL EDİLECEK",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
     "SES":      {"folder": "SES_TEYIT",        "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz (mevcut kademe)"},
 }
 ONCELIK_SIRASI = sorted(AGIR_TIP, key=lambda t: AGIR_TIP[t]["oncelik"])
@@ -47,9 +48,13 @@ HAFIF_FIX = {
 }
 
 
-# Sınırlı-kombine politikası: tip-KÜMESİ → klasör (~8 klasör, kullanıcı seçimi 2026-06-15)
-ALL_KONTROL_FOLDERS = ["KONTROL/YONETMEN", "KONTROL/KIMLIK", "KONTROL/CAST",
-                       "KONTROL/OZET", "KONTROL/RENDER", "KONTROL/TAM_BOZUK", "SES_TEYIT"]
+# Klasör politikası (kullanıcı 2026-06-15): TEK-sorunlu → adlı "SADECE ... KONTROL EDİLECEK"
+# klasörleri ; ÇOK-sorunlu (2+) → KONTROL kökünde AÇIKTA (dosya adında tam kombo etiketi).
+ALL_KONTROL_FOLDERS = [
+    "KONTROL/SADECE YÖNETMEN KONTROL EDİLECEK", "KONTROL/SADECE KİMLİK KONTROL EDİLECEK",
+    "KONTROL/SADECE OYUNCU KONTROL EDİLECEK", "KONTROL/SADECE ÖZET KONTROL EDİLECEK",
+    "KONTROL/SADECE RENDER KONTROL EDİLECEK", "KONTROL", "SES_TEYIT",
+]
 
 
 def tip_label(types) -> str:
@@ -58,18 +63,17 @@ def tip_label(types) -> str:
 
 
 def folder_for_set(types) -> tuple:
-    """KLASÖR = sorun SAYISI + birincil tip ; ETİKET = TAM küme (dosya adına yazılır).
-      • yalnız SES        → SES_TEYIT
-      • 3+ ağır sorun     → KONTROL/TAM_BOZUK  (en bozuk, hepsi bir arada)
-      • 1-2 ağır sorun    → KONTROL/<BİRİNCİL>  (öncelik: YONETMEN>KIMLIK>CAST>OZET>RENDER)
-                            → yönetmen sorunu varsa BİRİNCİL=YONETMEN (izole kalır)
-      Dosya adı etiketi (örn. '_YONETMEN_KIMLIK') TAM kümeyi taşır → klasör sade, kontrol kolay."""
+    """KLASÖR = sorun SAYISI ; ETİKET = TAM küme (dosya adına yazılır).
+      • yalnız SES         → SES_TEYIT
+      • TEK ağır sorun     → KONTROL/SADECE <TİP> KONTROL EDİLECEK  (izole, adı kendini anlatır)
+      • 2+ ağır sorun      → KONTROL  (KÖK, AÇIKTA — karışık değil, dosya adı tam komboyu taşır)
+      Dosya adı etiketi (örn. '_YONETMEN_OZET') her durumda TAM kümeyi taşır → kontrol kolay."""
     t = set(types) - {"SES"}
     if not t and "SES" in types:
         return "SES_TEYIT", "SES"
     lbl = tip_label(t)
-    if len(t) >= 3:
-        return "KONTROL/TAM_BOZUK", lbl
+    if len(t) >= 2:
+        return "KONTROL", lbl          # çoklu → kök KONTROL (açıkta)
     primary = next(p for p in ONCELIK_SIRASI if p in t)
     return AGIR_TIP[primary]["folder"], lbl
 
