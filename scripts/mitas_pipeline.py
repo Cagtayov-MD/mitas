@@ -1076,41 +1076,53 @@ def main(argv=None) -> int:
             _cik_len = args.ocr_tail
             if os.environ.get("MITAS_CREDIT_DETECT", "").strip().lower() in ("1", "true", "on", "yes"):
                 try:
+                    # GÜVEN-EŞİĞİ (Çağatay 2026-06-15): detect yalnız conf ≥ eşik ise pencereyi oynatır;
+                    # düşük-güvende SABİT varsayılana düşer → ne 12dk giriş-israfı, ne yanlış-kayma.
+                    _DETECT_MINCONF = float(os.environ.get("MITAS_CREDIT_DETECT_MINCONF", "0.60") or 0.60)
                     _rcd, _outd, _errd = run([str(PY_OCR), str(HERE / "_credit_detect.py"),
                                               "--video", str(video)], timeout=240)
                     _both = last_json(_outd) or {}
                     _opening = _both.get("opening") or {}
                     _closing = _both.get("closing") or {}
-                    # --- GİRİŞ penceresi (head) ---
-                    if _opening.get("found") and _opening.get("end_sec") is not None:
+                    # --- GİRİŞ penceresi (head) — yalnız GÜVEN ≥ eşik ise uzat (düşük güven → sabit head; 12dk israf YOK) ---
+                    _op_conf = float(_opening.get("confidence") or 0.0)
+                    if _opening.get("found") and _opening.get("end_sec") is not None and _op_conf >= _DETECT_MINCONF:
                         _new_head = max(args.ocr_head, float(_opening["end_sec"]) + 5.0)
                         _new_head = min(_new_head, 720.0)
                         head = min(_new_head, dur_sec or _new_head)
                         log_event("credit_detect_opening",
                                   summary=f"{video.name}: GİRİŞ jenerik {_opening.get('type')} "
                                           f"@ {float(_opening.get('start_sec', 0)):.0f}s–{float(_opening['end_sec']):.0f}s "
-                                          f"(conf {_opening.get('confidence')}) → head={head:.0f}s",
+                                          f"(conf {_op_conf:.3f}) → head={head:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "opening": _opening})
                     else:
+                        _why = (f"düşük güven {_op_conf:.3f}<{_DETECT_MINCONF}"
+                                if _opening.get("found") else "bulunamadı")
                         log_event("credit_detect_opening",
-                                  summary=f"{video.name}: GİRİŞ jenerik bulunamadı — sabit head={head:.0f}s",
+                                  summary=f"{video.name}: GİRİŞ jenerik {_why} — sabit head={head:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "opening": _opening})
-                    # --- ÇIKIŞ penceresi (_cik_start) ---
-                    if _closing.get("found") and _closing.get("start_sec") is not None:
+                    # --- ÇIKIŞ penceresi (_cik_start) — GÜVEN ≥ eşik ise başlangıcı öne çek; pencere DAİMA film sonuna kadar ---
+                    # FIX (Çağatay 2026-06-15): eski 600s-cap kuyrukta no-regress'i kırıyordu (BAŞKA BİR DÜNYA:
+                    # detect erken sahte-scroll'a kilitlenip pencereyi 4628+600=5228'de kesti, gerçek jenerik
+                    # 5298–5538'de → kaçtı). Artık _cik_len = film-sonuna-kadar → eski-varsayılan DAİMA altküme.
+                    _cl_conf = float(_closing.get("confidence") or 0.0)
+                    if _closing.get("found") and _closing.get("start_sec") is not None and _cl_conf >= _DETECT_MINCONF:
                         _ds = max(0.0, float(_closing["start_sec"]) - 5.0)   # 5s emniyet payı
                         _cik_start = min(_ds, _cik_start)                    # asla eski-pencereden GEÇ başlama
-                        _cik_len = min(dur_sec - _cik_start, 600.0)          # tüm roll + cap
+                        _cik_len = dur_sec - _cik_start                      # ADDITIVE: film sonuna kadar (cap KALDIRILDI)
                         log_event("credit_detect_closing",
                                   summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
                                           f"@ {float(_closing['start_sec']):.0f}s "
-                                          f"(conf {_closing.get('confidence')}) → pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
+                                          f"(conf {_cl_conf:.3f}) → pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "closing": _closing})
                     else:
+                        _why = (f"düşük güven {_cl_conf:.3f}<{_DETECT_MINCONF}"
+                                if _closing.get("found") else "bulunamadı")
                         log_event("credit_detect_closing",
-                                  summary=f"{video.name}: ÇIKIŞ jenerik bulunamadı — sabit pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
+                                  summary=f"{video.name}: ÇIKIŞ jenerik {_why} — sabit pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "closing": _closing})
                 except Exception as _de:  # noqa: BLE001 — fail-safe: sabit pencereler
