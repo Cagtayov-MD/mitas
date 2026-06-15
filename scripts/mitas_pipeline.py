@@ -1511,8 +1511,42 @@ def main(argv=None) -> int:
             reasons.append("isim-QC: Latin-dışı/yabancı-aksan kalıntısı (" + " ; ".join(_name_qc[:5]) + ")")
     except Exception:  # noqa: BLE001 — tespit-QC kararı ASLA bozmaz (alan yok/hata → atla)
         pass
-    karar = "Hazır" if not reasons else "Kontrol"
+    # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
+    #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).
+    #    REASON-TEMELLİ (qwen false-pozitif EKLEMEZ): mevcut kalibre 'reasons' tiplenir; 'qwen_uyari' → AUTOFIX.
+    karar = "Hazır" if not reasons else "Kontrol"          # fallback varsayılan (router hatasında geçerli)
     dest_root = HAZIR if karar == "Hazır" else KONTROL
+    route_info = None
+    try:
+        import credit_severity_router as _router
+        _R, _U = (reasons or []), (qwen_uyari or [])
+        _sig = {
+            "yon_missing":       any(("yönetmen okunamadı" in r) or ("yön+yapımcı yok" in r) for r in _R),
+            "yon_garble":        any("yönetmen okunamadı" in r for r in _R),
+            "yon_fillable":      False,
+            "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) for r in _R),
+            "cast_count":        0 if any("oyuncu yok" in r for r in _R) else 1,
+            "ozet_missing":      any("özet yok" in r for r in _R),
+            "non_latin":         any("Latin-dışı" in r for r in _R),
+            "char_broken":       any(("karakter bozuk" in r) or ("isim-QC" in r) for r in _R),
+            "char_broken_autofixable": False,   # pipeline'da auto-fix yok → ciddi say
+            "afis_missing":      any("afiş yok" in u for u in _U),
+            "casing_bad":        any("büyük-harf" in u for u in _U),
+            "foreign_accent":    any("yabancı ad" in u for u in _U),
+        }
+        _r = _router.classify(_sig)
+        if _r["tier"] == "TEMIZ":
+            karar, dest_root = "Hazır", HAZIR
+        elif _r["tier"] == "AUTOFIX":
+            karar, dest_root = "AutoFix", EXPORT_ROOT / "AUTOFIX"
+        else:                                              # KONTROL_<tip>
+            karar, dest_root = "Kontrol", EXPORT_ROOT / _r["folder"]
+        # GÜVENLİK: 'reasons' var ama tipe eşlenmedi (ör. 'ses/dil yok') → genel KONTROL (mis-deliver önle)
+        if _R and (not _r["agir"]):
+            karar, dest_root = "Kontrol", KONTROL
+        route_info = _r
+    except Exception as _rexc:  # noqa: BLE001 — FAIL-SAFE: router hatası → ESKİ karar geçerli kalır
+        route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
     dest_root.mkdir(parents=True, exist_ok=True)
     # ÇIKTI ADI — TEK FORMAT (Çağatay 2026-06-08): "<TRT-ID> <BAŞLIK>" (+ " ONAYLI" QC onaylıysa).
     # Düz dosya (alt-klasör yok): export\ONAYLI\1999-2020-1-0000-90-1 PİNOKYO ONAYLI.pdf
@@ -1536,7 +1570,7 @@ def main(argv=None) -> int:
 
     summary_obj = {
         "clip_id": clip_id, "video": str(video), "profile": profile, "trt_id": trt, "title": title,
-        "karar": karar, "neden": reasons, "qwen_uyari": qwen_uyari, "qwen_qc": qwen_qc, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
+        "karar": karar, "route": route_info, "neden": reasons, "qwen_uyari": qwen_uyari, "qwen_qc": qwen_qc, "ocr_bucket": ocr_bucket, "ocr_lines": ocr_lines,
         "asr_status": asr_status, "asr_segments": asr_info.get("clean_segments"),
         "transcript_chars": asr_info.get("transcript_chars"),
         "resolution": res, "fps": fps_s, "duration": dur, "timings_sec": timings,
