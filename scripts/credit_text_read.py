@@ -576,6 +576,35 @@ def _only_persons(names):
     return [n for n in (names or []) if _valid_person_name(n)]
 
 
+# ── QC1 SATIR-ÖN-ELEMESİ (Çağatay 2026-06-15): gürültü PDF'e hiç girmesin ──
+# Disclaimer/telif/courtesy/teşekkür/sendika/teknik-marka satırlarını LLM'e GÖNDERMEDEN at.
+# Bunlar çok-kelimeli YASAL/TEKNİK kalıp — gerçek "İsim Soyisim" bu kalıplara girmez → SIFIR regresyon.
+# (Tek-token marka isimleri DEĞİL; yalnız bariz kalıp-içeren satırlar. İsim satırına dokunmaz.)
+_PREFILTER_PHRASES = (
+    "COURTESY OF", "IN ASSOCIATION WITH", "EN ASSOCIATION", "AVEC LA PARTICIPATION",
+    "WITH THE PARTICIPATION", "IN COLLABORATION WITH", "PROVIDED BY", "STOCK FOOTAGE",
+    "ALL RIGHTS RESERVED", "TOUS DROITS", "COPYRIGHT", "SPECIAL THANKS", "THANKS TO",
+    "DEDICATED TO", "IN MEMORY OF", "IN LOVING MEMORY", "NO ANIMALS WERE",
+    "FILMED ON LOCATION", "SHOT ON LOCATION", "FILMED IN", "RECORDED AT",
+    "DOLBY DIGITAL", "DOLBY STEREO", "DTS DIGITAL", "ULTRA STEREO",
+    "BASED ON THE", "BASED UPON", "MOTION PICTURE ASSOCIATION",
+)
+_PREFILTER_MARK = ("©", "®", "™")
+
+
+def _prefilter_lines(lines):
+    """LLM'e girmeden bariz disclaimer/yasal/teknik satırları ele (kişi-adı DEĞİL)."""
+    out = []
+    for ln in (lines or []):
+        u = _fold(ln).upper()
+        if any(p in u for p in _PREFILTER_PHRASES):
+            continue
+        if any(s in ln for s in _PREFILTER_MARK):
+            continue
+        out.append(ln)
+    return out
+
+
 def read_credits_from_text(lines, title="", model=None, *, dizi=False):
     model = model or DEFAULT_MODEL
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
@@ -632,6 +661,7 @@ def read_credits_auto(lines, title="", *, dizi=False):
     """
     chain = model_chain()
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
+    lines = _prefilter_lines(lines)            # QC1: disclaimer/yasal/teknik satırları ele (LLM görmesin)
     text = "\n".join(lines)
     ocr_tokens = set(_toks(text))
     title_f = _fold(title).strip()
