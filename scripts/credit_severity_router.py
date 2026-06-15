@@ -25,12 +25,13 @@ import os, sys, json, glob, shutil, argparse
 HAFIF, AGIR = "HAFIF", "AGIR"
 
 # Ağır tip → hedef klasör + öncelik (küçük = daha temel/öncelikli)
+# Tip klasörleri KONTROL'ün İÇİNDE (alt-klasör): export\KONTROL\<TIP>\ . SES/AUTOFIX ayrı kademe (üst düzey).
 AGIR_TIP = {
-    "YONETMEN": {"folder": "KONTROL_YONETMEN", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
-    "KIMLIK":   {"folder": "KONTROL_KIMLIK",   "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
-    "CAST":     {"folder": "KONTROL_CAST",     "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
-    "OZET":     {"folder": "KONTROL_OZET",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
-    "RENDER":   {"folder": "KONTROL_RENDER",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
+    "YONETMEN": {"folder": "KONTROL/YONETMEN", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
+    "KIMLIK":   {"folder": "KONTROL/KIMLIK",   "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
+    "CAST":     {"folder": "KONTROL/CAST",     "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
+    "OZET":     {"folder": "KONTROL/OZET",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
+    "RENDER":   {"folder": "KONTROL/RENDER",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
     "SES":      {"folder": "SES_TEYIT",        "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz (mevcut kademe)"},
 }
 ONCELIK_SIRASI = sorted(AGIR_TIP, key=lambda t: AGIR_TIP[t]["oncelik"])
@@ -47,8 +48,8 @@ HAFIF_FIX = {
 
 
 # Sınırlı-kombine politikası: tip-KÜMESİ → klasör (~8 klasör, kullanıcı seçimi 2026-06-15)
-ALL_KONTROL_FOLDERS = ["KONTROL_YONETMEN", "KONTROL_YONETMEN_KIMLIK", "KONTROL_KIMLIK",
-                       "KONTROL_CAST", "KONTROL_OZET", "KONTROL_RENDER", "KONTROL_COKLU", "SES_TEYIT"]
+ALL_KONTROL_FOLDERS = ["KONTROL/YONETMEN", "KONTROL/YONETMEN_KIMLIK", "KONTROL/KIMLIK",
+                       "KONTROL/CAST", "KONTROL/OZET", "KONTROL/RENDER", "KONTROL/COKLU", "SES_TEYIT"]
 
 
 def folder_for_set(types) -> tuple:
@@ -66,12 +67,12 @@ def folder_for_set(types) -> tuple:
         ekstra = sorted(t - {"YONETMEN", "KIMLIK"})
         suffix = ("(+" + "+".join(ekstra) + ")") if ekstra else ""
         if "KIMLIK" in t:
-            return "KONTROL_YONETMEN_KIMLIK", "YONETMEN+KIMLIK" + suffix
-        return "KONTROL_YONETMEN", "YONETMEN" + suffix
+            return "KONTROL/YONETMEN_KIMLIK", "YONETMEN+KIMLIK" + suffix
+        return "KONTROL/YONETMEN", "YONETMEN" + suffix
     if len(t) == 1:
         only = next(iter(t))
         return AGIR_TIP.get(only, {}).get("folder", "KONTROL"), only
-    return "KONTROL_COKLU", "+".join(sorted(t))
+    return "KONTROL/COKLU", "+".join(sorted(t))
 
 
 # ───────────────────────── ÇEKİRDEK SINIFLANDIRICI ─────────────────────────
