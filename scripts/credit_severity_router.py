@@ -19,7 +19,7 @@ KARAR:
 
 Bu modül SAF (izole). mitas_pipeline'a bağlanması: §INTEGRATION (en altta).
 """
-import os, sys, json, glob, shutil, argparse
+import os, sys, json, glob, shutil, argparse, re
 
 # ───────────────────────── TAKSONOMİ ─────────────────────────
 HAFIF, AGIR = "HAFIF", "AGIR"
@@ -48,31 +48,44 @@ HAFIF_FIX = {
 
 
 # Sınırlı-kombine politikası: tip-KÜMESİ → klasör (~8 klasör, kullanıcı seçimi 2026-06-15)
-ALL_KONTROL_FOLDERS = ["KONTROL/YONETMEN", "KONTROL/YONETMEN_KIMLIK", "KONTROL/KIMLIK",
-                       "KONTROL/CAST", "KONTROL/OZET", "KONTROL/RENDER", "KONTROL/COKLU", "SES_TEYIT"]
+ALL_KONTROL_FOLDERS = ["KONTROL/YONETMEN", "KONTROL/KIMLIK", "KONTROL/CAST",
+                       "KONTROL/OZET", "KONTROL/RENDER", "KONTROL/TAM_BOZUK", "SES_TEYIT"]
+
+
+def tip_label(types) -> str:
+    """Tip kümesini öncelik sırasıyla (YÖNETMEN önce) dosya-adı etiketine çevir: 'YONETMEN_KIMLIK'."""
+    return "_".join(t for t in ONCELIK_SIRASI if t in set(types))
 
 
 def folder_for_set(types) -> tuple:
-    """Ağır tip-KÜMESİ → (klasör, etiket). SINIRLI KOMBİNE + YÖNETMEN-BASKIN:
-      • YÖNETMEN sorunu VARSA → yönetmen-ailesi (izole, kullanıcı #1 önceliği):
-            +kimlik → KONTROL_YONETMEN_KIMLIK   ; yalnız yön → KONTROL_YONETMEN
-            (etiket ekstra sorunları gösterir: 'YONETMEN+KIMLIK(+OZET)')
-      • yönetmen YOK + tek tip → kendi klasörü (KONTROL_KIMLIK / _CAST / _OZET / _RENDER)
-      • yönetmen YOK + 2+ tip  → KONTROL_COKLU (etiket tam kümeyi taşır)
-      • yalnız SES             → SES_TEYIT (SES kademe; başka tiple birlikteyse içerik dominant)"""
+    """KLASÖR = sorun SAYISI + birincil tip ; ETİKET = TAM küme (dosya adına yazılır).
+      • yalnız SES        → SES_TEYIT
+      • 3+ ağır sorun     → KONTROL/TAM_BOZUK  (en bozuk, hepsi bir arada)
+      • 1-2 ağır sorun    → KONTROL/<BİRİNCİL>  (öncelik: YONETMEN>KIMLIK>CAST>OZET>RENDER)
+                            → yönetmen sorunu varsa BİRİNCİL=YONETMEN (izole kalır)
+      Dosya adı etiketi (örn. '_YONETMEN_KIMLIK') TAM kümeyi taşır → klasör sade, kontrol kolay."""
     t = set(types) - {"SES"}
     if not t and "SES" in types:
         return "SES_TEYIT", "SES"
-    if "YONETMEN" in t:                                  # YÖNETMEN BASKIN — her zaman izole
-        ekstra = sorted(t - {"YONETMEN", "KIMLIK"})
-        suffix = ("(+" + "+".join(ekstra) + ")") if ekstra else ""
-        if "KIMLIK" in t:
-            return "KONTROL/YONETMEN_KIMLIK", "YONETMEN+KIMLIK" + suffix
-        return "KONTROL/YONETMEN", "YONETMEN" + suffix
-    if len(t) == 1:
-        only = next(iter(t))
-        return AGIR_TIP.get(only, {}).get("folder", "KONTROL"), only
-    return "KONTROL/COKLU", "+".join(sorted(t))
+    lbl = tip_label(t)
+    if len(t) >= 3:
+        return "KONTROL/TAM_BOZUK", lbl
+    primary = next(p for p in ONCELIK_SIRASI if p in t)
+    return AGIR_TIP[primary]["folder"], lbl
+
+
+def strip_label(name: str) -> str:
+    """Dosya adındaki mevcut ' _TIP_TIP' etiketini kaldır (idempotent re-sort/render)."""
+    return re.sub(r"\s+_[A-Z_]+(?=\.[A-Za-z0-9]+$)", "", name)
+
+
+def with_label(filename: str, label: str) -> str:
+    """Dosya adına ' _LABEL' ekle (uzantıdan önce); önce eski etiketi temizler."""
+    name = strip_label(filename)
+    if not label:
+        return name
+    root, ext = os.path.splitext(name)
+    return root.rstrip() + " _" + label.replace("+", "_") + ext
 
 
 # ───────────────────────── ÇEKİRDEK SINIFLANDIRICI ─────────────────────────
@@ -222,7 +235,7 @@ def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\ex
             plan[r["tier"]].append((base, r))
         if apply and r["tier"] == "KONTROL" and r["folder"] != folder_name:
             dst = os.path.join(export, r["folder"]); os.makedirs(dst, exist_ok=True)
-            shutil.move(f, os.path.join(dst, base))
+            shutil.move(f, os.path.join(dst, with_label(base, r["kontrol_tip"])))
     print(f"=== RE-SORT: {folder_name} ({len(pdfs)} film) {'[UYGULANDI]' if apply else '[DRY-RUN]'} ===")
     for k in ALL_KONTROL_FOLDERS + ["AUTOFIX", "TEMIZ"]:
         rows = plan.get(k, [])

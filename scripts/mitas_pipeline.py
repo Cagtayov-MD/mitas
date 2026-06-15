@@ -1551,7 +1551,11 @@ def main(argv=None) -> int:
     # ÇIKTI ADI — TEK FORMAT (Çağatay 2026-06-08): "<TRT-ID> <BAŞLIK>" (+ " ONAYLI" QC onaylıysa).
     # Düz dosya (alt-klasör yok): export\ONAYLI\1999-2020-1-0000-90-1 PİNOKYO ONAYLI.pdf
     _safe_title = re.sub(r'[\\/:*?"<>|]+', " ", (title or "")).strip()
-    base_name = (f"{trt} {_safe_title}").strip() + (" ONAYLI" if karar == "Hazır" else "")
+    # KONTROL filmlerinin dosya adına SORUN ETİKETİ yaz (örn. '_YONETMEN_KIMLIK') → açmadan görünür
+    _kontrol_lbl = ""
+    if isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
+        _kontrol_lbl = " _" + str(route_info["kontrol_tip"]).replace("+", "_")
+    base_name = (f"{trt} {_safe_title}").strip() + (" ONAYLI" if karar == "Hazır" else _kontrol_lbl)
     pdf_src = Path(pdf_info.get("pdf_path") or "")
     md_src = Path(pdf_info.get("md_path") or "")
     src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
