@@ -23,9 +23,10 @@ PY_OCR = os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe")
 PDFMITAS = r"E:\MITAS\OCR-worktree\pdf-mitas"
 AFIS_CACHE = r"E:\MITAS\_102_afis_cache"
 OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
-# KB cast-ekleme (eksik isim TAMAMLAMA, asla ezme) — default KAPALI. Açıkken bile kimlik GERÇEKTEN
-# emin olmalı (OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI cast → ORTA/Kontrol).
-_ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "").strip().lower() in ("1", "true", "on", "yes")
+# KB cast-ekleme (eksik isim TAMAMLAMA, asla ezme) — default AÇIK (Çağatay 2026-06-15: eksik-doldurma
+# aktif). Kimlik GERÇEKTEN emin olmalı: OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI
+# cast → ORTA/Kontrol. EKLE-only (OCR önde, KB sonra; asla ezme/yeniden-sırala). MITAS_KB_CAST_ADD=0 kapatır.
+_ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "1").strip().lower() not in ("0", "false", "off", "no")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)

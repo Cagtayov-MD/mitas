@@ -25,6 +25,8 @@ if (-not $env:MITAS_QC2_WEB)           { $env:MITAS_QC2_WEB = '1';           Wri
 # kadroyu kacirir: KARAYIP lead kadro 8116-8420s'de, sabit pencere 8419s+ yalnizca kuyrugu aliyordu).
 # No-regress: pencereyi yalnizca GENISLETIR (sabit tabanin altina inmez); CLIP footage'i zaten suzer. Uretimde AKTIF.
 if (-not $env:MITAS_CREDIT_DETECT)     { $env:MITAS_CREDIT_DETECT = '1';     Write-Host '   + MITAS_CREDIT_DETECT=1 (default AKTIF)' }
+# KB_CAST_ADD = kimlik kesinken (OCR-teyitli yon + >=3 siki cast) eksik kadroyu KB'den EKLE (asla ezme, OCR onde). AKTIF.
+if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Write-Host '   + MITAS_KB_CAST_ADD=1 (default AKTIF)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
 
