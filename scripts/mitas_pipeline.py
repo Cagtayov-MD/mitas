@@ -1060,6 +1060,7 @@ def main(argv=None) -> int:
     audio_path = clip_dir / "audio" / "audio16k.wav"
     _detect_changed = False   # SONUÇ-TEMELLİ YEDEK: detect penceresi sabit-varsayılandan saptı mı?
     dur_sec = 0.0
+    _giris_start = 0.0        # GİRİŞ capture başlangıcı (kural: 0'dan DEĞİL, tespit edilen jenerik-başından)
 
     # ===== BLOK ÇÖZ (ffmpeg: specs + native frame + ses) =====
     t0 = time.perf_counter()
@@ -1086,16 +1087,18 @@ def main(argv=None) -> int:
                     _both = last_json(_outd) or {}
                     _opening = _both.get("opening") or {}
                     _closing = _both.get("closing") or {}
-                    # --- GİRİŞ penceresi (head) — yalnız GÜVEN ≥ eşik ise uzat (düşük güven → sabit head; 12dk israf YOK) ---
+                    # --- GİRİŞ penceresi — GÜVEN ≥ eşik ise: 0'dan DEĞİL tespit edilen jenerik-BAŞINDAN başla
+                    # (KURAL, Çağatay 2026-06-15: öncesi logo/cold-open footage → süpürme = gürültü). düşük güven → sabit ---
                     _op_conf = float(_opening.get("confidence") or 0.0)
                     if _opening.get("found") and _opening.get("end_sec") is not None and _op_conf >= _DETECT_MINCONF:
                         _new_head = max(args.ocr_head, float(_opening["end_sec"]) + 5.0)
                         _new_head = min(_new_head, 720.0)
                         head = min(_new_head, dur_sec or _new_head)
+                        _giris_start = max(0.0, float(_opening.get("start_sec") or 0.0) - 5.0)   # 0'dan DEĞİL
                         log_event("credit_detect_opening",
                                   summary=f"{video.name}: GİRİŞ jenerik {_opening.get('type')} "
                                           f"@ {float(_opening.get('start_sec', 0)):.0f}s–{float(_opening['end_sec']):.0f}s "
-                                          f"(conf {_op_conf:.3f}) → head={head:.0f}s",
+                                          f"(conf {_op_conf:.3f}) → pencere {_giris_start:.0f}s–{head:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "opening": _opening})
                     else:
@@ -1105,19 +1108,20 @@ def main(argv=None) -> int:
                                   summary=f"{video.name}: GİRİŞ jenerik {_why} — sabit head={head:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "opening": _opening})
-                    # --- ÇIKIŞ penceresi (_cik_start) — GÜVEN ≥ eşik ise başlangıcı öne çek; pencere DAİMA film sonuna kadar ---
-                    # FIX (Çağatay 2026-06-15): eski 600s-cap kuyrukta no-regress'i kırıyordu (BAŞKA BİR DÜNYA:
-                    # detect erken sahte-scroll'a kilitlenip pencereyi 4628+600=5228'de kesti, gerçek jenerik
-                    # 5298–5538'de → kaçtı). Artık _cik_len = film-sonuna-kadar → eski-varsayılan DAİMA altküme.
+                    # --- ÇIKIŞ penceresi — GÜVEN ≥ eşik ise: başlangıcı tespit-başına çek + tespit-SONUNDA bitir
+                    # (KURAL, Çağatay 2026-06-15: film-sonuna GİTME → arası footage = gürültü). Eğer tespit yanılırsa
+                    # (erken/kısa) → OCR satırı düşük → SONUÇ-TEMELLİ YEDEK eski sabit pencereyle re-OCR yapar (ağ).
                     _cl_conf = float(_closing.get("confidence") or 0.0)
                     if _closing.get("found") and _closing.get("start_sec") is not None and _cl_conf >= _DETECT_MINCONF:
-                        _ds = max(0.0, float(_closing["start_sec"]) - 5.0)   # 5s emniyet payı
-                        _cik_start = min(_ds, _cik_start)                    # asla eski-pencereden GEÇ başlama
-                        _cik_len = dur_sec - _cik_start                      # ADDITIVE: film sonuna kadar (cap KALDIRILDI)
+                        _ds = max(0.0, float(_closing["start_sec"]) - 5.0)            # 5s emniyet payı
+                        _cik_start = min(_ds, _cik_start)                            # asla eski-pencereden GEÇ başlama
+                        _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
+                        _cik_end = min(dur_sec, max(_ce, _cik_start + 30.0))         # film-sonuna GİTME; en az 30s
+                        _cik_len = _cik_end - _cik_start
                         log_event("credit_detect_closing",
                                   summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
-                                          f"@ {float(_closing['start_sec']):.0f}s "
-                                          f"(conf {_cl_conf:.3f}) → pencere {_cik_start:.0f}s +{_cik_len:.0f}s",
+                                          f"@ {float(_closing['start_sec']):.0f}s–{float(_closing.get('end_sec') or 0):.0f}s "
+                                          f"(conf {_cl_conf:.3f}) → pencere {_cik_start:.0f}s–{_cik_end:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "closing": _closing})
                     else:
@@ -1133,11 +1137,13 @@ def main(argv=None) -> int:
                               module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
             # SONUÇ-TEMELLİ YEDEK bayrağı: detect pencereyi sabit-varsayılandan saptırdı mı?
             _detect_changed = (abs(head - min(args.ocr_head, dur_sec or args.ocr_head)) > 0.5
-                               or abs(_cik_start - max(0.0, dur_sec - args.ocr_tail)) > 0.5)
+                               or abs(_cik_start - max(0.0, dur_sec - args.ocr_tail)) > 0.5
+                               or _giris_start > 0.5)
             nf_c = extract_window(video, cikis_frames, prefix="c", fps=args.fps,
                                   start=_cik_start, length=_cik_len)
-        # GİRİŞ kareleri: head artık dinamik (MITAS_CREDIT_DETECT=1 ise) veya sabit (kapalıysa)
-        nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps, start=0, length=head)
+        # GİRİŞ kareleri: _giris_start (0 = sabit; >0 = tespit edilen jenerik-başı) → head; KURAL: 0'dan başlama
+        nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps,
+                              start=_giris_start, length=max(1.0, head - _giris_start))
         ok_audio, aerr = extract_audio(video, audio_path)
         timings["coz"] = round(time.perf_counter() - t0, 2)
         log_event("cozumleme_completed",
