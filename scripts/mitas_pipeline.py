@@ -449,13 +449,13 @@ def xml_genre(video: Path) -> str:
         return ""
 
 
-# ── ÖZEL-TÜR SINIFLANDIRICI (Çağatay 2026-06-15): müzikal/belgesel/animasyon AYRI klasör ──
+# ── ÖZEL-TÜR SINIFLANDIRICI (Çağatay 2026-06-15): müzikal/belgesel/animasyon işlenmez ──
 # İKİ sinyal birleşir (keskin tespit):
 #   (1) XML EDIT_FMT_NAME/CONTENT imzası — TRT katalogcusunun İNSAN-ELİ işareti, yüksek isabet
 #       (ölçüm 2026-06-15: 2060 arşiv XML; ÇİZGİ/ANİMASYON=22, KURMACA OLMAYAN=14, MÜZİK/BALE=10).
 #   (2) final TÜR string (KB/IMDb türevli) — XML'in 'DRAMA' catch-all'ı belgeseli GİZLEDİĞİNDE
 #       yakalar (İKİZLER örneği: XML=DRAMA ama IMDb 'Documentary'→TÜR=BELGESEL).
-# XML imzası ÖNCE (same-title KB yanlış-eşleşmesi klasör kararını bozmasın); yoksa final-TÜR keyword.
+# XML imzası ÖNCE (same-title KB yanlış-eşleşmesi skip kararını bozmasın); yoksa final-TÜR keyword.
 _GENRE_XML_SIG = {        # EDIT_FMT_NAME → kanonik sınıf (ölçülmüş gerçek değerler)
     "KURMACA OLMAYAN": "BELGESEL", "BELGESEL": "BELGESEL", "DÖKÜDRAMA": "BELGESEL",
     "ÇİZGİ/ANİMASYON": "ANİMASYON",
@@ -473,12 +473,33 @@ def _genre_fold(s: str) -> str:
     return unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().upper()
 
 
+def _special_genre_from_text(s: str) -> str:
+    """Metnin içinde özel tür geçiyorsa kanonik tür döndür."""
+    raw = (s or "").strip()
+    if not raw:
+        return ""
+    folded = _genre_fold(raw)
+    for table in (_GENRE_XML_SIG, _GENRE_CONTENT_SIG):
+        if raw in table:
+            return table[raw]
+        for key, genre in table.items():
+            if folded == _genre_fold(key):
+                return genre
+    if "BELGESEL" in folded:
+        return "BELGESEL"
+    if "ANIMASYON" in folded:
+        return "ANİMASYON"
+    if "MUZIKAL" in folded:                    # 'MÜZİK' (music) DEĞİL — yalnız 'MÜZİKAL'
+        return "MÜZİKAL"
+    return ""
+
+
 def genre_class(video: Path, final_tur: str = "") -> str:
-    """Filmi özel-tür sınıfına sok: BELGESEL / MÜZİKAL / ANİMASYON / DİĞER (klasör-yönlendirme için).
-    1) XML EDIT_FMT_NAME/CONTENT imzası varsa onu döndür (yüksek-isabet, TRT katalog).
-    2) yoksa final TÜR string anahtar kelimesi (KB/IMDb; XML 'DRAMA' catch-all'ı yakalar).
-    3) DİĞER. (Görünür PDF TÜR'ünü DEĞİŞTİRMEZ — yalnız iç klasör-yönlendirme sinyali.)"""
-    fmt = content = ""
+    """Filmi özel-tür sınıfına sok: BELGESEL / MÜZİKAL / ANİMASYON / DİĞER (skip kararı için).
+    1) XML EDIT_FMT_NAME/CONTENT/INTENTION içinde özel tür geçiyorsa onu döndür.
+    2) yoksa final TÜR string içindeki özel tür anahtar kelimesi (KB/IMDb; XML 'DRAMA' catch-all'ı yakalar).
+    3) DİĞER. (Görünür PDF TÜR'ünü DEĞİŞTİRMEZ — yalnız skip sinyali.)"""
+    fmt = content = intent = ""
     try:
         import xml.etree.ElementTree as ET
         xp = video.with_suffix(".xml")
@@ -489,20 +510,65 @@ def genre_class(video: Path, final_tur: str = "") -> str:
                     fmt = t
                 elif n == "JT:CLASSIFICATION:EDIT_CONTENT_NAME" and not content:
                     content = t
+                elif n == "JT:CLASSIFICATION:PEV_INTENTION_NAME" and not intent:
+                    intent = t
     except Exception:  # noqa: BLE001
         pass
-    if fmt in _GENRE_XML_SIG:
-        return _GENRE_XML_SIG[fmt]
-    if content in _GENRE_CONTENT_SIG:
-        return _GENRE_CONTENT_SIG[content]
-    tf = _genre_fold(final_tur)               # 'Belgesel'/'BELGESEL'/'MÜZİKAL / DRAM' → ASCII-büyük
-    if "BELGESEL" in tf:
-        return "BELGESEL"
-    if "ANIMASYON" in tf:
-        return "ANİMASYON"
-    if "MUZIKAL" in tf:                        # 'MÜZİK' (music) DEĞİL — yalnız 'MÜZİKAL'
-        return "MÜZİKAL"
+    for value in (fmt, content, intent, final_tur):
+        special = _special_genre_from_text(value)
+        if special:
+            return special
     return "DİĞER"
+
+
+def _safe_remove_mitas_work_dir(path: Path) -> tuple[bool, str]:
+    """Yalnız MITAS çalışma kökü altındaki klasörü temizle; kaynak medyaya dokunma."""
+    try:
+        root = DB_ROOT.resolve()
+        target = path.resolve()
+        if target == root or root not in target.parents:
+            return False, f"unsafe_target:{target}"
+        if not target.exists():
+            return True, "not_created"
+        shutil.rmtree(target)
+        return True, "deleted"
+    except Exception as exc:  # noqa: BLE001
+        return False, str(exc)
+
+
+def _skip_special_genre(video: Path, clip_dir: Path, *, media_id: str, trt: str, title: str,
+                        profile: str, tur_xml: str, genre_name: str, reason: str,
+                        stage: str) -> int:
+    cleanup_ok, cleanup_note = _safe_remove_mitas_work_dir(clip_dir)
+    log_event(
+        "media_skipped_special_genre",
+        summary=f"{video.name}: {reason}; işleme alınmadı.",
+        module="pipeline",
+        media_id=media_id,
+        filename=video.name,
+        detail={
+            "trt_id": trt,
+            "title": title,
+            "profile": profile,
+            "tur_xml": tur_xml,
+            "genre_class": genre_name,
+            "stage": stage,
+            "work_dir": str(clip_dir),
+            "work_dir_cleanup_ok": cleanup_ok,
+            "work_dir_cleanup": cleanup_note,
+            "source_deleted": False,
+        },
+    )
+    print(json.dumps({
+        "karar": "Silindi",
+        "neden": [reason],
+        "tur": genre_name,
+        "stage": stage,
+        "hub": str(clip_dir),
+        "calisma_klasoru": cleanup_note,
+        "kaynak_silindi": False,
+    }, ensure_ascii=False))
+    return 0
 
 
 def ffprobe_specs(video: Path):
@@ -560,6 +626,87 @@ def write_json(p: Path, obj):
     tmp = p.with_name(p.name + ".tmp")            # 1.10 atomik yazim: kismi/bozuk JSON birakma
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(str(tmp), str(p))
+
+
+_PERSON_GATE_HEADERS = [
+    "TRT_ID", "Film", "Karar", "Rol", "Durum", "Okunan", "PDF_Yazilan",
+    "Kaynak", "Harf_Farki", "Neden", "Teslim_PDF", "Saat",
+]
+
+
+def _person_gate_excel_rows(trt: str, title: str, karar: str, gate_report: dict, dest: Path) -> list[list]:
+    """Yalnız DÜŞEN ve FUZZY ile DÜZELTİLEN kişi kapısı olaylarını Excel satırına çevir."""
+    role_label = {"director": "Yönetmen", "cast": "Oyuncu", "producer": "Yapımcı"}
+    rows: list[list] = []
+    if not isinstance(gate_report, dict):
+        return rows
+    for role, rep in gate_report.items():
+        if not isinstance(rep, dict):
+            continue
+        label = role_label.get(role, role)
+        for item in rep.get("kept") or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("action") != "FUZZY_DUZELDI":
+                continue
+            rows.append([
+                trt or "", title or "", karar or "", label, "FUZZY_DUZELDI",
+                item.get("in") or "", item.get("out") or "", item.get("source") or "",
+                item.get("distance") or 0, "1 harf strict fuzzy ile geçti",
+                str(dest), now_iso(),
+            ])
+        for item in rep.get("dropped") or []:
+            if isinstance(item, dict):
+                nm = item.get("in") or ""
+                reason = item.get("reason") or "global/rol eşleşmesi yok"
+            else:
+                nm = str(item)
+                reason = "global/rol eşleşmesi yok"
+            rows.append([
+                trt or "", title or "", karar or "", label, "DUSTU",
+                nm, "", "", "", reason, str(dest), now_iso(),
+            ])
+    return rows
+
+
+def _write_person_gate_excel(xlsx_path: Path, trt: str, title: str, karar: str, gate_report: dict, dest: Path) -> None:
+    """Mitas Output/export altında kişi kapısı raporunu güncelle. Fail-safe: pipeline kararını bozmaz."""
+    rows = _person_gate_excel_rows(trt, title, karar, gate_report, dest)
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, Alignment
+        from openpyxl.utils import get_column_letter
+
+        xlsx_path.parent.mkdir(parents=True, exist_ok=True)
+        if xlsx_path.exists():
+            wb = openpyxl.load_workbook(xlsx_path)
+            ws = wb.active
+        else:
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "kisi_kapisi"
+            ws.append(_PERSON_GATE_HEADERS)
+            for cell in ws[1]:
+                cell.font = Font(bold=True)
+                cell.alignment = Alignment(wrap_text=True)
+
+        # Aynı TRT tekrar işlenirse eski bulguları temizle; yeni koşu tek gerçek olsun.
+        for r in range(ws.max_row, 1, -1):
+            if str(ws.cell(r, 1).value or "") == str(trt or ""):
+                ws.delete_rows(r, 1)
+
+        for row in rows:
+            ws.append(row)
+
+        widths = [18, 34, 12, 12, 16, 28, 28, 18, 10, 36, 58, 22]
+        for idx, width in enumerate(widths, 1):
+            ws.column_dimensions[get_column_letter(idx)].width = width
+        ws.freeze_panes = "A2"
+        wb.save(xlsx_path)
+    except Exception as exc:  # noqa: BLE001
+        log_event("person_gate_excel_failed", level="warn",
+                  summary=f"kişi kapısı Excel yazılamadı: {exc}", module="qc",
+                  detail={"xlsx": str(xlsx_path), "trt": trt, "rows": len(rows)})
 
 
 def _env_int(name: str, default: int) -> int:
@@ -1029,6 +1176,18 @@ def main(argv=None) -> int:
     while (DB_ROOT / dir_name).exists():
         dir_name = f"{clean} {n}"; n += 1
     clip_dir = DB_ROOT / dir_name
+
+    early_genre_class = genre_class(video, tur_xml)
+    early_skip_profile = profile in ("belgesel", "muzik", "muzik_eglence", "animasyon")
+    if early_genre_class in ("BELGESEL", "MÜZİKAL", "ANİMASYON") or early_skip_profile:
+        reason = f"XML tür {early_genre_class}" if early_genre_class != "DİĞER" else f"profil {profile}"
+        skip_genre = early_genre_class if early_genre_class != "DİĞER" else profile.upper()
+        return _skip_special_genre(
+            video, clip_dir,
+            media_id=media_id, trt=trt, title=title, profile=profile,
+            tur_xml=tur_xml, genre_name=skip_genre, reason=reason, stage="early_xml",
+        )
+
     (clip_dir / "source").mkdir(parents=True, exist_ok=True)
     (clip_dir / "frames").mkdir(parents=True, exist_ok=True)
     (clip_dir / "ocr").mkdir(parents=True, exist_ok=True)
@@ -1553,6 +1712,8 @@ def main(argv=None) -> int:
                 v4_cmd += ["--year", str(film_year)]
             if video_credits:
                 v4_cmd += ["--video-credits", json.dumps(video_credits, ensure_ascii=False)]
+            if xml_role_map:
+                v4_cmd += ["--xml-roles", json.dumps(xml_role_map, ensure_ascii=False)]
             v4_cmd += ["--profile", profile]               # Fix 3b: film/dizi → tek_film_kunye.py'e ilet
             if tur_xml:
                 v4_cmd += ["--tur", tur_xml]
@@ -1611,6 +1772,7 @@ def main(argv=None) -> int:
 
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []
+    _person_gate_report = {}
     if ocr_bucket not in ("GUVENILIR",):
         reasons.append(f"OCR bucket={ocr_bucket}")
     if asr_status not in ("done", "ATLANDI", "skipped_unsupported_lang"):  # Kürtçe-atla = kasıtlı, Kontrol DEĞİL
@@ -1652,6 +1814,19 @@ def main(argv=None) -> int:
                     except Exception:  # noqa: BLE001
                         _v4j = None
                 _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
+                _gate4 = _cc4.get("global_person_gate") or {}
+                _person_gate_report = _gate4 if isinstance(_gate4, dict) else {}
+                _gate_drops = []
+                if isinstance(_gate4, dict):
+                    for _role, _gr in _gate4.items():
+                        if isinstance(_gr, dict):
+                            for _nm in (_gr.get("dropped") or []):
+                                if isinstance(_nm, dict):
+                                    _gate_drops.append(f"{_role}:{_nm.get('in') or ''}")
+                                else:
+                                    _gate_drops.append(f"{_role}:{_nm}")
+                if _gate_drops:
+                    reasons.append("global kişi kapısı düşürdü: " + ", ".join(_gate_drops[:6]))
                 # VERSİYON GÜVENLİĞİ (OCR-otorite kanunu 2026-06-13): web YALNIZ title+year ile kilitlediyse
                 # (qc2_web method=tmdb; cast/yönetmen bağımsız teyit YOK) = versiyon BELİRSİZ (aynı başlık
                 # 88/96 farklı film riski). Asla otomatik ONAYLI değil → KONTROL (insan versiyonu onaylar).
@@ -1787,15 +1962,16 @@ def main(argv=None) -> int:
         route_info = _r
     except Exception as _rexc:  # noqa: BLE001 — FAIL-SAFE: router hatası → ESKİ karar geçerli kalır
         route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
-    # ── TÜR-AYRIM ÜST-GEÇİŞİ (Çağatay 2026-06-15): müzikal/belgesel/animasyon TÜR'e göre AYRI klasör.
-    #    QC'den BAĞIMSIZ — temiz olsa bile bu 3 tür ayrılır ("ayır direkt"). XML imzası + final TÜR keskin.
+    # ── ÖZEL-TÜR SON KAPISI: müzikal/belgesel/animasyon teslim edilmez.
+    #    XML erken kapı yakalayamadıysa final TÜR burada son kez kesilir; eski "ayrı klasöre koy" davranışı yok.
     try:
         _gk = genre_class(video, tur_final)
         if _gk in ("BELGESEL", "MÜZİKAL", "ANİMASYON"):
-            karar = "TürAyrı"
-            dest_root = EXPORT_ROOT / "KONTROL" / "MÜZİKAL-BELGESEL-ANİMASYON"
-            route_info = {"genre_separated": _gk,
-                          **(route_info if isinstance(route_info, dict) else {})}
+            return _skip_special_genre(
+                video, clip_dir,
+                media_id=media_id, trt=trt, title=title, profile=profile,
+                tur_xml=tur_xml, genre_name=_gk, reason=f"final tür {_gk}", stage="final_genre",
+            )
     except Exception as _gexc:  # noqa: BLE001 — FAIL-SAFE: tür-tespit hatası kararı bozmaz
         pass
     dest_root.mkdir(parents=True, exist_ok=True)
@@ -1805,9 +1981,7 @@ def main(argv=None) -> int:
     _safe_title = re.sub(r'[\\/:*?"<>|]+', " ", (title or "")).strip()
     # KONTROL filmlerinin dosya adına SORUN ETİKETİ yaz (örn. '_YONETMEN_KIMLIK') → açmadan görünür
     _kontrol_lbl = ""
-    if isinstance(route_info, dict) and route_info.get("genre_separated"):
-        _kontrol_lbl = " _" + str(route_info["genre_separated"])      # _BELGESEL / _MÜZİKAL / _ANİMASYON
-    elif isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
+    if isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
         _kontrol_lbl = " _" + str(route_info["kontrol_tip"]).replace("+", "_")
     base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
     pdf_src = Path(pdf_info.get("pdf_path") or "")
@@ -1817,6 +1991,8 @@ def main(argv=None) -> int:
     dest = dest_root / f"{base_name}{ext}"
     if src_file:
         shutil.copy2(src_file, dest)
+    _write_person_gate_excel(EXPORT_ROOT / "_KISI_KAPISI_RAPORU.xlsx",
+                             trt or "", title or "", karar, _person_gate_report, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
     try:
         surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final)

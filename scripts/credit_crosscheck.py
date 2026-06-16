@@ -93,6 +93,68 @@ def _lev(a, b, cap=3):
         prev = cur
     return prev[lb]
 
+def _name_tokens_strict(s):
+    toks = [t for t in fold(s).split() if t]
+    if len(toks) < 2:
+        return []
+    if not any(len(t) >= 3 for t in toks):
+        return []
+    return toks
+
+def strict_name_close(a, b, max_edits=1):
+    """Global kişi kapısı için dar fuzzy: tek kelime yok, token sırası aynı, toplam 1 harf."""
+    ta, tb = _name_tokens_strict(a), _name_tokens_strict(b)
+    if not ta or not tb or len(ta) != len(tb):
+        return False
+    total = 0
+    for x, y in zip(ta, tb):
+        if not x or not y or x[0] != y[0]:
+            return False
+        if len(x) == 1 or len(y) == 1:
+            if x != y:
+                return False
+            continue
+        d = _lev(x, y, max_edits)
+        if d > 1:
+            return False
+        total += d
+        if total > max_edits:
+            return False
+    return True
+
+def strict_name_distance(a, b, max_edits=1):
+    if not strict_name_close(a, b, max_edits=max_edits):
+        return max_edits + 1
+    return sum(_lev(x, y, max_edits) for x, y in zip(_name_tokens_strict(a), _name_tokens_strict(b)))
+
+def _one_edit_name_folds(name, max_variants=2500):
+    """Aynı token sayısını koruyarak 0/1 harf varyantları üret; global DB taramasını IN sorgusuna indir."""
+    toks = _name_tokens_strict(name)
+    if not toks:
+        return []
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    out = {" ".join(toks)}
+    for i, tok in enumerate(toks):
+        variants = {tok}
+        if len(tok) > 1:
+            for pos in range(1, len(tok)):  # ilk harf sabit: yanlış global snap'i azaltır
+                variants.add(tok[:pos] + tok[pos + 1:])
+                for ch in alpha:
+                    if ch != tok[pos]:
+                        variants.add(tok[:pos] + ch + tok[pos + 1:])
+            for pos in range(1, len(tok) + 1):
+                for ch in alpha:
+                    variants.add(tok[:pos] + ch + tok[pos:])
+        for v in variants:
+            if not v:
+                continue
+            nt = list(toks)
+            nt[i] = v
+            out.add(" ".join(nt))
+            if len(out) >= max_variants:
+                return sorted(out)
+    return sorted(out)
+
 def name_close(a, b):
     """AYNI kişinin OCR-misread varyantı mı — YAZIM düzeltme için (gating DEĞİL).
 
@@ -229,6 +291,148 @@ class CreditKB:
             except Exception:
                 pass
         return out
+
+    def _imdb_people_by_folds(self, folds):
+        if not self.imdb or not folds:
+            return []
+        out = []
+        exprs = (
+            "trim(regexp_replace(lower(strip_accents(primaryName)),'[^a-z0-9]+',' ','g'))",
+            "trim(regexp_replace(lower(primaryName),'[^a-z0-9]+',' ','g'))",
+        )
+        for expr in exprs:
+            try:
+                for i in range(0, len(folds), 400):
+                    chunk = list(folds[i:i + 400])
+                    ph = ",".join(["?"] * len(chunk))
+                    rows = self.imdb.execute(
+                        f"SELECT nconst, primaryName, primaryProfession FROM names WHERE {expr} IN ({ph}) LIMIT 200",
+                        chunk,
+                    ).fetchall()
+                    out.extend(rows)
+                break
+            except Exception:
+                out = []
+                continue
+        seen, dedup = set(), []
+        for nc, nm, prof in out:
+            if nc in seen:
+                continue
+            seen.add(nc)
+            dedup.append((nc, nm, prof or ""))
+        return dedup
+
+    def _imdb_role_ok(self, nconst, role, professions=""):
+        profs = {p.strip().lower() for p in str(professions or "").split(",") if p.strip()}
+        if role == "cast":
+            if profs & {"actor", "actress"}:
+                return True
+            try:
+                r = self.imdb.execute(
+                    "SELECT 1 FROM principals WHERE nconst=? AND category IN ('actor','actress') LIMIT 1",
+                    [nconst],
+                ).fetchone()
+                return bool(r)
+            except Exception:
+                return False
+        if role == "producer":
+            if "producer" in profs:
+                return True
+            try:
+                r = self.imdb.execute(
+                    "SELECT 1 FROM principals WHERE nconst=? AND category='producer' LIMIT 1",
+                    [nconst],
+                ).fetchone()
+                return bool(r)
+            except Exception:
+                return False
+        if role == "director":
+            if "director" in profs:
+                return True
+            try:
+                r = self.imdb.execute("SELECT 1 FROM crew WHERE directors LIKE ? LIMIT 1", [f"%{nconst}%"]).fetchone()
+                return bool(r)
+            except Exception:
+                return False
+        return False
+
+    def _wd_people_by_folds(self, folds):
+        if not self.wd or not folds:
+            return []
+        out = []
+        exprs = (
+            ("trim(regexp_replace(lower(strip_accents(label_tr)),'[^a-z0-9]+',' ','g'))",
+             "trim(regexp_replace(lower(strip_accents(label_en)),'[^a-z0-9]+',' ','g'))"),
+            ("trim(regexp_replace(lower(label_tr),'[^a-z0-9]+',' ','g'))",
+             "trim(regexp_replace(lower(label_en),'[^a-z0-9]+',' ','g'))"),
+        )
+        for expr_tr, expr_en in exprs:
+            try:
+                for i in range(0, len(folds), 400):
+                    chunk = list(folds[i:i + 400])
+                    ph = ",".join(["?"] * len(chunk))
+                    rows = self.wd.execute(
+                        f"SELECT qid, coalesce(label_tr, label_en) FROM qid_labels "
+                        f"WHERE {expr_tr} IN ({ph}) OR {expr_en} IN ({ph}) LIMIT 200",
+                        chunk + chunk,
+                    ).fetchall()
+                    out.extend(rows)
+                break
+            except Exception:
+                out = []
+                continue
+        seen, dedup = set(), []
+        for qid, nm in out:
+            if qid in seen:
+                continue
+            seen.add(qid)
+            dedup.append((qid, nm))
+        return dedup
+
+    def _wd_role_ok(self, qid, role):
+        if not self.wd or not qid:
+            return False
+        if role == "cast":
+            fields = ("cast_member",)
+        elif role == "director":
+            fields = ("director",)
+        elif role == "producer":
+            fields = ("producer", "produced_by")
+        else:
+            return False
+        for field in fields:
+            try:
+                r = self.wd.execute(
+                    f"SELECT 1 FROM works_master WHERE {field} LIKE ? LIMIT 1",
+                    [f"%{qid}%"],
+                ).fetchone()
+                if r:
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def global_person_match(self, name, role="cast", max_edits=1):
+        """Filmden bağımsız kişi kapısı: global IMDb/Wiki içinde role uygun, 0/1 harf eşleşme."""
+        role = {"actor": "cast", "actress": "cast", "oyuncu": "cast",
+                "yonetmen": "director", "yönetmen": "director",
+                "yapimci": "producer", "yapımcı": "producer"}.get(str(role).lower(), role)
+        folds = _one_edit_name_folds(name)
+        if not folds:
+            return None
+        matches = []
+        for nc, nm, prof in self._imdb_people_by_folds(folds):
+            if strict_name_close(name, nm, max_edits=max_edits) and self._imdb_role_ok(nc, role, prof):
+                matches.append({"source": "imdb-global", "id": nc, "name": nm,
+                                "distance": strict_name_distance(name, nm, max_edits=max_edits)})
+        for qid, nm in self._wd_people_by_folds(folds):
+            if strict_name_close(name, nm, max_edits=max_edits) and self._wd_role_ok(qid, role):
+                matches.append({"source": "wikidata-global", "id": qid, "name": nm,
+                                "distance": strict_name_distance(name, nm, max_edits=max_edits)})
+        if not matches:
+            return None
+        matches.sort(key=lambda m: (m["distance"], 0 if m["source"] == "wikidata-global" else 1, m["name"]))
+        return matches[0]
 
     def imdb_credits(self, tconst):
         director, cast = [], []

@@ -27,6 +27,7 @@ OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
 # aktif). Kimlik GERÇEKTEN emin olmalı: OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI
 # cast → ORTA/Kontrol. EKLE-only (OCR önde, KB sonra; asla ezme/yeniden-sırala). MITAS_KB_CAST_ADD=0 kapatır.
 _ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "1").strip().lower() not in ("0", "false", "off", "no")
+_GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)
@@ -167,6 +168,83 @@ def _split_dedup_names(lst):
                 out.append(part)
     return out
 
+def _parse_xml_roles_arg(raw):
+    if not raw:
+        return {}
+    try:
+        d = json.loads(raw)
+        if not isinstance(d, dict):
+            return {}
+        return {
+            "oyuncu": [str(x).strip() for x in (d.get("oyuncu") or []) if str(x).strip()],
+            "yonetmen": [str(x).strip() for x in (d.get("yonetmen") or []) if str(x).strip()],
+            "yapimci": [str(x).strip() for x in (d.get("yapimci") or []) if str(x).strip()],
+        }
+    except Exception:
+        return {}
+
+def _xml_pool(xml_roles, role):
+    if role == "cast":
+        return xml_roles.get("oyuncu") or []
+    if role == "director":
+        return xml_roles.get("yonetmen") or []
+    if role == "producer":
+        return xml_roles.get("yapimci") or []
+    return []
+
+def _strict_pool_hit(name, pool):
+    if not name or not pool or _cc is None:
+        return None
+    for p in pool:
+        if _cc.name_match(name, p):
+            return {"name": p, "match": "exact", "distance": 0}
+        if _cc.strict_name_close(name, p):
+            return {"name": p, "match": "fuzzy", "distance": _cc.strict_name_distance(name, p)}
+    return None
+
+def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
+    """Resmi kişi alanı kapısı: XML → film rol havuzu → global IMDb/Wiki kişi doğrulama."""
+    names = [n for n in (names or []) if str(n).strip()]
+    report = {"enabled": bool(_GLOBAL_PERSON_GATE_ON), "role": role, "kept": [], "dropped": []}
+    if not _GLOBAL_PERSON_GATE_ON or _cc is None:
+        return names, report
+    xml_pool = _xml_pool(xml_roles or {}, role)
+    film_pool = [x for x in (film_pool or []) if str(x).strip()]
+    gate_available = bool(xml_pool or film_pool or (kb is not None and (getattr(kb, "imdb", None) or getattr(kb, "wd", None))))
+    if not gate_available:
+        report["unavailable"] = True
+        return names, report
+    out = []
+    for nm in names:
+        src = None
+        hit = _strict_pool_hit(nm, xml_pool)
+        if hit:
+            src = "xml"
+        if not hit:
+            hit = _strict_pool_hit(nm, film_pool)
+            if hit:
+                src = "film_pool"
+        if not hit and kb is not None:
+            try:
+                m = kb.global_person_match(nm, role=role, max_edits=1)
+            except Exception:
+                m = None
+            if m:
+                hit = {"name": m.get("name"), "match": "fuzzy" if (m.get("distance") or 0) > 0 else "exact",
+                       "distance": m.get("distance") or 0}
+                src = m.get("source") or "global"
+        if hit and hit.get("name"):
+            canon = hit["name"]
+            if not any(_cc.name_match(canon, x) or _cc.strict_name_close(canon, x) for x in out):
+                out.append(canon)
+            action = "FUZZY_DUZELDI" if (hit.get("distance") or 0) > 0 else "GECTI"
+            report["kept"].append({"in": nm, "out": canon, "source": src,
+                                   "match": hit.get("match"), "distance": hit.get("distance") or 0,
+                                   "action": action})
+        else:
+            report["dropped"].append({"in": nm, "action": "DUSTU", "reason": "tek-kelime veya global/rol eşleşmesi yok"})
+    return out, report
+
 def main():
     ap = argparse.ArgumentParser(description="Tek klip → temiz v4 künye PDF (uçtan uca)")
     ap.add_argument("--clip", required=True, help="klip klasörü (frames/ ve pdf/kunye_teslim.md içerir)")
@@ -175,6 +253,7 @@ def main():
     ap.add_argument("--year", default=None)
     ap.add_argument("--title", default=None, help="TR başlık override")
     ap.add_argument("--video-credits", default=None, help="önceden hesaplanmış video-okuma JSON (verilirse 1. adım atlanır)")
+    ap.add_argument("--xml-roles", default="", help="XML rol ankrajı JSON: {oyuncu,yonetmen,yapimci}")
     ap.add_argument("--profile", default="film", choices=["film", "dizi"])    # Fix 3a
     ap.add_argument("--bolum", default=None)                                   # Fix 3a
     ap.add_argument("--tur", default=None, help="XML'den gelen tür (DRAMA vb.)")
@@ -187,6 +266,7 @@ def main():
     meta = parse_teslim_md(md)
     title = a.title or meta.get("title") or os.path.basename(clip.rstrip("/\\"))
     trt = meta.get("trt_id") or "—"
+    xml_roles = _parse_xml_roles_arg(a.xml_roles)
     rapor = {"adimlar": {}}
 
     # 1) KÜNYE-OKUMA (pipeline önceden hesapladıysa onu kullan; yoksa OneOCR+GLM METNİNDEN rol-eşle)
@@ -213,6 +293,7 @@ def main():
     yon = vc.get("yonetmen") or []
     cast = vc.get("cast") or []
     yap = vc.get("yapimci") or []
+    _yon_ocr_original = list(yon)
 
     # FIX-1: Credit-cümle filtresi — "BASED ON THE POPEYE CHARACTERS..." gibi OCR jenerik
     # metinleri yönetmen olarak geçmesin. Kapı: uzun (>60 karakter) veya bilinen credit ifadesi.
@@ -441,14 +522,46 @@ def main():
             sys.stderr.write(f"[uyari] QC2 atlandı: {_qe}\n")
     if not yap and cc.get("yapimci"):
         yap = cc["yapimci"]
+    cast = _split_dedup_names(cast)
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
+
+    # GLOBAL KİŞİ KAPISI (2026-06-16): XML aynı rolde ilk ankraj; yoksa film havuzu; yoksa
+    # global IMDb/Wiki kişi doğrulama. Tek kelime ve 1 harften fazla fuzzy resmi PDF alanına girmez.
+    _gate_reports = {}
+    if _GLOBAL_PERSON_GATE_ON and _cc is not None:
+        _kb_gate = None
+        try:
+            _kb_gate = _cc.CreditKB()
+            _yon_gate_in = yon or _yon_ocr_original
+            yon, _gate_reports["director"] = _gate_role_names(
+                _yon_gate_in, "director", xml_roles=xml_roles, film_pool=auth_yon, kb=_kb_gate
+            )
+            cast, _gate_reports["cast"] = _gate_role_names(
+                cast, "cast", xml_roles=xml_roles, film_pool=auth, kb=_kb_gate
+            )
+            yap, _gate_reports["producer"] = _gate_role_names(
+                yap, "producer", xml_roles=xml_roles, film_pool=(cc.get("yapimci") or []), kb=_kb_gate
+            )
+            _cast_garble = list((_gate_reports.get("cast") or {}).get("dropped") or [])
+            if not yon and _yon_gate_in:
+                yon_kaynak = "okunamadı (XML/film/global kişi kapısından geçmedi)"
+        except Exception as _ge:  # noqa: BLE001
+            sys.stderr.write(f"[uyari] global kişi kapısı atlandı: {_ge}\n")
+        finally:
+            try:
+                if _kb_gate is not None:
+                    _kb_gate.close()
+            except Exception:
+                pass
     tur = cc.get("tur") or a.tur or "—"
     afis = _web_afis or cc.get("afis")   # QC2-web afişi ÖNCELİKLİ (KB'de afiş yok ama web bulduysa korunur)
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
                                        "cast_add_tier": cast_add_tier, "afis": bool(afis),
-                                       "cast_garble": bool(_cast_garble)}
+                                       "cast_garble": bool(_cast_garble),
+                                       "global_person_gate": _gate_reports,
+                                       "xml_roles": {k: len(v) for k, v in xml_roles.items()}}
 
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)
