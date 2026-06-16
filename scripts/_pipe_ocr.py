@@ -20,7 +20,7 @@ aynen yazilir, isim DROP edilmez (stitch KEEP-ALL). stdout'a tek satir JSON
 sonuc basar; sema (status/kunye_path/kunye_line_count/bucket/engine) DEGISMEZ.
 """
 from __future__ import annotations
-import os, sys, json, glob, time, unicodedata, argparse, importlib.util, threading
+import os, sys, json, glob, time, unicodedata, argparse, importlib.util
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -715,9 +715,9 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
 
 
 def _run_paddle_sidecar(frames: list[Path], out: Path) -> None:
-    """PaddleOCR-GPU side-channel (paralel thread). FAIL-SAFE: hata = sessiz, paddle_kunye.txt yazilmaz.
+    """PaddleOCR-GPU side-channel (opt-in). FAIL-SAFE: hata = sessiz, paddle_kunye.txt yazilmaz.
 
-    OneOCR ile ayni anda kosar; sonuc `out/paddle_kunye.txt`'ye kaydedilir.
+    MITAS_OCR_PADDLE=1 verilirse calisir; sonuc `out/paddle_kunye.txt`'ye kaydedilir.
     Zaman icinde OneOCR'in tokezdigi yerlerde karsilastirma icin kullanilir.
     head+tail ornekleme: ilk yarim + ikinci yarim (reader500.py basson ile ayni).
     """
@@ -771,6 +771,22 @@ def _run_paddle_sidecar(frames: list[Path], out: Path) -> None:
                 f"HATA {type(exc).__name__}: {exc}\n{traceback.format_exc()}", encoding="utf-8")
         except Exception:  # noqa: BLE001
             pass
+
+
+def _paddle_sidecar_enabled() -> bool:
+    """PaddleOCR side-channel is disabled by default; enable only for explicit experiments."""
+    return os.environ.get("MITAS_OCR_PADDLE", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _write_paddle_disabled_status(out: Path) -> None:
+    """Keep output telemetry explicit and avoid counting stale paddle_kunye.txt from reused dirs."""
+    try:
+        stale = out / "paddle_kunye.txt"
+        if stale.exists():
+            stale.unlink()
+        (out / "paddle_status.txt").write_text("DISABLED MITAS_OCR_PADDLE=0\n", encoding="utf-8")
+    except Exception:
+        pass
 
 
 def main(argv=None) -> int:
@@ -841,17 +857,22 @@ def main(argv=None) -> int:
     summary["master_png"] = res.get("master_png")
     summary["master_lines_count"] = res.get("master_lines_count", 0)
     summary["master_error"] = res.get("master_error")
+    paddle_enabled = _paddle_sidecar_enabled()
+    summary["paddle_enabled"] = paddle_enabled
+    summary["paddle_status"] = "enabled" if paddle_enabled else "disabled"
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # PaddleOCR yan-kanalı: ana OCR okuması (pipeline100/OneOCR + CLIP) BİTTİ → import yarışı yok.
-    # SENKRON koş (thread değil); whisper hâlâ ayrı süreçte koştuğu için onunla PARALEL kalır.
-    if frames:
+    # PaddleOCR yan-kanalı varsayılan KAPALI. Yalnız MITAS_OCR_PADDLE=1 ile deneysel açılır.
+    # Kapalıyken PaddleOCR import edilmez ve eski paddle_kunye.txt kalıntısı sayılmaz.
+    if frames and paddle_enabled:
         _run_paddle_sidecar(frames, out)
+    elif frames:
+        _write_paddle_disabled_status(out)
 
     paddle_lines = 0
     _ppath = out / "paddle_kunye.txt"
-    if _ppath.exists():
+    if paddle_enabled and _ppath.exists():
         try:
             paddle_lines = sum(1 for l in _ppath.read_text(encoding="utf-8").splitlines() if l.strip())
         except Exception:  # noqa: BLE001
