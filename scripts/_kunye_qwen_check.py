@@ -25,7 +25,7 @@ PROMPT = (
     '  "hepsi_buyuk_harf": true|false,      // OYUNCULAR+YAPIM EKİBİ isimleri TAMAMEN BÜYÜK harf mi\n'
     '  "turkce_karakter_bozuk_var": true|false, // İ/Ş/Ç/Ğ/Ö/Ü yerine bozuk/yanlış karakter var mı\n'
     '  "latin_disi_alfabe_var": true|false,  // Latin DISI alfabe harfi GORUYOR musun: Kiril (Ж Д И), Yunan (Ω Δ), Arap (ع), Cince/Japon/Kore (中 日 한). Kunye SADECE Latin olmali; boyle bir harf varsa true\n'
-    '  "yabanci_ad_ascii_degil": true|false, // Acikca YABANCI (Turk olmayan) bir isimde Turkce-OLMAYAN aksan var mi: e-acute(é) n-tilde(ñ) o-slash(ø) a-tilde(ã) s-caron(š). DIKKAT: Turkce ç ğ ı İ ö ş ü NORMALDIR -> onlari ISARETLEME. Yabanci ad SADE ASCII olmali (FRANCOIS, JOSE)\n'
+    '  "yabanci_ad_ascii_degil": true|false, // Acikca YABANCI (Turk olmayan) bir kisi adinda ASCII disi harf var mi: JEAN-PİERRE, DARROUSSİN, ANDRÉ, WİLMS gibi. Turk kisi adinda ç ğ ı İ ö ş ü normaldir; yabanci kisi adi SADE ASCII olmali (JEAN-PIERRE, ANDRE, FRANCOIS, JOSE)\n'
     '  "notlar": "<kisa: eksik veya yanlis ne>"\n'
     "}\n/no_think"
 )

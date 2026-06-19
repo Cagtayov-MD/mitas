@@ -42,6 +42,10 @@ try:
     rr = _load("role_reconcile", PDFMITAS / "role_reconcile.py")
 except Exception:  # noqa: BLE001
     rr = None
+try:
+    import credit_text_read as ctr
+except Exception:  # noqa: BLE001
+    ctr = None
 
 
 def _run_json(cmd, timeout=1800):
@@ -212,6 +216,67 @@ def _xml_roles_from_args(args) -> dict | None:
     return out if any(out.values()) else None
 
 
+def _dedup_nonempty(values) -> list[str]:
+    return cp._dedup([str(v).strip() for v in (values or []) if str(v).strip()])
+
+
+def _role_fold(s: str) -> str:
+    s = str(s or "")
+    for a, b in (("ö", "o"), ("ü", "u"), ("ı", "i"), ("ş", "s"), ("ğ", "g"),
+                 ("ç", "c"), ("İ", "i"), ("Ö", "o"), ("Ü", "u"), ("Ş", "s"),
+                 ("Ğ", "g"), ("Ç", "c")):
+        s = s.replace(a, b)
+    return s.lower()
+
+
+def _set_authoritative_role(crew, role_key: str, label: str, names: list[str]):
+    key = _role_fold(role_key)
+    kept = []
+    for rol, lst in (crew or []):
+        rf = _role_fold(rol)
+        if key == "yonet":
+            same_tr = rf == "yonetmen"
+            same_en = rf == "director"
+        elif key == "yapim":
+            same_tr = rf == "yapimci"
+            same_en = rf == "producer"
+        else:
+            same_tr = key in rf
+            same_en = False
+        if not same_tr and not same_en:
+            kept.append((rol, lst))
+    if names:
+        kept.append((label, cp._dedup(names)))
+    return kept
+
+
+def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool):
+    """Use guarded text/VL credits as the PDF source of truth when supplied.
+
+    The old code augmented the mechanical kunye.txt parser output. That allowed
+    crew/music rows from flattened kunye.txt to survive even after Qwen/raw-context
+    filtering. With video_credits on, empty guarded fields are safer than wrong fields.
+    """
+    if not video_credits:
+        return cast, crew
+
+    if "cast" in video_credits:
+        cast = _dedup_nonempty(video_credits.get("cast"))
+        if not dizi:
+            cast = cast[:8]
+
+    crew = list(crew or [])
+    if "yonetmen" in video_credits:
+        crew = _set_authoritative_role(
+            crew, "yonet", "Yönetmen", _dedup_nonempty(video_credits.get("yonetmen"))
+        )
+    if "yapimci" in video_credits:
+        crew = _set_authoritative_role(
+            crew, "yapim", "Yapımcı", _dedup_nonempty(video_credits.get("yapimci"))
+        )
+    return cast, crew
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--kunye", required=True)
@@ -247,34 +312,20 @@ def main(argv=None) -> int:
     dizi = cp.is_dizi(args.profile, args.trt_id or args.title)
     profile_label = "DİZİ" if dizi else "FİLM"
     cast, crew = cp.parse_credits(raw, args.title, dizi=dizi)
-    # --- video-künye AUGMENT (flag): cast birleştir + yönetmen/yapımcı crew'e ekle ---
+    # --- video-künye AUTHORITATIVE (flag): Qwen/ham-context sonrası liste eski parser'ı ezer ---
     # Sadece --video-credits verildiyse (mitas_pipeline flag açıkken) çalışır; "" → atla.
-    # reconcile (aşağıda) augmented veriyi XML+KB ile temizler = ikinci savunma. REPLACE değil AUGMENT.
+    # Eski AUGMENT davranışı, flattened kunye.txt'ten gelen crew/müzik satırlarını geri sızdırıyordu.
     if args.video_credits:
         try:
             _vc = json.loads(args.video_credits)
         except Exception:  # noqa: BLE001
             _vc = {}
-        def _vfold(s):
-            for a, b in (("ö","o"),("ü","u"),("ı","i"),("ş","s"),("ğ","g"),("ç","c"),("İ","i")):
-                s = s.replace(a, b)
-            return s.lower()
-        _vcast = [c for c in (_vc.get("cast") or []) if c and str(c).strip()]
-        if _vcast:
-            cast = cp._dedup(list(cast) + _vcast)
-            if not dizi:
-                cast = cast[:8]
-        def _aug_crew(crew, kw, label, names):
-            names = [n for n in (names or []) if n and str(n).strip()]
-            if not names:
-                return crew
-            crew = list(crew)
-            for i, (rol, lst) in enumerate(crew):
-                if kw in _vfold(rol):
-                    crew[i] = (rol, cp._dedup(list(lst) + names)); return crew
-            crew.append((label, cp._dedup(names))); return crew
-        crew = _aug_crew(crew, "yonet", "Yönetmen", _vc.get("yonetmen"))
-        crew = _aug_crew(crew, "yapim", "Yapımcı", _vc.get("yapimci"))
+        cast, crew = _apply_video_credits_authoritative(cast, crew, _vc, dizi=dizi)
+    if ctr is not None:
+        try:
+            cast = ctr.filter_cast_by_raw_context(cast, ctr.load_raw_context_for_ocr(args.kunye))
+        except Exception:  # noqa: BLE001 - context gate must never break PDF rendering
+            pass
     # --- rol aklı: OCR rollerini XML (birincil) + meslek-DB (ikincil) ile düzelt ---
     # normalize'den ÖNCE (XML eşleşmesi ham OCR isimleriyle, fold credit_parse'tan).
     # DB/duckdb global python'da çökerse reconcile XML-only veya no-op; ASLA pipeline'ı bozma.
@@ -347,8 +398,14 @@ def main(argv=None) -> int:
 
     # Title de büyük harfle gitsin (TR-İ, yabancı ASCII): args.title ham OCR/XML olabilir.
     title_norm = nn.tr_upper((args.title or "—")[:60]) if (args.title or "").strip() else "—"
-    # Özet Sonnet'ten zaten BÜYÜK gelir; emniyet için son bir kez tr_upper-Latin-only:
-    ozet_norm = nn.tr_upper(ozet) if ozet else ozet
+    # Özet: Türkçe prose büyük harf, fakat yabancı kişi/karakter adı kökü ASCII kalmalı
+    # (FREDDİE/SOPHİE değil FREDDIE/SOPHIE).
+    _ozet_names = [n for n in (cast or []) if n and str(n).strip() and str(n).strip() != "—"]
+    for _role, _names in (crew or []):
+        for _nm in (_names if isinstance(_names, list) else [_names]):
+            if _nm and str(_nm).strip() and str(_nm).strip() != "—":
+                _ozet_names.append(str(_nm))
+    ozet_norm = nn.tr_upper_prose(ozet, names=_ozet_names) if ozet else ozet
     d = {
         "profile": profile_label, "trt": args.trt_id, "title": title_norm,
         "res": args.resolution, "tur": args.tur, "dur": args.duration, "bolum": bolum or None,

@@ -1238,18 +1238,38 @@ def main(argv=None) -> int:
             _cik_len = args.ocr_tail
             if os.environ.get("MITAS_CREDIT_DETECT", "").strip().lower() in ("1", "true", "on", "yes"):
                 try:
-                    # GÜVEN-EŞİĞİ (Çağatay 2026-06-15): detect yalnız conf ≥ eşik ise pencereyi oynatır;
-                    # düşük-güvende SABİT varsayılana düşer → ne 12dk giriş-israfı, ne yanlış-kayma.
+                    # GÜVEN-EŞİĞİ (Çağatay 2026-06-15): detect normalde conf ≥ eşik ise pencereyi oynatır.
+                    # Uzun/persistan scroll istisnası: bazı filmlerde ana cast jeneriğin başında, sabit son
+                    # pencere ise yalnız teknik ekipte kalıyor. Düşük ama makul güvenli uzun scroll'u kabul et.
                     _DETECT_MINCONF = float(os.environ.get("MITAS_CREDIT_DETECT_MINCONF", "0.60") or 0.60)
+                    _DETECT_LOWCONF = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MINCONF", "0.45") or 0.45)
+                    _DETECT_LOWSPAN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MIN_DUR", "180") or 180)
                     _rcd, _outd, _errd = run([str(PY_OCR), str(HERE / "_credit_detect.py"),
                                               "--video", str(video)], timeout=240)
                     _both = last_json(_outd) or {}
                     _opening = _both.get("opening") or {}
                     _closing = _both.get("closing") or {}
+
+                    def _credit_span_seconds(obj):
+                        try:
+                            return max(0.0, float(obj.get("end_sec") or 0.0) - float(obj.get("start_sec") or 0.0))
+                        except Exception:
+                            return 0.0
+
+                    def _accept_credit_detect(obj, conf):
+                        if conf >= _DETECT_MINCONF:
+                            return True, "normal"
+                        span = _credit_span_seconds(obj)
+                        if (obj.get("found") and str(obj.get("type") or "").lower() == "scroll"
+                                and conf >= _DETECT_LOWCONF and span >= _DETECT_LOWSPAN):
+                            return True, "uzun-scroll"
+                        return False, ""
+
                     # --- GİRİŞ penceresi — GÜVEN ≥ eşik ise: 0'dan DEĞİL tespit edilen jenerik-BAŞINDAN başla
                     # (KURAL, Çağatay 2026-06-15: öncesi logo/cold-open footage → süpürme = gürültü). düşük güven → sabit ---
                     _op_conf = float(_opening.get("confidence") or 0.0)
-                    if _opening.get("found") and _opening.get("end_sec") is not None and _op_conf >= _DETECT_MINCONF:
+                    _op_ok, _op_accept = _accept_credit_detect(_opening, _op_conf)
+                    if _opening.get("found") and _opening.get("end_sec") is not None and _op_ok:
                         _new_head = max(args.ocr_head, float(_opening["end_sec"]) + 5.0)
                         _new_head = min(_new_head, 720.0)
                         head = min(_new_head, dur_sec or _new_head)
@@ -1257,7 +1277,7 @@ def main(argv=None) -> int:
                         log_event("credit_detect_opening",
                                   summary=f"{video.name}: GİRİŞ jenerik {_opening.get('type')} "
                                           f"@ {float(_opening.get('start_sec', 0)):.0f}s–{float(_opening['end_sec']):.0f}s "
-                                          f"(conf {_op_conf:.3f}) → pencere {_giris_start:.0f}s–{head:.0f}s",
+                                          f"(conf {_op_conf:.3f}, kabul={_op_accept}) → pencere {_giris_start:.0f}s–{head:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "opening": _opening})
                     else:
@@ -1271,7 +1291,8 @@ def main(argv=None) -> int:
                     # (KURAL, Çağatay 2026-06-15: film-sonuna GİTME → arası footage = gürültü). Eğer tespit yanılırsa
                     # (erken/kısa) → OCR satırı düşük → SONUÇ-TEMELLİ YEDEK eski sabit pencereyle re-OCR yapar (ağ).
                     _cl_conf = float(_closing.get("confidence") or 0.0)
-                    if _closing.get("found") and _closing.get("start_sec") is not None and _cl_conf >= _DETECT_MINCONF:
+                    _cl_ok, _cl_accept = _accept_credit_detect(_closing, _cl_conf)
+                    if _closing.get("found") and _closing.get("start_sec") is not None and _cl_ok:
                         _ds = max(0.0, float(_closing["start_sec"]) - 5.0)            # 5s emniyet payı
                         _cik_start = min(_ds, _cik_start)                            # asla eski-pencereden GEÇ başlama
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
@@ -1280,7 +1301,7 @@ def main(argv=None) -> int:
                         log_event("credit_detect_closing",
                                   summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
                                           f"@ {float(_closing['start_sec']):.0f}s–{float(_closing.get('end_sec') or 0):.0f}s "
-                                          f"(conf {_cl_conf:.3f}) → pencere {_cik_start:.0f}s–{_cik_end:.0f}s",
+                                          f"(conf {_cl_conf:.3f}, kabul={_cl_accept}) → pencere {_cik_start:.0f}s–{_cik_end:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "closing": _closing})
                     else:
@@ -1488,10 +1509,11 @@ def main(argv=None) -> int:
             log_event("asr_failed", level="error", summary=f"ASR blogu hata: {exc}",
                       module="asr", media_id=media_id, filename=video.name, job_id=asr_job, error=str(exc), detail={"clip_id": clip_id})
 
-    # ===== BLOK KÜNYE-OKUMA (OneOCR+GLM METNİNDEN rol-eşleme; VLM DEVRE DIŞI) =====
-    # KURAL (Çağatay 2026-06-08): okuma OneOCR+GLM ile yapılır → isim kaynağı = ocr/kunye.txt.
-    # _pipe_credit_text LLM ile yalnız ROL-EŞLEME yapar (pikselden OKUMAZ; halüsinasyon kalkanlı:
-    # her isim OCR metninde olmalı). Eski VLM (credit_video_read: gemma4+qwen2.5vl) ÇIKARILDI —
+    # ===== BLOK KÜNYE-OKUMA (OneOCR ham metninden rol-eşleme; VLM DEVRE DIŞI) =====
+    # KURAL: Qwen'e mümkünse kayıplı kunye.txt değil, daha ham OCR sidecar'ı (ocr_ham/raw) verilir;
+    # temizleme/garble/KB/crew-sızıntı kapıları Qwen SONRASINDA çalışır. _pipe_credit_text LLM ile
+    # yalnız ROL-EŞLEME yapar (pikselden OKUMAZ; halüsinasyon kalkanlı: her isim OCR metninde olmalı).
+    # Eski VLM (credit_video_read: gemma4+qwen2.5vl) ÇIKARILDI —
     # pikselden okuyup HALÜSİNE ediyordu (KÖTÜ EVLAT: metin "Henry Hathaway" iken VLM "John Ford").
     # ASR'den sonra (GPU serbest), PDF'ten önce. KAPALI (MITAS_NO_VIDEO_CREDITS=1) → blok çalışmaz,
     # video_credits=None, PDF credit_parse-only'ye düşer (acil geri dönüş). Asla çökmez.
@@ -1670,9 +1692,11 @@ def main(argv=None) -> int:
             cmd += ["--xml-roles", json.dumps(xml_role_map, ensure_ascii=False)]
         if USE_VIDEO_CREDITS and video_credits:   # video-künye: PDF augment (flag açıkken)
             cmd += ["--video-credits", json.dumps(video_credits, ensure_ascii=False)]
-        # film/dizi → ses & altyazı bloğu: kaynak video + (ASR yazdıysa) kanal-dil JSON
+        # film/dizi → ses & altyazı bloğu: kaynak video + (ASR yazdıysa) kanal-dil JSON.
+        # --no-asr gerçek ASR-hariç modudur: PDF'ye --video geçme; yoksa _pipe_pdf kanal-dil
+        # için _channel_lang.py'yi ASR venv ile tekrar çalıştırır.
         _pa_pdf = PROFILE_ASR.get(profile)
-        if _pa_pdf and _pa_pdf.get("language") == "auto":
+        if (not args.no_asr) and _pa_pdf and _pa_pdf.get("language") == "auto":
             cmd += ["--video", str(video)]
             _chl = asr_out / "chlang.json"
             if _chl.exists():
@@ -1700,7 +1724,8 @@ def main(argv=None) -> int:
     # IMDb/Wikidata fallback'li nihai TÜR'ü basıyordu → .txt ≠ PDF. v4 başarınca nihai TÜR'ü (rapor JSON)
     # yakala ve surface'a ilet. v4 koşmaz/başarısızsa tur_xml fallback (eski davranış, additive).
     tur_final = tur_xml
-    if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
+    _v4_off = os.environ.get("MITAS_NO_V4_FINAL", "").strip().lower() in ("1", "true", "yes", "on")
+    if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path") and not _v4_off:
         t_v4 = time.perf_counter()
         try:
             v4_tmp = pdf_out / "kunye_v4.pdf"
@@ -1747,6 +1772,10 @@ def main(argv=None) -> int:
             v4_exc = f"{type(exc).__name__}: {exc}"
             log_event("v4_finalize_failed", level="warn", summary=f"v4 final hata (atlandi): {exc}",
                       module="pdf", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+    elif _v4_off and USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path"):
+        log_event("v4_finalize_skipped", level="info",
+                  summary=f"{video.name}: v4 final MITAS_NO_V4_FINAL ile atlandi; _pipe_pdf PDF'i korundu.",
+                  module="pdf", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
 
     # ===== qwen FINAL-QC: render edilen v4 künyeyi GÖR + beklentileri doğrula (Hazır kapısına ek) =====
     # qwen2.5vl önizleme PNG'sine bakar; SADECE-gördüğüyle eksik bulursa (placeholder özet / eksik afiş /

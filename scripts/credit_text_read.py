@@ -41,6 +41,154 @@ def _toks(s: str):
     return [t for t in _fold(s).split() if len(t) > 2]
 
 
+_CREW_CONTEXT_KW = (
+    "assistant art director", "art department", "art director", "set designer", "draftsman",
+    "art department pa", "storyboard", "construction coordinator", "lead carpenter",
+    "carpenter", "gimbal operator", "dolly grip", "key grip", "best boy", "gaffer",
+    "production sound mixer", "boom operator", "sound mixer", "sound recordist",
+    "camera", "assistant camera", "second unit camera", "director of photography",
+    "cast editing assistant", "editing assistant", "extras casting", "casting assistant",
+    "casting director", "unit production manager", "production coordinator",
+    "production accountant", "assistant director", "modeler", "modelers", "animation",
+    "animator", "supervisor", "operator", "buyer", "coordinator", "manager",
+    "department", "assistant", "technician", "designer", "editor", "mixer",
+    "performed by", "mixed by", "music", "song", "songs", "soundtrack",
+    "visual effects", "courtesy of", "records", "licensing", "arrangement",
+)
+_CAST_CONTEXT_KW = (
+    "starring", "co starring", "cast", "oyuncular", "oynayanlar",
+)
+
+
+def load_raw_context_for_ocr(ocr_path: str | os.PathLike | None) -> list[str]:
+    """Load the raw frame OCR next to kunye.txt when available.
+
+    kunye.txt is de-duplicated and may lose role adjacency. The raw files preserve enough
+    neighborhood to tell "NAME near crew role" from a real cast block.
+    """
+    if not ocr_path:
+        return []
+    base = os.path.dirname(os.fspath(ocr_path))
+    for fn in ("ocr_raw_all.txt", "ocr_ham.txt"):
+        p = os.path.join(base, fn)
+        try:
+            if os.path.exists(p):
+                lines = open(p, encoding="utf-8", errors="ignore").read().splitlines()
+                if lines:
+                    return lines
+        except Exception:
+            continue
+    return []
+
+
+def _read_ocr_sidecar_lines(base: str, filename: str) -> list[str]:
+    p = os.path.join(base, filename)
+    try:
+        if os.path.exists(p):
+            lines = open(p, encoding="utf-8", errors="ignore").read().splitlines()
+            return [line for line in lines if str(line).strip()]
+    except Exception:
+        pass
+    return []
+
+
+def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> list[str]:
+    """Keep raw OCR bounded for the LLM while preserving credit-role neighborhoods."""
+    cleaned = [str(line).strip() for line in (lines or []) if str(line).strip()]
+    if len(cleaned) <= max_lines:
+        return cleaned
+
+    hints = re.compile(
+        r"\b(CAST|STARRING|IN ORDER OF APPEARANCE|DIRECTED BY|WRITTEN\s*&\s*DIRECTED|"
+        r"PRODUCED BY|PRODUCER|YONETMEN|YÖNETMEN|YAPIMCI|OYUNCU|OYUNCULAR)\b",
+        re.IGNORECASE,
+    )
+    keep: set[int] = set()
+    for i, line in enumerate(cleaned):
+        if hints.search(line):
+            keep.update(range(max(0, i - 80), min(len(cleaned), i + 160)))
+
+    if not keep:
+        head = max_lines // 2
+        tail = max_lines - head
+        return cleaned[:head] + cleaned[-tail:]
+
+    ordered = [cleaned[i] for i in sorted(keep)]
+    if len(ordered) > max_lines:
+        ordered = ordered[:max_lines]
+    return ordered
+
+
+def load_llm_lines_for_ocr(ocr_path: str | os.PathLike | None) -> tuple[list[str], str]:
+    """Load the least-lossy OCR text that should be shown to the text model.
+
+    `kunye.txt` is useful as a delivered/normalized artifact, but it can flatten
+    credit cards such as `MAURA Sally Hawkins` into `MAURA SALLY HAWKINS`.
+    The model should see the rawer OneOCR text first; deterministic cleanup runs
+    after the model output.
+    """
+    if not ocr_path:
+        return [], ""
+    base = os.path.dirname(os.fspath(ocr_path))
+
+    for filename in ("ocr_ham.txt", "ocr_raw_all.txt"):
+        lines = _read_ocr_sidecar_lines(base, filename)
+        if lines:
+            lines = _compact_raw_lines_for_llm(lines, max_lines=500)  # 260→500: uzun/anahtar-kelimesiz jenerikte kadro-bloğu kaybını azalt (recall güvenliği)
+            return lines, filename
+
+    try:
+        lines = open(ocr_path, encoding="utf-8", errors="ignore").read().splitlines()
+        return [line for line in lines if str(line).strip()], os.path.basename(os.fspath(ocr_path))
+    except Exception:
+        return [], ""
+
+
+def _name_hit_in_raw(name_fold: str, line_fold: str) -> bool:
+    if not name_fold or not line_fold:
+        return False
+    if line_fold == name_fold:
+        return True
+    return bool(re.search(r"\b" + re.escape(name_fold) + r"\b", line_fold))
+
+
+def _crew_context(window: str) -> bool:
+    return any(k in window for k in _CREW_CONTEXT_KW)
+
+
+def _cast_context(window: str) -> bool:
+    return any(k in window for k in _CAST_CONTEXT_KW) and not _crew_context(window)
+
+
+def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | None) -> list[str]:
+    """Drop cast candidates that only appear in raw OCR next to crew-role labels.
+
+    This is a negative gate only: it never adds names. If crew-context sightings dominate
+    and there is no explicit cast/starring context, the name is removed.
+    """
+    if not cast or not raw_context_lines:
+        return cast or []
+    folded = [_fold(x).strip() for x in raw_context_lines]
+    out: list[str] = []
+    for nm in cast:
+        nf = _fold(nm).strip()
+        hit_idxs = [i for i, line in enumerate(folded) if _name_hit_in_raw(nf, line)]
+        if not hit_idxs:
+            out.append(nm)
+            continue
+        crew_count = 0
+        cast_seen = False
+        for i in hit_idxs:
+            win = " ".join(folded[max(0, i - 1): i + 1])
+            if _cast_context(win):
+                cast_seen = True
+            if _crew_context(win):
+                crew_count += 1
+        if cast_seen or crew_count == 0 or (crew_count / len(hit_idxs)) < 0.60:
+            out.append(nm)
+    return out
+
+
 SCHEMA = {
     "type": "object",
     "properties": {
@@ -98,7 +246,15 @@ def _deepseek_json(model, prompt, timeout=120):
     return {}
 
 
-def _ollama_json(model, prompt, schema, timeout=180):
+def _ollama_timeout(default=360) -> int:
+    try:
+        return max(60, int(os.environ.get("MITAS_OLLAMA_TIMEOUT", str(default)) or default))
+    except Exception:
+        return default
+
+
+def _ollama_json(model, prompt, schema, timeout=None):
+    timeout = _ollama_timeout() if timeout is None else timeout
     payload = {
         "model": model, "prompt": prompt, "format": schema, "stream": False,
         "options": {"temperature": 0, "num_ctx": 8192},
@@ -135,6 +291,7 @@ _JUNK_WORDS = {
     "film", "films", "colaboracion", "gracias", "thanks", "tarafindan", "destek", "katki", "sunar",
     "ile", "tarafından", "yapim", "yapimi", "music", "starring", "cast", "story", "screenplay",
     "written", "based", "company", "pictures", "studio", "media", "entertainment", "all", "rights",
+    "performed", "mixed", "visual", "effects", "effect", "licensing", "license", "records",
     # TR rol-etiketi / ajans token'ları (bir "isim"de geçerse o etiket/kurum, kişi DEĞİL):
     "direktoru", "direktor", "yonetmeni", "yonetmen", "menajerlik", "menajer", "ajans", "ajansi",
     "ekibi", "amiri", "sefi", "sorumlusu", "operatoru", "koordinator", "kordinator", "muhendis",
@@ -562,7 +719,8 @@ _NONPERSON_TOK = {
     "produktion", "telewizja", "presente", "presenta", "records", "rights", "reserved",
     # rol / sıfat / etiket
     "director", "directed", "producer", "produced", "executive", "associate", "yonetmen", "yapimci",
-    "yoneten", "rejisor", "sunan", "anlatan", "music", "von", "der", "die",
+    "yoneten", "rejisor", "sunan", "anlatan", "music", "performed", "mixed", "visual", "effects",
+    "effect", "licensing", "license", "records", "von", "der", "die",
 }
 
 def _valid_person_name(name: str) -> bool:
@@ -582,6 +740,85 @@ def _valid_person_name(name: str) -> bool:
 def _only_persons(names):
     """KESİN KURAL süzgeci: yalnız geçerli 'İsim Soyisim' kalır."""
     return [n for n in (names or []) if _valid_person_name(n)]
+
+
+_CAST_HEADER_RE = re.compile(r"^\s*(CAST|STARRING|OYUNCULAR|OYUNCU|OYNAYANLAR)\s*$", re.IGNORECASE)
+_CAST_SKIP_RE = re.compile(r"^\s*\(?\s*(IN ORDER OF APPEARANCE|ORDER OF APPEARANCE)\s*\)?\s*$", re.IGNORECASE)
+_CHARACTER_PREFIX_TOK = {
+    "captain", "father", "first", "second", "third", "inn", "landlord", "officer", "doctor",
+    "mrs", "mr", "miss", "young", "old", "older", "oldest", "boy", "girl", "man", "woman",
+}
+
+
+def _suffix_actor_from_role_line(line: str) -> str | None:
+    """Return actor suffix from `ROLE/CHARACTER Actor Name` mixed-case OCR lines."""
+    parts = [p.strip(" ,:;") for p in str(line or "").split() if p.strip(" ,:;")]
+    if len(parts) < 3:
+        return None
+    for i in range(1, len(parts) - 1):
+        prefix = parts[:i]
+        if any(p and p[0].islower() for p in prefix):
+            continue
+        suffix = parts[i:]
+        if not all(p and p[0].isupper() and any(c.islower() for c in p) for p in suffix):
+            continue
+        cand = " ".join(suffix)
+        if _valid_person_name(cand):
+            return cand
+    return None
+
+
+def _cast_block_candidate(line: str) -> str | None:
+    line = str(line or "").strip()
+    if not line or _CAST_SKIP_RE.match(line):
+        return None
+    lf = _fold(line)
+    if _crew_context(lf):
+        return None
+    suffix = _suffix_actor_from_role_line(line)
+    if suffix:
+        return suffix
+    toks = [t for t in lf.split() if t]
+    if toks and toks[0] in _CHARACTER_PREFIX_TOK:
+        return None
+    if "." in line or " . " in line or " / " in line:
+        return None
+    raw_parts = [p.strip(" ,:;") for p in line.split() if p.strip(" ,:;")]
+    if any(p and p[0].islower() for p in raw_parts):
+        return None
+    if _valid_person_name(line):
+        return line
+    return None
+
+
+def extract_cast_block_candidates(lines: list[str], *, limit: int = 8) -> list[str]:
+    """Deterministic fallback for visible CAST blocks when the LLM times out/abstains."""
+    cleaned = [str(line).strip() for line in (lines or []) if str(line).strip()]
+    out: list[str] = []
+    for i, line in enumerate(cleaned):
+        if not _CAST_HEADER_RE.match(line):
+            continue
+        misses_after_hit = 0
+        for nxt in cleaned[i + 1:i + 90]:
+            nf = _fold(nxt)
+            if _CAST_HEADER_RE.match(nxt) or _CAST_SKIP_RE.match(nxt):
+                continue
+            if _crew_context(nf) and len(out) >= 3:
+                break
+            cand = _cast_block_candidate(nxt)
+            if cand:
+                out.append(cand)
+                out = _dedup_fold(out)
+                misses_after_hit = 0
+                if len(out) >= limit:
+                    return out[:limit]
+            elif out:
+                misses_after_hit += 1
+                if misses_after_hit >= 12 and len(out) >= 3:
+                    break
+        if out:
+            return out[:limit]
+    return []
 
 
 # ── QC1 SATIR-ÖN-ELEMESİ (Çağatay 2026-06-15): gürültü PDF'e hiç girmesin ──
@@ -661,7 +898,7 @@ def model_chain():
     return ["qwen3.6:35b-a3b"]
 
 
-def read_credits_auto(lines, title="", *, dizi=False):
+def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     """F1: TÜM modelleri koş, ilk-doluda DURMA.
     Yönetmen: fuse() ile mutabakat/KB-seçimi.
     Cast: tüm modellerin birleşimi, dedup + F2 KB filtresi + F3 garble kapısı.
@@ -669,12 +906,32 @@ def read_credits_auto(lines, title="", *, dizi=False):
     """
     chain = model_chain()
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
-    lines = _prefilter_lines(lines)            # QC1: disclaimer/yasal/teknik satırları ele (LLM görmesin)
+    lines = _prefilter_lines(lines)            # QC1: disclaimer/yasal/teknik satırları ele (LLM görmesin) — codex bunu kaldırmıştı (regresyon)
     text = "\n".join(lines)
-    ocr_tokens = set(_toks(text))
+    guard_lines = list(lines)
+    if raw_context_lines:
+        guard_lines.extend(str(l).strip() for l in raw_context_lines if str(l).strip())
+    ocr_tokens = set(_toks("\n".join(guard_lines)))
     title_f = _fold(title).strip()
 
     kb = _get_kb()
+    pre_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else 8))
+    cast_block_fast = os.environ.get("MITAS_CREDIT_CAST_BLOCK_FAST", "0").strip().lower() in (
+        "1", "true", "on", "yes"
+    )
+    if cast_block_fast and len(pre_cast) >= 3:
+        cast_fast = _apply_garble_gate(pre_cast, kb)
+        cast_fast = _apply_kb_cast_filter(cast_fast, kb)
+        cast_fast = filter_cast_by_raw_context(cast_fast, raw_context_lines)
+        if not dizi:
+            cast_fast = cast_fast[:8]
+        if len(cast_fast) >= 3:
+            return {
+                "yonetmen": [],
+                "yapimci": [],
+                "cast": _only_persons(cast_fast),
+                "guven": "OKUNDU (cast-block fallback; qwen atlandı)",
+            }
 
     per_model_yon: dict[str, list[str]] = {}
     per_model_cast: dict[str, list[str]] = {}
@@ -687,7 +944,7 @@ def read_credits_auto(lines, title="", *, dizi=False):
             if str(m).startswith("deepseek"):
                 raw = _deepseek_json(m, PROMPT % text)
             else:
-                raw = _ollama_json(m, PROMPT % text, SCHEMA, timeout=180)
+                raw = _ollama_json(m, PROMPT % text, SCHEMA)
         except Exception as e:
             sys.stderr.write(f"[credit_text_read] {m} hata: {type(e).__name__}: {e}\n")
             per_model_yon[m] = []
@@ -743,6 +1000,16 @@ def read_credits_auto(lines, title="", *, dizi=False):
     cast_garble = [n for n in cast_garble if _fold(n) not in yon_fold_set]
 
     cast_kb = _apply_kb_cast_filter(cast_garble, kb)
+    cast_kb = filter_cast_by_raw_context(cast_kb, raw_context_lines)
+    if len(cast_kb) < 3:
+        fallback_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else 8))
+        if fallback_cast:
+            fallback_cast = _apply_garble_gate(fallback_cast, kb)
+            fallback_cast = _apply_kb_cast_filter(fallback_cast, kb)
+            fallback_cast = filter_cast_by_raw_context(fallback_cast, raw_context_lines)
+            cast_kb = _dedup_fold(list(cast_kb) + fallback_cast)
+            if not dizi:
+                cast_kb = cast_kb[:8]
 
     # ── F3 + F2: Yapımcı boru hattı ──────────────────────────────────────────
     yap_merged = _dedup_fold(all_yap)
@@ -750,10 +1017,10 @@ def read_credits_auto(lines, title="", *, dizi=False):
     yap_kb = _apply_kb_yapimci_filter(yap_garble, kb)
 
     # ── Güven skoru ──────────────────────────────────────────────────────────
-    if not any_success:
+    if cast_kb or yon_fused:
+        guven = f"OKUNDU (ensemble/fallback; yön:{guven_yon})"
+    elif not any_success:
         guven = "OKUNAMADI"
-    elif cast_kb or yon_fused:
-        guven = f"OKUNDU (ensemble; yön:{guven_yon})"
     else:
         guven = "KISMI (sadece yapımcı)"
 

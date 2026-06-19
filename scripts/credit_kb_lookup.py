@@ -32,6 +32,37 @@ _TUR_TR = {
     "war": "Savaş", "western": "Western",
 }
 
+# Wikidata genre QID -> Türkçe (works_master.genre pipe-ayrık QID; yalnız YÜKSEK-GÜVEN eşlemeler).
+# Doğrulama (2026-06-15): mitas.duckdb works_master genre dağılımı (894k iş) + bilinen film örnekleri
+# (Dark Knight/Forrest Gump/Alien/Matrix/Inception/Saving Private Ryan + solo-genre filmleri) ile
+# QID anlamı teyit edildi. qid_labels'ta genre-konsept QID'leri YOK → statik map zorunlu. Belirsiz/
+# alt-tür (silent-film Q226730, comedy-drama Q859369, teen Q1146335, erotik Q185529/Q599558 vb.)
+# KASTEN dışarıda — yanlış-tür yerine "—" (uydurma yok). IMDb-tür biçimiyle uyum: Title-Case, " / " ilk 2.
+_WD_TUR_TR = {
+    "Q130232": "Dram",            # drama film
+    "Q188473": "Aksiyon",         # action film
+    "Q157443": "Komedi",          # comedy film
+    "Q471839": "Bilimkurgu",      # science fiction film
+    "Q2484376": "Gerilim",        # thriller film
+    "Q959790": "Suç",             # crime film
+    "Q200092": "Korku",           # horror film
+    "Q853630": "Korku",           # horror film (varyant)
+    "Q1054574": "Romantik",       # romance film
+    "Q860626": "Romantik Komedi", # romantic comedy
+    "Q319221": "Macera",          # adventure film
+    "Q369747": "Savaş",           # war film
+    "Q93204": "Belgesel",         # documentary film
+    "Q842256": "Müzikal",         # musical film
+    "Q645928": "Tarihi",          # historical film
+    "Q157394": "Fantastik",       # fantasy film
+    "Q172980": "Western",         # western film
+    "Q1200678": "Gizem",          # mystery film
+    "Q185867": "Kara Film",       # film noir
+    "Q202866": "Animasyon",       # animated film
+    "Q2143665": "Aile",           # children's film
+    "Q1361932": "Aile",           # children's/family film
+}
+
 def tur_to_tr(genres_csv, k=2):
     if not genres_csv:
         return None
@@ -41,6 +72,70 @@ def tur_to_tr(genres_csv, k=2):
         if tr and tr not in out:
             out.append(tr)
     return " / ".join(out[:k]) if out else None
+
+def wd_genre_to_tr(genre_pipe, k=2):
+    """works_master.genre (pipe-ayrık Wikidata QID) -> Türkçe TÜR (ilk k bilinen, dağılım sırasını korur).
+    Bilinmeyen QID atlanır; hiç bilinen yoksa None (uydurma yok)."""
+    if not genre_pipe:
+        return None
+    out = []
+    for q in str(genre_pipe).split("|"):
+        tr = _WD_TUR_TR.get(q.strip())
+        if tr and tr not in out:
+            out.append(tr)
+    return " / ".join(out[:k]) if out else None
+
+def _wd_genre_lookup(wd, *, imdb_id=None, title_tr=None, original=None, year=None):
+    """Wikidata works_master'dan TÜR (yerel, web yok). Öncelik: imdb_id (kesin eşleşme) → başlık+yıl.
+    Sadece p31=Q11424 (film) satırları. Hata/DB-yok → None (graceful, eski davranış)."""
+    if wd is None:
+        return None
+    # KADEME A: doğrulanmış imdb_id ile birebir (en güvenilir)
+    if imdb_id:
+        try:
+            r = wd.execute(
+                "SELECT genre FROM works_master WHERE imdb_id=? AND genre IS NOT NULL AND genre<>'' LIMIT 1",
+                [imdb_id]).fetchone()
+            tr = wd_genre_to_tr(r[0]) if r else None
+            if tr:
+                return tr
+        except Exception:
+            pass
+    # KADEME B: başlık (label_tr, Türkçe-fold) + yıl yakınlığı — imdb_id yoksa/türsüzse
+    try:
+        import credit_crosscheck as _ccx
+        sf_tr = _ccx._sqlfold("label_tr")
+        sf_en = _ccx._sqlfold("label_en")
+        sf_nm = _ccx._sqlfold("name")
+        ft = _ccx._tfold(title_tr) if title_tr else None
+        fo = _ccx._tfold(original) if original else None
+        clauses, params = [], []
+        if ft:
+            clauses.append(f"{sf_tr}=?"); params.append(ft)
+        if fo:
+            clauses += [f"{sf_en}=?", f"{sf_nm}=?"]; params += [fo, fo]
+        if not clauses:
+            return None
+        rows = wd.execute(
+            "SELECT genre, publication_year FROM works_master "
+            "WHERE (" + " OR ".join(clauses) + ") AND p31='Q11424' "
+            "AND genre IS NOT NULL AND genre<>'' LIMIT 40", params).fetchall()
+        if not rows:
+            return None
+        # yıl verildiyse en yakın yıllı satırı seç (yoksa ilk türlü satır)
+        best = None
+        if year:
+            try:
+                yi = int(year)
+                best = min((r for r in rows if r[1] and str(r[1]).isdigit()),
+                           key=lambda r: abs(int(r[1]) - yi), default=None)
+                if best and abs(int(best[1]) - yi) > 3:   # 3 yıldan uzaksa güvenme → ilk satıra düş
+                    best = None
+            except Exception:
+                best = None
+        return wd_genre_to_tr((best or rows[0])[0])
+    except Exception:
+        return None
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
@@ -120,7 +215,22 @@ def main():
     tmdb_id = wd_tmdb_id
     out["yapimci"] = yapimci
     out["tur_imdb"] = tur_imdb
-    out["tur"] = tur_to_tr(tur_imdb)
+    tur_tr = tur_to_tr(tur_imdb)
+    tur_kaynak = "imdb" if tur_tr else None
+    # KADEME 3 — Wikidata genre fallback (YEREL, web yok): IMDb türü boşsa works_master.genre'den
+    # (QID→TR) doldur. ADDITIVE: yalnız IMDb-tür YOKKEN devreye girer; IMDb tutarsa DOKUNMAZ.
+    # imdb_id (doğrulanmış) birincil anahtar, yoksa başlık+yıl. Çökme yok (graceful → tur_tr=None).
+    if not tur_tr:
+        try:
+            wd_tur = _wd_genre_lookup(kb.wd, imdb_id=(imdb_id or wd_imdb_id),
+                                      title_tr=a.baslik, original=a.orijinal, year=a.yil)
+            if wd_tur:
+                tur_tr = wd_tur
+                tur_kaynak = "wikidata"
+        except Exception as e:
+            sys.stderr.write(f"[uyari] wikidata tur fallback hatasi: {e}\n")
+    out["tur"] = tur_tr
+    out["tur_kaynak"] = tur_kaynak
     out["imdb_id"] = imdb_id
 
     # 3) afiş (istenirse)

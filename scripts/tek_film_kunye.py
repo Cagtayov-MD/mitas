@@ -27,7 +27,9 @@ OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
 # aktif). Kimlik GERÇEKTEN emin olmalı: OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI
 # cast → ORTA/Kontrol. EKLE-only (OCR önde, KB sonra; asla ezme/yeniden-sırala). MITAS_KB_CAST_ADD=0 kapatır.
 _ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "1").strip().lower() not in ("0", "false", "off", "no")
-_GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
+# OCR-OTORİTE KANUNU: bu kapı IMDb/Wiki'de bulunmayan OCR-okunan gerçek ismi DÜŞÜRÜR/KIRPAR (kanun ihlali).
+# Varsayılan KAPALI (opt-in). Deney için MITAS_GLOBAL_PERSON_GATE=1 ile açılabilir. (codex "1" yapmıştı = regresyon)
+_GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "0").strip().lower() not in ("0", "false", "off", "no")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)
@@ -200,7 +202,44 @@ def _strict_pool_hit(name, pool):
             return {"name": p, "match": "exact", "distance": 0}
         if _cc.strict_name_close(name, p):
             return {"name": p, "match": "fuzzy", "distance": _cc.strict_name_distance(name, p)}
+        if _cc.name_close(name, p):
+            return {"name": p, "match": "fuzzy2", "distance": 2}
     return None
+
+def _suffix_person_candidates(name):
+    """Cast kartı bazen 'KARAKTER ADI + OYUNCU ADI' gelir: MAURA SALLY HAWKINS.
+    Resmi kişi alanında karakter adı atılır, kişi adı suffix'ten çözülür."""
+    toks = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿÇĞİıŞÖÜçğşöü']+", str(name or ""))
+    toks = [t.strip("'") for t in toks if t.strip("'")]
+    out = []
+    if len(toks) < 3:
+        return out
+    # En kısa olası kişi adı önce: SALLY HAWKINS, sonra gerekirse uzun suffix.
+    for i in range(len(toks) - 2, 0, -1):
+        cand = " ".join(toks[i:])
+        if cand and cand.lower() != str(name or "").strip().lower():
+            out.append(cand)
+    return out
+
+def _person_gate_hit(name, role, *, xml_pool, film_pool, kb):
+    hit = _strict_pool_hit(name, xml_pool)
+    if hit:
+        return hit, "xml"
+    hit = _strict_pool_hit(name, film_pool)
+    if hit:
+        return hit, "film_pool"
+    if kb is not None:
+        try:
+            m = kb.global_person_match(name, role=role, max_edits=1)
+        except Exception:
+            m = None
+        if m:
+            return ({
+                "name": m.get("name"),
+                "match": "fuzzy" if (m.get("distance") or 0) > 0 else "exact",
+                "distance": m.get("distance") or 0,
+            }, m.get("source") or "global")
+    return None, None
 
 def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
     """Resmi kişi alanı kapısı: XML → film rol havuzu → global IMDb/Wiki kişi doğrulama."""
@@ -216,31 +255,28 @@ def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
         return names, report
     out = []
     for nm in names:
-        src = None
-        hit = _strict_pool_hit(nm, xml_pool)
-        if hit:
-            src = "xml"
-        if not hit:
-            hit = _strict_pool_hit(nm, film_pool)
-            if hit:
-                src = "film_pool"
-        if not hit and kb is not None:
-            try:
-                m = kb.global_person_match(nm, role=role, max_edits=1)
-            except Exception:
-                m = None
-            if m:
-                hit = {"name": m.get("name"), "match": "fuzzy" if (m.get("distance") or 0) > 0 else "exact",
-                       "distance": m.get("distance") or 0}
-                src = m.get("source") or "global"
+        candidate_used = None
+        hit, src = _person_gate_hit(nm, role, xml_pool=xml_pool, film_pool=film_pool, kb=kb)
+        if not hit and role == "cast":
+            for cand in _suffix_person_candidates(nm):
+                hit, src = _person_gate_hit(cand, role, xml_pool=xml_pool, film_pool=film_pool, kb=kb)
+                if hit:
+                    candidate_used = cand
+                    break
+            if not hit:
+                candidates = _suffix_person_candidates(nm)
+                if candidates:
+                    candidate_used = candidates[0]
+                    hit = {"name": candidate_used, "match": "ocr_suffix", "distance": 0}
+                    src = "ocr_suffix"
         if hit and hit.get("name"):
             canon = hit["name"]
             if not any(_cc.name_match(canon, x) or _cc.strict_name_close(canon, x) for x in out):
                 out.append(canon)
-            action = "FUZZY_DUZELDI" if (hit.get("distance") or 0) > 0 else "GECTI"
+            action = "KARAKTER_ADI_ATILDI" if candidate_used else ("FUZZY_DUZELDI" if (hit.get("distance") or 0) > 0 else "GECTI")
             report["kept"].append({"in": nm, "out": canon, "source": src,
                                    "match": hit.get("match"), "distance": hit.get("distance") or 0,
-                                   "action": action})
+                                   "action": action, "candidate": candidate_used})
         else:
             report["dropped"].append({"in": nm, "action": "DUSTU", "reason": "tek-kelime veya global/rol eşleşmesi yok"})
     return out, report
@@ -285,8 +321,11 @@ def main():
             if _ocrtxt:
                 sys.path.insert(0, HERE)
                 import credit_text_read as _ctr
-                _lines = open(_ocrtxt[-1], encoding="utf-8", errors="ignore").read().splitlines()
-                vc = _ctr.read_credits_auto(_lines, title, dizi=(a.profile == "dizi"))
+                _lines, _ocr_source = _ctr.load_llm_lines_for_ocr(_ocrtxt[-1])
+                _raw_context = _ctr.load_raw_context_for_ocr(_ocrtxt[-1])
+                vc = _ctr.read_credits_auto(
+                    _lines, title, dizi=(a.profile == "dizi"), raw_context_lines=_raw_context
+                )
         except Exception as _e:  # noqa: BLE001
             sys.stderr.write(f"[uyari] OneOCR+GLM metin-okuma hata: {_e}\n")
     vc = vc or {}
