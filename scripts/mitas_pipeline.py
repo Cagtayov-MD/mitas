@@ -1284,7 +1284,12 @@ def main(argv=None) -> int:
             # Fail-safe: detector kapalı/patlar/bulamaz → sabit pencereler (head ve _cik_start değişmez).
             _cik_start = max(0.0, dur_sec - args.ocr_tail)
             _cik_len = args.ocr_tail
-            if os.environ.get("MITAS_CREDIT_DETECT", "").strip().lower() in ("1", "true", "on", "yes"):
+            # DEDEKTÖR SEÇİMİ: YENİ 4-tip jenerik dedektörü (MITAS_JENERIK_DETECT, default AÇIK) —
+            # OCR-geriye start (çıkış) + OCR-ileri film-başı (giriş) + paralel; şema-uyumlu, fail-safe.
+            # Eski OpusCreditDetector için MITAS_JENERIK_DETECT=0 + MITAS_CREDIT_DETECT=1.
+            _use_jenerik = os.environ.get("MITAS_JENERIK_DETECT", "1").strip().lower() not in ("0", "false", "off", "no")
+            _use_credit_old = os.environ.get("MITAS_CREDIT_DETECT", "").strip().lower() in ("1", "true", "on", "yes")
+            if _use_jenerik or _use_credit_old:
                 try:
                     # GÜVEN-EŞİĞİ (Çağatay 2026-06-15): detect normalde conf ≥ eşik ise pencereyi oynatır.
                     # Uzun/persistan scroll istisnası: bazı filmlerde ana cast jeneriğin başında, sabit son
@@ -1292,8 +1297,12 @@ def main(argv=None) -> int:
                     _DETECT_MINCONF = float(os.environ.get("MITAS_CREDIT_DETECT_MINCONF", "0.60") or 0.60)
                     _DETECT_LOWCONF = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MINCONF", "0.45") or 0.45)
                     _DETECT_LOWSPAN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MIN_DUR", "180") or 180)
-                    _rcd, _outd, _errd = run([str(PY_OCR), str(HERE / "_credit_detect.py"),
-                                              "--video", str(video)], timeout=240)
+                    if _use_jenerik:   # YENİ 4-tip dedektör (OCR-geriye + giriş film-başı + paralel)
+                        _detect_cmd = [str(PY_OCR), str(HERE / "_jenerik_detect.py"),
+                                       "--video", str(video), "--parallel"]
+                    else:              # eski OpusCreditDetector (geri-uyum)
+                        _detect_cmd = [str(PY_OCR), str(HERE / "_credit_detect.py"), "--video", str(video)]
+                    _rcd, _outd, _errd = run(_detect_cmd, timeout=360)
                     _both = last_json(_outd) or {}
                     _opening = _both.get("opening") or {}
                     _closing = _both.get("closing") or {}

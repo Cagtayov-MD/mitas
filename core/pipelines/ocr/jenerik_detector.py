@@ -788,30 +788,45 @@ def _sample_video(cap: Any, t0: float, t1: float, fps: float, analyze_h: int = A
 
 def detect_from_video(video: str | Path, *, fps: float = 2.0, open_search_min: float = 12.0,
                       close_search_min: float = 15.0, clip_ctx: Optional[dict] = None,
-                      ocr_read_fn=None) -> dict:
-    """Video → {opening, closing}. İlk N dk'da ilk koşu (giriş), son N dk'da son koşu (çıkış).
-    ocr_read_fn verilirse start OCR-geriye ile inceltilir (örneklenen karelerde, ANALYZE_H çözünürlük)."""
-    cap = cv2.VideoCapture(str(video))
-    if not cap.isOpened():
+                      ocr_read_fn=None, parallel: bool = False, ocr_factory=None) -> dict:
+    """Video → {opening, closing}. İlk N dk giriş, son N dk çıkış koşusu. ocr_read_fn verilirse:
+    giriş→end OCR-İLERİ (film başı), çıkış→start OCR-GERİYE (örneklenen ANALYZE_H karelerde).
+    parallel=True: giriş+çıkış 2 thread (her biri KENDİ VideoCapture + OCR motoru; CLIP lock'lu)."""
+    probe = cv2.VideoCapture(str(video))
+    if not probe.isOpened():
         no = _region_dict(None, fps=fps, window_start_sec=0.0)
         no["reason"] = "video_not_opened"
         return {"opening": dict(no), "closing": dict(no)}
-    nfps = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    nfps = float(probe.get(cv2.CAP_PROP_FPS) or 25.0)
+    total = int(probe.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
     dur = total / nfps if total > 0 else 0.0
-
+    probe.release()
     open_end = min(open_search_min * 60.0, dur) if dur > 0 else open_search_min * 60.0
-    of = _sample_video(cap, 0.0, open_end, fps)
-    osigs, oruns = analyze(of, clip_ctx=clip_ctx)
-    opening = _select_region(oruns, len(of), "first", fps=fps, window_start_sec=0.0)
-    opening = _apply_ocr_refine(opening, of, ocr_read_fn, fps=fps, window_start_sec=0.0)
-    opening = _apply_ocr_refine_end(opening, of, ocr_read_fn, fps=fps, window_start_sec=0.0)  # GİRİŞ: film başı
-
     close_start = max(0.0, dur - close_search_min * 60.0) if dur > 0 else 0.0
-    cf = _sample_video(cap, close_start, dur if dur > 0 else close_start + close_search_min * 60.0, fps)
-    csigs, cruns = analyze(cf, clip_ctx=clip_ctx)
-    closing = _select_region(cruns, len(cf), "last", fps=fps, window_start_sec=close_start)
-    closing = _apply_ocr_refine(closing, cf, ocr_read_fn, fps=fps, window_start_sec=close_start)
+    close_end = dur if dur > 0 else close_start + close_search_min * 60.0
 
-    cap.release()
-    return {"opening": opening, "closing": closing}
+    def _opening(ocr_fn):
+        cap = cv2.VideoCapture(str(video))
+        of = _sample_video(cap, 0.0, open_end, fps); cap.release()
+        _, oruns = analyze(of, clip_ctx=clip_ctx)
+        op = _select_region(oruns, len(of), "first", fps=fps, window_start_sec=0.0)
+        op = _apply_ocr_refine(op, of, ocr_fn, fps=fps, window_start_sec=0.0)
+        op = _apply_ocr_refine_end(op, of, ocr_fn, fps=fps, window_start_sec=0.0)   # GİRİŞ: film başı
+        return op
+
+    def _closing(ocr_fn):
+        cap = cv2.VideoCapture(str(video))
+        cf = _sample_video(cap, close_start, close_end, fps); cap.release()
+        _, cruns = analyze(cf, clip_ctx=clip_ctx)
+        cl = _select_region(cruns, len(cf), "last", fps=fps, window_start_sec=close_start)
+        cl = _apply_ocr_refine(cl, cf, ocr_fn, fps=fps, window_start_sec=close_start)
+        return cl
+
+    if parallel:
+        import concurrent.futures
+        ocr_o = ocr_factory() if ocr_factory else ocr_read_fn   # her thread KENDİ OneOCR motoru
+        ocr_c = ocr_factory() if ocr_factory else ocr_read_fn
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+            fo = ex.submit(_opening, ocr_o); fc = ex.submit(_closing, ocr_c)
+            return {"opening": fo.result(), "closing": fc.result()}
+    return {"opening": _opening(ocr_read_fn), "closing": _closing(ocr_read_fn)}

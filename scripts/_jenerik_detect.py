@@ -75,7 +75,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-ocr-refine", action="store_true",
                     help="OCR-geriye başlangıç inceltmeyi kapat (sezgisel geri-çekme kalır)")
     ap.add_argument("--parallel", action="store_true",
-                    help="--film: giriş+çıkış 2 thread'de eşzamanlı (CLIP lock'lu, ayrı OCR motoru)")
+                    help="--film/--video: giriş+çıkış 2 thread'de eşzamanlı (CLIP lock'lu, ayrı OCR motoru/cap)")
     a = ap.parse_args(argv)
 
     try:
@@ -89,7 +89,9 @@ def main(argv=None) -> int:
             res = jd.detect_from_video(a.video, fps=a.fps,
                                        open_search_min=a.open_search_min,
                                        close_search_min=a.close_search_min,
-                                       clip_ctx=clip_ctx, ocr_read_fn=ocr_fn)
+                                       clip_ctx=clip_ctx, ocr_read_fn=ocr_fn,
+                                       parallel=a.parallel,
+                                       ocr_factory=(_build_ocr_read_fn if (use_ocr and a.parallel) else None))
         elif a.film:
             res = jd.detect_film_frames(
                 a.film, fps=a.fps, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn,
