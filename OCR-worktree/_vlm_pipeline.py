@@ -40,10 +40,16 @@ def gemma_call(frames):
     r = json.loads(urllib.request.urlopen(req, timeout=300).read())
     txt = r.get("message", {}).get("content", "")
     m = re.search(r"\{.*\}", txt, re.S)
-    try:
-        return json.loads(m.group(0)) if m else {}
-    except Exception:
-        return {}
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except Exception:
+            pass
+    # bozuk/truncate JSON kurtarma: tırnaklı ÇOK-KELİMELİ stringleri isim olarak al
+    # (tek-kelime anahtar/rol elenir; ocr_net zaten frame'de olmayanı süzer) -> batch tam kaybolmasın
+    cand = re.findall(r'"([^"\\]{3,70})"', txt)
+    names = [c.strip() for c in cand if len(c.split()) >= 2]
+    return {"oyuncular": names} if names else {}
 
 
 def nlist(x):
@@ -64,16 +70,46 @@ def dedup(names):
     return out
 
 
+def _names_any(v):
+    """Anahtar-bağımsız isim toplayıcı: liste/dict/string ne olursa olsun çok-kelimeli isimleri çıkarır.
+    gemma 'isimlar' typo'su / placeholder rol / beklenmedik yuva → okunan isim KAYBOLMASIN."""
+    out = []
+    if isinstance(v, str):
+        out.append(v)
+    elif isinstance(v, list):
+        for it in v:
+            out += _names_any(it)
+    elif isinstance(v, dict):
+        for k, vv in v.items():
+            if str(k).strip().lower() in ("rol", "role", "rolü", "rolu"):
+                continue
+            out += _names_any(vv)
+    return [n.strip() for n in out if isinstance(n, str) and len(n.split()) >= 2]
+
+
 def merge(results):
     yon, cast, roles = [], [], {}
     for r in results:
         if not isinstance(r, dict):
             continue
-        yon += nlist(r.get("yonetmen"))
-        cast += nlist(r.get("oyuncular"))
-        for rr in (r.get("diger_roller") or []):
-            if isinstance(rr, dict):
-                roles.setdefault(rr.get("rol", "?"), []).extend(nlist(rr.get("isimler")))
+        for k in ("yonetmen", "yönetmen", "director", "directors", "yonetmenler"):
+            if k in r:
+                yon += _names_any(r[k])
+        for k in ("oyuncular", "oyuncu", "cast", "actors", "oyunculari"):
+            if k in r:
+                cast += _names_any(r[k])
+        dr = r.get("diger_roller") or r.get("diğer_roller") or r.get("roller") or []
+        if isinstance(dr, list):
+            for rr in dr:
+                if isinstance(rr, dict):
+                    rol = rr.get("rol") or rr.get("role") or "?"
+                    nms = []
+                    for kk, vv in rr.items():
+                        if str(kk).strip().lower() in ("rol", "role", "rolü", "rolu"):
+                            continue
+                        nms += _names_any(vv)
+                    if nms:
+                        roles.setdefault(str(rol), []).extend(nms)
     return {"yonetmen": dedup(yon), "oyuncular": dedup(cast),
             "diger_roller": [{"rol": k, "isimler": dedup(v)} for k, v in roles.items() if v]}
 
