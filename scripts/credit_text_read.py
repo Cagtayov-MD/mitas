@@ -219,9 +219,13 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
         df = _fold(d)
         is_nf = False
         if df and len(df) >= 5:
+            # B3 FIX (2026-06-20): WORD-BOUNDARY (plain 'df in lf' substring → masum yönetmeni başka
+            # satıra rastlantısal eşleştiriyordu) + ±1 bağlam (±2 fazla genişti → uzaktaki crew-etiketi
+            # gerçek yönetmeni düşürüyordu). high_consensus guard zaten temiz+mutabık yönü koruyor.
+            _df_re = re.compile(r"\b" + re.escape(df) + r"\b")
             for i, lf in enumerate(folded):
-                if df in lf:
-                    ctx = " ".join(folded[max(0, i - 2):i + 1])
+                if _df_re.search(lf):
+                    ctx = " ".join(folded[max(0, i - 1):i + 1])
                     if any(m in ctx for m in markers):
                         is_nf = True
                         break

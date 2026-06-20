@@ -1898,6 +1898,11 @@ def main(argv=None) -> int:
     # A-3: ana_dil yabancı + altyazı YOK = SES_MANTIKSIZ → ses-dil kapısı (default KAPALI, künye-dışı)
     if _SES_DIL_GATE and pdf_info.get("ses_uyari") == "SES_MANTIKSIZ":
         reasons.append("ana_dil yabancı + altyazı yok (SES_MANTIKSIZ)")
+    # C1 FIX (2026-06-20): QC1 çift-katman RED (OneOCR→35b→VL ikisi de QC1'i geçemedi → _qc1_failed işareti
+    # ~1652'de set ediliyordu ama HİÇBİR YERDE okunmuyordu = ölü-kablo). En kötü-kalite künye; v4 KB-fill
+    # yanlış-kimlikten yön doldurursa diğer kapılar maskelenip sessizce ONAYLI olabiliyordu → KONTROL'e bağla.
+    if isinstance(video_credits, dict) and video_credits.get("_qc1_failed"):
+        reasons.append("QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)")
     # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
     # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
     # basar (last_json tek-satır arar, tutmaz) → ilk '{'tan raw_decode ile blok-parse.
@@ -1915,6 +1920,11 @@ def main(argv=None) -> int:
                         _v4j, _ = json.JSONDecoder().raw_decode(out_v4[_i:])
                     except Exception:  # noqa: BLE001
                         _v4j = None
+                # B1 FIX (2026-06-20): rc==0 ama v4 rapor JSON parse edilemediyse (_v4j boş) TÜM künye-kapıları
+                # (_v4j or {}) ile sessizce geçer → doğrulanmamış film ONAYLI'ya gider. rc!=0 ile AYNI invariant:
+                # "kapılar değerlendirilemedi → SESSİZCE ONAYLI'ya GİDEMEZ" → KONTROL.
+                if not isinstance(_v4j, dict) or not _v4j:
+                    reasons.append("v4 rapor parse edilemedi (rc=0 ama JSON okunamadı) — yönetmen/özet/kimlik doğrulanamadı")
                 _cc4 = ((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}
                 _gate4 = _cc4.get("global_person_gate") or {}
                 _person_gate_report = _gate4 if isinstance(_gate4, dict) else {}
@@ -2002,12 +2012,14 @@ def main(argv=None) -> int:
             reasons.append(f"yönetmen doğrulama: kaynak-çelişkisi (aday: {_ad})" if _ad else "yönetmen doğrulama: kaynak-çelişkisi")
         elif _cvd.get("status") == "OKUNAMADI":
             reasons.append("yönetmen doğrulama: okunamadı (yeniden-okuma/insan)")
-        # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt
-        if not qwen_qc.get("afis_var"):
+        # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt. C4 FIX (2026-06-20): qwen_qc None-guard
+        # (qwen-QC atlandıysa qwen_qc=None kalır; bu blok `if cv_result:` içinde → MITAS_CREDIT_VALIDATE=1 +
+        # preview-PNG yok'ta None.get → AttributeError film-çökme. Guard ile önlenir; default env'de zaten dormant).
+        if qwen_qc and not qwen_qc.get("afis_var"):
             qwen_uyari.append("qwen: afiş yok (deterministik poster_fetch garanti — uyarı)")
-        if not qwen_qc.get("hepsi_buyuk_harf"):
+        if qwen_qc and not qwen_qc.get("hepsi_buyuk_harf"):
             qwen_uyari.append("qwen: büyük-harf değil (deterministik tr_upper — uyarı)")
-        if qwen_qc.get("yabanci_ad_ascii_degil"):              # yabancı ad aksanlı: kemer+Sonnet birincil, qwen ince-aksanda güvenilmez → uyarı
+        if qwen_qc and qwen_qc.get("yabanci_ad_ascii_degil"):  # yabancı ad aksanlı: kemer+Sonnet birincil, qwen ince-aksanda güvenilmez → uyarı
             qwen_uyari.append("qwen: yabancı ad aksanlı/ASCII değil (deterministik kemer+Sonnet birincil — uyarı)")
     # --- ZİNCİR SONU: DETERMİNİSTİK isim/künye TESPİT-QC (karakter→DB→DeepSeek→ASCII zincirinin SON kapısı) ---
     # Kural: künye SADECE Latin; TÜRKÇE ad Türkçe-harf, YABANCI ad SADE ASCII. Türkçe harf (çğıİöşü) SERBEST;
@@ -2046,7 +2058,12 @@ def main(argv=None) -> int:
         _qcb_floor_fail = bool(_qcb_fl.get("hedef") == 8 and not _qcb_fl.get("kabul")
                                and (_qcb_fl.get("ulasilan", 0) or 0) >= 1)
         for _g in (_qcb4.get("qc_block_gerekceler") or []):
-            if ("oyuncu yetersiz" in _g) or ("Latin-dışı" in _g) or ("kimlik kurulamadı" in _g):
+            # B2 FIX (2026-06-20): "oyuncu yok" (sıfır-cast) eklendi — legacy'de deterministik boş-cast kapısı
+            # YOK; qc_block "oyuncu yok" der ama bu filtre köprülemiyordu → sıfır-cast film sessizce ONAYLI'ya
+            # gidiyordu. Diğer qc_block gerekçeleri (cast garble/özet/afiş) zaten legacy kapılarca yakalanır.
+            if (("oyuncu yetersiz" in _g) or ("oyuncu yok" in _g)
+                    or ("Latin-dışı" in _g) or ("kimlik kurulamadı" in _g)
+                    or ("zayıf-teyit" in _g)):   # C2 FIX: director-anchor-weak KONTROL'ü köprüle
                 _gk = "qc_block: " + _g
                 if _gk not in reasons:
                     reasons.append(_gk)
