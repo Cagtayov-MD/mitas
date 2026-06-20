@@ -183,8 +183,8 @@ def write_md(out: Path, d: dict) -> Path:
         lines.append(f"- {role}: " + ", ".join(nm))
     if d.get("ses_kanallari") or d.get("altyazi"):
         lines += ["", "## Ses & Altyazı"]
-        for i, l in enumerate(d.get("ses_kanallari", []), 1):
-            lines.append(f"- {i}. kanal: {l}")
+        # SES KANAL LİSTESİ (1./2./3./4. kanal) ARTIK YAZILMIYOR (Çağatay 2026-06-20):
+        # ne kunye_teslim.md'ye ne yüzey .txt'ye ne PDF'e — yalnız Ana dil + Altyazı kalır.
         if d.get("ana_dil"):
             lines.append(f"- Ana dil: {d['ana_dil']}")
         if d.get("altyazi"):

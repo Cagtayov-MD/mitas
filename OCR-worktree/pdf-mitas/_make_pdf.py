@@ -122,13 +122,8 @@ def build(path, d):
         sb = panel_bottom - 22
         tracked(c, RM, sb, "SES & ALTYAZI", SANS_SB, 6.8, ACCENT, 1.4)
         sb -= 19
-        for i, l in enumerate(d.get("ses_kanallari", []), 1):
-            tracked(c, RM, sb, f"{i}. KANAL", SANS_SB, 6.2, CREAM_M, 1.1)
-            c.setFillColor(CREAM)
-            c.setFont(SANS_SB, 9.5)
-            c.drawString(RM + 60, sb - 1, str(l))
-            sb -= 16
-        sb -= 6
+        # SES KANAL LİSTESİ (1./2./3./4. KANAL) PDF'E YAZILMIYOR (Çağatay 2026-06-20): yalnız
+        # ANA DİL + ALTYAZI gösterilir; kanal-numarası dökümü kaldırıldı.
         tracked(c, RM, sb, "ANA DİL", SANS_SB, 6.2, CREAM_M, 1.1)
         c.setFillColor(CREAM)
         c.setFont(SANS_SB, 9.5)
@@ -160,17 +155,19 @@ def build(path, d):
 
     _stamp = d.get("stamp", "")  # gercek belge: damga yok (istenirse d["stamp"] verilir)
     if _stamp:
-        tracked(c, RM, 46, _stamp, SANS_SB, 6.6, ACCENT, 1.3)
+        c.setFillColor(ACCENT)
+        c.setFont(SANS_SB, 12)
+        c.drawString(RM, 46, _stamp)
 
     c.setFillColor(CREAM_M)
     c.setFont(SANS, 7.6)
-    c.drawString(X0, FOOT_H / 2.0 - 3, "Otomatik üretilmiş künye belgesi")
-    c.drawRightString(XR, FOOT_H / 2.0 - 3, "Sayfa  1 / 1")
+    c.drawString(X0, FOOT_H / 2.0 - 3, "OTOMATİK ÜRETİLMİŞ KÜNYE BELGESİ")
+    c.drawRightString(XR, FOOT_H / 2.0 - 3, "SAYFA  1 / 1")
 
     # ---- Sag icerik ----
     c.setFillColor(MUTE)
     c.setFont(SANS, 8.5)
-    c.drawRightString(XR, PAGE_H - 46, "Üretim:  " + d["date"])
+    c.drawRightString(XR, PAGE_H - 46, "ÜRETİM:  " + d["date"])
     # cozunurluk: Uretim'in hemen altinda, SILIK
     _res = next((v for l, v in d["specs"] if ("ÖZÜNÜR" in l.upper() or "OZUNUR" in l.upper()) and v and v != "—"), None)
     if _res:

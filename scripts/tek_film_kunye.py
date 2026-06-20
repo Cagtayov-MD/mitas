@@ -603,6 +603,31 @@ def main():
                                        "global_person_gate": _gate_reports,
                                        "xml_roles": {k: len(v) for k, v in xml_roles.items()}}
 
+    # ── BİRLEŞİK QC BLOĞU (flag MITAS_QC_BLOCK, default KAPALI): HAM OCR'dan temizle+doldur+karar ──
+    #    Açıkken cast/yön/yap OTORİTESİ credit_qc_block'tan (çöp ele + KB-floor doldur + Latin-çevir +
+    #    İ-politikası); kararı rapora yazılır (mitas_pipeline tüketir). Default kapalı → mevcut yol AYNEN
+    #    (sıfır regresyon). Fail-safe: blok hata verirse mevcut cast/yön/yap AYNEN kalır.
+    _qcb_res = None
+    if os.environ.get("MITAS_QC_BLOCK", "").strip().lower() in ("1", "true", "on", "yes"):
+        try:
+            import credit_qc_block as _qcb
+            _qcb_res = _qcb.qc_credit_block(
+                _yon_ocr_original, (vc.get("cast") or []), (vc.get("yapimci") or []),
+                title=title, original=a.original, year=a.year,
+                ozet=meta.get("ozet", ""), afis_yolu=(afis if poster_ok(afis) else None),
+                xml_roles=xml_roles)
+            if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
+                cast = list(_qcb_res["temiz_cast"])
+            yon = list(_qcb_res.get("temiz_yon") or yon)
+            if _qcb_res.get("temiz_yap"):
+                yap = list(_qcb_res["temiz_yap"])
+            rapor["adimlar"]["qc_block"] = {
+                "karar": _qcb_res["karar"], "kontrol_tip": _qcb_res["kontrol_tip"],
+                "gerekceler": _qcb_res["gerekceler"], "kimlik": _qcb_res["kimlik"],
+                "floor": _qcb_res["floor"], "kaynak_izi": _qcb_res.get("kaynak_izi", [])}
+        except Exception as _qbe:  # noqa: BLE001 — fail-safe: bloğu atla, mevcut yol devam
+            sys.stderr.write(f"[uyari] qc_block atlandı: {_qbe}\n")
+
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)
     castU = nn.upper_names(cast[:8])
@@ -696,7 +721,13 @@ def main():
                    "cast_list": list(d.get("cast") or []),
                    "keywords": d.get("keywords") or "",
                    "yonetmen_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yönetmen"],
-                   "yapimci_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yapımcı"]}
+                   "yapimci_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yapımcı"],
+                   # BİRLEŞİK QC BLOĞU kararı (flag MITAS_QC_BLOCK): mitas_pipeline NEW kapıları
+                   # (floor-8 / Latin-dışı kalıntı / kimlik-kurulamadı) buradan reasons'a katar.
+                   "qc_block_karar": (_qcb_res or {}).get("karar"),
+                   "qc_block_tip": (_qcb_res or {}).get("kontrol_tip"),
+                   "qc_block_gerekceler": (_qcb_res or {}).get("gerekceler") or [],
+                   "qc_block_floor": (_qcb_res or {}).get("floor") or {}}
     print(json.dumps(rapor, ensure_ascii=False, indent=2))
     print("PDF:", out_pdf)
 

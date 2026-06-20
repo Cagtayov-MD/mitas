@@ -1855,9 +1855,12 @@ def main(argv=None) -> int:
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []
     _person_gate_report = {}
+    # SES-DİL KAPISI (Çağatay 2026-06-20): ses/dil/ASR sorunu KÜNYE sorunu DEĞİL → tek başına KONTROL'e
+    # YOLLAMAZ (özet'i Çağatay ayrı ele alır). Default KAPALI; MITAS_SES_DIL_KONTROL=1 ile geri açılır.
+    _SES_DIL_GATE = os.environ.get("MITAS_SES_DIL_KONTROL", "").strip().lower() in ("1", "true", "on", "yes")
     if ocr_bucket not in ("GUVENILIR",):
         reasons.append(f"OCR bucket={ocr_bucket}")
-    if asr_status not in ("done", "ATLANDI", "skipped_unsupported_lang"):  # Kürtçe-atla = kasıtlı, Kontrol DEĞİL
+    if _SES_DIL_GATE and asr_status not in ("done", "ATLANDI", "skipped_unsupported_lang"):  # Kürtçe-atla = kasıtlı
         reasons.append(f"ASR={asr_status}")
     if not pdf_info.get("pdf_path"):
         reasons.append("PDF render yok (md teslim)")
@@ -1875,8 +1878,8 @@ def main(argv=None) -> int:
                 reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
     except Exception:  # noqa: BLE001 — kesişim kapısı kararı ASLA bozmaz (helper yoksa/hata → atla)
         pass
-    # A-3: ana_dil yabancı + altyazı YOK = SES_MANTIKSIZ (v4 kuralı: KESİN olamaz) → insan teyidi
-    if pdf_info.get("ses_uyari") == "SES_MANTIKSIZ":
+    # A-3: ana_dil yabancı + altyazı YOK = SES_MANTIKSIZ → ses-dil kapısı (default KAPALI, künye-dışı)
+    if _SES_DIL_GATE and pdf_info.get("ses_uyari") == "SES_MANTIKSIZ":
         reasons.append("ana_dil yabancı + altyazı yok (SES_MANTIKSIZ)")
     # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
     # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
@@ -1967,7 +1970,7 @@ def main(argv=None) -> int:
             reasons.append("qwen: oyuncu yok")
         if not qwen_qc.get("yonetmen_var") and not qwen_qc.get("yapimci_var"):
             reasons.append("qwen: yön+yapımcı yok")
-        if not qwen_qc.get("ses_dil_var"):
+        if _SES_DIL_GATE and not qwen_qc.get("ses_dil_var"):
             reasons.append("qwen: ses/dil yok")
         if qwen_qc.get("turkce_karakter_bozuk_var"):
             reasons.append("qwen: Türkçe karakter bozuk")
@@ -2016,6 +2019,21 @@ def main(argv=None) -> int:
             reasons.append("isim-QC: Latin-dışı/yabancı-aksan kalıntısı (" + " ; ".join(_name_qc[:5]) + ")")
     except Exception:  # noqa: BLE001 — tespit-QC kararı ASLA bozmaz (alan yok/hata → atla)
         pass
+    # ── BİRLEŞİK QC BLOĞU (flag MITAS_QC_BLOCK): tek_film_kunye'nin yazdığı qc_block kararının NEW
+    #    kapılarını (floor-8 / Latin-dışı kalıntı / kimlik-kurulamadı) reasons'a KAT. ADDITIVE: yalnız
+    #    EKLER, mevcut reasons'ı EZMEZ (yanlış-ONAYLI üretmez). Default kapalı → blok hiç çalışmaz.
+    _qcb_floor_fail = False
+    if os.environ.get("MITAS_QC_BLOCK", "").strip().lower() in ("1", "true", "on", "yes"):
+        _qcb4 = (_v4j or {}).get("v4") or {}
+        _qcb_fl = _qcb4.get("qc_block_floor") or {}
+        _qcb_floor_fail = bool(_qcb_fl.get("hedef") == 8 and not _qcb_fl.get("kabul")
+                               and (_qcb_fl.get("ulasilan", 0) or 0) >= 1)
+        for _g in (_qcb4.get("qc_block_gerekceler") or []):
+            if ("oyuncu yetersiz" in _g) or ("Latin-dışı" in _g) or ("kimlik kurulamadı" in _g):
+                _gk = "qc_block: " + _g
+                if _gk not in reasons:
+                    reasons.append(_gk)
+
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
     #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).
     #    REASON-TEMELLİ (qwen false-pozitif EKLEMEZ): mevcut kalibre 'reasons' tiplenir; 'qwen_uyari' → AUTOFIX.
@@ -2029,8 +2047,8 @@ def main(argv=None) -> int:
             "yon_missing":       any(("yönetmen okunamadı" in r) or ("yön+yapımcı yok" in r) for r in _R),
             "yon_garble":        any("yönetmen okunamadı" in r for r in _R),
             "yon_fillable":      False,
-            "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) for r in _R),
-            "cast_count":        0 if any("oyuncu yok" in r for r in _R) else 1,
+            "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) or ("kimlik kurulamadı" in r) for r in _R),
+            "cast_count":        0 if (any("oyuncu yok" in r for r in _R) or _qcb_floor_fail) else 1,
             "cast_all_garble":   any("cast garble" in r for r in _R),   # garble-routing köprüsü (2026-06-20)
             "ozet_missing":      any("özet yok" in r for r in _R),
             "non_latin":         any("Latin-dışı" in r for r in _R),

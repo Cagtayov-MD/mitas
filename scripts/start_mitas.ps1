@@ -21,6 +21,12 @@ Write-Host '== 1b) QC2 + perf defaultlari (User env onceliklidir; yoksa AKTIF va
 # QC2 = kunye temizleme/dogrulama (garble-kapisi + yonetmen KB-fill + web/kopru kimlik). Uretimde AKTIF.
 if (-not $env:MITAS_QC2)               { $env:MITAS_QC2 = '1';               Write-Host '   + MITAS_QC2=1 (default AKTIF)' }
 if (-not $env:MITAS_QC2_WEB)           { $env:MITAS_QC2_WEB = '1';           Write-Host '   + MITAS_QC2_WEB=1 (default AKTIF)' }
+# QC_BLOCK = birlesik kunye QC blogu (credit_qc_block): cop-ele + KB-floor doldur (>=2000:8, eski:6) +
+# Latin-disi cevir (Kiril/Yunan/CJK->Latin) + I-politikasi + ONAYLI/KONTROL karar. OCR-otorite korunur
+# (gelen veri OCR'i ezmez). A/B dogrulandi (22 saf-kunye: %36 mesru kurtarma, sahte-onay YOK) → AKTIF.
+if (-not $env:MITAS_QC_BLOCK)          { $env:MITAS_QC_BLOCK = '1';          Write-Host '   + MITAS_QC_BLOCK=1 (default AKTIF)' }
+# SES-DIL KONTROL kapisi: ses/dil/ASR sorunu kunye-disi → KONTROL'e yollamaz (Cagatay 2026-06-20). Default KAPALI.
+if (-not $env:MITAS_SES_DIL_KONTROL)   { $env:MITAS_SES_DIL_KONTROL = '0';   Write-Host '   + MITAS_SES_DIL_KONTROL=0 (ses-dil KONTROL kapali)' }
 # CREDIT_DETECT = jenerik GIRIS/CIKIS sinirini OpusCreditDetector ile dinamik bul (sabit 180/240s pencere
 # kadroyu kacirir: KARAYIP lead kadro 8116-8420s'de, sabit pencere 8419s+ yalnizca kuyrugu aliyordu).
 # No-regress: pencereyi yalnizca GENISLETIR (sabit tabanin altina inmez); CLIP footage'i zaten suzer. Uretimde AKTIF.
