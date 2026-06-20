@@ -1,8 +1,9 @@
-"""Hibrit künye: distinkt-kare -> BATCH gemma(sıkı) -> MERGE -> KONSENSÜS-NET (uydurma eler).
+"""Hibrit künye: distinkt-kare -> BATCH gemma(sıkı) -> MERGE -> OneOCR-NET (uydurma eler).
 Çözer: (1) yoğun-scroll truncation (batch), (2) ünlü-okunamayan recall (OCR-net).
-GUARD = OneOCR ∪ Paddle konsensüs: yabancı-dil/küçük-punto gerçek isimleri kurtarır,
-uydurma garantisini korur (isim HİÇBİR OCR'da yoksa = uydurma -> ele). Paddle patlarsa OneOCR'a düşer."""
-import sys, os, json, glob, base64, urllib.request, time, re, importlib.util, difflib, tempfile
+GUARD = OneOCR: isim OCR'da yoksa = uydurma -> ele.
+NOT: Paddle çıkarıldı — aksanlar zaten fold() ile siliniyor (LÉO==LEO) → yabancı-kazancı yok;
+üstelik Paddle Türkçe ş/ğ/ı kaybediyordu (read_3way:60). OneOCR tek motor."""
+import sys, os, json, glob, base64, urllib.request, time, re, importlib.util, difflib
 sys.path.insert(0, r"E:\MITAS\OCR-worktree\py")
 sys.path.insert(0, r"E:\MITAS\OCR-worktree\pdf-mitas")
 import cv2, numpy as np
@@ -77,25 +78,8 @@ def merge(results):
             "diger_roller": [{"rol": k, "isimler": dedup(v)} for k, v in roles.items() if v]}
 
 
-_PAD_OK = [True]   # Paddle patlarsa kalıcı devre-dışı (zarif düşüş -> OneOCR)
-
-
-def read_paddle_img(img):
-    """Paddle bir kareyi okur (geçici dosya üzerinden). Hata/OOM -> Paddle'ı kapat, OneOCR'a düş."""
-    if not _PAD_OK[0]:
-        return []
-    try:
-        tmp = os.path.join(tempfile.gettempdir(), "mitas_pad_frame.png")
-        cv2.imencode(".png", img)[1].tofile(tmp)
-        return rw.read_paddle(tmp)
-    except Exception as e:
-        print("  [Paddle devre disi -> OneOCR'a dusuyor]", repr(e)[:90], flush=True)
-        _PAD_OK[0] = False
-        return []
-
-
 def ocr_lines(frames):
-    """OneOCR ∪ Paddle birleşimi (konsensüs guard kaynağı). Türkçe=OneOCR, yabancı/aksan=Paddle."""
+    """OneOCR ile kareleri oku (guard kaynağı)."""
     raw = []
     for f in frames:
         img = cv2.imdecode(np.fromfile(f, np.uint8), 1)
@@ -108,9 +92,6 @@ def ocr_lines(frames):
                     raw.append(t.strip())
         except Exception:
             pass
-        for t in read_paddle_img(img):          # PADDLE UNION (yabancı-dil recall)
-            if isinstance(t, str) and t.strip():
-                raw.append(t.strip())
     return raw
 
 
