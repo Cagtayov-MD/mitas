@@ -1920,6 +1920,14 @@ def main(argv=None) -> int:
                 # (OCR otorite), insan temizlesin → KONTROL.
                 if _cc4.get("cast_garble"):
                     reasons.append("cast garble şüphesi (OCR-otorite — KB-imzasız isim, insan teyidi)")
+                # GARBLE-ROUTING (2026-06-20): nihai cast/yön'de LEKSİKAL garble (rol/kurum token 'CRAFT
+                # SERVICES', cümle-eki, garbled rol-etiketi) kaldıysa → KONTROL (KB-bağımsız, FUZZY-DBQC
+                # kurtaramadı; "okunamadı>yanlış", SİLME YOK). Sinyal tek_film_kunye rapor.v4'ten.
+                _v4blk_g = (_v4j or {}).get("v4") or {}
+                if (_v4blk_g.get("cast_garble_lex_count") or 0) > 0:
+                    reasons.append("cast garble (leksikal, kurtarılamadı — insan teyidi)")
+                if _v4blk_g.get("yon_garble_lex"):
+                    reasons.append("yönetmen okunamadı (garble — leksikal)")
                 # QC2 (flag): kimlik KİLİTLİ iken yönetmeni KB ile çözdüyse (çelişki=cameo→gerçek yön),
                 # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
                 _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
@@ -2023,6 +2031,7 @@ def main(argv=None) -> int:
             "yon_fillable":      False,
             "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) for r in _R),
             "cast_count":        0 if any("oyuncu yok" in r for r in _R) else 1,
+            "cast_all_garble":   any("cast garble" in r for r in _R),   # garble-routing köprüsü (2026-06-20)
             "ozet_missing":      any("özet yok" in r for r in _R),
             "non_latin":         any("Latin-dışı" in r for r in _R),
             "char_broken":       any(("karakter bozuk" in r) or ("isim-QC" in r) for r in _R),

@@ -670,10 +670,26 @@ def main():
     except Exception:
         pass
     rapor["pdf"] = out_pdf
+    # GARBLE SİNYALİ (routing için, SİLME DEĞİL — "okunamadı>yanlış"): nihai cast/yön'de LEKSİKAL garble
+    # (rol/kurum token 'CRAFT SERVICES', cümle-eki, garbled rol-etiketi) kalmış mı? KB-bağımsız (KB-tanımayan
+    # filmde de çalışır), yüksek-isabet. mitas_pipeline bunu okuyup garble→KONTROL yönlendirir (ONAYLI'ya düşürmez).
+    _cast_garble_lex, _yon_garble_lex = [], False
+    try:
+        from credit_text_read import _looks_garble as _lg
+        _final_cast = d.get("cast") or []
+        _cast_garble_lex = [c for c in _final_cast if c and str(c).strip() != "—" and _lg(c)]
+        _final_yon = [n for r, ns in d.get("crew", []) for n in ns if r == "Yönetmen"]
+        _yon_garble_lex = bool(_final_yon and _final_yon[0] != "—" and _lg(_final_yon[0]))
+    except Exception:  # noqa: BLE001 — sinyal hesabı PDF/raporu ASLA bozmaz
+        _cast_garble_lex, _yon_garble_lex = [], False
     rapor["v4"] = {"yonetmen": [n for _, ns in crewU for n in ns if _ == "Yönetmen"],
                    "yapimci_var": any(r == "Yapımcı" for r, _ in crewU), "cast": len(castU),
                    "tur": d["specs"][1][1], "afis": bool(poster),
                    "ozet_kelime": len(d["ozet"].split()), "kanal": sk,
+                   # GARBLE-ROUTING sinyali (2026-06-20): nihai cast/yön leksikal-garble
+                   "cast_garble_lex": _cast_garble_lex,
+                   "cast_garble_lex_count": len(_cast_garble_lex),
+                   "yon_garble_lex": _yon_garble_lex,
                    # OTORİTER yüzey-değerler (PROPAGATION fix 2026-06-20): yüzey .txt'yi V4 PDF ile
                    # HİZALA — mitas_pipeline surface_deliverables bunlarla kunye_teslim.md'yi yamalar.
                    # d["cast"]/d["crew"]/d["keywords"] = PDF'e basılan AYNI değerler (birebir eşleşir).
