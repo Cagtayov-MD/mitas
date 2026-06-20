@@ -189,32 +189,43 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
     return out
 
 
-_DUB_ROLE_RE = re.compile(r"SESLEND[İIıi]RME|DUBLAJ", re.I)
+# DUBLAJ markerları — HER ZAMAN uygula (dublaj-rolü ASLA film-yönetmeni değil, yüksek-isabet).
+_DUB_MARKERS = ("seslendirme", "dublaj", "doblaje", "doublage", "synchron", "voice direct")
+# YÖNETMEN-DIŞI diğer rol markerları — yalnız aday ŞÜPHELİYKEN (mutabakat-DIŞI) uygula. Temiz+mutabık
+# yönetmene dokunma (3.GÖZ kanıtı: jenerik satır-sırası bozuk olabilir → agresifse gerçek yön'ü öldürür).
+_NONFILM_MARKERS = (
+    "yardimci", "assistant direct", "asst direct", "aiuto regista",     # asistan yönetmen
+    "ayudante", "asistente", "assistente",                             # asistan (ES/IT/PT)
+    "music direct", "muzik yon", "art direct", "casting direct", "technical direct",  # X-yönetmeni
+    "director of photo", "director de foto", "directeur de la photo", "goruntu yon",
+    "production assistant", "production manager", "asistentes de produc", "ayudante de direc",
+    "yapim asistan", "yapim sorumlu", "yapim koordinator",             # yapım rolleri
+)
 
 
-def _drop_dubbing_directors(directors, raw_lines):
-    """TÜRKÇE-DUBLAJ ROL DIŞLAMA (Çağatay 2026-06-20): Türkçe-dublajlı yabancı filmlerde jenerik
-    "SESLENDİRME YÖNETMENİ / DUBLAJ YÖNETMENİ / SESLENDİRME YÖNETMEN YARDIMCISI" içerir; bunlardaki
-    isim FİLM YÖNETMENİ DEĞİL (ESRA TANAR = 3.GÖZ/The Gift seslendirme yön. yard.; gerçek yön Sam Raimi).
-    Ham OCR'da yönetmen adayının ±2 satır bağlamında dublaj-rol etiketi varsa → DÜŞ (deterministik,
-    LLM-bağımsız). Asıl yönetmen ham-OCR'da yoksa boş kalır → KB cast-kilidiyle doldurulur.
+def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
+    """YÖNETMEN-DIŞI ROL DIŞLAMA (Çağatay 2026-06-20): ham OCR'da yönetmen adayının ±2 satır bağlamında
+    YÖNETMEN-DIŞI rol etiketi (dublaj/asistan-yön/yapım-asistanı/X-yönetmeni...) varsa → DÜŞ (deterministik,
+    LLM-bağımsız). ESRA TANAR=3.GÖZ seslendirme-yön.yard.→düşer; gerçek Sam Raimi KB cast-kilidiyle gelir.
+    DUBLAJ markerları HER ZAMAN; diğer roller yalnız high_consensus=False (mutabakat-dışı=şüpheli) iken
+    → temiz+mutabık gerçek yönetmeni öldürmez (yanlış>boş; OCR-otorite: isim eklemez/ezmez, yalnız düşürür).
     Döner (kalan, düşenler)."""
     if not directors or not raw_lines:
         return list(directors or []), []
-    rl = [str(l) for l in raw_lines]
-    folded = [_fold(l) for l in rl]
+    folded = [_fold(str(l)) for l in raw_lines]
+    markers = _DUB_MARKERS if high_consensus else (_DUB_MARKERS + _NONFILM_MARKERS)
     kept, dropped = [], []
     for d in directors:
         df = _fold(d)
-        is_dub = False
+        is_nf = False
         if df and len(df) >= 5:
             for i, lf in enumerate(folded):
                 if df in lf:
-                    ctx = " ".join(rl[max(0, i - 2):i + 1])
-                    if _DUB_ROLE_RE.search(ctx):
-                        is_dub = True
+                    ctx = " ".join(folded[max(0, i - 2):i + 1])
+                    if any(m in ctx for m in markers):
+                        is_nf = True
                         break
-        (dropped if is_dub else kept).append(d)
+        (dropped if is_nf else kept).append(d)
     return kept, dropped
 
 
@@ -1036,11 +1047,13 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 guven_yon = "OKUNAMADI (başrol-yönetmen şüphesi)"
     # DUBLAJ-ROL DIŞLAMA: Türkçe-dublaj "SESLENDİRME/DUBLAJ YÖNETMENİ(+yard.)" film-yönetmeni sanılmasın
     # (3.GÖZ: 'ESRA TANAR' = seslendirme yön. yard. → düşer; gerçek Sam Raimi KB cast-kilidiyle gelir).
-    yon_fused, _dub_dropped = _drop_dubbing_directors(yon_fused, raw_context_lines or lines)
-    if _dub_dropped:
-        sys.stderr.write(f"[dublaj-rol] yönetmenden düştü: {_dub_dropped}\n")
+    yon_fused, _nf_dropped = _drop_dubbing_directors(
+        yon_fused, raw_context_lines or lines,
+        high_consensus=(guven_yon == "YÜKSEK (mutabakat)"))
+    if _nf_dropped:
+        sys.stderr.write(f"[rol-atfı] yönetmenden düştü (yönetmen-dışı rol): {_nf_dropped}\n")
         if not yon_fused:
-            guven_yon = "OKUNAMADI (dublaj-rol — film yönetmeni değil)"
+            guven_yon = "OKUNAMADI (yönetmen-dışı rol — film yönetmeni değil)"
     # Kesin yönetmen cast'te de görünüyorsa cast'ten at (cast↔yönetmen kontaminasyon)
     yon_fold_set = {_fold(n) for n in yon_fused}
     cast_garble = [n for n in cast_garble if _fold(n) not in yon_fold_set]

@@ -485,8 +485,11 @@ def qc_credit_block(
         # web başlık-araması patlasa da (TR başlık DB'de yok), OCR yönetmeni TEMİZ okunduysa KB'de o
         # yönetmenin filmlerini ara + BENZERSİZ teyitle kilitle (Robert Duvall→Angelo, Woody Allen→Akrebin
         # Laneti). tier=weak (tek-aday/yıl±1) → KONTROL'de kalır ama alanlar dolar; tier=strong → ONAYLI-uygun.
+        # PERF NOTU: director-anchor kilitsiz-film başına indekssiz principals(98M) sorgusu yapar
+        # → büyük batch'te yavaş olabilir. MITAS_QC_DIRECTOR_ANCHOR=0 ile kapatılır (default AÇIK).
+        _da_on = os.environ.get("MITAS_QC_DIRECTOR_ANCHOR", "1").strip().lower() not in ("0", "false", "off", "no")
         _da_tier = None
-        if not locked and kb is not None:
+        if not locked and kb is not None and _da_on:
             try:
                 _da = _director_anchor_lock(kb, yon, id_cast, title, original, y)
                 if _da:

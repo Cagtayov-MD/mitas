@@ -27,6 +27,9 @@ if (-not $env:MITAS_QC2_WEB)           { $env:MITAS_QC2_WEB = '1';           Wri
 if (-not $env:MITAS_QC_BLOCK)          { $env:MITAS_QC_BLOCK = '1';          Write-Host '   + MITAS_QC_BLOCK=1 (default AKTIF)' }
 # SES-DIL KONTROL kapisi: ses/dil/ASR sorunu kunye-disi → KONTROL'e yollamaz (Cagatay 2026-06-20). Default KAPALI.
 if (-not $env:MITAS_SES_DIL_KONTROL)   { $env:MITAS_SES_DIL_KONTROL = '0';   Write-Host '   + MITAS_SES_DIL_KONTROL=0 (ses-dil KONTROL kapali)' }
+# DIRECTOR-ANCHOR: kilitsizken OCR-yonetmenden KB'de film-ara (kilit-orani kaldiraci). PERF: kilitsiz-film
+# basina indekssiz principals(98M) sorgusu → buyuk batch yavaslarsa MITAS_QC_DIRECTOR_ANCHOR=0 ile kapat.
+if (-not $env:MITAS_QC_DIRECTOR_ANCHOR){ $env:MITAS_QC_DIRECTOR_ANCHOR = '1'; Write-Host '   + MITAS_QC_DIRECTOR_ANCHOR=1 (default AKTIF; batch yavaslarsa 0 yap)' }
 # CREDIT_DETECT = jenerik GIRIS/CIKIS sinirini OpusCreditDetector ile dinamik bul (sabit 180/240s pencere
 # kadroyu kacirir: KARAYIP lead kadro 8116-8420s'de, sabit pencere 8419s+ yalnizca kuyrugu aliyordu).
 # No-regress: pencereyi yalnizca GENISLETIR (sabit tabanin altina inmez); CLIP footage'i zaten suzer. Uretimde AKTIF.
