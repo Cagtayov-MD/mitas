@@ -215,6 +215,17 @@ def test_invariant_no_ocr_added_when_unlocked():
     assert r["floor"]["ulasilan"] == 2
 
 
+def test_dubbing_director_drop():
+    """Türkçe-dublaj rol (SESLENDİRME/DUBLAJ YÖNETMENİ +yard.) yönetmen alanından düşer; gerçek kalır."""
+    from credit_text_read import _drop_dubbing_directors
+    raw = ["KURGU", "AHMET K", "SESLENDİRME YÖNETMEN YARDIMCISI", "ESRA TANAR",
+           "SESLENDİRME YÖNETMENİ", "ENGİN AYBAKAN", "YÖNETMEN", "Sam Raimi"]
+    kept, dropped = _drop_dubbing_directors(["ESRA TANAR", "ENGİN AYBAKAN", "Sam Raimi"], raw)
+    assert "ESRA TANAR" in dropped and "ENGİN AYBAKAN" in dropped   # dublaj rolleri düşer
+    assert "Sam Raimi" in kept                                       # gerçek yönetmen korunur
+    assert _drop_dubbing_directors(["X"], None)[0] == ["X"]          # ham yoksa dokunma (fail-safe)
+
+
 # ─────────────────────────── ENTEGRASYON (gerçek duckdb) ───────────────────────────
 def _db_var():
     return os.path.exists(os.environ.get("MITAS_WIKIDATA_DUCKDB",
