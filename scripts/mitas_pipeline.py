@@ -190,9 +190,54 @@ def md_to_readable(md: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(out).strip() + "\n")
 
 
-def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, tur_override: str = "") -> None:
+def _patch_md_credits(md_text: str, v4: dict) -> str:
+    """PROPAGATION fix (2026-06-20): yüzey .txt'yi V4 PDF ile HİZALA.
+    Yüzey .txt, _pipe_pdf'in yazdığı kunye_teslim.md'den üretilir; o .md kimi koşuda HAM parse_credits
+    çöpünü taşır (şoför/craft/müzik-kredi), oysa V4 (tek_film_kunye) PDF'i TEMİZ üretir → PDF≠txt.
+    V4 rapor JSON'ındaki OTORİTER cast/yön/yapımcı/keyword ile .md'nin ilgili 3 bölümünü değiştir
+    (tur_override deseniyle aynı). YALNIZ V4 değer SAĞLADIYSA (anahtar var); yoksa DOKUNMA (wipe yok)."""
+    if not v4 or not isinstance(v4, dict):
+        return md_text
+    cast = v4.get("cast_list")
+    kw = v4.get("keywords")
+    yon = v4.get("yonetmen_list")
+    yap = v4.get("yapimci_list")
+    if cast is None and yon is None and yap is None and kw is None:
+        return md_text
+    lines = md_text.splitlines()
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        line = lines[i]
+        h = line.strip()
+        # bir bölüm gövdesini (header sonrası boş/'## ' gelene dek satırlar) yeni değerle değiştir
+        if h == "## Anahtar Sözcükler" and kw is not None:
+            out.append(line); i += 1
+            while i < n and lines[i].strip() and not lines[i].startswith("## "):
+                i += 1
+            out.append(kw if kw else "—")
+            continue
+        if h == "## Oyuncular" and cast is not None:
+            out.append(line); i += 1
+            while i < n and lines[i].strip() and not lines[i].startswith("## "):
+                i += 1
+            out.extend([f"- {c}" for c in cast] if cast else ["—"])
+            continue
+        if h == "## Yapım Ekibi" and (yon is not None or yap is not None):
+            out.append(line); i += 1
+            while i < n and lines[i].strip() and not lines[i].startswith("## "):
+                i += 1
+            out.append(f"- Yapımcı: {', '.join(yap) if yap else '—'}")
+            out.append(f"- Yönetmen: {', '.join(yon) if yon else '—'}")
+            continue
+        out.append(line); i += 1
+    return "\n".join(out)
+
+
+def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, tur_override: str = "",
+                         v4_credits: dict = None) -> None:
     """Köke temiz teslimat yüzeyle: '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
-    Mevcut artefaktları KOPYALAR (yeniden üretmez). Çağıran try/except ile sarmalı — pipeline'ı bozmaz."""
+    Mevcut artefaktları KOPYALAR (yeniden üretmez). Çağıran try/except ile sarmalı — pipeline'ı bozmaz.
+    v4_credits: V4 rapor 'v4' bloğu (cast_list/yonetmen_list/yapimci_list/keywords) → .txt'yi PDF ile hizalar."""
     base = file_base(trt, title)
     pdf_out = clip_dir / "pdf"
     pdf_src = Path((pdf_info or {}).get("pdf_path") or "")
@@ -217,6 +262,9 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, t
             import re as _re
             md_text = _re.sub(r"(Tür:)\s*[^·\n]*?(\s*·\s*Süre:|\s*\n|$)",
                               lambda m: f"{m.group(1)} {tur_override}{m.group(2)}", md_text, count=1)
+        # PROPAGATION fix: cast/yön/yapımcı/keyword'ü V4 PDF otoriteriyle hizala (PDF≠txt sapması biter)
+        if v4_credits:
+            md_text = _patch_md_credits(md_text, v4_credits)
         (clip_dir / f"{base}.txt").write_text(
             md_to_readable(md_text), encoding="utf-8")
 
@@ -1724,6 +1772,7 @@ def main(argv=None) -> int:
     # IMDb/Wikidata fallback'li nihai TÜR'ü basıyordu → .txt ≠ PDF. v4 başarınca nihai TÜR'ü (rapor JSON)
     # yakala ve surface'a ilet. v4 koşmaz/başarısızsa tur_xml fallback (eski davranış, additive).
     tur_final = tur_xml
+    v4_credits = None   # PROPAGATION fix: V4 otoriter cast/yön/yapımcı → surface .txt'yi PDF ile hizalar
     _v4_off = os.environ.get("MITAS_NO_V4_FINAL", "").strip().lower() in ("1", "true", "yes", "on")
     if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path") and not _v4_off:
         t_v4 = time.perf_counter()
@@ -1756,6 +1805,10 @@ def main(argv=None) -> int:
                     _v4tur = ((_v4j.get("v4") or {}).get("tur") or "").strip()
                     if _v4tur and _v4tur != "—":
                         tur_final = _v4tur
+                    # PROPAGATION fix: V4 otoriter cast/yön/yapımcı/keyword → yüzey .txt PDF ile birebir
+                    _v4block = _v4j.get("v4") or {}
+                    if isinstance(_v4block, dict) and ("cast_list" in _v4block or "yonetmen_list" in _v4block):
+                        v4_credits = _v4block
                 except Exception:  # noqa: BLE001 — TÜR yakalama yüzeylemeyi ASLA bozmaz
                     pass
                 timings["v4_final"] = round(time.perf_counter() - t_v4, 2)
@@ -2024,7 +2077,7 @@ def main(argv=None) -> int:
                              trt or "", title or "", karar, _person_gate_report, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
     try:
-        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final)
+        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final, v4_credits=v4_credits)
     except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
         log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
                   media_id=media_id, filename=video.name, detail={"clip_id": clip_id})

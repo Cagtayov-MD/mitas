@@ -23,6 +23,29 @@ FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-sha
 # diye periyodik ilerleme basar. observability'yi import ETME (agir dep, ayri venv) — dogrudan append.
 _EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
 
+# whisper'in (faster-whisper) DESTEKLEDIGI dil kodlari. MMS-LID buradan FARKLI (1024 dil) bir kod
+# uretebilir; _channel_lang._LANG_MAP cogunu 2-harf'e cevirir ama eslenemeyen/whisper-disi kod
+# (or 'gle' Irlandaca, ya da haritada olmayan exotik dil) transcribe()'a verilirse ValueError firlatir
+# (2026-06-20 forensik: 'swe'/'cmn' gibi eksik kodlar 25 filmi cokertti). Bu set tek-gecerlilik kapisi:
+# dil whisper-disiysa ASR'yi cop-tr uretmek yerine "ku" gibi DURUSTCE atla (ozet internetten gelir).
+_WHISPER_OK = frozenset({
+    "af", "am", "ar", "as", "az", "ba", "be", "bg", "bn", "bo", "br", "bs", "ca", "cs", "cy", "da",
+    "de", "el", "en", "es", "et", "eu", "fa", "fi", "fo", "fr", "gl", "gu", "ha", "haw", "he", "hi",
+    "hr", "ht", "hu", "hy", "id", "is", "it", "ja", "jw", "ka", "kk", "km", "kn", "ko", "la", "lb",
+    "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr", "ms", "mt", "my", "ne", "nl", "nn",
+    "no", "oc", "pa", "pl", "ps", "pt", "ro", "ru", "sa", "sd", "si", "sk", "sl", "sn", "so", "sq",
+    "sr", "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "uk", "ur", "uz", "vi",
+    "yi", "yo", "yue", "zh",
+})
+
+
+def _lang_unsupported(language) -> bool:
+    """ASR ATLANMALI mi? Kurtce ('ku', whisper ceviremez) VEYA whisper-disi/eslenemeyen kod.
+    'tr' ve bos/None ASLA atlanmaz (varsayilan Turkce yol). Saf fonksiyon — smoke-test edilebilir."""
+    if not language or language == "tr":
+        return False
+    return language == "ku" or language not in _WHISPER_OK
+
 
 def _fmt_hms(sec) -> str:
     sec = int(max(0, sec or 0))
@@ -100,11 +123,12 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
         except Exception as exc:  # noqa: BLE001 - tespit hata verirse downmix+tr'ye düş
             detect_info = {"error": f"{type(exc).__name__}: {exc}"}
 
-    # --- KÜRTÇE-ailesi (ku): whisper ÇEVİREMEZ → ASR ATLA (boş transcript), dürüst işaretle.
-    #     Özet ayrı adımda İNTERNETTEN gelir (mitas_pipeline, bizim prompt). ---
-    if language == "ku":
-        # Kürtçe'de de chlang.json YAZ — yoksa _pipe_pdf kanal-dili SIFIRDAN tekrar koşar (MMS+whisper
-        # yeniden yüklenir = ağır performans israfı). Bug-3.
+    # --- DESTEKLENMEYEN dil → ASR ATLA (boş transcript), dürüst işaretle. Özet ayrı adımda
+    #     İNTERNETTEN gelir (mitas_pipeline). Kürtçe-ailesi ('ku', whisper çeviremez) VEYA whisper-dışı/
+    #     eşlenemeyen kod (2026-06-20: eksik dil-kodu ValueError'ı yerine dürüst atlama). ---
+    if _lang_unsupported(language):
+        # chlang.json YAZ — yoksa _pipe_pdf kanal-dili SIFIRDAN tekrar koşar (MMS+whisper yeniden yüklenir
+        # = ağır performans israfı). Bug-3.
         chlang_path = None
         if detect_info is not None:
             try:
@@ -112,13 +136,16 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
                 chlang_path.write_text(json.dumps(detect_info, ensure_ascii=False), encoding="utf-8")
             except Exception:  # noqa: BLE001
                 chlang_path = None
+        _is_ku = (language == "ku")
+        _note = ("Kurtce-ailesi (whisper ceviremez) -> ASR atlandi; ozet internetten" if _is_ku
+                 else f"'{language}' whisper-disi/desteklenmeyen dil -> ASR atlandi; ozet internetten")
         result = {
-            "status": "skipped_unsupported_lang", "mode": "lean", "model": "none", "language": "ku",
+            "status": "skipped_unsupported_lang", "mode": "lean", "model": "none", "language": language,
             "transcript_path": None, "clean_segments": 0, "transcript_chars": 0, "transcript_head": "",
-            "audio_duration": 0.0, "fallback_triggered": False, "profile_used": "lean-skip-ku",
+            "audio_duration": 0.0, "fallback_triggered": False, "profile_used": f"lean-skip-{language}",
             "summary_channel": (f"a:{sel['stream']}/c{sel['channel']}" if sel else "—"),
             "channel_detect": detect_info, "chlang_path": str(chlang_path) if chlang_path else None,
-            "note": "Kurtce-ailesi (whisper ceviremez) -> ASR atlandi; ozet internetten",
+            "note": _note,
             "runtime_sec": round(time.perf_counter() - t0, 3),
         }
         sys.stdout.write(json.dumps(result, ensure_ascii=False) + "\n")

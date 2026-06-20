@@ -374,12 +374,13 @@ def main():
     cast_ov = cc.get("cast_ortusme") or 0
     verdict = cc.get("verdict")
     auth_yon = cc.get("otoriter_yonetmen") or []
-    # FUZZY-DBQC (flag MITAS_FUZZY_DBQC, default KAPALI; Çağatay 2026-06-14): garble OCR cast'i DB-otoriteye
-    # GÖMÜLÜ-PENCERE ile eşle. name_match/name_close GARBLE'da (karakter-adı karışık: 'VAHAP EFE NARAMAN'
-    # = karakter VAHAP + aktör Efe Karaman) token-sayısı farkı yüzünden FİRE ETMEZ → kimlik kapısı açılmaz
-    # → düzeltme hiç çalışmaz (BEYAZ BALİNA 6 garble isimle kaldı). Pencere-overlap kapıyı açar; yanlış-film
-    # OCR'a uymadığından fuzzy_ov<2 kalır → açılmaz (güvenli, validation'da kanıtlandı). Fail-safe.
-    _FUZZY_DBQC = os.environ.get("MITAS_FUZZY_DBQC", "").strip().lower() in ("1", "true", "on", "yes")
+    # FUZZY-DBQC: garble/karakter-karışık OCR cast'i DB-otoriteye GÖMÜLÜ-PENCERE ile eşle. name_match/
+    # name_close GARBLE'da (karakter-adı karışık: 'MAURA SALLY HAWKINS' = karakter MAURA + aktör Sally
+    # Hawkins) token-sayısı farkı yüzünden FİRE ETMEZ → kimlik kapısı açılmaz → düzeltme çalışmaz. Pencere-
+    # overlap kapıyı açar; yanlış-film OCR'a uymadığından fuzzy_ov<2 kalır → açılmaz (kimlik-kilidi same-title
+    # koruması). DEFAULT AÇIK (2026-06-20): 11-film ölçümü SIFIR yanlış-snap + 2 film doğru temizlik
+    # (SONSUZA KADAR MUTLULAR karakter-prefiks, SUNDOWN garble→kanonik); MITAS_FUZZY_DBQC=0 kapatır. Fail-safe.
+    _FUZZY_DBQC = os.environ.get("MITAS_FUZZY_DBQC", "1").strip().lower() not in ("0", "false", "off", "no")
     _auth_cast = cc.get("otoriter_cast") or []
     # credit_kb_lookup garble cast'le crosscheck'i çağırınca VERIFICATION başarısız → KAYNAK_YOK → otoriter_cast
     # NULL döner (film DB'de title+year ile VAR olsa bile; BEYAZ BALİNA imdb_id=tt7377934 bulundu ama cast=null).
@@ -672,7 +673,14 @@ def main():
     rapor["v4"] = {"yonetmen": [n for _, ns in crewU for n in ns if _ == "Yönetmen"],
                    "yapimci_var": any(r == "Yapımcı" for r, _ in crewU), "cast": len(castU),
                    "tur": d["specs"][1][1], "afis": bool(poster),
-                   "ozet_kelime": len(d["ozet"].split()), "kanal": sk}
+                   "ozet_kelime": len(d["ozet"].split()), "kanal": sk,
+                   # OTORİTER yüzey-değerler (PROPAGATION fix 2026-06-20): yüzey .txt'yi V4 PDF ile
+                   # HİZALA — mitas_pipeline surface_deliverables bunlarla kunye_teslim.md'yi yamalar.
+                   # d["cast"]/d["crew"]/d["keywords"] = PDF'e basılan AYNI değerler (birebir eşleşir).
+                   "cast_list": list(d.get("cast") or []),
+                   "keywords": d.get("keywords") or "",
+                   "yonetmen_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yönetmen"],
+                   "yapimci_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yapımcı"]}
     print(json.dumps(rapor, ensure_ascii=False, indent=2))
     print("PDF:", out_pdf)
 

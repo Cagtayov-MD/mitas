@@ -59,6 +59,30 @@ def _find_frames(clip):
     return (g if g and os.path.isdir(g) else None), (c if c and os.path.isdir(c) else None)
 
 
+def _load_raw_ocr(clip):
+    """Jenerik karelerinin HAM OCR metni (ocr_raw_all + ocr_ham + kunye) → VL hayalet-kalkanı korpusu.
+    VL pikselden okur; HAM OCR aynı kareleri işledi → gerçek isim ham OCR'da bulunur, yoksa = uydurma
+    (2026-06-20 forensik: FOTOĞRAF VL 'JEFF TOWLES' uydurdu, ham OCR'da YOK → kalkan düşürür)."""
+    parts = []
+    for pat in ("ocr_raw_all.txt", "ocr_ham.txt", "kunye.txt"):
+        for fp in glob.glob(os.path.join(clip, "ocr", "**", pat), recursive=True):
+            try:
+                parts.append(open(fp, encoding="utf-8", errors="ignore").read())
+            except Exception:  # noqa: BLE001
+                pass
+    return _fold("\n".join(parts))
+
+
+def _in_raw(name, raw_fold):
+    """İsmin anlamlı token'ları HAM OCR'da geçiyor mu (ad+soyad doğrulama, credit_validate._recover_raw deseni).
+    ≥4-harf token'ların TÜMÜ raw'da olmalı; yoksa ≥3-harf'e düş (kısa adlar). raw yoksa kalkanı atla (FAIL-SAFE)."""
+    if not raw_fold:
+        return True
+    f = _fold(name)
+    toks = [t for t in f.split() if len(t) >= 4] or [t for t in f.split() if len(t) >= 3]
+    return bool(toks) and all(t in raw_fold for t in toks)
+
+
 def _vl_one(cv, ctr, giris, cikis, model, kb):
     """Bir VL modeli: yön+cast; yönetmenden O MODELİN cast'inde geçeni at (self-consistency) + KESİN KURAL."""
     res = cv.read_credits(giris, cikis, models=[model], kb=kb) or {}
@@ -115,12 +139,18 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
         yon, vl_cast = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
         tcast = out.get("cast") or []
         all_cast_fold = {_fold(x) for x in (tcast + vl_cast)}
+        raw_fold = _load_raw_ocr(clip)   # HAYALET-KALKANI korpusu (ham OCR)
         # YÖNETMEN: yalnız BOŞSA doldur (metni EZME), cross-cast filtresi
         if not out.get("yonetmen"):
             yon_clean = [y for y in yon if _fold(y) not in all_cast_fold]
             yon_persons = ctr._only_persons(yon_clean)
-            if yon_persons:
-                out["yonetmen"] = yon_persons
+            # HAYALET-KALKANI: VL pikselden UYDURMUŞ olabilir → ham OCR'da geçmeyen yönetmeni DÜŞÜR
+            # (okunamadı > yanlış; yönetmen=kimlik çapası). FOTOĞRAF 'JEFF TOWLES' tipi uydurma kesilir.
+            _yon_corr = [y for y in yon_persons if _in_raw(y, raw_fold)]
+            if _yon_corr != yon_persons:
+                out["vl_yon_hallucinated"] = [y for y in yon_persons if y not in _yon_corr]
+            if _yon_corr:
+                out["yonetmen"] = _yon_corr
                 out["vl_yon_kaynak"] = "gemma4"
         # CAST-supplement: fill_cast=True (QC1-RED) veya MITAS_VL_CAST=1 env.
         # QC1-RED yolunda metin-OCR cast<3 zaten doğrulandı → gemma4 cast dene.
@@ -130,6 +160,11 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
             for nm in vl_cast:
                 if not any(_fold(nm) == _fold(x) for x in tcast + add):
                     add.append(nm)
+            # HAYALET-KALKANI: ham OCR'da geçmeyen VL-cast uydurmasını DÜŞÜR
+            _add_corr = [nm for nm in add if _in_raw(nm, raw_fold)]
+            if len(_add_corr) != len(add):
+                out["vl_cast_hallucinated"] = len(add) - len(_add_corr)
+            add = _add_corr
             if add:
                 out["cast"] = ctr._only_persons(tcast + add)
                 out["vl_cast_supplement"] = len(add)

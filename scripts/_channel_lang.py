@@ -31,13 +31,43 @@ MIX_RATIO = 0.30      # ikincil/birincil oran → "iç içe"
 AMBIG_RATIO = 0.25    # iki dil eşikte → ekstra örnek
 
 # MMS-LID ISO 639-3 → bizim 2-harf (whisper uyumlu). Kürtçe-ailesi → "ku" (whisper ÇEVİREMEZ).
+# KAPSAM: whisper'in DESTEKLEDIGI tum dilleri kapsa (eksik kod = _pipe_asr'de ValueError cokmesi,
+# 2026-06-20 forensik: swe/est/isl/cmn/jav/vie/mon eksikti → 25 film ozet placeholder). Eslenemeyen
+# kod ham doner; _pipe_asr whisper-gecerli degilse atlar (cop-tr uretmez). whisper-DESTEKLEMEYEN dil
+# (or gle/Irlandaca) burada eslenmez → _pipe_asr "skipped_unsupported_lang" yapar.
 _KURDISH = {"kmr", "ckb", "sdh", "kur", "zza", "lki", "bdv"}
 _LANG_MAP = {
+    # mevcut (korundu)
     "tur": "tr", "aze": "az", "azb": "az", "arb": "ar", "ara": "ar", "arz": "ar", "ary": "ar",
     "eng": "en", "fra": "fr", "deu": "de", "spa": "es", "ita": "it", "rus": "ru", "ron": "ro",
     "ell": "el", "fas": "fa", "por": "pt", "nld": "nl", "pol": "pl", "ukr": "uk", "kat": "ka",
     "hye": "hy", "heb": "he", "jpn": "ja", "kor": "ko", "zho": "zh", "hin": "hi", "urd": "ur",
     "bul": "bg", "ces": "cs", "srp": "sr", "hrv": "hr", "tuk": "tk", "uzb": "uz", "kaz": "kk",
+    # --- 2026-06-20 EKLEMELER (forensik: eksik dil-kodu → ASR cokmesi) ---
+    # iskandinav / baltik / kuzey
+    "swe": "sv", "nor": "no", "nob": "no", "nno": "nn", "dan": "da", "fin": "fi",
+    "isl": "is", "fao": "fo", "est": "et", "lit": "lt", "lav": "lv", "ltz": "lb",
+    # bati/orta avrupa
+    "slk": "sk", "slv": "sl", "cat": "ca", "glg": "gl", "eus": "eu", "oci": "oc",
+    "cym": "cy", "bre": "br", "lat": "la", "mlt": "mt",
+    # balkan / dogu avrupa
+    "mkd": "mk", "sqi": "sq", "als": "sq", "bel": "be", "bos": "bs", "tat": "tt",
+    "bak": "ba",
+    # cince aileleri / dogu asya
+    "cmn": "zh", "yue": "yue", "wuu": "zh", "nan": "zh", "hak": "zh",
+    "vie": "vi", "tha": "th", "mya": "my", "khm": "km", "lao": "lo", "bod": "bo",
+    # guney/guneydogu asya
+    "ind": "id", "msa": "ms", "zsm": "ms", "jav": "jw", "sun": "su",
+    "tgl": "tl", "fil": "tl", "ben": "bn", "tam": "ta", "tel": "te", "mar": "mr",
+    "guj": "gu", "kan": "kn", "mal": "ml", "pan": "pa", "sin": "si", "nep": "ne",
+    "asm": "as", "snd": "sd", "pus": "ps", "pbt": "ps",
+    # orta asya / kafkas
+    "mon": "mn", "tgk": "tg",
+    # afrika
+    "swa": "sw", "swh": "sw", "amh": "am", "hau": "ha", "yor": "yo", "som": "so",
+    "afr": "af", "sna": "sn", "mlg": "mg", "lin": "ln",
+    # diger
+    "san": "sa", "yid": "yi", "hat": "ht", "haw": "haw", "mri": "mi",
 }
 def _map_lang(c):
     if c in _KURDISH:
