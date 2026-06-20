@@ -74,6 +74,8 @@ def main(argv=None) -> int:
     ap.add_argument("--no-clip", action="store_true")
     ap.add_argument("--no-ocr-refine", action="store_true",
                     help="OCR-geriye başlangıç inceltmeyi kapat (sezgisel geri-çekme kalır)")
+    ap.add_argument("--parallel", action="store_true",
+                    help="--film: giriş+çıkış 2 thread'de eşzamanlı (CLIP lock'lu, ayrı OCR motoru)")
     a = ap.parse_args(argv)
 
     try:
@@ -89,7 +91,10 @@ def main(argv=None) -> int:
                                        close_search_min=a.close_search_min,
                                        clip_ctx=clip_ctx, ocr_read_fn=ocr_fn)
         elif a.film:
-            res = jd.detect_film_frames(a.film, fps=a.fps, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn)
+            res = jd.detect_film_frames(
+                a.film, fps=a.fps, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn,
+                parallel=a.parallel,
+                ocr_factory=(_build_ocr_read_fn if (use_ocr and a.parallel) else None))
         else:  # --frames (tek klasör → istenen tarafa koy)
             region = jd.detect_from_frames(a.frames, fps=a.fps,
                                            window_start_sec=a.window_start,

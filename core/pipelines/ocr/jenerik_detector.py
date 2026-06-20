@@ -140,6 +140,7 @@ def load_clip(device: Optional[str] = None) -> Optional[dict]:
     except Exception:
         return None
     try:
+        import threading
         dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
         model, _, preprocess = open_clip.create_model_and_transforms(
             "ViT-B-32", pretrained="laion2b_s34b_b79k")
@@ -156,7 +157,8 @@ def load_clip(device: Optional[str] = None) -> Optional[dict]:
             return m / m.norm()
 
         return {"model": model, "preprocess": preprocess, "ls": ls,
-                "cred_e": _embed(CREDIT_PROMPTS), "scene_e": _embed(SCENE_PROMPTS), "dev": dev}
+                "cred_e": _embed(CREDIT_PROMPTS), "scene_e": _embed(SCENE_PROMPTS), "dev": dev,
+                "lock": threading.Lock()}   # paralel giriş+çıkış için CLIP forward'ını serileştir (thread-güvenli)
     except Exception:
         return None
 
@@ -164,8 +166,10 @@ def load_clip(device: Optional[str] = None) -> Optional[dict]:
 def _clip_scores(ctx: dict, frames_bgr: list[np.ndarray]) -> list[float]:
     """Her BGR kare için kredi-olasılığı (softmax[cred, scene][0])."""
     import torch
+    from contextlib import nullcontext
     from PIL import Image
     model, pre, dev = ctx["model"], ctx["preprocess"], ctx["dev"]
+    lock = ctx.get("lock") or nullcontext()   # paralel modda iki thread aynı modeli çağırırsa serileştir
     out: list[float] = []
     B = 64
     with torch.no_grad():
@@ -174,10 +178,11 @@ def _clip_scores(ctx: dict, frames_bgr: list[np.ndarray]) -> list[float]:
             imgs = torch.stack([
                 pre(Image.fromarray(cv2.cvtColor(f, cv2.COLOR_BGR2RGB))) for f in batch
             ]).to(dev)
-            ie = model.encode_image(imgs).float()
-            ie = ie / ie.norm(dim=-1, keepdim=True)
-            sc = torch.stack([ie @ ctx["cred_e"], ie @ ctx["scene_e"]], dim=1) * ctx["ls"]
-            p = sc.softmax(dim=1)[:, 0].cpu().numpy()
+            with lock:
+                ie = model.encode_image(imgs).float()
+                ie = ie / ie.norm(dim=-1, keepdim=True)
+                sc = torch.stack([ie @ ctx["cred_e"], ie @ ctx["scene_e"]], dim=1) * ctx["ls"]
+                p = sc.softmax(dim=1)[:, 0].cpu().numpy()
             out.extend(float(x) for x in p)
     return out
 
@@ -606,6 +611,30 @@ def refine_start_ocr(start_frame: int, lines_at, *, back_gap: int = OCR_BACK_GAP
     return max(0, start - safety)
 
 
+def refine_end_ocr(end_frame: int, n_frames: int, lines_at, *, back_gap: int = OCR_BACK_GAP,
+                   back_cap: int = OCR_BACK_CAP, safety: int = OCR_SAFETY) -> int:
+    """GİRİŞ jeneriği için TERS yön: end_frame'den İLERİ OCR ile yürü — kredi-satırı okudukça ileri git
+    (boşluk-toleranslı: kartlar-arası siyahları geç); back_gap ardışık kredi-SİZ kare → FİLM başladı = sınır,
+    dur. lines_at(idx)->list[str]. Döner: inceltilmiş end (yalnız İLERİ'ye, ≤ n_frames-1, +safety film payı).
+    Filmden sonrası = end+1 (kredinin son soluk karesini kaçırmamak için biraz filme taşar)."""
+    end = end_frame
+    gap = 0
+    i = end_frame + 1
+    while i < n_frames and (i - end_frame) <= back_cap:
+        try:
+            has = any(is_credit_text_line(x) for x in lines_at(i))
+        except Exception:
+            has = False
+        if has:
+            end, gap = i, 0
+        else:
+            gap += 1
+            if gap > back_gap:
+                break
+        i += 1
+    return min(n_frames - 1, end + safety)
+
+
 def _apply_ocr_refine(region: dict, frames_bgr: list, ocr_read_fn, *,
                       fps: float, window_start_sec: float) -> dict:
     """Bölgenin start_frame'ini OCR-geriye ile inceltir (asıl TOO_LATE fix). ocr_read_fn(bgr)->satırlar.
@@ -629,11 +658,39 @@ def _apply_ocr_refine(region: dict, frames_bgr: list, ocr_read_fn, *,
     return region
 
 
+def _apply_ocr_refine_end(region: dict, frames_bgr: list, ocr_read_fn, *,
+                          fps: float, window_start_sec: float) -> dict:
+    """GİRİŞ jeneriği: end_frame'i OCR-İLERİ ile inceltir (jenerik SONU = FİLM başı). ocr_read_fn(bgr)->satırlar.
+    Yalnız İLERİ'ye taşır; end_sec yeniden hesaplanır; film_start_frame/sec eklenir (= end+1)."""
+    if ocr_read_fn is None or not region.get("found") or region.get("end_frame") is None:
+        return region
+    ef = int(region["end_frame"])
+    cache: dict = {}
+
+    def lines_at(idx):
+        if idx not in cache:
+            cache[idx] = ocr_read_fn(frames_bgr[idx]) or []
+        return cache[idx]
+
+    new_ef = refine_end_ocr(ef, len(frames_bgr), lines_at)
+    if new_ef > ef:
+        region = dict(region)
+        region["ocr_refined_end_from"] = ef
+        region["end_frame"] = int(new_ef)
+        region["end_sec"] = round(window_start_sec + (new_ef + 1) / fps, 3)
+    # film başı = jenerik bitişinden hemen sonra (her durumda raporla)
+    fsf = int(region["end_frame"]) + 1
+    region = dict(region)
+    region["film_start_frame"] = fsf
+    region["film_start_sec"] = round(window_start_sec + fsf / fps, 3)
+    return region
+
+
 def detect_from_frames(frame_dir: str | Path, *, fps: float = 2.0, window_start_sec: float = 0.0,
                        prefer: str = "first", clip_ctx: Optional[dict] = None,
                        ocr_read_fn=None, return_debug: bool = False) -> dict:
     """Tek kare-klasörü → bölge dict. prefer='first' (giriş) / 'last' (çıkış).
-    ocr_read_fn verilirse start OCR-geriye ile inceltilir (faint erken-krediyi yakalar)."""
+    ocr_read_fn verilirse: çıkış→start OCR-geriye; giriş→end OCR-ileri (jenerik sonu=film başı)."""
     frames = _read_frame_dir(Path(frame_dir))
     if not frames:
         out = _region_dict(None, fps=fps, window_start_sec=window_start_sec)
@@ -642,19 +699,39 @@ def detect_from_frames(frame_dir: str | Path, *, fps: float = 2.0, window_start_
     sigs, runs_meta = analyze(frames, clip_ctx=clip_ctx)
     out = _select_region(runs_meta, len(frames), prefer, fps=fps, window_start_sec=window_start_sec)
     out = _apply_ocr_refine(out, frames, ocr_read_fn, fps=fps, window_start_sec=window_start_sec)
+    if prefer == "first":   # GİRİŞ: jeneriğin bittiği (film başladığı) anı da bul (ileri yürü)
+        out = _apply_ocr_refine_end(out, frames, ocr_read_fn, fps=fps, window_start_sec=window_start_sec)
     return (out, sigs, runs_meta) if return_debug else out
 
 
 def detect_film_frames(film_dir: str | Path, *, fps: float = 2.0,
-                       clip_ctx: Optional[dict] = None, ocr_read_fn=None) -> dict:
-    """Bir film klasörü → {opening, closing} (frames/giris → ilk koşu, frames/cikis → son koşu)."""
+                       clip_ctx: Optional[dict] = None, ocr_read_fn=None,
+                       parallel: bool = False, ocr_factory=None) -> dict:
+    """Bir film klasörü → {opening, closing} (frames/giris → ilk koşu, frames/cikis → son koşu).
+    parallel=True: giriş+çıkış 2 thread'de eşzamanlı (bağımsız veri; CLIP lock'lu, OCR ayrı motor).
+    ocr_factory() çağrılınca TAZE bir ocr_read_fn üretmeli (her thread kendi OneOCR motoru — thread-güvenli)."""
     fd = Path(film_dir)
     giris = fd / "frames" / "giris"
     cikis = fd / "frames" / "cikis"
+    none_reg = lambda: _region_dict(None, fps=fps, window_start_sec=0.0)
+
+    if parallel:
+        import concurrent.futures
+        ocr_g = ocr_factory() if ocr_factory else ocr_read_fn   # her thread KENDİ OCR motoru
+        ocr_c = ocr_factory() if ocr_factory else ocr_read_fn
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+            fg = (ex.submit(detect_from_frames, giris, fps=fps, prefer="first", clip_ctx=clip_ctx, ocr_read_fn=ocr_g)
+                  if giris.is_dir() else None)
+            fc = (ex.submit(detect_from_frames, cikis, fps=fps, prefer="last", clip_ctx=clip_ctx, ocr_read_fn=ocr_c)
+                  if cikis.is_dir() else None)
+            opening = fg.result() if fg else none_reg()
+            closing = fc.result() if fc else none_reg()
+        return {"opening": opening, "closing": closing}
+
     opening = (detect_from_frames(giris, fps=fps, prefer="first", clip_ctx=clip_ctx, ocr_read_fn=ocr_read_fn)
-               if giris.is_dir() else _region_dict(None, fps=fps, window_start_sec=0.0))
+               if giris.is_dir() else none_reg())
     closing = (detect_from_frames(cikis, fps=fps, prefer="last", clip_ctx=clip_ctx, ocr_read_fn=ocr_read_fn)
-               if cikis.is_dir() else _region_dict(None, fps=fps, window_start_sec=0.0))
+               if cikis.is_dir() else none_reg())
     return {"opening": opening, "closing": closing}
 
 
@@ -728,6 +805,7 @@ def detect_from_video(video: str | Path, *, fps: float = 2.0, open_search_min: f
     osigs, oruns = analyze(of, clip_ctx=clip_ctx)
     opening = _select_region(oruns, len(of), "first", fps=fps, window_start_sec=0.0)
     opening = _apply_ocr_refine(opening, of, ocr_read_fn, fps=fps, window_start_sec=0.0)
+    opening = _apply_ocr_refine_end(opening, of, ocr_read_fn, fps=fps, window_start_sec=0.0)  # GİRİŞ: film başı
 
     close_start = max(0.0, dur - close_search_min * 60.0) if dur > 0 else 0.0
     cf = _sample_video(cap, close_start, dur if dur > 0 else close_start + close_search_min * 60.0, fps)
