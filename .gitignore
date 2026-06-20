@@ -113,6 +113,10 @@ OCR-worktree/*
 !OCR-worktree/pdf-mitas/
 OCR-worktree/pdf-mitas/*
 !OCR-worktree/pdf-mitas/*.py
+# master-PNG composer (std2 uzeri: icerik-kart-bolme + sisme-guard + mosaic-dispatch)
+!OCR-worktree/db_compose_master.py
+!OCR-worktree/_master_pool_run.py
+!OCR-worktree/MASTER_DB_COMPOSE_FINAL_2026-06-20.md
 # NOT: OCR-worktree/py/ pipeline100 zinciri eski commit'te zaten tracked; _pipe_ocr.py onu RUNTIME yukler.
 mutfak/OCR_*_GORSELLER_*/
 
