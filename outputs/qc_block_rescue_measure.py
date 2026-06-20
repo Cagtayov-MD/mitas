@@ -78,6 +78,15 @@ def main():
                              "cast_n": res["floor"]["ulasilan"], "gerekceler": res["gerekceler"]})
             print(f"       → {res['karar']}/{res['kontrol_tip'] or '-'} | kilit={'E' if res['kimlik']['locked'] else 'h'}"
                   f" | yön={res['temiz_yon']} | cast={res['floor']['ulasilan']}", flush=True)
+            # ARTIMLI KAYIT + tally (timeout/kesinti olsa bile kısmi sonuç diske yazılı kalır)
+            if (j + 1) % 20 == 0 or (j + 1) == len(sel):
+                json.dump(res_rows, open(os.path.join(HERE, "qc_block_rescue_sonuc.json"), "w", encoding="utf-8"),
+                          ensure_ascii=False, indent=1)
+                _o = sum(1 for x in res_rows if x["qc_karar"] == "ONAYLI")
+                _a = sum(1 for x in res_rows if x["qc_karar"] == "AUTO-FIX")
+                _kl = sum(1 for x in res_rows if x["kilit"])
+                print(f"  --- ARA TALLY [{j+1}/{len(sel)}]: ONAYLI={_o} AUTO-FIX={_a} "
+                      f"kurtarma={100*(_o+_a)//max(1,len(res_rows))}% kilit={100*_kl//max(1,len(res_rows))}% ---", flush=True)
     finally:
         kb.close()
 

@@ -43,9 +43,12 @@ except Exception:                          # noqa: BLE001
 try:
     from credit_text_read import (
         _looks_garble, _apply_garble_gate, _apply_garble_gate_yapimci, _only_persons,
-        filter_cast_by_raw_context,
+        _valid_person_name, filter_cast_by_raw_context,
     )
 except Exception:                          # noqa: BLE001 — fail-safe minimal davranış
+    def _valid_person_name(name):           # type: ignore
+        return bool(name and len(str(name).split()) >= 2 and not any(c.isdigit() for c in str(name)))
+
     def _looks_garble(_n):                  # type: ignore
         return None
 
@@ -254,6 +257,104 @@ def _kb_producers(kb, imdb_id, limit=3):
         return []
 
 
+def _films_by_director(kb, director, year=None, maxc=10):
+    """YÖNETMEN-ÖNCE arama (kilit-oranı kaldıracı): KB'de (imdb principals) bir yönetmen adının
+    filmlerini ara (yıl±3). Başlık DB'de bulunamasa da gerçek-okunan yönetmenden kimlik kurmaya yarar.
+    Tek-token yönetmen GÜVENİLMEZ (yanlış-kilit) → atlanır. Döner: [{imdb_id,name,original,year,cast}]."""
+    try:
+        if not (kb is not None and getattr(kb, "imdb", None) and director):
+            return []
+        fold = cc._castfold(director)
+        if len(fold.split()) < 2:               # tek-token → güvenilmez, atla
+            return []
+        rows = None
+        for _e in ("trim(regexp_replace(lower(strip_accents(primaryName)),'[^a-z0-9]+',' ','g'))",
+                   "trim(regexp_replace(lower(primaryName),'[^a-z0-9]+',' ','g'))"):
+            try:
+                rows = kb.imdb.execute(f"SELECT nconst FROM names WHERE {_e}=? LIMIT 25", [fold]).fetchall()
+                break
+            except Exception:                   # noqa: BLE001
+                continue
+        if not rows:
+            return []
+        nconsts = list({r[0] for r in rows})
+        ph = ",".join(["?"] * len(nconsts))
+        trows = kb.imdb.execute(
+            f"SELECT DISTINCT tconst FROM principals WHERE nconst IN ({ph}) AND category='director' LIMIT 80",
+            nconsts).fetchall()
+        out = []
+        for (tc,) in trows:
+            r = kb.imdb.execute(
+                "SELECT primaryTitle,originalTitle,startYear,titleType FROM titles WHERE tconst=?", [tc]).fetchone()
+            if not r or r[3] not in ("movie", "tvMovie", "tvSeries", "tvMiniSeries"):
+                continue
+            if year and r[2]:
+                try:
+                    if abs(int(r[2]) - int(year)) > 3:    # yıl±3 (TRT katalog kayması payı)
+                        continue
+                except Exception:                # noqa: BLE001
+                    pass
+            d, c = kb.imdb_credits(tc)
+            out.append({"imdb_id": tc, "name": r[0], "original": r[1], "year": r[2], "director": d, "cast": c})
+            if len(out) >= maxc:
+                break
+        return out
+    except Exception:                            # noqa: BLE001
+        return []
+
+
+def _director_anchor_lock(kb, ocr_dirs, ocr_cast, title, original, year):
+    """ÇAPA-3 (yönetmen-önce, KONSERVATİF). OCR yönetmeni geçerli-okunduysa KB'de o yönetmenin
+    filmlerini ara; BENZERSİZ teyit varsa kilitle. Teyit kademeleri (güçlü→zayıf):
+      STRONG: başlık-fold benzersiz  VEYA  cast-overlap≥1 benzersiz  → ONAYLI-uygun
+      WEAK:   tek-aday  VEYA  yıl±1-benzersiz                        → kilit+alan-doldur ama KONTROL
+    Üretken yönetmende (çok aday, teyit yok) → None (yanlış>boş). Döner {tier,director,cast,imdb_id,name,kanit} | None."""
+    try:
+        yi = None
+        try:
+            yi = int(year) if year not in (None, "", "—") else None
+        except Exception:                        # noqa: BLE001
+            yi = None
+        for d in (ocr_dirs or []):
+            if not d or not _valid_person_name(d):
+                continue
+            cands = _films_by_director(kb, d, yi)
+            if not cands:
+                continue
+            scored = []
+            for c in cands:
+                try:
+                    ov = cc.cast_overlap(ocr_cast, c.get("cast") or [])
+                except Exception:                # noqa: BLE001
+                    ov = 0
+                tfold = bool((title and cc.fold(c["name"]) == cc.fold(title))
+                             or (original and cc.fold(c["name"]) == cc.fold(original))
+                             or (original and c.get("original") and cc.fold(c["original"]) == cc.fold(original)))
+                ytight = bool(yi and c.get("year") and abs(int(c["year"]) - yi) <= 1)
+                scored.append((c, ov, tfold, ytight))
+            title_hits = [s for s in scored if s[2]]
+            cast_hits = [s for s in scored if s[1] >= 1]
+            ytight_hits = [s for s in scored if s[3]]
+            pick, tier = None, None
+            if len(title_hits) == 1:
+                pick, tier = title_hits[0], "strong"
+            elif len(cast_hits) == 1:
+                pick, tier = cast_hits[0], "strong"
+            elif len(cands) == 1:
+                pick, tier = scored[0], "weak"
+            elif len(ytight_hits) == 1:
+                pick, tier = ytight_hits[0], "weak"
+            if pick:
+                c = pick[0]
+                return {"tier": tier, "director": [d], "cast": c.get("cast") or [],
+                        "imdb_id": c.get("imdb_id"), "name": c.get("name"),
+                        "kanit": f"yön-çapası[{tier}]: {d} → {c.get('name')} ({c.get('year')}) "
+                                 f"tfold={pick[2]} cast_ov={pick[1]} aday={len(cands)}"}
+        return None
+    except Exception:                            # noqa: BLE001
+        return None
+
+
 # ═══════════════════════════════ ANA GİRİŞ ═══════════════════════════════
 YEAR_CUTOFF = 2000          # ≥2000 = güncel (floor 8), öncesi = eski (floor 6)
 FLOOR_NEW = 8
@@ -380,6 +481,25 @@ def qc_credit_block(
             except Exception as _e:        # noqa: BLE001
                 iz.append({"adim": "web_identity", "hata": str(_e)})
 
+        # ── S3b-2: YÖNETMEN-ÖNCE ÇAPASI (ÇAPA-3, Çağatay 2026-06-20) — kilit-oranı kaldıracı ──
+        # web başlık-araması patlasa da (TR başlık DB'de yok), OCR yönetmeni TEMİZ okunduysa KB'de o
+        # yönetmenin filmlerini ara + BENZERSİZ teyitle kilitle (Robert Duvall→Angelo, Woody Allen→Akrebin
+        # Laneti). tier=weak (tek-aday/yıl±1) → KONTROL'de kalır ama alanlar dolar; tier=strong → ONAYLI-uygun.
+        _da_tier = None
+        if not locked and kb is not None:
+            try:
+                _da = _director_anchor_lock(kb, yon, id_cast, title, original, y)
+                if _da:
+                    otoriter_yon = otoriter_yon or _da["director"]
+                    otoriter_cast = otoriter_cast or (_da.get("cast") or [])
+                    imdb_id = imdb_id or _da.get("imdb_id")
+                    _da_tier = _da["tier"]
+                    method = method or ("director-anchor" if _da_tier == "strong" else "director-anchor-weak")
+                    locked = True
+                    iz.append({"adim": "director_anchor", "tier": _da_tier, "kanit": _da["kanit"]})
+            except Exception as _e:        # noqa: BLE001
+                iz.append({"adim": "director_anchor", "hata": str(_e)})
+
         # ── S3c: KİLİT-VAR-YÖNETMEN-BOŞ KURTARMASI (Çağatay 2026-06-20) ──
         # Kimlik kilitlendi (cast-örtüşme) ama KB yönetmeni BOŞ gelebilir: wikidata eşleşmesi yönetmen-QID
         # çözememiş YA DA cast_find imdb-cast eşleşmesi yönetmen döndürmemiş olabilir. Eşleşen imdb_id'den
@@ -480,6 +600,8 @@ def qc_credit_block(
             _ekle("KIMLIK", "kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)")
         elif method == "tmdb":
             _ekle("KIMLIK", "versiyon cast-teyitsiz (web title+year kilidi — insan onayı)")
+        elif method == "director-anchor-weak":
+            _ekle("KIMLIK", "yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)")
 
         if yon_conflict:
             _ekle("YONETMEN", "OCR yönetmeni KB ile çelişti (kimlik çapası — KB ile ezilmedi)")
@@ -531,6 +653,8 @@ def qc_credit_block(
                        "cast_ov": cast_ov, "fuzzy_ov": fuzzy_ov},
             "floor": {"hedef": floor_hedef, "ulasilan": ulasilan, "kabul": floor_kabul},
             "ocr_cast_k": k,
+            # KB-otoriter (gerçek) değerler — yanlış-okuma analizi için (OCR ↔ gerçek karşılaştırma)
+            "otoriter_yon": otoriter_yon, "otoriter_cast": otoriter_cast,
         }
     finally:
         if _own_kb and kb is not None:
