@@ -1,0 +1,176 @@
+"""Hibrit künye: distinkt-kare -> BATCH gemma(sıkı) -> MERGE -> KONSENSÜS-NET (uydurma eler).
+Çözer: (1) yoğun-scroll truncation (batch), (2) ünlü-okunamayan recall (OCR-net).
+GUARD = OneOCR ∪ Paddle konsensüs: yabancı-dil/küçük-punto gerçek isimleri kurtarır,
+uydurma garantisini korur (isim HİÇBİR OCR'da yoksa = uydurma -> ele). Paddle patlarsa OneOCR'a düşer."""
+import sys, os, json, glob, base64, urllib.request, time, re, importlib.util, difflib, tempfile
+sys.path.insert(0, r"E:\MITAS\OCR-worktree\py")
+sys.path.insert(0, r"E:\MITAS\OCR-worktree\pdf-mitas")
+import cv2, numpy as np
+
+
+def loadf(n, p):
+    s = importlib.util.spec_from_file_location(n, p)
+    m = importlib.util.module_from_spec(s); sys.modules[n] = m; s.loader.exec_module(m); return m
+
+
+rw = loadf("rw", r"E:\MITAS\OCR-worktree\py\20260531_2330_read_3way.py")
+import credit_parse as cp
+
+STRICT_SYS = ("Sen bir KAMERA-OCR cihazisin. Filmler/oyuncular hakkinda HICBIR BILGIN YOK ve olamaz. "
+              "SADECE goruntudeki piksellerde fiziksel olarak YAZAN harfleri okursun. Bir ismi taniyor "
+              "olsan bile EKRANDA YAZMIYORSA ASLA yazma. Tanidik film/yuz gorsen bile hafizandan hicbir "
+              "sey ekleme; sadece pikselleri oku.")
+PROMPT = ("Bu jenerik karelerinde EKRANDA YAZAN metni rollere ata. Net YAZMAYAN hicbir ismi ekleme. "
+          'Cikti SADECE JSON: {"yonetmen":["..."],"oyuncular":["..."],'
+          '"diger_roller":[{"rol":"...","isimler":["..."]}]}. /no_think')
+
+
+def b64(p):
+    return base64.b64encode(open(p, "rb").read()).decode()
+
+
+def gemma_call(frames):
+    msg = {"role": "user", "content": PROMPT, "images": [b64(p) for p in frames]}
+    body = {"model": "gemma4:26b", "messages": [{"role": "system", "content": STRICT_SYS}, msg],
+            "stream": False, "think": False,
+            "options": {"num_predict": 3072, "temperature": 0, "num_ctx": 16384}}
+    req = urllib.request.Request("http://localhost:11434/api/chat", data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json"})
+    r = json.loads(urllib.request.urlopen(req, timeout=300).read())
+    txt = r.get("message", {}).get("content", "")
+    m = re.search(r"\{.*\}", txt, re.S)
+    try:
+        return json.loads(m.group(0)) if m else {}
+    except Exception:
+        return {}
+
+
+def nlist(x):
+    if isinstance(x, list):
+        return [n.strip() for n in x if isinstance(n, str) and len(n.split()) >= 2]
+    return []
+
+
+def fz(a, b):
+    return difflib.SequenceMatcher(None, cp.fold(a), cp.fold(b)).ratio()
+
+
+def dedup(names):
+    out = []
+    for n in names:
+        if not any(fz(n, o) >= 0.85 for o in out):
+            out.append(n)
+    return out
+
+
+def merge(results):
+    yon, cast, roles = [], [], {}
+    for r in results:
+        if not isinstance(r, dict):
+            continue
+        yon += nlist(r.get("yonetmen"))
+        cast += nlist(r.get("oyuncular"))
+        for rr in (r.get("diger_roller") or []):
+            if isinstance(rr, dict):
+                roles.setdefault(rr.get("rol", "?"), []).extend(nlist(rr.get("isimler")))
+    return {"yonetmen": dedup(yon), "oyuncular": dedup(cast),
+            "diger_roller": [{"rol": k, "isimler": dedup(v)} for k, v in roles.items() if v]}
+
+
+_PAD_OK = [True]   # Paddle patlarsa kalıcı devre-dışı (zarif düşüş -> OneOCR)
+
+
+def read_paddle_img(img):
+    """Paddle bir kareyi okur (geçici dosya üzerinden). Hata/OOM -> Paddle'ı kapat, OneOCR'a düş."""
+    if not _PAD_OK[0]:
+        return []
+    try:
+        tmp = os.path.join(tempfile.gettempdir(), "mitas_pad_frame.png")
+        cv2.imencode(".png", img)[1].tofile(tmp)
+        return rw.read_paddle(tmp)
+    except Exception as e:
+        print("  [Paddle devre disi -> OneOCR'a dusuyor]", repr(e)[:90], flush=True)
+        _PAD_OK[0] = False
+        return []
+
+
+def ocr_lines(frames):
+    """OneOCR ∪ Paddle birleşimi (konsensüs guard kaynağı). Türkçe=OneOCR, yabancı/aksan=Paddle."""
+    raw = []
+    for f in frames:
+        img = cv2.imdecode(np.fromfile(f, np.uint8), 1)
+        if img is None:
+            continue
+        try:
+            for ln in rw.read_oneocr(img):
+                t = ln if isinstance(ln, str) else (ln[0] if ln else "")
+                if t and t.strip():
+                    raw.append(t.strip())
+        except Exception:
+            pass
+        for t in read_paddle_img(img):          # PADDLE UNION (yabancı-dil recall)
+            if isinstance(t, str) and t.strip():
+                raw.append(t.strip())
+    return raw
+
+
+def in_ocr(name, lines, alltok):
+    fn = cp.fold(name)
+    if not fn:
+        return False
+    for L in lines:
+        fl = cp.fold(L)
+        if fn in fl or fz(name, L) >= 0.72:
+            return True
+    toks = [t for t in fn.split() if len(t) >= 2]
+    return bool(toks) and all(t in alltok for t in toks)   # TUM token'lar OCR'da olmali (sert)
+
+
+def ocr_net(struct, lines):
+    alltok = set(" ".join(cp.fold(L) for L in lines).split())
+    dropped = []
+
+    def filt(names):
+        keep = []
+        for n in names:
+            (keep if in_ocr(n, lines, alltok) else dropped).append(n)
+        return keep
+    struct["yonetmen"] = filt(struct["yonetmen"])
+    struct["oyuncular"] = filt(struct["oyuncular"])
+    for rr in struct["diger_roller"]:
+        rr["isimler"] = filt(rr["isimler"])
+    struct["diger_roller"] = [rr for rr in struct["diger_roller"] if rr["isimler"]]
+    return struct, dropped
+
+
+def run_film(film, nframes=18, bs=6):
+    fd = glob.glob(rf"C:\Users\TRT03\Desktop\test\frame- {film}*")[0]
+    frames = sorted(glob.glob(fd + r"\*.png")); n = len(frames)
+    sel = [frames[int(n * f)] for f in [(i + 1) / (nframes + 1) for i in range(nframes)]]
+    batches = [sel[i:i + bs] for i in range(0, len(sel), bs)]
+    t = time.time()
+    results = [gemma_call(b) for b in batches]
+    merged = merge(results)
+    ol = ocr_lines(sel)
+    final, dropped = ocr_net(json.loads(json.dumps(merged)), ol)
+
+    def cnt(s):
+        return len(s["yonetmen"]) + len(s["oyuncular"]) + sum(len(r["isimler"]) for r in s["diger_roller"])
+    print(f"=== {film} ({len(batches)} batch, {time.time()-t:.0f}s) ===")
+    print(f"MERGE (ham gemma): {cnt(merged)} isim | OCR-NET sonrasi: {cnt(final)} isim | ELENEN: {len(dropped)}")
+    if dropped:
+        print(f"ELENEN (OCR'da yok = uydurma): {dropped[:12]}")
+    print("FINAL yonetmen:", final["yonetmen"])
+    print("FINAL oyuncular:", final["oyuncular"][:8])
+    print("FINAL roller:", [(r["rol"], r["isimler"][:3]) for r in final["diger_roller"][:8]])
+    return final, dropped, merged
+
+
+if __name__ == "__main__":
+    for f in sys.argv[1:]:
+        try:
+            run_film(f)
+        except Exception as e:
+            import traceback
+            print(f"{f} HATA: {repr(e)[:120]}"); traceback.print_exc()
+        print()

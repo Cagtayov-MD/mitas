@@ -117,6 +117,10 @@ OCR-worktree/pdf-mitas/*
 !OCR-worktree/db_compose_master.py
 !OCR-worktree/_master_pool_run.py
 !OCR-worktree/MASTER_DB_COMPOSE_FINAL_2026-06-20.md
+# hibrit kunye okuma: batch gemma + konsensus-net (OneOCR∪Paddle)
+!OCR-worktree/_vlm_pipeline.py
+!OCR-worktree/_vlm_kunye_run.py
+!OCR-worktree/_vlm_bench50_hybrid.py
 # NOT: OCR-worktree/py/ pipeline100 zinciri eski commit'te zaten tracked; _pipe_ocr.py onu RUNTIME yukler.
 mutfak/OCR_*_GORSELLER_*/
 
