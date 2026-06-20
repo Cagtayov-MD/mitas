@@ -1782,6 +1782,8 @@ def main(argv=None) -> int:
     # yakala ve surface'a ilet. v4 koşmaz/başarısızsa tur_xml fallback (eski davranış, additive).
     tur_final = tur_xml
     v4_credits = None   # PROPAGATION fix: V4 otoriter cast/yön/yapımcı → surface .txt'yi PDF ile hizalar
+    _v4j = None         # K1 FIX (2026-06-20): erken init — v4 çökerse/profil film-dışıysa _v4j atanmaz,
+                        #   satır ~2036 MITAS_QC_BLOCK bloğu (_v4j or {}) → UnboundLocalError çökme önlenir.
     _v4_off = os.environ.get("MITAS_NO_V4_FINAL", "").strip().lower() in ("1", "true", "yes", "on")
     if USE_VIDEO_CREDITS and profile in ("film", "dizi") and pdf_info.get("pdf_path") and not _v4_off:
         t_v4 = time.perf_counter()
@@ -1810,7 +1812,13 @@ def main(argv=None) -> int:
                     os.replace(str(v4_png), str(pdf_out / "kunye_onizleme.png"))
                 # Nihai TÜR'ü v4 rapor JSON'ından al (PDF ile .txt'i hizala). "—"/boş ise tur_xml kalır.
                 try:
-                    _v4j = last_json(out_v4) or {}
+                    # K2 FIX (2026-06-20): tek_film_kunye rapor'u indent=2 ÇOK-SATIR basar → last_json
+                    # (tek-satır arar) HEP None döndürüyordu → v4_credits HEP None → PROPAGATION ÖLÜYDÜ.
+                    # Satır ~1907'deki ile AYNI raw_decode'a geçildi; v4_credits artık gerçek V4 değerini alır.
+                    _ji = out_v4.find("{")
+                    _v4j = {}
+                    if _ji >= 0:
+                        _v4j, _ = json.JSONDecoder().raw_decode(out_v4[_ji:])
                     _v4tur = ((_v4j.get("v4") or {}).get("tur") or "").strip()
                     if _v4tur and _v4tur != "—":
                         tur_final = _v4tur
