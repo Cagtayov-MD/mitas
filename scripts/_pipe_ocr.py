@@ -31,6 +31,10 @@ CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
 CLEAN = PY_OCR_DIR / "20260601_clean.py"
+KB_SPLIT = Path(__file__).resolve().parent / "_kb_suffix_split.py"
+# KB-SUFFIX-SPLIT: "KARAKTER ADI + OYUNCU ADI" birlesik kredi satirindan yapisik kisiyi KB-dogrulamali
+# kurtarir (2026-06-21). Default ACIK. ADDITIVE+KB-gated+FAIL-SAFE -> regresyon riski ~0. Kapatma: =0.
+_KB_SPLIT_ON = os.environ.get("MITAS_KB_SUFFIX_SPLIT", "1").strip().lower() in ("1", "true", "on", "yes")
 # GLM-consensus POC (2. motor): gerekli fonksiyonlar bu dosyaya INLINE edildi (asagida);
 # 20260601_consensus_glm.py runtime'da YUKLENMIYOR — olu referans kaldirildi.
 
@@ -412,6 +416,14 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         print(f"[pipeline100] import basarisiz, fallback: {type(exc).__name__}: {exc}", file=sys.stderr)
         return None
 
+    # KB-suffix-split modulu (opsiyonel; yuklenemezse fix atlanir, OCR BOZULMAZ).
+    kss = None
+    if _KB_SPLIT_ON:
+        try:
+            kss = _load("kss_kb_split", KB_SPLIT)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[pipeline100] kb_suffix_split yuklenemedi, atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
+
     frame_paths = [str(p) for p in frames]
 
     # a) CLIP bekci: her kareye kredi-olasiligi -> esik>=0.5 kareler.
@@ -484,12 +496,25 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         print(f"[pipeline100] clean basarisiz, ham stitch kullanildi: {type(exc).__name__}: {exc}", file=sys.stderr)
         merged = [(t, "raw", 1) for t in placed_raw]
         buckets, dieg = {}, 0.0
-    finally:
-        if con is not None:
-            try:
-                con.close()
-            except Exception:  # noqa: BLE001
-                pass
+    # KB-SUFFIX-SPLIT (con HENUZ ACIK): "KARAKTER ADI + OYUNCU ADI" birlesik satirdan yapisik kisiyi
+    # KB-dogrulamali kurtar, merged'e EKLE (ADDITIVE, silmez). KB-gated -> garble sizmaz. FAIL-SAFE:
+    # herhangi bir hata -> merged AYNEN korunur (regresyon yok). raw_reads (tum kare okumalari) +
+    # placed_raw uzerinde calisir (stitch garble-temsilci secse bile ham temiz varyanttan kurtarir).
+    if kss is not None and con is not None:
+        try:
+            _raw_lines = [t[1] for i in idx for t in ocr_pos[i]]
+            _before_f = {cl.fold(t) for t, _h, _v in merged}
+            _rescued = kss.kb_suffix_split(placed_raw + _raw_lines, con, cr,
+                                           role_kw=cl.ROLE_KW, exclude_folds=_before_f)
+            if _rescued:
+                merged = list(merged) + [(nm, "kb_split", ct) for nm, ct in _rescued]
+        except Exception as _ke:  # noqa: BLE001 - FAIL-SAFE: merged AYNEN
+            print(f"[pipeline100] kb_suffix_split atlandi: {type(_ke).__name__}: {_ke}", file=sys.stderr)
+    if con is not None:
+        try:
+            con.close()
+        except Exception:  # noqa: BLE001
+            pass
 
     # e) kunye satirlari (mevcut formatla ayni: satir basina bir metin, # yok).
     #    clean Turkce-BUYUK yazimi tr_upper ile verir (pipeline100 ile ayni cikti).

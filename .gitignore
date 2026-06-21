@@ -94,6 +94,8 @@ scripts/_*
 # jenerik (4-tip baslangic dedektoru) runner + selftest — production + regresyon
 !scripts/_jenerik_detect.py
 !scripts/_jenerik_selftest.py
+# kb-suffix-split (KARAKTER+OYUNCU birlesik satirdan kisi kurtarma) — production runtime
+!scripts/_kb_suffix_split.py
 
 # Root-level scratch & debug artifacts (fix/hile/probe/render/test dumps)
 /_*
