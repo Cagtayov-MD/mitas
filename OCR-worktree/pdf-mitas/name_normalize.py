@@ -29,6 +29,7 @@ _SPECIAL = {
     "Ə": "E", "ə": "e",
 }
 _TR_STRONG = set("ışğİıŞĞ")       # ı, ş, ğ, İ — güçlü Türkçe sinyali
+_TR_STRONG_REAL = set("ışğıŞĞ")   # sentetik i->İ kirlenmesiyle oluşmayan güçlü Türkçe sinyali
 _TR_AMBIG = set("çöüÇÖÜ")          # ç, ö, ü — Türkçe VEYA Almanca/Fransızca (belirsiz)
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
@@ -197,7 +198,7 @@ def tr_upper_prose(text: str, names=(), tr_set=None) -> str:
     up = tr_upper(text or "")
     names = [n for n in (names or ()) if n]
     if not names:
-        return up
+        return _repair_foreign_prose_i(up)
     if tr_set is not None:
         db_ok = True                       # cagiran otoriter kume verdi
     else:
@@ -220,7 +221,7 @@ def tr_upper_prose(text: str, names=(), tr_set=None) -> str:
     for bad, good in repl.items():
         # SADECE tam kelime/ek siniri: 'MASSİMO'YU' -> 'MASSIMO'YU; 'ELİ' icin 'ELİF'i BOZMA.
         up = re.sub(r"(?<![A-Za-zÇĞİıŞÖÜçğşöü])" + re.escape(bad) + r"(?![A-Za-zÇĞİıŞÖÜçğşöü])", good, up)
-    return up
+    return _repair_foreign_prose_i(up)
 
 
 # Turkce ad DB (saf-ASCII isim kokeni icin; qwen'den guvenilir). Yoksa bos -> qwen.
@@ -414,12 +415,81 @@ def _deepseek_resolve(name: str, cache: dict) -> str | None:
         return None
 
 
+_FOREIGN_SYNTHETIC_I_TOKENS = {
+    # Eski tr_upper kirlenmesinde sık görülen Batı dilleri kişi adı parçaları.
+    "ANDRE", "ANDREA", "ANDREAS", "ANDREW", "ANTONIO", "BRIGITTE", "CHARLIE",
+    "CHRISTIAN", "CHRISTOPHER", "DANIEL", "DAVID", "DICAPRIO", "ELIZABETH",
+    "FABIAN", "FEDERICO", "FREDRIC", "FREDERICK", "GIOVANNI", "GIUSEPPE",
+    "FREDDIE", "JAMES", "JEAN", "JIM", "JODIE", "JOHN", "JOSEPH", "KINSKI", "LEONARDO",
+    "MARCIN", "MARTIN", "MASSIMO", "MICHAEL", "NICOLAS", "PATRICK", "PIERRE",
+    "RICHARD", "ROBERT", "ROBERTO", "SIMON", "STEPHEN", "THOMAS", "VINCENT",
+    "VITTORIO", "WILLIAM",
+    # Somut saha örnekleri / soyadları.
+    "DARROUSSIN", "GIROTTI", "KAURISMAKI", "KELLEGHER", "PATAKI", "RITT",
+    "SINEAD", "SOPHIE", "TINA", "WILMS",
+}
+
+
+def _repair_foreign_prose_i(text: str) -> str:
+    """Buyuk-harfli prose icinde yabanci ad kokundeki sentetik İ'yi geri al.
+
+    Turkce ek korunur: SOPHİE'NİN -> SOPHIE'NİN.
+    """
+    def repl(m):
+        token = m.group(0)
+        base, sep, suffix = token.partition("'")
+        if "İ" not in base or any(c in _TR_STRONG_REAL for c in base):
+            return token
+        folded = ascii_fold(base).upper()
+        marker = (
+            folded in _FOREIGN_SYNTHETIC_I_TOKENS
+            or folded.endswith(("IE", "IO", "IA"))
+            or any(ch in folded for ch in "WQX")
+        )
+        if not marker:
+            return token
+        return folded + (sep + suffix if sep else "")
+
+    return re.sub(r"[A-ZÇĞİIÖŞÜ]+(?:'[A-ZÇĞİIÖŞÜ]+)?", repl, text or "")
+
+
+def _has_foreign_latin_accent(name: str) -> bool:
+    return any((not c.isascii()) and unicodedata.category(c).startswith("L")
+               and c not in _TR_AMBIG and c != "İ"
+               for c in (name or ""))
+
+
+def _repair_synthetic_dotted_i(name: str, tr_hits: dict[str, str]) -> str | None:
+    """Eski tr_upper yabancı addaki i'leri İ yapmışsa ASCII'ye geri al.
+
+    Sadece tek güçlü sinyal sentetik dotted-İ ise çalışır. Gerçek Türkçe sinyal
+    (ş/ğ/ı) veya DB/yerel sözlük Türk doğrulaması varsa dokunmaz.
+    """
+    if "İ" not in (name or ""):
+        return None
+    if any(c in _TR_STRONG_REAL for c in name):
+        return None
+    if tr_hits.get(name) is not None or _is_tr_name(name):
+        return None
+
+    folded = ascii_fold(name).upper()
+    toks = re.findall(r"[A-Z]+", folded)
+    foreign_marker = (
+        _has_foreign_latin_accent(name)
+        or "-" in name
+        or any(any(ch in tok for ch in "WQX") for tok in toks)
+        or any(tok in _FOREIGN_SYNTHETIC_I_TOKENS for tok in toks)
+    )
+    return folded if foreign_marker else None
+
+
 def upper_names(names, *, use_qwen: bool = False):
     """Isimleri BUYUK harfe cevir (kunye kurali, Cagatay):
       • Turkce isim  -> Turkce upper:  irfan->İRFAN, gökhan->GÖKHAN (i->İ; ç ğ ı ö ş ü KORUNUR)
       • Yabanci isim -> ASCII upper:   ivan ->IVAN, fabian->FABIAN (i->I, aksan duser)
     Karar sirasi (qwen YOK):
-      1) Turkce-ozel karakter (ç ğ ı İ ö ş ü) iceren -> KESIN Turk, KORU.
+      1) Turkce-ozel karakter (ç ğ ı ö ş ü) iceren -> KESIN Turk, KORU.
+         Yalniz İ sinyali eski tr_upper kirlenmesi olabilir; acik yabanciysa ASCII'ye geri al.
       2) Yabanci aksan (é,ñ,ø...) -> kesin yabanci, fold.
       3) Saf-ASCII -> mitas_people_index (Turk-kisi DB): VAR=Turk (i->İ), YOK=yabanci (i->I).
          (Nuri Bilge Ceylan VAR, Fabian Gasmia YOK.) DB erissizse given+sur CSV fallback."""
@@ -442,7 +512,10 @@ def upper_names(names, *, use_qwen: bool = False):
     _ds_cache_before = len(_ds_cache)
     out = []
     for n in names:
-        if any(c in _TR_STRONG for c in n):
+        repaired = _repair_synthetic_dotted_i(n, mitas_tr)
+        if repaired is not None:
+            out.append(repaired)
+        elif any(c in _TR_STRONG for c in n):
             out.append(tr_upper(n))                       # ı/İ/ş/ğ KESIN Turk -> koru
         elif any((not c.isascii()) and unicodedata.category(c).startswith("L") and c not in _TR_AMBIG for c in n):
             out.append(ascii_fold(n).upper())             # baska yabanci aksan (é,ñ,ø...) -> fold

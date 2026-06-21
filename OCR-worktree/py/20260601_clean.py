@@ -12,8 +12,12 @@ rw = importlib.util.module_from_spec(spec); sys.modules["rw"] = rw; spec.loader.
 fold = rw.fold; read_oneocr = rw.read_oneocr; cr = rw.cr; fp = rw.fp
 import duckdb
 
-def tr_upper(s): return s.replace("i", "İ").upper()
 def diac(s): return sum(c in "şŞğĞıİçÇöÖüÜ" for c in s)
+def tr_upper(s):
+    # token-yerel: TR-diakritikli kelime i->İ (İRFAN, GÖKHAN); saf-ASCII/yabanci kelime düz upper (WILLIAM, noktasız-I).
+    # Yabanci isme sahte İ basip downstream _TR_STRONG zehirlemesini onler; Türkçe-İ otoritesi PDF-katmani upper_names'te.
+    return " ".join(w.replace("ı", "I").replace("i", "İ").upper() if diac(w) else w.upper()
+                    for w in (s or "").split(" "))
 
 DISTRIB = {"metro goldwyn mayer", "mgm", "united artists", "warner bros", "warner bros pictures", "columbia",
            "paramount", "universal", "twentieth century fox", "20th century fox", "de luxe", "deluxe",
