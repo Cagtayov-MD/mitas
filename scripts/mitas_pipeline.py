@@ -39,6 +39,10 @@ OUT_ROOT = PROJECT_ROOT / "Mitas Output"
 EXPORT_ROOT = OUT_ROOT / "export"
 HAZIR = EXPORT_ROOT / "ONAYLI"
 KONTROL = EXPORT_ROOT / "KONTROL"
+# ÖZEL-TÜR TOPLAMA (Çağatay 2026-06-21): müzikal/belgesel/animasyon ARTIK silinmez.
+# Tam künye üretilir ama ONAYLI/KONTROL'e DEĞİL, doğrudan 'Mitas Output/muzikal_animasyon_belgesel/'
+# altında toplanır (export/ kardeşi). Eski 'işlenmez/sil' davranışı: MITAS_SKIP_SPECIAL_GENRE=1.
+SPECIAL_GENRE_DIR = OUT_ROOT / "muzikal_animasyon_belgesel"
 EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
 MASTER_MD = EXPORT_ROOT / "_ISLEM_LOG.md"
 MASTER_JSONL = EXPORT_ROOT / "_ISLEM_LOG.jsonl"
@@ -533,11 +537,12 @@ def _special_genre_from_text(s: str) -> str:
         for key, genre in table.items():
             if folded == _genre_fold(key):
                 return genre
-    if "BELGESEL" in folded:
+    # Anahtar-kelime (TR + İng): "her türlü sağla" — KB Türkçe verir ama ham IMDb/etiket İng. olabilir.
+    if "BELGESEL" in folded or "DOCUMENTARY" in folded:
         return "BELGESEL"
-    if "ANIMASYON" in folded:
+    if "ANIMASYON" in folded or "ANIMATION" in folded or "ANIMATED" in folded:
         return "ANİMASYON"
-    if "MUZIKAL" in folded:                    # 'MÜZİK' (music) DEĞİL — yalnız 'MÜZİKAL'
+    if "MUZIKAL" in folded or "MUSICAL" in folded:   # 'MÜZİK'/'MUSIC' (müzik) DEĞİL — yalnız müzikal
         return "MÜZİKAL"
     return ""
 
@@ -1225,15 +1230,23 @@ def main(argv=None) -> int:
         dir_name = f"{clean} {n}"; n += 1
     clip_dir = DB_ROOT / dir_name
 
+    # ÖZEL-TÜR ERKEN TESPİT (Çağatay 2026-06-21): müzikal/belgesel/animasyon ARTIK atlanmaz —
+    # tam künye üretilir, en sonda 'muzikal_animasyon_belgesel/' klasörüne toplanır. Sinyali ileri taşı.
     early_genre_class = genre_class(video, tur_xml)
-    early_skip_profile = profile in ("belgesel", "muzik", "muzik_eglence", "animasyon")
-    if early_genre_class in ("BELGESEL", "MÜZİKAL", "ANİMASYON") or early_skip_profile:
-        reason = f"XML tür {early_genre_class}" if early_genre_class != "DİĞER" else f"profil {profile}"
-        skip_genre = early_genre_class if early_genre_class != "DİĞER" else profile.upper()
+    _PROFILE_GENRE = {"belgesel": "BELGESEL", "muzik": "MÜZİKAL",
+                      "muzik_eglence": "MÜZİKAL", "animasyon": "ANİMASYON"}
+    forced_special_genre = ""
+    if early_genre_class in ("BELGESEL", "MÜZİKAL", "ANİMASYON"):
+        forced_special_genre = early_genre_class
+    elif profile in _PROFILE_GENRE:
+        forced_special_genre = _PROFILE_GENRE[profile]
+    # Geri-uyum: eski 'işlenmez/sil' davranışı yalnız MITAS_SKIP_SPECIAL_GENRE=1 ile (varsayılan KAPALI).
+    if forced_special_genre and os.environ.get("MITAS_SKIP_SPECIAL_GENRE", "").strip().lower() in ("1", "true", "on", "yes"):
         return _skip_special_genre(
             video, clip_dir,
             media_id=media_id, trt=trt, title=title, profile=profile,
-            tur_xml=tur_xml, genre_name=skip_genre, reason=reason, stage="early_xml",
+            tur_xml=tur_xml, genre_name=forced_special_genre,
+            reason=f"özel tür {forced_special_genre}", stage="early_xml",
         )
 
     (clip_dir / "source").mkdir(parents=True, exist_ok=True)
@@ -2109,18 +2122,18 @@ def main(argv=None) -> int:
         route_info = _r
     except Exception as _rexc:  # noqa: BLE001 — FAIL-SAFE: router hatası → ESKİ karar geçerli kalır
         route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
-    # ── ÖZEL-TÜR SON KAPISI: müzikal/belgesel/animasyon teslim edilmez.
-    #    XML erken kapı yakalayamadıysa final TÜR burada son kez kesilir; eski "ayrı klasöre koy" davranışı yok.
+    # ── ÖZEL-TÜR YÖNLENDİRME (Çağatay 2026-06-21): müzikal/belgesel/animasyon AYRI klasörde toplanır
+    #    (ONAYLI/KONTROL'e DEĞİL). Erken sinyal (XML/profil) VEYA final TÜR (KB/IMDb) — biri yeterli
+    #    ("her türlü sağla"). Tam künye üretildi; yalnız hedef klasör değişir, teslim akışı aynı kalır.
+    special_genre = ""
     try:
-        _gk = genre_class(video, tur_final)
-        if _gk in ("BELGESEL", "MÜZİKAL", "ANİMASYON"):
-            return _skip_special_genre(
-                video, clip_dir,
-                media_id=media_id, trt=trt, title=title, profile=profile,
-                tur_xml=tur_xml, genre_name=_gk, reason=f"final tür {_gk}", stage="final_genre",
-            )
-    except Exception as _gexc:  # noqa: BLE001 — FAIL-SAFE: tür-tespit hatası kararı bozmaz
-        pass
+        special_genre = forced_special_genre or genre_class(video, tur_final)
+        if special_genre in ("BELGESEL", "MÜZİKAL", "ANİMASYON"):
+            dest_root = SPECIAL_GENRE_DIR
+        else:
+            special_genre = ""
+    except Exception:  # noqa: BLE001 — FAIL-SAFE: tür-tespit hatası kararı/teslimi bozmaz
+        special_genre = ""
     dest_root.mkdir(parents=True, exist_ok=True)
     # ÇIKTI ADI — TEK FORMAT: "<TRT-ID> <BAŞLIK>". Teslime hazır → "_onaylı" eki + ONAYLI klasörü
     # (Çağatay 2026-06-15: ayrı "teslime hazır" klasörü YOK, hazırsa doğrudan ONAYLI'ya).
@@ -2130,7 +2143,11 @@ def main(argv=None) -> int:
     _kontrol_lbl = ""
     if isinstance(route_info, dict) and route_info.get("kontrol_tip") and karar == "Kontrol":
         _kontrol_lbl = " _" + str(route_info["kontrol_tip"]).replace("+", "_")
-    base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
+    if special_genre:
+        # Özel tür: dosya adına TÜR etiketi birincil (örn. '_BELGESEL'); sorun varsa onu da ekle.
+        base_name = (f"{trt} {_safe_title}").strip() + f"_{special_genre}" + (_kontrol_lbl if karar == "Kontrol" else "")
+    else:
+        base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
     pdf_src = Path(pdf_info.get("pdf_path") or "")
     md_src = Path(pdf_info.get("md_path") or "")
     src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
