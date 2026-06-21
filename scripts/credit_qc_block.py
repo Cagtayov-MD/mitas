@@ -31,6 +31,13 @@ import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# yabancı-aksan → ASCII (Türkçe ç ğ ı İ ö ş ü korunur); translit-list son-netinde uygulanır.
+try:
+    from translit_util import asciify_foreign as _asciify_foreign
+except Exception:                      # noqa: BLE001 — modül yoksa kimlik fonksiyonu (no-regress)
+    def _asciify_foreign(s):
+        return s
+
 # ───────────────────────── guard'lı bağımlılıklar ─────────────────────────
 import credit_crosscheck as cc  # saf modül (duckdb yalnız CreditKB.__init__'te) → global py'da güvenli
 
@@ -414,7 +421,7 @@ def qc_credit_block(
             for nm in names:
                 sc = detect_script(nm)
                 if sc == "latin":
-                    out.append(nm)
+                    out.append(_asciify_foreign(nm))     # yabancı-aksan → ASCII (Türkçe korunur)
                     continue
                 latin, yontem = transliterate(nm, sc)
                 iz.append({"alan": alan, "ham": nm, "cikti": latin, "script": sc, "yontem": yontem})
@@ -422,7 +429,7 @@ def qc_credit_block(
                     translit_failed = True
                     out.append(nm)          # KB-öncelik S4/S5'te deneyecek; çözülmezse RENDER/KONTROL
                 else:
-                    out.append(latin)
+                    out.append(_asciify_foreign(latin))  # translit Latin + yabancı-aksan → ASCII
             return out
 
         yon = _translit_list(yon, "yonetmen")

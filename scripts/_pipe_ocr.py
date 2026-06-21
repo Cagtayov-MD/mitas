@@ -822,7 +822,21 @@ def main(argv=None) -> int:
     if res is None:
         res = run_oneocr_fallback(frames, started, args.profile)
 
-    kunye = res["lines"]
+    # YABANCI-İSİM NORMALİZE (Çağatay 2026-06-21): Latin-dışı (Kiril/Yunan/CJK) → Latin +
+    # yabancı-aksan → ASCII; Türkçe (ç ğ ı İ ö ş ü) KORUNUR. SINIFLANDIRMADAN ÖNCE, tüm motorların
+    # TEK çıkış noktasında → CEMİLE-tipi Kiril rol-etiketi/isim downstream'e Latin girer (sınıflanabilir).
+    try:
+        import translit_util as _tu
+        def _normk(x):
+            sc = _tu.detect_script(x)
+            if sc == "latin":
+                return _tu.asciify_foreign(x)           # zaten BÜYÜK + Türkçe korunur
+            _o, _y = _tu.transliterate(x, sc)
+            return x if _y == "FAILED" else _tu.asciify_foreign(_o).upper()  # translit Latin → BÜYÜK
+        kunye = [_normk(x) for x in res["lines"]]
+    except Exception as _te:   # no-regress: çeviri patlarsa ham satırlar korunur
+        print(f"[translit] ATLANDI (lines korunuyor): {_te}", file=sys.stderr)
+        kunye = res["lines"]
     kunye_path = out / "kunye.txt"
     kunye_path.write_text("\n".join(kunye) + ("\n" if kunye else ""), encoding="utf-8")
 
