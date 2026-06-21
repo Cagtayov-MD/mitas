@@ -2089,7 +2089,11 @@ def main(argv=None) -> int:
             "char_broken":       any(("karakter bozuk" in r) or ("isim-QC" in r) for r in _R),
             "char_broken_autofixable": False,   # pipeline'da auto-fix yok → ciddi say
             "afis_missing":      any("afiş yok" in u for u in _U),
-            "casing_bad":        any("büyük-harf" in u for u in _U),
+            # FIX (Çağatay 2026-06-21): qwen-casing KARARDAN ÇIKARILDI. Casing deterministik tr_upper/
+            # ozet_v4 ile ZATEN garanti (16/16 doğru çıktı); qwen2.5vl görü-modeli YAPIM EKİBİ bloğundaki
+            # title-case rol-etiketini ("Yönetmen"/"Yapımcı", _make_pdf:243) isim sanıp HEP false basıyordu
+            # → temiz filmleri boşuna AUTOFIX'e yolluyordu. qwen_uyari log'u (2021) kalır ama KARAR vermez.
+            "casing_bad":        False,
             "foreign_accent":    any("yabancı ad" in u for u in _U),
         }
         _r = _router.classify(_sig)
