@@ -112,6 +112,9 @@ if __name__ == "__main__":
     except Exception:
         pass
     if len(sys.argv) > 2 and sys.argv[1] == "--once":
-        print(json.dumps(gen_master(DB / sys.argv[2]), ensure_ascii=False, indent=1))
+        # arg: tam yol VEYA Database altindaki klasor adi (pipeline tam clip_dir yolu gecer)
+        _arg = sys.argv[2]
+        _film = Path(_arg) if os.path.isabs(_arg) else (DB / _arg)
+        print(json.dumps(gen_master(_film), ensure_ascii=False, indent=1))
     else:
         monitor()

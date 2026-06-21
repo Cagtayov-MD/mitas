@@ -1362,7 +1362,17 @@ def main(argv=None) -> int:
                     # (erken/kısa) → OCR satırı düşük → SONUÇ-TEMELLİ YEDEK eski sabit pencereyle re-OCR yapar (ağ).
                     _cl_conf = float(_closing.get("confidence") or 0.0)
                     _cl_ok, _cl_accept = _accept_credit_detect(_closing, _cl_conf)
-                    if _closing.get("found") and _closing.get("start_sec") is not None and _cl_ok:
+                    # HATA #2 fix (Çağatay 2026-06-21): end_sec None ise tespit kabul edilmez — eskiden _ce=10s'e
+                    # çöküp pencere 30s tabanına düşüyordu; artık sabit pencereye (fail-safe) gider.
+                    _cl_has = bool(_closing.get("found") and _closing.get("start_sec") is not None
+                                   and _closing.get("end_sec") is not None)
+                    # DÜŞÜK-GÜVEN BİRLEŞTİRME (flag-kapılı, default KAPALI; Çağatay 2026-06-21): güven eşiğin
+                    # ALTINDA ama alt-sınırın (0.40) ÜSTÜNDEyse tespit edilen jeneriği ATMA → sabit pencereyle
+                    # BİRLEŞTİR (union, aralığın tamamı: baş tespit-başına çekilir, son film-sonuna uzar). Araya
+                    # giren footage'ı CLIP bekçisi (CREDIT_MIN_RUN) eler → jenerik kaçmaz, footage gürültüsü düşük.
+                    _LC_MERGE = os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MERGE", "").strip().lower() in ("1", "true", "on", "yes")
+                    _LC_MERGE_MIN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MERGE_MINCONF", "0.40") or 0.40)
+                    if _cl_has and _cl_ok:
                         _ds = max(0.0, float(_closing["start_sec"]) - 5.0)            # 5s emniyet payı
                         _cik_start = min(_ds, _cik_start)                            # asla eski-pencereden GEÇ başlama
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
@@ -1374,6 +1384,18 @@ def main(argv=None) -> int:
                                           f"(conf {_cl_conf:.3f}, kabul={_cl_accept}) → pencere {_cik_start:.0f}s–{_cik_end:.0f}s",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "closing": _closing})
+                    elif _LC_MERGE and _cl_has and (not _cl_ok) and _cl_conf >= _LC_MERGE_MIN:
+                        # union: baş tespit-başına çek (erken olan kazanır), son film-sonuna uzat (sabit kuyruğu da kapsar)
+                        _ds = max(0.0, float(_closing["start_sec"]) - 5.0)
+                        _cik_start = min(_ds, _cik_start)
+                        _cik_end = dur_sec
+                        _cik_len = _cik_end - _cik_start
+                        log_event("credit_detect_closing_merge",
+                                  summary=f"{video.name}: ÇIKIŞ jenerik DÜŞÜK-GÜVEN BİRLEŞTİRME {_closing.get('type')} "
+                                          f"@ {float(_closing['start_sec']):.0f}s–{float(_closing.get('end_sec') or 0):.0f}s "
+                                          f"(conf {_cl_conf:.3f} ∈ [{_LC_MERGE_MIN:.2f},{_DETECT_MINCONF:.2f})) → union {_cik_start:.0f}s–{_cik_end:.0f}s",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "closing": _closing, "lowconf_merge": True})
                     else:
                         _why = (f"düşük güven {_cl_conf:.3f}<{_DETECT_MINCONF}"
                                 if _closing.get("found") else "bulunamadı")
@@ -2201,6 +2223,32 @@ def main(argv=None) -> int:
         MASTER_MD.write_text("# MİTAS — İşlem Log'u (Hazır / Kontrol)\n\n", encoding="utf-8")
     with MASTER_MD.open("a", encoding="utf-8") as h:
         h.write("\n".join(md) + "\n")
+
+    # ===== BLOK MASTER-PNG: per-film görsel master → Database/<film>/master/{giris,cikis}.png =====
+    # Pipeline-İÇİ, FAIL-SAFE: master-PNG hata/timeout ASLA kararı/çıktıyı bozmaz (karar+_DURUM zaten yazıldı).
+    # venvs/ocr (cv2) + master_png_monitor --once (slit/mosaic compose). Kapat: MITAS_MASTER_PNG_AUTO=0.
+    if os.environ.get("MITAS_MASTER_PNG_AUTO", "1").strip().lower() not in ("0", "false", "off", "no"):
+        _has_fr = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
+                  (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
+        if _has_fr:
+            _mp_runner = PROJECT_ROOT / "OCR-worktree" / "master_png_monitor.py"
+            try:
+                _mp = subprocess.run(
+                    [str(PY_OCR), str(_mp_runner), "--once", str(clip_dir)],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace",
+                    timeout=int(os.environ.get("MITAS_MASTER_PNG_TIMEOUT", "300") or 300))
+                _mp_ok = (clip_dir / "master" / "giris.png").exists() or (clip_dir / "master" / "cikis.png").exists()
+                log_event("master_png_completed" if _mp_ok else "master_png_empty",
+                          level="info" if _mp_ok else "warn",
+                          summary=f"{video.name}: master-PNG {'üretildi' if _mp_ok else 'üretilemedi'} (rc={_mp.returncode}).",
+                          module="master-png", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "rc": _mp.returncode})
+            except Exception as _mpe:  # noqa: BLE001 — master-PNG ASLA pipeline'ı bozmaz
+                log_event("master_png_failed", level="warn",
+                          summary=f"{video.name}: master-PNG atlandı ({type(_mpe).__name__}).",
+                          module="master-png", media_id=media_id, filename=video.name,
+                          error=str(_mpe)[:200], detail={"clip_id": clip_id})
+
     log_event("routed_" + ("hazir" if karar == "Hazır" else "kontrol"),
               level="info" if karar == "Hazır" else "warn",
               summary=f"{video.name} → {karar}" + (f" ({'; '.join(reasons)})" if reasons else "") + f" · toplam {total} sn.",
