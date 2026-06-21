@@ -200,6 +200,73 @@ class KB:
             return "ONAY"
         return "RED"
 
+    def director_by_cast(self, cast_names, min_overlap=3, topk=5):
+        """Cast PARMAK-IZI ile film-yonetmen(ler)ini bul — TITLE KULLANMADAN (same-title tuzagi yok),
+        YIL KULLANMADAN (yil guvenilmez). OCR cast → nconst → bu oyunculardan >=min_overlap'i
+        top-{topk}'te oynayan film(ler) (YALNIZ movie/tvMovie) → o filmlerin DISTINKT yonetmen ADLARI.
+        verify (kisi-meslegi) DEGIL crew.directors (film-yonetmeni) kullanir → actor-director'lari
+        (Yilmaz Erdogan) kurtarir. FIX-B konfig (olculen 416 temiz-GT: %68 kapsam / %2 yanlis-onay):
+        min_overlap=3 + titleType filtresi, kisa/TV-bolumu ve cok-oynayan-oyuncu yanlis-eslesmelerini eler.
+        Doner: {"directors": set[str], "n_films": int, "n_cast": int}. KB yoksa/hata → bos (cokme yok)."""
+        out = {"directors": set(), "n_films": 0, "n_cast": 0}
+        if not self.con or not cast_names:
+            return out
+        try:
+            ncs = set()
+            for nm in cast_names:
+                if not nm or len(str(nm).split()) < 2:
+                    continue
+                for (nc,) in self.con.execute(
+                        "SELECT nconst FROM names "
+                        "WHERE UPPER(strip_accents(primaryName))=UPPER(strip_accents(?))", [nm]).fetchall():
+                    ncs.add(nc)
+            out["n_cast"] = len(ncs)
+            if len(ncs) < min_overlap:
+                return out
+            ph = ",".join("?" * len(ncs))
+            films = self.con.execute(
+                "SELECT p.tconst FROM principals p JOIN titles t ON p.tconst=t.tconst "
+                f"WHERE p.nconst IN ({ph}) AND p.category IN ('actor','actress') "
+                "AND p.ordering<=? AND t.titleType IN ('movie','tvMovie') "
+                "GROUP BY p.tconst HAVING COUNT(DISTINCT p.nconst)>=?",
+                list(ncs) + [topk, min_overlap]).fetchall()
+            out["n_films"] = len(films)
+            for (tc,) in films:
+                r = self.con.execute("SELECT directors FROM crew WHERE tconst=?", [tc]).fetchone()
+                if r and r[0]:
+                    for nc in str(r[0]).split(","):
+                        nr = self.con.execute("SELECT primaryName FROM names WHERE nconst=?", [nc.strip()]).fetchone()
+                        if nr and nr[0]:
+                            out["directors"].add(nr[0])
+        except Exception:  # noqa: BLE001 - resolver ASLA cokmez
+            return {"directors": set(), "n_films": 0, "n_cast": 0}
+        return out
+
+    def confirm_director(self, ocr_director, cast_names, min_overlap=3):
+        """Cast-parmak-izi TANIGI: OCR yonetmenini cast uzerinden dogrula. Doner (verdict, deger):
+          ('ONAY', D)      : cast TEK yonetmene isaret VE ==OCR  → bu tanik OCR'i dogruladi.
+          ('CELISKI', D)   : cast TEK yonetmen ama D != OCR      → KONTROL + celiski notu.
+          ('AMBIG', set)   : cast COK yonetmene (recurring-cast) → cekimser (gemma/KONTROL).
+          ('YETERSIZ',None): <min_overlap cast cozuldu / film yok → cekimser.
+        KURAL: bu TEK tanik; cagiran ASLA tek basina ONAY etmez (≥2 bagimsiz tanik sarti — IMDb tek
+        basina %7 yanlis). OCR-otorite: D OCR'i EZMEZ; celiskide karar cagirana (KONTROL)."""
+        r = self.director_by_cast(cast_names, min_overlap=min_overlap)
+        if r["n_cast"] < min_overlap or not r["directors"]:
+            return ("YETERSIZ", None)
+        dirs = r["directors"]
+        of = fold(ocr_director or "")
+
+        def _m(d):
+            import difflib
+            df = fold(d)
+            return bool(of) and (df == of or df in of or of in df
+                                 or difflib.SequenceMatcher(None, df, of).ratio() >= 0.85)
+        if len(dirs) == 1:
+            d = next(iter(dirs))
+            return ("ONAY", d) if _m(d) else ("CELISKI", d)
+        return ("AMBIG", set(dirs))
+
+
 # ------------------------- FUSION (ensemble + KB + celiski) -------------------------
 def _dedup(seq):
     out = []
