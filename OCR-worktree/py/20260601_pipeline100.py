@@ -3,7 +3,8 @@ Scroll / yavaş-drift / ayrık-kart / footage -> HEPSİ tek mantık (her satır 
 Bonus: text-bandına kırpıldığı için footage arka planı azalır; ve mozaik metni = temiz künye (895-garble biter).
 Çıktı: clip_pipeline100/_MASTERS|_KUNYE|_CACHE  + _SUMMARY.json
 """
-import sys, glob, importlib.util, json, argparse, difflib
+import sys, os, glob, importlib.util, json, argparse, difflib
+from collections import Counter
 from pathlib import Path
 import numpy as np, cv2
 sys.stdout.reconfigure(encoding="utf-8")
@@ -71,29 +72,179 @@ def _band_dup(a, b, thr=0.95):
     except Exception:
         return False
 
+def _cy(o): return (o[2] + o[3]) / 2.0
+
+def _ocr_shift_run(run, ocr_pos):
+    """Her ardışık kare çifti için OCR-tabanlı dikey kayma tahmini -> kümülatif D[kare]."""
+    def shift(A, B):
+        ds = []
+        for a in A:
+            if not a[0]: continue
+            for b in B:
+                if b[0] and (a[0] == b[0] or difflib.SequenceMatcher(None, a[0], b[0]).ratio() >= 0.85):
+                    ds.append(_cy(a) - _cy(b)); break
+        if not ds: return None
+        ds.sort(); return ds[len(ds) // 2]
+    shifts = [shift(ocr_pos.get(run[k-1], []), ocr_pos.get(run[k], [])) for k in range(1, len(run))]
+    valid = sorted(s for s in shifts if s is not None and 0 <= s < 400)
+    gmed = valid[len(valid) // 2] if valid else 0.0   # hareketsiz run: gmed ~0
+    D = {run[0]: 0.0}
+    for k in range(1, len(run)):
+        s = shifts[k-1]; s = s if (s is not None and 0 <= s < 400) else gmed
+        D[run[k]] = D[run[k-1]] + s
+    return D
+
+# FIX-B: MININST=3 + P-tabanlı konum dedup (linemosaic.py'den taşındı).
+# Geçiş-çöpü (1-2 karede görülen kırık OCR parçaları) MININST ile elenir.
+# P = kümülatif_kayma + y_merkez  ->  sürüklenmeye dayanıklı kimlik (hareketsizde P ≈ y_merkez).
+LMR_MININST = int(os.environ.get("MITAS_LMR_MININST", "3"))
+LMR_FUZZY   = 0.90
+LMR_MERGEP  = 60.0   # piksel; hareketsizde geniş tutulabilir
+LMR_ROWTOL  = 5.0
+
 def line_mosaic_run(run, imgs, ocr_pos, placed, W, pad=4):
     """hareketsiz run: her kareden GÖRÜLMEMİŞ satırların bandını kırp (drift/kart/footage sınırlı).
-    FIX-A: son eklenen banda görsel NCC >= 0.95 ise band atlanır (dissolve-logo tekrarı biter)."""
+    FIX-A: son eklenen banda görsel NCC >= 0.95 ise band atlanır (dissolve-logo tekrarı biter).
+    FIX-B: MININST>=3 + P-dedup — geçiş-çöpü (1-2 karede görülen kırık parça) atlanır.
+           MITAS_LMR_MININST=1 ile eski davranışa dönülür."""
+    MININST = LMR_MININST
+    D = _ocr_shift_run(run, ocr_pos)
+
+    # 1) Kare bazlı satır örnekleri topla (linemosaic adım 1-2)
+    def xcenter(e): return (e[4]+e[5])/2.0 if len(e) >= 6 else 0.0
+    rows = []
+    for f in run:
+        es = sorted(ocr_pos.get(f, []), key=lambda e: (e[2]+e[3])/2.0)
+        grp = []
+        def flush(grp, f=f):
+            if not grp: return
+            y1 = min(e[2] for e in grp); y2 = max(e[3] for e in grp)
+            cols = sorted([(xcenter(e), e[1], e[0]) for e in grp], key=lambda t: t[0])
+            canon = " ".join(t[2] for t in cols)
+            rows.append(dict(frame=f, y1=y1, y2=y2,
+                             P=D[f]+(y1+y2)/2.0, cols=cols, canon=canon))
+        for e in es:
+            if not e[1]: continue
+            yc = (e[2]+e[3])/2.0
+            if grp and yc - (grp[-1][2]+grp[-1][3])/2.0 > LMR_ROWTOL:
+                flush(grp); grp = []
+            grp.append(e)
+        flush(grp)
+
+    # 2) Metin-fuzzy + P-pencere dedup (linemosaic adım 2)
+    groups = []
+    for r in sorted(rows, key=lambda r: r["P"]):
+        best, bestrat = None, LMR_FUZZY
+        for g in groups:
+            if abs(r["P"] - g["sumP"]/len(g["insts"])) > LMR_MERGEP: continue
+            rat = difflib.SequenceMatcher(None, r["canon"], g["canon"]).ratio()
+            if rat >= bestrat: best, bestrat = g, rat
+        if best is None:
+            groups.append(dict(insts=[r], sumP=r["P"], canon=r["canon"]))
+        else:
+            best["insts"].append(r); best["sumP"] += r["P"]
+
+    # 3) MININST filtresi + P sırasına göre sırala
+    groups = [g for g in groups if len(g["insts"]) >= MININST]
+    groups.sort(key=lambda g: g["sumP"] / len(g["insts"]))
+
+    # 4) Her grup için: placed-dedup geçerse en iyi kareyi kırp + band ekle (FIX-A dahil)
     bands = []; lines = []
-    for i in run:
-        H = imgs[i].shape[0]
-        new = [L for L in ocr_pos[i] if L[0] and not is_placed(L[0], placed)]
-        if not new: continue
-        y0 = max(0, min(L[2] for L in new)-pad); y1 = min(H, max(L[3] for L in new)+pad)
+    last_band = None
+    for g in groups:
+        canon = g["canon"]
+        # placed-dedup: grup zaten placed ise atla (önceki run'lardan birikmiş)
+        if is_placed(canon, placed): continue
+        # en keskin kare: run ortasına (H*0.45) en yakın örnek
+        H0 = imgs[run[0]].shape[0]; sy = H0 * 0.45
+        best_inst = min(g["insts"], key=lambda r: abs((r["y1"]+r["y2"])/2.0 - sy))
+        f = best_inst["frame"]
+        H = imgs[f].shape[0]
+        y0 = max(0, best_inst["y1"] - pad); y1 = min(H, best_inst["y2"] + pad)
         if y1 <= y0: continue
-        b = imgs[i][y0:y1, :]
+        b = imgs[f][y0:y1, :]
         if b.shape[1] < W: b = cv2.copyMakeBorder(b, 0, 0, 0, W-b.shape[1], cv2.BORDER_CONSTANT, value=(0, 0, 0))
-        # görsel dedup: son band ile aynıysa metni placed'e ekle ama görsel band ekleme
-        if _band_dup(b, bands[-1] if bands else None):
-            for L in new: placed.append(L[0]); lines.append(L[1])
+        # FIX-A: görsel dedup
+        if _band_dup(b, last_band):
+            placed.append(canon); lines.append(g["insts"][0]["cols"][0][1] if g["insts"][0]["cols"] else "")
             continue
-        bands.append(b)
-        for L in new: placed.append(L[0]); lines.append(L[1])
+        last_band = b; bands.append(b)
+        placed.append(canon)
+        # mod-oylama ile en sık okunan ham metni seç
+        cands = [" ".join(t[1] for t in sorted(ins["cols"], key=lambda t: t[0])) for ins in g["insts"]]
+        lines.append(Counter(cands).most_common(1)[0][0] if cands else "")
     return bands, lines
+
+def _textmask_on():
+    return os.environ.get("MITAS_TEXTMASK", "").strip().lower() in ("1", "true", "on", "yes")
+
+def text_isolate(bgr, ksize=23, min_area=10):
+    """#1 TEXT-MASK (GPT v2 master_textonly fikri): footage arka-planini bastir, yaziyi (ince stroke)
+    BEYAZ-siyaha indir. Polarite-duyarli (top-hat parlak / black-hat koyu yazi) + benek-filtresi
+    (acma + alan). Pürüzsüz footage'da mukemmel; karmasik canli-aksiyon footage'inda kismi."""
+    g = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY) if bgr.ndim == 3 else bgr
+    # KOSULLU: koyu/temiz bg (median<70) -> footage yok, ZATEN temiz-kart -> DOKUNMA (clean regresyonunu onler).
+    # Yalniz parlak/footage'li blokta text-mask uygula (AMELIA gokyuzu, 300 altin vs.).
+    if float(np.median(g)) < 70:
+        return bgr if bgr.ndim == 3 else cv2.cvtColor(g, cv2.COLOR_GRAY2BGR)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+    th = cv2.morphologyEx(g, cv2.MORPH_TOPHAT, k); bh = cv2.morphologyEx(g, cv2.MORPH_BLACKHAT, k)
+    resp = cv2.max(th, bh).astype(np.float32)
+    blur = cv2.GaussianBlur(resp, (0, 0), 9); sd = float(resp.std()) or 1.0
+    keep = ((resp > (blur + 0.6 * sd)) & (resp > 12)).astype(np.uint8)
+    keep = cv2.morphologyEx(keep, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+    nlab, lab, stats, _ = cv2.connectedComponentsWithStats(keep, connectivity=8)
+    good = np.zeros(nlab, bool)
+    for i in range(1, nlab):
+        good[i] = stats[i, cv2.CC_STAT_AREA] >= min_area
+    keep = good[lab].astype(np.uint8)
+    # stroke-maskesi -> DOLU text-REGION (kapat ile harf-ici dolsun: outline DEGIL solid glyph)
+    region = cv2.morphologyEx(keep, cv2.MORPH_CLOSE, k)
+    region = cv2.dilate(region, np.ones((3, 3), np.uint8))
+    # blok polaritesi: parlak-yazi -> orijinal piksel; koyu-yazi -> ters (yazi parlak kalsin)
+    base = g if float(th.sum()) >= float(bh.sum()) else (255 - g)
+    out = np.zeros_like(g); out[region > 0] = base[region > 0]
+    return cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
+
+def _is_ghost(bf, seen):
+    """#2 RUNS-ARASI FUZZY-DEDUP: blok satirlarinin %80+'i zaten dizildiyse tekrar (ghost) -> True."""
+    if not bf:
+        return False
+    dup = sum(1 for f in bf if any(near(f, s) or (len(f) >= 6 and f in s) or (len(s) >= 6 and s in f) for s in seen))
+    return dup / len(bf) >= 0.8
+
+def _framegate_on():
+    return os.environ.get("MITAS_FRAMEGATE", "").strip().lower() in ("1", "true", "on", "yes")
+
+_LLMQC = None
+def _qc_seg_labels(ocr_pos):
+    """#6-GORSEL frame-gate: segmentteki TUM ham-satirlari qwen-QC ile TEK-cagri etiketle -> {ham: etiket}."""
+    global _LLMQC
+    if _LLMQC is None:
+        _LLMQC = load("_llmqc", r"E:\MITAS\OCR-worktree\py\_llm_qc.py")
+    texts = [L[1] for i in ocr_pos for L in ocr_pos[i] if L[1]]
+    try:
+        return _LLMQC.qc_text_labels(texts)
+    except Exception:
+        return {}
+
+def _frame_is_credit(lines, lab):
+    """GUVENLI gate: kareyi YALNIZ kesin-diegetik (UYARI/ALTYAZI VAR) + HIC KADRO/DUBLAJ yok ise ELE.
+    Yazisiz (footage) kareyi burada eleme (mevcut footage-gate'e birak); garble/COP'a DOKUNMA (false-drop=0)."""
+    ls = [L for L in lines if L[1]]
+    if not ls:
+        return True
+    kad = sum(1 for L in ls if lab.get(L[1]) in ("KADRO", "DUBLAJ"))
+    die = sum(1 for L in ls if lab.get(L[1]) in ("UYARI", "ALTYAZI"))
+    return not (die > 0 and kad == 0)
 
 def compose_hybrid(frames, idx, imgs, ocr_pos):
     """KÜNYE METNİ = OCR-uzayında dikme (stx.stitch_kunye: her satırın EN TEMİZ okuması; garble tufanı biter).
     GÖRSEL MASTER = panorama metin taşıyorsa o (slitscan2); yoksa line-mozaiği bantları (asla siyah)."""
+    if _framegate_on() and idx:
+        # #6 GORSEL frame-gate: kesin-diegetik (scene/altyazi, kredi-yok) kareyi master+metin'den ele
+        _lab = _qc_seg_labels({i: ocr_pos[i] for i in idx})
+        idx = [i for i in idx if _frame_is_credit(ocr_pos[i], _lab)] or idx
     runs = [[idx[0]]]
     for j in idx[1:]:
         (runs[-1].append(j) if j-runs[-1][-1] <= 3 else runs.append([j]))
@@ -117,6 +268,17 @@ def compose_hybrid(frames, idx, imgs, ocr_pos):
         bands, _ = line_mosaic_run(run, imgs, ocr_pos, vplaced, W)
         blocks += bands
     if not blocks: return None, text
+    if _textmask_on():
+        # #2 runs-arasi fuzzy-dedup: zaten dizilmis metni tasiyan blogu (ghost-tekrar) at
+        seen = []; kept = []
+        for b in blocks:
+            bf = [L[0] for L in read_pos(b) if L[0]]
+            if _is_ghost(bf, seen):
+                continue
+            seen.extend(bf); kept.append(b)
+        blocks = kept or blocks
+        # #1 text-mask: her blogun footage arka-planini bastir (yazi BEYAZ-siyah)
+        blocks = [text_isolate(b) for b in blocks]
     norm = [cv2.copyMakeBorder(b, 0, 0, 0, W-b.shape[1], cv2.BORDER_CONSTANT, value=(0, 0, 0)) if b.shape[1] < W else b for b in blocks]
     return np.vstack(norm), text
 
