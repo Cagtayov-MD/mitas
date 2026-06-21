@@ -115,6 +115,20 @@ export function Header({
     const id = window.setInterval(poll, 60_000);
     return () => { cancelled = true; window.clearInterval(id); };
   }, []);
+  // "Check" tuşu: DeepSeek + Claude + KB(IMDb) erişimini ANINDA aktif test et (/api/health/check).
+  // Pasif 60sn poll'u beklemeden — özellikle henüz çağrı olmamışken ("—") faydalı.
+  const [healthChecking, setHealthChecking] = useState(false);
+  const runHealthCheck = () => {
+    if (healthChecking) return;
+    setHealthChecking(true);
+    fetch('/api/health/check', { method: 'POST', signal: AbortSignal.timeout(50_000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && typeof d === 'object') setApiStatus((prev) => ({ ...prev, ...(d as ApiStatusMap) }));
+      })
+      .catch(() => { /* sessiz: mevcut durumu koru */ })
+      .finally(() => setHealthChecking(false));
+  };
   const duration = playback.duration || asrJob?.summary?.audio_duration;
   const isAsrBusy = isStartingAsr || isLiveSttBusy || asrJob?.status === 'queued' || asrJob?.status === 'running';
   const progressPercent = Math.max(0, Math.min(100, Math.round(asrJob?.progress_percent ?? (isStartingAsr ? 3 : 0))));
@@ -255,11 +269,26 @@ export function Header({
               )}
             </div>
           </div>
-          {/* API kredi/kota göstergesi: küçük iki satır (DeepSeek / Claude). ✓ yeşil = son çağrı OK,
-              uyarı sarı = kredi/kota sorunu (tooltip'te detay), nötr "—" = henüz çağrı yok. */}
-          <div className="flex shrink-0 flex-col gap-0.5 leading-none">
-            <ApiStatusPill label="DeepSeek" entry={apiStatus.deepseek} />
-            <ApiStatusPill label="Claude" entry={apiStatus.anthropic} />
+          {/* API + KB göstergesi: küçük satırlar (DeepSeek / Claude / KB-IMDb) + "Check" tuşu.
+              ✓ yeşil = OK, uyarı sarı = sorun (tooltip'te detay), nötr "—" = henüz çağrı/kontrol yok.
+              KB = Steven Spielberg→director ONAY kanaryası (yönetmen-onayı canlı mı).
+              Check = üçünü de ANINDA aktif test eder (pasif 60sn poll'u beklemeden). */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex flex-col gap-0.5 leading-none">
+              <ApiStatusPill label="DeepSeek" entry={apiStatus.deepseek} />
+              <ApiStatusPill label="Claude" entry={apiStatus.anthropic} />
+              <ApiStatusPill label="KB (IMDb)" entry={apiStatus.kb} warnKind="erişilemiyor" />
+            </div>
+            <button
+              type="button"
+              onClick={runHealthCheck}
+              disabled={healthChecking}
+              title="DeepSeek + Claude + KB erişimini şimdi test et"
+              className="inline-flex items-center gap-1 self-center rounded-sm border border-border-mitas bg-surface/70 px-1.5 py-1 text-[10px] font-medium text-foreground-disabled shadow-sm hover:bg-surface disabled:opacity-50"
+            >
+              <RotateCcw className={`h-3 w-3 shrink-0 ${healthChecking ? 'animate-spin' : ''}`} aria-hidden />
+              {healthChecking ? 'Test…' : 'Check'}
+            </button>
           </div>
         </div>
 
@@ -518,7 +547,15 @@ export function Header({
   );
 }
 
-function ApiStatusPill({ label, entry }: { label: string; entry?: ApiStatusEntry }) {
+function ApiStatusPill({
+  label,
+  entry,
+  warnKind = 'kredi/kota uyarısı',
+}: {
+  label: string;
+  entry?: ApiStatusEntry;
+  warnKind?: string;
+}) {
   // Üç durum: ok=true → yeşil ✓ ; ok=false → sarı uyarı (+ tooltip detay) ; alan yok → nötr "—".
   const hasStatus = entry != null && typeof entry.ok === 'boolean';
   const ok = entry?.ok === true;
@@ -527,7 +564,7 @@ function ApiStatusPill({ label, entry }: { label: string; entry?: ApiStatusEntry
     ? `${label}: durum bilgisi yok (henüz çağrı yapılmadı)`
     : ok
       ? `${label}: erişim normal`
-      : `${label}: kredi/kota uyarısı${detail ? ` — ${detail}` : ''}`;
+      : `${label}: ${warnKind}${detail ? ` — ${detail}` : ''}`;
   return (
     <span
       className={`inline-flex items-center gap-1 text-[10px] font-medium tabular-nums ${

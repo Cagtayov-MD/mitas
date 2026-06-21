@@ -96,6 +96,8 @@ scripts/_*
 !scripts/_jenerik_selftest.py
 # kb-suffix-split (KARAKTER+OYUNCU birlesik satirdan kisi kurtarma) — production runtime
 !scripts/_kb_suffix_split.py
+# health-probe (UI 'Check' tusu: Anthropic+DeepSeek+KB aktif saglik probu) — asr_server runtime
+!scripts/_health_probe.py
 # QC scratch/cache (kök seviye .qc_* dosyalari/dizinleri) — git'e girmez
 .qc_*
 

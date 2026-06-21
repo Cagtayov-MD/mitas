@@ -147,6 +147,55 @@ def _api_status_mark(api: str, ok: bool, detail: str = "") -> None:
         pass
 
 
+# ── KB (IMDb duckdb) SAGLIK KANARYASI ───────────────────────────────────────
+# asr_server venvs/asr'da kosar (duckdb YOK); KB credit-text python'inda yasar
+# (PY_PDF = global310). Kanary o python'a subprocess atip "Steven Spielberg ->
+# director ONAY mi" diye sorar:
+#   ONAY      -> KB canli (DB erisilebilir + isim-eslesme calisiyor).
+#   kayit-yok -> KB SESSIZCE OLU (duckdb yok / Y: surucu dustu / DB kilit/surum)
+#                -> yonetmen-onayi + cast-KB-filtreleri calismiyor demektir.
+# Bu, tam production'in kullandigi credit-text yolunu uctan uca test eder.
+# Her health pollunda (60sn) subprocess atmamak icin TTL ile cache'lenir.
+_KB_CANARY_PY = Path(os.environ.get(
+    "MITAS_PDF_PYTHON",
+    r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe"))
+_KB_HEALTH_TTL = 600.0  # sn (10 dk)
+_kb_health_cache: dict[str, Any] = {"ts": 0.0, "entry": None}
+
+
+def _kb_health() -> dict:
+    """KB canli mi (Steven Spielberg -> director ONAY). {ok, detail, ts}; ASLA cokmez."""
+    now = time.time()
+    cached = _kb_health_cache.get("entry")
+    if cached is not None and (now - float(_kb_health_cache.get("ts", 0.0))) < _KB_HEALTH_TTL:
+        return cached
+    iso = datetime.now(timezone.utc).isoformat()
+    entry: dict[str, Any] = {"ok": False, "detail": "kontrol edilemedi", "ts": iso}
+    try:
+        code = (
+            "import sys; sys.path.insert(0, " + repr(str(SCRIPTS_DIR)) + "); "
+            "from credit_video_read import KB; "
+            "print(KB().verify('Steven Spielberg', 'director'))"
+        )
+        out = subprocess.run([str(_KB_CANARY_PY), "-c", code],
+                             capture_output=True, text=True, timeout=10)
+        lines = [ln.strip() for ln in (out.stdout or "").splitlines() if ln.strip()]
+        verdict = lines[-1] if lines else ""
+        if verdict == "ONAY":
+            entry = {"ok": True, "detail": "IMDb KB canli (Steven Spielberg -> director ONAY)", "ts": iso}
+        elif verdict == "kayit-yok":
+            entry = {"ok": False, "detail": "KB OLU: baglanti yok (duckdb? Y: surucu? DB kilit/surum?)", "ts": iso}
+        else:
+            err = (out.stderr or "").strip().splitlines()
+            tail = verdict or (err[-1] if err else "bos cikti")
+            entry = {"ok": False, "detail": f"KB kontrol basarisiz: {tail}"[:160], "ts": iso}
+    except Exception as exc:  # noqa: BLE001 - kanary health endpoint'ini ASLA cokerterimez
+        entry = {"ok": False, "detail": f"kanary hata: {type(exc).__name__}", "ts": iso}
+    _kb_health_cache["ts"] = now
+    _kb_health_cache["entry"] = entry
+    return entry
+
+
 # Anthropic yanit govdesinde kredi/kota sinyalleri (kuckuk harf eslesme).
 _ANTHROPIC_CREDIT_SIGNALS = ("credit", "balance", "quota", "insufficient", "too low")
 
@@ -1084,10 +1133,45 @@ def health() -> dict[str, Any]:
         },
         # 1.9: TMDB anahtari yoksa UI uyari gostersin (afis cekilemez). Sadece var/yok — anahtar degeri DONDURULMEZ.
         "tmdb_key_present": bool(os.environ.get("MITAS_TMDB")),
-        # Dis API kredi/kota durumu (DeepSeek + Anthropic). UI header'i bunu okur.
-        # Henuz cagri yapilmamissa {} (UI notr gosterir; yanlis-alarm yok). Anahtar degeri ASLA donmez.
-        "api_status": _api_status_read_all(),
+        # Dis API kredi/kota durumu (DeepSeek + Anthropic) + KB (IMDb duckdb) saglik kanaryasi.
+        # UI header'i bunu okur. Henuz cagri yapilmamissa {} (UI notr gosterir; yanlis-alarm yok).
+        # "kb" = Spielberg->director ONAY kanaryasi (credit-text python'inda subprocess, TTL-cache).
+        # Anahtar degeri ASLA donmez.
+        "api_status": {**_api_status_read_all(), "kb": _kb_health()},
     }
+
+
+@app.post("/api/health/check")
+def health_check() -> dict[str, Any]:
+    """UI 'Check' tusu: Anthropic + DeepSeek + KB(IMDb) erisimini ANINDA aktif test eder.
+
+    PY_PDF subprocess'iyle scripts/_health_probe.py kosar (minimal gercek ping + KB kanaryasi),
+    sonuclari kalici api_status'a yazar + KB cache'ini tazeler. {ok,detail,ts}*3 doner; ASLA cokmez.
+    """
+    iso = datetime.now(timezone.utc).isoformat()
+    probe: dict[str, Any] = {}
+    try:
+        out = subprocess.run([str(_KB_CANARY_PY), str(SCRIPTS_DIR / "_health_probe.py")],
+                             capture_output=True, text=True, timeout=45)
+        line = next((ln for ln in reversed((out.stdout or "").splitlines())
+                     if ln.strip().startswith("{")), "")
+        if line:
+            probe = json.loads(line)
+    except Exception as exc:  # noqa: BLE001 - probe health_check'i ASLA cokerterimez
+        probe = {"_error": type(exc).__name__}
+
+    def _entry(key: str) -> dict:
+        e = probe.get(key)
+        if isinstance(e, dict) and "ok" in e:
+            return {"ok": bool(e.get("ok")), "detail": str(e.get("detail", ""))[:200], "ts": iso}
+        return {"ok": False, "detail": f"kontrol edilemedi ({probe.get('_error', 'probe yok')})", "ts": iso}
+
+    anth, deep, kb = _entry("anthropic"), _entry("deepseek"), _entry("kb")
+    _api_status_mark("anthropic", anth["ok"], anth["detail"])
+    _api_status_mark("deepseek", deep["ok"], deep["detail"])
+    _kb_health_cache["ts"] = time.time()
+    _kb_health_cache["entry"] = kb
+    return {"deepseek": deep, "anthropic": anth, "kb": kb}
 
 
 @app.post("/api/asr/transcribe")
