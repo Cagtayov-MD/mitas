@@ -36,6 +36,11 @@ if (-not $env:MITAS_QC_DIRECTOR_ANCHOR){ $env:MITAS_QC_DIRECTOR_ANCHOR = '1'; Wr
 if (-not $env:MITAS_CREDIT_DETECT)     { $env:MITAS_CREDIT_DETECT = '1';     Write-Host '   + MITAS_CREDIT_DETECT=1 (default AKTIF)' }
 # KB_CAST_ADD = kimlik kesinken (OCR-teyitli yon + >=3 siki cast) eksik kadroyu KB'den EKLE (asla ezme, OCR onde). AKTIF.
 if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Write-Host '   + MITAS_KB_CAST_ADD=1 (default AKTIF)' }
+# GEMMA_FULLCOVER = video-kunye gemma okuyucu TAM-KAPSAM: 36-ornek + tek-cagri yerine TUM segmenti
+# yogun (~1.5-2sn) tara + 24'er batch + MERGE -> kart kacirmaz. Olculdu (2026-06-21): KELEBEGIN cast
+# 5->8 (+lead KIVANC/BELCIM, karakter-adi copu gitti); 4-film (TR/Alm/Fr) %94 recall + yonetmen 4/4.
+# Maliyet ~+2.5dk/film. Kapatmak icin MITAS_GEMMA_FULLCOVER=0.
+if (-not $env:MITAS_GEMMA_FULLCOVER)   { $env:MITAS_GEMMA_FULLCOVER = '1';   Write-Host '   + MITAS_GEMMA_FULLCOVER=1 (default AKTIF — tam-kapsam kunye okuma)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
 

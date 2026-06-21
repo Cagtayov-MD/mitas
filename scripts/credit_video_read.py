@@ -144,7 +144,7 @@ def _encode(path):
     im.save(buf, format="JPEG", quality=85)
     return base64.b64encode(buf.getvalue()).decode()
 
-def read_segment(model, frames):
+def read_segment(model, frames, num_predict=NUM_PREDICT):
     """Bir kare dizisini video-tag olarak VLM'e ver, ham cevabi dondur. think=False (video icin SART).
     _ollama.ollama_chat uzerinden (retry+timeout merkezi). Basarisizsa bos string."""
     msgs = [{"role": "user", "content": PROMPT, "images": [_encode(f) for f in frames]}]
@@ -160,7 +160,7 @@ def read_segment(model, frames):
         think=False,
         keep_alive="10m",
         options={"temperature": _vl_temp, "top_p": _vl_topp, "num_ctx": NUM_CTX,
-                 "num_predict": NUM_PREDICT, "repeat_penalty": 1.3, "repeat_last_n": 256},
+                 "num_predict": num_predict, "repeat_penalty": 1.3, "repeat_last_n": 256},
     )
     if resp is None:
         return ""
@@ -257,15 +257,53 @@ def fuse(model_outputs, kb):
     return {"yonetmen": yonetmen, "yapimci": yapimci, "cast": cast, "guven": guven,
             "ayrinti": {m: lst for m, lst in per_model_dir.items()}}
 
+# ------------------------- TAM-KAPSAM (full-coverage) — opt-in -------------------------
+# Çağatay-doğrulandı (2026-06-21): 36-kare örnekleme + tek-çağrı yerine TÜM segmenti yoğun
+# (~1.5-2sn) tara + 24'er batch + alanları MERGE et → gemma kart kaçırmaz.
+# Ölçüm: KELEBEĞİN 0/8 → 6/8; 4-film (TR/Alm/Fr) %94 cast recall + yönetmen 4/4.
+# Flag: MITAS_GEMMA_FULLCOVER=1 (default kapalı → eski davranış aynen korunur).
+PER_SEG = int(os.environ.get("MITAS_GEMMA_PERSEG", "120"))   # segment basina yogun kare sayisi
+BATCH = int(os.environ.get("MITAS_GEMMA_BATCH", "24"))        # cagri basina kare
+
+def dense_cover(frames, per_seg=None):
+    """Tum segmenti yogun ornekle (sample_basson BUDGET=36 sınırı yerine — kart kaçırmaz)."""
+    per = per_seg or PER_SEG
+    n = len(frames)
+    if n <= per:
+        return frames
+    st = n / per
+    return [frames[int(i * st)] for i in range(per)]
+
+def read_segment_batched(model, frames, bs=None):
+    """Kareleri bs'lik batch'lere böl, her batch'i read_segment ile oku, alanları MERGE et.
+    Çıktı = read_segment ile BİREBİR AYNI YÖNETMEN/YAPIMCI/OYUNCULAR formatı (fuse/KB/V4 değişmez).
+    Bir batch hata verse atlanır (no-regress)."""
+    bs = bs or BATCH
+    yon, yap, cast = [], [], []
+    for i in range(0, len(frames), bs):
+        try:
+            raw = read_segment(model, frames[i:i + bs], num_predict=2048)
+        except Exception as e:
+            sys.stderr.write(f"[uyari] batch {model} @{i}: {type(e).__name__} {e}\n")
+            continue
+        yon += split_names(parse_field(raw, "YÖNETMEN"))
+        yap += split_names(parse_field(raw, "YAPIMCI"))
+        cast += split_names(parse_field(raw, "OYUNCULAR"))
+    yon, yap, cast = _dedup(yon), _dedup(yap), _dedup(cast)
+    return ("YÖNETMEN: " + (", ".join(yon) if yon else "yok") + "\n"
+            "YAPIMCI: " + (", ".join(yap) if yap else "yok") + "\n"
+            "OYUNCULAR: " + (", ".join(cast) if cast else "yok"))
+
 # ------------------------- ANA GIRIS -------------------------
 def read_credits(giris_dir=None, cikis_dir=None, models=None, kb=None):
     models = models or MODELS
     kb = kb or KB()
-    # kareleri segment basina BIR KEZ ornekle
+    _fullcover = os.environ.get("MITAS_GEMMA_FULLCOVER", "").strip().lower() in ("1", "true", "on", "yes")
+    # kareleri segment basina BIR KEZ ornekle (tam-kapsam aciksa yogun, degilse eski BUDGET=36)
     seg_frames = {}
     for seg, d in (("giris", giris_dir), ("cikis", cikis_dir)):
         if d and os.path.isdir(d):
-            fr = sample_basson(list_frames(d))
+            fr = dense_cover(list_frames(d)) if _fullcover else sample_basson(list_frames(d))
             if fr:
                 seg_frames[seg] = fr
     # MODEL DISTA dongu: film basina her model 1 kez yuklenir (gemma<->7b swap'ini azaltir)
@@ -273,7 +311,7 @@ def read_credits(giris_dir=None, cikis_dir=None, models=None, kb=None):
     for m in models:
         for seg, fr in seg_frames.items():
             try:
-                outputs[m][seg] = read_segment(m, fr)
+                outputs[m][seg] = read_segment_batched(m, fr) if _fullcover else read_segment(m, fr)
             except Exception as e:
                 outputs[m][seg] = ""
                 sys.stderr.write(f"[uyari] {m}/{seg}: {type(e).__name__} {e}\n")
