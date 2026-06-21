@@ -24,16 +24,17 @@ import os, sys, json, glob, shutil, argparse, re
 # ───────────────────────── TAKSONOMİ ─────────────────────────
 HAFIF, AGIR = "HAFIF", "AGIR"
 
-# Ağır tip → hedef klasör + öncelik (küçük = daha temel/öncelikli)
-# POLİTİKA (kullanıcı 2026-06-15): TEK sorunlu film → "SADECE <TİP> KONTROL EDİLECEK" adlı klasör
-# (kontrolcü ne yapacağını klasör adından anlar). ÇOK sorunlu (2+) → KONTROL kökünde AÇIKTA (folder_for_set).
+# Ağır tip → öncelik (küçük = daha temel/öncelikli) + açıklama. KLASÖR HEDEFLERİ TEK: "KONTROL".
+# POLİTİKA (Çağatay 2026-06-21): export'ta SADECE iki uç var → ONAYLI (teslime hazır) | KONTROL (sorunlu).
+# Hiçbir alt-klasör yok (eski "SADECE … KONTROL EDİLECEK" / "SORUNLU" / "SES TEYİT" kaldırıldı).
+# Sorun tipi dosya adına etiket olarak yazılır (örn. "_YONETMEN", "_CAST_OZET") — reviewer ada bakar.
 AGIR_TIP = {
-    "YONETMEN": {"folder": "KONTROL/SADECE YÖNETMEN KONTROL EDİLECEK", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
-    "KIMLIK":   {"folder": "KONTROL/SADECE KİMLİK KONTROL EDİLECEK",   "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
-    "CAST":     {"folder": "KONTROL/SADECE OYUNCU KONTROL EDİLECEK",   "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
-    "OZET":     {"folder": "KONTROL/SADECE ÖZET KONTROL EDİLECEK",     "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
-    "RENDER":   {"folder": "KONTROL/SADECE RENDER KONTROL EDİLECEK",   "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
-    "SES":      {"folder": "KONTROL/SES TEYİT", "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz (artık KONTROL içinde)"},
+    "YONETMEN": {"folder": "KONTROL", "oncelik": 1, "aciklama": "yönetmen — kimlik çapası, en temel"},
+    "KIMLIK":   {"folder": "KONTROL", "oncelik": 2, "aciklama": "film kimliği kurulamadı / yanlış-film şüphesi"},
+    "CAST":     {"folder": "KONTROL", "oncelik": 3, "aciklama": "oyuncu garble / yok, kurtarılamadı"},
+    "OZET":     {"folder": "KONTROL", "oncelik": 4, "aciklama": "gerçek özet üretilemedi"},
+    "RENDER":   {"folder": "KONTROL", "oncelik": 5, "aciklama": "Latin-dışı alfabe / bozuk karakter sızdı"},
+    "SES":      {"folder": "KONTROL", "oncelik": 6, "aciklama": "ana_dil≠TR / belirsiz"},
 }
 ONCELIK_SIRASI = sorted(AGIR_TIP, key=lambda t: AGIR_TIP[t]["oncelik"])
 
@@ -48,14 +49,9 @@ HAFIF_FIX = {
 }
 
 
-# Klasör politikası (kullanıcı 2026-06-15): TEK-sorunlu → adlı "SADECE ... KONTROL EDİLECEK"
-# klasörü ; ÇOK-sorunlu (2+) → KONTROL/SORUNLU ; SES teyit → KONTROL/SES TEYİT.
-# HEPSİ KONTROL'ün ALTINDA (üst-düzey SES_TEYIT/SORUNLU kaldırıldı, kullanıcı 2026-06-15).
-ALL_KONTROL_FOLDERS = [
-    "KONTROL/SADECE YÖNETMEN KONTROL EDİLECEK", "KONTROL/SADECE KİMLİK KONTROL EDİLECEK",
-    "KONTROL/SADECE OYUNCU KONTROL EDİLECEK", "KONTROL/SADECE ÖZET KONTROL EDİLECEK",
-    "KONTROL/SADECE RENDER KONTROL EDİLECEK", "KONTROL/SORUNLU", "KONTROL/SES TEYİT",
-]
+# Klasör politikası (Çağatay 2026-06-21): export'ta SADECE iki uç → "ONAYLI" ve "KONTROL".
+# Alt-klasör YOK. Sorun tipi/sayısı dosya adındaki etiketle ifade edilir.
+ALL_KONTROL_FOLDERS = ["KONTROL"]
 
 
 def tip_label(types) -> str:
@@ -64,19 +60,12 @@ def tip_label(types) -> str:
 
 
 def folder_for_set(types) -> tuple:
-    """KLASÖR = sorun SAYISI ; ETİKET = TAM küme (dosya adına yazılır). HEPSİ KONTROL altında.
-      • yalnız SES         → KONTROL/SES TEYİT
-      • TEK ağır sorun     → KONTROL/SADECE <TİP> KONTROL EDİLECEK  (izole, adı kendini anlatır)
-      • 2+ ağır sorun      → KONTROL/SORUNLU  (çoklu sorunlular bir arada; dosya adı tam komboyu taşır)
-      Dosya adı etiketi (örn. '_YONETMEN_OZET') her durumda TAM kümeyi taşır → kontrol kolay."""
+    """TEK HEDEF: 'KONTROL'. Tip kümesi dosya-adı etiketi olarak döner (örn. '_YONETMEN_OZET').
+    Yalnız SES da KONTROL'e gider; etiket 'SES' olur."""
     t = set(types) - {"SES"}
     if not t and "SES" in types:
-        return "KONTROL/SES TEYİT", "SES"
-    lbl = tip_label(t)
-    if len(t) >= 2:
-        return "KONTROL/SORUNLU", lbl   # çoklu → KONTROL/SORUNLU
-    primary = next(p for p in ONCELIK_SIRASI if p in t)
-    return AGIR_TIP[primary]["folder"], lbl
+        return "KONTROL", "SES"
+    return "KONTROL", tip_label(t)
 
 
 def strip_label(name: str) -> str:
@@ -151,9 +140,13 @@ def classify(sig: dict) -> dict:
                 "agir": agir, "hafif": sorted(set(hafif)),
                 "aciklama": f"AĞIR {sorted(types)} → {folder}"}
     if hafif:
-        return {"tier": "AUTOFIX", "kontrol_tip": None, "folder": "AUTOFIX",
+        # Çağatay 2026-06-21: iki-uç kural (ONAYLI|KONTROL). Auto-fix henüz pipeline-içi değil →
+        # yalnız-HAFİF film bugün otomatik düzelmiyor; teslime hazır SAYILAMAZ → KONTROL'e gider.
+        # Etiket dosya adına yazılır (HAFİF_<kod>...), reviewer 1-bakışta görür.
+        lbl = "HAFIF_" + "_".join(sorted(set(hafif)))
+        return {"tier": "AUTOFIX", "kontrol_tip": lbl, "folder": "KONTROL",
                 "agir": [], "hafif": sorted(set(hafif)),
-                "aciklama": "yalnız HAFİF kusur → auto-fix (corrections+render), kontrole GİTMEZ"}
+                "aciklama": "yalnız HAFİF kusur → KONTROL (auto-fix pipeline-içi değil)"}
     return {"tier": "TEMIZ", "kontrol_tip": None, "folder": "ONAYLI", "agir": [], "hafif": [],
             "aciklama": "kusursuz"}
 
@@ -242,7 +235,7 @@ def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\ex
             dst = os.path.join(export, r["folder"]); os.makedirs(dst, exist_ok=True)
             shutil.move(f, os.path.join(dst, with_label(base, r["kontrol_tip"])))
     print(f"=== RE-SORT: {folder_name} ({len(pdfs)} film) {'[UYGULANDI]' if apply else '[DRY-RUN]'} ===")
-    for k in ALL_KONTROL_FOLDERS + ["AUTOFIX", "TEMIZ"]:
+    for k in ALL_KONTROL_FOLDERS + ["TEMIZ"]:
         rows = plan.get(k, [])
         if rows:
             print(f"\n{k} ({len(rows)}):")
@@ -313,12 +306,10 @@ if __name__ == "__main__":
 #         keyword_desync=..., genre_format=..., ozet_dateintro=..., ozet_meta=...,
 #         ana_dil_not_tr=<ana_dil!='TR'>)
 #     r = router.classify(sig)
-#     if r["tier"] in ("TEMIZ", "AUTOFIX"):
-#         # AUTOFIX → corrections+render (render_in_place / fix_kunye) ile HAFİF kusurları düzelt,
-#         #           sonra HAZIR'a; insan kontrolüne SOKMA.
-#         dest_root = HAZIR
+#     if r["tier"] == "TEMIZ":
+#         dest_root = HAZIR                            # ONAYLI/  (teslime hazır)
 #     else:
-#         dest_root = EXPORT / r["folder"]            # KONTROL_YONETMEN / _KIMLIK / _CAST / _OZET / _RENDER / SES_TEYIT
+#         dest_root = EXPORT / r["folder"]            # her zaman "KONTROL/" (flat — alt-klasör yok)
 #     karar = r["tier"]; durum["route"] = r
 #
 # KRİTİK BAĞLANTILAR (QC2'nin kapalı parçalarını AÇ — ama BAYRAKLA modunda, KANUN 3):

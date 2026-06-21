@@ -2097,13 +2097,13 @@ def main(argv=None) -> int:
             "foreign_accent":    any("yabancı ad" in u for u in _U),
         }
         _r = _router.classify(_sig)
+        # FLAT KURAL (Çağatay 2026-06-21): export'ta SADECE ONAYLI ve KONTROL var. AutoFix ve Kontrol
+        # tier'larının her ikisi de KONTROL'e gider; sorun etiketi dosya adına yazılır.
         if _r["tier"] == "TEMIZ":
             karar, dest_root = "Hazır", HAZIR
-        elif _r["tier"] == "AUTOFIX":
-            karar, dest_root = "AutoFix", EXPORT_ROOT / "AUTOFIX"
-        else:                                              # KONTROL_<tip>
-            karar, dest_root = "Kontrol", EXPORT_ROOT / _r["folder"]
-        # GÜVENLİK: 'reasons' var ama tipe eşlenmedi (ör. 'ses/dil yok') → genel KONTROL (mis-deliver önle)
+        else:                                              # AUTOFIX veya KONTROL → KONTROL/ (flat)
+            karar, dest_root = "Kontrol", KONTROL
+        # GÜVENLİK: 'reasons' var ama tipe eşlenmedi → yine KONTROL (mis-deliver önle)
         if _R and (not _r["agir"]):
             karar, dest_root = "Kontrol", KONTROL
         route_info = _r
