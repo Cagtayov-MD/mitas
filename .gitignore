@@ -122,6 +122,8 @@ OCR-worktree/pdf-mitas/*
 !OCR-worktree/_vlm_kunye_run.py
 !OCR-worktree/_vlm_bench50_hybrid.py
 !OCR-worktree/_vlm_compare_gt.py
+!OCR-worktree/master_png_monitor.py
+!OCR-worktree/_vlm_fullcover.py
 # NOT: OCR-worktree/py/ pipeline100 zinciri eski commit'te zaten tracked; _pipe_ocr.py onu RUNTIME yukler.
 mutfak/OCR_*_GORSELLER_*/
 
