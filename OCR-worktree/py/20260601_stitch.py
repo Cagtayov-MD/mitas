@@ -4,10 +4,16 @@ Küme içinde BULANIK-MODE: yakın okumaları grupla, en büyük grup=consensus,
 GÜVEN-KAPISI: conf<thr olan satır (tekrarı yok=garble) ana künyeden düşer, 'düşük güven'e gider.
 API: stitch_kunye(runs, ocr_pos, conf_thr) -> (main, low, medconf)
 """
-import sys, json, unicodedata, difflib
+import sys, json, unicodedata, difflib, os
+from collections import Counter
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 VOWELS = set("aeıioöuüâîû")
+# FIX 1 (2026-06-22): pick_best temsilcisini ÖNCE temiz okumalar arasında FREKANSLA seç.
+# Tekrarlı-temiz (JAMES DARREN ×7) tek-seferlik garble'ı (DAMES DARREN ×1) yenmeli; eski
+# kod garble()=0.0 beraberliğinde ilk-geleni alıp garble seçiyordu. AKTİF (default ON; AYI YOGİ
+# canlı-kanıtlı + non-regresyon audit PASS). MITAS_STITCH_FREQVOTE=0 ile eski davranışa dönülür (kill-switch).
+_FREQVOTE = os.environ.get("MITAS_STITCH_FREQVOTE", "1").strip().lower() in ("1", "true", "on", "yes")
 def norm(s): return ''.join(c for c in unicodedata.normalize('NFKD', s.lower()) if not unicodedata.combining(c))
 def tsim(a, b): return difflib.SequenceMatcher(None, a, b).ratio()
 def cy(o): return (o[2]+o[3])/2.0
@@ -30,7 +36,18 @@ def pick_best(readings):
         else: groups.append({"rep": f, "m": [raw]})
     groups.sort(key=lambda g: -len(g["m"]))
     top = groups[0]
-    best = min(top["m"], key=lambda r: (garble(r), -len(r)))
+    if _FREQVOTE:
+        # FIX 1: ÖNCE temiz okumalar (garble==0.0) arasında en sık geçen yazımı seç →
+        # garble bir temizi ASLA oylamada geçemez (clean-pool). Hata → eski davranışa düş.
+        try:
+            cnt = Counter(top["m"])
+            clean = [r for r in top["m"] if garble(r) == 0.0]
+            pool = clean or top["m"]
+            best = min(pool, key=lambda r: (-cnt[r], garble(r), -len(r)))
+        except Exception:
+            best = min(top["m"], key=lambda r: (garble(r), -len(r)))
+    else:
+        best = min(top["m"], key=lambda r: (garble(r), -len(r)))
     return best, len(top["m"])/len(readings)
 
 def est_delta(A, B):

@@ -27,6 +27,12 @@ import urllib.request
 
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
 DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "qwen3.6:35b-a3b")
+# FIX 3 (2026-06-22): cast garble-gate'i 8-cap'ten ÖNCE çalıştır — garble'lar 8-slot
+# bütçesini doldurup gerçek adları (geç-sırada görünen seslendiren vb.) atmasın.
+# Monotonik-güvenli (gate=alt-dizi; non-regresyon audit PASS). AKTİF (default ON).
+# MITAS_EXTRACT_GATE_BEFORE_CAP=0 ile eski sıra (cap-sonra-filtre) geri gelir (kill-switch).
+_GATE_BEFORE_CAP = os.environ.get("MITAS_EXTRACT_GATE_BEFORE_CAP", "1").strip().lower() in (
+    "1", "true", "on", "yes")
 
 _TR_FOLD = str.maketrans("ışğçöüİIÄ", "isgcouiia")
 
@@ -1021,9 +1027,15 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
 
     # ── F3 + F2: Cast boru hattı ─────────────────────────────────────────────
     cast_merged = _dedup_fold(all_cast)
-    if not dizi:
-        cast_merged = cast_merged[:8]
-    cast_garble = _apply_garble_gate(cast_merged, kb)
+    if _GATE_BEFORE_CAP:
+        # FIX 3: filtre cap'ten ÖNCE — garble'lar gerçek adları 8-slottan atmasın.
+        cast_garble = _apply_garble_gate(cast_merged, kb)
+        if not dizi:
+            cast_garble = cast_garble[:8]
+    else:
+        if not dizi:
+            cast_merged = cast_merged[:8]
+        cast_garble = _apply_garble_gate(cast_merged, kb)
 
     # F1 edge-case (BAŞROL-YÖNETMEN ayrımı): MUTABAKAT YOKSA, cast'te de görünen yönetmen
     # adayı büyük olasılıkla BAŞROL oyuncudur (ör. Waldo Pepper'da Robert Redford başrol,

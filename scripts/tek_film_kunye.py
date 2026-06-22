@@ -724,6 +724,23 @@ def main():
         _yon_garble_lex = bool(_final_yon and _final_yon[0] != "—" and _lg(_final_yon[0]))
     except Exception:  # noqa: BLE001 — sinyal hesabı PDF/raporu ASLA bozmaz
         _cast_garble_lex, _yon_garble_lex = [], False
+    # FIX 4 (2026-06-22): KB-BAĞIMSIZ n-gram leksikal garble (well-formed-ASCII: JJAME SBENREET/
+    # JEJULIEA — _looks_garble bunlara kör). MITAS_GARBLE_NGRAM=gözlem (rapora yaz, route ETME);
+    # MITAS_GARBLE_NGRAM_ROUTE=route (cast_garble_lex'e union → garble→KONTROL, SİLME YOK). FAIL-SAFE.
+    _cast_garble_ngram, _cast_ngram_scores = [], {}
+    try:
+        _ng_on = os.environ.get("MITAS_GARBLE_NGRAM", "0").strip().lower() in ("1", "true", "on", "yes")
+        _ng_route = os.environ.get("MITAS_GARBLE_NGRAM_ROUTE", "0").strip().lower() in ("1", "true", "on", "yes")
+        if _ng_on or _ng_route:
+            import _name_ngram_garble as _ngm
+            _fc = [c for c in (d.get("cast") or []) if c and str(c).strip() != "—"]
+            _cast_ngram_scores = {c: round(_ngm.score_name(c) or 0.0, 2) for c in _fc}
+            _cast_garble_ngram = [c for c in _fc if _ngm.looks_garble_ngram(c)]
+            if _ng_route:  # route-kolu: n-gram suspect'leri leksikal-garble'a EKLE (union; silme yok)
+                _seen = {str(x) for x in _cast_garble_lex}
+                _cast_garble_lex = list(_cast_garble_lex) + [c for c in _cast_garble_ngram if str(c) not in _seen]
+    except Exception:  # noqa: BLE001 — gözlem/route sinyali PDF'i ASLA bozmaz
+        _cast_garble_ngram, _cast_ngram_scores = [], {}
     rapor["v4"] = {"yonetmen": [n for _, ns in crewU for n in ns if _ == "Yönetmen"],
                    "yapimci_var": any(r == "Yapımcı" for r, _ in crewU), "cast": len(castU),
                    "tur": d["specs"][1][1], "afis": bool(poster),
@@ -731,6 +748,9 @@ def main():
                    # GARBLE-ROUTING sinyali (2026-06-20): nihai cast/yön leksikal-garble
                    "cast_garble_lex": _cast_garble_lex,
                    "cast_garble_lex_count": len(_cast_garble_lex),
+                   # FIX 4 GÖZLEM (2026-06-22): n-gram leksikal garble + skorlar (kalibrasyon için)
+                   "cast_garble_ngram": _cast_garble_ngram,
+                   "cast_ngram_scores": _cast_ngram_scores,
                    "yon_garble_lex": _yon_garble_lex,
                    # OTORİTER yüzey-değerler (PROPAGATION fix 2026-06-20): yüzey .txt'yi V4 PDF ile
                    # HİZALA — mitas_pipeline surface_deliverables bunlarla kunye_teslim.md'yi yamalar.
