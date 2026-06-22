@@ -31,10 +31,17 @@ CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
 CLEAN = PY_OCR_DIR / "20260601_clean.py"
+DB_COMPOSE = PY_OCR_DIR.parent / "db_compose_master.py"   # FIX A: morfolojik has_text/text_mask (CLIP'siz metin-tespiti) kaynagi
 KB_SPLIT = Path(__file__).resolve().parent / "_kb_suffix_split.py"
 # KB-SUFFIX-SPLIT: "KARAKTER ADI + OYUNCU ADI" birlesik kredi satirindan yapisik kisiyi KB-dogrulamali
 # kurtarir (2026-06-21). Default ACIK. ADDITIVE+KB-gated+FAIL-SAFE -> regresyon riski ~0. Kapatma: =0.
 _KB_SPLIT_ON = os.environ.get("MITAS_KB_SUFFIX_SPLIT", "1").strip().lower() in ("1", "true", "on", "yes")
+# FIX A — HIBRIT KAPI (2026-06-22): CLIP-bekci yazi-footage-ustu kredi kartlarini ("KEMAL SUNAL"
+# kalabalik sahne ustu) "footage" sanip atiyor -> o karelerde morfolojik metin-varligi
+# (db_compose_master.has_text) ararak idx'e EKLE (union). ADDITIVE + FAIL-SAFE.
+# A/B YESIL (2026-06-22: HABABAM 6 yildiz+Kemal Sunal kurtuldu; SIRILSIKLAM kontrol regresyonsuz +2 bonus) -> default ON.
+# Kapatma: MITAS_BEKCI_TEXT_OR=0.
+_TEXT_OR_ON = os.environ.get("MITAS_BEKCI_TEXT_OR", "1").strip().lower() in ("1", "true", "on", "yes")
 # GLM-consensus POC (2. motor): gerekli fonksiyonlar bu dosyaya INLINE edildi (asagida);
 # 20260601_consensus_glm.py runtime'da YUKLENMIYOR — olu referans kaldirildi.
 
@@ -443,6 +450,32 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         idx = [i for a, b in _runs for i in range(int(a), int(b) + 1)]
         if not idx:  # hicbir uzun blok yok (kisa-jenerikli/dip-kalite) -> eski davranisa dus, kapsama kaybetme
             idx = [i for i in range(len(ps)) if ps[i] >= THR]
+        # FIX A — HIBRIT KAPI: CLIP'in DUSURDUGU karelerde (idx-disi & ps<THR) morfolojik metin-varligi
+        # ara (db_compose_master.has_text); bulunani idx'e EKLE. Yazi-footage-ustu basrol karti
+        # (KEMAL SUNAL kalabalik sahne ustu) boyle kurtarilir; minlen=10 dayaniklilik filtresi BYPASS
+        # (cıplak indeks, tek kare yeter). FAIL-SAFE: hata -> idx AYNEN (regresyon yok).
+        if _TEXT_OR_ON:
+            try:
+                import cv2 as _cv2, types as _types
+                _dcm = _load("dcm_compose", DB_COMPOSE)
+                _dcm_args = _types.SimpleNamespace(tht=22, min_hold=5, polarity="auto")
+                _clip_sel = set(idx)
+                _added = []
+                for _i in range(len(frame_paths)):
+                    if _i in _clip_sel or ps[_i] >= THR:   # CLIP zaten aldi / esigi gecti -> atla (perf)
+                        continue
+                    _img = fp.rd(frame_paths[_i])           # BGR, Turkce-yol guvenli
+                    if _img is None:
+                        continue
+                    _gray = _cv2.cvtColor(_img, _cv2.COLOR_BGR2GRAY)
+                    _pp = _dcm.derive_params(_gray.shape[0], _gray.shape[1], _dcm_args)
+                    if _dcm.has_text(_dcm.text_mask(_gray, _pp, _dcm_args.polarity), _pp):
+                        _added.append(_i)
+                if _added:
+                    idx = sorted(_clip_sel.union(_added))
+                    print(f"[pipeline100] hibrit-kapi: +{len(_added)} metin-kare (CLIP-disi) -> idx={len(idx)}", file=sys.stderr)
+            except Exception as _hx:  # noqa: BLE001 - FAIL-SAFE: idx korunur, regresyon yok
+                print(f"[pipeline100] hibrit-kapi atlandi (idx AYNEN): {type(_hx).__name__}: {_hx}", file=sys.stderr)
     except Exception as exc:  # noqa: BLE001 - CLIP coker -> tum kareler
         print(f"[pipeline100] CLIP bekci atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
         clip_ok = False
