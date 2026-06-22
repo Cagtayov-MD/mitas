@@ -18,6 +18,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import unicodedata
 
@@ -62,7 +63,8 @@ def _find_frames(clip):
 def _load_raw_ocr(clip):
     """Jenerik karelerinin HAM OCR metni (ocr_raw_all + ocr_ham + kunye) → VL hayalet-kalkanı korpusu.
     VL pikselden okur; HAM OCR aynı kareleri işledi → gerçek isim ham OCR'da bulunur, yoksa = uydurma
-    (2026-06-20 forensik: FOTOĞRAF VL 'JEFF TOWLES' uydurdu, ham OCR'da YOK → kalkan düşürür)."""
+    (2026-06-20 forensik: FOTOĞRAF VL 'JEFF TOWLES' uydurdu, ham OCR'da YOK → kalkan düşürür).
+    Katlanmış boş-olmayan SATIR listesi döndürür (adjacency-aware kalkan için: bütün-isim TEK satırda olmalı)."""
     parts = []
     for pat in ("ocr_raw_all.txt", "ocr_ham.txt", "kunye.txt"):
         for fp in glob.glob(os.path.join(clip, "ocr", "**", pat), recursive=True):
@@ -70,17 +72,33 @@ def _load_raw_ocr(clip):
                 parts.append(open(fp, encoding="utf-8", errors="ignore").read())
             except Exception:  # noqa: BLE001
                 pass
-    return _fold("\n".join(parts))
+    lines = []
+    for blob in parts:
+        for ln in blob.splitlines():
+            f = _fold(ln)
+            if f:
+                lines.append(f)
+    return lines
 
 
-def _in_raw(name, raw_fold):
-    """İsmin anlamlı token'ları HAM OCR'da geçiyor mu (ad+soyad doğrulama, credit_validate._recover_raw deseni).
-    ≥4-harf token'ların TÜMÜ raw'da olmalı; yoksa ≥3-harf'e düş (kısa adlar). raw yoksa kalkanı atla (FAIL-SAFE)."""
-    if not raw_fold:
+def _in_raw(name, raw_lines):
+    """İsmin TÜM token'ları HAM OCR'da BİTİŞİK + TAM-KELİME (tek satırda, sırayla) geçiyor mu — Frankenstein kalkanı.
+    KÖK (MANASLU 2026-06-22): eski `all(t in blob)` token'ları AYRI/substring arıyordu → 'HANS-PETER STAUBER'
+    + 'HANNELORE EBNER' ayrı satırlardan 'Hans Ebner' uydurması geçiyordu. Artık tüm isim TEK satırda, sıralı,
+    word-boundary ile aranır (credit_text_read._name_hit_in_raw deseni): bu hem satır-AYRI'yı hem 'hans'∈'hanseatic'
+    substring kaçağını hem stitch-birleşik-satır Frankenstein'ini kapatır. raw yoksa kalkanı atla (FAIL-SAFE).
+    Eski substring davranışı (≥4/≥3 token subset, blob) MITAS_VL_RAW_ADJACENCY=0 ile geri gelir."""
+    if not raw_lines:
         return True
-    f = _fold(name)
-    toks = [t for t in f.split() if len(t) >= 4] or [t for t in f.split() if len(t) >= 3]
-    return bool(toks) and all(t in raw_fold for t in toks)
+    toks = _fold(name).split()
+    if not toks:
+        return False
+    if os.environ.get("MITAS_VL_RAW_ADJACENCY", "1").strip().lower() in ("0", "false", "off", "no"):
+        blob = " ".join(raw_lines)               # ESKİ DAVRANIŞ: ≥4/≥3 token subset, tüm metinde AYRI/substring
+        sub = [t for t in toks if len(t) >= 4] or [t for t in toks if len(t) >= 3]
+        return bool(sub) and all(t in blob for t in sub)
+    pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b")   # tüm isim BİTİŞİK + word-boundary
+    return any(pat.search(line) for line in raw_lines)
 
 
 def _vl_one(cv, ctr, giris, cikis, model, kb):
@@ -139,14 +157,14 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
         yon, vl_cast = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
         tcast = out.get("cast") or []
         all_cast_fold = {_fold(x) for x in (tcast + vl_cast)}
-        raw_fold = _load_raw_ocr(clip)   # HAYALET-KALKANI korpusu (ham OCR)
+        raw_lines = _load_raw_ocr(clip)   # HAYALET-KALKANI korpusu (ham OCR satır listesi)
         # YÖNETMEN: yalnız BOŞSA doldur (metni EZME), cross-cast filtresi
         if not out.get("yonetmen"):
             yon_clean = [y for y in yon if _fold(y) not in all_cast_fold]
             yon_persons = ctr._only_persons(yon_clean)
             # HAYALET-KALKANI: VL pikselden UYDURMUŞ olabilir → ham OCR'da geçmeyen yönetmeni DÜŞÜR
             # (okunamadı > yanlış; yönetmen=kimlik çapası). FOTOĞRAF 'JEFF TOWLES' tipi uydurma kesilir.
-            _yon_corr = [y for y in yon_persons if _in_raw(y, raw_fold)]
+            _yon_corr = [y for y in yon_persons if _in_raw(y, raw_lines)]
             if _yon_corr != yon_persons:
                 out["vl_yon_hallucinated"] = [y for y in yon_persons if y not in _yon_corr]
             if _yon_corr:
@@ -161,7 +179,7 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
                 if not any(_fold(nm) == _fold(x) for x in tcast + add):
                     add.append(nm)
             # HAYALET-KALKANI: ham OCR'da geçmeyen VL-cast uydurmasını DÜŞÜR
-            _add_corr = [nm for nm in add if _in_raw(nm, raw_fold)]
+            _add_corr = [nm for nm in add if _in_raw(nm, raw_lines)]
             if len(_add_corr) != len(add):
                 out["vl_cast_hallucinated"] = len(add) - len(_add_corr)
             add = _add_corr
