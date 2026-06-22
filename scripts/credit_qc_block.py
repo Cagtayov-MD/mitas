@@ -449,6 +449,14 @@ FLOOR_NEW = 8
 FLOOR_OLD = 6
 FILL_TARGET = 8             # KB'den her zaman 8'e kadar tamamla (cast üst-sınırı da 8)
 
+
+def _cast_cap():
+    try:
+        v = int(os.environ.get("MITAS_CAST_CAP", "8"))
+        return v if 1 <= v <= 50 else 8
+    except Exception:                      # noqa: BLE001
+        return 8
+
 # Karar tip önceliği (küçük = daha temel; credit_severity_router ile aynı).
 _TIP_ONCELIK = {"YONETMEN": 1, "KIMLIK": 2, "CAST": 3, "OZET": 4, "RENDER": 5}
 
@@ -492,7 +500,15 @@ def qc_credit_block(
         yap = _split_names(ham_yap)
 
         # ── S1: bağlam filtresi (yalnız ham satır verildiyse; negatif kapı, isim eklemez) ──
-        if raw_context_lines:
+        _s1_dropped = []
+        _nc_filter_on = (os.environ.get("MITAS_QC_NONCAST_FILTER", "").strip().lower()
+                         in ("1", "true", "on", "yes"))
+        if raw_context_lines and _nc_filter_on:
+            _before_s1 = list(cast)
+            cast = filter_cast_by_raw_context(cast, raw_context_lines)
+            _kept_s1 = {_fold(n) for n in cast}
+            _s1_dropped = [n for n in _before_s1 if _fold(n) not in _kept_s1]
+        elif raw_context_lines:
             cast = filter_cast_by_raw_context(cast, raw_context_lines)
 
         # ── S2: SCRIPT-DETECT + TRANSLİT (garble'dan ÖNCE — Kiril garble sanılmasın) ──
@@ -607,6 +623,15 @@ def qc_credit_block(
             except Exception as _e:        # noqa: BLE001
                 iz.append({"adim": "yon_kurtarma", "hata": str(_e)})
 
+        # ── S1-readd: MITAS_QC_NONCAST_FILTER ile düşürülen ama KB-teyitli oyuncuları geri al ──
+        if _s1_dropped and otoriter_cast:
+            _readd = [n for n in _s1_dropped
+                      if any(cc.name_match(n, a) or cc.name_close(n, a) for a in otoriter_cast)]
+            if _readd:
+                _have = {_fold(n) for n in cast}
+                cast = [n for n in _readd if _fold(n) not in _have] + cast
+                iz.append({"alan": "oyuncu", "kaynak": "s1-readd-kb-confirmed", "isim": _readd})
+
         # ── S4: YÖNETMEN (OCR-otorite + KIRMIZI ÇİZGİ; ÇELİŞKİ→KONTROL, KB-değiştir YOK) ──
         yon_conflict = False
         if yon and locked and otoriter_yon:
@@ -628,18 +653,39 @@ def qc_credit_block(
 
         # ── S5: CAST yazım-düzeltme (OCR-otorite; eşleşen → KB-kanonik/KB-latin, eşleşmeyen → OCR) ──
         if otoriter_cast:
+            _form_keep = (os.environ.get("MITAS_OCR_FORM_KEEP", "").strip().lower()
+                          in ("1", "true", "on", "yes"))
             duz = []
             for nm in cast:
                 se = next((a for a in otoriter_cast if cc.name_match(nm, a)), None)
                 es = se or next((a for a in otoriter_cast if cc.name_close(nm, a)), None)
                 if not es and locked:
                     es = next((a for a in otoriter_cast if cc.name_close_window(nm, a)), None)
-                duz.append(es if es else nm)
+                if _form_keep and es is not None and se is None:
+                    duz.append(nm)
+                else:
+                    duz.append(es if es else nm)
             cast = duz
 
         # ── S6: GARBLE / ÇÖP ELEME (translit sonrası) ──
+        _ocr_keep_on = (raw_names_groundtruth and os.environ.get(
+            "MITAS_CAST_OCR_KEEP", "").strip().lower() in ("1", "true", "on", "yes"))
+        _exempt = set()
+        if _ocr_keep_on:
+            _rseq6 = _audit_raw_token_seq(raw_names_groundtruth)
+            for nm in cast:
+                if (nm and _audit_name_in_raw(nm, _rseq6)
+                        and _valid_person_name(nm) and not _looks_garble(nm)):
+                    _exempt.add(_fold(nm))
+        _pre_s6 = list(cast)
         cast = _apply_garble_gate(cast, kb=kb)
         cast = _only_persons(cast)
+        if _exempt:
+            _kept_fold = {_fold(n) for n in cast}
+            for nm in _pre_s6:
+                if _fold(nm) in _exempt and _fold(nm) not in _kept_fold:
+                    cast.append(nm)
+                    _kept_fold.add(_fold(nm))
         cast_garble_residual = [n for n in cast if _looks_garble(n)]
 
         # ── S7: MIN-OYUNCU FLOOR DOLDURMA (yalnız kilitli; OCR'dan SONRA ekle) ──
@@ -662,7 +708,7 @@ def qc_credit_block(
                     cast.append(a)
                     have.add(_fold(a))
                     iz.append({"alan": "oyuncu", "kaynak": "kb-floor-doldur", "isim": a})
-        cast = cast[:FILL_TARGET]
+        cast = cast[:_cast_cap()]
 
         floor_hedef = FLOOR_NEW if (y is not None and y >= YEAR_CUTOFF) else FLOOR_OLD
         ulasilan = len(cast)
@@ -674,7 +720,10 @@ def qc_credit_block(
         # ── S8: YAPIMCI (OCR-otorite + kişi-only + KB-tamamla max 3) ──
         yap = _apply_garble_gate_yapimci(yap)
         yap = _only_persons(yap)[:3]
-        if locked and len(yap) < 3 and imdb_id:
+        _prod_strongid = (os.environ.get("MITAS_QC_PRODUCER_STRONGID", "1").strip().lower()
+                          not in ("0", "false", "off", "no"))
+        _id_strong = (verdict == "TEYİT") or (cast_ov >= 3)
+        if locked and (_id_strong or not _prod_strongid) and len(yap) < 3 and imdb_id:
             _fuzdedup = (os.environ.get("MITAS_QC_FUZZY_DEDUP", "").strip().lower()
                         in ("1", "true", "on", "yes"))
             kb_yap = _kb_producers(kb, imdb_id, limit=3)

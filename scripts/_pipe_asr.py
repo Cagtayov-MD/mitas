@@ -123,6 +123,22 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
         except Exception as exc:  # noqa: BLE001 - tespit hata verirse downmix+tr'ye düş
             detect_info = {"error": f"{type(exc).__name__}: {exc}"}
 
+    # C6 FIX (2026-06-22): menşei-kapılı TR-veto — Türkçe yapımda Kürtçe yanlış-tespitini geri al.
+    # --tr-provenance: mitas_pipeline menşei Türkçe (original boş veya ==title) ise geçirir.
+    # language=="ku" VE herhangi bir kanalda TR-LID-oyu>0 → en yüksek TR-oylu kanala çevir.
+    # Gerçek Kürtçe film (TR-oyu yok) → dokunulmaz; yabancı film (--tr-provenance gelmez) → dokunulmaz.
+    if getattr(args, "tr_provenance", False) and language == "ku":
+        try:
+            _tr_vote_min = int(os.environ.get("MITAS_LID_TR_VOTE_MIN", "1") or 1)
+            _veto_units = (detect_info or {}).get("units") or [] if isinstance(detect_info, dict) else []
+            _tr_units = [u for u in _veto_units if (u.get("votes") or {}).get("tr", 0) >= _tr_vote_min]
+            if _tr_units:
+                _tr_sel = max(_tr_units, key=lambda u: (u.get("votes") or {}).get("tr", 0))
+                sel = _tr_sel
+                language = "tr"
+        except Exception:  # noqa: BLE001 — veto hata verirse Kürtçe-atla davranışı KORUNUR
+            pass
+
     # --- DESTEKLENMEYEN dil → ASR ATLA (boş transcript), dürüst işaretle. Özet ayrı adımda
     #     İNTERNETTEN gelir (mitas_pipeline). Kürtçe-ailesi ('ku', whisper çeviremez) VEYA whisper-dışı/
     #     eşlenemeyen kod (2026-06-20: eksik dil-kodu ValueError'ı yerine dürüst atlama). ---
@@ -265,6 +281,8 @@ def main(argv=None) -> int:
     ap.add_argument("--language", default="tr")
     # kanal-dil tespiti (film): türkçe kanaldan özet, yoksa kanal-1 kendi dilinde (PROFIL_KONFIG)
     ap.add_argument("--auto-language", action="store_true")
+    # C6 FIX (2026-06-22): menşei-kapılı TR-veto (Türkçe yapımda Kürtçe yanlış-tespitini engelle)
+    ap.add_argument("--tr-provenance", action="store_true")
     args = ap.parse_args(argv)
 
     out = Path(args.out)

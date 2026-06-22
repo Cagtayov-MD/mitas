@@ -1476,6 +1476,15 @@ def main(argv=None) -> int:
                 asr_cmd += ["--language", _pa["language"]]
         if args.asr_max_seconds and args.asr_max_seconds > 0:
             asr_cmd += ["--max-seconds", str(args.asr_max_seconds)]
+        # C6 FIX (2026-06-22): LID TR-veto — menşei Türkçe olan filmde Kürtçe yanlış tespiti engelle.
+        # Menşei: original (yabancı orijinal ad) boş VEYA title ile aynıysa → yerli Türkçe yapım.
+        # _pipe_asr --tr-provenance alınca language=="ku" + TR-LID-oyu>0 ise TR'ye döner.
+        if os.environ.get("MITAS_LID_TR_VETO", "1").strip().lower() not in ("0", "false", "off", "no"):
+            import re as _re
+            _lid_on = _re.sub(r"[^a-z0-9]", "", (original or "").lower())
+            _lid_tn = _re.sub(r"[^a-z0-9]", "", (title or "").lower())
+            if (not _lid_on) or (_lid_on == _lid_tn):
+                asr_cmd += ["--tr-provenance"]
         log_event("asr_started", summary=f"{video.name} icin ASR basladi (profil={content_profile}).",
                   module="asr", media_id=media_id, filename=video.name, job_id=asr_job, detail={"clip_id": clip_id, "content_profile": content_profile})
         asr_proc = subprocess.Popen(asr_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1919,17 +1928,19 @@ def main(argv=None) -> int:
     # --- B-4: XML↔PDF cast tutarlılık kapısı (yanlış-film yakala) ---
     # XML oyuncu listesi ≥2 isim VE üretilen cast ≥2 isim VE fold/fuzzy kesişim == 0 → şüphe.
     # Tek-isim/boş listede FLAG YOK (dizi kısmi-kadro false-positive'ini önle).
+    # C9 FIX (2026-06-22): erken reasons.append KALDIRILDI → yalnız şüphe işareti (_xmlcast_susp) set edilir.
+    # Asıl karar _cc4 (kimlik/verdict/cast_ortusme) bilindikten SONRA emit edilir (aşağıda).
     # credit_crosscheck.name_match/cast_overlap helper'larını YENİDEN YAZMADAN kullan.
+    _xmlcast_susp = False
     try:
         _xml_cast = [n for n in (xml_role_map.get("oyuncu") or []) if str(n).strip()]
         _pdf_cast = [n for n in (pdf_info.get("cast") or []) if str(n).strip() and str(n).strip() != "—"]
         if len(_xml_cast) >= 2 and len(_pdf_cast) >= 2:
             sys.path.insert(0, str(HERE))
             import credit_crosscheck as _cc
-            if _cc.cast_overlap(_pdf_cast, _xml_cast) == 0:
-                reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
+            _xmlcast_susp = (_cc.cast_overlap(_pdf_cast, _xml_cast) == 0)
     except Exception:  # noqa: BLE001 — kesişim kapısı kararı ASLA bozmaz (helper yoksa/hata → atla)
-        pass
+        _xmlcast_susp = False
     # A-3: ana_dil yabancı + altyazı YOK = SES_MANTIKSIZ → ses-dil kapısı (default KAPALI, künye-dışı)
     if _SES_DIL_GATE and pdf_info.get("ses_uyari") == "SES_MANTIKSIZ":
         reasons.append("ana_dil yabancı + altyazı yok (SES_MANTIKSIZ)")
@@ -2019,6 +2030,14 @@ def main(argv=None) -> int:
                 # KB cast-ekleme ORTA güven (yönetmen teyitsiz, sadece cast) → insan göz atsın
                 if _cc4.get("cast_add_tier") == "ORTA":
                     reasons.append("KB cast-ekleme ORTA güven (insan teyidi gerek)")
+                # C9 FIX (2026-06-22): XML-PDF cast kesişimi 0 şüphesini _cc4 bilgisiyle değerlendir.
+                # kimlik_dogru veya verdict==TEYİT veya cast_ortusme≥2 → film doğrulandı → KONTROL ekleme.
+                # _cc4=={} (parse hatası) → _locked=False → şüphe korunur (sessiz-pass YOK).
+                _relax_xmlcast = os.environ.get("MITAS_XMLCAST_GATE_RELAX", "1").strip().lower() not in ("0", "false", "off", "no")
+                if _xmlcast_susp:
+                    _locked_xmlcast = bool(_cc4.get("kimlik_dogru")) or (_cc4.get("verdict") == "TEYİT") or ((_cc4.get("cast_ortusme") or 0) >= 2)
+                    if not (_relax_xmlcast and _locked_xmlcast):
+                        reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
     except Exception:  # noqa: BLE001 — parse hatası kararı bozmasın
         pass
     # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik

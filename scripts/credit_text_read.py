@@ -60,6 +60,12 @@ _CREW_CONTEXT_KW = (
     "department", "assistant", "technician", "designer", "editor", "mixer",
     "performed by", "mixed by", "music", "song", "songs", "soundtrack",
     "visual effects", "courtesy of", "records", "licensing", "arrangement",
+    # C5c genişletme — yapımcı/teşekkür/yabancı crew unvanları (2026-06-22)
+    "producer", "producers", "yapimci", "yapımcı",
+    "executive producer", "co producer", "associate producer",
+    "line producer", "tesekkur", "teşekkür",
+    "special thanks", "thanks to", "wrangler", "redaktion",
+    "dialogue coach", "scenario", "scénario",
 )
 _CAST_CONTEXT_KW = (
     "starring", "co starring", "cast", "oyuncular", "oynayanlar",

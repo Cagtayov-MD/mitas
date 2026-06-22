@@ -633,12 +633,16 @@ def main():
                             _raw_gt = [ln.strip() for ln in _rf if ln.strip()]
                 except Exception:  # noqa: BLE001 — groundtruth yüklenemezse sinyal boş, akış bozulmaz
                     _raw_gt = None
+            _nc_on = (os.environ.get("MITAS_QC_NONCAST_FILTER", "").strip().lower()
+                      in ("1", "true", "on", "yes"))
+            _rcl = (_raw_context if (_nc_on and "_raw_context" in locals()) else None)
             _qcb_res = _qcb.qc_credit_block(
                 _yon_ocr_original, (vc.get("cast") or []), (vc.get("yapimci") or []),
                 title=title, original=a.original, year=a.year,
                 ozet=meta.get("ozet", ""), afis_yolu=(afis if poster_ok(afis) else None),
                 xml_roles=xml_roles, raw_names_groundtruth=_raw_gt,
-                nonlatin_source=bool(vc.get("nonlatin_source")))   # Latin-dışı kaynak → KONTROL (erken-translit, 2026-06-22)
+                nonlatin_source=bool(vc.get("nonlatin_source")),   # Latin-dışı kaynak → KONTROL (erken-translit, 2026-06-22)
+                raw_context_lines=_rcl,)   # C5a: non-cast filtre bağlamı (MITAS_QC_NONCAST_FILTER, default-OFF)
             if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
                 cast = list(_qcb_res["temiz_cast"])
             yon = list(_qcb_res.get("temiz_yon") or yon)
@@ -654,7 +658,13 @@ def main():
 
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)
-    castU = nn.upper_names(cast[:8])
+    try:
+        _cap = int(os.environ.get("MITAS_CAST_CAP", "8") or 8)
+        if not (1 <= _cap <= 50):
+            _cap = 8
+    except Exception:  # noqa: BLE001 — bozuk değer → varsayılan 8
+        _cap = 8
+    castU = nn.upper_names(cast[:_cap])
     # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
     _ozet_names = [n for n in (list(cast)
                                + (yon if isinstance(yon, (list, tuple)) else [yon])

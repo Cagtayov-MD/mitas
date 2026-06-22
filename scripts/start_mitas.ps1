@@ -55,6 +55,18 @@ if (-not $env:MITAS_QC_FLOORFILL_OCRGUARD) { $env:MITAS_QC_FLOORFILL_OCRGUARD = 
 # FUZZY_DEDUP = ③ yapimci KB-tamamla'da KB varyanti OCR yapimcisinin yakin-yazimiysa (HAZLETON↔HAZELTON)
 #         EKLEME → OCR yazimi korunur, cift-kayit onlenir.
 if (-not $env:MITAS_QC_FUZZY_DEDUP)    { $env:MITAS_QC_FUZZY_DEDUP = '1';    Write-Host '   + MITAS_QC_FUZZY_DEDUP=1 (default AKTIF — yapimci yakin-yazim cift-dedup)' }
+# ── C1·C6·C7·C8·C9 yeni bayraklar (2026-06-22) ──────────────────────────────────────────────────────
+# C1: qc_block S8 yapimci KB-fill kimlik kapisi (LOW risk; zayif-kimlikte KB-yapimci eklenmez).
+if (-not $env:MITAS_QC_PRODUCER_STRONGID) { $env:MITAS_QC_PRODUCER_STRONGID = '1'; Write-Host '   + MITAS_QC_PRODUCER_STRONGID=1 (C1 default AKTIF)' }
+# C9: XML-cast kapisi kimlik-kilidi sonrasina tasindi + gevsetildi (LOW risk; KONTROL azalir, kotu-film geçemez).
+if (-not $env:MITAS_XMLCAST_GATE_RELAX)   { $env:MITAS_XMLCAST_GATE_RELAX = '1';   Write-Host '   + MITAS_XMLCAST_GATE_RELAX=1 (C9 default AKTIF)' }
+# C8: id-tabanli TMDB poster yolunda versiyon/sekel ayiraci (LOW-MED; vsig.active=False → byte-identical).
+if (-not $env:MITAS_POSTER_VER_GATE)      { $env:MITAS_POSTER_VER_GATE = '1';      Write-Host '   + MITAS_POSTER_VER_GATE=1 (C8 default AKTIF)' }
+# C6: LID Turkce→Kürtçe veto (LOW-MED; mensei-kapili: yalniz TR-menseli film + pozitif TR-oyu varken).
+if (-not $env:MITAS_LID_TR_VETO)          { $env:MITAS_LID_TR_VETO = '1';          Write-Host '   + MITAS_LID_TR_VETO=1 (C6 default AKTIF, mensei-kapili)' }
+# C7: Latin n-gram garble gozlem-modu (rapora yazar, route etmez — onlce olc, sonra route ac).
+if (-not $env:MITAS_GARBLE_NGRAM)         { $env:MITAS_GARBLE_NGRAM = '1';         Write-Host '   + MITAS_GARBLE_NGRAM=1 (C7 GOZLEM)' }
+if (-not $env:MITAS_GARBLE_NGRAM_ROUTE)   { $env:MITAS_GARBLE_NGRAM_ROUTE = '0';   Write-Host '   + MITAS_GARBLE_NGRAM_ROUTE=0 (C7 observe-first)' }
 
 Write-Host '== 2) Mevcut 8765/8787 uvicorn/asr_server/tedial süreçleri GÜÇLÜ durduruluyor (zombi/shim dahil) =='
 $kill = @{}

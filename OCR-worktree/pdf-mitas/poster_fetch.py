@@ -182,9 +182,10 @@ def _save_image(data: bytes, out_path) -> str | None:
         return None
 
 
-def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, year=None) -> bytes | None:
+def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, year=None, vsig=None) -> bytes | None:
     """TMDB API ile afiş çek. MITAS_TMDB/TMDB_API_KEY env yoksa None.
-    Sıra: tmdb_id → IMDb id (/find) → başlık araması (orijinal önce, sonra TR; yıl ile daralt)."""
+    Sıra: tmdb_id → IMDb id (/find) → başlık araması (orijinal önce, sonra TR; yıl ile daralt).
+    vsig verilirse (C8 MITAS_POSTER_VER_GATE) versiyon-tutarsız adaylar elenir; vsig.active=False → byte-identical."""
     import os
     key = os.environ.get("MITAS_TMDB") or os.environ.get("TMDB_API_KEY")
     if not key:
@@ -198,19 +199,34 @@ def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, ye
         except Exception:
             return None
 
+    # C8 — MITAS_POSTER_VER_GATE: versiyon/sekel ayraci (id-tabanlı yolda da uygula).
+    # vsig.active=False ise _ver_ok_rec her zaman True → davranis BYTE-IDENTICAL (OFF gibi).
+    _vgate = os.environ.get("MITAS_POSTER_VER_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
+
+    def _ver_ok_rec(rec):
+        if not (_vgate and vsig and vsig.get("active")):
+            return True
+        cand = " ".join(str(rec.get(k) or "") for k in ("title", "original_title", "name", "original_name"))
+        try:
+            return _version_ok(vsig, cand)
+        except Exception:
+            return True
+
     try:
         if tmdb_id:
             meta = json.loads(_get(f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={key}"))
-            d = _data(meta.get("poster_path"))
-            if d:
-                return d
+            if _ver_ok_rec(meta):
+                d = _data(meta.get("poster_path"))
+                if d:
+                    return d
         if imdb_id:                                  # IMDb id → /find (DOĞRU endpoint; /movie/{tt} 404 verir)
             fr = json.loads(_get(f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={key}&external_source=imdb_id"))
             for kk in ("movie_results", "tv_results"):       # film + DİZİ (Diriliş = tv_results)
                 for m in (fr.get(kk) or []):
-                    d = _data(m.get("poster_path"))
-                    if d:
-                        return d
+                    if _ver_ok_rec(m):
+                        d = _data(m.get("poster_path"))
+                        if d:
+                            return d
         for q in (original, title):                  # başlık araması (yabancı orijinal önce)
             if not q:
                 continue
@@ -220,10 +236,13 @@ def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, ye
                 if year:
                     url += (f"&year={year}" if kind == "movie" else f"&first_air_date_year={year}")
                 res = (json.loads(_get(url)).get("results") or [])
-                if res:
-                    d = _data(res[0].get("poster_path"))
-                    if d:
-                        return d
+                # Title-only taramasında: ilk versiyon-uygun adayda kabul et (red → atla)
+                for rec in res:
+                    if _ver_ok_rec(rec):
+                        d = _data(rec.get("poster_path"))
+                        if d:
+                            return d
+                        break  # versiyon-uygun aday bulundu ama poster yok → sonraki query'ye geç
     except Exception:
         return None
     return None
@@ -341,7 +360,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
     if have_verified_id:
         # (a) TMDB (sadece env'de anahtar varsa) — doğrulanmış id ile
         try:
-            data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year)
+            data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year, vsig=vsig)
             if data:
                 result = _save_image(data, out_path)
                 if result:
