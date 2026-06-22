@@ -1310,6 +1310,13 @@ def main(argv=None) -> int:
                     _DETECT_MINCONF = float(os.environ.get("MITAS_CREDIT_DETECT_MINCONF", "0.60") or 0.60)
                     _DETECT_LOWCONF = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MINCONF", "0.45") or 0.45)
                     _DETECT_LOWSPAN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MIN_DUR", "180") or 180)
+                    # KN-1 fix (Çağatay 2026-06-22, default AÇIK; kill-flag MITAS_CREDIT_DETECT_TIGHT_CLOSE=0):
+                    # ÇIKIŞ no-regress `min(tespit−5, dur−240)` kuralı, kapanış jeneriği son 240s İÇİNDE
+                    # başlayınca dedektörün hassas başlangıcını atıp sabit 240s kuyruğu seçiyordu → medyan
+                    # ~157s footage çıkış penceresinin BAŞINA giriyordu. TIGHT_CLOSE iken min() YOK: hassas
+                    # tespite güven (_cik_start=_ds). Fail-safe: _cik_start sabit-kuyruktan ERKEN olduğundan
+                    # _detect_changed=True → daraltılmış pencere <30 OCR satırı verirse sabit kuyruk re-OCR'lanır.
+                    _TIGHT_CLOSE = os.environ.get("MITAS_CREDIT_DETECT_TIGHT_CLOSE", "").strip().lower() not in ("0", "false", "off", "no")
                     if _use_jenerik:   # YENİ 4-tip dedektör (OCR-geriye + giriş film-başı + paralel)
                         _detect_cmd = [str(PY_OCR), str(HERE / "_jenerik_detect.py"),
                                        "--video", str(video), "--parallel"]
@@ -1374,9 +1381,12 @@ def main(argv=None) -> int:
                     _LC_MERGE_MIN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MERGE_MINCONF", "0.40") or 0.40)
                     if _cl_has and _cl_ok:
                         _ds = max(0.0, float(_closing["start_sec"]) - 5.0)            # 5s emniyet payı
-                        _cik_start = min(_ds, _cik_start)                            # asla eski-pencereden GEÇ başlama
+                        if _TIGHT_CLOSE:
+                            _cik_start = _ds                                         # KN-1: hassas tespite güven (min YOK → footage-bloat'ı kes)
+                        else:
+                            _cik_start = min(_ds, _cik_start)                        # eski: asla eski-pencereden GEÇ başlama
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
-                        _cik_end = min(dur_sec, max(_ce, _cik_start + 30.0))         # film-sonuna GİTME; en az 30s
+                        _cik_end = min(dur_sec, max(_ce, _cik_start + 60.0))         # film-sonuna GİTME; en az 60s
                         _cik_len = _cik_end - _cik_start
                         log_event("credit_detect_closing",
                                   summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
