@@ -171,7 +171,8 @@ def _audit_find_fuzzy_dups(names):
     return out
 
 
-def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast, iz):
+def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast, iz,
+                           s5_form_snaps=None):
     """SIFIR-ROUTE denetim: ham-OCR groundtruth ile OCR-otorite sapmalarını ölç. Karar ETKİLEMEZ."""
     raw_seq = _audit_raw_token_seq(raw_groundtruth)
     used = bool(raw_seq)
@@ -187,11 +188,22 @@ def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast
                    if e.get("kaynak") == "kb-floor-doldur" and e.get("isim")]
     kb_floor_added = [n for n in floor_added if not _audit_name_in_raw(n, raw_seq)] if used else []
     fuzzy_dups = _audit_find_fuzzy_dups(list(final_cast or []) + list(final_yap or []))
+    # FIX-D (2026-06-23): S5 fuzzy-snap OCR-form ezmeleri (LEFEBVRE→LEFEVRE). raw_groundtruth varsa,
+    # OCR-formu ham-OCR'da GERÇEKTEN OKUNAN ezmeler 'ocr_in_raw=True' işaretlenir (gerçek-isim ezildi
+    # imzası); raw yoksa unconfirmed. GÖZLEM — kararı ETKİLEMEZ.
+    s5_overwrites = []
+    for sn in (s5_form_snaps or []):
+        ocr_form = sn.get("ocr")
+        confirmed = bool(used and ocr_form and _audit_name_in_raw(ocr_form, raw_seq))
+        s5_overwrites.append({"ocr": ocr_form, "kb": sn.get("kb"), "ocr_in_raw": confirmed})
     return {
         "raw_groundtruth_used": used,
         "ocr_dropped": ocr_dropped,
         "kb_floor_added": kb_floor_added,
         "fuzzy_dups": fuzzy_dups,
+        # FIX-D: S5 fuzzy-snap form ezmeleri (gözlem) + en az biri ham-OCR-teyitli mi
+        "s5_form_overwrites": s5_overwrites,
+        "s5_form_overwrite_confirmed": bool(any(o["ocr_in_raw"] for o in s5_overwrites)),
         # SUBSTİTÜSYON İMZASI: okunan-düştü VE okunmayan-eklendi (KEDİ GÖZÜ tam imzası)
         "ocr_authority_violation": bool(ocr_dropped and kb_floor_added),
     }
@@ -652,6 +664,9 @@ def qc_credit_block(
         # else: OCR var + (kilit yok/KB yok) → OCR AYNEN
 
         # ── S5: CAST yazım-düzeltme (OCR-otorite; eşleşen → KB-kanonik/KB-latin, eşleşmeyen → OCR) ──
+        # GÖZLEM (FIX-D, 2026-06-23): fuzzy-only ezmeleri (se=None ama es=name_close/window) kaydedilir;
+        # karar/davranış DEĞİŞMEZ — yalnız _s5_form_snaps biriktirir (otorite_audit.s5_form_overwrites).
+        _s5_form_snaps = []
         if otoriter_cast:
             _form_keep = (os.environ.get("MITAS_OCR_FORM_KEEP", "").strip().lower()
                           in ("1", "true", "on", "yes"))
@@ -661,6 +676,11 @@ def qc_credit_block(
                 es = se or next((a for a in otoriter_cast if cc.name_close(nm, a)), None)
                 if not es and locked:
                     es = next((a for a in otoriter_cast if cc.name_close_window(nm, a)), None)
+                # FUZZY-ONLY EZME: sıkı eşleşme yok (se=None) ama fuzzy var (es) ve es≠nm → OCR-formu
+                # KB-formuyla değişti. GÖZLEM sinyali (LEFEBVRE→LEFEVRE). _form_keep kapalıyken gerçekten
+                # ezilir; açıkken OCR korunur — her iki durumda da divergence ADAYI kaydedilir.
+                if es is not None and se is None and _fold(es) != _fold(nm):
+                    _s5_form_snaps.append({"ocr": nm, "kb": es})
                 if _form_keep and es is not None and se is None:
                     duz.append(nm)
                 else:
@@ -808,10 +828,17 @@ def qc_credit_block(
         # ── S12: OCR-OTORİTE DENETİM (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE, yalnız rapor) ──
         # Karar/route YUKARIDA verildi; bu blok onu ETKİLEMEZ (_ekle çağrılmaz). Yalnız sinyal üretir.
         otorite_audit = None
-        if os.environ.get("MITAS_QC_OTORITE_AUDIT", "").strip().lower() in ("1", "true", "on", "yes"):
+        # FIX-D (2026-06-23): PDF-render-audit (S5 form ezme) GÖZLEM bayrağı — default AKTIF (route ETMEZ).
+        # MITAS_QC_OTORITE_AUDIT VEYA MITAS_PDF_RENDER_AUDIT açıksa audit hesaplanır.
+        _pdf_audit_on = (os.environ.get("MITAS_PDF_RENDER_AUDIT", "1").strip().lower()
+                         not in ("0", "false", "off", "no"))
+        _audit_on = (os.environ.get("MITAS_QC_OTORITE_AUDIT", "").strip().lower()
+                     in ("1", "true", "on", "yes")) or _pdf_audit_on
+        if _audit_on:
             try:
                 otorite_audit = _compute_otorite_audit(
-                    raw_names_groundtruth, temiz_cast, temiz_yap, otoriter_cast, iz)
+                    raw_names_groundtruth, temiz_cast, temiz_yap, otoriter_cast, iz,
+                    s5_form_snaps=_s5_form_snaps)
             except Exception:              # noqa: BLE001 — sinyal hatası karar/route'u ASLA bozmaz
                 otorite_audit = {"hata": True}
 

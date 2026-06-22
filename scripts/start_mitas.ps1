@@ -55,6 +55,9 @@ if (-not $env:MITAS_QC_FLOORFILL_OCRGUARD) { $env:MITAS_QC_FLOORFILL_OCRGUARD = 
 # FUZZY_DEDUP = ③ yapimci KB-tamamla'da KB varyanti OCR yapimcisinin yakin-yazimiysa (HAZLETON↔HAZELTON)
 #         EKLEME → OCR yazimi korunur, cift-kayit onlenir.
 if (-not $env:MITAS_QC_FUZZY_DEDUP)    { $env:MITAS_QC_FUZZY_DEDUP = '1';    Write-Host '   + MITAS_QC_FUZZY_DEDUP=1 (default AKTIF — yapimci yakin-yazim cift-dedup)' }
+# FIX-B (2026-06-23): OTORITE-ROUTE — audit ocr_authority_violation (okunan-dustu + okunmayan-eklendi)
+#   True ise KONTROL'e yolla (ADDITIVE reason; ONAYLI YAPMAZ). On-kosul: AUDIT acik (raw-OCR groundtruth).
+if (-not $env:MITAS_QC_OTORITE_ROUTE)  { $env:MITAS_QC_OTORITE_ROUTE = '1';  Write-Host '   + MITAS_QC_OTORITE_ROUTE=1 (FIX-B default AKTIF — OCR-otorite ihlali KONTROL route)' }
 # ── C1·C6·C7·C8·C9 yeni bayraklar (2026-06-22) ──────────────────────────────────────────────────────
 # C1: qc_block S8 yapimci KB-fill kimlik kapisi (LOW risk; zayif-kimlikte KB-yapimci eklenmez).
 if (-not $env:MITAS_QC_PRODUCER_STRONGID) { $env:MITAS_QC_PRODUCER_STRONGID = '1'; Write-Host '   + MITAS_QC_PRODUCER_STRONGID=1 (C1 default AKTIF)' }

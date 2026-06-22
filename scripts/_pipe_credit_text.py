@@ -53,7 +53,12 @@ def main():
         out = {"yonetmen": res.get("yonetmen", []), "yapimci": res.get("yapimci", []),
                "cast": res.get("cast", []), "guven": res.get("guven", "OKUNAMADI"),
                "model": res.get("model"), "ocr": os.path.basename(os.path.dirname(ocr)),
-               "ocr_source": ocr_source}
+               "ocr_source": ocr_source,
+               # PROPAGATION (FIX-C, 2026-06-23): Latin-dışı kaynak sinyalini DROP etme — qc_block'a
+               # taşı (tek_film_kunye:644 → credit_qc_block:791 nonlatin_source gate → KONTROL).
+               # Bu alanlar düşerse erken-romanize künye KONTROL'e gitmeden ONAYLI'ya sızar.
+               "nonlatin_source": bool(res.get("nonlatin_source")),
+               "translit_method": res.get("translit_method")}
     except Exception as e:  # noqa: BLE001
         out["hata"] = f"{type(e).__name__}: {e}"
     print(json.dumps(out, ensure_ascii=False))

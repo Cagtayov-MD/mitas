@@ -1184,7 +1184,78 @@ def _fetch_internet_ozet(*, title="", original="", year="", duration="", verify_
     return None                                                     # doğrulanan aday yok → placeholder
 
 
+# ── ÜRETİM-DOĞRULANMIŞ FLAG SETİ (config-to-code, 2026-06-23 FIX-A) ──────────────────────────────
+# start_mitas.ps1:22-69 üretim-doğrulanmış flag setidir; ANCAK güvenlik-kritik flag'ler KODDA
+# default-OFF olduğundan bare 'python mitas_pipeline.py --no-asr' koşusu bunları DEVRE-DIŞI bırakır
+# (panel bulgusu: MITAS_QC_BLOCK kodda default-OFF, yalnız PowerShell başlatıcısı açıyordu →
+# başlatıcıyı atlayan koşu sessizce daha bozuk konfigle çalışıyordu). Burada os.environ.setdefault
+# ile koda taşıyoruz: setdefault => yalnız anahtar YOKSA yazar → kullanıcının/ps1'in/sunucunun
+# verdiği env ASLA ezilmez (override + OCR-otorite invariant'ı korunur). ADDITIVE: yalnız yoksa
+# env-default sağlar; hiçbir mevcut karar/davranış değiştirilmez. Alt-süreçler (OCR/ASR/v4/PDF/
+# master-png) env= verilmeden spawn edildiğinden bu os.environ'u miras alır → main BAŞINDA (ilk
+# subprocess'ten ÖNCE) çağrılırsa çocuklar da doğru env'i alır. A/B-BEKLEYEN flag'ler (OCR_FORM_KEEP/
+# CAST_OCR_KEEP/QC_NONCAST_FILTER/CAST_CAP) BİLEREK YOK: üretimde de kapalı, doğrulanmamış.
+# AYNA: aşağıdaki set start_mitas.ps1:22-69 ile BİREBİR aynı olmalı (bir default değişirse İKİ yeri de
+# elle senkron tut). DRIFT NOTU: bazı alt-modüllerin KENDİ kod-default'u farklı olabilir — ör.
+# _pipe_ocr.py:623 MITAS_OCR_GLM_CONSENSUS kod-default '1' (AÇIK) iken burada '0' (KAPALI). Pipeline
+# alt-süreçleri os.environ'u miras aldığından bu setdefault değeri kazanır (bare-pipeline'da GLM=0);
+# yalnız alt-modül STANDALONE koşulursa kendi default'u geçerli olur.
+_PROD_DEFAULTS = {
+    "MITAS_QC2": "1",
+    "MITAS_QC2_WEB": "1",
+    "MITAS_QC_BLOCK": "1",
+    "MITAS_SES_DIL_KONTROL": "0",
+    "MITAS_QC_DIRECTOR_ANCHOR": "1",
+    "MITAS_CREDIT_DETECT": "1",
+    "MITAS_KB_CAST_ADD": "1",
+    "MITAS_GEMMA_FULLCOVER": "1",
+    "MITAS_OCR_GLM_CONSENSUS": "0",
+    "MITAS_QC_OTORITE_AUDIT": "1",
+    "MITAS_QC_FLOORFILL_OCRGUARD": "1",
+    "MITAS_QC_FUZZY_DEDUP": "1",
+    "MITAS_QC_PRODUCER_STRONGID": "1",
+    "MITAS_XMLCAST_GATE_RELAX": "1",
+    "MITAS_POSTER_VER_GATE": "1",
+    "MITAS_LID_TR_VETO": "1",
+    "MITAS_GARBLE_NGRAM": "1",
+    "MITAS_GARBLE_NGRAM_ROUTE": "0",
+    "MITAS_QC_OTORITE_ROUTE": "1",   # FIX-B: OCR-otorite ihlali → KONTROL (additive route)
+    "MITAS_PDF_RENDER_AUDIT": "1",   # FIX-D: S5 form-ezme gözlem sinyali (route YOK)
+}
+
+
+def _apply_production_defaults() -> dict:
+    """start_mitas.ps1 üretim flag setini os.environ.setdefault ile koda taşır (override korunur).
+
+    Dönüş: {flag: (deger, kaynak)} — kaynak 'env' (kullanıcı/ps1 verdi, dokunulmadı) veya
+    'default' (burada setdefault ile sağlandı). MITAS_PROD_DEFAULTS=0 ile tüm katman kapatılır."""
+    snapshot: dict = {}
+    _off = ("0", "false", "off", "no")
+    if os.environ.get("MITAS_PROD_DEFAULTS", "1").strip().lower() in _off:
+        for k in _PROD_DEFAULTS:                       # katman kapalı: yalnız mevcutları rapor et
+            if k in os.environ:
+                snapshot[k] = (os.environ[k], "env")
+        return snapshot
+    for k, v in _PROD_DEFAULTS.items():
+        had = k in os.environ
+        os.environ.setdefault(k, v)
+        snapshot[k] = (os.environ[k], "env" if had else "default")
+    return snapshot
+
+
 def main(argv=None) -> int:
+    # FIX-A: bare-CLI koşusunda da üretim flag setini garanti et (setdefault → override ezilmez).
+    # İlk subprocess (OCR Popen) spawn'ından ÖNCE çalışır → tüm alt-süreçler doğru env'i miras alır.
+    _cfg = _apply_production_defaults()
+    try:
+        log_event("pipeline_config_applied",
+                  summary="Uretim flag seti uygulandi (config-to-code, setdefault).",
+                  module="pipeline",
+                  detail={"flags": {k: val for k, (val, _src) in _cfg.items()},
+                          "source": {k: src for k, (_val, src) in _cfg.items()},
+                          "prod_defaults_layer": os.environ.get("MITAS_PROD_DEFAULTS", "1")})
+    except Exception:  # noqa: BLE001 — config-log ASLA pipeline'i bozmaz (fail-safe)
+        pass
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
     ap.add_argument("--profile", default=None, help="film_dizi (tip TRT 3.parselden oto) | haber|belgesel|muzik|stt (yoksa TRT'den)")
@@ -1310,6 +1381,13 @@ def main(argv=None) -> int:
                     _DETECT_MINCONF = float(os.environ.get("MITAS_CREDIT_DETECT_MINCONF", "0.60") or 0.60)
                     _DETECT_LOWCONF = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MINCONF", "0.45") or 0.45)
                     _DETECT_LOWSPAN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MIN_DUR", "180") or 180)
+                    # KN-1 fix (Çağatay 2026-06-22, default AÇIK; kill-flag MITAS_CREDIT_DETECT_TIGHT_CLOSE=0):
+                    # ÇIKIŞ no-regress `min(tespit−5, dur−240)` kuralı, kapanış jeneriği son 240s İÇİNDE
+                    # başlayınca dedektörün hassas başlangıcını atıp sabit 240s kuyruğu seçiyordu → medyan
+                    # ~157s footage çıkış penceresinin BAŞINA giriyordu. TIGHT_CLOSE iken min() YOK: hassas
+                    # tespite güven (_cik_start=_ds). Fail-safe: _cik_start sabit-kuyruktan ERKEN olduğundan
+                    # _detect_changed=True → daraltılmış pencere <30 OCR satırı verirse sabit kuyruk re-OCR'lanır.
+                    _TIGHT_CLOSE = os.environ.get("MITAS_CREDIT_DETECT_TIGHT_CLOSE", "").strip().lower() not in ("0", "false", "off", "no")
                     if _use_jenerik:   # YENİ 4-tip dedektör (OCR-geriye + giriş film-başı + paralel)
                         _detect_cmd = [str(PY_OCR), str(HERE / "_jenerik_detect.py"),
                                        "--video", str(video), "--parallel"]
@@ -1374,9 +1452,12 @@ def main(argv=None) -> int:
                     _LC_MERGE_MIN = float(os.environ.get("MITAS_CREDIT_DETECT_LOWCONF_MERGE_MINCONF", "0.40") or 0.40)
                     if _cl_has and _cl_ok:
                         _ds = max(0.0, float(_closing["start_sec"]) - 5.0)            # 5s emniyet payı
-                        _cik_start = min(_ds, _cik_start)                            # asla eski-pencereden GEÇ başlama
+                        if _TIGHT_CLOSE:
+                            _cik_start = _ds                                         # KN-1: hassas tespite güven (min YOK → footage-bloat'ı kes)
+                        else:
+                            _cik_start = min(_ds, _cik_start)                        # eski: asla eski-pencereden GEÇ başlama
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
-                        _cik_end = min(dur_sec, max(_ce, _cik_start + 30.0))         # film-sonuna GİTME; en az 30s
+                        _cik_end = min(dur_sec, max(_ce, _cik_start + 60.0))         # film-sonuna GİTME; en az 60s
                         _cik_len = _cik_end - _cik_start
                         log_event("credit_detect_closing",
                                   summary=f"{video.name}: ÇIKIŞ jenerik {_closing.get('type')} "
@@ -2121,6 +2202,21 @@ def main(argv=None) -> int:
                 _gk = "qc_block: " + _g
                 if _gk not in reasons:
                     reasons.append(_gk)
+        # FIX-B (2026-06-23): OCR-OTORİTE İHLALİ ROUTE (flag MITAS_QC_OTORITE_ROUTE, default ON).
+        #   credit_qc_block.otorite_audit.ocr_authority_violation == True → KEDİ GÖZÜ substitüsyon
+        #   imzası (ham-OCR'da OKUNAN başrol final'de DÜŞTÜ + ham-OCR'da OLMAYAN saf-KB ismi EKLENDİ).
+        #   Şimdiye dek SIFIR-ROUTE (yalnız _DURUM'a yazılıyordu); artık ADDITIVE reason → KONTROL.
+        #   Yalnız reason EKLER (ONAYLI'yı ASLA üretmez); audit boş/None/{'hata':True} → sessiz atla.
+        if os.environ.get("MITAS_QC_OTORITE_ROUTE", "").strip().lower() in ("1", "true", "on", "yes"):
+            _qcb_aud = _qcb4.get("qc_block_otorite_audit") or {}
+            if isinstance(_qcb_aud, dict) and _qcb_aud.get("ocr_authority_violation") is True:
+                # Auditability: hangi başrol düştü / hangi okunmayan eklendi reason'a göm (denetlenebilir).
+                _drp = ", ".join([str(x) for x in (_qcb_aud.get("ocr_dropped") or [])][:3])
+                _add = ", ".join([str(x) for x in (_qcb_aud.get("kb_floor_added") or [])][:3])
+                _ar = ("qc_block: OCR-otorite ihlali — okunan düştü: " + (_drp or "?")
+                       + " | okunmayan eklendi: " + (_add or "?"))
+                if not any(r.startswith("qc_block: OCR-otorite ihlali") for r in reasons):
+                    reasons.append(_ar)
 
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
     #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).

@@ -22,6 +22,7 @@ credit_detector (_row_structure_score/_cv2_imread).
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -635,10 +636,56 @@ def refine_end_ocr(end_frame: int, n_frames: int, lines_at, *, back_gap: int = O
     return min(n_frames - 1, end + safety)
 
 
+# OCR-KALKAN (KN-2/3/4, Çağatay 2026-06-22): heuristik primitif (_build_tophat_mask) footage dokusunu
+# sahte "metin satırı" sanıyor; FP-kalkanları aynı sahte sinyale bakıyor / CLIP-rescue ile bypass ediliyor
+# → saf-footage giriş/çıkış FALSE_POSITIVE. Tek sağlam ayraç OCR-doğrulaması. Seçilen bölgenin ÇEKİRDEK
+# karelerinde HİÇBİR kredi-satırı (is_credit_text_line) yoksa = footage → geçersiz kıl. KONSERVATİF:
+# yalnız SIFIR kredi-satırında (N-eşiği YOK) → gerçek krediyi atma riski minimum.
+# Flag MITAS_JENERIK_OCR_GATE: A/B sonucu default'u belirler. OFF iken kod tamamen INERT (davranış değişmez).
+OCR_GATE_CORE_SAMPLES = 15      # çekirdek karelerden en fazla bu kadar (eşit-aralık) örnekle
+
+
+def _ocr_gate_has_credit_text(region: dict, frames_bgr: list, lines_at,
+                              *, max_samples: int = OCR_GATE_CORE_SAMPLES) -> bool:
+    """Bölgenin start_frame..end_frame ÇEKİRDEĞİNDEN ≤max_samples kareyi eşit-aralık örnekle, lines_at
+    cache'iyle OCR oku. HERHANGİ bir karede is_credit_text_line==True ise True (kredi var). frames
+    geçersiz/boş ise GÜVENLİ taraf True (footage diye atma)."""
+    sf = region.get("start_frame")
+    ef = region.get("end_frame")
+    if sf is None or ef is None:
+        return True
+    sf, ef = int(sf), int(ef)
+    sf = max(0, min(sf, len(frames_bgr) - 1))
+    ef = max(0, min(ef, len(frames_bgr) - 1))
+    if ef < sf:
+        return True
+    span = ef - sf + 1
+    if span <= max_samples:
+        idxs = list(range(sf, ef + 1))
+    else:
+        step = (span - 1) / float(max_samples - 1)
+        idxs = sorted({int(round(sf + i * step)) for i in range(max_samples)})
+    for idx in idxs:
+        try:
+            if any(is_credit_text_line(x) for x in lines_at(idx)):
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def _ocr_gate_enabled() -> bool:
+    # A/B SONUCU: default OFF (inert) bırakıldı (FP-küme footage'ında is_credit_text_line yine de
+    # kredi-satırı buluyor → gate footage'ı temizlemiyor; bkz JENERIK_FIX_AB_2026-06-22.md). ON yapmak
+    # için MITAS_JENERIK_OCR_GATE=1.
+    return os.environ.get("MITAS_JENERIK_OCR_GATE", "").strip().lower() in ("1", "true", "on", "yes")
+
+
 def _apply_ocr_refine(region: dict, frames_bgr: list, ocr_read_fn, *,
                       fps: float, window_start_sec: float) -> dict:
     """Bölgenin start_frame'ini OCR-geriye ile inceltir (asıl TOO_LATE fix). ocr_read_fn(bgr)->satırlar.
-    Yalnız ERKEN'e çeker; start_sec yeniden hesaplanır. ocr_read_fn None ise dokunmaz (sezgisel geri-çekme kalır)."""
+    Yalnız ERKEN'e çeker; start_sec yeniden hesaplanır. ocr_read_fn None ise dokunmaz (sezgisel geri-çekme kalır).
+    OCR-KALKAN (flag MITAS_JENERIK_OCR_GATE): çekirdekte HİÇ kredi-satırı yoksa bölgeyi geçersiz kıl (footage-FP)."""
     if ocr_read_fn is None or not region.get("found") or region.get("start_frame") is None:
         return region
     sf = int(region["start_frame"])
@@ -648,6 +695,13 @@ def _apply_ocr_refine(region: dict, frames_bgr: list, ocr_read_fn, *,
         if idx not in cache:
             cache[idx] = ocr_read_fn(frames_bgr[idx]) or []
         return cache[idx]
+
+    # OCR-KALKAN: refine'den ÖNCE çalışır; cache refine ile paylaşılır (ekstra OCR maliyeti küçük).
+    if _ocr_gate_enabled() and not _ocr_gate_has_credit_text(region, frames_bgr, lines_at):
+        region = dict(region)
+        region["found"] = False
+        region["invalid_reason"] = "no_credit_text_in_core"
+        return region
 
     new_sf = refine_start_ocr(sf, lines_at)
     if new_sf < sf:
