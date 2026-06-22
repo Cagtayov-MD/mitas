@@ -611,11 +611,27 @@ def main():
     if os.environ.get("MITAS_QC_BLOCK", "").strip().lower() in ("1", "true", "on", "yes"):
         try:
             import credit_qc_block as _qcb
+            # OCR-OTORİTE DENETİM groundtruth (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE) — ham-OCR
+            # (ocr_raw_all.txt, clean ÖNCESİ) isim-kümesi; clean'in sildiği başrolü (KEDİ GÖZÜ: ELEANOR
+            # PARKER) tespit için. YENİ local var; mevcut _raw_context'e DOKUNMAZ (video_credits dalı onu
+            # atamaz → NameError tuzağından kaçınılır). Flag kapalıyken yüklenmez → mevcut davranış AYNEN.
+            _raw_gt = None
+            if any(os.environ.get(_f, "").strip().lower() in ("1", "true", "on", "yes")
+                   for _f in ("MITAS_QC_OTORITE_AUDIT", "MITAS_QC_FLOORFILL_OCRGUARD")):
+                try:
+                    import glob as _glob_gt
+                    _rawf = sorted(_glob_gt.glob(os.path.join(clip, "ocr", "*", "ocr_raw_all.txt")),
+                                   key=os.path.getmtime)
+                    if _rawf:
+                        with open(_rawf[-1], "r", encoding="utf-8", errors="ignore") as _rf:
+                            _raw_gt = [ln.strip() for ln in _rf if ln.strip()]
+                except Exception:  # noqa: BLE001 — groundtruth yüklenemezse sinyal boş, akış bozulmaz
+                    _raw_gt = None
             _qcb_res = _qcb.qc_credit_block(
                 _yon_ocr_original, (vc.get("cast") or []), (vc.get("yapimci") or []),
                 title=title, original=a.original, year=a.year,
                 ozet=meta.get("ozet", ""), afis_yolu=(afis if poster_ok(afis) else None),
-                xml_roles=xml_roles)
+                xml_roles=xml_roles, raw_names_groundtruth=_raw_gt)
             if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
                 cast = list(_qcb_res["temiz_cast"])
             yon = list(_qcb_res.get("temiz_yon") or yon)
@@ -624,7 +640,8 @@ def main():
             rapor["adimlar"]["qc_block"] = {
                 "karar": _qcb_res["karar"], "kontrol_tip": _qcb_res["kontrol_tip"],
                 "gerekceler": _qcb_res["gerekceler"], "kimlik": _qcb_res["kimlik"],
-                "floor": _qcb_res["floor"], "kaynak_izi": _qcb_res.get("kaynak_izi", [])}
+                "floor": _qcb_res["floor"], "kaynak_izi": _qcb_res.get("kaynak_izi", []),
+                "otorite_audit": _qcb_res.get("otorite_audit")}
         except Exception as _qbe:  # noqa: BLE001 — fail-safe: bloğu atla, mevcut yol devam
             sys.stderr.write(f"[uyari] qc_block atlandı: {_qbe}\n")
 
@@ -727,7 +744,10 @@ def main():
                    "qc_block_karar": (_qcb_res or {}).get("karar"),
                    "qc_block_tip": (_qcb_res or {}).get("kontrol_tip"),
                    "qc_block_gerekceler": (_qcb_res or {}).get("gerekceler") or [],
-                   "qc_block_floor": (_qcb_res or {}).get("floor") or {}}
+                   "qc_block_floor": (_qcb_res or {}).get("floor") or {},
+                   # OCR-OTORİTE DENETİM (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE) — A/B ölçümü +
+                   # ileride ENFORCE için _DURUM'a taşınır; mitas_pipeline route'u DEĞİŞTİRMEZ.
+                   "qc_block_otorite_audit": (_qcb_res or {}).get("otorite_audit")}
     print(json.dumps(rapor, ensure_ascii=False, indent=2))
     print("PDF:", out_pdf)
 

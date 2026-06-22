@@ -43,6 +43,18 @@ if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Wri
 if (-not $env:MITAS_GEMMA_FULLCOVER)   { $env:MITAS_GEMMA_FULLCOVER = '1';   Write-Host '   + MITAS_GEMMA_FULLCOVER=1 (default AKTIF — tam-kapsam kunye okuma)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
+# ── OCR-OTORITE FIX (2026-06-22, KEDI GOZU: okunan ELEANOR PARKER dustu + okunmayan MICHAEL SARRAZIN
+#    eklendi + HAZELTON/HAZLETON cift). 3 flag birlikte calisir; hepsi SIFIR-route disinda kanitli (test:
+#    scripts/credit_qc_otorite_audit_test.py 21/21). Kapatmak icin ilgili flag'i 0 yap.
+# AUDIT = ham-OCR groundtruth ile "okunan-dustu/okunmayan-eklendi/yakin-cift" sinyali (_DURUM'a yazilir,
+#         karari DEGISTIRMEZ; ayrica ② icin ham-OCR'u yukler).
+if (-not $env:MITAS_QC_OTORITE_AUDIT)  { $env:MITAS_QC_OTORITE_AUDIT = '1';  Write-Host '   + MITAS_QC_OTORITE_AUDIT=1 (default AKTIF — OCR-otorite denetim sinyali)' }
+# FLOORFILL_OCRGUARD = ② floor-fill OCR-onceligi: ham-OCR'da OKUNAN (ama clean'de dusmus) ismi (PARKER)
+#         okunmayan saf-KB'den (SARRAZIN) ONCE ekle; cap=8 ayni → okunan kurtarilir, okunmayan disarida.
+if (-not $env:MITAS_QC_FLOORFILL_OCRGUARD) { $env:MITAS_QC_FLOORFILL_OCRGUARD = '1'; Write-Host '   + MITAS_QC_FLOORFILL_OCRGUARD=1 (default AKTIF — floor-fill OCR-onceligi)' }
+# FUZZY_DEDUP = ③ yapimci KB-tamamla'da KB varyanti OCR yapimcisinin yakin-yazimiysa (HAZLETON↔HAZELTON)
+#         EKLEME → OCR yazimi korunur, cift-kayit onlenir.
+if (-not $env:MITAS_QC_FUZZY_DEDUP)    { $env:MITAS_QC_FUZZY_DEDUP = '1';    Write-Host '   + MITAS_QC_FUZZY_DEDUP=1 (default AKTIF — yapimci yakin-yazim cift-dedup)' }
 
 Write-Host '== 2) Mevcut 8765/8787 uvicorn/asr_server/tedial süreçleri GÜÇLÜ durduruluyor (zombi/shim dahil) =='
 $kill = @{}

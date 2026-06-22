@@ -116,6 +116,87 @@ def _fold(s):
         return re.sub(r"[^a-z0-9 ]", " ", (s or "").lower()).strip()
 
 
+# ───────── OCR-OTORİTE DENETİM SİNYALLERİ (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE) ─────────
+# A/B ÖLÇÜM + ileride ENFORCE için: ham-OCR groundtruth ile "okunan-düştü / okunmayan-eklendi /
+# yakın-yazım-çift" OCR-otorite sapmalarını ÖLÇER. Karar/route'u DEĞİŞTİRMEZ (yalnız rapora yazılır,
+# _ekle çağrılmaz). Tümü fail-safe; flag kapalıyken hiç çağrılmaz → bayt-bayt mevcut davranış.
+def _audit_raw_token_seq(raw_lines):
+    """Ham-OCR satırlarından SIRALI folded token dizisi (≥3 harf). Sıra korunur ki bitişiklik
+    (adjacency) test edilebilsin: star-kart 'ELEANOR'\\n'PARKER' ardışık satırlarda → dizide ardışık."""
+    seq = []
+    for line in (raw_lines or []):
+        for t in re.findall(r"[^\W\d_]+", str(line), flags=re.UNICODE):
+            if len(t) >= 3:
+                seq.append(_fold(t))
+    return seq
+
+
+def _audit_name_in_raw(name, raw_seq):
+    """İsmin anlamlı token'ları (≥3 harf) ham-OCR token DİZİSİNDE BİTİŞİK (ardışık alt-dizi) geçiyor mu?
+    Küme-üyeliği DEĞİL — 'ad+soyad' iki AYRI isimden tesadüfen toplanmasını engeller (feedback_
+    dogrulanmamis_iddia_yasak: ad+soyad bitişik şartı). 'ELEANOR PARKER' ardışık satırda → yakalanır;
+    'ANN LEE' ham'da 'MARY ANN'+'BRUCE LEE' varken (bitişik değil) → yakalanmaz (FP engellendi)."""
+    nts = [_fold(t) for t in re.findall(r"[^\W\d_]+", str(name), flags=re.UNICODE) if len(t) >= 3]
+    if not nts:
+        return False
+    n = len(nts)
+    return any(raw_seq[i:i + n] == nts for i in range(len(raw_seq) - n + 1))
+
+
+def _audit_find_fuzzy_dups(names):
+    """Aynı kişinin iki yazımı: token-sayısı eşit, TEK token farklı ve o fark Lev≤2 (HAZELTON↔HAZLETON).
+    SIFIR-ROUTE olduğundan kardeş/ayrı-soyad FP'leri (AHMET ASLAN↔AHMET ARSLAN) yalnız rapor-gürültüsü;
+    ENFORCE'a bağlanmadan önce A/B eşik-ölçümü ile daraltılacak."""
+    out, seen = [], set()
+    folded = [(_fold(n), n) for n in (names or []) if n and str(n).strip() not in ("", "—")]
+    for i in range(len(folded)):
+        fi, ni = folded[i]
+        ti = fi.split()
+        for j in range(i + 1, len(folded)):
+            fj, nj = folded[j]
+            if fi == fj or not ti or len(ti) != len(fj.split()):
+                continue
+            diffs = [(x, y) for x, y in zip(ti, fj.split()) if x != y]
+            if len(diffs) != 1:
+                continue
+            try:
+                close = cc._lev(diffs[0][0], diffs[0][1], 2) <= 2
+            except Exception:              # noqa: BLE001
+                close = False
+            if close:
+                key = tuple(sorted((fi, fj)))
+                if key not in seen:
+                    seen.add(key)
+                    out.append([ni, nj])
+    return out
+
+
+def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast, iz):
+    """SIFIR-ROUTE denetim: ham-OCR groundtruth ile OCR-otorite sapmalarını ölç. Karar ETKİLEMEZ."""
+    raw_seq = _audit_raw_token_seq(raw_groundtruth)
+    used = bool(raw_seq)
+    final_fold = {_fold(n) for n in (final_cast or [])}
+    # ocr_dropped: HEM ham-OCR'da okunmuş HEM KB-cast'te (gerçek) olan AMA final'de OLMAYAN isim
+    ocr_dropped = []
+    if used:
+        for a in (otoriter_cast or []):
+            if a and _fold(a) not in final_fold and _audit_name_in_raw(a, raw_seq):
+                ocr_dropped.append(a)
+    # kb_floor_added: floor-fill ile eklenen AMA ham-OCR'da OLMAYAN (saf-KB, okunmamış) isim
+    floor_added = [e.get("isim") for e in (iz or [])
+                   if e.get("kaynak") == "kb-floor-doldur" and e.get("isim")]
+    kb_floor_added = [n for n in floor_added if not _audit_name_in_raw(n, raw_seq)] if used else []
+    fuzzy_dups = _audit_find_fuzzy_dups(list(final_cast or []) + list(final_yap or []))
+    return {
+        "raw_groundtruth_used": used,
+        "ocr_dropped": ocr_dropped,
+        "kb_floor_added": kb_floor_added,
+        "fuzzy_dups": fuzzy_dups,
+        # SUBSTİTÜSYON İMZASI: okunan-düştü VE okunmayan-eklendi (KEDİ GÖZÜ tam imzası)
+        "ocr_authority_violation": bool(ocr_dropped and kb_floor_added),
+    }
+
+
 # ════════════════════════ TRANSLİTERASYON + DİL TESPİTİ ════════════════════════
 # Kiril → Latin (Rusça birincil + Ukraynaca/Sırpça yaygın harfler). Küçük harf tablosu;
 # büyük harf token-bazlı title-case ile geri verilir.
@@ -377,6 +458,7 @@ def qc_credit_block(
     title, original=None, year=None,
     ozet="", afis_yolu=None, xml_roles=None, kb=None,
     raw_context_lines=None, require_producer=False,
+    raw_names_groundtruth=None,
 ):
     """Birleşik künye QC: temizle + doldur + karar ver.
 
@@ -560,9 +642,19 @@ def qc_credit_block(
         cast_garble_residual = [n for n in cast if _looks_garble(n)]
 
         # ── S7: MIN-OYUNCU FLOOR DOLDURMA (yalnız kilitli; OCR'dan SONRA ekle) ──
+        # OCR-ÖNCELİK (flag MITAS_QC_FLOORFILL_OCRGUARD): ham-OCR'da OKUNAN ama (clean'de) düşmüş
+        # otoriter isimleri (KEDİ GÖZÜ: ELEANOR PARKER), OKUNMAYAN saf-KB isimlerden (SARRAZIN) ÖNCE
+        # ekle → cap dolmadan okunan KURTARILIR, okunmayan dışarıda kalır. Flag kapalı → mevcut sıra (AYNEN).
         if locked and otoriter_cast:
+            _cand = list(otoriter_cast)
+            if (raw_names_groundtruth and os.environ.get(
+                    "MITAS_QC_FLOORFILL_OCRGUARD", "").strip().lower() in ("1", "true", "on", "yes")):
+                _rseq = _audit_raw_token_seq(raw_names_groundtruth)
+                _read = [a for a in _cand if _audit_name_in_raw(a, _rseq)]
+                _unread = [a for a in _cand if not _audit_name_in_raw(a, _rseq)]
+                _cand = _read + _unread          # okunan ÖNCE, okunmayan SONRA (göreli sıra korunur)
             have = {_fold(n) for n in cast}
-            for a in otoriter_cast:
+            for a in _cand:
                 if len(cast) >= FILL_TARGET:
                     break
                 if _fold(a) not in have and not any(cc.name_match(a, o) for o in cast):
@@ -582,12 +674,18 @@ def qc_credit_block(
         yap = _apply_garble_gate_yapimci(yap)
         yap = _only_persons(yap)[:3]
         if locked and len(yap) < 3 and imdb_id:
+            _fuzdedup = (os.environ.get("MITAS_QC_FUZZY_DEDUP", "").strip().lower()
+                        in ("1", "true", "on", "yes"))
             kb_yap = _kb_producers(kb, imdb_id, limit=3)
             have_y = {_fold(n) for n in yap}
             for a in _only_persons(kb_yap):
                 if len(yap) >= 3:
                     break
-                if _fold(a) not in have_y and not any(cc.name_match(a, o) for o in yap):
+                # OCR-otorite: KB varyantı mevcut OCR yapımcısının YAKIN-yazımıysa (HAZLETON↔HAZELTON)
+                # EKLEME — OCR'ın yazımı korunur, çift-kayıt önlenir (flag MITAS_QC_FUZZY_DEDUP).
+                # Flag kapalı → yalnız name_match (mevcut davranış AYNEN).
+                _dup = any(cc.name_match(a, o) or (_fuzdedup and cc.name_close(a, o)) for o in yap)
+                if _fold(a) not in have_y and not _dup:
                     yap.append(a)
                     have_y.add(_fold(a))
                     iz.append({"alan": "yapimci", "kaynak": "kb-tamamla", "isim": a})
@@ -652,6 +750,16 @@ def qc_credit_block(
             karar = "ONAYLI"
             kontrol_tip = None
 
+        # ── S12: OCR-OTORİTE DENETİM (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE, yalnız rapor) ──
+        # Karar/route YUKARIDA verildi; bu blok onu ETKİLEMEZ (_ekle çağrılmaz). Yalnız sinyal üretir.
+        otorite_audit = None
+        if os.environ.get("MITAS_QC_OTORITE_AUDIT", "").strip().lower() in ("1", "true", "on", "yes"):
+            try:
+                otorite_audit = _compute_otorite_audit(
+                    raw_names_groundtruth, temiz_cast, temiz_yap, otoriter_cast, iz)
+            except Exception:              # noqa: BLE001 — sinyal hatası karar/route'u ASLA bozmaz
+                otorite_audit = {"hata": True}
+
         return {
             "temiz_yon": temiz_yon, "temiz_cast": temiz_cast, "temiz_yap": temiz_yap,
             "ozet": cased_ozet, "ozet_kelime": ozet_kelime, "afis_ok": afis_ok,
@@ -665,6 +773,8 @@ def qc_credit_block(
             "ocr_cast_k": k,
             # KB-otoriter (gerçek) değerler — yanlış-okuma analizi için (OCR ↔ gerçek karşılaştırma)
             "otoriter_yon": otoriter_yon, "otoriter_cast": otoriter_cast,
+            # OCR-OTORİTE DENETİM (flag MITAS_QC_OTORITE_AUDIT; flag kapalıyken None) — SIFIR-ROUTE
+            "otorite_audit": otorite_audit,
         }
     finally:
         if _own_kb and kb is not None:
