@@ -1195,6 +1195,11 @@ def _fetch_internet_ozet(*, title="", original="", year="", duration="", verify_
 # master-png) env= verilmeden spawn edildiğinden bu os.environ'u miras alır → main BAŞINDA (ilk
 # subprocess'ten ÖNCE) çağrılırsa çocuklar da doğru env'i alır. A/B-BEKLEYEN flag'ler (OCR_FORM_KEEP/
 # CAST_OCR_KEEP/QC_NONCAST_FILTER/CAST_CAP) BİLEREK YOK: üretimde de kapalı, doğrulanmamış.
+# AYNA: aşağıdaki set start_mitas.ps1:22-69 ile BİREBİR aynı olmalı (bir default değişirse İKİ yeri de
+# elle senkron tut). DRIFT NOTU: bazı alt-modüllerin KENDİ kod-default'u farklı olabilir — ör.
+# _pipe_ocr.py:623 MITAS_OCR_GLM_CONSENSUS kod-default '1' (AÇIK) iken burada '0' (KAPALI). Pipeline
+# alt-süreçleri os.environ'u miras aldığından bu setdefault değeri kazanır (bare-pipeline'da GLM=0);
+# yalnız alt-modül STANDALONE koşulursa kendi default'u geçerli olur.
 _PROD_DEFAULTS = {
     "MITAS_QC2": "1",
     "MITAS_QC2_WEB": "1",
@@ -2205,8 +2210,12 @@ def main(argv=None) -> int:
         if os.environ.get("MITAS_QC_OTORITE_ROUTE", "").strip().lower() in ("1", "true", "on", "yes"):
             _qcb_aud = _qcb4.get("qc_block_otorite_audit") or {}
             if isinstance(_qcb_aud, dict) and _qcb_aud.get("ocr_authority_violation") is True:
-                _ar = "qc_block: OCR-otorite ihlali (okunan başrol düştü + okunmayan eklendi)"
-                if _ar not in reasons:
+                # Auditability: hangi başrol düştü / hangi okunmayan eklendi reason'a göm (denetlenebilir).
+                _drp = ", ".join([str(x) for x in (_qcb_aud.get("ocr_dropped") or [])][:3])
+                _add = ", ".join([str(x) for x in (_qcb_aud.get("kb_floor_added") or [])][:3])
+                _ar = ("qc_block: OCR-otorite ihlali — okunan düştü: " + (_drp or "?")
+                       + " | okunmayan eklendi: " + (_add or "?"))
+                if not any(r.startswith("qc_block: OCR-otorite ihlali") for r in reasons):
                     reasons.append(_ar)
 
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
