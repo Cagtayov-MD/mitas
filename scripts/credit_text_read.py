@@ -331,6 +331,49 @@ def _ollama_json(model, prompt, schema, timeout=None):
     return {}
 
 
+# ─── LATIN-DIŞI LLM ROMANİZASYON (2026-06-22, NAMUS DÜŞMANI) ─────────────────────────────────
+# unidecode Arapça'yı sesli-harfsiz kabaya çevirir ("زكي آلاسيا"→"Zky Alsy") → extraction-LLM gibberish
+# sanıp reddeder → cast boş kalır. ÇÖZÜM: çok-dilli qwen HAM non-Latin satırı DOĞRU Latin'e çevirsin
+# ("Zeki Alasya"). Bu, OCR-otorite'nin İZİNLİ dönüşümü (kişi aynı, yalnız alfabe; credit_qc_block docstring).
+# Sonuç DAİMA KONTROL'e gider (nonlatin_source gate) → human teyit eder (asla auto-ONAYLI). qwen başarısızsa
+# çağıran taraf unidecode'a düşer (survival korunur). Fail-safe: hata → None.
+_ROMANIZE_SCHEMA = {
+    "type": "object",
+    "properties": {"satirlar": {"type": "array", "items": {"type": "string"}}},
+    "required": ["satirlar"],
+}
+_ROMANIZE_PROMPT = (
+    "Aşağıdaki satırlar bir filmin jeneriğinden Latin-DIŞI alfabeyle (Arap/Kiril/Yunan) yazılmış "
+    "metinlerdir; çoğu KİŞİ ADI (oyuncu/yönetmen/yapımcı). Her satırı DOĞRU LATİN-TÜRKÇE yazımına ÇEVİR "
+    "(transkripsiyon): kişi/sözcük AYNI kalır, yalnız alfabe değişir. YENİ bilgi EKLEME, isim UYDURMA, "
+    "satır ATLAMA, BİRLEŞTİRME. Her girdi satırı için TAM BİR çıktı satırı ver (sayı+sıra KORUNUR). "
+    "Çıktı yalnız JSON: {\"satirlar\": [...]}.\n\nSATIRLAR:\n%s"
+)
+
+
+def _romanize_lines_llm(lines, model):
+    """HAM non-Latin satırları çok-dilli qwen ile DOĞRU Latin'e çevir. Başarısızsa None (çağıran unidecode'a düşer).
+    NOT (adversarial-doğrulama 2026-06-22): satır-sayısı KORUNMASI promptta istenir ama LLM garanti etmez →
+    sapma sessiz isim kaybı/uydurma işareti olabilir; stderr'e uyarı yazılır (gözlemlenebilirlik). Romanizasyon
+    halüsinasyonu (yanlış-isim ikamesi) içsel guard'larca SÜZÜLMEZ — nonlatin_source→KONTROL ile İNSANA devredilir
+    (asla auto-ONAYLI). Çıktı yine de KORUNUR (kısmî > boş; insan teyit eder)."""
+    lines = [str(l).strip() for l in (lines or []) if str(l).strip()]
+    if not lines:
+        return None
+    try:
+        raw = _ollama_json(model, _ROMANIZE_PROMPT % "\n".join(lines), _ROMANIZE_SCHEMA)
+        out = raw.get("satirlar") if isinstance(raw, dict) else None
+        if isinstance(out, list):
+            out = [str(x).strip() for x in out if str(x).strip()]
+            if out and len(out) != len(lines):    # satır-sayısı sapması → sessiz kayıp/uydurma şüphesi (gözlem)
+                sys.stderr.write(f"[nonlatin-romanize] UYARI: satır sayısı sapması (girdi={len(lines)} "
+                                 f"çıktı={len(out)}) → insan KONTROL teyidi şart\n")
+            return out or None
+    except Exception as e:  # noqa: BLE001 — fail-safe: romanizasyon başarısız → None → unidecode fallback
+        sys.stderr.write(f"[nonlatin-romanize] {model} hata: {type(e).__name__}: {e}\n")
+    return None
+
+
 # Disclaimer/bağlaç/rol-etiketi kelimeleri — bir "isim"de geçiyorsa o cümle parçasıdır, isim DEĞİL.
 # Deterministik junk-filtre (çok-dilli): LLM bazen "PELÍCULA SUBVENCİONADA POR EL" gibi disclaimer
 # satırını cast'e koyuyor → exact-token eşleşmeyle düşür (alt-dize değil; "connery"≠"con").
@@ -966,6 +1009,52 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     """
     chain = model_chain()
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
+    # ── LATIN-DIŞI ERKEN ROMANİZASYON (2026-06-22, NAMUS DÜŞMANI) ─────────────────────────────
+    # Arap/Kiril/Yunan künyede _fold (re.sub r"[^a-z0-9 ]") TÜM harfleri siler → boş token → guard/
+    # _valid_person_name ismi atar → %100 kadro kaybı (OCR mükemmel okusa bile). ÇÖZÜM: extraction'dan
+    # ÖNCE Latin'e çevir → isim _fold'da ölmez. ÖNCE çok-dilli qwen (HAM Arapça→"Zeki Alasya" doğru
+    # transkripsiyon; OCR-otorite'nin İZİNLİ dönüşümü — kişi aynı, alfabe değişir). qwen başarısızsa
+    # unidecode'a düş (kaba "Zky Alsy" ama survival korunur; extraction-LLM reddedebilir). nonlatin_source:
+    # romanizasyon OTORİTE DEĞİL → credit_qc_block KONTROL'e yollar (ASLA auto-ONAYLI, human teyit eder).
+    # Bayraklar default-ON; Latin filmlerde HİÇ tetiklenmez (detect_script=='latin' → dokunulmaz, 0 regresyon).
+    nonlatin_source = False
+    translit_method = None
+    if os.environ.get("MITAS_NONLATIN_TRANSLIT", "1").strip().lower() not in ("0", "false", "off", "no"):
+        try:
+            from translit_util import detect_script as _ds, transliterate as _tl, asciify_foreign as _af
+        except Exception:  # noqa: BLE001 — translit_util yoksa kalkanı atla (mevcut davranış AYNEN)
+            _ds = None
+        if _ds is not None and _ds("\n".join(lines + [str(x) for x in (raw_context_lines or [])])) != "latin":
+            nonlatin_source = True
+            _methods: set[str] = set()
+
+            def _tl_line(s):                            # unidecode fallback (kaba ama _fold'dan kurtarır)
+                s = str(s or "")
+                if not s.strip():
+                    return s
+                sc = _ds(s)
+                if sc == "latin":
+                    return _af(s)                       # Latin satır: yalnız yabancı-aksan→ASCII (Türkçe korunur)
+                latin, yontem = _tl(s, sc)
+                _methods.add(yontem)
+                return _af(latin) if yontem != "FAILED" else s   # çevrilemezse HAM koru (sessiz silme yok)
+
+            # 1) ÖNCE qwen romanizasyon (DOĞRU isim kalitesi). Flag default-ON; kapalıysa direkt unidecode.
+            _rmodel = next((m for m in (chain or []) if str(m).startswith("qwen3")), DEFAULT_MODEL)
+            _rom = None
+            if os.environ.get("MITAS_NONLATIN_LLM_ROMANIZE", "1").strip().lower() not in ("0", "false", "off", "no"):
+                _rom = _romanize_lines_llm(lines, _rmodel)
+            if _rom:
+                lines = _rom
+                if raw_context_lines:                   # bağlam da romanize (yoksa unidecode'a düş)
+                    raw_context_lines = _romanize_lines_llm(
+                        [str(x) for x in raw_context_lines], _rmodel) or [_tl_line(x) for x in raw_context_lines]
+                translit_method = f"llm:{_rmodel}"
+            else:                                       # 2) FALLBACK: unidecode (survival; qwen erişilemez/boş)
+                lines = [_tl_line(l) for l in lines]
+                if raw_context_lines:
+                    raw_context_lines = [_tl_line(l) for l in raw_context_lines]
+                translit_method = ",".join(sorted(_methods)) if _methods else "unidecode"
     lines = _prefilter_lines(lines)            # QC1: disclaimer/yasal/teknik satırları ele (LLM görmesin) — codex bunu kaldırmıştı (regresyon)
     text = "\n".join(lines)
     guard_lines = list(lines)
@@ -991,6 +1080,8 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 "yapimci": [],
                 "cast": _only_persons(cast_fast),
                 "guven": "OKUNDU (cast-block fallback; qwen atlandı)",
+                "nonlatin_source": nonlatin_source,
+                "translit_method": translit_method,
             }
 
     per_model_yon: dict[str, list[str]] = {}
@@ -1105,6 +1196,8 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         "yapimci": _only_persons(yap_kb),
         "cast": _only_persons(cast_kb),
         "guven": guven,
+        "nonlatin_source": nonlatin_source,
+        "translit_method": translit_method,
     }
 
 

@@ -188,7 +188,15 @@ def main():
         imdb_id = best.get("id")
     if not imdb_id:                              # KADEME 1: hiçbiri tutmadıysa crosscheck'in (cast) bulduğu film
         imdb_id = matched_id
-    if imdb_id and kb.imdb:
+    # KİMLİK KAPISI (2026-06-22, BEKARLIK→Norman Lear): yapımcı + TÜR yalnız kimlik GÜÇLÜ kilitliyken KB'den
+    # doldurulur ('AFİŞ KAPISI' 3) ile birebir aynı predikat). Boş-OCR'da crosscheck title-only YANLIŞ filmi
+    # matched_imdb_id ile döndürür (read_cast=[] → cast-kapısı atlanır) → yanlış yapımcı/TÜR sızıyordu. imdb_id
+    # KORUNUR (afiş kapısı onu zaten kimlik_dogrulandi ile süzer); yalnız yapımcı/TÜR EKSTRAKSİYONU kapılanır.
+    # "yanlış > boş": kimlik yoksa yapımcı/TÜR boş (TÜR için XML a.tur fallback'i tek_film_kunye'de yine var).
+    kimlik_dogrulandi = (r.get("verdict") == "TEYİT") or ((r.get("cast_ortusme") or 0) >= 3)
+    _kb_fill_ok = kimlik_dogrulandi or os.environ.get(
+        "MITAS_PRODUCER_IDENTITY_GATE", "1").strip().lower() in ("0", "false", "off", "no")
+    if imdb_id and kb.imdb and _kb_fill_ok:
         try:
             rows = kb.imdb.execute(
                 "SELECT nconst FROM principals WHERE tconst=? AND category='producer' ORDER BY ordering LIMIT 6",
@@ -201,8 +209,8 @@ def main():
             tur_imdb = g[0] if g else None
         except Exception:
             pass
-    # Wikidata → IMDb geri besleme: imdb_find boşsa wd_imdb_id ile doğrudan sorgula
-    if not tur_imdb and wd_imdb_id and kb.imdb:
+    # Wikidata → IMDb geri besleme: imdb_find boşsa wd_imdb_id ile doğrudan sorgula (kimlik kapılı)
+    if _kb_fill_ok and not tur_imdb and wd_imdb_id and kb.imdb:
         try:
             g = kb.imdb.execute("SELECT genres FROM titles WHERE tconst=?", [wd_imdb_id]).fetchone()
             if g and g[0]:
@@ -220,7 +228,8 @@ def main():
     # KADEME 3 — Wikidata genre fallback (YEREL, web yok): IMDb türü boşsa works_master.genre'den
     # (QID→TR) doldur. ADDITIVE: yalnız IMDb-tür YOKKEN devreye girer; IMDb tutarsa DOKUNMAZ.
     # imdb_id (doğrulanmış) birincil anahtar, yoksa başlık+yıl. Çökme yok (graceful → tur_tr=None).
-    if not tur_tr:
+    # Kimlik kapısı (yapımcı ile aynı): kimlik kilitlenmemişse başlık+yıl yanlış-film TÜR'ü sızdırabilir.
+    if _kb_fill_ok and not tur_tr:
         try:
             wd_tur = _wd_genre_lookup(kb.wd, imdb_id=(imdb_id or wd_imdb_id),
                                       title_tr=a.baslik, original=a.orijinal, year=a.yil)
@@ -240,7 +249,7 @@ def main():
     # cast örtüşmesi. (Eşik 2→3 yükseltildi: afiş en görünür yanlış-veri; "gerekli tedbir".)
     # Aksi halde id'ler VERİLMEZ → poster_fetch kadro-teyitli _search'e düşer; tutmazsa afiş YOK.
     # KÖK SEBEP: zayıf/yanlış kimlikte (title-only çakışma) yanlış filmin id'siyle yanlış afiş iniyordu.
-    kimlik_dogrulandi = (r.get("verdict") == "TEYİT") or ((r.get("cast_ortusme") or 0) >= 3)
+    # (kimlik_dogrulandi yukarıda yapımcı/TÜR kapısıyla birlikte hesaplandı — aynı predikat.)
     afis_imdb_id = imdb_id if kimlik_dogrulandi else None
     afis_tmdb_id = tmdb_id if kimlik_dogrulandi else None
     out["afis"] = None

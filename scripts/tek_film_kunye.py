@@ -359,7 +359,9 @@ def main():
         sys.stderr.write(f"[fix1] credit-cümle filtre: {_dropped} → yönetmen dışı bırakıldı\n")
     yon = yon_filtered
 
-    rapor["adimlar"]["video_okuma"] = {"yon": yon, "cast_okunan": cast, "guven": vc.get("guven")}
+    rapor["adimlar"]["video_okuma"] = {"yon": yon, "cast_okunan": cast, "guven": vc.get("guven"),
+                                       "nonlatin_source": bool(vc.get("nonlatin_source")),
+                                       "translit_method": vc.get("translit_method")}
 
     # 2) CROSS-CHECK + YAPIMCI + TÜR + AFİŞ
     afis_out = os.path.join(AFIS_CACHE, (trt if trt != "—" else re.sub(r"\W+", "_", title)) + ".jpg")
@@ -560,7 +562,11 @@ def main():
             # OCR yapımcısı korunur; boşsa alt-satırda KB'den DOLDURULUR (destek).
         except Exception as _qe:  # noqa: BLE001 — QC2 fail-safe: pipeline'ı ASLA bozma
             sys.stderr.write(f"[uyari] QC2 atlandı: {_qe}\n")
-    if not yap and cc.get("yapimci"):
+    # KİMLİK KAPISI (2026-06-22, BEKARLIK→Norman Lear): producer-fill director-fill (yukarıda 'kimlik-kilitli')
+    # ile SİMETRİK olsun — kimlik kilitlenmemişse KB-yapımcı yazma. Savunma-derinliği: kaynak (credit_kb_lookup)
+    # zaten kimlik kapılı, ama cc["yapimci"] başka yoldan dolsa bile burada da kapanır. Bayrak default-ON.
+    _producer_gate = os.environ.get("MITAS_PRODUCER_IDENTITY_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
+    if not yap and cc.get("yapimci") and (kimlik_dogru or not _producer_gate):
         yap = cc["yapimci"]
     cast = _split_dedup_names(cast)
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
@@ -631,7 +637,8 @@ def main():
                 _yon_ocr_original, (vc.get("cast") or []), (vc.get("yapimci") or []),
                 title=title, original=a.original, year=a.year,
                 ozet=meta.get("ozet", ""), afis_yolu=(afis if poster_ok(afis) else None),
-                xml_roles=xml_roles, raw_names_groundtruth=_raw_gt)
+                xml_roles=xml_roles, raw_names_groundtruth=_raw_gt,
+                nonlatin_source=bool(vc.get("nonlatin_source")))   # Latin-dışı kaynak → KONTROL (erken-translit, 2026-06-22)
             if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
                 cast = list(_qcb_res["temiz_cast"])
             yon = list(_qcb_res.get("temiz_yon") or yon)

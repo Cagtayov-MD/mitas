@@ -459,6 +459,7 @@ def qc_credit_block(
     ozet="", afis_yolu=None, xml_roles=None, kb=None,
     raw_context_lines=None, require_producer=False,
     raw_names_groundtruth=None,
+    nonlatin_source=False,
 ):
     """Birleşik künye QC: temizle + doldur + karar ver.
 
@@ -735,6 +736,11 @@ def qc_credit_block(
 
         if translit_failed and any(detect_script(n) != "latin" for n in (cast + yon + yap)):
             _ekle("RENDER", "Latin-dışı alfabe çevrilemedi (KB-Latin yok, kütüphane yok)")
+        # LATIN-DIŞI KAYNAK (2026-06-22, NAMUS DÜŞMANI): extractor erken-translit yaptı (Arap/Kiril/Yunan→
+        # Latin). Rough romanizasyon (özellikle Arapça unidecode) OTORİTE DEĞİL → asla auto-ONAYLI; insan
+        # teyidi şart. İsim artık Latin olduğundan yukarıdaki translit_failed gate bunu yakalamaz; ayrı kapı.
+        if nonlatin_source:
+            _ekle("RENDER", "Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek")
 
         if not afis_ok:
             hafif.append({"tip": "AFIS", "neden": "afiş yok / yatay frame-grab → poster_fetch yeniden"})
