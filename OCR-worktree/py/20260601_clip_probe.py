@@ -33,8 +33,8 @@ SCENE_PROMPTS = [
 ]
 
 def load_clip():
-    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")
-    tok = open_clip.get_tokenizer("ViT-B-32")
+    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-16-SigLIP", pretrained="webli")
+    tok = open_clip.get_tokenizer("ViT-B-16-SigLIP")
     model = model.to(DEV).eval()
     return model, preprocess, tok
 
