@@ -164,12 +164,12 @@ def from_durum(durum: dict) -> dict:
         # cast / özet / yön / ses — mevcut qwen_qc + neden
         "cast_count": q.get("oyuncu_sayisi", 1),
         "ozet_missing": (not q.get("ozet_var", True)) or ("özet yok" in nedenler) or ("özet yok/kısa" in nedenler),
-        "yon_missing": (not q.get("yonetmen_var", True)),
-        "yon_garble": ("yönetmen okunamadı" in nedenler) or ("yön garble" in nedenler),
+        "yon_missing": (not q.get("yonetmen_var", True)) or ("yönetmen doğrulama: okunamadı" in nedenler),
+        "yon_garble": ("yönetmen okunamadı" in nedenler) or ("yön garble" in nedenler) or ("yönetmen doğrulama: okunamadı" in nedenler),
         "yon_fillable": False,   # KB/web fill bilgisi pipeline'dan gelmeli (şimdilik temkinli)
         "ana_dil_not_tr": (str(durum.get("ana_dil") or durum.get("resolution_lang") or "").upper() not in ("TR", "")),
         # kimlik
-        "wrongfilm_suspect": ("kimlik çelişki" in nedenler) or ("yanlış-film" in nedenler) or ("cast kesişimi 0" in nedenler),
+        "wrongfilm_suspect": ("kimlik çelişki" in nedenler) or ("yanlış-film" in nedenler) or ("cast kesişimi 0" in nedenler) or ("yönetmen doğrulama: kaynak-çelişkisi" in nedenler),
         # render
         "non_latin": bool(q.get("latin_disi_alfabe_var")) or ("Latin-dışı" in nedenler),
         "char_broken": bool(q.get("turkce_karakter_bozuk_var")) or ("karakter bozuk" in nedenler),

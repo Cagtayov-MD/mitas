@@ -2228,10 +2228,10 @@ def main(argv=None) -> int:
         import credit_severity_router as _router
         _R, _U = (reasons or []), (qwen_uyari or [])
         _sig = {
-            "yon_missing":       any(("yönetmen okunamadı" in r) or ("yön+yapımcı yok" in r) for r in _R),
-            "yon_garble":        any("yönetmen okunamadı" in r for r in _R),
+            "yon_missing":       any(("yönetmen okunamadı" in r) or ("yön+yapımcı yok" in r) or ("yönetmen doğrulama: okunamadı" in r) for r in _R),
+            "yon_garble":        any(("yönetmen okunamadı" in r) or ("yönetmen doğrulama: okunamadı" in r) for r in _R),
             "yon_fillable":      False,
-            "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) or ("kimlik kurulamadı" in r) for r in _R),
+            "wrongfilm_suspect": any(("kimlik çelişki" in r) or ("yanlış-film" in r) or ("cast kesişimi 0" in r) or ("kimlik kurulamadı" in r) or ("yönetmen doğrulama: kaynak-çelişkisi" in r) for r in _R),
             "cast_count":        0 if (any("oyuncu yok" in r for r in _R) or _qcb_floor_fail) else 1,
             "cast_all_garble":   any("cast garble" in r for r in _R),   # garble-routing köprüsü (2026-06-20)
             "ozet_missing":      any("özet yok" in r for r in _R),
