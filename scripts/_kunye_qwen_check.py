@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""KÜNYE PDF — qwen2.5vl KATI doğrulama.
+"""KÜNYE PDF — gemma-vision KATI doğrulama (2026-06-23: qwen2.5vl → gemma-4-31b-it-qat-vision; TEK MODEL).
+NOT: dosya adı tarihsel ('qwen'); mitas_pipeline importu kırılmasın diye değişmedi.
 PDF önizleme PNG'sine bakıp kullanıcının 6 beklentisini SADECE-gördüğünü kuralıyla kontrol eder.
 Kullanım: python _kunye_qwen_check.py <kunye_onizleme.png>
 Çıktı: JSON {ozet_var, oyuncu_sayisi, yapimci_var, yonetmen_var, ses_dil_var, afis_var,
@@ -10,7 +11,7 @@ from pathlib import Path
 from _ollama import ollama_chat
 
 OLLAMA_HOST = "http://127.0.0.1:11434"
-MODEL = "qwen2.5vl:7b"
+MODEL = "gemma-4-31b-it-qat-vision:latest"
 PROMPT = (
     "Bu bir MİTAS içerik künye belgesinin görüntüsü. ÇOK KATI ol. SADECE GÖRDÜĞÜNÜ "
     "değerlendir; tahmin, varsayım, uydurma KESİNLİKLE YOK. Emin değilsen false yaz.\n"
@@ -41,6 +42,7 @@ def check(png_path: str) -> dict:
         timeout=300,
         host=OLLAMA_HOST,
         options={"temperature": 0},
+        think=False,   # gemma-4 düşünme modeli → JSON `format` ile over-think çakışmasın
     )
     if resp is None:
         return {}
