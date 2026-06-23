@@ -128,6 +128,46 @@ def _match_head(nline, heads):
             return head
     return None
 
+# "A <İSİM> FILM" / "AN <İSİM> FILM" / "BIR <İSİM> FILMI" — yönetmen KARTI ters-deseni:
+# FILM/FILMI SONDA, isim ORTADA. DIRECTOR listesinde "A FILM BY X" (isim sonra) var ama bu
+# ters-biçim YOK -> "A NIKI CARO FILM" hiçbir head'e uymuyordu. norm() çıktısı üstünde (A-Z+boşluk),
+# isim 1-3 BÜYÜK kelime. (McFarland USA formatı; çok-dilli kredide yaygın.)
+_DIRECTOR_CARD_RE = re.compile(r"^(?:A|AN|BIR)\s+([A-Z]+(?:\s+[A-Z]+){0,2})\s+(?:FILM|FILMI|FILMS)$")
+# Stüdyo/marka tokenleri: "A WALT DISNEY FILM" / "A WARNER BROS FILM" gibi bumper'lar "A X FILM"
+# desenine uyar ama yönetmen DEĞİL STÜDYO'dur. CORP'a EKLEMEYİZ (CORP cast-tespitinde de kullanılır;
+# "FOX/BELL" gerçek SOYAD olabilir -> cast'i kırardı). Yalnız yönetmen-kartı yolunda bakılır.
+_STUDIO_BRANDS = {
+    "DISNEY", "PIXAR", "MARVEL", "WARNER", "BROS", "UNIVERSAL", "PARAMOUNT", "COLUMBIA",
+    "DREAMWORKS", "LIONSGATE", "MGM", "MIRAMAX", "NETFLIX", "AMAZON", "APPLE", "HBO", "SONY",
+    "FOX", "TRISTAR", "ORION", "RKO", "BLUMHOUSE", "LUCASFILM", "STUDIOCANAL", "GAUMONT", "PATHE",
+}
+
+def _is_studio(name_norm):
+    return any(t in _STUDIO_BRANDS for t in name_norm.split())
+
+def director_name_from_line(text):
+    """Yönetmen satırından ismi DETERMİNİSTİK çıkar (norm'lu); isim yoksa ''.
+    'A NIKI CARO FILM' -> 'NIKI CARO' | 'DIRECTED BY JOHN FORD' -> 'JOHN FORD'. Alt-rol + stüdyo DIŞLA."""
+    nl = norm(text)
+    if not nl or _has_excl(nl):
+        return ""
+    m = _DIRECTOR_CARD_RE.match(nl)
+    if m:
+        cand = m.group(1).strip()
+        return cand if (_is_name(cand) and not _is_studio(cand)) else ""
+    h = _match_head(nl, DIRECTOR)
+    if h and h != nl:                       # head VAR ve satır sadece head değil (isim taşıyor)
+        rest = _strip_head(nl, h)
+        if rest and _is_name(rest) and not _has_excl(rest) and not _is_studio(rest):
+            return rest
+    return ""
+
+def is_director_line(text):
+    """Satır KENDİ İÇİNDE yönetmen ismi taşıyan bir yönetmen-tabiri mi?
+    ('A X FILM' ters-deseni VEYA 'DIRECTED BY X' head+isim). Bare head ('DIRECTOR') ve şirket
+    isimleri False -> kurtarmada gürültü eklemez. Alt-rol (assistant/DoP) DIŞLANIR."""
+    return bool(director_name_from_line(text))
+
 def anchor_roles(text, max_cast=8):
     """
     Transkript metninden DETERMİNİSTİK yönetmen/yapımcı/cast çıkar.
@@ -165,6 +205,14 @@ def anchor_roles(text, max_cast=8):
 
     for i, nl in enumerate(nlines):
         if _has_excl(nl):
+            continue
+        # "A X FILM" yönetmen-kartı ters-deseni (head listesinde YOK) — isim ortada, ORİJİNAL casing koru
+        _cm = _DIRECTOR_CARD_RE.match(nl)
+        if _cm and _is_name(_cm.group(1).strip()) and not _is_studio(_cm.group(1).strip()):
+            _ot = raw[i].strip().split()
+            _nm = " ".join(_ot[1:-1]) if len(_ot) >= 3 else _cm.group(1).strip()
+            if _nm and _nm not in out["director"]:
+                out["director"].append(_nm)
             continue
         for role, heads in (("director", DIRECTOR), ("producer", PRODUCER), ("cast", CAST)):
             h = _match_head(nl, heads)

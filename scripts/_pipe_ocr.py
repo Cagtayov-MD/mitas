@@ -36,6 +36,12 @@ KB_SPLIT = Path(__file__).resolve().parent / "_kb_suffix_split.py"
 # KB-SUFFIX-SPLIT: "KARAKTER ADI + OYUNCU ADI" birlesik kredi satirindan yapisik kisiyi KB-dogrulamali
 # kurtarir (2026-06-21). Default ACIK. ADDITIVE+KB-gated+FAIL-SAFE -> regresyon riski ~0. Kapatma: =0.
 _KB_SPLIT_ON = os.environ.get("MITAS_KB_SUFFIX_SPLIT", "1").strip().lower() in ("1", "true", "on", "yes")
+LEXICON = Path(__file__).resolve().parent / "credit_role_lexicon.py"
+# DIRECTOR-LINE-RESCUE (2026-06-23): stitch'in frekans-oyu (pick_best) NADIR yonetmen-kartini
+# ("A NIKI CARO FILM" 1 kez okundu) sik footage-yazisina karsi eler. Ham okumalarda yonetmen-deseni
+# (lexicon DIRECTOR + "A X FILM" ters-deseni, alt-rol DISLA) varsa kunye'ye EKLE. ADDITIVE+desen-gated
+# +FAIL-SAFE -> regresyon riski ~0. Default ACIK. Kapatma: =0.
+_DIRECTOR_RESCUE_ON = os.environ.get("MITAS_DIRECTOR_RESCUE", "1").strip().lower() in ("1", "true", "on", "yes")
 # FIX A — HIBRIT KAPI (2026-06-22): CLIP-bekci yazi-footage-ustu kredi kartlarini ("KEMAL SUNAL"
 # kalabalik sahne ustu) "footage" sanip atiyor -> o karelerde morfolojik metin-varligi
 # (db_compose_master.has_text) ararak idx'e EKLE (union). ADDITIVE + FAIL-SAFE.
@@ -498,6 +504,14 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         except Exception as exc:  # noqa: BLE001
             print(f"[pipeline100] kb_suffix_split yuklenemedi, atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
 
+    # DIRECTOR-LINE-RESCUE lexicon modulu (opsiyonel; yuklenemezse kurtarma atlanir, OCR BOZULMAZ).
+    _dirlex = None
+    if _DIRECTOR_RESCUE_ON:
+        try:
+            _dirlex = _load("dirlex_lexicon", LEXICON)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[pipeline100] director_rescue lexicon yuklenemedi, atlandi: {type(exc).__name__}: {exc}", file=sys.stderr)
+
     frame_paths = [str(p) for p in frames]
 
     # a) CLIP bekci: her kareye kredi-olasiligi -> esik>=0.5 kareler.
@@ -631,6 +645,26 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
             con.close()
         except Exception:  # noqa: BLE001
             pass
+
+    # DIRECTOR-LINE-RESCUE: stitch'in frekans-oyu (pick_best) NADIR yonetmen-kartini (1 karede okunan
+    # "A NIKI CARO FILM") sik footage-yazisina karsi eler -> kunye'de yonetmen kaybolur. Ham okumalarda
+    # yonetmen-deseni (lexicon DIRECTOR + "A X FILM" ters-deseni; alt-rol assistant/DoP DISLANIR) varsa
+    # merged'e EKLE. ADDITIVE (silmez) + desen-gated (bare head/sirket/footage eklemez) + FAIL-SAFE.
+    if _dirlex is not None:
+        try:
+            _dir_raw = list(placed_raw) + [t[1] for i in idx for t in ocr_pos[i]]
+            _before_d = {cl.fold(t) for t, _h, _v in merged}
+            _seen_d = set()
+            for _rl in _dir_raw:
+                if not _rl or not _rl.strip():
+                    continue
+                if _dirlex.is_director_line(_rl):
+                    _fd = cl.fold(_rl)
+                    if _fd and _fd not in _before_d and _fd not in _seen_d:
+                        _seen_d.add(_fd)
+                        merged = list(merged) + [(_rl.strip(), "dir_rescue", 1)]
+        except Exception as _de:  # noqa: BLE001 - FAIL-SAFE: merged AYNEN korunur (regresyon yok)
+            print(f"[pipeline100] director_rescue atlandi: {type(_de).__name__}: {_de}", file=sys.stderr)
 
     # e) kunye satirlari (mevcut formatla ayni: satir basina bir metin, # yok).
     #    clean Turkce-BUYUK yazimi tr_upper ile verir (pipeline100 ile ayni cikti).
