@@ -777,7 +777,7 @@ PDF_TIMEOUT = _env_int("MITAS_PDF_TIMEOUT", 1800)
 V4_TIMEOUT = _env_int("MITAS_V4_TIMEOUT", 900)
 VC_TIMEOUT = _env_int("MITAS_VIDEO_CREDIT_TIMEOUT", 1800)
 VL_TIMEOUT = _env_int("MITAS_VL_FALLBACK_TIMEOUT", 900)   # VL-fallback (2 model × kare); fail-safe
-SHADOW_VL_TIMEOUT = _env_int("MITAS_SHADOW_VL_TIMEOUT", 900)  # gölge-VL subprocess; fail-safe, default OFF
+SHADOW_VL_TIMEOUT = _env_int("MITAS_SHADOW_VL_TIMEOUT", 900)  # gölge-VL subprocess; fail-safe, default AKTIF
 
 
 def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
@@ -2369,10 +2369,11 @@ def main(argv=None) -> int:
                           module="master-png", media_id=media_id, filename=video.name,
                           error=str(_mpe)[:200], detail={"clip_id": clip_id})
 
-    # ===== GÖLGE VL (MITAS_SHADOW_VL, default OFF) — kredi-karelerinden gemma havuzu → gemma_kunye.json =====
+    # ===== GÖLGE VL (MITAS_SHADOW_VL, default AKTIF) — kredi-karelerinden gemma havuzu → gemma_kunye.json =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.
     # Bağımlılık: frames/giris|cikis (zaten çıkarılmış). master-PNG'ye bağlı DEĞİL (ayrı havuz üretir).
-    if os.environ.get("MITAS_SHADOW_VL", "0").strip().lower() in ("1", "true", "on", "yes"):
+    # Kapatmak için MITAS_SHADOW_VL=0. Maliyet ~1-4dk/film (arka-plan, teslimi geciktirmez).
+    if os.environ.get("MITAS_SHADOW_VL", "1").strip().lower() in ("1", "true", "on", "yes"):
         _svl_frames_ok = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
                          (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
         if _svl_frames_ok:
