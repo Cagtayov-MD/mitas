@@ -9,7 +9,7 @@ Mevcut OpusCreditDetector'ın iki yapısal kusurunu düzeltir:
 
 Kare-başına 3 sinyal:
   1. Yapısal-yazı varlığı  — tophat metin-maskesi (BG-agnostik) + CC + row-structure. (dark = küçük bonus, kapı değil)
-  2. CLIP kredi-olasılığı   — open_clip ViT-B-32 (opsiyonel; yoksa sezgisele düşer). "isim listesi mi" semantiği.
+  2. CLIP kredi-olasılığı   — open_clip SigLIP ViT-B/16 (opsiyonel; yoksa sezgisele düşer). "isim listesi mi" semantiği.
   3. Hareket               — yazı: dar-maske faz-kor; arka-plan: ters-maske faz-kor + gdiff yedeği.
 
 Pencere değil KARE-bazlı credit_present (medyan-smooth) → koşular (runs) → giriş(ilk)/çıkış(son) bölge.
@@ -134,7 +134,11 @@ def _clamp01(x: float) -> float:
 # CLIP (lazy; open_clip/torch yoksa None → sezgisel füzyon)
 # --------------------------------------------------------------------------- #
 def load_clip(device: Optional[str] = None) -> Optional[dict]:
-    """CLIP bağlamını yükle. open_clip/torch yoksa None döner (çağıran sezgisele düşer)."""
+    """CLIP bağlamını yükle. open_clip/torch yoksa None döner (çağıran sezgisele düşer).
+
+    Varsayılan model SigLIP ViT-B/16 (webli) — ViT-B/32'den +7 puan tespit (%92→%99), aynı hız.
+    Eski modele dönmek için: MITAS_JENERIK_CLIP_MODEL=vitb32
+    """
     try:
         import torch
         import open_clip
@@ -143,9 +147,14 @@ def load_clip(device: Optional[str] = None) -> Optional[dict]:
     try:
         import threading
         dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        _model_key = os.environ.get("MITAS_JENERIK_CLIP_MODEL", "siglip").strip().lower()
+        if _model_key == "vitb32":
+            _model_id, _pretrained = "ViT-B-32", "laion2b_s34b_b79k"
+        else:
+            _model_id, _pretrained = "ViT-B-16-SigLIP", "webli"
         model, _, preprocess = open_clip.create_model_and_transforms(
-            "ViT-B-32", pretrained="laion2b_s34b_b79k")
-        tok = open_clip.get_tokenizer("ViT-B-32")
+            _model_id, pretrained=_pretrained)
+        tok = open_clip.get_tokenizer(_model_id)
         model = model.to(dev).eval()
         ls = model.logit_scale.exp().item()
 
@@ -159,6 +168,7 @@ def load_clip(device: Optional[str] = None) -> Optional[dict]:
 
         return {"model": model, "preprocess": preprocess, "ls": ls,
                 "cred_e": _embed(CREDIT_PROMPTS), "scene_e": _embed(SCENE_PROMPTS), "dev": dev,
+                "model_id": _model_id,
                 "lock": threading.Lock()}   # paralel giriş+çıkış için CLIP forward'ını serileştir (thread-güvenli)
     except Exception:
         return None
