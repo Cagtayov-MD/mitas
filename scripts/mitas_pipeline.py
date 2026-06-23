@@ -2310,6 +2310,10 @@ def main(argv=None) -> int:
         "transcript_chars": asr_info.get("transcript_chars"),
         "resolution": res, "fps": fps_s, "duration": dur, "timings_sec": timings,
         "hub": str(clip_dir), "teslim": str(dest),
+        # FIX-D/B (2026-06-23): OCR-otorite denetim sinyalini _DURUM'a yüzeyle (görünürlük) —
+        # ocr_dropped/kb_floor_added/ocr_authority_violation + s5_form_overwrites. v4 raporundan okunur;
+        # yoksa None (additive, kararı etkilemez). "başarısızlığı nereden anlarız" sinyali burada görünür.
+        "otorite_audit": ((_v4j or {}).get("v4") or {}).get("qc_block_otorite_audit"),
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)
