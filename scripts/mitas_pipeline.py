@@ -777,6 +777,7 @@ PDF_TIMEOUT = _env_int("MITAS_PDF_TIMEOUT", 1800)
 V4_TIMEOUT = _env_int("MITAS_V4_TIMEOUT", 900)
 VC_TIMEOUT = _env_int("MITAS_VIDEO_CREDIT_TIMEOUT", 1800)
 VL_TIMEOUT = _env_int("MITAS_VL_FALLBACK_TIMEOUT", 900)   # VL-fallback (2 model × kare); fail-safe
+SHADOW_VL_TIMEOUT = _env_int("MITAS_SHADOW_VL_TIMEOUT", 900)  # gölge-VL subprocess; fail-safe, default OFF
 
 
 def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
@@ -1048,15 +1049,15 @@ def _ozet_gemma_local(system_content: str, user_msg: str) -> str | None:
         return None
 
 
-# Özet SAĞLAYICI ZİNCİRİ (2026-06-14 Çağatay, kredi yüklendi): Sonnet → gemini-2.5-flash → gemma-local → DeepSeek.
-# BİRİNCİL Sonnet (claude-sonnet-4-6): A/B kazananı — kısa-net cümle + DOĞRU length (~72, gemini'nin
-# 116-şişkinliği yok) + en doğru plot + spoiler-bağlı final. Sonnet kredisiz/çökerse gemini-2.5-flash
-# (temiz ama bazen uzun) → o da 429 ise gemma-local (think=false, bedava/kotasız, hiç boş bırakmaz).
+# Özet SAĞLAYICI ZİNCİRİ — TEK-MODEL/TAM-YEREL (Çağatay 2026-06-23): SADECE gemma-local.
+# Bulut (Sonnet/gemini/DeepSeek) DEVRE DIŞI → qwen/bulut bağımlılığı yok, "her şey gemma + yerel" hedefi.
+# NOT: özet gemma4:26b ile üretilir. gemma-4-31b-it-qat-vision serbest-metin özette DEJENERE oluyor
+# ("Pay"/boş; 3 varyant test edildi 2026-06-23) — o yüzden yapısal işlerde (extract/QC), özet 26b'de.
+# gemma4:26b think=False ile temiz akıcı özet verir (ALİTA 59 kelime doğrulandı).
+# Bulutu geri açmak: tuple'a ("sonnet", _ozet_anthropic) vb. ekle (fonksiyonlar korunuyor). KALİTE NOTU:
+# Sonnet özet kalitesinde daha iyiydi; tam-yerellik için 26b'ye geçildi.
 _OZET_SAGLAYICILAR = (
-    ("sonnet", _ozet_anthropic),
-    ("gemini", _ozet_gemini),
     ("gemma-local", _ozet_gemma_local),
-    ("deepseek", _ozet_deepseek),
 )
 
 
@@ -2367,6 +2368,53 @@ def main(argv=None) -> int:
                           summary=f"{video.name}: master-PNG atlandı ({type(_mpe).__name__}).",
                           module="master-png", media_id=media_id, filename=video.name,
                           error=str(_mpe)[:200], detail={"clip_id": clip_id})
+
+    # ===== GÖLGE VL (MITAS_SHADOW_VL, default OFF) — kredi-karelerinden gemma havuzu → gemma_kunye.json =====
+    # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.
+    # Bağımlılık: frames/giris|cikis (zaten çıkarılmış). master-PNG'ye bağlı DEĞİL (ayrı havuz üretir).
+    if os.environ.get("MITAS_SHADOW_VL", "0").strip().lower() in ("1", "true", "on", "yes"):
+        _svl_frames_ok = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
+                         (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
+        if _svl_frames_ok:
+            _svl_out = clip_dir / "gemma_kunye.json"
+            _svl_job = f"svl-{uuid4().hex[:8]}"
+            _svl_p = None
+            try:
+                log_event("shadow_vl_started", level="info",
+                          summary=f"{video.name}: gölge-VL başladı → {_svl_out.name}.",
+                          module="shadow-vl", media_id=media_id, filename=video.name,
+                          job_id=_svl_job, detail={"clip_id": clip_id})
+                _svl_p = subprocess.Popen(
+                    [str(PY_OCR), str(HERE / "_pipe_shadow_vl.py"),
+                     "--clip", str(clip_dir), "--out", str(_svl_out)],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    text=True, encoding="utf-8", errors="replace")
+                _svl_so, _svl_se = _svl_p.communicate(timeout=SHADOW_VL_TIMEOUT)
+                _svl_ok = _svl_out.exists()
+                log_event("shadow_vl_completed" if _svl_ok else "shadow_vl_empty",
+                          level="info" if _svl_ok else "warn",
+                          summary=f"{video.name}: gölge-VL {'tamamlandı' if _svl_ok else 'çıktı üretemedi'} (rc={_svl_p.returncode}).",
+                          module="shadow-vl", media_id=media_id, filename=video.name,
+                          job_id=_svl_job, detail={"clip_id": clip_id, "rc": _svl_p.returncode,
+                                                    "stderr": _svl_se[-300:] if _svl_p.returncode else None})
+                update_clip_module(clip_dir, "shadow-vl", "done" if _svl_ok else "partial", _svl_job)
+            except Exception as _svle:  # noqa: BLE001 — FAIL-SAFE: gölge-VL ASLA pipeline'ı bozmaz
+                try:
+                    if _svl_p is not None:
+                        _svl_p.kill()
+                        _svl_p.communicate(timeout=10)
+                except Exception:  # noqa: BLE001
+                    pass
+                update_clip_module(clip_dir, "shadow-vl", "failed", _svl_job)
+                log_event("shadow_vl_failed", level="warn",
+                          summary=f"{video.name}: gölge-VL atlandı ({type(_svle).__name__}).",
+                          module="shadow-vl", media_id=media_id, filename=video.name,
+                          job_id=_svl_job, error=str(_svle)[:200], detail={"clip_id": clip_id})
+        else:
+            log_event("shadow_vl_skipped", level="info",
+                      summary=f"{video.name}: gölge-VL atlandı — frames/giris|cikis yok.",
+                      module="shadow-vl", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id})
 
     log_event("routed_" + ("hazir" if karar == "Hazır" else "kontrol"),
               level="info" if karar == "Hazır" else "warn",
