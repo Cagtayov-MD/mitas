@@ -57,6 +57,15 @@ jobs:
           python -m py_compile scripts/_kunye_classify.py
           python -m py_compile scripts/_kunye_qwen_check.py
 
+      - name: py_compile smoke — credit/künye çekirdeği (en sık düzenlenen)
+        run: |
+          python -m py_compile scripts/credit_qc_block.py
+          python -m py_compile scripts/credit_text_read.py
+          python -m py_compile scripts/credit_crosscheck.py
+          python -m py_compile scripts/tek_film_kunye.py
+          python -m py_compile scripts/_pipe_credit_text.py
+          python -m py_compile scripts/_pipe_credit_vl.py
+
       - name: py_compile smoke — OCR-worktree/pdf-mitas
         run: |
           for f in OCR-worktree/pdf-mitas/*.py; do
@@ -114,3 +123,8 @@ jobs:
             tests/test_tedial_job_runner.py \
             tests/test_tedial_media_resolver.py \
             -v --tb=short
+      # NOT: credit/künye pytest-kapısı (test_qc_c*/nonlatin/kunye_suclu) EKLENMEDİ — CI ortamı
+      # yalnız ruff/pytest/pydantic kuruyor; bu testler reportlab/unidecode/duckdb + bazıları sabit
+      # Windows-yolu gerektirdiğinden ubuntu-latest'te KIRILIYOR (tarafsız CI-env testiyle doğrulandı:
+      # 6 failed/61 passed). Eklemek için: install'a reportlab+unidecode+duckdb + sabit-yol portatif +
+      # DB/dep-gerektiren testlere skipif. py_compile smoke (yukarıda) credit dosyalarını zaten korur.
