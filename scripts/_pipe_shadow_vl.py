@@ -46,7 +46,7 @@ def loadf(name: str, path: str):
 TILE_DEFAULT = 1400
 OV_DEFAULT = 150
 CAP_DEFAULT = 30
-MODEL_DEFAULT = "gemma4:26b"
+MODEL_DEFAULT = "glm-ocr:latest"   # OCR-uzmani okuyucu (kiyasta kazanan); gemma4:26b ile de calisir
 
 DCM_PATH = r"E:\MITAS\OCR-worktree\db_compose_master.py"
 VLM_PATH = r"E:\MITAS\OCR-worktree\_vlm_pipeline.py"
@@ -392,6 +392,79 @@ def gemma_call_shadow(frames: list[str], model: str) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# OCR-uzmani okuyucu yolu (glm-ocr / deepseek-ocr): tek tile -> ham metin
+# --------------------------------------------------------------------------- #
+OCR_PROMPT = "Read ALL text in this image exactly as written, line by line. Output only the text, nothing else."
+
+
+def _b64(p):
+    return base64.b64encode(open(p, "rb").read()).decode()
+
+
+def ocr_read_shadow(frame, model):
+    """OCR-uzmani okuyucu: tek tile -> ham metin (yapisal JSON DEGIL)."""
+    body = {"model": model,
+            "messages": [{"role": "user", "content": OCR_PROMPT, "images": [_b64(frame)]}],
+            "stream": False, "options": {"temperature": 0, "num_predict": 2048}}
+    req = urllib.request.Request("http://localhost:11434/api/chat", data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json"})
+    r = json.loads(urllib.request.urlopen(req, timeout=300).read())
+    return r.get("message", {}).get("content", "")
+
+
+def _is_chatbot(txt):
+    """Footage'da model chatbot'a girer / sahne tarif eder / prompt'u tekrarlar -> tile metnini ele.
+    Tarif-modu kaliplari ALİTA dogrulamasinda gozlemlendi (glm bos/blurry tile'i tarif ediyor)."""
+    low = txt.lower()
+    return any(s in low for s in ("you are a", "helpful assistant", "<|im", "i'm sorry",
+                                  "as an ai", "read all text in this image",
+                                  "the image is", "the text content in the image",
+                                  "no visible text", "does not contain", "appears to be a scene",
+                                  "the image shows", "the image depicts"))
+
+
+def _cand_names(lines):
+    """Ham metin satirlarindan aday-isim satirlari (2-8 kelime, harf-agirlikli). Kaba, kiyas icin."""
+    out, seen = [], set()
+    for s in lines:
+        s = s.strip().lstrip("-*#>| ").strip()
+        w = s.split()
+        if not s or not (2 <= len(w) <= 8):
+            continue
+        if sum(c.isalpha() for c in s) < len(s) * 0.5:
+            continue
+        k = s.lower()
+        if k not in seen:
+            seen.add(k)
+            out.append(s)
+    return out
+
+
+def _read_kunye(clip_dir):
+    """En son kunye.txt satirlari (OneOCR uretimi) — guard/kiyas icin."""
+    ocr_root = Path(clip_dir) / "ocr"
+    if not ocr_root.is_dir():
+        return []
+    kf = sorted(ocr_root.glob("*/kunye.txt"),
+                key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+    if not kf:
+        return []
+    try:
+        return [l.strip() for l in kf[0].read_text(encoding="utf-8", errors="replace").splitlines() if l.strip()]
+    except Exception:
+        return []
+
+
+def _in_lines(name, lines):
+    """name token'larinin cogu OneOCR satirlarinda geciyor mu (kaba fuzzy)."""
+    toks = "".join(c.lower() if (c.isalnum() or c.isspace()) else " " for c in name).split()
+    if not toks:
+        return False
+    blob = " ".join(l.lower() for l in lines)
+    return sum(1 for t in toks if t in blob) >= max(1, len(toks) - 1)
+
+
+# --------------------------------------------------------------------------- #
 # B) read_pool
 # --------------------------------------------------------------------------- #
 def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
@@ -400,6 +473,42 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
 
     images = manifest.get("images", [])
     pool_files = [entry["file"] for entry in images if Path(entry["file"]).is_file()]
+
+    # ── OCR-UZMANI YOLU (glm-ocr/deepseek): tile -> ham metin -> aday-isim. HAM METİN asıl çıktı. ──
+    if "ocr" in model.lower():
+        t0 = time.time()
+        raw_tiles, all_lines, chatbot = [], [], 0
+        for entry in images:
+            fp = entry["file"]
+            if not Path(fp).is_file():
+                continue
+            try:
+                txt = ocr_read_shadow(fp, model)
+            except Exception as e:  # noqa: BLE001
+                print(f"[shadow_vl] ocr-read hata {Path(fp).name}: {repr(e)[:80]}", file=sys.stderr)
+                continue
+            if _is_chatbot(txt):
+                chatbot += 1
+                continue   # footage-chatbot / prompt-echo atilir (kirletmesin)
+            lines = [ln.strip() for ln in txt.splitlines() if ln.strip()]
+            raw_tiles.append({"file": Path(fp).name, "kind": entry.get("kind"), "text": txt})
+            all_lines += lines
+        cand = _cand_names(all_lines)
+        guarded = None
+        klines = _read_kunye(clip_dir)
+        if klines:
+            kept = [n for n in cand if _in_lines(n, klines)]
+            guarded = {"candidate_names": kept, "dropped": [n for n in cand if n not in kept]}
+        _write_json(out_path, {
+            "reader": model, "mode": "ocr_text",
+            "candidate_names": cand, "raw_tiles": raw_tiles,
+            "guarded": guarded, "chatbot_skipped": chatbot, "status": "ok",
+            "_meta": {"model": model, "pool_dir": str(pool_dir),
+                      "tiles_read": len(raw_tiles), "lines": len(all_lines),
+                      "candidates": len(cand),
+                      "duration_sec": round(time.time() - t0, 2),
+                      "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())}})
+        return
 
     t0 = time.time()
     bs = 6
