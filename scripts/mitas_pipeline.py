@@ -1460,12 +1460,36 @@ def main(argv=None) -> int:
                         # CLOSE-BACK (Çağatay 2026-06-23, flag MITAS_CREDIT_DETECT_CLOSE_BACK, default OFF):
                         # tespit-başı GEÇ olabilir (sondaki statik kartı bulur, ondan ÖNCEKİ scroll-başını = ANA
                         # KADRO bloğunu kaçırır → TIGHT_CLOSE o geç başlangıca güvenip kapanış başını keser).
-                        # RECALL-ÖNCE: pencere başını dur−ocr_tail'e kadar GERİ uzat → kesilen başı yakala; araya
-                        # giren footage'ı bekçi (CREDIT_MIN_RUN) + downstream filtre eler ("kaçırmaktansa ayıkla").
+                        # FOOTAGE-GÜVENLİ geri-uzatma: [dur−ocr_tail, _cik_start] probe çıkar → _close_back_scan
+                        # has_text ile geriye 'KREDİ OLDUKÇA' uzat, ardışık footage'da DUR (blanket DEĞİL). FAIL-SAFE.
                         if os.environ.get("MITAS_CREDIT_DETECT_CLOSE_BACK", "0").strip().lower() in ("1", "true", "on", "yes"):
-                            _cb_to = max(0.0, dur_sec - args.ocr_tail)
-                            if _cb_to < _cik_start:
-                                _cik_start = _cb_to
+                            try:
+                                _cb_to = max(0.0, dur_sec - args.ocr_tail)
+                                if _cb_to < _cik_start - 1.0:
+                                    _pdir = clip_dir / "frames" / "_close_probe"
+                                    extract_window(video, _pdir, prefix="p", fps=args.fps,
+                                                   start=_cb_to, length=(_cik_start - _cb_to))
+                                    _rcp, _outp, _errp = run([str(PY_OCR), str(HERE / "_close_back_scan.py"),
+                                                              "--frames", str(_pdir)], timeout=180)
+                                    _sj = last_json(_outp) or {}
+                                    _eidx = _sj.get("earliest_credit_idx")
+                                    _np = int(_sj.get("n_frames") or 0)
+                                    if _eidx is not None and _np > 0:
+                                        _new_start = _cb_to + float(_eidx) / args.fps
+                                        if _cb_to <= _new_start < _cik_start:
+                                            log_event("credit_detect_close_back",
+                                                      summary=f"{video.name}: kapanış GERİ-UZATILDI {_cik_start:.0f}s→{_new_start:.0f}s "
+                                                              f"(footage-güvenli, {_sj.get('credit_count')}/{_np} kredi-kare)",
+                                                      module="ocr", media_id=media_id, filename=video.name,
+                                                      detail={"clip_id": clip_id, "old_start": _cik_start,
+                                                              "new_start": _new_start, "scan": _sj})
+                                            _cik_start = _new_start
+                                    shutil.rmtree(_pdir, ignore_errors=True)
+                            except Exception as _cbe:  # noqa: BLE001 — FAIL-SAFE: _cik_start dokunulmaz
+                                log_event("credit_detect_close_back_skip", level="warn",
+                                          summary=f"{video.name}: kapanış geri-uzatma atlandı ({type(_cbe).__name__})",
+                                          module="ocr", media_id=media_id, filename=video.name,
+                                          detail={"clip_id": clip_id})
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
                         _cik_end = min(dur_sec, max(_ce, _cik_start + 60.0))         # film-sonuna GİTME; en az 60s
                         _cik_len = _cik_end - _cik_start
