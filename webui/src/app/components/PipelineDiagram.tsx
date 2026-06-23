@@ -92,7 +92,7 @@ const NODE_DETAILS: Record<string, string[]> = {
   oneocr:  ['OneOCR ile jenerik kareleri okunur (BİRİNCİL)', 'Türkçe metin çıkarılır', 'CLIP seçim → stitch → clean zinciri (pipeline100)'],
   glm:     ['PaddleOCR-GPU ile jenerik kareleri okunur (YAN-KANAL)', 'OneOCR ile paralel çalışır (thread)', 'Sonuç paddle_kunye.txt\'ye kaydedilir; pipeline akışını etkilemez', 'Zaman içinde OneOCR\'ın tökezlediği yerleri takip için'],
   ocrm:    ['OneOCR çıktısı → kunye.txt (birincil, pipeline\'a gider)', 'Paddle çıktısı → paddle_kunye.txt (yan-kanal, takip için)', 'Her iki sonuç aynı klasöre kaydedilir'],
-  credit:  ['gemma-4-31b-it-qat (Ayıklayıcı): OCR metninden yönetmen/yapımcı/cast', 'QC1 kapısı: yönetmen BOŞ veya cast<3 → RED', 'QC1-RED: gemma4 VL ile pikselden oku (--fill-cast)', 'QC1 tekrar: hâlâ RED → _qc1_failed → KONTROL', 'OCR-OTORİTE: her isim OCR metninde olmalı'],
+  credit:  ['gemma-4-31b-it-qat-vision (Ayıklayıcı): OCR metninden yönetmen/yapımcı/cast', 'QC1 kapısı: yönetmen BOŞ veya cast<3 → RED', 'QC1-RED: gemma4 VL ile pikselden oku (--fill-cast)', 'QC1 tekrar: hâlâ RED → _qc1_failed → KONTROL', 'OCR-OTORİTE: her isim OCR metninde olmalı'],
   asr:     ['Kanal-dil tespiti (MMS-LID)', 'Kürtçe / desteklenmeyen dil → ASR atlanır', 'Whisper large-v3-turbo ile transkript'],
   ozet:    ['ASR transkriptinden Sonnet/Claude ile özet (async)', 'SABİT PROMPT: 3-4 cümle · 50-60 kelime', 'Olay örgüsü + SPOİLER içerir', 'Transkript yoksa atlanır'],
   pdf:     ['Künye + özet + ses&altyazı → PDF', 'Orijinal ad: XML <TITLE> BİRİNCİL (temizlenir) → yoksa kadro-konsensüs fallback', 'Afiş: orijinal ad + kadro-teyit (yanlış afiş yerine afiş YOK)', 'Ses / altyazı kanal-dil bloğu eklenir'],

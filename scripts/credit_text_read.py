@@ -26,7 +26,7 @@ import unicodedata
 import urllib.request
 
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
-DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat:latest")
+DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat-vision:latest")
 # FIX 3 (2026-06-22): cast garble-gate'i 8-cap'ten ÖNCE çalıştır — garble'lar 8-slot
 # bütçesini doldurup gerçek adları (geç-sırada görünen seslendiren vb.) atmasın.
 # Monotonik-güvenli (gate=alt-dizi; non-regresyon audit PASS). AKTİF (default ON).
@@ -996,8 +996,10 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
 
 def model_chain():
     """Metin model zinciri.
-    GEÇİŞ (Çağatay 2026-06-23): TEK MODEL **gemma-4-31b-it-qat + think=False**.
-    Ayıklayıcı qwen3.6:35b-a3b → gemma-4-31b-it-qat:latest (yerel GGUF, ollama). qwen DEVRE DIŞI
+    GEÇİŞ (Çağatay 2026-06-23): TEK MODEL **gemma-4-31b-it-qat-vision + think=False** (MULTIMODAL).
+    Ayıklayıcı qwen3.6:35b-a3b → gemma-4-31b-it-qat-vision:latest (yerel GGUF+mmproj). text-only
+    çağrıda mmproj girmez → metin text-only gemma ile BİREBİR aynı (aynı blob, +1GB VRAM), vision-hazır
+    (paralel-VLM tek modelle). qwen DEVRE DIŞI
     ama silinmedi → MITAS_CREDIT_TEXT_MODEL=qwen3.6:35b-a3b ile anında geri dönülür.
     Tarihçe (2026-06-14, 20-film benchmark): qwen3.6:35b-a3b ayıklamada qwen3:8b'yi her eksende
     yenmişti; gemma'ya geçiş kalite-A/B ile doğrulanır (bkz E:\\QwenModels\\ayikla_bench\\).
@@ -1007,7 +1009,7 @@ def model_chain():
     envm = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "").strip()
     if envm:
         return [m.strip() for m in envm.split(",") if m.strip()]
-    return ["gemma-4-31b-it-qat:latest"]
+    return ["gemma-4-31b-it-qat-vision:latest"]
 
 
 def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
