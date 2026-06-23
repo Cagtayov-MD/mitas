@@ -3,6 +3,13 @@ Transcript'ten ANA KARAKTERİN olay yayını çıkarıp, Türkçe, doğal akış
 bir özet yazacaksın. Sadece kaynak metindeki bilgileri kullan; dış bilgi, tahmin veya yorum
 ekleme. ASR gürültüsünü/tekrarları yok say; yalnızca ana olay örgüsünü al.
 
+⚠ TÜM TRANSKRİPTİ DİKKATLE OKU — YÜZEYDEN GEÇME. Olay örgüsünü değiştiren kilit gerçekler
+(sahte ölüm, gizli kimlik, ihanet, rehine, hastalık, akrabalık bağı, asıl suçlu) çoğu zaman
+tek bir replikte, diyalogun içine GÖMÜLÜ açıklanır. Bunları kaçırmak özeti yanlış/eksik yapar.
+Kaynakta AÇIKÇA söylenen bir dönüm noktası varsa özette MUTLAKA yer almalı. Aşağıdaki "yöntemi
+at" kuralı bu gerçekleri ATMAK için bahane DEĞİLDİR — atılan NASIL'dır (yol/prosedür); NE oldu,
+KİM yaptı ve NEDEN (sonuç/dönüm/sebep) her zaman kalır.
+
 ═══════════════════════════════════════════════════════════
 ÇIKTI KURALLARI — TAVİZSİZ
 ═══════════════════════════════════════════════════════════
@@ -16,6 +23,16 @@ TEMEL İLKE: HER CÜMLE GERÇEK BİR OLAY BEATIDIR (neden → sonuç). Her ifade
 söyler. Olay taşımayan, betimleyici/süsleyici cümle YOK. Özet = ne oluyor; süs değil.
 Mekanik olay raporu yazma. Ana karakter önce ne ister, neyle sıkışır, hangi kişi/olay/duygu
 kararını değiştirir ve finalde ne yapar? Özet bu dönüşümü kurmalı.
+
+OLAYIN SONUCUNU YAZ, YÖNTEMİNİ DEĞİL. Her olay için NE olduğunu söyle; ona NASIL ulaşıldığını
+(adım adım yöntem, takip/arama/plan prosedürü, mekân ayrıntısı) yazma. Karakter bir amaca
+ulaştıysa SONUCU yaz, ona giden işlemleri sayma. Bu kural finali GİZLEMEZ: kilit sonucu
+(kim ölür/kazanır, sır nedir, hedefe ulaşılır mı) AÇIKÇA yaz; yalnızca o sonuca giden YOLU at.
+   DOĞRU : Cody çalınan elmasları bulur.
+   YANLIŞ: Cody, Charlie adlı gencin vücudundaki dövmeleri takip ederek elmasları suyun altındaki
+           gizli bölmede bulur. (dövme takibi + gizli bölme = gereksiz yöntem)
+   Yan karakter yalnızca sonucun ANAHTARIYSA aracı olarak kısaca girebilir:
+   Cody, Charlie aracılığıyla elmasların yerini bulur.
 
 YAPI — ana karakterin NEDEN-SONUÇ ZİNCİRİNİ ŞU SIRADA İLERLET:
 
@@ -78,6 +95,9 @@ KESİN YASAKLAR
 ✗ Süs/edebi cümle YASAK: "eşsiz güzellikteki cennet vatan toprakları" gibi — bu özet değil.
 ✗ Yumuşatma YASAK: ölüm→"ayrılış", hastalık→"sağlık sorunu", terk→"uzaklaşma" OLMAZ.
 ✗ Yan olay örgüleri YASAK — yalnızca ana karakterin yayı.
+✗ YÖNTEM/PROSEDÜR ANLATMA: Bir sonuca nasıl ulaşıldığının adımları (takip etme, arama yapma,
+   plan kurma, mekân mekân gezme, ipucu çözme) özet dışıdır. Sonucu yaz, yolu değil. Ölçü:
+   yöntemi cümleden çıkardığında olay hâlâ anlaşılıyorsa, o yöntem fazlalıktır.
 ✗ Soru, ünlem, retorik kapanış, başlık, madde işareti, tırnak, köşeli parantez YASAK.
 
 ═══════════════════════════════════════════════════════════
@@ -88,6 +108,13 @@ Bonet tarafından yakalanır. Almanlar, sabotajcı teslim olmazsa yüz rehineyi 
 duyurunca Jean bunu önce kaçmak için kullanmak ister. Kasabada tanıştığı Marianne'e aşık
 olması ve rehinelerin kaderi Jean'in kararını değiştirir. Finalde sahte sabotajcı olarak
 kendini feda eder.
+
+İKİNCİ ALTIN ÖRNEK (yöntem atılmış, sonuçlar net, makro final):
+Lanetli korsanlar, üzerlerindeki ölümsüzlük büyülerini bozmak için valinin kızı Elizabeth'i
+kaçırır. Elizabeth'e aşık olan demirci Will, kızı kurtarmak için korsan Kaptan Jack Sparrow
+ile ittifak kurar. Gemisini geri almak isteyen Jack ve Will, lanetli korsanların peşine düşer.
+Büyük bir mücadelenin ardından lanet bozulur, ölümsüzlüğünü yitiren korsanların lideri
+öldürülür, Jack gemisine yeniden kavuşur ve Will ile Elizabeth birlikte olur.
 
 ═══════════════════════════════════════════════════════════
 KÖTÜ ÖRNEK (BUNDAN KAÇIN)
