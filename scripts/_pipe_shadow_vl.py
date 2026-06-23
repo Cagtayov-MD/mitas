@@ -103,6 +103,10 @@ def build_pool(clip_dir: Path, dcm, args_ns) -> tuple[Path, dict]:
     tile = int(os.environ.get("MITAS_SHADOW_VL_TILE", TILE_DEFAULT))
     ov = int(os.environ.get("MITAS_SHADOW_VL_OV", OV_DEFAULT))
     cap = int(os.environ.get("MITAS_SHADOW_VL_CAP", CAP_DEFAULT))
+    # Statik kart TEMPORAL çok-temsilci adımı (kare): kart uzunsa ~her N karede bir temsilci
+    # (tek-sharpest DEĞİL) → kart içinde birden çok kredi/footage-tabela AYRIŞIR; sharpv footage-
+    # tabelasını krediye yeğleyip yönetmen-gibi küçük-yazı kareyi ATMASIN. Default 8 (~4s @ 2fps).
+    card_step = max(1, int(os.environ.get("MITAS_SHADOW_VL_CARD_STEP", "8") or 8))
 
     pool_dir = clip_dir / "vl_pool"
     if pool_dir.exists():
@@ -228,55 +232,51 @@ def build_pool(clip_dir: Path, dcm, args_ns) -> tuple[Path, dict]:
             src_run = [run_start, run_end]
 
             if lab == "S":
-                # STATİK → split_static_cards → her kart için sharpest kare
+                # STATİK → split_static_cards → her kart için TEMPORAL ÇOK-TEMSİLCİ (tek-sharpest DEĞİL):
+                # kartı card_step'lik pencerelere böl, HER pencereden sharpest → kart içinde birden çok
+                # kredi/footage-tabela ayrışır (sharpv footage'ı krediye yeğleyip yönetmeni atamaz).
                 try:
                     cards = dcm.split_static_cards(run_frames, p, args_ns)
                 except Exception:
                     cards = [run_frames]
 
-                for ci, card_frames in enumerate(cards):
-                    # sharpv ile en keskin kareyi seç
-                    best_sv = -1.0
-                    best_img = None
-                    best_fp = None
-                    for cfp in card_frames:
-                        img = dcm.rd_cached(cfp)
-                        if img is None:
+                for card_frames in cards:
+                    _nfr = len(card_frames)
+                    if _nfr == 0:
+                        continue
+                    for _w0 in range(0, _nfr, card_step):          # temporal pencereler
+                        _win = card_frames[_w0: _w0 + card_step]
+                        best_sv = -1.0
+                        best_img = None
+                        best_fp = None
+                        for cfp in _win:
+                            img = dcm.rd_cached(cfp)
+                            if img is None:
+                                continue
+                            if img.shape[:2] != (p.h, p.w):
+                                img = cv2.resize(img, (p.w, p.h))
+                            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                            sv = dcm.sharpv(gray)
+                            if sv > best_sv:
+                                best_sv = sv
+                                best_img = img
+                                best_fp = cfp
+                        if best_img is None:
                             continue
-                        if img.shape[:2] != (p.h, p.w):
-                            img = cv2.resize(img, (p.w, p.h))
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                        sv = dcm.sharpv(gray)
-                        if sv > best_sv:
-                            best_sv = sv
-                            best_img = img
-                            best_fp = cfp
-
-                    if best_img is None:
-                        continue
-
-                    gray = cv2.cvtColor(best_img, cv2.COLOR_BGR2GRAY)
-                    mask = dcm.text_mask(gray, p, "auto")
-
-                    # text_rows (metin bandı), yoksa text_band fallback
-                    band = dcm.text_rows(mask, p) or dcm.text_band(mask)
-                    if band is None:
-                        continue
-
-                    crop = best_img[
-                        max(0, band[0] - p.pad): min(best_img.shape[0], band[1] + p.pad),
-                        :
-                    ]
-                    if crop is None or crop.size == 0:
-                        continue
-
-                    meta = {
-                        "src_run": src_run,
-                        "src_frame": best_fp,
-                    }
-                    entry = _save_img(crop, "card", meta)
-                    if entry:
-                        pool_images.append(entry)
+                        gray = cv2.cvtColor(best_img, cv2.COLOR_BGR2GRAY)
+                        mask = dcm.text_mask(gray, p, "auto")
+                        band = dcm.text_rows(mask, p) or dcm.text_band(mask)
+                        if band is None:
+                            continue
+                        crop = best_img[
+                            max(0, band[0] - p.pad): min(best_img.shape[0], band[1] + p.pad),
+                            :
+                        ]
+                        if crop is None or crop.size == 0:
+                            continue
+                        entry = _save_img(crop, "card", {"src_run": src_run, "src_frame": best_fp})
+                        if entry:
+                            pool_images.append(entry)
 
             elif lab == "R":
                 # SCROLL → slitscan → dikey dilimleme
