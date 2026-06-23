@@ -43,6 +43,11 @@ if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Wri
 if (-not $env:MITAS_GEMMA_FULLCOVER)   { $env:MITAS_GEMMA_FULLCOVER = '1';   Write-Host '   + MITAS_GEMMA_FULLCOVER=1 (default AKTIF — tam-kapsam kunye okuma)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
+# FRAME-DEDUP (2026-06-23): CLIP sonrasi yakin-identical kare eleme (sabit kart cok-kare -> birkac temsilci,
+# scroll dokunulmaz). Default OFF — A/B ile kanitlanmadan acilmaz. A/B icin: MITAS_FRAME_DEDUP=1
+# (ayar: MITAS_FRAME_DEDUP_HAM=4 esik, MITAS_FRAME_DEDUP_KEEP=3 kume-basi temsilci). Recall invariant:
+# OFF vs ON kunye.txt satirlari BIREBIR eslesmeli; esmiyorsa HAM'i dusur.
+if (-not $env:MITAS_FRAME_DEDUP)       { $env:MITAS_FRAME_DEDUP = '0';       Write-Host '   + MITAS_FRAME_DEDUP=0 (default — A/B opt-in)' }
 # ── OCR-OTORITE FIX (2026-06-22, KEDI GOZU: okunan ELEANOR PARKER dustu + okunmayan MICHAEL SARRAZIN
 #    eklendi + HAZELTON/HAZLETON cift). 3 flag birlikte calisir; hepsi SIFIR-route disinda kanitli (test:
 #    scripts/credit_qc_otorite_audit_test.py 21/21). Kapatmak icin ilgili flag'i 0 yap.

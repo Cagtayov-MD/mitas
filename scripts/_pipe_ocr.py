@@ -42,6 +42,15 @@ _KB_SPLIT_ON = os.environ.get("MITAS_KB_SUFFIX_SPLIT", "1").strip().lower() in (
 # A/B YESIL (2026-06-22: HABABAM 6 yildiz+Kemal Sunal kurtuldu; SIRILSIKLAM kontrol regresyonsuz +2 bonus) -> default ON.
 # Kapatma: MITAS_BEKCI_TEXT_OR=0.
 _TEXT_OR_ON = os.environ.get("MITAS_BEKCI_TEXT_OR", "1").strip().lower() in ("1", "true", "on", "yes")
+# FRAME-DEDUP (2026-06-23): CLIP sonrasi, OneOCR oncesi yakin-identical kare eleme.
+# Default OFF — flag acikca verilmedikce davranis birebir eski kalir (regresyon sifir).
+# HAM default 4 (KONSERVATIF): gercek sabit kart ardisik kareleri Hamming~0-2 verir (sadece
+# sikistirma gurultusu) -> 4 onlari yakalar; scroll kareleri daha buyuk fark verir -> marj korunur.
+# Daha gevsek esik (6-8) yavas scroll'u "ayni kart" sanip cast eleyebilir (adversarial-denetim bulgusu);
+# A/B ile sikilastir/gevset. KEEP=3 -> kume basina >=2 temsilci kalir, frekans-oylama korunur.
+_FRAME_DEDUP_ON = os.environ.get("MITAS_FRAME_DEDUP", "0").strip().lower() in ("1", "true", "on", "yes")
+_FRAME_DEDUP_HAM = int(os.environ.get("MITAS_FRAME_DEDUP_HAM", "4") or 4)
+_FRAME_DEDUP_KEEP = max(1, int(os.environ.get("MITAS_FRAME_DEDUP_KEEP", "3") or 3))
 # GLM-consensus POC (2. motor): gerekli fonksiyonlar bu dosyaya INLINE edildi (asagida);
 # 20260601_consensus_glm.py runtime'da YUKLENMIYOR — olu referans kaldirildi.
 
@@ -397,6 +406,64 @@ def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dic
     }
 
 
+# ── FRAME-DEDUP yardimci (MITAS_FRAME_DEDUP) ────────────────────────────────
+def _dedup_idx(idx, frame_paths, rd, dhash, hamming, ham_thr, keep_k):
+    """Ardisik near-identical kareleri kumeleyip kume basina keep_k temsilci tutar.
+
+    Karsilastirma kumenin ILK karesine (anchor) gore yapilir (previous degil):
+    yavas-scroll/surukleme anchor'dan hizla uzaklasir -> kume kopar -> kareler TUTULUR
+    (guvenli yon, recall lehine). Gercek sabit kart anchor'a yakin kalir -> dedup.
+    Okunamayan (None) kare KENDI BASINA tutulur, asla atilmaz.
+
+    Donus: (kisaltilmis_idx: list[int], stats: dict).
+    """
+    if len(idx) <= keep_k:
+        return idx, {"in": len(idx), "out": len(idx), "dropped": 0}
+
+    kept = []
+    cluster = []      # aktif kume (indeks listesi)
+    anchor_h = None   # aktif kumenin ilk karesinin dhash'i
+
+    def _flush(cl):
+        """Kume -> keep_k esit-aralikli temsilci sec, kept'e ekle."""
+        n = len(cl)
+        if n <= keep_k:
+            return cl
+        if keep_k == 1:
+            return [cl[0]]
+        return sorted({cl[round(t * (n - 1) / (keep_k - 1))] for t in range(keep_k)})
+
+    for i in idx:
+        img = rd(frame_paths[i])
+        h = None
+        if img is not None:
+            try:
+                h = dhash(img)
+            except Exception:  # noqa: BLE001 - hash hatasi -> None gibi davran
+                h = None
+
+        if not cluster:
+            # Aktif kume yok -> bu kareyle basla (anchor = bu karenin hash'i; None olabilir).
+            cluster = [i]
+            anchor_h = h
+        elif h is not None and anchor_h is not None and hamming(h, anchor_h) <= ham_thr:
+            # Ayni kume: anchor'a yeterince yakin.
+            cluster.append(i)
+        else:
+            # Kume kopar (okunamayan kare / anchor None / anchor'dan uzak) -> oncekini FLUSH et,
+            # bu kareyle yeni kume basla. None kare boylece daima kendi singleton kumesinde -> TUTULUR.
+            kept.extend(_flush(cluster))
+            cluster = [i]
+            anchor_h = h
+
+    # Son kume
+    if cluster:
+        kept.extend(_flush(cluster))
+
+    result = sorted(set(kept))
+    return result, {"in": len(idx), "out": len(result), "dropped": len(idx) - len(result)}
+
+
 # ── YENI scroll-aware akis (pipeline100 zinciri) ────────────────────────────
 def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "Path | None" = None) -> dict | None:
     """CLIP bekci -> konumlu OneOCR -> OCR-uzayinda dik -> temizle.
@@ -493,6 +560,22 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
             "glm_status": "skipped",
             "glm_skip_reason": "no_frames",
         }
+
+    # ── FRAME DEDUP (MITAS_FRAME_DEDUP, default OFF) — CLIP idx'i kisalt, OneOCR'dan once.
+    #    Sabit kart cok-kare -> birkac temsilci; scroll dHash-farkli -> dokunulmaz (kendi-yonlenen).
+    #    FAIL-SAFE: hata -> idx AYNEN (regresyon yok), hibrit-kapi ile ayni desen.
+    _dedup_stats = None
+    if _FRAME_DEDUP_ON and len(idx) > _FRAME_DEDUP_KEEP:
+        try:
+            _dcm_d = _load("dcm_compose", DB_COMPOSE)   # satir 460 ile ayni idiom
+            _idx2, _dedup_stats = _dedup_idx(idx, frame_paths, fp.rd, _dcm_d.dhash, _dcm_d.hamming,
+                                             _FRAME_DEDUP_HAM, _FRAME_DEDUP_KEEP)
+            if _idx2 and len(_idx2) < len(idx):
+                print(f"[pipeline100] frame-dedup: {len(idx)} -> {len(_idx2)} kare "
+                      f"(ham<={_FRAME_DEDUP_HAM}, keep={_FRAME_DEDUP_KEEP})", file=sys.stderr)
+                idx = _idx2
+        except Exception as _dx:  # noqa: BLE001 - FAIL-SAFE: idx korunur, regresyon yok
+            print(f"[pipeline100] frame-dedup atlandi (idx AYNEN): {type(_dx).__name__}: {_dx}", file=sys.stderr)
 
     # b) Konumlu oku: secili karelerde read_pos -> ocr_pos[i] = [(fold,raw,y0,y1)]
     try:
@@ -769,6 +852,8 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
+        # frame-dedup telemetri (None=kapali/no-op, yoksa {"in","out","dropped"})
+        "frame_dedup": _dedup_stats,
     }
 
 
