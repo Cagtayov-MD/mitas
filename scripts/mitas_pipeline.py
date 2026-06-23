@@ -1457,12 +1457,13 @@ def main(argv=None) -> int:
                             _cik_start = _ds                                         # KN-1: hassas tespite güven (min YOK → footage-bloat'ı kes)
                         else:
                             _cik_start = min(_ds, _cik_start)                        # eski: asla eski-pencereden GEÇ başlama
-                        # CLOSE-BACK (Çağatay 2026-06-23, flag MITAS_CREDIT_DETECT_CLOSE_BACK, default OFF):
+                        # CLOSE-BACK (Çağatay 2026-06-23, flag MITAS_CREDIT_DETECT_CLOSE_BACK, default AKTİF):
                         # tespit-başı GEÇ olabilir (sondaki statik kartı bulur, ondan ÖNCEKİ scroll-başını = ANA
                         # KADRO bloğunu kaçırır → TIGHT_CLOSE o geç başlangıca güvenip kapanış başını keser).
                         # FOOTAGE-GÜVENLİ geri-uzatma: [dur−ocr_tail, _cik_start] probe çıkar → _close_back_scan
                         # has_text ile geriye 'KREDİ OLDUKÇA' uzat, ardışık footage'da DUR (blanket DEĞİL). FAIL-SAFE.
-                        if os.environ.get("MITAS_CREDIT_DETECT_CLOSE_BACK", "0").strip().lower() in ("1", "true", "on", "yes"):
+                        # Kapatmak için MITAS_CREDIT_DETECT_CLOSE_BACK=0.
+                        if os.environ.get("MITAS_CREDIT_DETECT_CLOSE_BACK", "1").strip().lower() in ("1", "true", "on", "yes"):
                             try:
                                 _cb_to = max(0.0, dur_sec - args.ocr_tail)
                                 if _cb_to < _cik_start - 1.0:
