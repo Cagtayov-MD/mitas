@@ -1457,6 +1457,15 @@ def main(argv=None) -> int:
                             _cik_start = _ds                                         # KN-1: hassas tespite güven (min YOK → footage-bloat'ı kes)
                         else:
                             _cik_start = min(_ds, _cik_start)                        # eski: asla eski-pencereden GEÇ başlama
+                        # CLOSE-BACK (Çağatay 2026-06-23, flag MITAS_CREDIT_DETECT_CLOSE_BACK, default OFF):
+                        # tespit-başı GEÇ olabilir (sondaki statik kartı bulur, ondan ÖNCEKİ scroll-başını = ANA
+                        # KADRO bloğunu kaçırır → TIGHT_CLOSE o geç başlangıca güvenip kapanış başını keser).
+                        # RECALL-ÖNCE: pencere başını dur−ocr_tail'e kadar GERİ uzat → kesilen başı yakala; araya
+                        # giren footage'ı bekçi (CREDIT_MIN_RUN) + downstream filtre eler ("kaçırmaktansa ayıkla").
+                        if os.environ.get("MITAS_CREDIT_DETECT_CLOSE_BACK", "0").strip().lower() in ("1", "true", "on", "yes"):
+                            _cb_to = max(0.0, dur_sec - args.ocr_tail)
+                            if _cb_to < _cik_start:
+                                _cik_start = _cb_to
                         _ce = float(_closing.get("end_sec") or 0.0) + 10.0           # tespit edilen jenerik SONU +10s
                         _cik_end = min(dur_sec, max(_ce, _cik_start + 60.0))         # film-sonuna GİTME; en az 60s
                         _cik_len = _cik_end - _cik_start

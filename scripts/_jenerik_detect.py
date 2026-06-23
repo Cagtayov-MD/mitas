@@ -72,6 +72,9 @@ def main(argv=None) -> int:
     ap.add_argument("--open-search-min", type=float, default=12.0)
     ap.add_argument("--close-search-min", type=float, default=15.0)
     ap.add_argument("--no-clip", action="store_true")
+    ap.add_argument("--debug", action="store_true",
+                    help="TANI: per-frame skor (cs/clip/heur/present/nblob/row) + kosu reddetme nedenlerini "
+                         "JSON'a ekle (sadece --frames). Davranis DEGISMEZ, mevcut return_debug'i disa verir.")
     ap.add_argument("--no-ocr-refine", action="store_true",
                     help="OCR-geriye başlangıç inceltmeyi kapat (sezgisel geri-çekme kalır)")
     ap.add_argument("--parallel", action="store_true",
@@ -98,9 +101,30 @@ def main(argv=None) -> int:
                 parallel=a.parallel,
                 ocr_factory=(_build_ocr_read_fn if (use_ocr and a.parallel) else None))
         else:  # --frames (tek klasör → istenen tarafa koy)
-            region = jd.detect_from_frames(a.frames, fps=a.fps,
-                                           window_start_sec=a.window_start,
-                                           prefer=a.prefer, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn)
+            if a.debug:
+                region, _sigs, _runs = jd.detect_from_frames(
+                    a.frames, fps=a.fps, window_start_sec=a.window_start,
+                    prefer=a.prefer, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn, return_debug=True)
+                region["_debug"] = {
+                    "n_frames": len(_sigs),
+                    "n_present": sum(1 for s in _sigs if getattr(s, "present", False)),
+                    "present_thr": 0.50,
+                    "frames": [{"i": getattr(s, "idx", i),
+                                "cs": round(float(getattr(s, "credit_score", 0.0)), 3),
+                                "clip": (round(float(s.clip), 3) if getattr(s, "clip", None) is not None else None),
+                                "heur": round(float(getattr(s, "heur", 0.0)), 3),
+                                "present": bool(getattr(s, "present", False)),
+                                "nblob": int(getattr(s, "n_blobs", 0)),
+                                "row": round(float(getattr(s, "row_struct", 0.0)), 3)}
+                               for i, s in enumerate(_sigs)],
+                    "runs": [{k: r.get(k) for k in ("start_frame", "end_frame", "n_frames", "valid",
+                              "invalid_reason", "confidence", "med_clip", "min_clip",
+                              "med_row_struct", "med_n_blobs", "quad_type")} for r in _runs],
+                }
+            else:
+                region = jd.detect_from_frames(a.frames, fps=a.fps,
+                                               window_start_sec=a.window_start,
+                                               prefer=a.prefer, clip_ctx=clip_ctx, ocr_read_fn=ocr_fn)
             if a.prefer == "last":
                 res = {"opening": _no("frames_single_dir"), "closing": region}
             else:
