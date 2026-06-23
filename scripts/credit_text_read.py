@@ -26,7 +26,7 @@ import unicodedata
 import urllib.request
 
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
-DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "qwen3.6:35b-a3b")
+DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat:latest")
 # FIX 3 (2026-06-22): cast garble-gate'i 8-cap'ten ÖNCE çalıştır — garble'lar 8-slot
 # bütçesini doldurup gerçek adları (geç-sırada görünen seslendiren vb.) atmasın.
 # Monotonik-güvenli (gate=alt-dizi; non-regresyon audit PASS). AKTİF (default ON).
@@ -318,9 +318,10 @@ def _ollama_json(model, prompt, schema, timeout=None):
         "model": model, "prompt": prompt, "format": schema, "stream": False,
         "options": {"temperature": 0, "num_ctx": 8192},
     }
-    # qwen3* düşünme modeli → think=False (zorunlu JSON `format` ile over-think çakışmasın).
+    # Düşünme modeli (qwen3*, gemma-4) → think=False (zorunlu JSON `format` ile over-think çakışmasın).
     # gemma3 düşünme modeli DEĞİL → think gönderme (bazı sürümler 400 verir).
-    if str(model).startswith("qwen3"):
+    _m = str(model).lower()
+    if _m.startswith("qwen3") or _m.startswith(("gemma-4", "gemma4")):
         payload["think"] = False
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(OLLAMA + "/api/generate", data=body,
@@ -995,19 +996,18 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
 
 def model_chain():
     """Metin model zinciri.
-    KARAR (2026-06-14, 20-film benchmark — web-doğrulanmış GT + web-yargı): TEK MODEL
-    **qwen3.6:35b-a3b + think=False**. qwen3:8b'yi her eksende yendi: yönetmen 9/20 (8b: 5/20),
-    cast-recall %28 (8b: %22), precision %80 (8b: %61), yanlış 22 (8b: 47), üstelik DAHA HIZLI
-    (7.4s vs 26.2s — 8b uzun/gürültülü künyede runaway yapıp JSON şişirip kesiliyor→boş).
-    Non-thinking adaylar geride kaldı (qwen3-instruct yönetmende kör 1/20; gemma4 en çok pes eden).
-    NOT: 35b=23GB VRAM → CLIP/OCR ile aynı anda GPU'da olamaz; N=2 paralelde Ayıklayıcı aşaması
-    ollama'da tek 35b paylaşır (ops takibi). Rapor: E:\\QwenModels\\ayikla_bench\\.
-    _ollama_json zaten qwen3* için think=False gönderir (qwen3.6 kapsanır).
+    GEÇİŞ (Çağatay 2026-06-23): TEK MODEL **gemma-4-31b-it-qat + think=False**.
+    Ayıklayıcı qwen3.6:35b-a3b → gemma-4-31b-it-qat:latest (yerel GGUF, ollama). qwen DEVRE DIŞI
+    ama silinmedi → MITAS_CREDIT_TEXT_MODEL=qwen3.6:35b-a3b ile anında geri dönülür.
+    Tarihçe (2026-06-14, 20-film benchmark): qwen3.6:35b-a3b ayıklamada qwen3:8b'yi her eksende
+    yenmişti; gemma'ya geçiş kalite-A/B ile doğrulanır (bkz E:\\QwenModels\\ayikla_bench\\).
+    NOT: 31b≈17GB VRAM → CLIP/OCR ile aynı anda GPU'da dikkat; ayıklayıcı aşaması ollama'da paylaşır.
+    _ollama_json gemma-4/qwen3* için think=False gönderir (JSON `format` ile over-think çakışmasın).
     Override: MITAS_CREDIT_TEXT_MODEL (virgüllü). DeepSeek opt-in: MITAS_CREDIT_TEXT_MODEL=deepseek-chat."""
     envm = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "").strip()
     if envm:
         return [m.strip() for m in envm.split(",") if m.strip()]
-    return ["qwen3.6:35b-a3b"]
+    return ["gemma-4-31b-it-qat:latest"]
 
 
 def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
@@ -1048,8 +1048,8 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 _methods.add(yontem)
                 return _af(latin) if yontem != "FAILED" else s   # çevrilemezse HAM koru (sessiz silme yok)
 
-            # 1) ÖNCE qwen romanizasyon (DOĞRU isim kalitesi). Flag default-ON; kapalıysa direkt unidecode.
-            _rmodel = next((m for m in (chain or []) if str(m).startswith("qwen3")), DEFAULT_MODEL)
+            # 1) ÖNCE LLM romanizasyon (DOĞRU isim kalitesi). Flag default-ON; kapalıysa direkt unidecode.
+            _rmodel = (chain[0] if chain else DEFAULT_MODEL)   # birincil yerel ayıklayıcı modeli
             _rom = None
             if os.environ.get("MITAS_NONLATIN_LLM_ROMANIZE", "1").strip().lower() not in ("0", "false", "off", "no"):
                 _rom = _romanize_lines_llm(lines, _rmodel)

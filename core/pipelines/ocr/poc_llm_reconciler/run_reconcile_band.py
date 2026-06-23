@@ -1,5 +1,5 @@
 """POC β → γ köprüsü: band_motion'ın gürültülü 403-satır çıktısını
-qwen3.6 ile tek temiz künyeye indirger. Tek kaynak (çok-bant dump),
+gemma-4-31b-it-qat ile tek temiz künyeye indirger. Tek kaynak (çok-bant dump),
 yoğun tekrar + OCR bozulması içerir. Amaç: pipeline kompozisyonunu kanıtla.
 
 Çalıştır: venvs\\core\\Scripts\\python.exe core\\pipelines\\ocr\\poc_llm_reconciler\\run_reconcile_band.py
@@ -11,7 +11,7 @@ from pathlib import Path
 BAND_LINES = Path(r"E:\MITAS\outputs\_poc_band_motion_20260530\1980_son_metro_end_credits__closing\lines.json")
 OUT_DIR = Path(r"E:\MITAS\outputs\_poc_llm_reconciler_20260530")
 OLLAMA = "http://localhost:11434/api/chat"
-MODEL = "qwen3.6:35b-a3b"
+MODEL = "gemma-4-31b-it-qat:latest"
 
 SYSTEM = (
     "Sen bir film jeneriği OCR temizleyicisin. Sana TEK bir filmin closing jeneriğinin "

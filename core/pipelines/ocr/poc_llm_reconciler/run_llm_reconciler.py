@@ -1,6 +1,6 @@
 """
 POC γ — LLM Uzlaştırıcı
-A (box-tracking) + B (slit-scan) OCR çıktılarını Ollama qwen3.6:35b-a3b ile
+A (box-tracking) + B (slit-scan) OCR çıktılarını Ollama gemma-4-31b-it-qat ile
 tek temiz künyede birleştirir. Görsel YOK, sadece metin.
 
 Kullanım:
@@ -23,7 +23,7 @@ INPUT_B = pathlib.Path(
 )
 OUTPUT_DIR = pathlib.Path(r"E:\MITAS\outputs\_poc_llm_reconciler_20260530")
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL = "qwen3.6:35b-a3b"
+MODEL = "gemma-4-31b-it-qat:latest"
 
 SYSTEM_PROMPT = """\
 Sen bir film jeneriği editörüsün. Aşağıda aynı filmin jeneriğinin İKİ ayrı \

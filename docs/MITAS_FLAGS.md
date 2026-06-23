@@ -52,7 +52,7 @@
 | `MITAS_CREDIT_DETECT_LOWCONF_MINCONF` | `0.45` | `scripts/mitas_pipeline.py:1298` | Düşük-güven yolu için ikinci eşik. | HAYIR | config | — |
 | `MITAS_CREDIT_DETECT_LOWCONF_MIN_DUR` | `180` (s) | `scripts/mitas_pipeline.py:1299` | Düşük-güven yolunda min pencere süresi. | HAYIR | config | — |
 | `MITAS_OCR_MIN_LINES` | `30` | `scripts/mitas_pipeline.py:1488` | OCR çıktısı bu satırın altındaysa eskalasyon tetiği. | HAYIR | config | — |
-| `MITAS_CREDIT_TEXT_MODEL` | `qwen3.6:35b-a3b` | `scripts/credit_text_read.py:29,945` | Künye-metin ayıklayıcı (kredi-okuma) ollama modeli. | HAYIR | config | Benchmark kazananı; 23GB VRAM. |
+| `MITAS_CREDIT_TEXT_MODEL` | `gemma-4-31b-it-qat:latest` | `scripts/credit_text_read.py:29` | Künye-metin ayıklayıcı (kredi-okuma) ollama modeli. | HAYIR | config | qwen3.6:35b→gemma geçişi (Çağatay 2026-06-23); ~17GB VRAM. Geri dön: `=qwen3.6:35b-a3b`. |
 | `MITAS_CREDIT_MODELS` | `gemma4:26b,qwen2.5vl:7b` | `scripts/credit_video_read.py:52` | Video-kredi (VL) modelleri (virgül-ayrık). | HAYIR | config | — |
 | `MITAS_CREDIT_CAST_BLOCK_FAST` | `0` (opt-in) | `scripts/credit_text_read.py:969` | Cast-bloğu hızlı-mod (ayrıntıyı atla). | HAYIR | opt-in | Re-render batch'lerinde `1` kullanıldı. |
 | `MITAS_CREDIT_PARSE_V2` | yok (opt-in) | `OCR-worktree/pdf-mitas/credit_parse.py:260` | Künye parse v2 yolu. | HAYIR | deneysel | Olgunlaşınca v1 kaldır. |
@@ -179,7 +179,7 @@ Bu flag'ler production davranışını **etkiler** ama `start_mitas.ps1`'te gör
 | `MITAS_QC2_WEB` | `1` (AÇIK) | start_mitas set ediyor — aslında görünür (satır 23) | (Sınır vaka: hem start hem kod-default 1.) |
 | `MITAS_GLOBAL_PERSON_GATE` | `0` (KAPALI) | Kişi-kapısı varsayılan kapalı | Görünmez; açılırsa cast filtrelenir. |
 | `MITAS_VL_CAST` | `0` (KAPALI) | VL cast-doldurma kapalı | Görünmez. |
-| `MITAS_CREDIT_TEXT_MODEL` | `qwen3.6:35b-a3b` | Ayıklayıcı model seçimi | Görünmez; VRAM/hız etkisi büyük, start'ta override edilmiyor. |
+| `MITAS_CREDIT_TEXT_MODEL` | `gemma-4-31b-it-qat:latest` | Ayıklayıcı model seçimi | Görünmez; VRAM/hız etkisi büyük, start'ta override edilmiyor. (2026-06-23 qwen3.6:35b→gemma) |
 | `MITAS_CREDIT_MODELS` | `gemma4:26b,qwen2.5vl:7b` | VL modelleri | Görünmez. |
 | `MITAS_ASR_FOREIGN_BEAM` | `1` | ASR beam | Görünmez; eski 5-regresyonu kod-default'ta düzeltildi. |
 | `MITAS_OZET_OLLAMA_MODEL` | `gemma4:26b` | Özet fallback modeli | Görünmez. |

@@ -8,7 +8,7 @@ import json, urllib.request, sys, time
 sys.stdout.reconfigure(encoding="utf-8")
 
 KUNYE = r"E:\MITAS\Database\evoArcadmin_S_NEMA_F_LM4_2025-1186-1-0000-90-1-K_TAP_KURDU_2\ocr\ocr-3197bc81\kunye.txt"
-MODEL = sys.argv[1] if len(sys.argv) > 1 else "qwen3.6:35b-a3b"
+MODEL = sys.argv[1] if len(sys.argv) > 1 else "gemma-4-31b-it-qat:latest"
 
 lines = [l for l in open(KUNYE, encoding="utf-8").read().splitlines() if l.strip()]
 numbered = "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
