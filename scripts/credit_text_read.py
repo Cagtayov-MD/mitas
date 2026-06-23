@@ -248,11 +248,12 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
 SCHEMA = {
     "type": "object",
     "properties": {
+        "_reasoning": {"type": "string"},
         "yonetmen": {"type": "array", "items": {"type": "string"}},
         "yapimci": {"type": "array", "items": {"type": "string"}},
         "oyuncular": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["yonetmen", "yapimci", "oyuncular"],
+    "required": ["_reasoning", "yonetmen", "yapimci", "oyuncular"],
 }
 
 PROMPT = """Aşağıda bir filmin jeneriğinden (künye) OCR ile okunan satırlar var. Satırlar BOZUK/eksik olabilir.
@@ -272,7 +273,9 @@ KESİN KURALLAR:
 5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla 8, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
 6. YAPIMCI: "PRODUCED BY / YAPIMCI / PRODUCER" yanındaki kişi(ler). Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive/Associate/Line/Co-producer / Yürütücü / Ortak yapımcı" da GERÇEK yapımcı sayılmaz.
 
-ÇIKTI: yalnız JSON: {"yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
+ÇIKTI: yalnız JSON:
+{"_reasoning": "<her satırı kısaca etiketle: YÖNETMEN / YAPIMCI / OYUNCU / EKİP-DİĞER>", "yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
+_reasoning bölümünde önce her satırın hangi role ait olduğunu sınıflandır, SONRA alanları doldur.
 
 SATIRLAR:
 %s
