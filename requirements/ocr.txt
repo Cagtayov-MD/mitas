@@ -13,3 +13,7 @@ paddlepaddle==3.3.1
 paddleocr==3.5.0
 pytesseract==0.3.13
 oneocr==1.0.12
+
+# Early OCR kunye transliteration before classification.
+Unidecode==1.4.0
+pypinyin==0.55.0

@@ -178,7 +178,7 @@ def _kb_health() -> dict:
             "print(KB().verify('Steven Spielberg', 'director'))"
         )
         out = subprocess.run([str(_KB_CANARY_PY), "-c", code],
-                             capture_output=True, text=True, timeout=10)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
         lines = [ln.strip() for ln in (out.stdout or "").splitlines() if ln.strip()]
         verdict = lines[-1] if lines else ""
         if verdict == "ONAY":
@@ -1050,7 +1050,7 @@ def _gpu_percent() -> int:
         try:
             r = subprocess.run(
                 [cmd, "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
-                capture_output=True, text=True, timeout=5, creationflags=_NO_WIN,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, creationflags=_NO_WIN,
             )
             if r.returncode == 0:
                 val = r.stdout.strip().splitlines()[0].strip()
@@ -1152,7 +1152,7 @@ def health_check() -> dict[str, Any]:
     probe: dict[str, Any] = {}
     try:
         out = subprocess.run([str(_KB_CANARY_PY), str(SCRIPTS_DIR / "_health_probe.py")],
-                             capture_output=True, text=True, timeout=45)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=45)
         line = next((ln for ln in reversed((out.stdout or "").splitlines())
                      if ln.strip().startswith("{")), "")
         if line:
@@ -3563,7 +3563,15 @@ def _remux_media_for_playback(source_path: Path, playback_path: Path) -> None:
         "+faststart",
         str(temp_path),
     ]
-    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    completed = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+        timeout=1800,
+    )
     if completed.returncode != 0:
         temp_path.unlink(missing_ok=True)
         raise RuntimeError((completed.stderr or completed.stdout or "ffmpeg remux failed").strip())
@@ -3595,7 +3603,15 @@ def _trim_media_range(source_path: Path, output_path: Path, *, start_seconds: fl
     else:
         command.extend(["-map", "0:v:0?", "-map", "0:a:0?", "-c", "copy", "-movflags", "+faststart"])
     command.append(str(temp_path))
-    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    completed = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+        timeout=1800,
+    )
     if completed.returncode != 0:
         temp_path.unlink(missing_ok=True)
         raise RuntimeError((completed.stderr or completed.stdout or "ffmpeg range trim failed").strip())
