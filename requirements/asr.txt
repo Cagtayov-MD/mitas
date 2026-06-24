@@ -17,3 +17,6 @@ fastapi==0.136.1
 uvicorn==0.46.0
 websockets==16.0
 onnxruntime==1.23.2
+
+# QC/KB integration tests may run under the ASR venv.
+duckdb==1.5.4
