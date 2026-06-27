@@ -19,6 +19,22 @@ import numpy as np
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 _PADDLE_CACHE: dict[str, object] = {}
 
+# Çok-dilli kredi-rol anahtarları (Arapça/Farsça/Kiril/Yunanca) — credit_terms Latin-merkezli; bu liste
+# OneOCR'ın okuduğu non-Latin kredi kelimelerini HAM metinde yakalar. Latin/Türkçe'de eşleşmez → additive,
+# 0-regresyon. Recall için geniş (kök/stem ile çekim varyantları): atlama riskini düşürür.
+_ML_CREDIT_RE = re.compile(
+    # Arapça
+    "إخراج|اخراج|مخرج|سيناريو|تأليف|قصة|تمثيل|بطولة|موسيق|مونتاج|تصوير|إنتاج|انتاج|الأدوار|الادوار|أدوار|"
+    "مساعد|أداء|اداء|حوار|ديكور|ملابس|تصميم|"
+    # Farsça (Arap-alfabe ek harfler: گ چ پ ژ)
+    "کارگردان|فیلمنامه|بازیگر|تهیه|موسیقی|تدوین|فیلمبردار|طراح|"
+    # Kiril (Rusça vb.) — kök/stem
+    "режисс|постанов|сценар|оператор|монтаж|музык|композит|продюс|ролях|роли|актёр|актер|актрис|художн|"
+    "звук|производ|съёмк|съемк|оформлен|"
+    # Yunanca — kök/stem
+    "σκηνοθεσ|σενάρ|μουσικ|παραγωγ|ηθοποι|φωτογραφ|μοντάζ"
+)
+
 
 @dataclass
 class DetectorConfig:
@@ -546,7 +562,11 @@ def paddle_frame_score(ocr: object, path: Path, cfg: DetectorConfig) -> tuple[fl
         score *= 0.05
     if subtitle_like:
         score *= 0.04
-    if prose_like:
+    if prose_like and not (
+        _credit_prose_exempt_enabled()
+        and features["two_column_layout"]
+        and features["semantic_score"] >= 0.45
+    ):
         score *= 0.08
     if end_card_like:
         score *= 0.10
@@ -630,6 +650,39 @@ def _nonlatin_names_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_NONLATIN_NAMES", "").strip().lower() in ("1", "true", "on", "yes")
 
 
+def _latin_lowercase_names_enabled() -> bool:
+    """Fix B (2026-06-27): küçük-harf CASED Latin kredi isimlerini (Fransızca/İtalyanca/İspanyolca —
+    'pierre lary', 'michèle moretti') isim-benzeri say. DEFAULT OFF — MITAS_JENERIK_LATIN_LC_NAMES=1.
+    Mevcut büyük-harf yolu (upper_ratio>=0.65) bu satırlara name_like=False veriyordu (Opus teyitli).
+    FP koruması: fonksiyon-kelimesi (_LATIN_LC_STOPWORDS) içeren satır = altyazı/düzyazı → isim DEĞİL."""
+    return os.environ.get("MITAS_JENERIK_LATIN_LC_NAMES", "").strip().lower() in ("1", "true", "on", "yes")
+
+
+def _credit_prose_exempt_enabled() -> bool:
+    """Fix E (2026-06-27): iki-sütunlu + yüksek-semantic kredi karelerini düzyazı-cezasından (score*=0.08)
+    MUAF tut. DEFAULT OFF — MITAS_JENERIK_PROSE_CREDIT_EXEMPT=1. is_prose_scene_text küçük-harf Fransızca
+    kredileri ('luis peralta | électriciens') düzyazı sanıp text_score'u katlediyor; two_column+semantic>=0.45
+    NET kredidir → muaf. Koşul DAR: tek-sütun düzyazı/epilog (ANTON Çehov alıntısı, 2col=False) muaf DEĞİL."""
+    return os.environ.get("MITAS_JENERIK_PROSE_CREDIT_EXEMPT", "").strip().lower() in ("1", "true", "on", "yes")
+
+
+# Fix B FP-koruması: bu fonksiyon-kelimelerden biri satırda varsa = altyazı/düzyazı, isim DEĞİL.
+# Hepsi normalize_ascii (aksansız küçük-harf) biçiminde. İsim-parçacıkları (de/von/van/di/la/le)
+# KASITEN dışarıda — 'michel de broca' gibi parçacıklı isimler korunsun.
+_LATIN_LC_STOPWORDS = {
+    "je", "tu", "il", "elle", "nous", "vous", "ils", "elles", "est", "sont", "etre", "ne", "pas",
+    "que", "qui", "pour", "avec", "dans", "mais", "comme", "tout", "tres", "bien", "plus", "ce",
+    "cette", "ces", "mon", "ton", "son", "quoi", "quand",  # FR
+    "i", "you", "he", "she", "we", "they", "is", "are", "was", "were", "have", "has", "this",
+    "that", "with", "for", "not", "but", "what", "when", "your", "his", "her",  # EN
+    "io", "lui", "lei", "noi", "voi", "sono", "che", "non", "per", "con", "ma", "questo",
+    "quello", "molto",  # IT
+    "yo", "ella", "nosotros", "ellos", "ellas", "para", "pero", "este", "esta", "muy",  # ES
+    "ben", "sen", "biz", "siz", "icin", "ama", "gibi", "cok", "daha", "bu", "su", "var", "yok",
+    "degil", "nasil",  # TR
+}
+
+
 def is_name_like_line(text: str) -> bool:
     raw = text.strip()
     if not raw or any(ch.isdigit() for ch in raw):
@@ -690,7 +743,14 @@ def is_name_like_line(text: str) -> bool:
         if first_alpha and first_alpha.isupper():
             initial_caps += 1
     initial_ratio = initial_caps / max(1, len(tokens))
-    return upper_ratio >= 0.65 or initial_ratio >= 0.75
+    if upper_ratio >= 0.65 or initial_ratio >= 0.75:
+        return True
+    # Fix B (2026-06-27): küçük-harf Latin yabancı kredi ismi (pierre lary, michèle moretti). Flag-gated
+    # DEFAULT OFF → bu iki satır False döner = mevcut davranışla BİREBİR (sıfır regresyon). Flag ON iken:
+    # yapısal filtreler geçmiş + fonksiyon-kelimesi yok (altyazı/düzyazı değil) → isim say.
+    if _latin_lowercase_names_enabled() and not any(tok in _LATIN_LC_STOPWORDS for tok in normalized):
+        return True
+    return False
 
 
 def has_two_column_layout(boxes: list[tuple[int, int, int, int]], width: int, height: int) -> bool:
@@ -779,6 +839,10 @@ def semantic_text_features(
     if "as" in tokens and name_like_count >= 2:
         phrase_credit_hits += 1
     credit_keyword_count += phrase_credit_hits
+    # Çok-dilli (Arapça/Kiril) kredi-rol anahtarları — normalize_ascii bunları Latin'e çevirmez; HAM metinde
+    # ara. Latin/Türkçe korpusta EŞLEŞMEZ → 0-regresyon (additive). OneOCR non-Latin'i okur, bu onu "kredi" sayar.
+    if _ML_CREDIT_RE.search(" ".join(texts)):
+        credit_keyword_count += 1
     plaque_terms = {
         "advanced",
         "aviation",

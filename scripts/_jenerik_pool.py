@@ -87,6 +87,13 @@ def _accepted(status: str) -> bool:
     return status == "review_boundary_ambiguous" and _accept_review_enabled()
 
 
+def _oneocr_fallback_enabled() -> bool:
+    # B kararı (Çağatay 2026-06-27): paddle başarısızsa (not_found/review-scene/low-conf) OneOCR-detektörü
+    # dene → non-Latin/FR'yi kurtarır. OneOCR ~80sn/film yavaş ama YALNIZ paddle-başarısızlarında koşar
+    # (paddle hızını korur, sadece gerekli ~%20'de OneOCR). DEFAULT ON; kapat =0.
+    return os.environ.get("MITAS_JENERIK_ONEOCR_FALLBACK", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
 def create_pool(
     *,
     frames_dir: Path,
@@ -99,6 +106,21 @@ def create_pool(
     detector_dir = debug_root / "detector"
     result = detect_frame_dir(frames_dir, detector_dir, cfg, debug_sheet)
     images = list_images(frames_dir)
+    engine_used = "paddle"
+
+    # OneOCR FALLBACK: paddle kredi-başlangıcı bulamadıysa OneOCR-detektörü dene (non-Latin/FR kurtarır).
+    if not _accepted(result.status) and _oneocr_fallback_enabled():
+        os.environ.setdefault("MITAS_JENERIK_LATIN_LC_NAMES", "1")
+        os.environ.setdefault("MITAS_JENERIK_NONLATIN_NAMES", "1")
+        try:
+            from core.pipelines.ocr.jenerik_oneocr_detector import detect_frame_dir_oneocr
+            oc = detect_frame_dir_oneocr(frames_dir, debug_root / "detector_oneocr", cfg)
+            if _accepted(oc.status):
+                result = oc
+                engine_used = "oneocr"
+        except Exception as exc:  # noqa: BLE001 — fallback hatası pipeline'ı bozmaz
+            _append_jsonl(debug_root / "errors.jsonl",
+                          {"ts": _now(), "stage": "oneocr_fallback", "error": f"{type(exc).__name__}: {exc}"})
 
     _safe_reset_pool(pool_dir)
 
@@ -113,6 +135,7 @@ def create_pool(
 
     manifest = {
         "status": status,
+        "engine": engine_used,
         "accepted": bool(copied),
         "input_frames": len(images),
         "pool_frames": len(copied),
