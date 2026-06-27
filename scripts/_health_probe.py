@@ -78,6 +78,38 @@ def probe_deepseek() -> dict:
         return {"ok": False, "detail": f"erisim hatasi: {type(exc).__name__}"}
 
 
+def probe_gemini() -> dict:
+    key = (os.environ.get("MITAS_GEMINI") or os.environ.get("GEMINI_API_KEY")
+           or os.environ.get("GOOGLE_API_KEY"))
+    if not key:
+        return {"ok": False, "detail": "Gemini anahtari yok (MITAS_GEMINI)"}
+    model = os.environ.get("MITAS_GEMINI_MODEL", "gemini-2.5-flash")
+    base = os.environ.get("MITAS_GEMINI_BASE", "https://generativelanguage.googleapis.com").rstrip("/")
+    url = f"{base}/v1beta/models/{model}:generateContent?key={key}"
+    body = {"contents": [{"parts": [{"text": "ping"}]}],
+            "generationConfig": {"maxOutputTokens": 1, "temperature": 0}}
+    req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"),
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            json.loads(r.read().decode("utf-8"))
+        return {"ok": True, "detail": f"Gemini API erisim OK ({model})"}
+    except urllib.error.HTTPError as exc:
+        code = int(getattr(exc, "code", 0) or 0)
+        try:
+            body_txt = exc.read().decode("utf-8", "replace")
+        except Exception:  # noqa: BLE001
+            body_txt = ""
+        low = (str(getattr(exc, "reason", "")) + " " + body_txt).lower()
+        if code == 400 and "api key" in low:
+            return {"ok": False, "detail": "API anahtari gecersiz (400)"}
+        if code == 429 or "resource_exhausted" in low or any(s in low for s in _CREDIT_SIGNALS):
+            return {"ok": False, "detail": f"kota/token bitti (HTTP {code})"}
+        return {"ok": False, "detail": f"HTTP {code}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "detail": f"erisim hatasi: {type(exc).__name__}"}
+
+
 def probe_kb() -> dict:
     try:
         from credit_video_read import KB
@@ -93,5 +125,6 @@ def probe_kb() -> dict:
 
 if __name__ == "__main__":
     print(json.dumps(
-        {"anthropic": probe_anthropic(), "deepseek": probe_deepseek(), "kb": probe_kb()},
+        {"anthropic": probe_anthropic(), "deepseek": probe_deepseek(),
+         "gemini": probe_gemini(), "kb": probe_kb()},
         ensure_ascii=False))

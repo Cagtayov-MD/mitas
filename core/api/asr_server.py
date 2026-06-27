@@ -1143,10 +1143,11 @@ def health() -> dict[str, Any]:
 
 @app.post("/api/health/check")
 def health_check() -> dict[str, Any]:
-    """UI 'Check' tusu: Anthropic + DeepSeek + KB(IMDb) erisimini ANINDA aktif test eder.
+    """UI 'Check' tusu: Gemini + Anthropic + DeepSeek + KB(IMDb) erisimini ANINDA aktif test eder.
 
     PY_PDF subprocess'iyle scripts/_health_probe.py kosar (minimal gercek ping + KB kanaryasi),
-    sonuclari kalici api_status'a yazar + KB cache'ini tazeler. {ok,detail,ts}*3 doner; ASLA cokmez.
+    sonuclari kalici api_status'a yazar + KB cache'ini tazeler. {ok,detail,ts}*4 doner; ASLA cokmez.
+    Gemini = ozet PRIMARY motoru; kota/token bitince UI'da sari uyari (soldaki durum-pill'leri).
     """
     iso = datetime.now(timezone.utc).isoformat()
     probe: dict[str, Any] = {}
@@ -1166,12 +1167,13 @@ def health_check() -> dict[str, Any]:
             return {"ok": bool(e.get("ok")), "detail": str(e.get("detail", ""))[:200], "ts": iso}
         return {"ok": False, "detail": f"kontrol edilemedi ({probe.get('_error', 'probe yok')})", "ts": iso}
 
-    anth, deep, kb = _entry("anthropic"), _entry("deepseek"), _entry("kb")
+    anth, deep, gem, kb = _entry("anthropic"), _entry("deepseek"), _entry("gemini"), _entry("kb")
     _api_status_mark("anthropic", anth["ok"], anth["detail"])
     _api_status_mark("deepseek", deep["ok"], deep["detail"])
+    _api_status_mark("gemini", gem["ok"], gem["detail"])   # özet PRIMARY motoru → token/kota durumu
     _kb_health_cache["ts"] = time.time()
     _kb_health_cache["entry"] = kb
-    return {"deepseek": deep, "anthropic": anth, "kb": kb}
+    return {"deepseek": deep, "anthropic": anth, "gemini": gem, "kb": kb}
 
 
 @app.post("/api/asr/transcribe")

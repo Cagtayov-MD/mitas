@@ -81,6 +81,11 @@ if (-not $env:MITAS_CAST_OCR_KEEP)        { $env:MITAS_CAST_OCR_KEEP = '1';     
 if (-not $env:MITAS_CAST_CAP)             { $env:MITAS_CAST_CAP = '10';            Write-Host '   + MITAS_CAST_CAP=10 (C2b — cap 8→10)' }
 # C5: non-cast sızmasına karşı qc_block S1 filtresi (zaten credit_text_read'de çalışıyor; qc_block seviyesinde ek katman).
 if (-not $env:MITAS_QC_NONCAST_FILTER)    { $env:MITAS_QC_NONCAST_FILTER = '1';    Write-Host '   + MITAS_QC_NONCAST_FILTER=1 (C5 AKTIF — non-cast qc_block S1)' }
+# OZET MOTORU (2026-06-27 model-bake-off): gemini-2.5-flash PRIMARY (0 HATALI, Sonnet-sinifi, ~10x ucuz,
+# anahtar MITAS_GEMINI kurulu), gemma-local FALLBACK. Kota/anahtar yoksa otomatik gemma. Kapat: =0.
+if (-not $env:MITAS_OZET_GEMINI)          { $env:MITAS_OZET_GEMINI = '1';          Write-Host '   + MITAS_OZET_GEMINI=1 (ozet gemini-2.5-flash PRIMARY, gemma fallback)' }
+# Ozet zinciri: gemini(1) -> Sonnet(2,yedek; ANTHROPIC_API_KEY yoksa atil) -> gemma-local(3).
+if (-not $env:MITAS_OZET_CLOUD)           { $env:MITAS_OZET_CLOUD = '1';           Write-Host '   + MITAS_OZET_CLOUD=1 (Sonnet yedek; anahtar yoksa atil, gemma fallback)' }
 
 Write-Host '== 2) Mevcut 8765/8787 uvicorn/asr_server/tedial süreçleri GÜÇLÜ durduruluyor (zombi/shim dahil) =='
 $kill = @{}

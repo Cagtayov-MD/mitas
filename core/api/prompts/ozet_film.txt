@@ -14,7 +14,7 @@ KİM yaptı ve NEDEN (sonuç/dönüm/sebep) her zaman kalır.
 ÇIKTI KURALLARI — TAVİZSİZ
 ═══════════════════════════════════════════════════════════
 
-UZUNLUK : Sabit cümle sayısı YOK. 45–65 kelime aralığında kal. 65 kelime ASLA geçilmez.
+UZUNLUK : Sabit cümle sayısı YOK. 40–60 kelime aralığında kal. 60 kelime ASLA geçilmez.
           Tek paragraf, satır sonu yok.
 DİL     : Türkçe. Yabancı özel adlar orijinal Latin yazımıyla, sade (Gideon, Edison,
           New York). Yabancı adda Türkçe karakter (ç/ğ/ı/ö/ş/ü/İ) ve köşeli parantez YOK.
@@ -24,13 +24,18 @@ söyler. Olay taşımayan, betimleyici/süsleyici cümle YOK. Özet = ne oluyor;
 Mekanik olay raporu yazma. Ana karakter önce ne ister, neyle sıkışır, hangi kişi/olay/duygu
 kararını değiştirir ve finalde ne yapar? Özet bu dönüşümü kurmalı.
 
-OLAYIN SONUCUNU YAZ, YÖNTEMİNİ DEĞİL. Her olay için NE olduğunu söyle; ona NASIL ulaşıldığını
-(adım adım yöntem, takip/arama/plan prosedürü, mekân ayrıntısı) yazma. Karakter bir amaca
-ulaştıysa SONUCU yaz, ona giden işlemleri sayma. Bu kural finali GİZLEMEZ: kilit sonucu
-(kim ölür/kazanır, sır nedir, hedefe ulaşılır mı) AÇIKÇA yaz; yalnızca o sonuca giden YOLU at.
+OLAYIN SONUCUNU YAZ, YÖNTEMİNİ DEĞİL. ANA KONUYA İN: ikincil ayrıntıyı, ara durağı, mekânı ve
+yöntem zincirini ACIMASIZCA at — geriye yalnızca ana olay kalsın. Her olay için NE olduğunu söyle;
+ona NASIL ulaşıldığını (adım adım yöntem, takip/arama/plan prosedürü, mekân ayrıntısı) yazma.
+Karakter bir amaca ulaştıysa SONUCU yaz, ona giden işlemleri sayma. Bu kural finali GİZLEMEZ:
+kilit sonucu (kim ölür/kazanır, sır nedir, hedefe ulaşılır mı) AÇIKÇA yaz; yalnızca o sonuca giden
+YOLU at.
    DOĞRU : Cody çalınan elmasları bulur.
    YANLIŞ: Cody, Charlie adlı gencin vücudundaki dövmeleri takip ederek elmasları suyun altındaki
            gizli bölmede bulur. (dövme takibi + gizli bölme = gereksiz yöntem)
+   EN SADE — yalnızca ana olay:
+   DOĞRU : Altını bulur.
+   YANLIŞ: Suyun altındaki kutunun içinde altını bulur. (su altı + kutu = gereksiz yer/yöntem)
    Yan karakter yalnızca sonucun ANAHTARIYSA aracı olarak kısaca girebilir:
    Cody, Charlie aracılığıyla elmasların yerini bulur.
 

@@ -823,8 +823,20 @@ _gemini = _load_sibling("_gemini")
 _deepseek = _load_sibling("_deepseek")
 
 
+# ASR zaman damgasi deseni: "[00:33:26] ". Ozete SIFIR katki, ama LLM tokenizer'inda ~2x sisirir
+# (rakam/iki-nokta/koseli-parantez kotu bolunur). Uzun filmde toplam token baglam-penceresini asip
+# modeli tek-token coplu cikti uretmeye iter (kanitli: SUCLU KIM 60K char damgali >32K token -> "H";
+# damga soyununca 42K char/17.7K token -> temiz ozet). Soymak hem bu hatayi onler hem ~%30 token kazandirir.
+_OZET_TS_RE = re.compile(r"\[\d\d:\d\d:\d\d\]\s*")
+
+
 def _ozet_source_text(transcript: str) -> str:
-    """Uzun transcript'i kirp (asr_server._summary_source_text ile ayni)."""
+    """Uzun transcript'i kirp (asr_server._summary_source_text ile ayni).
+
+    2026-06-27: kirpmadan ONCE ASR zaman damgalarini soyar (MITAS_OZET_STRIP_TS, default ON; fail-safe).
+    Damgalar ozet icin gurultu + token-sisirici; soymak uzun-film baglam-asimi cop ciktisini onler."""
+    if os.environ.get("MITAS_OZET_STRIP_TS", "1").strip().lower() not in ("0", "false", "off", "no"):
+        transcript = _OZET_TS_RE.sub("", transcript)
     if len(transcript) <= OZET_MAX_SOURCE_CHARS:
         return transcript
     head = transcript[:25000]
@@ -951,9 +963,24 @@ def _ozet_gemini(system_content: str, user_msg: str) -> str | None:
     # ÇALIŞIYOR; Sonnet boş/kredisiz, DeepSeek 402). gemini-2.5 düşünmeyi API-içi yapar → TEMİZ
     # final döner (gemma-4-31b gibi ham zincir-düşünce DÖKMEZ). Kota dolunca (429) zincir gemma-local'e düşer.
     model = os.environ.get("MITAS_GEMINI_MODEL", "gemini-2.5-flash")
+    # SAFETY=BLOCK_NONE: özet KURGU içeriği özetler (şiddet/ölüm/silah olağan). Gemini default safety
+    # filtresi bu sahneleri BLOKLAYIP boş döndürüyordu (Sundown/Taşıyıcı gibi → kayıp özet). Özet
+    # üretimi olduğu için tüm kategoriler BLOCK_NONE (2026-06-27 bake-off: blok→boş→gemma'ya düşüyordu).
+    # THINKING BÜTÇESİ: gemini-2.5-flash bir düşünme modeli; thinkingBudget=0 uzun system-prompt'ta
+    # BOŞ yanıt döndürüyor (2026-06-27 bake-off: SUNDOWN finishReason=None, 0 token). KÜÇÜK bütçe (512)
+    # hem boşluğu çözer hem kavramayı artırır (Tate'in sağ kaldığı final ancak bütçeyle doğru çıktı) —
+    # tam-reasoning'in halüsinasyon riskine girmeden. MITAS_GEMINI_THINK ile ayarlanır.
+    try:
+        _think = int(os.environ.get("MITAS_GEMINI_THINK", "512") or "512")
+    except Exception:  # noqa: BLE001
+        _think = 512
     raw = _gemini.gemini_text(
         system=system_content, prompt=user_msg,
         model=model, temperature=0.0, max_tokens=OZET_MAX_TOKENS, timeout=OZET_TIMEOUT_SECONDS,
+        thinking_budget=_think,
+        safetySettings=[{"category": c, "threshold": "BLOCK_NONE"} for c in (
+            "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH",
+            "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT")],
     )
     if not isinstance(raw, str) or not raw.strip():
         return None
@@ -1061,6 +1088,30 @@ _OZET_SAGLAYICILAR = (
 )
 
 
+def _ozet_chain():
+    """Özet sağlayıcı zinciri. Default: SADECE gemma-local (tam-yerel, sürpriz maliyet yok).
+
+    OPT-IN BULUT (2026-06-27, model-bake-off bulgusu): MITAS_OZET_CLOUD=1 ise zincirin BAŞINA Sonnet
+    eklenir → bulut ÖNCE denenir, gemma-local FALLBACK kalır. Gerekçe: 7-model yerel bake-off'unda
+    (gemma/Qwen3.6-27B/qwen3:30b-a3b/gpt-oss/nemotron/Haiku) HİÇBİR yerel model güvenilir-sağlıklı
+    Türkçe özet veremedi (kim-kime karışması, kilit-dönüm atlama, dil/garble); yalnız Sonnet doğruydu.
+    Flag default-OFF → anahtar ortamda olsa bile bilerek açılmadıkça bulut ÇAĞRILMAZ (maliyet koruması).
+    Anahtar yoksa _ozet_anthropic/_ozet_gemini zaten None döner → otomatik gemma fallback (fail-safe).
+
+    GEMINI (2026-06-27 model-bake-off KAZANANI): MITAS_OZET_GEMINI=1 → zincir başına gemini-2.5-flash.
+    7-model yerel bake-off + tarafsız jüri: yerel hiçbir model sağlıklı değil; gemini-2.5-flash 0 HATALI
+    (Sonnet-sınıfı kavrama) + ~10x ucuz + 2-3s + anahtar (MITAS_GEMINI) zaten kurulu. Sıra (varsa):
+    gemini → sonnet → gemma-local (fallback). Herhangi biri None/kota → otomatik sıradakine düşer."""
+    _on = ("1", "true", "on", "yes")
+    chain = []
+    if os.environ.get("MITAS_OZET_GEMINI", "0").strip().lower() in _on:
+        chain.append(("gemini", _ozet_gemini))
+    if os.environ.get("MITAS_OZET_CLOUD", "0").strip().lower() in _on:
+        chain.append(("sonnet", _ozet_anthropic))
+    chain.extend(_OZET_SAGLAYICILAR)   # gemma-local DAİMA fallback (en sonda)
+    return tuple(chain)
+
+
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
     """Transcript'ten Gemini→Sonnet→DeepSeek zinciriyle film/dizi olay-örgüsü özeti (spoiler dahil).
 
@@ -1091,8 +1142,9 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
         _turlar = max(1, int(os.environ.get("MITAS_OZET_RETRIES", "3") or "3"))
     except Exception:  # noqa: BLE001
         _turlar = 3
+    _chain = _ozet_chain()
     for _tur in range(_turlar):
-        for _ad, _fn in _OZET_SAGLAYICILAR:
+        for _ad, _fn in _chain:
             try:
                 out = _fn(system_content, user_msg)
             except Exception:  # noqa: BLE001 — bir sağlayıcı çökerse sıradakine düş
@@ -1222,6 +1274,12 @@ _PROD_DEFAULTS = {
     "MITAS_GARBLE_NGRAM_ROUTE": "0",
     "MITAS_QC_OTORITE_ROUTE": "1",   # FIX-B: OCR-otorite ihlali → KONTROL (additive route)
     "MITAS_PDF_RENDER_AUDIT": "1",   # FIX-D: S5 form-ezme gözlem sinyali (route YOK)
+    # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
+    # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.
+    # Sonnet yedek: ANTHROPIC_API_KEY yoksa _ozet_anthropic None döner → otomatik gemma'ya düşer (atıl).
+    # Her katman kota/anahtar/hata'da sıradakine düşer (fail-safe). Kapatmak: ilgili flag=0.
+    "MITAS_OZET_GEMINI": "1",
+    "MITAS_OZET_CLOUD": "1",
 }
 
 

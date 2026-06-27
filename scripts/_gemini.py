@@ -133,6 +133,10 @@ def gemini_text(
                 _status_mark("gemini", False, detail)
                 _log_warn(f"[_gemini] {detail} — kalıcı (retry yok): {body_txt[:200]}")
                 return None
+            # 429 = kota/oran limiti. Gunluk kota dolduysa retry de cozmez; UI'da "token bitti" gozuksun diye
+            # son denemede 429 ise simdiden isaretle (retry yine de denenir; basarili olursa True'ya doner).
+            if exc.code == 429:
+                _status_mark("gemini", False, "HTTP 429 — kota/token bitti (gunluk limit?)")
             last_exc = exc  # geçici (429/503/5xx) → retry
         except (urllib.error.URLError, OSError, TimeoutError) as exc:
             last_exc = exc

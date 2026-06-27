@@ -275,15 +275,16 @@ export function Header({
               Check = üçünü de ANINDA aktif test eder (pasif 60sn poll'u beklemeden). */}
           <div className="flex shrink-0 items-center gap-1.5">
             <div className="flex flex-col gap-0.5 leading-none">
-              <ApiStatusPill label="DeepSeek" entry={apiStatus.deepseek} />
+              <ApiStatusPill label="Gemini" entry={apiStatus.gemini} warnKind="kota/token bitti" />
               <ApiStatusPill label="Claude" entry={apiStatus.anthropic} />
+              <ApiStatusPill label="DeepSeek" entry={apiStatus.deepseek} />
               <ApiStatusPill label="KB (IMDb)" entry={apiStatus.kb} warnKind="erişilemiyor" />
             </div>
             <button
               type="button"
               onClick={runHealthCheck}
               disabled={healthChecking}
-              title="DeepSeek + Claude + KB erişimini şimdi test et"
+              title="Gemini + Claude + DeepSeek + KB erişimini şimdi test et"
               className="inline-flex items-center gap-1 self-center rounded-sm border border-border-mitas bg-surface/70 px-1.5 py-1 text-[10px] font-medium text-foreground-disabled shadow-sm hover:bg-surface disabled:opacity-50"
             >
               <RotateCcw className={`h-3 w-3 shrink-0 ${healthChecking ? 'animate-spin' : ''}`} aria-hidden />
