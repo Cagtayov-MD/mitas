@@ -356,6 +356,77 @@ def ocr_frame(eng, path: Path) -> list[str]:
     return out
 
 
+def _frame_read_record(
+    *,
+    frame_path: str | Path,
+    frame_index: int,
+    line_index: int,
+    text: str,
+    folded: str = "",
+    y0=None,
+    y1=None,
+    x0=None,
+    x1=None,
+    source_stage: str = "pipeline100_read_pos",
+) -> dict:
+    fp_ = Path(frame_path)
+    bbox = {}
+    if y0 is not None:
+        bbox["y0"] = int(y0)
+    if y1 is not None:
+        bbox["y1"] = int(y1)
+    if x0 is not None:
+        bbox["x0"] = int(x0)
+    if x1 is not None:
+        bbox["x1"] = int(x1)
+    return {
+        "engine": "oneocr",
+        "stage": "raw_frame",
+        "source_stage": source_stage,
+        "frame_index": int(frame_index),
+        "frame_file": fp_.name,
+        "frame_path": str(fp_),
+        "segment": fp_.parent.name,
+        "line_index": int(line_index),
+        "text": text,
+        "fold": folded or fold(text),
+        "bbox": bbox,
+    }
+
+
+def _ocr_pos_raw_records(frame_paths: list[str], idx: list[int], ocr_pos: dict) -> list[dict]:
+    rows: list[dict] = []
+    for selected_rank, i in enumerate(sorted(idx)):
+        for line_index, tup in enumerate(ocr_pos.get(i, []) or [], start=1):
+            folded = str(tup[0] if len(tup) > 0 else "")
+            raw = str(tup[1] if len(tup) > 1 else "")
+            y0 = tup[2] if len(tup) > 2 else None
+            y1 = tup[3] if len(tup) > 3 else None
+            x0 = tup[4] if len(tup) > 4 else None
+            x1 = tup[5] if len(tup) > 5 else None
+            row = _frame_read_record(
+                frame_path=frame_paths[i],
+                frame_index=i,
+                line_index=line_index,
+                text=raw,
+                folded=folded,
+                y0=y0,
+                y1=y1,
+                x0=x0,
+                x1=x1,
+            )
+            row["selected_rank"] = int(selected_rank)
+            rows.append(row)
+    return rows
+
+
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 # ── ESKI kare-kare OneOCR akisi (FALLBACK) ──────────────────────────────────
 def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dict:
     """Zincir/CLIP/DB yoksa: her kareyi ayri OneOCR oku, fold-dedup, gurultu ele.
@@ -368,11 +439,19 @@ def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dic
     order: list[str] = []
     raw_count = 0
     read_err = 0
+    raw_detail: list[dict] = []
     if eng is not None:
-        for fp_ in frames:
+        for frame_index, fp_ in enumerate(frames):
             try:
-                for ln in ocr_frame(eng, fp_):
+                for line_index, ln in enumerate(ocr_frame(eng, fp_), start=1):
                     raw_count += 1
+                    raw_detail.append(_frame_read_record(
+                        frame_path=fp_,
+                        frame_index=frame_index,
+                        line_index=line_index,
+                        text=ln,
+                        source_stage="oneocr_fallback_frame",
+                    ))
                     fk = fold(ln)
                     if fk and fk not in seen:
                         seen[fk] = ln
@@ -405,6 +484,8 @@ def run_oneocr_fallback(frames: list[Path], started: float, profile: str) -> dic
         "raw_line_count": raw_count,
         "garble_frac": round(gf, 4),
         "bucket": bucket,
+        "raw_reads": [r["text"] for r in raw_detail],
+        "raw_reads_detail": raw_detail,
         # 1.7 telemetri: oneocr-fallback yolunda GLM hic denenmez
         "glm_attempted": False,
         "glm_status": "skipped",
@@ -886,6 +967,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
+        "raw_reads_detail": _ocr_pos_raw_records(frame_paths, idx, ocr_pos),
         # frame-dedup telemetri (None=kapali/no-op, yoksa {"in","out","dropped"})
         "frame_dedup": _dedup_stats,
     }
@@ -1022,6 +1104,8 @@ def main(argv=None) -> int:
         (out / "ocr_ham.txt").write_text("\n".join(res["placed_raw"]) + "\n", encoding="utf-8")
     if res.get("raw_reads"):
         (out / "ocr_raw_all.txt").write_text("\n".join(res["raw_reads"]) + "\n", encoding="utf-8")
+    if res.get("raw_reads_detail"):
+        _write_jsonl(out / "ocr_raw_reads.jsonl", res["raw_reads_detail"])
 
     summary = {
         "engine": res["engine"],

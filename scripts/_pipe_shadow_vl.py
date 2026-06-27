@@ -70,6 +70,13 @@ def _write_json(out_path: Path, obj: dict) -> None:
     os.replace(str(tmp), str(out_path))
 
 
+def _write_jsonl(out_path: Path, rows: list[dict]) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 # --------------------------------------------------------------------------- #
 # Masked motion hesabı (split_runs KULLANILMAZ — full-frame bug)
 # Maskeleme: _vlm_pipeline slitscan'in text-masked phaseCorrelate yaklaşımı
@@ -97,7 +104,14 @@ def _build_masked_float(gray: np.ndarray, p, dcm) -> tuple[np.ndarray, bool]:
 # --------------------------------------------------------------------------- #
 # A) build_pool
 # --------------------------------------------------------------------------- #
-def build_pool(clip_dir: Path, dcm, args_ns) -> tuple[Path, dict]:
+def build_pool(
+    clip_dir: Path,
+    dcm,
+    args_ns,
+    *,
+    source_dir: Path | None = None,
+    pool_dir_override: Path | None = None,
+) -> tuple[Path, dict]:
     """Kare havuzu oluştur; pool_dir ve manifest döndür."""
 
     tile = int(os.environ.get("MITAS_SHADOW_VL_TILE", TILE_DEFAULT))
@@ -108,22 +122,28 @@ def build_pool(clip_dir: Path, dcm, args_ns) -> tuple[Path, dict]:
     # tabelasını krediye yeğleyip yönetmen-gibi küçük-yazı kareyi ATMASIN. Default 8 (~4s @ 2fps).
     card_step = max(1, int(os.environ.get("MITAS_SHADOW_VL_CARD_STEP", "8") or 8))
 
-    pool_dir = clip_dir / "vl_pool"
+    pool_dir = pool_dir_override or (clip_dir / "vl_pool")
     if pool_dir.exists():
         shutil.rmtree(pool_dir)
     pool_dir.mkdir(parents=True, exist_ok=True)
 
     # PNG'leri topla (giris + cikis)
     seg_frames: dict[str, list[Path]] = {}
-    for seg in ("giris", "cikis"):
-        seg_path = clip_dir / "frames" / seg
-        if seg_path.is_dir():
-            pngs = sorted(seg_path.glob("*.png"), key=_nat_key)
+    if source_dir is not None:
+        if source_dir.is_dir():
+            pngs = sorted(source_dir.glob("*.png"), key=_nat_key)
             if pngs:
-                seg_frames[seg] = pngs
+                seg_frames[source_dir.name] = pngs
+    else:
+        for seg in ("giris", "cikis"):
+            seg_path = clip_dir / "frames" / seg
+            if seg_path.is_dir():
+                pngs = sorted(seg_path.glob("*.png"), key=_nat_key)
+                if pngs:
+                    seg_frames[seg] = pngs
 
     if not seg_frames:
-        manifest = {"status": "no_frames"}
+        manifest = {"status": "no_frames", "source_dir": str(source_dir) if source_dir else None}
         _write_json(pool_dir / "pool_manifest.json", manifest)
         return pool_dir, manifest
 
@@ -324,6 +344,7 @@ def build_pool(clip_dir: Path, dcm, args_ns) -> tuple[Path, dict]:
 
     manifest: dict = {
         "status": "ok",
+        "source_dir": str(source_dir) if source_dir else None,
         "total": len(pool_images),
         "capped": capped,
         "dropped": dropped,
@@ -478,6 +499,7 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
     if "ocr" in model.lower():
         t0 = time.time()
         raw_tiles, all_lines, chatbot = [], [], 0
+        raw_rows: list[dict] = []
         for entry in images:
             fp = entry["file"]
             if not Path(fp).is_file():
@@ -492,6 +514,18 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
                 continue   # footage-chatbot / prompt-echo atilir (kirletmesin)
             lines = [ln.strip() for ln in txt.splitlines() if ln.strip()]
             raw_tiles.append({"file": Path(fp).name, "kind": entry.get("kind"), "text": txt})
+            raw_rows.append({
+                "engine": "vl",
+                "model": model,
+                "mode": "ocr_text",
+                "file": Path(fp).name,
+                "path": str(fp),
+                "kind": entry.get("kind"),
+                "src_frame": entry.get("src_frame"),
+                "src_run": entry.get("src_run"),
+                "text": txt,
+                "lines": lines,
+            })
             all_lines += lines
         cand = _cand_names(all_lines)
         guarded = None
@@ -508,6 +542,7 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
                       "candidates": len(cand),
                       "duration_sec": round(time.time() - t0, 2),
                       "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())}})
+        _write_jsonl(out_path.parent / "raw_reads.jsonl", raw_rows)
         return
 
     t0 = time.time()
@@ -515,13 +550,23 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
     batches = [pool_files[i: i + bs] for i in range(0, len(pool_files), bs)]
 
     results = []
-    for batch in batches:
+    raw_rows: list[dict] = []
+    for batch_index, batch in enumerate(batches):
         try:
             r = gemma_call_shadow(batch, model)
         except Exception as e:
             print(f"[shadow_vl] batch hatası: {e}", file=sys.stderr)
             r = {}
         results.append(r)
+        raw_rows.append({
+            "engine": "vl",
+            "model": model,
+            "mode": "structured_json",
+            "batch_index": batch_index,
+            "files": [Path(p).name for p in batch],
+            "parsed": r,
+            "lines": [str(x) for x in ((r.get("yonetmen") or []) + (r.get("oyuncular") or []))] if isinstance(r, dict) else [],
+        })
 
     merged = pipe.merge(results)
 
@@ -575,6 +620,7 @@ def read_pool(pool_dir: Path, manifest: dict, clip_dir: Path, out_path: Path,
         },
     }
     _write_json(out_path, out_obj)
+    _write_jsonl(out_path.parent / "raw_reads.jsonl", raw_rows)
 
 
 # --------------------------------------------------------------------------- #
@@ -584,10 +630,16 @@ def main():
     parser = argparse.ArgumentParser(description="Gölge VL aşaması — üretime dokunmaz.")
     parser.add_argument("--clip", required=True, help="clip_dir tam yolu")
     parser.add_argument("--out", required=True, help="çıkış gemma_kunye.json tam yolu")
+    parser.add_argument("--source-dir", default=None,
+                        help="Opsiyonel doğrudan kaynak frame havuzu; verilirse frames/giris|cikis yerine sadece burası okunur.")
+    parser.add_argument("--debug-root", default=None,
+                        help="Opsiyonel debug kökü; ara VL havuzu burada tutulur.")
     args = parser.parse_args()
 
     clip_dir = Path(args.clip)
     out_path = Path(args.out)
+    source_dir = Path(args.source_dir) if args.source_dir else None
+    debug_root = Path(args.debug_root) if args.debug_root else None
     model = os.environ.get("MITAS_SHADOW_VL_MODEL", MODEL_DEFAULT)
 
     # --- Modülleri yükle (fail-safe) ---
@@ -630,13 +682,20 @@ def main():
     )
 
     try:
-        pool_dir, manifest = build_pool(clip_dir, dcm, args_ns)
+        pool_dir, manifest = build_pool(
+            clip_dir,
+            dcm,
+            args_ns,
+            source_dir=source_dir,
+            pool_dir_override=(debug_root / "pool") if debug_root else None,
+        )
 
         if manifest.get("status") in ("no_frames", "no_readable_frames"):
             _write_json(out_path, {
                 "status": manifest["status"],
                 "_meta": {
                     "pool_dir": str(pool_dir),
+                    "source_dir": str(source_dir) if source_dir else None,
                     "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime()),
                 },
             })

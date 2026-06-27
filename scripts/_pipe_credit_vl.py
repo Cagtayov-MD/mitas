@@ -48,12 +48,24 @@ def _fold(s):
 
 
 def _find_frames(clip):
-    """clip/frames/giris + cikis (ya da clip altında ilk giris/cikis)."""
+    """clip/frames/giris + cikis.
+
+    Paralel jenerik havuzu aktifse çıkış tarafında `frames/cikis_jenerik`
+    tercih edilir. Klasör boş olsa bile ham `frames/cikis`e geri düşülmez; bu,
+    not_found kararının VL tarafında gizlice bypass edilmesini önler.
+    """
     g = os.path.join(clip, "frames", "giris")
     c = os.path.join(clip, "frames", "cikis")
+    cj = os.path.join(clip, "frames", "cikis_jenerik")
     if not os.path.isdir(g):
         cand = glob.glob(os.path.join(clip, "**", "giris"), recursive=True)
         g = cand[0] if cand else None
+    if os.environ.get("MITAS_VL_USE_JENERIK_POOL", "1").strip().lower() not in ("0", "false", "off", "no"):
+        if os.path.isdir(cj):
+            c = cj
+        elif not os.path.isdir(c or ""):
+            cand = glob.glob(os.path.join(clip, "**", "cikis_jenerik"), recursive=True)
+            c = cand[0] if cand else c
     if not os.path.isdir(c or ""):
         cand = glob.glob(os.path.join(clip, "**", "cikis"), recursive=True)
         c = cand[0] if cand else None

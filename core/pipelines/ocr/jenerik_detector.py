@@ -114,6 +114,16 @@ MIN_TEXT_FRAMES = 3             # koşuda bu kadar gerçek-metin karesi yoksa �
 OCR_BACK_GAP = 4               # kartlar-arası izinli kredi-SİZ kare; bu kadar ardışık footage → sınır, dur
 OCR_BACK_CAP = 120             # en fazla bu kadar kare geri (≈60s @ fps2); BACK_GAP zaten erken durdurur
 OCR_SAFETY = 2                 # ilk kredi-karesinden +bu kadar geri (≈1s film payı)
+
+# GİRİŞ jeneriği açılış köprü fix — flag MITAS_JENERIK_OPEN_BRIDGE (DEFAULT OFF). Dağınık-geç kredi
+# kartları (studio/yönetmen) footage boşluklarıyla bölündüğünde, refine_end_ocr'ın kısa OCR_BACK_GAP=4
+# (~2s @ fps2) kart-arası footage boşluğunu köprüleyemez → geç-kart bloğu pencere DIŞINDA kalır.
+# OPEN_END_BACK_GAP (~100s @ fps2) bu boşlukları köprüler; OPEN_END_BACK_CAP (~200s) ~180s açılış
+# kuyruğunu kapsar. OCR-kapılı (is_credit_text_line) → footage'ta yazı bulunmaz → köprü kurulmaz.
+# Flag OFF → _apply_ocr_refine_end INERT (eski OCR_BACK_GAP=4/OCR_BACK_CAP=120 birebir korunur).
+# Tuning env'leri: MITAS_JENERIK_OPEN_BACK_GAP / MITAS_JENERIK_OPEN_BACK_CAP (boş→default, or-guard'lı).
+OPEN_END_BACK_GAP = int(os.environ.get("MITAS_JENERIK_OPEN_BACK_GAP", "200") or "200")   # ~100s @ fps2
+OPEN_END_BACK_CAP = int(os.environ.get("MITAS_JENERIK_OPEN_BACK_CAP", "400") or "400")   # ~200s @ fps2: açılış kuyruğu
 # NOT (2026-06-20, ÖLÇÜLDÜ→GERİ ALINDI): "sürdürülen yoğun-metin" kapısı (dense_count) denendi; dokulu
 # footage'ı (CENGİZ çayır her karede ~24 sahte-blob) ve diegetik-yazıyı (ASRİ sessiz-film diyalog kartı =
 # gerçekten yoğun yazı) AYIRAMADI + kısa gerçek kredileri kırdı (YERÇEKİMİ). Blob-istatistiği footage-doku/
@@ -691,6 +701,12 @@ def _ocr_gate_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_OCR_GATE", "").strip().lower() in ("1", "true", "on", "yes")
 
 
+def _open_bridge_enabled() -> bool:
+    """Açılış köprü flag: dağınık-geç kredi kartlarını (studio/yönetmen) köprülemek için büyük back_gap.
+    DEFAULT OFF — MITAS_JENERIK_OPEN_BRIDGE=1 ile etkinleştir. Flag OFF iken _apply_ocr_refine_end INERT."""
+    return os.environ.get("MITAS_JENERIK_OPEN_BRIDGE", "").strip().lower() in ("1", "true", "on", "yes")
+
+
 def _apply_ocr_refine(region: dict, frames_bgr: list, ocr_read_fn, *,
                       fps: float, window_start_sec: float) -> dict:
     """Bölgenin start_frame'ini OCR-geriye ile inceltir (asıl TOO_LATE fix). ocr_read_fn(bgr)->satırlar.
@@ -736,7 +752,13 @@ def _apply_ocr_refine_end(region: dict, frames_bgr: list, ocr_read_fn, *,
             cache[idx] = ocr_read_fn(frames_bgr[idx]) or []
         return cache[idx]
 
-    new_ef = refine_end_ocr(ef, len(frames_bgr), lines_at)
+    # Köprü fix (MITAS_JENERIK_OPEN_BRIDGE): flag ON → geniş back_gap ile geç-bloklara köprü kur.
+    # Flag OFF → mevcut çağrı (back_gap=OCR_BACK_GAP=4, back_cap=OCR_BACK_CAP=120) — tamamen INERT.
+    if _open_bridge_enabled():
+        new_ef = refine_end_ocr(ef, len(frames_bgr), lines_at,
+                                back_gap=OPEN_END_BACK_GAP, back_cap=OPEN_END_BACK_CAP)
+    else:
+        new_ef = refine_end_ocr(ef, len(frames_bgr), lines_at)
     if new_ef > ef:
         region = dict(region)
         region["ocr_refined_end_from"] = ef

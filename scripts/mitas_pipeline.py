@@ -1349,6 +1349,8 @@ def main(argv=None) -> int:
     dur_sec = 0.0
     giris_frames = clip_dir / "frames" / "giris"
     cikis_frames = clip_dir / "frames" / "cikis"
+    cikis_jenerik_frames = clip_dir / "frames" / "cikis_jenerik"
+    jenerik_debug_root = clip_dir / "jenerik_debug"
     audio_path = clip_dir / "audio" / "audio16k.wav"
     _detect_changed = False   # SONUÇ-TEMELLİ YEDEK: detect penceresi sabit-varsayılandan saptı mı?
     dur_sec = 0.0
@@ -1543,6 +1545,50 @@ def main(argv=None) -> int:
         timings["coz"] = round(time.perf_counter() - t0, 2)
         log_event("cozumleme_failed", level="error", summary=f"ÇÖZ blogu hata: {exc}",
                   module="pipeline", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+
+    # ===== PARALEL JENERIK HAVUZU (test/provenance): frames/cikis -> frames/cikis_jenerik =====
+    # Ana OneOCR akışı bu havuzu KULLANMAZ; normal frames/giris + frames/cikis okumaya devam eder.
+    # GLM/VL/master debug işleri bu alt havuzdan beslenecek. Fail-safe: hata pipeline'ı bozmaz.
+    _jpool_on = os.environ.get("MITAS_JENERIK_PARALLEL_POOL", "1").strip().lower() not in ("0", "false", "off", "no")
+    if _jpool_on and not args.no_ocr:
+        t_jp = time.perf_counter()
+        try:
+            _jp_cmd = [str(PY_OCR), str(HERE / "_jenerik_pool.py"),
+                       "--frames", str(cikis_frames),
+                       "--pool", str(cikis_jenerik_frames),
+                       "--debug-root", str(jenerik_debug_root)]
+            if os.environ.get("MITAS_JENERIK_DEBUG_SHEET", "").strip().lower() in ("1", "true", "on", "yes"):
+                _jp_cmd.append("--debug-sheet")
+            _rcjp, _outjp, _errjp = run(
+                _jp_cmd,
+                timeout=int(os.environ.get("MITAS_JENERIK_POOL_TIMEOUT", "900") or 900),
+            )
+            _jjp = last_json(_outjp) or {}
+            if not cikis_jenerik_frames.exists():
+                cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
+            timings["jenerik_pool"] = round(time.perf_counter() - t_jp, 2)
+            log_event("jenerik_pool_completed",
+                      level="info" if _jjp.get("status") != "error" else "warn",
+                      summary=f"{video.name}: paralel jenerik havuzu {cikis_jenerik_frames.name} "
+                              f"status={_jjp.get('status')} frame={_jjp.get('pool_frames', 0)} "
+                              f"({timings['jenerik_pool']} sn).",
+                      module="jenerik-pool", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["jenerik_pool"],
+                      detail={"clip_id": clip_id, "pool": str(cikis_jenerik_frames),
+                              "result": _jjp, "stderr": (_errjp or "")[-300:] if _rcjp else None})
+        except Exception as _jpe:  # noqa: BLE001
+            try:
+                cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
+                (jenerik_debug_root / "errors.jsonl").parent.mkdir(parents=True, exist_ok=True)
+                with (jenerik_debug_root / "errors.jsonl").open("a", encoding="utf-8") as _eh:
+                    _eh.write(json.dumps({"ts": now_iso(), "stage": "pool", "error": str(_jpe)[:500]},
+                                         ensure_ascii=False) + "\n")
+            except Exception:
+                pass
+            log_event("jenerik_pool_failed", level="warn",
+                      summary=f"{video.name}: paralel jenerik havuzu atlandı ({type(_jpe).__name__}).",
+                      module="jenerik-pool", media_id=media_id, filename=video.name,
+                      error=str(_jpe)[:300], detail={"clip_id": clip_id})
 
     # ===== BLOK OCR + ASR (paralel) =====
     ocr_bucket = "ATLANDI"
@@ -2378,10 +2424,97 @@ def main(argv=None) -> int:
     with MASTER_MD.open("a", encoding="utf-8") as h:
         h.write("\n".join(md) + "\n")
 
-    # ===== BLOK MASTER-PNG: per-film görsel master → Database/<film>/master/{giris,cikis}.png =====
-    # Pipeline-İÇİ, FAIL-SAFE: master-PNG hata/timeout ASLA kararı/çıktıyı bozmaz (karar+_DURUM zaten yazıldı).
-    # venvs/ocr (cv2) + master_png_monitor --once (slit/mosaic compose). Kapat: MITAS_MASTER_PNG_AUTO=0.
-    if os.environ.get("MITAS_MASTER_PNG_AUTO", "1").strip().lower() not in ("0", "false", "off", "no"):
+    # ===== PARALEL JENERIK DEBUG: OneOCR normal havuz + GLM/VL/master cikis_jenerik havuzu =====
+    # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. Kalıcı provenance:
+    # Database/<film>/jenerik_debug/{oneocr,glm,vl,master_png,compare,analysis_report.md}
+    _jdebug_on = (_jpool_on and os.environ.get("MITAS_JENERIK_PARALLEL_DEBUG", "1").strip().lower()
+                  not in ("0", "false", "off", "no"))
+    if _jdebug_on and not args.no_ocr:
+        _jd_t = time.perf_counter()
+        try:
+            _jd_cmd = [str(PY_OCR), str(HERE / "_jenerik_parallel_debug.py"),
+                       "--clip", str(clip_dir), "--ocr-out", str(ocr_out)]
+            _rcjd, _outjd, _errjd = run(
+                _jd_cmd,
+                timeout=int(os.environ.get("MITAS_JENERIK_PARALLEL_DEBUG_TIMEOUT", "1800") or 1800),
+            )
+            _jjd = last_json(_outjd) or {}
+            timings["jenerik_debug"] = round(time.perf_counter() - _jd_t, 2)
+            log_event("jenerik_debug_completed",
+                      level="info" if _jjd.get("status") != "error" else "warn",
+                      summary=f"{video.name}: paralel jenerik debug tamamlandı "
+                              f"({timings['jenerik_debug']} sn).",
+                      module="jenerik-debug", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["jenerik_debug"],
+                      detail={"clip_id": clip_id, "debug_root": str(jenerik_debug_root),
+                              "result": _jjd, "stderr": (_errjd or "")[-500:] if _rcjd else None})
+        except Exception as _jde:  # noqa: BLE001
+            try:
+                (jenerik_debug_root / "errors.jsonl").parent.mkdir(parents=True, exist_ok=True)
+                with (jenerik_debug_root / "errors.jsonl").open("a", encoding="utf-8") as _eh:
+                    _eh.write(json.dumps({"ts": now_iso(), "stage": "parallel_debug", "error": str(_jde)[:500]},
+                                         ensure_ascii=False) + "\n")
+            except Exception:
+                pass
+            log_event("jenerik_debug_failed", level="warn",
+                      summary=f"{video.name}: paralel jenerik debug atlandı ({type(_jde).__name__}).",
+                      module="jenerik-debug", media_id=media_id, filename=video.name,
+                      error=str(_jde)[:300], detail={"clip_id": clip_id})
+    if _jdebug_on:
+        try:
+            _detector_status = ""
+            _pool_frames = None
+            _pool_manifest = jenerik_debug_root / "pool" / "manifest.json"
+            if _pool_manifest.exists():
+                _pool_obj = _read_json_safe(_pool_manifest) or {}
+                _detector_status = str(_pool_obj.get("status") or "")
+                _pool_frames = _pool_obj.get("pool_frames")
+            summary_obj["timings_sec"] = timings
+            summary_obj["jenerik_debug"] = {
+                "enabled": True,
+                "root": str(jenerik_debug_root),
+                "analysis_report": str(jenerik_debug_root / "analysis_report.md"),
+                "detector_status": _detector_status,
+                "pool": str(cikis_jenerik_frames),
+                "pool_frames": _pool_frames,
+            }
+            write_json(clip_dir / "_DURUM.json", summary_obj)
+        except Exception as _jdu:  # noqa: BLE001 - visibility update must not affect routing
+            log_event("jenerik_debug_surface_failed", level="warn",
+                      summary=f"{video.name}: jenerik debug _DURUM yüzeyleme atlandı ({type(_jdu).__name__}).",
+                      module="jenerik-debug", media_id=media_id, filename=video.name,
+                      error=str(_jdu)[:200], detail={"clip_id": clip_id})
+
+    # ===== TEMİZ MASTER-PNG'İ KANONİK YOLA YÜZEYLE (bug fix 2026-06-27) =====
+    # Paralel-debug temiz çıkış-master'ını jenerik_debug/master_png/cikis_jenerik.png'e yazar; ama
+    # QC-monitör + export clip_dir/master/cikis.png'e bakar → başarılı temiz master GÖRÜNMÜYORDU.
+    # FIX: master_png manifest status=ok ise temiz master'ı kanonik yola kopyala (clip_dir/master/cikis.png).
+    # FAIL-SAFE: kopyalama hatası ASLA pipeline'ı/kararı bozmaz. Detektör başarısız → kaynak yok → kopya yok
+    # ("kötü master yerine hiç" korunur: temiz üretilmediyse kanonik yolda da dosya oluşmaz).
+    if _jdebug_on:
+        try:
+            _clean_cikis = jenerik_debug_root / "master_png" / "cikis_jenerik.png"
+            _mp_manifest = jenerik_debug_root / "master_png" / "manifest.json"
+            _mp_status = ""
+            if _mp_manifest.exists():
+                _mp_status = str((_read_json_safe(_mp_manifest) or {}).get("status") or "")
+            if _mp_status == "ok" and _clean_cikis.exists():
+                _canon_master = clip_dir / "master" / "cikis.png"
+                _canon_master.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(str(_clean_cikis), str(_canon_master))
+                log_event("master_png_surfaced", level="info",
+                          summary=f"{video.name}: temiz çıkış-master kanonik yola kopyalandı → master/cikis.png.",
+                          module="master-png", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "src": str(_clean_cikis), "dst": str(_canon_master)})
+        except Exception as _msfe:  # noqa: BLE001 — temiz master yüzeyleme ASLA pipeline'ı bozmaz
+            log_event("master_png_surface_failed", level="warn",
+                      summary=f"{video.name}: temiz master kanonik yola kopyalanamadı ({type(_msfe).__name__}).",
+                      module="master-png", media_id=media_id, filename=video.name,
+                      error=str(_msfe)[:200], detail={"clip_id": clip_id})
+
+    # ===== LEGACY MASTER-PNG: paralel debug kapalıysa eski davranışı koru =====
+    # Paralel debug açıkken master artık frames/cikis_jenerik üzerinden jenerik_debug/master_png altında üretilir.
+    if (not _jdebug_on) and os.environ.get("MITAS_MASTER_PNG_AUTO", "1").strip().lower() not in ("0", "false", "off", "no"):
         _has_fr = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
                   (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
         if _has_fr:
@@ -2403,11 +2536,11 @@ def main(argv=None) -> int:
                           module="master-png", media_id=media_id, filename=video.name,
                           error=str(_mpe)[:200], detail={"clip_id": clip_id})
 
-    # ===== GÖLGE VL (MITAS_SHADOW_VL, default AKTIF) — kredi-karelerinden gemma havuzu → gemma_kunye.json =====
+    # ===== LEGACY GÖLGE VL — paralel debug kapalıysa eski davranışı koru =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.
-    # Bağımlılık: frames/giris|cikis (zaten çıkarılmış). master-PNG'ye bağlı DEĞİL (ayrı havuz üretir).
+    # Paralel debug açıkken VL artık frames/cikis_jenerik üzerinden jenerik_debug/vl altında çalışır.
     # Kapatmak için MITAS_SHADOW_VL=0. Maliyet ~1-4dk/film (arka-plan, teslimi geciktirmez).
-    if os.environ.get("MITAS_SHADOW_VL", "1").strip().lower() in ("1", "true", "on", "yes"):
+    if (not _jdebug_on) and os.environ.get("MITAS_SHADOW_VL", "1").strip().lower() in ("1", "true", "on", "yes"):
         _svl_frames_ok = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
                          (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
         if _svl_frames_ok:
