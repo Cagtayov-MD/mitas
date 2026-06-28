@@ -644,6 +644,11 @@ def qc_credit_block(
                 cast = [n for n in _readd if _fold(n) not in _have] + cast
                 iz.append({"alan": "oyuncu", "kaynak": "s1-readd-kb-confirmed", "isim": _readd})
 
+        # DEFERANS bayrağı (2026-06-28): yön/yapımcı KB-fill'i deferans açıkken atlanır (default-ON).
+        # 2f4a2b53 deferans fix'inin DELİĞİ: credit_qc_block KB-fill'i MITAS_CREDIT_DEFERENCE'i
+        # tanımıyordu → deferansla boş bırakılan yönetmen/yapımcıyı KB'den EZİYORDU. Burada da kapanır.
+        _deference_on = os.environ.get("MITAS_CREDIT_DEFERENCE", "1").strip().lower() \
+            not in ("0", "false", "off", "no")
         # ── S4: YÖNETMEN (OCR-otorite + KIRMIZI ÇİZGİ; ÇELİŞKİ→KONTROL, KB-değiştir YOK) ──
         yon_conflict = False
         if yon and locked and otoriter_yon:
@@ -659,8 +664,14 @@ def qc_credit_block(
                 yon = []                    # OCR yön KB ile çelişti → KB ile EZME YOK → KONTROL
                 yon_conflict = True
         elif (not yon) and locked and otoriter_yon:
-            yon = [otoriter_yon[0]]         # OCR boş + kimlik kilitli → KB-fill (destek)
-            iz.append({"alan": "yonetmen", "kaynak": "kb-fill(kimlik-kilitli)", "isim": yon[0]})
+            # DEFERANS: yönetmen KB-fill YAPILMAZ (yön yalnız doğrulanmış yapısal hattan; OCR boşsa BOŞ).
+            # Eski davranış (MITAS_CREDIT_DEFERENCE=0): kimlik-kilitliyse KB'den doldur.
+            if _deference_on:
+                iz.append({"alan": "yonetmen", "kaynak": "deferans: KB-fill atlandı (OCR boş)",
+                           "aday": otoriter_yon[0]})
+            else:
+                yon = [otoriter_yon[0]]     # OCR boş + kimlik kilitli → KB-fill (destek)
+                iz.append({"alan": "yonetmen", "kaynak": "kb-fill(kimlik-kilitli)", "isim": yon[0]})
         # else: OCR var + (kilit yok/KB yok) → OCR AYNEN
 
         # ── S5: CAST yazım-düzeltme (OCR-otorite; eşleşen → KB-kanonik/KB-latin, eşleşmeyen → OCR) ──
@@ -743,7 +754,9 @@ def qc_credit_block(
         _prod_strongid = (os.environ.get("MITAS_QC_PRODUCER_STRONGID", "1").strip().lower()
                           not in ("0", "false", "off", "no"))
         _id_strong = (verdict == "TEYİT") or (cast_ov >= 3)
-        if locked and (_id_strong or not _prod_strongid) and len(yap) < 3 and imdb_id:
+        # DEFERANS (2026-06-28): yapımcı KB-tamamlama deferans açıkken YAPILMAZ (yapımcı yalnız
+        # doğrulanmış yapısal hattan; OCR yetersizse eksik kalır). Eski davranış: MITAS_CREDIT_DEFERENCE=0.
+        if locked and (_id_strong or not _prod_strongid) and len(yap) < 3 and imdb_id and not _deference_on:
             _fuzdedup = (os.environ.get("MITAS_QC_FUZZY_DEDUP", "").strip().lower()
                         in ("1", "true", "on", "yes"))
             kb_yap = _kb_producers(kb, imdb_id, limit=3)
