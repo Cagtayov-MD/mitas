@@ -2027,6 +2027,11 @@ def main(argv=None) -> int:
         cmd = [PY_PDF, HERE / "_pipe_pdf.py", "--kunye", str(kunye_path), "--out", str(pdf_out),
                "--title", title, "--trt-id", trt or "", "--profile", "film" if is_film else "dizi",
                "--resolution", res, "--duration", dur, "--ozet", ozet]
+        # SAĞLAM DİL (2026-06-28): ASR'nin (whisper) tespit ettiği konuşma dilini PDF'e fail-safe fallback
+        # geçir → chlang yoksa/boş dönerse "Ana dil" boş kalmasın. _pipe_pdf yalnız ana_dil boşken kullanır.
+        _asr_lang = (asr_info or {}).get("language")
+        if _asr_lang and str(_asr_lang).strip().lower() not in ("none", ""):
+            cmd += ["--asr-lang", str(_asr_lang).strip()]
         # KARE HIZI KALDIRILDI (v4): _pipe_pdf artık fps basmaz; TÜR'ü v4-final (tek_film_kunye, KB) doldurur.
         # fps_s yalnız telemetride (clip.json/_DURUM) kalır — künyeye girmez.
         if bolum:

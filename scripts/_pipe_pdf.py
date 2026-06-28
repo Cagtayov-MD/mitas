@@ -139,10 +139,14 @@ def audio_subtitle_block(args) -> dict:
         if cl is None and args.video and Path(args.video).exists():
             cl = _run_json([PY_ASR, CHLANG_SCRIPT, args.video])
         der = _derive_audio(cl)
-        if der and der[0]:                       # ses kanalları çıktıysa
-            block["ses_kanallari"] = der[0]
-            block["ana_dil"] = der[1]
-            block["sesler_ic_ice"] = der[2]
+        if der:
+            if der[0]:                            # ses kanalları çıktıysa (kanal listesi opsiyonel)
+                block["ses_kanallari"] = der[0]
+                block["sesler_ic_ice"] = der[2]
+            # SAĞLAM DİL (2026-06-28): konuşma dili kanal-listesinden BAĞIMSIZ yazılır — kanal listesi
+            # boş (hepsi EF) olsa bile tespit edilen dil PDF'e geçer (eskiden der[0]'a bağlıydı → düşüyordu).
+            if der[1] and der[1] != "—":
+                block["ana_dil"] = der[1]
         sub = _load_json(args.subtitle) if (args.subtitle and Path(args.subtitle).exists()) else None
         if sub is None and args.video and Path(args.video).exists():
             sub = _run_json([PY_OCR, SUBTITLE_SCRIPT, args.video])
@@ -153,6 +157,13 @@ def audio_subtitle_block(args) -> dict:
                     pass
         if sub is not None and "altyazili" in sub:
             block["altyazi"] = "EVET" if sub.get("altyazili") else "HAYIR"
+        # SAĞLAM DİL FALLBACK (2026-06-28): chlang türetmesi dil vermediyse, ASR'nin (whisper için zaten
+        # algıladığı) konuşma dilini kullan → "Ana dil" satırı ~%10 filmde boş kalmasın. ASR-dili ISO
+        # 2-harf kodu (tr/en/ku…) → BÜYÜK. Yalnız BOŞ/"—" iken devreye girer (mevcut tespiti ASLA ezmez).
+        if (not block.get("ana_dil") or block.get("ana_dil") == "—") and getattr(args, "asr_lang", ""):
+            _al = str(args.asr_lang).strip().upper()
+            if _al and _al not in ("—", "EF", "NONE"):
+                block["ana_dil"] = _al
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
         # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
         _ana = block.get("ana_dil", "—")
@@ -313,6 +324,7 @@ def main(argv=None) -> int:
     ap.add_argument("--ozet", default="(Özet ayrı bir adımda üretilecektir.)")
     ap.add_argument("--video", default="")      # kaynak video → ses & altyazı tespiti (film/dizi)
     ap.add_argument("--chlang", default="")     # ASR'nin yazdığı kanal-dil JSON (yeniden koşmamak için)
+    ap.add_argument("--asr-lang", dest="asr_lang", default="")  # ASR'nin (whisper) tespit ettiği konuşma dili kodu → ana_dil fail-safe fallback
     ap.add_argument("--subtitle", default="")   # önceden hesaplanmış altyazı JSON (opsiyonel)
     ap.add_argument("--original", default="")   # XML orijinal ad → afiş birincil sorgu (yabancı film)
     ap.add_argument("--year", default="")        # film/yayın yılı → afiş çok-sürümde yedek ayraç
