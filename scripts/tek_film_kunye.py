@@ -30,6 +30,12 @@ _ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "1").strip().lower() not in ("0", 
 # OCR-OTORİTE KANUNU: bu kapı IMDb/Wiki'de bulunmayan OCR-okunan gerçek ismi DÜŞÜRÜR/KIRPAR (kanun ihlali).
 # Varsayılan KAPALI (opt-in). Deney için MITAS_GLOBAL_PERSON_GATE=1 ile açılabilir. (codex "1" yapmıştı = regresyon)
 _GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "0").strip().lower() not in ("0", "false", "off", "no")
+# DEFERANS KANUNU (2026-06-28): Yönetmen ve Yapımcı YALNIZCA yapısal hattan (LLM-extractor) gelir.
+# KB/web doldurma (OCR boşken eşlenen film/KB'den isim yazma) bu flag açıkken YAPILMAZ.
+# YAZIM-DÜZELTME (name_match/name_close ile kanonikleştirme) KORUNUR — sadece DOLDURMA kesilir.
+# "0"/"false"/"off" ile ESKİ DAVRANIŞA DÜŞ (fail-safe). Default AÇIK = "1".
+_CREDIT_DEFERENCE = os.environ.get("MITAS_CREDIT_DEFERENCE", "1").strip().lower() \
+    not in ("0", "false", "off", "no")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)
@@ -496,15 +502,27 @@ def main():
                             _web_cast = _web.get("cast") or []
                             _web_imdb = _web.get("imdb_id")
                             _web_tmdb = _web.get("tmdb_id")
-                            # Yönetmen: OCR boşsa veya eşleşme yoksa web'den doldur (KIRMIZI ÇİZGİ: OCR+çapa)
+                            # Yönetmen: DEFERANS açıkken OCR boş dahi olsa web'den DOLDURMA YAPILMAZ.
+                            # (Yönetmen yalnız LLM-extractor yapısal hattından gelir.)
+                            # Eski davranış (MITAS_CREDIT_DEFERENCE=0): OCR boşsa web'den doldur.
                             if not yon and _web_dir:
-                                yon = [_web_dir[0]]
-                                yon_kaynak = f"QC2-web: yönetmen-doldur ({_web.get('method')})"
-                            # cast: web'den gelen gerçek cast'i kimlik referansı olarak kullan
-                            # identity_first_cast mantığıyla: OCR cast'i boşsa doğrudan web cast'ini al
+                                if _CREDIT_DEFERENCE:
+                                    yon_kaynak = (f"deferans: QC2-web yönetmen-doldur atlandı "
+                                                  f"({_web.get('method')}); OCR boş → alan boş kalır")
+                                    sys.stderr.write(f"[deferans] yönetmen KB/web fill atlandı: {_web_dir}\n")
+                                else:
+                                    yon = [_web_dir[0]]
+                                    yon_kaynak = f"QC2-web: yönetmen-doldur ({_web.get('method')})"
+                            # cast: web'den gelen gerçek cast'i kimlik referansı olarak kullan.
+                            # DEFERANS açıkken OCR cast boşsa web cast'i YAZILMAZ (OCR-otorite).
+                            # Eski davranış: OCR cast boşsa web cast'ini doğrudan al.
                             if not cast and _web_cast:
-                                cast = _web_cast[:8]
-                                rapor["adimlar"]["qc2_web_cast_kaynak"] = "web"
+                                if _CREDIT_DEFERENCE:
+                                    rapor["adimlar"]["qc2_web_cast_kaynak"] = "deferans: web fill atlandı"
+                                    sys.stderr.write(f"[deferans] cast KB/web fill atlandı (OCR boş)\n")
+                                else:
+                                    cast = _web_cast[:8]
+                                    rapor["adimlar"]["qc2_web_cast_kaynak"] = "web"
                             elif cast and _web_cast:
                                 # OCR-OTORİTE KANUNU (2026-06-13): OCR cast OKUDUYSA (garble olsa bile),
                                 # versiyon-belirsiz web cast'iyle EZME YOK — ne değiştir, ne at, ne kanonikle.
@@ -549,8 +567,14 @@ def main():
                     rapor["adimlar"]["qc2_web"] = {"method": None, "kaynak_izi": f"hata: {_we}"}
             # ── QC2 katman-a: mevcut graftlar (kimlik kilitliyse) ──
             if (not yon) and kimlik_dogru and auth_yon:     # boş/çelişki-temizlenmiş yönetmen + kimlik kilitli → KB-fill
-                yon = [auth_yon[0]]
-                yon_kaynak = "QC2: KB-fill (kimlik-kilitli)"
+                # DEFERANS açıkken KB-fill YAPILMAZ: yönetmen yalnız LLM yapısal hattından gelir.
+                # Eski davranış (MITAS_CREDIT_DEFERENCE=0): kimlik kilitliyse KB'den doldur.
+                if _CREDIT_DEFERENCE:
+                    yon_kaynak = "deferans: KB-fill atlandı (kimlik-kilitli ama OCR boş → alan boş kalır)"
+                    sys.stderr.write(f"[deferans] QC2 KB-fill yönetmen atlandı: {auth_yon}\n")
+                else:
+                    yon = [auth_yon[0]]
+                    yon_kaynak = "QC2: KB-fill (kimlik-kilitli)"
             # cast: OCR-OTORİTE KANUNU (A+A 2026-06-13) — KB ile DÜŞÜRME/EKLEME YOK. Cast ana-blokta
             # (yukarıda) KB-kanonik yazıma çevrildi + okunan KORUNDU; burada DOKUNULMAZ.
             # (Eski identity_first_cast drop+add KALDIRILDI → Ahmet→Mehmet + non-OCR-ekleme önlendi.)
@@ -565,9 +589,16 @@ def main():
     # KİMLİK KAPISI (2026-06-22, BEKARLIK→Norman Lear): producer-fill director-fill (yukarıda 'kimlik-kilitli')
     # ile SİMETRİK olsun — kimlik kilitlenmemişse KB-yapımcı yazma. Savunma-derinliği: kaynak (credit_kb_lookup)
     # zaten kimlik kapılı, ama cc["yapimci"] başka yoldan dolsa bile burada da kapanır. Bayrak default-ON.
+    # DEFERANS (2026-06-28): MITAS_CREDIT_DEFERENCE açıkken yapımcı KB-fill de YAPILMAZ.
+    # Yapımcı da yalnız LLM yapısal hattından gelir; OCR boşsa boş kalır.
+    # Eski davranış (MITAS_CREDIT_DEFERENCE=0): kimlik-kapılı KB fill devreye girer.
     _producer_gate = os.environ.get("MITAS_PRODUCER_IDENTITY_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
     if not yap and cc.get("yapimci") and (kimlik_dogru or not _producer_gate):
-        yap = cc["yapimci"]
+        if _CREDIT_DEFERENCE:
+            rapor["adimlar"]["yapimci_fill"] = "deferans: KB-fill atlandı (OCR boş → yapımcı boş kalır)"
+            sys.stderr.write(f"[deferans] yapımcı KB-fill atlandı: {cc.get('yapimci')}\n")
+        else:
+            yap = cc["yapimci"]
     cast = _split_dedup_names(cast)
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
 

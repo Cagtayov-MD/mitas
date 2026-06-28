@@ -256,6 +256,12 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
     The old code augmented the mechanical kunye.txt parser output. That allowed
     crew/music rows from flattened kunye.txt to survive even after Qwen/raw-context
     filtering. With video_credits on, empty guarded fields are safer than wrong fields.
+
+    DEFERANS KURALI (2026-06-28): video_credits sağlandıysa, yönetmen ve yapımcı
+    DAIMA yapısal hattan (LLM-extractor) gelir. credit_parse mekanik çıktısı her zaman
+    temizlenir — video_credits sözlüğünde ilgili anahtar bulunmasa bile. "Anahtar yok"
+    durumu LLM'nin o rolü boş döndürdüğü anlamına gelir; çöp mekanik parser çıktısına
+    dönülmez. flag=MITAS_CREDIT_DEFERENCE default-AÇIK ("1").
     """
     if not video_credits:
         return cast, crew
@@ -265,15 +271,31 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
         if not dizi:
             cast = cast[:8]
 
+    # DEFERANS: video_credits verilmişse yönetmen/yapımcıyı her durumda otoriteye bağla.
+    # Anahtar yoksa LLM o rolü boş bıraktı demek → credit_parse çöpünü TEMİZLE (boş liste).
+    # Eski davranış: yalnız anahtar VARSA üzerine yaz (anahtar yoksa credit_parse hayatta kalırdı).
+    _deference_on = os.environ.get("MITAS_CREDIT_DEFERENCE", "1").strip().lower() \
+        not in ("0", "false", "off", "no")
     crew = list(crew or [])
-    if "yonetmen" in video_credits:
+    if _deference_on:
+        # Yapısal hat koştu: yönetmen/yapımcı için credit_parse çıktısını KOŞULSUZ temizle;
+        # video_credits'teki değeri (boş da olsa) otorite kabul et.
         crew = _set_authoritative_role(
             crew, "yonet", "Yönetmen", _dedup_nonempty(video_credits.get("yonetmen"))
         )
-    if "yapimci" in video_credits:
         crew = _set_authoritative_role(
             crew, "yapim", "Yapımcı", _dedup_nonempty(video_credits.get("yapimci"))
         )
+    else:
+        # ESKİ DAVRANIŞA DÜŞ (MITAS_CREDIT_DEFERENCE=0): yalnız anahtar varsa üzerine yaz.
+        if "yonetmen" in video_credits:
+            crew = _set_authoritative_role(
+                crew, "yonet", "Yönetmen", _dedup_nonempty(video_credits.get("yonetmen"))
+            )
+        if "yapimci" in video_credits:
+            crew = _set_authoritative_role(
+                crew, "yapim", "Yapımcı", _dedup_nonempty(video_credits.get("yapimci"))
+            )
     return cast, crew
 
 
