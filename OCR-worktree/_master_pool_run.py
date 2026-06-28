@@ -61,12 +61,7 @@ for fd in sel:
             if mosaic_master is not None:
                 wr(od / "master_mosaic.png", mosaic_master)
 
-        if mosaic_master is not None and 0.10 <= scroll_frac < 0.40:
-            canonical, sel_mode = mosaic_master, "mosaic"
-        elif slit_master is not None:
-            canonical, sel_mode = slit_master, "slit"
-        else:
-            canonical, sel_mode = mosaic_master, ("mosaic" if mosaic_master is not None else None)
+        canonical, sel_mode = M.select_master(slit_master, mosaic_master, scroll_frac, h)
         flags = []
         if isinstance(mos_meta, dict) and mos_meta.get("reject"):
             flags.append("bloat" if mos_meta.get("bloat", 0) > 3 else "cut_storm")

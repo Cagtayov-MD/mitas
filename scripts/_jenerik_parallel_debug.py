@@ -495,12 +495,7 @@ def run_master_debug(pool_dir: Path, debug_root: Path) -> dict:
         mosaic_master = None
         if scroll_frac < 0.5:
             mosaic_master, _, _ = dc.compose_mosaic(frames, p, args)
-        if mosaic_master is not None and 0.10 <= scroll_frac < 0.40:
-            canon, mode = mosaic_master, "mosaic"
-        elif slit_master is not None:
-            canon, mode = slit_master, "slit"
-        else:
-            canon, mode = mosaic_master, ("mosaic" if mosaic_master is not None else None)
+        canon, mode = dc.select_master(slit_master, mosaic_master, scroll_frac, h)
         if canon is None:
             raise RuntimeError("composer returned no master")
         dc.wr(out_png, canon)

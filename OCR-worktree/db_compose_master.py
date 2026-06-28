@@ -789,6 +789,22 @@ def write_debug(base: Path, debug: dict) -> None:
 
 
 
+def select_master(slit_master, mosaic_master, scroll_frac, h):
+    """Single-source master dispatch (Fix A). Prefer mosaic ONLY when it did not
+    COLLAPSE (height >= 1.6 * frame_h): a truncated/runaway mosaic is shorter than
+    ~1.6 frame-heights and drops most of the roll, so route it to the full slit.
+    Returns (canonical, mode). All call-sites (process_film + the live inline
+    dispatchers) MUST use this so the guard cannot drift again."""
+    mosaic_ok = mosaic_master is not None and mosaic_master.shape[0] >= 1.6 * h
+    if mosaic_ok and 0.10 <= scroll_frac < 0.40:
+        return mosaic_master, "mosaic"
+    if slit_master is not None:
+        return slit_master, "slit"
+    if mosaic_master is not None:
+        return mosaic_master, "mosaic"
+    return None, None
+
+
 def process_film(film_dir: Path, out_dir: Path, args) -> dict:
     result = {"film": film_dir.name}
     modes = ["slit", "mosaic"] if args.mode == "both" else [args.mode]
@@ -899,21 +915,7 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
             # slit's per-card split repeats over the moving bg. PURE-static films
             # (scroll ~0, kansas) are kept on slit: their mosaic just averages
             # distinct cards into a GHOST. Scroll + rejected-mosaic films keep slit.
-            # FIX A: prefer mosaic ONLY when it did not COLLAPSE. A truncated mosaic
-            # (motion-comp integration ran away / averaged to ~one card) is shorter
-            # than ~1.6 frame-heights and drops most of the roll; the slit candidate
-            # keeps the full card sequence. Guarding on mosaic height routes those to
-            # slit. (Verified: only flips the collapsed-mosaic case; non-collapsed
-            # mosaic films and all slit films are unchanged.)
-            mosaic_ok = mosaic_master is not None and mosaic_master.shape[0] >= 1.6 * h
-            if mosaic_ok and 0.10 <= scroll_frac < 0.40:
-                canonical, info["selected_mode"] = mosaic_master, "mosaic"
-            elif slit_master is not None:
-                canonical, info["selected_mode"] = slit_master, "slit"
-            elif mosaic_master is not None:
-                canonical, info["selected_mode"] = mosaic_master, "mosaic"
-            else:
-                canonical, info["selected_mode"] = None, None
+            canonical, info["selected_mode"] = select_master(slit_master, mosaic_master, scroll_frac, h)
 
             if canonical is None:
                 info["status"] = "NO_OUTPUT"

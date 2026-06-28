@@ -45,12 +45,7 @@ def _compose_seg(frames, args):
     mosaic_master = None
     if scroll_frac < 0.5:
         mosaic_master, _, _ = dc.compose_mosaic(frames, p, args)
-    if mosaic_master is not None and 0.10 <= scroll_frac < 0.40:
-        canon, mode = mosaic_master, "mosaic"
-    elif slit_master is not None:
-        canon, mode = slit_master, "slit"
-    else:
-        canon, mode = mosaic_master, ("mosaic" if mosaic_master is not None else None)
+    canon, mode = dc.select_master(slit_master, mosaic_master, scroll_frac, h)
     return canon, {"frames": len(frames), "mode": mode, "scroll_frac": round(scroll_frac, 3),
                    "size": ([int(canon.shape[1]), int(canon.shape[0])] if canon is not None else None)}
 
