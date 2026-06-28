@@ -492,10 +492,7 @@ def run_master_debug(pool_dir: Path, debug_root: Path) -> dict:
         scroll_frames = sum(int(r[1]) - int(r[0]) + 1 for r in runs if r[2] == "R")
         scroll_frac = scroll_frames / max(1, static_frames + scroll_frames)
         slit_master, _, _ = dc.compose_slit(frames, p, args)
-        mosaic_master = None
-        if scroll_frac < 0.5:
-            mosaic_master, _, _ = dc.compose_mosaic(frames, p, args)
-        canon, mode = dc.select_master(slit_master, mosaic_master, scroll_frac, h)
+        canon, mode = dc.select_master(slit_master)  # mosaic retired 2026-06-28 (slit-only)
         if canon is None:
             raise RuntimeError("composer returned no master")
         dc.wr(out_png, canon)

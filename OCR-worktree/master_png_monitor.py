@@ -42,10 +42,7 @@ def _compose_seg(frames, args):
     r_ = sum(int(r[1]) - int(r[0]) + 1 for r in runs if r[2] == "R")
     scroll_frac = r_ / max(1, s + r_)
     slit_master, _, _ = dc.compose_slit(frames, p, args)
-    mosaic_master = None
-    if scroll_frac < 0.5:
-        mosaic_master, _, _ = dc.compose_mosaic(frames, p, args)
-    canon, mode = dc.select_master(slit_master, mosaic_master, scroll_frac, h)
+    canon, mode = dc.select_master(slit_master)  # mosaic retired 2026-06-28 (slit-only)
     return canon, {"frames": len(frames), "mode": mode, "scroll_frac": round(scroll_frac, 3),
                    "size": ([int(canon.shape[1]), int(canon.shape[0])] if canon is not None else None)}
 

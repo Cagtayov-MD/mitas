@@ -789,15 +789,14 @@ def write_debug(base: Path, debug: dict) -> None:
 
 
 
-def select_master(slit_master, mosaic_master, scroll_frac, h):
-    """Single-source master dispatch (Fix A). Prefer mosaic ONLY when it did not
-    COLLAPSE (height >= 1.6 * frame_h): a truncated/runaway mosaic is shorter than
-    ~1.6 frame-heights and drops most of the roll, so route it to the full slit.
-    Returns (canonical, mode). All call-sites (process_film + the live inline
-    dispatchers) MUST use this so the guard cannot drift again."""
-    mosaic_ok = mosaic_master is not None and mosaic_master.shape[0] >= 1.6 * h
-    if mosaic_ok and 0.10 <= scroll_frac < 0.40:
-        return mosaic_master, "mosaic"
+def select_master(slit_master, mosaic_master=None, scroll_frac=None, h=None):
+    """Single-source master dispatch. MOSAIC ENGINE RETIRED (2026-06-28): on the only
+    film it ever won the dispatch (drakula — cast over moving fire, the very case mosaic
+    was built for) its motion-comp blend GHOSTED the text and yielded ~half the OCR of
+    slit (34 vs 61 lines / 371 vs 687 chars, OneOCR). Slit (sharpest-frame-per-card) is
+    canonical for EVERY film. mosaic_master kept only as a last-resort fallback when slit
+    is None, so this can never produce a WORSE master than before (only ever flips
+    None->something). scroll_frac/h retained for signature compat; no longer used."""
     if slit_master is not None:
         return slit_master, "slit"
     if mosaic_master is not None:
@@ -898,24 +897,9 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
             if slit_master is not None:
                 wr(segment_dir / "master_slit.png", slit_master)
 
-            # secondary candidate: mosaic, only on card-heavy films (skip on scroll
-            # for speed; it self-rejects on runaway anyway)
-            mosaic_master, mos_meta = None, {}
-            if scroll_frac < 0.5:
-                mosaic_master, mos_meta, _ = compose_mosaic(frames, p, args)
-                if mosaic_master is not None:
-                    wr(segment_dir / "master_mosaic.png", mosaic_master)
-            if isinstance(mos_meta, dict) and mos_meta.get("reject"):
-                info["flags"].append("bloat" if mos_meta.get("bloat", 0) > 5 else "cut_storm")
-                info["mosaic_reject"] = {k: mos_meta[k] for k in ("bloat", "cut_frac") if k in mos_meta}
-
-            # dispatch: a footage card film with SOME motion (0.10-0.40 scroll) and
-            # a VALID (non-bloated) mosaic prefers it -- the motion-comp blend aligns
-            # and renders the card sequence ONCE (drakula cast on moving fire), where
-            # slit's per-card split repeats over the moving bg. PURE-static films
-            # (scroll ~0, kansas) are kept on slit: their mosaic just averages
-            # distinct cards into a GHOST. Scroll + rejected-mosaic films keep slit.
-            canonical, info["selected_mode"] = select_master(slit_master, mosaic_master, scroll_frac, h)
+            # canonical = slit for every film. Mosaic engine retired (2026-06-28):
+            # measured worse than slit on the one film it ever won (drakula). See select_master.
+            canonical, info["selected_mode"] = select_master(slit_master)
 
             if canonical is None:
                 info["status"] = "NO_OUTPUT"
@@ -938,8 +922,6 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
                     info["warnings"].append("kredi yok gibi (tek kart / cok kisa) -> upstream klip?")
 
             info["slit_manifest"] = slit_manifest
-            if mos_meta:
-                info["mosaic_manifest"] = mos_meta
         except Exception as exc:
             import traceback
             info["status"] = "ERROR"
