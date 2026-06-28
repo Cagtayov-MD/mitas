@@ -577,9 +577,43 @@ def get_flow_queue_upload_media(item_id: str) -> FileResponse:
 # ---------------------------------------------------------------------------
 
 def _flow_clip_id(video_path: str) -> str:
-    """Derive clip_id from a video path — identical logic to mitas_pipeline sanitize."""
+    """Derive a media_id from a video path (DOSYA-ADI sanitize).
+
+    DİKKAT: Bu, pipeline'ın system_events'e yazdığı media_id ile aynıdır (UI canlı-log
+    eşleşmesi /api/events?media_id için) — AMA mitas_pipeline'ın Database HUB adı DEĞİLDİR.
+    Hub adı BAŞLIK + TRT-id'den kurulur. İşlenmiş hub'ı bulmak için _find_processed_hub() kullan.
+    """
     stem = Path(video_path).stem
     return re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("._-")
+
+
+# TRT-id deseni (mitas_pipeline TRT_RE ile aynı): YYYY-NNNN-N-NNNN-NN-N
+_TRT_RE = re.compile(r"\d{4}-\d{3,4}-\d-\d{3,4}-\d{2}-\d")
+
+
+def _find_processed_hub(video_path: str) -> "Path | None":
+    """Bu videoya ait İŞLENMİŞ Database hub'ını (_DURUM.json olan) döndür, yoksa None.
+
+    NEDEN ayrı: _flow_clip_id() clip_id'yi DOSYA-ADI sanitize'ından üretir (media_id için
+    doğru), ama gerçek hub BAŞLIK + TRT-id'den kurulur ('BEKARLIK SULTANLIKTIR 1958-0046-1-0000-00-1').
+    İkisi eşleşmez → CLIPS_ROOT/clip_id asla bulunmaz → reused-skip tetiklenmezdi (zaten-işlenmiş
+    film tekrar işlenir). TRT-id her iki adda da ortak olduğundan gerçek hub'ı onunla eşleştiririz.
+    """
+    stem = Path(video_path).stem
+    m = _TRT_RE.search(stem)
+    if m:
+        trt = m.group(0)
+        try:
+            for d in CLIPS_ROOT.iterdir():
+                if d.is_dir() and trt in d.name and (d / "_DURUM.json").exists():
+                    return d
+        except OSError:
+            pass
+    # Fallback: TRT-id'siz yerel test dosyaları → dosya-adı clip_id ile doğrudan eşleşme (eski davranış)
+    direct = CLIPS_ROOT / _flow_clip_id(video_path)
+    if (direct / "_DURUM.json").exists():
+        return direct
+    return None
 
 
 def _flow_update_item(item_id: str, **changes: Any) -> None:
@@ -692,12 +726,14 @@ def _flow_queue_worker_loop() -> None:
 
                 # Reused-skip: zaten Database'de işlenmişse atla — AMA item force=true ise ATLAMA-yı atla
                 # (stale Database'i sil, taze koş). F4: tek-film yeniden-testi sessizce engellenmesin.
-                clip_id = _flow_clip_id(video_path)
+                clip_id = _flow_clip_id(video_path)   # UI media_id eşleşmesi (clipId, aşağıda) için KORUNUR
                 _force_item = bool(target.get("force"))
-                _clip_db = CLIPS_ROOT / clip_id
-                if _force_item and _clip_db.exists():
-                    shutil.rmtree(_clip_db, ignore_errors=True)   # zorla yeniden çöz → stale Database sil
-                elif (_clip_db / "_DURUM.json").exists():
+                # clip_id dosya-adı sanitize'ıdır; gerçek hub BAŞLIK+TRT'den kurulur → eşleşmez.
+                # reused-skip'i gerçek hub'ı TRT-id ile bularak yap (clip_id ile DEĞİL).
+                _existing_hub = _find_processed_hub(video_path)
+                if _force_item and _existing_hub is not None:
+                    shutil.rmtree(_existing_hub, ignore_errors=True)   # zorla yeniden çöz → stale Database sil
+                elif _existing_hub is not None:
                     _flow_update_item(
                         target["id"],
                         status="done",
@@ -707,7 +743,7 @@ def _flow_queue_worker_loop() -> None:
                         "flow_item_skipped",
                         summary=f"Flow item {target.get('name', target['id'])} zaten Database'de — atlandı.",
                         module="flow",
-                        detail={"item_id": target["id"], "clip_id": clip_id},
+                        detail={"item_id": target["id"], "clip_id": clip_id, "hub": str(_existing_hub)},
                     )
                     continue
 
