@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  AudioLines, FileCheck2, FileText, FolderCheck, FolderClock, ScanText,
-  Scissors, Sparkles, Video, X, ShieldCheck, Layers,
+  AudioLines, Boxes, Eye, FileCheck2, FileText, FolderCheck, FolderClock, Ghost, Image as ImageIcon,
+  ScanText, Scissors, ShieldAlert, ShieldCheck, Sparkles, Split, Stamp, Video, X, Layers,
 } from 'lucide-react';
 
-// MITAS pipeline CANLI diyagramı — /api/events (system_events.jsonl) aşama event'lerini
-// node-graph'a döker: hangi aşamadayız, geçmiş aşamalar kaç sn, aktif % kaç, nerede TAKILDI.
-// Backend'e dokunmaz; sadece var olan /api/events + /api/flow-queue/worker'ı okur.
+// MITAS pipeline CANLI diyagramı — /api/events (system_events.jsonl) aşama event'lerini node-graph'a
+// döker: hangi aşamadayız, geçmiş aşamalar kaç sn, aktif % kaç, nerede TAKILDI. Diyagram GERÇEK
+// scripts/mitas_pipeline.py akışını BİREBİR yansıtır: sistemde HANGİ adım varsa o burada (yoksa yok).
+// Event kind'leri + sıra + motor adları 3585 gerçek event ile doğrulandı. Backend'e dokunmaz; yalnız
+// var olan /api/events + /api/flow-queue/worker'ı okur. ASR %'si GERÇEKTİR: asr_progress.detail.percent.
 
 interface PipelineDiagramProps {
   open: boolean;
@@ -17,7 +19,10 @@ interface PipelineDiagramProps {
   profileLabel?: string;
 }
 
-interface SysEvent { ts?: string; kind?: string; level?: string; filename?: string; summary?: string }
+interface SysEvent {
+  ts?: string; kind?: string; level?: string; filename?: string; summary?: string;
+  media_id?: string; duration_seconds?: number; detail?: { percent?: number; [k: string]: unknown };
+}
 
 type NodeStatus = 'waiting' | 'active' | 'done' | 'partial' | 'skipped' | 'failed';
 
@@ -29,83 +34,164 @@ interface NodeDef {
   sub?: string;
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   stage: string;        // hangi aşama event grubuna bağlı (durum bundan gelir)
+  eventOnly?: boolean;  // koşullu/post/gate düğüm: durum YALNIZ kendi event'inden gelir (bağımlılıkla "aktif" çıkarımı YAPILMAZ)
 }
 
-interface EdgeDef { from: string; to: string }
+interface EdgeDef { from: string; to: string; kind?: 'cond' | 'post' }
 
-const CANVAS_W = 760;
-const CANVAS_H = 1000;
+const CANVAS_W = 840;
+const CANVAS_H = 1050;
 
-// Aşama bağımlılıkları (paralel dallar): OCR→Künye ve ASR→Özet AYRI; ikisi PDF'te birleşir.
+// "Aktif" çıkarımında bir aşamanın makul üst süre sınırı (sn). Bundan uzun "geçen süre" = bayat event
+// (önceki koşu) → sahte "işleniyor" basmayalım. Gerçekte tek aşama 1 saati geçmez (ASR p90 ~4.5dk).
+const STALE_ACTIVE_SEC = 3600;
+
+// Çekirdek omurga (doneCount + "aşama" sayacı bunları sayar). pool/vl/master/shadow koşullu/post → sayılmaz.
+const SPINE = ['coz', 'ocr', 'asr', 'credit', 'qc1', 'qc2', 'ozet', 'pdf', 'v4', 'qcg'];
+
+// Aşama bağımlılıkları (paralel dallar). pool/vl/master/shadow yalnız KENAR çiziminde (eventOnly → çıkarıma girmez).
 const DEPS: Record<string, string[]> = {
-  coz: [], ocr: ['coz'], asr: ['coz'],
-  credit: ['ocr'], ozet: ['asr'],
-  pdf: ['credit', 'ozet'], v4: ['pdf'], qc: ['v4'],
+  coz: [], pool: ['coz'], ocr: ['coz'], asr: ['coz'],
+  credit: ['ocr'], qc1: ['credit'], vl: ['qc1'], qc2: ['qc1'], ozet: ['asr'],
+  pdf: ['qc2', 'ozet'], v4: ['pdf'], qcg: ['v4'], route: ['qcg'],
+  master: ['pool'], shadow: ['master'],
 };
 
-// Aşama → event kind eşlemesi (pipeline'ın yaydığı gerçek kind'ler)
-const STAGE_KIND: Record<string, { start?: string; done?: string; partial?: string; skip?: string; fail?: string; expectSec: number }> = {
-  coz:    { start: 'media_imported', done: 'cozumleme_completed', fail: 'cozumleme_failed', expectSec: 8 },
-  ocr:    { start: 'ocr_started', done: 'ocr_completed', partial: 'ocr_partial', fail: 'ocr_failed', expectSec: 170 },
-  asr:    { start: 'asr_started', done: 'asr_completed', fail: 'asr_failed', expectSec: 170 },
-  credit: { done: 'credit_text_completed', fail: 'credit_text_failed', expectSec: 15 },
-  ozet:   { done: 'ozet_completed', skip: 'ozet_atlandi', expectSec: 18 },
-  pdf:    { done: 'pdf_completed', partial: 'pdf_partial', fail: 'pdf_failed', expectSec: 45 },
-  v4:     { done: 'v4_finalize_completed', skip: 'v4_finalize_skipped', fail: 'v4_finalize_failed', expectSec: 95 },
-  qc:     { done: 'qwen_final_qc', skip: 'qwen_final_qc_skipped', expectSec: 25 },
+// Aşama → event kind eşlemesi (pipeline'ın yaydığı GERÇEK kind'ler; çoklu varyant dizi olabilir).
+// expectSec = gerçek medyan süre (outputs/system_events.jsonl üzerinden ölçüldü).
+type KindSpec = { start?: string | string[]; done?: string | string[]; partial?: string | string[]; skip?: string | string[]; fail?: string | string[]; expectSec: number };
+const STAGE_KIND: Record<string, KindSpec> = {
+  coz:    { start: 'media_imported', done: 'cozumleme_completed', fail: 'cozumleme_failed', expectSec: 86 },
+  pool:   { done: 'jenerik_pool_completed', fail: 'jenerik_pool_failed', expectSec: 25 },
+  ocr:    { start: 'ocr_started', done: 'ocr_completed', partial: 'ocr_partial', fail: 'ocr_failed', expectSec: 115 },
+  asr:    { start: 'asr_started', done: 'asr_completed', partial: 'asr_partial', skip: 'asr_skipped_kurtce', fail: 'asr_failed', expectSec: 156 },
+  credit: { done: 'credit_text_completed', fail: 'credit_text_failed', expectSec: 43 },
+  qc1:    { start: 'credit_qc1_red', done: 'credit_qc1_passed', fail: 'credit_qc1_failed', expectSec: 73 },
+  vl:     { start: 'credit_qc1_red', done: 'credit_vl_fallback', fail: 'credit_vl_failed', expectSec: 73 },
+  qc2:    { done: 'credit_validate', fail: 'credit_validate_failed', expectSec: 8 },
+  ozet:   { done: ['ozet_completed', 'ozet_internet'], skip: 'ozet_atlandi', expectSec: 12 },
+  pdf:    { done: 'pdf_completed', partial: 'pdf_partial', fail: 'pdf_failed', expectSec: 63 },
+  v4:     { done: 'v4_finalize_completed', skip: 'v4_finalize_skipped', fail: 'v4_finalize_failed', expectSec: 148 },
+  qcg:    { done: 'qwen_final_qc', skip: 'qwen_final_qc_skipped', expectSec: 25 },
+  master: { done: ['master_png_completed', 'master_png_surfaced'], partial: 'master_png_empty', fail: 'master_png_failed', expectSec: 30 },
+  shadow: { start: 'shadow_vl_started', done: ['shadow_vl_completed', 'jenerik_debug_completed'], partial: 'shadow_vl_empty', skip: 'shadow_vl_skipped', fail: 'shadow_vl_failed', expectSec: 150 },
 };
 
 const NODES: NodeDef[] = [
-  { key: 'video',  x: 380, y: 54,  label: 'Video',        sub: 'kaynak (yerinde)',            icon: Video,       stage: 'video' },
-  { key: 'coz',    x: 380, y: 150, label: 'Çöz / ffmpeg', sub: 'frame + ses ayır',            icon: Scissors,    stage: 'coz' },
-  // SOL DAL — OCR (görüntü)
-  { key: 'oneocr', x: 165, y: 262, label: 'OneOCR',       sub: 'jenerik oku (birincil)',       icon: ScanText,    stage: 'ocr' },
-  { key: 'glm',    x: 315, y: 262, label: 'Paddle',       sub: 'jenerik oku (yan-kanal)',      icon: ScanText,    stage: 'ocr' },
-  { key: 'ocrm',   x: 240, y: 378, label: 'OCR birleş',   sub: 'OneOCR birincil · Paddle yan', icon: Layers,      stage: 'ocr' },
-  { key: 'credit', x: 240, y: 492, label: 'Künye / Rol',  sub: '35b Ayıklayıcı · QC1 · VL',   icon: FileCheck2,  stage: 'credit' },
-  // SAĞ DAL — ASR (ses) → Özet (Claude, paralel)
-  { key: 'asr',    x: 585, y: 262, label: 'ASR',          sub: 'LID + transkript',            icon: AudioLines,  stage: 'asr' },
-  { key: 'ozet',   x: 585, y: 420, label: 'Özet',         sub: 'transcript → Claude (async)', icon: Sparkles,    stage: 'ozet' },
-  // BİRLEŞ
-  { key: 'pdf',    x: 400, y: 610, label: 'PDF',          sub: 'künye + özet + ses/altyazı',  icon: FileText,    stage: 'pdf' },
-  { key: 'v4',     x: 400, y: 710, label: 'V4-Final',     sub: 'büyük harf · afiş · format',  icon: Sparkles,    stage: 'v4' },
-  { key: 'qc',     x: 400, y: 810, label: 'QC',           sub: 'qwen kalite kontrol',         icon: ShieldCheck, stage: 'qc' },
-  { key: 'hazir',  x: 270, y: 918, label: 'ONAYLI',       sub: 'export\\ONAYLI',              icon: FolderCheck, stage: 'route_hazir' },
-  { key: 'kontrol',x: 530, y: 918, label: 'KONTROL',      sub: 'export\\KONTROL',             icon: FolderClock, stage: 'route_kontrol' },
+  { key: 'video',  x: 400, y: 44,  label: 'Video',         sub: 'kaynak (yerinde)',              icon: Video,       stage: 'video' },
+  { key: 'coz',    x: 400, y: 132, label: 'ÇÖZ / ffmpeg',  sub: 'tespit + kare + ses',           icon: Scissors,    stage: 'coz' },
+  { key: 'pool',   x: 706, y: 132, label: '2. Havuz',      sub: 'jenerik havuzu',                icon: Boxes,       stage: 'pool', eventOnly: true },
+  // SOL DAL — OCR (görüntü) → Künye → QC1 → (VL) → QC2
+  { key: 'ocr',    x: 262, y: 234, label: 'OCR',           sub: 'OneOCR — jenerik oku',          icon: ScanText,    stage: 'ocr' },
+  { key: 'credit', x: 262, y: 330, label: 'Künye (metin)', sub: 'gemma-31b ayıklayıcı',          icon: FileCheck2,  stage: 'credit' },
+  { key: 'qc1',    x: 262, y: 426, label: 'QC1 — künye',   sub: 'yön boş / oyuncu<3 kapısı',     icon: ShieldAlert, stage: 'qc1', eventOnly: true },
+  { key: 'vl',     x: 116, y: 426, label: 'VL-Fallback',   sub: 'QC1-RED → gemma4 piksel',       icon: Eye,         stage: 'vl', eventOnly: true },
+  { key: 'qc2',    x: 262, y: 522, label: 'QC2 — kimlik',  sub: 'DB cross-check + web',          icon: ShieldCheck, stage: 'qc2' },
+  // SAĞ DAL — ASR (ses) → Özet
+  { key: 'asr',    x: 540, y: 234, label: 'ASR',           sub: 'MMS-LID + whisper turbo',       icon: AudioLines,  stage: 'asr' },
+  { key: 'ozet',   x: 540, y: 330, label: 'Özet',          sub: 'transcript → Gemini 2.5',       icon: Sparkles,    stage: 'ozet' },
+  // BİRLEŞ — PDF → V4 → QC-görsel → Yönlendir
+  { key: 'pdf',    x: 400, y: 608, label: 'PDF',           sub: 'künye + özet + ses/altyazı',    icon: FileText,    stage: 'pdf' },
+  { key: 'v4',     x: 400, y: 696, label: 'V4-Final',      sub: 'büyük-harf · kimlik · afiş',    icon: Stamp,       stage: 'v4' },
+  { key: 'qcg',    x: 400, y: 784, label: 'QC-görsel',     sub: 'gemma-vision önizleme',         icon: Eye,         stage: 'qcg' },
+  { key: 'route',  x: 352, y: 872, label: 'Yönlendir',     sub: 'reasons → karar',               icon: Split,       stage: 'route' },
+  { key: 'hazir',  x: 262, y: 968, label: 'ONAYLI',        sub: 'export\\ONAYLI',                icon: FolderCheck, stage: 'route_hazir' },
+  { key: 'kontrol',x: 446, y: 968, label: 'KONTROL',       sub: 'export\\KONTROL',               icon: FolderClock, stage: 'route_kontrol' },
+  // POST — teslim sonrası provenans (kararı ETKİLEMEZ)
+  { key: 'master', x: 706, y: 474, label: 'Master-PNG',    sub: 'jenerik → tek görüntü',         icon: ImageIcon,   stage: 'master', eventOnly: true },
+  { key: 'shadow', x: 706, y: 570, label: 'Gölge-VL',      sub: 'bağımsız VL (provenans)',       icon: Ghost,       stage: 'shadow', eventOnly: true },
 ];
 
 const EDGES: EdgeDef[] = [
   { from: 'video', to: 'coz' },
-  { from: 'coz', to: 'oneocr' }, { from: 'coz', to: 'glm' }, { from: 'coz', to: 'asr' },
-  { from: 'oneocr', to: 'ocrm' }, { from: 'glm', to: 'ocrm' },
-  { from: 'ocrm', to: 'credit' },
-  { from: 'asr', to: 'ozet' },                 // ASR → Özet (paralel, Claude)
-  { from: 'credit', to: 'pdf' }, { from: 'ozet', to: 'pdf' }, { from: 'asr', to: 'pdf' },  // ses/altyazı da ASR'dan
-  { from: 'pdf', to: 'v4' }, { from: 'v4', to: 'qc' },
-  { from: 'qc', to: 'hazir' }, { from: 'qc', to: 'kontrol' },
+  { from: 'coz', to: 'ocr' }, { from: 'coz', to: 'asr' }, { from: 'coz', to: 'pool', kind: 'post' },
+  { from: 'ocr', to: 'credit' }, { from: 'asr', to: 'ozet' },
+  { from: 'credit', to: 'qc1' },
+  { from: 'qc1', to: 'vl', kind: 'cond' },                    // KOŞULLU: yalnız QC1-RED
+  { from: 'qc1', to: 'qc2' },
+  { from: 'qc2', to: 'pdf' }, { from: 'ozet', to: 'pdf' },
+  { from: 'pdf', to: 'v4' }, { from: 'v4', to: 'qcg' }, { from: 'qcg', to: 'route' },
+  { from: 'route', to: 'hazir' }, { from: 'route', to: 'kontrol' },
+  { from: 'pool', to: 'master', kind: 'post' }, { from: 'master', to: 'shadow', kind: 'post' },  // POST provenans
 ];
 
-// Her balonun TAM ne yaptığı — yüzeysel ama açıklayıcı (madde madde).
+// Her balonun TAM ne yaptığı — GERÇEK kod/motor adlarıyla (madde madde).
 const NODE_DETAILS: Record<string, string[]> = {
-  video:   ['Kaynak video AĞ YOLUNDAN okunur (kopyalanmaz)', 'Süre / çözünürlük / fps ölçülür (ffprobe)'],
-  coz:     ['ffmpeg: ses ayrıştırılır → 16 kHz wav', 'Görüntü kareleri çıkarılır (giriş + çıkış jeneriği)', 'Çözünürlük / süre / fps ölçülür'],
-  oneocr:  ['OneOCR ile jenerik kareleri okunur (BİRİNCİL)', 'Türkçe metin çıkarılır', 'CLIP seçim → stitch → clean zinciri (pipeline100)'],
-  glm:     ['PaddleOCR-GPU ile jenerik kareleri okunur (YAN-KANAL)', 'OneOCR ile paralel çalışır (thread)', 'Sonuç paddle_kunye.txt\'ye kaydedilir; pipeline akışını etkilemez', 'Zaman içinde OneOCR\'ın tökezlediği yerleri takip için'],
-  ocrm:    ['OneOCR çıktısı → kunye.txt (birincil, pipeline\'a gider)', 'Paddle çıktısı → paddle_kunye.txt (yan-kanal, takip için)', 'Her iki sonuç aynı klasöre kaydedilir'],
-  credit:  ['gemma-4-31b-it-qat-vision (Ayıklayıcı): OCR metninden yönetmen/yapımcı/cast', 'QC1 kapısı: yönetmen BOŞ veya cast<3 → RED', 'QC1-RED: gemma4 VL ile pikselden oku (--fill-cast)', 'QC1 tekrar: hâlâ RED → _qc1_failed → KONTROL', 'OCR-OTORİTE: her isim OCR metninde olmalı'],
-  asr:     ['Kanal-dil tespiti (MMS-LID)', 'Kürtçe / desteklenmeyen dil → ASR atlanır', 'Whisper large-v3-turbo ile transkript'],
-  ozet:    ['ASR transkriptinden Sonnet/Claude ile özet (async)', 'SABİT PROMPT: 3-4 cümle · 50-60 kelime', 'Olay örgüsü + SPOİLER içerir', 'Transkript yoksa atlanır'],
-  pdf:     ['Künye + özet + ses&altyazı → PDF', 'Orijinal ad: XML <TITLE> BİRİNCİL (temizlenir) → yoksa kadro-konsensüs fallback', 'Afiş: orijinal ad + kadro-teyit (yanlış afiş yerine afiş YOK)', 'Ses / altyazı kanal-dil bloğu eklenir'],
-  v4:      ['BÜYÜK HARF (TR-İ duyarlı)', 'Yapım ekibi: SADECE Yönetmen + Yapımcı', 'Kimlik 3 kademe: XML <TITLE> → yerel-KB → kadro-konsensüs (kadrodan keşif)', 'KB ile TÜR / afiş dolgu', 'Final düzen (efektsiz)'],
-  qc:      ['Afiş durumu kontrol edilir', 'Özet durumu kontrol edilir', 'Büyük-harf kontrol edilir', 'Latin-dışı alfabe kontrol edilir', 'Türkçe karakter bozukluğu kontrol edilir', '(yerel qwen kalite kontrol)'],
-  hazir:   ['QC ONAYLADI → adına ONAYLI eklenir', 'export\\ONAYLI\\<TRT-ID> <BAŞLIK> ONAYLI.pdf'],
-  kontrol: ['QC onaylamadı → gözden geçmeli', 'export\\KONTROL\\<TRT-ID> <BAŞLIK>.pdf'],
+  video:   ['Kaynak video AĞ YOLUNDAN okunur (kopyalanmaz)', 'ffprobe: süre / çözünürlük / fps ölçülür'],
+  coz:     ['ffprobe ile teknik özellikler okunur',
+            'JENERİK-SINIR TESPİTİ (_jenerik_detect.py, üretimde AÇIK): giriş + çıkış jeneriği penceresi CLIP + hareket + OCR ile bulunur',
+            'GİRİŞ kareleri (tespit edilen jenerik-başından) + ÇIKIŞ kareleri çıkarılır (native çözünürlük, 2 fps)',
+            'Ses 16 kHz wav olarak ayrıştırılır',
+            'olaylar: credit_detect_opening / credit_detect_closing / cozumleme_completed'],
+  pool:    ['2. HAVUZ — paralel jenerik havuzu (_jenerik_pool.py)',
+            'frames/cikis → frames/cikis_jenerik (yalnız çıkış jeneriği kareleri süzülür)',
+            'Ana OneOCR akışını KULLANMAZ; Master-PNG + Gölge-VL + jenerik-debug bunu besler',
+            'olay: jenerik_pool_completed · fail-safe (hata pipeline\'ı bozmaz)'],
+  ocr:     ['_pipe_ocr.py — OneOCR (BİRİNCİL motor) jenerik karelerini okur → kunye.txt',
+            'Üretim: GLM-konsensüs KAPALI; Paddle yan-kanalı opsiyonel (paddle_kunye.txt, yalnız provenans)',
+            'Tespit penceresi az satır verdiyse sabit-pencere ile yeniden OCR (sonuç-temelli yedek)',
+            'OCR-OTORİTE: okunan metin nihai kararın çapasıdır'],
+  credit:  ['_pipe_credit_text.py — gemma-4-31b-it-qat-vision AYIKLAYICI',
+            'OCR METNİNDEN yönetmen / yapımcı / oyuncu eşler (pikselden OKUMAZ)',
+            'Halüsinasyon-kalkanı: her isim ham OCR metninde GEÇMELİ',
+            'olay: credit_text_completed'],
+  qc1:     ['QC1 — künye KALİTE kapısı (mitas_pipeline içi)',
+            'Kriter: yönetmen BOŞ veya oyuncu < 3 → RED',
+            'RED → VL-Fallback tetiklenir → VL sonrası tekrar denetlenir',
+            'VL sonrası hâlâ RED → _qc1_failed → KONTROL sinyali',
+            'olaylar: credit_qc1_red / credit_qc1_passed / credit_qc1_failed'],
+  vl:      ['KOŞULLU — yalnız QC1-RED iken çalışır',
+            '_pipe_credit_vl.py — gemma4:26b PİKSELDEN okur (--fill-cast)',
+            'Yönetmeni doldurur + oyuncu < 3 ise oyuncu listesini tamamlar',
+            'VL-yönetmen oyuncu listesinde de geçiyorsa DÜŞÜRÜLÜR (okunamadı > yanlış)',
+            'olay: credit_vl_fallback'],
+  qc2:     ['QC2 — KİMLİK / WEB doğrulama katmanı',
+            'Yön-doğrulama: _pipe_credit_validate.py → mitas.duckdb (IMDb + Wikidata) + XML cross-check (olay: credit_validate)',
+            'V4 içinde web kimlik: credit_qc_gates.web_identity (TMDB) — kimlik kilitli DEĞİLse web\'den yönetmen/afiş (MITAS_QC2_WEB)',
+            'credit_qc_block: çöp-ele + KB-floor + Latin-çevir + OCR-otorite denetimi',
+            'Çelişki / kaynak-belirsiz → KONTROL sinyali'],
+  asr:     ['_pipe_asr.py — kanal-dil tespiti MMS-LID (1024 dil)',
+            'Transkript: faster-whisper large-v3-turbo (TR) / large-v3 (yabancı)',
+            'Kürtçe / desteklenmeyen dil → ASR atlanır (özet internetten denenir)',
+            'İlerleme CANLI ve GERÇEK: asr_progress yüzdesi (tahmin değil)'],
+  ozet:    ['ASR transkriptinden olay-örgüsü özeti',
+            'Motor zinciri: gemini-2.5-flash (BİRİNCİL) → Sonnet (yedek) → yerel-gemma (yedek)',
+            'SABİT KALIP: 3-4 cümle · 50-60 kelime · SPOİLER içerir',
+            'Kürtçe → internetten özet · Transkript yoksa atlanır'],
+  pdf:     ['_pipe_pdf.py — künye + özet + ses/altyazı → PDF',
+            'Orijinal ad: XML <TITLE> birincil → yoksa kadro-konsensüs',
+            'Afiş: orijinal ad + kadro-teyit (yanlış afiş yerine afiş YOK)',
+            'Ses/altyazı: kanal-dil bloğu (MMS-LID + Paddle altyazı bandı)'],
+  v4:      ['tek_film_kunye.py — künyeyi v4 düzenine çevirir (kunye.pdf üzerine taşır)',
+            'BÜYÜK HARF (TR-İ duyarlı) · yapım ekibi SADECE Yönetmen + Yapımcı',
+            'Kimlik 3 kademe: XML <TITLE> → yerel-KB → kadro-konsensüs',
+            'KB ile TÜR / afiş dolgu · (QC2 kimlik/web doğrulaması bu adımın İÇİNDE koşar)'],
+  qcg:     ['QC-görsel — _kunye_qwen_check.py = gemma-4-31b-it-qat-vision GÖRSEL denetim',
+            'Render edilen önizleme PNG\'sine bakar (SADECE-gördüğü kuralı)',
+            'Denetler: özet · oyuncu · yapımcı · yönetmen · ses/dil · afiş',
+            'Büyük-harf · bozuk TR karakter · Latin-dışı alfabe',
+            '(dosya adı tarihsel "qwen"; motor 2026-06-23\'ten beri gemma-vision)'],
+  route:   ['Tüm kapı sinyalleri (reasons) toplanır',
+            'reasons BOŞ → Hazır · DOLU → Kontrol',
+            'credit_severity_router: şiddet × tip → AUTOFIX / tip-klasörü',
+            'olaylar: routed_hazir / routed_kontrol'],
+  hazir:   ['Tüm kapılar temiz → ONAYLI', 'export\\ONAYLI\\<TRT-ID> <BAŞLIK>_onaylı.pdf'],
+  kontrol: ['Bir veya çok kapı işaret verdi → insan gözden geçirir', 'export\\KONTROL\\<TRT-ID> <BAŞLIK>[_SORUN-ETİKETİ].pdf'],
+  master:  ['MASTER-PNG OLUŞUMU — teslim sonrası provenans (kararı ETKİLEMEZ)',
+            '2. Havuz kareleri → tek dikey "master" görüntü (master/cikis.png)',
+            '_jenerik_parallel_debug.py (yeni, db_compose_master) veya master_png_monitor.py (legacy)',
+            'olaylar: master_png_completed / master_png_surfaced'],
+  shadow:  ['GÖLGE-VL — teslim sonrası provenans (kararı ETKİLEMEZ)',
+            '_pipe_shadow_vl.py → gemma_kunye.json (bağımsız VL okuması)',
+            'Yeni yolda jenerik_parallel_debug içinde (vl + karşılaştırma)',
+            'olaylar: shadow_vl_completed / jenerik_debug_completed'],
 };
 
 function tsMs(s?: string): number { const v = s ? Date.parse(s) : NaN; return Number.isFinite(v) ? v : NaN; }
 function fmtClock(ts?: string): string { const m = tsMs(ts); if (!Number.isFinite(m)) return '--:--:--'; const d = new Date(m); return d.toLocaleTimeString('tr-TR', { hour12: false }); }
+const asArr = (v?: string | string[]): string[] => (v == null ? [] : Array.isArray(v) ? v : [v]);
 
-interface StageState { status: NodeStatus; durationSec?: number; elapsedSec?: number; pct?: number }
+interface StageState { status: NodeStatus; durationSec?: number; elapsedSec?: number; pct?: number; pctReal?: boolean }
 
 function computeStages(events: SysEvent[], focusFile: string | null, isProcessing: boolean, nowMs: number): {
   stages: Record<string, StageState>; karar: 'hazir' | 'kontrol' | null;
@@ -113,51 +199,121 @@ function computeStages(events: SysEvent[], focusFile: string | null, isProcessin
   const stages: Record<string, StageState> = {};
   if (!focusFile) return { stages, karar: null };
   const evs = events.filter((e) => e.filename === focusFile && e.kind).sort((a, b) => tsMs(a.ts) - tsMs(b.ts));
-  const lastTsOf = (kind?: string): number => {
-    if (!kind) return NaN;
-    for (let i = evs.length - 1; i >= 0; i--) if (evs[i].kind === kind) return tsMs(evs[i].ts);
+  const fin = (n: number) => Number.isFinite(n);
+  // bir kind GRUBUNUN (string|dizi) bu film için EN SON timestamp'i
+  const lastTsOf = (kinds?: string | string[]): number => {
+    const set = new Set(asArr(kinds));
+    if (!set.size) return NaN;
+    for (let i = evs.length - 1; i >= 0; i--) if (evs[i].kind && set.has(evs[i].kind!)) return tsMs(evs[i].ts);
     return NaN;
   };
-  const fin = (n: number) => Number.isFinite(n);
-  const order = ['coz', 'ocr', 'asr', 'credit', 'ozet', 'pdf', 'v4', 'qc'];
-  const endTs: Record<string, number> = {};
-  // 1) terminal durum + bitiş zamanı
-  for (const key of order) {
-    const k = STAGE_KIND[key];
-    const fail = lastTsOf(k.fail), done = lastTsOf(k.done), partial = lastTsOf(k.partial), skip = lastTsOf(k.skip);
-    let status: NodeStatus = 'waiting'; let e = NaN;
-    if (fin(fail)) { status = 'failed'; e = fail; }
-    else if (fin(done)) { status = 'done'; e = done; }
-    else if (fin(partial)) { status = 'partial'; e = partial; }
-    else if (fin(skip)) { status = 'skipped'; e = skip; }
-    stages[key] = { status };
-    if (fin(e)) endTs[key] = e;
+  // grubun EN SON event NESNESİ (duration_seconds gibi alanlara erişmek için)
+  const lastEvtOf = (kinds?: string | string[]): SysEvent | null => {
+    const set = new Set(asArr(kinds));
+    if (!set.size) return null;
+    for (let i = evs.length - 1; i >= 0; i--) if (evs[i].kind && set.has(evs[i].kind!)) return evs[i];
+    return null;
+  };
+
+  // GERÇEK ASR % — asr_progress event'i filename TAŞIMAZ, media_id ile gelir. Önce bu filmin
+  // media_id'sini bul, sonra TÜM event'lerde o media_id'li en yeni asr_progress.detail.percent'i al.
+  let focusMediaId: string | null = null;
+  for (let i = evs.length - 1; i >= 0; i--) { const m = evs[i].media_id; if (m) { focusMediaId = m; break; } }
+  let asrRealPct: number | null = null;
+  if (focusMediaId) {
+    let bestTs = -Infinity;
+    for (const e of events) {
+      if (e.kind === 'asr_progress' && e.media_id === focusMediaId) {
+        const t = tsMs(e.ts); const p = e.detail?.percent;
+        if (fin(t) && t > bestTs && typeof p === 'number') { bestTs = t; asrRealPct = Math.max(0, Math.min(100, Math.round(p))); }
+      }
+    }
   }
-  const depEnds = (key: string) => DEPS[key].map((d) => endTs[d]).filter(fin);
-  const depsOk = (key: string) => DEPS[key].every((d) => ['done', 'skipped', 'partial'].includes(stages[d]?.status));
+
+  const allKeys = Object.keys(STAGE_KIND);
+  const endTs: Record<string, number> = {};
+  const endDur: Record<string, number> = {};   // event'in KENDİ raporladığı duration_seconds (en doğru süre)
+  // 1) terminal durum + bitiş zamanı + (varsa) event-raporlu süre (öncelik: fail > done > partial > skip)
+  for (const key of allKeys) {
+    const k = STAGE_KIND[key];
+    const cand: Array<[NodeStatus, string | string[] | undefined]> = [['failed', k.fail], ['done', k.done], ['partial', k.partial], ['skipped', k.skip]];
+    let status: NodeStatus = 'waiting';
+    for (const [stt, kinds] of cand) {
+      const ev = lastEvtOf(kinds);
+      if (ev) {
+        status = stt;
+        const ts = tsMs(ev.ts);
+        if (fin(ts)) { endTs[key] = ts; if (typeof ev.duration_seconds === 'number') endDur[key] = ev.duration_seconds; }
+        break;
+      }
+    }
+    stages[key] = { status };
+  }
+
+  // QC1 ÖZEL — kapı: credit_qc1_* + SESSİZ-GEÇİŞ çıkarımı (oyuncu≥3 & yön var → RED hiç olmaz, event yok).
+  {
+    const red = lastTsOf('credit_qc1_red'), passed = lastTsOf('credit_qc1_passed'), failed = lastTsOf('credit_qc1_failed');
+    const creditDone = lastTsOf(STAGE_KIND.credit.done);
+    const s = stages['qc1'];
+    if (fin(failed)) { s.status = 'failed'; endTs['qc1'] = failed; }
+    else if (fin(passed)) { s.status = 'done'; endTs['qc1'] = passed; }
+    else if (fin(red)) { s.status = 'active'; }                                   // VL koşuyor / yeniden denetleniyor
+    else if (fin(creditDone)) { s.status = 'done'; endTs['qc1'] = creditDone; }   // sessiz geçiş (RED hiç olmadı)
+    else { s.status = 'waiting'; }
+  }
+
+  const depEnds = (key: string) => (DEPS[key] || []).map((d) => endTs[d]).filter(fin);
+  // bağımlılık "çözüldü mü": done/skipped/partial/failed (pipeline hatadan sonra da devam eder)
+  const depsResolved = (key: string) => (DEPS[key] || []).every((d) => ['done', 'skipped', 'partial', 'failed'].includes(stages[d]?.status));
   const baseTsOf = (key: string, startEv: number): number => {
     if (fin(startEv)) return startEv;
     if (key === 'coz') return lastTsOf('media_imported');
     const de = depEnds(key);
     return de.length ? Math.max(...de) : NaN;
   };
-  // 2) süre + AKTİF (bağımlılık-tabanlı → OCR∥ASR ve Künye∥Özet paralel doğru işler)
-  for (const key of order) {
+  const isEventOnly = (key: string) => NODES.find((n) => n.key === key)?.eventOnly;
+
+  // 2) süre + AKTİF çıkarımı
+  for (const key of allKeys) {
     const k = STAGE_KIND[key];
     const st = stages[key];
     const startEv = lastTsOf(k.start);
     const base = baseTsOf(key, startEv);
-    if (['done', 'partial', 'failed'].includes(st.status) && fin(endTs[key]) && fin(base) && endTs[key] >= base) {
-      st.durationSec = (endTs[key] - base) / 1000;
+    // Süre: ÖNCE event'in kendi duration_seconds'i (en doğru). Yoksa, YALNIZ gerçek start-event'i olan
+    // aşamada zaman-damgası farkı (start-event'siz post/gate düğümde uydurma süre BASMA → sahte "7dk").
+    const hasStart = fin(startEv) || key === 'coz';
+    if (['done', 'partial', 'failed'].includes(st.status)) {
+      if (typeof endDur[key] === 'number') st.durationSec = endDur[key];
+      else if (hasStart && fin(endTs[key]) && fin(base) && endTs[key] >= base) st.durationSec = (endTs[key] - base) / 1000;
     }
-    if (isProcessing && st.status === 'waiting' && (fin(startEv) || depsOk(key))) {
-      st.status = 'active';
-      if (fin(base)) {
-        st.elapsedSec = Math.max(0, (nowMs - base) / 1000);
-        st.pct = Math.min(98, Math.round((st.elapsedSec / k.expectSec) * 100));
+    if (isProcessing && st.status === 'waiting') {
+      // eventOnly (pool/qc1/vl/master/shadow): YALNIZ kendi start-event'i varsa aktif (bağımlılıkla çıkarım YOK)
+      const canActivate = isEventOnly(key) ? fin(startEv) : (fin(startEv) || depsResolved(key));
+      if (canActivate) {
+        if (fin(base)) {
+          const elapsed = Math.max(0, (nowMs - base) / 1000);
+          if (elapsed <= STALE_ACTIVE_SEC) {            // bayat değil → gerçekten işleniyor
+            st.status = 'active';
+            st.elapsedSec = elapsed;
+            st.pct = Math.min(98, Math.round((elapsed / k.expectSec) * 100));
+          }
+          // elapsed > sınır → bayat event; 'waiting' kalır (saçma "8776dk işleniyor" basmaz)
+        } else {
+          st.status = 'active';                          // bağımlılık çözüldü ama zaman damgası yok
+        }
       }
     }
+    // ASR: tahmini % yerine GERÇEK asr_progress %'sini kullan (aktifken)
+    if (key === 'asr' && st.status === 'active' && asrRealPct != null) {
+      st.pct = asrRealPct; st.pctReal = true;
+    }
   }
+  // QC1 aktifken (VL koşarken) geçen süre + % (eventOnly olduğu için yukarıdaki blok atladı)
+  if (stages['qc1'].status === 'active') {
+    const b = lastTsOf('credit_qc1_red');
+    if (fin(b)) { const el = Math.max(0, (nowMs - b) / 1000); if (el <= STALE_ACTIVE_SEC) { stages['qc1'].elapsedSec = el; stages['qc1'].pct = Math.min(98, Math.round((el / STAGE_KIND.qc1.expectSec) * 100)); } }
+  }
+
   const karar: 'hazir' | 'kontrol' | null =
     fin(lastTsOf('routed_hazir')) ? 'hazir'
     : fin(lastTsOf('routed_kontrol')) ? 'kontrol' : null;
@@ -177,6 +333,7 @@ const STAT_LABEL: Record<NodeStatus, string> = { waiting: 'bekliyor', active: 'i
 
 function nodeStatus(node: NodeDef, stages: Record<string, StageState>, karar: 'hazir' | 'kontrol' | null, anyEvent: boolean): StageState {
   if (node.stage === 'video') return { status: anyEvent ? 'done' : 'waiting' };
+  if (node.stage === 'route') return { status: karar ? 'done' : (stages['qcg']?.status === 'done' ? 'active' : 'waiting') };
   if (node.stage === 'route_hazir') return { status: karar === 'hazir' ? 'done' : 'waiting' };
   if (node.stage === 'route_kontrol') return { status: karar === 'kontrol' ? 'partial' : 'waiting' };
   return stages[node.stage] ?? { status: 'waiting' };
@@ -205,7 +362,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
     const poll = async () => {
       try {
         const [er, wr] = await Promise.all([
-          fetch('/api/events?limit=300', { cache: 'no-store' }),
+          fetch('/api/events?limit=400', { cache: 'no-store' }),
           fetch('/api/flow-queue/worker', { cache: 'no-store' }),
         ]);
         if (er.ok) { const d = await er.json(); if (!cancelled) setEvents(Array.isArray(d.events) ? d.events : []); }
@@ -227,9 +384,8 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
   const nodeById = (k: string) => NODES.find((n) => n.key === k)!;
   const stateOf = (n: NodeDef) => nodeStatus(n, stages, karar, anyEvent);
 
-  // genel ilerleme
-  const order = ['coz', 'ocr', 'asr', 'credit', 'ozet', 'pdf', 'v4', 'qc'];
-  const doneCount = order.filter((k) => ['done', 'skipped', 'partial'].includes(stages[k]?.status)).length;
+  // genel ilerleme (yalnız çekirdek omurga)
+  const doneCount = SPINE.filter((k) => ['done', 'skipped', 'partial'].includes(stages[k]?.status)).length;
   const activeNode = NODES.find((n) => stateOf(n).status === 'active');
   const failedNode = NODES.find((n) => stateOf(n).status === 'failed');
 
@@ -265,7 +421,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
         @keyframes mitasFlow { to { stroke-dashoffset: -28; } }
         @keyframes mitasPulse { 0%,100% { filter: drop-shadow(0 0 3px var(--g)); } 50% { filter: drop-shadow(0 0 12px var(--g)); } }
       `}</style>
-      <div className="relative flex max-h-[92vh] w-full max-w-[1160px] flex-col overflow-hidden rounded-md border border-border-mitas bg-app-shell shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative flex max-h-[92vh] w-full max-w-[1180px] flex-col overflow-hidden rounded-md border border-border-mitas bg-app-shell shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* başlık */}
         <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-surface/50 px-4 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
@@ -281,7 +437,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
                 {retrying ? 'Gönderiliyor…' : '⟳ Yeniden çöz'}
               </button>
             ) : null}
-            <span className="rounded-sm bg-surface px-2 py-0.5 text-[10px] text-foreground-muted">{doneCount}/8 aşama</span>
+            <span className="rounded-sm bg-surface px-2 py-0.5 text-[10px] text-foreground-muted">{doneCount}/{SPINE.length} aşama</span>
             <button type="button" onClick={onClose} className="rounded-sm p-1 text-foreground-muted hover:bg-surface-elevated hover:text-foreground-strong" title="Kapat"><X className="h-4 w-4" /></button>
           </div>
         </div>
@@ -308,7 +464,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[detailState.status].ring }} />
                     <span className="text-xs font-bold" style={{ color: STATUS_COLOR[detailState.status].text }}>{detailNode.label}</span>
                     <span className="ml-auto text-[9px] font-mono" style={{ color: STATUS_COLOR[detailState.status].text }}>
-                      {detailState.status === 'active' ? `%${detailState.pct ?? 0} · ${fmtDur(detailState.elapsedSec)}`
+                      {detailState.status === 'active' ? `%${detailState.pct ?? 0}${detailState.pctReal ? '✓' : '~'} · ${fmtDur(detailState.elapsedSec)}`
                         : (detailState.status === 'done' || detailState.status === 'partial') ? `✓ ${fmtDur(detailState.durationSec)}`
                         : STAT_LABEL[detailState.status]}
                     </span>
@@ -346,15 +502,19 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
           <div className="min-h-0 flex-1 overflow-auto bg-[#070a10] p-2">
             <div className="relative mx-auto" style={{ width: CANVAS_W, height: CANVAS_H }}>
               <svg width={CANVAS_W} height={CANVAS_H} className="absolute inset-0" style={{ pointerEvents: 'none' }}>
+              {/* POST provenans bölge etiketi */}
+              <text x={706} y={420} textAnchor="middle" fontSize="9" fill="#3a4256" style={{ letterSpacing: '0.05em' }}>teslim sonrası · kararı etkilemez</text>
               {EDGES.map((e, i) => {
                 const a = nodeById(e.from); const b = nodeById(e.to);
                 const dy = b.y - a.y;
                 const d = `M ${a.x} ${a.y + 34} C ${a.x} ${a.y + dy * 0.5}, ${b.x} ${b.y - dy * 0.5}, ${b.x} ${b.y - 34}`;
                 const act = edgeActive(e); const dn = edgeDone(e);
-                const color = act ? '#f5b301' : dn ? '#1f9d57' : '#1c2430';
+                const side = e.kind === 'cond' || e.kind === 'post';
+                const color = act ? '#f5b301' : dn ? '#1f9d57' : side ? '#222c3a' : '#1c2430';
                 return (
                   <g key={i}>
-                    <path d={d} fill="none" stroke={color} strokeWidth={act ? 2.4 : 1.5} opacity={dn || act ? 0.9 : 0.5} />
+                    <path d={d} fill="none" stroke={color} strokeWidth={act ? 2.4 : 1.5}
+                      strokeDasharray={side ? '4 4' : undefined} opacity={dn || act ? 0.9 : side ? 0.6 : 0.5} />
                     {act ? (
                       <>
                         <circle r={4} fill="#ffd860" style={{ filter: 'drop-shadow(0 0 5px #f5b301)' }}>
@@ -378,8 +538,8 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
               const c = STATUS_COLOR[st.status];
               const Icon = n.icon;
               return (
-                <div key={n.key} onClick={() => setSelectedKey(n.key)} className="absolute flex cursor-pointer flex-col items-center" style={{ left: n.x, top: n.y, transform: 'translate(-50%,-50%)', width: 150 }}>
-                  <div className="relative flex h-[58px] w-[58px] items-center justify-center rounded-full border-2"
+                <div key={n.key} onClick={() => setSelectedKey(n.key)} className="absolute flex cursor-pointer flex-col items-center" style={{ left: n.x, top: n.y, transform: 'translate(-50%,-50%)', width: 134 }}>
+                  <div className="relative flex h-[54px] w-[54px] items-center justify-center rounded-full border-2"
                     style={{ borderColor: c.ring, background: c.bg, ['--g' as string]: c.ring, animation: c.glow ? 'mitasPulse 1.3s ease-in-out infinite' : undefined, boxShadow: selectedKey === n.key ? '0 0 0 3px rgba(255,255,255,0.3)' : undefined }}>
                     <Icon className="h-6 w-6" style={{ color: c.text }} />
                     {st.status === 'active' && typeof st.pct === 'number' ? (
@@ -406,8 +566,10 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
         <div className="flex items-center gap-3 border-t border-border-subtle bg-surface/40 px-4 py-1.5 text-[9px] text-foreground-muted">
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#3ddc84' }} />bitti (süre)</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#ffd34d' }} />aktif (%)</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#f1b54a' }} />kısmi</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#ff6b6b' }} />takıldı</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#5b6678' }} />bekliyor</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#5b6678' }} />bekliyor/atlandı</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-0 w-3 border-t border-dashed border-[#3a4256]" />koşullu / post</span>
           <span className="ml-auto text-foreground-disabled">canlı /api/events · 1.5sn</span>
         </div>
       </div>
