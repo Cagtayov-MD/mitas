@@ -196,10 +196,13 @@ def _clip_scores(ctx: dict, frames_bgr: list[np.ndarray]) -> list[float]:
     with torch.no_grad():
         for i in range(0, len(frames_bgr), B):
             batch = frames_bgr[i:i + B]
-            imgs = torch.stack([
+            # CPU preprocess lock DIŞINDA (paralel hazırlık); GPU'ya taşıma (.to) lock İÇİNDE —
+            # aksi halde paralel giriş+çıkış iki 64'lük batch'i aynı anda VRAM'e koyup OOM riski yaratır.
+            cpu_imgs = torch.stack([
                 pre(Image.fromarray(cv2.cvtColor(f, cv2.COLOR_BGR2RGB))) for f in batch
-            ]).to(dev)
+            ])
             with lock:
+                imgs = cpu_imgs.to(dev)
                 ie = model.encode_image(imgs).float()
                 ie = ie / ie.norm(dim=-1, keepdim=True)
                 sc = torch.stack([ie @ ctx["cred_e"], ie @ ctx["scene_e"]], dim=1) * ctx["ls"]

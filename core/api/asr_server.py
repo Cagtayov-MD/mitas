@@ -237,6 +237,24 @@ _pipeline_proc: "subprocess.Popen | None" = None   # çalışan mitas_pipeline (
 _pipeline_abort = threading.Event()                  # Zorla Durdur işareti
 _flow_worker_proc: "subprocess.Popen | None" = None  # F2: çalışan FLOW-WORKER pipeline'ı (zorla-dur ile öldürmek için)
 _singleton_mutex_handle = None                       # F1: tek-instance named mutex (GC olmasın diye saklanır)
+
+
+def _kill_proc_tree(proc: "subprocess.Popen") -> None:
+    """Pipeline subprocess'ini AĞAÇ olarak öldür. Windows'ta proc.kill() yalnız doğrudan çocuğu
+    (mitas_pipeline.py) öldürür; torunları (PY_OCR/PY_ASR/PY_PDF venv python'ları + ffmpeg)
+    yetim kalıp RTX 3090 VRAM'ini tutmaya devam eder → _gpu_lock'lu sonraki iş OOM yer.
+    abort yolundaki kanıtlı taskkill /T /F desenini kullan; başarısızsa proc.kill()'e düş."""
+    pid = proc.pid if (proc is not None and proc.poll() is None) else None
+    if pid is not None:
+        try:
+            subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
+            return
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        proc.kill()
+    except Exception:  # noqa: BLE001
+        pass
 PIPELINE_PROFILE_MAP: dict[str, str] = {
     "film_dizi": "film_dizi",
     "documentary": "belgesel",
@@ -727,7 +745,7 @@ def _flow_queue_worker_loop() -> None:
                             try:
                                 _out, _err = proc.communicate(timeout=14400)
                             except subprocess.TimeoutExpired:
-                                proc.kill()
+                                _kill_proc_tree(proc)   # torun süreçleri (ffmpeg/venv python) + VRAM'i de bırak
                                 proc.communicate()
                                 raise
                         finally:
@@ -1522,7 +1540,7 @@ def _run_pipeline_job(job_id: str) -> None:
                 try:
                     out, err = proc.communicate(timeout=14400)
                 except subprocess.TimeoutExpired:
-                    proc.kill()
+                    _kill_proc_tree(proc)   # torun süreçleri (ffmpeg/venv python) + VRAM'i de bırak
                     proc.communicate()
                     raise
             finally:

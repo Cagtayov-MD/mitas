@@ -14,7 +14,7 @@ Kullanim:
   (test icin hizli:) --asr-max-seconds 120 --ocr-head 60 --ocr-tail 120 --fps 2
 """
 from __future__ import annotations
-import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os, sys
+import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os, sys, functools
 import urllib.request, urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
@@ -421,17 +421,38 @@ def _clean_xml_title(s: str) -> str:
     return s
 
 
+@functools.lru_cache(maxsize=64)
+def _xml_root_cached(path_str: str, _mtime: float):
+    """(yol, mtime) anahtarlı ElementTree kökü — aynı sidecar XML'i tekrar tekrar parse etme.
+    mtime anahtara dahil → dosya değişirse cache kendiliğinden tazelenir. SALT-OKUNUR kullan
+    (kök paylaşılır; çağıranlar yalnız find/iter eder, mutasyon yok)."""
+    import xml.etree.ElementTree as ET
+    return ET.parse(path_str).getroot()
+
+
+def _xml_root(video: Path):
+    """Video yanındaki <stem>.xml sidecar kökünü BİR KEZ parse edip yeniden kullan.
+    xml_original/xml_roles/xml_genre/genre_class hepsi aynı dosyayı okur; film başına 4-5
+    tekrarlı IO/parse yerine tek parse. Yoksa/bozuksa None (çağıran kendi default'una düşer)."""
+    xp = video.with_suffix(".xml")
+    try:
+        if not xp.exists():
+            return None
+        return _xml_root_cached(str(xp), xp.stat().st_mtime)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def xml_original(video: Path) -> str:
     """Video yanindaki <stem>.xml sidecar'dan orijinal adi (<TITLE>) oku → afiş + ses/altyazı orijinal-ad.
     Yabancı filmde TRT başlığı Türkçe ("SİYAH İNCİ"), XML <TITLE> orijinal ("BLACK BEAUTY").
     BİRİNCİL kaynak (491/491 dolu, sıfır halüsinasyon). Yoksa/bozuksa "" → _pipe_pdf kadro-konsensüs
     fallback'i (credit_identity) devreye girer (Çağatay 2026-06-08: XML eksik olabilir, çalışsın)."""
     try:
-        import xml.etree.ElementTree as ET
-        xp = video.with_suffix(".xml")
-        if not xp.exists():
+        root = _xml_root(video)
+        if root is None:
             return ""
-        tt = ET.parse(str(xp)).getroot().find(".//TITLE")
+        tt = root.find(".//TITLE")
         return _clean_xml_title(tt.text or "") if tt is not None else ""
     except Exception:  # noqa: BLE001
         return ""
@@ -445,11 +466,9 @@ def xml_roles(video: Path) -> dict:
     OYUNCU/ROL->oyuncu.) XML yoksa/bossa {} doner → _pipe_pdf'e arg verilmez."""
     oy, yon, yap = [], [], []
     try:
-        import xml.etree.ElementTree as ET
-        xp = video.with_suffix(".xml")
-        if not xp.exists():
+        root = _xml_root(video)
+        if root is None:
             return {}
-        root = ET.parse(str(xp)).getroot()
         for b in root.iter("BEAN"):
             d = {p.attrib.get("NAME", ""): (p.text or "").strip() for p in b.findall("PROPERTY")}
             nm = (d.get("V_ROL_FIRST", "") + " " + d.get("V_ROL_LAST", "")).strip()
@@ -475,11 +494,9 @@ def xml_genre(video: Path) -> str:
       3) boşsa JT:CLASSIFICATION:PEV_INTENTION_NAME (EĞLENCE…)
     Hepsi aynı TRT-kataloğu (doldurma değil, yedek-alan). IMDb/Wiki türü v4/validate katmanında."""
     try:
-        import xml.etree.ElementTree as ET
-        xp = video.with_suffix(".xml")
-        if not xp.exists():
+        root = _xml_root(video)
+        if root is None:
             return ""
-        root = ET.parse(str(xp)).getroot()
         fmt = content = intent = ""
         for p in root.iter("PROPERTY"):
             n = p.attrib.get("NAME")
@@ -554,10 +571,9 @@ def genre_class(video: Path, final_tur: str = "") -> str:
     3) DİĞER. (Görünür PDF TÜR'ünü DEĞİŞTİRMEZ — yalnız skip sinyali.)"""
     fmt = content = intent = ""
     try:
-        import xml.etree.ElementTree as ET
-        xp = video.with_suffix(".xml")
-        if xp.exists():
-            for p in ET.parse(str(xp)).getroot().iter("PROPERTY"):
+        root = _xml_root(video)
+        if root is not None:
+            for p in root.iter("PROPERTY"):
                 n, t = p.attrib.get("NAME"), (p.text or "").strip()
                 if n == "JT:CLASSIFICATION:EDIT_FMT_NAME" and not fmt:
                     fmt = t
@@ -827,6 +843,9 @@ _deepseek = _load_sibling("_deepseek")
 # (rakam/iki-nokta/koseli-parantez kotu bolunur). Uzun filmde toplam token baglam-penceresini asip
 # modeli tek-token coplu cikti uretmeye iter (kanitli: SUCLU KIM 60K char damgali >32K token -> "H";
 # damga soyununca 42K char/17.7K token -> temiz ozet). Soymak hem bu hatayi onler hem ~%30 token kazandirir.
+# NOT (denetim 2026-06-28): ANA pipeline yolu zaten DAMGASIZ transcript_plain.txt'ten besleniyor
+# (_pipe_asr transcript_plain'i damgasiz yazar) → bu regex ana yolda no-op. SAVUNMA KEMERI olarak
+# tutuluyor: damgali metin baska bir kaynaktan (or. internet/transcript.txt) gelirse devreye girer.
 _OZET_TS_RE = re.compile(r"\[\d\d:\d\d:\d\d\]\s*")
 
 

@@ -424,11 +424,8 @@ def _run_single_pass(
         )
     decode_time = perf_counter() - decode_started
 
-    raw_segments = [
-        replace(segment, index=index)
-        for index, segment in enumerate(sorted(raw_segments, key=lambda item: (item.start, item.end)))
-    ]
-
+    # Sıralama + yeniden-indeksleme TEK noktada (_evaluate_run_segments başında) yapılır;
+    # burada tekrarlamak her tek-pass'te gereksiz O(n log n) + n adet frozen-dataclass replace kopyasıydı.
     return _evaluate_run_segments(
         raw_segments,
         quality_config,
