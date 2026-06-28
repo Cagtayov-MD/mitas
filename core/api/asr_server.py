@@ -451,7 +451,10 @@ async def enqueue_local(request: Request) -> dict[str, Any]:
     KALICI ÇÖZÜM: tarayıcı yerel dosya YOLUNU göremez (sandbox) → büyük yerel filmleri upload
     etmeye çalışır → kopar (ClientDisconnect) + ad kaybolur + disk şişer. Worker ZATEN
     ``sourcePath`` destekler; bu endpoint dizini server-tarafı okuyup ``sourcePath`` öğeleri
-    olarak ekler + worker'ı başlatır. Body: {"dir": "...", "profile": "film", "replace": false}.
+    olarak SADECE kuyruğa ekler. Çözümleme yalnız "Başlat" (POST /api/flow-queue/run) ile
+    başlar — gözat/ekle ANINDA KOŞMAZ (kullanıcı kuralı: yüklesin, beklesin, başlat demeden
+    çalıştırmasın). İstenirse {"autostart": true} ile hemen başlatılabilir (varsayılan KAPALI).
+    Body: {"dir": "...", "profile": "film", "replace": false, "autostart": false}.
     """
     global _flow_worker_thread
     try:
@@ -465,6 +468,9 @@ async def enqueue_local(request: Request) -> dict[str, Any]:
     # onlyTrt: True ise yalnız TRT-ID formatındaki dosyaları al; False ise tümünü al.
     # Varsayılan False — kullanıcı UNC/ağ klasöründen her video formatını ekleyebilmeli.
     only_trt = bool(payload.get("onlyTrt", False))
+    # autostart: VARSAYILAN KAPALI — gözat/ekle SADECE kuyruğa yazar; çözümleme yalnız "Başlat"
+    # ile başlar. (UI bu bayrağı GÖNDERMEZ → ekleyince koşmaz; sadece kuyrukta 'waiting' bekler.)
+    autostart = bool(payload.get("autostart", False))
     exts = {"mp4", "mxf", "mkv", "avi", "mov"}
     files: list[str] = []
     if directory:
@@ -506,28 +512,37 @@ async def enqueue_local(request: Request) -> dict[str, Any]:
     items = state.get("items") if isinstance(state.get("items"), list) else []
     have = {it.get("sourcePath") for it in items if isinstance(it, dict)}
     added = 0
+    new_items: list[dict[str, Any]] = []  # bu çağrıda eklenenler — client listesine 'waiting' yansısın
     for f in files:
         if f in have:
             continue
-        items.append({"id": f"local-{uuid4().hex[:12]}", "name": Path(f).name,
-                      "sourcePath": f, "status": "waiting", "profile": profile})
+        entry = {"id": f"local-{uuid4().hex[:12]}", "name": Path(f).name,
+                 "sourcePath": f, "status": "waiting", "profile": profile}
+        items.append(entry)
+        new_items.append(entry)
         added += 1
     state["items"] = items
     state["id"] = "main"
     state["bulkProfile"] = profile
     state["updatedAt"] = _now_iso()
     _write_json(FLOW_QUEUE_STATE_PATH, state)
-    with _flow_worker_lock:
-        if _flow_worker_thread is None or not _flow_worker_thread.is_alive():
-            _flow_worker_stop.clear()
-            _flow_worker_thread = threading.Thread(
-                target=_flow_queue_worker_loop, daemon=True, name="flow-queue-worker")
-            _flow_worker_thread.start()
+    # Worker'ı YALNIZ autostart=True ise başlat. Varsayılan: kuyruğa yaz + bekle ("Başlat" koşturur).
+    worker_status = "idle"
+    if autostart:
+        with _flow_worker_lock:
+            if _flow_worker_thread is None or not _flow_worker_thread.is_alive():
+                _flow_worker_stop.clear()
+                _flow_worker_thread = threading.Thread(
+                    target=_flow_queue_worker_loop, daemon=True, name="flow-queue-worker")
+                _flow_worker_thread.start()
+        worker_status = "started"
     system_events.log_event(
         "flow_enqueue_local",
-        summary=f"Yerel dizinden {added} film PATH ile kuyruğa eklendi (upload yok) + worker başlatıldı.",
-        module="flow", detail={"dir": directory, "added": added, "total": len(items)})
-    return {"added": added, "total": len(items), "files_found": len(files), "worker": "started"}
+        summary=(f"Yerel dizinden {added} film PATH ile kuyruğa eklendi (upload yok)"
+                 + (" + worker başlatıldı." if autostart else " — 'Başlat' bekleniyor.")),
+        module="flow", detail={"dir": directory, "added": added, "total": len(items), "autostart": autostart})
+    return {"added": added, "total": len(items), "files_found": len(files),
+            "worker": worker_status, "items": new_items}
 
 
 @app.post("/api/flow-queue/uploads/{item_id}")

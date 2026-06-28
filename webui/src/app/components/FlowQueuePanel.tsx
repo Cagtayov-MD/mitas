@@ -11,7 +11,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
 import { Badge, Button, ScrollArea } from './ui';
 import {
   ANALYSIS_PROFILE_OPTIONS,
@@ -97,6 +97,11 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   const uploadsRef = useRef<Map<string, Promise<void>>>(new Map());  // devam eden klip yüklemeleri (id → söz); Başlat bunları bekler
   const lastPctRef = useRef<Record<string, number>>({});            // son raporlanan tam yüzde — gereksiz render önler
   const isPreparingRef = useRef(false);                              // Başlat yüklemeleri beklerken poll'un isProcessing'i ezmesini engeller
+  // "Ayna" ref'leri: memo'lu satır eylemleri (sabit-kimlikli useCallback) güncel seçim/profil/callback'i
+  // bunlardan okur → 2 sn'lik poll tüm listeyi tazelemez, her satır yalnız KENDİ verisi değişince render olur.
+  const selectedIdsRef = useRef<Set<string>>(new Set());
+  const bulkProfileRef = useRef<AnalysisProfile>('film_dizi');
+  const onOpenMediaRef = useRef(onOpenMedia);
   const [items, setItems] = useState<FlowQueueItem[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});  // SADECE görsel — kalıcılaştırılmaz
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
@@ -117,6 +122,11 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   const [browsePath, setBrowsePath] = useState('');
   const [browseLoading, setBrowseLoading] = useState(false);
   const [browseData, setBrowseData] = useState<{ path: string; parent: string | null; dirs: string[]; films: string[]; film_count: number } | null>(null);
+
+  // Ayna ref'lerini her render güncel tut (event/async handler'lar .current'tan okur; render sırasında OKUNMAZ).
+  selectedIdsRef.current = selectedIds;
+  bulkProfileRef.current = bulkProfile;
+  onOpenMediaRef.current = onOpenMedia;
 
   useEffect(() => {
     let cancelled = false;
@@ -173,16 +183,17 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
 
   // itemsRef.current'i SENKRON güncelle (React state flush'ını bekleme). Başlat, yüklemeler
   // bittiği an itemsRef'ten storedMediaPath'i okuyup sunucuya yazıyor — flush gecikmesi yarış yaratmasın.
-  const updateItems = (updater: (current: FlowQueueItem[]) => FlowQueueItem[]) => {
+  // useCallback([]) + bulkProfileRef: kimliği SABİT → memo'lu satır eylemleri stabil kalır.
+  const updateItems = useCallback((updater: (current: FlowQueueItem[]) => FlowQueueItem[]) => {
     const next = updater(itemsRef.current);
     itemsRef.current = next;
     setItems(next);
     if (hasLoadedPersistedQueueRef.current && !isProcessingRef.current) {
-      saveFlowQueueState({ items: next, bulkProfile })
+      saveFlowQueueState({ items: next, bulkProfile: bulkProfileRef.current })
         .then(() => setPersistenceStatus('saved'))
         .catch(() => setPersistenceStatus('error'));
     }
-  };
+  }, []);
 
   // SUNUCU worker durumunu izle — yenileme/kapatma sonrası YENİDEN BAĞLANIR (koşu sayfadan bağımsız sürer).
   const pollServerQueue = async () => {
@@ -201,13 +212,26 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
         const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string; clipId?: string }> = Array.isArray(q?.items) ? q.items : [];
         if (serverItems.length) {
           const byId = new Map(serverItems.map((s) => [s.id, s] as const));
+          // Yalnız GERÇEKTEN değişen öğe için yeni nesne üret; hiçbiri değişmediyse setItems'i TAMAMEN
+          // atla (aynı dizi ref'i korunur) → boşta/sabit kuyrukta 2 sn'lik render fırtınası biter.
+          let changed = false;
           const next = itemsRef.current.map((it) => {
             if (it.uploading) return it;  // aktif yükleme — yerel "Yükleniyor" durumunu sunucu durumuyla ezme
             const s = byId.get(it.id);
-            return s ? { ...it, status: (s.status as FlowItemStatus) ?? it.status, message: s.message ?? it.message, clipId: s.clipId ?? it.clipId } : it;
+            if (!s) return it;
+            const nextStatus = (s.status as FlowItemStatus) ?? it.status;
+            const nextMessage = s.message ?? it.message;
+            const nextClipId = s.clipId ?? it.clipId;
+            if (nextStatus === it.status && nextMessage === it.message && nextClipId === it.clipId) {
+              return it;  // değişmedi → aynı ref (memo'lu satır yeniden render olmaz)
+            }
+            changed = true;
+            return { ...it, status: nextStatus, message: nextMessage, clipId: nextClipId };
           });
-          itemsRef.current = next;
-          setItems(next);
+          if (changed) {
+            itemsRef.current = next;
+            setItems(next);
+          }
         }
       }
       // Başlat yüklemeleri beklerken (isPreparing) worker henüz koşmaz → poll isProcessing'i false'a
@@ -291,7 +315,10 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     }
   };
 
-  const toggleSelected = (id: string) => {
+  // Satır-eylemleri memo'lu FlowQueueRow'a prop geçer → KİMLİKLERİ SABİT olmalı (useCallback + ref).
+  // Güncel seçim/öğeler selectedIdsRef/itemsRef'ten okunur; böylece her satır yalnız KENDİ verisi
+  // değişince render olur (2 sn'lik poll tüm listeyi tazelemez, O(n²) bağlam-hesabı kalkar).
+  const toggleSelected = useCallback((id: string) => {
     setSelectedIds((current) => {
       const next = new Set(current);
       if (next.has(id)) {
@@ -301,7 +328,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       }
       return next;
     });
-  };
+  }, []);
 
   const toggleAll = () => {
     setSelectedIds((current) => {
@@ -312,15 +339,15 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     });
   };
 
-  const assignProfile = (profile: AnalysisProfile, targetIds?: Set<string>) => {
-    const ids = targetIds ?? selectedIds;
+  const assignProfile = useCallback((profile: AnalysisProfile, targetIds?: Set<string>) => {
+    const ids = targetIds ?? selectedIdsRef.current;
     updateItems((current) => current.map((item) => {
       if (ids.size > 0 && !ids.has(item.id)) {
         return item;
       }
       return { ...item, profile };
     }));
-  };
+  }, [updateItems]);
 
   const handleBulkProfileChange = (profile: AnalysisProfile) => {
     setBulkProfile(profile);
@@ -329,15 +356,16 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     }
   };
 
-  const contextTargetIdsForItem = (item: FlowQueueItem) => {
-    return selectedIds.has(item.id) && selectedIds.size > 0 ? selectedIds : new Set([item.id]);
-  };
+  const contextTargetIdsForItem = useCallback((item: FlowQueueItem) => {
+    const sel = selectedIdsRef.current;
+    return sel.has(item.id) && sel.size > 0 ? sel : new Set([item.id]);
+  }, []);
 
-  const assignProfileFromContext = (item: FlowQueueItem, profile: AnalysisProfile) => {
+  const assignProfileFromContext = useCallback((item: FlowQueueItem, profile: AnalysisProfile) => {
     assignProfile(profile, contextTargetIdsForItem(item));
-  };
+  }, [assignProfile, contextTargetIdsForItem]);
 
-  const removeItems = (ids: Set<string>) => {
+  const removeItems = useCallback((ids: Set<string>) => {
     if (ids.size === 0) return;
     updateItems((current) => current.filter((item) => !ids.has(item.id)));
     setSelectedIds((current) => {
@@ -345,18 +373,40 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       ids.forEach((id) => next.delete(id));
       return next;
     });
-  };
+  }, [updateItems]);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     removeItems(new Set([id]));
-  };
+  }, [removeItems]);
 
-  const removableContextIdsForItem = (item: FlowQueueItem) => {
-    const targetIds = selectedIds.has(item.id) && selectedIds.size > 0 ? selectedIds : new Set([item.id]);
-    return new Set(items
+  const removableContextIdsForItem = useCallback((item: FlowQueueItem) => {
+    const sel = selectedIdsRef.current;
+    const targetIds = sel.has(item.id) && sel.size > 0 ? sel : new Set([item.id]);
+    return new Set(itemsRef.current
       .filter((candidate) => targetIds.has(candidate.id) && candidate.status !== 'running')
       .map((candidate) => candidate.id));
-  };
+  }, []);
+
+  // Satır prop'ları için ek sabit-kimlikli sarmalayıcılar (item'i kendisi taşır).
+  const removeContextItems = useCallback((item: FlowQueueItem) => {
+    removeItems(removableContextIdsForItem(item));
+  }, [removeItems, removableContextIdsForItem]);
+
+  const openMediaForItem = useCallback((item: FlowQueueItem) => {
+    onOpenMediaRef.current({
+      source: item.source,
+      name: item.name,
+      file: item.source === 'upload' ? item.file : undefined,
+      storedMediaUrl: item.source === 'upload' ? item.storedMediaUrl : undefined,
+      mediaType: item.source === 'upload' ? item.mediaType : undefined,
+      sourcePath: item.source === 'upload' ? displaySourcePath(item) : undefined,
+      tedialItem: item.source === 'tedial' ? item.tedialItem : undefined,
+      tedialQuery: item.source === 'tedial'
+        ? item.tedialItem?.trt_id || item.tedialItem?.asset_id || item.message || item.name
+        : undefined,
+      job: item.job,
+    });
+  }, []);
 
   const clearCompleted = () => {
     // F6: terminal öğeleri hem yerel görünümden hem SUNUCU kuyruğundan sil (server-otorite temizlik).
@@ -515,6 +565,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     if ((!dir && paths.length === 0) || localDirBusy) return;
     setLocalDirBusy(true);
     try {
+      // autostart GÖNDERİLMEZ: gözat/ekle SADECE kuyruğa yazar; çözümleme "Başlat" ile başlar.
       const body: Record<string, unknown> = { profile: bulkProfile, replace: false };
       if (dir) body.dir = dir;
       if (paths.length) body.paths = paths;
@@ -528,7 +579,30 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
         window.alert(`Eklenemedi: ${data?.detail ?? res.status}`);
         return;
       }
-      window.alert(`${data.added} video PATH ile eklendi (upload yok). Toplam: ${data.total}. Worker başladı.`);
+      // Sunucunun eklediği 'waiting' yerel öğeleri (sunucu-atanmış id'lerle) listeye yansıt:
+      // (1) kullanıcı kuyrukta hemen görsün, (2) "Başlat" sunucuya geri-yazınca KAPSANSIN —
+      // aksi halde processQueue overwrite ile bu öğeleri silerdi. Eski sunucu items döndürmezse
+      // kuyruğu tekrar oku (sürüm-uyumu). Yalnız id'si listede OLMAYANLAR eklenir (çift yok).
+      const serverItems: Array<{ id?: string; name?: string; sourcePath?: string; profile?: string }> =
+        Array.isArray(data.items) ? data.items : ((await loadFlowQueueServerState())?.items ?? []);
+      if (serverItems.length) {
+        updateItems((current) => {
+          const have = new Set(current.map((it) => it.id));
+          const additions: FlowQueueItem[] = serverItems
+            .filter((s) => s && typeof s.id === 'string' && !have.has(s.id))
+            .map((s) => ({
+              id: s.id as string,
+              source: 'local' as const,
+              name: s.name || (s.sourcePath ? (s.sourcePath.split(/[\\/]/).pop() ?? 'video') : 'video'),
+              profile: (s.profile as AnalysisProfile) ?? bulkProfile,
+              status: 'waiting' as const,
+              sourcePath: s.sourcePath,
+              message: s.sourcePath,
+            }));
+          return additions.length ? [...current, ...additions] : current;
+        });
+      }
+      window.alert(`${data.added} video kuyruğa eklendi (upload yok). Toplam: ${data.total}. Çözümlemeyi başlatmak için "Başlat"a basın.`);
       setSelectedFilms(new Set());
       setBrowseOpen(false);
     } catch (err) {
@@ -751,24 +825,13 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
               item={item}
               uploadPct={uploadProgress[item.id]}
               selected={selectedIds.has(item.id)}
-              contextRemoveCount={removableContextIdsForItem(item).size}
-              onToggleSelected={() => toggleSelected(item.id)}
-              onRemove={() => removeItem(item.id)}
-              onContextRemove={() => removeItems(removableContextIdsForItem(item))}
-              onAssignProfile={(profile) => assignProfileFromContext(item, profile)}
-              onOpen={() => onOpenMedia({
-                source: item.source,
-                name: item.name,
-                file: item.source === 'upload' ? item.file : undefined,
-                storedMediaUrl: item.source === 'upload' ? item.storedMediaUrl : undefined,
-                mediaType: item.source === 'upload' ? item.mediaType : undefined,
-                sourcePath: item.source === 'upload' ? displaySourcePath(item) : undefined,
-                tedialItem: item.source === 'tedial' ? item.tedialItem : undefined,
-                tedialQuery: item.source === 'tedial'
-                  ? item.tedialItem?.trt_id || item.tedialItem?.asset_id || item.message || item.name
-                  : undefined,
-                job: item.job,
-              })}
+              selectedCount={selectedCount}
+              onToggleSelected={toggleSelected}
+              onRemove={removeItem}
+              onContextRemove={removeContextItems}
+              onAssignProfile={assignProfileFromContext}
+              onOpen={openMediaForItem}
+              removableIdsFor={removableContextIdsForItem}
             />
           ))}
         </div>
@@ -826,29 +889,33 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   );
 }
 
-function FlowQueueRow({
+const FlowQueueRow = memo(function FlowQueueRow({
   item,
   uploadPct,
   selected,
-  contextRemoveCount,
   onToggleSelected,
   onRemove,
   onContextRemove,
   onAssignProfile,
   onOpen,
+  removableIdsFor,
 }: {
   item: FlowQueueItem;
   uploadPct?: number;
   selected: boolean;
-  contextRemoveCount: number;
-  onToggleSelected: () => void;
-  onRemove: () => void;
-  onContextRemove: () => void;
-  onAssignProfile: (profile: AnalysisProfile) => void;
-  onOpen: () => void;
+  // selectedCount: kasıtlı kullanılmaz — yalnız memo'yu seçim değişince tazeler ki çoklu-seçimde
+  // sağ-tık "N seçiliyi sil" sayısı güncel kalsın (eylem zaten canlı ref'ten okur, doğru çalışır).
+  selectedCount: number;
+  onToggleSelected: (id: string) => void;
+  onRemove: (id: string) => void;
+  onContextRemove: (item: FlowQueueItem) => void;
+  onAssignProfile: (item: FlowQueueItem, profile: AnalysisProfile) => void;
+  onOpen: (item: FlowQueueItem) => void;
+  removableIdsFor: (item: FlowQueueItem) => Set<string>;
 }) {
   const meta = STATUS_META[item.status];
   const isOpenable = Boolean(item.job || item.file || item.storedMediaUrl || item.tedialItem);
+  const removableCount = removableIdsFor(item).size;  // sağ-tık "sil" sayısı (eski O(n²) prop yerine satırda)
   const detailLine = flowItemDetail(item, uploadPct);
   const sourceLabel = item.source === 'tedial' ? 'Tedial' : item.source === 'local' ? 'Yerel' : 'Yüklenen';
   const isRunning = item.status === 'running';
@@ -871,7 +938,7 @@ function FlowQueueRow({
       <ContextMenuTrigger asChild>
         <div className={`rounded-sm border px-2 py-1.5 ${selected ? 'border-info-border bg-info-subtle/30' : 'border-border-subtle bg-surface/45'}`}>
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
-            <input type="checkbox" checked={selected} onChange={onToggleSelected} className="mt-0.5" />
+            <input type="checkbox" checked={selected} onChange={() => onToggleSelected(item.id)} className="mt-0.5" />
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-1.5">
                 <div className="min-w-0 truncate text-xs font-semibold leading-5 text-foreground-strong" title={item.name}>{item.name}</div>
@@ -885,8 +952,8 @@ function FlowQueueRow({
               <div className="truncate text-[10px] leading-4 text-foreground-muted" title={detailLine}>{detailLine}</div>
             </div>
             <div className="flex shrink-0 items-start justify-end gap-1">
-              <Button size="xs" variant="outline" disabled={!isOpenable} onClick={onOpen}>Aç</Button>
-              <Button size="icon-xs" variant="ghost" onClick={onRemove} disabled={item.status === 'running'} title="Kuyruktan kaldır">
+              <Button size="xs" variant="outline" disabled={!isOpenable} onClick={() => onOpen(item)}>Aç</Button>
+              <Button size="icon-xs" variant="ghost" onClick={() => onRemove(item.id)} disabled={item.status === 'running'} title="Kuyruktan kaldır">
                 <X className="h-3 w-3" />
               </Button>
             </div>
@@ -907,14 +974,14 @@ function FlowQueueRow({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="border-border-mitas bg-app-shell text-foreground-default">
-        <ContextMenuItem disabled={!isOpenable} onSelect={onOpen} className="text-xs focus:bg-surface-elevated focus:text-foreground-strong">
+        <ContextMenuItem disabled={!isOpenable} onSelect={() => onOpen(item)} className="text-xs focus:bg-surface-elevated focus:text-foreground-strong">
           Playerda aç
         </ContextMenuItem>
-        <ContextMenuItem disabled={contextRemoveCount === 0} onSelect={onContextRemove} className="text-xs text-danger focus:bg-danger-subtle focus:text-danger">
-          {contextRemoveCount > 1 ? `${contextRemoveCount} seçiliyi sil` : 'Sil'}
+        <ContextMenuItem disabled={removableCount === 0} onSelect={() => onContextRemove(item)} className="text-xs text-danger focus:bg-danger-subtle focus:text-danger">
+          {removableCount > 1 ? `${removableCount} seçiliyi sil` : 'Sil'}
         </ContextMenuItem>
         <ContextMenuSeparator className="bg-border-subtle" />
-        <ContextMenuRadioGroup value={item.profile} onValueChange={(value) => onAssignProfile(value as AnalysisProfile)}>
+        <ContextMenuRadioGroup value={item.profile} onValueChange={(value) => onAssignProfile(item, value as AnalysisProfile)}>
           {ANALYSIS_PROFILE_OPTIONS.map((option) => (
             <ContextMenuRadioItem key={option.value} value={option.value} className="text-xs focus:bg-surface-elevated focus:text-foreground-strong">
               {option.label}
@@ -924,7 +991,7 @@ function FlowQueueRow({
       </ContextMenuContent>
     </ContextMenu>
   );
-}
+});
 
 function flowItemDetail(item: FlowQueueItem, uploadPct?: number): string {
   if (item.source === 'upload' || item.source === 'local') {
