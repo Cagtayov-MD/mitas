@@ -113,3 +113,46 @@ def normalize_text(s):
     if yontem == "FAILED":
         return s
     return asciify_foreign(out)
+
+
+def _is_nonlatin_alpha(ch):
+    """ch bir harf VE Latin-dışı mı? (Türkçe ç/ğ/ı/İ/ö/ş/ü Latin'dir → False)."""
+    if not ch.isalpha():
+        return False
+    try:
+        return "LATIN" not in unicodedata.name(ch)
+    except ValueError:
+        return False
+
+
+def transliterate_mixed(s):
+    """KARMA metinde HER Latin-dışı token'ı ayrı transliterE et (AZINLIK-script korunur).
+    Döner (out, yontemler:set).
+
+    detect_script() BASKIN harf-sistemini döndürür → Latin-baskın bir satırdaki tek Kiril/Arap
+    ismi ('DIRECTOR Иван', 'Yönetmen محمد') 'latin' sanılıp HAM bırakılıyordu; sonra _fold
+    (re.sub r"[^a-z0-9 ]") o harfleri siliyor → isim sessizce kayboluyordu (KANUN D5 ihlali).
+    Bu fonksiyon token-bazlı çalışır: yalnız Latin-dışı harf İÇEREN token'lar çevrilir, Latin/
+    Türkçe/rakam/noktalama DOKUNULMAZ. Çevrilemezse (FAILED) o token HAM korunur (sessiz silme yok).
+
+    Saf-Latin / saf-Türkçe metin: hiç Latin-dışı token yok → yontemler boş, çıktı = asciify_foreign(s)
+    (yabancı-aksan ASCII'ye iner, Türkçe korunur) → mevcut davranışla AYNI, 0 regresyon."""
+    if not s:
+        return s, set()
+    methods = set()
+    out = []
+    for part in re.split(r"(\s+)", s):          # boşlukları koru (capturing group)
+        if not part or part.isspace():
+            out.append(part)
+            continue
+        nonlatin = [c for c in part if _is_nonlatin_alpha(c)]
+        if nonlatin:
+            # Token'ın Latin-dışı kısmının script'iyle çevir (baskın 'latin' olsa bile atlanmaz).
+            # Kiril/Yunan dalları ascii harfleri korur; Arap/CJK/diğer unidecode'a gider (karma OK).
+            sc = detect_script("".join(nonlatin))
+            latin, yontem = transliterate(part, sc)
+            methods.add(yontem)
+            out.append(asciify_foreign(latin) if yontem != "FAILED" else part)
+        else:
+            out.append(asciify_foreign(part))
+    return "".join(out), methods

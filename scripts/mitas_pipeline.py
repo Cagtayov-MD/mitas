@@ -887,11 +887,17 @@ _FOREIGN_ACCENT_FOLD = str.maketrans({
 
 
 def _latin_only(s: str) -> str:
-    """Ozet KURALI (Cagatay): SADECE Latin alfabesi — Kiril/Cince/Arap/Yunan/CJK HARFLERI DUSER.
-    Once yabanci-aksan ASCII'ye katlanir (_FOREIGN_ACCENT_FOLD; Turkce ç/ğ/ı/İ/ö/ş/ü KORUNUR),
-    sonra Latin-disi harfler duser. Deterministik kemer: prompt slip etse bile non-Latin sizmaz,
-    yabanci aksanli ad (José) da ASCII'ye (Jose) iner."""
-    return "".join(ch for ch in (s or "").translate(_FOREIGN_ACCENT_FOLD)
+    """Ozet KURALI (Cagatay): cikti SADECE Latin/ASCII. 2026-06-28: Latin-disi harfi SILMEDEN ONCE
+    transliterE et (Иван→Ivan, Λαμπρος→Lampros) → yabanci isim ozette KAYBOLMAZ, cikti yine Latin
+    (KANUN B3). Sonra eski kemer: yabanci-aksan ASCII'ye (José→Jose, Turkce ç/ğ/ı/İ/ö/ş/ü KORUNUR),
+    translit edilemeyen kalinti (unidecode yoksa Arapca) yine duser (kacinilmaz fallback)."""
+    src = s or ""
+    try:
+        import translit_util as _tu
+        src, _ = _tu.transliterate_mixed(src)
+    except Exception:  # noqa: BLE001 — translit_util yok/bozuk → eski davranis (Latin-disi duser)
+        pass
+    return "".join(ch for ch in src.translate(_FOREIGN_ACCENT_FOLD)
                    if ch.isascii()
                    or unicodedata.category(ch)[0] != "L"
                    or "LATIN" in unicodedata.name(ch, ""))

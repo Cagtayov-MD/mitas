@@ -286,7 +286,18 @@ def _glm_garble(t: str) -> bool:
     vowels = set("aeiouAEIOUâîûéüöıçşğAEIOUÂÎÛÉÜÖİÇŞĞ")
     def _voweless(w):
         letters = [c for c in w if c.isalpha()]
-        return len(letters) >= 3 and not any(c in vowels for c in letters)
+        if len(letters) < 3:
+            return False
+        # Latin-DISI harf (Arap/Kiril/...) iceren token: Latin sesli-seti gecersiz (Arapca harekesiz
+        # yazilir, Kiril sesli ≠ aeiou) → garble DEME (tutucu; bu satir translit'ten ONCE gorulur).
+        for c in letters:
+            if not c.isascii():
+                try:
+                    if "LATIN" not in unicodedata.name(c):
+                        return False
+                except ValueError:
+                    return False
+        return not any(c in vowels for c in letters)
     if alpha_toks and sum(_voweless(w) for w in alpha_toks) / len(alpha_toks) >= 0.5:
         return True
     return False
@@ -1087,11 +1098,11 @@ def main(argv=None) -> int:
     try:
         import translit_util as _tu
         def _normk(x):
-            sc = _tu.detect_script(x)
-            if sc == "latin":
-                return _tu.asciify_foreign(x)           # zaten BÜYÜK + Türkçe korunur
-            _o, _y = _tu.transliterate(x, sc)
-            return x if _y == "FAILED" else _tu.asciify_foreign(_o).upper()  # translit Latin → BÜYÜK
+            # TOKEN-bazlı: 'DIRECTOR Иван' gibi Latin-baskın satırdaki AZINLIK Kiril/Arap ismi de
+            # Latin'e iner (eski detect_script baskın='latin' deyip o ismi HAM bırakıyordu → _fold
+            # siliyordu). Saf-Latin/Türkçe satır: yontem boş → asciify (BÜYÜK + Türkçe korunur).
+            _o, _methods = _tu.transliterate_mixed(x)
+            return _o.upper() if _methods else _o      # Latin-dışı çevrildiyse BÜYÜK (OCR-konvansiyonu)
         kunye = [_normk(x) for x in res["lines"]]
     except Exception as _te:   # no-regress: çeviri patlarsa ham satırlar korunur
         print(f"[translit] ATLANDI (lines korunuyor): {_te}", file=sys.stderr)

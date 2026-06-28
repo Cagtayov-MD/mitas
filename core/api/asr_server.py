@@ -3133,12 +3133,18 @@ _FOREIGN_ACCENT_FOLD = str.maketrans({
 
 
 def _latin_only(text: str) -> str:
-    """Ozet KURALI (Cagatay): cikti SADECE Latin alfabesi — Kiril/Cince/Arap/Yunan/CJK
-    HARFLERI DUSER. Once yabanci-aksan ASCII'ye katlanir (Turkce ç/ğ/ı/İ/ö/ş/ü KORUNUR), sonra
-    Latin-disi duser. Deterministik kemer: model prompt'a uymasa bile baska-alfabe/yabanci-aksan
-    ozete sizmaz (José->Jose). (mitas_pipeline._latin_only ile ayni; ozet ureten her yolda tutarli.)"""
+    """Ozet KURALI (Cagatay): cikti SADECE Latin/ASCII. 2026-06-28: Latin-disi harfi SILMEDEN ONCE
+    transliterE et (Иван→Ivan, Λαμπρος→Lampros) → yabanci isim ozette KAYBOLMAZ, cikti yine Latin
+    (KANUN B3). Sonra eski kemer: yabanci-aksan ASCII'ye (José->Jose, Turkce ç/ğ/ı/İ/ö/ş/ü KORUNUR),
+    translit edilemeyen kalinti yine duser. (mitas_pipeline._latin_only ile ayni; her ozet yolunda tutarli.)"""
     import unicodedata
-    return "".join(ch for ch in (text or "").translate(_FOREIGN_ACCENT_FOLD)
+    src = text or ""
+    try:
+        import translit_util as _tu   # SCRIPTS_DIR sys.path'te (modul yuklenirken eklenir)
+        src, _ = _tu.transliterate_mixed(src)
+    except Exception:  # noqa: BLE001 — translit_util yok/bozuk → eski davranis korunur
+        pass
+    return "".join(ch for ch in src.translate(_FOREIGN_ACCENT_FOLD)
                    if ch.isascii()
                    or unicodedata.category(ch)[0] != "L"
                    or "LATIN" in unicodedata.name(ch, ""))

@@ -34,6 +34,28 @@ DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat-vi
 _GATE_BEFORE_CAP = os.environ.get("MITAS_EXTRACT_GATE_BEFORE_CAP", "1").strip().lower() in (
     "1", "true", "on", "yes")
 
+# RENDER yanlış-pozitif kalkanı (2026-06-28): detect_script() oransızdır — tek latin-dışı
+# karakter bile "latin değil" döndürür. TRT-logo OCR'ı '西' (CJK) / prop-tabela 'ا' (Arap)
+# gibi tek-tük gürültü, tamamen Latin bir filmi (SUÇ MEVSİMİ, ŞERİF SHAUGNESSY) "latin-dışı
+# kaynak" sanıp haksız KONTROL/RENDER'a yolluyordu. Gerçek latin-dışı jenerik yüksek-oranlıdır;
+# gürültü <%2. Oranla ayır. MITAS_NONLATIN_MIN_RATIO=0 ile eski (oransız) davranış geri gelir.
+_NONLATIN_MIN_RATIO = float(os.environ.get("MITAS_NONLATIN_MIN_RATIO", "0.02"))
+
+
+def _nonlatin_ratio(s: str) -> float:
+    """Metindeki latin-dışı harflerin TÜM harflere oranı (0..1). Rakam/noktalama sayılmaz."""
+    alpha = [c for c in (s or "") if c.isalpha()]
+    if not alpha:
+        return 0.0
+    nonlatin = 0
+    for c in alpha:
+        try:
+            if "LATIN" not in unicodedata.name(c):
+                nonlatin += 1
+        except ValueError:
+            continue
+    return nonlatin / len(alpha)
+
 _TR_FOLD = str.maketrans("ışğçöüİIÄ", "isgcouiia")
 
 
@@ -1079,23 +1101,24 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     translit_method = None
     if os.environ.get("MITAS_NONLATIN_TRANSLIT", "1").strip().lower() not in ("0", "false", "off", "no"):
         try:
-            from translit_util import detect_script as _ds, transliterate as _tl, asciify_foreign as _af
+            from translit_util import detect_script as _ds, transliterate_mixed as _tlm
         except Exception:  # noqa: BLE001 — translit_util yoksa kalkanı atla (mevcut davranış AYNEN)
             _ds = None
-        if _ds is not None and _ds("\n".join(lines + [str(x) for x in (raw_context_lines or [])])) != "latin":
+        _full_src = "\n".join(lines + [str(x) for x in (raw_context_lines or [])])
+        # Oran kalkanı (bkz _nonlatin_ratio): tek-tük OCR gürültüsü (<%2) RENDER/KONTROL tetiklemesin.
+        if _ds is not None and _ds(_full_src) != "latin" and _nonlatin_ratio(_full_src) >= _NONLATIN_MIN_RATIO:
             nonlatin_source = True
             _methods: set[str] = set()
 
-            def _tl_line(s):                            # unidecode fallback (kaba ama _fold'dan kurtarır)
+            def _tl_line(s):                            # token-bazlı (kaba unidecode fallback; _fold'dan kurtarır)
                 s = str(s or "")
                 if not s.strip():
                     return s
-                sc = _ds(s)
-                if sc == "latin":
-                    return _af(s)                       # Latin satır: yalnız yabancı-aksan→ASCII (Türkçe korunur)
-                latin, yontem = _tl(s, sc)
-                _methods.add(yontem)
-                return _af(latin) if yontem != "FAILED" else s   # çevrilemezse HAM koru (sessiz silme yok)
+                # transliterate_mixed: AZINLIK Latin-dışı token de iner (baskın 'latin' atlamaz),
+                # Latin satır → asciify (Türkçe korunur), çevrilemezse HAM koru (sessiz silme yok)
+                _o, _m = _tlm(s)
+                _methods.update(_m)
+                return _o
 
             # 1) ÖNCE LLM romanizasyon (DOĞRU isim kalitesi). Flag default-ON; kapalıysa direkt unidecode.
             _rmodel = (chain[0] if chain else DEFAULT_MODEL)   # birincil yerel ayıklayıcı modeli
