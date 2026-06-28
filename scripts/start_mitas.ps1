@@ -81,6 +81,9 @@ if (-not $env:MITAS_CAST_OCR_KEEP)        { $env:MITAS_CAST_OCR_KEEP = '1';     
 if (-not $env:MITAS_CAST_CAP)             { $env:MITAS_CAST_CAP = '10';            Write-Host '   + MITAS_CAST_CAP=10 (C2b — cap 8→10)' }
 # C5: non-cast sızmasına karşı qc_block S1 filtresi (zaten credit_text_read'de çalışıyor; qc_block seviyesinde ek katman).
 if (-not $env:MITAS_QC_NONCAST_FILTER)    { $env:MITAS_QC_NONCAST_FILTER = '1';    Write-Host '   + MITAS_QC_NONCAST_FILTER=1 (C5 AKTIF — non-cast qc_block S1)' }
+# KAPI1 (2026-06-28): cast'e sizan karakter-tarifi cop ("GIRL AT DANCE", "SECOND GIRL", "IMMIGRATION OFFICER").
+# Yalniz YAPISAL-kesin desen duser (edat/ordinal/tam-ifade) -> gercek ad EZMEZ (Adam Driver/Mike Judge korunur). ADDITIVE.
+if (-not $env:MITAS_QC_ROLE_FILTER)       { $env:MITAS_QC_ROLE_FILTER = '1';       Write-Host '   + MITAS_QC_ROLE_FILTER=1 (KAPI1 AKTIF — karakter-rol cop filtresi)' }
 # OZET MOTORU (2026-06-27 model-bake-off): gemini-2.5-flash PRIMARY (0 HATALI, Sonnet-sinifi, ~10x ucuz,
 # anahtar MITAS_GEMINI kurulu), gemma-local FALLBACK. Kota/anahtar yoksa otomatik gemma. Kapat: =0.
 if (-not $env:MITAS_OZET_GEMINI)          { $env:MITAS_OZET_GEMINI = '1';          Write-Host '   + MITAS_OZET_GEMINI=1 (ozet gemini-2.5-flash PRIMARY, gemma fallback)' }

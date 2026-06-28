@@ -1298,6 +1298,7 @@ _PROD_DEFAULTS = {
     "MITAS_CAST_OCR_KEEP": "1",      # C2: OCR-okunan oyuncu S6'dan düşerse kurtar (ADDITIVE)
     "MITAS_CAST_CAP": "10",          # C2b: cast üst-sınırı 8→10
     "MITAS_QC_NONCAST_FILTER": "1",  # C5: non-cast qc_block S1 filtresi
+    "MITAS_QC_ROLE_FILTER": "1",     # KAPI1 (2026-06-28): karakter-rol/tarif çöpü ele (yapısal-kesin, ad ezmez)
     "MITAS_FRAME_DEDUP": "0",        # frame-dedup default OFF (A/B opt-in)
     # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
     # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.

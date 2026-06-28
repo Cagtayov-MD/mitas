@@ -836,6 +836,51 @@ _NONPERSON_TOK = {
     "effect", "licensing", "license", "records", "von", "der", "die",
 }
 
+# ── KAPI 1 — KARAKTER-ROL / TARİF ÇÖPÜ (2026-06-28) ─────────────────────────────
+# Cast'e sızan karakter-tarifini ("GIRL AT DANCE", "SECOND GIRL", "IMMIGRATION OFFICER")
+# OCR-otoritesini İHLAL ETMEDEN eler. TASARIM KARARI: token-bazlı rol-kelimesi reddi YASAK —
+# birçok rol-kelimesi gerçek SOYADIDIR (Adam DRIVER, Mike JUDGE, Pat PRIEST, Gerard BUTLER).
+# Yalnız YAPISAL olarak kesin desenler düşülür → hiçbir gerçek ada denk gelmez:
+#   (1) situational edat ("at/in/on/of...") + ambiguous rol-ismi → "GIRL AT DANCE", "VOICE OF GOD"
+#   (2) ordinal-önek ("FIRST/SECOND...") + ≥2 token → "SECOND GIRL", "FIRST POLICEMAN"
+#   (3) tam-ifade çöp listesi (folded full-string; whack-a-mole ama %100 güvenli) → "FRENCH MAID"
+# Flag MITAS_QC_ROLE_FILTER (modül-default OFF; _PROD_DEFAULTS + ps1'de ON). ADDITIVE: yalnız çöp
+# düşürür, ad EZMEZ; kapatınca davranış birebir eskisi.
+_ROLE_PREP = {"at", "in", "on", "of", "with", "near", "behind", "outside", "inside",
+              "aboard", "atop", "beside", "among", "amongst", "to", "from"}
+_ROLE_ORDINAL = {"first", "second", "third", "fourth", "fifth", "sixth", "seventh",
+                 "eighth", "ninth", "tenth", "1st", "2nd", "3rd", "4th"}
+# ambiguous rol-ismi: TEK BAŞINA red ETMEZ (Man Ho / Boy George korunur); yalnız edatla birleşince.
+_AMBIG_ROLE_NOUN = {"man", "woman", "boy", "girl", "lady", "guy", "men", "women", "boys",
+                    "girls", "kid", "child", "children", "people", "voice", "guard",
+                    "officer", "soldier", "cop", "policeman", "policewoman", "maid",
+                    "waiter", "waitress", "nurse", "driver", "doctor", "captain", "priest"}
+# tam-ifade (folded) çöp: bare rol-etiketleri + kredi-konvansiyonları (exact match → gerçek ada çarpmaz).
+_ROLE_PHRASE_EXACT = {
+    "immigration officer", "police officer", "prison guard", "french maid",
+    "night watchman", "himself", "herself", "themselves", "narrator",
+}
+
+
+def _role_filter_on() -> bool:
+    return os.environ.get("MITAS_QC_ROLE_FILTER", "0").strip().lower() in ("1", "true", "on", "yes")
+
+
+def _looks_character_role(name: str) -> bool:
+    """True = karakter-tarifi/çöp (oyuncu ADI değil). Yalnız yapısal-kesin desen; gerçek ad düşürmez."""
+    f = " ".join(_fold(name).split())
+    if not f:
+        return False
+    if f in _ROLE_PHRASE_EXACT:                                              # (3) tam-ifade çöp
+        return True
+    toks = f.split()
+    if any(t in _ROLE_PREP for t in toks) and any(t in _AMBIG_ROLE_NOUN for t in toks):  # (1)
+        return True
+    if toks[0] in _ROLE_ORDINAL and len(toks) >= 2:                          # (2) ordinal-önek
+        return True
+    return False
+
+
 def _valid_person_name(name: str) -> bool:
     nm = (name or "").strip()
     if not nm or any(ch in nm for ch in "<>|/\\@&") or any(c.isdigit() for c in nm):
@@ -847,6 +892,8 @@ def _valid_person_name(name: str) -> bool:
     if any(t in _NONPERSON_TOK for t in toks) or any(t in _JUNK_WORDS for t in toks):
         return False
     if _looks_garble(nm):
+        return False
+    if _role_filter_on() and _looks_character_role(nm):     # KAPI 1: karakter-rol/tarif çöpü (flag'li)
         return False
     return True
 
