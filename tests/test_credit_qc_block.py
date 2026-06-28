@@ -128,9 +128,35 @@ def test_director_canonical_spelling():
 
 
 def test_director_empty_kb_fill():
+    """Deferans-ON (default): OCR yönetmen boş → KB-fill ATLANIR → temiz_yon=[].
+    Deferans-OFF: OCR yönetmen boş + kimlik kilitli → KB'den doldurur (eski davranış)."""
     kb = FakeKB(oyon=["Akira Kurosawa"], ocast=["Ali Veli", "Ayse Can"], cast_ov=2)
-    r = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [], title="X", year=1985, ozet=_ozet(), kb=kb)
-    assert cc.name_match(r["temiz_yon"][0], "Akira Kurosawa")
+
+    # --- Senaryo A: deferans-ON (default) ---
+    old_val = os.environ.pop("MITAS_CREDIT_DEFERENCE", None)
+    try:
+        # MITAS_CREDIT_DEFERENCE set edilmemiş → default "1" → KB-fill ATLANIR
+        r = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [], title="X", year=1985,
+                              ozet=_ozet(), kb=kb)
+        assert r["temiz_yon"] == [], f"deferans-ON: KB-fill atlanmalı, bulundu: {r['temiz_yon']}"
+    finally:
+        if old_val is not None:
+            os.environ["MITAS_CREDIT_DEFERENCE"] = old_val
+
+    # --- Senaryo B: deferans-OFF → eski davranış: OCR boş + kilitli → KB-fill ---
+    old_val = os.environ.get("MITAS_CREDIT_DEFERENCE")
+    os.environ["MITAS_CREDIT_DEFERENCE"] = "0"
+    try:
+        r2 = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [], title="X", year=1985,
+                               ozet=_ozet(), kb=kb)
+        assert r2["temiz_yon"], "deferans-OFF: KB-fill bekleniyor (OCR boş + kilitli)"
+        assert cc.name_match(r2["temiz_yon"][0], "Akira Kurosawa"), \
+            f"deferans-OFF: KB-fill 'Akira Kurosawa' bekleniyor, bulundu: {r2['temiz_yon']}"
+    finally:
+        if old_val is None:
+            os.environ.pop("MITAS_CREDIT_DEFERENCE", None)
+        else:
+            os.environ["MITAS_CREDIT_DEFERENCE"] = old_val
 
 
 def test_director_conflict_goes_kontrol():
@@ -175,15 +201,24 @@ def test_garbage_dropped_real_preserved():
 
 
 def test_cyrillic_cast_kb_latin():
-    """Kiril OCR cast → translit → KB-Latin kanonik (aynı kişi)."""
+    """Kiril OCR yönetmen+cast → S2 translit → KB-Latin kanonik eşleşme.
+
+    Kök-neden (düzeltildi, 2026-06-28): _split_names içinde _fold Kiril için '' döndürdüğünden
+    isimler S0'da siliniyordu → S2 translit hiç çalışmıyordu → yon=[] → KB-fill "OCR boş" dalına
+    giriyordu. Fix: fold boşsa part.lower() ile tekilleştir, isim korunur, S2 devreye girer.
+    """
     kb = FakeKB(oyon=["Andrey Tarkovskiy"],
                 ocast=["Anatoliy Solonitsyn", "Ivan Lapikov"], cast_ov=2)
     r = q.qc_credit_block(["Андрей Тарковский"],
                           ["Анатолий Солоницын", "Иван Лапиков"], [],
                           title="ANDREY RUBLEV", year=1966, ozet=_ozet(), kb=kb)
-    # translit + KB ile kimlik kilitlenmeli; yönetmen Latin
-    assert r["temiz_yon"] and "Latin" not in r["temiz_yon"][0]
-    assert q.detect_script(" ".join(r["temiz_cast"])) == "latin"  # Latin-dışı sızmadı
+    # S2 translit → 'Andrey Tarkovskiy'; S4 ilk dal: yon=[translit] + locked + otoriter_yon → KB-kanonik
+    assert r["temiz_yon"], f"Kiril yönetmen translit edilip KB eşleşmeli, temiz_yon={r['temiz_yon']}"
+    assert cc.name_match(r["temiz_yon"][0], "Andrey Tarkovskiy"), \
+        f"Kiril→translit→KB-kanonik bekleniyor, bulundu: {r['temiz_yon'][0]}"
+    # cast de translit edilmeli; Latin-dışı sızmadı
+    assert q.detect_script(" ".join(r["temiz_cast"])) == "latin", \
+        f"Kiril cast Latin'e dönmeli, temiz_cast={r['temiz_cast']}"
 
 
 def test_placeholder_ozet_kontrol():
@@ -213,6 +248,48 @@ def test_invariant_no_ocr_added_when_unlocked():
                           ozet=_ozet(), kb=kb)
     assert len(r["temiz_cast"]) == 2                  # KB-fill yok
     assert r["floor"]["ulasilan"] == 2
+
+
+def test_deference_director_producer_on_off():
+    """Regresyon kalkanı: deferans-ON/OFF davranışını kilitler.
+
+    Deferans-ON (default, MITAS_CREDIT_DEFERENCE=1):
+      - Yönetmen OCR boşsa KB-fill YAPILMAZ (temiz_yon=[]).
+      - Yapımcı OCR boşsa KB-fill YAPILMAZ (temiz_yap=[]).
+    Deferans-OFF (MITAS_CREDIT_DEFERENCE=0):
+      - Yönetmen OCR boşsa + kilitliyse KB'den doldurulur (temiz_yon dolu).
+    """
+    kb = FakeKB(oyon=["Akira Kurosawa"], ocast=["Ali Veli", "Ayse Can"], cast_ov=2,
+                tmdb_id="123")
+
+    # ── Deferans-ON ──
+    saved = os.environ.pop("MITAS_CREDIT_DEFERENCE", None)
+    try:
+        r_on = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [],
+                                 title="X", year=1990, ozet=_ozet(), kb=kb)
+        assert r_on["temiz_yon"] == [], \
+            f"deferans-ON: yönetmen KB-fill atlanmalı, bulundu: {r_on['temiz_yon']}"
+        assert r_on["temiz_yap"] == [], \
+            f"deferans-ON: yapımcı KB-fill atlanmalı, bulundu: {r_on['temiz_yap']}"
+    finally:
+        if saved is not None:
+            os.environ["MITAS_CREDIT_DEFERENCE"] = saved
+
+    # ── Deferans-OFF ──
+    old = os.environ.get("MITAS_CREDIT_DEFERENCE")
+    os.environ["MITAS_CREDIT_DEFERENCE"] = "0"
+    try:
+        r_off = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [],
+                                  title="X", year=1990, ozet=_ozet(), kb=kb)
+        assert r_off["temiz_yon"], \
+            f"deferans-OFF: yönetmen KB-fill bekleniyor, temiz_yon={r_off['temiz_yon']}"
+        assert cc.name_match(r_off["temiz_yon"][0], "Akira Kurosawa"), \
+            f"deferans-OFF: 'Akira Kurosawa' bekleniyor, bulundu: {r_off['temiz_yon']}"
+    finally:
+        if old is None:
+            os.environ.pop("MITAS_CREDIT_DEFERENCE", None)
+        else:
+            os.environ["MITAS_CREDIT_DEFERENCE"] = old
 
 
 def test_dubbing_director_drop():

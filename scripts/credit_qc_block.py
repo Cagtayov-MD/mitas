@@ -303,15 +303,20 @@ _SPLIT_RE = re.compile(r"\s*&\s*|\s+ve\s+|\s*/\s*|\s*,\s*|\s+-\s+", re.I)
 
 
 def _split_names(lst):
-    """Birleşik isim satırlarını ('&'/'ve'/'/'/',') böl + fold-bazlı tekrar ele (sıra korunur)."""
+    """Birleşik isim satırlarını ('&'/'ve'/'/'/',') böl + fold-bazlı tekrar ele (sıra korunur).
+
+    NOT: _fold Latin-dışı alfabeyi (Kiril/Çince/vb.) boş stringe döndürür — bu durum isimlerin
+    S0'da silinmesine yol açardı (S2 translit hiç çalışamazdı). Düzeltme: fold boşsa orijinal
+    part.lower() ile tekilleştir; isim korunur, S2'de translit devreye girer.
+    """
     out, seen = [], set()
     for item in (lst or []):
         for part in _SPLIT_RE.split(str(item)):
             part = part.strip()
             if not part:
                 continue
-            k = _fold(part)
-            if k and k not in seen:
+            k = _fold(part) or part.lower()   # fold boşsa (Kiril/Han/vb.) orijinali kullan
+            if k not in seen:
                 seen.add(k)
                 out.append(part)
     return out

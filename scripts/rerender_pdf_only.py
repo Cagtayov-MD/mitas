@@ -210,6 +210,10 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
         if clip.get("bolum"):
             cmd += ["--bolum", str(clip["bolum"])]
 
+        # Üretim flag setini os.environ'a yükle (setdefault → kullanıcı override'ı ezilmez);
+        # snapshot'tan ÖNCE çalışması şart — aksi hâlde QC2/CAST/QC_OTORITE_ROUTE vb. subprocess'e geçmez.
+        if _mp is not None:
+            _mp._apply_production_defaults()
         env = dict(os.environ)
         env["MITAS_QC_BLOCK"] = "1"   # birleşik QC bloğu (temizle+doldur+karar) — bu rerender'ın ÇEKİRDEĞİ
         env.setdefault("PYTHONIOENCODING", "utf-8")

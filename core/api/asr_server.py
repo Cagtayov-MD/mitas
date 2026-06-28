@@ -766,7 +766,7 @@ def _flow_queue_worker_loop() -> None:
                             else:
                                 break
 
-                    if result is None:
+                    if proc.returncode != 0 or result is None:
                         tail = (_err or _out or "pipeline_failed")[-600:]
                         raise RuntimeError(tail)
 

@@ -1265,8 +1265,9 @@ def _fetch_internet_ozet(*, title="", original="", year="", duration="", verify_
 # verdiği env ASLA ezilmez (override + OCR-otorite invariant'ı korunur). ADDITIVE: yalnız yoksa
 # env-default sağlar; hiçbir mevcut karar/davranış değiştirilmez. Alt-süreçler (OCR/ASR/v4/PDF/
 # master-png) env= verilmeden spawn edildiğinden bu os.environ'u miras alır → main BAŞINDA (ilk
-# subprocess'ten ÖNCE) çağrılırsa çocuklar da doğru env'i alır. A/B-BEKLEYEN flag'ler (OCR_FORM_KEEP/
-# CAST_OCR_KEEP/QC_NONCAST_FILTER/CAST_CAP) BİLEREK YOK: üretimde de kapalı, doğrulanmamış.
+# subprocess'ten ÖNCE) çağrılırsa çocuklar da doğru env'i alır. MITAS_OCR_FORM_KEEP ps1'de SET
+# EDİLMEMEKTEDİR → burada da YOK (A/B bekleniyor). Diğer C2/C5 flag'ler (CAST_OCR_KEEP/
+# QC_NONCAST_FILTER/CAST_CAP) artık ps1 ile aynılıdır (aşağıdaki set'e ekli).
 # AYNA: aşağıdaki set start_mitas.ps1:22-69 ile BİREBİR aynı olmalı (bir default değişirse İKİ yeri de
 # elle senkron tut). DRIFT NOTU: bazı alt-modüllerin KENDİ kod-default'u farklı olabilir — ör.
 # _pipe_ocr.py:623 MITAS_OCR_GLM_CONSENSUS kod-default '1' (AÇIK) iken burada '0' (KAPALI). Pipeline
@@ -1293,6 +1294,11 @@ _PROD_DEFAULTS = {
     "MITAS_GARBLE_NGRAM_ROUTE": "0",
     "MITAS_QC_OTORITE_ROUTE": "1",   # FIX-B: OCR-otorite ihlali → KONTROL (additive route)
     "MITAS_PDF_RENDER_AUDIT": "1",   # FIX-D: S5 form-ezme gözlem sinyali (route YOK)
+    # C2/C5 flag'ler (2026-06-28 mirror fix): ps1:79-83 ile AYNI; MITAS_OCR_FORM_KEEP ps1'de YOK → burada da yok.
+    "MITAS_CAST_OCR_KEEP": "1",      # C2: OCR-okunan oyuncu S6'dan düşerse kurtar (ADDITIVE)
+    "MITAS_CAST_CAP": "10",          # C2b: cast üst-sınırı 8→10
+    "MITAS_QC_NONCAST_FILTER": "1",  # C5: non-cast qc_block S1 filtresi
+    "MITAS_FRAME_DEDUP": "0",        # frame-dedup default OFF (A/B opt-in)
     # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
     # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.
     # Sonnet yedek: ANTHROPIC_API_KEY yoksa _ozet_anthropic None döner → otomatik gemma'ya düşer (atıl).
