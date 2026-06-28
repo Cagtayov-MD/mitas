@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   AudioLines, Boxes, Eye, FileCheck2, FileText, FolderCheck, FolderClock, Ghost, Image as ImageIcon,
-  ScanText, Scissors, ShieldAlert, ShieldCheck, Sparkles, Split, Stamp, Video, X, Layers,
+  ScanSearch, ScanText, Scissors, ShieldAlert, ShieldCheck, Sparkles, Split, Stamp, Video, X, Layers,
 } from 'lucide-react';
 
 // MITAS pipeline CANLI diyagramı — /api/events (system_events.jsonl) aşama event'lerini node-graph'a
@@ -40,18 +40,18 @@ interface NodeDef {
 interface EdgeDef { from: string; to: string; kind?: 'cond' | 'post' }
 
 const CANVAS_W = 840;
-const CANVAS_H = 1050;
+const CANVAS_H = 1130;
 
 // "Aktif" çıkarımında bir aşamanın makul üst süre sınırı (sn). Bundan uzun "geçen süre" = bayat event
 // (önceki koşu) → sahte "işleniyor" basmayalım. Gerçekte tek aşama 1 saati geçmez (ASR p90 ~4.5dk).
 const STALE_ACTIVE_SEC = 3600;
 
 // Çekirdek omurga (doneCount + "aşama" sayacı bunları sayar). pool/vl/master/shadow koşullu/post → sayılmaz.
-const SPINE = ['coz', 'ocr', 'asr', 'credit', 'qc1', 'qc2', 'ozet', 'pdf', 'v4', 'qcg'];
+const SPINE = ['detect', 'coz', 'ocr', 'asr', 'credit', 'qc1', 'qc2', 'ozet', 'pdf', 'v4', 'qcg'];
 
-// Aşama bağımlılıkları (paralel dallar). pool/vl/master/shadow yalnız KENAR çiziminde (eventOnly → çıkarıma girmez).
+// Aşama bağımlılıkları (paralel dallar). detect/pool/vl/master/shadow yalnız KENAR çiziminde (eventOnly → çıkarıma girmez).
 const DEPS: Record<string, string[]> = {
-  coz: [], pool: ['coz'], ocr: ['coz'], asr: ['coz'],
+  detect: [], coz: [], pool: ['coz'], ocr: ['coz'], asr: ['coz'],
   credit: ['ocr'], qc1: ['credit'], vl: ['qc1'], qc2: ['qc1'], ozet: ['asr'],
   pdf: ['qc2', 'ozet'], v4: ['pdf'], qcg: ['v4'], route: ['qcg'],
   master: ['pool'], shadow: ['master'],
@@ -61,6 +61,7 @@ const DEPS: Record<string, string[]> = {
 // expectSec = gerçek medyan süre (outputs/system_events.jsonl üzerinden ölçüldü).
 type KindSpec = { start?: string | string[]; done?: string | string[]; partial?: string | string[]; skip?: string | string[]; fail?: string | string[]; expectSec: number };
 const STAGE_KIND: Record<string, KindSpec> = {
+  detect: { start: 'media_imported', done: ['credit_detect_opening', 'credit_detect_closing', 'credit_detect_closing_merge'], skip: 'credit_detect_skip', expectSec: 15 },
   coz:    { start: 'media_imported', done: 'cozumleme_completed', fail: 'cozumleme_failed', expectSec: 86 },
   pool:   { done: 'jenerik_pool_completed', fail: 'jenerik_pool_failed', expectSec: 25 },
   ocr:    { start: 'ocr_started', done: 'ocr_completed', partial: 'ocr_partial', fail: 'ocr_failed', expectSec: 115 },
@@ -78,32 +79,33 @@ const STAGE_KIND: Record<string, KindSpec> = {
 };
 
 const NODES: NodeDef[] = [
-  { key: 'video',  x: 400, y: 44,  label: 'Video',         sub: 'kaynak (yerinde)',              icon: Video,       stage: 'video' },
-  { key: 'coz',    x: 400, y: 132, label: 'ÇÖZ / ffmpeg',  sub: 'tespit + kare + ses',           icon: Scissors,    stage: 'coz' },
-  { key: 'pool',   x: 706, y: 132, label: '2. Havuz',      sub: 'jenerik havuzu',                icon: Boxes,       stage: 'pool', eventOnly: true },
+  { key: 'video',  x: 400, y: 30,  label: 'Video',         sub: 'kaynak (yerinde)',              icon: Video,       stage: 'video' },
+  { key: 'detect', x: 400, y: 124, label: 'Jenerik Tespiti',sub: 'giriş/çıkış pencere',          icon: ScanSearch,  stage: 'detect', eventOnly: true },
+  { key: 'coz',    x: 400, y: 218, label: 'ÇÖZ / ffmpeg',  sub: 'kare + ses çıkar',              icon: Scissors,    stage: 'coz' },
+  { key: 'pool',   x: 706, y: 218, label: '2. Havuz',      sub: 'jenerik havuzu',                icon: Boxes,       stage: 'pool', eventOnly: true },
   // SOL DAL — OCR (görüntü) → Künye → QC1 → (VL) → QC2
-  { key: 'ocr',    x: 262, y: 234, label: 'OCR',           sub: 'OneOCR — jenerik oku',          icon: ScanText,    stage: 'ocr' },
-  { key: 'credit', x: 262, y: 330, label: 'Künye (metin)', sub: 'gemma-31b ayıklayıcı',          icon: FileCheck2,  stage: 'credit' },
-  { key: 'qc1',    x: 262, y: 426, label: 'QC1 — künye',   sub: 'yön boş / oyuncu<3 kapısı',     icon: ShieldAlert, stage: 'qc1', eventOnly: true },
-  { key: 'vl',     x: 116, y: 426, label: 'VL-Fallback',   sub: 'QC1-RED → gemma4 piksel',       icon: Eye,         stage: 'vl', eventOnly: true },
-  { key: 'qc2',    x: 262, y: 522, label: 'QC2 — kimlik',  sub: 'DB cross-check + web',          icon: ShieldCheck, stage: 'qc2' },
+  { key: 'ocr',    x: 262, y: 306, label: 'OCR',           sub: 'OneOCR — jenerik oku',          icon: ScanText,    stage: 'ocr' },
+  { key: 'credit', x: 262, y: 402, label: 'Künye (metin)', sub: 'gemma-31b ayıklayıcı',          icon: FileCheck2,  stage: 'credit' },
+  { key: 'qc1',    x: 262, y: 498, label: 'QC1 — künye',   sub: 'yön boş / oyuncu<3 kapısı',     icon: ShieldAlert, stage: 'qc1', eventOnly: true },
+  { key: 'vl',     x: 116, y: 498, label: 'VL-Fallback',   sub: 'QC1-RED → gemma4 piksel',       icon: Eye,         stage: 'vl', eventOnly: true },
+  { key: 'qc2',    x: 262, y: 588, label: 'QC2 — kimlik',  sub: 'DB cross-check + web',          icon: ShieldCheck, stage: 'qc2' },
   // SAĞ DAL — ASR (ses) → Özet
-  { key: 'asr',    x: 540, y: 234, label: 'ASR',           sub: 'MMS-LID + whisper turbo',       icon: AudioLines,  stage: 'asr' },
-  { key: 'ozet',   x: 540, y: 330, label: 'Özet',          sub: 'transcript → Gemini 2.5',       icon: Sparkles,    stage: 'ozet' },
+  { key: 'asr',    x: 540, y: 306, label: 'ASR',           sub: 'MMS-LID + whisper turbo',       icon: AudioLines,  stage: 'asr' },
+  { key: 'ozet',   x: 540, y: 402, label: 'Özet',          sub: 'transcript → Gemini 2.5',       icon: Sparkles,    stage: 'ozet' },
   // BİRLEŞ — PDF → V4 → QC-görsel → Yönlendir
-  { key: 'pdf',    x: 400, y: 608, label: 'PDF',           sub: 'künye + özet + ses/altyazı',    icon: FileText,    stage: 'pdf' },
-  { key: 'v4',     x: 400, y: 696, label: 'V4-Final',      sub: 'büyük-harf · kimlik · afiş',    icon: Stamp,       stage: 'v4' },
-  { key: 'qcg',    x: 400, y: 784, label: 'QC-görsel',     sub: 'gemma-vision önizleme',         icon: Eye,         stage: 'qcg' },
-  { key: 'route',  x: 352, y: 872, label: 'Yönlendir',     sub: 'reasons → karar',               icon: Split,       stage: 'route' },
-  { key: 'hazir',  x: 262, y: 968, label: 'ONAYLI',        sub: 'export\\ONAYLI',                icon: FolderCheck, stage: 'route_hazir' },
-  { key: 'kontrol',x: 446, y: 968, label: 'KONTROL',       sub: 'export\\KONTROL',               icon: FolderClock, stage: 'route_kontrol' },
+  { key: 'pdf',    x: 400, y: 678, label: 'PDF',           sub: 'künye + özet + ses/altyazı',    icon: FileText,    stage: 'pdf' },
+  { key: 'v4',     x: 400, y: 766, label: 'V4-Final',      sub: 'büyük-harf · kimlik · afiş',    icon: Stamp,       stage: 'v4' },
+  { key: 'qcg',    x: 400, y: 854, label: 'QC-görsel',     sub: 'gemma-vision önizleme',         icon: Eye,         stage: 'qcg' },
+  { key: 'route',  x: 352, y: 942, label: 'Yönlendir',     sub: 'reasons → karar',               icon: Split,       stage: 'route' },
+  { key: 'hazir',  x: 262, y: 1038,label: 'ONAYLI',        sub: 'export\\ONAYLI',                icon: FolderCheck, stage: 'route_hazir' },
+  { key: 'kontrol',x: 446, y: 1038,label: 'KONTROL',       sub: 'export\\KONTROL',               icon: FolderClock, stage: 'route_kontrol' },
   // POST — teslim sonrası provenans (kararı ETKİLEMEZ)
-  { key: 'master', x: 706, y: 474, label: 'Master-PNG',    sub: 'jenerik → tek görüntü',         icon: ImageIcon,   stage: 'master', eventOnly: true },
-  { key: 'shadow', x: 706, y: 570, label: 'Gölge-VL',      sub: 'bağımsız VL (provenans)',       icon: Ghost,       stage: 'shadow', eventOnly: true },
+  { key: 'master', x: 706, y: 486, label: 'Master-PNG',    sub: 'jenerik → tek görüntü',         icon: ImageIcon,   stage: 'master', eventOnly: true },
+  { key: 'shadow', x: 706, y: 582, label: 'Gölge-VL',      sub: 'bağımsız VL (provenans)',       icon: Ghost,       stage: 'shadow', eventOnly: true },
 ];
 
 const EDGES: EdgeDef[] = [
-  { from: 'video', to: 'coz' },
+  { from: 'video', to: 'detect' }, { from: 'detect', to: 'coz' },
   { from: 'coz', to: 'ocr' }, { from: 'coz', to: 'asr' }, { from: 'coz', to: 'pool', kind: 'post' },
   { from: 'ocr', to: 'credit' }, { from: 'asr', to: 'ozet' },
   { from: 'credit', to: 'qc1' },
@@ -118,11 +120,15 @@ const EDGES: EdgeDef[] = [
 // Her balonun TAM ne yaptığı — GERÇEK kod/motor adlarıyla (madde madde).
 const NODE_DETAILS: Record<string, string[]> = {
   video:   ['Kaynak video AĞ YOLUNDAN okunur (kopyalanmaz)', 'ffprobe: süre / çözünürlük / fps ölçülür'],
-  coz:     ['ffprobe ile teknik özellikler okunur',
-            'JENERİK-SINIR TESPİTİ (_jenerik_detect.py, üretimde AÇIK): giriş + çıkış jeneriği penceresi CLIP + hareket + OCR ile bulunur',
-            'GİRİŞ kareleri (tespit edilen jenerik-başından) + ÇIKIŞ kareleri çıkarılır (native çözünürlük, 2 fps)',
+  detect:  ['JENERİK-SINIR TESPİTİ — _jenerik_detect.py (üretimde AÇIK: MITAS_JENERIK_DETECT / MITAS_CREDIT_DETECT)',
+            'Giriş + çıkış jeneriği penceresini TEK geçişte bulur (CLIP + hareket + OCR-refine, paralel)',
+            'Pencere → ÇÖZ\'ün kare çıkarımını yönlendirir (0\'dan değil tespit edilen jenerik-başından; footage süpürme yok)',
+            'Düşük güven / kısa film → sabit pencereye düşer (fail-safe, atlanır)',
+            'olaylar: credit_detect_opening / credit_detect_closing (+ close_back / merge)'],
+  coz:     ['ffprobe ile teknik özellikler okunur (çözünürlük / süre / fps)',
+            'Tespit edilen pencereden GİRİŞ + ÇIKIŞ jenerik kareleri çıkarılır (native çözünürlük, 2 fps)',
             'Ses 16 kHz wav olarak ayrıştırılır',
-            'olaylar: credit_detect_opening / credit_detect_closing / cozumleme_completed'],
+            'Süre tüm çöz bloğunu kapsar (tespit dahil) · olay: cozumleme_completed'],
   pool:    ['2. HAVUZ — paralel jenerik havuzu (_jenerik_pool.py)',
             'frames/cikis → frames/cikis_jenerik (yalnız çıkış jeneriği kareleri süzülür)',
             'Ana OneOCR akışını KULLANMAZ; Master-PNG + Gölge-VL + jenerik-debug bunu besler',
@@ -261,6 +267,9 @@ function computeStages(events: SysEvent[], focusFile: string | null, isProcessin
     else if (fin(creditDone)) { s.status = 'done'; endTs['qc1'] = creditDone; }   // sessiz geçiş (RED hiç olmadı)
     else { s.status = 'waiting'; }
   }
+
+  // Jenerik Tespiti: tespit event'i yoksa ama çöz bittiyse → kısa film, sabit pencere (atlandı)
+  if (stages['detect'].status === 'waiting' && fin(lastTsOf(STAGE_KIND.coz.done))) stages['detect'].status = 'skipped';
 
   const depEnds = (key: string) => (DEPS[key] || []).map((d) => endTs[d]).filter(fin);
   // bağımlılık "çözüldü mü": done/skipped/partial/failed (pipeline hatadan sonra da devam eder)
@@ -503,7 +512,7 @@ export function PipelineDiagram({ open, onClose, fallbackFilename, mediaResoluti
             <div className="relative mx-auto" style={{ width: CANVAS_W, height: CANVAS_H }}>
               <svg width={CANVAS_W} height={CANVAS_H} className="absolute inset-0" style={{ pointerEvents: 'none' }}>
               {/* POST provenans bölge etiketi */}
-              <text x={706} y={420} textAnchor="middle" fontSize="9" fill="#3a4256" style={{ letterSpacing: '0.05em' }}>teslim sonrası · kararı etkilemez</text>
+              <text x={706} y={448} textAnchor="middle" fontSize="9" fill="#3a4256" style={{ letterSpacing: '0.05em' }}>teslim sonrası · kararı etkilemez</text>
               {EDGES.map((e, i) => {
                 const a = nodeById(e.from); const b = nodeById(e.to);
                 const dy = b.y - a.y;
