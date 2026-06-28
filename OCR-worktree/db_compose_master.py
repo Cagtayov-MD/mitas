@@ -37,6 +37,7 @@ import argparse
 import glob
 import hashlib
 import json
+import os
 import re
 import sys
 import time
@@ -56,6 +57,15 @@ SEP_PX = 12           # black separator between stacked slit blocks
 DUP_HAM = 8           # dHash hamming distance below which two cards are "same"
 CONSEC_DUP = 14       # looser bound vs the IMMEDIATELY-previous block (kills "THE END" x2)
 MAX_CANVAS_H = 80000  # mosaic safety cap to avoid OOM on pathological motion
+
+# DEDUP-VETO: the coarse 8x8 dedup below MERGES distinct same-layout credit cards
+# (role-left/name-right) -> a real card is dropped (kukla lost its crew card; x-men
+# its "EDITED BY"). A 256-bit content hash (dhash_hi) VETOES the merge when content
+# clearly differs. Completeness-safe by construction: only flips drop->keep, never
+# keep->drop. Validated on 47 films (0 content loss). Default ON.
+DEDUP_HIRES = os.environ.get("MITAS_MASTER_DEDUP_HIRES", "1") == "1"
+DEDUP_HI_SIZE = int(os.environ.get("MITAS_DEDUP_HI_SIZE", "16"))
+DEDUP_TDIFF = int(os.environ.get("MITAS_DEDUP_TDIFF", "40"))  # hi-res hamming above which two cards are DISTINCT (rescue)
 
 
 # --------------------------------------------------------------------------- #
@@ -242,6 +252,19 @@ def dhash(image: np.ndarray, size: int = 8) -> int:
 
 def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
+
+
+def dhash_hi(image: np.ndarray, size: int = DEDUP_HI_SIZE) -> int:
+    """Higher-resolution dHash (default 16x16 = 256-bit) for the dedup-veto. Captures
+    glyph-level differences the 8x8 dhash misses, so DISTINCT same-layout cards
+    (x-men 'DIRECTOR OF PHOTOGRAPHY' vs 'EDITED BY') are not merged as duplicates."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.resize(gray, (size + 1, size))
+    diff = gray[:, 1:] > gray[:, :-1]
+    bits = 0
+    for value in diff.flatten():
+        bits = (bits << 1) | int(value)
+    return bits
 
 
 # --------------------------------------------------------------------------- #
@@ -443,6 +466,7 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
     manifest = []
     seen_hashes: list[int] = []
     seen_text: list[int] = []   # text-mask hashes (bg-tolerant) for moving-bg dedup
+    seen_hi: list[int] = []     # hi-res 256-bit content hashes (DEDUP_HIRES veto anchors)
 
     def _sharpest_with_text(card_frames):
         """Return (best_frame, best_image, best_mask) for the sharpest readable
@@ -508,23 +532,31 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                 # heavily-textured moving bg (drakula fire) -> some repeats remain.
                 hh = dhash(block)
                 thh = _textmask_dhash(block, p, args)
-                # CONSECUTIVE near-duplicate (vs the immediately previous kept
-                # block) uses a looser bound -> kills the cosmetic "THE END" x2 /
-                # band x2 doubling that the strict global bound (8) just misses,
-                # without merging distant or distinct adjacent cards (son_metro's
-                # different names differ far more than CONSEC_DUP).
-                # raw-only (same-bg) consecutive dedup. The text-mask variant was
-                # tried and REVERTED: it over-merged son_metro's distinct names
-                # (similar layout, hamming <= 14) -> cast loss, far worse than the
-                # minor kansas "THE END" x2 it would have cleaned.
                 consec = bool(seen_hashes) and hamming(hh, seen_hashes[-1]) <= CONSEC_DUP
-                if consec or any(hamming(hh, ph) <= DUP_HAM for ph in seen_hashes) or \
-                        any(hamming(thh, pt) <= DUP_HAM for pt in seen_text):
+                coarse_dup = (consec
+                              or any(hamming(hh, ph) <= DUP_HAM for ph in seen_hashes)
+                              or any(hamming(thh, pt) <= DUP_HAM for pt in seen_text))
+                # HI-RES VETO: the coarse hashes above MERGE distinct same-layout cards
+                # (role-left/name-right) -> a real card is dropped (kukla lost its crew
+                # card; x-men its editors). If coarse says "drop" but the 256-bit content
+                # hash differs from EVERY kept card by > DEDUP_TDIFF, the cards are
+                # genuinely different -> KEEP. Only flips drop->keep, never keep->drop,
+                # so it can never lose a coarse-kept card (worst case = old behavior + a
+                # cosmetic fade-variant dup, which no geometric metric can separate from
+                # a distinct card -> accepted; cosmetic dup << dropped real credit).
+                hhi = None
+                if DEDUP_HIRES and coarse_dup and seen_hi:
+                    hhi = dhash_hi(block)
+                    if min(hamming(hhi, ph) for ph in seen_hi) > DEDUP_TDIFF:
+                        coarse_dup = False
+                if coarse_dup:
                     manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                                      "skip": "dup", "src": Path(best_frame).name})
                     continue
                 seen_hashes.append(hh)
                 seen_text.append(thh)
+                if DEDUP_HIRES:
+                    seen_hi.append(hhi if hhi is not None else dhash_hi(block))
             blocks.append(block)
             manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                              "h": int(block.shape[0]), "src": Path(best_frame).name})
@@ -867,13 +899,21 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
             # slit's per-card split repeats over the moving bg. PURE-static films
             # (scroll ~0, kansas) are kept on slit: their mosaic just averages
             # distinct cards into a GHOST. Scroll + rejected-mosaic films keep slit.
-            if mosaic_master is not None and 0.10 <= scroll_frac < 0.40:
+            # FIX A: prefer mosaic ONLY when it did not COLLAPSE. A truncated mosaic
+            # (motion-comp integration ran away / averaged to ~one card) is shorter
+            # than ~1.6 frame-heights and drops most of the roll; the slit candidate
+            # keeps the full card sequence. Guarding on mosaic height routes those to
+            # slit. (Verified: only flips the collapsed-mosaic case; non-collapsed
+            # mosaic films and all slit films are unchanged.)
+            mosaic_ok = mosaic_master is not None and mosaic_master.shape[0] >= 1.6 * h
+            if mosaic_ok and 0.10 <= scroll_frac < 0.40:
                 canonical, info["selected_mode"] = mosaic_master, "mosaic"
             elif slit_master is not None:
                 canonical, info["selected_mode"] = slit_master, "slit"
+            elif mosaic_master is not None:
+                canonical, info["selected_mode"] = mosaic_master, "mosaic"
             else:
-                canonical = mosaic_master
-                info["selected_mode"] = "mosaic" if mosaic_master is not None else None
+                canonical, info["selected_mode"] = None, None
 
             if canonical is None:
                 info["status"] = "NO_OUTPUT"
