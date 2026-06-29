@@ -1,12 +1,17 @@
 """Master PNG monitör — production core'a DOKUNMAZ.
-db_compose_master'ın compose fonksiyonlarını + 'master' dispatch'ini yeniden kullanır;
-Database/<film>/frames/{giris,cikis} hazır olunca master.png üretip
-Database/<film>/master/{giris,cikis}.png olarak yazar.
+db_compose_master'ın compose fonksiyonlarını + 'master' dispatch'ini yeniden kullanır.
 
-  Tek film test:   python master_png_monitor.py --once "<Database klasör adı>"
-  Canlı monitör:   python master_png_monitor.py            (Database'i izler, biten filmlere üretir)
+ÇIKTI (Çağatay 2026-06-29): master PNG'ler film KÖKÜNDE açıkta durur (alt-klasör YOK):
+  Database/<film>/<TRT BAŞLIK> giris.png   ve   <TRT BAŞLIK> cikis.png
+KAYNAK: derlenmiş havuz tercih edilir — frames/giris_jenerik & frames/cikis_jenerik;
+havuz klasörü yoksa (eski film) ham frames/giris & frames/cikis'e düşer. Havuz VARSA ve BOŞSA
+(cold-open / yazı yok) master ÜRETİLMEZ (ham footage'a düşmez). Yeni master üretildiyse eski
+master/ alt-klasörü SİLİNİR; üretilemediyse eski master/ KORUNUR ("kötü master yerine hiç").
+
+  Tek film:   python master_png_monitor.py --once "<Database klasör adı VEYA tam yol>" [--base "<TRT BAŞLIK>"]
+  Monitör:    python master_png_monitor.py            (Database'i izler, biten filmlere üretir)
 """
-import sys, os, time, glob, json, types, importlib.util
+import sys, os, time, glob, json, types, shutil, importlib.util
 from pathlib import Path
 
 sys.path.insert(0, r"E:\MITAS\OCR-worktree")
@@ -27,7 +32,7 @@ def make_args():
 
 
 def _compose_seg(frames, args):
-    """process_film 'master' dispatch replikası (slit kanonik + mosaic adayı + seçim)."""
+    """process_film 'master' dispatch replikası (slit kanonik + seçim)."""
     if not frames:
         return None, {"frames": 0}
     first = dc.first_readable(frames)
@@ -47,19 +52,63 @@ def _compose_seg(frames, args):
                    "size": ([int(canon.shape[1]), int(canon.shape[0])] if canon is not None else None)}
 
 
-def gen_master(film: Path) -> dict:
-    out = film / "master"
-    out.mkdir(parents=True, exist_ok=True)
+def _delivery_base(film: Path, base_override: str | None = None) -> str:
+    """Kök teslim ad-tabanı '<TRT> <BAŞLIK>' (master PNG'ler bununla adlandırılır).
+    Öncelik: açık --base > kök *.pdf stem > kök *.txt (teknik/_ hariç) stem > klasör adı."""
+    if base_override:
+        return base_override.strip()
+    pdfs = sorted(film.glob("*.pdf"))
+    if pdfs:
+        return pdfs[0].stem
+    txts = [t for t in sorted(film.glob("*.txt"))
+            if not t.stem.endswith("_teknik") and not t.name.startswith("_")]
+    if txts:
+        return txts[0].stem
+    return film.name
+
+
+def _seg_source(film: Path, seg: str):
+    """(frames_listesi, kaynak_etiketi). Havuz (frames/<seg>_jenerik) VARSA onu kullan —
+    boşsa bile ham'a DÜŞME (cold-open footage master'ı üretmemek için). Havuz yoksa ham'a düş."""
+    pool = film / "frames" / f"{seg}_jenerik"
+    if pool.is_dir():
+        fs = sorted(glob.glob(str(pool / "*.png")), key=dc.nat_sort_key)
+        return fs, f"{seg}_jenerik"
+    raw = film / "frames" / seg
+    fs = sorted(glob.glob(str(raw / "*.png")), key=dc.nat_sort_key)
+    return fs, seg
+
+
+def gen_master(film: Path, base_override: str | None = None) -> dict:
+    base = _delivery_base(film, base_override)
     args = make_args()
-    res = {"film": film.name}
+    res = {"film": film.name, "base": base}
+    produced = False
     for seg in ("giris", "cikis"):
-        frames = sorted(glob.glob(str(film / "frames" / seg / "*.png")), key=dc.nat_sort_key)
+        frames, src = _seg_source(film, seg)
         canon, info = _compose_seg(frames, args)
+        info["source"] = src
         if canon is not None:
-            dc.wr(out / f"{seg}.png", canon)
-            info["path"] = str(out / f"{seg}.png")
+            outp = film / f"{base} {seg}.png"
+            dc.wr(outp, canon)
+            info["path"] = str(outp)
+            produced = True
         res[seg] = info
-    (out / "master_manifest.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    res["produced"] = produced
+    # provenance manifest (kökte, base adlı)
+    try:
+        (film / f"{base} master_manifest.json").write_text(
+            json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception:
+        pass
+    # ESKİ master/ alt-klasörünü kaldır — YALNIZ yeni master üretildiyse ("kötü yerine hiç" korunur).
+    if produced:
+        old = film / "master"
+        if old.is_dir():
+            try:
+                shutil.rmtree(old)
+            except Exception:
+                pass
     return res
 
 
@@ -74,7 +123,8 @@ def _ready(film: Path) -> bool:
 
 
 def _done(film: Path) -> bool:
-    return (film / "master" / "giris.png").exists() or (film / "master" / "cikis.png").exists()
+    # kökte herhangi bir '<base> giris.png' / '<base> cikis.png' üretilmiş mi
+    return bool(glob.glob(str(film / "* giris.png")) or glob.glob(str(film / "* cikis.png")))
 
 
 def monitor():
@@ -107,6 +157,12 @@ if __name__ == "__main__":
         # arg: tam yol VEYA Database altindaki klasor adi (pipeline tam clip_dir yolu gecer)
         _arg = sys.argv[2]
         _film = Path(_arg) if os.path.isabs(_arg) else (DB / _arg)
-        print(json.dumps(gen_master(_film), ensure_ascii=False, indent=1))
+        _base = None
+        if "--base" in sys.argv:
+            try:
+                _base = sys.argv[sys.argv.index("--base") + 1]
+            except Exception:
+                _base = None
+        print(json.dumps(gen_master(_film, _base), ensure_ascii=False, indent=1))
     else:
         monitor()

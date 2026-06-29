@@ -1440,6 +1440,7 @@ def main(argv=None) -> int:
     giris_frames = clip_dir / "frames" / "giris"
     cikis_frames = clip_dir / "frames" / "cikis"
     cikis_jenerik_frames = clip_dir / "frames" / "cikis_jenerik"
+    giris_jenerik_frames = clip_dir / "frames" / "giris_jenerik"
     jenerik_debug_root = clip_dir / "jenerik_debug"
     audio_path = clip_dir / "audio" / "audio16k.wav"
     _detect_changed = False   # SONUÇ-TEMELLİ YEDEK: detect penceresi sabit-varsayılandan saptı mı?
@@ -1679,6 +1680,38 @@ def main(argv=None) -> int:
                       summary=f"{video.name}: paralel jenerik havuzu atlandı ({type(_jpe).__name__}).",
                       module="jenerik-pool", media_id=media_id, filename=video.name,
                       error=str(_jpe)[:300], detail={"clip_id": clip_id})
+
+    # ===== GİRİŞ JENERİK HAVUZU (yazı-varlığı seçimi): frames/giris -> frames/giris_jenerik =====
+    # cikis_jenerik'e PARALEL (Çağatay 2026-06-29): giriş karelerinden YAZI-olan (altyazı hariç) kareleri
+    # OneOCR ile seçip giris_jenerik havuzuna kopyalar + aynı-yazı dedup. master-PNG bu havuzdan üretilir.
+    # Fail-safe: hata pipeline'ı bozmaz. Kapatma: MITAS_GIRIS_JENERIK_POOL=0.
+    _gjpool_on = os.environ.get("MITAS_GIRIS_JENERIK_POOL", "1").strip().lower() not in ("0", "false", "off", "no")
+    if _gjpool_on and not args.no_ocr and giris_frames.exists():
+        t_gjp = time.perf_counter()
+        try:
+            _gjp_cmd = [str(PY_OCR), str(HERE / "giris_jenerik_havuzu.py"),
+                        "--frames", str(giris_frames)]
+            _rcgjp, _outgjp, _errgjp = run(
+                _gjp_cmd,
+                timeout=int(os.environ.get("MITAS_GIRIS_JENERIK_POOL_TIMEOUT", "900") or 900),
+            )
+            _gjj = last_json(_outgjp) or {}
+            timings["giris_jenerik_pool"] = round(time.perf_counter() - t_gjp, 2)
+            log_event("giris_jenerik_pool_completed",
+                      level="info" if _gjj.get("status") not in ("error", None) else "warn",
+                      summary=f"{video.name}: giriş jenerik havuzu {giris_jenerik_frames.name} "
+                              f"status={_gjj.get('status')} kept={_gjj.get('total_kept', 0)} "
+                              f"rep={_gjj.get('total_dedup_representatives', 0)} "
+                              f"({timings['giris_jenerik_pool']} sn).",
+                      module="giris-jenerik-pool", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["giris_jenerik_pool"],
+                      detail={"clip_id": clip_id, "pool": str(giris_jenerik_frames),
+                              "result": _gjj, "stderr": (_errgjp or "")[-300:] if _rcgjp else None})
+        except Exception as _gjpe:  # noqa: BLE001
+            log_event("giris_jenerik_pool_failed", level="warn",
+                      summary=f"{video.name}: giriş jenerik havuzu atlandı ({type(_gjpe).__name__}).",
+                      module="giris-jenerik-pool", media_id=media_id, filename=video.name,
+                      error=str(_gjpe)[:300], detail={"clip_id": clip_id})
 
     # ===== BLOK OCR + ASR (paralel) =====
     ocr_bucket = "ATLANDI"
@@ -2485,6 +2518,10 @@ def main(argv=None) -> int:
         "asr_status": asr_status, "asr_segments": asr_info.get("clean_segments"),
         "transcript_chars": asr_info.get("transcript_chars"),
         "resolution": res, "fps": fps_s, "duration": dur, "timings_sec": timings,
+        # TÜR + orijinal-ad teslim PDF (v4) ve kök .txt'de zaten DOĞRU; _DURUM iç-durumu bunları
+        # taşımıyordu (summary_obj'de alan yoktu) → QC/denetim ara-dosyaya bakınca "eksik" sanıyordu.
+        # Teslimle hizala (2026-06-28). tur_final: xml_genre→v4 nihai; original: XML <TITLE> (yabancı ad).
+        "tur": tur_final, "orijinal_ad": original,
         "hub": str(clip_dir), "teslim": str(dest),
         # FIX-D/B (2026-06-23): OCR-otorite denetim sinyalini _DURUM'a yüzeyle (görünürlük) —
         # ocr_dropped/kb_floor_added/ocr_authority_violation + s5_form_overwrites. v4 raporundan okunur;
@@ -2580,51 +2617,31 @@ def main(argv=None) -> int:
                       module="jenerik-debug", media_id=media_id, filename=video.name,
                       error=str(_jdu)[:200], detail={"clip_id": clip_id})
 
-    # ===== TEMİZ MASTER-PNG'İ KANONİK YOLA YÜZEYLE (bug fix 2026-06-27) =====
-    # Paralel-debug temiz çıkış-master'ını jenerik_debug/master_png/cikis_jenerik.png'e yazar; ama
-    # QC-monitör + export clip_dir/master/cikis.png'e bakar → başarılı temiz master GÖRÜNMÜYORDU.
-    # FIX: master_png manifest status=ok ise temiz master'ı kanonik yola kopyala (clip_dir/master/cikis.png).
-    # FAIL-SAFE: kopyalama hatası ASLA pipeline'ı/kararı bozmaz. Detektör başarısız → kaynak yok → kopya yok
-    # ("kötü master yerine hiç" korunur: temiz üretilmediyse kanonik yolda da dosya oluşmaz).
-    if _jdebug_on:
-        try:
-            _clean_cikis = jenerik_debug_root / "master_png" / "cikis_jenerik.png"
-            _mp_manifest = jenerik_debug_root / "master_png" / "manifest.json"
-            _mp_status = ""
-            if _mp_manifest.exists():
-                _mp_status = str((_read_json_safe(_mp_manifest) or {}).get("status") or "")
-            if _mp_status == "ok" and _clean_cikis.exists():
-                _canon_master = clip_dir / "master" / "cikis.png"
-                _canon_master.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(str(_clean_cikis), str(_canon_master))
-                log_event("master_png_surfaced", level="info",
-                          summary=f"{video.name}: temiz çıkış-master kanonik yola kopyalandı → master/cikis.png.",
-                          module="master-png", media_id=media_id, filename=video.name,
-                          detail={"clip_id": clip_id, "src": str(_clean_cikis), "dst": str(_canon_master)})
-        except Exception as _msfe:  # noqa: BLE001 — temiz master yüzeyleme ASLA pipeline'ı bozmaz
-            log_event("master_png_surface_failed", level="warn",
-                      summary=f"{video.name}: temiz master kanonik yola kopyalanamadı ({type(_msfe).__name__}).",
-                      module="master-png", media_id=media_id, filename=video.name,
-                      error=str(_msfe)[:200], detail={"clip_id": clip_id})
-
-    # ===== LEGACY MASTER-PNG: paralel debug kapalıysa eski davranışı koru =====
-    # Paralel debug açıkken master artık frames/cikis_jenerik üzerinden jenerik_debug/master_png altında üretilir.
-    if (not _jdebug_on) and os.environ.get("MITAS_MASTER_PNG_AUTO", "1").strip().lower() not in ("0", "false", "off", "no"):
-        _has_fr = (giris_frames.exists() and any(giris_frames.glob("*.png"))) or \
-                  (cikis_frames.exists() and any(cikis_frames.glob("*.png")))
+    # ===== KANONİK MASTER-PNG (giriş+çıkış, film KÖKÜNDE açıkta) — Çağatay 2026-06-29 =====
+    # Master-PNG artık SADECE çıkış değil GİRİŞ için de üretilir. Kaynak = derlenmiş havuzlar
+    # (frames/giris_jenerik & frames/cikis_jenerik); çıktı film KÖKÜNDE "<TRT BAŞLIK> {giris,cikis}.png"
+    # (eski master/ alt-klasörü gen_master tarafından KALDIRILIR — yeni master üretildiyse). Havuz boşsa
+    # (cold-open/yazı yok) o segment için master üretilmez (ham footage'a düşmez). Paralel-debug açıkken
+    # jenerik_debug/master_png/ debug master'ı AYRICA üretmeye devam eder (provenance — dokunulmadı).
+    # FAIL-SAFE: hata/timeout ASLA pipeline'ı/kararı bozmaz; üretilemezse eski master/ KORUNUR ("kötü yerine hiç").
+    if os.environ.get("MITAS_MASTER_PNG_AUTO", "1").strip().lower() not in ("0", "false", "off", "no"):
+        _has_fr = any(p.exists() and any(p.glob("*.png")) for p in
+                      (giris_jenerik_frames, cikis_jenerik_frames, giris_frames, cikis_frames))
         if _has_fr:
             _mp_runner = PROJECT_ROOT / "OCR-worktree" / "master_png_monitor.py"
+            _mp_base = file_base(trt, title)
             try:
                 _mp = subprocess.run(
-                    [str(PY_OCR), str(_mp_runner), "--once", str(clip_dir)],
+                    [str(PY_OCR), str(_mp_runner), "--once", str(clip_dir), "--base", _mp_base],
                     capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=int(os.environ.get("MITAS_MASTER_PNG_TIMEOUT", "300") or 300))
-                _mp_ok = (clip_dir / "master" / "giris.png").exists() or (clip_dir / "master" / "cikis.png").exists()
+                _mp_ok = bool(list(clip_dir.glob("* giris.png")) or list(clip_dir.glob("* cikis.png")))
                 log_event("master_png_completed" if _mp_ok else "master_png_empty",
                           level="info" if _mp_ok else "warn",
-                          summary=f"{video.name}: master-PNG {'üretildi' if _mp_ok else 'üretilemedi'} (rc={_mp.returncode}).",
+                          summary=f"{video.name}: master-PNG {'üretildi' if _mp_ok else 'üretilemedi'} "
+                                  f"(kökte '<ad> giris/cikis.png', rc={_mp.returncode}).",
                           module="master-png", media_id=media_id, filename=video.name,
-                          detail={"clip_id": clip_id, "rc": _mp.returncode})
+                          detail={"clip_id": clip_id, "rc": _mp.returncode, "base": _mp_base})
             except Exception as _mpe:  # noqa: BLE001 — master-PNG ASLA pipeline'ı bozmaz
                 log_event("master_png_failed", level="warn",
                           summary=f"{video.name}: master-PNG atlandı ({type(_mpe).__name__}).",

@@ -146,11 +146,15 @@ def _final_kunye(film: Path) -> dict:
 
 
 def _master_png_status(film: Path) -> str:
-    """master/master_manifest.json + cikis.png/giris.png durumu."""
+    """master PNG durumu. YENİ (2026-06-29): film KÖKÜNDE '<TRT BAŞLIK> {giris,cikis}.png'
+    + '<...> master_manifest.json'. ESKİ (geçiş): master/ alt-klasörü. İkisi de denenir."""
+    _root_manifests = sorted(film.glob("* master_manifest.json"))
+    _root_cikis = sorted(film.glob("* cikis.png"))
+    _root_giris = sorted(film.glob("* giris.png"))
     master_dir = film / "master"
-    manifest = master_dir / "master_manifest.json"
-    cikis_png = master_dir / "cikis.png"
-    giris_png = master_dir / "giris.png"
+    manifest = _root_manifests[0] if _root_manifests else (master_dir / "master_manifest.json")
+    cikis_png = _root_cikis[0] if _root_cikis else (master_dir / "cikis.png")
+    giris_png = _root_giris[0] if _root_giris else (master_dir / "giris.png")
     parts = []
     if manifest.exists():
         try:
