@@ -320,6 +320,23 @@ _NAME_CACHE_PATH = os.path.join(_PROJECT_ROOT, "outputs", "name_norm_cache.json"
 _SCRIPTS_DIR = os.path.join(_PROJECT_ROOT, "scripts")
 
 
+# turkce-aksan-fix 2026-06-29
+# Türkçe circumflex (Â/Î/Û) → düz A/I/U normalize eder; Türkçe özel harfler (ç ğ ı İ ö ş ü)
+# KORUNUR. translit_util.asciify_foreign scripts/ altında; bulunamazsa girdi DEĞİŞMEDEN döner
+# (fail-soft — pipeline çökmez). name_normalize stdlib-only import eder, translit_util burada
+# lazy yüklenir (_deepseek yükleme paterni, satır 361-362, ile aynı yöntem).
+def _asciify_foreign(s: str) -> str:
+    """Yabancı aksan→ASCII, Türkçe circumflex (Â/Î/Û)→A/I/U düzleştir; ç ğ ı İ ö ş ü KORUNUR.
+    translit_util.asciify_foreign: _TR_KEEP={çÇğĞıİöÖşŞüÜ} ile korur, NFKD ile Â→A indirir."""
+    try:
+        if _SCRIPTS_DIR not in sys.path:
+            sys.path.insert(0, _SCRIPTS_DIR)
+        import translit_util as _tu  # noqa: WPS433
+        return _tu.asciify_foreign(s)
+    except Exception:  # noqa: BLE001 - translit_util yoksa/patlarsa sessiz geç
+        return s
+
+
 def _deepseek_available() -> bool:
     """MITAS_DEEPSEEK (veya DEEPSEEK_API_KEY) anahtari var mi? (cagri-oncesi ucuz kontrol)."""
     return bool(os.environ.get("MITAS_DEEPSEEK") or os.environ.get("DEEPSEEK_API_KEY"))
@@ -516,14 +533,17 @@ def upper_names(names, *, use_qwen: bool = False):
         if repaired is not None:
             out.append(repaired)
         elif any(c in _TR_STRONG for c in n):
-            out.append(tr_upper(n))                       # ı/İ/ş/ğ KESIN Turk -> koru
+            # turkce-aksan-fix 2026-06-29: Â/Î/Û (TRT-dışı circumflex) → A/I/U düzleştir;
+            # ç ğ ı İ ö ş ü korunur. Bu path: TÜRKÂN ŞORAY buraya düşer (ş→_TR_STRONG).
+            out.append(_asciify_foreign(tr_upper(n)))     # ı/İ/ş/ğ KESIN Turk -> koru, Â→A
         elif any((not c.isascii()) and unicodedata.category(c).startswith("L") and c not in _TR_AMBIG for c in n):
             out.append(ascii_fold(n).upper())             # baska yabanci aksan (é,ñ,ø...) -> fold
         else:                                             # saf-ASCII veya yalniz ç/ö/ü -> koken
             if db_ok:
                 canonical = mitas_tr.get(n)              # DB'den Turkce kanonik (ornek: "Ayşenil Şamlıoğlu")
                 if canonical is not None:
-                    out.append(tr_upper(canonical))       # DB-HIT (Approach A) -> Turkce buyuk harf, DEGISMEZ
+                    # turkce-aksan-fix 2026-06-29: kanonik DB adında Â kalırsa A'ya indir.
+                    out.append(_asciify_foreign(tr_upper(canonical)))  # DB-HIT -> Turkce buyuk harf, Â→A
                 else:
                     # DB-MISS: once DeepSeek+cache (anahtar varsa); cozulemezse MEVCUT davranis.
                     ds_val = _deepseek_resolve(n, _ds_cache) if _ds_on else None

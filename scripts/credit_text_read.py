@@ -293,7 +293,7 @@ KESİN KURALLAR:
    YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.
 5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla 8, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
-6. YAPIMCI: "PRODUCED BY / YAPIMCI / PRODUCER" yanındaki kişi(ler). Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive/Associate/Line/Co-producer / Yürütücü / Ortak yapımcı" da GERÇEK yapımcı sayılmaz.
+6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29
 
 ÇIKTI: yalnız JSON:
 {"_reasoning": "<her satırı kısaca etiketle: YÖNETMEN / YAPIMCI / OYUNCU / EKİP-DİĞER>", "yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
@@ -903,6 +903,54 @@ def _looks_character_role(name: str) -> bool:
     return False
 
 
+_VOWELS_FOLD = set("aeiouy")  # fold sonrası sesli harfler (ı→i zaten fold'da)
+
+
+def _has_truncation_marker(tok: str) -> bool:
+    """Token sesli-harf içermiyorsa VE len<=4 ise eksik/kısaltma belirteci sayılır.
+    Örn: 'CHR' (CHRISTINE kırpılmış), 'ST' (STINE kırpılmış). # fix3-B 2026-06-29"""
+    t = _fold(tok)
+    return len(t) <= 4 and not any(c in _VOWELS_FOLD for c in t)
+
+
+def _merge_split_names(names: list) -> list:
+    """Ardışık iki isim girişinden ilki truncation-marker token içeriyorsa birleştir.
+
+    KURAL (konservatif): names[i] içinde en az bir truncation-marker token VARSA
+    VE names[i+1] tek-token ise
+    VE birleşik isim _valid_person_name geçerse → birleştir.
+    VETO: names[i] zaten tam-geçerli (_valid_person_name=True, toks>=2, hiçbir token
+    truncation-marker değil) → birleştirme (ALLEGRO MICHELI + NICHETTI gibi iki ayrı kişiyi korur).
+    # fix3-B 2026-06-29"""
+    if not names:
+        return names
+    result = []
+    i = 0
+    while i < len(names):
+        if i + 1 < len(names):
+            a = (names[i] or "").strip()
+            b = (names[i + 1] or "").strip()
+            toks_a = [t for t in _fold(a).split() if t]
+            toks_b = [t for t in _fold(b).split() if t]
+            # İlk girişin tokenları arasında truncation-marker var mı?
+            has_trunc = any(_has_truncation_marker(t) for t in toks_a)
+            # İkinci giriş tek-token mi (gerçek bir soyadı parçası)?
+            b_single = len(toks_b) == 1
+            # VETO: a zaten tam-geçerli (2+ token, hiç truncation yok) → birleştirme
+            a_complete = (len(toks_a) >= 2 and not has_trunc)
+            if has_trunc and b_single and not a_complete:
+                merged = a + " " + b
+                # _valid_person_name henüz tanımlanmamış (altında) — direkt _fold+token sayısı
+                merged_toks = [t for t in _fold(merged).split() if t]
+                if 2 <= len(merged_toks) <= 4:  # sınır: _valid_person_name ile uyumlu
+                    result.append(merged)
+                    i += 2
+                    continue
+        result.append(names[i])
+        i += 1
+    return result
+
+
 def _valid_person_name(name: str) -> bool:
     nm = (name or "").strip()
     if not nm or any(ch in nm for ch in "<>|/\\@&") or any(c.isdigit() for c in nm):
@@ -1053,9 +1101,52 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
     out["ham"] = raw
     yon = _guard(raw.get("yonetmen"), ocr_tokens, title_f)
     yap = _guard(raw.get("yapimci"), ocr_tokens, title_f)
-    cast = _guard(raw.get("oyuncular"), ocr_tokens, title_f)
+    cast = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f)  # fix3-B 2026-06-29
+
+    # C-fix 2026-06-29 — deterministik yönetmen-rescue (LLM boş döndürdüğünde OCR satırından çıkar)
+    # KURALLAR: +1-only pencere; 'A FILM BY'/'A * FILM' rescue-setinde YOK (oyuncu/şirket komşuluğu);
+    # +1 yapım/yardımcı etiketi içeriyorsa VETO; aday cast/yap'ta varsa VETO (çift-rol engeli).
+    # HOTEL RWANDA beklenen davranış: DIRECTED BY(34) +1 = PRODUCED BY → VETO → yon=[] kalır (DOĞRU).
+    if not yon and os.environ.get("MITAS_DIRECTOR_RESCUE", "1") != "0":
+        _RESCUE_LABELS = {
+            "DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR",
+            "UN FILM DE", "EIN FILM VON", "REGIE", "REALISE PAR",
+        }
+        _RESCUE_VETO = (
+            "PRODUCED BY", "EXECUTIVE PRODUCER", "ASSOCIATE PRODUCER",
+            "LINE PRODUCER", "CO PRODUCER", "COPRODUCER",
+            "ASSISTANT DIRECTOR", "SECOND UNIT", "2ND UNIT",
+            "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR",
+            "MUSIC DIRECTOR", "CASTING",
+        )
+        # cast + yap dedup-veto: normalize → fold (≥3-char token'lar) birleşimi
+        _taken = {" ".join(_toks(x)) for x in (cast + yap)}
+        for _i, _ln in enumerate(lines):
+            if _fold_ga(_ln) not in _RESCUE_LABELS:   # TAM eşleşme (substring DEĞİL)
+                continue
+            if _i + 1 >= len(lines):
+                continue
+            _nb = lines[_i + 1]
+            _nbf = _fold_ga(_nb)
+            if any(_v in _nbf for _v in _RESCUE_VETO):  # +1 yapım/yardımcı etiketi → veto
+                continue
+            if _looks_garble(_nb) is not None:
+                continue
+            if not _valid_person_name(_nb):
+                continue
+            _g = _guard([_nb], ocr_tokens, title_f)
+            if not _g:
+                continue
+            if " ".join(_toks(_nb)) in _taken:          # oyuncu/yapımcı=yönetmen çelişkisi → veto
+                continue
+            yon = _g
+            break
+    # /C-fix 2026-06-29
+
     if not dizi:
-        cast = cast[:8]
+        # C-fix-canli 2026-06-29: standalone default 8→10 (Çağatay cap=10 istiyor; env zaten 10 geçiyor).
+        _cap = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)
+        cast = cast[:_cap]
     # KESİN KURAL: yalnız gerçek "İsim Soyisim"
     out["yonetmen"], out["yapimci"], out["cast"] = _only_persons(yon), _only_persons(yap), _only_persons(cast)
     if out["cast"] or out["yonetmen"]:
@@ -1145,7 +1236,12 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     title_f = _fold(title).strip()
 
     kb = _get_kb()
-    pre_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else 8))
+    # A-fix-canli 2026-06-29: _cap burada bir kez tanımlanır; aşağıdaki tüm hard-cut'lar buna referans verir.
+    # Env zaten 10 geçiyor (mitas_pipeline → os.environ miras); bu satır standalone koşular için de 10 default sağlar.
+    _cap = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)
+    if not (1 <= _cap <= 50):
+        _cap = 10
+    pre_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else _cap))
     cast_block_fast = os.environ.get("MITAS_CREDIT_CAST_BLOCK_FAST", "0").strip().lower() in (
         "1", "true", "on", "yes"
     )
@@ -1154,7 +1250,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         cast_fast = _apply_kb_cast_filter(cast_fast, kb)
         cast_fast = filter_cast_by_raw_context(cast_fast, raw_context_lines)
         if not dizi:
-            cast_fast = cast_fast[:8]
+            cast_fast = cast_fast[:_cap]  # A-fix-canli 2026-06-29: hard [:8] → [:_cap]
         if len(cast_fast) >= 3:
             return {
                 "yonetmen": [],
@@ -1185,7 +1281,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
 
         yon_raw = _guard(raw.get("yonetmen"), ocr_tokens, title_f)
         yap_raw = _guard(raw.get("yapimci"), ocr_tokens, title_f)
-        cast_raw = _guard(raw.get("oyuncular"), ocr_tokens, title_f)
+        cast_raw = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f)  # fix3-B 2026-06-29
 
         per_model_yon[m] = yon_raw
         per_model_cast[m] = cast_raw
@@ -1203,10 +1299,10 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         # FIX 3: filtre cap'ten ÖNCE — garble'lar gerçek adları 8-slottan atmasın.
         cast_garble = _apply_garble_gate(cast_merged, kb)
         if not dizi:
-            cast_garble = cast_garble[:8]
+            cast_garble = cast_garble[:_cap]  # A-fix-canli 2026-06-29: hard [:8] → [:_cap]
     else:
         if not dizi:
-            cast_merged = cast_merged[:8]
+            cast_merged = cast_merged[:_cap]  # A-fix-canli 2026-06-29: hard [:8] → [:_cap]
         cast_garble = _apply_garble_gate(cast_merged, kb)
 
     # F1 edge-case (BAŞROL-YÖNETMEN ayrımı): MUTABAKAT YOKSA, cast'te de görünen yönetmen
@@ -1249,14 +1345,14 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     cast_kb = _apply_kb_cast_filter(cast_garble, kb)
     cast_kb = filter_cast_by_raw_context(cast_kb, raw_context_lines)
     if len(cast_kb) < 3:
-        fallback_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else 8))
+        fallback_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else _cap))  # A-fix-canli 2026-06-29: limit [:8] → [:_cap]
         if fallback_cast:
             fallback_cast = _apply_garble_gate(fallback_cast, kb)
             fallback_cast = _apply_kb_cast_filter(fallback_cast, kb)
             fallback_cast = filter_cast_by_raw_context(fallback_cast, raw_context_lines)
             cast_kb = _dedup_fold(list(cast_kb) + fallback_cast)
             if not dizi:
-                cast_kb = cast_kb[:8]
+                cast_kb = cast_kb[:_cap]  # A-fix-canli 2026-06-29: hard [:8] → [:_cap]
 
     # ── F3 + F2: Yapımcı boru hattı ──────────────────────────────────────────
     yap_merged = _dedup_fold(all_yap)

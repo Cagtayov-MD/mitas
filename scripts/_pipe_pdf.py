@@ -280,7 +280,9 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
     if "cast" in video_credits:
         cast = _dedup_nonempty(video_credits.get("cast"))
         if not dizi:
-            cast = cast[:8]
+            # C-fix-canli 2026-06-29: standalone default 8→10.
+            _cap = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)
+            cast = cast[:_cap]
 
     # DEFERANS: video_credits verilmişse yönetmen/yapımcıyı her durumda otoriteye bağla.
     # Anahtar yoksa LLM o rolü boş bıraktı demek → credit_parse çöpünü TEMİZLE (boş liste).

@@ -690,11 +690,11 @@ def main():
     # 3) v4 d kur + render
     cast = _split_dedup_names(cast)           # Fix 1: "&"/tekrar böl+ele (GUILLAUME GOUIX ×2 vb.)
     try:
-        _cap = int(os.environ.get("MITAS_CAST_CAP", "8") or 8)
+        _cap = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)  # C-fix-canli 2026-06-29: default 8→10
         if not (1 <= _cap <= 50):
-            _cap = 8
-    except Exception:  # noqa: BLE001 — bozuk değer → varsayılan 8
-        _cap = 8
+            _cap = 10
+    except Exception:  # noqa: BLE001 — bozuk değer → varsayılan 10
+        _cap = 10
     castU = nn.upper_names(cast[:_cap])
     # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
     _ozet_names = [n for n in (list(cast)
@@ -815,7 +815,9 @@ def main():
                    "qc_block_floor": (_qcb_res or {}).get("floor") or {},
                    # OCR-OTORİTE DENETİM (flag MITAS_QC_OTORITE_AUDIT; SIFIR-ROUTE) — A/B ölçümü +
                    # ileride ENFORCE için _DURUM'a taşınır; mitas_pipeline route'u DEĞİŞTİRMEZ.
-                   "qc_block_otorite_audit": (_qcb_res or {}).get("otorite_audit")}
+                   "qc_block_otorite_audit": (_qcb_res or {}).get("otorite_audit"),
+                   # fix3-A 2026-06-29 — hafif sinyaller (CAST_CAP_DUSEN vb.) pipeline köprüsü için
+                   "qc_block_hafif": (_qcb_res or {}).get("hafif") or []}
     print(json.dumps(rapor, ensure_ascii=False, indent=2))
     print("PDF:", out_pdf)
 

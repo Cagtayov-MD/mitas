@@ -131,6 +131,9 @@ def classify(sig: dict) -> dict:
         hafif.append("YAP_FILL")
     if sig.get("char_broken") and sig.get("char_broken_autofixable", True):
         hafif.append("CASING")
+    # fix3-A 2026-06-29 — CAST_CAP_DUSEN: cap-üstü temiz-okunan oyuncu düştü (görünürlük; AĞIR değil)
+    if sig.get("cast_cap_dusen"):
+        hafif.append("CAST_CAP_DUSEN")
 
     # ===== KARAR (set-temelli — sınırlı kombine) =====
     if agir:

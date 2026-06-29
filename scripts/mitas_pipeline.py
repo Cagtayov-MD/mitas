@@ -2485,6 +2485,18 @@ def main(argv=None) -> int:
                        + " | okunmayan eklendi: " + (_add or "?"))
                 if not any(r.startswith("qc_block: OCR-otorite ihlali") for r in reasons):
                     reasons.append(_ar)
+        # fix3-A 2026-06-29 — CAST_CAP_DUSEN köprüsü: hafif sinyalden reasons'a aktar (görünürlük).
+        # qc_block_hafif listesinde 'CAST_CAP_DUSEN' neden-string'i varsa ADDITIVE reason ekle.
+        # FAIL-SAFE: exception → sessiz atla; ASLA ONAYLI üretmez (yalnız EKLER).
+        try:
+            for _hf in (_qcb4.get("qc_block_hafif") or []):
+                _hf_neden = (_hf.get("neden") or "") if isinstance(_hf, dict) else str(_hf)
+                if "CAST_CAP_DUSEN" in _hf_neden:
+                    _cap_r = "qc_block: " + _hf_neden
+                    if not any("CAST_CAP_DUSEN" in r for r in reasons):
+                        reasons.append(_cap_r)
+        except Exception:  # noqa: BLE001 — sinyal hatası pipeline'ı ASLA bozmasın
+            pass
 
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
     #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).
@@ -2513,6 +2525,8 @@ def main(argv=None) -> int:
             # → temiz filmleri boşuna AUTOFIX'e yolluyordu. qwen_uyari log'u (2021) kalır ama KARAR vermez.
             "casing_bad":        False,
             "foreign_accent":    any("yabancı ad" in u for u in _U),
+            # fix3-A 2026-06-29 — CAST_CAP_DUSEN: cap-üstü temiz-okunan oyuncu düştü (hafif; görünürlük)
+            "cast_cap_dusen":    any("CAST_CAP_DUSEN" in r for r in _R),
         }
         _r = _router.classify(_sig)
         # FLAT KURAL (Çağatay 2026-06-21): export'ta SADECE ONAYLI ve KONTROL var. AutoFix ve Kontrol

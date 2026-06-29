@@ -84,6 +84,9 @@ if (-not $env:MITAS_QC_NONCAST_FILTER)    { $env:MITAS_QC_NONCAST_FILTER = '1'; 
 # KAPI1 (2026-06-28): cast'e sizan karakter-tarifi cop ("GIRL AT DANCE", "SECOND GIRL", "IMMIGRATION OFFICER").
 # Yalniz YAPISAL-kesin desen duser (edat/ordinal/tam-ifade) -> gercek ad EZMEZ (Adam Driver/Mike Judge korunur). ADDITIVE.
 if (-not $env:MITAS_QC_ROLE_FILTER)       { $env:MITAS_QC_ROLE_FILTER = '1';       Write-Host '   + MITAS_QC_ROLE_FILTER=1 (KAPI1 AKTIF — karakter-rol cop filtresi)' }
+# C-fix (2026-06-29): deterministik yonetmen-rescue (LLM bos dondugunde DIRECTED BY +1 satirina bak).
+# Default ON; VETO: +1=yapim etiketi veya cast/yap listesinde -> bos birak (DOGRU davranis).
+if (-not $env:MITAS_DIRECTOR_RESCUE)      { $env:MITAS_DIRECTOR_RESCUE = '1';      Write-Host '   + MITAS_DIRECTOR_RESCUE=1 (C-fix AKTIF — yonetmen-rescue)' }
 # OZET MOTORU (2026-06-27 model-bake-off): gemini-2.5-flash PRIMARY (0 HATALI, Sonnet-sinifi, ~10x ucuz,
 # anahtar MITAS_GEMINI kurulu), gemma-local FALLBACK. Kota/anahtar yoksa otomatik gemma. Kapat: =0.
 if (-not $env:MITAS_OZET_GEMINI)          { $env:MITAS_OZET_GEMINI = '1';          Write-Host '   + MITAS_OZET_GEMINI=1 (ozet gemini-2.5-flash PRIMARY, gemma fallback)' }

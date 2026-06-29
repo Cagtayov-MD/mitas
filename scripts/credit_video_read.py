@@ -320,7 +320,9 @@ def fuse(model_outputs, kb):
                 yonetmen, guven = [], "OKUNAMADI (celiski)"
 
     yapimci = _dedup(prod_all)
-    cast = _dedup(cast_all)[:8]
+    # C-fix-canli 2026-06-29: standalone default 8→10.
+    _cap = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)
+    cast = _dedup(cast_all)[:_cap]
     return {"yonetmen": yonetmen, "yapimci": yapimci, "cast": cast, "guven": guven,
             "ayrinti": {m: lst for m, lst in per_model_dir.items()}}
 

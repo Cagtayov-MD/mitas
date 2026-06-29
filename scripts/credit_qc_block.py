@@ -196,6 +196,24 @@ def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast
         ocr_form = sn.get("ocr")
         confirmed = bool(used and ocr_form and _audit_name_in_raw(ocr_form, raw_seq))
         s5_overwrites.append({"ocr": ocr_form, "kb": sn.get("kb"), "ocr_in_raw": confirmed})
+    # fix3-A 2026-06-29 — CAP-ÜSTÜ DÜŞEN: ham-OCR'da bitişik okunan AMA final_cast'te olmayan
+    # temiz isimler (garble değil, cap-üstü sebebiyle düştü). KB-bağımsız: raw_seq tabanlı.
+    raw_cap_dropped = []
+    if used:
+        final_fold = {_fold(n) for n in (final_cast or [])}
+        raw_toks = raw_seq  # zaten list[str]
+        # Bitişik 2-token ad-adaylarını raw_seq'ten tara
+        for _ri in range(len(raw_toks) - 1):
+            cand_tokens = raw_toks[_ri: _ri + 2]
+            cand = " ".join(t.title() for t in cand_tokens)
+            if (_fold(cand) not in final_fold
+                    and _valid_person_name(cand)
+                    and _looks_garble(cand) is None):
+                raw_cap_dropped.append(cand)
+        # Tekrar → distinct
+        _seen_rcd = set()
+        raw_cap_dropped = [n for n in raw_cap_dropped
+                           if not (_seen_rcd.add(_fold(n)) or _fold(n) in _seen_rcd - {_fold(n)})]
     return {
         "raw_groundtruth_used": used,
         "ocr_dropped": ocr_dropped,
@@ -204,8 +222,10 @@ def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast
         # FIX-D: S5 fuzzy-snap form ezmeleri (gözlem) + en az biri ham-OCR-teyitli mi
         "s5_form_overwrites": s5_overwrites,
         "s5_form_overwrite_confirmed": bool(any(o["ocr_in_raw"] for o in s5_overwrites)),
-        # SUBSTİTÜSYON İMZASI: okunan-düştü VE okunmayan-eklendi (KEDİ GÖZÜ tam imzası)
-        "ocr_authority_violation": bool(ocr_dropped and kb_floor_added),
+        # fix1-KB 2026-06-29 — SAF-KB EKLEME tek başına ihlaldir (AND koşulu KALDIRILDI)
+        "ocr_authority_violation": bool(kb_floor_added),
+        # fix3-A 2026-06-29 — cap-üstü ham-OCR'dan düşen temiz isimler (görünürlük; karar ETKİLEMEZ)
+        "raw_cap_dropped": raw_cap_dropped,
     }
 
 
@@ -464,15 +484,17 @@ def _director_anchor_lock(kb, ocr_dirs, ocr_cast, title, original, year):
 YEAR_CUTOFF = 2000          # ≥2000 = güncel (floor 8), öncesi = eski (floor 6)
 FLOOR_NEW = 8
 FLOOR_OLD = 6
-FILL_TARGET = 8             # KB'den her zaman 8'e kadar tamamla (cast üst-sınırı da 8)
+# B-fix-canli 2026-06-29: FILL_TARGET sabit kaldırıldı; satır 745'te _cast_cap() kullanılıyor.
+# FLOOR_NEW/FLOOR_OLD DOKUNULMADI — bunlar karar-eşiği (KONTROL/ONAYLI), cast-cap değil.
 
 
 def _cast_cap():
+    # C-fix-canli 2026-06-29: standalone default 8→10 (env zaten 10 geçiyor; bu standalone güvencesi).
     try:
-        v = int(os.environ.get("MITAS_CAST_CAP", "8"))
-        return v if 1 <= v <= 50 else 8
+        v = int(os.environ.get("MITAS_CAST_CAP", "10"))
+        return v if 1 <= v <= 50 else 10
     except Exception:                      # noqa: BLE001
-        return 8
+        return 10
 
 # Karar tip önceliği (küçük = daha temel; credit_severity_router ile aynı).
 _TIP_ONCELIK = {"YONETMEN": 1, "KIMLIK": 2, "CAST": 3, "OZET": 4, "RENDER": 5}
@@ -666,7 +688,11 @@ def qc_credit_block(
             if yeni:
                 yon = yeni                  # KB-kanonik yazım (aynı kişi)
             else:
-                yon = []                    # OCR yön KB ile çelişti → KB ile EZME YOK → KONTROL
+                # B-fix (2026-06-29): OCR yön KB ile eşleşmedi. AYIR — GARBLE ise at (kural: okunamadı>yanlış);
+                # TEMİZ ise OCR-otorite KORU (KB yanlış-film eşleştirmiş olabilir; CHARLIE MARTINEZ/TERRY GEORGE
+                # net OCR ama KB-teyitsiz). yon_conflict=True kalır → route KONTROL'e yollar (yön PDF'de + insan teyidi).
+                _clean_yon = [d for d in yon if _looks_garble(d) is None]
+                yon = _clean_yon            # temiz olanları KORU; garble elendi (eski: hepsi silinirdi)
                 yon_conflict = True
         elif (not yon) and locked and otoriter_yon:
             # DEFERANS: yönetmen KB-fill YAPILMAZ (yön yalnız doğrulanmış yapısal hattan; OCR boşsa BOŞ).
@@ -728,7 +754,15 @@ def qc_credit_block(
         # OCR-ÖNCELİK (flag MITAS_QC_FLOORFILL_OCRGUARD): ham-OCR'da OKUNAN ama (clean'de) düşmüş
         # otoriter isimleri (KEDİ GÖZÜ: ELEANOR PARKER), OKUNMAYAN saf-KB isimlerden (SARRAZIN) ÖNCE
         # ekle → cap dolmadan okunan KURTARILIR, okunmayan dışarıda kalır. Flag kapalı → mevcut sıra (AYNEN).
-        if locked and otoriter_cast:
+        # fix1-KB 2026-06-29 — YANLIŞ-FİLM GUARD: floor-fill YALNIZCA OCR↔KB örtüşme≥1 VEYA OCR-cast boşsa
+        # çalışır. Örtüşme=0 ve k>0 → yanlış-film imzası (DIAGHILEV: 8 bale dansçısı ↔ ABD oyuncuları);
+        # bu durumda KB-cast-ekleme TAMAMEN BLOKLANIR.
+        _ocr_kb_ov = cc.cast_overlap(ocr_cast, otoriter_cast) if (ocr_cast and otoriter_cast) else 0
+        _floor_fill_allowed = (k == 0) or (_ocr_kb_ov >= 1)  # k==0: ALLEGRO/belgesel VL-fallback carveout
+        if locked and otoriter_cast and not _floor_fill_allowed:
+            iz.append({"alan": "oyuncu", "kaynak": "kb-floor-blokla",
+                       "neden": f"OCR-KB ortusme=0 (yanlis-film imzasi); k={k}"})
+        if locked and otoriter_cast and _floor_fill_allowed:
             _cand = list(otoriter_cast)
             if (raw_names_groundtruth and os.environ.get(
                     "MITAS_QC_FLOORFILL_OCRGUARD", "").strip().lower() in ("1", "true", "on", "yes")):
@@ -738,7 +772,7 @@ def qc_credit_block(
                 _cand = _read + _unread          # okunan ÖNCE, okunmayan SONRA (göreli sıra korunur)
             have = {_fold(n) for n in cast}
             for a in _cand:
-                if len(cast) >= FILL_TARGET:
+                if len(cast) >= _cast_cap():  # B-fix-canli 2026-06-29: FILL_TARGET sabit → _cast_cap() dinamik
                     break
                 if _fold(a) not in have and not any(cc.name_match(a, o) for o in cast):
                     cast.append(a)
@@ -831,6 +865,35 @@ def qc_credit_block(
 
         if not afis_ok:
             hafif.append({"tip": "AFIS", "neden": "afiş yok / yatay frame-grab → poster_fetch yeniden"})
+
+        # fix3-A 2026-06-29 — CAST_CAP_DUSEN: cap doluysa (>=cap) ham-OCR'da temiz okunan isimler
+        # düşmüş olabilir → hafif sinyal (görünürlük). cap=10 DEĞİŞMEZ. fail-safe: raw_names_groundtruth
+        # None ise atla. Bu blok S11 karar matrisinden ÖNCE → hafif[] S11'e katılır.
+        try:
+            if raw_names_groundtruth and len(cast) >= _cast_cap():
+                _rseq_cap = _audit_raw_token_seq(raw_names_groundtruth)
+                _final_fold_cap = {_fold(n) for n in cast}
+                _cap_dropped = []
+                for _ri in range(len(_rseq_cap) - 1):
+                    _cand_t = _rseq_cap[_ri: _ri + 2]
+                    _cand_n = " ".join(t.title() for t in _cand_t)
+                    if (_fold(_cand_n) not in _final_fold_cap
+                            and _valid_person_name(_cand_n)
+                            and _looks_garble(_cand_n) is None):
+                        _cap_dropped.append(_cand_n)
+                if _cap_dropped:
+                    _cap_seen = set()
+                    _cap_dropped_u = []
+                    for _cn in _cap_dropped:
+                        _cf = _fold(_cn)
+                        if _cf not in _cap_seen:
+                            _cap_seen.add(_cf)
+                            _cap_dropped_u.append(_cn)
+                    hafif.append({"tip": "CAST",
+                                  "neden": f"CAST_CAP_DUSEN: cap-ustu okunan {len(_cap_dropped_u)} "
+                                           f"oyuncu dustu ({', '.join(_cap_dropped_u[:3])})"})
+        except Exception:  # noqa: BLE001 — sinyal hatası karar/route'u ASLA bozmaz
+            pass
 
         # karar + en temel tip
         if gerekceler:
