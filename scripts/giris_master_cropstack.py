@@ -27,6 +27,7 @@ from difflib import SequenceMatcher
 
 MIN_CONF = float(os.environ.get("PROTO_MIN_CONF", "0.55"))   # garble-fragment eşiği (ayarlandı: 0.55 temiz/eksiksiz denge)
 FUZZY = float(os.environ.get("PROTO_FUZZY", "0.82"))          # aynı-satır birleştirme benzerlik
+MAX_ROWS = int(os.environ.get("PROTO_MAX_ROWS", "150"))       # flood-tavanı (uzun-tutulan kart+hareketli footage)
 
 
 def _is_credit_text(t: str) -> bool:
@@ -95,20 +96,39 @@ def build(src_dir: Path, out_png: Path) -> dict:
             cands.append((order, bgr[ya:yb, xa:xb], text, conf, key))
             order += 1
 
-    # FUZZY dedup: aynı satırın OCR-varyantlarını birleştir; küme başına EN GÜVENLİ örneği tut.
-    clusters = []   # her küme: {rep_key, best:(order,crop,text,conf)}
-    for o, crop, text, conf, key in cands:
-        hit = None
-        for cl in clusters:
-            if SequenceMatcher(None, key, cl["rep_key"]).ratio() >= FUZZY:
-                hit = cl
-                break
-        if hit is None:
-            clusters.append({"rep_key": key, "best": (o, crop, text, conf), "first": o})
-        else:
-            if conf > hit["best"][3]:
-                hit["best"] = (o, crop, text, conf)
-            hit["first"] = min(hit["first"], o)
+    # FUZZY dedup (UNION-FIND, geçişli): aynı satırın OCR-varyant ZİNCİRİNİ tek kümeye birleştir.
+    # (Eski greedy-rep yöntemi zinciri kaçırıp flood üretiyordu — OMAGGIO/UGETSU 256 satır.)
+    # Küme başına EN GÜVENLİ (conf) örnek temsilci. Uzunluk-önfiltresi hem hız hem yanlış-birleşme önler.
+    n = len(cands)
+    parent = list(range(n))
+
+    def _find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    keys = [c[4] for c in cands]
+    for i in range(n):
+        li = len(keys[i])
+        ri = _find(i)
+        for j in range(i + 1, n):
+            lj = len(keys[j])
+            if min(li, lj) < 0.6 * max(li, lj):       # uzunluk çok farklı → atla
+                continue
+            if _find(j) == ri:
+                continue
+            if SequenceMatcher(None, keys[i], keys[j]).ratio() >= FUZZY:
+                parent[_find(j)] = ri
+    from collections import defaultdict
+    _members = defaultdict(list)
+    for idx, c in enumerate(cands):
+        _members[_find(idx)].append(c)
+    clusters = []
+    for ms in _members.values():
+        best = max(ms, key=lambda c: c[3])            # en güvenli örnek temsilci
+        clusters.append({"rep_key": best[4], "best": (best[0], best[1], best[2], best[3]),
+                         "first": min(c[0] for c in ms)})
 
     clusters.sort(key=lambda cl: cl["first"])
     # ALT-DİZGE PARÇA temizliği: bir kümenin anahtarı daha UZUN bir kümenin alt-dizgesiyse (kelime-parçası) at.
@@ -122,6 +142,13 @@ def build(src_dir: Path, out_png: Path) -> dict:
                 drop.add(i)
                 break
     clusters = [cl for i, cl in enumerate(clusters) if i not in drop]
+    # FLOOD GUARD: aşırı satır = dedup-direnen flood (uzun-tutulan kart + hareketli footage).
+    # En GÜVENLİ MAX_ROWS satırı tut, sıra korunur. (Normal künye nadiren >150 satır.)
+    flood = False
+    if len(clusters) > MAX_ROWS:
+        flood = True
+        clusters = sorted(clusters, key=lambda cl: -cl["best"][3])[:MAX_ROWS]
+        clusters.sort(key=lambda cl: cl["first"])
     rows = [(cl["best"][1], cl["best"][2]) for cl in clusters]
     if not rows:
         return {"status": "empty", "lines": 0}
@@ -142,7 +169,7 @@ def build(src_dir: Path, out_png: Path) -> dict:
     ok, buf = cv2.imencode(".png", canvas)
     if ok:
         buf.tofile(str(out_png))
-    return {"status": "ok", "lines": len(rows), "size": [CW, Hc], "out": str(out_png),
+    return {"status": "ok", "lines": len(rows), "flood": flood, "size": [CW, Hc], "out": str(out_png),
             "texts": [t for _, t in rows]}
 
 
