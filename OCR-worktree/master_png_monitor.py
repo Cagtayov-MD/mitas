@@ -18,6 +18,16 @@ sys.path.insert(0, r"E:\MITAS\OCR-worktree")
 _spec = importlib.util.spec_from_file_location("dcmaster", r"E:\MITAS\OCR-worktree\db_compose_master.py")
 dc = importlib.util.module_from_spec(_spec); sys.modules["dcmaster"] = dc; _spec.loader.exec_module(dc)
 
+# GİRİŞ master motoru: crop-stack (Çağatay fikri 2026-06-29) — her kredi satırını kırp+alt alta diz,
+# footage'sız temiz künye listesi. ÇIKIŞ slit-scan kalır. Yüklenemezse giriş eski slit'e düşer.
+try:
+    sys.path.insert(0, r"E:\MITAS\scripts")
+    _cs_spec = importlib.util.spec_from_file_location("giris_cropstack", r"E:\MITAS\scripts\giris_master_cropstack.py")
+    cs = importlib.util.module_from_spec(_cs_spec); sys.modules["giris_cropstack"] = cs
+    _cs_spec.loader.exec_module(cs)
+except Exception:
+    cs = None
+
 DB = Path(r"E:\MITAS\Database")
 POLL_SEC = 60
 
@@ -106,16 +116,44 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     args = make_args()
     res = {"film": film.name, "base": base}
     produced = False
-    for seg in ("giris", "cikis"):
-        frames, src = _seg_source(film, seg)
+
+    # GİRİŞ: CROP-STACK (footage'sız temiz künye listesi). Kaynak: giris_jenerik (azaltılmış yazı-kareleri),
+    # yoksa ham frames/giris. Boşsa giriş master YOK. cs yüklenemediyse eski slit'e düş.
+    giris_out = film / f"{base} giris.png"
+    if cs is not None:
+        gsrc = film / "frames" / "giris_jenerik"
+        if not (gsrc.is_dir() and glob.glob(str(gsrc / "*.png"))):
+            gsrc = film / "frames" / "giris"
+        ginfo = {"source": "giris_cropstack", "status": "no_frames"}
+        if gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
+            try:
+                r = cs.build(gsrc, giris_out)
+                ginfo = {"source": "giris_cropstack", "status": r.get("status"),
+                         "lines": r.get("lines"), "size": r.get("size")}
+                if r.get("status") == "ok":
+                    ginfo["path"] = str(giris_out)
+                    produced = True
+            except Exception as e:  # noqa: BLE001
+                ginfo = {"source": "giris_cropstack", "status": "error", "error": f"{type(e).__name__}: {e}"}
+        res["giris"] = ginfo
+    else:
+        frames, src = _seg_source(film, "giris")
         canon, info = _compose_seg(frames, args)
         info["source"] = src
         if canon is not None:
-            outp = film / f"{base} {seg}.png"
-            dc.wr(outp, canon)
-            info["path"] = str(outp)
-            produced = True
-        res[seg] = info
+            dc.wr(giris_out, canon); info["path"] = str(giris_out); produced = True
+        res["giris"] = info
+
+    # ÇIKIŞ: slit-scan (mevcut, GOOD — DOKUNULMADI).
+    frames, src = _seg_source(film, "cikis")
+    canon, info = _compose_seg(frames, args)
+    info["source"] = src
+    if canon is not None:
+        cout = film / f"{base} cikis.png"
+        dc.wr(cout, canon)
+        info["path"] = str(cout)
+        produced = True
+    res["cikis"] = info
     res["produced"] = produced
     # provenance manifest (kökte, base adlı)
     try:
