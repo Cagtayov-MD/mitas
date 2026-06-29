@@ -475,8 +475,19 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--frames", help="frames/giris dizini yolu")
     g.add_argument("--batch", help="Satır başına bir film adı içeren dosya")
     ap.add_argument("--dump-dir", help="Manifest'i ayrıca buraya <safe_film>.json yaz")
+    ap.add_argument("--pool-name", default="giris_jenerik",
+                    help="Havuz klasör adı (default giris_jenerik). cikis yedek için 'cikis_yazi'. "
+                         "--frames ile birlikte herhangi bir kare dizinine uygulanabilir.")
     args = ap.parse_args(argv)
     dump_dir = Path(args.dump_dir) if args.dump_dir else None
+
+    # Havuz adını override et (cikis_yazi yedek havuzu için yeniden-kullanım). Globaller derive edilir;
+    # _safe_clear_own_dir guard'ı da bu adlara göre çalışır (araç-dışı klasör temizlenemez).
+    global POOL_DIRNAME, DEDUP_DIRNAME, MANIFEST_NAME
+    if args.pool_name and args.pool_name != POOL_DIRNAME:
+        POOL_DIRNAME = args.pool_name
+        DEDUP_DIRNAME = args.pool_name + "_dedup"
+        MANIFEST_NAME = args.pool_name + "_manifest.json"
 
     if args.film:
         m = _process_film_name(args.film, dump_dir=dump_dir)

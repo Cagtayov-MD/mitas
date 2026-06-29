@@ -1305,6 +1305,7 @@ _PROD_DEFAULTS = {
     "MITAS_CAST_CAP": "10",          # C2b: cast üst-sınırı 8→10
     "MITAS_QC_NONCAST_FILTER": "1",  # C5: non-cast qc_block S1 filtresi
     "MITAS_QC_ROLE_FILTER": "1",     # KAPI1 (2026-06-28): karakter-rol/tarif çöpü ele (yapısal-kesin, ad ezmez)
+    "MITAS_DIRECTOR_RESCUE": "1",   # C-fix (2026-06-29): yönetmen-rescue; LLM boş → DIRECTED BY +1 (VETO: yapım etiketi/cast-çelişki)
     "MITAS_FRAME_DEDUP": "0",        # frame-dedup default OFF (A/B opt-in)
     # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
     # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.
@@ -1681,6 +1682,40 @@ def main(argv=None) -> int:
                       module="jenerik-pool", media_id=media_id, filename=video.name,
                       error=str(_jpe)[:300], detail={"clip_id": clip_id})
 
+    # ===== ÇIKIŞ YEDEK HAVUZU (jenerik bulunamazsa): frames/cikis -> frames/cikis_yazi =====
+    # Çağatay 2026-06-29: credit_detect çıkış jeneriğini bulamayınca cikis_jenerik BOŞ kalır. Fikir: o filmlerde
+    # giriş-mantığıyla yedek havuz kur → VL'e temiz girdi. AYRI klasör (cikis_yazi); otorite cikis_jenerik'te kalır;
+    # master'a BESLENMEZ (master_png_monitor cikis_yazi'yi kullanmaz — yalnız VL içindir).
+    # DEFAULT-OFF: gerçek-test (GLENN MILLER tabela / SOĞUK SUYA 'FIN', 2026-06-29) gösterdi ki boş-çıkış filmleri
+    # GENELDE gerçekten künyesiz (footage/sahne-yazısı/epilog) → fallback kredi değil sahne-yazısı topluyor.
+    # Yalnız detektörün GERÇEK kredi-kaçırdığı nadir filmde değerli; güvenli kullanım için kalite-kapısı + VL-doğrulama
+    # şart. Açmak için MITAS_CIKIS_FALLBACK_POOL=1.
+    _cfb_on = os.environ.get("MITAS_CIKIS_FALLBACK_POOL", "0").strip().lower() in ("1", "true", "on", "yes")
+    _cikis_pool_empty = not (cikis_jenerik_frames.exists() and any(cikis_jenerik_frames.glob("*.png")))
+    if _cfb_on and not args.no_ocr and _cikis_pool_empty and cikis_frames.exists() and any(cikis_frames.glob("*.png")):
+        t_cfb = time.perf_counter()
+        try:
+            _cfb_cmd = [str(PY_OCR), str(HERE / "giris_jenerik_havuzu.py"),
+                        "--frames", str(cikis_frames), "--pool-name", "cikis_yazi"]
+            _rccfb, _outcfb, _errcfb = run(
+                _cfb_cmd, timeout=int(os.environ.get("MITAS_CIKIS_FALLBACK_TIMEOUT", "900") or 900))
+            _cfj = last_json(_outcfb) or {}
+            timings["cikis_fallback_pool"] = round(time.perf_counter() - t_cfb, 2)
+            log_event("cikis_fallback_pool_completed",
+                      level="info" if _cfj.get("status") not in ("error", None) else "warn",
+                      summary=f"{video.name}: çıkış jeneriği bulunamadı → YEDEK havuz cikis_yazi "
+                              f"status={_cfj.get('status')} havuz={_cfj.get('total_dedup_representatives', 0)} "
+                              f"({timings['cikis_fallback_pool']} sn).",
+                      module="cikis-fallback-pool", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["cikis_fallback_pool"],
+                      detail={"clip_id": clip_id, "pool": str(clip_dir / "frames" / "cikis_yazi"),
+                              "result": _cfj, "stderr": (_errcfb or "")[-300:] if _rccfb else None})
+        except Exception as _cfbe:  # noqa: BLE001
+            log_event("cikis_fallback_pool_failed", level="warn",
+                      summary=f"{video.name}: çıkış yedek havuzu atlandı ({type(_cfbe).__name__}).",
+                      module="cikis-fallback-pool", media_id=media_id, filename=video.name,
+                      error=str(_cfbe)[:300], detail={"clip_id": clip_id})
+
     # ===== GİRİŞ JENERİK HAVUZU (yazı-varlığı seçimi): frames/giris -> frames/giris_jenerik =====
     # cikis_jenerik'e PARALEL (Çağatay 2026-06-29): giriş karelerinden YAZI-olan (altyazı hariç) kareleri
     # OneOCR ile seçip giris_jenerik havuzuna kopyalar + aynı-yazı dedup. master-PNG bu havuzdan üretilir.
@@ -2009,6 +2044,30 @@ def main(argv=None) -> int:
         except Exception as exc:  # noqa: BLE001 — doğrulama pipeline'ı ASLA bozmaz
             log_event("credit_validate_failed", level="warn", summary=f"yön-doğrulama atlandı: {exc}",
                       module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+
+    # C2-fix (2026-06-29): credit_validate DOGRULANDI+KESIN yönetmeni video_credits'e GERİ-YAZ.
+    # validate KB (IMDb+Wiki+XML) 3-kaynak teyitle OCR-garble'ı KANONİK yazıma düzeltti (val=pool-canonical).
+    # SADECE status=DOGRULANDI & confidence=KESIN yazılır → OKUNAMADI/CELISKI/DOGRULANAMADI/ORTA SIZMAZ
+    # ('okunamadı>yanlış' korunur). Bu noktadan SONRA cmd(~2086)+v4_cmd(~2134) güncel video_credits'i okur.
+    if cv_result:
+        _cvd_fix = cv_result.get("yonetmen") or {}
+        if (_cvd_fix.get("status") == "DOGRULANDI"
+                and _cvd_fix.get("confidence") == "KESIN"
+                and _cvd_fix.get("value")):
+            _cv_val = _cvd_fix["value"]
+            _new_dir = None
+            if isinstance(_cv_val, list):
+                _new_dir = [str(x).strip() for x in _cv_val if x and str(x).strip()]
+            elif isinstance(_cv_val, str) and _cv_val.strip():
+                _new_dir = [_cv_val.strip()]
+            if _new_dir:
+                _old_dir = video_credits.get("yonetmen")
+                video_credits["yonetmen"] = _new_dir
+                log_event("credit_validate_backfill",
+                          summary=f"{video.name}: C2-fix yön KB-teyitli yazıldı {_new_dir} (eski={_old_dir}).",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "value": _new_dir, "eski": _old_dir,
+                                  "sources": _cvd_fix.get("sources_confirm")})
 
     # ===== BLOK PDF / teslim =====
     pdf_out = clip_dir / "pdf"

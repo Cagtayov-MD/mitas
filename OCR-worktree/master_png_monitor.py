@@ -67,32 +67,38 @@ def _delivery_base(film: Path, base_override: str | None = None) -> str:
     return film.name
 
 
-def _seg_source(film: Path, seg: str):
-    """(frames_listesi, kaynak_etiketi). Master için kaynak seçimi.
+def _textset_from_manifest(manifest: Path, raw: Path):
+    """Azaltılmış havuz manifestinden TAM yazı-setini (kept kareler) ham frames/<seg>'ten derle.
+    Slit-scan master YOĞUNLUK ister; azaltılmış set master'ı eksik üretir."""
+    try:
+        mj = json.loads(manifest.read_text(encoding="utf-8"))
+        kept = [r.get("file") for r in (mj.get("frames") or [])
+                if str(r.get("decision", "")).startswith("kept")]
+        fs = [str(raw / f) for f in kept if f and (raw / f).exists()]
+        return sorted(fs, key=dc.nat_sort_key) if fs else None
+    except Exception:
+        return None
 
-    GİRİŞ havuzu (giris_jenerik) AZALTILMIŞ settir (yalnız temsilci, VL içindir). Slit-scan master
-    YOĞUNLUK ister → azaltılmış set master'ı eksik üretir. Bu yüzden master için TAM yazı-setini
-    manifestten (kept kareler) ham frames/<seg>'ten derle. (Çağatay 2026-06-29)
-    Sıra: manifest-textset > havuz(frames/<seg>_jenerik) > ham frames/<seg>. Havuz var-ama-manifest
-    yoksa havuzu kullan (cikis: cikis_jenerik bütün penceredir, manifesti yok → havuzdan)."""
+
+def _seg_source(film: Path, seg: str):
+    """(frames_listesi, kaynak_etiketi). Master kaynak seçimi (Çağatay 2026-06-29).
+
+    YALNIZ derlenmiş jenerik havuzundan üret: giris_jenerik azaltılmış+manifestli → TAM yazı-seti
+    (giris_textset); cikis_jenerik bütün-pencere+manifestsiz → doğrudan. Havuz BOŞ/yok → BOŞ liste
+    (master ÜRETİLMEZ = "kötü master yerine hiç"). Ham frames'e VE çıkış-yedek havuzuna (cikis_yazi)
+    DÜŞÜLMEZ: ham=footage-master, cikis_yazi=çıkış-sonu sahne-yazısı/epilog → ikisi de SAHTE master üretir
+    (GLENN MILLER tabela / SOĞUK SUYA 'FIN' kanıtı, 2026-06-29). cikis_yazi yedek havuzu yalnız VL içindir."""
     raw = film / "frames" / seg
-    manifest = film / "frames" / f"{seg}_jenerik_manifest.json"
-    if manifest.exists() and raw.is_dir():
-        try:
-            mj = json.loads(manifest.read_text(encoding="utf-8"))
-            kept = [r.get("file") for r in (mj.get("frames") or [])
-                    if str(r.get("decision", "")).startswith("kept")]
-            fs = [str(raw / f) for f in kept if f and (raw / f).exists()]
-            if fs:
-                return sorted(fs, key=dc.nat_sort_key), f"{seg}_textset"
-        except Exception:
-            pass
     pool = film / "frames" / f"{seg}_jenerik"
-    if pool.is_dir():
-        fs = sorted(glob.glob(str(pool / "*.png")), key=dc.nat_sort_key)
-        return fs, f"{seg}_jenerik"
-    fs = sorted(glob.glob(str(raw / "*.png")), key=dc.nat_sort_key)
-    return fs, seg
+    pool_fs = sorted(glob.glob(str(pool / "*.png")), key=dc.nat_sort_key) if pool.is_dir() else []
+    if not pool_fs:
+        return [], seg
+    man = film / "frames" / f"{seg}_jenerik_manifest.json"
+    if man.exists() and raw.is_dir():
+        ts = _textset_from_manifest(man, raw)
+        if ts:
+            return ts, f"{seg}_textset"
+    return pool_fs, f"{seg}_jenerik"
 
 
 def gen_master(film: Path, base_override: str | None = None) -> dict:
