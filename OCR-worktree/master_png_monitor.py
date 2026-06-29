@@ -68,13 +68,29 @@ def _delivery_base(film: Path, base_override: str | None = None) -> str:
 
 
 def _seg_source(film: Path, seg: str):
-    """(frames_listesi, kaynak_etiketi). Havuz (frames/<seg>_jenerik) VARSA onu kullan —
-    boşsa bile ham'a DÜŞME (cold-open footage master'ı üretmemek için). Havuz yoksa ham'a düş."""
+    """(frames_listesi, kaynak_etiketi). Master için kaynak seçimi.
+
+    GİRİŞ havuzu (giris_jenerik) AZALTILMIŞ settir (yalnız temsilci, VL içindir). Slit-scan master
+    YOĞUNLUK ister → azaltılmış set master'ı eksik üretir. Bu yüzden master için TAM yazı-setini
+    manifestten (kept kareler) ham frames/<seg>'ten derle. (Çağatay 2026-06-29)
+    Sıra: manifest-textset > havuz(frames/<seg>_jenerik) > ham frames/<seg>. Havuz var-ama-manifest
+    yoksa havuzu kullan (cikis: cikis_jenerik bütün penceredir, manifesti yok → havuzdan)."""
+    raw = film / "frames" / seg
+    manifest = film / "frames" / f"{seg}_jenerik_manifest.json"
+    if manifest.exists() and raw.is_dir():
+        try:
+            mj = json.loads(manifest.read_text(encoding="utf-8"))
+            kept = [r.get("file") for r in (mj.get("frames") or [])
+                    if str(r.get("decision", "")).startswith("kept")]
+            fs = [str(raw / f) for f in kept if f and (raw / f).exists()]
+            if fs:
+                return sorted(fs, key=dc.nat_sort_key), f"{seg}_textset"
+        except Exception:
+            pass
     pool = film / "frames" / f"{seg}_jenerik"
     if pool.is_dir():
         fs = sorted(glob.glob(str(pool / "*.png")), key=dc.nat_sort_key)
         return fs, f"{seg}_jenerik"
-    raw = film / "frames" / seg
     fs = sorted(glob.glob(str(raw / "*.png")), key=dc.nat_sort_key)
     return fs, seg
 

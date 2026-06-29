@@ -19,7 +19,8 @@ TASARIM KARARI (3 bağımsız Sonnet önerisi + tarafsız yüksek-eforlu Opus ha
   RECALL: imread/OCR hatası → kare KOŞULSUZ havuza ("okunamadı > yanlış oku"). Footage (0 satır) → alınmaz.
 
 ADDITIVE & STANDALONE: HİÇBİR üretim dosyasını değiştirmez. Kaynak frames/giris/ DOKUNULMAZ (yalnız KOPYALA).
-Yalnız kendi çıktı klasörlerini yazar: frames/giris_jenerik/, frames/giris_jenerik_dedup/, frames/giris_jenerik_manifest.json.
+Yalnız kendi çıktı klasörlerini yazar: frames/giris_jenerik/ (DOĞRUDAN azaltılmış havuz: yazı-var ∩ benzer-silinmiş;
+kayan jenerik korunur) + frames/giris_jenerik_manifest.json. (Eski ayrı _dedup klasörü kaldırıldı.)
 
 KOŞUM (ocr venv ŞART — paddle/oneocr orada):
   E:\\MITAS\\venvs\\ocr\\Scripts\\python.exe scripts/giris_jenerik_havuzu.py --film "ALİTA SAVAŞ MELEĞİ 2025-1241-1-0000-90-1"
@@ -329,7 +330,6 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
             "total_dropped_footage": 0,
             "total_dedup_representatives": 0,
             "pool_dir": str(pool_dir),
-            "dedup_dir": str(dedup_dir),
             "secs": round(_time.perf_counter() - t0, 3),
             "frames": [],
         }
@@ -371,35 +371,36 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
     # ── dedup ──
     _dedup_kept(kept, src_paths, params)
 
-    # ── disk: havuz + dedup klasörlerini (KENDİ) temizle, kopyala ──
+    # ── disk: havuz = DOĞRUDAN AZALTILMIŞ SET (Çağatay 2026-06-29) ──
+    # giris_jenerik = yazı-var kareler ∩ benzer-silinmiş (yalnız dedup TEMSİLCİLERİ).
+    # Kayan jenerik korunur (fuzzy-birleştirme yok → kayan kareler ayrı küme = hepsi temsilci).
+    # Ayrı _dedup klasörü ARTIK YOK; varsa eski (obsolete) silinir.
     pool_dir.mkdir(parents=True, exist_ok=True)
-    dedup_dir.mkdir(parents=True, exist_ok=True)
     _safe_clear_own_dir(pool_dir)
-    _safe_clear_own_dir(dedup_dir)
+    if dedup_dir.exists():                      # eski iki-klasör düzeninden kalan _dedup'ı temizle
+        _safe_clear_own_dir(dedup_dir)
+        try:
+            dedup_dir.rmdir()
+        except Exception:
+            pass
 
     for r in kept:
+        r["dedup_file"] = None
+        if not r.get("dedup_representative"):
+            r["pool_file"] = None              # benzer-kopya → havuza GİRMEZ (silindi)
+            continue
         src = src_paths[r["file"]]
         dst = pool_dir / r["file"]
         try:
             shutil.copy2(src, dst)
-            r["pool_file"] = f"{POOL_DIRNAME}/{r['file']}"
+            r["pool_file"] = f"{POOL_DIRNAME}/{r['file']}"   # havuzdaki azaltılmış temsilci
         except Exception as exc:  # noqa: BLE001
             r["pool_file"] = None
             r["_copy_err"] = f"{type(exc).__name__}: {exc}"
-        if r.get("dedup_representative"):
-            ddst = dedup_dir / r["file"]
-            try:
-                shutil.copy2(src, ddst)
-                r["dedup_file"] = f"{DEDUP_DIRNAME}/{r['file']}"
-            except Exception as exc:  # noqa: BLE001
-                r["dedup_file"] = None
-                r["_dedup_copy_err"] = f"{type(exc).__name__}: {exc}"
-        else:
-            r["dedup_file"] = None
 
-    n_kept = len(kept)
+    n_kept = len(kept)                                            # yazı-var kare sayısı (azaltma öncesi)
     n_drop = sum(1 for r in rows if r["decision"] == "dropped_footage")
-    n_reps = sum(1 for r in kept if r.get("dedup_representative"))
+    n_reps = sum(1 for r in kept if r.get("dedup_representative"))  # = havuzdaki kare (azaltma sonrası)
 
     # iç görsel-imza (büyük int) manifest'e yazılmaz.
     for r in rows:
