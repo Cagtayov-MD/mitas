@@ -11,7 +11,7 @@ Her blok try/except: bir blok cokerse pipeline durmaz, olay loglanir, modul
 
 Kullanim:
   python scripts/mitas_pipeline.py --video "E:\\MITAS\\testklipler\\3.mp4" --profile film
-  (test icin hizli:) --asr-max-seconds 120 --ocr-head 60 --ocr-tail 120 --fps 1
+  (test icin hizli:) --asr-max-seconds 120 --ocr-head 60 --ocr-tail 120 --fps 1.5
 """
 from __future__ import annotations
 import argparse, json, subprocess, shutil, time, re, hashlib, unicodedata, os, sys, functools
@@ -1351,7 +1351,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
     ap.add_argument("--profile", default=None, help="film_dizi (tip TRT 3.parselden oto) | haber|belgesel|muzik|stt (yoksa TRT'den)")
-    ap.add_argument("--fps", type=float, default=1.0, help="kare cikarim fps (native cozunurluk)")
+    ap.add_argument("--fps", type=float, default=1.5, help="kare cikarim fps (native cozunurluk)")
     ap.add_argument("--ocr-head", type=float, default=180.0, help="acilis penceresi sn")
     ap.add_argument("--ocr-tail", type=float, default=480.0, help="kapanis penceresi sn")
     ap.add_argument("--asr-max-seconds", type=float, default=0.0, help="ASR'i ilk N sn ile sinirla (test)")
