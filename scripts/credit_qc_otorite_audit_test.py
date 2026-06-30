@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """credit_qc_otorite_audit_test.py — OCR-OTORİTE DENETİM sinyallerinin (SIFIR-ROUTE) regresyon testleri.
 
-Mühürlenen vakalar (2026-06-22, KEDİ GÖZÜ forensiği):
-  - KEDİ GÖZÜ substitüsyon imzası: okunan ELEANOR PARKER düştü + okunmayan MICHAEL SARRAZIN eklendi.
-  - Meşru-refill: ham-OCR'da OKUNAN GAYLE HUNNICUTT floor-fill ile geri eklenince kb_floor_added'a GİRMEZ.
+Mühürlenen vakalar:
+  - KEDİ GÖZÜ substitüsyon imzası: okunan ELEANOR PARKER düştüyse audit bunu görür.
+  - KB sıfırdan kişi eklemez; kb_floor_added geriye dönük şema alanı olarak boş kalır.
   - HAZELTON/HAZLETON yakın-yazım çifti yakalanır.
   - BİTİŞİKLİK FP'si: 'ANN LEE' ham'da 'MARY ANN'+'BRUCE LEE' varken (bitişik değil) yakalanmaz.
 
@@ -26,7 +26,7 @@ def _chk(name, cond):
 
 
 def test_kedi_gozu_substitution():
-    """KEDİ GÖZÜ: Parker düştü (ocr_dropped), Sarrazin uyduruldu (kb_floor_added), violation=True."""
+    """KEDİ GÖZÜ: Parker düştü (ocr_dropped); KB sıfırdan kişi ekleme sinyali artık yok."""
     # Ham-OCR star-kart yapısı (ELEANOR\nPARKER ardışık satır) — gerçek dosyanın iskeleti.
     raw = (["GAYLE", "HUNNICUTT"] * 3 + ["ELEANOR", "PARKER"] * 6
            + ["CO-STARRING", "TIM HENRY", "LAURENCE NAISMITH", "JENNIFER LEAK",
@@ -36,16 +36,14 @@ def test_kedi_gozu_substitution():
     final_yap = ["BERNARD SCHWARTZ", "PHILLIP HAZELTON", "PHILLIP HAZLETON"]
     otoriter = ["Michael Sarrazin", "Gayle Hunnicutt", "Eleanor Parker", "Tim Henry",
                 "Laurence Naismith", "Jennifer Leak", "Linden Chiles", "Mark Herron"]
-    iz = [{"alan": "oyuncu", "kaynak": "kb-floor-doldur", "isim": "Michael Sarrazin"},
-          {"alan": "oyuncu", "kaynak": "kb-floor-doldur", "isim": "Gayle Hunnicutt"}]
+    iz = []
     r = q._compute_otorite_audit(raw, final_cast, final_yap, otoriter, iz)
     print("KEDİ GÖZÜ:", r)
     _chk("ocr_dropped = [Eleanor Parker]", [x.lower() for x in r["ocr_dropped"]] == ["eleanor parker"])
-    _chk("kb_floor_added = [Michael Sarrazin] (Hunnicutt MEŞRU-refill, hariç)",
-         [x.lower() for x in r["kb_floor_added"]] == ["michael sarrazin"])
+    _chk("kb_floor_added boş (KB sıfırdan ekleme yok)", r["kb_floor_added"] == [])
     _chk("fuzzy_dups HAZELTON/HAZLETON",
          any({a.lower(), b.lower()} == {"phillip hazelton", "phillip hazleton"} for a, b in r["fuzzy_dups"]))
-    _chk("ocr_authority_violation = True", r["ocr_authority_violation"] is True)
+    _chk("ocr_authority_violation = False", r["ocr_authority_violation"] is False)
     _chk("raw_groundtruth_used = True", r["raw_groundtruth_used"] is True)
 
 
@@ -62,7 +60,7 @@ def test_adjacency_fp():
 def test_no_groundtruth_safe():
     """Groundtruth yokken: ocr_dropped/kb_floor_added boş, violation False (fail-safe)."""
     r = q._compute_otorite_audit(None, ["A B", "C D"], ["E F"],
-                                 ["X Y", "A B"], [{"kaynak": "kb-floor-doldur", "isim": "X Y"}])
+                                 ["X Y", "A B"], [])
     _chk("groundtruth yok → raw_groundtruth_used False", r["raw_groundtruth_used"] is False)
     _chk("groundtruth yok → ocr_dropped boş", r["ocr_dropped"] == [])
     _chk("groundtruth yok → kb_floor_added boş", r["kb_floor_added"] == [])
@@ -86,8 +84,7 @@ def test_real_file_if_present():
 
 
 def test_floorfill_partition():
-    """② OCR-öncelik çekirdeği: KEDİ GÖZÜ otoriter_cast'i ham-OCR'a göre okunan/okunmayan ayrılır.
-    Parker+Hunnicutt OKUNAN (önce eklenir), Sarrazin OKUNMAYAN (cap dolunca dışarıda kalır)."""
+    """② Audit çekirdeği hâlâ ham-OCR'da okunan/okunmayan ayrımını yapar; ekleme için kullanılmaz."""
     raw = (["GAYLE", "HUNNICUTT"] * 3 + ["ELEANOR", "PARKER"] * 6
            + ["TIM HENRY", "LAURENCE NAISMITH"])
     seq = q._audit_raw_token_seq(raw)
@@ -100,7 +97,7 @@ def test_floorfill_partition():
 
 
 def test_fix_e2e_duckdb():
-    """②+③ uçtan uca (duckdb varsa): flag-ON → Parker IN, Sarrazin OUT, Hazleton-çift YOK."""
+    """②+③ uçtan uca (duckdb varsa): KB sıfırdan cast eklemez; Hazleton-çift temizlenir."""
     import glob
     clip = "E:/MITAS/Database/KEDİ GÖZÜ 1969-0057-1-0000-00-1"
     rawf = sorted(glob.glob(clip + "/ocr/*/ocr_raw_all.txt"))
@@ -128,7 +125,7 @@ def test_fix_e2e_duckdb():
             pass
     cu = [str(x).upper() for x in r["temiz_cast"]]
     yu = [str(x).upper() for x in r["temiz_yap"]]
-    _chk("e2e: ELEANOR PARKER cast'te", any("PARKER" in x for x in cu))
+    _chk("e2e: ELEANOR PARKER cast'e KB'den eklenmez", not any("PARKER" in x for x in cu))
     _chk("e2e: MICHAEL SARRAZIN cast'te DEĞİL", not any("SARRAZIN" in x for x in cu))
     _chk("e2e: HAZLETON çifti yok (tek HAZ-yapımcı)", sum(1 for x in yu if "HAZ" in x) == 1)
 

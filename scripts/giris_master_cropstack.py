@@ -27,7 +27,7 @@ from difflib import SequenceMatcher
 
 MIN_CONF = float(os.environ.get("PROTO_MIN_CONF", "0.55"))   # garble-fragment eşiği (ayarlandı: 0.55 temiz/eksiksiz denge)
 FUZZY = float(os.environ.get("PROTO_FUZZY", "0.82"))          # aynı-satır birleştirme benzerlik
-MAX_ROWS = int(os.environ.get("PROTO_MAX_ROWS", "150"))       # flood-tavanı (uzun-tutulan kart+hareketli footage)
+MAX_ROWS = int(os.environ.get("PROTO_MAX_ROWS", "0") or 0)    # 0 = kanıt master'ı eksiksiz; pozitif değer yalnız deneysel preview cap
 
 
 def _is_credit_text(t: str) -> bool:
@@ -131,21 +131,24 @@ def build(src_dir: Path, out_png: Path) -> dict:
                          "first": min(c[0] for c in ms)})
 
     clusters.sort(key=lambda cl: cl["first"])
-    # ALT-DİZGE PARÇA temizliği: bir kümenin anahtarı daha UZUN bir kümenin alt-dizgesiyse (kelime-parçası) at.
+    # ALT-DİZGE PARÇA temizliği: bir kümenin anahtarı daha UZUN bir kümenin alt-dizgesiyse at —
+    # AMA yalnız ~tam-kısaltma (len(ki) >= 0.6*len(kj)). Aksi halde gerçek kısa isim/rol uzun bir
+    # kelimenin içinde geçip düşer ("LEE"⊂"LEELAND", "CAST"⊂"BROADCAST"). 0.6 eşiği union-find
+    # uzunluk-önfiltresiyle (satır ~117) tutarlı.
     keys = [cl["rep_key"] for cl in clusters]
     drop = set()
     for i, ki in enumerate(keys):
         if len(ki) < 3:
             continue
         for j, kj in enumerate(keys):
-            if i != j and len(ki) < len(kj) and ki in kj:
+            if i != j and 0.6 * len(kj) <= len(ki) < len(kj) and ki in kj:
                 drop.add(i)
                 break
     clusters = [cl for i, cl in enumerate(clusters) if i not in drop]
-    # FLOOD GUARD: aşırı satır = dedup-direnen flood (uzun-tutulan kart + hareketli footage).
-    # En GÜVENLİ MAX_ROWS satırı tut, sıra korunur. (Normal künye nadiren >150 satır.)
+    # Kanıt master'ı eksiksiz olmalı: varsayılan akışta satır atma yok.
+    # PROTO_MAX_ROWS yalnız deneysel/preview amaçlı verilirse kırpar.
     flood = False
-    if len(clusters) > MAX_ROWS:
+    if MAX_ROWS > 0 and len(clusters) > MAX_ROWS:
         flood = True
         clusters = sorted(clusters, key=lambda cl: -cl["best"][3])[:MAX_ROWS]
         clusters.sort(key=lambda cl: cl["first"])

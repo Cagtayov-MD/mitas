@@ -183,10 +183,8 @@ def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast
         for a in (otoriter_cast or []):
             if a and _fold(a) not in final_fold and _audit_name_in_raw(a, raw_seq):
                 ocr_dropped.append(a)
-    # kb_floor_added: floor-fill ile eklenen AMA ham-OCR'da OLMAYAN (saf-KB, okunmamış) isim
-    floor_added = [e.get("isim") for e in (iz or [])
-                   if e.get("kaynak") == "kb-floor-doldur" and e.get("isim")]
-    kb_floor_added = [n for n in floor_added if not _audit_name_in_raw(n, raw_seq)] if used else []
+    # KB sıfırdan kişi eklemez; audit alanı geriye dönük şema uyumu için korunur.
+    kb_floor_added = []
     fuzzy_dups = _audit_find_fuzzy_dups(list(final_cast or []) + list(final_yap or []))
     # FIX-D (2026-06-23): S5 fuzzy-snap OCR-form ezmeleri (LEFEBVRE→LEFEVRE). raw_groundtruth varsa,
     # OCR-formu ham-OCR'da GERÇEKTEN OKUNAN ezmeler 'ocr_in_raw=True' işaretlenir (gerçek-isim ezildi
@@ -508,7 +506,7 @@ def qc_credit_block(
     raw_names_groundtruth=None,
     nonlatin_source=False,
 ):
-    """Birleşik künye QC: temizle + doldur + karar ver.
+    """Birleşik künye QC: temizle + OCR-okunan isimleri düzelt + karar ver.
 
     Döner dict:
       temiz_yon[], temiz_cast[], temiz_yap[], ozet(cased), ozet_kelime, afis_ok,
@@ -750,42 +748,14 @@ def qc_credit_block(
                     _kept_fold.add(_fold(nm))
         cast_garble_residual = [n for n in cast if _looks_garble(n)]
 
-        # ── S7: MIN-OYUNCU FLOOR DOLDURMA (yalnız kilitli; OCR'dan SONRA ekle) ──
-        # OCR-ÖNCELİK (flag MITAS_QC_FLOORFILL_OCRGUARD): ham-OCR'da OKUNAN ama (clean'de) düşmüş
-        # otoriter isimleri (KEDİ GÖZÜ: ELEANOR PARKER), OKUNMAYAN saf-KB isimlerden (SARRAZIN) ÖNCE
-        # ekle → cap dolmadan okunan KURTARILIR, okunmayan dışarıda kalır. Flag kapalı → mevcut sıra (AYNEN).
-        # fix1-KB 2026-06-29 — YANLIŞ-FİLM GUARD: floor-fill YALNIZCA OCR↔KB örtüşme≥1 VEYA OCR-cast boşsa
-        # çalışır. Örtüşme=0 ve k>0 → yanlış-film imzası (DIAGHILEV: 8 bale dansçısı ↔ ABD oyuncuları);
-        # bu durumda KB-cast-ekleme TAMAMEN BLOKLANIR.
-        _ocr_kb_ov = cc.cast_overlap(ocr_cast, otoriter_cast) if (ocr_cast and otoriter_cast) else 0
-        _floor_fill_allowed = (k == 0) or (_ocr_kb_ov >= 1)  # k==0: ALLEGRO/belgesel VL-fallback carveout
-        if locked and otoriter_cast and not _floor_fill_allowed:
-            iz.append({"alan": "oyuncu", "kaynak": "kb-floor-blokla",
-                       "neden": f"OCR-KB ortusme=0 (yanlis-film imzasi); k={k}"})
-        if locked and otoriter_cast and _floor_fill_allowed:
-            _cand = list(otoriter_cast)
-            if (raw_names_groundtruth and os.environ.get(
-                    "MITAS_QC_FLOORFILL_OCRGUARD", "").strip().lower() in ("1", "true", "on", "yes")):
-                _rseq = _audit_raw_token_seq(raw_names_groundtruth)
-                _read = [a for a in _cand if _audit_name_in_raw(a, _rseq)]
-                _unread = [a for a in _cand if not _audit_name_in_raw(a, _rseq)]
-                _cand = _read + _unread          # okunan ÖNCE, okunmayan SONRA (göreli sıra korunur)
-            have = {_fold(n) for n in cast}
-            for a in _cand:
-                if len(cast) >= _cast_cap():  # B-fix-canli 2026-06-29: FILL_TARGET sabit → _cast_cap() dinamik
-                    break
-                if _fold(a) not in have and not any(cc.name_match(a, o) for o in cast):
-                    cast.append(a)
-                    have.add(_fold(a))
-                    iz.append({"alan": "oyuncu", "kaynak": "kb-floor-doldur", "isim": a})
+        # ── S7: KB sıfırdan cast eklemez ──
+        # Bu aşamada cast yalnız OCR'da okunan isimlerin temizlenmiş/yazımı düzeltilmiş halidir.
+        # KB'de olup OCR'da olmayan kişi artık floor-fill ile eklenmez.
         cast = cast[:_cast_cap()]
 
         floor_hedef = FLOOR_NEW if (y is not None and y >= YEAR_CUTOFF) else FLOOR_OLD
         ulasilan = len(cast)
-        if y is not None and y >= YEAR_CUTOFF:
-            floor_kabul = ulasilan >= FLOOR_NEW           # güncel: KATI
-        else:
-            floor_kabul = True                            # eski/bilinmeyen: ESNEK (az olabilir)
+        floor_kabul = ulasilan > 0                        # KB ile floor tamamlama yok; sadece boş-cast ağırdır
 
         # ── S8: YAPIMCI (OCR-otorite + kişi-only + KB-tamamla max 3) ──
         yap = _apply_garble_gate_yapimci(yap)
@@ -844,8 +814,6 @@ def qc_credit_block(
 
         if ulasilan == 0:
             _ekle("CAST", "oyuncu yok")
-        elif (y is not None and y >= YEAR_CUTOFF) and ulasilan < FLOOR_NEW:
-            _ekle("CAST", f"güncel film oyuncu yetersiz ({ulasilan}/{FLOOR_NEW})")
         if cast_garble_residual:
             _ekle("CAST", f"cast garble kalıntısı ({', '.join(cast_garble_residual[:3])})")
 

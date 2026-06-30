@@ -1286,7 +1286,7 @@ _PROD_DEFAULTS = {
     "MITAS_SES_DIL_KONTROL": "0",
     "MITAS_QC_DIRECTOR_ANCHOR": "1",
     "MITAS_CREDIT_DETECT": "1",
-    "MITAS_KB_CAST_ADD": "1",
+    "MITAS_KB_CAST_ADD": "0",
     "MITAS_GEMMA_FULLCOVER": "1",
     "MITAS_OCR_GLM_CONSENSUS": "0",
     "MITAS_QC_OTORITE_AUDIT": "1",
@@ -2376,9 +2376,6 @@ def main(argv=None) -> int:
                 _v4_ozk = ((_v4j or {}).get("v4") or {}).get("ozet_kelime", 0) or 0
                 if _v4_ozk < 20:
                     reasons.append(f"özet yok/kısa ({_v4_ozk}k — gerçek özet üretilmemiş)")
-                # KB cast-ekleme ORTA güven (yönetmen teyitsiz, sadece cast) → insan göz atsın
-                if _cc4.get("cast_add_tier") == "ORTA":
-                    reasons.append("KB cast-ekleme ORTA güven (insan teyidi gerek)")
                 # C9 FIX (2026-06-22): XML-PDF cast kesişimi 0 şüphesini _cc4 bilgisiyle değerlendir.
                 # kimlik_dogru veya verdict==TEYİT veya cast_ortusme≥2 → film doğrulandı → KONTROL ekleme.
                 # _cc4=={} (parse hatası) → _locked=False → şüphe korunur (sessiz-pass YOK).

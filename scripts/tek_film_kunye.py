@@ -23,10 +23,8 @@ PY_OCR = os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe")
 PDFMITAS = r"E:\MITAS\OCR-worktree\pdf-mitas"
 AFIS_CACHE = r"E:\MITAS\_102_afis_cache"
 OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
-# KB cast-ekleme (eksik isim TAMAMLAMA, asla ezme) — default AÇIK (Çağatay 2026-06-15: eksik-doldurma
-# aktif). Kimlik GERÇEKTEN emin olmalı: OCR-teyitli yönetmen + ≥3 SIKI cast → GÜÇLÜ/Hazır; ≥4 SIKI
-# cast → ORTA/Kontrol. EKLE-only (OCR önde, KB sonra; asla ezme/yeniden-sırala). MITAS_KB_CAST_ADD=0 kapatır.
-_ADD_ON = os.environ.get("MITAS_KB_CAST_ADD", "1").strip().lower() not in ("0", "false", "off", "no")
+# KB cast-ekleme kaldırıldı: KB yalnız OCR'da okunan ismin yazımını düzeltir, sıfırdan kişi eklemez.
+_ADD_ON = False
 # OCR-OTORİTE KANUNU: bu kapı IMDb/Wiki'de bulunmayan OCR-okunan gerçek ismi DÜŞÜRÜR/KIRPAR (kanun ihlali).
 # Varsayılan KAPALI (opt-in). Deney için MITAS_GLOBAL_PERSON_GATE=1 ile açılabilir. (codex "1" yapmıştı = regresyon)
 _GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "0").strip().lower() not in ("0", "false", "off", "no")
@@ -441,7 +439,7 @@ def main():
     # otoriter_cast'ta name_match ile eş ara; eşleşirse SADECE o ismi kanonik haliyle değiştir,
     # eşleşmezse OCR ismini AYNEN koru. KB'de olup OCR'da olmayan ismi EKLEME.
     auth = cc.get("otoriter_cast") or _auth_cast   # FUZZY-DBQC: title+year fallback cast dahil (flag-kapılı)
-    cast_add_tier = None                        # KB cast-ekleme kademesi (rapora yazılır; ORTA→Kontrol)
+    cast_add_tier = None                        # geriye dönük şema alanı; KB cast-ekleme artık yapılmaz
     if kimlik_dogru and auth and _cc is not None:
         duz = []
         strict_hits = 0                         # OCR isminin KB'de SIKI tam-ad karşılığı (kimlik gücü)
@@ -457,20 +455,8 @@ def main():
                 es = next((a for a in auth if _cc.name_close_window(nm, a)), None)
             duz.append(es if es else nm)
         cast = duz
-        # CAST-ADD (flag MITAS_KB_CAST_ADD, default KAPALI): KB'nin OCR'da OLMAYAN kadrosunu EKLE.
-        # ASLA ezme/yeniden sırala — OCR isimleri ÖNDE kalır, eklenenler SONRA. Kimlik GERÇEKTEN
-        # emin olmalı (iki bağımsız çapa). GÜÇLÜ: OCR-teyitli yönetmen + ≥3 SIKI cast → Hazır.
-        # ORTA: yönetmen yok ama ≥4 SIKI cast ve OCR-cast'ın ÇOĞUNLUĞU → Kontrol (insan göz atsın).
-        if _ADD_ON:
-            _ocr_n = max(1, len([c for c in cast if str(c).strip()]))
-            if yon_ocr_teyit and strict_hits >= 3:
-                cast_add_tier = "GUCLU"
-            elif strict_hits >= 4 and strict_hits >= (_ocr_n + 1) // 2:
-                cast_add_tier = "ORTA"
-            if cast_add_tier:
-                for _an in auth:                # NOT: 'a' argparse namespace'i — döngüde EZME (bug)
-                    if not any(_cc.name_match(_an, x) or _cc.name_close(_an, x) for x in cast):
-                        cast.append(_an)        # OCR'dan SONRA ekle (otorite sırası korunur)
+        # Sıfırdan KB cast ekleme yok. strict_hits yalnız kimlik gücü/rapor için tutulur;
+        # cast listesi OCR'da okunan isimlerin yazım düzeltmeli halidir.
     # ── QC2 (flag MITAS_QC2, default KAPALI): kimlik-önce yönetmen-fill + cast garble "imza-yokluğu" temizleme ──
     #    credit_qc_gates İZOLE modül (saf name_match, duckdb yok). YALNIZ kimlik KİLİTLİ (verdict==TEYİT veya
     #    cast_ov>=2) iken çalışır. Fail-safe: herhangi hata → mevcut yon/cast AYNEN (pipeline ASLA bozulmaz).
@@ -641,7 +627,7 @@ def main():
                                        "xml_roles": {k: len(v) for k, v in xml_roles.items()}}
 
     # ── BİRLEŞİK QC BLOĞU (flag MITAS_QC_BLOCK, default KAPALI): HAM OCR'dan temizle+doldur+karar ──
-    #    Açıkken cast/yön/yap OTORİTESİ credit_qc_block'tan (çöp ele + KB-floor doldur + Latin-çevir +
+    #    Açıkken cast/yön/yap OTORİTESİ credit_qc_block'tan (çöp ele + yazım düzelt + Latin-çevir +
     #    İ-politikası); kararı rapora yazılır (mitas_pipeline tüketir). Default kapalı → mevcut yol AYNEN
     #    (sıfır regresyon). Fail-safe: blok hata verirse mevcut cast/yön/yap AYNEN kalır.
     _qcb_res = None

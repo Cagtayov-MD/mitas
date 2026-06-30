@@ -101,9 +101,9 @@ def test_poster_ok(tmp_path=None):
     assert q.poster_ok(small) is False
 
 
-# ─────────────────────── KİMLİK / DOLDURMA / KARAR (FakeKB) ───────────────────────
+# ─────────────────────── KİMLİK / YAZIM DÜZELTME / KARAR (FakeKB) ───────────────────────
 def test_locked_floor_fill_invariant():
-    """Güncel film: 4 OCR cast → KB'den 8'e doldur. INVARIANT: ilk 4 = OCR (aynı kişi), eklemeler sonra."""
+    """Güncel film: KB sıfırdan cast eklemez; sadece OCR'da okunan isimler kalır."""
     ocr = ["Dogu Demirkol", "Murat Cemcir", "Bennu Yildirimlar", "Hazar Erguclu"]
     kb = FakeKB(verdict="TEYİT", oyon=["Nuri Bilge Ceylan"],
                 ocast=ocr + ["Serkan Keskin", "Tamer Levent", "Oner Erkan", "Ahmet Rifat Sungar"],
@@ -111,11 +111,12 @@ def test_locked_floor_fill_invariant():
     r = q.qc_credit_block(["Nuri Bilge Ceylan"], ocr, [], title="AHLAT", year=2018,
                           ozet=_ozet(), kb=kb)
     assert r["kimlik"]["locked"] is True
-    assert r["floor"]["ulasilan"] == 8 and r["floor"]["hedef"] == 8
-    # INVARIANT: ilk 4 çıktı, 4 OCR ismiyle aynı kişi (sıra korunur)
+    assert r["floor"]["ulasilan"] == 4 and r["floor"]["kabul"] is True
+    # INVARIANT: çıktı, OCR'da okunan 4 isimle aynı kişi (sıra korunur); KB'deki kalan 4 isim eklenmez.
     for i in range(4):
         assert cc.name_match(r["temiz_cast"][i], ocr[i]), (i, r["temiz_cast"][i])
-    assert len(r["temiz_cast"]) == 8
+    assert len(r["temiz_cast"]) == 4
+    assert not any(cc.name_match(n, "Serkan Keskin") for n in r["temiz_cast"])
     assert not r["gerekceler"]                       # tüm sert sinyaller temiz
 
 
@@ -160,11 +161,11 @@ def test_director_empty_kb_fill():
 
 
 def test_director_conflict_goes_kontrol():
-    """OCR yönetmen KB ile çelişiyor → KB ile EZME YOK → yön boş → KONTROL/YONETMEN."""
+    """OCR yönetmen KB ile çelişiyor → KB ile EZME YOK → OCR korunur, KONTROL/YONETMEN."""
     kb = FakeKB(oyon=["Akira Kurosawa"], ocast=["Ali Veli", "Ayse Can"], cast_ov=2)
     r = q.qc_credit_block(["Zhang Yimou"], ["Ali Veli", "Ayse Can"], [], title="X", year=1985,
                           ozet=_ozet(), kb=kb)
-    assert r["temiz_yon"] == []
+    assert cc.name_match(r["temiz_yon"][0], "Zhang Yimou")
     assert r["karar"] == "KONTROL" and r["kontrol_tip"] == "YONETMEN"
 
 
@@ -178,13 +179,13 @@ def test_old_film_floor_lenient():
 
 
 def test_new_film_floor_strict_kontrol():
-    """Güncel film, KB de az → 8'e ulaşılamaz → KONTROL/CAST."""
+    """Güncel filmde KB sıfırdan ekleme yok; 8'e ulaşılamadı diye tek başına KONTROL yok."""
     kb = FakeKB(oyon=["Dir"], ocast=["Ali Veli", "Ayse Can", "Mehmet Han"], cast_ov=3)
     r = q.qc_credit_block(["Dir"], ["Ali Veli", "Ayse Can", "Mehmet Han"], ["Yapimci Bir"],
                           title="YENI", year=2018, ozet=_ozet(), kb=kb)
     assert r["floor"]["ulasilan"] < 8
-    assert any("oyuncu yetersiz" in g for g in r["gerekceler"])
-    assert r["kontrol_tip"] in ("CAST", "KIMLIK", "YONETMEN")
+    assert not any("oyuncu yetersiz" in g for g in r["gerekceler"])
+    assert not any(g["tip"] == "CAST" for g in r["gerekceler"])
 
 
 def test_garbage_dropped_real_preserved():
@@ -242,7 +243,7 @@ def test_not_locked_goes_kontrol_kimlik():
 
 
 def test_invariant_no_ocr_added_when_unlocked():
-    """Kilit yokken HİÇ doldurma olmaz (eklemeler yalnız kilitliyken)."""
+    """Kilit yokken de varken de KB sıfırdan cast eklemez."""
     kb = FakeKB(verdict="KAYNAK_YOK", oyon=[], ocast=[], cast_ov=0, imdb_id=None)
     r = q.qc_credit_block([], ["Ali Veli", "Ayse Can"], [], title="X", year=2019,
                           ozet=_ozet(), kb=kb)
@@ -323,7 +324,7 @@ def test_integration_ahlat_real_db():
             [], title="AHLAT AĞACI", original="The Wild Pear Tree", year=2018, ozet=_ozet())
         assert r["kimlik"]["locked"] is True
         assert r["kimlik"]["verdict"] == "TEYİT"
-        assert r["floor"]["ulasilan"] == 8
+        assert r["floor"]["ulasilan"] == 4
         assert "NURİ BİLGE CEYLAN" in r["temiz_yon"]            # Türkçe İ korundu
         for i, ocr in enumerate(["Doğu Demirkol", "Murat Cemcir", "Bennu Yıldırımlar", "Hazar Ergüçlü"]):
             assert cc.name_match(r["temiz_cast"][i], ocr)       # INVARIANT (gerçek DB)
