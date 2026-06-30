@@ -3,6 +3,7 @@ db_compose_master'ın compose fonksiyonlarını + 'master' dispatch'ini yeniden 
 
 ÇIKTI (Çağatay 2026-06-29): master PNG'ler film KÖKÜNDE açıkta durur (alt-klasör YOK):
   Database/<film>/<TRT BAŞLIK> giris.png   ve   <TRT BAŞLIK> cikis.png
+  Database/<film>/reading_master_runaware.png   (paralel okuma master'ı; kanonik değil)
 KAYNAK: derlenmiş havuz tercih edilir — frames/giris_jenerik & frames/cikis_jenerik;
 havuz klasörü yoksa (eski film) ham frames/giris & frames/cikis'e düşer. Havuz VARSA ve BOŞSA
 (cold-open / yazı yok) master ÜRETİLMEZ (ham footage'a düşmez). Yeni master üretildiyse eski
@@ -37,6 +38,8 @@ def make_args():
     return types.SimpleNamespace(
         mode="master", seg=None, hash_names=False, overwrite=True, flat_out=None,
         deinterlace=False, no_card_split=False, card_same_thr=6, card_min_hold=5,
+        reading_opening_frames=10, reading_card_min_hold=3, reading_opening_min_hold=2,
+        reading_card_same_thr=7, reading_early_split_frames=45,
         polarity="auto", no_dedup=False, luma_key=False, text_only=False, debug=False,
         flip=False, tht=22, min_hold=5, cut_resp=0.05)
 
@@ -60,6 +63,30 @@ def _compose_seg(frames, args):
     canon, mode = dc.select_master(slit_master)  # mosaic retired 2026-06-28 (slit-only)
     return canon, {"frames": len(frames), "mode": mode, "scroll_frac": round(scroll_frac, 3),
                    "size": ([int(canon.shape[1]), int(canon.shape[0])] if canon is not None else None)}
+
+
+def _compose_reading_seg(frames, args):
+    """Kanonik master'a dokunmadan, kapsayıcı okuma master'ı üret."""
+    if not frames:
+        return None, {"frames": 0, "status": "no_frames"}
+    first = dc.first_readable(frames)
+    if first is None:
+        return None, {"frames": len(frames), "status": "error", "err": "no readable frame"}
+    h, w = first.shape[:2]
+    if args.deinterlace:
+        h = dc.deinterlace(first).shape[0]
+    p = dc.derive_params(h, w, args)
+    master, manifest, _ = dc.compose_reading_runaware(frames, p, args)
+    info = {
+        "frames": len(frames),
+        "mode": manifest.get("mode", "reading_runaware"),
+        "status": manifest.get("status"),
+        "size": manifest.get("size"),
+        "runs": manifest.get("runs"),
+        "strict_scroll_frac": manifest.get("strict_scroll_frac"),
+        "kept_blocks": manifest.get("kept_blocks"),
+    }
+    return master, info | {"manifest": manifest}
 
 
 def _delivery_base(film: Path, base_override: str | None = None) -> str:
@@ -117,13 +144,13 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     res = {"film": film.name, "base": base}
     produced = False
 
-    # GİRİŞ: CROP-STACK (footage'sız temiz künye listesi). Kaynak: giris_jenerik (azaltılmış yazı-kareleri),
-    # yoksa ham frames/giris. Boşsa giriş master YOK. cs yüklenemediyse eski slit'e düş.
+    # GİRİŞ: CROP-STACK (footage'sız temiz künye listesi). Kaynak: YALNIZ giris_jenerik havuzu
+    # (azaltılmış yazı-kareleri). Havuz boş/yok → giriş master ÜRETİLMEZ; ham frames/giris'e
+    # DÜŞÜLMEZ (ham=footage → SAHTE master). Çıkış _seg_source ile aynı "kötü master yerine hiç"
+    # kuralı (2026-06-29). cs yüklenemediyse eski slit'e düş.
     giris_out = film / f"{base} giris.png"
     if cs is not None:
         gsrc = film / "frames" / "giris_jenerik"
-        if not (gsrc.is_dir() and glob.glob(str(gsrc / "*.png"))):
-            gsrc = film / "frames" / "giris"
         ginfo = {"source": "giris_cropstack", "status": "no_frames"}
         if gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
             try:
@@ -154,6 +181,11 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
         info["path"] = str(cout)
         produced = True
     res["cikis"] = info
+
+    # PARALEL OKUMA MASTER'I: kanonik cikis.png yerine geçmez; karşılaştırma içindir.
+    rinfo = gen_reading_master(film, base_override, write_manifest=False)["reading_master_runaware"]
+    res["reading_master_runaware"] = rinfo
+
     res["produced"] = produced
     # provenance manifest (kökte, base adlı)
     try:
@@ -170,6 +202,34 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
             except Exception:
                 pass
     return res
+
+
+def gen_reading_master(film: Path, base_override: str | None = None, *, write_manifest: bool = True) -> dict:
+    base = _delivery_base(film, base_override)
+    args = make_args()
+    frames, src = _seg_source(film, "cikis")
+    out = film / "reading_master_runaware.png"
+    man_out = film / "reading_master_runaware_manifest.json"
+    master, info = _compose_reading_seg(frames, args)
+    manifest = info.pop("manifest", None)
+    info["source"] = src
+    info["base"] = base
+    if master is not None:
+        dc.wr(out, master)
+        info["path"] = str(out)
+    elif out.exists():
+        try:
+            out.unlink()
+        except Exception:
+            pass
+    if write_manifest:
+        payload = manifest if isinstance(manifest, dict) else info
+        try:
+            man_out.write_text(json.dumps(payload | {"source": src, "base": base}, ensure_ascii=False, indent=1),
+                               encoding="utf-8")
+        except Exception:
+            pass
+    return {"film": film.name, "base": base, "reading_master_runaware": info}
 
 
 def _has_frames(film: Path) -> bool:
@@ -223,6 +283,9 @@ if __name__ == "__main__":
                 _base = sys.argv[sys.argv.index("--base") + 1]
             except Exception:
                 _base = None
-        print(json.dumps(gen_master(_film, _base), ensure_ascii=False, indent=1))
+        if "--reading-only" in sys.argv:
+            print(json.dumps(gen_reading_master(_film, _base), ensure_ascii=False, indent=1))
+        else:
+            print(json.dumps(gen_master(_film, _base), ensure_ascii=False, indent=1))
     else:
         monitor()

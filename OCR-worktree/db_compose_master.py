@@ -57,6 +57,12 @@ SEP_PX = 12           # black separator between stacked slit blocks
 DUP_HAM = 8           # dHash hamming distance below which two cards are "same"
 CONSEC_DUP = 14       # looser bound vs the IMMEDIATELY-previous block (kills "THE END" x2)
 MAX_CANVAS_H = 80000  # mosaic safety cap to avoid OOM on pathological motion
+READING_PASSTHROUGH_SCROLL_FRAC = float(os.environ.get("MITAS_READING_PASSTHROUGH_SCROLL_FRAC", "0.75") or 0.75)
+READING_OPENING_FRAMES = int(os.environ.get("MITAS_READING_OPENING_FRAMES", "10") or 10)
+READING_CARD_MIN_HOLD = int(os.environ.get("MITAS_READING_CARD_MIN_HOLD", "3") or 3)
+READING_OPENING_CARD_MIN_HOLD = int(os.environ.get("MITAS_READING_OPENING_CARD_MIN_HOLD", "2") or 2)
+READING_CARD_SAME_THR = int(os.environ.get("MITAS_READING_CARD_SAME_THR", "7") or 7)
+READING_EARLY_SPLIT_FRAMES = int(os.environ.get("MITAS_READING_EARLY_SPLIT_FRAMES", "45") or 45)
 
 # DEDUP-VETO: the coarse 8x8 dedup below MERGES distinct same-layout credit cards
 # (role-left/name-right) -> a real card is dropped (kukla lost its crew card; x-men
@@ -254,6 +260,41 @@ def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+def _best_stable_candidate(candidates: list[tuple]) -> tuple[tuple | None, int | None]:
+    """Choose the text-layout medoid, preferring a settled middle/later frame."""
+    if not candidates:
+        return None, None
+    center = (len(candidates) - 1) / 2.0
+    ranked = []
+    for index, candidate in enumerate(candidates):
+        text_hash = candidate[4]
+        distance = sum(
+            hamming(text_hash, other[4])
+            for other_index, other in enumerate(candidates)
+            if other_index != index
+        )
+        rel = int(candidate[2])
+        ranked.append((distance, abs(rel - center), -rel, -float(candidate[0]), index))
+    distance, _, _, _, index = min(ranked)
+    return candidates[index], int(distance)
+
+
+def _aligned_text_mask_similarity(first: np.ndarray, second: np.ndarray) -> tuple[float, float]:
+    """Return phase-correlation response and aligned IoU for equal-size text masks."""
+    if first is None or second is None or first.shape != second.shape:
+        return 0.0, 0.0
+    a = (first > 0).astype(np.float32)
+    b = (second > 0).astype(np.float32)
+    (dx, dy), response = cv2.phaseCorrelate(a, b)
+    transform = np.float32([[1, 0, dx], [0, 1, dy]])
+    aligned = cv2.warpAffine(a, transform, (a.shape[1], a.shape[0]))
+    aligned_on = aligned > 0.5
+    b_on = b > 0.5
+    union = np.logical_or(aligned_on, b_on).sum()
+    iou = np.logical_and(aligned_on, b_on).sum() / max(1, int(union))
+    return float(response), float(iou)
+
+
 def dhash_hi(image: np.ndarray, size: int = DEDUP_HI_SIZE) -> int:
     """Higher-resolution dHash (default 16x16 = 256-bit) for the dedup-veto. Captures
     glyph-level differences the 8x8 dhash misses, so DISTINCT same-layout cards
@@ -291,7 +332,18 @@ def _textmask_dhash(image: np.ndarray, p: Params, args) -> int:
     return bits
 
 
-def split_static_cards(run_frames: list[str], p: Params, args) -> list[list[str]]:
+def split_static_cards(
+    run_frames: list[str],
+    p: Params,
+    args,
+    *,
+    timeline_offset: int = 0,
+    opening_frame_limit: int = 0,
+    opening_min_hold: int | None = None,
+    min_hold_override: int | None = None,
+    same_thr_override: int | None = None,
+    chain_stability: bool = False,
+) -> list[list[str]]:
     """Split a 'static' run into distinct cards by CONTENT (text-mask dHash).
 
     A boundary is a SUDDEN jump vs the PREVIOUS frame that then forms a STABLE
@@ -300,8 +352,24 @@ def split_static_cards(run_frames: list[str], p: Params, args) -> list[list[str]
     flickering fire -- never trips a boundary (each step is small, nothing new
     stabilises), so a single held card is not split into copies. A real cut
     (son_metro: new name+portrait) is a big, sustained jump -> split."""
-    same_thr = int(getattr(args, "card_same_thr", 6))
-    min_hold = max(2, int(getattr(args, "card_min_hold", p.min_hold)))
+    same_thr = int(
+        same_thr_override
+        if same_thr_override is not None
+        else getattr(args, "card_same_thr", 6)
+    )
+    min_hold = max(
+        2,
+        int(
+            min_hold_override
+            if min_hold_override is not None
+            else getattr(args, "card_min_hold", p.min_hold)
+        ),
+    )
+    opening_hold = (
+        max(2, int(opening_min_hold))
+        if opening_min_hold is not None and opening_frame_limit > 0
+        else min_hold
+    )
     valid = []
     for i, frame in enumerate(run_frames):
         image = _prep(frame, p, args)
@@ -317,10 +385,18 @@ def split_static_cards(run_frames: list[str], p: Params, args) -> list[list[str]
         prev_h = valid[k - 1][1]
         if hamming(h, prev_h) > same_thr:           # sudden change vs previous frame
             persist, j = 1, k + 1
-            while j < len(valid) and hamming(valid[j][1], h) <= same_thr:
+            stable_h = h
+            while j < len(valid) and hamming(valid[j][1], stable_h) <= same_thr:
                 persist += 1
+                if chain_stability:
+                    stable_h = valid[j][1]
                 j += 1
-            if persist >= min_hold:                 # new layout HELD -> a real card
+            required_hold = (
+                opening_hold
+                if int(timeline_offset) + int(idx) < int(opening_frame_limit)
+                else min_hold
+            )
+            if persist >= required_hold:            # new layout HELD -> a real card
                 bounds.append(idx)
                 k = j
                 continue
@@ -405,6 +481,184 @@ def split_runs(frames: list[str], p: Params, args) -> list[list]:
     ]
 
 
+def _resolve_reading_runs(raw_runs: list[list], min_scroll: int) -> list[list]:
+    """Resolve cut/noisy motion conservatively while preserving card boundaries.
+
+    Sustained vertical motion stays R. Short R bursts become ordinary S because a
+    false static page may duplicate content, while a false slit can lose it. Cuts
+    become uncertain static boundaries and are absorbed by the following S run
+    when possible because the first cut frame commonly carries the new card.
+    """
+    classified = []
+    for start, end, label in raw_runs:
+        length = int(end) - int(start) + 1
+        resolved = "U" if label == "C" else (
+            "R" if label == "R" and length >= min_scroll else "S"
+        )
+        if classified and resolved == "U" and classified[-1][2] == "U":
+            classified[-1][1] = int(end)
+        elif classified and resolved == "S" and classified[-1][2] == "S":
+            classified[-1][1] = int(end)
+        else:
+            classified.append([int(start), int(end), resolved])
+
+    runs = []
+    pending_uncertain = None
+    for index, (start, end, label) in enumerate(classified):
+        if label != "U":
+            if pending_uncertain is not None:
+                start = pending_uncertain[0]
+                pending_uncertain = None
+            runs.append([int(start), int(end), str(label)])
+            continue
+
+        next_label = classified[index + 1][2] if index + 1 < len(classified) else None
+        if next_label == "S":
+            pending_uncertain = [int(start), int(end)]
+        elif runs and runs[-1][2] == "S":
+            runs[-1][1] = int(end)
+        else:
+            runs.append([int(start), int(end), "S"])
+
+    if pending_uncertain is not None:
+        runs.append([int(pending_uncertain[0]), int(pending_uncertain[1]), "S"])
+    return runs
+
+
+def _merge_short_reading_cards(
+    cards: list[list[str]],
+    *,
+    timeline_offset: int,
+    opening_frame_limit: int,
+    opening_min_hold: int,
+    min_hold: int,
+) -> list[list[str]]:
+    """Attach transition fragments to the next stable card, or the prior at EOF."""
+    merged = []
+    pending = []
+    consumed = 0
+    for card in cards:
+        global_start = int(timeline_offset) + consumed
+        required = opening_min_hold if global_start < opening_frame_limit else min_hold
+        consumed += len(card)
+        if len(card) < required:
+            pending.extend(card)
+            continue
+        if pending:
+            card = pending + card
+            pending = []
+        merged.append(card)
+    if pending:
+        if merged:
+            merged[-1].extend(pending)
+        else:
+            merged.append(pending)
+    return merged
+
+
+def _split_long_reading_cards(
+    cards: list[list[str]],
+    p: Params,
+    args,
+    *,
+    min_hold: int,
+    same_thr: int,
+    timeline_offset: int,
+    frame_limit: int,
+) -> list[list[str]]:
+    """Split a long mixed group at a strong internal text-layout jump."""
+    jump_floor = max(int(same_thr) + 2, 9)
+
+    def split_one(card: list[str]) -> list[list[str]]:
+        if len(card) < 2 * min_hold:
+            return [card]
+        hashes = []
+        for frame in card:
+            image = _prep(frame, p, args)
+            if image is None:
+                return [card]
+            hashes.append(_textmask_dhash(image, p, args))
+        candidates = [
+            (hamming(hashes[index - 1], hashes[index]), index)
+            for index in range(min_hold, len(card) - min_hold + 1)
+        ]
+        if not candidates:
+            return [card]
+        jump, boundary = max(candidates)
+        if jump <= jump_floor:
+            return [card]
+        return split_one(card[:boundary]) + split_one(card[boundary:])
+
+    result = []
+    cursor = int(timeline_offset)
+    for card in cards:
+        if cursor < int(frame_limit):
+            result.extend(split_one(card))
+        else:
+            result.append(card)
+        cursor += len(card)
+    return result
+
+
+def split_runs_reading(frames: list[str], p: Params, args) -> list[list]:
+    """Reader-facing S/R runs.
+
+    Unlike split_runs(), this keeps the full timeline covered. Cut/noisy spans are
+    treated as static candidates, and very short scroll bursts fall back to static
+    sampling instead of disappearing from the reading master.
+    """
+    if not frames:
+        return []
+
+    hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
+    prev = None
+    abs_dy: list[float] = []
+
+    for frame in frames:
+        image = _prep(frame, p, args)
+        if image is None:
+            abs_dy.append(0.0)
+            continue
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        dy = 0.0
+        if prev is not None:
+            (_, dy), _ = cv2.phaseCorrelate(prev * hann, gray * hann)
+        prev = gray
+        abs_dy.append(abs(dy))
+
+    abs_dy_arr = np.array(abs_dy)
+    is_cut = abs_dy_arr > p.cut
+    smooth = np.array(
+        [
+            np.median(np.clip(abs_dy_arr, 0, p.cut)[max(0, i - 2): i + 3])
+            for i in range(len(abs_dy_arr))
+        ]
+    )
+
+    labels = []
+    state = "S"
+    for i, value in enumerate(smooth):
+        if is_cut[i]:
+            labels.append("C")
+            state = "S"
+            continue
+        elif value < p.static_dy:
+            state = "S"
+        elif value > p.scroll_dy:
+            state = "R"
+        labels.append(state)
+
+    raw_runs = []
+    start = 0
+    for i in range(1, len(labels) + 1):
+        if i == len(labels) or labels[i] != labels[start]:
+            raw_runs.append([start, i - 1, labels[start]])
+            start = i
+
+    min_scroll = max(3, int(p.min_hold))
+    return _resolve_reading_runs(raw_runs, min_scroll)
+
+
 def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
     hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
     ref = round(SLIT_FRAC * p.h)
@@ -460,7 +714,7 @@ def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
     return np.vstack(parts)
 
 
-def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, list[dict]]:
+def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, list[dict], np.ndarray | None]:
     runs = split_runs(frames, p, args)
     blocks = []
     manifest = []
@@ -576,6 +830,251 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
         stacked.append(block)
         stacked.append(np.zeros((SEP_PX, max_width, 3), np.uint8))
     return np.vstack(stacked[:-1]), manifest, None
+
+
+def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, dict, None]:
+    """Parallel reading master: scroll runs as slit, static/noisy runs as pages.
+
+    This is intentionally not the canonical master. It is more inclusive, keeps
+    short/noisy timeline spans visible, and is meant for OCR/VL comparison.
+    """
+    strict_runs = split_runs(frames, p, args)
+    strict_static = sum(int(r[1]) - int(r[0]) + 1 for r in strict_runs if r[2] == "S")
+    strict_scroll = sum(int(r[1]) - int(r[0]) + 1 for r in strict_runs if r[2] == "R")
+    strict_scroll_frac = strict_scroll / max(1, strict_static + strict_scroll)
+    if strict_scroll_frac >= READING_PASSTHROUGH_SCROLL_FRAC:
+        passthrough, slit_manifest, _ = compose_slit(frames, p, args)
+        if passthrough is not None:
+            kept = [m for m in slit_manifest if isinstance(m, dict) and "h" in m and "skip" not in m]
+            return passthrough, {
+                "mode": "reading_runaware_passthrough",
+                "reason": "high_scroll_frac",
+                "frames": len(frames),
+                "runs": [[int(a), int(b), str(t)] for a, b, t in strict_runs],
+                "strict_scroll_frac": round(strict_scroll_frac, 4),
+                "passthrough_threshold": READING_PASSTHROUGH_SCROLL_FRAC,
+                "status": "OK",
+                "size": [int(passthrough.shape[1]), int(passthrough.shape[0])],
+                "kept_blocks": len(kept),
+                "blocks": slit_manifest,
+            }, None
+
+    runs = split_runs_reading(frames, p, args)
+    opening_frames = max(0, int(getattr(args, "reading_opening_frames", READING_OPENING_FRAMES)))
+    opening_min_hold = max(
+        2,
+        int(getattr(args, "reading_opening_min_hold", READING_OPENING_CARD_MIN_HOLD)),
+    )
+    reading_min_hold = max(
+        2,
+        int(getattr(args, "reading_card_min_hold", READING_CARD_MIN_HOLD)),
+    )
+    reading_same_thr = max(
+        1,
+        int(getattr(args, "reading_card_same_thr", READING_CARD_SAME_THR)),
+    )
+    early_split_frames = max(
+        0,
+        int(getattr(args, "reading_early_split_frames", READING_EARLY_SPLIT_FRAMES)),
+    )
+    blocks: list[np.ndarray] = []
+    block_manifest: list[dict] = []
+    last_static_hash: int | None = None
+    last_static_mask: np.ndarray | None = None
+    last_static_index: int | None = None
+
+    def _frame_text_block(frame: str) -> tuple[np.ndarray | None, np.ndarray | None, str | None]:
+        image = _prep(frame, p, args)
+        if image is None:
+            return None, None, "unreadable"
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        mask = text_mask(gray, p, args.polarity)
+        band = text_rows(mask, p) or text_band(mask)
+        if band is None:
+            return None, None, "no-text-band"
+        y0 = max(0, int(band[0]) - p.pad)
+        y1 = min(image.shape[0], int(band[1]) + p.pad)
+        if y1 <= y0:
+            return None, None, "empty-band"
+        return image[y0:y1, :].copy(), mask, None
+
+    def _best_static_block(card_frames: list[str]) -> tuple[
+        np.ndarray | None,
+        str | None,
+        int | None,
+        float | None,
+        int | None,
+        np.ndarray | None,
+        str | None,
+    ]:
+        candidates = []
+        last_skip = "no-text"
+        for rel, frame in enumerate(card_frames):
+            block, full_mask, skip = _frame_text_block(frame)
+            if block is None:
+                last_skip = skip or last_skip
+                continue
+            score = sharpv(cv2.cvtColor(block, cv2.COLOR_BGR2GRAY))
+            candidates.append((score, frame, rel, block, _textmask_dhash(block, p, args), full_mask))
+        best, stability_distance = _best_stable_candidate(candidates)
+        if best is None:
+            return None, None, None, None, None, None, last_skip
+        score, frame, rel, block, _, full_mask = best
+        return block, frame, rel, score, stability_distance, full_mask, None
+
+    def _append_static(block: np.ndarray, full_mask: np.ndarray, meta: dict) -> None:
+        nonlocal last_static_hash, last_static_mask, last_static_index
+        if block is None or not block.size or block.shape[0] < 2:
+            return
+        thh = _textmask_dhash(block, p, args)
+        is_dup = last_static_hash is not None and hamming(thh, last_static_hash) <= 2
+        current_index = meta.get("timeline_index")
+        if (
+            not is_dup
+            and last_static_mask is not None
+            and last_static_index is not None
+            and current_index is not None
+            and int(last_static_index) < opening_frames
+            and int(current_index) < opening_frames
+        ):
+            response, iou = _aligned_text_mask_similarity(last_static_mask, full_mask)
+            is_dup = response >= 0.5 and iou >= 0.5
+        if is_dup:
+            skipped = dict(meta)
+            skipped["skip"] = "consecutive-dup"
+            block_manifest.append(skipped)
+            return
+        blocks.append(block)
+        last_static_hash = thh
+        last_static_mask = full_mask
+        last_static_index = int(current_index) if current_index is not None else None
+        kept = dict(meta)
+        kept["h"] = int(block.shape[0])
+        kept["w"] = int(block.shape[1])
+        block_manifest.append(kept)
+
+    def _append_static_pages(run_frames: list[str], run_meta: dict) -> None:
+        if getattr(args, "no_card_split", False):
+            cards = [run_frames]
+        else:
+            cards = split_static_cards(
+                run_frames,
+                p,
+                args,
+                timeline_offset=int(run_meta["run"][0]),
+                opening_frame_limit=opening_frames,
+                opening_min_hold=opening_min_hold,
+                min_hold_override=reading_min_hold,
+                same_thr_override=reading_same_thr,
+                chain_stability=True,
+            )
+            cards = _merge_short_reading_cards(
+                cards,
+                timeline_offset=int(run_meta["run"][0]),
+                opening_frame_limit=opening_frames,
+                opening_min_hold=opening_min_hold,
+                min_hold=reading_min_hold,
+            )
+            cards = _split_long_reading_cards(
+                cards,
+                p,
+                args,
+                min_hold=reading_min_hold,
+                same_thr=reading_same_thr,
+                timeline_offset=int(run_meta["run"][0]),
+                frame_limit=early_split_frames,
+            )
+        card_cursor = 0
+        for ci, card_frames in enumerate(cards):
+            block, frame, rel, score, stability_distance, full_mask, skip = _best_static_block(card_frames)
+            timeline_index = (
+                int(run_meta["run"][0]) + card_cursor + int(rel)
+                if rel is not None
+                else None
+            )
+            meta = {
+                **run_meta,
+                "kind": "static_page",
+                "card": int(ci),
+                "card_frames": len(card_frames),
+                "rel": int(rel) if rel is not None else None,
+                "timeline_index": timeline_index,
+                "src": Path(frame).name if frame else None,
+            }
+            card_cursor += len(card_frames)
+            if score is not None:
+                meta["sharpness"] = round(float(score), 3)
+            if stability_distance is not None:
+                meta["stability_distance"] = int(stability_distance)
+            if block is None:
+                meta["skip"] = skip
+                block_manifest.append(meta)
+                continue
+            _append_static(block, full_mask, meta)
+
+    for start, end, label in runs:
+        si, ei = int(start), int(end)
+        run_frames = frames[si: ei + 1]
+        run_meta = {"run": [si, ei], "lab": str(label), "frames": len(run_frames)}
+
+        if label == "R":
+            block = slitscan(run_frames, p, args)
+            if block is not None and block.size:
+                blocks.append(block)
+                last_static_hash = None
+                last_static_mask = None
+                last_static_index = None
+                block_manifest.append({
+                    **run_meta,
+                    "kind": "scroll_slit",
+                    "h": int(block.shape[0]),
+                    "w": int(block.shape[1]),
+                    "src_first": Path(run_frames[0]).name if run_frames else None,
+                    "src_last": Path(run_frames[-1]).name if run_frames else None,
+                })
+                continue
+            block_manifest.append({**run_meta, "kind": "scroll_slit", "skip": "empty"})
+
+        _append_static_pages(run_frames, run_meta)
+
+    manifest = {
+        "mode": "reading_runaware",
+        "frames": len(frames),
+        "runs": [[int(a), int(b), str(t)] for a, b, t in runs],
+        "strict_runs": [[int(a), int(b), str(t)] for a, b, t in strict_runs],
+        "strict_scroll_frac": round(strict_scroll_frac, 4),
+        "passthrough_threshold": READING_PASSTHROUGH_SCROLL_FRAC,
+        "static_policy": "card_chain_split_text_layout_medoid",
+        "uncertain_policy": "cut_boundary_short_motion_static",
+        "opening_card_policy": {
+            "frames": opening_frames,
+            "min_hold": opening_min_hold,
+            "default_min_hold": reading_min_hold,
+            "same_threshold": reading_same_thr,
+            "early_split_frames": early_split_frames,
+        },
+        "blocks": block_manifest,
+    }
+    if not blocks:
+        manifest["status"] = "NO_OUTPUT"
+        return None, manifest, None
+
+    max_width = max(block.shape[1] for block in blocks)
+    normalized = [
+        cv2.copyMakeBorder(block, 0, 0, 0, max_width - block.shape[1],
+                           cv2.BORDER_CONSTANT, value=(0, 0, 0))
+        if block.shape[1] < max_width else block
+        for block in blocks
+    ]
+    stacked = []
+    for block in normalized:
+        stacked.append(block)
+        stacked.append(np.zeros((SEP_PX, max_width, 3), np.uint8))
+    master = np.vstack(stacked[:-1])
+    manifest["status"] = "OK"
+    manifest["size"] = [int(master.shape[1]), int(master.shape[0])]
+    manifest["kept_blocks"] = len(blocks)
+    return master, manifest, None
 
 
 # --------------------------------------------------------------------------- #
@@ -897,6 +1396,20 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
             if slit_master is not None:
                 wr(segment_dir / "master_slit.png", slit_master)
 
+            reading_master, reading_manifest, _ = compose_reading_runaware(frames, p, args)
+            if reading_master is not None:
+                reading_path = segment_dir / "reading_master_runaware.png"
+                wr(reading_path, reading_master)
+                info["reading_master_runaware"] = {
+                    "path": str(reading_path),
+                    "size": [int(reading_master.shape[1]), int(reading_master.shape[0])],
+                    "kept_blocks": reading_manifest.get("kept_blocks"),
+                }
+            else:
+                info["reading_master_runaware"] = {"status": reading_manifest.get("status", "NO_OUTPUT")}
+            (segment_dir / "reading_master_runaware.json").write_text(
+                json.dumps(reading_manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
             # canonical = slit for every film. Mosaic engine retired (2026-06-28):
             # measured worse than slit on the one film it ever won (drakula). See select_master.
             canonical, info["selected_mode"] = select_master(slit_master)
@@ -974,6 +1487,16 @@ def main() -> None:
                         help="text-mask dHash hamming <= this == same held card")
     parser.add_argument("--card-min-hold", type=int, default=5,
                         help="a new card layout must persist >= this many frames (debounce)")
+    parser.add_argument("--reading-opening-frames", type=int, default=READING_OPENING_FRAMES,
+                        help="reading master: use sensitive card detection in the first N frames")
+    parser.add_argument("--reading-card-min-hold", type=int, default=READING_CARD_MIN_HOLD,
+                        help="reading master: minimum held frames outside the opening window")
+    parser.add_argument("--reading-card-same-thr", type=int, default=READING_CARD_SAME_THR,
+                        help="reading master: text-layout hamming threshold for a held card")
+    parser.add_argument("--reading-early-split-frames", type=int, default=READING_EARLY_SPLIT_FRAMES,
+                        help="reading master: limit forced internal card splits to the first N frames")
+    parser.add_argument("--reading-opening-min-hold", type=int, default=READING_OPENING_CARD_MIN_HOLD,
+                        help="reading master: minimum held frames for an opening card")
     parser.add_argument("--polarity", choices=["auto", "bright", "dark"], default="auto",
                         help="bright=light text/dark bg, dark=dark text/light bg")
     parser.add_argument("--deinterlace", action="store_true",
