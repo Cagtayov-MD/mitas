@@ -19,6 +19,7 @@ import urllib.request, urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
+import debug_trace as dbg
 
 # Windows: alt-sürecin stdout/stderr codec'i ANSI (TR Windows'ta cp1254) olur. ensure_ascii=False
 # basılan son JSON'daki cp1254-DIŞI karakter (ör. isim-QC nedenindeki '→' U+2192, ya da yabancı
@@ -668,18 +669,65 @@ def ffprobe_specs(video: Path):
     return res, fps, dur, dur_sec
 
 
-def extract_window(video: Path, dst: Path, *, prefix, fps, start=None, length=None, timeout=1800):
-    """Native cozunurlukte (scale YOK) fps kareleri cikar. Kare sayisini dondurur."""
-    dst.mkdir(parents=True, exist_ok=True)
+class FrameContractError(RuntimeError):
+    """Kullanici tarafindan istenen kare sayisi eksik uretildiginde pipeline'i durdurur."""
+
+
+def expected_frame_count(length: float, fps: float) -> int:
+    """Ondalik kayan-nokta sapmasindan etkilenmeden hedef kare sayisini hesaplar."""
+    if length <= 0 or fps <= 0:
+        raise FrameContractError(f"gecersiz kare sozlesmesi: length={length}, fps={fps}")
+    return int(length * fps + 0.5)
+
+
+def exit_frame_contract(duration: float, tail: float, fps: float) -> tuple[float, float, int]:
+    """Cikis havuzunu kullanicinin tail/fps talimatina kilitler."""
+    if duration <= 0:
+        raise FrameContractError(f"video suresi okunamadi: duration={duration}")
+    length = min(float(tail), float(duration))
+    start = max(0.0, float(duration) - length)
+    return start, length, expected_frame_count(length, fps)
+
+
+def extract_window(video: Path, dst: Path, *, prefix, fps, start=None, length=None,
+                   expected_count=None, timeout=1800):
+    """Native kareleri gecici alanda uretir; eksik ciktiyi yayina almadan reddeder."""
+    stage = dst.parent / f".{dst.name}.{prefix}.extract-{uuid4().hex}"
+    stage.mkdir(parents=True, exist_ok=False)
     cmd = [FFMPEG if FFMPEG.exists() else "ffmpeg", "-y", "-hide_banner", "-loglevel", "error"]
     if start is not None:
         cmd += ["-ss", str(start)]
     cmd += ["-i", str(video)]
     if length is not None:
         cmd += ["-t", str(length)]
-    cmd += ["-vf", f"fps={fps}", str(dst / f"{prefix}_%04d.png")]
-    run(cmd, timeout=timeout)
-    return len(list(dst.glob(f"{prefix}_*.png")))
+    cmd += ["-vf", f"fps={fps}"]
+    if expected_count is not None:
+        cmd += ["-frames:v", str(int(expected_count))]
+    cmd += [str(stage / f"{prefix}_%04d.png")]
+    try:
+        rc, _, err = run(cmd, timeout=timeout)
+        if rc:
+            raise RuntimeError(f"ffmpeg frame extraction failed rc={rc}: {err[-500:]}")
+        staged = sorted(stage.glob(f"{prefix}_*.png"))
+        count = len(staged)
+        if expected_count is not None and count != int(expected_count):
+            raise FrameContractError(
+                f"eksik frame: beklenen={int(expected_count)}, uretilen={count}, "
+                f"start={start}, length={length}, fps={fps}"
+            )
+
+        # Yalniz basarili ve dogrulanmis ciktiyi canli klasore aktar. Eski fazla
+        # numarali kareler yeni sayimi maskeleyemesin diye aktarimdan sonra temizlenir.
+        dst.mkdir(parents=True, exist_ok=True)
+        new_names = {p.name for p in staged}
+        for src in staged:
+            os.replace(str(src), str(dst / src.name))
+        for old in dst.glob(f"{prefix}_*.png"):
+            if old.name not in new_names:
+                old.unlink()
+        return count
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
 
 
 def extract_audio(video: Path, dst: Path, timeout=1800):
@@ -1417,6 +1465,7 @@ def main(argv=None) -> int:
     (clip_dir / "ocr").mkdir(parents=True, exist_ok=True)
     (clip_dir / "asr").mkdir(parents=True, exist_ok=True)
     (clip_dir / "pdf").mkdir(parents=True, exist_ok=True)
+    dbg.start_trace(clip_dir, clip_id=clip_id, title=title, profile=profile, video=video, trt_id=trt)
     print(f"[hub] {clip_dir}  profil={profile} trt={trt} baslik={title!r}")
 
     # --- source kopya + clip.json ---
@@ -1454,6 +1503,11 @@ def main(argv=None) -> int:
         res, fps_s, dur, dur_sec = ffprobe_specs(video)
         # GİRİŞ penceresi (sabit default; MITAS_CREDIT_DETECT=1 ise detect_both'tan dinamik güncellenir)
         head = min(args.ocr_head, dur_sec or args.ocr_head)
+        _fixed_cik_start, _fixed_cik_len, _fixed_cik_expected = exit_frame_contract(
+            dur_sec, args.ocr_tail, args.fps
+        )
+        _cik_start = _fixed_cik_start
+        _cik_len = _fixed_cik_len
         nf_c = 0
         if dur_sec > (args.ocr_head + args.ocr_tail + 5):
             # JENERİK-SINIR TESPİTİ (flag MITAS_CREDIT_DETECT, default KAPALI; Çağatay 2026-06-14):
@@ -1461,8 +1515,6 @@ def main(argv=None) -> int:
             # GİRİŞ no-regress: head asla args.ocr_head(180s) altına inmez, gerekirse uzar (max 720s).
             # ÇIKIŞ no-regress: _cik_start = min(tespit−5s, eski-pencere) → asla eski pencerenin gerisine.
             # Fail-safe: detector kapalı/patlar/bulamaz → sabit pencereler (head ve _cik_start değişmez).
-            _cik_start = max(0.0, dur_sec - args.ocr_tail)
-            _cik_len = args.ocr_tail
             # DEDEKTÖR SEÇİMİ: YENİ 4-tip jenerik dedektörü (MITAS_JENERIK_DETECT, default AÇIK) —
             # OCR-geriye start (çıkış) + OCR-ileri film-başı (giriş) + paralel; şema-uyumlu, fail-safe.
             # Eski OpusCreditDetector için MITAS_JENERIK_DETECT=0 + MITAS_CREDIT_DETECT=1.
@@ -1617,12 +1669,66 @@ def main(argv=None) -> int:
                     log_event("credit_detect_skip", level="warn",
                               summary=f"{video.name}: credit-detect atlandı ({_de}) — sabit pencereler",
                               module="ocr", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
-            # SONUÇ-TEMELLİ YEDEK bayrağı: detect pencereyi sabit-varsayılandan saptırdı mı?
+            # SONUÇ-TEMELLİ YEDEK bayrağı artık yalnız giriş penceresi içindir.
+            # Çıkış `--ocr-tail × --fps` sözleşmesine aşağıda koşulsuz kilitlenir.
             _detect_changed = (abs(head - min(args.ocr_head, dur_sec or args.ocr_head)) > 0.5
-                               or abs(_cik_start - max(0.0, dur_sec - args.ocr_tail)) > 0.5
                                or _giris_start > 0.5)
-            nf_c = extract_window(video, cikis_frames, prefix="c", fps=args.fps,
-                                  start=_cik_start, length=_cik_len)
+
+        # BAĞLAYICI ÇIKIŞ KARE SÖZLEŞMESİ:
+        # Dedektör yalnız jenerik hakkında kanıt üretir; kullanıcının istediği ham
+        # çıkış havuzunu daraltamaz. 480 sn × 1.5 fps ise sonuç tam 720 karedir.
+        if (abs(_cik_start - _fixed_cik_start) > 0.001
+                or abs(_cik_len - _fixed_cik_len) > 0.001):
+            log_event(
+                "exit_frame_contract_enforced",
+                level="warn",
+                summary=(
+                    f"{video.name}: dedektor cikis penceresi {_cik_start:.3f}s +{_cik_len:.3f}s "
+                    f"reddedildi; talimat {_fixed_cik_start:.3f}s +{_fixed_cik_len:.3f}s "
+                    f"@ {args.fps:g} fps = {_fixed_cik_expected} kare."
+                ),
+                module="pipeline",
+                media_id=media_id,
+                filename=video.name,
+                detail={
+                    "clip_id": clip_id,
+                    "detector_start": _cik_start,
+                    "detector_length": _cik_len,
+                    "required_start": _fixed_cik_start,
+                    "required_length": _fixed_cik_len,
+                    "required_fps": args.fps,
+                    "required_frames": _fixed_cik_expected,
+                },
+            )
+        _cik_start = _fixed_cik_start
+        _cik_len = _fixed_cik_len
+        nf_c = extract_window(
+            video,
+            cikis_frames,
+            prefix="c",
+            fps=args.fps,
+            start=_cik_start,
+            length=_cik_len,
+            expected_count=_fixed_cik_expected,
+        )
+        log_event(
+            "exit_frame_contract_verified",
+            summary=(
+                f"{video.name}: cikis frame sozlesmesi dogrulandi "
+                f"({_fixed_cik_len:.3f}s × {args.fps:g} fps = {nf_c}/{_fixed_cik_expected})."
+            ),
+            module="pipeline",
+            media_id=media_id,
+            filename=video.name,
+            detail={
+                "clip_id": clip_id,
+                "start": _cik_start,
+                "length": _cik_len,
+                "fps": args.fps,
+                "expected_frames": _fixed_cik_expected,
+                "actual_frames": nf_c,
+            },
+        )
         # GİRİŞ kareleri: _giris_start (0 = sabit; >0 = tespit edilen jenerik-başı) → head; KURAL: 0'dan başlama
         nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps,
                               start=_giris_start, length=max(1.0, head - _giris_start))
@@ -1637,6 +1743,8 @@ def main(argv=None) -> int:
         timings["coz"] = round(time.perf_counter() - t0, 2)
         log_event("cozumleme_failed", level="error", summary=f"ÇÖZ blogu hata: {exc}",
                   module="pipeline", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+        if isinstance(exc, FrameContractError):
+            raise
 
     # ===== PARALEL JENERIK HAVUZU (test/provenance): frames/cikis -> frames/cikis_jenerik =====
     # Ana OneOCR akışı bu havuzu KULLANMAZ; normal frames/giris + frames/cikis okumaya devam eder.
@@ -1768,6 +1876,11 @@ def main(argv=None) -> int:
             frame_dirs.append(str(cikis_frames))
         ocr_cmd = [str(PY_OCR), str(HERE / "_pipe_ocr.py"), "--frames", *frame_dirs,
                    "--out", str(ocr_out), "--profile", profile]
+        dbg.emit("ocr", "stage_started",
+                 subject={"field": "ocr_job", "after": ocr_job, "reason": "OCR subprocess started"},
+                 evidence={"frame_dirs": frame_dirs, "profile": profile},
+                 source={"module": "scripts/mitas_pipeline.py", "input_paths": frame_dirs,
+                         "output_paths": [str(ocr_out)]})
         log_event("ocr_started", summary=f"{video.name} icin OCR kunye basladi.",
                   module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, detail={"clip_id": clip_id})
         ocr_proc = subprocess.Popen(ocr_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1829,6 +1942,14 @@ def main(argv=None) -> int:
                       summary=f"{video.name}: OCR kunye {ocr_lines} satir{_paddle_info}, bucket={ocr_bucket}, motor={j.get('engine')} ({timings['ocr']} sn).",
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, duration_seconds=timings["ocr"],
                       detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "paddle_lines": paddle_lines, "engine": j.get("engine"), "stderr": err[-300:] if rc else None})
+            dbg.emit("ocr", "stage_completed",
+                     status="ok" if st == "done" else "warn",
+                     duration_ms=timings["ocr"] * 1000,
+                     subject={"field": "kunye", "after": str(kunye_path), "reason": f"bucket={ocr_bucket}"},
+                     evidence={"bucket": ocr_bucket, "lines": ocr_lines, "paddle_lines": paddle_lines,
+                               "engine": j.get("engine"), "summary_path": j.get("summary_path")},
+                     source={"module": "scripts/mitas_pipeline.py", "input_paths": frame_dirs,
+                             "output_paths": [str(kunye_path), str(j.get("summary_path") or "")]})
         except Exception as exc:  # noqa: BLE001
             timings["ocr"] = round(time.perf_counter() - (t_ocr or time.perf_counter()), 2)
             ocr_bucket = "HATA"
@@ -1840,6 +1961,11 @@ def main(argv=None) -> int:
             update_clip_module(clip_dir, "ocr", "failed", ocr_job)
             log_event("ocr_failed", level="error", summary=f"OCR blogu hata: {exc}",
                       module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job, error=str(exc), detail={"clip_id": clip_id})
+            dbg.emit("ocr", "stage_completed", status="error", duration_ms=timings["ocr"] * 1000,
+                     subject={"field": "ocr_job", "after": ocr_job, "reason": "OCR subprocess failed"},
+                     evidence={"bucket": ocr_bucket}, error=str(exc),
+                     source={"module": "scripts/mitas_pipeline.py", "input_paths": frame_dirs,
+                             "output_paths": [str(ocr_out)]})
 
     # ===== SONUÇ-TEMELLİ YEDEK (Çağatay 2026-06-15): detect-penceresi OCR'ı düşürdüyse re-OCR =====
     # detect pencereyi SABİT-varsayılandan saptırdı VE OCR satırı şüpheli az (<eşik) → eski sabit
@@ -1949,6 +2075,17 @@ def main(argv=None) -> int:
             rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
             timings["video_kunye"] = round(time.perf_counter() - t_vc, 2)
+            dbg.emit("credit_text", "candidate_read",
+                     status="ok" if video_credits else "warn",
+                     duration_ms=timings["video_kunye"] * 1000,
+                     subject={"field": "credits", "after": video_credits,
+                              "reason": "text/LLM extraction from OCR source"},
+                     evidence={"model": (video_credits or {}).get("model"),
+                               "ocr_source": (video_credits or {}).get("ocr_source"),
+                               "guven": (video_credits or {}).get("guven")},
+                     source={"module": "scripts/mitas_pipeline.py",
+                             "input_paths": [str(kunye_path)],
+                             "output_paths": []})
             log_event("credit_text_completed",
                       summary=f"{video.name}: kunye-okuma(metin) model={(video_credits or {}).get('model')} guven={(video_credits or {}).get('guven')} yon={(video_credits or {}).get('yonetmen')} ({timings.get('video_kunye')} sn).",
                       module="ocr", media_id=media_id, filename=video.name, duration_seconds=timings.get("video_kunye"),
@@ -1959,6 +2096,10 @@ def main(argv=None) -> int:
         except Exception as exc:  # noqa: BLE001 — kunye-okuma akışı/PDF'i ASLA bozmaz
             log_event("credit_text_failed", level="warn", summary=f"kunye-okuma(metin) blogu hata (atlandi): {exc}",
                       module="ocr", media_id=media_id, filename=video.name, error=str(exc), detail={"clip_id": clip_id})
+            dbg.emit("credit_text", "stage_completed", status="warn",
+                     subject={"field": "credits", "reason": "text credit extraction skipped/failed"},
+                     evidence={"stderr": str(exc)}, error=str(exc),
+                     source={"module": "scripts/mitas_pipeline.py", "input_paths": [str(kunye_path)]})
 
     # ===== BLOK VL-FALLBACK — QC1 kapılı, çift-kontrollü (2026-06-14) =====
     # Akış: OneOCR → 35b Ayıklayıcı → QC1 → RED ise gemma4 VL → QC1 tekrar → hâlâ RED → _qc1_failed işareti
@@ -1971,6 +2112,13 @@ def main(argv=None) -> int:
         if _vl_need:
             _dir_before = list(video_credits.get("yonetmen") or [])   # VL-sertleştirme: VL-EKLEDİĞİ yönetmeni ayırt et
             _cast_before = list(video_credits.get("cast") or [])
+            dbg.emit("qc1", "qc_decision", status="warn",
+                     subject={"field": "credit_quality", "before": {"yonetmen": _dir_before, "cast": len(_cast_before)},
+                              "reason": "QC1 RED; VL fallback will run"},
+                     evidence={"yonetmen_var": bool(video_credits.get("yonetmen")),
+                               "cast_count": len(video_credits.get("cast") or []),
+                               "vl_fallback": True},
+                     source={"module": "scripts/mitas_pipeline.py"})
             log_event("credit_qc1_red",
                       summary=f"{video.name}: QC1-RED — yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, cast={len(video_credits.get('cast') or [])}, gemma4 VL-fallback başlıyor.",
                       module="ocr", media_id=media_id, filename=video.name,
@@ -2000,7 +2148,22 @@ def main(argv=None) -> int:
                                           f"yönetmen sanıldı, DÜŞÜRÜLDÜ (okunamadı>yanlış).",
                                   module="ocr", media_id=media_id, filename=video.name,
                                   detail={"clip_id": clip_id, "dropped": _drop, "vl_cast": _merged.get("cast")})
+                        dbg.emit("vl_fallback", "candidate_dropped", status="warn",
+                                 subject={"field": "yonetmen", "before": _vl_dir, "after": _keep,
+                                          "reason": "VL director also appeared in cast; dropped"},
+                                 evidence={"dropped": _drop, "vl_cast": _merged.get("cast")},
+                                 source={"module": "scripts/mitas_pipeline.py"})
                 timings["vl_fallback"] = round(time.perf_counter() - t_vl, 2)
+                dbg.emit("vl_fallback", "fallback_triggered",
+                         status="ok" if _merged else "warn",
+                         duration_ms=timings["vl_fallback"] * 1000,
+                         subject={"field": "credits", "before": {"yonetmen": _dir_before, "cast": _cast_before},
+                                  "after": _merged, "reason": "QC1 RED triggered VL fallback"},
+                         evidence={"vl": (_merged or {}).get("vl"),
+                                   "cast_supplement": (_merged or {}).get("vl_cast_supplement"),
+                                   "vl_yon_hallucinated": (_merged or {}).get("vl_yon_hallucinated"),
+                                   "vl_cast_hallucinated": (_merged or {}).get("vl_cast_hallucinated")},
+                         source={"module": "scripts/mitas_pipeline.py", "input_paths": [str(clip_dir)]})
                 log_event("credit_vl_fallback",
                           summary=f"{video.name}: gemma4 VL-fallback ({(_merged or {}).get('vl')}) yon={(_merged or {}).get('yonetmen')} cast={len((_merged or {}).get('cast') or [])} ({timings.get('vl_fallback')} sn).",
                           module="ocr", media_id=media_id, filename=video.name, duration_seconds=timings.get("vl_fallback"),
@@ -2014,15 +2177,47 @@ def main(argv=None) -> int:
             _vl_need_2 = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
             if _vl_need_2:
                 video_credits["_qc1_failed"] = True
+                dbg.emit("qc1", "qc_decision", status="warn",
+                         subject={"field": "credit_quality",
+                                  "after": {"yonetmen": video_credits.get("yonetmen"),
+                                            "cast_count": len(video_credits.get("cast") or [])},
+                                  "reason": "QC1 still RED after VL fallback"},
+                         evidence={"route": "Kontrol", "qc1_failed": True},
+                         source={"module": "scripts/mitas_pipeline.py"})
                 log_event("credit_qc1_failed", level="warn",
                           summary=f"{video.name}: QC1 VL sonrası da RED — yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, cast={len(video_credits.get('cast') or [])} → KONTROL.",
                           module="ocr", media_id=media_id, filename=video.name,
                           detail={"clip_id": clip_id, "yonetmen": video_credits.get("yonetmen"), "cast_count": len(video_credits.get("cast") or [])})
             else:
+                dbg.emit("qc1", "qc_decision",
+                         subject={"field": "credit_quality",
+                                  "after": {"yonetmen": video_credits.get("yonetmen"),
+                                            "cast_count": len(video_credits.get("cast") or [])},
+                                  "reason": "QC1 PASS after VL fallback"},
+                         evidence={"qc1_failed": False},
+                         source={"module": "scripts/mitas_pipeline.py"})
                 log_event("credit_qc1_passed",
                           summary=f"{video.name}: QC1-PASS (VL sonrası) — yön={video_credits.get('yonetmen')} cast={len(video_credits.get('cast') or [])}.",
                           module="ocr", media_id=media_id, filename=video.name,
                           detail={"clip_id": clip_id})
+        else:
+            dbg.emit("qc1", "qc_decision",
+                     subject={"field": "credit_quality",
+                              "after": {"yonetmen": video_credits.get("yonetmen"),
+                                        "cast_count": len(video_credits.get("cast") or [])},
+                              "reason": "QC1 PASS; VL fallback not run"},
+                     evidence={"vl_fallback": False, "qc1_failed": False,
+                               "yonetmen_var": bool(video_credits.get("yonetmen")),
+                               "cast_count": len(video_credits.get("cast") or [])},
+                     source={"module": "scripts/mitas_pipeline.py"})
+    elif USE_VIDEO_CREDITS and _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
+        dbg.emit("qc1", "qc_decision", status="skipped",
+                 subject={"field": "credit_quality",
+                          "after": {"yonetmen": video_credits.get("yonetmen"),
+                                    "cast_count": len(video_credits.get("cast") or [])},
+                          "reason": "VL fallback disabled by MITAS_NO_VL_FALLBACK"},
+                 evidence={"vl_fallback": False, "disabled": True},
+                 source={"module": "scripts/mitas_pipeline.py"})
 
     # ===== BLOK YÖNETMEN-DOĞRULAMA (credit_validate; flag MITAS_CREDIT_VALIDATE, fail-safe) =====
     # 35B çıktısını mitas.duckdb (IMDb+Wikidata) + XML ile DOĞRULA → CELISKI/OKUNAMADI = KONTROL sinyali.
@@ -2037,6 +2232,14 @@ def main(argv=None) -> int:
                       "--profile", profile]
             _rc_cv, _out_cv, _err_cv = run(cv_cmd, timeout=180)
             cv_result = last_json(_out_cv)
+            dbg.emit("credit_validate", "external_lookup",
+                     status="ok" if cv_result else "warn",
+                     subject={"field": "yonetmen", "before": (video_credits or {}).get("yonetmen"),
+                              "after": (cv_result or {}).get("yonetmen"),
+                              "reason": "IMDb/Wikidata/XML director validation"},
+                     evidence={"result": cv_result},
+                     source={"module": "scripts/mitas_pipeline.py",
+                             "input_paths": [str(kunye_path), str(video)]})
             log_event("credit_validate",
                       summary=f"{video.name}: yön-doğrulama={(cv_result or {}).get('yonetmen', {}).get('status')}",
                       module="ocr", media_id=media_id, filename=video.name,
@@ -2063,6 +2266,13 @@ def main(argv=None) -> int:
             if _new_dir:
                 _old_dir = video_credits.get("yonetmen")
                 video_credits["yonetmen"] = _new_dir
+                dbg.emit("credit_validate", "candidate_changed",
+                         subject={"field": "yonetmen", "before": _old_dir, "after": _new_dir,
+                                  "reason": "C2-fix: KB-confirmed canonical director backfill"},
+                         evidence={"sources_confirm": _cvd_fix.get("sources_confirm"),
+                                   "confidence": _cvd_fix.get("confidence"),
+                                   "status": _cvd_fix.get("status")},
+                         source={"module": "scripts/mitas_pipeline.py"})
                 log_event("credit_validate_backfill",
                           summary=f"{video.name}: C2-fix yön KB-teyitli yazıldı {_new_dir} (eski={_old_dir}).",
                           module="ocr", media_id=media_id, filename=video.name,
@@ -2155,6 +2365,16 @@ def main(argv=None) -> int:
         rc, out, err = run(cmd, timeout=PDF_TIMEOUT)  # altyazı Paddle taraması / kanal-dil self-run payı
         pdf_info = last_json(out) or {"status": "failed", "pdf_error": err[-300:]}
         timings["pdf"] = round(time.perf_counter() - t0, 2)
+        dbg.emit("pdf", "stage_completed",
+                 status="ok" if pdf_info.get("status") == "done" else "warn",
+                 duration_ms=timings["pdf"] * 1000,
+                 subject={"field": "pdf", "after": pdf_info.get("pdf_path") or pdf_info.get("md_path"),
+                          "reason": "PDF/MD delivery render"},
+                 evidence={"pdf_info": pdf_info},
+                 source={"module": "scripts/mitas_pipeline.py",
+                         "input_paths": [str(kunye_path)],
+                         "output_paths": [str(pdf_info.get("pdf_path") or ""),
+                                          str(pdf_info.get("md_path") or "")]})
         log_event("pdf_completed" if pdf_info.get("status") == "done" else "pdf_partial",
                   level="info" if pdf_info.get("status") == "done" else "warn",
                   summary=f"{video.name}: teslim hazirlandi (PDF={'var' if pdf_info.get('pdf_path') else 'yok, md'}, cast={pdf_info.get('cast_count')}) ({timings['pdf']} sn).",
@@ -2222,11 +2442,24 @@ def main(argv=None) -> int:
                 except Exception:  # noqa: BLE001 — TÜR yakalama yüzeylemeyi ASLA bozmaz
                     pass
                 timings["v4_final"] = round(time.perf_counter() - t_v4, 2)
+                dbg.emit("v4", "stage_completed",
+                         duration_ms=timings["v4_final"] * 1000,
+                         subject={"field": "v4_pdf", "after": pdf_info.get("pdf_path"),
+                                  "reason": "v4 final replaced pre-v4 PDF"},
+                         evidence={"v4": ((_v4j or {}).get("v4") or {}),
+                                   "cross_check": ((_v4j or {}).get("adimlar") or {}).get("cross_check")},
+                         source={"module": "scripts/mitas_pipeline.py",
+                                 "input_paths": [str(v4_tmp), str(clip_dir)],
+                                 "output_paths": [str(pdf_info.get("pdf_path") or "")]})
                 log_event("v4_finalize_completed",
                           summary=f"{video.name}: kunye v4'e cevrildi ({timings['v4_final']} sn).",
                           module="pdf", media_id=media_id, filename=video.name,
                           duration_seconds=timings["v4_final"], detail={"clip_id": clip_id})
             else:
+                dbg.emit("v4", "stage_completed", status="warn",
+                         subject={"field": "v4_pdf", "reason": f"v4 final skipped rc={rc_v4}"},
+                         evidence={"stderr": (err_v4 or "")[-1000:]},
+                         source={"module": "scripts/mitas_pipeline.py", "input_paths": [str(clip_dir)]})
                 log_event("v4_finalize_skipped", level="warn",
                           summary=f"{video.name}: v4 final atlandi (rc={rc_v4}); pre-v4 PDF kaldi.",
                           module="pdf", media_id=media_id, filename=video.name,
@@ -2252,12 +2485,22 @@ def main(argv=None) -> int:
             import _kunye_qwen_check as _kqc
             qwen_qc = _kqc.check(str(_qc_png))
             timings["qwen_qc"] = round(time.perf_counter() - _t_qc, 2)
+            dbg.emit("qc_final", "qc_decision",
+                     duration_ms=timings["qwen_qc"] * 1000,
+                     subject={"field": "qwen_qc", "after": qwen_qc,
+                              "reason": "visual final QC over preview PNG"},
+                     evidence={"preview": str(_qc_png), "qwen_qc": qwen_qc},
+                     source={"module": "scripts/mitas_pipeline.py", "input_paths": [str(_qc_png)]})
             log_event("qwen_final_qc",
                       summary=f"{video.name}: qwen final-QC ({timings.get('qwen_qc')} sn) — {(qwen_qc or {}).get('notlar') or 'ok'}",
                       module="qc", media_id=media_id, filename=video.name,
                       detail={"clip_id": clip_id, "qwen_qc": qwen_qc})
         except Exception as exc:  # noqa: BLE001 — qwen-QC pipeline'i ASLA bozmaz (ollama yok/model yok vb.)
             qwen_qc = {"error": f"{type(exc).__name__}: {exc}"}
+            dbg.emit("qc_final", "qc_decision", status="warn",
+                     subject={"field": "qwen_qc", "reason": "qwen final QC skipped"},
+                     evidence={"preview": str(_qc_png)}, error=str(exc),
+                     source={"module": "scripts/mitas_pipeline.py", "input_paths": [str(_qc_png)]})
             log_event("qwen_final_qc_skipped", level="warn",
                       summary=f"{video.name}: qwen final-QC atlandi: {exc}",
                       module="qc", media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
@@ -2571,6 +2814,16 @@ def main(argv=None) -> int:
     dest = dest_root / f"{base_name}{ext}"
     if src_file:
         shutil.copy2(src_file, dest)
+    dbg.emit("routing", "qc_decision",
+             status="ok" if karar == "Hazır" else "warn",
+             subject={"field": "karar", "after": karar,
+                      "reason": "; ".join(reasons) if reasons else "tüm bloklar temiz"},
+             evidence={"reasons": reasons, "qwen_uyari": qwen_uyari,
+                       "route_info": route_info, "dest": str(dest),
+                       "special_genre": special_genre},
+             source={"module": "scripts/mitas_pipeline.py",
+                     "input_paths": [str(src_file) if src_file else ""],
+                     "output_paths": [str(dest)]})
     _write_person_gate_excel(EXPORT_ROOT / "_KISI_KAPISI_RAPORU.xlsx",
                              trt or "", title or "", karar, _person_gate_report, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
@@ -2600,6 +2853,10 @@ def main(argv=None) -> int:
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)
+    dbg.finalize_trace(timings=timings, final_status=karar, reasons=reasons,
+                       outputs={"hub": str(clip_dir), "teslim": str(dest),
+                                "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"),
+                                "durum": str(clip_dir / "_DURUM.json")})
     # Köke insan-okunur _teknik.txt + per-film _log.jsonl (DATABASE düzeni — herşey tek klasörde).
     try:
         surface_logs(clip_dir, trt, title)

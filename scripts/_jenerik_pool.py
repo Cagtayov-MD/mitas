@@ -122,21 +122,30 @@ def create_pool(
             _append_jsonl(debug_root / "errors.jsonl",
                           {"ts": _now(), "stage": "oneocr_fallback", "error": f"{type(exc).__name__}: {exc}"})
 
-    _safe_reset_pool(pool_dir)
-
     copied: list[dict] = []
     status = result.status
     start_pos = result.start_pos
-    if _accepted(status) and start_pos is not None and 0 <= int(start_pos) < len(images):
+    will_fill = (_accepted(status) and start_pos is not None
+                 and 0 <= int(start_pos) < len(images))
+    preserved_existing = False
+    if will_fill:
+        # Yeni kareler dolduracağız → bayat kareleri temizle, sonra doldur.
+        _safe_reset_pool(pool_dir)
         for source in images[int(start_pos):]:
             target = pool_dir / source.name
             shutil.copy2(source, target)
             copied.append({"source": str(source), "target": str(target), "file": source.name})
+    else:
+        # Bu koşuda kredi-başlangıcı YOK. ÖNCEKİ başarılı havuzu YOK ETME — flaky/tekrar koşum
+        # iyi havuzu silip master'ı kaybetmesin (2026-06-29). Havuz yoksa boş oluştur (dizin-var invariantı).
+        preserved_existing = bool(pool_dir.is_dir() and list(pool_dir.glob("*.png")))
+        pool_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = {
         "status": status,
         "engine": engine_used,
         "accepted": bool(copied),
+        "preserved_existing_pool": preserved_existing,
         "input_frames": len(images),
         "pool_frames": len(copied),
         "source_frames_dir": str(frames_dir),

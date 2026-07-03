@@ -22,6 +22,7 @@ sonuc basar; sema (status/kunye_path/kunye_line_count/bucket/engine) DEGISMEZ.
 from __future__ import annotations
 import os, sys, json, glob, time, unicodedata, argparse, importlib.util
 from pathlib import Path
+import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -1073,6 +1074,13 @@ def main(argv=None) -> int:
     frames: list[Path] = []
     for d in args.frames:
         frames += sorted(Path(p) for p in glob.glob(str(Path(d) / "*.png")))
+    dbg.emit("ocr", "stage_started",
+             subject={"field": "frames", "after": len(frames), "reason": "OCR frame collection"},
+             evidence={"frame_dirs": args.frames, "profile": args.profile,
+                       "first_frames": [str(p) for p in frames[:5]],
+                       "last_frames": [str(p) for p in frames[-5:]]},
+             source={"module": "scripts/_pipe_ocr.py", "input_paths": args.frames,
+                     "output_paths": [str(out)]})
 
     # PaddleOCR side-channel: ARTIK pipeline100 ile EŞZAMANLI DEĞİL (2026-06-14, Çağatay teşhisi).
     # ESKİ daemon-thread paddle, pipeline100 ile AYNI ANDA `from paddleocr import` yapınca Python
@@ -1090,6 +1098,12 @@ def main(argv=None) -> int:
             print(f"[pipeline100] beklenmeyen hata, fallback: {type(exc).__name__}: {exc}", file=sys.stderr)
             res = None
     if res is None:
+        dbg.emit("ocr", "fallback_triggered", status="warn",
+                 subject={"field": "engine", "before": "pipeline100", "after": "oneocr-fallback",
+                          "reason": "pipeline100 returned no result"},
+                 evidence={"frame_count": len(frames)},
+                 source={"module": "scripts/_pipe_ocr.py", "input_paths": args.frames,
+                         "output_paths": [str(out)]})
         res = run_oneocr_fallback(frames, started, args.profile)
 
     # YABANCI-İSİM NORMALİZE (Çağatay 2026-06-21): Latin-dışı (Kiril/Yunan/CJK) → Latin +
@@ -1117,6 +1131,11 @@ def main(argv=None) -> int:
         (out / "ocr_raw_all.txt").write_text("\n".join(res["raw_reads"]) + "\n", encoding="utf-8")
     if res.get("raw_reads_detail"):
         _write_jsonl(out / "ocr_raw_reads.jsonl", res["raw_reads_detail"])
+    artifact_refs = []
+    for _artifact in ("kunye.txt", "ocr_ham.txt", "ocr_raw_all.txt", "ocr_raw_reads.jsonl"):
+        _ap = out / _artifact
+        if _ap.exists():
+            artifact_refs.append(dbg.copy_artifact(_ap, subdir="ocr") or str(_ap))
 
     summary = {
         "engine": res["engine"],
@@ -1148,6 +1167,34 @@ def main(argv=None) -> int:
     summary["paddle_status"] = "enabled" if paddle_enabled else "disabled"
     summary_path = out / "ocr_summary.json"
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    dbg.emit("ocr", "candidate_read",
+             status="ok" if kunye else "warn",
+             subject={"field": "ocr_lines", "after": len(kunye),
+                      "reason": f"engine={res['engine']} bucket={res['bucket']}"},
+             evidence={"engine": res["engine"], "bucket": res["bucket"],
+                       "raw_line_count": res.get("raw_line_count", 0),
+                       "kunye_line_count": len(kunye),
+                       "garble_frac": res.get("garble_frac", 0.0),
+                       "glm_attempted": summary.get("glm_attempted"),
+                       "glm_status": summary.get("glm_status"),
+                       "glm_skip_reason": summary.get("glm_skip_reason"),
+                       "glm_lines": summary.get("glm_lines"),
+                       "agree_count": summary.get("agree_count"),
+                       "glm_only_count": summary.get("glm_only_count"),
+                       "glm_only_filtered_count": summary.get("glm_only_filtered_count"),
+                       "master_png": summary.get("master_png"),
+                       "artifact_refs": artifact_refs},
+             duration_ms=summary["runtime_sec"] * 1000,
+             source={"module": "scripts/_pipe_ocr.py", "input_paths": args.frames,
+                     "output_paths": [str(kunye_path), str(summary_path)]})
+    if res["engine"] == "oneocr-fallback" or res.get("engine_error"):
+        dbg.emit("ocr", "fallback_triggered",
+                 status="warn" if res.get("engine_error") else "ok",
+                 subject={"field": "engine", "after": res["engine"],
+                          "reason": res.get("engine_error") or "fallback engine used"},
+                 evidence={"bucket": res["bucket"], "artifact_refs": artifact_refs},
+                 source={"module": "scripts/_pipe_ocr.py", "input_paths": args.frames,
+                         "output_paths": [str(kunye_path), str(summary_path)]})
 
     # PaddleOCR yan-kanalı varsayılan KAPALI. Yalnız MITAS_OCR_PADDLE=1 ile deneysel açılır.
     # Kapalıyken PaddleOCR import edilmez ve eski paddle_kunye.txt kalıntısı sayılmaz.

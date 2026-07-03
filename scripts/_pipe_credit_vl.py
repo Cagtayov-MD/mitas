@@ -20,7 +20,9 @@ import json
 import os
 import re
 import sys
+import time
 import unicodedata
+import debug_trace as dbg
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -156,6 +158,10 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
     out.setdefault("yonetmen", [])
     out.setdefault("yapimci", [])
     out.setdefault("cast", [])
+    started = time.perf_counter()
+    before = {"yonetmen": list(out.get("yonetmen") or []),
+              "cast": list(out.get("cast") or []),
+              "yapimci": list(out.get("yapimci") or [])}
     try:
         import credit_video_read as cv
         import credit_text_read as ctr
@@ -164,6 +170,12 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
         giris, cikis = _find_frames(clip)
         if not giris:
             out["vl"] = "kare-yok"
+            dbg.emit("vl_fallback", "fallback_triggered", status="warn",
+                     duration_ms=(time.perf_counter() - started) * 1000,
+                     subject={"field": "frames", "before": before, "after": out,
+                              "reason": "VL fallback skipped because no frames were found"},
+                     evidence={"clip": clip, "title": title},
+                     source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
             return out
         kb = cv.KB()
         yon, vl_cast = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
@@ -179,6 +191,11 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
             _yon_corr = [y for y in yon_persons if _in_raw(y, raw_lines)]
             if _yon_corr != yon_persons:
                 out["vl_yon_hallucinated"] = [y for y in yon_persons if y not in _yon_corr]
+                dbg.emit("vl_fallback", "candidate_dropped", status="warn",
+                         subject={"field": "yonetmen", "before": yon_persons, "after": _yon_corr,
+                                  "reason": "VL director not found in raw OCR corpus"},
+                         evidence={"raw_context_lines": len(raw_lines)},
+                         source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
             if _yon_corr:
                 out["yonetmen"] = _yon_corr
                 out["vl_yon_kaynak"] = "gemma4"
@@ -194,13 +211,35 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
             _add_corr = [nm for nm in add if _in_raw(nm, raw_lines)]
             if len(_add_corr) != len(add):
                 out["vl_cast_hallucinated"] = len(add) - len(_add_corr)
+                dbg.emit("vl_fallback", "candidate_dropped", status="warn",
+                         subject={"field": "cast", "before": add, "after": _add_corr,
+                                  "reason": "VL cast candidate not found in raw OCR corpus"},
+                         evidence={"raw_context_lines": len(raw_lines)},
+                         source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
             add = _add_corr
             if add:
                 out["cast"] = ctr._only_persons(tcast + add)
                 out["vl_cast_supplement"] = len(add)
         out["vl"] = "kostu"
+        dbg.emit("vl_fallback", "fallback_triggered",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "credits", "before": before, "after": out,
+                          "reason": "VL fallback completed"},
+                 evidence={"model": VL_MODELS[0], "fill_cast": fill_cast,
+                           "raw_context_lines": len(raw_lines),
+                           "vl_yon_hallucinated": out.get("vl_yon_hallucinated"),
+                           "vl_cast_hallucinated": out.get("vl_cast_hallucinated"),
+                           "vl_cast_supplement": out.get("vl_cast_supplement")},
+                 source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
     except Exception as e:  # noqa: BLE001 — FAIL-SAFE: pipeline'ı ASLA bozma
         out["vl"] = f"hata:{type(e).__name__}"
+        dbg.emit("vl_fallback", "fallback_triggered", status="error",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "credits", "before": before, "after": out,
+                          "reason": "VL fallback failed"},
+                 evidence={"model": VL_MODELS[0], "fill_cast": fill_cast},
+                 error=str(e),
+                 source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
     return out
 
 

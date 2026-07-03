@@ -3,7 +3,8 @@ db_compose_master'ın compose fonksiyonlarını + 'master' dispatch'ini yeniden 
 
 ÇIKTI (Çağatay 2026-06-29): master PNG'ler film KÖKÜNDE açıkta durur (alt-klasör YOK):
   Database/<film>/<TRT BAŞLIK> giris.png   ve   <TRT BAŞLIK> cikis.png
-  Database/<film>/reading_master_runaware.png   (paralel okuma master'ı; kanonik değil)
+  Database/<film>/giris_reading_master_runaware.png (giriş paralel okuma master'ı)
+  Database/<film>/reading_master_runaware.png       (çıkış paralel okuma master'ı)
 KAYNAK: derlenmiş havuz tercih edilir — frames/giris_jenerik & frames/cikis_jenerik;
 havuz klasörü yoksa (eski film) ham frames/giris & frames/cikis'e düşer. Havuz VARSA ve BOŞSA
 (cold-open / yazı yok) master ÜRETİLMEZ (ham footage'a düşmez). Yeni master üretildiyse eski
@@ -13,7 +14,10 @@ master/ alt-klasörü SİLİNİR; üretilemediyse eski master/ KORUNUR ("kötü 
   Monitör:    python master_png_monitor.py            (Database'i izler, biten filmlere üretir)
 """
 import sys, os, time, glob, json, types, shutil, importlib.util
+from difflib import SequenceMatcher
 from pathlib import Path
+
+import numpy as np
 
 sys.path.insert(0, r"E:\MITAS\OCR-worktree")
 _spec = importlib.util.spec_from_file_location("dcmaster", r"E:\MITAS\OCR-worktree\db_compose_master.py")
@@ -87,6 +91,125 @@ def _compose_reading_seg(frames, args):
         "kept_blocks": manifest.get("kept_blocks"),
     }
     return master, info | {"manifest": manifest}
+
+
+def _semantic_giris_groups(film: Path, frames: list[str], *, min_frames: int = 2):
+    """Manifest OCR imzalarıyla görsel olarak aynı yerleşimli farklı kartları ayır."""
+    path = film / "frames" / "giris_jenerik_manifest.json"
+    if not path.is_file():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    signatures = {
+        str(row.get("file")): str(row.get("sig") or "").strip()
+        for row in (payload.get("frames") or [])
+        if str(row.get("decision") or "").startswith("kept") and row.get("file")
+    }
+
+    def normalize(text: str) -> str:
+        return " ".join(
+            "".join(ch.casefold() if ch.isalnum() else " " for ch in text).split()
+        )
+
+    def similar(first: str, second: str) -> bool:
+        if not first or not second:
+            return True
+        if first in second or second in first:
+            return True
+        ratio = SequenceMatcher(None, first, second).ratio()
+        left, right = set(first.split()), set(second.split())
+        union = left | right
+        jaccard = (len(left & right) / len(union)) if union else 1.0
+        return ratio >= 0.68 or jaccard >= 0.6
+
+    groups = []
+    current = []
+    current_sig = ""
+    for frame in frames:
+        sig = normalize(signatures.get(Path(frame).name, ""))
+        if current and sig and current_sig and not similar(current_sig, sig):
+            if len(current) >= min_frames:
+                groups.append(current)
+            current = []
+            current_sig = ""
+        current.append(frame)
+        if sig:
+            current_sig = sig
+    if len(current) >= min_frames:
+        groups.append(current)
+    return groups
+
+
+def _compose_giris_reading_seg(film: Path, frames: list[str], args):
+    """Run-aware giriş master'ı; aynı yerleşimli kart kaybında OCR-imza kurtarması."""
+    baseline, info = _compose_reading_seg(frames, args)
+    manifest = info.get("manifest") or {}
+    semantic_groups = _semantic_giris_groups(film, frames)
+    baseline_blocks = int(info.get("kept_blocks") or 0)
+    scroll_frac = float(info.get("strict_scroll_frac") or 0.0)
+    if (
+        baseline is None
+        or scroll_frac >= 0.5
+        or len(semantic_groups) <= baseline_blocks
+    ):
+        return baseline, info
+
+    blocks = []
+    group_manifest = []
+    for group_index, group_frames in enumerate(semantic_groups):
+        group_master, group_info = _compose_reading_seg(group_frames, args)
+        if group_master is None:
+            continue
+        blocks.append(group_master)
+        group_manifest.append({
+            "group": group_index,
+            "frames": len(group_frames),
+            "src_first": Path(group_frames[0]).name,
+            "src_last": Path(group_frames[-1]).name,
+            "size": [int(group_master.shape[1]), int(group_master.shape[0])],
+            "kept_blocks": group_info.get("kept_blocks"),
+        })
+    if len(blocks) <= baseline_blocks:
+        return baseline, info
+
+    max_width = max(block.shape[1] for block in blocks)
+    normalized = [
+        np.pad(block, ((0, 0), (0, max_width - block.shape[1]), (0, 0)))
+        if block.shape[1] < max_width else block
+        for block in blocks
+    ]
+    separator = np.zeros((2, max_width, 3), np.uint8)
+    stacked = []
+    for block in normalized:
+        stacked.extend((block, separator))
+    master = np.vstack(stacked[:-1])
+    rescue_manifest = {
+        "mode": "reading_runaware_semantic_rescue",
+        "status": "OK",
+        "frames": len(frames),
+        "size": [int(master.shape[1]), int(master.shape[0])],
+        "kept_blocks": sum(int(item.get("kept_blocks") or 0) for item in group_manifest),
+        "strict_scroll_frac": scroll_frac,
+        "semantic_groups": group_manifest,
+        "baseline": {
+            "mode": manifest.get("mode"),
+            "size": manifest.get("size"),
+            "kept_blocks": baseline_blocks,
+        },
+    }
+    return master, {
+        "frames": len(frames),
+        "mode": rescue_manifest["mode"],
+        "status": "OK",
+        "size": rescue_manifest["size"],
+        "runs": manifest.get("runs"),
+        "strict_scroll_frac": scroll_frac,
+        "kept_blocks": rescue_manifest["kept_blocks"],
+        "manifest": rescue_manifest,
+    }
 
 
 def _delivery_base(film: Path, base_override: str | None = None) -> str:
@@ -182,9 +305,16 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
         produced = True
     res["cikis"] = info
 
-    # PARALEL OKUMA MASTER'I: kanonik cikis.png yerine geçmez; karşılaştırma içindir.
-    rinfo = gen_reading_master(film, base_override, write_manifest=False)["reading_master_runaware"]
-    res["reading_master_runaware"] = rinfo
+    # PARALEL OKUMA MASTER'LARI: kanonik giris/cikis PNG'lerinin yerine geçmez;
+    # aynı run-aware motorunu iki jenerik havuzunda da ayrı adlarla üretir.
+    giris_reading = gen_reading_master(
+        film, base_override, seg="giris"
+    )["giris_reading_master_runaware"]
+    cikis_reading = gen_reading_master(
+        film, base_override, seg="cikis"
+    )["reading_master_runaware"]
+    res["giris_reading_master_runaware"] = giris_reading
+    res["reading_master_runaware"] = cikis_reading
 
     res["produced"] = produced
     # provenance manifest (kökte, base adlı)
@@ -204,15 +334,35 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     return res
 
 
-def gen_reading_master(film: Path, base_override: str | None = None, *, write_manifest: bool = True) -> dict:
+def gen_reading_master(
+    film: Path,
+    base_override: str | None = None,
+    *,
+    seg: str = "cikis",
+    write_manifest: bool = True,
+) -> dict:
+    if seg not in {"giris", "cikis"}:
+        raise ValueError(f"unsupported reading-master segment: {seg!r}")
     base = _delivery_base(film, base_override)
     args = make_args()
-    frames, src = _seg_source(film, "cikis")
-    out = film / "reading_master_runaware.png"
-    man_out = film / "reading_master_runaware_manifest.json"
-    master, info = _compose_reading_seg(frames, args)
+    frames, src = _seg_source(film, seg)
+    if seg == "giris":
+        # Giriş havuzu kart tabanlı ve seyrektir. Çıkıştaki 45-karelik koruma
+        # sınırı burada geç kartları (örn. screenplay/director) aynı uzun statik
+        # gruba yutup tek medoid karta indirebiliyor. Girişin tamamında yalnız
+        # güçlü iç metin-yerleşimi sıçramalarında bölmeye izin ver.
+        args.reading_early_split_frames = len(frames)
+    key = "giris_reading_master_runaware" if seg == "giris" else "reading_master_runaware"
+    stem = key
+    out = film / f"{stem}.png"
+    man_out = film / f"{stem}_manifest.json"
+    if seg == "giris":
+        master, info = _compose_giris_reading_seg(film, frames, args)
+    else:
+        master, info = _compose_reading_seg(frames, args)
     manifest = info.pop("manifest", None)
     info["source"] = src
+    info["segment"] = seg
     info["base"] = base
     if master is not None:
         dc.wr(out, master)
@@ -229,7 +379,7 @@ def gen_reading_master(film: Path, base_override: str | None = None, *, write_ma
                                encoding="utf-8")
         except Exception:
             pass
-    return {"film": film.name, "base": base, "reading_master_runaware": info}
+    return {"film": film.name, "base": base, key: info}
 
 
 def _has_frames(film: Path) -> bool:
@@ -284,7 +434,17 @@ if __name__ == "__main__":
             except Exception:
                 _base = None
         if "--reading-only" in sys.argv:
-            print(json.dumps(gen_reading_master(_film, _base), ensure_ascii=False, indent=1))
+            _seg = "cikis"
+            if "--seg" in sys.argv:
+                try:
+                    _seg = sys.argv[sys.argv.index("--seg") + 1]
+                except Exception:
+                    _seg = "cikis"
+            print(json.dumps(
+                gen_reading_master(_film, _base, seg=_seg),
+                ensure_ascii=False,
+                indent=1,
+            ))
         else:
             print(json.dumps(gen_master(_film, _base), ensure_ascii=False, indent=1))
     else:

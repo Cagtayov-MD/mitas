@@ -496,6 +496,18 @@ def run_master_debug(pool_dir: Path, debug_root: Path) -> dict:
         if canon is None:
             raise RuntimeError("composer returned no master")
         dc.wr(out_png, canon)
+        reading = None
+        try:
+            reading, reading_manifest, _ = dc.compose_reading_runaware(frames, p, args)
+            if reading is not None:
+                reading_png = out_dir / "reading_master_runaware.png"
+                dc.wr(reading_png, reading)
+                _write_json(out_dir / "reading_master_runaware.json", reading_manifest)
+            else:
+                _write_json(out_dir / "reading_master_runaware.json", reading_manifest)
+        except Exception as reading_exc:  # noqa: BLE001 - debug artifact must not fail canonical debug master
+            reading_manifest = {"status": "error", "error": f"{type(reading_exc).__name__}: {reading_exc}"}
+            _write_json(out_dir / "reading_master_runaware.json", reading_manifest)
         manifest = {
             "status": "ok",
             "pool_dir": str(pool_dir),
@@ -505,6 +517,15 @@ def run_master_debug(pool_dir: Path, debug_root: Path) -> dict:
             "scroll_frac": round(scroll_frac, 4),
             "runs": [[int(a), int(b), str(t)] for a, b, t in runs],
             "size": [int(canon.shape[1]), int(canon.shape[0])],
+            "reading_master_runaware": (
+                {
+                    "output_png": str(out_dir / "reading_master_runaware.png"),
+                    "size": [int(reading.shape[1]), int(reading.shape[0])],
+                    "kept_blocks": reading_manifest.get("kept_blocks"),
+                }
+                if reading is not None
+                else {"status": reading_manifest.get("status", "NO_OUTPUT")}
+            ),
         }
     except Exception as exc:  # noqa: BLE001
         manifest = {

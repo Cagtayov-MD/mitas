@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """_pipe_credit_validate.py — mitas_pipeline subprocess: 35B çıktısını credit_validate ile DOĞRULA.
 venvs/ocr python ile koşar (duckdb burada). Tek-satır JSON sonuç. ASLA çökmez (hata → status=HATA)."""
-import argparse, json, os, sys
+import argparse, json, os, sys, time
 import xml.etree.ElementTree as ET
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import debug_trace as dbg
 
 
 def xml_roles(video):
@@ -43,6 +44,7 @@ def xml_roles(video):
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
+    started = time.perf_counter()
     ap = argparse.ArgumentParser()
     ap.add_argument("--video-credits", required=True, help="35B JSON {yonetmen,cast,...}")
     ap.add_argument("--video", default="")
@@ -65,8 +67,27 @@ def main():
                 ocr_raw = open(_raw, encoding="utf-8", errors="ignore").read()
         import credit_validate as cvmod
         out = cvmod.validate(ext, xml_roles=xr, title=title, ocr_text=ocr_text, ocr_raw=ocr_raw)
+        dbg.emit("credit_validate", "qc_decision",
+                 status="ok" if (out.get("yonetmen") or {}).get("status") != "HATA" else "warn",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "yonetmen", "before": ext.get("yonetmen"),
+                          "after": out.get("yonetmen"),
+                          "reason": "director validation against XML/IMDb/Wiki"},
+                 evidence={"xml_roles": xr, "title": title,
+                           "kaynaklar": out.get("kaynaklar"),
+                           "qc1": out.get("qc1"),
+                           "ocr_text_chars": len(ocr_text),
+                           "ocr_raw_chars": len(ocr_raw)},
+                 source={"module": "scripts/_pipe_credit_validate.py",
+                         "input_paths": [a.ocr, a.video]})
     except Exception as e:  # noqa: BLE001 — pipeline'ı ASLA bozma
         out = {"yonetmen": {"status": "HATA", "hata": f"{type(e).__name__}: {e}"}}
+        dbg.emit("credit_validate", "qc_decision", status="error",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "yonetmen", "reason": "director validation failed"},
+                 evidence={"title": a.title, "profile": a.profile}, error=str(e),
+                 source={"module": "scripts/_pipe_credit_validate.py",
+                         "input_paths": [a.ocr, a.video]})
     print(json.dumps(out, ensure_ascii=False))
 
 

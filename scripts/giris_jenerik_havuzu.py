@@ -258,7 +258,8 @@ def _dedup_kept(kept: list[dict], src_paths: dict, params: dict) -> None:
     for e in kept:
         e["dedup_representative"] = False
 
-    ordered = sorted(kept, key=lambda e: e["frame_index"])
+    # frame_index None olabilir (dosya adında rakam yok) → None'ları sona koy, çökmeden (TypeError guard).
+    ordered = sorted(kept, key=lambda e: (e.get("frame_index") is None, e.get("frame_index") or 0))
 
     clusters: list[dict] = []   # {anchor_hash, anchor_sig, members:[entry,...]}
     for e in ordered:

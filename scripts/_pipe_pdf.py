@@ -13,6 +13,7 @@ from __future__ import annotations
 import sys, json, os, re, argparse, importlib.util, datetime
 import urllib.error, urllib.request
 from pathlib import Path
+import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
 PDFMITAS = Path(r"E:\MITAS\OCR-worktree\pdf-mitas")
@@ -385,12 +386,15 @@ def main(argv=None) -> int:
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
     orig = (args.original or "").strip()   # XML <TITLE> = BİRİNCİL orijinal-ad (temizlenmiş)
     poster_path = None
+    poster_source = "not_found"
     try:
         poster_path = pf.fetch_poster(
             args.title, out / "afis.jpg",
             original=orig or None, year=args.year or None,
             cast=cast, crew=crew,
         )
+        if poster_path:
+            poster_source = "poster_fetch_primary"
     except Exception:  # noqa: BLE001
         poster_path = None
     # XML <TITLE> yok/bozuk → afiş tutmadı → KADRO-KONSENSÜS FALLBACK (kadrodan kimlik → orijinal ad + afiş).
@@ -412,6 +416,7 @@ def main(argv=None) -> int:
                 )
                 if _fb_poster:                      # afiş kadro-teyitli id ile tuttu → orijinal adı güncelle
                     poster_path = _fb_poster
+                    poster_source = "credit_identity_cast_consensus_fallback"
                     if _fb_orig:
                         orig = _fb_orig
         except Exception:  # noqa: BLE001 — fallback pipeline'ı ASLA bozmaz
@@ -450,6 +455,18 @@ def main(argv=None) -> int:
         **audio,
     }
     md_path = write_md(out, d)
+    dbg.emit("pdf", "pdf_field_written",
+             subject={"field": "kunye_teslim.md", "after": {
+                 "title": d.get("title"), "cast": d.get("cast"), "crew": d.get("crew"),
+                 "ana_dil": d.get("ana_dil"), "altyazi": d.get("altyazi"),
+                 "poster": str(poster_path) if poster_path else None,
+             }, "reason": "fields written to delivery markdown"},
+             evidence={"poster_source": poster_source, "role_reconcile": reconcile_meta,
+                       "video_credits_used": bool(args.video_credits),
+                       "raw_line_count": len(raw)},
+             source={"module": "scripts/_pipe_pdf.py",
+                     "input_paths": [args.kunye],
+                     "output_paths": [str(md_path)]})
 
     pdf_path = preview_path = None
     pdf_error = None
@@ -473,7 +490,7 @@ def main(argv=None) -> int:
         pdf_error = f"{type(exc).__name__}: {exc}"
         pdf_path = preview_path = None
 
-    print(json.dumps({
+    result = {
         "status": "done" if pdf_path else "partial",
         "pdf_path": str(pdf_path) if pdf_path else None,
         "preview_path": str(preview_path) if preview_path else None,
@@ -490,7 +507,18 @@ def main(argv=None) -> int:
         "sesler_ic_ice": audio.get("sesler_ic_ice"),
         "ses_uyari": audio.get("ses_uyari"),
         "pdf_error": pdf_error,
-    }, ensure_ascii=False))
+    }
+    dbg.emit("pdf", "stage_completed",
+             status="ok" if pdf_path else "warn",
+             subject={"field": "pdf", "after": result, "reason": "PDF render completed"},
+             evidence={"poster_source": poster_source,
+                       "poster_path": str(poster_path) if poster_path else None},
+             source={"module": "scripts/_pipe_pdf.py",
+                     "input_paths": [args.kunye, args.video or ""],
+                     "output_paths": [str(pdf_path) if pdf_path else "",
+                                      str(preview_path) if preview_path else "",
+                                      str(md_path)]})
+    print(json.dumps(result, ensure_ascii=False))
     return 0
 
 

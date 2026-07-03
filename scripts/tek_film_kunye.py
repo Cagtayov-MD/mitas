@@ -14,7 +14,8 @@ tek_film_kunye.py — TEK KOMUT: bir klip → TEMİZ v4 künye PDF (uçtan uca o
 
 Hiç çökmez; bir adım başarısızsa eldeki en iyi veriyle devam eder, neyin eksik olduğunu yazar.
 """
-import argparse, datetime, importlib.util, json, os, re, subprocess, sys
+import argparse, datetime, importlib.util, json, os, re, subprocess, sys, time
+import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -286,6 +287,7 @@ def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
     return out, report
 
 def main():
+    started = time.perf_counter()
     ap = argparse.ArgumentParser(description="Tek klip → temiz v4 künye PDF (uçtan uca)")
     ap.add_argument("--clip", required=True, help="klip klasörü (frames/ ve pdf/kunye_teslim.md içerir)")
     ap.add_argument("--out", default=None)
@@ -337,6 +339,15 @@ def main():
     cast = vc.get("cast") or []
     yap = vc.get("yapimci") or []
     _yon_ocr_original = list(yon)
+    dbg.emit("v4", "candidate_read",
+             subject={"field": "video_okuma", "after": {
+                 "yonetmen": yon, "cast": cast, "yapimci": yap,
+                 "guven": vc.get("guven"),
+             }, "reason": "v4 input credit extraction"},
+             evidence={"video_credits_arg": bool(a.video_credits),
+                       "nonlatin_source": bool(vc.get("nonlatin_source")),
+                       "translit_method": vc.get("translit_method")},
+             source={"module": "scripts/tek_film_kunye.py", "input_paths": [clip]})
 
     # FIX-1: Credit-cümle filtresi — "BASED ON THE POPEYE CHARACTERS..." gibi OCR jenerik
     # metinleri yönetmen olarak geçmesin. Kapı: uzun (>60 karakter) veya bilinen credit ifadesi.
@@ -377,6 +388,17 @@ def main():
         cc_args += ["--yil", str(a.year)]
     cc, _ = run_ocr_json("credit_kb_lookup.py", cc_args)
     cc = cc or {}
+    dbg.emit("kb", "external_lookup",
+             subject={"field": "credit_kb_lookup", "before": {
+                 "yonetmen": yon, "cast": cast, "yapimci": yap,
+             }, "after": cc, "reason": "KB cross-check, producer/genre/poster lookup"},
+             evidence={"args": cc_args, "verdict": cc.get("verdict"),
+                       "cast_ortusme": cc.get("cast_ortusme"),
+                       "otoriter_yonetmen": cc.get("otoriter_yonetmen"),
+                       "otoriter_cast_count": len(cc.get("otoriter_cast") or []),
+                       "afis": cc.get("afis")},
+             source={"module": "scripts/tek_film_kunye.py",
+                     "input_paths": [clip], "output_paths": [afis_out]})
     cast_ov = cc.get("cast_ortusme") or 0
     verdict = cc.get("verdict")
     auth_yon = cc.get("otoriter_yonetmen") or []
@@ -420,6 +442,7 @@ def main():
     #   • OCR var + (KB yok / kimlik yok) → OCR'ı AYNEN koru (doğrulayacak şey yok).
     yon_kaynak = "kareler"
     yon_ocr_teyit = False                       # OCR yönetmeni KB ile BAĞIMSIZ teyit edildi mi (cast-ADD çapası)
+    _yon_before_kb = list(yon)
     if yon and _cc is not None and kimlik_dogru and auth_yon:
         _yeni = []
         for _d in yon:
@@ -433,6 +456,15 @@ def main():
             yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
     elif not yon:
         yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"
+    if _yon_before_kb != yon:
+        dbg.emit("fuzzy", "candidate_changed" if yon else "candidate_dropped",
+                 status="ok" if yon else "warn",
+                 subject={"field": "yonetmen", "before": _yon_before_kb, "after": yon,
+                          "reason": yon_kaynak},
+                 evidence={"kimlik_dogru": kimlik_dogru, "auth_yon": auth_yon,
+                           "verdict": verdict, "cast_ortusme": cast_ov,
+                           "fuzzy_cast_overlap": _fuzzy_ov},
+                 source={"module": "scripts/tek_film_kunye.py"})
     # else: OCR var ama KB yok/kimlik yok → OCR korunur (kaynak=kareler)
     # cast: OCR/jenerik kadrosu MUTLAK OTORİTE — liste (uzunluk+sıra) OCR'dan, KB ile EZİLMEZ.
     # KB yalnız OKUNAN ismin YAZIMINI düzeltir (Ahmet Cimcir→Cemcir): her OCR ismi için
@@ -440,6 +472,7 @@ def main():
     # eşleşmezse OCR ismini AYNEN koru. KB'de olup OCR'da olmayan ismi EKLEME.
     auth = cc.get("otoriter_cast") or _auth_cast   # FUZZY-DBQC: title+year fallback cast dahil (flag-kapılı)
     cast_add_tier = None                        # geriye dönük şema alanı; KB cast-ekleme artık yapılmaz
+    _cast_before_kb = list(cast)
     if kimlik_dogru and auth and _cc is not None:
         duz = []
         strict_hits = 0                         # OCR isminin KB'de SIKI tam-ad karşılığı (kimlik gücü)
@@ -457,6 +490,14 @@ def main():
         cast = duz
         # Sıfırdan KB cast ekleme yok. strict_hits yalnız kimlik gücü/rapor için tutulur;
         # cast listesi OCR'da okunan isimlerin yazım düzeltmeli halidir.
+    if _cast_before_kb != cast:
+        dbg.emit("fuzzy", "candidate_changed",
+                 subject={"field": "cast", "before": _cast_before_kb, "after": cast,
+                          "reason": "OCR cast names canonicalized with KB name_match/name_close/window fuzzy"},
+                 evidence={"kimlik_dogru": kimlik_dogru, "auth_cast_count": len(auth),
+                           "verdict": verdict, "cast_ortusme": cast_ov,
+                           "fuzzy_cast_overlap": _fuzzy_ov},
+                 source={"module": "scripts/tek_film_kunye.py"})
     # ── QC2 (flag MITAS_QC2, default KAPALI): kimlik-önce yönetmen-fill + cast garble "imza-yokluğu" temizleme ──
     #    credit_qc_gates İZOLE modül (saf name_match, duckdb yok). YALNIZ kimlik KİLİTLİ (verdict==TEYİT veya
     #    cast_ov>=2) iken çalışır. Fail-safe: herhangi hata → mevcut yon/cast AYNEN (pipeline ASLA bozulmaz).
@@ -543,11 +584,24 @@ def main():
                                 "imdb_id": _web_imdb, "tmdb_id": _web_tmdb,
                                 "web_yonetmen": _web_dir, "web_cast_n": len(_web_cast),
                             }
+                            dbg.emit("kb", "external_lookup",
+                                     subject={"field": "qc2_web", "after": rapor["adimlar"]["qc2_web"],
+                                              "reason": "QC2 web identity locked"},
+                                     evidence={"locked": True, "director": _web_dir,
+                                               "cast_count": len(_web_cast), "afis": _web_afis},
+                                     source={"module": "scripts/tek_film_kunye.py",
+                                             "input_paths": [clip], "output_paths": [afis_out]})
                         else:
                             rapor["adimlar"]["qc2_web"] = {
                                 "method": None, "kaynak_izi": _web.get("kaynak_izi"),
                                 "neden": "çapa kilitlenemedi → KONTROL (yanlış>boş)"
                             }
+                            dbg.emit("kb", "external_lookup", status="warn",
+                                     subject={"field": "qc2_web", "after": rapor["adimlar"]["qc2_web"],
+                                              "reason": "QC2 web identity could not lock"},
+                                     evidence={"locked": False},
+                                     source={"module": "scripts/tek_film_kunye.py",
+                                             "input_paths": [clip]})
                 except Exception as _we:  # noqa: BLE001
                     sys.stderr.write(f"[uyari] QC2-web atlandı: {_we}\n")
                     rapor["adimlar"]["qc2_web"] = {"method": None, "kaynak_izi": f"hata: {_we}"}
@@ -733,6 +787,17 @@ def main():
              keywords=" ; ".join(castU) if castU else "—", cast=castU or ["—"], crew=crewU,
              ozet=ozet_v4(meta.get("ozet", ""), names=_ozet_names), ses_kanallari=sk,
              ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster)
+    dbg.emit("v4", "pdf_field_written",
+             subject={"field": "v4_pdf_fields", "after": {
+                 "title": d.get("title"), "subtitle": d.get("subtitle"),
+                 "cast": d.get("cast"), "crew": d.get("crew"),
+                 "poster": poster, "tur": tur,
+             }, "reason": "final v4 fields passed to _make_pdf"},
+             evidence={"yon_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
+                       "kimlik_dogru": kimlik_dogru, "verdict": verdict,
+                       "afis": afis, "poster_ok": bool(poster)},
+             source={"module": "scripts/tek_film_kunye.py",
+                     "input_paths": [clip], "output_paths": [a.out or ""]})
     d["bolum"] = a.bolum                                                       # Fix 3a: _make_pdf None ise basmaz
 
     out_pdf = a.out or os.path.join(OUT_DEFAULT, f"{trt} {nn.tr_upper(title)} (v4).pdf")
@@ -804,6 +869,13 @@ def main():
                    "qc_block_otorite_audit": (_qcb_res or {}).get("otorite_audit"),
                    # fix3-A 2026-06-29 — hafif sinyaller (CAST_CAP_DUSEN vb.) pipeline köprüsü için
                    "qc_block_hafif": (_qcb_res or {}).get("hafif") or []}
+    dbg.emit("v4", "stage_completed",
+             duration_ms=(time.perf_counter() - started) * 1000,
+             subject={"field": "v4", "after": rapor.get("v4"),
+                      "reason": "v4 render report completed"},
+             evidence={"adimlar": rapor.get("adimlar"), "pdf": out_pdf},
+             source={"module": "scripts/tek_film_kunye.py",
+                     "input_paths": [clip], "output_paths": [out_pdf]})
     print(json.dumps(rapor, ensure_ascii=False, indent=2))
     print("PDF:", out_pdf)
 

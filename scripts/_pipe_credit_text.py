@@ -17,6 +17,8 @@ import glob
 import json
 import os
 import sys
+import time
+import debug_trace as dbg
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -30,6 +32,7 @@ def _find_ocr(clip):
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
+    started = time.perf_counter()
     ap = argparse.ArgumentParser()
     ap.add_argument("--ocr", default=None, help="OneOCR+GLM kunye.txt yolu (birincil)")
     ap.add_argument("--clip", default=None, help="klip dizini (ocr/*/kunye.txt aranır)")
@@ -42,6 +45,11 @@ def main():
         ocr = a.ocr if (a.ocr and os.path.exists(a.ocr)) else _find_ocr(a.clip)
         if not ocr or not os.path.exists(ocr):
             out["hata"] = "ocr_metni_yok"
+            dbg.emit("credit_text", "stage_completed", status="warn",
+                     duration_ms=(time.perf_counter() - started) * 1000,
+                     subject={"field": "ocr", "reason": "ocr_metni_yok"},
+                     evidence={"clip": a.clip, "ocr_arg": a.ocr},
+                     source={"module": "scripts/_pipe_credit_text.py"})
             print(json.dumps(out, ensure_ascii=False))
             return
         import credit_text_read as ctr
@@ -59,8 +67,25 @@ def main():
                # Bu alanlar düşerse erken-romanize künye KONTROL'e gitmeden ONAYLI'ya sızar.
                "nonlatin_source": bool(res.get("nonlatin_source")),
                "translit_method": res.get("translit_method")}
+        dbg.emit("credit_text", "candidate_read",
+                 status="ok" if (out.get("yonetmen") or out.get("cast") or out.get("yapimci")) else "warn",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "credits", "after": out,
+                          "reason": "LLM/text extraction from OCR lines"},
+                 evidence={"ocr_source": ocr_source, "ocr_line_count": len(lines),
+                           "raw_context_count": len(raw_context),
+                           "model": out.get("model"), "guven": out.get("guven"),
+                           "nonlatin_source": out.get("nonlatin_source"),
+                           "translit_method": out.get("translit_method")},
+                 source={"module": "scripts/_pipe_credit_text.py",
+                         "input_paths": [ocr], "output_paths": []})
     except Exception as e:  # noqa: BLE001
         out["hata"] = f"{type(e).__name__}: {e}"
+        dbg.emit("credit_text", "stage_completed", status="error",
+                 duration_ms=(time.perf_counter() - started) * 1000,
+                 subject={"field": "credits", "reason": "credit text extraction failed"},
+                 evidence={"title": a.title, "profile": a.profile}, error=str(e),
+                 source={"module": "scripts/_pipe_credit_text.py"})
     print(json.dumps(out, ensure_ascii=False))
 
 
