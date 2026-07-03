@@ -2127,6 +2127,7 @@ def main(argv=None) -> int:
             try:
                 vl_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_vl.py"), "--clip", str(clip_dir),
                           "--title", title or "", "--profile", profile, "--fill-cast",
+                          "--ocr-job", ocr_job,   # A1 (2026-07-03): kalkan korpusu bu koşuya (+ '-fb' kardeşi) sınırlı
                           "--text-credits", json.dumps(video_credits, ensure_ascii=False)]
                 rc_vl, out_vl, err_vl = run(vl_cmd, timeout=VL_TIMEOUT)
                 _merged = last_json(out_vl)
@@ -2143,6 +2144,9 @@ def main(argv=None) -> int:
                     if _keep != _vl_dir:
                         _drop = [d for d in _vl_dir if _nf(d) in _cast_fold]
                         video_credits["yonetmen"] = _keep
+                        # A0-ek (2026-07-03, inceleme bulgusu): cast-çakışmasıyla düşen VL-yönetmen de
+                        # insana yüzeylenebilsin diye kaydedilir (yalnız kalkan-düşmeleri görünüyordu).
+                        video_credits["vl_yon_cast_dropped"] = _drop
                         log_event("credit_vl_director_dropped", level="warn",
                                   summary=f"{video.name}: VL-yönetmen {_drop} CAST'te de var → açılış-kartı oyuncusu "
                                           f"yönetmen sanıldı, DÜŞÜRÜLDÜ (okunamadı>yanlış).",
@@ -2608,6 +2612,27 @@ def main(argv=None) -> int:
                 _v4_yon = (((_v4j or {}).get("v4") or {}).get("yonetmen") or [])
                 if not _v4_yon:
                     reasons.append("yönetmen okunamadı (KB-fill yok — kırmızı çizgi)")
+                    # A0 (2026-07-03): VL'nin okuyup hayalet-kalkanının düşürdüğü aday İNSANA görünür
+                    # olsun — bugüne dek yalnız debug-trace'e gidiyordu, denetçi Askoldov/Jackson gibi
+                    # DOĞRU adayları sıfırdan araştırmak zorunda kalıyordu. Alan DOLDURULMAZ (kırmızı
+                    # çizgi korunur), yalnız gerekçeye ipucu eklenir. Metin, router substring'leriyle
+                    # ("yönetmen okunamadı" vb.) ÇAKIŞMAZ → routing değişmez (karar-nötr, salt-görünürlük).
+                    try:
+                        if isinstance(video_credits, dict):
+                            _vl_aday = list(video_credits.get("vl_yon_hallucinated") or [])
+                            _vl_aday += list(video_credits.get("vl_yon_cast_dropped") or [])
+                            _vl_aday += list(video_credits.get("vl_yon_dop_dropped") or [])
+                            if _vl_aday:
+                                reasons.append("VL aday ismi (teyitsiz, insan baksın): "
+                                               + ", ".join(dict.fromkeys(str(x) for x in _vl_aday))[:120])
+                    except Exception:  # noqa: BLE001 — yüzeyleme ASLA kararı bozmaz
+                        pass
+                elif isinstance(video_credits, dict) and "fuzzy" in str(video_credits.get("vl_yon_kaynak") or ""):
+                    # İnceleme-koşulu (2026-07-03, Fable-1/Opus-F1): fuzzy/yazım-varyant korpus-eşleşmesiyle
+                    # dolan VL-yönetmen ASLA sessizce ONAYLI'ya gidemez — isim PDF'te kalır (insan hızla
+                    # teyit eder) ama film KONTROL'e işaretlenir. exact/crossline(kart-istifi) bu bendin
+                    # DIŞINDADIR (güçlü kanıt). 'atif↔arif yilmaz' sınıfı tek-harf çiftlere sigorta.
+                    reasons.append("yönetmen VL+yazım-varyant eşleşmesiyle doldu (fuzzy korpus-teyidi — insan teyidi)")
                 elif len(_v4_yon) > 2:
                     # A-2: tek/çift yönetmen normal; 3+ isim = crew karışması şüphesi → insan baksın
                     reasons.append(f"yönetmen listesi şüpheli ({len(_v4_yon)} isim — crew karışması olası)")
@@ -2850,6 +2875,20 @@ def main(argv=None) -> int:
         # ocr_dropped/kb_floor_added/ocr_authority_violation + s5_form_overwrites. v4 raporundan okunur;
         # yoksa None (additive, kararı etkilemez). "başarısızlığı nereden anlarız" sinyali burada görünür.
         "otorite_audit": ((_v4j or {}).get("v4") or {}).get("qc_block_otorite_audit"),
+        # A0 (2026-07-03): kalkanın düşürdüğü VL adayları makine-okunur alanda — KONTROL denetçisi ve
+        # toplu-analiz (karar_gunlugu / QC ajanları) debug-trace kazmadan görsün. Additive; karar etkisiz.
+        "vl_yon_aday": (video_credits.get("vl_yon_hallucinated")
+                        if isinstance(video_credits, dict) else None),
+        "vl_cast_aday": (video_credits.get("vl_cast_hallucinated_names")
+                         if isinstance(video_credits, dict) else None),
+        "vl_yon_kaynak": (video_credits.get("vl_yon_kaynak")
+                          if isinstance(video_credits, dict) else None),
+        "vl_yon_eslesme": (video_credits.get("vl_yon_eslesme")
+                           if isinstance(video_credits, dict) else None),
+        "vl_yon_dop_dropped": (video_credits.get("vl_yon_dop_dropped")
+                               if isinstance(video_credits, dict) else None),
+        "vl_yon_cast_dropped": (video_credits.get("vl_yon_cast_dropped")
+                                if isinstance(video_credits, dict) else None),
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)

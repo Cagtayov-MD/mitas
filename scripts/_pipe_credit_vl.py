@@ -15,6 +15,7 @@ FAIL-SAFE: kare yok / ollama kapalı / herhangi hata → girdi text-credits AYNE
 Çıktı: tek-satır JSON (mitas_pipeline'ın last_json'u okur), credit_text ile AYNI şema (drop-in merge).
 """
 import argparse
+import difflib
 import glob
 import json
 import os
@@ -46,7 +47,14 @@ def _fold(s):
     for a, b in (("İ", "i"), ("I", "i"), ("ı", "i"), ("Ş", "s"), ("ş", "s"), ("Ğ", "g"),
                  ("ğ", "g"), ("Ü", "u"), ("ü", "u"), ("Ö", "o"), ("ö", "o"), ("Ç", "c"), ("ç", "c")):
         s = s.replace(a, b)
-    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower().strip()
+    out = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower().strip()
+    return " ".join(out.split())   # iç-boşluk normalize (inceleme 2026-07-03: çift-boşluk exact'i kaçırıyordu)
+
+
+# Korpus kaynak-sınırı işaretçisi (inceleme 2026-07-03): dosya-X'in son satırı ile dosya-Y'nin ilk
+# satırı GERÇEK komşu değildir; sentinel satır cross-line eşleşmenin sınırdan Frankenstein üretmesini
+# yapısal olarak engeller (_chunk_eq sentinel'e asla uymaz — uzunluk/karakter uyuşmaz).
+_CORPUS_SENTINEL = "\x00--kaynak-siniri--\x00"
 
 
 def _find_frames(clip):
@@ -62,6 +70,15 @@ def _find_frames(clip):
     if not os.path.isdir(g):
         cand = glob.glob(os.path.join(clip, "**", "giris"), recursive=True)
         g = cand[0] if cand else None
+    # A1 GİRİŞ-HAVUZ PARİTESİ (2026-07-03): çıkışta havuz tercihi zaten vardı, girişte YOKTU.
+    # giris_jenerik (yazı-var + dedup'lu, footage'sız) doluysa onu ver — VL daha temiz girdi görür,
+    # halüsinasyon tetikleyicisi azalır. Havuz BOŞSA ham frames/giris'e düşülür (çıkıştaki katı
+    # kuralın tersi, BİLİNÇLİ: giriş havuzu recall-öncelikli ama OneOCR-körü stilize fontta havuz
+    # boş kalabilir; VL'nin değeri tam da o durumda — ham kareler son şans olarak kalmalı).
+    if os.environ.get("MITAS_VL_USE_GIRIS_POOL", "1").strip().lower() not in ("0", "false", "off", "no"):
+        gj = os.path.join(clip, "frames", "giris_jenerik")
+        if os.path.isdir(gj) and glob.glob(os.path.join(gj, "*.png")):
+            g = gj
     if os.environ.get("MITAS_VL_USE_JENERIK_POOL", "1").strip().lower() not in ("0", "false", "off", "no"):
         if os.path.isdir(cj):
             c = cj
@@ -74,45 +91,182 @@ def _find_frames(clip):
     return (g if g and os.path.isdir(g) else None), (c if c and os.path.isdir(c) else None)
 
 
-def _load_raw_ocr(clip):
+def _load_raw_ocr(clip, ocr_job=""):
     """Jenerik karelerinin HAM OCR metni (ocr_raw_all + ocr_ham + kunye) → VL hayalet-kalkanı korpusu.
     VL pikselden okur; HAM OCR aynı kareleri işledi → gerçek isim ham OCR'da bulunur, yoksa = uydurma
     (2026-06-20 forensik: FOTOĞRAF VL 'JEFF TOWLES' uydurdu, ham OCR'da YOK → kalkan düşürür).
-    Katlanmış boş-olmayan SATIR listesi döndürür (adjacency-aware kalkan için: bütün-isim TEK satırda olmalı)."""
+    Katlanmış boş-olmayan SATIR listesi döndürür (adjacency-aware kalkan için: bütün-isim TEK satırda olmalı).
+
+    A1 RUN-SCOPE (2026-07-03): ocr_job verildiyse yalnız O koşunun job klasörleri okunur — prefix-glob
+    '{ocr_job}*' aynı koşunun '-fb' (sabit-pencere re-OCR) kardeşini de KAPSAR (meşru zenginleştirme,
+    dışlanmamalı). Eski koşuların artıkları korpusa sızmaz. Kapsam hiç dosya bulamazsa TÜM işlere geri
+    düşülür (fail-safe: daraltma boş korpus üretip kalkanı yanlışlıkla devre-dışı bırakmasın).
+
+    A1 MANİFEST KORPUSU (2026-07-03): frames/giris_jenerik_manifest.json 'frames[].credit_lines'
+    satırları korpusa ADDITIVE eklenir. Havuz taraması TÜM giriş karelerini OneOCR ile okur; ana-OCR'ın
+    CLIP-seçiminde elediği karelerdeki GERÇEK piksel-okumaları VL doğrulamasında kaybolmasın
+    (İHTİRAS/Norton kaybı: 'DIRECTED BY Bill L. Norton' kartı CLIP-run filtresine takılmıştı —
+    havuz okumuştu ama korpus onu hiç görmüyordu). İnvariant korunur: korpustaki her satır hâlâ
+    bir OCR motorunun GERÇEK pikselden okuduğu metindir (uydurma kaynağı eklenmez)."""
+    # RUNSCOPE kill-switch (inceleme 2026-07-03): MITAS_VL_CORPUS_RUNSCOPE=0 → ocr_job yok sayılır
+    # ("scoped-ama-fakir" korpus şüphesinde koda dokunmadan eski tüm-işler davranışına dönüş).
+    if os.environ.get("MITAS_VL_CORPUS_RUNSCOPE", "1").strip().lower() in ("0", "false", "off", "no"):
+        ocr_job = ""
+    _clip_esc = glob.escape(clip)        # inceleme 2026-07-03: yol içi [/] glob-metakarakter kaçışı
+    def _collect(job_prefix):
+        found = []
+        for pat in ("ocr_raw_all.txt", "ocr_ham.txt", "kunye.txt"):
+            if job_prefix:
+                found += glob.glob(os.path.join(_clip_esc, "ocr", glob.escape(job_prefix) + "*", "**", pat), recursive=True)
+            else:
+                found += glob.glob(os.path.join(_clip_esc, "ocr", "**", pat), recursive=True)
+        return found
+    files = _collect(ocr_job) if ocr_job else _collect("")
+    if ocr_job and not files:            # fail-safe: scoped korpus boş → eski (tüm-işler) davranışa dön
+        files = _collect("")
     parts = []
-    for pat in ("ocr_raw_all.txt", "ocr_ham.txt", "kunye.txt"):
-        for fp in glob.glob(os.path.join(clip, "ocr", "**", pat), recursive=True):
-            try:
-                parts.append(open(fp, encoding="utf-8", errors="ignore").read())
-            except Exception:  # noqa: BLE001
-                pass
+    for fp in files:
+        try:
+            parts.append(open(fp, encoding="utf-8", errors="ignore").read())
+        except Exception:  # noqa: BLE001
+            pass
     lines = []
     for blob in parts:
         for ln in blob.splitlines():
             f = _fold(ln)
             if f:
                 lines.append(f)
+        lines.append(_CORPUS_SENTINEL)   # dosya sınırı: yapay bitişikliği kes
+    if os.environ.get("MITAS_VL_CORPUS_MANIFEST", "1").strip().lower() not in ("0", "false", "off", "no"):
+        try:
+            mp = os.path.join(clip, "frames", "giris_jenerik_manifest.json")
+            if os.path.isfile(mp):
+                mj = json.load(open(mp, encoding="utf-8", errors="ignore"))
+                for row in (mj.get("frames") or []):
+                    got = False
+                    for t in (row.get("credit_lines") or []):
+                        f = _fold(t)
+                        if f:
+                            lines.append(f)
+                            got = True
+                    if got:
+                        lines.append(_CORPUS_SENTINEL)   # kare sınırı: kareler-arası yapay bitişiklik yok
+        except Exception:  # noqa: BLE001 — manifest bozuksa korpus eski haliyle kalır (fail-safe)
+            pass
     return lines
 
 
 def _in_raw(name, raw_lines):
-    """İsmin TÜM token'ları HAM OCR'da BİTİŞİK + TAM-KELİME (tek satırda, sırayla) geçiyor mu — Frankenstein kalkanı.
+    """Geriye-uyum sarıcı: bkz. _in_raw_detail (True/False)."""
+    return _in_raw_detail(name, raw_lines)[0]
+
+
+def _in_raw_detail(name, raw_lines):
+    """İsim HAM OCR korpusunda geçiyor mu — Frankenstein kalkanı. Döner: (hit, method, kanit_satiri).
+    method ∈ {'exact','fuzzy','crossline','crossline+fuzzy','skip', None}.
+
     KÖK (MANASLU 2026-06-22): eski `all(t in blob)` token'ları AYRI/substring arıyordu → 'HANS-PETER STAUBER'
-    + 'HANNELORE EBNER' ayrı satırlardan 'Hans Ebner' uydurması geçiyordu. Artık tüm isim TEK satırda, sıralı,
-    word-boundary ile aranır (credit_text_read._name_hit_in_raw deseni): bu hem satır-AYRI'yı hem 'hans'∈'hanseatic'
-    substring kaçağını hem stitch-birleşik-satır Frankenstein'ini kapatır. raw yoksa kalkanı atla (FAIL-SAFE).
-    Eski substring davranışı (≥4/≥3 token subset, blob) MITAS_VL_RAW_ADJACENCY=0 ile geri gelir."""
-    if not raw_lines:
-        return True
+    + 'HANNELORE EBNER' ayrı satırlardan 'Hans Ebner' uydurması geçiyordu. Birincil yol hâlâ: tüm isim TEK
+    satırda, sıralı, word-boundary ('exact'). raw yoksa kalkan atlanır (FAIL-SAFE, method='skip').
+    Eski substring davranışı (≥4/≥3 token subset, blob) MITAS_VL_RAW_ADJACENCY=0 ile geri gelir.
+
+    A1 FUZZY (2026-07-03, inceleme-koşullu): OCR-yazım/translit toleransı (CAZCI Chakhnazarov↔Shakhnazarov,
+    NANCY Schneider↔Schaineder canlı kanıt). ASİMETRİK eşik (Opus F-1 koşulu): pencerenin İLK kelimesi
+    ön-adla EXACT eşleşiyorsa eşik=MITAS_VL_RAW_FUZZY_RATIO (0.87), değilse 0.92 — 'atif↔arif yilmaz'
+    (0.909) ve 'steven↔steve spielberg' (0.903) tipi FARKLI-kişi çiftleri bloklanır, gerçek soyad-OCR
+    -bozulması kurtulmaya devam eder. Kısa isim (<8 harf) fuzzy'ye girmez.
+
+    A1-b SATIR-AŞIRI (2026-07-03): dikey kart yerleşimi (CAZCI: 'directed by'/'karen'/'chakhnazarov'
+    üst üste) — ismin sıralı parçaları ARDIŞIK satırların HER BİRİNİN TAMAMINA denk gelmeli; sentinel
+    satırlar dosya/kare sınırında yapay bitişikliği keser."""
+    real_any = any(l != _CORPUS_SENTINEL for l in (raw_lines or []))
+    if not real_any:
+        return True, "skip", None
     toks = _fold(name).split()
     if not toks:
-        return False
+        return False, None, None
     if os.environ.get("MITAS_VL_RAW_ADJACENCY", "1").strip().lower() in ("0", "false", "off", "no"):
         blob = " ".join(raw_lines)               # ESKİ DAVRANIŞ: ≥4/≥3 token subset, tüm metinde AYRI/substring
         sub = [t for t in toks if len(t) >= 4] or [t for t in toks if len(t) >= 3]
-        return bool(sub) and all(t in blob for t in sub)
+        hit = bool(sub) and all(t in blob for t in sub)
+        return hit, ("exact" if hit else None), None
     pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b")   # tüm isim BİTİŞİK + word-boundary
-    return any(pat.search(line) for line in raw_lines)
+    for line in raw_lines:
+        if pat.search(line):
+            return True, "exact", line
+    try:
+        rmin = float(os.environ.get("MITAS_VL_RAW_FUZZY_RATIO", "0.87") or 0.87)
+    except ValueError:
+        rmin = 0.87
+    fuzzy_on = os.environ.get("MITAS_VL_RAW_FUZZY", "1").strip().lower() not in ("0", "false", "off", "no")
+    name_f = " ".join(toks)
+    if fuzzy_on and len(name_f) >= 8:
+        for line in raw_lines:
+            if line == _CORPUS_SENTINEL:
+                continue
+            if _fuzzy_line_hit(toks, name_f, line, rmin):
+                return True, "fuzzy", line
+    # crossline, fuzzy kill-switch'inden BAĞIMSIZ çalışır (inceleme bulgusu: bağlaşma istenmiyor);
+    # fuzzy kapalıysa parça-eşleşmesi yalnız EXACT olur.
+    if os.environ.get("MITAS_VL_RAW_CROSSLINE", "1").strip().lower() in ("0", "false", "off", "no"):
+        return False, None, None
+    hit, used_fuzzy, ev = _cross_line_hit(toks, raw_lines, rmin, fuzzy_on)
+    if hit:
+        return True, ("crossline+fuzzy" if used_fuzzy else "crossline"), ev
+    return False, None, None
+
+
+def _cross_line_hit(toks, raw_lines, rmin, fuzzy_on):
+    """İsmi 2-3 sıralı parçaya böl; her parça ardışık bir korpus satırının TAMAMIYLA (exact; fuzzy_on ise
+    fuzzy≥rmin, uzunluk ön-filtreli) eşleşmeli. Döner: (hit, fuzzy_kullanildi, kanit). Yalnız ≥2 token (A1-b)."""
+    n = len(toks)
+    if n < 2:
+        return False, False, None
+    splits = []
+    for c1 in range(1, n):                           # 2 parça
+        splits.append((" ".join(toks[:c1]), " ".join(toks[c1:])))
+    if n >= 3:
+        for c1 in range(1, n - 1):                   # 3 parça
+            for c2 in range(c1 + 1, n):
+                splits.append((" ".join(toks[:c1]), " ".join(toks[c1:c2]), " ".join(toks[c2:])))
+    def _chunk_eq(chunk, line):
+        if line == _CORPUS_SENTINEL:
+            return None
+        if line == chunk:
+            return "exact"
+        if not fuzzy_on:
+            return None
+        if abs(len(line) - len(chunk)) > max(2, int(0.25 * len(chunk))):
+            return None
+        if difflib.SequenceMatcher(None, chunk, line).ratio() >= rmin:
+            return "fuzzy"
+        return None
+    for chunks in splits:
+        k = len(chunks)
+        for i in range(len(raw_lines) - k + 1):
+            kinds = [_chunk_eq(chunks[j], raw_lines[i + j]) for j in range(k)]
+            if all(kinds):
+                ev = " / ".join(raw_lines[i:i + k])
+                return True, any(x == "fuzzy" for x in kinds), ev
+    return False, False, None
+
+
+def _fuzzy_line_hit(toks, name, line, rmin):
+    """Tek satır içinde, isim-token-sayısı kadar ardışık kelime penceresini isimle fuzzy karşılaştır (A1).
+    Uzunluk ön-filtresi (±%30) gereksiz SequenceMatcher çağrılarını keser. ASİMETRİK eşik: pencere
+    ön-adla exact başlamıyorsa bar max(rmin, 0.92)'ye çıkar (farklı-kişi çiftlerine karşı — Opus F-1)."""
+    words = line.split()
+    n = len(toks)
+    if n == 0 or len(words) < n:
+        return False
+    for i in range(len(words) - n + 1):
+        win = " ".join(words[i:i + n])
+        if abs(len(win) - len(name)) > max(3, int(0.3 * len(name))):
+            continue
+        bar = rmin if words[i] == toks[0] else max(rmin, 0.92)
+        if difflib.SequenceMatcher(None, name, win).ratio() >= bar:
+            return True
+    return False
 
 
 def _vl_one(cv, ctr, giris, cikis, model, kb):
@@ -148,11 +302,12 @@ def _tiebreak(q, g, all_cast_fold, kb):
     return [], "pes(tek-model, mutabakat yok)"
 
 
-def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
+def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_job=""):
     """Metnin boş yönetmenini/eksik cast'ini gemma4 VL ile doldur. Her hata → text_credits AYNEN.
 
     fill_cast=True (QC1-RED yolundan çağrılınca): cast<3 ise gemma4'ün cast'ini de ekle.
     fill_cast=False (eski yol): MITAS_VL_CAST=1 env yoksa sadece yönetmen doldurulur.
+    ocr_job (A1 2026-07-03): aktif OCR koşusunun job-id'si → hayalet-kalkanı korpusu run-scoped olur.
     """
     out = dict(text_credits or {})
     out.setdefault("yonetmen", [])
@@ -181,14 +336,37 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
         yon, vl_cast = _vl_one(cv, ctr, giris, cikis, VL_MODELS[0], kb)
         tcast = out.get("cast") or []
         all_cast_fold = {_fold(x) for x in (tcast + vl_cast)}
-        raw_lines = _load_raw_ocr(clip)   # HAYALET-KALKANI korpusu (ham OCR satır listesi)
+        raw_lines = _load_raw_ocr(clip, ocr_job)   # HAYALET-KALKANI korpusu (run-scoped + manifest, A1)
         # YÖNETMEN: yalnız BOŞSA doldur (metni EZME), cross-cast filtresi
         if not out.get("yonetmen"):
             yon_clean = [y for y in yon if _fold(y) not in all_cast_fold]
             yon_persons = ctr._only_persons(yon_clean)
+            # DoP-DIŞLAMA (2026-07-03): metin-yolundaki deterministik yönetmen-dışı-rol süzgeci VL
+            # yoluna da bağlandı — VL prompt'u DoP'yi dışla dese de model yönetmen bulamayınca görüntü
+            # yönetmenini önerebiliyor; ham-OCR bağlam kontrolü (etiket ±1 satır) bunu keser.
+            try:
+                _real_lines = [l for l in raw_lines if l != _CORPUS_SENTINEL]
+                yon_persons, _dop_dropped = ctr._drop_dubbing_directors(yon_persons, _real_lines)
+                if _dop_dropped:
+                    out["vl_yon_dop_dropped"] = _dop_dropped
+                    dbg.emit("vl_fallback", "candidate_dropped", status="warn",
+                             subject={"field": "yonetmen", "before": yon_persons + _dop_dropped,
+                                      "after": yon_persons,
+                                      "reason": "VL director matched a non-director role label context"},
+                             evidence={"dropped": _dop_dropped},
+                             source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
+            except Exception:  # noqa: BLE001 — süzgeç hatası doldurmayı bozmasın (fail-safe)
+                pass
             # HAYALET-KALKANI: VL pikselden UYDURMUŞ olabilir → ham OCR'da geçmeyen yönetmeni DÜŞÜR
             # (okunamadı > yanlış; yönetmen=kimlik çapası). FOTOĞRAF 'JEFF TOWLES' tipi uydurma kesilir.
-            _yon_corr = [y for y in yon_persons if _in_raw(y, raw_lines)]
+            # İnceleme-koşulu (2026-07-03): eşleşme YÖNTEMİ kaydedilir — fuzzy/crossline yoluyla dolan
+            # yönetmen exact'ten AYIRT EDİLİR; pipeline fuzzy-dolumu KONTROL'e işaretler (sessiz-ONAYLI yok).
+            _yon_corr, _yon_methods = [], {}
+            for y in yon_persons:
+                _hit, _method, _ev = _in_raw_detail(y, raw_lines)
+                if _hit:
+                    _yon_corr.append(y)
+                    _yon_methods[y] = {"method": _method, "kanit": (_ev or "")[:160]}
             if _yon_corr != yon_persons:
                 out["vl_yon_hallucinated"] = [y for y in yon_persons if y not in _yon_corr]
                 dbg.emit("vl_fallback", "candidate_dropped", status="warn",
@@ -198,7 +376,14 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
                          source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
             if _yon_corr:
                 out["yonetmen"] = _yon_corr
-                out["vl_yon_kaynak"] = "gemma4"
+                _mset = {m["method"] for m in _yon_methods.values() if m.get("method")}
+                _suffix = ""
+                if any("fuzzy" in m for m in _mset):
+                    _suffix = "+fuzzy"
+                elif "crossline" in _mset:
+                    _suffix = "+crossline"
+                out["vl_yon_kaynak"] = "gemma4" + _suffix
+                out["vl_yon_eslesme"] = _yon_methods
         # CAST-supplement: fill_cast=True (QC1-RED) veya MITAS_VL_CAST=1 env.
         # QC1-RED yolunda metin-OCR cast<3 zaten doğrulandı → gemma4 cast dene.
         _fill = fill_cast or os.environ.get("MITAS_VL_CAST", "0").strip().lower() in ("1", "true", "on", "yes")
@@ -211,6 +396,9 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False):
             _add_corr = [nm for nm in add if _in_raw(nm, raw_lines)]
             if len(_add_corr) != len(add):
                 out["vl_cast_hallucinated"] = len(add) - len(_add_corr)
+                # A0 (2026-07-03): düşen cast adaylarının İSİMLERİ de kaydedilir (insan-yüzeyleme;
+                # sayı tek başına denetçiye hiçbir şey söylemiyordu). Additive — eski alan korunur.
+                out["vl_cast_hallucinated_names"] = [nm for nm in add if nm not in _add_corr]
                 dbg.emit("vl_fallback", "candidate_dropped", status="warn",
                          subject={"field": "cast", "before": add, "after": _add_corr,
                                   "reason": "VL cast candidate not found in raw OCR corpus"},
@@ -251,12 +439,13 @@ def main():
     ap.add_argument("--profile", default="film")
     ap.add_argument("--text-credits", default="{}", help="metin künye-okuma JSON (qwen3 sonucu)")
     ap.add_argument("--fill-cast", action="store_true", help="QC1-RED yolu: cast<3 ise gemma4 cast'ini de ekle")
+    ap.add_argument("--ocr-job", default="", help="aktif OCR job-id (A1: kalkan korpusunu bu koşuya sınırla; boş=eski davranış)")
     a = ap.parse_args()
     try:
         tc = json.loads(a.text_credits)
     except Exception:
         tc = {}
-    res = vl_fallback(a.clip, a.title, tc, a.profile, fill_cast=a.fill_cast)
+    res = vl_fallback(a.clip, a.title, tc, a.profile, fill_cast=a.fill_cast, ocr_job=a.ocr_job)
     print(json.dumps(res, ensure_ascii=False))
 
 

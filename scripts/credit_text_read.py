@@ -232,9 +232,21 @@ _NONFILM_MARKERS = (
     "ayudante", "asistente", "assistente",                             # asistan (ES/IT/PT)
     "music direct", "muzik yon", "art direct", "casting direct", "technical direct",  # X-yönetmeni
     "director of photo", "director de foto", "directeur de la photo", "goruntu yon",
+    # DoP-fix (2026-07-03): eksik görüntü-yönetmeni varyantları — EN "cinematography by",
+    # IT "direttore della fotografia". ("kamera" tek başına EKLENMEDİ: masum komşulukta
+    # gerçek yönetmeni düşürme riski; canlı tarama gerekçe gösterirse ayrıca değerlendirilir.)
+    "cinematograph", "della fotografia",
     "production assistant", "production manager", "asistentes de produc", "ayudante de direc",
     "yapim asistan", "yapim sorumlu", "yapim koordinator",             # yapım rolleri
 )
+
+# GERÇEK-YÖNETMEN bağışıklık desenleri (DoP-fix 2026-07-03): adayın KENDİ ya da 2-üst satırında
+# bu desenlerden biri varsa aday marker'la DÜŞÜRÜLMEZ (etiket-üstte klasik yerleşim korunur).
+# Word-boundary: 'yonetmen' ∌ 'goruntu yonetmeni' ('yonetmeni' eki boundary'yi bozar), 'regie' ∌
+# 'regieassistenz'. Liste bilinçli DAR: yalnız tek-anlamlı film-yönetmeni ifadeleri.
+_TRUE_DIR_RE = re.compile(
+    r"\b(directed by|a film by|film by|un film de|ein film von|film von|realise par|realisateur|"
+    r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie)\b")
 
 
 def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
@@ -259,10 +271,17 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
             _df_re = re.compile(r"\b" + re.escape(df) + r"\b")
             for i, lf in enumerate(folded):
                 if _df_re.search(lf):
-                    ctx = " ".join(folded[max(0, i - 1):i + 1])
+                    # DoP-fix (2026-07-03): '±1' niyetli dilim fiilen [i-1, i] idi — SONRAKİ satır hiç
+                    # görülmüyordu; "İSİM üstte / DIRECTOR OF PHOTOGRAPHY altta" yerleşimi sızıyordu.
+                    # Pencere [i-1, i+1]'e genişletildi. REGRESYON KALKANI: adayın kendi/2-üst satırında
+                    # GERÇEK-yönetmen etiketi (_TRUE_DIR_RE) varsa DÜŞÜRME — "DIRECTED BY X" hemen ardından
+                    # DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte yerleşim).
+                    ctx = " ".join(folded[max(0, i - 1):i + 2])
                     if any(m in ctx for m in markers):
-                        is_nf = True
-                        break
+                        imm = " ".join(folded[max(0, i - 2):i + 1])
+                        if not _TRUE_DIR_RE.search(imm):
+                            is_nf = True
+                            break
         (dropped if is_nf else kept).append(d)
     return kept, dropped
 
