@@ -236,6 +236,11 @@ _NONFILM_MARKERS = (
     # IT "direttore della fotografia". ("kamera" tek başına EKLENMEDİ: masum komşulukta
     # gerçek yönetmeni düşürme riski; canlı tarama gerekçe gösterirse ayrıca değerlendirilir.)
     "cinematograph", "della fotografia",
+    # Yaratıcı-etiket ailesi (dolu-yönetmen doğruluk-denetimi 2026-07-03, HALIFAX kanıtı):
+    # dizi/franchise kartı "Devised by ROGER SIMPSON" bölüm-yönetmeni sanıldı (gerçek yönetmen
+    # Lynn Hegarty ekranda hiç yoktu). "created by/creator" aynı sınıf (seri/karakter yaratıcısı
+    # ≠ bölüm yönetmeni). Word-değil substring eşleşme olduğundan "series created by"yi de kapsar.
+    "devised by", "created by", "creator",
     "production assistant", "production manager", "asistentes de produc", "ayudante de direc",
     "yapim asistan", "yapim sorumlu", "yapim koordinator",             # yapım rolleri
 )
@@ -246,7 +251,8 @@ _NONFILM_MARKERS = (
 # 'regieassistenz'. Liste bilinçli DAR: yalnız tek-anlamlı film-yönetmeni ifadeleri.
 _TRUE_DIR_RE = re.compile(
     r"\b(directed by|a film by|film by|un film de|ein film von|film von|realise par|realisateur|"
-    r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie)\b")
+    r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie|"
+    r"written and directed|directed and edited|produced and directed)\b")   # bileşik etiketler (AJAMİ 2026-07-03)
 
 
 def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
@@ -305,9 +311,11 @@ KESİN KURALLAR:
 1. SADECE aşağıdaki satırlarda GEÇEN isimleri kullan. Kendi bilginden/hafızandan İSİM EKLEME, TAHMİN ETME. Bir alan satırlarda yoksa boş liste [] ver.
 2. Bir satır "KARAKTER_ADI OYUNCU_ADI" biçimindeyse (ör. "CAL MORSE SAM WATERSTON", "FLETCHER REEDE JIM CARREY", "MARGARET THATCHER MERYL STREEP"), yalnız OYUNCU (gerçek kişi) adını al; KARAKTER adını KOYMA. Tek başına KARAKTER/ROL adı görünüyorsa (ör. yalnız "FLETCHER REEDE" veya "MARGARET THATCHER") onu LİSTEYE KOYMA — sadece gerçek oyuncu adlarını ver.
 3. Rol etiketleri (DIRECTED BY, PRODUCED BY, YÖNETMEN, YAPIMCI, CAST, STARRING, THE END, MUSIC BY, WRITTEN BY...) ve şirket/kurum adları (FILM, FILMS, PRODUCTION, PICTURES, STUDIO, MEDIA, TV) İSİM DEĞİLDİR — listeye koyma.
-4. YÖNETMEN — şu kalıplardan birinin YANINDAKİ/ALTINDAKİ GERÇEK kişi adı:
+4. YÖNETMEN — şu kalıpların birinin YANINDAKİ/ALTINDAKİ GERÇEK kişi adı:
    - "DIRECTED BY <İSİM>", "A FILM BY <İSİM>", "A <İSİM> FILM" (ör. "A JOHN MCTIERNAN FILM" → John McTiernan), "AN <İSİM> FILM"
    - "YÖNETMEN", "YÖNETEN", "REJİSÖR", "UN FILM DE", "EIN FILM VON", "REGIE", "RÉALISÉ PAR"
+   - Bileşik etiketler de yönetmen kartıdır: "WRITTEN AND DIRECTED BY", "WRITTEN, DIRECTED AND EDITED BY", "PRODUCED AND DIRECTED BY" — bu kartlardaki kişi(ler) YÖNETMENdir.
+   Etiketin yanında BİRDEN FAZLA isim varsa (ör. "Directed by A, B" / "Written, Directed and Edited by Scandar Copti, Yaron Shani") HEPSİNİ yaz — iki eş-yönetmen normaldir, TEKE İNDİRME.
    "A <İSİM> FILM" kalıbında "FILM" kelimesi ETİKETtir; içindeki KİŞİ adını AL (kural 3'e takılıp atlama).
    YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.

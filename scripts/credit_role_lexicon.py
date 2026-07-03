@@ -31,6 +31,9 @@ DIRECTOR = [
     "YONETMEN", "YONETEN", "REJISOR", "YONETMENI",
     # EN
     "DIRECTED BY", "A FILM BY", "FILM BY", "DIRECTOR", "DIRECTION",
+    # Bileşik etiketler (AJAMİ doğruluk-denetimi 2026-07-03: "Written, Directed and Edited by
+    # Scandar Copti, Yaron Shani" kartından eş-yönetmen düşmüştü)
+    "WRITTEN AND DIRECTED", "DIRECTED AND EDITED", "PRODUCED AND DIRECTED", "WRITTEN, DIRECTED",
     # FR
     "REALISE PAR", "REALISATION", "REALISATEUR", "UN FILM DE", "MISE EN SCENE",
     "DIRIGE PAR",   # 117-film taraması 2026-07-03: ŞEYTAN RUHLU İNSANLAR (LES DIABOLIQUES) kanıtı
