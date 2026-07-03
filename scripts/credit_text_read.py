@@ -259,6 +259,56 @@ _TRUE_DIR_RE = re.compile(
     r"written and directed|directed and edited|produced and directed)\b")   # bileşik etiketler (AJAMİ 2026-07-03)
 
 
+def _name_line_hits(name, folded_lines):
+    """İsim kaç satırda TEK-SATIR-BİTİŞİK (word-boundary, sıralı) geçiyor — ekran-kanıt sayacı."""
+    toks = _fold(name).split()
+    if not toks:
+        return 0
+    pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b")
+    return sum(1 for l in folded_lines if pat.search(l))
+
+
+def _collapse_clone_variants(names, raw_lines, kb):
+    """KLON-İKİZ ÇÖKERTME (2026-07-04): fuzzy-yakın isim çiftlerinde kanıt-öncelikli eleme.
+    (a) tek taraf ekran-kanıtlı → kanıtsız düşer (AJAMİ Rupert/Robert Preston);
+    (b) iki taraf kanıtlı + ikisi de KB'de kişi değil → teke çök (BJ tabela-ikizi);
+    (c) ikisi de KB-gerçek → dokunma (Brolin/Carradine). Fail-safe: hata → liste AYNEN.
+    Kill-switch: MITAS_CLONE_COLLAPSE=0."""
+    if os.environ.get("MITAS_CLONE_COLLAPSE", "1").strip().lower() in ("0", "false", "off", "no"):
+        return names
+    try:
+        if not names or len(names) < 2 or not raw_lines:
+            return names
+        folded_lines = [_fold(str(l)) for l in raw_lines if str(l).strip()]
+        import difflib as _dl
+        drop = set()
+        for i in range(len(names)):
+            for j in range(i + 1, len(names)):
+                a, b = names[i], names[j]
+                fa, fb = _fold(a), _fold(b)
+                if len(fa.split()) != len(fb.split()):
+                    continue                       # token sayısı farklı (Jr. ekleri vb.) → dokunma
+                if _dl.SequenceMatcher(None, fa, fb).ratio() < 0.75:
+                    continue
+                ha, hb = _name_line_hits(a, folded_lines), _name_line_hits(b, folded_lines)
+                if (ha > 0) != (hb > 0):           # (a) yalnız biri kanıtlı → klon-fabrikasyon
+                    drop.add(b if ha > 0 else a)
+                    continue
+                if ha > 0 and hb > 0 and kb is not None:   # (b) ikisi de kanıtlı → KB kişi-varlık
+                    try:
+                        ka = kb.verify(a, "actor") == "ONAY" or kb.verify(a, "person") == "ONAY"
+                        kv = kb.verify(b, "actor") == "ONAY" or kb.verify(b, "person") == "ONAY"
+                    except Exception:  # noqa: BLE001 — KB sorgusu patlarsa çift korunur
+                        continue
+                    if not ka and not kv:          # ikisi de KB'de yok → garble-ikiz, zayıfı at
+                        drop.add(b if ha >= hb else a)
+        if drop:
+            sys.stderr.write(f"[klon-ikiz] düştü: {sorted(drop)}\n")
+        return [n for n in names if n not in drop]
+    except Exception:  # noqa: BLE001 — çökertme ASLA listeyi bozmaz
+        return names
+
+
 def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
     """YÖNETMEN-DIŞI ROL DIŞLAMA (Çağatay 2026-06-20): ham OCR'da yönetmen adayının ±2 satır bağlamında
     YÖNETMEN-DIŞI rol etiketi (dublaj/asistan-yön/yapım-asistanı/X-yönetmeni...) varsa → DÜŞ (deterministik,
@@ -336,7 +386,7 @@ KESİN KURALLAR:
    YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.
 5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla __CAP__, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
-6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29
+6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı / Uygulayıcı Yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29; Uygulayıcı=AYNADAKİ DÜŞMAN 2026-07-04
 
 ÇIKTI: yalnız JSON:
 {"_reasoning": "<her satırı kısaca etiketle: YÖNETMEN / YAPIMCI / OYUNCU / EKİP-DİĞER>", "yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
@@ -1418,6 +1468,18 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     yap_merged = _dedup_fold(all_yap)
     yap_garble = _apply_garble_gate_yapimci(yap_merged)
     yap_kb = _apply_kb_yapimci_filter(yap_garble, kb)
+
+    # ── KLON-İKİZ ÇÖKERTME (cast+yapımcı doğruluk-denetimi 2026-07-04) ───────
+    # AJAMİ: LLM, OCR'daki 'Rupert Preston'dan hem Rupert hem 'Robert Preston' üretti (klon-
+    # fabrikasyon; _guard geçirdi çünkü 'robert' tokeni korpusta başka satırda vardı).
+    # BJ VE AYI: kamyon-kapısı rekvizit yazısı iki OCR-varyantıyla ('BILLIE ICE MIKAU' /
+    # 'BILLIE JOE MKAY') iki AYRI oyuncu olarak girdi. Kural KANIT-öncelikli (saf benzerlik
+    # eşiği YETMEZ: Brolin baba-oğul 0.783 > BJ-çifti 0.774): fuzzy-yakın çiftte
+    #   (a) yalnız biri tek-satır-bitişik ekran-kanıtlıysa → kanıtsız DÜŞER;
+    #   (b) ikisi de kanıtlı ama ikisi de KB'de kişi DEĞİLSE → garble-ikiz, teke çöker;
+    #   (c) ikisi de KB-gerçekse → DOKUNULMAZ (Carradine/Brolin aileleri korunur).
+    cast_kb = _collapse_clone_variants(cast_kb, raw_context_lines, kb)
+    yap_kb = _collapse_clone_variants(yap_kb, raw_context_lines, kb)
 
     # ── Güven skoru ──────────────────────────────────────────────────────────
     if cast_kb or yon_fused:
