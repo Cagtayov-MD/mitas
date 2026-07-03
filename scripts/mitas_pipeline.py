@@ -2067,6 +2067,37 @@ def main(argv=None) -> int:
     _vc_off = os.environ.get("MITAS_NO_VIDEO_CREDITS", "").strip().lower() in ("1", "true", "yes", "on")
     USE_VIDEO_CREDITS = not _vc_off
     video_credits = None
+    # LLM-PREFLIGHT (2026-07-03): ollama'da üretim modelleri VAR MI? KANIT: F: diski değişince
+    # OLLAMA_MODELS boş birime baktı → rol-eşleme/VL/GLM/qwen-QC SESSİZCE öldü, filmler LLM'siz
+    # "yönetmen okunamadı" ile KONTROL'e aktı (03.07.2026 sabahı canlı yaşandı, saatlerce fark
+    # edilmedi). Bu bekçi durumu GÖRÜNÜR kılar: error-event + karara "LLM katmanı çalışmadı"
+    # gerekçesi. FAIL-SAFE: probe hatası (ollama kapalı dahil) aynı şekilde işaretlenir ama
+    # pipeline'ı ASLA durdurmaz.
+    _llm_dead = False
+    if USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi"):
+        try:
+            _oll = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434").rstrip("/")
+            _probe_model = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat-vision:latest")
+            _req = urllib.request.Request(_oll + "/api/show",
+                                          data=json.dumps({"name": _probe_model}).encode("utf-8"),
+                                          headers={"Content-Type": "application/json"})
+            try:
+                with urllib.request.urlopen(_req, timeout=10):
+                    pass
+            except urllib.error.HTTPError as _he:
+                if _he.code == 404:
+                    _llm_dead = True
+            except Exception:  # noqa: BLE001 — sunucu kapalı/timeout: LLM katmanı yine kullanılamaz
+                _llm_dead = True
+            if _llm_dead:
+                log_event("llm_preflight_failed", level="error",
+                          summary=f"{video.name}: LLM preflight BAŞARISIZ — ollama'da '{_probe_model}' yok "
+                                  f"(OLLAMA_MODELS deposu boş/kopuk olabilir; F:-disk-değişimi vakası). "
+                                  f"Künye LLM'siz, eksik çıkacak.",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "ollama": _oll, "model": _probe_model})
+        except Exception:  # noqa: BLE001 — preflight'ın kendisi ASLA pipeline'ı bozmaz
+            _llm_dead = False
     if USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi"):
         t_vc = time.perf_counter()
         try:
@@ -2513,6 +2544,10 @@ def main(argv=None) -> int:
 
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []
+    # LLM-PREFLIGHT sonucu (2026-07-03): model deposu kopuksa film GÖRÜNÜR işaretlenir — böyle bir
+    # film "yönetmen okunamadı" ile karışmaz; disk/depo onarılınca yeniden koşulması gerektiği bellidir.
+    if _llm_dead:
+        reasons.append("LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı)")
     _person_gate_report = {}
     # SES-DİL KAPISI (Çağatay 2026-06-20): ses/dil/ASR sorunu KÜNYE sorunu DEĞİL → tek başına KONTROL'e
     # YOLLAMAZ (özet'i Çağatay ayrı ele alır). Default KAPALI; MITAS_SES_DIL_KONTROL=1 ile geri açılır.
