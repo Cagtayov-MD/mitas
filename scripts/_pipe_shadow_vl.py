@@ -9,7 +9,7 @@ Env değişkenleri:
     MITAS_SHADOW_VL_TILE   scroll dilim yüksekliği (varsayılan 1400)
     MITAS_SHADOW_VL_OV     dilim örtüşme miktarı   (varsayılan 150)
     MITAS_SHADOW_VL_CAP    havuz görüntü üst sınırı (varsayılan 30)
-    MITAS_SHADOW_VL_MODEL  gemma modeli             (varsayılan gemma4:26b)
+    MITAS_SHADOW_VL_MODEL  VL okuyucu modeli        (varsayılan glm-ocr:latest; gemma4:26b ile de çalışır)
 """
 
 from __future__ import annotations

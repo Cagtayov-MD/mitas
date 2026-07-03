@@ -9,7 +9,8 @@ Qwen girdisi `kunye.txt` değil, mümkünse daha az kayıplı `ocr_ham.txt` olur
 kaçak filtreleri Qwen SONRASINDA uygulanır.
 
 Çıktı (tek-satır JSON, _pipe_credit_video ile AYNI): {"yonetmen":[],"yapimci":[],"cast":[],"guven":...}
-Model zinciri: MITAS_CREDIT_TEXT_MODEL override → yoksa DeepSeek (anahtar varsa) → qwen3:8b (yerel fallback).
+Model zinciri: MITAS_CREDIT_TEXT_MODEL override → yoksa TEK model gemma-4-31b-it-qat-vision:latest
+(bkz credit_text_read.model_chain; DeepSeek yalnız opt-in: MITAS_CREDIT_TEXT_MODEL=deepseek-chat).
 ASLA çökmez (ocr yok / ollama kapalı / hata → guven=OKUNAMADI).
 """
 import argparse

@@ -49,7 +49,9 @@ from _ollama import ollama_chat as _ollama_chat  # noqa: E402  merkezi retry/tim
 # ------------------------- yapilandirma -------------------------
 OLLAMA_HOST = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
 OLLAMA_CHAT = OLLAMA_HOST + "/api/chat"  # geriye-donuk uyum (ollama_up'ta kullanilmaz)
-MODELS = os.environ.get("MITAS_CREDIT_MODELS", "gemma4:26b,qwen2.5vl:7b").split(",")
+# 2026-07-04: qwen2.5vl:7b olu-default'tan cikarildi — production (_pipe_credit_vl) modeli zaten
+# acikca gecer (gemma4:26b); ensemble istenirse MITAS_CREDIT_MODELS env ile geri gelir.
+MODELS = os.environ.get("MITAS_CREDIT_MODELS", "gemma4:26b").split(",")
 IMDB_DUCKDB = os.environ.get("MITAS_IMDB_DUCKDB", r"Y:\DIGER\Mitas_Files\IMDB\db\imdb.duckdb")
 
 BUDGET = 36          # segment basina VLM'e gidecek kare sayisi
