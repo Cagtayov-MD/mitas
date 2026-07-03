@@ -333,7 +333,7 @@ def _tiebreak(q, g, all_cast_fold, kb):
     # diğeri abstain) → KB-genel-onay YETMEZ (Kar Kraliçesi→"Chris Randall" sızıntısı buydu):
     # mutabakat yok + tek-model → Kontrol. "yanlış > boş".
     if len(cands) >= 2:
-        kb_ok = [y for y in cands if kb.verify(y, "director") == "ONAY"]
+        kb_ok = [y for y in cands if ctr._kb_verify_flex(kb, y, "director") == "ONAY"]  # başharf-toleranslı (2026-07-04)
         if len(kb_ok) == 1:
             return kb_ok, "kb-tiebreak"
         return [], "pes(coklu-kb/belirsiz)"

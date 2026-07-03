@@ -902,6 +902,26 @@ def _dedup_fold(seq: list[str]) -> list[str]:
     return out
 
 
+def _kb_verify_flex(kb, name, role):
+    """kb.verify + ORTA-AD-BAŞHARFİ toleransı (İHTİRAS canlı smoke 2026-07-04: LLM 'Bill L. Norton'
+    doğru okudu, kb.verify('Bill L. Norton')=kayit-yok ama kb.verify('Bill Norton')=ONAY —
+    tek-harf ara-token KB eşleşmesini kırıyor, füzyon tek-okumayı KB-onaysız diye düşürüyordu).
+    Birincil ad AYNEN denenir; ONAY değilse ve isimde tek-harf ara-token varsa (ilk+son korunarak)
+    ara-başharfler atılıp yeniden denenir. FAIL-SAFE: hata → birincil sonuç/'hata' döner."""
+    try:
+        r = kb.verify(name, role)
+        if r == "ONAY":
+            return r
+        toks = [t for t in str(name).split() if t.strip()]
+        if len(toks) >= 3:
+            kisa = " ".join([toks[0]] + [t for t in toks[1:-1] if len(t.strip(". ")) > 1] + [toks[-1]])
+            if kisa != name and kb.verify(kisa, role) == "ONAY":
+                return "ONAY"
+        return r
+    except Exception:  # noqa: BLE001
+        return "hata"
+
+
 def _fuse_yonetmen(per_model: dict[str, list[str]], kb) -> tuple[list[str], str]:
     """
     Tüm modellerin yönetmen adaylarını birleştir:
@@ -928,11 +948,11 @@ def _fuse_yonetmen(per_model: dict[str, list[str]], kb) -> tuple[list[str], str]
                      if any(_fold(n) == _fold(x) for x in lst)) >= 2]
     if agreed:
         # KB-RED olanları çıkar
-        agreed_ok = [n for n in agreed if kb.verify(n, "director") != "RED"]
+        agreed_ok = [n for n in agreed if _kb_verify_flex(kb, n, "director") != "RED"]
         return (agreed_ok or agreed), "YÜKSEK (mutabakat)"
 
     # Tek model veya çelişki: KB-ONAY olanı seç
-    kb_ok = [n for n in all_flat if kb.verify(n, "director") == "ONAY"]
+    kb_ok = [n for n in all_flat if _kb_verify_flex(kb, n, "director") == "ONAY"]  # başharf-toleranslı (İHTİRAS 2026-07-04)
     if kb_ok:
         return kb_ok, "ORTA (KB-onay)"
 
