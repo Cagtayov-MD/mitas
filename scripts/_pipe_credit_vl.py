@@ -302,12 +302,14 @@ def _tiebreak(q, g, all_cast_fold, kb):
     return [], "pes(tek-model, mutabakat yok)"
 
 
-def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_job=""):
+def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_job="",
+                original="", year=""):
     """Metnin boş yönetmenini/eksik cast'ini gemma4 VL ile doldur. Her hata → text_credits AYNEN.
 
     fill_cast=True (QC1-RED yolundan çağrılınca): cast<3 ise gemma4'ün cast'ini de ekle.
     fill_cast=False (eski yol): MITAS_VL_CAST=1 env yoksa sadece yönetmen doldurulur.
     ocr_job (A1 2026-07-03): aktif OCR koşusunun job-id'si → hayalet-kalkanı korpusu run-scoped olur.
+    original/year (A2 2026-07-03): ÇAPA-1 KB film-kimlik kilidi için orijinal ad + TRT katalog yılı.
     """
     out = dict(text_credits or {})
     out.setdefault("yonetmen", [])
@@ -367,6 +369,35 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_
                 if _hit:
                     _yon_corr.append(y)
                     _yon_methods[y] = {"method": _method, "kanit": (_ev or "")[:160]}
+            # A2 ÇAPA-1 (2026-07-03): korpus TAMAMEN kör kaldıysa (hiç teyit yok) son şans —
+            # KB film-kimlik kilidi: VL adayı + başlık(TR/orijinal)+yıl → KB'de bu yönetmenin
+            # bu filmi VAR mı (credit_qc_gates.web_identity ÇAPA-1; method=='director' ŞART —
+            # ÇAPA-2/tmdb title+year kilidi versiyon-teyitsizdir, ASLA kabul edilmez).
+            # Genel-KB-onay ("bu isim bir yönetmen") YETMEZ (Kar Kraliçesi dersi); burada
+            # film-özgül eşleşme aranır. Kabul edilen dolum pipeline'da yine KONTROL'e işaretlenir
+            # (shadow-dönemi: sessiz-ONAYLI yok). Kill-switch: MITAS_VL_KB_ANCHOR=0.
+            _uncorr = [y for y in yon_persons if y not in _yon_corr]
+            if (_uncorr and not _yon_corr
+                    and os.environ.get("MITAS_VL_KB_ANCHOR", "1").strip().lower() not in ("0", "false", "off", "no")):
+                try:
+                    import credit_qc_gates as qcg
+                    import credit_crosscheck as cc2
+                    _ckb = cc2.CreditKB()
+                    for y in _uncorr:
+                        wi = qcg.web_identity(title or "", original or "", year or "", y, "", _ckb) or {}
+                        if wi.get("locked") and wi.get("method") == "director":
+                            _yon_corr = [y]
+                            _yon_methods[y] = {"method": "kb-anchor",
+                                               "kanit": str(wi.get("kaynak_izi") or "")[:200]}
+                            dbg.emit("vl_fallback", "candidate_dropped", status="ok",
+                                     subject={"field": "yonetmen", "before": _uncorr, "after": [y],
+                                              "reason": "VL director corroborated via KB film-identity anchor"},
+                                     evidence={"kaynak_izi": wi.get("kaynak_izi"),
+                                               "imdb_id": wi.get("imdb_id")},
+                                     source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
+                            break
+                except Exception:  # noqa: BLE001 — KB yoksa/ağ koptuysa ÇAPA-1 sessizce atlanır
+                    pass
             if _yon_corr != yon_persons:
                 out["vl_yon_hallucinated"] = [y for y in yon_persons if y not in _yon_corr]
                 dbg.emit("vl_fallback", "candidate_dropped", status="warn",
@@ -378,7 +409,9 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_
                 out["yonetmen"] = _yon_corr
                 _mset = {m["method"] for m in _yon_methods.values() if m.get("method")}
                 _suffix = ""
-                if any("fuzzy" in m for m in _mset):
+                if "kb-anchor" in _mset:
+                    _suffix = "+kb-anchor"
+                elif any("fuzzy" in m for m in _mset):
                     _suffix = "+fuzzy"
                 elif "crossline" in _mset:
                     _suffix = "+crossline"
@@ -440,12 +473,15 @@ def main():
     ap.add_argument("--text-credits", default="{}", help="metin künye-okuma JSON (qwen3 sonucu)")
     ap.add_argument("--fill-cast", action="store_true", help="QC1-RED yolu: cast<3 ise gemma4 cast'ini de ekle")
     ap.add_argument("--ocr-job", default="", help="aktif OCR job-id (A1: kalkan korpusunu bu koşuya sınırla; boş=eski davranış)")
+    ap.add_argument("--original", default="", help="orijinal (yabancı) film adı — A2 ÇAPA-1 KB araması için")
+    ap.add_argument("--year", default="", help="TRT katalog yılı — A2 ÇAPA-1 yıl toleransı (±3) için")
     a = ap.parse_args()
     try:
         tc = json.loads(a.text_credits)
     except Exception:
         tc = {}
-    res = vl_fallback(a.clip, a.title, tc, a.profile, fill_cast=a.fill_cast, ocr_job=a.ocr_job)
+    res = vl_fallback(a.clip, a.title, tc, a.profile, fill_cast=a.fill_cast, ocr_job=a.ocr_job,
+                      original=a.original, year=a.year)
     print(json.dumps(res, ensure_ascii=False))
 
 

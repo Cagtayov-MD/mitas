@@ -2128,6 +2128,8 @@ def main(argv=None) -> int:
                 vl_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_vl.py"), "--clip", str(clip_dir),
                           "--title", title or "", "--profile", profile, "--fill-cast",
                           "--ocr-job", ocr_job,   # A1 (2026-07-03): kalkan korpusu bu koşuya (+ '-fb' kardeşi) sınırlı
+                          "--original", original or "",             # A2: ÇAPA-1 KB film-kimlik araması
+                          "--year", (trt.split("-")[0] if trt else ""),
                           "--text-credits", json.dumps(video_credits, ensure_ascii=False)]
                 rc_vl, out_vl, err_vl = run(vl_cmd, timeout=VL_TIMEOUT)
                 _merged = last_json(out_vl)
@@ -2627,12 +2629,14 @@ def main(argv=None) -> int:
                                                + ", ".join(dict.fromkeys(str(x) for x in _vl_aday))[:120])
                     except Exception:  # noqa: BLE001 — yüzeyleme ASLA kararı bozmaz
                         pass
-                elif isinstance(video_credits, dict) and "fuzzy" in str(video_credits.get("vl_yon_kaynak") or ""):
-                    # İnceleme-koşulu (2026-07-03, Fable-1/Opus-F1): fuzzy/yazım-varyant korpus-eşleşmesiyle
-                    # dolan VL-yönetmen ASLA sessizce ONAYLI'ya gidemez — isim PDF'te kalır (insan hızla
-                    # teyit eder) ama film KONTROL'e işaretlenir. exact/crossline(kart-istifi) bu bendin
-                    # DIŞINDADIR (güçlü kanıt). 'atif↔arif yilmaz' sınıfı tek-harf çiftlere sigorta.
-                    reasons.append("yönetmen VL+yazım-varyant eşleşmesiyle doldu (fuzzy korpus-teyidi — insan teyidi)")
+                elif isinstance(video_credits, dict) and any(
+                        t in str(video_credits.get("vl_yon_kaynak") or "") for t in ("fuzzy", "kb-anchor")):
+                    # İnceleme-koşulu (2026-07-03, Fable-1/Opus-F1): fuzzy/yazım-varyant VEYA kb-anchor
+                    # (A2 shadow-dönemi) yoluyla dolan VL-yönetmen ASLA sessizce ONAYLI'ya gidemez —
+                    # isim PDF'te kalır (insan hızla teyit eder) ama film KONTROL'e işaretlenir.
+                    # exact/crossline(kart-istifi) bu bendin DIŞINDADIR (güçlü kanıt).
+                    _vlk = str(video_credits.get("vl_yon_kaynak") or "")
+                    reasons.append(f"yönetmen VL-dolumu ({_vlk.split('+', 1)[-1]} teyidi — insan onayı bekler)")
                 elif len(_v4_yon) > 2:
                     # A-2: tek/çift yönetmen normal; 3+ isim = crew karışması şüphesi → insan baksın
                     reasons.append(f"yönetmen listesi şüpheli ({len(_v4_yon)} isim — crew karışması olası)")
