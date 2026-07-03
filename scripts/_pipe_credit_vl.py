@@ -34,7 +34,9 @@ _VL_PROMPT = (
     "YÖNETMEN: şu kalıpların YANINDAKİ/ALTINDAKİ KİŞİ adı: 'DIRECTED BY', 'A <İSİM> FILM' "
     "(ör. 'A JOHN McTIERNAN FILM' -> John McTiernan), 'A FILM BY', 'YÖNETMEN', 'YÖNETEN', "
     "'REJİSÖR', 'UN FILM DE', 'EIN FILM VON', 'REGIE', 'RÉALISÉ PAR'. "
-    "'ASSISTANT DIRECTOR / DIRECTOR OF PHOTOGRAPHY / ART DIRECTOR / MUSIC' YÖNETMEN DEĞİLDİR. Net değilse 'yok'.\n"
+    "'ASSISTANT DIRECTOR / DIRECTOR OF PHOTOGRAPHY / ART DIRECTOR / MUSIC' YÖNETMEN DEĞİLDİR. "
+    "DİKKAT: 'A <İSİM> PRODUCTION' / '<İSİM> PRODUCTIONS' YAPIM-ŞİRKETİ kartıdır, YÖNETMEN DEĞİLDİR "
+    "(ör. 'A JAMES MANOS PRODUCTION' -> yönetmen DEĞİL). Net değilse 'yok'.\n"
     "Çıktıyı tam olarak şu formatta ver:\n"
     "YÖNETMEN: <isim | yok>\nYAPIMCI: <Producer/Yapımcı yanındaki isim(ler) | yok>\n"
     "OYUNCULAR: <görünen başrol oyuncu adları, en fazla 8, virgülle | yok>"
@@ -358,6 +360,22 @@ def vl_fallback(clip, title, text_credits, profile="film", fill_cast=False, ocr_
                              evidence={"dropped": _dop_dropped},
                              source={"module": "scripts/_pipe_credit_vl.py", "input_paths": [clip]})
             except Exception:  # noqa: BLE001 — süzgeç hatası doldurmayı bozmasın (fail-safe)
+                pass
+            # PRODUCTION-KARTI DIŞLAMA (117-film taraması 2026-07-03, APOLLO 11 kanıtı): VL
+            # "A JAMES MANOS PRODUCTION" yapım-şirketi kartını yönetmen sandı. Deterministik:
+            # ham korpusta "<isim> production(s)" bitişik deseni varsa aday yapım-şirketidir → DÜŞ.
+            try:
+                _prod_keep = []
+                for y in yon_persons:
+                    _ptoks = _fold(y).split()
+                    if _ptoks:
+                        _pre = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in _ptoks) + r"\s+productions?\b")
+                        if any(_pre.search(l) for l in raw_lines if l != _CORPUS_SENTINEL):
+                            out.setdefault("vl_yon_prod_dropped", []).append(y)
+                            continue
+                    _prod_keep.append(y)
+                yon_persons = _prod_keep
+            except Exception:  # noqa: BLE001
                 pass
             # HAYALET-KALKANI: VL pikselden UYDURMUŞ olabilir → ham OCR'da geçmeyen yönetmeni DÜŞÜR
             # (okunamadı > yanlış; yönetmen=kimlik çapası). FOTOĞRAF 'JEFF TOWLES' tipi uydurma kesilir.

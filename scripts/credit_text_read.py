@@ -311,7 +311,7 @@ KESİN KURALLAR:
    "A <İSİM> FILM" kalıbında "FILM" kelimesi ETİKETtir; içindeki KİŞİ adını AL (kural 3'e takılıp atlama).
    YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.
-5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla 8, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
+5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla __CAP__, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
 6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29
 
 ÇIKTI: yalnız JSON:
@@ -321,6 +321,23 @@ _reasoning bölümünde önce her satırın hangi role ait olduğunu sınıfland
 SATIRLAR:
 %s
 """
+
+
+def _cast_cap():
+    """MITAS_CAST_CAP (default 10, 1-50 geçerli)."""
+    try:
+        c = int(os.environ.get("MITAS_CAST_CAP", "10") or 10)
+        return c if 1 <= c <= 50 else 10
+    except ValueError:
+        return 10
+
+
+def _prompt(text):
+    """PROMPT şablonu + cap enjeksiyonu. 117-film taraması fix#1 (2026-07-03): 2026-06-29 cap-fix
+    yalnız post-filtre [:8] kesimlerini düzeltmişti; LLM'e giden TALİMATTAKİ sözel 'en fazla 8'
+    aynen kalmıştı → ~28 filmde 9.+ oyuncu daha ÇIKARIM aşamasında hiç üretilmiyordu (ADI CARMEN
+    'avec' bloğunun 3. satırı, LOTR ana kadrosu vb.). Artık talimat da cap ile senkron."""
+    return (PROMPT % text).replace("__CAP__", str(_cast_cap()))
 
 
 def _deepseek_json(model, prompt, timeout=120):
@@ -1111,9 +1128,9 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
         return out
     try:
         if str(model).startswith("deepseek"):
-            raw = _deepseek_json(model, PROMPT % text)
+            raw = _deepseek_json(model, _prompt(text))
         else:
-            raw = _ollama_json(model, PROMPT % text, SCHEMA)
+            raw = _ollama_json(model, _prompt(text), SCHEMA)
     except Exception as e:
         out["hata"] = f"{type(e).__name__}: {e}"
         return out
@@ -1289,9 +1306,9 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     for m in chain:
         try:
             if str(m).startswith("deepseek"):
-                raw = _deepseek_json(m, PROMPT % text)
+                raw = _deepseek_json(m, _prompt(text))
             else:
-                raw = _ollama_json(m, PROMPT % text, SCHEMA)
+                raw = _ollama_json(m, _prompt(text), SCHEMA)
         except Exception as e:
             sys.stderr.write(f"[credit_text_read] {m} hata: {type(e).__name__}: {e}\n")
             per_model_yon[m] = []

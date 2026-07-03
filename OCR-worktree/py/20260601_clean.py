@@ -58,7 +58,14 @@ def classify(t):
     if max((difflib.SequenceMatcher(None, fl, x).ratio() for x in FUZZ_TARGETS), default=0) >= 0.62: return "logo"
     if (set(low.split()) & COMPANY) or low.rstrip().endswith("-"): return "company"
     if any(m in low for m in LEGAL): return "legal"
-    if n == 1: return "frag"                                # tek-kelime satır kredi olamaz (isimler >=2 kelime)
+    if n == 1:
+        # CJK/Hangul istisnası (117-film taraması 2026-07-03: ÇIKIŞ Korece '이상근' + GÖKDAĞ kanıtı):
+        # boşluksuz-yazı dillerinde TEK "kelime" tam bir insan adıdır — frag sayılıp sessizce
+        # düşüyordu. Latin tek-kelime frag kuralı AYNEN korunur (gerçek fragman gürültüsü elenmeli).
+        if any('一' <= c <= '鿿' or '가' <= c <= '힯'
+               or '぀' <= c <= 'ヿ' or '㐀' <= c <= '䶿' for c in t):
+            return "credit"
+        return "frag"                                       # tek-kelime satır kredi olamaz (isimler >=2 kelime)
     if not has_role(low):
         bare = set(re.sub(r"[.,!?\"]", " ", low).split())
         if "?" in t: return "sentence"                      # soru işareti = diyalog/altyazı (künyede soru olmaz; isim/rol asla elenmez)

@@ -270,6 +270,14 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, t
         # PROPAGATION fix: cast/yön/yapımcı/keyword'ü V4 PDF otoriteriyle hizala (PDF≠txt sapması biter)
         if v4_credits:
             md_text = _patch_md_credits(md_text, v4_credits)
+        # MD-SENKRON FIX (117-film taraması 2026-07-03): patch'li içerik DİSKTEKİ kunye_teslim.md'ye
+        # de yazılır. En az 6 filmde (ŞİRKET İLİŞKİLERİ, GÜLE GÜLE JÜPİTER, DAĞ KADINI, MEKKE'YE
+        # YOLCULUK, RÜZGAR BİZİ SÜRÜKLEYECEK, LOTR-2001...) md v4-öncesi BAYAT halde kalıp nihai
+        # PDF ile çelişiyordu → denetim/QC ajanları ve _teknik.txt yanlış kaynaktan okuyordu.
+        try:
+            md.write_text(md_text, encoding="utf-8")
+        except Exception:  # noqa: BLE001 — md yazılamazsa yüzey .txt yine patch'li üretilir
+            pass
         (clip_dir / f"{base}.txt").write_text(
             md_to_readable(md_text), encoding="utf-8")
 
@@ -2805,6 +2813,16 @@ def main(argv=None) -> int:
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
     #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).
     #    REASON-TEMELLİ (qwen false-pozitif EKLEMEZ): mevcut kalibre 'reasons' tiplenir; 'qwen_uyari' → AUTOFIX.
+    # OTORİTE-GÖRÜNÜRLÜK (117-film taraması 2026-07-03, fix#2 AŞAMA-1): qc_block'un "temiz-okunan
+    # isim düştü" (ocr_dropped) sinyali karara DEĞİL uyarı-katmanına bağlanır — GENERALİN KIZI /
+    # VAHŞETİN ÇAĞRISI (Rutger Hauer!) / SON YARIŞ tipi sessiz-kayıplar artık _DURUM'da görünür.
+    # AŞAMA-2 (route'a bağlama) canlı gözlem sonrasına bırakıldı (KONTROL-kuyruğu şişme riski).
+    try:
+        _oa_drop = list((((_v4j or {}).get("v4") or {}).get("qc_block_otorite_audit") or {}).get("ocr_dropped") or [])
+        if _oa_drop:
+            qwen_uyari.append("otorite: temiz-okunan isim düştü → " + ", ".join(str(x) for x in _oa_drop[:6]))
+    except Exception:  # noqa: BLE001 — görünürlük kararı ASLA bozmaz
+        pass
     karar = "Hazır" if not reasons else "Kontrol"          # fallback varsayılan (router hatasında geçerli)
     dest_root = HAZIR if karar == "Hazır" else KONTROL
     route_info = None

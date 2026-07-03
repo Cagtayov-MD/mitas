@@ -716,13 +716,25 @@ def main():
                 raw_context_lines=_rcl,)   # C5a: non-cast filtre bağlamı (MITAS_QC_NONCAST_FILTER, default-OFF)
             if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
                 cast = list(_qcb_res["temiz_cast"])
-            yon = list(_qcb_res.get("temiz_yon") or yon)
+            # GUARD-EZME FIX (117-film taraması 2026-07-03; JERICO APARTMANI ×2 + TILSIMLI DÜNYA kanıtı):
+            # qc_block'a girdi olarak _yon_ocr_original veriliyor (otorite-audit için bilinçli). Ama
+            # üst-akış kapıları (kimlik/global-kişi/credit-cümle) yon'u BOŞALTTIYSA, qc_block'un o ham
+            # adaydan dirilttiği "temiz_yon" kapı kararını EZİYORDU → yanlış yönetmen PDF'e geri geliyordu.
+            # Kural: kapı kararı NİHAİ ("okunamadı > yanlış oku") — qc_block yalnız yon DOLUYKEN
+            # yazım-düzeltme uygular; boş yon'u dirilten aday rapora yazılır ama alana YAZILMAZ.
+            _qcb_yon = list(_qcb_res.get("temiz_yon") or [])
+            _yon_resurrect_blocked = []
+            if yon:
+                yon = list(_qcb_yon or yon)
+            elif _qcb_yon:
+                _yon_resurrect_blocked = _qcb_yon
             if _qcb_res.get("temiz_yap"):
                 yap = list(_qcb_res["temiz_yap"])
             rapor["adimlar"]["qc_block"] = {
                 "karar": _qcb_res["karar"], "kontrol_tip": _qcb_res["kontrol_tip"],
                 "gerekceler": _qcb_res["gerekceler"], "kimlik": _qcb_res["kimlik"],
                 "floor": _qcb_res["floor"], "kaynak_izi": _qcb_res.get("kaynak_izi", []),
+                "yon_resurrect_blocked": _yon_resurrect_blocked or None,
                 "otorite_audit": _qcb_res.get("otorite_audit")}
         except Exception as _qbe:  # noqa: BLE001 — fail-safe: bloğu atla, mevcut yol devam
             sys.stderr.write(f"[uyari] qc_block atlandı: {_qbe}\n")
