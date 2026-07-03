@@ -88,6 +88,15 @@ _CREW_CONTEXT_KW = (
     "line producer", "tesekkur", "teşekkür",
     "special thanks", "thanks to", "wrangler", "redaktion",
     "dialogue coach", "scenario", "scénario",
+    # cast/yapımcı doğruluk-denetimi 2026-07-04 — canlı vakalardan crew-etiket ailesi:
+    "kamera", "kamera yrd", "isik ekibi", "işık ekibi", "set amiri", "set amiri",  # 21.YÜZYIL
+    "collaborateurs", "collaborateur", "yardimci yonetmen",                        # KABAKÇIĞIN (senaryo-ortağı)
+    "seslendirme", "seslendirme yonetmeni", "dublaj",                              # AYNADAKİ (dublaj)
+    "firearms consultant", "consultant", "danisman", "danışman", "uzman",          # HIZLI VE ÖFKELİ (silah danışmanı)
+    "stunt", "dublor", "dublör", "stunts", "wrangler", "trainer",
+    "yapim asistan", "yapım asistan", "uygulayici yapimci", "uygulayıcı yapımcı",  # line-producer TR
+    "makyaj", "kostum", "kostüm", "montaj", "kurgu", "muzik", "müzik",
+    "genel koordinator", "koordinator", "koordinatör", "hazirlayan", "hazırlayan",
 )
 _CAST_CONTEXT_KW = (
     "starring", "co starring", "cast", "oyuncular", "oynayanlar",
@@ -213,10 +222,15 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
         crew_count = 0
         cast_seen = False
         for i in hit_idxs:
-            win = " ".join(folded[max(0, i - 1): i + 1])
-            if _cast_context(win):
+            # cast-bağlamı DAR pencere (±1): gerçek oyuncu yanlışlıkla "cast-görüldü" sayılmasın.
+            win_cast = " ".join(folded[max(0, i - 1): i + 1])
+            # crew-bağlamı GENİŞ üst-pencere (i-2..i): çok-satıra bölünen etiket ("Collaborateurs au
+            # scénario" isimden 2 satır üstte — KABAKÇIĞIN 2026-07-04) yakalansın. 60%-eşik + cast-öncelik
+            # yanlış-pozitifi dizginler.
+            win_crew = " ".join(folded[max(0, i - 2): i + 1])
+            if _cast_context(win_cast):
                 cast_seen = True
-            if _crew_context(win):
+            if _crew_context(win_crew):
                 crew_count += 1
         if cast_seen or crew_count == 0 or (crew_count / len(hit_idxs)) < 0.60:
             out.append(nm)
