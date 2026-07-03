@@ -224,7 +224,11 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
 
 
 # DUBLAJ markerları — HER ZAMAN uygula (dublaj-rolü ASLA film-yönetmeni değil, yüksek-isabet).
-_DUB_MARKERS = ("seslendirme", "dublaj", "doblaje", "doublage", "synchron", "voice direct")
+# "dialogue direct/dialogue writ" (doğruluk-denetimi 2026-07-03, TILSIMLI DÜNYA/anime kanıtı):
+# ekranda "Written and Directed by CARL MACEK" (gerçek) YANINDA "Dialogue Written and Directed by
+# GREG SNEGOFF" (ADR/dublaj yönetmeni) vardı; sistem dublaj olanı seçmişti. "Dialogue" öneki ayıraç.
+_DUB_MARKERS = ("seslendirme", "dublaj", "doblaje", "doublage", "synchron", "voice direct",
+                "dialogue direct", "dialogue writ", "adr direct")
 # YÖNETMEN-DIŞI diğer rol markerları — yalnız aday ŞÜPHELİYKEN (mutabakat-DIŞI) uygula. Temiz+mutabık
 # yönetmene dokunma (3.GÖZ kanıtı: jenerik satır-sırası bozuk olabilir → agresifse gerçek yön'ü öldürür).
 _NONFILM_MARKERS = (
@@ -283,6 +287,17 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                     # GERÇEK-yönetmen etiketi (_TRUE_DIR_RE) varsa DÜŞÜRME — "DIRECTED BY X" hemen ardından
                     # DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte yerleşim).
                     ctx = " ".join(folded[max(0, i - 1):i + 2])
+                    # DUBLAJ GENİŞ-PENCERE (2026-07-03, TILSIMLI DÜNYA): "Dialogue Written and Directed
+                    # by GREG SNEGOFF" OCR'da 4 satıra bölünür → dublaj-marker isimden 2-4 satır yukarıda.
+                    # Dublaj markerlarına ÖZEL ±4 üst-pencere; bulunursa _TRUE_DIR_RE bağışıklığını BASTIRIR
+                    # (o "Directed by" zaten dialogue-directed-by'dır). NONFILM markerları eski dar pencerede.
+                    # SADECE ÜST-pencere (i-4..i): dublaj etiketi hep isimden ÖNCE gelir; isim-ALTINDAKİ
+                    # sonraki kartın "Dialogue" etiketini yakalayıp masum yönetmeni düşürmeyi önler
+                    # (TILSIMLI'de Macek'in ALTINDA Snegoff'un dialogue-kartı var → Macek düşmemeli).
+                    dub_ctx = " ".join(folded[max(0, i - 4):i + 1])
+                    if any(m in dub_ctx for m in _DUB_MARKERS):
+                        is_nf = True
+                        break
                     if any(m in ctx for m in markers):
                         imm = " ".join(folded[max(0, i - 2):i + 1])
                         if not _TRUE_DIR_RE.search(imm):
@@ -316,6 +331,7 @@ KESİN KURALLAR:
    - "YÖNETMEN", "YÖNETEN", "REJİSÖR", "UN FILM DE", "EIN FILM VON", "REGIE", "RÉALISÉ PAR"
    - Bileşik etiketler de yönetmen kartıdır: "WRITTEN AND DIRECTED BY", "WRITTEN, DIRECTED AND EDITED BY", "PRODUCED AND DIRECTED BY" — bu kartlardaki kişi(ler) YÖNETMENdir.
    Etiketin yanında BİRDEN FAZLA isim varsa (ör. "Directed by A, B" / "Written, Directed and Edited by Scandar Copti, Yaron Shani") HEPSİNİ yaz — iki eş-yönetmen normaldir, TEKE İNDİRME.
+   DİKKAT — DUBLAJ TUZAĞI: "DIALOGUE DIRECTED BY", "DIALOGUE WRITTEN AND DIRECTED BY", "ADR DIRECTOR", "VOICE DIRECTOR" YÖNETMEN DEĞİLDİR (dublaj/seslendirme yönetmeni). Ekranda hem "WRITTEN AND DIRECTED BY <A>" hem "DIALOGUE ... DIRECTED BY <B>" varsa YÖNETMEN <A>'dır, <B> DEĞİL.
    "A <İSİM> FILM" kalıbında "FILM" kelimesi ETİKETtir; içindeki KİŞİ adını AL (kural 3'e takılıp atlama).
    YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.
