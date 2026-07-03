@@ -6,7 +6,7 @@ Kullanım: python _kunye_qwen_check.py <kunye_onizleme.png>
 Çıktı: JSON {ozet_var, oyuncu_sayisi, yapimci_var, yonetmen_var, ses_dil_var, afis_var,
              hepsi_buyuk_harf, turkce_karakter_dogru, notlar}
 """
-import sys, json, base64
+import sys, os, json, base64
 from pathlib import Path
 from _ollama import ollama_chat
 
@@ -43,6 +43,7 @@ def check(png_path: str) -> dict:
         host=OLLAMA_HOST,
         options={"temperature": 0},
         think=False,   # gemma-4 düşünme modeli → JSON `format` ile over-think çakışmasın
+        keep_alive=os.environ.get("MITAS_OLLAMA_KEEP_ALIVE", "5m"),  # VRAM-hijyeni 2026-07-04 (byte-nötr; _ollama.py **extra)
     )
     if resp is None:
         return {}

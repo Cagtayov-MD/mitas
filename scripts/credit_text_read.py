@@ -463,6 +463,11 @@ def _ollama_json(model, prompt, schema, timeout=None):
     payload = {
         "model": model, "prompt": prompt, "format": schema, "stream": False,
         "options": {"temperature": 0, "num_ctx": 8192},
+        # VRAM-hijyeni (hızlandırma planı Faz-0, 2026-07-04): keep_alive env'den. DEFAULT "5m" =
+        # ollama'nın ZATEN uyguladığı davranış → BYTE-NÖTR (çıktı değişmez); hız-modunda "15m" ile
+        # 31b soğuk-start elenir. Sonnet çakışma-denetimi: GÜVENLİ-PARALEL (K1/kalkan mantığına
+        # dokunmaz; _ollama_json salt HTTP-payload).
+        "keep_alive": os.environ.get("MITAS_OLLAMA_KEEP_ALIVE", "5m"),
     }
     # Düşünme modeli (qwen3*, gemma-4) → think=False (zorunlu JSON `format` ile over-think çakışmasın).
     # gemma3 düşünme modeli DEĞİL → think gönderme (bazı sürümler 400 verir).

@@ -171,6 +171,25 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
     # --- transkripsiyon modeli: Türkçe→turbo (hız), yabancı(desteklenen)→large-v3 (kalite, tespit edilen dilde) ---
     beam, tr_language = args.beam_size, (language or "tr")
     if bool(language) and language != "tr":
+        # VRAM-SÜBABI (hızlandırma planı Faz-0, 2026-07-04): large-v3 (~4-5 GB) yüklenmeden ÖNCE
+        # ollama'daki resident LLM'i (31b/26b) explicit boşalt — _gpu_lock film-İÇİ eşzamanlılığı
+        # engellemez, resident-31b(18GB)+large-v3(5GB)+CLIP/MMS 24GB'ı taşabilir. keep_alive:0 =
+        # "hemen tahliye". FAIL-SAFE: ollama kapalı/hata → sessiz geç (ASR akışını ASLA bozmaz).
+        # Kill-switch: MITAS_ASR_LLM_VALVE=0. Sonnet çakışma-denetimi: GÜVENLİ-PARALEL (künye/K1 hattı
+        # bu daldan tamamen ayrı; ASR yalnız whisper-CUDA kullanır, ollama LLM'ini değil).
+        if os.environ.get("MITAS_ASR_LLM_VALVE", "1").strip().lower() not in ("0", "false", "off", "no"):
+            try:
+                import urllib.request as _ur, json as _js
+                _oll = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434").rstrip("/")
+                for _m in ("gemma-4-31b-it-qat-vision:latest", "gemma4:26b"):
+                    try:
+                        _ur.urlopen(_ur.Request(_oll + "/api/generate",
+                                    data=_js.dumps({"model": _m, "keep_alive": 0}).encode("utf-8"),
+                                    headers={"Content-Type": "application/json"}), timeout=15).read()
+                    except Exception:  # noqa: BLE001 — o model yüklü değil/hata: sonrakine geç
+                        pass
+            except Exception:  # noqa: BLE001 — sübap ASLA ASR'yi bozmaz
+                pass
         try:
             fp = _MODEL_PATHS.get("large-v3")
             model = (WhisperModel(str(fp), device="cuda", compute_type="float16", local_files_only=True)
