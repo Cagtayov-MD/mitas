@@ -155,6 +155,42 @@ def _load_raw_ocr(clip, ocr_job=""):
                         lines.append(_CORPUS_SENTINEL)   # kare sınırı: kareler-arası yapay bitişiklik yok
         except Exception:  # noqa: BLE001 — manifest bozuksa korpus eski haliyle kalır (fail-safe)
             pass
+    # K1 DİLİM-KORPUSU (2026-07-03, "master-PNG hayata geçir"): master_dilim/dilim_oneocr.txt —
+    # reading-master parçalarının OneOCR okuması (scripts/master_dilim_oku.py). Run-aware master
+    # ana-OCR'dan daha KAPSAYICI: İHTİRAS canlı kanıt — ana zincirin kaybettiği 'DIRECTED BY /
+    # Bill L. Norton / David Chokachi' kartları dilim-okumada birebir var. İnvariant korunur
+    # (her satır gerçek piksel-okuması); '### DILIM-SINIRI ###' ayraçları sentinel'e çevrilir
+    # (parça-sınırı yapay bitişikliği yok). Kill-switch: MITAS_VL_CORPUS_DILIM=0.
+    if os.environ.get("MITAS_VL_CORPUS_DILIM", "1").strip().lower() not in ("0", "false", "off", "no"):
+        try:
+            dp = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
+            if os.path.isfile(dp):
+                # RUN-SCOPE (tasarım-incelemesi şartı 2026-07-03): production'da (ocr_job dolu)
+                # dilim yalnız GÜNCEL koşunun damgasını taşıyorsa dahil edilir — pipeline, koşu
+                # BAŞINDA dilimi tazeleyip damgalar (DİLİM-TAZELE bloğu); damga eşleşmiyorsa
+                # bayat sayılır ve ATLANIR ("emin değilsen dahil etme" — risk yönü ters olduğu
+                # için fail-safe eksik-korpus yönünde). Analiz modunda (ocr_job boş) dahil edilir.
+                _ok = True
+                if ocr_job:
+                    _ok = False
+                    try:
+                        mp2 = os.path.join(clip, "master_dilim", "dilim_oneocr.meta.json")
+                        if os.path.isfile(mp2):
+                            _meta = json.load(open(mp2, encoding="utf-8", errors="ignore"))
+                            _ok = (str(_meta.get("ocr_job") or "") == ocr_job)
+                    except Exception:  # noqa: BLE001
+                        _ok = False
+                if _ok:
+                    lines.append(_CORPUS_SENTINEL)
+                    for ln in open(dp, encoding="utf-8", errors="ignore").read().splitlines():
+                        if ln.startswith("### DILIM-SINIRI"):
+                            lines.append(_CORPUS_SENTINEL)
+                            continue
+                        f = _fold(ln)
+                        if f:
+                            lines.append(f)
+        except Exception:  # noqa: BLE001 — dilim okunamazsa korpus mevcut haliyle kalır
+            pass
     return lines
 
 

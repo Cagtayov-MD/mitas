@@ -2106,6 +2106,34 @@ def main(argv=None) -> int:
                           detail={"clip_id": clip_id, "ollama": _oll, "model": _probe_model})
         except Exception:  # noqa: BLE001 — preflight'ın kendisi ASLA pipeline'ı bozmaz
             _llm_dead = False
+    # ── DİLİM-TAZELE (K1, "master-PNG hayata geçir" 2026-07-03) ──
+    # Önceki koşunun reading-master'ları diskteyse: dilimle + OneOCR ile oku + GÜNCEL ocr_job
+    # damgala → aynı koşunun VL hayalet-kalkanı korpusu (run-scope şartıyla) dilim satırlarını
+    # görebilir. Kanıt: İHTİRAS 'DIRECTED BY / Bill L. Norton' ana zincirde yokken dilim-OneOCR'da
+    # exact; 117-tarama C-vakalarında 14/17 kayıp yönetmen dilim-korpusuyla piksel-teyitli.
+    # Maliyet ~2-5 sn/film (ölçüldü: ~0.2 sn/parça). FAIL-SAFE: hata pipeline'ı ASLA bozmaz.
+    # Kill-switch: MITAS_MASTER_DILIM_AUTO=0.
+    if (USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi")
+            and os.environ.get("MITAS_MASTER_DILIM_AUTO", "1").strip().lower() not in ("0", "false", "off", "no")):
+        try:
+            _has_master = bool(list(clip_dir.glob("*reading_master_runaware.png")))
+            if _has_master:
+                _dl_t = time.perf_counter()
+                run([str(PY_OCR), str(HERE / "master_png_dilimle.py"), "--clip", str(clip_dir)],
+                    timeout=int(os.environ.get("MITAS_MASTER_DILIM_TIMEOUT", "180") or 180))
+                run([str(PY_OCR), str(HERE / "master_dilim_oku.py"), "--clip", str(clip_dir),
+                     "--ocr-job", ocr_job, "--force"],
+                    timeout=int(os.environ.get("MITAS_MASTER_DILIM_TIMEOUT", "180") or 180))
+                timings["dilim_tazele"] = round(time.perf_counter() - _dl_t, 2)
+                log_event("master_dilim_refreshed",
+                          summary=f"{video.name}: dilim-korpusu tazelendi ({timings['dilim_tazele']} sn, job={ocr_job}).",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "ocr_job": ocr_job})
+        except Exception as _dle:  # noqa: BLE001 — dilim-tazele ASLA künye akışını bozmaz
+            log_event("master_dilim_refresh_failed", level="warn",
+                      summary=f"{video.name}: dilim-tazele atlandı ({type(_dle).__name__}).",
+                      module="ocr", media_id=media_id, filename=video.name,
+                      error=str(_dle)[:200], detail={"clip_id": clip_id})
     if USE_VIDEO_CREDITS and not args.no_ocr and profile in ("film", "dizi"):
         t_vc = time.perf_counter()
         try:
@@ -3065,6 +3093,19 @@ def main(argv=None) -> int:
                                   f"(kökte '<ad> giris/cikis.png', rc={_mp.returncode}).",
                           module="master-png", media_id=media_id, filename=video.name,
                           detail={"clip_id": clip_id, "rc": _mp.returncode, "base": _mp_base})
+                # K1 KOŞU-SONU DİLİM (2026-07-03): taze master'lar dilimlenir + OneOCR ile okunur —
+                # bir SONRAKİ koşunun DİLİM-TAZELE adımı hazır veri bulur; damga güncel ocr_job.
+                # Kill-switch DİLİM-TAZELE ile ortak: MITAS_MASTER_DILIM_AUTO=0. FAIL-SAFE.
+                if (os.environ.get("MITAS_MASTER_DILIM_AUTO", "1").strip().lower()
+                        not in ("0", "false", "off", "no")):
+                    try:
+                        run([str(PY_OCR), str(HERE / "master_png_dilimle.py"), "--clip", str(clip_dir)],
+                            timeout=int(os.environ.get("MITAS_MASTER_DILIM_TIMEOUT", "180") or 180))
+                        run([str(PY_OCR), str(HERE / "master_dilim_oku.py"), "--clip", str(clip_dir),
+                             "--ocr-job", ocr_job, "--force"],
+                            timeout=int(os.environ.get("MITAS_MASTER_DILIM_TIMEOUT", "180") or 180))
+                    except Exception:  # noqa: BLE001 — koşu-sonu dilim ASLA teslimi bozmaz
+                        pass
             except Exception as _mpe:  # noqa: BLE001 — master-PNG ASLA pipeline'ı bozmaz
                 log_event("master_png_failed", level="warn",
                           summary=f"{video.name}: master-PNG atlandı ({type(_mpe).__name__}).",
