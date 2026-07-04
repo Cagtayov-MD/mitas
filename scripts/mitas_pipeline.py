@@ -207,7 +207,8 @@ def _patch_md_credits(md_text: str, v4: dict) -> str:
     kw = v4.get("keywords")
     yon = v4.get("yonetmen_list")
     yap = v4.get("yapimci_list")
-    if cast is None and yon is None and yap is None and kw is None:
+    notu = v4.get("film_notu") or []          # FİLM NOTU (2026-07-04): PDF kutusuyla md/txt hizası
+    if cast is None and yon is None and yap is None and kw is None and not notu:
         return md_text
     lines = md_text.splitlines()
     out, i, n = [], 0, len(lines)
@@ -233,6 +234,16 @@ def _patch_md_credits(md_text: str, v4: dict) -> str:
                 i += 1
             out.append(f"- Yapımcı: {', '.join(yap) if yap else '—'}")
             out.append(f"- Yönetmen: {', '.join(yon) if yon else '—'}")
+            continue
+        if h == "## Film Notu" and notu:          # var olan bölümü V4 notlarıyla değiştir
+            out.append(line); i += 1
+            while i < n and lines[i].strip() and not lines[i].startswith("## "):
+                i += 1
+            out.extend([f"- {x}" for x in notu])
+            continue
+        if h == "## Özet" and notu and "## Film Notu" not in md_text:
+            out.extend(["## Film Notu"] + [f"- {x}" for x in notu] + [""])   # bölüm yoksa Özet'ten önce enjekte
+            out.append(line); i += 1
             continue
         out.append(line); i += 1
     return "\n".join(out)
@@ -2178,8 +2189,13 @@ def main(argv=None) -> int:
     # gemma4 VL (tek model): kare oku → yönetmen doldur + cast<3 ise cast'i de doldur (--fill-cast).
     # Kill-switch: MITAS_NO_VL_FALLBACK=1. Her hata → video_credits AYNEN (FAIL-SAFE).
     _vl_off = os.environ.get("MITAS_NO_VL_FALLBACK", "").strip().lower() in ("1", "true", "yes", "on")
+    # ANİMASYON erken-sinyali (2026-07-04): XML türü animasyon diyorsa cast<3 "eksik" DEĞİL "doğru"dur
+    # (oyuncu yok, seslendirme var) → cast-tetikli VL-fallback'i atla (halüsinasyon + GPU israfı önlenir).
+    # Yönetmen-boş tetiği KALIR (animasyonda da yönetmen aranır). Yalnız XML-sinyali (erken aşamada
+    # KB henüz yok); XML sessizse davranış AYNEN eski.
+    _anim_early = any(k in (tur_xml or "").upper() for k in ("ANİMASYON", "ANIMASYON", "ANIMATION", "ÇİZGİ", "CIZGI"))
     if USE_VIDEO_CREDITS and not _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
-        _vl_need = (not video_credits.get("yonetmen")) or (len(video_credits.get("cast") or []) < 3)
+        _vl_need = (not video_credits.get("yonetmen")) or ((len(video_credits.get("cast") or []) < 3) and not _anim_early)
         if _vl_need:
             _dir_before = list(video_credits.get("yonetmen") or [])   # VL-sertleştirme: VL-EKLEDİĞİ yönetmeni ayırt et
             _cast_before = list(video_credits.get("cast") or [])
@@ -2479,8 +2495,23 @@ def main(argv=None) -> int:
         t_v4 = time.perf_counter()
         try:
             v4_tmp = pdf_out / "kunye_v4.pdf"
+            # FİLM NOTU (2026-07-04, Çağatay): deterministik pipeline-sinyalleri → v4 PDF FİLM NOTU kutusu.
+            # Yalnız KESİN ölçülmüş durumlar (sinyal→standart-cümle; LLM-üretimi serbest metin YOK).
+            _v4_anim = False                        # v4 rapor 'animasyon' bayrağı (aşağıda dolar; QC bastırmada kullanılır)
+            _film_notu_pipe = []
+            try:
+                _fn_seg = int(asr_info.get("clean_segments") or 0)
+                _fn_chr = int(asr_info.get("transcript_chars") or 0)
+                if asr_status == "done" and _fn_seg == 0 and _fn_chr < 40:
+                    _film_notu_pipe.append("SESSİZ/DİYALOGSUZ — filmde konuşma tespit edilemedi; özet üretilemez.")
+                if ocr_bucket == "BOS" or (ocr_lines or 0) == 0:
+                    _film_notu_pipe.append("JENERİK YOK — filmde okunur jenerik tespit edilemedi.")
+            except Exception:  # noqa: BLE001 — not üretimi PDF akışını ASLA bozmaz
+                _film_notu_pipe = []
             v4_cmd = [str(PY_PDF), str(HERE / "tek_film_kunye.py"),
                       "--clip", str(clip_dir), "--title", title, "--out", str(v4_tmp)]
+            if _film_notu_pipe:
+                v4_cmd += ["--notlar", json.dumps(_film_notu_pipe, ensure_ascii=False)]
             if original:
                 v4_cmd += ["--original", original]
             if film_year:
@@ -2516,6 +2547,7 @@ def main(argv=None) -> int:
                     _v4block = _v4j.get("v4") or {}
                     if isinstance(_v4block, dict) and ("cast_list" in _v4block or "yonetmen_list" in _v4block):
                         v4_credits = _v4block
+                    _v4_anim = bool(isinstance(_v4block, dict) and _v4block.get("animasyon"))
                 except Exception:  # noqa: BLE001 — TÜR yakalama yüzeylemeyi ASLA bozmaz
                     pass
                 timings["v4_final"] = round(time.perf_counter() - t_v4, 2)
@@ -2740,8 +2772,10 @@ def main(argv=None) -> int:
     if qwen_qc and not qwen_qc.get("error"):   # qwen final-QC: model gözüyle son kapı (PDF'i gören)
         if not qwen_qc.get("ozet_var"):
             reasons.append("qwen: özet yok/placeholder")
-        if (qwen_qc.get("oyuncu_sayisi") or 0) < 1:
-            reasons.append("qwen: oyuncu yok")
+        if (qwen_qc.get("oyuncu_sayisi") or 0) < 1 and not _v4_anim:
+            reasons.append("qwen: oyuncu yok")     # ANİMASYON muaf (2026-07-04): oyuncu alanı BİLEREK boş
+        elif (qwen_qc.get("oyuncu_sayisi") or 0) < 1 and _v4_anim:
+            qwen_uyari.append("qwen: oyuncu yok (animasyon — bilinçli boş, KONTROL tetiklemez)")
         if not qwen_qc.get("yonetmen_var") and not qwen_qc.get("yapimci_var"):
             reasons.append("qwen: yön+yapımcı yok")
         if _SES_DIL_GATE and not qwen_qc.get("ses_dil_var"):
@@ -2811,6 +2845,11 @@ def main(argv=None) -> int:
             if (("oyuncu yetersiz" in _g) or ("oyuncu yok" in _g)
                     or ("Latin-dışı" in _g) or ("kimlik kurulamadı" in _g)
                     or ("zayıf-teyit" in _g)):   # C2 FIX: director-anchor-weak KONTROL'ü köprüle
+                # ANİMASYON muaf (2026-07-04): oyuncu alanı BİLEREK boş (seslendirme kadrosu) —
+                # cast-boşluğu sinyalleri KONTROL tetiklemez; kimlik/Latin-dışı sinyaller KALIR.
+                if _v4_anim and (("oyuncu yetersiz" in _g) or ("oyuncu yok" in _g)):
+                    qwen_uyari.append("qc_block: " + _g + " (animasyon — bilinçli boş)")
+                    continue
                 _gk = "qc_block: " + _g
                 if _gk not in reasons:
                     reasons.append(_gk)

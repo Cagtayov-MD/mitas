@@ -247,6 +247,32 @@ def build(path, d):
             c.drawString(X0 + 130, ty, nm)
             ty -= 17
 
+    # FİLM NOTU kutusu (2026-07-04, Çağatay): sağ içeriğin altında, ÖZET'ten hemen önce.
+    # Deterministik standart notlar (animasyon-seslendirme / sessiz-özet-yok / jenerik-yok / XML-uyarı).
+    # d["film_notu"] boşsa HİÇ çizilmez (mevcut düzen birebir korunur). ÖZET'in kendi sığdırma
+    # döngüsü kalan alana göre küçüldüğünden taşma güvenliği otomatik.
+    _notlar = [str(x).strip() for x in (d.get("film_notu") or []) if str(x).strip()]
+    if _notlar:
+        ty -= 14
+        nt_size, nt_lh = 8.8, 13.0
+        nt_lines = []
+        for _n in _notlar[:4]:                        # en fazla 4 not (taşma güvenliği)
+            nt_lines += simpleSplit("•  " + _n, SANS, nt_size, CW - 36)
+        nt_h = 34 + len(nt_lines) * nt_lh
+        c.setFillColor(TINT)
+        c.roundRect(X0, ty - nt_h, CW, nt_h, 7, fill=1, stroke=0)
+        c.setStrokeColor(ACCENT)
+        c.setLineWidth(0.9)
+        c.roundRect(X0, ty - nt_h, CW, nt_h, 7, stroke=1, fill=0)
+        tracked(c, X0 + 18, ty - 20, "FİLM NOTU", SANS_SB, 8, ACCENT, 2)
+        _nyy = ty - 36
+        for _ln in nt_lines:
+            c.setFont(SANS, nt_size)
+            c.setFillColor(BODY)
+            c.drawString(X0 + 18, _nyy, _ln)
+            _nyy -= nt_lh
+        ty -= nt_h
+
     ty -= 16
     oz_size, oz_lh = 10.5, 16.0
     while True:  # özeti sayfaya sığdır (alta taşmayı önler)

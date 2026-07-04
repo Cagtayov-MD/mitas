@@ -299,6 +299,8 @@ def main():
     ap.add_argument("--profile", default="film", choices=["film", "dizi"])    # Fix 3a
     ap.add_argument("--bolum", default=None)                                   # Fix 3a
     ap.add_argument("--tur", default=None, help="XML'den gelen tür (DRAMA vb.)")
+    ap.add_argument("--notlar", default=None,
+                    help="Film Notu listesi (JSON dizi veya ';' ayraçlı) — PDF'te FİLM NOTU kutusuna basılır")
     a = ap.parse_args()
 
     clip = a.clip
@@ -671,6 +673,31 @@ def main():
             except Exception:
                 pass
     tur = cc.get("tur") or a.tur or "—"
+    # ── ANİMASYON TESPİTİ (2026-07-04, Çağatay): animasyonda oyuncu OLMAZ — jenerikteki isimler
+    # seslendirme kadrosudur → OYUNCULAR + ANAHTAR SÖZCÜKLER boş bırakılır, FİLM NOTU açıklar.
+    # ÇOK-NET çekim: XML türü (a.tur: "ÇİZGİ/ANİMASYON") + KB-TR türü (cc.tur: "Animasyon") +
+    # HAM IMDb genre CSV'si (cc.tur_imdb: "Adventure,Animation,..." — TR-eşlemede ilk-2'ye
+    # düşerken Animation kaybolsa bile HAM listede yakalanır; FERDİNAND/SİMBA tipi kaçaklar
+    # bunun için). Tek kaynağın demesi YETER (kaçırma > yanlış-alarm; not salt-görsel, karar-dışı).
+    def _is_animasyon(*vals):
+        for _v in vals:
+            _f = nn.ascii_fold(str(_v or "")).upper()
+            if any(k in _f for k in ("ANIMASYON", "ANIMATION", "ANIMATED", "CIZGI")):
+                return True
+        return False
+    anim = _is_animasyon(cc.get("tur"), cc.get("tur_imdb"), a.tur)
+    # FİLM NOTU listesi: pipeline'dan gelen (--notlar: sessiz/jenerik-yok/XML-uyarı) + animasyon notu.
+    film_notu = []
+    if a.notlar:
+        try:
+            _nl = json.loads(a.notlar)
+            film_notu = [str(x).strip() for x in _nl if str(x).strip()] if isinstance(_nl, list) else []
+        except Exception:  # noqa: BLE001 — JSON değilse ';' ayraçlı düz metin kabul et
+            film_notu = [s.strip() for s in str(a.notlar).split(";") if s.strip()]
+    if anim:
+        film_notu.insert(0, "ANİMASYON — oyuncu alanı kullanılmaz; jenerikteki isimler seslendirme kadrosudur.")
+        rapor["adimlar"]["animasyon"] = {"tur": tur, "tur_imdb": cc.get("tur_imdb"), "xml_tur": a.tur,
+                                         "cast_gizlendi": True}
     afis = _web_afis or cc.get("afis")   # QC2-web afişi ÖNCELİKLİ (KB'de afiş yok ama web bulduysa korunur)
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
@@ -747,7 +774,7 @@ def main():
             _cap = 10
     except Exception:  # noqa: BLE001 — bozuk değer → varsayılan 10
         _cap = 10
-    castU = nn.upper_names(cast[:_cap])
+    castU = ([] if anim else nn.upper_names(cast[:_cap]))   # ANİMASYON: oyuncu alanı boş (seslendirme kadrosu basılmaz)
     # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
     _ozet_names = [n for n in (list(cast)
                                + (yon if isinstance(yon, (list, tuple)) else [yon])
@@ -798,7 +825,8 @@ def main():
                     ("TOPLAM SÜRE", meta.get("dur", "—")), ("TRT KİMLİK", trt)],
              keywords=" ; ".join(castU) if castU else "—", cast=castU or ["—"], crew=crewU,
              ozet=ozet_v4(meta.get("ozet", ""), names=_ozet_names), ses_kanallari=sk,
-             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster)
+             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster,
+             film_notu=film_notu)
     dbg.emit("v4", "pdf_field_written",
              subject={"field": "v4_pdf_fields", "after": {
                  "title": d.get("title"), "subtitle": d.get("subtitle"),
@@ -866,8 +894,11 @@ def main():
                    # OTORİTER yüzey-değerler (PROPAGATION fix 2026-06-20): yüzey .txt'yi V4 PDF ile
                    # HİZALA — mitas_pipeline surface_deliverables bunlarla kunye_teslim.md'yi yamalar.
                    # d["cast"]/d["crew"]/d["keywords"] = PDF'e basılan AYNI değerler (birebir eşleşir).
-                   "cast_list": list(d.get("cast") or []),
+                   "cast_list": ([] if anim else list(d.get("cast") or [])),   # animasyonda md-patch "—" bassın
                    "keywords": d.get("keywords") or "",
+                   # FİLM NOTU (2026-07-04): md-patch + pipeline tüketimi (animasyonda QC 'oyuncu yok' bastırılır)
+                   "film_notu": film_notu,
+                   "animasyon": bool(anim),
                    "yonetmen_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yönetmen"],
                    "yapimci_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yapımcı"],
                    # BİRLEŞİK QC BLOĞU kararı (flag MITAS_QC_BLOCK): mitas_pipeline NEW kapıları
