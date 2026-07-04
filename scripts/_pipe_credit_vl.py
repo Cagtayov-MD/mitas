@@ -41,7 +41,9 @@ _VL_PROMPT = (
     "YÖNETMEN: <isim | yok>\nYAPIMCI: <Producer/Yapımcı yanındaki isim(ler) | yok>\n"
     "OYUNCULAR: <görünen başrol oyuncu adları, en fazla 8, virgülle | yok>"
 )
-VL_MODELS = ["gemma4:26b"]  # tek model: gemma4 VL-fallback (qwen2.5vl kaldırıldı)
+# A/B için env-geçilebilir (2026-07-04, hız Faz-3 hazırlık): MITAS_VL_MODEL=gemma-4-31b-it-qat-vision:latest
+# Default DEĞİŞMEDİ (gemma4:26b) — A/B kanıtı olmadan üretim modeli değişmez.
+VL_MODELS = [os.environ.get("MITAS_VL_MODEL", "gemma4:26b").strip() or "gemma4:26b"]  # tek model: gemma4 VL-fallback (qwen2.5vl kaldırıldı)
 
 
 def _fold(s):
