@@ -178,6 +178,23 @@ def load_llm_lines_for_ocr(ocr_path: str | os.PathLike | None) -> tuple[list[str
         lines = _read_ocr_sidecar_lines(base, filename)
         if lines:
             lines = _compact_raw_lines_for_llm(lines, max_lines=500)  # 260→500: uzun/anahtar-kelimesiz jenerikte kadro-bloğu kaybını azalt (recall güvenliği)
+            # YÖNETMEN-KARTI KÖPRÜSÜ (2026-07-04, MÜREKKEP kanıtı): "AN IAIN SOFTLEY FILM" gibi
+            # kendinden-etiketli kartlar STITCH-birleşik kunye.txt'de VAR ama ham yan-dosyalarda
+            # BÖLÜNMÜŞ (AN / IAIN SOFTLEY / FILM ayrı satırlar) → model+rescue hiç görmüyordu.
+            # kunye.txt'nin yönetmen-kartı satırlarını (lexicon is_director_line: A-X-FILM ters-desen
+            # + head-isim aynı-satır; stüdyo-bumper dışlanır) girdiye SALT-EKLE (dedup'lu).
+            try:
+                import credit_role_lexicon as _lexb
+                _have = {l.strip().upper() for l in lines}
+                _kadd = []
+                for _kl in open(ocr_path, encoding="utf-8", errors="ignore").read().splitlines():
+                    _kl = _kl.strip()
+                    if _kl and _kl.upper() not in _have and _lexb.is_director_line(_kl):
+                        _kadd.append(_kl)
+                if _kadd:
+                    lines = lines + _kadd[:4]
+            except Exception:  # noqa: BLE001 — köprü hatası girdiyi ASLA bozmaz
+                pass
             return lines, filename
 
     try:
@@ -1233,6 +1250,90 @@ def _prefilter_lines(lines):
     return out
 
 
+_RSC_LABELS = {"DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR",
+               "UN FILM DE", "EIN FILM VON", "REGIE", "REALISE PAR"}
+_RSC_VETO = ("PRODUCED BY", "EXECUTIVE PRODUCER", "ASSOCIATE PRODUCER", "LINE PRODUCER",
+             "CO PRODUCER", "COPRODUCER", "ASSISTANT DIRECTOR", "SECOND UNIT", "2ND UNIT",
+             "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "MUSIC DIRECTOR", "CASTING")
+_RSC_DIRF = ("DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR", "REALISE PAR", "UN FILM DE", "EIN FILM VON")
+
+
+def _rsc_label_fuzzy(_f):
+    """Bulanık yönetmen-etiketi: tam eşleşme + 'DIRECTED ' öneki (TY/DY/8Y garble) + ratio≥0.85."""
+    if not _f or len(_f) > 24:
+        return False
+    if _f in _RSC_LABELS or _f.startswith("DIRECTED "):
+        return True
+    import difflib as _dl
+    return any(_dl.SequenceMatcher(None, _f, _L).ratio() >= 0.85 for _L in _RSC_DIRF)
+
+
+_RSC_BAD_TOK = {"OF", "BY", "THE", "AND", "WITH", "FOR", "IN"}
+_RSC_BAD_SUB = ("PHOTOGRAPH", "HOTOGRAPH", "OTOGRAPH", "CASTING", "EDITOR", "PRODUC",
+                "DIRECT", "MUSIC", "DESIGN", "SOUND", "COSTUME", "MAKEUP", "EFFECT", "STUNT")
+
+
+def _rsc_name_ok(cand):
+    """Rescue aday-sağlamlığı (SHERLOCK kanıtı: bölünmüş 'OF P HOTOGRAPHY' kişi-adı sanılmıştı):
+    tek-harfli token YOK, bağlaç-token YOK, rol-sözcüğü parçası YOK."""
+    toks = (cand or "").split()
+    if not (2 <= len(toks) <= 4):
+        return False
+    if any(len(t) < 2 for t in toks):
+        return False
+    up = _fold_ga(cand)
+    if any(t in _RSC_BAD_TOK for t in up.split()):
+        return False
+    return not any(b in up.replace(" ", "") for b in _RSC_BAD_SUB)
+
+
+def _yon_rescue_auto(lines, raw_context_lines, cast, yap, ocr_tokens, title_f):
+    """AUTO-yolu deterministik yönetmen-kurtarma (2026-07-04; SHERLOCK/MÜREKKEP kanıtları).
+    (A) lexicon A-X-FILM ters-desen — LLM-girdisi + HAM bağlam (kart tek-satır kendinden-etiketli;
+        stüdyo-bumper dışlanır). Çift-rol: cast'te → VETO, yalnız yapımcıda → İZİN.
+    (B) bulanık DIRECTED-etiketi ±1 satır (İngiliz isim→rol düzeni dahil). Aynı çift-rol kuralı.
+    Dönen: kurtarılan [isim] veya []. Her hata → [] (ana akış BOZULMAZ)."""
+    try:
+        cast_taken = {" ".join(_toks(x)) for x in (cast or [])}
+        # (A) kendinden-etiketli kart
+        import credit_role_lexicon as _lexr
+        for _ln in list(lines or []) + [x for x in (raw_context_lines or []) if x]:
+            _cand = _lexr.director_name_from_line(_ln)
+            if not _cand or _looks_garble(_cand) is not None or not _valid_person_name(_cand):
+                continue
+            if not _rsc_name_ok(_cand):
+                continue
+            if " ".join(_toks(_cand)) in cast_taken:
+                continue
+            _g = _guard([_cand], ocr_tokens, title_f)
+            if _g:
+                return _g
+        # (B) bulanık etiket ±1
+        _ls = [l for l in (lines or []) if l and l.strip()]
+        for _i, _ln in enumerate(_ls):
+            if not _rsc_label_fuzzy(_fold_ga(_ln)):
+                continue
+            for _j in (_i + 1, _i - 1):
+                if _j < 0 or _j >= len(_ls):
+                    continue
+                _nb = _ls[_j]
+                _nbf = _fold_ga(_nb)
+                if any(_v in _nbf for _v in _RSC_VETO) or _rsc_label_fuzzy(_nbf):
+                    continue
+                if _looks_garble(_nb) is not None or not _valid_person_name(_nb):
+                    continue
+                if not _rsc_name_ok(_nb):
+                    continue
+                if " ".join(_toks(_nb)) in cast_taken:
+                    continue
+                _g = _guard([_nb], ocr_tokens, title_f)
+                if _g:
+                    return _g
+    except Exception:  # noqa: BLE001 — kurtarma hatası asla akışı bozmaz
+        return []
+    return []
+
+
 def read_credits_from_text(lines, title="", model=None, *, dizi=False):
     model = model or DEFAULT_MODEL
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
@@ -1294,7 +1395,77 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
                 continue
             yon = _g
             break
-    # /C-fix 2026-06-29
+
+        # RESCUE-2 (2026-07-04, MÜREKKEP YÜREK kanıtı: "AN IAIN SOFTLEY FILM" satırı kunye'de ama LLM
+        # yapımcı-bloğu yüzünden kaçırdı): lexicon'un stüdyo-dışlamalı ters-desen çıkarıcısı
+        # (A/AN/BIR <İSİM> FILM → isim; A WALT DISNEY FILM → boş). ÇİFT-ROL kuralı: aday CAST'te ise
+        # VETO (oyuncu=yönetmen şüphesi KORUNUR); yalnız YAPIMCI'da ise İZİN — yönetmen+yapımcı meşru
+        # (Musker/Conli emsali) ve A-X-FILM kartı güçlü yönetmen kanıtıdır.
+        if not yon:
+            try:
+                import credit_role_lexicon as _lex2
+                _cast_taken = {" ".join(_toks(x)) for x in cast}
+                # ARAMA-UZAYI: LLM-girdisi + HAM-bağlam (ocr_raw+dilim). Neden ham da: girdi-yükleyici
+                # ocr_ham.txt'yi tercih edebiliyor ve orada A-X-FILM kartı bölünmüş/yok olabiliyor
+                # (MÜREKKEP kanıtı: kart kunye.txt'de VAR, ocr_ham'da YOK → LLM+rescue hiç görmüyordu).
+                # Kart tek-satır kendinden-etiketli olduğundan ham'da arama güvenli (stüdyo-dışlama +
+                # garble + kişi-adı + cast-veto + _guard korumaları aynen geçerli).
+                _space2 = list(lines) + [x for x in (raw_context_lines or []) if x]
+                for _ln in _space2:
+                    _cand = _lex2.director_name_from_line(_ln)
+                    if not _cand:
+                        continue
+                    if _looks_garble(_cand) is not None or not _valid_person_name(_cand):
+                        continue
+                    if " ".join(_toks(_cand)) in _cast_taken:   # cast-çelişki → veto (yap-çelişki DEĞİL)
+                        continue
+                    _g2 = _guard([_cand], ocr_tokens, title_f)
+                    if _g2:
+                        yon = _g2
+                        break
+            except Exception:  # noqa: BLE001 — rescue-2 hatası ana akışı ASLA bozmaz
+                pass
+
+        # RESCUE-3 (2026-07-04, SHERLOCK kanıtı: "PAUL SEED" ÜSTTE + "DIRECTED TY" garble-etiket ALTTA —
+        # İngiliz kapanış-düzeni isim→rol): BULANIK yönetmen-etiketi (DIRECTED TY≈DIRECTED BY ratio≥0.85
+        # veya "DIRECTED " öneki) → önce +1, olmazsa -1 satır. -1 penceresi SIKI: aday kişi-adı +
+        # garble-değil + cast VE yapımcıda YOK (çift-rol izni RESCUE-2'ye özgü; burada belirsizlik
+        # yüksek olduğundan tam-veto).
+        if not yon:
+            _DIRF = ("DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR", "REALISE PAR", "UN FILM DE", "EIN FILM VON")
+            def _dir_label_fuzzy(_f):
+                if not _f or len(_f) > 24:
+                    return False
+                if _f in _RESCUE_LABELS:
+                    return True
+                if _f.startswith("DIRECTED "):          # DIRECTED TY/DY/8Y garble'ları
+                    return True
+                import difflib as _dl2
+                return any(_dl2.SequenceMatcher(None, _f, _L).ratio() >= 0.85 for _L in _DIRF)
+            for _i, _ln in enumerate(lines):
+                if not _dir_label_fuzzy(_fold_ga(_ln)):
+                    continue
+                for _j in (_i + 1, _i - 1):
+                    if _j < 0 or _j >= len(lines):
+                        continue
+                    _nb = lines[_j]
+                    _nbf = _fold_ga(_nb)
+                    if any(_v in _nbf for _v in _RESCUE_VETO) or _dir_label_fuzzy(_nbf):
+                        continue
+                    if _looks_garble(_nb) is not None or not _valid_person_name(_nb):
+                        continue
+                    # ÇİFT-ROL (RESCUE-2 ile tutarlı): cast'te → VETO; yalnız yapımcıda → İZİN
+                    # (SHERLOCK kanıtı: PAUL SEED yapımcı-bloğuna gruplanmış ama isminin hemen
+                    # altında DIRECTED-BY garble'ı var — ekran onu yönetmen ilan ediyor).
+                    if " ".join(_toks(_nb)) in {" ".join(_toks(x)) for x in cast}:
+                        continue
+                    _g3 = _guard([_nb], ocr_tokens, title_f)
+                    if _g3:
+                        yon = _g3
+                        break
+                if yon:
+                    break
+    # /C-fix 2026-06-29 (+RESCUE-2/3 2026-07-04)
 
     if not dizi:
         # C-fix-canli 2026-06-29: standalone default 8→10 (Çağatay cap=10 istiyor; env zaten 10 geçiyor).
@@ -1523,6 +1694,20 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     #   (c) ikisi de KB-gerçekse → DOKUNULMAZ (Carradine/Brolin aileleri korunur).
     cast_kb = _collapse_clone_variants(cast_kb, raw_context_lines, kb)
     yap_kb = _collapse_clone_variants(yap_kb, raw_context_lines, kb)
+
+    # ── YÖNETMEN-RESCUE @AUTO (2026-07-04) ───────────────────────────────────
+    # from_text içindeki rescue zinciri ÜRETİM yolunda (auto) hiç çalışmıyordu — SHERLOCK kanıtı:
+    # 'PAUL SEED' + altında 'directed ty' garble-etiketi girdide bitişik durduğu halde yon boştu.
+    # Birleşim + tüm kapılar sonrası yon hâlâ boşsa deterministik kurtarma (kart/etiket kanıtlı).
+    if not yon_fused and os.environ.get("MITAS_DIRECTOR_RESCUE", "1") != "0":
+        _yr = _yon_rescue_auto(lines, raw_context_lines, cast_kb, yap_kb, ocr_tokens, title_f)
+        if _yr:
+            # DUBLAJ-SÜZGECİ rescue-sonucuna da (yukarıdaki dublaj-drop rescue'dan ÖNCE koştu;
+            # kurtarılan isim süzgeci ATLAYAMAZ — dublaj/seslendirme yönetmeni buradan giremez).
+            _yr, _ = _drop_dubbing_directors(_yr, raw_context_lines or lines, high_consensus=False)
+        if _yr:
+            yon_fused = _yr
+            guven_yon = "rescue (deterministik yönetmen-kartı/etiketi)"
 
     # ── Güven skoru ──────────────────────────────────────────────────────────
     if cast_kb or yon_fused:
