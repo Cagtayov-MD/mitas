@@ -41,6 +41,11 @@ if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Wri
 # 5->8 (+lead KIVANC/BELCIM, karakter-adi copu gitti); 4-film (TR/Alm/Fr) %94 recall + yonetmen 4/4.
 # Maliyet ~+2.5dk/film. Kapatmak icin MITAS_GEMMA_FULLCOVER=0.
 if (-not $env:MITAS_GEMMA_FULLCOVER)   { $env:MITAS_GEMMA_FULLCOVER = '1';   Write-Host '   + MITAS_GEMMA_FULLCOVER=1 (default AKTIF — tam-kapsam kunye okuma)' }
+# OLLAMA_KEEP_ALIVE = LLM bellekte-kalma suresi (HIZLANDIRMA Faz-0 hiz-modu, 2026-07-04).
+# "5m" ollama-varsayilani = byte-notr; hiz-modu "15m" film-arasi soguk-start eler (~56sn/film,
+# 5.4 yukleme/film olculdu). ASR-LLM subabi (MITAS_ASR_LLM_VALVE) large-v3 oncesi tahliye
+# ettigi icin VRAM guvenli. "-1" (sinirsiz) YASAK (plan yapma-listesi).
+if (-not $env:MITAS_OLLAMA_KEEP_ALIVE) { $env:MITAS_OLLAMA_KEEP_ALIVE = '15m'; Write-Host '   + MITAS_OLLAMA_KEEP_ALIVE=15m (hiz-modu; ASR-subap VRAM korur)' }
 # JENERIK_PARALLEL_DEBUG = jdebug provenance (jenerik_debug/ artefaktlari). HIZLANDIRMA Faz-2
 # (2026-07-04, plan-karari + Sonnet cakisma-denetimi SAFE): kosuda KAPALI (medyan 184sn/film kazanc;
 # karar/PDF'e SIFIR etki — blok karar-sonrasi, ciktisi yalniz jenerik_debug/). Eksikler ayni-gun

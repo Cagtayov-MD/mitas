@@ -1378,6 +1378,9 @@ _PROD_DEFAULTS = {
     # 184sn/film; karar/PDF'e sifir etki — blok karar-SONRASI). Backfill: jenerik_debug_batch.py.
     # DIKKAT: MITAS_JENERIK_PARALLEL_POOL AYRI ve ASLA kapatilmaz (master-PNG/dilim/K1 zinciri).
     "MITAS_JENERIK_PARALLEL_DEBUG": "0",
+    # HIZLANDIRMA Faz-0 hiz-modu (2026-07-04): LLM resident 15dk (soguk-start ~56sn/film eler);
+    # ASR-subap (MITAS_ASR_LLM_VALVE) large-v3 oncesi tahliye eder -> VRAM guvenli. "-1" YASAK.
+    "MITAS_OLLAMA_KEEP_ALIVE": "15m",
     # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
     # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.
     # Sonnet yedek: ANTHROPIC_API_KEY yoksa _ozet_anthropic None döner → otomatik gemma'ya düşer (atıl).
@@ -1725,15 +1728,35 @@ def main(argv=None) -> int:
             )
         _cik_start = _fixed_cik_start
         _cik_len = _fixed_cik_len
-        nf_c = extract_window(
-            video,
-            cikis_frames,
-            prefix="c",
-            fps=args.fps,
-            start=_cik_start,
-            length=_cik_len,
-            expected_count=_fixed_cik_expected,
-        )
+        # ── HIZLANDIRMA Faz-1 (2026-07-04, Sonnet KANITLI-GÜVENLİ): çıkış-frame + giriş-frame + ses
+        # üçlüsü PARALEL. Kanıt: üçü de yalnız `video`yu okur (salt-okunur), FARKLI dizinlere yazar
+        # (cikis_frames/giris_frames/audio_path), her extract kendi uuid-staged klasöründe çalışıp
+        # os.replace ile taşır (çakışan yazma yok); TÜM tüketiciler (jenerik-havuzlar 1775+/1854+,
+        # OCR, ASR, DİLİM-TAZELE) bu bloğun BİTİMİNDEN sonra. .result() sıralı alınır → ilk hata
+        # aynen bugünkü gibi yükselir (FrameContractError dahil, davranış-özdeş). NVMe+32-çekirdek:
+        # coz ~80-115s → en-yavaş-tekil-işe iner (~1.5-2.5x). MITAS_FFMPEG_EXTRACT_PARALLEL=0 kill-switch.
+        _ffpar_on = os.environ.get("MITAS_FFMPEG_EXTRACT_PARALLEL", "1").strip().lower() not in ("0", "false", "off", "no")
+        if _ffpar_on:
+            import concurrent.futures as _cf
+            with _cf.ThreadPoolExecutor(max_workers=3) as _ex:
+                _fut_c = _ex.submit(extract_window, video, cikis_frames, prefix="c", fps=args.fps,
+                                    start=_cik_start, length=_cik_len, expected_count=_fixed_cik_expected)
+                _fut_g = _ex.submit(extract_window, video, giris_frames, prefix="g", fps=args.fps,
+                                    start=_giris_start, length=max(1.0, head - _giris_start))
+                _fut_a = _ex.submit(extract_audio, video, audio_path)
+                nf_c = _fut_c.result()
+                nf_g = _fut_g.result()
+                ok_audio, aerr = _fut_a.result()
+        else:
+            nf_c = extract_window(
+                video,
+                cikis_frames,
+                prefix="c",
+                fps=args.fps,
+                start=_cik_start,
+                length=_cik_len,
+                expected_count=_fixed_cik_expected,
+            )
         log_event(
             "exit_frame_contract_verified",
             summary=(
@@ -1753,9 +1776,10 @@ def main(argv=None) -> int:
             },
         )
         # GİRİŞ kareleri: _giris_start (0 = sabit; >0 = tespit edilen jenerik-başı) → head; KURAL: 0'dan başlama
-        nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps,
-                              start=_giris_start, length=max(1.0, head - _giris_start))
-        ok_audio, aerr = extract_audio(video, audio_path)
+        if not _ffpar_on:
+            nf_g = extract_window(video, giris_frames, prefix="g", fps=args.fps,
+                                  start=_giris_start, length=max(1.0, head - _giris_start))
+            ok_audio, aerr = extract_audio(video, audio_path)
         timings["coz"] = round(time.perf_counter() - t0, 2)
         log_event("cozumleme_completed",
                   summary=f"{video.name}: {res}, {dur}, giris {nf_g} + cikis {nf_c} native kare, ses={'var' if ok_audio else 'YOK'} ({timings['coz']} sn).",
