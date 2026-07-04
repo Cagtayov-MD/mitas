@@ -389,6 +389,10 @@ KESİN KURALLAR:
 0. BİÇİM (EN ÖNEMLİ): her isim GERÇEK "Ad Soyad" olmalı — en az İKİ kelime, gerçek bir insan. TEK kelime (yalnız ad VEYA yalnız soyad) YAZMA. Marka/şirket/stüdyo/logo adı (ör. Warner Bros, Lucasfilm, Columbia Pictures), sıfat, rol/etiket sözcüğü İSİM DEĞİLDİR — YAZMA. Emin değilsen o ismi atla.
 1. SADECE aşağıdaki satırlarda GEÇEN isimleri kullan. Kendi bilginden/hafızandan İSİM EKLEME, TAHMİN ETME. Bir alan satırlarda yoksa boş liste [] ver.
 2. Bir satır "KARAKTER_ADI OYUNCU_ADI" biçimindeyse (ör. "CAL MORSE SAM WATERSTON", "FLETCHER REEDE JIM CARREY", "MARGARET THATCHER MERYL STREEP"), yalnız OYUNCU (gerçek kişi) adını al; KARAKTER adını KOYMA. Tek başına KARAKTER/ROL adı görünüyorsa (ör. yalnız "FLETCHER REEDE" veya "MARGARET THATCHER") onu LİSTEYE KOYMA — sadece gerçek oyuncu adlarını ver.
+2a. KARAKTER↔OYUNCU AYRIMI (oyuncu bloğunda ÇOK ÖNEMLİ):
+   - AYRI SATIR DÜZENİ: Karakter adı ile oyuncu adı ARDIŞIK ayrı satırlardaysa (ör. üstte "Serebryakov" / altta "OLEG BASILASHVILI"; ya da "Vanya" / "Kirill Lavrov"), OYUNCU olanı al, KARAKTER satırını ATLA.
+   - CASING İPUCU: Bir oyuncu bloğunda hem BÜYÜK HARF (ör. "CHARLES BRONSON", "OLEG BASILASHVILI") hem Baş-Harfi-Büyük (ör. "Jeb Maynard", "Carl Richards") isimler KARIŞIK haldeyse → BÜYÜK HARF olanlar genelde OYUNCU, Baş-Harfi-Büyük olanlar KARAKTER adıdır: yalnız BÜYÜK HARF (oyuncu) olanları al, Baş-Harfi-Büyük (karakter) olanları ATLA. AMA blok HOMOJEN ise (hepsi BÜYÜK HARF VEYA hepsi Baş-Harfi-Büyük) bu kural GEÇERSİZ — hepsi oyuncu olabilir, casing'e göre eleme YAPMA.
+   - Bu iki alt-kural yalnız OYUNCU alanı içindir; yönetmen/yapımcı için uygulama.
 3. Rol etiketleri (DIRECTED BY, PRODUCED BY, YÖNETMEN, YAPIMCI, CAST, STARRING, THE END, MUSIC BY, WRITTEN BY...) ve şirket/kurum adları (FILM, FILMS, PRODUCTION, PICTURES, STUDIO, MEDIA, TV) İSİM DEĞİLDİR — listeye koyma.
 4. YÖNETMEN — şu kalıpların birinin YANINDAKİ/ALTINDAKİ GERÇEK kişi adı:
    - "DIRECTED BY <İSİM>", "A FILM BY <İSİM>", "A <İSİM> FILM" (ör. "A JOHN MCTIERNAN FILM" → John McTiernan), "AN <İSİM> FILM"
