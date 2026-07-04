@@ -1363,6 +1363,10 @@ _PROD_DEFAULTS = {
     "MITAS_QC_ROLE_FILTER": "1",     # KAPI1 (2026-06-28): karakter-rol/tarif çöpü ele (yapısal-kesin, ad ezmez)
     "MITAS_DIRECTOR_RESCUE": "1",   # C-fix (2026-06-29): yönetmen-rescue; LLM boş → DIRECTED BY +1 (VETO: yapım etiketi/cast-çelişki)
     "MITAS_FRAME_DEDUP": "0",        # frame-dedup default OFF (A/B opt-in)
+    # HIZLANDIRMA Faz-2 (2026-07-04, plan-karari + Sonnet SAFE): jdebug kosuda KAPALI (medyan
+    # 184sn/film; karar/PDF'e sifir etki — blok karar-SONRASI). Backfill: jenerik_debug_batch.py.
+    # DIKKAT: MITAS_JENERIK_PARALLEL_POOL AYRI ve ASLA kapatilmaz (master-PNG/dilim/K1 zinciri).
+    "MITAS_JENERIK_PARALLEL_DEBUG": "0",
     # ÖZET MOTORU (2026-06-27 model-bake-off, Çağatay zincir kararı): gemini-2.5-flash (1) → Sonnet (2,
     # yedek) → gemma-local (3, max-fixed yerel). Gemini 0 HATALI/Sonnet-sınıfı/~10x ucuz/anahtar kurulu.
     # Sonnet yedek: ANTHROPIC_API_KEY yoksa _ozet_anthropic None döner → otomatik gemma'ya düşer (atıl).

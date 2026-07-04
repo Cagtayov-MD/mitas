@@ -41,6 +41,13 @@ if (-not $env:MITAS_KB_CAST_ADD)       { $env:MITAS_KB_CAST_ADD = '1';       Wri
 # 5->8 (+lead KIVANC/BELCIM, karakter-adi copu gitti); 4-film (TR/Alm/Fr) %94 recall + yonetmen 4/4.
 # Maliyet ~+2.5dk/film. Kapatmak icin MITAS_GEMMA_FULLCOVER=0.
 if (-not $env:MITAS_GEMMA_FULLCOVER)   { $env:MITAS_GEMMA_FULLCOVER = '1';   Write-Host '   + MITAS_GEMMA_FULLCOVER=1 (default AKTIF — tam-kapsam kunye okuma)' }
+# JENERIK_PARALLEL_DEBUG = jdebug provenance (jenerik_debug/ artefaktlari). HIZLANDIRMA Faz-2
+# (2026-07-04, plan-karari + Sonnet cakisma-denetimi SAFE): kosuda KAPALI (medyan 184sn/film kazanc;
+# karar/PDF'e SIFIR etki — blok karar-sonrasi, ciktisi yalniz jenerik_debug/). Eksikler ayni-gun
+# batch-backfill ile doldurulur: python scripts/jenerik_debug_batch.py (bos GPU'da). Geri almak
+# icin User env MITAS_JENERIK_PARALLEL_DEBUG=1. DIKKAT: MITAS_JENERIK_PARALLEL_POOL AYRIDIR ve
+# ASLA kapatilmaz (master-PNG/dilim/K1 zinciri ona bagli).
+if (-not $env:MITAS_JENERIK_PARALLEL_DEBUG) { $env:MITAS_JENERIK_PARALLEL_DEBUG = '0'; Write-Host '   + MITAS_JENERIK_PARALLEL_DEBUG=0 (hiz-modu; backfill: jenerik_debug_batch.py)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }
 # FRAME-DEDUP (2026-06-23): CLIP sonrasi yakin-identical kare eleme (sabit kart cok-kare -> birkac temsilci,
