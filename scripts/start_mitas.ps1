@@ -52,6 +52,7 @@ if (-not $env:MITAS_OLLAMA_KEEP_ALIVE) { $env:MITAS_OLLAMA_KEEP_ALIVE = '15m'; W
 # batch-backfill ile doldurulur: python scripts/jenerik_debug_batch.py (bos GPU'da). Geri almak
 # icin User env MITAS_JENERIK_PARALLEL_DEBUG=1. DIKKAT: MITAS_JENERIK_PARALLEL_POOL AYRIDIR ve
 # ASLA kapatilmaz (master-PNG/dilim/K1 zinciri ona bagli).
+if (-not $env:MITAS_SHADOW_VL) { $env:MITAS_SHADOW_VL = '0'; Write-Host '   + MITAS_SHADOW_VL=0 (hiz: golge-VL kapali, ~5-6dk/film; backfill K2-hatti)' }
 if (-not $env:MITAS_JENERIK_PARALLEL_DEBUG) { $env:MITAS_JENERIK_PARALLEL_DEBUG = '0'; Write-Host '   + MITAS_JENERIK_PARALLEL_DEBUG=0 (hiz-modu; backfill: jenerik_debug_batch.py)' }
 # OCR GLM-consensus = doymus ollama'da takiliyor (15dk darbogaz); uretimde KAPALI.
 if (-not $env:MITAS_OCR_GLM_CONSENSUS) { $env:MITAS_OCR_GLM_CONSENSUS = '0'; Write-Host '   + MITAS_OCR_GLM_CONSENSUS=0 (default)' }

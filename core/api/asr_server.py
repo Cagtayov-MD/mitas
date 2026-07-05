@@ -687,11 +687,73 @@ def _flow_queue_worker_loop() -> None:
     """Process waiting items in queue.json one at a time (GPU-serial)."""
     global _flow_worker_current, _pipeline_proc, _flow_worker_proc
     processed: set[str] = set()  # bu oturumda işlenen öğe id'leri — panel durum geri-sarmasına BAĞIŞIK (tekrar işleme yok)
+    # ── STAGING-PREFETCH (2026-07-05, DALGA-181 ölçümü: film-arası ölü-zaman medyan ~6dk = SMB-video
+    #    üstü ön-faz/ffmpeg-seek; 181 filmde ~18 saat). Film N koşarken N+1 lokale kopyalanır
+    #    (E:\MITAS\cache\staging) → ağ↔GPU örtüşür; coz/ASR/jenerik-tespit lokal-hızda. İşlem sonrası
+    #    staged kopya SİLİNİR (kaynak ağ-dosyasına ASLA dokunulmaz). FAIL-SAFE: her hata → orijinal
+    #    yol AYNEN kullanılır (davranış-özdeş). Kill-switch: MITAS_FLOW_PREFETCH=0.
+    _prefetch_on = os.environ.get("MITAS_FLOW_PREFETCH", "1").strip().lower() not in ("0", "false", "off", "no")
+    _stage_dir = Path(os.environ.get("MITAS_FLOW_STAGING", r"E:\MITAS\cache\staging"))
+    _prefetch: dict[str, Any] = {}   # item_id -> {"thread": Thread, "dst": Path, "src_size": int}
+
+    def _stage_path_for(src: str) -> Path:
+        import hashlib as _hl
+        h = _hl.md5(src.encode("utf-8", "ignore")).hexdigest()[:10]
+        return _stage_dir / h / Path(src).name   # DOSYA-ADI KORUNUR (clip_id/hub adlandırması bozulmaz)
+
+    def _prefetch_start(item: dict) -> None:
+        if not _prefetch_on or item.get("id") in _prefetch:
+            return
+        src = item.get("storedMediaPath") or item.get("sourcePath") or ""
+        try:
+            if not src or not Path(src).exists() or Path(src).drive.upper().startswith("E:"):
+                return  # yerel/boş kaynak → prefetch anlamsız
+            _stage_dir.mkdir(parents=True, exist_ok=True)
+            dst = _stage_path_for(src)
+            size = Path(src).stat().st_size
+            if (_stage_dir.stat().st_dev == Path("E:\\").stat().st_dev
+                    and shutil.disk_usage(str(_stage_dir)).free < size + 20 * 2**30):
+                return  # disk emniyet payı (<kopya+20GB) → prefetch atla
+            def _copy() -> None:
+                try:
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    tmp = dst.with_suffix(dst.suffix + ".part")
+                    shutil.copyfile(src, tmp)
+                    if tmp.stat().st_size == size:
+                        os.replace(tmp, dst)
+                    else:
+                        tmp.unlink(missing_ok=True)
+                except Exception:  # noqa: BLE001 — prefetch hatası sessiz; orijinal yol kullanılır
+                    try:
+                        dst.with_suffix(dst.suffix + ".part").unlink(missing_ok=True)
+                    except Exception:  # noqa: BLE001
+                        pass
+            t = threading.Thread(target=_copy, daemon=True, name="flow-prefetch")
+            t.start()
+            _prefetch[item["id"]] = {"thread": t, "dst": dst, "src_size": size}
+        except Exception:  # noqa: BLE001 — FAIL-SAFE
+            pass
+
+    def _prefetch_take(item_id: str, orig: str) -> tuple[str, Path | None]:
+        """Staged kopya hazırsa (boyut-doğrulanmış) onun yolunu ver; değilse orijinal."""
+        info = _prefetch.pop(item_id, None)
+        if not info:
+            return orig, None
+        try:
+            info["thread"].join(timeout=1)   # bitmek üzereyse 1sn bekle; değilse orijinalle devam
+            dst: Path = info["dst"]
+            if dst.exists() and dst.stat().st_size == info["src_size"]:
+                return str(dst), dst
+        except Exception:  # noqa: BLE001
+            pass
+        return orig, None
     try:
         while not _flow_worker_stop.is_set():
             try:
                 state = _read_json(FLOW_QUEUE_STATE_PATH)
                 if not isinstance(state, dict) or "items" not in state:
+                    system_events.log_event("flow_worker_exited", level="warning", module="flow",
+                                            summary="Worker cikti: queue.json okunamadi/bozuk.")
                     break  # queue gone / corrupt — stop worker
 
                 target: dict | None = None
@@ -701,6 +763,8 @@ def _flow_queue_worker_loop() -> None:
                         break
 
                 if target is None:
+                    system_events.log_event("flow_worker_exited", module="flow",
+                                            summary="Worker cikti: bekleyen oge kalmadi (processed=%d)." % len(processed))
                     break  # kuyruk bitti (tüm bekleyenler bu oturumda işlendi)
                 processed.add(target["id"])  # bir kez işle — durum 'waiting'e geri sarsa bile tekrar etme
 
@@ -760,6 +824,9 @@ def _flow_queue_worker_loop() -> None:
                         module="flow",
                         detail={"item_id": target["id"], "clip_id": clip_id, "hub": str(_existing_hub)},
                     )
+                    _inf = _prefetch.pop(target["id"], None)   # prefetch artığı varsa sil (leak önle)
+                    if _inf:
+                        shutil.rmtree(_inf["dst"].parent, ignore_errors=True)
                     continue
 
                 _flow_worker_current = target
@@ -770,11 +837,20 @@ def _flow_queue_worker_loop() -> None:
                 profile: str = target.get("profile") or "film"
                 pipeline_profile: str = PIPELINE_PROFILE_MAP.get(profile, "film_dizi")
 
+                # STAGING: bu film için hazır kopya varsa lokalden koş; SIRADAKİ bekleyeni kopyalamaya başla
+                run_video_path, _staged_dst = _prefetch_take(target["id"], video_path)
+                if _prefetch_on:
+                    for _nx in state.get("items", []):
+                        if (_nx.get("status") == "waiting" and _nx.get("id") not in processed
+                                and _nx.get("id") != target["id"]):
+                            _prefetch_start(_nx)
+                            break
+
                 try:
                     cmd = [
                         sys.executable,
                         str(MITAS_PIPELINE),
-                        "--video", video_path,
+                        "--video", run_video_path,
                         "--profile", pipeline_profile,
                         # KAYNAK YERİNDE KALIR: ağ yolundaki büyük filmi Database/<clip>/source'a
                         # KOPYALAMA (extraction zaten orijinal yoldan okur; kopya sadece arşivdi).
@@ -802,6 +878,9 @@ def _flow_queue_worker_loop() -> None:
                         finally:
                             _pipeline_proc = None
                             _flow_worker_proc = None
+                    if _staged_dst is not None:
+                        shutil.rmtree(_staged_dst.parent, ignore_errors=True)   # staged kopya temizliği (kaynak DOKUNULMAZ)
+                        _staged_dst = None
                     if _pipeline_abort.is_set():
                         raise RuntimeError("ZORLA DURDURULDU (kullanıcı)")
 
@@ -848,6 +927,11 @@ def _flow_queue_worker_loop() -> None:
                     )
 
                 except Exception as exc:  # noqa: BLE001
+                    try:
+                        if _staged_dst is not None:
+                            shutil.rmtree(_staged_dst.parent, ignore_errors=True)
+                    except Exception:  # noqa: BLE001
+                        pass
                     # F3: abort kaynaklıysa 'stopped' (kullanıcı durdurdu), değilse 'failed'.
                     if _pipeline_abort.is_set() or "ZORLA DURDURULDU" in str(exc):
                         _flow_update_item(target["id"], status="stopped",

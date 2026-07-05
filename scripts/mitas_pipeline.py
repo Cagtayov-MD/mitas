@@ -1378,6 +1378,11 @@ _PROD_DEFAULTS = {
     # 184sn/film; karar/PDF'e sifir etki — blok karar-SONRASI). Backfill: jenerik_debug_batch.py.
     # DIKKAT: MITAS_JENERIK_PARALLEL_POOL AYRI ve ASLA kapatilmaz (master-PNG/dilim/K1 zinciri).
     "MITAS_JENERIK_PARALLEL_DEBUG": "0",
+    # HIZLANDIRMA Faz-2 devami (2026-07-05, DALGA-181 olcumu): GOLGE-VL film-basina ~5-6dk GPU
+    # yiyor (vl_pool + gemma okuma; _DURUM-SONRASI kostugu icin timings'e gorunmuyordu = "olu-zaman"
+    # sanilan sey). Sonnet cakisma-denetimi SAFE demisti (jdebug ile ayni sinif, karar-disi golge).
+    # Backfill: vl_pool/gemma okumasi offline kosulabilir (K2 hatti). Geri: =1.
+    "MITAS_SHADOW_VL": "0",
     # HIZLANDIRMA Faz-0 hiz-modu (2026-07-04): LLM resident 15dk (soguk-start ~56sn/film eler);
     # ASR-subap (MITAS_ASR_LLM_VALVE) large-v3 oncesi tahliye eder -> VRAM guvenli. "-1" YASAK.
     "MITAS_OLLAMA_KEEP_ALIVE": "15m",
