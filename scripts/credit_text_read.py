@@ -1313,12 +1313,21 @@ def _yon_rescue_auto(lines, raw_context_lines, cast, yap, ocr_tokens, title_f):
         for _i, _ln in enumerate(_ls):
             if not _rsc_label_fuzzy(_fold_ga(_ln)):
                 continue
-            for _j in (_i + 1, _i - 1):
+            # LAUREL HARDY yaması (2026-07-05): +1 garble ise ('FLE') +2'yi de dene (tek garble-satır
+            # atlama: 'Directed by / FLE / ALFRED WERKER'); -1 en SON çare kalır.
+            for _j in (_i + 1, _i + 2, _i - 1):
                 if _j < 0 or _j >= len(_ls):
                     continue
                 _nb = _ls[_j]
                 _nbf = _fold_ga(_nb)
                 if any(_v in _nbf for _v in _RSC_VETO) or _rsc_label_fuzzy(_nbf):
+                    continue
+                # LAUREL HARDY yaması (2026-07-05): aday, HERHANGİ bir rol-etiketinin garble'ı olabilir
+                # ('Art Dirg fio' ≈ 'ART DIRECTION' 0.85+) → fuzzy-etiket-vetosu (yalnız DIRECTOR değil).
+                import difflib as _dlv
+                _ROLE_VETO_F = ("ART DIRECTION", "MUSICAL DIRECTION", "SET DECORATIONS", "FILM EDITOR",
+                                "SCREEN PLAY BY", "ORIGINAL STORY BY", "SOUND", "COSTUMES")
+                if any(_dlv.SequenceMatcher(None, _nbf, _rv).ratio() >= 0.78 for _rv in _ROLE_VETO_F):
                     continue
                 if _looks_garble(_nb) is not None or not _valid_person_name(_nb):
                     continue

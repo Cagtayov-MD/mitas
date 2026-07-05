@@ -685,7 +685,19 @@ def main():
             if any(k in _f for k in ("ANIMASYON", "ANIMATION", "ANIMATED", "CIZGI")):
                 return True
         return False
-    anim = _is_animasyon(cc.get("tur"), cc.get("tur_imdb"), a.tur)
+    # ÇOĞUNLUK-VETOSU (2026-07-05, NİNJA KAPLUMBAĞALAR kanıtı): tek-kaynak-yeter kuralı canlı-aksiyon
+    # filmde (IMDb genre listesinde 'Animation' geçiyor diye) OKUNMUŞ gerçek cast'i gizledi. Yeni kural:
+    # DOLU kaynaklar oylanır (xml / KB-TR / ham-IMDb); animasyon ancak anim-oyu > değil-oyu ise tetiklenir.
+    # DEFİNE korunur (xml=ÇİZGİ/ANİMASYON + imdb=Animation → 2>1); NİNJA düzelir (yalnız imdb → 1<2).
+    _anim_oy = _degil_oy = 0
+    for _src in (cc.get("tur"), cc.get("tur_imdb"), a.tur):
+        if not str(_src or "").strip() or str(_src).strip() == "—":
+            continue
+        if _is_animasyon(_src):
+            _anim_oy += 1
+        else:
+            _degil_oy += 1
+    anim = _anim_oy > _degil_oy
     # FİLM NOTU listesi: pipeline'dan gelen (--notlar: sessiz/jenerik-yok/XML-uyarı) + animasyon notu.
     film_notu = []
     if a.notlar:
