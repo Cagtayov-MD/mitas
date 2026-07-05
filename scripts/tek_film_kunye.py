@@ -791,7 +791,7 @@ def main():
     #    (rapor+Film-Notu'na yazılır, kaybolmaz); PDF teyitli çekirdekle ONAYLI'ya gider.
     #    Garble-klonlar (KIEN) otomatik temizlenir. MITAS_TEYITSIZ_DUS=0 kill-switch.
     _teyitsiz_cast, _teyitsiz_yon = [], []
-    if (not anim) and cast and os.environ.get("MITAS_TEYITSIZ_DUS", "1").strip().lower() not in ("0", "false", "off", "no"):
+    if (not anim) and (a.profile != "dizi") and cast and os.environ.get("MITAS_TEYITSIZ_DUS", "1").strip().lower() not in ("0", "false", "off", "no"):
         try:
             import credit_video_read as _cvx
             _kbx = _cvx.KB()
@@ -832,7 +832,8 @@ def main():
                     return False
             _kept = []
             for _n in cast:
-                if _kbx.verify(_n, "actor") == "ONAY":
+                _v = _kbx.verify(_n, "actor")
+                if _v == "ONAY" or _v == "meslek-bos":   # hakim-fix: KB'de kişi VAR ama meslek-alanı boş → KALIR
                     _kept.append(_n)
                 elif _fz_kb(_n, "actor"):
                     _kept.append(_n); _fuzzy_onay.append(_n)   # garble-toleranslı KB-teyit (yazım OCR'da kalır)
@@ -852,9 +853,14 @@ def main():
                 _teyitsiz_cast = []
                 rapor["adimlar"]["teyit_iptal"] = "çekirdek<3 → süzgeç uygulanmadı, KONTROL-yolu"
             if yon:
-                _yk = [_n for _n in yon if _kbx.verify(_n, "director") == "ONAY"]
+                _yk = [_n for _n in yon if _kbx.verify(_n, "director") in ("ONAY", "meslek-bos")]
                 _teyitsiz_yon = [_n for _n in yon if _n not in _yk]
-                yon = _yk                      # teyitsiz yön → boş (meşru-boş; PDF yine gidebilir)
+                # hakim-fix (çok-yönetmen): KISMİ teyitte SİLME YOK — ekran-okuma aynen kalır (kimlik-çapası);
+                # yalnız HİÇBİRİ teyitli değilse boş bırakılır (meşru-boş yolu).
+                if _yk:
+                    _teyitsiz_yon = []          # kısmi/tam teyit → yon AYNEN (silme yok)
+                else:
+                    yon = []
             if _teyitsiz_cast or _teyitsiz_yon:
                 film_notu.append("KİŞİ-TEYİT — KB'de doğrulanamayan %d isim listeden çıkarıldı (raporda saklı)."
                                  % (len(_teyitsiz_cast) + len(_teyitsiz_yon)))
