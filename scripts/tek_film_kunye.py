@@ -786,6 +786,55 @@ def main():
             _cap = 10
     except Exception:  # noqa: BLE001 — bozuk değer → varsayılan 10
         _cap = 10
+    # ── İSİM-DÜZEYİ TEYİT SÜZGECİ (2026-07-05, Çağatay kuralı): "teyitsiz tek isim PDF'i rehin
+    #    almaz — güvendiğini ver, 8 değil 7 kişiyle gitsin." Kişi KB-ONAY değilse İSİM düşer
+    #    (rapor+Film-Notu'na yazılır, kaybolmaz); PDF teyitli çekirdekle ONAYLI'ya gider.
+    #    Garble-klonlar (KIEN) otomatik temizlenir. MITAS_TEYITSIZ_DUS=0 kill-switch.
+    _teyitsiz_cast, _teyitsiz_yon = [], []
+    if (not anim) and cast and os.environ.get("MITAS_TEYITSIZ_DUS", "1").strip().lower() not in ("0", "false", "off", "no"):
+        try:
+            import credit_video_read as _cvx
+            _kbx = _cvx.KB()
+            # ÇİFT-OKUMA imzası (basamak-2): KB'de olmayan isim, FRAME-kunye VE master-DİLİM'de
+            # bağımsız okunmuşsa 'ekran-çift-imzalı' sayılır ve KURTULUR (KB-kapsam-dışı yerel
+            # oyuncular için — Çağatay: 'doğru okuduğumu kaçırma').
+            import glob as _gx
+            def _fold_tx(t): return nn.ascii_fold(t).upper()
+            _fr_txt = ""
+            _ks = sorted([q for q in _gx.glob(os.path.join(clip, "ocr", "ocr-*", "kunye.txt")) if "-fb" not in q], key=os.path.getmtime)
+            if _ks: _fr_txt = _fold_tx(open(_ks[-1], encoding="utf-8", errors="ignore").read())
+            _dl_txt = ""
+            _dp = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
+            if os.path.isfile(_dp): _dl_txt = _fold_tx(open(_dp, encoding="utf-8", errors="ignore").read())
+            _cift_imza = []
+            _kept = []
+            for _n in cast:
+                if _kbx.verify(_n, "actor") == "ONAY":
+                    _kept.append(_n)
+                elif _fr_txt and _dl_txt and _fold_tx(_n) in _fr_txt and _fold_tx(_n) in _dl_txt:
+                    _kept.append(_n); _cift_imza.append(_n)   # KB'siz ama çift-kaynak-ekran-teyitli
+                else:
+                    _teyitsiz_cast.append(_n)
+            if _cift_imza:
+                rapor["adimlar"].setdefault("teyit", {})["cift_imza"] = _cift_imza[:12]
+            if len(_kept) >= 3:
+                cast = _kept
+            else:
+                # ÇAĞATAY-DÜZELTMESİ (2026-07-05): süzgeç cast'i <3'e düşürüyorsa BOŞ/GÜDÜK ONAYLI
+                # OLMAZ — süzme İPTAL, liste AYNEN kalır, film KONTROL'e gider (mevcut reasons korunur).
+                _teyitsiz_cast = []
+                rapor["adimlar"]["teyit_iptal"] = "çekirdek<3 → süzgeç uygulanmadı, KONTROL-yolu"
+            if yon:
+                _yk = [_n for _n in yon if _kbx.verify(_n, "director") == "ONAY"]
+                _teyitsiz_yon = [_n for _n in yon if _n not in _yk]
+                yon = _yk                      # teyitsiz yön → boş (meşru-boş; PDF yine gidebilir)
+            if _teyitsiz_cast or _teyitsiz_yon:
+                film_notu.append("KİŞİ-TEYİT — KB'de doğrulanamayan %d isim listeden çıkarıldı (raporda saklı)."
+                                 % (len(_teyitsiz_cast) + len(_teyitsiz_yon)))
+                rapor["adimlar"]["teyitsiz_dusen"] = {"cast": _teyitsiz_cast[:12], "yon": _teyitsiz_yon}
+        except Exception:  # noqa: BLE001 — süzgeç hatası akışı ASLA bozmaz (cast AYNEN kalır)
+            pass
+
     castU = ([] if anim else nn.upper_names(cast[:_cap]))   # ANİMASYON: oyuncu alanı boş (seslendirme kadrosu basılmaz)
     # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
     _ozet_names = [n for n in (list(cast)
@@ -911,6 +960,8 @@ def main():
                    # FİLM NOTU (2026-07-04): md-patch + pipeline tüketimi (animasyonda QC 'oyuncu yok' bastırılır)
                    "film_notu": film_notu,
                    "animasyon": bool(anim),
+                   "teyitsiz_dusen_cast": _teyitsiz_cast[:12],
+                   "teyitsiz_dusen_yon": _teyitsiz_yon,
                    "yonetmen_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yönetmen"],
                    "yapimci_list": [n for r, ns in d.get("crew", []) for n in ns if r == "Yapımcı"],
                    # BİRLEŞİK QC BLOĞU kararı (flag MITAS_QC_BLOCK): mitas_pipeline NEW kapıları

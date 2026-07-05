@@ -2920,7 +2920,7 @@ def main(argv=None) -> int:
         try:
             _kt_cast = list((v4_credits or {}).get("cast_list") or [])
             _kt_yon = list((v4_credits or {}).get("yonetmen_list") or [])
-            if len(_kt_cast) >= 5:
+            if len(_kt_cast) >= 3:   # süzgeç-sonrası cast zaten teyitli — eşik 3
                 sys.path.insert(0, str(HERE))
                 import credit_video_read as _cvr
                 _kb_kt = _cvr.KB()
