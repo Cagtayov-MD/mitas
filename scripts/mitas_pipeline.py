@@ -2910,6 +2910,36 @@ def main(argv=None) -> int:
         except Exception:  # noqa: BLE001 — sinyal hatası pipeline'ı ASLA bozmasın
             pass
 
+    # ── KİŞİ-TEYİT (2026-07-05, Çağatay politika-kararı): "Kişi doğruysa eşleştir; filme kilitlenme."
+    #    Ekrandan okunan isimler TEK TEK kişi-olarak KB'de doğrulanır (actress-fix'li verify).
+    #    cast>=5 VE kişi-ONAY-oranı>=0.6 VE (yön boş VEYA yön kişi-ONAY) → film-kimliği/teyit sınıfı
+    #    reason'ları BASTIRILIR (KB filmi tanımasa bile ONAYLI yolu açılır). "QC1 başarısız" gibi
+    #    OKUMA-kalitesi reason'ları KALIR (okunamadı>yanlış-oku korunur). MITAS_KISI_TEYIT=0 kill-switch.
+    _kisi_teyit_notu = None
+    if (reasons and os.environ.get("MITAS_KISI_TEYIT", "1").strip().lower() not in ("0", "false", "off", "no")):
+        try:
+            _kt_cast = list((v4_credits or {}).get("cast_list") or [])
+            _kt_yon = list((v4_credits or {}).get("yonetmen_list") or [])
+            if len(_kt_cast) >= 5:
+                sys.path.insert(0, str(HERE))
+                import credit_video_read as _cvr
+                _kb_kt = _cvr.KB()
+                _on = sum(1 for n in _kt_cast if _kb_kt.verify(n, "actor") == "ONAY")
+                _oran = _on / max(1, len(_kt_cast))
+                _yon_ok = (not _kt_yon) or any(_kb_kt.verify(n, "director") == "ONAY" for n in _kt_yon)
+                if _oran >= 0.6 and _yon_ok:
+                    _BASTIR = ("kimlik", "zayıf-teyit", "versiyon cast-teyitsiz",
+                               "yönetmen doğrulama: kaynak-çelişkisi")
+                    _kalan = [r for r in reasons if not any(b in r for b in _BASTIR)]
+                    if len(_kalan) < len(reasons):
+                        _kisi_teyit_notu = ("kişi-teyit: cast %d/%d KB-ONAY" % (_on, len(_kt_cast))
+                                            + (", yön KB-ONAY" if _kt_yon else ", yön boş")
+                                            + " → film-KB'siz doğrulama (Çağatay kuralı)")
+                        qwen_uyari.append(_kisi_teyit_notu)
+                        reasons = _kalan
+        except Exception:  # noqa: BLE001 — kişi-teyit hatası karar akışını ASLA bozmaz
+            pass
+
     # ── QC ROUTING (şiddet × tip) — credit_severity_router: HAFİF→AUTOFIX, AĞIR→tip-klasörü ──
     #    FAIL-SOFT: router import/çağrı hatasında ESKİ ikili karara DÜŞ (pipeline ASLA bozulmaz).
     #    REASON-TEMELLİ (qwen false-pozitif EKLEMEZ): mevcut kalibre 'reasons' tiplenir; 'qwen_uyari' → AUTOFIX.
