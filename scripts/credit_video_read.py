@@ -198,7 +198,11 @@ class KB:
                 profs.update(x.strip() for x in str(p).split(","))
         if not profs:
             return "meslek-bos"
-        if role in profs or (role == "producer" and "director" in profs):
+        # ACTRESS-FIX (2026-07-05, Cagatay'in kisi-testi): IMDb kadinlari 'actress' yazar;
+        # 'actor' sorgusu TUM kadin oyunculari RED'liyordu (Henstridge/Oraloglu kaniti).
+        _es = {"actor": {"actor", "actress"}, "actress": {"actor", "actress"},
+               "director": {"director"}, "producer": {"producer", "director"}}
+        if profs & _es.get(role, {role}):
             return "ONAY"
         return "RED"
 
