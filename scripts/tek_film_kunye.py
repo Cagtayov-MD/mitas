@@ -807,16 +807,43 @@ def main():
             _dp = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
             if os.path.isfile(_dp): _dl_txt = _fold_tx(open(_dp, encoding="utf-8", errors="ignore").read())
             _cift_imza = []
+            _fuzzy_onay = []
+            def _fz_kb(_nm, _role):
+                # FUZZY-TEYIT basamak-1.5 (dünya-pratiği: JW+prefix-blok+tek-güçlü-aday; DuckDB jw).
+                try:
+                    if not getattr(_kbx, "con", None): return False
+                    _t = nn.ascii_fold(_nm).lower().split()
+                    if len(_t) < 2: return False
+                    _q = " ".join(_t)
+                    rows = _kbx.con.execute(
+                        "SELECT primaryProfession, jaro_winkler_similarity(strip_accents(lower(primaryName)), ?) AS jw "
+                        "FROM names WHERE strip_accents(lower(primaryName)) LIKE ? "
+                        "AND length(primaryName) BETWEEN ? AND ? ORDER BY jw DESC LIMIT 5",
+                        [_q, _t[0][0] + "%", len(_q) - 3, len(_q) + 3]).fetchall()
+                    if not rows: return False
+                    _esik = 0.92 if _role == "director" else 0.90
+                    _best = rows[0][1] or 0
+                    _snd = rows[1][1] if len(rows) > 1 else 0
+                    if _best < _esik or (_best - (_snd or 0)) < 0.03: return False   # kararsız → abstain
+                    _pr = set(x.strip() for x in str(rows[0][0] or "").split(","))
+                    _ok = {"actor", "actress"} if _role != "director" else {"director"}
+                    return bool(_pr & _ok)
+                except Exception:
+                    return False
             _kept = []
             for _n in cast:
                 if _kbx.verify(_n, "actor") == "ONAY":
                     _kept.append(_n)
+                elif _fz_kb(_n, "actor"):
+                    _kept.append(_n); _fuzzy_onay.append(_n)   # garble-toleranslı KB-teyit (yazım OCR'da kalır)
                 elif _fr_txt and _dl_txt and _fold_tx(_n) in _fr_txt and _fold_tx(_n) in _dl_txt:
                     _kept.append(_n); _cift_imza.append(_n)   # KB'siz ama çift-kaynak-ekran-teyitli
                 else:
                     _teyitsiz_cast.append(_n)
             if _cift_imza:
                 rapor["adimlar"].setdefault("teyit", {})["cift_imza"] = _cift_imza[:12]
+            if _fuzzy_onay:
+                rapor["adimlar"].setdefault("teyit", {})["fuzzy_kb"] = _fuzzy_onay[:12]
             if len(_kept) >= 3:
                 cast = _kept
             else:
