@@ -998,10 +998,13 @@ def _kb_verify_flex(kb, name, role):
                         return "ONAY"
                 except Exception:  # noqa: BLE001 — köprü ASLA verify'ı bozmaz
                     pass
-            elif con is not None and len(core) == 1 and inits:
+            elif con is not None and len(core) == 1 and inits and r != "RED":
                 # (C) baş-harf-GENİŞLETME (Les Diaboliques/H.G. Clouzot): ekran soyad+baş-harf ("H.G. CLOUZOT")
                 # → KB tam-adlı yönetmen ("Henri-Georges Clouzot"). Soyad EŞİT + query baş-harfleri KB ad-kısmı
                 # baş-harflerinin PREFIX'i + TEK rol-ONAY'lı kayıt → ONAY. Pseudonym (Clucher, KB'de yok) → köprü YOK.
+                # KRİTİK GATE (r != "RED", KOMİSER regresyon-fix 2026-07-07): baş-harf-genişletme İSMİ DEĞİŞTİRİR
+                # (V.→Victor). Tam-isim ("V. Grigoryev") KB'de TANINIYORSA (RED=assistant_director) o kişidir →
+                # farklı bir "Victor Grigoryev" director'a GENİŞLETME (yanlış>boş ihlali). Yalnız kayit-yok'ta köprü.
                 import re as _re_c
                 try:
                     surname = core[0]

@@ -34,6 +34,10 @@ VAKALAR = [
      "(C) NEGATİF: KB'de 'Clucher' YOK (pseudonym) → köprü kurmamalı"),
     ("H.G. Zqxvw", "director", "kayit-yok",
      "(C) NEGATİF: uydurma soyad → köprü kurmamalı"),
+    # (C) REGRESYON-FIX (KOMİSER, 2026-07-07): tam-isim KB'de RED (assistant_director) → baş-harf
+    # genişletme farklı 'Victor Grigoryev' director'a GİTMEMELİ (yanlış>boş). RED korunmalı.
+    ("V. Grigoryev", "director", "RED",
+     "(C) REGRESYON: 'V. Grigoryev'=KB'de assistant_director → RED kalmalı, Victor'a genişletme YASAK"),
 ]
 
 
