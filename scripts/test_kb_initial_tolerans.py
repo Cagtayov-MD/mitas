@@ -27,6 +27,13 @@ VAKALAR = [
      "REGRESYON: tam-ad zaten ONAY (bozulmamalı)"),
     ("Zqxvw Ppplmn", "director", "kayit-yok",
      "NEGATİF: KB'de hiç yok → uydurma köprü kurmamalı"),
+    # (C) baş-harf-GENİŞLETME (Les Diaboliques / H.G. Clouzot)
+    ("H.G. Clouzot", "director", "ONAY",
+     "(C) HEDEF: soyad+baş-harf [h,g] → KB tek 'Henri-Georges Clouzot' yönetmen"),
+    ("E.B. Clucher", "director", "kayit-yok",
+     "(C) NEGATİF: KB'de 'Clucher' YOK (pseudonym) → köprü kurmamalı"),
+    ("H.G. Zqxvw", "director", "kayit-yok",
+     "(C) NEGATİF: uydurma soyad → köprü kurmamalı"),
 ]
 
 

@@ -974,11 +974,14 @@ def _kb_verify_flex(kb, name, role):
             kisa = " ".join([toks[0]] + [t for t in toks[1:-1] if len(t.strip(". ")) > 1] + [toks[-1]])
             if kisa != name and kb.verify(kisa, role) == "ONAY":
                 return "ONAY"
-        # (B) KB-tarafı tek-harf kısaltma köprüsü: çekirdek ad+soyad eşit TEK rol-ONAY'lı kayıt varsa ONAY
+        # (B)/(C) KB-tarafı tek-harf kısaltma köprüsü: çekirdek ad+soyad eşit TEK rol-ONAY'lı kayıt → ONAY
         if os.environ.get("MITAS_KB_INITIAL_TOLERANS", "1").strip().lower() not in ("0", "false", "off", "no"):
-            core = tuple(t for t in _fold(name).split() if len(t) >= 2)   # tek-harf (baş/orta) token'ları düş
+            _folded = _fold(name).split()
+            core = tuple(t for t in _folded if len(t) >= 2)   # çok-harfli token (ad/soyad)
+            inits = tuple(t for t in _folded if len(t) == 1)  # tek-harf baş-harfler (sırayla)
             con = getattr(kb, "con", None)
             if con is not None and len(core) == 2:
+                # (B) 2-token: sade ad ↔ KB kısaltmalı (Leslie Martinson ↔ Leslie H. Martinson)
                 try:
                     like = f"{core[0].upper()}%{core[-1].upper()}"
                     rows = con.execute(
@@ -994,6 +997,32 @@ def _kb_verify_flex(kb, name, role):
                     if len(approved) == 1:
                         return "ONAY"
                 except Exception:  # noqa: BLE001 — köprü ASLA verify'ı bozmaz
+                    pass
+            elif con is not None and len(core) == 1 and inits:
+                # (C) baş-harf-GENİŞLETME (Les Diaboliques/H.G. Clouzot): ekran soyad+baş-harf ("H.G. CLOUZOT")
+                # → KB tam-adlı yönetmen ("Henri-Georges Clouzot"). Soyad EŞİT + query baş-harfleri KB ad-kısmı
+                # baş-harflerinin PREFIX'i + TEK rol-ONAY'lı kayıt → ONAY. Pseudonym (Clucher, KB'de yok) → köprü YOK.
+                import re as _re_c
+                try:
+                    surname = core[0]
+                    rows = con.execute(
+                        "SELECT DISTINCT primaryName FROM names WHERE UPPER(strip_accents(primaryName)) "
+                        "LIKE ? AND primaryProfession LIKE '%director%' LIMIT 400", [f"%{surname.upper()}"]).fetchall()
+                    approved = set()
+                    for (pn,) in rows:
+                        _pf = _fold(pn).split()
+                        if not _pf or _pf[-1] != surname:          # soyad son-token EŞİT olmalı
+                            continue
+                        _given = " ".join(pn.split()[:-1])         # ad-kısmı (soyad hariç)
+                        _gt = [w for w in _re_c.split(r"[^A-Za-zÀ-ÿ]+", _given) if w]  # tire+boşluk böl: Henri-Georges→[Henri,Georges]
+                        _gi = tuple(_fold(w)[0] for w in _gt if _fold(w))
+                        if _gi[:len(inits)] == inits and kb.verify(pn, role) == "ONAY":
+                            approved.add(_fold(pn))
+                            if len(approved) >= 2:
+                                break
+                    if len(approved) == 1:
+                        return "ONAY"
+                except Exception:  # noqa: BLE001
                     pass
         return r
     except Exception:  # noqa: BLE001
@@ -1974,9 +2003,15 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     else:
         guven = "KISMI (sadece yapımcı)"
 
-    # KESİN KURAL (son süzgeç): yönetmen/yapımcı/cast'te yalnız gerçek "İsim Soyisim"
+    # KESİN KURAL (son süzgeç): yönetmen/yapımcı/cast'te yalnız gerçek "İsim Soyisim".
+    # İSTİSNA (2026-07-07, Les Diaboliques/H.G. Clouzot): fuse KB-onay/mutabakat/kanonik/çift-imza ile
+    # ONAYLADIYSA yönetmen KB-TEYİTLİ gerçek kişidir → _only_persons'ın ≥2-gerçek-token heuristiği
+    # (baş-harf-ağırlıklı 'H.G. Clouzot'u eler; gerçek-token sadece 'clouzot'=1) UYGULANMAZ. Teyitsiz
+    # (rescue/okunamadı/düşük) yönetmene süzgeç AYNEN kalır (junk-freni; 'PRODUIT ET' vb. sızmaz).
+    _yon_kb_teyitli = bool(yon_fused) and any(
+        _k in guven_yon for _k in ("mutabakat", "KB-onay", "kanonik", "çift-imza"))
     return {
-        "yonetmen": _only_persons(yon_fused),
+        "yonetmen": (yon_fused if _yon_kb_teyitli else _only_persons(yon_fused)),
         "yapimci": _only_persons(yap_kb),
         "cast": _only_persons(cast_kb),
         "guven": guven,
