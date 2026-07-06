@@ -35,6 +35,15 @@ _GLOBAL_PERSON_GATE_ON = os.environ.get("MITAS_GLOBAL_PERSON_GATE", "0").strip()
 # "0"/"false"/"off" ile ESKİ DAVRANIŞA DÜŞ (fail-safe). Default AÇIK = "1".
 _CREDIT_DEFERENCE = os.environ.get("MITAS_CREDIT_DEFERENCE", "1").strip().lower() \
     not in ("0", "false", "off", "no")
+# OCR-TEYİTLİ YAPIMCI KB-FILL (2026-07-07, PARDAYYAN / Georges Campana):
+# DEFERANS "OCR boş → boş kalır" der; AMA burada premis yanlış olabiliyor. Extraction (LLM/VL)
+# yapımcıyı DÜŞÜRDÜYSE (ör. LLM model:null düştü + VL Fransızca "Producteur délégué" etiketini
+# kaçırdı) ama KB-yapımcı adı HAM OCR metninde AÇIKÇA VARSA → bu FABRİKASYON DEĞİL; OCR-otorite
+# geri-kazanımıdır (KB yalnız kanonik yazımı verir). Yönetmen "OCR~KB → kanonik yazım" ile SİMETRİK.
+# Sadece yap-boş + KB-dolu + kimlik-teyitli dalını etkiler; OCR'da isim yoksa deferans AYNEN korunur.
+# Default AÇIK; "0"/"false"/"off" ile ESKİ SAF-DEFERANS davranışına düş (fail-safe).
+_YAPIMCI_OCR_CORROB = os.environ.get("MITAS_YAPIMCI_OCR_CORROB", "1").strip().lower() \
+    not in ("0", "false", "off", "no")
 
 def _load(n, p):
     s = importlib.util.spec_from_file_location(n, p)
@@ -285,6 +294,38 @@ def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
         else:
             report["dropped"].append({"in": nm, "action": "DUSTU", "reason": "tek-kelime veya global/rol eşleşmesi yok"})
     return out, report
+
+def _yapimci_ocr_corroborated(kb_names, clip):
+    """KB'den gelen yapımcı ad(lar)ını HAM OCR metniyle teyit et (OCR-otorite).
+
+    DÖNÜŞ: ham OCR'da TÜM anlamlı token'ları (ascii-fold, >=3 harf) SÖZCÜK olarak geçen
+    ad(lar)ın alt-listesi. Boş dönerse teyit YOK → deferans korunur (fabrikasyon önlenir).
+
+    Neden: DEFERANS kapısı yalnız extraction çıktısına bakıyor; extraction yapımcıyı
+    düşürdüğünde (LLM düştü / VL yabancı-etiket kaçırdı) ham OCR'da isim dururken KB-fill'i
+    yanlışlıkla fabrikasyon sayıyordu. Bu yardımcı, ismin OCR'da FİZİKSEL varlığını doğrular:
+    var ise KB yalnız kanonik yazımı sağlar (yönetmen "OCR~KB → kanonik" mantığıyla simetrik)."""
+    if not _YAPIMCI_OCR_CORROB or not kb_names or not clip:
+        return []
+    blob = ""
+    try:
+        import glob as _g
+        for _pat in ("ocr_ham.txt", "ocr_raw_all.txt"):   # ocr_ham önce (temiz), yoksa ham-hepsi
+            _files = sorted(_g.glob(os.path.join(clip, "ocr", "*", _pat)), key=os.path.getmtime)
+            if _files:
+                with open(_files[-1], "r", encoding="utf-8", errors="ignore") as _f:
+                    blob += "\n" + _f.read()
+    except Exception:  # noqa: BLE001 — OCR okunamazsa teyit yok; akış ASLA bozulmaz
+        return []
+    if not blob.strip():
+        return []
+    _words = set(re.findall(r"[A-Z]{3,}", nn.ascii_fold(blob).upper()))   # sözcük-düzeyi (substring değil)
+    out = []
+    for nm in kb_names:
+        _toks = [t for t in re.findall(r"[A-Z]{3,}", nn.ascii_fold(str(nm or "")).upper())]
+        if _toks and all(t in _words for t in _toks):   # ismin TÜM parçaları OCR'da → teyitli
+            out.append(nm)
+    return out
 
 def main():
     started = time.perf_counter()
@@ -636,11 +677,20 @@ def main():
     # Eski davranış (MITAS_CREDIT_DEFERENCE=0): kimlik-kapılı KB fill devreye girer.
     _producer_gate = os.environ.get("MITAS_PRODUCER_IDENTITY_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
     if not yap and cc.get("yapimci") and (kimlik_dogru or not _producer_gate):
-        if _CREDIT_DEFERENCE:
-            rapor["adimlar"]["yapimci_fill"] = "deferans: KB-fill atlandı (OCR boş → yapımcı boş kalır)"
-            sys.stderr.write(f"[deferans] yapımcı KB-fill atlandı: {cc.get('yapimci')}\n")
+        _kb_yap = cc["yapimci"]
+        if not _CREDIT_DEFERENCE:
+            yap = _kb_yap                                 # deferans KAPALI → eski davranış (tam KB-fill)
         else:
-            yap = cc["yapimci"]
+            # OCR-TEYİT (2026-07-07, PARDAYYAN/Campana): ham OCR'da KB-yapımcı adı VARSA fill FABRİKASYON
+            # DEĞİL — OCR-otorite geri-kazanım (KB yalnız kanonik yazım). Yoksa saf-deferans (boş kalır).
+            _yap_corrob = _yapimci_ocr_corroborated(_kb_yap, clip)
+            if _yap_corrob:
+                yap = _yap_corrob
+                rapor["adimlar"]["yapimci_fill"] = f"OCR-teyitli KB-fill (ham OCR'da ad var → kanonik yazım): {_yap_corrob}"
+                sys.stderr.write(f"[ocr-teyit] yapımcı KB-fill (OCR corroborated): {_yap_corrob}\n")
+            else:
+                rapor["adimlar"]["yapimci_fill"] = "deferans: KB-fill atlandı (ham OCR'da yapımcı adı yok → boş kalır)"
+                sys.stderr.write(f"[deferans] yapımcı KB-fill atlandı (OCR-teyitsiz): {_kb_yap}\n")
     cast = _split_dedup_names(cast)
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
 
