@@ -287,6 +287,7 @@ _NONFILM_MARKERS = (
 _TRUE_DIR_RE = re.compile(
     r"\b(directed by|a film by|film by|un film de|ein film von|film von|realise par|realisateur|"
     r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie|"
+    r"mise en scene|realisation|"                                           # FR ana-etiketler (2026-07-06)
     r"written and directed|directed and edited|produced and directed)\b")   # bileşik etiketler (AJAMİ 2026-07-03)
 
 
@@ -360,8 +361,16 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
             # satıra rastlantısal eşleştiriyordu) + ±1 bağlam (±2 fazla genişti → uzaktaki crew-etiketi
             # gerçek yönetmeni düşürüyordu). high_consensus guard zaten temiz+mutabık yönü koruyor.
             _df_re = re.compile(r"\b" + re.escape(df) + r"\b")
-            for i, lf in enumerate(folded):
-                if _df_re.search(lf):
+            _occ = [i for i, lf in enumerate(folded) if _df_re.search(lf)]
+            # GLOBAL-BAĞIŞIKLIK (2026-07-06, KONTROL-MAHKEMESİ FIX-2c — CENNETE GELDİK Mİ kanıtı):
+            # adayın HERHANGİ bir geçişinin kendi/2-üst penceresinde GERÇEK-yönetmen etiketi
+            # (_TRUE_DIR_RE, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM markerları onu
+            # DÜŞÜREMEZ — çok-şapkalı kişinin (yön+yapımcı+DoP aynı kişi) diğer kartlarının
+            # komşuluğu masum geçişi öldürüyordu. DUBLAJ kuralı DEĞİŞMEZ (geniş-pencere,
+            # bağışıklığı bastırır — TILSIMLI dersi aynen korunur).
+            _glob_imm = any(_TRUE_DIR_RE.search(" ".join(folded[max(0, _gi - 2):_gi + 1])) for _gi in _occ)
+            for i in _occ:
+                if True:
                     # DoP-fix (2026-07-03): '±1' niyetli dilim fiilen [i-1, i] idi — SONRAKİ satır hiç
                     # görülmüyordu; "İSİM üstte / DIRECTOR OF PHOTOGRAPHY altta" yerleşimi sızıyordu.
                     # Pencere [i-1, i+1]'e genişletildi. REGRESYON KALKANI: adayın kendi/2-üst satırında
@@ -381,7 +390,7 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                         break
                     if any(m in ctx for m in markers):
                         imm = " ".join(folded[max(0, i - 2):i + 1])
-                        if not _TRUE_DIR_RE.search(imm):
+                        if not _glob_imm and not _TRUE_DIR_RE.search(imm):
                             is_nf = True
                             break
         (dropped if is_nf else kept).append(d)
@@ -943,26 +952,126 @@ def _dedup_fold(seq: list[str]) -> list[str]:
 
 
 def _kb_verify_flex(kb, name, role):
-    """kb.verify + ORTA-AD-BAŞHARFİ toleransı (İHTİRAS canlı smoke 2026-07-04: LLM 'Bill L. Norton'
-    doğru okudu, kb.verify('Bill L. Norton')=kayit-yok ama kb.verify('Bill Norton')=ONAY —
-    tek-harf ara-token KB eşleşmesini kırıyor, füzyon tek-okumayı KB-onaysız diye düşürüyordu).
-    Birincil ad AYNEN denenir; ONAY değilse ve isimde tek-harf ara-token varsa (ilk+son korunarak)
-    ara-başharfler atılıp yeniden denenir. FAIL-SAFE: hata → birincil sonuç/'hata' döner."""
+    """kb.verify + tek-harf KISALTMA toleransı — İKİ YÖNLÜ.
+    (A) İHTİRAS 2026-07-04: query'de tek-harf ara-token varsa ATIP dener ('Bill L. Norton'→'Bill Norton'
+        → kb.verify ONAY). Birincil ad AYNEN denenir; ONAY değilse ve tek-harf ara-token varsa (ilk+son
+        korunarak) ara-başharfler atılıp yeniden denenir.
+    (B) ANGOLA/ESCAPE FROM ANGOLA 2026-07-07 (Çağatay): TERS YÖN. Ekran jeneriği sade ad basar
+        ('DIRECTED BY LESLIE MARTINSON') ama KB'de yönetmen tek-harf kısaltmayla kayıtlı
+        ('Leslie H. Martinson'=director). Sade ad ise KB'de BAŞKA kişiye ('Leslie Martinson'=
+        production dept) çarpıp RED alıyor → doğru okunan yönetmen düşüyordu. ÇÖZÜM: sade ad ONAY
+        değilse, tek-harf token'ları (BAŞ veya ORTA — 'A. Manu Ginobili' de dahil) yok sayarak çekirdek
+        ad+soyadı EŞİT olan rol-ONAY'lı KB kaydı ara. TEK ve NET aday varsa ONAY; ≥2 farklı kişi
+        (belirsiz — 'Leslie H.' + 'Leslie B.') → DOKUNMA (yanlış>boş). Kill-switch: MITAS_KB_INITIAL_TOLERANS=0.
+    FAIL-SAFE: her hata → birincil sonuç/'hata'."""
     try:
         r = kb.verify(name, role)
         if r == "ONAY":
             return r
         toks = [t for t in str(name).split() if t.strip()]
+        # (A) query'den ara-başharf at (ilk+son korunur)
         if len(toks) >= 3:
             kisa = " ".join([toks[0]] + [t for t in toks[1:-1] if len(t.strip(". ")) > 1] + [toks[-1]])
             if kisa != name and kb.verify(kisa, role) == "ONAY":
                 return "ONAY"
+        # (B) KB-tarafı tek-harf kısaltma köprüsü: çekirdek ad+soyad eşit TEK rol-ONAY'lı kayıt varsa ONAY
+        if os.environ.get("MITAS_KB_INITIAL_TOLERANS", "1").strip().lower() not in ("0", "false", "off", "no"):
+            core = tuple(t for t in _fold(name).split() if len(t) >= 2)   # tek-harf (baş/orta) token'ları düş
+            con = getattr(kb, "con", None)
+            if con is not None and len(core) == 2:
+                try:
+                    like = f"{core[0].upper()}%{core[-1].upper()}"
+                    rows = con.execute(
+                        "SELECT DISTINCT primaryName FROM names "
+                        "WHERE UPPER(strip_accents(primaryName)) LIKE ? LIMIT 400", [like]).fetchall()
+                    approved = set()
+                    for (pn,) in rows:
+                        pn_core = tuple(t for t in _fold(pn).split() if len(t) >= 2)
+                        if pn_core == core and kb.verify(pn, role) == "ONAY":
+                            approved.add(_fold(pn))
+                            if len(approved) >= 2:        # belirsizlik → köprü kurma
+                                break
+                    if len(approved) == 1:
+                        return "ONAY"
+                except Exception:  # noqa: BLE001 — köprü ASLA verify'ı bozmaz
+                    pass
         return r
     except Exception:  # noqa: BLE001
         return "hata"
 
 
-def _fuse_yonetmen(per_model: dict[str, list[str]], kb) -> tuple[list[str], str]:
+_ROL_PROF = {"director": "%director%", "actor": "%act%", "actress": "%act%",
+             "producer": "%produc%"}
+
+
+def _kb_fuzzy_canonical_multi(kb, name, role="director", pool_lines=None):
+    """ÇOK-VARYANT + ROL-KISITLI FUZZY KANONİKLEŞTİRME (2026-07-06, Çağatay TOPLU GÖSTERİLER kökü).
+    KÖK-BULGU: OneOCR aynı ismi kareden kareye farklı okur ('VincenTe minneti/Minnati/minneLti')
+    → stitch YANLIŞ varyantı seçer → tek-varyant fuzzy marjı düşük kalır (Minnati→Minnelli 0.94
+    ama 2.'yle marj 0.004). ÇÖZÜM: ekrandan okunan TÜM varyantları topla + KB'yi ROL-KISITLI ara
+    → en iyi varyant kazanır ('minneLti'→Vincente Minnelli 0.976 marj 0.05). Böylece "ekranda
+    okuduğum PDF'e girer AMA yanlış değil, KB-kanonik + rol-teyitli" (Çağatay kuralı).
+    Dönüş: (kanonik_isim, skor) güçlü-hit varsa; yoksa (None, en_iyi_jw).
+    """
+    con = getattr(kb, "con", None)
+    if con is None:
+        return (None, 0.0)
+    prof = _ROL_PROF.get(role, "%director%")
+    # VARYANT HAVUZU (2026-07-06 kök-fix, Çağatay 'Caldana→Judd böyle fuzzy olamaz' kanıtı):
+    # KİRLENME BUG'ı — eski havuz "ilk-3-harf aynı" satırları topluyordu → CENNETE'de 'carolyn budd'
+    # (BAŞKA kişi) 'carl caldana'nın havuzuna sızdı, Carolyn Judd'a eşlenip yönetmen sanıldı.
+    # DOĞRU KURAL: varyant = ADIN KENDİSİNE fuzzy-benzeyen satır (jw≥0.85). Böylece yalnız AYNI
+    # ismin OCR-varyantları toplanır ('minneti/Minnati/minneLti' hepsi birbirine ≥0.85); farklı
+    # kişi (jw 0.67) HAVUZA GİREMEZ. difflib ile ucuz ön-eleme + jaro_winkler doğrulama.
+    import difflib as _dl
+    _fn = _fold(name)
+    varyantlar = {_fn}
+    con0 = con
+    for ln in (pool_lines or []):
+        lf = _fold(ln)
+        toks = lf.split()
+        if not (2 <= len(toks) <= 4) or len(lf) < 7 or lf in varyantlar:
+            continue
+        if _dl.SequenceMatcher(None, _fn, lf).ratio() < 0.72:   # ucuz ön-eleme
+            continue
+        try:
+            jw = con0.execute("SELECT jaro_winkler_similarity(?, ?)", [_fn, lf]).fetchone()[0] or 0
+        except Exception:  # noqa: BLE001
+            jw = 0
+        if jw >= 0.85:                                          # AYNI ismin OCR-varyantı
+            varyantlar.add(lf)
+    en_iyi = (None, 0.0)
+    for q in varyantlar:
+        if len(q) < 7 or " " not in q:
+            continue
+        try:
+            rows = con.execute(
+                "SELECT primaryName, primaryProfession, "
+                "jaro_winkler_similarity(strip_accents(lower(primaryName)), ?) AS jw "
+                "FROM names WHERE strip_accents(lower(primaryName)) LIKE ? AND primaryProfession LIKE ? "
+                "AND length(primaryName) BETWEEN ? AND ? ORDER BY jw DESC LIMIT 3",
+                [q, q[0] + "%", prof, len(q) - 3, len(q) + 3]).fetchall()
+        except Exception:  # noqa: BLE001
+            continue
+        if not rows:
+            continue
+        top = rows[0][2] or 0.0
+        marj = top - (rows[1][2] if len(rows) > 1 else 0)
+        if top >= 0.90 and marj >= 0.03 and top > en_iyi[1]:
+            en_iyi = (str(rows[0][0]), top)
+    if en_iyi[0]:
+        return en_iyi
+    return (None, en_iyi[1])
+
+
+def _kb_fuzzy_director_canonical(kb, name, pool_lines=None):
+    """Geriye-uyum sarmalayıcı → çok-varyant rol-kısıtlı motora yönlendirir (director)."""
+    return _kb_fuzzy_canonical_multi(kb, name, "director", pool_lines)
+
+
+def _fuse_yonetmen(per_model: dict[str, list[str]], kb,
+                   ekran_kunye_f: str = "", ekran_dilim_f: str = "",
+                   pool_lines=None) -> tuple[list[str], str]:
     """
     Tüm modellerin yönetmen adaylarını birleştir:
       1. ≥2 modelde aynı → mutabakat (YÜKSEK güven)
@@ -996,6 +1105,85 @@ def _fuse_yonetmen(per_model: dict[str, list[str]], kb) -> tuple[list[str], str]
     if kb_ok:
         return kb_ok, "ORTA (KB-onay)"
 
+    # ÇOK-VARYANT FUZZY-KANONİK (2026-07-06, Çağatay TOPLU GÖSTERİLER/Minnelli kökü):
+    # KB tam-eşleşme yok AMA aday bir KB-YÖNETMENİNİN garble-okuması olabilir. Ekrandan okunan
+    # tüm varyantları (pool_lines) + adayları KB'nin ROL-KISITLI kayıtlarına eşle; güçlü tek-kazanan
+    # (skor≥0.90, marj≥0.03) varsa KANONİK yazımla al. "Ekranda okuduğum girer AMA yanlış değil,
+    # KB-kanonik + rol-teyitli" (Çağatay). Uydurma-freni: rastgele garble KB'de rol-kısıtlı yüksek-
+    # skorlu tek-kazanan bulamaz. Kill-switch: MITAS_FUZZY_KANONIK=0.
+    if os.environ.get("MITAS_FUZZY_KANONIK", "1").strip().lower() not in ("0", "false", "off", "no"):
+        # UYDURMA-FRENİ (2026-07-06 regresyon: 'Carl Caldana'→'Carolyn Judd' fabrikasyonu):
+        # fuzzy-kanonik YALNIZ GARBLE-imzalı adaylara uygulanır. TEMİZ bir isim (düzgün Title-Case,
+        # garble-yok) ZATEN DOĞRUDUR — KB tanımıyorsa bu KB-dışı gerçek kişidir, EŞLEME YAPMA
+        # (aksi halde doğru ismi yanlış KB-komşusuna çevirir). Garble = kelime-içi büyük harf
+        # ('minneLti') VEYA _looks_garble. Böylece yalnız BOZUK okumalar kanonikleşir.
+        def _garble_imzali(_n):
+            for _t in str(_n).split():
+                if len(_t) >= 3 and not _t.isupper() and not _t.istitle() and any(c.isupper() for c in _t[1:]):
+                    return True
+            return _looks_garble(_n) is not None
+        _kan_hits = []
+        for n in all_flat:
+            if not _garble_imzali(n):
+                continue
+            _k, _s = _kb_fuzzy_canonical_multi(kb, n, "director", pool_lines)
+            if _k:
+                _kan_hits.append((_k, _s))
+        if _kan_hits:
+            _kan_hits.sort(key=lambda x: -x[1])
+            # tek güçlü kanonik-isim (farklı kanonik-isimler çıkarsa = belirsizlik → girme)
+            _uniq = {_fold(h[0]) for h in _kan_hits}
+            if len(_uniq) == 1:
+                return [_kan_hits[0][0]], "ORTA (fuzzy-kanonik: ekran-garble→KB-yönetmen)"
+
+    # ÇİFT-EKRAN-İMZA (2026-07-06, KONTROL-MAHKEMESİ FIX-2b — Çağatay anayasası: "framede
+    # varsa PDF'e girer"): tek-model okuma + KB-kaydı-yok AMA aday İKİ BAĞIMSIZ ekran-okumasında
+    # (kunye.txt VE dilim-korpus) harfiyen geçiyorsa bu "tek-okuma" SAYILMAZ — ekran çift-imzası.
+    # LLM-uydurması (Asi→"John Platt" dersi) dilim-korpusta GEÇEMEZ → fabrikasyon freni korunur;
+    # tek-güçlü-aday şartı (FUZZY-KB 1.5 ilkesi) + KB-RED (yanlış-meslek) yine engeller.
+    # KANIT-VAKA: CENNETE GELDİK Mİ — "PRODUCED, WRITTEN & DIRECTED BY / CARL CALDANA" hem
+    # kunye hem dilimde; KB tanımıyor diye yönetmen boş kalıyordu.
+    if ekran_kunye_f and ekran_dilim_f:
+        _cift = []
+        for n in all_flat:
+            nf = " ".join(_fold(n).split())
+            # SAĞLAMLAŞTIRMA-a (2026-07-06 ön-kanıt): İSİM-ŞEKLİ şartı — GLORIA KUŞATMASI'nda
+            # küçük-harf cümle-parçası ('exploded throughout an unsuspecting') geçmişti. Gerçek
+            # kredi-isimleri Title-Case/CAPS'tir: HER token büyük harfle başlamalı; ayrıca
+            # _valid_person_name + _rsc_name_ok (token sayısı/rol-parçası) uygulanır.
+            _toks_n = str(n).split()
+            if not all(t[:1].isupper() for t in _toks_n):
+                continue
+            # CASE-GARBLE imzası ('VincenTe Minnati' vakası): kelime-içi büyük harf, kelime ne
+            # tam-CAPS ne Title-Case → OCR harf-karışması → GİRME (okunamadı>yanlış-oku; film
+            # meşru-okunamadı Kontrol'ünde kalır). Mc/Di/Mac/De/La kalıbı (McDonald, DiCaprio)
+            # türetilmiş-Title sayılır ve MUAFTIR.
+            _cg_ok = re.compile(r"^[A-ZÇĞİÖŞÜ][a-zçğıöşü]{1,2}[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$")
+            def _case_garble(_t):
+                if _t.isupper() or _t.istitle() or len(_t) < 3:
+                    return False
+                if _cg_ok.match(_t):
+                    return False
+                return any(c.isupper() for c in _t[1:])
+            if any(_case_garble(t) for t in _toks_n):
+                continue
+            if not (_valid_person_name(n) and _rsc_name_ok(n)):
+                continue
+            if (len(nf) >= 7 and f" {nf} " in ekran_kunye_f and f" {nf} " in ekran_dilim_f
+                    and _kb_verify_flex(kb, n, "director") != "RED"):
+                _cift.append(n)
+        if len(_cift) == 1:
+            # SAĞLAMLAŞTIRMA-b: FUZZY-KB KANONİKLEŞTİRME — belirsizlik-bandı REDDEDİLDİ (Caldana'nın
+            # bile 0.985'lik KB-komşusu var; jw-bandı ayırt edici değil). Yalnız GÜVENLİ kanonik-hit
+            # (jw≥0.92+marj≥0.03+director) yazımı düzeltir; garble-eleme yukarıdaki CASE-GARBLE
+            # imzasıyla deterministik yapılır.
+            try:
+                _kan, _topjw = _kb_fuzzy_director_canonical(kb, _cift[0])
+                if _kan:
+                    return [_kan], "ORTA (ekran-çift-imza: kunye+dilim, KB-kanonik)"
+            except Exception:  # noqa: BLE001
+                pass
+            return _cift, "ORTA (ekran-çift-imza: kunye+dilim)"
     # Tek okuma AMA mutabakat yok + KB onayı yok → GÜVENİLMEZ → ABSTAIN.
     # (Eski "DÜŞÜK tek-okuma" KALDIRILDI: tek-model yanlış yönetmeni ONAYLI'ya koyup
     #  VL-fallback'i engelliyordu — Asi→"John Platt", Sessiz Ölüm→"A.M.Thompson". "yanlış>boş".)
@@ -1127,8 +1315,14 @@ def _valid_person_name(name: str) -> bool:
         return False
     toks = [t for t in _fold(nm).split() if t]
     real = [t for t in toks if len(t) >= 2]            # orta-harf (E.) serbest; ≥2 GERÇEK token şart
-    if len(real) < 2 or len(toks) > 4:                 # tek-token RED, cümle RED
+    # 2026-07-06 (BAŞKAN VE MARI kökü): 4-token tavanı 'JEAN-DOMINIQUE DE LA ROCHEFOUCAULD' gibi
+    # soylu/bağlaçlı adları RED'liyordu. 5-6 token YALNIZ soy-bağlacı içeriyorsa serbest; cümle-RED korunur.
+    _VP_SOYBAG = {"de", "la", "le", "van", "von", "di", "del", "da", "dos", "el", "al", "bin", "der", "den"}
+    if len(real) < 2 or len(toks) > 6:                 # tek-token RED, uzun-cümle RED
         return False
+    if len(toks) > 4 and not any(t in _VP_SOYBAG for t in toks):
+        return False                                   # 5-6 token ama bağlaçsız = cümle şüphesi
+
     if any(t in _NONPERSON_TOK for t in toks) or any(t in _JUNK_WORDS for t in toks):
         return False
     if _looks_garble(nm):
@@ -1255,12 +1449,47 @@ _RSC_LABELS = {"DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR",
 _RSC_VETO = ("PRODUCED BY", "EXECUTIVE PRODUCER", "ASSOCIATE PRODUCER", "LINE PRODUCER",
              "CO PRODUCER", "COPRODUCER", "ASSISTANT DIRECTOR", "SECOND UNIT", "2ND UNIT",
              "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "MUSIC DIRECTOR", "CASTING")
-_RSC_DIRF = ("DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR", "REALISE PAR", "UN FILM DE", "EIN FILM VON")
+_RSC_DIRF = ("DIRECTED BY", "YONETMEN", "YONETEN", "REJISOR", "REALISE PAR", "UN FILM DE", "EIN FILM VON",
+             # OKUNAMADI-röntgeni (2026-07-06, BAŞKAN VE MARI kanıtı): FR/DE/IT ana-yönetmen
+             # etiketleri sözlükte yoktu → filmler haksız "okunamadı" sayılıyordu.
+             "MISE EN SCENE", "REALISATION", "REGIA DI", "REGIE")
+
+
+_RSC_KOMBINE_VETO = {"SECOND", "2ND", "UNIT", "ASSISTANT", "CASTING", "DIALOGUE", "DUBBING"}
+
+# TEK-KAYNAK BAĞLAMA (2026-07-06, Çağatay "sözlüğü doldur" + BAŞKAN VE MARI kökü): lexicon
+# ÇOK-DİLLİ DIRECTOR listesi zengindi ama rescue kendi dar _RSC_DIRF'ini kullanıyordu → FR
+# "MISE EN SCENE" gibi kartlar rescue'da görünmezdi. Artık rescue-etiket eşleyicisi lexicon'a
+# bağlı (EXCLUDE vetoları dahil). Lexicon import edilemezse eski dar listeyle devam (fail-safe).
+try:
+    import credit_role_lexicon as _rsc_lex
+    _LEX_DIR = tuple(sorted({_rsc_lex.norm(x) for x in _rsc_lex.DIRECTOR if len(_rsc_lex.norm(x)) >= 5},
+                            key=len, reverse=True))
+    _LEX_EXC = tuple({_rsc_lex.norm(x) for x in _rsc_lex.EXCLUDE})
+except Exception:  # noqa: BLE001
+    _LEX_DIR, _LEX_EXC = (), ()
 
 
 def _rsc_label_fuzzy(_f):
-    """Bulanık yönetmen-etiketi: tam eşleşme + 'DIRECTED ' öneki (TY/DY/8Y garble) + ratio≥0.85."""
-    if not _f or len(_f) > 24:
+    """Bulanık yönetmen-etiketi: tam eşleşme + 'DIRECTED ' öneki (TY/DY/8Y garble) + ratio≥0.85.
+    KOMBİNE-ETİKET (2026-07-06, KONTROL-MAHKEMESİ FIX-2): "PRODUCED, WRITTEN & DIRECTED BY" /
+    "DIRECTED & PHOTOGRAPHED BY" gibi birleşik kartlar 24-karakter tavanına takılıp KAÇIYORDU
+    (CENNETE GELDİK Mİ kanıtı: isim yapımcıya girdi, yönetmen boş kaldı). Ayrık 'DIRECTED'+'BY'
+    token'lı ≤48-kr satır yönetmen-etiketi sayılır; yan-ünite/asistan/dublaj VETOLU
+    ("DIRECTOR OF PHOTOGRAPHY"/"ASSISTANT DIRECTOR" zaten kalıba girmez)."""
+    if not _f:
+        return False
+    if len(_f) <= 48:
+        _tf = _f.split()
+        if "DIRECTED" in _tf and "BY" in _tf and not (_RSC_KOMBINE_VETO & set(_tf)):
+            return True
+        # ÇOK-DİLLİ lexicon-eşleşme (2026-07-06): satır bir lexicon-DIRECTOR başlığına eşit ya da
+        # onunla başlıyorsa VE alt-rol (EXCLUDE) / yan-ünite vetosu yoksa → yönetmen-etiketi.
+        if _LEX_DIR and not (_RSC_KOMBINE_VETO & set(_tf)) and not any(x in _f for x in _LEX_EXC):
+            for _L in _LEX_DIR:
+                if _f == _L or _f.startswith(_L + " "):
+                    return True
+    if len(_f) > 24:
         return False
     if _f in _RSC_LABELS or _f.startswith("DIRECTED "):
         return True
@@ -1275,15 +1504,20 @@ _RSC_BAD_SUB = ("PHOTOGRAPH", "HOTOGRAPH", "OTOGRAPH", "CASTING", "EDITOR", "PRO
 
 def _rsc_name_ok(cand):
     """Rescue aday-sağlamlığı (SHERLOCK kanıtı: bölünmüş 'OF P HOTOGRAPHY' kişi-adı sanılmıştı):
-    tek-harfli token YOK, bağlaç-token YOK, rol-sözcüğü parçası YOK."""
+    tek-harfli token YOK, bağlaç-token YOK, rol-sözcüğü parçası YOK.
+    2026-07-06 (BAŞKAN VE MARI kökü): 4-token tavanı 'JEAN-DOMINIQUE DE LA ROCHEFOUCAULD' gibi
+    Fransız/İspanyol soylu adlarını RED'liyordu → tavan 6; 'DE/LA/VAN/VON/DI/DEL' küçük-bağlaçları
+    isim-parçası sayılır (BAD_TOK'tan muaf)."""
     toks = (cand or "").split()
-    if not (2 <= len(toks) <= 4):
+    if not (2 <= len(toks) <= 6):
         return False
+    _SOY_BAG = {"DE", "LA", "LE", "VAN", "VON", "DI", "DEL", "DA", "DOS", "EL", "AL", "BIN"}
+    up_toks = _fold_ga(cand).split()
     if any(len(t) < 2 for t in toks):
         return False
-    up = _fold_ga(cand)
-    if any(t in _RSC_BAD_TOK for t in up.split()):
+    if any(t in _RSC_BAD_TOK and t not in _SOY_BAG for t in up_toks):
         return False
+    up = _fold_ga(cand)
     return not any(b in up.replace(" ", "") for b in _RSC_BAD_SUB)
 
 
@@ -1624,7 +1858,21 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
             any_success = True
 
     # ── F1: Yönetmen fusion ──────────────────────────────────────────────────
-    yon_fused, guven_yon = _fuse_yonetmen(per_model_yon, kb)
+    # FIX-2b korpus ayrıştırma: _pipe_credit_text dilim satırlarını '### MASTER-DILIM OKUMASI ###'
+    # işaretiyle ekler → işaret ÖNCESİ = kunye-ekranı, SONRASI = dilim-ekranı (iki bağımsız okuma).
+    _ekran_kunye_f = _ekran_dilim_f = ""
+    try:
+        _ls_all = [str(x) for x in (lines or [])]
+        if "### MASTER-DILIM OKUMASI ###" in _ls_all:
+            _mi = _ls_all.index("### MASTER-DILIM OKUMASI ###")
+            _ekran_kunye_f = " " + " ".join(_fold(" ".join(_ls_all[:_mi])).split()) + " "
+            _ekran_dilim_f = " " + " ".join(_fold(" ".join(_ls_all[_mi + 1:])).split()) + " "
+    except Exception:  # noqa: BLE001 — korpus ayrıştırma füzyonu ASLA bozmaz
+        pass
+    # pool_lines: fuzzy-kanonik motorun tüm ekran-varyantlarını görebilmesi için ham+dilim satırları
+    # (garble-yönetmen aynı kareden kareye farklı okunur → varyant havuzu Minnelli'yi buldurur).
+    _pool_lines = [str(x) for x in (lines or [])] + [str(x) for x in (raw_context_lines or [])]
+    yon_fused, guven_yon = _fuse_yonetmen(per_model_yon, kb, _ekran_kunye_f, _ekran_dilim_f, _pool_lines)
 
     # ── F3 + F2: Cast boru hattı ─────────────────────────────────────────────
     cast_merged = _dedup_fold(all_cast)

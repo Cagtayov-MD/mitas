@@ -242,10 +242,24 @@ def web_identity(title, original, year, ocr_director, summary, kb):
             _ctx.verify_mode = _ssl.CERT_NONE
             _ua = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
+            # URL-önbellek (hız #3, 2026-07-05): web_isit.py aynı arama URL'lerini boş
+            # pencerede ısıtır; karar mantığı değişmez. Modül yoksa cache'siz devam.
+            try:
+                import web_cache as _wcache
+            except Exception:  # noqa: BLE001
+                _wcache = None
+
             def _get(url):
+                if _wcache is not None:
+                    _c = _wcache.get(url)
+                    if _c is not None:
+                        return _json.loads(_c.decode("utf-8", "replace"))
                 req = _ur.Request(url, headers=_ua)
                 with _ur.urlopen(req, timeout=20, context=_ctx) as r:
-                    return _json.loads(r.read().decode("utf-8", "replace"))
+                    data = r.read()
+                if _wcache is not None:
+                    _wcache.put(url, data)
+                return _json.loads(data.decode("utf-8", "replace"))
 
             # sıralı arama: orijinal önce, sonra TR başlık
             candidates_tmdb = []

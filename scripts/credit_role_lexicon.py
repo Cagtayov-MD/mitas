@@ -47,6 +47,20 @@ DIRECTOR = [
     "DIRIGIDA POR", "DIRIGIDO POR", "DIRECCION", "UNA PELICULA DE", "DIRECTOR",
     # PT
     "REALIZADO POR", "DIRIGIDO POR", "REALIZACAO", "DIRECAO",
+    # ── ÇOK-DİLLİ GENİŞLEME (2026-07-06, Çağatay: "diller/sıfatlar/ihtimaller — DOLDUR") ──
+    # Bileşik/varyant EN (BUZDAN/CENNETE kanıtları)
+    "DIRECTED & PHOTOGRAPHED", "PRODUCED, WRITTEN & DIRECTED", "STORY AND DIRECTION",
+    "SCREENPLAY AND DIRECTION", "STORY, SCREENPLAY AND DIRECTION", "FILM DIRECTED BY",
+    # NL / PL / CZ-SK / HU / RO / EL(translit)
+    "GEREGISSEERD DOOR", "REZYSERIA", "REZIE", "RENDEZTE", "RENDEZO", "REGIA", "SKINOTHESIA",
+    # RU/UA/BG (Latin-translit — Kiril OCR'ı bazen translit döker)
+    "REZHISSER", "REZHISSYOR", "REJISSER", "POSTANOVKA", "REZHYSER", "REZHISOR",
+    # SR/HR/SL
+    "REZIJA", "REDATELJ",
+    # HI/UR (Hint kartları translit) + FA + AR (translit)
+    "NIRDESHAK", "NIRDESHAN", "KARGARDAN", "IKHRAJ", "MUKHRIJ",
+    # JA/ZH latin-kartlar (uluslararası kopyalarda İngilizce gelir; yine de pinyin/romaji nadir)
+    "KANTOKU", "DAOYAN",
 ]
 PRODUCER = [
     "YURUTUCU YAPIMCI", "YAPIMCI", "YAPIM",
@@ -58,6 +72,9 @@ PRODUCER = [
     "PRODUZIDO POR", "PRODUTOR", "PRODUCAO",
     # SV (İsveççe) — İNTİKAM (BECK - HÄMNDENS PRIS) kanıtı 2026-07-03: 8 yapımcı bu etiketlerle kayıptı
     "PRODUCENT", "PRODUCENTER", "EXEKUTIV PRODUCENT", "EXEKUTIVA PRODUCENTER",
+    # ÇOK-DİLLİ GENİŞLEME (2026-07-06): NL/PL/HU/RO/RU/HI/AR translit
+    "PRODUCTIE", "PRODUKCJA", "PRODUKCE", "GYARTO", "PRODUCATOR",
+    "PRODYUSER", "PRODJUSER", "NIRMATA", "MUNTIJ", "SEISAKU", "ZHIPIAN",
 ]
 CAST = [
     "ROL DAGILIMI", "OYNAYANLAR", "OYUNCULAR", "OYUNCU",
@@ -80,6 +97,10 @@ EXCLUDE = [
     "ASSISTANT REALISATEUR", "DIRECTEUR DE LA PHOTOGRAPHIE", "DIRECTEUR ARTISTIQUE",
     "REGIEASSISTENZ", "AIUTO REGISTA", "DIRETTORE DELLA FOTOGRAFIA",
     "AYUDANTE DE DIRECCION", "DIRECTOR DE FOTOGRAFIA", "DIRECTOR ARTISTICO",
+    # SANAT-YÖNETİMİ tüm dillerde (2026-07-06 BAŞKAN VE MARI regresyon: "DIRECTION ARTISTIQUE"
+    # → "DIRECTION" içerdiği için yönetmen sanılıp 'ARISTIQUE FRANCE' uydurdu). ART DIRECTION ≠ yönetmen.
+    "ARTISTIQUE", "ARTISTICA", "ARTISTICO", "ARTISTICH", "DIRECTION ARTISTIQUE",
+    "DIRECAO DE ARTE", "DIREZIONE ARTISTICA", "KUNSTLERISCHE LEITUNG", "SANAT YONETMENI",
     # cast/yapımcı doğruluk-denetimi 2026-07-04 — yapımcı YANLIŞ-ROL grubu (14 vaka):
     # bu alt-yapımcı unvanları düz "Yapımcı" değildir (KESİN-KURAL). Exec-Producer LİSTEDE YOK
     # (o gerçek yapımcı sayılır) — burada yalnız associate/co/line/uygulayıcı + yardımcı-üretim.

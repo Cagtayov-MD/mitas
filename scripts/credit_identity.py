@@ -24,9 +24,23 @@ _FOLD = str.maketrans({"İ":"I","ı":"i","Ş":"S","ş":"s","Ğ":"G","ğ":"g","Ç
 _NOISE = re.compile(r"\b(AS|THE|AND|OF|REAL LIFE|DESTROY|EMPIRE|SPACE|GALACT|ENTIRE|HUSBAND|DIRECTED|PRODUCED|MUSIC|PHOTO|EDITOR|SCREENPLAY|STORY|BASED|PRESENTS|STARRING|WITH|A FILM)\b", re.I)
 
 
+# URL-önbellek (hız #3, 2026-07-05): karar mantığı değişmez, yalnız HTTP yanıtı diskten dönebilir.
+try:
+    import web_cache as _wcache
+except Exception:  # noqa: BLE001
+    _wcache = None
+
+
 def _get(url: str):
+    if _wcache is not None:
+        _c = _wcache.get(url)
+        if _c is not None:
+            return json.loads(_c.decode("utf-8", "replace"))
     with urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=20, context=_CTX) as r:
-        return json.loads(r.read().decode("utf-8", "replace"))
+        data = r.read()
+    if _wcache is not None:
+        _wcache.put(url, data)
+    return json.loads(data.decode("utf-8", "replace"))
 
 
 def is_name(s: str) -> bool:

@@ -50,9 +50,31 @@ _CLEAN_PATTERNS = [
 ]
 
 
+# URL-önbellek (hız #2, 2026-07-05): web_isit.py boş pencerede doldurur; karar mantığı
+# DEĞİŞMEZ — yalnız HTTP yanıtı diskten döner. Modül yoksa sessizce cache'siz devam.
+try:
+    import web_cache as _wcache
+except Exception:  # noqa: BLE001
+    try:
+        import os as _o
+        import sys as _s
+        _s.path.insert(0, _o.path.join(_o.path.dirname(_o.path.dirname(_o.path.dirname(
+            _o.path.abspath(__file__)))), "scripts"))
+        import web_cache as _wcache
+    except Exception:  # noqa: BLE001
+        _wcache = None
+
+
 def _get(url: str, binary: bool = False):
+    if _wcache is not None:
+        _c = _wcache.get(url)
+        if _c is not None:
+            return _c if binary else _c.decode("utf-8", "replace")
     with urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=20, context=_CTX) as r:
-        return r.read() if binary else r.read().decode("utf-8", "replace")
+        data = r.read()
+    if _wcache is not None:
+        _wcache.put(url, data)
+    return data if binary else data.decode("utf-8", "replace")
 
 
 def _norm(s: str) -> str:

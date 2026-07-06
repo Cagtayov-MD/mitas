@@ -868,6 +868,48 @@ def main():
         except Exception:  # noqa: BLE001 — süzgeç hatası akışı ASLA bozmaz (cast AYNEN kalır)
             pass
 
+    # ── FIX-A: EKRAN-TEYİTLİ KB-YÖNETMEN DOLUMU (2026-07-06, AYAK TAKIMI/Ken Loach kanıtı) ──
+    # Kök: İngiliz-usulü ETİKETSİZ yönetmen-kartı ("Ken Loach" yalın satır; filmde 'DIRECTED'
+    # kelimesi HİÇ yok) → LLM rol atayamıyor (doğru) → alan boş kalıyordu. Çağatay anayasası:
+    # "ekranda okuduysam PDF'te görmeliyim". KIRMIZI-ÇİZGİ ("KB-fill yok") KÖR dolumu yasaklar;
+    # burası KÖR DEĞİL: isim EKRANDA HARFİYEN okunmuş (kunye/ham/dilim), KB yalnız ROL atıyor.
+    # 4 ŞART: yön-boş + film-kimliği güçlü (verdict TEYİT ya da cast_ortusme>=2) + KB-otoriter-
+    # yönetmen tekil + isim ekran-verbatim. Kill-switch: MITAS_EKRAN_KB_YON=0.
+    if (not yon and os.environ.get("MITAS_EKRAN_KB_YON", "1").strip().lower() not in ("0", "false", "off", "no")):
+        try:
+            _oy = [str(x) for x in (cc.get("otoriter_yonetmen") or []) if str(x).strip()]
+            _kim_ok = (cc.get("verdict") == "TEYİT") or ((cc.get("cast_ortusme") or 0) >= 2)
+            if _oy and len(_oy) <= 2 and _kim_ok:
+                import unicodedata as _ud
+
+                def _ekfold(_s):
+                    _s = _ud.normalize("NFKD", str(_s or ""))
+                    _s = "".join(ch for ch in _s if not _ud.combining(ch)).casefold()
+                    return " ".join("".join(c if c.isalnum() else " " for c in _s).split())
+                _ekran = ""
+                try:
+                    _kts = sorted([q for q in glob.glob(os.path.join(clip, "ocr", "ocr-*", "kunye.txt"))
+                                   if "-fb" not in q], key=os.path.getmtime)
+                    if _kts:
+                        _ekran += open(_kts[-1], encoding="utf-8", errors="ignore").read() + chr(10)
+                    _hms = sorted(glob.glob(os.path.join(clip, "ocr", "ocr-*", "ocr_ham", "*.txt"))
+                                  + glob.glob(os.path.join(clip, "ocr", "ocr-*", "*raw*.txt")),
+                                  key=os.path.getmtime)
+                    if _hms:
+                        _ekran += open(_hms[-1], encoding="utf-8", errors="ignore").read() + chr(10)
+                    _dlp = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
+                    if os.path.exists(_dlp):
+                        _ekran += open(_dlp, encoding="utf-8", errors="ignore").read()
+                except Exception:  # noqa: BLE001
+                    pass
+                _ekf = " " + _ekfold(_ekran) + " "
+                _hit = [n for n in _oy if len(_ekfold(n)) >= 7 and (" " + _ekfold(n) + " ") in _ekf]
+                if len(_hit) == 1:
+                    yon = [_hit[0]]
+                    yon_kaynak = "ekran-teyitli KB-yönetmen (etiketsiz kart — AYAK TAKIMI sınıfı)"
+                    rapor["adimlar"]["ekran_kb_yon"] = {"isim": _hit[0], "kimlik": cc.get("eslesen_film")}
+        except Exception:  # noqa: BLE001 — dolum ASLA akışı bozmaz; boş kalır
+            pass
     castU = ([] if anim else nn.upper_names(cast[:_cap]))   # ANİMASYON: oyuncu alanı boş (seslendirme kadrosu basılmaz)
     # özet büyük-harfi için isim-farkındalık: cast+yön+yap HAM adları (yabancı→ASCII, Türkçe→İ)
     _ozet_names = [n for n in (list(cast)

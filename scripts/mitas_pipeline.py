@@ -1801,6 +1801,22 @@ def main(argv=None) -> int:
     # ===== PARALEL JENERIK HAVUZU (test/provenance): frames/cikis -> frames/cikis_jenerik =====
     # Ana OneOCR akışı bu havuzu KULLANMAZ; normal frames/giris + frames/cikis okumaya devam eder.
     # GLM/VL/master debug işleri bu alt havuzdan beslenecek. Fail-safe: hata pipeline'ı bozmaz.
+    # HAVUZ-PARALEL (hız #1, 2026-07-05): havuzlar frames/{giris,cikis}'i SALT-OKUR ve ayrık
+    # klasörlere yazar (_pipe_ocr kaynak kare SİLMEZ) → OCR∥ASR ile güvenle örtüşür. Paralel modda
+    # burada yalnız Popen başlatılır; TOPLAMA ASR-toplamadan sonra, ilk tüketiciden (jdebug/master-
+    # compose) önce. Kapatma: MITAS_POOL_PARALLEL=0 → birebir eski sıralı davranış.
+    _pp_par = os.environ.get("MITAS_POOL_PARALLEL", "1").strip().lower() not in ("0", "false", "off", "no")
+    _jp_proc = _gjp_proc = None
+    _jp_cmd = None
+    t_jp = t_gjp = _t_jp_wall = _t_gjp_wall = None
+    # stdout DOSYAYA (hakem bulgusu, 2026-07-05): havuzun final JSON'u (copied_files listesi,
+    # 50-170KB) Windows'un 8KB anon-pipe tamponunu aşıyor → child print'te toplamaya kadar bloke
+    # kalıp GPU/RAM'i pencere boyunca rehin tutuyordu. Dosyaya yazınca iş bitince saniyeler içinde
+    # exit eder; TOPLAMA JSON'u dosyadan okur.
+    _jp_outf = jenerik_debug_root / "pool_stdout.log"
+    _jp_errf = jenerik_debug_root / "pool_stderr.log"
+    _gjp_outf = jenerik_debug_root / "giris_pool_stdout.log"
+    _gjp_errf = jenerik_debug_root / "giris_pool_stderr.log"
     _jpool_on = os.environ.get("MITAS_JENERIK_PARALLEL_POOL", "1").strip().lower() not in ("0", "false", "off", "no")
     if _jpool_on and not args.no_ocr:
         t_jp = time.perf_counter()
@@ -1811,23 +1827,31 @@ def main(argv=None) -> int:
                        "--debug-root", str(jenerik_debug_root)]
             if os.environ.get("MITAS_JENERIK_DEBUG_SHEET", "").strip().lower() in ("1", "true", "on", "yes"):
                 _jp_cmd.append("--debug-sheet")
-            _rcjp, _outjp, _errjp = run(
-                _jp_cmd,
-                timeout=int(os.environ.get("MITAS_JENERIK_POOL_TIMEOUT", "900") or 900),
-            )
-            _jjp = last_json(_outjp) or {}
-            if not cikis_jenerik_frames.exists():
-                cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
-            timings["jenerik_pool"] = round(time.perf_counter() - t_jp, 2)
-            log_event("jenerik_pool_completed",
-                      level="info" if _jjp.get("status") != "error" else "warn",
-                      summary=f"{video.name}: paralel jenerik havuzu {cikis_jenerik_frames.name} "
-                              f"status={_jjp.get('status')} frame={_jjp.get('pool_frames', 0)} "
-                              f"({timings['jenerik_pool']} sn).",
-                      module="jenerik-pool", media_id=media_id, filename=video.name,
-                      duration_seconds=timings["jenerik_pool"],
-                      detail={"clip_id": clip_id, "pool": str(cikis_jenerik_frames),
-                              "result": _jjp, "stderr": (_errjp or "")[-300:] if _rcjp else None})
+            if _pp_par:
+                # HAVUZ-PARALEL v2 (2026-07-05 gece, kök-kazı): çıkış-havuz LANSMANI buradan
+                # ASR-toplama SONRASINA taşındı. Kanıt: 0439+0289'da child spawn-anında öldü
+                # (stdout/stderr 0 bayt = commit-tükenmesi, error-1455 ailesi) — ASR'ın CUDA/commit
+                # TEPE penceresine paddle'lı child bindirmek güvensiz. Yeni pencere: LLM/v4/pdf
+                # kuyruğu (gemma-resident + havuz birlikteliği eski seri akışta zaten kanıtlı).
+                pass
+            else:
+                _rcjp, _outjp, _errjp = run(
+                    _jp_cmd,
+                    timeout=int(os.environ.get("MITAS_JENERIK_POOL_TIMEOUT", "900") or 900),
+                )
+                _jjp = last_json(_outjp) or {}
+                if not cikis_jenerik_frames.exists():
+                    cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
+                timings["jenerik_pool"] = round(time.perf_counter() - t_jp, 2)
+                log_event("jenerik_pool_completed",
+                          level="info" if _jjp.get("status") != "error" else "warn",
+                          summary=f"{video.name}: paralel jenerik havuzu {cikis_jenerik_frames.name} "
+                                  f"status={_jjp.get('status')} frame={_jjp.get('pool_frames', 0)} "
+                                  f"({timings['jenerik_pool']} sn).",
+                          module="jenerik-pool", media_id=media_id, filename=video.name,
+                          duration_seconds=timings["jenerik_pool"],
+                          detail={"clip_id": clip_id, "pool": str(cikis_jenerik_frames),
+                                  "result": _jjp, "stderr": (_errjp or "")[-300:] if _rcjp else None})
         except Exception as _jpe:  # noqa: BLE001
             try:
                 cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
@@ -1851,8 +1875,15 @@ def main(argv=None) -> int:
     # Yalnız detektörün GERÇEK kredi-kaçırdığı nadir filmde değerli; güvenli kullanım için kalite-kapısı + VL-doğrulama
     # şart. Açmak için MITAS_CIKIS_FALLBACK_POOL=1.
     _cfb_on = os.environ.get("MITAS_CIKIS_FALLBACK_POOL", "0").strip().lower() in ("1", "true", "on", "yes")
-    _cikis_pool_empty = not (cikis_jenerik_frames.exists() and any(cikis_jenerik_frames.glob("*.png")))
-    if _cfb_on and not args.no_ocr and _cikis_pool_empty and cikis_frames.exists() and any(cikis_frames.glob("*.png")):
+
+    def _cikis_fallback_pool():
+        # HAVUZ-PARALEL notu: boşluk kontrolü cikis_jenerik havuzu TAMAMLANDIKTAN sonra anlamlı —
+        # sıralı modda buradan hemen, paralel modda TOPLAMA bloğundan çağrılır.
+        if not (_cfb_on and not args.no_ocr):
+            return
+        _cikis_pool_empty = not (cikis_jenerik_frames.exists() and any(cikis_jenerik_frames.glob("*.png")))
+        if not (_cikis_pool_empty and cikis_frames.exists() and any(cikis_frames.glob("*.png"))):
+            return
         t_cfb = time.perf_counter()
         try:
             _cfb_cmd = [str(PY_OCR), str(HERE / "giris_jenerik_havuzu.py"),
@@ -1876,6 +1907,9 @@ def main(argv=None) -> int:
                       module="cikis-fallback-pool", media_id=media_id, filename=video.name,
                       error=str(_cfbe)[:300], detail={"clip_id": clip_id})
 
+    if not _pp_par:
+        _cikis_fallback_pool()
+
     # ===== GİRİŞ JENERİK HAVUZU (yazı-varlığı seçimi): frames/giris -> frames/giris_jenerik =====
     # cikis_jenerik'e PARALEL (Çağatay 2026-06-29): giriş karelerinden YAZI-olan (altyazı hariç) kareleri
     # OneOCR ile seçip giris_jenerik havuzuna kopyalar + aynı-yazı dedup. master-PNG bu havuzdan üretilir.
@@ -1886,27 +1920,55 @@ def main(argv=None) -> int:
         try:
             _gjp_cmd = [str(PY_OCR), str(HERE / "giris_jenerik_havuzu.py"),
                         "--frames", str(giris_frames)]
-            _rcgjp, _outgjp, _errgjp = run(
-                _gjp_cmd,
-                timeout=int(os.environ.get("MITAS_GIRIS_JENERIK_POOL_TIMEOUT", "900") or 900),
-            )
-            _gjj = last_json(_outgjp) or {}
-            timings["giris_jenerik_pool"] = round(time.perf_counter() - t_gjp, 2)
-            log_event("giris_jenerik_pool_completed",
-                      level="info" if _gjj.get("status") not in ("error", None) else "warn",
-                      summary=f"{video.name}: giriş jenerik havuzu {giris_jenerik_frames.name} "
-                              f"status={_gjj.get('status')} kept={_gjj.get('total_kept', 0)} "
-                              f"rep={_gjj.get('total_dedup_representatives', 0)} "
-                              f"({timings['giris_jenerik_pool']} sn).",
-                      module="giris-jenerik-pool", media_id=media_id, filename=video.name,
-                      duration_seconds=timings["giris_jenerik_pool"],
-                      detail={"clip_id": clip_id, "pool": str(giris_jenerik_frames),
-                              "result": _gjj, "stderr": (_errgjp or "")[-300:] if _rcgjp else None})
+            if _pp_par:
+                jenerik_debug_root.mkdir(parents=True, exist_ok=True)
+                _t_gjp_wall = time.time()
+                with open(_gjp_outf, "w", encoding="utf-8", errors="replace") as _fo, \
+                        open(_gjp_errf, "w", encoding="utf-8", errors="replace") as _fe:
+                    _gjp_proc = subprocess.Popen(_gjp_cmd, stdout=_fo, stderr=_fe)
+            else:
+                _rcgjp, _outgjp, _errgjp = run(
+                    _gjp_cmd,
+                    timeout=int(os.environ.get("MITAS_GIRIS_JENERIK_POOL_TIMEOUT", "900") or 900),
+                )
+                _gjj = last_json(_outgjp) or {}
+                timings["giris_jenerik_pool"] = round(time.perf_counter() - t_gjp, 2)
+                log_event("giris_jenerik_pool_completed",
+                          level="info" if _gjj.get("status") not in ("error", None) else "warn",
+                          summary=f"{video.name}: giriş jenerik havuzu {giris_jenerik_frames.name} "
+                                  f"status={_gjj.get('status')} kept={_gjj.get('total_kept', 0)} "
+                                  f"rep={_gjj.get('total_dedup_representatives', 0)} "
+                                  f"({timings['giris_jenerik_pool']} sn).",
+                          module="giris-jenerik-pool", media_id=media_id, filename=video.name,
+                          duration_seconds=timings["giris_jenerik_pool"],
+                          detail={"clip_id": clip_id, "pool": str(giris_jenerik_frames),
+                                  "result": _gjj, "stderr": (_errgjp or "")[-300:] if _rcgjp else None})
         except Exception as _gjpe:  # noqa: BLE001
             log_event("giris_jenerik_pool_failed", level="warn",
                       summary=f"{video.name}: giriş jenerik havuzu atlandı ({type(_gjpe).__name__}).",
                       module="giris-jenerik-pool", media_id=media_id, filename=video.name,
                       error=str(_gjpe)[:300], detail={"clip_id": clip_id})
+
+    # ===== WEB-ISITICI (hız #2+#3, 2026-07-05): kimlik/afiş URL'lerini boş pencerede ön-ısıt =====
+    # Ateşle-ve-unut: sonucu BEKLENMEZ, film klasörüne dokunmaz, yalnız cache/web'i doldurur
+    # (web_cache.py). Gerçek karar mantığı (poster_fetch / web_identity / credit_identity)
+    # DEĞİŞMEDİ — aynı URL'ler v4 aşamasında diskten döner. Kapatma: MITAS_WEB_ISIT=0.
+    if (os.environ.get("MITAS_WEB_ISIT", "1").strip().lower() not in ("0", "false", "off", "no")
+            and profile in ("film", "dizi") and title):
+        try:
+            subprocess.Popen([str(PY_PDF), str(HERE / "web_isit.py"), "--title", str(title),
+                              "--original", str(original or ""),
+                              "--year", str(film_year or "")],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            log_event("web_isit_started",
+                      summary=f"{video.name}: web-ısıtıcı ateşlendi (kimlik/afiş URL ön-yükleme).",
+                      module="pipeline", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id, "title": title, "year": film_year})
+        except Exception as _wie:  # noqa: BLE001 — ısıtıcı pipeline'ı ASLA bozmaz
+            log_event("web_isit_failed", level="warn",
+                      summary=f"{video.name}: web-ısıtıcı başlatılamadı ({type(_wie).__name__}).",
+                      module="pipeline", media_id=media_id, filename=video.name,
+                      error=str(_wie)[:200], detail={"clip_id": clip_id})
 
     # ===== BLOK OCR + ASR (paralel) =====
     ocr_bucket = "ATLANDI"
@@ -1972,6 +2034,50 @@ def main(argv=None) -> int:
                 asr_cmd += ["--tr-provenance"]
         log_event("asr_started", summary=f"{video.name} icin ASR basladi (profil={content_profile}).",
                   module="asr", media_id=media_id, filename=video.name, job_id=asr_job, detail={"clip_id": clip_id, "content_profile": content_profile})
+        # ASR-ÖN-SÜBAP (2026-07-06 gece, kitlesel-ASR-ölümü fixi): sübabı çocuğa bırakmak GEÇ —
+        # commit-tavanı doygunken (186GB; gece 1.3-2GB'a düştü) ASR çocuğu CT2/CUDA DLL import
+        # ANINDA WinError-1455 ile ölüyor (20:31'den beri 15/15 film, stderr boş, ~14sn). Ebeveyn
+        # spawn'dan ÖNCE resident LLM'i (31b/26b, ~24GB commit) tahliye eder ve commit-boşluğu
+        # bekler (maks 90sn) — sonra doğurur. FAIL-SAFE: her hata sessiz geçer, ASR yine başlar.
+        # Kill-switch: MITAS_ASR_PRE_VALVE=0. Çocuk-içi sübap da durur (çifte-tahliye zararsız).
+        if os.environ.get("MITAS_ASR_PRE_VALVE", "1").strip().lower() not in ("0", "false", "off", "no"):
+            try:
+                _oll_v = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434").rstrip("/")
+                for _mv in ("gemma-4-31b-it-qat-vision:latest", "gemma4:26b"):
+                    try:
+                        urllib.request.urlopen(urllib.request.Request(
+                            _oll_v + "/api/generate",
+                            data=json.dumps({"model": _mv, "keep_alive": 0}).encode("utf-8"),
+                            headers={"Content-Type": "application/json"}), timeout=15).read()
+                    except Exception:  # noqa: BLE001 — model yüklü değil/hata: sonrakine geç
+                        pass
+                import ctypes as _ct
+
+                class _MSX(_ct.Structure):
+                    _fields_ = ([("dwLength", _ct.c_ulong), ("dwMemoryLoad", _ct.c_ulong)]
+                                + [(_n, _ct.c_ulonglong) for _n in
+                                   ("ullTotalPhys", "ullAvailPhys", "ullTotalPageFile",
+                                    "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual",
+                                    "ullAvailExtendedVirtual")])
+
+                def _commit_bos_gb():
+                    _m = _MSX(); _m.dwLength = _ct.sizeof(_MSX)
+                    _ct.windll.kernel32.GlobalMemoryStatusEx(_ct.byref(_m))
+                    return _m.ullAvailPageFile / 2**30
+
+                _hedef = float(os.environ.get("MITAS_ASR_MIN_COMMIT_GB", "8") or 8)
+                _t_v = time.perf_counter()
+                _bos = _commit_bos_gb()
+                while _bos < _hedef and (time.perf_counter() - _t_v) < 90:
+                    time.sleep(5)
+                    _bos = _commit_bos_gb()
+                log_event("asr_pre_valve",
+                          summary=f"{video.name}: ASR-ön-sübap — LLM tahliye + commit-boş "
+                                  f"{_bos:.1f} GB (hedef ≥{_hedef:.0f}, bekleme {time.perf_counter()-_t_v:.0f} sn).",
+                          module="asr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "commit_bos_gb": round(_bos, 1)})
+            except Exception:  # noqa: BLE001 — ön-sübap ASLA ASR'yi engellemez
+                pass
         asr_proc = subprocess.Popen(asr_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                     text=True, encoding="utf-8", errors="replace")
         t_asr = time.perf_counter()
@@ -2108,6 +2214,58 @@ def main(argv=None) -> int:
             log_event("asr_failed", level="error", summary=f"ASR blogu hata: {exc}",
                       module="asr", media_id=media_id, filename=video.name, job_id=asr_job, error=str(exc), detail={"clip_id": clip_id})
 
+    # ===== HAVUZ-PARALEL TOPLAMA/LANSMAN (hız #1, 2026-07-05; v2 kök-kazı aynı gece) =====
+    # Giriş-havuzu (CPU-OneOCR) burada TOPLANIR (OCR∥ASR ile örtüştü; kanıt: bekleme ~0).
+    # Çıkış-havuzu (paddle'lı child) burada LANSE edilir: ASR bitti → commit/CUDA tepesi geçti;
+    # LLM/v4/pdf kuyruğuyla örtüşür (gemma-resident+havuz birlikteliği eski seride kanıtlı).
+    # Toplaması ilk tüketiciden (jdebug/master-compose) hemen önce. KANIT (v2 nedeni): 0439+0289'da
+    # ASR-penceresinde spawn edilen child ANINDA öldü (stdout/stderr 0B = commit-tükenmesi/1455).
+    if _pp_par and _jp_cmd and _jp_proc is None and not args.no_ocr:
+        try:
+            jenerik_debug_root.mkdir(parents=True, exist_ok=True)
+            _t_jp_wall = time.time()
+            t_jp = time.perf_counter()
+            with open(_jp_outf, "w", encoding="utf-8", errors="replace") as _fo, \
+                    open(_jp_errf, "w", encoding="utf-8", errors="replace") as _fe:
+                _jp_proc = subprocess.Popen(_jp_cmd, stdout=_fo, stderr=_fe)
+        except Exception as _jpe:  # noqa: BLE001
+            log_event("jenerik_pool_failed", level="warn",
+                      summary=f"{video.name}: çıkış-havuz lansmanı başarısız ({type(_jpe).__name__}).",
+                      module="jenerik-pool", media_id=media_id, filename=video.name,
+                      error=str(_jpe)[:300], detail={"clip_id": clip_id})
+    if _gjp_proc is not None:
+        _t_col = time.perf_counter()
+        try:
+            _rcgjp = _gjp_proc.wait(
+                timeout=int(os.environ.get("MITAS_GIRIS_JENERIK_POOL_TIMEOUT", "900") or 900))
+            _outgjp = _gjp_outf.read_text(encoding="utf-8", errors="replace") if _gjp_outf.exists() else ""
+            _errgjp = _gjp_errf.read_text(encoding="utf-8", errors="replace") if _gjp_errf.exists() else ""
+            _gjj = last_json(_outgjp) or {}
+            timings["giris_jenerik_pool"] = round(time.perf_counter() - _t_col, 2)
+            _gjp_wall = (round(_gjp_outf.stat().st_mtime - _t_gjp_wall, 2)
+                         if (_t_gjp_wall and _gjp_outf.exists()) else None)
+            log_event("giris_jenerik_pool_completed",
+                      level="info" if _gjj.get("status") not in ("error", None) else "warn",
+                      summary=f"{video.name}: giriş jenerik havuzu {giris_jenerik_frames.name} "
+                              f"status={_gjj.get('status')} kept={_gjj.get('total_kept', 0)} "
+                              f"rep={_gjj.get('total_dedup_representatives', 0)} "
+                              f"(OCR∥ASR-örtüşük, iş {_gjp_wall} sn, ek bekleme {timings['giris_jenerik_pool']} sn).",
+                      module="giris-jenerik-pool", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["giris_jenerik_pool"],
+                      detail={"clip_id": clip_id, "pool": str(giris_jenerik_frames), "paralel": True,
+                              "pool_wall_sn": _gjp_wall,
+                              "result": _gjj, "stderr": (_errgjp or "")[-300:] if _rcgjp else None})
+        except Exception as _gjpe:  # noqa: BLE001
+            try:
+                _gjp_proc.kill()
+                _gjp_proc.wait(timeout=10)
+            except Exception:  # noqa: BLE001
+                pass
+            log_event("giris_jenerik_pool_failed", level="warn",
+                      summary=f"{video.name}: giriş jenerik havuzu toplama hatası ({type(_gjpe).__name__}).",
+                      module="giris-jenerik-pool", media_id=media_id, filename=video.name,
+                      error=str(_gjpe)[:300], detail={"clip_id": clip_id})
+
     # ===== BLOK KÜNYE-OKUMA (OneOCR ham metninden rol-eşleme; VLM DEVRE DIŞI) =====
     # KURAL: Qwen'e mümkünse kayıplı kunye.txt değil, daha ham OCR sidecar'ı (ocr_ham/raw) verilir;
     # temizleme/garble/KB/crew-sızıntı kapıları Qwen SONRASINDA çalışır. _pipe_credit_text LLM ile
@@ -2141,6 +2299,43 @@ def main(argv=None) -> int:
                     _llm_dead = True
             except Exception:  # noqa: BLE001 — sunucu kapalı/timeout: LLM katmanı yine kullanılamaz
                 _llm_dead = True
+            if _llm_dead:
+                # OLLAMA-BEKÇİSİ (2026-07-06, Çağatay: "ollama neden çökmüş, fixle"): işaretleyip
+                # LLM'siz geçmek yerine ÖNCE DİRİLT — (1) ebeveyni ölü ÖKSÜZ llama-server'ı temizle
+                # (06.07 vakası: 21GB VRAM + 23.5GB commit'i 4 saat kilitledi, yeni yükleme 500 verdi),
+                # (2) ollama serve başlat, (3) ≤120sn model-probe bekle. Başarıda film LLM'Lİ devam
+                # eder. FAIL-SAFE: her adım sessiz; olmadıysa eski görünür-işaretleme aynen kalır.
+                # Kill-switch: MITAS_OLLAMA_BEKCI=0.
+                if os.environ.get("MITAS_OLLAMA_BEKCI", "1").strip().lower() not in ("0", "false", "off", "no"):
+                    try:
+                        subprocess.run(
+                            ["powershell", "-NoProfile", "-Command",
+                             "Get-CimInstance Win32_Process -Filter \"Name='llama-server.exe'\" | "
+                             "ForEach-Object { if (-not (Get-Process -Id $_.ParentProcessId "
+                             "-ErrorAction SilentlyContinue)) { Stop-Process -Id $_.ProcessId -Force } }"],
+                            capture_output=True, timeout=30)
+                        try:
+                            urllib.request.urlopen(_oll + "/api/version", timeout=5).read()
+                        except Exception:  # noqa: BLE001 — sunucu kapalı → başlat
+                            _oexe = os.path.join(os.environ.get("LOCALAPPDATA", ""),
+                                                 "Programs", "Ollama", "ollama.exe")
+                            subprocess.Popen([_oexe, "serve"], creationflags=0x08000000)
+                        _t_ob = time.perf_counter()
+                        while time.perf_counter() - _t_ob < 120:
+                            try:
+                                with urllib.request.urlopen(_req, timeout=10):
+                                    _llm_dead = False
+                                    break
+                            except Exception:  # noqa: BLE001
+                                time.sleep(5)
+                        if not _llm_dead:
+                            log_event("llm_preflight_recovered", level="warn",
+                                      summary=f"{video.name}: ollama-bekçisi DİRİLTTİ (öksüz-runner "
+                                              f"temizliği + serve + probe) — film LLM'li devam ediyor.",
+                                      module="ocr", media_id=media_id, filename=video.name,
+                                      detail={"clip_id": clip_id, "ollama": _oll})
+                    except Exception:  # noqa: BLE001 — bekçi ASLA pipeline'ı bozmaz
+                        pass
             if _llm_dead:
                 log_event("llm_preflight_failed", level="error",
                           summary=f"{video.name}: LLM preflight BAŞARISIZ — ollama'da '{_probe_model}' yok "
@@ -2645,6 +2840,7 @@ def main(argv=None) -> int:
 
     # ===== YONLENDIR (Hazir/Kontrol) =====
     reasons = []
+    qwen_uyari = []   # FIX-C (2026-07-06): erken bloklar da uyarı yazabilsin diye init öne alındı
     # LLM-PREFLIGHT sonucu (2026-07-03): model deposu kopuksa film GÖRÜNÜR işaretlenir — böyle bir
     # film "yönetmen okunamadı" ile karışmaz; disk/depo onarılınca yeniden koşulması gerektiği bellidir.
     if _llm_dead:
@@ -2779,11 +2975,18 @@ def main(argv=None) -> int:
                 elif any(len(str(_n).strip()) > 45 for _n in _v4_yon):
                     reasons.append("yönetmen adı şüpheli (>45 karakter — OCR cümle karışması)")
                 # ÖZET KAPISI (QC2-sistemik, DETERMİNİSTİK — qwen-QC'ye bağlı DEĞİL, her zaman çalışır):
-                # v4 özeti placeholder reddi sonrası "—"/boş ya da çok kısa (gerçek özet _generate_ozet ile
-                # üretilmemiş; film yarım kalmış olabilir) → KONTROL. Placeholder ÇÖPÜ ASLA ONAYLI'ya gitmez.
+                # v4 özeti placeholder reddi sonrası "—"/boş ya da çok kısa (gerçek özet üretilmemiş).
+                # KONTROL-MAHKEMESİ FIX-C (2026-07-06, Çağatay anayasası): özet-yokluğu KÜNYE
+                # kalitesinden bağımsızdır (sessiz-film meşru-boş VEYA ASR/LLM-katman arızası =
+                # yeniden-koşu işi) → künyesi tam filmi tek başına Kontrol'e DÜŞÜRMEZ; uyarı +
+                # ÖZET-KUYRUK işareti olur. Placeholder-çöp zaten v4'te reddedilip boşaltılıyor
+                # (PDF'e çöp girmez). Eski davranış: MITAS_OZET_KONTROL=1.
                 _v4_ozk = ((_v4j or {}).get("v4") or {}).get("ozet_kelime", 0) or 0
                 if _v4_ozk < 20:
-                    reasons.append(f"özet yok/kısa ({_v4_ozk}k — gerçek özet üretilmemiş)")
+                    if os.environ.get("MITAS_OZET_KONTROL", "0").strip().lower() in ("1", "true", "on", "yes"):
+                        reasons.append(f"özet yok/kısa ({_v4_ozk}k — gerçek özet üretilmemiş)")
+                    else:
+                        qwen_uyari.append(f"özet-eksik({_v4_ozk}k) → ÖZET-KUYRUK adayı (karar-etkisiz)")
                 # C9 FIX (2026-06-22): XML-PDF cast kesişimi 0 şüphesini _cc4 bilgisiyle değerlendir.
                 # kimlik_dogru veya verdict==TEYİT veya cast_ortusme≥2 → film doğrulandı → KONTROL ekleme.
                 # _cc4=={} (parse hatası) → _locked=False → şüphe korunur (sessiz-pass YOK).
@@ -2797,10 +3000,14 @@ def main(argv=None) -> int:
     # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik
     # büyük-harf zaten deterministik tr_upper/ozet_v4, afiş poster_fetch ile garanti) → bu İKİ sinyal
     # Kontrol TETİKLEMEZ, yalnız qwen_uyari'ya (log/QC görünürlüğü) yazılır. Diğer 5 sinyal reasons'ta KALIR.
-    qwen_uyari = []
+    # (qwen_uyari init'i FIX-C ile YONLENDIR başına taşındı — burada SIFIRLANMAZ)
     if qwen_qc and not qwen_qc.get("error"):   # qwen final-QC: model gözüyle son kapı (PDF'i gören)
         if not qwen_qc.get("ozet_var"):
-            reasons.append("qwen: özet yok/placeholder")
+            # FIX-C (2026-07-06): özet-yokluğu karar-etkisiz (üstteki deterministik kapıyla aynı kural)
+            if os.environ.get("MITAS_OZET_KONTROL", "0").strip().lower() in ("1", "true", "on", "yes"):
+                reasons.append("qwen: özet yok/placeholder")
+            else:
+                qwen_uyari.append("qwen: özet yok/placeholder (ÖZET-KUYRUK — karar-etkisiz)")
         if (qwen_qc.get("oyuncu_sayisi") or 0) < 1 and not _v4_anim:
             reasons.append("qwen: oyuncu yok")     # ANİMASYON muaf (2026-07-04): oyuncu alanı BİLEREK boş
         elif (qwen_qc.get("oyuncu_sayisi") or 0) < 1 and _v4_anim:
@@ -2897,16 +3104,16 @@ def main(argv=None) -> int:
                        + " | okunmayan eklendi: " + (_add or "?"))
                 if not any(r.startswith("qc_block: OCR-otorite ihlali") for r in reasons):
                     reasons.append(_ar)
-        # fix3-A 2026-06-29 — CAST_CAP_DUSEN köprüsü: hafif sinyalden reasons'a aktar (görünürlük).
-        # qc_block_hafif listesinde 'CAST_CAP_DUSEN' neden-string'i varsa ADDITIVE reason ekle.
-        # FAIL-SAFE: exception → sessiz atla; ASLA ONAYLI üretmez (yalnız EKLER).
+        # fix3-A 2026-06-29 — CAST_CAP_DUSEN köprüsü. KONTROL-MAHKEMESİ FIX-D (2026-07-06,
+        # Çağatay anayasası): sinyalin orijinal niyeti GÖRÜNÜRLÜK'tü ama reasons'a eklenince
+        # tek başına dolu-PDF filmi Kontrol'e düşürüyordu (MURDER SCENE vakası, kod-teyitli).
+        # Artık YALNIZ uyarı katmanına yazılır (karar-etkisiz); _DURUM/log'da görünür kalır.
         try:
             for _hf in (_qcb4.get("qc_block_hafif") or []):
                 _hf_neden = (_hf.get("neden") or "") if isinstance(_hf, dict) else str(_hf)
                 if "CAST_CAP_DUSEN" in _hf_neden:
-                    _cap_r = "qc_block: " + _hf_neden
-                    if not any("CAST_CAP_DUSEN" in r for r in reasons):
-                        reasons.append(_cap_r)
+                    if not any("CAST_CAP_DUSEN" in u for u in qwen_uyari):
+                        qwen_uyari.append("qc_block: " + _hf_neden + " (görünürlük — karar-etkisiz)")
         except Exception:  # noqa: BLE001 — sinyal hatası pipeline'ı ASLA bozmasın
             pass
 
@@ -2924,10 +3131,18 @@ def main(argv=None) -> int:
                 sys.path.insert(0, str(HERE))
                 import credit_video_read as _cvr
                 _kb_kt = _cvr.KB()
-                _on = sum(1 for n in _kt_cast if _kb_kt.verify(n, "actor") == "ONAY")
+                _v_list = [_kb_kt.verify(n, "actor") for n in _kt_cast]
+                _on = sum(1 for v in _v_list if v == "ONAY")
                 _oran = _on / max(1, len(_kt_cast))
+                # KONTROL-MAHKEMESİ FIX-1 (2026-07-06): KB-KAPSAMA-FARKINDALIK — eski/yerel filmlerde
+                # KB kişilerin çoğunu hiç TANIMAZ (kayit-yok); onları paydada tutmak kişi-teyidi
+                # haksız düşürüyordu (BÜYÜK MÜCADELE 1960 vakası). Oran ayrıca "KB'nin bildiği"
+                # kişiler üzerinden hesaplanır: bilinen>=2 VE bilinen-oran>=0.75 de bastırma açar.
+                # KB hiç kimseyi tanımıyorsa (bilinen<2) bu dal AÇILMAZ (güvenli taraf).
+                _bilinen = sum(1 for v in _v_list if v != "kayit-yok")
+                _oran_bilinen = _on / _bilinen if _bilinen else 0.0
                 _yon_ok = (not _kt_yon) or any(_kb_kt.verify(n, "director") == "ONAY" for n in _kt_yon)
-                if _oran >= 0.6 and _yon_ok:
+                if (_oran >= 0.6 or (_bilinen >= 2 and _oran_bilinen >= 0.75)) and _yon_ok:
                     _BASTIR = ("kimlik", "zayıf-teyit", "versiyon cast-teyitsiz",
                                "yönetmen doğrulama: kaynak-çelişkisi")
                     _kalan = [r for r in reasons if not any(b in r for b in _BASTIR)]
@@ -3108,6 +3323,52 @@ def main(argv=None) -> int:
         MASTER_MD.write_text("# MİTAS — İşlem Log'u (Hazır / Kontrol)\n\n", encoding="utf-8")
     with MASTER_MD.open("a", encoding="utf-8") as h:
         h.write("\n".join(md) + "\n")
+
+    # ===== HAVUZ-PARALEL v2: ÇIKIŞ-HAVUZ TOPLAMA (ilk tüketiciden hemen önce) =====
+    # Lansman ASR-toplama sonrasıydı; LLM/v4/pdf kuyruğu (~100-160 sn) havuz işini (~50-60 sn)
+    # gölgeledi → beklenen ek bekleme ~0. Fail-safe: hata pipeline'ı bozmaz.
+    if _jp_proc is not None:
+        _t_col = time.perf_counter()
+        try:
+            _rcjp = _jp_proc.wait(
+                timeout=int(os.environ.get("MITAS_JENERIK_POOL_TIMEOUT", "900") or 900))
+            _outjp = _jp_outf.read_text(encoding="utf-8", errors="replace") if _jp_outf.exists() else ""
+            _errjp = _jp_errf.read_text(encoding="utf-8", errors="replace") if _jp_errf.exists() else ""
+            _jjp = last_json(_outjp) or {}
+            if not cikis_jenerik_frames.exists():
+                cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
+            timings["jenerik_pool"] = round(time.perf_counter() - _t_col, 2)
+            _jp_wall = (round(_jp_outf.stat().st_mtime - _t_jp_wall, 2)
+                        if (_t_jp_wall and _jp_outf.exists()) else None)   # gerçek iş süresi (exit anı)
+            log_event("jenerik_pool_completed",
+                      level="info" if _jjp.get("status") != "error" else "warn",
+                      summary=f"{video.name}: paralel jenerik havuzu {cikis_jenerik_frames.name} "
+                              f"status={_jjp.get('status')} frame={_jjp.get('pool_frames', 0)} "
+                              f"(LLM/v4-örtüşük, iş {_jp_wall} sn, ek bekleme {timings['jenerik_pool']} sn).",
+                      module="jenerik-pool", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["jenerik_pool"],
+                      detail={"clip_id": clip_id, "pool": str(cikis_jenerik_frames), "paralel": True,
+                              "pool_wall_sn": _jp_wall,
+                              "result": _jjp, "stderr": (_errjp or "")[-300:] if _rcjp else None})
+        except Exception as _jpe:  # noqa: BLE001
+            try:
+                _jp_proc.kill()
+                _jp_proc.wait(timeout=10)
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                cikis_jenerik_frames.mkdir(parents=True, exist_ok=True)
+                with (jenerik_debug_root / "errors.jsonl").open("a", encoding="utf-8") as _eh:
+                    _eh.write(json.dumps({"ts": now_iso(), "stage": "pool-collect", "error": str(_jpe)[:500]},
+                                         ensure_ascii=False) + "\n")
+            except Exception:  # noqa: BLE001
+                pass
+            log_event("jenerik_pool_failed", level="warn",
+                      summary=f"{video.name}: paralel jenerik havuzu toplama hatası ({type(_jpe).__name__}).",
+                      module="jenerik-pool", media_id=media_id, filename=video.name,
+                      error=str(_jpe)[:300], detail={"clip_id": clip_id})
+    if _pp_par:
+        _cikis_fallback_pool()   # havuz kapalı/lansman-hata dallarında da çalışır (kendi guard'ları var)
 
     # ===== PARALEL JENERIK DEBUG: OneOCR normal havuz + GLM/VL/master cikis_jenerik havuzu =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. Kalıcı provenance:
