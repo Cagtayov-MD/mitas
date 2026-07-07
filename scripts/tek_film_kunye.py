@@ -504,7 +504,12 @@ def main():
     #   • OCR boş → "okunamadı" (KB'den DOLDURMA — "her şeyi okuyacağız" diye bir şey yok).
     #   • OCR var + kimlik doğrulandı + KB yönetmeni var:
     #       OCR ~ KB (name_match/name_close) → KANONİK KB yazımı (fuzzy YAZIM düzelt). ✅
-    #       eşleşmezse (ör. "ABRURRAK ROROSKO" garble) → fuzzy hiçbir yere koyamaz → "okunamadı".
+    #       eşleşmezse VE OCR okuması garble ise (ör. "ABRURRAK ROROSKO") → "okunamadı".
+    #       eşleşmezse AMA OCR okuması TEMİZ/geçerli isimse → KB'yi güvenme, OCR'ı KORU
+    #       (credit_validate.py DEMİR KURAL#3 "SESSİZ EZME YOK...OCR korunur" ile aynı ilke;
+    #       İKİNCİ ŞANS/"Reuben Rose" kökü 2026-07-07: kare temiz "directed by REUBEN ROSE"
+    #       diyor, KB başka-film/mahlas yüzünden "John Blanchard" diyor — eski kod OCR'ı
+    #       KÖRLEMESİNE siliyordu, "yanlış > boş" kanununu TERSİNE çeviriyordu).
     #   • OCR var + (KB yok / kimlik yok) → OCR'ı AYNEN koru (doğrulayacak şey yok).
     yon_kaynak = "kareler"
     yon_ocr_teyit = False                       # OCR yönetmeni KB ile BAĞIMSIZ teyit edildi mi (cast-ADD çapası)
@@ -519,7 +524,22 @@ def main():
         if _yeni:
             yon = _yeni; yon_kaynak = "kareler (KB yazım teyitli)"; yon_ocr_teyit = True
         else:
-            yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
+            # _valid_person_name TEK BAŞINA yetmez — yapısal kontrol ("iki büyük-harfli token")
+            # "ABRURRAK ROROSKO" gibi anlamsız-ama-isim-şekilli OCR gürültüsünü de geçirir (ölçüldü).
+            # İKİNCİ kapı: isim GENİŞ KB'de (imdb.names, bu filme özel değil) GERÇEK biri olarak
+            # var mı? Gerçek-ama-bu-filme-KB'siz kişi (Reuben Rose) bulunur; saf gürültü bulunmaz.
+            import credit_text_read as _ctr_vp
+            _yon_kb_hit = False
+            if all(_ctr_vp._valid_person_name(_d) for _d in yon):
+                try:
+                    _kb3 = _cc.CreditKB()
+                    _yon_kb_hit = all(_kb3._imdb_people_by_folds([_cc.fold(_d)]) for _d in yon)
+                except Exception:
+                    _yon_kb_hit = False
+            if _yon_kb_hit:
+                yon_kaynak = "kareler (KB eşleşmedi ama OCR temiz + KB'de gerçek kişi → okunan korundu)"
+            else:
+                yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
     elif not yon:
         yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"
     if _yon_before_kb != yon:
@@ -874,7 +894,12 @@ def main():
             import glob as _gx
             def _fold_tx(t): return nn.ascii_fold(t).upper()
             _fr_txt = ""
-            _ks = sorted([q for q in _gx.glob(os.path.join(clip, "ocr", "ocr-*", "kunye.txt")) if "-fb" not in q], key=os.path.getmtime)
+            # "-fb" SUFFIX kontrolü (2026-07-07 fix): eski "-fb" not in q TAM-YOL substring'iydi —
+            # rastgele job-hash "fb" ile başlarsa (ör. "ocr-fb9fa3e4", ANGOLA'DAN KAÇIŞ) o filmin
+            # TEK ocr klasörünü yanlışlıkla dışlıyordu. Doğru desen: yalnız klasör-ADI "-fb" ile
+            # BİTİYORSA fallback-kardeş say (bkz _pipe_credit_text.py:46 aynı doğru desen).
+            _ks = sorted([q for q in _gx.glob(os.path.join(clip, "ocr", "ocr-*", "kunye.txt"))
+                          if not os.path.basename(os.path.dirname(q)).endswith("-fb")], key=os.path.getmtime)
             if _ks: _fr_txt = _fold_tx(open(_ks[-1], encoding="utf-8", errors="ignore").read())
             _dl_txt = ""
             _dp = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
@@ -962,7 +987,7 @@ def main():
                 _ekran = ""
                 try:
                     _kts = sorted([q for q in glob.glob(os.path.join(clip, "ocr", "ocr-*", "kunye.txt"))
-                                   if "-fb" not in q], key=os.path.getmtime)
+                                   if not os.path.basename(os.path.dirname(q)).endswith("-fb")], key=os.path.getmtime)
                     if _kts:
                         _ekran += open(_kts[-1], encoding="utf-8", errors="ignore").read() + chr(10)
                     _hms = sorted(glob.glob(os.path.join(clip, "ocr", "ocr-*", "ocr_ham", "*.txt"))

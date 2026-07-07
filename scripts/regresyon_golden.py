@@ -23,7 +23,11 @@ def kunye_yon(patt, title):
     g = glob.glob(os.path.join(DB, patt))
     if not g:
         return None, "hub-yok"
-    ks = sorted([q for q in glob.glob(os.path.join(g[0], "ocr", "ocr-*", "kunye.txt")) if "-fb" not in q],
+    # "-fb" SUFFIX kontrolü (2026-07-07 fix): eski substring-kontrolü rastgele job-hash "fb" ile
+    # başlarsa (ör. "ocr-fb9fa3e4", ANGOLA'DAN KAÇIŞ) o filmin TEK ocr klasörünü yanlışlıkla
+    # dışlayıp sahte-FAIL üretiyordu (bkz _pipe_credit_text.py:46 aynı doğru desen).
+    ks = sorted([q for q in glob.glob(os.path.join(g[0], "ocr", "ocr-*", "kunye.txt"))
+                 if not os.path.basename(os.path.dirname(q)).endswith("-fb")],
                 key=os.path.getmtime)
     if not ks:
         return None, "kunye-yok"
