@@ -271,6 +271,10 @@ _NONFILM_MARKERS = (
     # IT "direttore della fotografia". ("kamera" tek başına EKLENMEDİ: masum komşulukta
     # gerçek yönetmeni düşürme riski; canlı tarama gerekçe gösterirse ayrıca değerlendirilir.)
     "cinematograph", "della fotografia",
+    # TR "FOTO DİREKTÖRÜ" (DİŞİ ŞEYTAN 1964-0002 kökü, 2026-07-07, gözle-teyitli): "goruntu yon"
+    # farklı yaygın TR ifadesiydi (Görüntü Yönetmeni), "FOTO DİREKTÖRÜ" (Director of Photography'nin
+    # eski-Yeşilçam usulü TR karşılığı) kapsanmıyordu → sinematograf TURGUT ÖREN film-yönetmeni sanıldı.
+    "foto direkt", "fotograf direkt",
     # Yaratıcı-etiket ailesi (dolu-yönetmen doğruluk-denetimi 2026-07-03, HALIFAX kanıtı):
     # dizi/franchise kartı "Devised by ROGER SIMPSON" bölüm-yönetmeni sanıldı (gerçek yönetmen
     # Lynn Hegarty ekranda hiç yoktu). "created by/creator" aynı sınıf (seri/karakter yaratıcısı
