@@ -222,6 +222,13 @@ def director_name_from_line(text):
     _tf0 = nl.split()
     if _tf0 and _tf0[0] == "DIRECTOR" and len(_tf0) >= 2 and any(t.startswith("PH") for t in _tf0[1:]):
         return ""
+    # ANİMASYON VFX-ÜNVANI VETOSU (2026-07-07, FERDİNAND/"LEAD ENVIRONMENTAL TECHNICAL DIRECTOR"
+    # kökü, gözle-teyitli): burada "DIRECTOR" satırın SONUNDA (_match_head'in endswith dalı bunu
+    # zaten head sayardı, 'rest'=departman-sıfatları isim sanılırdı). Yalnız SOMUT-KANITLI kelimeler
+    # (spekülatif açık-uçlu liste YOK).
+    _VFX_DEPT_ADJ = {"TECHNICAL", "ENVIRONMENTAL"}
+    if _tf0 and _tf0[-1] in ("DIRECTOR", "DIRECTORS") and (_VFX_DEPT_ADJ & set(_tf0)):
+        return ""
     m = _DIRECTOR_CARD_RE.match(nl)
     if m:
         cand = m.group(1).strip()

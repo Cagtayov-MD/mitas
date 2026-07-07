@@ -1522,6 +1522,14 @@ def _rsc_label_fuzzy(_f):
     _tf0 = _f.split()
     if _tf0 and _tf0[0] == "DIRECTOR" and len(_tf0) >= 2 and any(t.startswith("PH") for t in _tf0[1:]):
         return False
+    # ANİMASYON VFX-ÜNVANI VETOSU (2026-07-07, FERDİNAND/"LEAD ENVIRONMENTAL TECHNICAL DIRECTOR"
+    # kökü, gözle-teyitli): animasyon jeneriklerinde "DIRECTOR" kelimesi departman-lideri ünvanlarında
+    # geçer (film-yönetmeni DEĞİL). Yalnız SOMUT-KANITLI kelimeler eklendi (spekülatif genişletme
+    # YOK — açık-uçlu liste riski bilinçle sınırlandı); "DIRECTOR" satırın SONUNDA (etiket ...DIRECTOR
+    # biçiminde, isim ayrı satırda) ve satırda bu departman-sıfatlarından biri geçiyorsa veto.
+    _VFX_DEPT_ADJ = {"TECHNICAL", "ENVIRONMENTAL"}
+    if "DIRECTOR" in _tf0 and (_tf0[-1] == "DIRECTOR" or _tf0[-1] == "DIRECTORS") and (_VFX_DEPT_ADJ & set(_tf0)):
+        return False
     if len(_f) <= 48:
         _tf = _f.split()
         if "DIRECTED" in _tf and "BY" in _tf and not (_RSC_KOMBINE_VETO & set(_tf)):
