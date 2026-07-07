@@ -1351,12 +1351,24 @@ def _valid_person_name(name: str) -> bool:
         return False
     toks = [t for t in _fold(nm).split() if t]
     real = [t for t in toks if len(t) >= 2]            # orta-harf (E.) serbest; ≥2 GERÇEK token şart
+    # BAŞ-HARF-ÇOKLU İSİM (2026-07-07, BANA TRINITY DERLER/E.B. Clucher kökü, gözle-teyitli): eski
+    # kural yalnız TEK orta-harfi ("John B. Smith") serbest bırakıyordu — "E. B. CLUCHER" (HER iki
+    # ön-ad da baş-harfe inmiş, yalnız soyadı açık) real=1'e düşüp RED alıyordu. İSTİSNA: real TAM 1
+    # VE geri kalan TÜM token'lar saf tek-harf alfabetik baş-harfse (rakam/junk değil, ≥1 tane) →
+    # uzunluk-kapısı atlanır — NONPERSON/JUNK/garble kapıları AŞAĞIDA hâlâ çalışır ("E. B. FILM" gibi
+    # junk-soyadlı sahte-adlar yine elenir; çıplak tek-token soyad — baş-harfsiz — hâlâ RED kalır).
+    _init_only = [t for t in toks if len(t) == 1]
+    _is_initials_name = (len(real) == 1 and bool(_init_only)
+                          and len(_init_only) + len(real) == len(toks)
+                          and all(t.isalpha() for t in _init_only))
     # 2026-07-06 (BAŞKAN VE MARI kökü): 4-token tavanı 'JEAN-DOMINIQUE DE LA ROCHEFOUCAULD' gibi
     # soylu/bağlaçlı adları RED'liyordu. 5-6 token YALNIZ soy-bağlacı içeriyorsa serbest; cümle-RED korunur.
     _VP_SOYBAG = {"de", "la", "le", "van", "von", "di", "del", "da", "dos", "el", "al", "bin", "der", "den"}
-    if len(real) < 2 or len(toks) > 6:                 # tek-token RED, uzun-cümle RED
+    if len(toks) > 6:
         return False
-    if len(toks) > 4 and not any(t in _VP_SOYBAG for t in toks):
+    if not _is_initials_name and len(real) < 2:        # tek-token RED, uzun-cümle RED
+        return False
+    if len(toks) > 4 and not _is_initials_name and not any(t in _VP_SOYBAG for t in toks):
         return False                                   # 5-6 token ama bağlaçsız = cümle şüphesi
 
     if any(t in _NONPERSON_TOK for t in toks) or any(t in _JUNK_WORDS for t in toks):
