@@ -1789,6 +1789,19 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     """
     chain = model_chain()
     lines = [l.strip() for l in (lines or []) if l and l.strip()]
+    # CREW-BAĞLAMI DİLİM-KÖPRÜSÜ (2026-07-07, LENI RIEFENSTAHL/Walter A. Franke kökü): dilim-korpus
+    # satırları (### MASTER-DILIM OKUMASI ### sonrası, _pipe_credit_text/_dilim_lines tarafından
+    # `lines`e eklenir) YALNIZ LLM-girdisine (`lines`) ulaşıyordu; filter_cast_by_raw_context'in
+    # kullandığı raw_context_lines'a HİÇ katılmıyordu → Almanca "Kamera/Kameraassistenz" etiketi
+    # (zaten _CREW_CONTEXT_KW'de kayıtlı) yalnız dilimde geçince crew-üyesi (Walter A. Franke,
+    # Ulrich Jaenchen) cast'ten ATILAMIYORDU (kanıt filtreye hiç ulaşmıyordu). Additive: dilim
+    # satırlarını raw_context_lines'a da kat (yalnız EK kanıt; filter_cast_by_raw_context zaten
+    # negatif-kapı/isim-eklemez, bu köprü yalnız DAHA FAZLA crew doğru elenmesini sağlar).
+    if "### MASTER-DILIM OKUMASI ###" in lines:
+        _dil_mi = lines.index("### MASTER-DILIM OKUMASI ###")
+        _dil_part = lines[_dil_mi + 1:]
+        if _dil_part:
+            raw_context_lines = list(raw_context_lines or []) + _dil_part
     # ── LATIN-DIŞI ERKEN ROMANİZASYON (2026-06-22, NAMUS DÜŞMANI) ─────────────────────────────
     # Arap/Kiril/Yunan künyede _fold (re.sub r"[^a-z0-9 ]") TÜM harfleri siler → boş token → guard/
     # _valid_person_name ismi atar → %100 kadro kaybı (OCR mükemmel okusa bile). ÇÖZÜM: extraction'dan
