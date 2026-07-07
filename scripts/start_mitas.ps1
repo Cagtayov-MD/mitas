@@ -91,7 +91,7 @@ if (-not $env:MITAS_GARBLE_NGRAM_ROUTE)   { $env:MITAS_GARBLE_NGRAM_ROUTE = '0';
 # C2: OCR-okunan+KB-onaylı oyuncuyu S6 garble/only_persons düşürürse kurtar (ADDITIVE, 3 koruma: ocr_ham+valid_person+not_garble).
 if (-not $env:MITAS_CAST_OCR_KEEP)        { $env:MITAS_CAST_OCR_KEEP = '1';        Write-Host '   + MITAS_CAST_OCR_KEEP=1 (C2 AKTIF — S6-düşük oyuncu kurtarma)' }
 # C2b: Cast üst-sınırı 8→10 (cap-dolu filmlerde OCR_KEEP'in etki edebilmesi için; floor=8 sabit kalır).
-if (-not $env:MITAS_CAST_CAP)             { $env:MITAS_CAST_CAP = '10';            Write-Host '   + MITAS_CAST_CAP=10 (C2b — cap 8→10)' }
+if (-not $env:MITAS_CAST_CAP)             { $env:MITAS_CAST_CAP = '18';            Write-Host '   + MITAS_CAST_CAP=18 (C2c — cap 10→18)' }
 # C5: non-cast sızmasına karşı qc_block S1 filtresi (zaten credit_text_read'de çalışıyor; qc_block seviyesinde ek katman).
 if (-not $env:MITAS_QC_NONCAST_FILTER)    { $env:MITAS_QC_NONCAST_FILTER = '1';    Write-Host '   + MITAS_QC_NONCAST_FILTER=1 (C5 AKTIF — non-cast qc_block S1)' }
 # KAPI1 (2026-06-28): cast'e sizan karakter-tarifi cop ("GIRL AT DANCE", "SECOND GIRL", "IMMIGRATION OFFICER").

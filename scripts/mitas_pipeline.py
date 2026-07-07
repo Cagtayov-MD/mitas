@@ -1369,7 +1369,7 @@ _PROD_DEFAULTS = {
     "MITAS_PDF_RENDER_AUDIT": "1",   # FIX-D: S5 form-ezme gözlem sinyali (route YOK)
     # C2/C5 flag'ler (2026-06-28 mirror fix): ps1:79-83 ile AYNI; MITAS_OCR_FORM_KEEP ps1'de YOK → burada da yok.
     "MITAS_CAST_OCR_KEEP": "1",      # C2: OCR-okunan oyuncu S6'dan düşerse kurtar (ADDITIVE)
-    "MITAS_CAST_CAP": "10",          # C2b: cast üst-sınırı 8→10
+    "MITAS_CAST_CAP": "18",          # C2c (2026-07-07): 10→18 — 50-film cap-düşen (UTANMAZ ADAM 14 oyuncu)
     "MITAS_QC_NONCAST_FILTER": "1",  # C5: non-cast qc_block S1 filtresi
     "MITAS_QC_ROLE_FILTER": "1",     # KAPI1 (2026-06-28): karakter-rol/tarif çöpü ele (yapısal-kesin, ad ezmez)
     "MITAS_DIRECTOR_RESCUE": "1",   # C-fix (2026-06-29): yönetmen-rescue; LLM boş → DIRECTED BY +1 (VETO: yapım etiketi/cast-çelişki)

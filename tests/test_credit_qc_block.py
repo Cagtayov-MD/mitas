@@ -251,6 +251,31 @@ def test_invariant_no_ocr_added_when_unlocked():
     assert r["floor"]["ulasilan"] == 2
 
 
+def test_ocr_dropped_rescue():
+    """RESCUE (2026-07-07, UTANMAZ ADAM/Türkan Şoray): ham-OCR'da BİTİŞİK okunan + KB-cast'te gerçek
+    AMA final'de olmayan isim (OCR sıra-bozması yüzünden birleşemeyen gerçek oyuncu) kimlik-kilitliyken
+    otorite_audit.ocr_dropped üzerinden cast'e geri eklenir. Sıfırdan KB-fill DEĞİL (isim ham-OCR'da VAR)."""
+    ocr = ["Ali Veli", "Ayse Can"]                       # final OCR-cast: 'Turkan Soray' YOK (birleşemedi)
+    kb = FakeKB(verdict="TEYİT", oyon=["Bir Yon"],
+                ocast=["Ali Veli", "Ayse Can", "Turkan Soray"], cast_ov=2)   # KB onu tanıyor
+    raw = ["ALI VELI", "AYSE CAN", "TURKAN SORAY"]        # ham-OCR: bitişik TURKAN SORAY okunmuş
+    r = q.qc_credit_block(["Bir Yon"], ocr, [], title="TEST FILM", year=2000,
+                          ozet=_ozet(), kb=kb, raw_names_groundtruth=raw)
+    assert r["kimlik"]["locked"] is True
+    folds = {cc.fold(x) for x in r["temiz_cast"]}
+    assert cc.fold("Turkan Soray") in folds              # rescue: geri eklendi
+    assert any(e.get("kaynak") == "rescue-ocr_dropped" for e in r["kaynak_izi"])
+
+    # RESCUE kapalı (env=0) → geri EKLENMEZ (davranış env-kontrollü, geri-alınabilir)
+    os.environ["MITAS_CAST_RESCUE_DROPPED"] = "0"
+    try:
+        r2 = q.qc_credit_block(["Bir Yon"], ocr, [], title="TEST FILM", year=2000,
+                               ozet=_ozet(), kb=kb, raw_names_groundtruth=raw)
+        assert cc.fold("Turkan Soray") not in {cc.fold(x) for x in r2["temiz_cast"]}
+    finally:
+        os.environ.pop("MITAS_CAST_RESCUE_DROPPED", None)
+
+
 def test_deference_director_producer_on_off():
     """Regresyon kalkanı: deferans-ON/OFF davranışını kilitler.
 

@@ -891,6 +891,21 @@ def qc_credit_block(
             except Exception:              # noqa: BLE001 — sinyal hatası karar/route'u ASLA bozmaz
                 otorite_audit = {"hata": True}
 
+        # ── S12b RESCUE (2026-07-07, UTANMAZ ADAM/Türkan Şoray): ocr_dropped'dan KB/GT-teyitli
+        # düşen isim cast'e geri. ocr_dropped = HEM ham-OCR'da okunmuş HEM KB-cast'te gerçek AMA
+        # final'de olmayan (audit'te çift-teyitli). Kimlik-kilitli iken güvenli; OCR isim-parçalama
+        # (ör. ters/ayrık 'SORAY / TÜRKAN') yüzünden birleşemeyen gerçek oyuncuyu kurtarır.
+        _rescue_on = (os.environ.get("MITAS_CAST_RESCUE_DROPPED", "1").strip().lower()
+                      not in ("0", "false", "off", "no"))
+        if (_rescue_on and locked and isinstance(otorite_audit, dict)
+                and otorite_audit.get("ocr_dropped")):
+            _rhave = {_fold(n) for n in temiz_cast}
+            for _dn in (otorite_audit.get("ocr_dropped") or []):
+                if _dn and _fold(_dn) not in _rhave:
+                    temiz_cast.append(_upper_names([_dn])[0])
+                    _rhave.add(_fold(_dn))
+                    iz.append({"alan": "oyuncu", "kaynak": "rescue-ocr_dropped", "isim": _dn})
+
         return {
             "temiz_yon": temiz_yon, "temiz_cast": temiz_cast, "temiz_yap": temiz_yap,
             "ozet": cased_ozet, "ozet_kelime": ozet_kelime, "afis_ok": afis_ok,
