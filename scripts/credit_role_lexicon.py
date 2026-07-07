@@ -61,6 +61,12 @@ DIRECTOR = [
     "NIRDESHAK", "NIRDESHAN", "KARGARDAN", "IKHRAJ", "MUKHRIJ",
     # JA/ZH latin-kartlar (uluslararası kopyalarda İngilizce gelir; yine de pinyin/romaji nadir)
     "KANTOKU", "DAOYAN",
+    # Bileşik başlıklar (2026-07-07 lexicon_anchor_misparse): FR/EN "üret VE yönet" birleşik
+    # etiketi TEK SATIRDA gelince _match_head (en-uzun-önce) TAMAMINI yer → strip="" → isim
+    # SONRAKİ satırdan alınır. (Kanıt: ŞEYTAN RUHLU 1955-0046 "PRODUIT ET DIRIGE PAR / H.G. CLOUZOT".)
+    "PRODUIT ET DIRIGE PAR", "PRODUIT ET REALISE PAR", "ECRIT ET REALISE PAR",
+    "ECRIT ET DIRIGE PAR", "PRODUCED AND DIRECTED BY", "WRITTEN AND DIRECTED BY",
+    "DIRECTED AND PRODUCED BY", "PRODUCED WRITTEN AND DIRECTED BY",
 ]
 PRODUCER = [
     "YURUTUCU YAPIMCI", "YAPIMCI", "YAPIM",
@@ -138,6 +144,16 @@ ALL_HEADS = DIRECTOR + PRODUCER + CAST
 def _has_excl(nline):
     return any(x in nline for x in EXCLUDE)
 
+# Cümle-parçası freni için dilbilgisi sözcükleri (artikel/bağlaç/edat). İsim-PARÇACIKLARI
+# (DE/VON/VAN/DER/LA/LE/DI/DA/DEL/BIN...) KASITLA YOK → 'ROBERT DE NIRO' korunur. (2026-07-07)
+_NONNAME_WORDS = {
+    "THE", "AN", "AND", "OR", "BUT", "NOR", "BY", "WITH", "WITHOUT", "FROM", "INTO", "ONTO",
+    "THROUGH", "THROUGHOUT", "DURING", "WHILE", "WHEN", "WHERE", "WHICH", "WHOSE",
+    "THAT", "THIS", "THESE", "THOSE", "ARE", "WAS", "WERE", "BEEN", "BEING",
+    "HAVE", "HAS", "HAD", "WILL", "WOULD", "SHALL", "SHOULD", "COULD", "THAN", "THEN",
+    "OU", "MAIS", "DANS", "POUR", "AVEC", "SANS", "QUE", "QUI", "UNE",
+}
+
 def _is_name(nline):
     toks = nline.split()
     if not (1 <= len(toks) <= 5):
@@ -147,6 +163,11 @@ def _is_name(nline):
     if any(h == nline or nline.startswith(h + " ") for h in ALL_HEADS):
         return False
     if any(t in CORP for t in toks):
+        return False
+    # Cümle-parçası freni (2026-07-07 lexicon_anchor_misparse; GLORIA 1992-0299
+    # "DIRECTED BY / EXPLODED THROUGHOUT AN UNSUSPECTING..."): 3+ token içinde 2+ dilbilgisi
+    # sözcüğü varsa bu bir isim değil cümle parçasıdır. İsim-parçacıkları hariç → yanlış-red yok.
+    if len(toks) >= 3 and sum(1 for t in toks if t in _NONNAME_WORDS) >= 2:
         return False
     return True
 
