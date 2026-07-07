@@ -191,6 +191,16 @@ def director_name_from_line(text):
     nl = norm(text)
     if not nl or _has_excl(nl):
         return ""
+    # SİNEMATOGRAF VETO (2026-07-07, BİR BEBEK EVİ/Joseph Losey + DELİLİĞİN SINIRINDA/Danny Huston
+    # kökü): EXCLUDE listesi "DIRECTOR OF PHOTOGRAPHY"yi TAM-STRING arıyor ama ağır garble ("DIRECTOR
+    # OF PHON", "DIRECTOR OI PHEN", "DIRECTOR E PHAH") bu alt-dizgeyi TAŞIMIYOR → süzgeç atlanıyor,
+    # "DIRECTOR" head'i eşleşip ardındaki garble parçası ("OF PHON") isim sanılıyor (gerçek yönetmen
+    # ise SATIRLARCA SONRA, ayrı bir bare "DIRECTOR" etiketiyle geliyor, hiç bulunamıyor). Desen:
+    # "DIRECTOR" + sonraki herhangi bir token "PH..." ile başlıyor → HER ZAMAN görüntü-yönetmeni
+    # garble'ı (gerçek yönetmen-etiketi asla "DIRECTOR PH..." biçiminde olmaz).
+    _tf0 = nl.split()
+    if _tf0 and _tf0[0] == "DIRECTOR" and len(_tf0) >= 2 and any(t.startswith("PH") for t in _tf0[1:]):
+        return ""
     m = _DIRECTOR_CARD_RE.match(nl)
     if m:
         cand = m.group(1).strip()

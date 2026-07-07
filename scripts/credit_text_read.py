@@ -1511,6 +1511,16 @@ def _rsc_label_fuzzy(_f):
     ("DIRECTOR OF PHOTOGRAPHY"/"ASSISTANT DIRECTOR" zaten kalıba girmez)."""
     if not _f:
         return False
+    # SİNEMATOGRAF VETO (2026-07-07, BİR BEBEK EVİ/Joseph Losey kökü): docstring "DIRECTOR OF
+    # PHOTOGRAPHY zaten kalıba girmez" derken bunu VARSAYIYORDU ama garble ("director of phon",
+    # "DIRECTOR OI PHEN", "DIRECTOR E/ PHAH") aşağıdaki fuzzy/lexicon dallarından SIZIYORDU →
+    # rescue görüntü-yönetmeni satırını gerçek yönetmen sanıp yanındaki garble'ı (OI PHEN) isim
+    # olarak çekiyordu (gerçek yönetmen "director" tek-kelime etiketi daha SONRA geliyordu, hiç
+    # bulunmuyordu). Desen: "DIRECTOR" + herhangi bir sonraki token "PH..." ile başlıyor → HER ZAMAN
+    # görüntü-yönetmeni garble'ı (gerçek yönetmen etiketi asla "DIRECTOR PH..." biçiminde olmaz).
+    _tf0 = _f.split()
+    if _tf0 and _tf0[0] == "DIRECTOR" and len(_tf0) >= 2 and any(t.startswith("PH") for t in _tf0[1:]):
+        return False
     if len(_f) <= 48:
         _tf = _f.split()
         if "DIRECTED" in _tf and "BY" in _tf and not (_RSC_KOMBINE_VETO & set(_tf)):
