@@ -82,9 +82,9 @@ def run_ocr_json(script, args, timeout=1800):
     return obj, (r.stderr or "")
 
 def parse_teslim_md(path):
-    """pdf/kunye_teslim.md → {title, trt_id, res, dur, ses_kanallari, ana_dil, altyazi, ozet}"""
-    d = {"title": None, "trt_id": None, "res": "—", "dur": "—",
-         "ses_kanallari": [], "ana_dil": "—", "altyazi": "—", "ozet": ""}
+    """pdf/kunye_teslim.md → {title, trt_id, res, dur, tur, ses_kanallari, ana_dil, altyazi, ozet, film_notu}"""
+    d = {"title": None, "trt_id": None, "res": "—", "dur": "—", "tur": "",
+         "ses_kanallari": [], "ana_dil": "—", "altyazi": "—", "ozet": "", "film_notu": []}
     if not (path and os.path.exists(path)):
         return d
     txt = open(path, encoding="utf-8").read()
@@ -97,6 +97,16 @@ def parse_teslim_md(path):
     m = re.search(r"Çözünürlük:\s*([^\s·]+).*?Süre:\s*([0-9:]+)", txt)
     if m:
         d["res"], d["dur"] = m.group(1).strip(), m.group(2).strip()
+    # TÜR (2026-07-07, promote-denetimi ADDITIVE fix): res/dur regex'i "Tür:" kısmını atlıyordu →
+    # meta hiç tür taşımıyordu; fix_kunye.build_fixed gibi tüketiciler tür-baseline'ı KAYBEDİYORDU.
+    m = re.search(r"Tür:\s*([^·\n]+?)\s*(?:·\s*Süre:|\n|$)", txt)
+    if m:
+        d["tur"] = m.group(1).strip()
+    # FİLM NOTU (2026-07-07, ADDITIVE): "## Film Notu" bölümündeki '- ' maddeleri (KİŞİ-TEYİT vb.)
+    # eskiden hiç parse edilmiyordu → tüketiciler bu kutuyu baseline'dan devralamıyordu.
+    m = re.search(r"##\s*Film Notu\s*\n(.*?)(?=\n##|\Z)", txt, re.S)
+    if m:
+        d["film_notu"] = [x.strip() for x in re.findall(r"-\s+(.+)", m.group(1)) if x.strip()]
     for ln in re.findall(r"-\s*\d+\.\s*kanal:\s*(.+)", txt):
         d["ses_kanallari"].append(ln.strip())
     m = re.search(r"-\s*Ana dil:\s*(.+)", txt)
@@ -372,6 +382,19 @@ def main():
                 import credit_text_read as _ctr
                 _lines, _ocr_source = _ctr.load_llm_lines_for_ocr(_ocrtxt[-1])
                 _raw_context = _ctr.load_raw_context_for_ocr(_ocrtxt[-1])
+                # ÜRETİM-SADAKAT fix (2026-07-07, Çağatay KONTROL-loop denetimi): _pipe_credit_text.py
+                # (gerçek pipeline) 2026-07-03'ten beri dilim-OneOCR satırlarını (K1-PRIMARY, master_dilim/)
+                # BİRİNCİL okuma girdisine katıyor (İHTİRAS/Norton tipi kayıpları önler + çift-ekran-imza
+                # kapısını AÇAR). Bu inline blok o fix'ten HABERSİZ kalmıştı → tek_film_kunye ile re-run,
+                # üretimden DAHA AZ bilgiyle okuyup üretimin yakaladığını kaçırıyordu (ör. H.G. Clouzot).
+                # ADDITIVE (yalnız ek bağlam; read_credits_auto mantığı değişmez); aynı kill-switch miras.
+                try:
+                    import _pipe_credit_text as _pct
+                    _dl = _pct._dilim_lines(_ocrtxt[-1])
+                    if _dl:
+                        _lines = list(_lines) + ["### MASTER-DILIM OKUMASI ###"] + _dl
+                except Exception:  # noqa: BLE001 — dilim katkısı ASLA okuma akışını bozmaz
+                    pass
                 vc = _ctr.read_credits_auto(
                     _lines, title, dizi=(a.profile == "dizi"), raw_context_lines=_raw_context
                 )
