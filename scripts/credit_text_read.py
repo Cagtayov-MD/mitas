@@ -523,6 +523,18 @@ def _ollama_json(model, prompt, schema, timeout=None):
                 return json.JSONDecoder().raw_decode(txt[i:])[0]
             except Exception:
                 pass
+    # KRİTİK BULGU #4 (2026-07-09, run-to-run sessiz veri-kaybı köknedeni, Opus canlı-yeniden-üretimle
+    # kanıtlandı): done_reason=="length" → num_ctx (8192) prompt+yanıta yetmedi, model şema alanlarına
+    # (_reasoning önce geldiği için) hiç ulaşmadan kesildi → JSON parse-fail. ÖNCESİ burada SESSİZCE {}
+    # dönüyordu; çağıran taraf boş/rescue-uydurma davranıyordu ve bu GÜNLERCE fark edilmedi (TOM SAWYER,
+    # BEYAZ AVUÇLAR). Şimdi stderr'e uyarı — davranış/dönüş DEĞİŞMEDİ (hâlâ {} döner), yalnız artık
+    # render log'unda görünür. Kalıcı fix (num_ctx büyütme) VRAM-baskısı altında test edilmeden
+    # uygulanmadı (bkz project_clip_sessiz_veri_kaybi_kokneden_20260709.md) — bu yalnız gözlemlenebilirlik.
+    sys.stderr.write(
+        f"[ollama-json] UYARI: {model} JSON-parse basarisiz (done_reason={resp.get('done_reason')!r}, "
+        f"prompt~{len(prompt) if isinstance(prompt, str) else '?'} char, yanit~{len(txt)} char) "
+        f"-> {{}} donuyor (cagiran taraf bos/rescue davranir)\n"
+    )
     return {}
 
 
