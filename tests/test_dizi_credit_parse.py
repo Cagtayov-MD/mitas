@@ -225,3 +225,101 @@ def test_okuma_topla_bozuk_meta_cokmez_kare_fallback(tmp_path):
     assert o["kaynak"] == "kare"
     assert o["crew"]["Yönetmen"] == ["CEM DENIZ"]
     assert any(u.startswith("DILIM_OKUNAMADI") for u in o["uyarilar"])
+
+
+# ─────────── CAST-ajans kuralı + VL-dilim fallback (2026-07-09 Çağatay talimatı) ───────────
+
+_VL_DILIM = ["YÖNETMEN", "SAMET POLAT", "cast", "MAVİ FİL",
+             "ofis görevlileri", "ERTAN ERDAL", "IŞIK ŞEFİ", "TURGUT PELİT",
+             "SES", "CEM ÜNER", "KURGU", "ŞENOL ŞENTÜRK"]  # 12 satır — sparse DEĞİL
+
+
+def test_cast_ajans_tek_girdi_crew_e_tasinir(tmp_path):
+    # dizi jeneriğinde "cast" başlığı altında TEK girdi = casting AJANSI (oyuncu değil)
+    clip = _hub(tmp_path, dilim_lines=_VL_DILIM, meta={"ocr_job": "ocr-0001"},
+                ocr_jobs=[("ocr-0001", ["x"])])
+    o = d.okuma_topla(str(clip), 5)
+    assert "MAVİ FİL" not in o["cast"]
+    assert o["crew"].get("Cast") == ["MAVİ FİL"]
+    assert any(u.startswith("CAST_AJANS: MAVİ FİL") for u in o["uyarilar"])
+
+
+def test_cast_ajans_cok_girdi_dokunulmaz(tmp_path):
+    dilim = ["CAST", "POLAT ALEMDAR", "MEMATİ BAŞ", "YÖNETMEN", "SAMET POLAT",
+             "SES", "CEM ÜNER", "KURGU", "ŞENOL ŞENTÜRK", "IŞIK", "TURGUT PELİT"]
+    clip = _hub(tmp_path, dilim_lines=dilim, meta={"ocr_job": "ocr-0001"},
+                ocr_jobs=[("ocr-0001", ["x"])])
+    o = d.okuma_topla(str(clip), 5)
+    assert o["cast"] == ["POLAT ALEMDAR", "MEMATİ BAŞ"]
+    assert "Cast" not in o["crew"]
+
+
+def _vl_hub(tmp_path, dilim_lines, png_sayisi=1):
+    clip = _hub(tmp_path, dilim_lines=dilim_lines, meta={"ocr_job": "ocr-0001"},
+                ocr_jobs=[("ocr-0001", ["x"])])
+    for i in range(png_sayisi):
+        (clip / "master_dilim" / f"reading_master_runaware_p{i+1:02d}.png").write_bytes(b"\x89PNGtest")
+    return clip
+
+
+def test_vl_dilim_stop_kart_fallback(tmp_path):
+    # OneOCR düşük-kontrast bölüm-sonu kartını kaçırdı → GLM (vl_http) okur, no dolar
+    cagri = []
+
+    def vl_http(model, prompt, images_b64):
+        cagri.append(model)
+        return "63. Bölüm Sonu\nyedinumara@fft.net.tl"
+
+    clip = _vl_hub(tmp_path, _VL_DILIM)          # 12 satır ama stop-kart YOK
+    o = d.okuma_topla(str(clip), 63, vl_http=vl_http)
+    assert cagri, "vl_http hiç çağrılmadı"
+    assert o["stop_kart_bolum_no"] == 63
+    assert any(u.startswith("STOP_KART_VL: 63") for u in o["uyarilar"])
+    assert not any(u.startswith("BOLUM_NO_CELISKI") for u in o["uyarilar"])  # kart=63 dosya=63
+
+
+def test_vl_dilim_sparse_ek_satirlar(tmp_path):
+    # OneOCR 3 satır (sparse<8) → VL satırları ADDITIVE katılır (dedup fold ile)
+    def vl_http(model, prompt, images_b64):
+        return "YÖNETMEN\nSAMET POLAT\nMÜZİK\nCAN ATİLLA"   # ilk ikisi dedup, digerleri ek
+
+    clip = _vl_hub(tmp_path, ["YÖNETMEN", "SAMET POLAT", "63. Bölüm Sonu"])
+    o = d.okuma_topla(str(clip), 63, vl_http=vl_http)
+    assert o["crew"].get("Müzik") == ["CAN ATİLLA"]
+    assert any(u.startswith("VL_DILIM_EK:") for u in o["uyarilar"])
+
+
+def test_vl_dilim_gerek_yoksa_cagrilmaz(tmp_path):
+    # satır>=8 VE stop-kart mevcut → VL hiç çağrılmaz
+    cagri = []
+
+    def vl_http(model, prompt, images_b64):
+        cagri.append(1)
+        return ""
+
+    clip = _vl_hub(tmp_path, _VL_DILIM + ["63. Bölüm Sonu"])
+    d.okuma_topla(str(clip), 63, vl_http=vl_http)
+    assert cagri == []
+
+
+def test_vl_dilim_env_kapali(tmp_path, monkeypatch):
+    monkeypatch.setenv("MITAS_DIZI_VL_DILIM", "0")
+    cagri = []
+
+    def vl_http(model, prompt, images_b64):
+        cagri.append(1)
+        return "63. Bölüm Sonu"
+
+    clip = _vl_hub(tmp_path, _VL_DILIM)          # stop-kart yok ama env kapalı
+    o = d.okuma_topla(str(clip), 63, vl_http=vl_http)
+    assert cagri == []
+    assert o["stop_kart_bolum_no"] is None
+
+
+def test_vl_dilim_hata_yutulur(tmp_path):
+    def vl_http(model, prompt, images_b64):
+        raise RuntimeError("ollama kapalı")
+
+    clip = _vl_hub(tmp_path, _VL_DILIM)
+    o = d.okuma_topla(str(clip), 63, vl_http=vl_http)   # çökmez
+    assert any(u.startswith("VL_DILIM_HATA") for u in o["uyarilar"])

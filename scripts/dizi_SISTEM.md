@@ -257,6 +257,15 @@ class DiffPolitika:
 10. **KONUK başlıkları:** listeye `"bolum konuklari"` eklenir.
 11. **N<3 kilit notu:** `len(master["kilit_bolumler"]) < 3` ise her bölüm künyesine
     "master <3 bölümle kuruldu (n)" KONTROL nedeni eklenir (seri_bolum_kunye).
+12. **VL-dilim fallback (Çağatay 2026-07-09):** kaynak=master_dilim iken stop-kart bulunamadıysa
+    VEYA satır sayısı < 8 ise `vl_dilim_oku` master-dilim PNG'lerini VL'e (env `MITAS_DIZI_VL_MODEL`,
+    varsayılan glm-ocr) okutur — ADDITIVE: stop-kart no'su VL'den dolabilir (`STOP_KART_VL: n` uyarısı),
+    sparse okumaya fold-dedup'lu ek satırlar katılır (`VL_DILIM_EK: n satır`). Kill-switch
+    `MITAS_DIZI_VL_DILIM=0`; hata yutulur (`VL_DILIM_HATA`), PNG'siz hub sessiz geçilir.
+13. **CAST-ajans kuralı (Çağatay 2026-07-09):** jenerikte `cast` başlığı altında TEK büyük-harf
+    girdi = casting AJANSI kredisi ("cast: MAVİ FİL") → oyuncu listesine DEĞİL `crew["Cast"]`
+    satırına yazılır + `CAST_AJANS: <isim>` uyarısı. Blok sonu = rol başlığı veya küçük-harf-ağırlıklı
+    etiket satırı (dizi kalıbı: etiket küçük, isim BÜYÜK). ≥2 girdili cast bloğuna DOKUNULMAZ.
 
 ## Test kuralları
 - pytest, mevcut `tests/` kalıbı; her modülün testi kendi dosyasında (`tests/test_<modul>.py`).

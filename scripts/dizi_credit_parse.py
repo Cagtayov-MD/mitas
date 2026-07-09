@@ -279,9 +279,106 @@ def _vl_oku(clip_dir: str, uyarilar: list[str]) -> dict:
     return vl
 
 
-def okuma_topla(clip_dir: str, bolum_no: int, trt_id: str | None = None) -> dict:
+# ── VL-DİLİM FALLBACK (YAMA SÖZLEŞMESİ madde 12, Çağatay talimatı 2026-07-09):
+#    OneOCR düşük-kontrastı kaçırırsa (stop-kart yok / satır sayısı sparse) master-dilim
+#    PNG'leri ikinci ekran-tanığına (glm-ocr) okutulur. ADDITIVE — OneOCR satırı silinmez.
+VL_DILIM_ESIK = 8  # bundan az OneOCR satırı = sparse → VL ek okuma denenir
+
+
+def _vl_dilim_acik() -> bool:
+    return os.environ.get("MITAS_DIZI_VL_DILIM", "1").strip().lower() not in (
+        "0", "false", "off", "no")
+
+
+def _ollama_vl_http(model: str, prompt: str, images_b64: list[str]) -> str:
+    """Varsayılan taşıyıcı: Ollama /api/chat (stream=False) → message.content.
+    Test/enjeksiyon için okuma_topla(vl_http=...) ile değiştirilebilir."""
+    import urllib.request
+    url = os.environ.get("MITAS_OLLAMA_URL", "http://localhost:11434").rstrip("/")
+    timeout = float(os.environ.get("MITAS_DIZI_VL_TIMEOUT", "120"))
+    payload = json.dumps({
+        "model": model, "stream": False,
+        "messages": [{"role": "user", "content": prompt, "images": images_b64}],
+    }).encode("utf-8")
+    req = urllib.request.Request(url + "/api/chat", data=payload,
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        j = json.loads(r.read().decode("utf-8", errors="ignore"))
+    return str(((j or {}).get("message") or {}).get("content") or "")
+
+
+def vl_dilim_oku(clip_dir: str, vl_http=None) -> tuple[list[str], list[str]]:
+    """master_dilim/*_pNN.png parçalarını VL modeline (varsayılan glm-ocr) okutur.
+    Döner: (satırlar, uyarılar). Hata çökme üretmez — ([], [VL_DILIM_HATA...])."""
+    uyarilar: list[str] = []
+    try:
+        import base64
+        pngler = sorted(glob.glob(os.path.join(clip_dir, "master_dilim", "*_p[0-9][0-9].png")))
+        if not pngler:
+            return [], []  # dilim PNG'siz hub (eski düzen/test) — VL imkânı yok, gürültü de yok
+        model = os.environ.get("MITAS_DIZI_VL_MODEL", "glm-ocr:latest")
+        prompt = ("Bu görüntüdeki TÜM metni satır satır, aynen yaz. "
+                  "Yorum/çeviri/açıklama EKLEME; yalnız görünen metin.")
+        http = vl_http or _ollama_vl_http
+        satirlar: list[str] = []
+        for p in pngler:
+            b64 = base64.b64encode(open(p, "rb").read()).decode("ascii")
+            cevap = http(model, prompt, [b64]) or ""
+            satirlar.extend(s.strip() for s in cevap.splitlines() if s.strip())
+        return satirlar, uyarilar
+    except Exception as exc:  # noqa: BLE001 — VL tanığı yoksa OneOCR tek başına devam
+        return [], [f"VL_DILIM_HATA: {type(exc).__name__}: {exc}"]
+
+
+def _buyuk_agirlikli(s: str) -> bool:
+    harfler = [c for c in s if c.isalpha()]
+    if not harfler:
+        return False
+    return sum(1 for c in harfler if c.isupper()) / len(harfler) >= 0.8
+
+
+def _cast_ajans_ayikla(lines: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """YAMA SÖZLEŞMESİ madde 13 (Çağatay 2026-07-09): dizi jeneriğinde 'cast' başlığı
+    altında TEK büyük-harf girdi = casting AJANSI kredisi (oyuncu listesi DEĞİL; örn.
+    'cast: MAVİ FİL'). Blok sonu = küçük-harf-ağırlıklı rol etiketi (dizi kalıbı:
+    etiket küçük, isim BÜYÜK) veya role_of başlığı. ≥2 girdi = gerçek oyuncu listesi,
+    DOKUNULMAZ. Döner: (ajanslar, kalan_satirlar, uyarilar)."""
+    cp = _cp()
+    ajanslar: list[str] = []
+    uyarilar: list[str] = []
+    cikar: set[int] = set()
+    i = 0
+    while i < len(lines):
+        if cp.role_of(lines[i]) == "CAST":
+            blok: list[int] = []
+            j = i + 1
+            while j < len(lines):
+                ln = lines[j]
+                if cp.role_of(ln) is not None or not _buyuk_agirlikli(ln):
+                    break  # yeni başlık ya da küçük-harf rol etiketi → blok bitti
+                if cp.is_person(ln, ""):
+                    blok.append(j)
+                j += 1
+            if len(blok) == 1:
+                ajans = lines[blok[0]]
+                if _fold(ajans) not in {_fold(a) for a in ajanslar}:  # hayalet-çift dedup
+                    ajanslar.append(ajans)
+                    uyarilar.append(f"CAST_AJANS: {ajans}")
+                cikar.add(i)
+                cikar.add(blok[0])
+            i = j if j > i else i + 1
+        else:
+            i += 1
+    if not cikar:
+        return [], lines, []
+    return ajanslar, [ln for k, ln in enumerate(lines) if k not in cikar], uyarilar
+
+
+def okuma_topla(clip_dir: str, bolum_no: int, trt_id: str | None = None,
+                vl_http=None) -> dict:
     """Hub klasöründen normalize BolumOkuma topla (dizi_SISTEM.md şeması). SALT-OKUR;
-    hiçbir hata çökme üretmez — uyarılara yazılır, alanlar boş döner."""
+    hiçbir hata çökme üretmez — uyarılara yazılır, alanlar boş döner.
+    vl_http: VL-dilim fallback taşıyıcısı (test enjeksiyonu; None=Ollama)."""
     uyarilar: list[str] = []
     okuma = {
         "bolum_no": bolum_no,
@@ -302,15 +399,40 @@ def okuma_topla(clip_dir: str, bolum_no: int, trt_id: str | None = None) -> dict
         if satirlar:
             kalan, kart_no, uy2 = stop_kart_suz(satirlar, bolum_no)
             uyarilar.extend(uy2)
+            # VL-DİLİM FALLBACK (madde 12): OneOCR stop-kartı kaçırdıysa VEYA okuma
+            # sparse ise ikinci ekran-tanığı (glm-ocr) dilim PNG'lerini okur. ADDITIVE.
+            if (kaynak == "master_dilim" and _vl_dilim_acik()
+                    and (kart_no is None or len(kalan) < VL_DILIM_ESIK)):
+                vl_satirlar, uy_vl = vl_dilim_oku(clip_dir, vl_http)
+                uyarilar.extend(uy_vl)
+                if vl_satirlar:
+                    v_kalan, v_kart, _ = stop_kart_suz(vl_satirlar, bolum_no)
+                    if kart_no is None and v_kart is not None:
+                        kart_no = v_kart
+                        uyarilar.append(f"STOP_KART_VL: {v_kart}")
+                        if bolum_no is not None and v_kart != bolum_no:
+                            uyarilar.append(
+                                f"BOLUM_NO_CELISKI: kart={v_kart} dosya={bolum_no} (vl)")
+                    if len(kalan) < VL_DILIM_ESIK:
+                        mevcut = {_fold(x) for x in kalan}
+                        ek = [x for x in v_kalan if _fold(x) not in mevcut]
+                        if ek:
+                            kalan.extend(ek)
+                            uyarilar.append(f"VL_DILIM_EK: {len(ek)} satır")
             okuma["stop_kart_bolum_no"] = kart_no
             konuklar, kalan2 = konuk_ayikla(kalan)
             okuma["konuk_acik"] = konuklar
+            # CAST-AJANS kuralı (madde 13): tek-girdili cast bloğu ajans kredisidir.
+            ajanslar, kalan2, uy3 = _cast_ajans_ayikla(kalan2)
+            uyarilar.extend(uy3)
             cast, crew = _cp().parse_credits(kalan2, "", dizi=True)
             # konuk_acik isimleri cast'ten name_match (sıkı) ile düşülür — konuk hem
             # kadro-kartında hem konuk-kartında geçebilir; kadro üyeliği seri_diff'in işi.
             okuma["cast"] = [c for c in cast
                              if not any(name_match(c, g) for g in konuklar)]
             okuma["crew"] = {rol: list(isimler) for rol, isimler in crew}
+            if ajanslar:
+                okuma["crew"].setdefault("Cast", []).extend(ajanslar)
     except Exception as exc:  # noqa: BLE001 — adaptör ASLA çökmez ("okunamadı > yanlış oku")
         uyarilar.append(f"OKUMA_HATA: {type(exc).__name__}: {exc}")
     okuma["kb_hatti"] = _kb_hatti_oku(clip_dir, uyarilar)
