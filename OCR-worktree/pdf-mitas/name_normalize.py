@@ -249,7 +249,7 @@ def _is_tr_name(n: str) -> bool:
     return toks[0] in _TR_GIVEN and toks[-1] in _TR_SUR
 
 
-_MITAS_DB = r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb"
+_MITAS_DB = os.environ.get("MITAS_WIKIDATA_DUCKDB", r"E:\MITAS\Mitas_Files\MitaData\mitas.duckdb")
 
 
 # Wikidata Turk ulke kumesi: Q43=Turkiye, Q23681=KKTC (Kuzey Kibris). mitas_people_index DUNYA
