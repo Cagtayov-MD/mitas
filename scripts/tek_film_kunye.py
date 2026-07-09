@@ -337,6 +337,31 @@ def _yapimci_ocr_corroborated(kb_names, clip):
             out.append(nm)
     return out
 
+
+def _stok_footage_yakinda(name, texts, pencere=6):
+    """Aday isim ham metinde bir STOK-FOOTAGE (başka bir yapımın kaynak-atfı) bölümünün birkaç
+    satır komşuluğunda mı geçiyor? ONDAN UZAKTA/"Ernst Kettler" kökü (2026-07-09): "STOCK FOOTAGE"
+    başlığından 3 satır sonra '"DAYS OF DESTRUCTION" ... DIRECTED BY ERNST KETTLER' geliyor —
+    Kettler gerçek+yapısal-geçerli bir isim ama BU filmin değil, ALINTILANAN kaynak-belgeselin
+    yönetmeni. İki bağımsız OCR kaynağında da (kunye.txt + master_dilim/dilim_oneocr.txt) aynı
+    ~3 satırlık mesafede doğrulandı (4 tekrar). Satır-PENCERESİ ile arar (tam-blob substring DEĞİL):
+    footage-bölümleri uzun/çok-konulu olduğundan dar bir pencere yeterli, filmin başka bir yerindeki
+    uzak bir "footage" kelimesi (ör. ayrı bir arşiv-görüntü notu) yanlışlıkla tetiklenmez."""
+    nf = nn.ascii_fold(name or "").upper()
+    if not nf:
+        return False
+    for blob in texts:
+        if not blob:
+            continue
+        satirlar = blob.split("\n")
+        for i, s in enumerate(satirlar):
+            if nf in s:
+                lo, hi = max(0, i - pencere), min(len(satirlar), i + pencere + 1)
+                if "FOOTAGE" in "\n".join(satirlar[lo:hi]):
+                    return True
+    return False
+
+
 def main():
     started = time.perf_counter()
     ap = argparse.ArgumentParser(description="Tek klip → temiz v4 künye PDF (uçtan uca)")
@@ -958,7 +983,41 @@ def main():
                 if _yk:
                     _teyitsiz_yon = []          # kısmi/tam teyit → yon AYNEN (silme yok)
                 else:
-                    yon = []
+                    # SINIF-1 KURTARMA (2026-07-09, VANYA DAYI/"Evgeniy Makarov" + SON YARIŞ/"Jovan
+                    # Rančić" kökü): KB-kapsamı zayıf (Sovyet/Sırp-Hırvat sineması, çift-rol aktör-
+                    # yönetmen) gerçek yönetmenler için bu blok nüanssız TÜM yon'u siliyordu. İKİNCİ
+                    # ŞANS'ın iki-kapılı deseni (_valid_person_name + geniş-KB'de-gerçek-kişi) BURADA
+                    # DAHA ÖNCE (YA NASİP YA KISMET için) denenmiş ama ONDAN UZAKTA/"Ernst Kettler"i
+                    # (stok-footage kaynak-belgeselinin yönetmeni, BU filmin değil) yanlışlıkla
+                    # kurtardığı için ÖLÇÜLÜP GERİ ALINMIŞTI (outputs/KONTROL_LOOP_20260707/RAPOR.md,
+                    # "YA NASİP YA KISMET" bölümü). Bu sürüm aynı iki kapıya ÜÇÜNCÜ bir kapı ekliyor:
+                    # aday ham metinde bir "FOOTAGE" bölümünün birkaç satır komşuluğunda geçiyorsa
+                    # kurtarılmaz (_stok_footage_yakinda) — o zaman alıntılanan başka bir yapımın
+                    # ekibi sayılır. Kill-switch: MITAS_YON_TEYIT_KURTAR=0.
+                    _yon_kurtar = []
+                    if os.environ.get("MITAS_YON_TEYIT_KURTAR", "1").strip().lower() not in ("0", "false", "off", "no"):
+                        try:
+                            import credit_text_read as _ctr_yk
+                            _kb_yk = _cc.CreditKB() if _cc else None
+                            for _d in yon:
+                                if not _ctr_yk._valid_person_name(_d):
+                                    continue          # yapısal-geçersiz/garble → kurtarma yok
+                                if not (_kb_yk and _kb_yk._imdb_people_by_folds([_cc.fold(_d)])):
+                                    continue          # geniş KB'de de yok → gerçekten "okunamadı"
+                                if _stok_footage_yakinda(_d, (_fr_txt, _dl_txt)):
+                                    continue          # ONDAN UZAKTA-sınıfı: alıntılı kaynak-atfı
+                                _yon_kurtar.append(_d)
+                        except Exception:
+                            _yon_kurtar = []
+                    if _yon_kurtar:
+                        # çok-yönetmenli kısmi kurtarmada, kurtarılmayan aday(lar) raporda saklı kalır
+                        # (film_notu "raporda saklı" sözü — silme yok, sadece iz bırakılır).
+                        _teyitsiz_yon = [_n for _n in yon if _n not in _yon_kurtar]
+                        yon = _yon_kurtar
+                        yon_kaynak = ("kareler (KB eşleşmedi ama OCR temiz + KB'de gerçek kişi + "
+                                      "stok-footage değil → korundu)")
+                    else:
+                        yon = []
             if _teyitsiz_cast or _teyitsiz_yon:
                 film_notu.append("KİŞİ-TEYİT — KB'de doğrulanamayan %d isim listeden çıkarıldı (raporda saklı)."
                                  % (len(_teyitsiz_cast) + len(_teyitsiz_yon)))
