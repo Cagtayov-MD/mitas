@@ -13,6 +13,16 @@ Sözleşme: scripts/dizi_SISTEM.md "Bölüm PDF birleştirme" (BAĞLAYICI).
     → stdout TEK-SATIR JSON. --sadece-analiz: uygula/kaydet + PDF + kaynak-json YAPILMAZ,
     diff raporu stdout JSON'a gömülür.
 
+PİLOT-ÖNCESİ YAMA (dizi_SISTEM.md "PİLOT-ÖNCESİ YAMA SÖZLEŞMESİ"):
+  • Madde 1 (kuyruk): master["tohum_vl_teyitsiz"] BOŞ-OLMAYAN listeyse kontrol_nedenleri'ne
+    TEK satır "tohum VL-teyitsiz: N isim" eklenir (veto değil — basım değişmez; None/boş =
+    VL kapsamı yok/herkes teyitli → satır YOK).
+  • Madde 11: len(master["kilit_bolumler"]) < 3 ise "master <3 bölümle kuruldu (n)" eklenir.
+  • Madde 6 (idempotensi): bölüm master["uygulanan_bolumler"] listesindeyse seri_diff.uygula
+    ÇAĞRILMAZ ve master kaydedilmez (diffle + birlesik_kunye + PDF yine koşar; stdout status
+    "yeniden_render"). --yeniden bayrağı atlamayı kapatır. Uygula başarısında bölüm listeye
+    kaydet'ten ÖNCE eklenir.
+
 SIFIR-DOKUNUŞ: mitas_pipeline / tek_film_kunye / _make_pdf / credit_parse DEĞİŞMEZ — yalnız
 yeniden kullanılır (tek_film_kunye zaten mp=_make_pdf ve nn=name_normalize'ı importlib ile yükler;
 eşdeğer yükleme YENİDEN YAZILMAZ). scripts-içi dizi modülleri (seri_kayit, dizi_credit_parse,
@@ -169,13 +179,16 @@ def _diffle(master, okuma):
     return seri_diff.diffle(master, okuma)
 
 
-def _uygula_ve_kaydet(seri_anahtar, master, diff, okuma, simdi):
-    """seri_diff.uygula + seri_kayit.kaydet (olaylar gecmis.jsonl'e).
+def _uygula_ve_kaydet(seri_anahtar, master, diff, okuma, simdi, bolum_no=None):
+    """seri_diff.uygula + madde-6 uygulanan-defteri + seri_kayit.kaydet (olaylar gecmis.jsonl'e).
 
     seri_diff paralel yazılıyor — imza inspect ile UYARLANIR (parametre adına göre; TypeError
     yutma YOK): 'okuma' parametresi varsa geçilir, 'simdi' varsa geçilir. uygula dönüşü esnek:
     (master, olaylar) | yeni master dict | None (yerinde mutasyon). Nihai imza dizi_isle
-    pilotunda (görev 7) sabitlenir; testler bu dikişi bütünüyle monkeypatch'ler."""
+    pilotunda (görev 7) sabitlenir; testler bu dikişi bütünüyle monkeypatch'ler.
+
+    MADDE 6: uygula başarısında bolum_no, master["uygulanan_bolumler"] listesine (yoksa boş
+    başlatılır) kaydet'ten ÖNCE eklenir — ikinci koşu uygula'yı atlayıp yalnız render eder."""
     import inspect
     import seri_diff
     import seri_kayit
@@ -191,6 +204,10 @@ def _uygula_ve_kaydet(seri_anahtar, master, diff, okuma, simdi):
         olaylar = list(olaylar or [])
     elif isinstance(sonuc, dict):
         master = sonuc
+    if bolum_no is not None:                       # madde 6: kaydet'ten ÖNCE deftere işle
+        uygulanan = master.setdefault("uygulanan_bolumler", [])
+        if bolum_no not in uygulanan:
+            uygulanan.append(bolum_no)
     if olaylar:
         for olay in olaylar:                       # append-only günlük: olay sırası korunur
             seri_kayit.kaydet(seri_anahtar, master, olay)
@@ -208,6 +225,9 @@ def main(argv=None):
     ap.add_argument("--out", default=None, help="hedef PDF (yoksa <clip>/pdf/kunye.pdf)")
     ap.add_argument("--sadece-analiz", dest="sadece_analiz", action="store_true",
                     help="uygula/kaydet + PDF + kaynak-json YOK; diff raporu stdout JSON'da")
+    ap.add_argument("--yeniden", action="store_true",
+                    help="madde 6: idempotensi atlamasını kapat — bölüm 'uygulanan_bolumler' "
+                         "listesinde olsa da seri_diff.uygula yeniden koşar")
     a = ap.parse_args(argv)
     simdi = datetime.datetime.now().isoformat(timespec="seconds")
 
@@ -227,6 +247,15 @@ def main(argv=None):
     okuma = _okuma_yap(a.clip, a.bolum_no, a.seri_anahtar)
     diff = _diffle(master, okuma) or {}
     nedenler = list(diff.get("kontrol_nedenleri") or [])
+    # MADDE 1 (kuyruk): tohum-VL kapısı teyitsizleri — her bölümde TEK satır (veto değil;
+    # None/boş liste = VL kapsamı yok / herkes teyitli → satır YOK, yokluk ceza değil).
+    vl_teyitsiz = master.get("tohum_vl_teyitsiz") or []
+    if vl_teyitsiz:
+        nedenler.append(f"tohum VL-teyitsiz: {len(vl_teyitsiz)} isim")
+    # MADDE 11: eksik tohumla kurulan master her bölümde işaretlenir (N<3 kilit notu).
+    kilit_b = master.get("kilit_bolumler") or []
+    if len(kilit_b) < 3:
+        nedenler.append(f"master <3 bölümle kuruldu ({len(kilit_b)})")
 
     if a.sadece_analiz:
         # Kalıcı hiçbir şey değişmez: uygula/kaydet YOK, adım 5-6 atlanır; diff rapora gömülür.
@@ -235,7 +264,13 @@ def main(argv=None):
                           "pdf": None, "diff": diff}, ensure_ascii=False, default=str))
         return 0
 
-    master = _uygula_ve_kaydet(a.seri_anahtar, master, diff, okuma, simdi) or master
+    # MADDE 6 — idempotensi: bölüm daha önce uygulandıysa uygula ÇAĞRILMAZ ve master
+    # kaydedilmez; diff + birleşim + PDF yine koşar (status "yeniden_render").
+    # --yeniden bayrağı atlamayı kapatır (dizi_isle --yeniden buraya taşır).
+    yeniden_render = (not a.yeniden) and a.bolum_no in (master.get("uygulanan_bolumler") or [])
+    if not yeniden_render:
+        master = _uygula_ve_kaydet(a.seri_anahtar, master, diff, okuma, simdi,
+                                   a.bolum_no) or master
 
     # 4) meta — kunye_teslim.md (yoksa parse_teslim_md güvenli boş döner) + trt_id/bolum doldur.
     meta = tfk.parse_teslim_md(os.path.join(a.clip, "pdf", "kunye_teslim.md"))
@@ -291,7 +326,8 @@ def main(argv=None):
         sys.stderr.write(f"[seri_bolum_kunye][UYARI] kaynak-json yazılamadı: {e}\n")
 
     # 7) stdout TEK-SATIR JSON (dizi_isle orkestratörü bunu parse eder)
-    print(json.dumps({"status": "ok", "kontrol_nedenleri": nedenler,
+    print(json.dumps({"status": "yeniden_render" if yeniden_render else "ok",
+                      "kontrol_nedenleri": nedenler,
                       "master_surum": int(master.get("master_surum") or 0),
                       "pdf": pdf_yolu}, ensure_ascii=False))
     return 0

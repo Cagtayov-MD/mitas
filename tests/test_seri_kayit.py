@@ -157,6 +157,58 @@ def test_kilitle_saf_ve_alanlar():
     }
 
 
+# ------------------------------------------------------------- yeniden_tohumla
+
+def _yeniden_tohum_fikstur():
+    """LOCKED + dolu defterli + kopuş-sayaçlı master (yeniden_tohumla girdisi)."""
+    m = sk.kilitle(sk.bos_master("K_00000000", "K", "D:\\K", "t0"), [1, 2, 3], "t1")
+    m["alanlar"] = {"Yönetmen": {"kanonik": ["SAMET POLAT"], "guven": "KESIN"}}
+    m["oyuncular"] = {"POLAT ALEMDAR": {"bolumler": [1, 2, 3], "sira": 0}}
+    m["teknik_ekip"] = {"Müzik Yönetmeni": {"CAN ATİLLA": {"bolumler": [1, 2, 3]}}}
+    m["aday_havuzu"] = {"ALTAN ALKAN": {"alan": "oyuncular", "bolumler": [2]}}
+    m["konuk_gecmisi"] = {"OKTAY DENER": {"bolumler": [5, 9]}}
+    m["tanik_kayitlari"] = {"1900-0138-0-0014-00-1": {"bolum_no": 14,
+                                                      "content_hash": "aaa"}}
+    m["format_kopusu"] = {"ardisik": 2, "ilk_bolum": 13}
+    return m
+
+
+def test_yeniden_tohumla_saf_ve_durum_gecisi():
+    m = _yeniden_tohum_fikstur()
+    orijinal = copy.deepcopy(m)
+    y = sk.yeniden_tohumla(m, [15, 16, 17], "t2")
+    assert m == orijinal  # SAF: girdi mutasyonsuz
+    assert y["durum"] == "BUILDING"
+    assert y["kilit_bolumler"] == []
+    assert y["format_kopusu"] == {"ardisik": 0, "ilk_bolum": None}
+    # sürüm atlaması YOK — sürümü yeniden koşan kilit (kilitle) basar
+    assert y["master_surum"] == m["master_surum"]
+
+
+def test_yeniden_tohumla_olay_kaydi():
+    m = _yeniden_tohum_fikstur()
+    y = sk.yeniden_tohumla(m, [15, 16, 17], "t2")
+    assert y["surum_gecmisi"][-1] == {
+        "olay": "yeniden_tohum", "eski_kilit": [1, 2, 3],
+        "hedef_bolumler": [15, 16, 17], "ts": "t2",
+    }
+    # önceki günlük (kilit olayı) yerinde — append-only, silme yok
+    assert y["surum_gecmisi"][0]["olay"] == "kilit"
+    assert len(y["surum_gecmisi"]) == len(m["surum_gecmisi"]) + 1
+
+
+def test_yeniden_tohumla_defterler_korunur_ve_kopya_bagimsiz():
+    m = _yeniden_tohum_fikstur()
+    y = sk.yeniden_tohumla(m, [15, 16, 17], "t2")
+    # denetim-izi: tanıklık defterleri AYNEN korunur
+    for alan in ("alanlar", "oyuncular", "teknik_ekip", "aday_havuzu",
+                 "konuk_gecmisi", "tanik_kayitlari"):
+        assert y[alan] == m[alan], alan
+    # dönen kopya bağımsız: y defterini değiştirmek girdiyi ETKİLEMEZ
+    y["oyuncular"]["YENİ KİŞİ"] = {"bolumler": [15]}
+    assert "YENİ KİŞİ" not in m["oyuncular"]
+
+
 # --------------------------------------------------------------- versiyon_atla
 
 def test_versiyon_atla_saf_ve_alanlar():

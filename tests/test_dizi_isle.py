@@ -35,7 +35,7 @@ def _vid(klasor, bolum_no, icerik=b"video", onek="web_client_CAG1_", tip="0"):
     return p
 
 
-def _okuma(bolum_no, trt=None, kaynak="master_dilim", cast=None, crew=None):
+def _okuma(bolum_no, trt=None, kaynak="master_dilim", cast=None, crew=None, vl=None):
     """BolumOkuma asgari örneği (dizi_credit_parse.okuma_topla sözleşmesi)."""
     return {"bolum_no": bolum_no,
             "trt_id": trt or f"1900-0138-0-{bolum_no:04d}-00-1",
@@ -43,7 +43,7 @@ def _okuma(bolum_no, trt=None, kaynak="master_dilim", cast=None, crew=None):
             "crew": {"Yönetmen": ["SAMET POLAT"]} if crew is None else crew,
             "konuk_acik": [],
             "kb_hatti": {"yonetmen": [], "yapimci": [], "cast": []},
-            "vl": {"yonetmen": [], "oyuncular": [], "diger_roller": []},
+            "vl": vl or {"yonetmen": [], "oyuncular": [], "diger_roller": []},
             "stop_kart_bolum_no": None, "kaynak": kaynak, "uyarilar": []}
 
 
@@ -73,7 +73,7 @@ class Kos:
 
 
 class Akis:
-    """_bolum_kunye_akisi sahtesi — (bolum_no, sadece_analiz) kaydeder, sabit sonuç döner.
+    """_bolum_kunye_akisi sahtesi — (bolum_no, sadece_analiz, yeniden) kaydeder, sabit sonuç döner.
     yaz: istenirse depo master'ını değiştiren callable(bolum_no) (uygula simülasyonu)."""
 
     def __init__(self, nedenler=None, yaz=None):
@@ -81,8 +81,8 @@ class Akis:
         self.nedenler = list(nedenler or [])
         self.yaz = yaz
 
-    def __call__(self, hub, anahtar, bolum_no, sadece_analiz=False):
-        self.calls.append((bolum_no, sadece_analiz))
+    def __call__(self, hub, anahtar, bolum_no, sadece_analiz=False, yeniden=False):
+        self.calls.append((bolum_no, sadece_analiz, yeniden))
         if self.yaz:
             self.yaz(bolum_no)
         return {"status": "ok", "kontrol_nedenleri": list(self.nedenler),
@@ -250,7 +250,8 @@ def test_uc_tohum_kilit_kur_master_ve_geri_doldur(ortam, monkeypatch):
     # --geri-doldur: tohum PDF'leri kanonikten yeniden basıldı (akış 1,2,3; analiz DEĞİL)
     assert [c[0] for c in akis.calls] == [1, 2, 3]
     assert all(c[1] is False for c in akis.calls)
-    assert r["tohum"] == {"bolumler": [1, 2, 3], "kilitlendi": True}
+    # vl_teyitsiz=None: tohum okumalarının VL'si boş → madde-1 kapısı atlandı (yokluk ceza değil)
+    assert r["tohum"] == {"bolumler": [1, 2, 3], "kilitlendi": True, "vl_teyitsiz": None}
     # koşu raporu diske yazıldı (DIZI_<anahtar>_<tarih>.json)
     ryol = Path(r["rapor_yolu"])
     assert ryol.exists() and ryol.name.startswith(f"DIZI_{anahtar}_")
@@ -299,7 +300,7 @@ def test_sadece_analiz_locked_master_ve_exporta_dokunmaz(ortam, monkeypatch):
     pdf.write_bytes(b"%PDF")
 
     r = di.isle(ortam.klasor, sadece_analiz=True, pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
-    assert akis.calls == [(14, True)]                         # --sadece-analiz akışa İLETİLDİ
+    assert akis.calls == [(14, True, False)]                  # --sadece-analiz akışa İLETİLDİ
     assert pdf.exists()                                       # export DOKUNULMADI
     assert r["export_mutabakat"] == []
     assert (sk.yol(anahtar) / "seri_master.json").read_bytes() == once  # seri_master DEĞİŞMEDİ
@@ -385,6 +386,230 @@ def test_cokme_yasagi_hatali_bolum_kosuyu_durdurmaz(ortam, monkeypatch):
     assert "RuntimeError" in r["hatali"][0]["hata"]
 
 
+# ──────────────────────────── MADDE 1: tohum-VL kapısı ───────────────────────────
+
+def test_tohum_vl_kapisi_birim():
+    m = {"alanlar": {"Yönetmen": {"kanonik": ["SAMET POLAT"]}},
+         "oyuncular": {"MEMATİ BAŞ": {"durum": "AKTIF"},
+                       "ESKİ ÜYE": {"durum": "AYRILDI"}}}          # AYRILDI kapıya GİRMEZ
+    # VL birleşimi TAMAMEN boş → None (kapı atlanır — yokluk ceza değil)
+    assert di.tohum_vl_kapisi(m, [_okuma(1), _okuma(2)]) is None
+    # VL kısmî → teyitsizler listelenir (name_match sıkı; AYRILDI üye sorgulanmaz)
+    okl = [_okuma(1, vl={"yonetmen": ["SAMET POLAT"], "oyuncular": [], "diger_roller": []}),
+           _okuma(2)]
+    assert di.tohum_vl_kapisi(m, okl) == ["MEMATİ BAŞ"]
+    # fold-toleranslı eşleşme (VL aksansız yazsa da teyit sayılır) → hepsi teyitli = boş liste
+    okl2 = [_okuma(1, vl={"yonetmen": ["SAMET POLAT"],
+                          "oyuncular": ["MEMATI BAS"], "diger_roller": []})]
+    assert di.tohum_vl_kapisi(m, okl2) == []
+
+
+def test_tohum_vl_teyitsiz_kilitte_isaretlenir(ortam, monkeypatch):
+    for n in (1, 2, 3):
+        _vid(ortam.klasor, n, icerik=b"v%d" % n)
+    # yalnız bölüm 1'de VL var: yönetmen + 2 oyuncu teyitli, MEMATİ BAŞ teyitsiz kalır
+    vl1 = {"yonetmen": ["SAMET POLAT"], "oyuncular": ["POLAT ALEMDAR", "AYSE YILDIZ"],
+           "diger_roller": []}
+    monkeypatch.setattr(di, "_okuma_topla", okuma_fabrika({1: {"vl": vl1}}))
+
+    r = di.isle(ortam.klasor, pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    m = sk.yukle(anahtar)
+    assert m["durum"] == "LOCKED"
+    assert m["tohum_vl_teyitsiz"] == ["MEMATİ BAŞ"]           # master listesine yazıldı
+    assert r["tohum"]["vl_teyitsiz"] == ["MEMATİ BAŞ"]        # koşu raporuna yazıldı
+    assert not any("VL kapsamı yok" in u for u in r["uyarilar"])
+    # kilit olayına yazıldı (gecmis.jsonl append-only günlüğü)
+    olaylar = [json.loads(s) for s in
+               (sk.yol(anahtar) / "gecmis.jsonl").read_text(encoding="utf-8").splitlines() if s]
+    kilit = next(o for o in olaylar if o.get("olay") == "kilit")
+    assert kilit["tohum_vl_teyitsiz"] == ["MEMATİ BAŞ"]
+
+
+def test_tohum_vl_bos_kapi_atlanir(ortam, monkeypatch):
+    for n in (1, 2, 3):
+        _vid(ortam.klasor, n, icerik=b"b%d" % n)
+    monkeypatch.setattr(di, "_okuma_topla", okuma_fabrika())   # vl hep boş
+
+    r = di.isle(ortam.klasor, pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    m = sk.yukle(anahtar)
+    assert m["durum"] == "LOCKED"
+    assert m["tohum_vl_teyitsiz"] is None                     # kapı ATLANDI (ceza değil)
+    assert r["tohum"]["vl_teyitsiz"] is None
+    assert any("VL kapsamı yok" in u for u in r["uyarilar"])  # rapora not düştü
+
+
+# ─────────────────────────── MADDE 3b: --tohum-yenile ───────────────────────────
+
+def _yeniden_tohumla_sahte(cagrilar):
+    """seri_kayit.yeniden_tohumla sözleşme-sahtesi (dizi_SISTEM.md madde 3: SAF;
+    durum=BUILDING, kilit/format_kopusu sıfır, defterler korunur, olay günlüğe)."""
+
+    def _f(anahtar, master, bolumler, simdi):
+        cagrilar.append(list(bolumler))
+        m = json.loads(json.dumps(master))
+        m["surum_gecmisi"] = list(m.get("surum_gecmisi") or []) + [
+            {"olay": "yeniden_tohum", "eski_kilit": list(m.get("kilit_bolumler") or []),
+             "ts": simdi}]
+        m.update(durum="BUILDING", kilit_bolumler=[],
+                 format_kopusu={"ardisik": 0, "ilk_bolum": None})
+        return m
+
+    return _f
+
+
+def test_yeniden_tohumla_dikisi_imza_uyarlama(monkeypatch):
+    # paralel modülün iki olası imzası da desteklenir (inspect ile; TypeError yutma YOK)
+    gorulen = {}
+
+    def v4(anahtar, master, bolumler, simdi):
+        gorulen["v4"] = (anahtar, list(bolumler), simdi)
+        return dict(master, durum="BUILDING")
+
+    monkeypatch.setattr(sk, "yeniden_tohumla", v4, raising=False)
+    m = di._yeniden_tohumla("K", {"durum": "LOCKED"}, [1, 2], "ts")
+    assert m["durum"] == "BUILDING" and gorulen["v4"] == ("K", [1, 2], "ts")
+
+    def v3(master, bolumler, simdi):
+        gorulen["v3"] = (list(bolumler), simdi)
+        return dict(master, durum="BUILDING")
+
+    monkeypatch.setattr(sk, "yeniden_tohumla", v3, raising=False)
+    m = di._yeniden_tohumla("K", {"durum": "LOCKED"}, [3], "ts2")
+    assert m["durum"] == "BUILDING" and gorulen["v3"] == ([3], "ts2")
+
+
+def test_tohum_yenile_mutlu_yol(ortam, monkeypatch):
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    _locked_master(anahtar)                                   # eski kilit [1,2,3]
+    for n in (2, 3, 4):
+        sk.bolum_kaydet(anahtar, n, _okuma(n))                # ledger okumaları hazır
+    cagrilar = []
+    monkeypatch.setattr(sk, "yeniden_tohumla", _yeniden_tohumla_sahte(cagrilar), raising=False)
+    _vid(ortam.klasor, 5, icerik=b"c5")                       # reseed SONRASI normal akış
+    akis = Akis()
+    monkeypatch.setattr(di, "_bolum_kunye_akisi", akis)
+    kos = Kos()
+
+    r = di.isle(ortam.klasor, tohum_yenile=[2, 3, 4], pipeline_kos=kos, rapor_dizin=ortam.rapor)
+    assert cagrilar == [[2, 3, 4]]                            # yeniden_tohumla ÇAĞRILDI
+    m = sk.yukle(anahtar)
+    assert m["durum"] == "LOCKED" and m["kilit_bolumler"] == [2, 3, 4]
+    assert set(m["oyuncular"]) == {"POLAT ALEMDAR", "AYŞE YILDIZ", "MEMATİ BAŞ"}
+    olaylar = [e.get("olay") for e in m["surum_gecmisi"]]
+    assert "yeniden_tohum" in olaylar                         # denetim izi kilide DEVREDİLDİ
+    assert olaylar[-1] == "kilit"                             # yeni kilit en sonda
+    assert r["tohum"] == {"bolumler": [2, 3, 4], "kilitlendi": True, "vl_teyitsiz": None}
+    assert any("TOHUM_YENILE" in u for u in r["uyarilar"])
+    assert akis.calls == [(5, False, False)]                  # normal akış DEVAM ETTİ (LOCKED)
+    assert len(kos.calls) == 1 and "0005" in kos.calls[0]
+
+
+def test_tohum_yenile_ledger_eksik_hata(ortam, monkeypatch):
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    _locked_master(anahtar)
+    sk.bolum_kaydet(anahtar, 2, _okuma(2))                    # yalnız 2 ledger'da; 9 YOK
+    cagrilar = []
+    monkeypatch.setattr(sk, "yeniden_tohumla", _yeniden_tohumla_sahte(cagrilar), raising=False)
+    _vid(ortam.klasor, 5, icerik=b"e5")
+    akis = Akis()
+    monkeypatch.setattr(di, "_bolum_kunye_akisi", akis)
+    kos = Kos()
+
+    r = di.isle(ortam.klasor, tohum_yenile=[2, 9], pipeline_kos=kos, rapor_dizin=ortam.rapor)
+    assert cagrilar == []                                     # reseed HİÇ BAŞLAMADI
+    assert r["hatali"] and "9" in r["hatali"][0]["hata"]      # açık hata mesajı (rc!=0 main'de)
+    assert "ledger" in r["hatali"][0]["hata"].lower()
+    assert r["islenen"] == [] and akis.calls == [] and kos.calls == []   # koşu bölüm İŞLEMEDİ
+    m = sk.yukle(anahtar)
+    assert m["durum"] == "LOCKED" and m["kilit_bolumler"] == [1, 2, 3]   # master DEĞİŞMEDİ
+
+
+# ──────────────────────────── MADDE 4: --teslim-disi ─────────────────────────────
+
+def test_teslim_disi_karantina_tasima_ve_rapor(ortam, monkeypatch):
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    _locked_master(anahtar)
+    _vid(ortam.klasor, 14, icerik=b"t14")
+    monkeypatch.setattr(di, "_bolum_kunye_akisi", Akis(nedenler=["neden X"]))
+    kar = ortam.tmp / "outputs" / "pilot_karantina" / anahtar
+    monkeypatch.setattr(di, "_karantina_koku", lambda a: kar)
+
+    ortam.onayli.mkdir(parents=True)
+    ortam.kontrol.mkdir(parents=True)
+    onayli_pdf = ortam.onayli / f"1900-0138-0-0014-00-1 {DIZI_AD}_onaylı.pdf"
+    onayli_pdf.write_bytes(b"%PDF-onayli")
+    eski_kontrol = ortam.kontrol / f"1900-0138-0-0014-00-1 {DIZI_AD}_eski.pdf"
+    eski_kontrol.write_bytes(b"%PDF-eski")                    # önceki koşudan kalan
+    baska = ortam.onayli / f"1900-0139-0-0014-00-1 BASKA DIZI.pdf"
+    baska.write_bytes(b"%PDF-baska")                          # BAŞKA serinin TRT-id'i
+    kar.mkdir(parents=True)
+    (kar / eski_kontrol.name).write_bytes(b"%PDF-var")        # ad çakışması → ' (2)' soneki
+
+    r = di.isle(ortam.klasor, teslim_disi=True, pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
+
+    # export_mutabakat bu modda DOĞRUDAN karantinaya taşıdı (KONTROL'e yeni dosya düşmedi)
+    assert not onayli_pdf.exists()
+    assert (kar / onayli_pdf.name).read_bytes() == b"%PDF-onayli"
+    assert (kar / onayli_pdf.name).with_suffix(".dizi_neden.json").exists()
+    assert r["export_mutabakat"] and r["export_mutabakat"][0]["pdf"] == str(kar / onayli_pdf.name)
+    assert not (ortam.kontrol / onayli_pdf.name).exists()
+    # koşu-sonu süpürme: KONTROL'deki eski PDF karantinaya, çakışan ad ' (2)' sonekiyle
+    assert not eski_kontrol.exists()
+    cakisan = kar / f"1900-0138-0-0014-00-1 {DIZI_AD}_eski (2).pdf"
+    assert cakisan.read_bytes() == b"%PDF-eski"
+    assert (kar / eski_kontrol.name).read_bytes() == b"%PDF-var"         # mevcut EZİLMEDİ
+    assert any(t["pdf"] == str(cakisan) for t in r["karantina"])         # rapora yazıldı
+    assert baska.exists()                                                # başka seri DOKUNULMADI
+    assert r["teslim_disi"] is True
+
+
+def test_teslim_disi_sadece_analiz_dokunmaz(ortam, monkeypatch):
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    _locked_master(anahtar)
+    _vid(ortam.klasor, 14)
+    monkeypatch.setattr(di, "_bolum_kunye_akisi", Akis(nedenler=["neden"]))
+    kar = ortam.tmp / "kar" / anahtar
+    monkeypatch.setattr(di, "_karantina_koku", lambda a: kar)
+    ortam.onayli.mkdir(parents=True)
+    pdf = ortam.onayli / f"1900-0138-0-0014-00-1 {DIZI_AD}_onaylı.pdf"
+    pdf.write_bytes(b"%PDF")
+
+    r = di.isle(ortam.klasor, teslim_disi=True, sadece_analiz=True,
+                pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
+    assert pdf.exists()                                       # HİÇBİR taşıma yok
+    assert r["karantina"] == [] and r["export_mutabakat"] == []
+
+
+# ───────────────────────── MADDE 6: --yeniden iletimi ────────────────────────────
+
+def test_bolum_kunye_akisi_yeniden_argv(monkeypatch):
+    argvler = []
+
+    def fmain(argv):
+        argvler.append(list(argv))
+        print(json.dumps({"status": "ok"}))
+        return 0
+
+    monkeypatch.setitem(sys.modules, "seri_bolum_kunye", SimpleNamespace(main=fmain))
+    s = di._bolum_kunye_akisi("HUB", "K", 7, sadece_analiz=False, yeniden=True)
+    assert s["status"] == "ok" and "--yeniden" in argvler[-1]
+    di._bolum_kunye_akisi("HUB", "K", 7, sadece_analiz=True)
+    assert "--yeniden" not in argvler[-1] and "--sadece-analiz" in argvler[-1]
+
+
+def test_isle_yeniden_bayragi_akisa_tasinir(ortam, monkeypatch):
+    anahtar = sk.seri_anahtar(ortam.klasor.name)
+    _locked_master(anahtar)
+    _vid(ortam.klasor, 14)
+    akis = Akis()
+    monkeypatch.setattr(di, "_bolum_kunye_akisi", akis)
+
+    di.isle(ortam.klasor, yeniden=True, pipeline_kos=Kos(), rapor_dizin=ortam.rapor)
+    assert akis.calls == [(14, False, True)]                  # --yeniden akışa İLETİLDİ
+
+
 # ─────────────────────────────────────── CLI ─────────────────────────────────────
 
 def test_main_cli_bayrak_iletimi(tmp_path, monkeypatch):
@@ -402,6 +627,25 @@ def test_main_cli_bayrak_iletimi(tmp_path, monkeypatch):
     assert kayit["geri_doldur"] is True
     assert kayit["limit"] == 5
     assert kayit["python_exe"] == "px"
+    assert kayit["tohum_yenile"] is None                      # bayrak verilmedi → None
+    assert kayit["teslim_disi"] is False
+    assert kayit["yeniden"] is False
+
+    rc = di.main(["--klasor", str(tmp_path), "--tohum-yenile", "4, 2,2", "--teslim-disi",
+                  "--yeniden"])
+    assert rc == 0
+    assert kayit["tohum_yenile"] == [2, 4]                    # sıralı + tekilleştirilmiş
+    assert kayit["teslim_disi"] is True
+    assert kayit["yeniden"] is True
+
+
+def test_main_cli_tohum_yenile_dogrulama(tmp_path, monkeypatch):
+    monkeypatch.setattr(di, "isle", lambda klasor, **kw: {"hatali": []})
+    assert di.main(["--klasor", str(tmp_path), "--tohum-yenile", "a,b"]) == 2   # sayı değil
+    assert di.main(["--klasor", str(tmp_path), "--tohum-yenile", ","]) == 2     # boş liste
+    # --sadece-analiz ile birleşemez: yeniden tohum kalıcı yazar
+    assert di.main(["--klasor", str(tmp_path), "--tohum-yenile", "1,2",
+                    "--sadece-analiz"]) == 2
 
 
 def test_main_cli_klasor_yok_rc2(tmp_path):

@@ -361,3 +361,106 @@ def test_kur_master_bolum_sirasina_gore_calisir():
     assert m["kilit_bolumler"] == [1, 2, 3]
     assert m["oyuncular"]["AYSEL TERZI"]["sira"] == 0
     assert m["oyuncular"]["BULENT KAYA"]["sira"] == 1
+
+
+# ---------------------------------------------- Madde 8: eş-görünüm vetosu
+
+def test_veto_ayni_bolumde_gorulen_benzer_yazimlar_ayri_kume():
+    # "AHMET YILMAZ" ~ "AHMET YILDIZ" name_close-TRUE (tek token ≤2 edit) — ama AYNI
+    # bölümde birlikte tanıklandılar = iki kişi kanıtı → veto, birleştirme YAPILMAZ.
+    assert cc.name_close("AHMET YILMAZ", "AHMET YILDIZ")  # ön-koşul: kenar gerçekten var
+    kumeler = sk.isim_kumele([(1, "AHMET YILMAZ"), (1, "AHMET YILDIZ")])
+    assert len(kumeler) == 2
+    assert list(kumeler[0]["yazimlar"]) == ["AHMET YILMAZ"]
+    assert list(kumeler[1]["yazimlar"]) == ["AHMET YILDIZ"]
+
+
+def test_veto_karsit_ayni_cift_bolumler_kesismeyince_birlesir():
+    # KARŞIT test: aynı çift bölümleri KESİŞMEYİNCE birleşir → yukarıda ayrılmayı
+    # sağlayan kenar-testi değil VETO'dur (veto aşırı-geniş de değildir).
+    kumeler = sk.isim_kumele([(1, "AHMET YILMAZ"), (2, "AHMET YILDIZ")])
+    assert len(kumeler) == 1
+    assert kumeler[0]["yazimlar"] == {"AHMET YILMAZ": 1, "AHMET YILDIZ": 1}
+    assert kumeler[0]["bolumler"] == [1, 2]
+
+
+def test_veto_kismi_kesisim_de_yeter():
+    # veto TAM eşitlik istemez: {1,2} ∩ {2} ≠ ∅ → birleştirme yapılmaz
+    kumeler = sk.isim_kumele([(1, "AHMET YILMAZ"), (2, "AHMET YILMAZ"), (2, "AHMET YILDIZ")])
+    assert len(kumeler) == 2
+    assert kumeler[0]["bolumler"] == [1, 2]
+    assert kumeler[1]["bolumler"] == [2]
+
+
+def test_veto_kur_master_ayni_bolum_cifti_iki_ayri_aktif_oyuncu():
+    # uçtan uca: her bölümde BİRLİKTE görülen iki benzer isim İKİ AYRI 3/3 AKTIF üyedir
+    m = kur([
+        okuma(1, cast=["AHMET YILMAZ", "AHMET YILDIZ"]),
+        okuma(2, cast=["AHMET YILMAZ", "AHMET YILDIZ"]),
+        okuma(3, cast=["AHMET YILMAZ", "AHMET YILDIZ"]),
+    ])
+    assert m["oyuncular"]["AHMET YILMAZ"]["durum"] == "AKTIF"
+    assert m["oyuncular"]["AHMET YILDIZ"]["durum"] == "AKTIF"
+    assert m["oyuncular"]["AHMET YILMAZ"]["bolumler"] == [1, 2, 3]
+    assert m["oyuncular"]["AHMET YILDIZ"]["bolumler"] == [1, 2, 3]
+
+
+# ------------------------------- Madde 9: unvan-strip (yalnız karşılaştırma anında)
+
+def test_unvan_strip_prof_dr_ayni_kume_kayit_orijinal():
+    # "PROF DR AHMET İNAM" ~ "AHMET İNAM": strip'siz ne name_match (ilk token prof≠ahmet)
+    # ne name_close (token sayısı 4≠2) tutar; unvan-strip ile TEK küme. Kayıt ORİJİNAL:
+    # soyulmuş yazım hiçbir yerde anahtar DEĞİL.
+    kumeler = sk.isim_kumele([(1, "PROF DR AHMET İNAM"), (2, "AHMET İNAM")])
+    assert len(kumeler) == 1
+    assert kumeler[0]["yazimlar"] == {"PROF DR AHMET İNAM": 1, "AHMET İNAM": 1}
+    assert kumeler[0]["bolumler"] == [1, 2]
+
+
+def test_unvan_strip_dr_ayni_kume_kanonikte_orijinal_korunur():
+    kume = _tek_kume([(1, "DR KEMAL YILMAZ"), (2, "KEMAL YILMAZ")])
+    assert kume["yazimlar"] == {"DR KEMAL YILMAZ": 1, "KEMAL YILMAZ": 1}
+    kanonik, _ = sk.kanonik_sec(kume)
+    assert kanonik == "DR KEMAL YILMAZ"   # ilk-görülme; SOYULMUŞ ("KEMAL YILMAZ") DEĞİL
+
+
+def test_unvan_strip_tekil_alan_unvanli_unvansiz_konsensus():
+    # Yönetmen ep1 unvanlı, ep2 unvansız → strip sayesinde tek küme, 2 bölüm-tanık → KESIN;
+    # kanonik ve tanık kaydı ORİJİNAL yazımlarla kalır (basıma unvan-soyma sızmaz).
+    m = kur([
+        okuma(1, crew={"Yönetmen": ["PROF DR AHMET İNAM"]}),
+        okuma(2, crew={"Yönetmen": ["AHMET İNAM"]}),
+        okuma(3),
+    ])
+    a = m["alanlar"]["Yönetmen"]
+    assert a["guven"] == "KESIN"
+    assert a["kanonik"] == ["PROF DR AHMET İNAM"]
+    assert a["tanik"]["PROF DR AHMET İNAM"]["yazimlar"] == {
+        "PROF DR AHMET İNAM": 1, "AHMET İNAM": 1}
+    assert a["tanik"]["PROF DR AHMET İNAM"]["bolumler"] == [1, 2]
+
+
+def test_unvan_soy_nokta_birlesik_ve_zincir_varyantlari():
+    assert sk._unvan_soy("DR. HALİL İBRAHİM ARK") == "HALİL İBRAHİM ARK"
+    assert sk._unvan_soy("OP.DR. AYŞE KAYA") == "AYŞE KAYA"
+    assert sk._unvan_soy("PROF.DR. AHMET İNAM") == "AHMET İNAM"
+    assert sk._unvan_soy("YRD DOÇ DR MEHMET ÖZDEMİR") == "MEHMET ÖZDEMİR"
+    assert sk._unvan_soy("Doç. Dr. Ayşe Kaya") == "Ayşe Kaya"   # fold sonrası karşılaştırma
+    assert sk._unvan_soy("AV MELİH KARA") == "MELİH KARA"
+    assert sk._unvan_soy("DT SEDA AK") == "SEDA AK"
+
+
+def test_unvan_soy_asiri_soyma_freni():
+    # soyma sonucu boş/tek-token kalırsa ORİJİNAL kullanılır
+    assert sk._unvan_soy("DR AHMET") == "DR AHMET"
+    assert sk._unvan_soy("PROF DR") == "PROF DR"
+    assert sk._unvan_soy("DR") == "DR"
+
+
+def test_unvan_soy_pasa_bey_soyulmaz():
+    # BEY/HANIM/PAŞA bilinçli LİSTE-DIŞI (soyadı riski) — başta bile soyulmaz
+    assert sk._unvan_soy("PAŞA MEHMET YILMAZ") == "PAŞA MEHMET YILMAZ"
+    assert sk._unvan_soy("BEY AHMET YILDIZ") == "BEY AHMET YILDIZ"
+    # kenar-testinde de eşleşme doğmaz: PAŞA soyulmadığından token sayısı/ilk-token tutmaz
+    kumeler = sk.isim_kumele([(1, "PAŞA MEHMET YILMAZ"), (2, "MEHMET YILMAZ")])
+    assert len(kumeler) == 2

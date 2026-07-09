@@ -25,6 +25,12 @@ KB ARAYÜZÜ (duck-typing — kb None-safe, None = KB'siz):
     (ör. 3/5) sözleşmede tanımsız → muhafazakâr: aday_havuzu.
   • Tanık sayımı bölüm-bazlıdır: bir bölüm aynı yazıma en çok 1 tanık verir
     (OCR çift-satır tekrarı oy şişirmesin).
+  • Madde 8 (eş-görünüm vetosu): tanık kaydı kenar-testinin ÖNÜNE alındı ki yeni
+    düğümün bölümü vetoya görünsün; reddedilen kenar sessizce atlanır ve kenarlar
+    yalnız düğüm-doğumunda test edildiğinden sonradan yeniden denenMEZ.
+  • Madde 9 (unvan-strip) YALNIZ isim_kumele kenar-testinde uygulanır — kur_master
+    konuk-savunması (name_match) ve kanonik_sec KB fold-eşlemesi ORİJİNAL yazımla
+    çalışmaya devam eder (sözleşme "kümeleme kenar-testi" der; muhafazakâr yorum).
 """
 from __future__ import annotations
 
@@ -49,31 +55,78 @@ def _kok(ebeveyn: list[int], i: int) -> int:
     return i
 
 
-def _birlestir(ebeveyn: list[int], i: int, j: int) -> None:
+def _birlestir(ebeveyn: list[int], i: int, j: int, kok_bolumler: list[set]) -> None:
     ri, rj = _kok(ebeveyn, i), _kok(ebeveyn, j)
-    if ri != rj:
-        # KISIT: küçük indeks kök kalır → küme sırası ilk-görülmeye sabitlenir (determinizm)
-        if ri > rj:
-            ri, rj = rj, ri
-        ebeveyn[rj] = ri
+    if ri == rj:
+        return
+    # Madde 8 — eş-görünüm vetosu: iki kümenin bölüm kümeleri KESİŞİYORSA birleştirme
+    # yapılmaz (aynı bölümde birlikte tanıklanan iki farklı yazım = iki kişi kanıtı).
+    # Reddedilen kenar sessizce atlanır — hata üretilmez.
+    if kok_bolumler[ri] & kok_bolumler[rj]:
+        return
+    # KISIT: küçük indeks kök kalır → küme sırası ilk-görülmeye sabitlenir (determinizm)
+    if ri > rj:
+        ri, rj = rj, ri
+    ebeveyn[rj] = ri
+    kok_bolumler[ri] |= kok_bolumler[rj]
+
+
+# ------------------------------------------- Madde 9 — unvan-strip (yalnız karşılaştırma)
+
+# Akademik unvan token'ları (fold sonrası karşılaştırılır; DOÇ→"doc" fold'la birleşir).
+# BEY/HANIM/PAŞA bilinçli LİSTE-DIŞI (soyadı riski — dizi_SISTEM.md Madde 9).
+_UNVAN_FOLD = frozenset(("dr", "prof", "doc", "yrd", "op", "av", "dt"))
+
+
+def _unvan_soy(yazim: str) -> str:
+    """Baştaki akademik unvan token'larını soy — YALNIZ eşleşme kararı için (Madde 9).
+
+    Nokta/birleşik varyantlar tanınır ("DR.", "PROF DR", "YRD DOÇ DR", "OP.DR." …):
+    bir boşluk-token'ının nokta-parçalarının TÜMÜ fold sonrası unvansa o token soyulur;
+    ard arda birden çok unvan token'ı soyulur, ilk unvan-olmayan token'da durulur.
+    Soyma SONUCU boş/tek-token kalırsa ORİJİNAL döner (aşırı-soyma freni).
+    Kaydedilen/basılan yazımlara ASLA uygulanmaz (OCR-otorite) — çağıran yalnız
+    kenar-testinde kullanır; düğüm/yazimlar/kanonik hep orijinal yazımda kalır.
+    """
+    parcalar = yazim.split()
+    i = 0
+    while i < len(parcalar):
+        alt = [p for p in parcalar[i].split(".") if p]      # "OP.DR." → ["OP", "DR"]
+        if alt and all(cc.fold(p) in _UNVAN_FOLD for p in alt):
+            i += 1
+        else:
+            break
+    if i == 0 or len(parcalar) - i < 2:
+        return yazim
+    return " ".join(parcalar[i:])
 
 
 def isim_kumele(tanikliklar: list[tuple[int, str]]) -> list[dict]:
     """[(bolum_no, yazim)] → union-find kümeleri.
 
-    Kenar yüklemi SÖZLEŞMEDEKİ gibi: name_match(a, b) or name_close(a, b) — başka
-    hiçbir birleşme kuralı yok (aynı bölümde birlikte görülüp benzemeyenler doğal
-    olarak ayrı kalır). Birebir aynı yazım tek düğümdür; boş/boşluk yazım atlanır;
-    aynı (bölüm, yazım) çifti ikinci kez tanık SAYILMAZ.
+    Kenar yüklemi SÖZLEŞMEDEKİ gibi name_match(a, b) or name_close(a, b) + iki yama:
+      • Madde 9 (unvan-strip): kenar-testine giren yazımların BAŞINDAKİ akademik unvan
+        token'ları soyulur (_unvan_soy) — YALNIZ eşleşme kararında; düğümler, yazimlar
+        anahtarları ve kanonik seçim hep ORİJİNAL yazımla kalır.
+      • Madde 8 (eş-görünüm vetosu): iki kümenin bölüm kümeleri KESİŞİYORSA kenar
+        ATLANIR (aynı bölümde birlikte tanıklanan iki farklı yazım = iki kişi kanıtı).
+        Bu yüzden tanık kaydı kenar-testinden ÖNCE işlenir (yeni düğümün bölümü vetoya
+        görünür); kenarlar yalnız düğüm ilk görüldüğünde test edilir — sonradan gelen
+        tanıklar reddedilmiş kenarı yeniden AÇMAZ.
+
+    Birebir aynı yazım tek düğümdür; boş/boşluk yazım atlanır; aynı (bölüm, yazım)
+    çifti ikinci kez tanık SAYILMAZ.
 
     Dönüş: [{"yazimlar": {yazim: tanik_sayisi}, "bolumler": artan-sıralı liste}]
     — küme sırası ve küme-içi yazım sırası deterministik: ilk görülme.
     """
     dugumler: list[str] = []
+    kiyaslar: list[str] = []          # Madde 9: unvan-soyulmuş karşılaştırma yazımları
     dugum_ix: dict[str, int] = {}
     sayac: list[int] = []
     bolum_kume: list[set] = []
     ebeveyn: list[int] = []
+    kok_bolumler: list[set] = []      # Madde 8: kök (küme) başına bölüm-kümesi bakımı
     gorulen: set = set()
 
     for bolum, yazim in tanikliklar:
@@ -81,20 +134,25 @@ def isim_kumele(tanikliklar: list[tuple[int, str]]) -> list[dict]:
         if not yz:
             continue
         ix = dugum_ix.get(yz)
-        if ix is None:
+        yeni_dugum = ix is None
+        if yeni_dugum:
             ix = len(dugumler)
             dugum_ix[yz] = ix
             dugumler.append(yz)
+            kiyaslar.append(_unvan_soy(yz))
             sayac.append(0)
             bolum_kume.append(set())
             ebeveyn.append(ix)
-            for i in range(ix):
-                if cc.name_match(dugumler[i], yz) or cc.name_close(dugumler[i], yz):
-                    _birlestir(ebeveyn, i, ix)
+            kok_bolumler.append(set())
         if (bolum, yz) not in gorulen:
             gorulen.add((bolum, yz))
             sayac[ix] += 1
             bolum_kume[ix].add(bolum)
+            kok_bolumler[_kok(ebeveyn, ix)].add(bolum)   # veto küme-bölümlerini güncel görsün
+        if yeni_dugum:
+            for i in range(ix):
+                if cc.name_match(kiyaslar[i], kiyaslar[ix]) or cc.name_close(kiyaslar[i], kiyaslar[ix]):
+                    _birlestir(ebeveyn, i, ix, kok_bolumler)
 
     kumeler: dict[int, dict] = {}
     sira: list[int] = []

@@ -225,6 +225,39 @@ class DiffPolitika:
 (test kalıbı: `tests/test_credit_crew_leak_gate.py`). scripts-içi modüller normal import
 (`sys.path.insert(0, scripts_dir)`).
 
+## PİLOT-ÖNCESİ YAMA SÖZLEŞMESİ (2026-07-09, karar: outputs/DIZI_MODU_KONSEY_KARAR_2026-07-09.md)
+1. **Tohum-VL kapısı:** kilit anında `kur_master` kanonikleri (alanlar + AKTIF/ZAYIF_UYE oyuncular) tohum
+   okumalarının `vl` birleşimiyle `name_match`'lenir; teyitsizler `master["tohum_vl_teyitsiz"]` listesine +
+   kilit olayına + her bölümde TEK "tohum VL-teyitsiz: <n> isim" KONTROL nedeni. VETO DEĞİL (basım değişmez).
+   `kb=None` BİLİNÇLİ ve KALICI (KB dizi-crew kapsaması ~0; KB asla hakem değil). Otomatik üçüncü-tanık
+   eskalasyonu Faz-B (pilotta insan = üçüncü tanık).
+2. **Terfi disiplini:** `uygula` terfi bloğu kadro anahtarını `konuk_gecmisi[isim]["yazimlar"]` üzerinde
+   `kanonik_sec` ile seçer; `konuk_gecmisi`'ne yeni anahtar açılırken rakamlı yazım anahtar OLAMAZ
+   (rakamsız varyant varsa o; yoksa isim aynen).
+3. **`seri_kayit.yeniden_tohumla(anahtar, master, bolumler, simdi) -> dict`** (SAF): mevcut LOCKED master'ın
+   `surum_gecmisi`'ne {"olay":"yeniden_tohum","eski_kilit":...,"ts":...} ekler, durum=BUILDING'e döndürür,
+   `kilit_bolumler`/`format_kopusu` sıfırlar (alan/oyuncu defterleri KORUNUR — tanıklık kaybolmaz).
+   `dizi_isle --tohum-yenile B1,B2,B3`: verilen bölümlerin ledger okumalarıyla kur_master+kilitle yeniden.
+4. **`dizi_isle --teslim-disi`:** PDF'ler hub'a normal basılır; koşu sonunda export/ONAYLI+KONTROL altındaki
+   bu serinin TRT-id'li PDF'leri `outputs/pilot_karantina/<seri_anahtar>/` altına TAŞINIR + rapora yazılır
+   (export iki-uç KESİN kuralı korunur — karantina export dışıdır). export_mutabakat taşımaları da karantinaya.
+5. **Telemetri:** (a) `uygula` bekleyen-değişim düşüşünde `{"olay":"bekleyen_dustu","alan":...,"gorulen":[...]}`
+   olayı üretir; (b) `diffle` eslesen kayıtlarında okunan yazım bölüm `vl`'sinde name_match bulunamıyorsa
+   `diff["vl_uyusmazlik"]` sayacı/listesi doldurulur (basımı ETKİLEMEZ); dizi_isle koşu raporuna toplar.
+6. **İdempotensi:** `master["uygulanan_bolumler"]: [int]`. Bölüm bu listedeyse `uygula` ATLANIR (diff + PDF
+   yine koşar; `--yeniden` bayrağı zorlar). `uygula` başarısında bölüm listeye eklenir (kaydet'ten önce).
+7. **BOS_OKUMA:** `diffle`'de havuz (cast+crew+konuk isimleri) < min(8, ceil(0.3×len(beklenen))) VEYA
+   okuma["kaynak"]=="yok" → eksik/yeni/kopuş-oranı HESAPLANMAZ; `diff["bos_okuma"]=true` + tek "OKUMA_YOK"
+   KONTROL nedeni; kopuş sayacı ARTMAZ; üye sayaçları (ardisik_yok) DEĞİŞMEZ; PDF kanon-devir basılır.
+8. **Eş-görünüm vetosu:** `isim_kumele` union adımında iki kümenin `bolumler` kümeleri KESİŞİYORSA
+   birleştirme yapılmaz (aynı bölümde birlikte tanıklanan iki farklı yazım = iki kişi kanıtı).
+9. **Unvan-strip (yalnız KARŞILAŞTIRMA anında):** kümeleme/name_match öncesi baştaki akademik unvan
+   token'ları soyulur: DR, PROF, DOÇ/DOC, YRD, OP, AV, DT (nokta/birleşik varyantlarıyla). Basılan/kaydedilen
+   yazıma ASLA uygulanmaz (OCR-otorite). BEY/HANIM/PAŞA LİSTEDE YOK (soyadı riski).
+10. **KONUK başlıkları:** listeye `"bolum konuklari"` eklenir.
+11. **N<3 kilit notu:** `len(master["kilit_bolumler"]) < 3` ise her bölüm künyesine
+    "master <3 bölümle kuruldu (n)" KONTROL nedeni eklenir (seri_bolum_kunye).
+
 ## Test kuralları
 - pytest, mevcut `tests/` kalıbı; her modülün testi kendi dosyasında (`tests/test_<modul>.py`).
 - Depo testleri `MITAS_SERILER_ROOT` env + `tmp_path` ile; duckdb/KB MOCK (X:/Y: sürücüleri test ortamında yok sayılır).

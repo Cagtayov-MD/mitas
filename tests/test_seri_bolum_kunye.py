@@ -49,6 +49,7 @@ def _master():
         "seri_adi": "BİZİM EVİN HALLERİ",
         "durum": "LOCKED",
         "master_surum": 3,
+        "kilit_bolumler": [1, 2, 3],          # N=3: "master <3 bölümle kuruldu" notu TETİKLENMEZ
         "alanlar": {
             "Yönetmen": {"kanonik": ["SAMET POLAT"], "guven": "KESIN"},
             "Yapımcı": {"kanonik": ["OSMAN SINAV"], "guven": "KESIN"},
@@ -230,7 +231,8 @@ def _cli_dikis(monkeypatch, master, diff, okuma):
     monkeypatch.setattr(sbk, "_master_yukle", lambda anahtar: master)
     monkeypatch.setattr(sbk, "_okuma_yap", lambda clip, bolum_no, anahtar: okuma)
     monkeypatch.setattr(sbk, "_diffle", lambda m, o: diff)
-    monkeypatch.setattr(sbk, "_uygula_ve_kaydet", lambda anahtar, m, d, o, simdi: m)
+    monkeypatch.setattr(sbk, "_uygula_ve_kaydet",
+                        lambda anahtar, m, d, o, simdi, bolum_no: m)
 
 
 def test_cli_ok_mp_build_sozlesmesi_ve_ciktilar(tmp_path, monkeypatch, capsys):
@@ -333,6 +335,120 @@ def test_cli_sadece_analiz(tmp_path, monkeypatch, capsys):
     assert obj["kontrol_nedenleri"] == diff["kontrol_nedenleri"]
     assert not (clip / "pdf" / "kunye.pdf").exists()                    # 5-6 atlandı
     assert not (clip / "pdf" / "kunye_dizi_kaynak.json").exists()
+
+
+# ═══ MADDE 1 (kuyruk): tohum VL-teyitsiz TEK KONTROL satırı ═══════════════════════════════════
+
+def _kos(monkeypatch, capsys, master, argv_ek=()):
+    """Standart CLI koşusu: dikişler + sahte mp; stdout TEK-SATIR JSON'u döner."""
+    _cli_dikis(monkeypatch, master, _diff(), _okuma())
+    monkeypatch.setattr(sbk, "mp", _FakeMp())
+    rc = sbk.main(["--clip", str(_kos.clip), "--seri-anahtar", "K", "--bolum-no", "14",
+                   *argv_ek])
+    return rc, json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+
+
+def test_madde1_vl_teyitsiz_tek_satir(tmp_path, monkeypatch, capsys):
+    _kos.clip = tmp_path / "KLIP"
+    (_kos.clip / "pdf").mkdir(parents=True)
+    master = _master()
+    master["tohum_vl_teyitsiz"] = ["A B", "C D"]
+    rc, obj = _kos(monkeypatch, capsys, master)
+    assert rc == 0
+    assert obj["kontrol_nedenleri"].count("tohum VL-teyitsiz: 2 isim") == 1
+    assert sum("VL-teyitsiz" in n for n in obj["kontrol_nedenleri"]) == 1   # TEK satır
+
+    for bos in ([], None):                                   # boş/None → satır YOK (ceza değil)
+        m2 = _master()
+        m2["tohum_vl_teyitsiz"] = bos
+        _, obj2 = _kos(monkeypatch, capsys, m2)
+        assert not any("VL-teyitsiz" in n for n in obj2["kontrol_nedenleri"])
+
+    m3 = _master()                                           # --sadece-analiz de nedeni taşır
+    m3["tohum_vl_teyitsiz"] = ["A B"]
+    _, obj3 = _kos(monkeypatch, capsys, m3, argv_ek=("--sadece-analiz",))
+    assert "tohum VL-teyitsiz: 1 isim" in obj3["kontrol_nedenleri"]
+
+
+# ═══ MADDE 11: N<3 kilit notu ═════════════════════════════════════════════════════════════════
+
+def test_madde11_kilit_bolum_sayisi_notu(tmp_path, monkeypatch, capsys):
+    _kos.clip = tmp_path / "KLIP"
+    (_kos.clip / "pdf").mkdir(parents=True)
+    for kilit, beklenen in (([4, 9], "master <3 bölümle kuruldu (2)"),
+                            ([7], "master <3 bölümle kuruldu (1)")):
+        m = _master()
+        m["kilit_bolumler"] = kilit
+        _, obj = _kos(monkeypatch, capsys, m)
+        assert beklenen in obj["kontrol_nedenleri"]
+    _, obj3 = _kos(monkeypatch, capsys, _master())           # N=3 → not YOK
+    assert not any("bölümle kuruldu" in n for n in obj3["kontrol_nedenleri"])
+
+
+# ═══ MADDE 6: idempotensi (uygulanan_bolumler) + --yeniden ════════════════════════════════════
+
+def test_madde6_idempotensi_ve_yeniden(tmp_path, monkeypatch, capsys):
+    clip = tmp_path / "KLIP"
+    (clip / "pdf").mkdir(parents=True)
+    (clip / "pdf" / "kunye_teslim.md").write_text(MD, encoding="utf-8")
+    master = _master()
+    master["uygulanan_bolumler"] = [7, 14]                   # 14 daha önce uygulanmış
+    sayac = {"n": 0}
+
+    def uyg(anahtar, m, d, o, simdi, bolum_no):
+        sayac["n"] += 1
+        return m
+
+    monkeypatch.setattr(sbk, "_master_yukle", lambda anahtar: master)
+    monkeypatch.setattr(sbk, "_okuma_yap", lambda c, b, a: _okuma())
+    monkeypatch.setattr(sbk, "_diffle", lambda m, o: _diff())
+    monkeypatch.setattr(sbk, "_uygula_ve_kaydet", uyg)
+    fake = _FakeMp()
+    monkeypatch.setattr(sbk, "mp", fake)
+    argv = ["--clip", str(clip), "--seri-anahtar", "K", "--bolum-no", "14"]
+
+    rc = sbk.main(argv)
+    obj = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert rc == 0 and obj["status"] == "yeniden_render"     # rapor status
+    assert sayac["n"] == 0                                   # uygula ÇAĞRILMADI, kaydet YOK
+    assert len(fake.calls) == 1                              # diffle+birlesik_kunye+PDF yine koştu
+    assert (clip / "pdf" / "kunye.pdf").exists()
+    assert (clip / "pdf" / "kunye_dizi_kaynak.json").exists()
+
+    rc2 = sbk.main(argv + ["--yeniden"])                     # --yeniden atlamayı KAPATIR
+    obj2 = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert rc2 == 0 and obj2["status"] == "ok"
+    assert sayac["n"] == 1
+
+    rc3 = sbk.main(["--clip", str(clip), "--seri-anahtar", "K", "--bolum-no", "15"])
+    obj3 = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert rc3 == 0 and obj3["status"] == "ok"               # listede OLMAYAN bölüm → normal yol
+    assert sayac["n"] == 2
+
+
+def test_madde6_uygula_ve_kaydet_listeye_ekler(monkeypatch):
+    # GERÇEK _uygula_ve_kaydet; seri_diff/seri_kayit modül-sahteleri sys.modules'a takılır
+    # (paralel ajanların gerçek dosyalarına BAĞIMLILIK YOK — dizi_SISTEM.md test kuralı).
+    kayitlar = []
+
+    def uygula(master, diff, politika=None, simdi=""):
+        m = dict(master)
+        m["islendi"] = True
+        return m, [{"tip": "x", "ts": simdi}]
+
+    def kaydet(anahtar, m, olay=None):
+        kayitlar.append((json.loads(json.dumps(m)), olay))   # kaydet ANINDAKİ hali dondur
+
+    monkeypatch.setitem(sys.modules, "seri_diff", types.SimpleNamespace(uygula=uygula))
+    monkeypatch.setitem(sys.modules, "seri_kayit", types.SimpleNamespace(kaydet=kaydet))
+
+    m2 = sbk._uygula_ve_kaydet("K", {"a": 1}, {"bolum_no": 14}, {}, "ts", 14)
+    assert m2["islendi"] is True
+    assert m2["uygulanan_bolumler"] == [14]                  # uygula başarısında listeye eklendi
+    assert kayitlar and all(k[0]["uygulanan_bolumler"] == [14] for k in kayitlar)  # kaydet'ten ÖNCE
+
+    m3 = sbk._uygula_ve_kaydet("K", m2, {"bolum_no": 14}, {}, "ts", 14)
+    assert m3["uygulanan_bolumler"] == [14]                  # tekrar eklenmez (tekil liste)
 
 
 # ═══ DUMAN: gerçek render (reportlab varsa) ═══════════════════════════════════════════════════

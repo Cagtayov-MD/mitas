@@ -58,8 +58,9 @@ def _fold(s: str) -> str:
 
 
 # ── KONUK başlıkları (dizi_SISTEM.md fold-listesi — BİREBİR; karşılaştırma fold sonrası).
+#    "bolum konuklari": YAMA SÖZLEŞMESİ madde 10 eki.
 KONUK_BASLIKLARI = ("konuk oyuncular", "konuk oyuncu", "konuk sanatci", "konuklar",
-                    "bolum oyunculari", "bu bolumun konuklari",
+                    "bolum oyunculari", "bolum konuklari", "bu bolumun konuklari",
                     "guest starring", "guest stars", "special guest")
 
 # "&" / " ve " birleşik konuk satırı bölme — credit_parse._AMPERSAND_RE ile AYNI desen

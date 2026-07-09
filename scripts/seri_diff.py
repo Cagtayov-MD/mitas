@@ -13,10 +13,13 @@ KISITLAR:
     yoksa MASTER_ADAY beklemede + KONTROL ("okunamadı > yanlış oku").
   • `seri_kayit.versiyon_atla` İTHAL EDİLMEZ — aynı semantik (alanlar[..]=yeni + master_surum+1
     + surum_gecmisi append) burada uygulanır ki modül saf/bağımsız kalsın.
+  • "PİLOT-ÖNCESİ YAMA SÖZLEŞMESİ" (dizi_SISTEM.md) madde 2 (terfi kanonik disiplini),
+    5 (bekleyen_dustu olayı + vl_uyusmazlik telemetrisi) ve 7 (BOS_OKUMA) bu modüldedir.
 """
 from __future__ import annotations
 
 import copy
+import math
 import os
 import sys
 from dataclasses import dataclass
@@ -27,6 +30,9 @@ if _SCRIPTS not in sys.path:
 
 from credit_crosscheck import fold, name_match  # noqa: E402  (kural 1: tek eşleşme otoritesi)
 from credit_text_read import _looks_garble      # noqa: E402  (kural 4: garble sinyali)
+# yama-madde 2 (terfi kanonik disiplini): seri_konsensus yalnız credit_crosscheck +
+# credit_text_read'e bağımlıdır, seri_diff'i import ETMEZ → döngüsel import YOK (doğrulandı).
+from seri_konsensus import kanonik_sec          # noqa: E402
 
 # dizi_SISTEM.md "TEKİL alanlar" — şema sözleşmesi
 TEKIL_ALANLAR = ("Yönetmen", "Yapımcı", "Senaryo", "Müzik", "Görüntü Yönetmeni", "Kurgu")
@@ -107,8 +113,10 @@ def diffle(master: dict, okuma: dict, politika: DiffPolitika = DiffPolitika()) -
         "kalici_degisim": [],
         "terfi": [],
         "format_kopusu": False,
+        "bos_okuma": False,          # yama-madde 7
         "bolum_ozel": {"konuk_oyuncular": [], "alan_override": {}},
         "kontrol_nedenleri": [],
+        "vl_uyusmazlik": [],         # yama-madde 5b (telemetri; basımı ETKİLEMEZ)
     }
     oyuncular = master.get("oyuncular") or {}
     alanlar = master.get("alanlar") or {}
@@ -126,6 +134,17 @@ def diffle(master: dict, okuma: dict, politika: DiffPolitika = DiffPolitika()) -
         tanik = f.get("tanik") or {}
         for kn in (f.get("kanonik") or []):
             beklenen.append((kn, (tanik.get(kn) or {}).get("yazimlar")))
+
+    # ---- yama-madde 7: BOS_OKUMA — kanıt yokluğu ≠ fark yokluğu. Havuz beklenene göre
+    # ÇOK kısaysa (benzersiz < min(8, ceil(0.3·|beklenen|))) VEYA okuma kaynağı "yok" ise
+    # fark hükmü VERİLEMEZ: eksik/yeni/kalici/terfi/kopuş HESAPLANMAZ (hepsi boş/False),
+    # tek KONTROL nedeni OKUMA_YOK; PDF kanon-devirle basılır (kopuş sayacı da artmaz).
+    if okuma.get("kaynak") == "yok" or \
+            len({s for s in havuz if s}) < min(8, math.ceil(0.3 * len(beklenen))):
+        diff["bos_okuma"] = True
+        diff["kontrol_nedenleri"].append("OKUMA_YOK: bölüm %s" % n)
+        return diff
+
     if beklenen:
         hit = sum(1 for ad, yz in beklenen
                   if any(_isim_eslesir(r, ad, yz) for r in havuz))
@@ -255,6 +274,20 @@ def diffle(master: dict, okuma: dict, politika: DiffPolitika = DiffPolitika()) -
                     "%s okuması garble (%s): '%s' — override yok, master basılır (bölüm %s)"
                     % (alan, garble, s, n))
 
+    # ---- yama-madde 5b: VL-uyuşmazlık telemetrisi — eşleşen kayıtların OKUNAN yazımı
+    # bölüm VL birleşiminde (yonetmen+oyuncular+diger_roller) name_match ile bulunamıyorsa
+    # listeye düşer. VL tamamen boşsa kapsam yoktur → doldurulmaz. Basım/karar ETKİLENMEZ.
+    vl_birlesim = [v for v in ((vl.get("yonetmen") or []) + (vl.get("oyuncular") or [])
+                               + (vl.get("diger_roller") or [])) if v]
+    if vl_birlesim:
+        for e in diff["eslesen"]["oyuncular"]:
+            if not any(name_match(e["okunan"], v) for v in vl_birlesim):
+                diff["vl_uyusmazlik"].append({"alan": "oyuncular", "isim": e["okunan"]})
+        for alan, e in diff["eslesen"]["alanlar"].items():
+            for okunan in e.get("okunan") or []:
+                if not any(name_match(okunan, v) for v in vl_birlesim):
+                    diff["vl_uyusmazlik"].append({"alan": alan, "isim": okunan})
+
     # ---- kural 5: kalıcı değişim — bekleyen + bu bölüm = kalici_esik ARDIŞIK ve HER
     # görüldüğü bölümde VL aynı değeri içeriyor → kalici_degisim; VL eksikse beklemede.
     for p in (master.get("bekleyen_degisimler") or []):
@@ -285,6 +318,30 @@ def diffle(master: dict, okuma: dict, politika: DiffPolitika = DiffPolitika()) -
     return diff
 
 
+# yama-madde 2: OCR rakam→harf benzeşim tablosu (yalnız İÇ anahtar türetimi için)
+_RAKAM_HARF = str.maketrans("0123456789", "OIZEASGTBG")
+
+
+def _konuk_anahtari(s):
+    """Yama-madde 2: konuk_gecmisi'ne YENİ anahtar rakamlı yazımla AÇILAMAZ.
+    Rakamsız varyant = harf de içeren token İÇİNDEKİ rakamların OCR-benzeri harf
+    karşılığı (0→O, 1→I, 5→S, 8→B, ...). Salt-rakam token'a harf uydurulmaz
+    ("okunamadı > yanlış oku") → varyant YOK sayılır, isim AYNEN anahtar olur.
+    Yazım defteri (OCR-otorite) her koşulda HAM yazımı tutar — bu yalnız iç anahtar
+    seçimidir; amaç sonraki bölümlerdeki temiz yazımın AYNI deftere birikmesi
+    (rakamlı ilk-görülme ayrı anahtar açamaz — konsey P0-2)."""
+    if not any(ch.isdigit() for ch in s):
+        return s
+    parcalar = []
+    for tok in s.split(" "):
+        if any(ch.isdigit() for ch in tok):
+            if not any(ch.isalpha() for ch in tok):
+                return s  # salt-rakam token: rakamsız varyant YOK → isim aynen
+            tok = tok.translate(_RAKAM_HARF)
+        parcalar.append(tok)
+    return " ".join(parcalar)
+
+
 # ------------------------------------------------------------------------ uygula
 def uygula(master: dict, diff: dict, politika: DiffPolitika = DiffPolitika(),
            simdi: str = "") -> tuple[dict, list[dict]]:
@@ -298,6 +355,13 @@ def uygula(master: dict, diff: dict, politika: DiffPolitika = DiffPolitika(),
         ev = {"ts": simdi, "bolum": n, "tip": tip}
         ev.update(ek)
         olaylar.append(ev)
+
+    # ---- yama-madde 7: BOS_OKUMA — kanıt yokluğu: üye sayaçlarına (ardisik_yok/
+    # son_gorulme), kopuş sayacına ve bekleyen_degisimler'e DOKUNULMAZ (sıfırlama da
+    # kanıt ister; kanıt yokluğu ≠ fark yokluğu). Yalnız guncelleme damgası atılır.
+    if diff.get("bos_okuma"):
+        m["guncelleme"] = {"ts": simdi, "modul": "seri_diff", "bolum": n}
+        return m, olaylar
 
     m.setdefault("format_kopusu", {"ardisik": 0, "ilk_bolum": None})
 
@@ -402,7 +466,12 @@ def uygula(master: dict, diff: dict, politika: DiffPolitika = DiffPolitika(),
                    and any(fold(y["isim"]) == fold(h) or name_match(y["isim"], h)
                            for h in hedef)), None)
         if es is None:
-            continue  # araya farksız bölüm girdi → bekleyen SIFIRLANIR (kayıt düşer)
+            # araya farksız bölüm girdi → bekleyen SIFIRLANIR (kayıt düşer).
+            # yama-madde 5a telemetrisi: "olay" anahtarı sözleşme-literal şekil,
+            # "tip" modül geleneği — ikisi de basılır (tüketici hangisini beklerse bulsun).
+            _olay("bekleyen_dustu", olay="bekleyen_dustu", alan=p.get("alan"),
+                  gorulen=list(p.get("gorulen_bolumler") or []))
+            continue
         tuketilen.add(es)
         ay = adaylar[es]
         gorulen = list(p.get("gorulen_bolumler") or [])
@@ -436,27 +505,34 @@ def uygula(master: dict, diff: dict, politika: DiffPolitika = DiffPolitika(),
         s = g["isim"]
         anahtar = next((kad for kad, kk in kg.items()
                         if _isim_eslesir(s, kad, kk.get("yazimlar"))), None)
-        kayit = kg.setdefault(anahtar or s, {"bolumler": [], "yazimlar": {}})
+        # yama-madde 2: YENİ anahtar açılırken rakamlı yazım anahtar OLAMAZ
+        # (rakamsız varyant varsa o; yoksa isim aynen). Mevcut anahtar korunur.
+        if anahtar is None:
+            anahtar = _konuk_anahtari(s)
+        kayit = kg.setdefault(anahtar, {"bolumler": [], "yazimlar": {}})
         kayit["bolumler"] = sorted(set(kayit.get("bolumler") or []) | ({n} if n is not None else set()))
         kayit.setdefault("yazimlar", {})
         kayit["yazimlar"][s] = kayit["yazimlar"].get(s, 0) + 1
 
-    # ---- kural 7: terfi → AKTIF kadroya, sira = mevcut max+1; konuk_gecmisi'nden çıkar
+    # ---- kural 7: terfi → AKTIF kadroya, sira = mevcut max+1; konuk_gecmisi'nden çıkar.
+    # yama-madde 2: kadro anahtarı defter-anahtarı DEĞİL, tanık yazımlarından kanonik_sec
+    # ile seçilir (rakamlı legacy-anahtar kadroya taşınmaz; kb=None BİLİNÇLİ — KB hakem değil).
     for t in diff.get("terfi") or []:
         isim = t["isim"]
         gk = kg.pop(isim, None) or {"bolumler": [], "yazimlar": {}}
         yaz = dict(gk.get("yazimlar") or {})
-        yaz[isim] = yaz.get(isim, 0) + 1  # bu bölümdeki görülme
+        yaz[isim] = yaz.get(isim, 0) + 1  # bu bölümdeki görülme (defter-anahtarı üzerinden)
+        kadro_ad, _ = kanonik_sec({"yazimlar": yaz})
         sira = max([int(o.get("sira") or 0) for o in oyuncular.values()], default=-1) + 1
-        oyuncular[isim] = {
+        oyuncular[kadro_ad] = {
             "yazimlar": yaz,
             "bolumler": sorted(set(t.get("bolumler") or []) | ({n} if n is not None else set())),
             "sira": sira, "kb_teyit": False, "durum": "AKTIF",
             "son_gorulme": n, "ardisik_yok": 0, "ayrilma_bolumu": None}
         m.setdefault("surum_gecmisi", []).append(
-            {"surum": m.get("master_surum"), "olay": "terfi", "isim": isim,
+            {"surum": m.get("master_surum"), "olay": "terfi", "isim": kadro_ad,
              "bolumler": list(t.get("bolumler") or []), "ts": simdi})
-        _olay("terfi", isim=isim, bolumler=list(t.get("bolumler") or []))
+        _olay("terfi", isim=kadro_ad, bolumler=list(t.get("bolumler") or []))
 
     # ---- ZAYIF_UYE 5-bölüm kuralı: kilitten sonraki 5 bölümün >=2'sinde görülmediyse
     # konuk_gecmisi'ne düşer. Konuk defterine YALNIZ pencere görülmeleri taşınır —

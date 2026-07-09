@@ -177,6 +177,28 @@ def kilitle(master: dict, bolumler, simdi: str) -> dict:
     return m
 
 
+def yeniden_tohumla(master: dict, bolumler: list, simdi: str) -> dict:
+    """Format-kopuşu sonrası yeniden-tohum — SAF: kopya döner, girdi mutasyonsuz.
+
+    (dizi_SISTEM.md "PİLOT-ÖNCESİ YAMA SÖZLEŞMESİ" madde 3; kilitle/versiyon_atla kalıbı)
+    durum=BUILDING'e döner; kilit_bolumler + format_kopusu sıfırlanır; sürüm-günlüğüne
+    {"olay":"yeniden_tohum","eski_kilit":...,"hedef_bolumler":...,"ts":...} eklenir.
+    alanlar/oyuncular/teknik_ekip/aday_havuzu/konuk_gecmisi/tanik_kayitlari KORUNUR —
+    tanıklık kaybolmaz; kur_master yeniden koşunca taze gövde zaten üstüne kurulur,
+    koruma denetim-izi içindir. master_surum DEĞİŞMEZ: sürümü yeni kilit basar.
+    """
+    m = copy.deepcopy(master)
+    m.setdefault("surum_gecmisi", []).append(
+        {"olay": "yeniden_tohum",
+         "eski_kilit": list(m.get("kilit_bolumler") or []),
+         "hedef_bolumler": list(bolumler),
+         "ts": simdi})
+    m["durum"] = "BUILDING"
+    m["kilit_bolumler"] = []
+    m["format_kopusu"] = {"ardisik": 0, "ilk_bolum": None}
+    return m
+
+
 def versiyon_atla(master: dict, degisiklik: dict, gecerli_bolum: int, simdi: str) -> dict:
     """Kalıcı-değişim sürüm atlaması — SAF: kopya döner.
 

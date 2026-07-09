@@ -25,6 +25,15 @@ def test_konuk_baslik_varyantlari():
         assert kalan == [], baslik
 
 
+def test_konuk_bolum_konuklari_basligi():
+    # YAMA SÖZLEŞMESİ madde 10: "bolum konuklari" listede — büyük harf,
+    # Türkçe karakter (Ö/Ü/İ/ı) ve kenar-noktalama varyantları fold ile yakalanır
+    for baslik in ("BÖLÜM KONUKLARI", "Bölüm Konukları:", "bölüm konukları"):
+        konuklar, kalan = d.konuk_ayikla([baslik, "ALTAN ALKAN", "OKTAY DENER"])
+        assert konuklar == ["ALTAN ALKAN", "OKTAY DENER"], baslik
+        assert kalan == [], baslik  # başlık satırı parse_credits'e SIZMAZ
+
+
 def test_konuk_blogu_rol_basliginda_kesilir():
     lines = ["KONUK OYUNCULAR", "ALTAN ALKAN", "YÖNETMEN", "SAMET POLAT"]
     konuklar, kalan = d.konuk_ayikla(lines)
