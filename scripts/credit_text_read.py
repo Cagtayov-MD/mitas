@@ -590,6 +590,10 @@ _JUNK_WORDS = {
     # HİÇ okunmamış) _valid_person_name yanlışlıkla True dönüyordu (2 gerçek-token, junk-kontrolsüz).
     # "efekt" (TR "effect" karşılığı — İngilizce "effect/effects" zaten yukarıda vardı, TR eşi eksikti).
     "efekt",
+    # YALNIZ TOM (1992-0484) kökü, 2026-07-07: ham OCR "lst Asst. Director" (garbled "1st Assistant
+    # Director", isimsiz — bu satırda kimse yok) yönetmen-adayı olarak "LST ASST" (2 gerçek-token,
+    # junk-kontrolsüz) çıktı. "asst" eklendi — İngilizce rol-kısaltması, gerçek isim-tokeni DEĞİL.
+    "asst",
 }
 
 
