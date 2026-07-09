@@ -254,6 +254,66 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
     return out
 
 
+def _name_casing_hits(name: str, raw_lines: list[str]) -> tuple[int, int]:
+    """İsmin ham (fold'suz) satırlarda kaç kez TÜMÜ-BÜYÜK-HARF, kaç kez EN-AZ-BİR-KÜÇÜK-HARF
+    biçiminde geçtiğini sayar (word-boundary, fold-toleranslı arama, orijinal casing üzerinde ölçüm)."""
+    toks = [t for t in _fold(name).split() if t]
+    if not toks:
+        return (0, 0)
+    pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b", re.IGNORECASE)
+    caps = mixed = 0
+    for ln in raw_lines:
+        s = str(ln or "")
+        for m in pat.finditer(s):
+            letters = [c for c in m.group(0) if c.isalpha()]
+            if len(letters) < 2:
+                continue
+            if all(c.isupper() for c in letters):
+                caps += 1
+            else:
+                mixed += 1
+    return (caps, mixed)
+
+
+def filter_cast_by_dotleader_casing(cast: list[str], raw_lines: list[str] | None) -> list[str]:
+    """NOKTA-DİZİLİ (dot-leader) KARAKTER/OYUNCU KASA-KAPISI (2026-07-09, LAUREL HARDY kökü).
+
+    Klasik-Hollywood "Karakter......OYUNCU" iki-sütunlu kredi kartlarında ekranda karakter adı
+    Baş-Harfi-Büyük, oyuncu adı TÜMÜ-BÜYÜK basılır ("Tommy White.......JOHN SHELTON"). OneOCR bu
+    satırı bazen TEK parça okur (nokta korunur, sütun belli: "Malcolm Kilgore ... ADDISON
+    RICHARDS") ama çoğu zaman çok-kare mozaikte İKİ AYRI satıra böler ("Tommy White" / "JOHN
+    SHELTON") — sütun-ipucu kaybolunca PROMPT'un "CASING İPUCU" (kural 2a) talimatı, uzun/gürültülü
+    bağlamda küçük modelde güvenilir uygulanmıyor, karakter adı oyuncu sanılabiliyor (kanıt: TOMMY
+    WHITE/DOC LAKE/FRANK LUCAS/DARBY MASON/DIXIE BEELER/MALCOLM KILGORE cast'e sızmış, ham OCR'da
+    HİÇBİRİ tek kez bile ALL-CAPS görülmüyor — hepsi yalnız Title-Case).
+
+    NEGATİF-KAPI (yalnız düşürür, isim EKLEMEZ — OCR-otorite ihlali yok): aday ham satırlarda
+    YALNIZ karışık-kasa (en az bir küçük harf) görülüyorsa, HİÇ ALL-CAPS varyantı yoksa VE aynı
+    cast listesinde başka bir isim ALL-CAPS-kanıtlıysa (= bu filmin kredi kartı casing'i GERÇEKTEN
+    ayırt edici, rastgele OCR-gürültüsü değil) → karakter-adı say, at. Aksi halde (hiç ALL-CAPS-
+    kanıtlı sibling yok = casing bu filmde ayırt edici değil, ör. OCR tüm satırı küçük/karışık
+    okumuş) → DOKUNMA (yanlış>boş, fail-safe). Kill-switch: MITAS_CAST_CASING_GATE=0."""
+    if os.environ.get("MITAS_CAST_CASING_GATE", "1").strip().lower() in ("0", "false", "off", "no"):
+        return cast or []
+    if not cast or len(cast) < 2 or not raw_lines:
+        return cast or []
+    raw = [str(l) for l in raw_lines if str(l).strip()]
+    profiles = {nm: _name_casing_hits(nm, raw) for nm in cast}
+    if not any(caps > 0 for caps, _mixed in profiles.values()):
+        return cast  # bu filmde casing ayırt edici değil — dokunma
+    out, dropped = [], []
+    for nm in cast:
+        caps, mixed = profiles.get(nm, (0, 0))
+        if caps == 0 and mixed > 0:
+            dropped.append(nm)
+        else:
+            out.append(nm)
+    if dropped:
+        sys.stderr.write(
+            f"[kasa-kapisi] karakter-adi dustu (yalniz Title-Case, ALL-CAPS kaniti yok): {dropped}\n")
+    return out
+
+
 # DUBLAJ markerları — HER ZAMAN uygula (dublaj-rolü ASLA film-yönetmeni değil, yüksek-isabet).
 # "dialogue direct/dialogue writ" (doğruluk-denetimi 2026-07-03, TILSIMLI DÜNYA/anime kanıtı):
 # ekranda "Written and Directed by CARL MACEK" (gerçek) YANINDA "Dialogue Written and Directed by
@@ -2026,6 +2086,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
 
     cast_kb = _apply_kb_cast_filter(cast_garble, kb)
     cast_kb = filter_cast_by_raw_context(cast_kb, raw_context_lines)
+    cast_kb = filter_cast_by_dotleader_casing(cast_kb, guard_lines)
     if len(cast_kb) < 3:
         fallback_cast = extract_cast_block_candidates(lines, limit=(99 if dizi else _cap))  # A-fix-canli 2026-06-29: limit [:8] → [:_cap]
         if fallback_cast:
