@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
-"""DETERMINISTIK TEST (2026-07-09) — tek_film_kunye.py İSİM-DÜZEYİ TEYİT SÜZGECİ SINIF-1 fix'i.
+"""DETERMINISTIK TEST (2026-07-09) — tek_film_kunye.py İSİM-DÜZEYİ TEYİT SÜZGECİ SINIF-1 fix'i +
+DÖRDÜNCÜ kapı (cast-bağlamı vetosu, JERICO APARTMANI/"Antonio Wilford" kökü, aynı gece).
 Gerçek DB dosyaları + gerçek fonksiyonlar (_valid_person_name, CreditKB._imdb_people_by_folds,
-_stok_footage_yakinda) üzerinden, tam üretim kapı-sırasıyla KEPT/DROPPED hükmü verir.
+_stok_footage_yakinda, _cast_baglaminda_mi) üzerinden, tam üretim kapı-sırasıyla KEPT/DROPPED hükmü verir.
 KRİTİK: ONDAN UZAKTA/Ernst Kettler regresyon-kalkanı MUTLAKA DROPPED kalmalı.
+NOT (JERICO/"Martin Pollins"): bilinçli olarak test-vakası DIŞINDA bırakıldı — gate2 (CreditKB
+geniş-KB-varlığı, _imdb_people_by_folds) bu adı zaten HİÇ bulamıyor (ayrı/önceden-var bir KB-kapsam
+boşluğu, bu fix'ten TAMAMEN bağımsız) — beklenen="KEPT" yazmak yanıltıcı olurdu (gerçekte DROPPED
+kalıyor ama SEBEBİ gate4 değil gate2). "Ian Steel" ise gate1-3'ü geçtiği için gate4'ün gerçek
+kapı-bağlamlı isimleri YANLIŞLIKLA veto ETMEDİĞİNİ doğrulayan asıl pozitif-kontrol vakasıdır.
 """
 import os
 import sys
@@ -30,14 +36,16 @@ def _load_raw(clip_dirname, ocr_subdir):
 
 
 def gate_verdict(name, fr_txt, dl_txt, kb):
-    """tek_film_kunye.py'nin YENİ else-dalıyla BİREBİR aynı kapı sırası."""
+    """tek_film_kunye.py'nin YENİ else-dalıyla BİREBİR aynı kapı sırası (4 kapı, 2026-07-09)."""
     if not ctr._valid_person_name(name):
         return "DROPPED", "yapisal-gecersiz/garble"
     if not (kb and kb._imdb_people_by_folds([cc.fold(name)])):
         return "DROPPED", "genis KB'de de yok"
     if tfk._stok_footage_yakinda(name, (fr_txt, dl_txt)):
         return "DROPPED", "STOK-FOOTAGE yakininda (ONDAN UZAKTA sinifi)"
-    return "KEPT", "her 3 kapidan gecti"
+    if tfk._cast_baglaminda_mi(name, dl_txt):
+        return "DROPPED", "kadro-listesi karakter-rolu (JERICO APARTMANI sinifi)"
+    return "KEPT", "her 4 kapidan gecti"
 
 
 def main():
@@ -58,6 +66,15 @@ def main():
     # --- KRİTİK REGRESYON-KALKANI: bu MUTLAKA DROPPED kalmali ---
     fr, dl = _load_raw("ONDAN UZAKTA 2006-9175-1-0000-00-1", "ocr-a0f1b3ba")
     vaka.append(("ONDAN UZAKTA", "ERNST KETTLER", fr, dl, "DROPPED"))
+
+    # --- YENİ, 4. KAPI: JERICO APARTMANI/"Antonio Wilford" kökü (2026-07-09) ---
+    # "CAST IN ALPHABETICAL ORDER" listesinde "Director" adli KARAKTERİ oynayan oyuncu — gercek
+    # yonetmen degil. "Ian Steel" gercek "Directors Martin Pollins/Ian Steel" yapim-blogundan
+    # (kadro+stunt bittikten, "...PARTICIPATION OF..." satirindan SONRA) — gate4 onu YANLISLIKLA
+    # veto ETMEMELI (pozitif-kontrol: gate4 asiri-tetiklenmiyor).
+    fr, dl = _load_raw("JERICO APARTMANI 2003-9195-1-0000-00-1", "ocr-ae638012")
+    vaka.append(("JERICO APARTMANI", "ANTONIO WILFORD", fr, dl, "DROPPED"))
+    vaka.append(("JERICO APARTMANI", "IAN STEEL", fr, dl, "KEPT"))
 
     # --- Onceden-kanitli QC2 vakalari (ayni iki kapi, bu kod-yolunda da bozulmamali) ---
     import glob

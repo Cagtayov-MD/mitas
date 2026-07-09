@@ -362,6 +362,45 @@ def _stok_footage_yakinda(name, texts, pencere=6):
     return False
 
 
+_CAST_BASLIK_ANAHTAR = (
+    "CAST IN ALPHABETICAL ORDER", "CAST IN THE ALPHABETICAL ORDER",
+    "CAST IN ORDER OF APPEARANCE", "IN ORDER OF APPEARANCE",
+    "VOICE CAST", "OYUNCULAR", "ROLI ISPOLNYAYUT",
+)
+_YAPIM_KAPANIS_ANAHTAR = ("STUNT PLAYERS", "PARTICIPATION", "PRODUCED BY")
+
+
+def _cast_baglaminda_mi(name, dl_text):
+    """Aday isim, master-dilim ham metninde (K1-PRIMARY, doğru okuma-sıralı — kunye.txt kare-bazlı
+    birleştirme olduğundan sözde-sıra taşımaz, burada KULLANILMAZ) bir CAST/OYUNCULAR kadro-
+    başlığından hemen sonraki karakter-listesi bloğunda mı, yoksa bir yapım-kapanış işaretinden
+    (STUNT PLAYERS/PARTICIPATION/PRODUCED BY: kadro listesinin bittiğini gösteren yapım-bloğu
+    işaretleri) SONRAKİ gerçek prodüksiyon bağlamında mı geçiyor? JERICO APARTMANI/"Antonio Wilford"
+    kökü (2026-07-09): kadro listesinde "Director" adlı bir KARAKTERİ oynayan oyuncu böylece
+    yakalanıp elenir — "DIRECTOR"/"DIRECTORS" kelimesi HER İKİ bağlamda da geçtiği için kendisi
+    ayırt edici DEĞİLDİR, yalnızca KONUM (en yakın önceki işaret kadro mu yapım mı) ayırt eder.
+    Adın TÜM geçişleri yalnız kadro-bağlamında ise (hiçbir geçiş yapım-bağlamında değilse) veto
+    edilir — gerçek bir yapım-bağlamlı geçiş bulunursa (ör. JERICO'daki "Directors Martin Pollins")
+    kurtarma engellenmez."""
+    nf = nn.ascii_fold(name or "").upper()
+    if not nf or not dl_text:
+        return False
+    satirlar = dl_text.split("\n")
+    cast_baglam = yapim_baglam = 0
+    for i, s in enumerate(satirlar):
+        if nf not in s:
+            continue
+        for j in range(i - 1, -1, -1):
+            onceki = satirlar[j]
+            if any(k in onceki for k in _YAPIM_KAPANIS_ANAHTAR):
+                yapim_baglam += 1
+                break
+            if any(k in onceki for k in _CAST_BASLIK_ANAHTAR):
+                cast_baglam += 1
+                break
+    return cast_baglam > 0 and yapim_baglam == 0
+
+
 def main():
     started = time.perf_counter()
     ap = argparse.ArgumentParser(description="Tek klip → temiz v4 künye PDF (uçtan uca)")
@@ -994,6 +1033,14 @@ def main():
                     # aday ham metinde bir "FOOTAGE" bölümünün birkaç satır komşuluğunda geçiyorsa
                     # kurtarılmaz (_stok_footage_yakinda) — o zaman alıntılanan başka bir yapımın
                     # ekibi sayılır. Kill-switch: MITAS_YON_TEYIT_KURTAR=0.
+                    # DÖRDÜNCÜ kapı (2026-07-09, JERICO APARTMANI/"Antonio Wilford" kökü, aynı gece
+                    # KONTROL-loop canlı testinde bulundu): üçüncü kapı yalnız "FOOTAGE" yakınlığına
+                    # bakıyor — "CAST IN ALPHABETICAL ORDER" listesinde "Director" adlı bir KARAKTERİ
+                    # oynayan oyuncu (gerçek yönetmen değil) bu kapıdan geçip yanlışlıkla kurtarılıyordu.
+                    # _cast_baglaminda_mi: adın master-dilimdeki TÜM geçişleri bir kadro-başlığından
+                    # sonraki karakter-listesi bloğundaysa (bir yapım-kapanış işaretinden önce; ör.
+                    # JERICO'nun gerçek "Directors Martin Pollins/Ian Steel" kredisi kadro+stunt
+                    # bloğu bittikten, "...PARTICIPATION OF..." yapım-satırından SONRA gelir) veto eder.
                     _yon_kurtar = []
                     if os.environ.get("MITAS_YON_TEYIT_KURTAR", "1").strip().lower() not in ("0", "false", "off", "no"):
                         try:
@@ -1006,6 +1053,8 @@ def main():
                                     continue          # geniş KB'de de yok → gerçekten "okunamadı"
                                 if _stok_footage_yakinda(_d, (_fr_txt, _dl_txt)):
                                     continue          # ONDAN UZAKTA-sınıfı: alıntılı kaynak-atfı
+                                if _cast_baglaminda_mi(_d, _dl_txt):
+                                    continue          # JERICO APARTMANI-sınıfı: kadro-listesi karakter-rolü
                                 _yon_kurtar.append(_d)
                         except Exception:
                             _yon_kurtar = []
