@@ -585,6 +585,11 @@ _JUNK_WORDS = {
     "ekibi", "amiri", "sefi", "sorumlusu", "operatoru", "koordinator", "kordinator", "muhendis",
     "teknisyen", "asistani", "yardimcisi", "supervisor", "coordinator", "manager", "designer",
     "casting", "editor", "mixer", "gaffer", "grip",
+    # MİRAS (2010-9280) kökü, 2026-07-07: "ÖZEL EFEKT YÖNETMENİ" (Özel Efekt Yönetmeni Sorumlusu)
+    # etiketi kesilip yalnız "OZEL EFEKT" kalınca ("yonetmeni" token'ı zaten JUNK'ta ama bu satırda
+    # HİÇ okunmamış) _valid_person_name yanlışlıkla True dönüyordu (2 gerçek-token, junk-kontrolsüz).
+    # "efekt" (TR "effect" karşılığı — İngilizce "effect/effects" zaten yukarıda vardı, TR eşi eksikti).
+    "efekt",
 }
 
 
