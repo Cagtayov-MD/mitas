@@ -204,10 +204,35 @@ def _save_image(data: bytes, out_path) -> str | None:
         return None
 
 
-def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, year=None, vsig=None) -> bytes | None:
+def _tmdb_cand_has_name(rec: dict, kind: str, key: str, names_norm: list) -> bool:
+    """Başlık-arama adayının KENDİ cast/yönetmen'i (TMDB credits) bilinen isimle kesişiyor mu.
+
+    KADRO-ZORUNLU KAPI (_search()'ün aynısı, id-güvenilir zincirin kör title-search dalına
+    taşındı — 2026-07-09, REKABET/Challengers kökü): id-tabanlı doğrudan lookup (tmdb_id /
+    imdb_id → /find) zaten doğrulanmış kabul edilir ve bu kapıya TABİ DEĞİL; ama o dallar
+    posterless dönüp KÖR başlık-metni aramasına düştüğünde (ör. "REKABET" TMDB'nin kendi arama
+    indeksinde alakasız "Challengers"a AKA-çakışıyor), aday KENDİ kadrosuyla teyit edilmeden
+    kabul edilemez. names_norm boşsa (kadro hiç bilinmiyor) GÜVENSİZ → False."""
+    if not names_norm:
+        return False
+    try:
+        cr = json.loads(_get(f"https://api.themoviedb.org/3/{kind}/{rec.get('id')}/credits?api_key={key}"))
+    except Exception:
+        return False
+    cand = {"s": " ".join(
+        [str(p.get("name") or "") for p in (cr.get("cast") or [])[:10]]
+        + [str(p.get("name") or "") for p in (cr.get("crew") or []) if p.get("job") == "Director"]
+    )}
+    return _cand_has_name(cand, names_norm)
+
+
+def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, year=None, vsig=None,
+                       names_norm=None) -> bytes | None:
     """TMDB API ile afiş çek. MITAS_TMDB/TMDB_API_KEY env yoksa None.
     Sıra: tmdb_id → IMDb id (/find) → başlık araması (orijinal önce, sonra TR; yıl ile daralt).
-    vsig verilirse (C8 MITAS_POSTER_VER_GATE) versiyon-tutarsız adaylar elenir; vsig.active=False → byte-identical."""
+    vsig verilirse (C8 MITAS_POSTER_VER_GATE) versiyon-tutarsız adaylar elenir; vsig.active=False → byte-identical.
+    names_norm verilirse (KADRO-ZORUNLU KAPI) başlık-arama dalındaki adaylar KENDİ kadrosuyla
+    teyit edilmeden kabul edilmez; tmdb_id/imdb_id DOĞRUDAN-lookup dalları (zaten doğrulanmış) etkilenmez."""
     import os
     key = os.environ.get("MITAS_TMDB") or os.environ.get("TMDB_API_KEY")
     if not key:
@@ -258,38 +283,52 @@ def _fetch_tmdb_poster(tmdb_id=None, imdb_id=None, title=None, original=None, ye
                 if year:
                     url += (f"&year={year}" if kind == "movie" else f"&first_air_date_year={year}")
                 res = (json.loads(_get(url)).get("results") or [])
-                # Title-only taramasında: ilk versiyon-uygun adayda kabul et (red → atla)
+                # Title-only taramasında: ilk versiyon-uygun + kadro-teyitli adayda kabul et (red → atla)
                 for rec in res:
-                    if _ver_ok_rec(rec):
+                    if _ver_ok_rec(rec) and _tmdb_cand_has_name(rec, kind, key, names_norm):
                         d = _data(rec.get("poster_path"))
                         if d:
                             return d
-                        break  # versiyon-uygun aday bulundu ama poster yok → sonraki query'ye geç
+                        break  # versiyon+kadro uygun aday bulundu ama poster yok → sonraki query'ye geç
     except Exception:
         return None
     return None
 
 
-def _fetch_omdb_poster(imdb_id=None, title=None, year=None) -> bytes | None:
+def _omdb_cand_has_name(meta: dict, names_norm: list) -> bool:
+    """OMDb başlık-arama (t=) adayının KENDİ Actors/Director alanı bilinen isimle kesişiyor mu.
+    KADRO-ZORUNLU KAPI (i= doğrudan-lookup bu kapıya tabi DEĞİL — zaten kimlik-doğrulanmış)."""
+    if not names_norm:
+        return False
+    cand = {"s": f"{meta.get('Actors') or ''} {meta.get('Director') or ''}"}
+    return _cand_has_name(cand, names_norm)
+
+
+def _fetch_omdb_poster(imdb_id=None, title=None, year=None, names_norm=None) -> bytes | None:
     """OMDb API ile afiş çek (IMDb/Amazon posteri). MITAS_OMDB/OMDB_API_KEY env yoksa None.
-    IMDb id (i=) önce — en güveniliri; sonra başlık (t=) + yıl."""
+    IMDb id (i=) önce — en güveniliri, DOĞRUDAN-lookup (kadro kapısına tabi değil); sonra başlık
+    (t=) + yıl — KÖR metin araması, names_norm verilirse KADRO-ZORUNLU KAPI uygulanır (2026-07-09,
+    REKABET/Challengers kökü ile aynı sınıf açık: id-zinciri posterless düşüp title-search'e
+    kayınca aday kendi kadrosuyla teyit edilmeden kabul edilemez)."""
     import os
     key = os.environ.get("MITAS_OMDB") or os.environ.get("OMDB_API_KEY")
     if not key:
         return None
     urls = []
     if imdb_id:
-        urls.append(f"http://www.omdbapi.com/?i={imdb_id}&apikey={key}")
+        urls.append(("id", f"http://www.omdbapi.com/?i={imdb_id}&apikey={key}"))
     if title:
         u = f"http://www.omdbapi.com/?t={urllib.parse.quote(title)}&apikey={key}"
         if year:
             u += f"&y={year}"
-        urls.append(u)
-    for u in urls:
+        urls.append(("title", u))
+    for kind, u in urls:
         try:
             meta = json.loads(_get(u))
             poster = meta.get("Poster")
             if poster and poster != "N/A":
+                if kind == "title" and not _omdb_cand_has_name(meta, names_norm):
+                    continue
                 data = _get(poster, binary=True)
                 if data and len(data) >= 5000:
                     return data
@@ -382,7 +421,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
     if have_verified_id:
         # (a) TMDB (sadece env'de anahtar varsa) — doğrulanmış id ile
         try:
-            data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year, vsig=vsig)
+            data = _fetch_tmdb_poster(tmdb_id, imdb_id, title, original, year, vsig=vsig, names_norm=names)
             if data:
                 result = _save_image(data, out_path)
                 if result:
@@ -391,7 +430,7 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
             pass
         # (b) OMDb (env anahtarı varsa — IMDb/Amazon posteri) — doğrulanmış imdb_id ile
         try:
-            data = _fetch_omdb_poster(imdb_id, original or title, year)
+            data = _fetch_omdb_poster(imdb_id, original or title, year, names_norm=names)
             if data:
                 result = _save_image(data, out_path)
                 if result:
