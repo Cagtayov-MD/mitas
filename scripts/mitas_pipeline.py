@@ -1498,6 +1498,20 @@ def main(argv=None) -> int:
         print(f"HATA: video yok: {video}")
         return 2
 
+    # === İP-1 (2026-07-11, plan rev.4): PREFLIGHT sağlık kapısı — HARD-FAIL. ===
+    # Geçmişte ollama-deposu boşken 36 film "işlendi" sanıldı (sahte-KONTROL dalgası); bu kapı
+    # o sınıfı koşu BAŞLAMADAN keser. Batch-modda (MITAS_BATCH_MODE=1) ek kural: tracked-ağaç
+    # TEMİZ + tek-writer kilidi, bypass YOK. Tek-film geliştirmede MITAS_PREFLIGHT=0 kaçışı var.
+    import run_manifest as _rm
+    _batch_mode = os.environ.get("MITAS_BATCH_MODE", "").strip() == "1"
+    try:
+        _preflight_info = _rm.run_preflight(batch_mode=_batch_mode)
+    except _rm.PreflightError as exc:
+        print(f"PREFLIGHT-FAIL (koşu başlatılmadı): {exc}")
+        log_event("preflight_fail", summary=str(exc)[:400], module="pipeline",
+                  filename=video.name)
+        return 3
+
     trt, title, prof_from_id, bolum = parse_filename(video)
     original = xml_original(video)              # XML <TITLE> → afiş orijinal ad (yabancı film)
     xml_role_map = xml_roles(video)             # XML rol listeleri → rol aklı ankrajı (yoksa {})
@@ -1549,7 +1563,10 @@ def main(argv=None) -> int:
     (clip_dir / "asr").mkdir(parents=True, exist_ok=True)
     (clip_dir / "pdf").mkdir(parents=True, exist_ok=True)
     dbg.start_trace(clip_dir, clip_id=clip_id, title=title, profile=profile, video=video, trt_id=trt)
-    print(f"[hub] {clip_dir}  profil={profile} trt={trt} baslik={title!r}")
+    # İP-1: koşu kimlik-kartı — "bu sonucu hangi kod/model/ayar üretti" her zaman cevaplı olsun.
+    _manifest = _rm.build_manifest(video, profile, argv, preflight_info=_preflight_info)
+    _rm.write_start(clip_dir, _manifest)
+    print(f"[hub] {clip_dir}  profil={profile} trt={trt} baslik={title!r} run_id={_manifest['run_id']}")
 
     # --- source kopya + clip.json ---
     size = video.stat().st_size
@@ -3368,6 +3385,12 @@ def main(argv=None) -> int:
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)
+    # İP-1: manifest'i kapat (status=karar; best-effort, koşuyu asla bozmaz).
+    _rm.finalize(clip_dir, status=karar,
+                 extra={"teslim": str(dest), "timings": timings,
+                        "ocr_bucket": ocr_bucket, "reasons": reasons})
+    if _batch_mode:
+        _rm.release_writer_lock()
     dbg.finalize_trace(timings=timings, final_status=karar, reasons=reasons,
                        outputs={"hub": str(clip_dir), "teslim": str(dest),
                                 "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"),
