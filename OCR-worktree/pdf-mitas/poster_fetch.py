@@ -451,7 +451,13 @@ def fetch_poster(title: str, out_path, *, original: str | None = None,
 
 def _search(query: str, year=None, names_norm=None, vsig=None):
     """IMDb suggestion → güvenli tek aday. Çok sonuçta: kadro > yıl ile teyit. Yoksa None.
-    vsig verilirse (sekel/versiyon imzası aktif) → versiyon-tutarsız adaylar ELENİR (Karayip 1↔2)."""
+    vsig verilirse (sekel/versiyon imzası aktif) → versiyon-tutarsız adaylar ELENİR (Karayip 1↔2).
+    year verilirse (TRT katalog yılı) → ERA-SANITY tavanı uygulanır (LAUREL HARDY/belgesel-DVD
+    kökü, 2026-07-09): ünlü kişi/ikili adına benzeyen katalog başlıklarında (ör. "LAUREL HARDY")
+    sorgu METNİ zaten o kişinin adı olduğundan, başlık-eşleşmesi VE kadro-kapısı AYNI kişiden türer
+    (bağımsız kanıt değil) → kişi HAKKINDA sonraki-dönem anma/derleme yapımları ("konusu", "oyuncusu"
+    değil) kadro-kapısını yanlışlıkla geçebilir. credit_identity.py'nin ZATEN sevkiyattaki "Yıl AYRAÇ
+    değil, TAVAN" ilkesiyle aynı ölçüt kullanılır."""
     # KADRO-ZORUNLU KAPI (Çağatay 2026-06-14): kadro/crew sinyali HİÇ yoksa başlık-tabanlı eşleşme YAPMA.
     # Boş-kadroda tek-exact başlık körlemesine dönüyordu → "şans ile yürümez": doğrulayacak isim yoksa
     # afiş YOK. AKIL OYUNLARI (boş kadro + "Beautiful Mind" → yanlış Kore dizisi) tam buradan sızmıştı;
@@ -474,6 +480,19 @@ def _search(query: str, year=None, names_norm=None, vsig=None):
         tt = [x for x in tt if _version_ok(vsig, x.get("l"))]
         if not tt:
             return None
+    # ERA-SANITY (2026-07-09, LAUREL HARDY/"Laurel & Hardy: Their Lives and Magic" tt1698531 kökü):
+    # TRT bir filmi kataloglamışsa aday IMDb'nin kendi yıl bilgisiyle (varsa) katalog-yılından >2 yıl
+    # YENİ olamaz — credit_identity.resolve()'daki AYNI "Yıl AYRAÇ değil, TAVAN" ilkesi. year yoksa
+    # (bilinmiyor) veya adayda 'y' yoksa dokunulmaz (fail-open; tek kanıt değil, ek emniyet katmanı).
+    import os
+    _era_gate = os.environ.get("MITAS_POSTER_ERA_GATE", "1").strip().lower() not in ("0", "false", "off", "no")
+    if _era_gate and year:
+        try:
+            _ceil = int(year) + 2
+            tt = [x for x in tt
+                  if not (str(x.get("y") or "").strip().isdigit() and int(x.get("y")) > _ceil)]
+        except (TypeError, ValueError):
+            pass
     cands = [x for x in tt if _norm(x.get("l")) == o]                       # tam başlık
     if not cands and len(o) >= 5:                                          # gevşek (uzun başlık)
         # FIX: o.startswith(imdb_norm) yönünde imdb_norm'un da en az 5 karakter olması şart;
