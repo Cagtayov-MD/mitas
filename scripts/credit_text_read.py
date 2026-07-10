@@ -225,26 +225,117 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
 
     This is a negative gate only: it never adds names. If crew-context sightings dominate
     and there is no explicit cast/starring context, the name is removed.
+
+    2026-07-10 KOMŞU-DIŞLA KAPISI (SANTRAL/"The Operator" kökü, canlı-veri kanıtlı — bkz
+    tests/test_credit_text_read_cast_context.py): yoğun "in order of appearance" listelerinde
+    art arda gelen SATIRLAR farklı cast-adaylarına ait olabilir — pencere geriye-baktığında (i-2..i)
+    KOMŞU bir adayın KENDİ satırını "rol-etiketi" sanabiliyordu. Kanıt: BRION JAMES'in kendi satırı
+    hiç crew-kelimesi taşımıyor, ama hemen-önceki satır JACQUELINE KIM'in kendi kartı olup jenerik
+    "operator" kelimesini içeriyor ("Operator JACQUELINE KIM") — bu, Brion James'in penceresine
+    sızıp onu da crew sayıyordu. Fix: pencere yalnız KENDİ satırını (j==i) VE gerçek çevre-metni
+    içerir — cast listesindeki HERHANGİ bir adayın kendi kredi-satırı (komşu konumdaysa) asla
+    "rol-etiketi" sayılmaz. Negatif-yönlü: isim eklemez, yalnız yanlış-crew-sinyalini azaltır.
+    268-film canlı-taramasında SIFIR regresyon (yalnız 2 ek doğru-kurtarma: BRION JAMES/SANTRAL,
+    MAZHAR ALANSON/HERŞEY ÇOK GÜZEL OLACAK — bkz outputs/CAST_CONTEXT_FIX_20260710/).
+
+    BİLİNÇLİ KAPSAM-DIŞI (2026-07-10): adayın KENDİ satırının crew-kelimesini taşıdığı "kendi-satır
+    çakışması" (SANTRAL'de JACQUELINE KIM — karakter adı bizzat "Operator") bu fix'e DAHİL EDİLMEDİ.
+    İçerik-bazlı dedup (aynı fiziksel kartın tekrar-OCR'lanan okumalarını tek oya indirmek) bu
+    durumu SANTRAL'de düzeltiyordu AMA 268-film taramasında 8 filmde GERÇEK oyuncuları (BILL MURRAY,
+    MARTIN SHORT, MICHAEL WINCOTT, ...) yanlış-crew sayıp düşürdü — çünkü bazı gerçek oyuncuların
+    filmde AYRICA bağımsız/meşru crew-görünümlü ek-satırları da var (BILL MURRAY: kendi oyuncu-satırı
+    + "Assistants to Bill Murray" + "Performed by Bill Murray" — 3 farklı fiziksel yer, ham-tekrar
+    sayısı raw-oran'ı güvenle <0.60 tutuyordu, dedup bu güvenlik payını yok etti). Denenmiş/reddedilmiş
+    alternatifler: içerik-dedup + çoğunluk-oy (Bill Murray'i yine düşürüyor), yakınlık-kümeleme
+    (SANTRAL için gereken eşik Bill Murray'in "Performed by" kümesini de parçalayıp aynı hataya
+    düşüyor). Kök sorun: "kaç kez okundu" tek başına crew/cast ayrımı için güvenilir sinyal değil.
+
+    2026-07-10 BAĞIMSIZ-KANIT KAPISI (ETHAN HAWKE kökü, task_61e2ea2d, canlı-veri kanıtlı — bkz
+    tests/test_credit_crew_leak_gate.py::test_raw_context_gate_drops_crew_names_only): i-2 penceresi
+    (yukarıdaki KABAKÇIĞIN/"Collaborateurs au scénario" fix'i, b6b0ac8a 2026-07-04) 2026-06-19'da
+    yazılmış ÖNCEDEN VAR OLAN bu testi fark edilmeden BOZMUŞTU (o tarihte pencere ±1'di, i-2 hiç
+    reach etmiyordu — regresyon 6 gün fark edilmedi çünkü regresyon_golden.py cast'i test etmiyor,
+    bkz [[project_cast_sessiz_kayip_4mekanizma_20260710]]). Kanıt: crew-etiketi ("1st Assistant Art
+    Director") ETHAN HAWKE'ın 2 satır üstünde, ama ARADAKİ satır ("CAPTAIN AHAB") ne cast listesindeki
+    başka bir adayın satırı NE DE crew-bağlamlı — sadece etiketle hiç ilgisi olmayan bir dolgu satırı.
+    Pencere yine de etikete "reach" edip Ethan Hawke'ı crew sayıyordu.
+
+    Basit çözüm (i-2 reach'i SADECE i-1 "bağlantılıysa" — cast listesindeki başka bir adayın satırıysa
+    VEYA kendisi crew-bağlamlıysa — izin ver) test'i düzeltti AMA 224-film canlı taramasında (delivered
+    cast + ham-OCR, aynı SANTRAL yöntemi) KABAKÇIĞIN'in KENDİ motive edici vakasını (MORGAN NAVARRO,
+    gerçek "Collaborateurs au scénario" ekran-kanıtlı senaryo-ortağı) REGRESE ETTİ: ham OCR'da 13
+    tekrar-okumanın 10'unda etiketle MORGAN NAVARRO arasına komşu "Un film de" kartından taşan bağımsız
+    bir isim (CLAUDE BARRAS, yönetmen — cast adayı DEĞİL, crew-bağlamlı da DEĞİL, salt scroll-OCR
+    kart-geçiş gürültüsü) giriyor — algoritma açısından CAPTAIN AHAB'la AYIRT EDİLEMEZ şekilde aynı
+    şekilli. Basit "i-1 bağlantılı mı" sinyali ARADAKİ satırın kim olduğuna bakıyor, bu yüzden şans
+    eseri (MORGAN NAVARRO'nun eş-yazarı GERMANO ZULLO da yanlışlıkla OYUNCU sınıflanmışsa) çalışıyor,
+    değilse (PIERRE RICHARD'ın eş-senarist ANDRE RUELLAN'ı gibi crew'a hiç sızmamış biriyse) çalışmıyor.
+
+    UYGULANAN ÇÖZÜM — BAĞIMSIZ-KANIT (2-geçişli): i-2 reach'i i-1 bağlantılıysa (yukarıdaki gibi) VEYA
+    bu ADIN KENDİSİNİN ham-bağlamda BAŞKA BİR YERDE (herhangi bir tekrar-okumada) doğrudan ±1 penceresinde
+    ŞÜPHESİZ crew-kanıtı VARSA izin ver. Mantık: MORGAN NAVARRO'nun 13 tekrarının 3'ünde etiket doğrudan
+    i-1'de (gürültüsüz) — bu doğrudan kanıt, adının TÜM tekrarlarına (gürültülü olanlar dahil) güven
+    yayar. ETHAN HAWKE'ın (1 tekrar) ve PIERRE RICHARD'ın (2 tekrar, ikisi de sadece i-2 üzerinden) HİÇBİR
+    doğrudan/gürültüsüz kanıtı yok — sadece komşu bir isim üzerinden ZAYIF çıkarım var, tek başına
+    yetersiz. 224-film taramasında SIFIR regresyon (KABAKÇIĞIN'in MORGAN NAVARRO'su dahil — artık doğru
+    şekilde DÜŞÜYOR); tek kurtarma PIERRE RICHARD (ŞAŞKIN REKLAMCI) — BAĞIMSIZ olarak doğrulandı: ham
+    OCR'da AYRI bir "AVEC / P ERRE / RICHARD" (starring-kart, MARIE CHRISTINE BARRAULT'la birlikte)
+    kanıtı VAR ama mevcut ad-eşleştirme (_name_hit_in_raw tam-satır eşleşmesi) OCR'ın "PIERRE"yi "P ERRE"
+    diye bölmesi yüzünden bunu hiç yakalamıyor (ayrı, bu fix'in kapsamı dışı bir ad-eşleştirme kısıtı) —
+    yani kurtarma yanlışlıkla değil, GERÇEK starring-kanıtı (algoritmanın şu an göremediği) sayesinde
+    doğru sonuca varıyor. Reddedilen alternatifler: (a) sadece i-1-bağlantılı (MORGAN NAVARRO'yu regrese
+    etti), (b) sadece crew-bağlamlı i-1 (aynı regresyon, all_name_idxs şansı da yok), (c) AND-birleşimi
+    (daha kısıtlayıcı, MORGAN NAVARRO'yu düzeltmiyor). Detay: outputs/CAST_CONTEXT_FIX_20260710/ (SANTRAL
+    yöntemi) + bu oturumun ek 224-film taraması (script kalıcı değil, yöntem burada belgeli).
     """
     if not cast or not raw_context_lines:
         return cast or []
     folded = [_fold(x).strip() for x in raw_context_lines]
-    out: list[str] = []
+
+    all_hits: dict[str, set[int]] = {}
     for nm in cast:
         nf = _fold(nm).strip()
-        hit_idxs = [i for i, line in enumerate(folded) if _name_hit_in_raw(nf, line)]
+        all_hits[nm] = {i for i, line in enumerate(folded) if _name_hit_in_raw(nf, line)}
+    # cast listesindeki HERHANGİ bir adayın ham-satır index kümesi (komşu-kirlenme testi).
+    all_name_idxs: set[int] = set().union(*all_hits.values()) if all_hits else set()
+
+    out: list[str] = []
+    for nm in cast:
+        hit_idxs = sorted(all_hits[nm])
         if not hit_idxs:
             out.append(nm)
             continue
+
+        def _win_cast_at(i: int) -> str:
+            return " ".join(folded[j] for j in range(max(0, i - 1), i + 1)
+                             if j == i or j not in all_name_idxs)
+
+        # BAĞIMSIZ-KANIT ön-geçişi: bu ad, ham-bağlamda BAŞKA bir tekrarında gürültüsüz/doğrudan
+        # (±1) crew-kanıtı taşıyor mu? Taşıyorsa i-2 reach'i TÜM tekrarlarına güvenilir (bkz docstring).
+        has_direct_evidence = any(_crew_context(_win_cast_at(i)) for i in hit_idxs)
+
         crew_count = 0
         cast_seen = False
         for i in hit_idxs:
             # cast-bağlamı DAR pencere (±1): gerçek oyuncu yanlışlıkla "cast-görüldü" sayılmasın.
-            win_cast = " ".join(folded[max(0, i - 1): i + 1])
             # crew-bağlamı GENİŞ üst-pencere (i-2..i): çok-satıra bölünen etiket ("Collaborateurs au
             # scénario" isimden 2 satır üstte — KABAKÇIĞIN 2026-07-04) yakalansın. 60%-eşik + cast-öncelik
-            # yanlış-pozitifi dizginler.
-            win_crew = " ".join(folded[max(0, i - 2): i + 1])
+            # yanlış-pozitifi dizginler. KOMŞU-DIŞLA: kendi satırı (j==i) HER ZAMAN kalır; komşu satır
+            # (j<i) cast listesindeki HERHANGİ bir adayın kendi satırıysa pencereden düşer.
+            #
+            # BAĞIMSIZ-KANIT KAPISI: i-2 reach'i yalnız i-1 "bağlantılıysa" (cast listesindeki başka
+            # bir adayın satırı VEYA kendisi crew-bağlamlı) YA DA bu ad başka bir tekrarda doğrudan
+            # kanıt taşıyorsa (has_direct_evidence) açılır — aksi halde etiketle arasına giren, cast
+            # listesiyle ilgisiz bir dolgu satırı (ör. bir karakter adı) i-2'deki etiketi bu ada asla
+            # bağlamaz (ETHAN HAWKE/CAPTAIN AHAB deseni).
+            win_cast = _win_cast_at(i)
+            lo = i - 1
+            if i - 1 >= 0:
+                i1_connected = (i - 1) in all_name_idxs or _crew_context(folded[i - 1])
+                if i1_connected or has_direct_evidence:
+                    lo = i - 2
+            win_crew = " ".join(folded[j] for j in range(max(0, lo), i + 1)
+                                 if j == i or j not in all_name_idxs)
             if _cast_context(win_cast):
                 cast_seen = True
             if _crew_context(win_crew):
@@ -426,6 +517,20 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
             # gerçek yönetmeni düşürüyordu). high_consensus guard zaten temiz+mutabık yönü koruyor.
             _df_re = re.compile(r"\b" + re.escape(df) + r"\b")
             _occ = [i for i, lf in enumerate(folded) if _df_re.search(lf)]
+            # KOMŞU-KART SINIRI (2026-07-10, Sam Raimi/ardışık-tek-satır-kart koku, test_dubbing_director_drop):
+            # dub_ctx ±4-üst-pencere başka bir ADAYIN kendi isim-satırını AŞIP ondan ÖNCEKİ (alakasız)
+            # karta ait dublaj-etiketini yakalıyordu — ör. "...SESLENDİRME YÖNETMENİ / ENGİN AYBAKAN /
+            # YÖNETMEN / Sam Raimi" dizisinde Engin Aybakan'ın ÜSTÜNDEKİ dublaj-etiketi, Engin Aybakan'ın
+            # KENDİ kartını atlayıp Sam Raimi'ye sızıyordu. Diğer adayların kendi isim-satırı kart-sınırı
+            # sayılır; pencere o satırı aşamaz. TILSIMLI DÜNYA (2f9ecdcd) etkilenmez: orada marker
+            # (Snegoff'un "Dialogue..." etiketi) sınır-adayın (Macek) satırından SONRA/kendi kartında kalır.
+            _other_occ = set()
+            for _od in directors:
+                if _od is d:
+                    continue
+                _of = _fold(_od)
+                if _of and len(_of) >= 5:
+                    _other_occ |= {i for i, lf in enumerate(folded) if re.search(r"\b" + re.escape(_of) + r"\b", lf)}
             # GLOBAL-BAĞIŞIKLIK (2026-07-06, KONTROL-MAHKEMESİ FIX-2c — CENNETE GELDİK Mİ kanıtı):
             # adayın HERHANGİ bir geçişinin kendi/2-üst penceresinde GERÇEK-yönetmen etiketi
             # (_TRUE_DIR_RE, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM markerları onu
@@ -448,7 +553,11 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                     # SADECE ÜST-pencere (i-4..i): dublaj etiketi hep isimden ÖNCE gelir; isim-ALTINDAKİ
                     # sonraki kartın "Dialogue" etiketini yakalayıp masum yönetmeni düşürmeyi önler
                     # (TILSIMLI'de Macek'in ALTINDA Snegoff'un dialogue-kartı var → Macek düşmemeli).
-                    dub_ctx = " ".join(folded[max(0, i - 4):i + 1])
+                    _dub_lo = max(0, i - 4)
+                    _blockers = [oi for oi in _other_occ if _dub_lo <= oi < i]
+                    if _blockers:
+                        _dub_lo = max(_blockers) + 1
+                    dub_ctx = " ".join(folded[_dub_lo:i + 1])
                     if any(m in dub_ctx for m in _DUB_MARKERS):
                         is_nf = True
                         break
@@ -514,12 +623,38 @@ def _cast_cap():
         return 10
 
 
+def _llm_cast_ceiling():
+    """PROMPT'a giden OYUNCULAR üst-sınırı — gerçek üretim cap'i (_cast_cap) DEĞİL, ondan kasıtlı
+    daha yüksek bir tavan (2026-07-10, KARAR KİMİN/SANTRAL kökü — Opus canlı-yeniden-üretimle
+    kanıtlandı). KANIT: _reasoning alanında model isimleri doğru 'OYUNCU' diye sınıflandırıyor
+    (ör. KAKI HUNTER/THOMAS CARTER, DREW SNYDER/FRANCES BAY) AMA oyuncular[] dizisi tam
+    _cast_cap() uzunluğunda KESİLİYOR — model PROMPT'taki 'en fazla N' talimatını harfiyen
+    uygulayıp JSON-array'i N'inci isimde durduruyor; Python'un KENDİ sıra-koruyan cast[:_cap]
+    kesimi (aşağıda read_credits_from_text/read_credits_auto) hiç devreye giremiyor çünkü
+    girdi zaten eksik geliyor. Gerçek/ürün cap'i YİNE _cast_cap() ile UYGULANIR (bu fonksiyon
+    yalnız modele daha az erken-durma payı verir; JSON-parse-fail/num_ctx riskini büyütmemek
+    için sabit-büyük değil, cap'e göre ölçekli+sınırlı pay eklenir).
+    2026-07-10 RİSK-DÜZELTMESİ: ilk deneme (+30) KARAR KİMİN'de (~90 satırlık _reasoning,
+    çoğu EKİP-DİĞER) 3 denemeden 1'inde done_reason=length'e (TAM veri kaybı, num_ctx=8192
+    taşması) yol açtı — VE o filmde başarılı denemelerde bile dizi hep AYNI 18 isimde durdu
+    (ekstra pay hiç kullanılmadı, çünkü _reasoning zaten bütçenin çoğunu tüketiyor). Yani
+    büyük pay o filmde SIFIR fayda + ölçülebilir risk getiriyordu. +8'e düşürüldü: BAŞKAN
+    VE MARI/AŞK EVLİLİĞİ tipi 'birkaç aday üst-filtrede düşünce cap[:_cap] yedek bulamıyor'
+    senaryosunu hâlâ karşılar, ama modele çok daha büyük bir hedef vermez."""
+    return _cast_cap() + 8
+
+
 def _prompt(text):
     """PROMPT şablonu + cap enjeksiyonu. 117-film taraması fix#1 (2026-07-03): 2026-06-29 cap-fix
     yalnız post-filtre [:8] kesimlerini düzeltmişti; LLM'e giden TALİMATTAKİ sözel 'en fazla 8'
     aynen kalmıştı → ~28 filmde 9.+ oyuncu daha ÇIKARIM aşamasında hiç üretilmiyordu (ADI CARMEN
-    'avec' bloğunun 3. satırı, LOTR ana kadrosu vb.). Artık talimat da cap ile senkron."""
-    return (PROMPT % text).replace("__CAP__", str(_cast_cap()))
+    'avec' bloğunun 3. satırı, LOTR ana kadrosu vb.). Artık talimat da cap ile senkron.
+    2026-07-10 KRİTİK-DÜZELTME: talimattaki sayı artık _cast_cap() (ürün cap'i) DEĞİL,
+    _llm_cast_ceiling() (+8 paylı — bkz o fonksiyonun docstring'i, ilk +30 denemesi risk
+    taşıdığı için küçültüldü). Gerçek kesim hâlâ _cast_cap() ile Python tarafında,
+    sıra-koruyarak yapılır; bu satır yalnız modelin JSON-array üretimini ürün cap'inde
+    ERKEN durdurmasını önler."""
+    return (PROMPT % text).replace("__CAP__", str(_llm_cast_ceiling()))
 
 
 def _deepseek_json(model, prompt, timeout=120):
@@ -781,12 +916,31 @@ def _sim_ga(a: str, b: str) -> float:
     return 1 - _lev_ga(a, b) / m
 
 
+def _garble_reason_kb_gated(nm: str, kb) -> str | None:
+    """_looks_garble() sinyali + KB güvenlik-valfi (2026-07-10, spawn_task task_73abb131 —
+    SEIGNER~DESIGNER kökü, Mathilde Seigner AŞK EVLİLİĞİ'nde 2 karede tutarlı okunmuş halde
+    fuzzy dala takılıp düşüyordu). SADECE fuzzy Levenshtein dalı ('garbled rol-etiketi (...)':
+    distance<=2, 6+ harfli soyadlarla sık çakışır — KB-çapında census: 976 gerçek oyuncu/oyuncu
+    tam-adı 9 referans kelimeyle çakışıyor) KB'de TAM AYNI ad gerçek oyuncu/oyuncu profiliyle
+    kayıtlıysa None döner (muaf). Diğer iki _looks_garble sinyali (tam-token blocklist, TR
+    fiil-eki) çok daha yüksek-isabetli → dokunulmadı. 296-film arşiv taramasında bu dalın
+    SEIGNER dışındaki TÜM (310/311) çakışması gerçek rol-kelimesi yazım-hatası/çok-dilli
+    varyanttı (KB'de tam-ad eşleşmesi yok) — muafiyet onları etkilemez.
+    _apply_garble_gate'in HEM tekil-isim taramasında HEM near-dup tie-break'inde kullanılır —
+    aksi halde near-dup adımı, tekil-taramada muaf tutulan bir ismi ham _looks_garble sinyaline
+    bakıp geri düşürebilirdi (aynı KB-muafiyeti orada tekrarlanmazsa)."""
+    g = _looks_garble(nm)
+    if g and g.startswith("garbled rol-etiketi") and kb and _kb_has_actor_prof(nm, kb):
+        return None
+    return g
+
+
 def _apply_garble_gate(names: list[str], kb=None) -> list[str]:
     """F3: garble olanı at; garble-varyant near-dup (VAVIZ KARAKAC ≈ YAVUZ KARAKAŞ) → garble'ı at temizi tut."""
     # 1. tek-isim garble taraması
     clean = []
     for nm in names:
-        if _looks_garble(nm) is None:
+        if _garble_reason_kb_gated(nm, kb) is None:
             clean.append(nm)
     # 2. near-dup garble-varyant: sim ∈ [0.6, 0.97), aynı token sayısı, her token benzer ama eşit değil
     out = list(clean)
@@ -810,8 +964,8 @@ def _apply_garble_gate(names: list[str], kb=None) -> list[str]:
             # NOT: '0 <' KOYMA — bir token fold'da eşit olabilir (KARAKAŞ/KARAKAÇ→KARAKAC), diğeri garble.
             if (len(ta) == len(tb) and len(ta) >= 1
                     and all(_lev_ga(x, y) <= max(2, len(x)//2) for x, y in zip(ta, tb))):
-                ga = _looks_garble(clean[i])
-                gb = _looks_garble(clean[j])
+                ga = _garble_reason_kb_gated(clean[i], kb)
+                gb = _garble_reason_kb_gated(clean[j], kb)
                 if ga and not gb:
                     removed.add(i)
                 elif gb and not ga:
