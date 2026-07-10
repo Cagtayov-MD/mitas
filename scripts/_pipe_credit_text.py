@@ -73,11 +73,17 @@ def main():
     ap.add_argument("--profile", default="film")
     a = ap.parse_args()
 
-    out = {"yonetmen": [], "yapimci": [], "cast": [], "guven": "OKUNAMADI"}
+    # İP-2 (2026-07-11): extraction_status default TECHNICAL_FAILURE — yalnız başarılı okuma
+    # OK/ABSTAIN'e yükseltir. Böylece bu script'in "ASLA çökmez" sözleşmesi korunurken teknik-kaza
+    # artık pipeline'a GÖRÜNÜR taşınır (eski davranış: hata alanı yazılır ama kimse okumazdı).
+    out = {"yonetmen": [], "yapimci": [], "cast": [], "guven": "OKUNAMADI",
+           "extraction_status": "TECHNICAL_FAILURE",
+           "extraction_detail": {"reason": "init"}}
     try:
         ocr = a.ocr if (a.ocr and os.path.exists(a.ocr)) else _find_ocr(a.clip)
         if not ocr or not os.path.exists(ocr):
             out["hata"] = "ocr_metni_yok"
+            out["extraction_detail"] = {"reason": "ocr_metni_yok"}
             dbg.emit("credit_text", "stage_completed", status="warn",
                      duration_ms=(time.perf_counter() - started) * 1000,
                      subject={"field": "ocr", "reason": "ocr_metni_yok"},
@@ -106,7 +112,12 @@ def main():
                # taşı (tek_film_kunye:644 → credit_qc_block:791 nonlatin_source gate → KONTROL).
                # Bu alanlar düşerse erken-romanize künye KONTROL'e gitmeden ONAYLI'ya sızar.
                "nonlatin_source": bool(res.get("nonlatin_source")),
-               "translit_method": res.get("translit_method")}
+               "translit_method": res.get("translit_method"),
+               # İP-2: read_credits_auto'nun aggregate durumu AYNEN taşınır (yutma-noktası 3 kapandı).
+               "extraction_status": res.get("extraction_status", "TECHNICAL_FAILURE"),
+               "extraction_detail": res.get("extraction_detail") or {},
+               "degraded": bool(res.get("degraded")),
+               "degraded_reasons": res.get("degraded_reasons") or []}
         dbg.emit("credit_text", "candidate_read",
                  status="ok" if (out.get("yonetmen") or out.get("cast") or out.get("yapimci")) else "warn",
                  duration_ms=(time.perf_counter() - started) * 1000,
@@ -121,6 +132,8 @@ def main():
                          "input_paths": [ocr], "output_paths": []})
     except Exception as e:  # noqa: BLE001
         out["hata"] = f"{type(e).__name__}: {e}"
+        out["extraction_status"] = "TECHNICAL_FAILURE"
+        out["extraction_detail"] = {"reason": "exception", "error": f"{type(e).__name__}: {e}"}
         dbg.emit("credit_text", "stage_completed", status="error",
                  duration_ms=(time.perf_counter() - started) * 1000,
                  subject={"field": "credits", "reason": "credit text extraction failed"},

@@ -278,6 +278,13 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
     if not video_credits:
         return cast, crew
 
+    # İP-2 DEFERANS ÖN-KOŞULU (2026-07-11, plan rev.4 / GPT tur-2 düzeltmesi): teknik-kaza
+    # (length/timeout/parse-fail) BİLİNÇLİ-BOŞ değildir. DEFERANS yalnız OK/ABSTAIN'de uygulanır;
+    # TECHNICAL_FAILURE'da mekanik parser sonucu SİLİNMEZ (dar risk penceresi kapanır: LLM kazası
+    # okunmuş yönetmeni artık PDF'ten düşüremez). Politika (okunamadı>yanlış-oku) AYNEN korunur.
+    if str(video_credits.get("extraction_status") or "").upper() == "TECHNICAL_FAILURE":
+        return cast, crew
+
     if "cast" in video_credits:
         cast = _dedup_nonempty(video_credits.get("cast"))
         if not dizi:

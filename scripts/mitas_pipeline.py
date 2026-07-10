@@ -2449,6 +2449,14 @@ def main(argv=None) -> int:
                       "--ocr", str(kunye_path), "--title", title or "", "--profile", profile]
             rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
+            # İP-2 (2026-07-11): 4. yutma-noktası kapandı — alt-süreç JSON basamadan öldüyse bu da
+            # TEKNİK-KAZADIR (eski davranış: None → sessizce boş-gibi devam). Sözlük boş değilse
+            # extraction_status alanını _pipe_credit_text zaten taşıdı.
+            if not isinstance(video_credits, dict) or not video_credits:
+                video_credits = {"extraction_status": "TECHNICAL_FAILURE",
+                                 "extraction_detail": {"reason": "subprocess_no_json",
+                                                       "rc": rc_vc,
+                                                       "stderr_kuyruk": (err_vc or "")[-400:]}}
             timings["video_kunye"] = round(time.perf_counter() - t_vc, 2)
             dbg.emit("credit_text", "candidate_read",
                      status="ok" if video_credits else "warn",
@@ -3299,6 +3307,15 @@ def main(argv=None) -> int:
         route_info = _r
     except Exception as _rexc:  # noqa: BLE001 — FAIL-SAFE: router hatası → ESKİ karar geçerli kalır
         route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
+    # ── İP-2 (2026-07-11, plan rev.4): TEKNİK-ARIZA İNSAN KAPISINI ATLAYAMAZ ──────────────────
+    # extraction TECHNICAL_FAILURE olan koşu ASLA Hazır/ONAYLI'ya gidemez — kaza "film boşmuş"
+    # diye arşive mühürlenemez. (Şartname "teslim üretilmez" der; v1 bilinçli-sapma: PDF üretilir
+    # ama KONTROL'e düşer + TECH_RETRY kodu. Tam teslim-atlaması İP-7 retry-kuyruğuyla gelir.)
+    _ext_st = (str(video_credits.get("extraction_status") or "").upper()
+               if isinstance(video_credits, dict) else "")
+    if _ext_st == "TECHNICAL_FAILURE" and karar == "Hazır":
+        karar, dest_root = "Kontrol", KONTROL
+        reasons.append("TEKNIK_ARIZA: LLM-extraction TECHNICAL_FAILURE (TECH_RETRY adayı)")
     # ── ÖZEL-TÜR YÖNLENDİRME (Çağatay 2026-06-21): müzikal/belgesel/animasyon AYRI klasörde toplanır
     #    (ONAYLI/KONTROL'e DEĞİL). Erken sinyal (XML/profil) VEYA final TÜR (KB/IMDb) — biri yeterli
     #    ("her türlü sağla"). Tam künye üretildi; yalnız hedef klasör değişir, teslim akışı aynı kalır.
@@ -3382,6 +3399,12 @@ def main(argv=None) -> int:
                                if isinstance(video_credits, dict) else None),
         "vl_yon_cast_dropped": (video_credits.get("vl_yon_cast_dropped")
                                 if isinstance(video_credits, dict) else None),
+        # İP-2 (2026-07-11): extraction sözleşmesi _DURUM'da görünür — "teknik-kaza mı, meşru-boş mu"
+        # sorusunun kalıcı veri-tabanı (TECH_RETRY worklist'i ve İP-4 reason-code'ları buradan beslenir).
+        "extraction_status": (video_credits.get("extraction_status")
+                              if isinstance(video_credits, dict) else None),
+        "extraction_detail": (video_credits.get("extraction_detail")
+                              if isinstance(video_credits, dict) else None),
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)

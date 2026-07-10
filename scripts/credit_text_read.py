@@ -687,8 +687,18 @@ def _ollama_timeout(default=360) -> int:
         return default
 
 
-def _ollama_json(model, prompt, schema, timeout=None):
+def _ollama_json_ex(model, prompt, schema, timeout=None):
+    """İP-2 (2026-07-11, plan rev.4 — extraction_status sözleşmesi, 4-yutma-noktasının 1.'si):
+    _ollama_json'un DURUM-TAŞIYAN sürümü. Döner: (data, meta).
+      meta = {"status": "ok"|"technical_failure",
+              "reason": None | "length" | "timeout" | "http" | "invalid_json",
+              "done_reason", "prompt_eval_count", "eval_count", "model", "error"?}
+    SÖZLEŞME: teknik-kaza (length/timeout/HTTP/parse-fail) ile "model bilinçli boş döndü"
+    bir daha AYNI görünmez — KARAR KİMİN sınıfı sessiz veri-kaybının kökü buydu.
+    Eski çağıranlar için _ollama_json sarmalayıcısı korunur (yalnız data döner)."""
     timeout = _ollama_timeout() if timeout is None else timeout
+    meta = {"status": "technical_failure", "reason": None, "done_reason": None,
+            "prompt_eval_count": None, "eval_count": None, "model": model}
     payload = {
         "model": model, "prompt": prompt, "format": schema, "stream": False,
         "options": {"temperature": 0, "num_ctx": 8192},
@@ -706,31 +716,50 @@ def _ollama_json(model, prompt, schema, timeout=None):
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(OLLAMA + "/api/generate", data=body,
                                  headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        resp = json.loads(r.read().decode("utf-8"))
-    txt = resp.get("response", "")
     try:
-        return json.loads(txt)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            resp = json.loads(r.read().decode("utf-8"))
+    except Exception as exc:  # timeout / bağlantı / HTTP hatası → TEKNİK-KAZA (bilinçli-boş DEĞİL)
+        meta["reason"] = "timeout" if "timed out" in str(exc).lower() else "http"
+        meta["error"] = f"{type(exc).__name__}: {exc}"
+        sys.stderr.write(f"[ollama-json] TEKNIK-KAZA: {model} {meta['reason']}: {exc}\n")
+        return {}, meta
+    txt = resp.get("response", "")
+    meta["done_reason"] = resp.get("done_reason")
+    meta["prompt_eval_count"] = resp.get("prompt_eval_count")
+    meta["eval_count"] = resp.get("eval_count")
+    try:
+        data = json.loads(txt)
+        meta["status"] = "ok"
+        return data, meta
     except Exception:
         i = txt.find("{")
         if i >= 0:
             try:
-                return json.JSONDecoder().raw_decode(txt[i:])[0]
+                data = json.JSONDecoder().raw_decode(txt[i:])[0]
+                meta["status"] = "ok"
+                return data, meta
             except Exception:
                 pass
-    # KRİTİK BULGU #4 (2026-07-09, run-to-run sessiz veri-kaybı köknedeni, Opus canlı-yeniden-üretimle
-    # kanıtlandı): done_reason=="length" → num_ctx (8192) prompt+yanıta yetmedi, model şema alanlarına
-    # (_reasoning önce geldiği için) hiç ulaşmadan kesildi → JSON parse-fail. ÖNCESİ burada SESSİZCE {}
-    # dönüyordu; çağıran taraf boş/rescue-uydurma davranıyordu ve bu GÜNLERCE fark edilmedi (TOM SAWYER,
-    # BEYAZ AVUÇLAR). Şimdi stderr'e uyarı — davranış/dönüş DEĞİŞMEDİ (hâlâ {} döner), yalnız artık
-    # render log'unda görünür. Kalıcı fix (num_ctx büyütme) VRAM-baskısı altında test edilmeden
-    # uygulanmadı (bkz project_clip_sessiz_veri_kaybi_kokneden_20260709.md) — bu yalnız gözlemlenebilirlik.
+    # KRİTİK BULGU #4 (2026-07-09) → İP-2 (2026-07-11) ile KAPANDI: done_reason=="length" → num_ctx
+    # prompt+yanıta yetmedi (KARAR KİMİN: _reasoning şema-önceliği bütçeyi yedi), JSON parse-fail.
+    # ESKİ davranış: sessizce {} → çağıran boş/rescue sanıyordu (TOM SAWYER, BEYAZ AVUÇLAR — günlerce
+    # fark edilmedi). YENİ: meta.status=technical_failure + reason=length/invalid_json TAŞINIR;
+    # read_credits_auto → _pipe_credit_text → mitas_pipeline zinciri bunu görür (Hazır'a ASLA gidemez).
+    meta["reason"] = "length" if resp.get("done_reason") == "length" else "invalid_json"
     sys.stderr.write(
-        f"[ollama-json] UYARI: {model} JSON-parse basarisiz (done_reason={resp.get('done_reason')!r}, "
-        f"prompt~{len(prompt) if isinstance(prompt, str) else '?'} char, yanit~{len(txt)} char) "
-        f"-> {{}} donuyor (cagiran taraf bos/rescue davranir)\n"
+        f"[ollama-json] TEKNIK-KAZA: {model} JSON-parse basarisiz (reason={meta['reason']}, "
+        f"done_reason={resp.get('done_reason')!r}, prompt~{len(prompt) if isinstance(prompt, str) else '?'} char, "
+        f"yanit~{len(txt)} char, prompt_eval={meta['prompt_eval_count']}, eval={meta['eval_count']})\n"
     )
-    return {}
+    return {}, meta
+
+
+def _ollama_json(model, prompt, schema, timeout=None):
+    """Geri-uyum sarmalayıcısı (romanizasyon vb. eski çağıranlar): yalnız data döner.
+    YENİ kod _ollama_json_ex kullanmalı — durum bilgisi burada KAYBOLUR (bilinçli, dar kapsam)."""
+    data, _meta = _ollama_json_ex(model, prompt, schema, timeout=timeout)
+    return data
 
 
 # ─── LATIN-DIŞI LLM ROMANİZASYON (2026-06-22, NAMUS DÜŞMANI) ─────────────────────────────────
@@ -2141,6 +2170,11 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 "guven": "OKUNDU (cast-block fallback; qwen atlandı)",
                 "nonlatin_source": nonlatin_source,
                 "translit_method": translit_method,
+                # İP-2: LLM hiç koşmadı ama deterministik blok-okuma GEÇERLİ bir okumadır → OK.
+                "extraction_status": "OK",
+                "extraction_detail": {"mode": "cast_block_fast"},
+                "degraded": False,
+                "degraded_reasons": [],
             }
 
     per_model_yon: dict[str, list[str]] = {}
@@ -2148,15 +2182,25 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     all_cast: list[str] = []
     all_yap: list[str] = []
     any_success = False
+    # İP-2 (2026-07-11): model-başına teknik-durum — aggregate extraction_status'un veri-tabanı.
+    model_meta: dict[str, dict] = {}
 
     for m in chain:
         try:
             if str(m).startswith("deepseek"):
                 raw = _deepseek_json(m, _prompt(text))
+                model_meta[m] = {"status": "ok", "model": m}
             else:
-                raw = _ollama_json(m, _prompt(text), SCHEMA)
+                raw, _meta = _ollama_json_ex(m, _prompt(text), SCHEMA)
+                model_meta[m] = _meta
+                if _meta.get("status") != "ok":
+                    per_model_yon[m] = []
+                    per_model_cast[m] = []
+                    continue
         except Exception as e:
             sys.stderr.write(f"[credit_text_read] {m} hata: {type(e).__name__}: {e}\n")
+            model_meta[m] = {"status": "technical_failure", "reason": "http",
+                             "error": f"{type(e).__name__}: {e}", "model": m}
             per_model_yon[m] = []
             per_model_cast[m] = []
             continue
@@ -2297,13 +2341,37 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     # (rescue/okunamadı/düşük) yönetmene süzgeç AYNEN kalır (junk-freni; 'PRODUIT ET' vb. sızmaz).
     _yon_kb_teyitli = bool(yon_fused) and any(
         _k in guven_yon for _k in ("mutabakat", "KB-onay", "kanonik", "çift-imza"))
+    _final_yon = (yon_fused if _yon_kb_teyitli else _only_persons(yon_fused))
+    _final_yap = _only_persons(yap_kb)
+    _final_cast = _only_persons(cast_kb)
+    # ── İP-2 (2026-07-11): extraction_status aggregate — PRECEDENCE (şartname):
+    #   ≥1 model geçerli-JSON + alanlar dolu → OK
+    #   ≥1 model geçerli-JSON + üç alan da boş → ABSTAIN (bilinçli-boş; DEFERANS uygulanabilir)
+    #   HİÇ geçerli-JSON yok → TECHNICAL_FAILURE (rescue dolu olsa bile MASKELENMEZ — rescue kanıt
+    #   olarak korunur ama koşu insan-kapısını atlayamaz). Romanizasyon unidecode-fallback = DEGRADED.
+    _ok_models = [m for m, mt in model_meta.items() if mt.get("status") == "ok"]
+    if _ok_models:
+        extraction_status = "OK" if (_final_yon or _final_yap or _final_cast) else "ABSTAIN"
+    else:
+        extraction_status = "TECHNICAL_FAILURE"
+    _degraded_reasons = []
+    if nonlatin_source and translit_method and not str(translit_method).startswith("llm:"):
+        _degraded_reasons.append("romanize_unidecode_fallback")
     return {
-        "yonetmen": (yon_fused if _yon_kb_teyitli else _only_persons(yon_fused)),
-        "yapimci": _only_persons(yap_kb),
-        "cast": _only_persons(cast_kb),
+        "yonetmen": _final_yon,
+        "yapimci": _final_yap,
+        "cast": _final_cast,
         "guven": guven,
         "nonlatin_source": nonlatin_source,
         "translit_method": translit_method,
+        "extraction_status": extraction_status,
+        "extraction_detail": {
+            "models": model_meta,
+            "ok_models": _ok_models,
+            "rescue_filled": bool(_final_yon) and not _ok_models,
+        },
+        "degraded": bool(_degraded_reasons),
+        "degraded_reasons": _degraded_reasons,
     }
 
 
