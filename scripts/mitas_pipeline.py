@@ -300,6 +300,58 @@ def _read_json_safe(p: Path):
         return None
 
 
+def _credit_validate_strong_director(cv_result: dict) -> bool:
+    if not isinstance(cv_result, dict):
+        return False
+    yd = cv_result.get("yonetmen") or {}
+    if yd.get("status") != "DOGRULANDI" or yd.get("confidence") != "KESIN" or not yd.get("value"):
+        return False
+    sources = {str(s).strip().lower() for s in (yd.get("sources_confirm") or []) if str(s).strip()}
+    if not ("xml" in sources and ({"imdb", "wiki", "wikidata"} & sources)):
+        return False
+    kaynaklar = cv_result.get("kaynaklar") or {}
+    return bool(((kaynaklar.get("imdb") or {}).get("key"))
+                or ((kaynaklar.get("wiki") or {}).get("key")))
+
+
+def _ocr_bucket_can_be_warning(ocr_bucket: str, v4_report: dict) -> bool:
+    """Ham OCR GOZDEN_GECIR iken final künye kapıları temizse bucket'ı karar sebebi yapma."""
+    if str(ocr_bucket or "").strip() != "GOZDEN_GECIR" or not isinstance(v4_report, dict):
+        return False
+    v4 = v4_report.get("v4") or {}
+    adimlar = v4_report.get("adimlar") or {}
+    cc4 = adimlar.get("cross_check") or {}
+    qcb = adimlar.get("qc_block") or {}
+    audit = v4.get("qc_block_otorite_audit") or qcb.get("otorite_audit") or {}
+
+    locked = bool(cc4.get("kimlik_dogru")) or cc4.get("verdict") == "TEYİT" or ((cc4.get("cast_ortusme") or 0) >= 3)
+    if not locked:
+        return False
+    if not (v4.get("yonetmen") or v4.get("yonetmen_list")):
+        return False
+    if (v4.get("cast") or len(v4.get("cast_list") or [])) < 3:
+        return False
+    floor = v4.get("qc_block_floor") or qcb.get("floor") or {}
+    if floor and floor.get("kabul") is False:
+        return False
+    if cc4.get("cast_garble") or v4.get("yon_garble_lex") or (v4.get("cast_garble_lex_count") or 0) > 0:
+        return False
+    if isinstance(audit, dict) and audit.get("ocr_authority_violation") is True:
+        return False
+
+    hard_markers = (
+        "kimlik kurulamadı", "zayıf-teyit", "Latin-dışı", "oyuncu yetersiz",
+        "oyuncu yok", "garble", "yönetmen okunamadı",
+    )
+    for g in (v4.get("qc_block_gerekceler") or qcb.get("gerekceler") or []):
+        gs = str(g)
+        if "özet yok/kısa" in gs:
+            continue
+        if any(m in gs for m in hard_markers):
+            return False
+    return True
+
+
 def _fmt_mb(b) -> str:
     try:
         return f"{int(b) / (1024 * 1024):.1f} MB"
@@ -2583,6 +2635,19 @@ def main(argv=None) -> int:
             if _new_dir:
                 _old_dir = video_credits.get("yonetmen")
                 video_credits["yonetmen"] = _new_dir
+                video_credits["_director_validation"] = {
+                    "value": _new_dir,
+                    "status": _cvd_fix.get("status"),
+                    "confidence": _cvd_fix.get("confidence"),
+                    "sources_confirm": _cvd_fix.get("sources_confirm") or [],
+                    "imdb_id": (((cv_result.get("kaynaklar") or {}).get("imdb") or {}).get("key")
+                                if isinstance(cv_result, dict) else None),
+                }
+                if _credit_validate_strong_director(cv_result):
+                    if video_credits.get("_qc1_failed"):
+                        video_credits["_qc1_failed_overridden_by_credit_validate"] = True
+                    video_credits["_qc1_failed"] = False
+                    video_credits["_credit_validate_strong_director"] = True
                 dbg.emit("credit_validate", "candidate_changed",
                          subject={"field": "yonetmen", "before": _old_dir, "after": _new_dir,
                                   "reason": "C2-fix: KB-confirmed canonical director backfill"},
@@ -2877,7 +2942,9 @@ def main(argv=None) -> int:
     # C1 FIX (2026-06-20): QC1 çift-katman RED (OneOCR→35b→VL ikisi de QC1'i geçemedi → _qc1_failed işareti
     # ~1652'de set ediliyordu ama HİÇBİR YERDE okunmuyordu = ölü-kablo). En kötü-kalite künye; v4 KB-fill
     # yanlış-kimlikten yön doldurursa diğer kapılar maskelenip sessizce ONAYLI olabiliyordu → KONTROL'e bağla.
-    if isinstance(video_credits, dict) and video_credits.get("_qc1_failed"):
+    _cv_strong_director = _credit_validate_strong_director(cv_result) if cv_result else bool(
+        isinstance(video_credits, dict) and video_credits.get("_credit_validate_strong_director"))
+    if isinstance(video_credits, dict) and video_credits.get("_qc1_failed") and not _cv_strong_director:
         reasons.append("QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)")
     # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
     # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
@@ -2939,7 +3006,7 @@ def main(argv=None) -> int:
                 _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
                 _qc2_resolved = str(_cc4.get("yonetmen_kaynak", "")).startswith("QC2")
                 if (_cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False) \
-                        and not (_qc2_on and _qc2_resolved):
+                        and not (_qc2_on and _qc2_resolved) and not _cv_strong_director:
                     reasons.append("kimlik çelişkisi (KB cross-check)")
                 # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
                 # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
@@ -2997,6 +3064,13 @@ def main(argv=None) -> int:
                         reasons.append("XML-PDF cast kesişimi 0 (yanlış-film şüphesi)")
     except Exception:  # noqa: BLE001 — parse hatası kararı bozmasın
         pass
+    _ocr_bucket_reason = f"OCR bucket={ocr_bucket}"
+    if _ocr_bucket_reason in reasons and _ocr_bucket_can_be_warning(ocr_bucket, _v4j):
+        reasons = [r for r in reasons if r != _ocr_bucket_reason]
+        qwen_uyari.append(
+            "OCR bucket=GOZDEN_GECIR bastırıldı: final v4 kimlik/künye temiz "
+            "(karar-etkisiz, ham OCR görünürlük)"
+        )
     # B-3 qwen-QC kalibrasyonu: afiş + büyük-harf qwen sinyalleri KIRILGAN (VLM yanılır; üstelik
     # büyük-harf zaten deterministik tr_upper/ozet_v4, afiş poster_fetch ile garanti) → bu İKİ sinyal
     # Kontrol TETİKLEMEZ, yalnız qwen_uyari'ya (log/QC görünürlüğü) yazılır. Diğer 5 sinyal reasons'ta KALIR.

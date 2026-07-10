@@ -494,6 +494,30 @@ def _cast_cap():
     except Exception:                      # noqa: BLE001
         return 10
 
+
+def _strong_external_director_validation(validation, temiz_yon):
+    if not isinstance(validation, dict) or not temiz_yon:
+        return False
+    if validation.get("status") != "DOGRULANDI" or validation.get("confidence") != "KESIN":
+        return False
+    sources = {str(s).strip().lower() for s in (validation.get("sources_confirm") or []) if str(s).strip()}
+    if not ("xml" in sources and ({"imdb", "wiki", "wikidata"} & sources)):
+        return False
+    if not (validation.get("imdb_id") or validation.get("tmdb_id") or validation.get("wikidata_id")):
+        return False
+    vals = validation.get("value") or []
+    if isinstance(vals, str):
+        vals = [vals]
+    vals = [str(v).strip() for v in vals if str(v).strip()]
+    if not vals:
+        return False
+    for got in temiz_yon:
+        for val in vals:
+            if _fold(got) == _fold(val) or cc.name_match(got, val):
+                return True
+    return False
+
+
 # Karar tip önceliği (küçük = daha temel; credit_severity_router ile aynı).
 _TIP_ONCELIK = {"YONETMEN": 1, "KIMLIK": 2, "CAST": 3, "OZET": 4, "RENDER": 5}
 
@@ -505,6 +529,7 @@ def qc_credit_block(
     raw_context_lines=None, require_producer=False,
     raw_names_groundtruth=None,
     nonlatin_source=False,
+    director_validation=None,
 ):
     """Birleşik künye QC: temizle + OCR-okunan isimleri düzelt + karar ver.
 
@@ -703,6 +728,20 @@ def qc_credit_block(
                 iz.append({"alan": "yonetmen", "kaynak": "kb-fill(kimlik-kilitli)", "isim": yon[0]})
         # else: OCR var + (kilit yok/KB yok) → OCR AYNEN
 
+        if method == "director-anchor-weak" and _strong_external_director_validation(director_validation, yon):
+            _validated_imdb_id = (director_validation or {}).get("imdb_id") or None
+            _validated_tmdb_id = (director_validation or {}).get("tmdb_id") or tmdb_id
+            if _validated_imdb_id and imdb_id and imdb_id != _validated_imdb_id:
+                otoriter_cast = []
+            method = "director-validated"
+            imdb_id = _validated_imdb_id or imdb_id
+            tmdb_id = _validated_tmdb_id
+            iz.append({"adim": "director_validation",
+                       "kaynak": "credit_validate",
+                       "sources": (director_validation or {}).get("sources_confirm") or [],
+                       "yon": _upper_names(yon)[:3],
+                       "imdb_id": imdb_id})
+
         # ── S5: CAST yazım-düzeltme (OCR-otorite; eşleşen → KB-kanonik/KB-latin, eşleşmeyen → OCR) ──
         # GÖZLEM (FIX-D, 2026-06-23): fuzzy-only ezmeleri (se=None ama es=name_close/window) kaydedilir;
         # karar/davranış DEĞİŞMEZ — yalnız _s5_form_snaps biriktirir (otorite_audit.s5_form_overwrites).
@@ -787,7 +826,6 @@ def qc_credit_block(
         temiz_cast = _upper_names(cast)
         temiz_yon = _upper_names(yon)
         temiz_yap = _upper_names(yap)
-
         # ── S10: ÖZET + AFİŞ kapıları ──
         cased_ozet, ozet_kelime = _ozet_gate(ozet, ham_isimler)
         afis_ok = poster_ok(afis_yolu)

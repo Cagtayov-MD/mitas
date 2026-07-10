@@ -242,6 +242,88 @@ def test_not_locked_goes_kontrol_kimlik():
     assert any("ali veli" == f for f in folds)
 
 
+def test_director_anchor_weak_external_validation_relaxes_kimlik():
+    """director-anchor-weak alone stays human-review; XML+IMDb exact validation makes it safe."""
+    old_anchor = q._director_anchor_lock
+    try:
+        q._director_anchor_lock = lambda kb, yon, cast, title, original, year: {
+            "director": ["Carlos Saldanha"],
+            "cast": [],
+            "imdb_id": "tt1609486",
+            "tier": "weak",
+            "kanit": "unit",
+        }
+        kb = FakeKB(verdict="KAYNAK_YOK", oyon=[], ocast=[], cast_ov=0, imdb_id=None)
+        cast = [
+            "Maria Peyramaure", "Susana Ballesteros", "Adrian Gonzalez", "Carter Sand",
+            "Bernardo De Paula", "Susana G. Esteban", "James M. Palumbo", "Jack Gore",
+        ]
+
+        weak = q.qc_credit_block(["Carlos Saldanha"], cast, [], title="FERDINAND",
+                                 year=2025, ozet=_ozet(), kb=kb)
+        assert weak["kimlik"]["method"] == "director-anchor-weak"
+        assert any("zayıf-teyit" in g for g in weak["gerekceler"])
+        assert weak["karar"] == "KONTROL"
+
+        strong = q.qc_credit_block(
+            ["Carlos Saldanha"], cast, [], title="FERDINAND", year=2025,
+            ozet=_ozet(), kb=kb,
+            director_validation={
+                "value": ["CARLOS SALDANHA"],
+                "status": "DOGRULANDI",
+                "confidence": "KESIN",
+                "sources_confirm": ["IMDb", "XML"],
+                "imdb_id": "tt3411444",
+            },
+        )
+        assert strong["kimlik"]["method"] == "director-validated"
+        assert strong["kimlik"]["imdb_id"] == "tt3411444"
+        assert not any("zayıf-teyit" in g or "kimlik kurulamadı" in g for g in strong["gerekceler"])
+        assert strong["karar"] != "KONTROL"
+        assert any(e.get("adim") == "director_validation" for e in strong["kaynak_izi"])
+    finally:
+        q._director_anchor_lock = old_anchor
+
+
+def test_person_gate_drops_role_heading_without_suffix_truncation(monkeypatch):
+    import tek_film_kunye as tk
+    monkeypatch.setattr(tk, "_GLOBAL_PERSON_GATE_ON", True)
+
+    class GateKB:
+        imdb = True
+        wd = None
+
+        def global_person_match(self, name, role=None, max_edits=1):
+            if name == "BERNARDO DE PAULA":
+                return {"name": "BERNARDO DE PAULA", "distance": 0, "source": "global"}
+            return None
+
+    kept, report = tk._gate_role_names(
+        ["ADDITIONAL VOICES", "BERNARDO DE PAULA", "UNKNOWN PREFIX BERNARDO DE PAULA"],
+        "cast",
+        xml_roles={},
+        film_pool=[],
+        kb=GateKB(),
+    )
+    assert "ADDITIONAL VOICES" not in kept
+    assert "BERNARDO DE PAULA" in kept
+    assert "DE PAULA" not in kept
+    assert any(x["in"] == "UNKNOWN PREFIX BERNARDO DE PAULA" and x["out"] == "BERNARDO DE PAULA"
+               for x in report["kept"])
+
+
+def test_existing_poster_fallback_uses_pdf_afis(tmp_path):
+    import tek_film_kunye as tk
+    from PIL import Image
+
+    pdf_dir = tmp_path / "pdf"
+    pdf_dir.mkdir()
+    poster = pdf_dir / "afis.jpg"
+    Image.new("RGB", (600, 900), "red").save(poster, quality=95)
+
+    assert tk._existing_poster_fallback(str(tmp_path)) == str(poster)
+
+
 def test_invariant_no_ocr_added_when_unlocked():
     """Kilit yokken de varken de KB sıfırdan cast eklemez."""
     kb = FakeKB(verdict="KAYNAK_YOK", oyon=[], ocast=[], cast_ov=0, imdb_id=None)
