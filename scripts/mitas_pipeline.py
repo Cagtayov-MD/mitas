@@ -2458,6 +2458,14 @@ def main(argv=None) -> int:
                                                        "rc": rc_vc,
                                                        "stderr_kuyruk": (err_vc or "")[-400:]}}
             timings["video_kunye"] = round(time.perf_counter() - t_vc, 2)
+            # İP-3 (2026-07-11): extraction telemetrisi — num_ctx clamp-formülünün gelecekteki
+            # veri-tabanı (prompt_eval/eval sayaçları model-başına; run_id ile manifest'e bağlı).
+            _rm.append_telemetry({
+                "run_id": _manifest.get("run_id"), "trt": trt, "title": title,
+                "extraction_status": video_credits.get("extraction_status"),
+                "models": (video_credits.get("extraction_detail") or {}).get("models"),
+                "degraded": video_credits.get("degraded"),
+            })
             dbg.emit("credit_text", "candidate_read",
                      status="ok" if video_credits else "warn",
                      duration_ms=timings["video_kunye"] * 1000,
@@ -3411,7 +3419,9 @@ def main(argv=None) -> int:
     # İP-1: manifest'i kapat (status=karar; best-effort, koşuyu asla bozmaz).
     _rm.finalize(clip_dir, status=karar,
                  extra={"teslim": str(dest), "timings": timings,
-                        "ocr_bucket": ocr_bucket, "reasons": reasons})
+                        "ocr_bucket": ocr_bucket, "reasons": reasons,
+                        "extraction_status": (video_credits.get("extraction_status")
+                                              if isinstance(video_credits, dict) else None)})
     if _batch_mode:
         _rm.release_writer_lock()
     dbg.finalize_trace(timings=timings, final_status=karar, reasons=reasons,

@@ -687,7 +687,7 @@ def _ollama_timeout(default=360) -> int:
         return default
 
 
-def _ollama_json_ex(model, prompt, schema, timeout=None):
+def _ollama_json_ex(model, prompt, schema, timeout=None, num_ctx=None):
     """İP-2 (2026-07-11, plan rev.4 — extraction_status sözleşmesi, 4-yutma-noktasının 1.'si):
     _ollama_json'un DURUM-TAŞIYAN sürümü. Döner: (data, meta).
       meta = {"status": "ok"|"technical_failure",
@@ -699,9 +699,23 @@ def _ollama_json_ex(model, prompt, schema, timeout=None):
     timeout = _ollama_timeout() if timeout is None else timeout
     meta = {"status": "technical_failure", "reason": None, "done_reason": None,
             "prompt_eval_count": None, "eval_count": None, "model": model}
+    # İP-3 (2026-07-11, plan rev.4): determinizm-hijyeni + çıktı-bütçesi.
+    #  • seed: ollama options'ta HİÇ yoktu (temp=0 tek başına GPU non-determinizmini kesmez;
+    #    TOPLU GÖSTERİLER "VincenTe Minnati" flap'i bu sınıf). Resmî reproducible-outputs önerisi.
+    #  • num_predict: çıktı bütçesi ayrılmadığından üretim ancak num_ctx penceresi dolunca
+    #    kesiliyordu (KARAR KİMİN). 2048 rol-JSON'u için bol; aşarsa done_reason=length artık
+    #    GÖRÜNÜR kaza (İP-2) + aşağıda tek-retry.
+    #  • num_ctx: env'li (ölçüm-bazlı ayar altyapısı — prompt_eval_count telemetrisi birikince
+    #    clamp formülü buraya bağlanır). Sabit-16384 konseyce REDDEDİLDİ (VRAM/OOM).
+    if num_ctx is None:
+        num_ctx = int(os.environ.get("MITAS_OLLAMA_NUM_CTX", "8192") or 8192)
+    _opts = {"temperature": 0, "num_ctx": int(num_ctx),
+             "seed": int(os.environ.get("MITAS_OLLAMA_SEED", "42") or 42),
+             "num_predict": int(os.environ.get("MITAS_OLLAMA_NUM_PREDICT", "2048") or 2048)}
+    meta["num_ctx"] = _opts["num_ctx"]
     payload = {
         "model": model, "prompt": prompt, "format": schema, "stream": False,
-        "options": {"temperature": 0, "num_ctx": 8192},
+        "options": _opts,
         # VRAM-hijyeni (hızlandırma planı Faz-0, 2026-07-04): keep_alive env'den. DEFAULT "5m" =
         # ollama'nın ZATEN uyguladığı davranış → BYTE-NÖTR (çıktı değişmez); hız-modunda "15m" ile
         # 31b soğuk-start elenir. Sonnet çakışma-denetimi: GÜVENLİ-PARALEL (K1/kalkan mantığına
@@ -2192,6 +2206,16 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 model_meta[m] = {"status": "ok", "model": m}
             else:
                 raw, _meta = _ollama_json_ex(m, _prompt(text), SCHEMA)
+                # İP-3 (2026-07-11): length'te TEK-SEFERLİK num_ctx-yükseltmeli retry (Opus formülü:
+                # "length görülürse bir kez yükselt"). Prompt BÖLÜNMEZ — naif bölme VL/OCR bağlam
+                # bütünlüğünü kırar (qwen+GLM ortak vetosu); kart-sınırı chunking bilinçli ertelendi
+                # (_reasoning kaldırılınca ihtiyaç düşecek). Retry de kaza verirse status TF kalır.
+                if _meta.get("status") != "ok" and _meta.get("reason") == "length":
+                    _retry_ctx = int(os.environ.get("MITAS_OLLAMA_NUM_CTX_RETRY", "12288") or 12288)
+                    sys.stderr.write(f"[credit_text_read] {m} length → tek-retry num_ctx={_retry_ctx}\n")
+                    raw, _meta2 = _ollama_json_ex(m, _prompt(text), SCHEMA, num_ctx=_retry_ctx)
+                    _meta2["length_retry"] = True
+                    _meta = _meta2
                 model_meta[m] = _meta
                 if _meta.get("status") != "ok":
                     per_model_yon[m] = []

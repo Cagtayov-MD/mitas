@@ -302,6 +302,24 @@ def finalize(clip_dir: Path, status: str, extra: dict | None = None) -> None:
         sys.stderr.write(f"[manifest] finalize hatasi (kosu etkilenmez): {exc}\n")
 
 
+# --------------------------------------------------------------------------- telemetri
+TELEMETRY_PATH = PROJECT_ROOT / "outputs" / "telemetry_extraction.jsonl"
+
+
+def append_telemetry(row: dict) -> None:
+    """İP-3 (2026-07-11): extraction telemetrisi — prompt_eval/eval sayaçları + status, JSONL'e.
+    (Şartnamedeki DuckDB tablosunun v1 taşıyıcısı: DuckDB read_json_auto ile doğrudan sorgular;
+    schema_version alanı satırda. Best-effort — koşuyu ASLA bozmaz.)"""
+    try:
+        row = {"schema_version": SCHEMA_VERSION,
+               "ts": datetime.now().isoformat(timespec="seconds"), **row}
+        TELEMETRY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with TELEMETRY_PATH.open("a", encoding="utf-8") as h:
+            h.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001
+        sys.stderr.write(f"[telemetri] yazim hatasi (kosu etkilenmez): {exc}\n")
+
+
 # --------------------------------------------------------------------------- CLI
 if __name__ == "__main__":
     import argparse
