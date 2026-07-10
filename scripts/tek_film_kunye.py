@@ -181,6 +181,16 @@ def poster_ok(path):
         except Exception:
             return False
 
+
+def _existing_poster_fallback(clip):
+    """Önceki PDF aşamasının ürettiği geçerli afişi v4'e taşır."""
+    for rel in (os.path.join("pdf", "afis.jpg"), "afis.jpg"):
+        p = os.path.join(clip, rel)
+        if poster_ok(p):
+            return p
+    return None
+
+
 def _split_dedup_names(lst):
     """KB'den gelen yapimci/cast birlesik satirlarini ('&'/'ve'/'/'/',') bol + fold-bazli tekrar ele."""
     out = []
@@ -245,7 +255,23 @@ def _suffix_person_candidates(name):
             out.append(cand)
     return out
 
+
+def _looks_role_heading_name(name):
+    f = nn.ascii_fold(str(name or "")).lower()
+    f = re.sub(r"[^a-z0-9 ]+", " ", f)
+    f = re.sub(r"\s+", " ", f).strip()
+    if not f:
+        return True
+    return f in {
+        "additional voices", "additional voice", "voices", "voice cast",
+        "cast", "the cast", "in order of appearance", "order of appearance",
+        "voice actors", "voice actor", "dubbing voices",
+    }
+
+
 def _person_gate_hit(name, role, *, xml_pool, film_pool, kb):
+    if _looks_role_heading_name(name):
+        return None, None
     hit = _strict_pool_hit(name, xml_pool)
     if hit:
         return hit, "xml"
@@ -267,7 +293,7 @@ def _person_gate_hit(name, role, *, xml_pool, film_pool, kb):
 
 def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
     """Resmi kişi alanı kapısı: XML → film rol havuzu → global IMDb/Wiki kişi doğrulama."""
-    names = [n for n in (names or []) if str(n).strip()]
+    names = [n for n in (names or []) if str(n).strip() and not _looks_role_heading_name(n)]
     report = {"enabled": bool(_GLOBAL_PERSON_GATE_ON), "role": role, "kept": [], "dropped": []}
     if not _GLOBAL_PERSON_GATE_ON or _cc is None:
         return names, report
@@ -305,6 +331,43 @@ def _gate_role_names(names, role, *, xml_roles=None, film_pool=None, kb=None):
             report["dropped"].append({"in": nm, "action": "DUSTU", "reason": "tek-kelime veya global/rol eşleşmesi yok"})
     return out, report
 
+
+def _canonicalize_read_producers(names):
+    """Okunmuş yapımcı adında tek-harf OCR hatasını KB kanonik yazımıyla düzelt; isim düşürmez."""
+    if not names or _cc is None:
+        return list(names or []), []
+    out, changes = [], []
+    kb = None
+    try:
+        kb = _cc.CreditKB()
+        for nm in names:
+            s = str(nm or "").strip()
+            if not s:
+                continue
+            canon = s
+            try:
+                m = kb.global_person_match(s, role="producer", max_edits=1)
+            except Exception:
+                m = None
+            if m and m.get("name") and (m.get("distance") or 0) <= 1:
+                cand = str(m.get("name") or "").strip()
+                if cand and cand != s:
+                    canon = cand
+                    changes.append({"in": s, "out": canon, "source": m.get("source"),
+                                    "distance": m.get("distance") or 0})
+            if not any(_cc.name_match(canon, x) or _cc.strict_name_close(canon, x) for x in out):
+                out.append(canon)
+    except Exception:  # noqa: BLE001
+        return list(names or []), []
+    finally:
+        try:
+            if kb is not None:
+                kb.close()
+        except Exception:
+            pass
+    return out, changes
+
+
 def _yapimci_ocr_corroborated(kb_names, clip):
     """KB'den gelen yapımcı ad(lar)ını HAM OCR metniyle teyit et (OCR-otorite).
 
@@ -335,6 +398,46 @@ def _yapimci_ocr_corroborated(kb_names, clip):
         _toks = [t for t in re.findall(r"[A-Z]{3,}", nn.ascii_fold(str(nm or "")).upper())]
         if _toks and all(t in _words for t in _toks):   # ismin TÜM parçaları OCR'da → teyitli
             out.append(nm)
+    return out
+
+
+def _load_director_validation_from_trace(clip):
+    """Önceki pipeline credit_validate teyidini tekil rerender'a taşır."""
+    trace_path = os.path.join(clip, "debug_trace", "trace.jsonl")
+    if not os.path.exists(trace_path):
+        return None
+    out = None
+    try:
+        with open(trace_path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                try:
+                    ev = json.loads(line)
+                except Exception:
+                    continue
+                if ev.get("stage") != "credit_validate" or ev.get("event") not in ("qc_decision", "external_lookup"):
+                    continue
+                subj = ev.get("subject") or {}
+                evidence = ev.get("evidence") or {}
+                result = evidence.get("result") or {}
+                after = subj.get("after")
+                val = after if isinstance(after, dict) else result.get("yonetmen")
+                if not isinstance(val, dict):
+                    continue
+                if val.get("status") != "DOGRULANDI" or val.get("confidence") != "KESIN":
+                    continue
+                sources = val.get("sources_confirm") or []
+                if not sources:
+                    continue
+                kaynaklar = evidence.get("kaynaklar") or result.get("kaynaklar") or {}
+                out = {
+                    "value": val.get("value") or [],
+                    "status": val.get("status"),
+                    "confidence": val.get("confidence"),
+                    "sources_confirm": sources,
+                    "imdb_id": ((kaynaklar.get("imdb") or {}).get("key")),
+                }
+    except Exception:
+        return None
     return out
 
 
@@ -465,6 +568,19 @@ def main():
         except Exception as _e:  # noqa: BLE001
             sys.stderr.write(f"[uyari] OneOCR+GLM metin-okuma hata: {_e}\n")
     vc = vc or {}
+    if not vc.get("_director_validation"):
+        _dv = _load_director_validation_from_trace(clip)
+        if _dv:
+            vc["_director_validation"] = _dv
+    _dv = vc.get("_director_validation") if isinstance(vc.get("_director_validation"), dict) else {}
+    if not vc.get("yonetmen") and _dv.get("status") == "DOGRULANDI" and _dv.get("confidence") == "KESIN":
+        _dv_sources = {str(s).strip().lower() for s in (_dv.get("sources_confirm") or []) if str(s).strip()}
+        _dv_value = _dv.get("value") or []
+        if isinstance(_dv_value, str):
+            _dv_value = [_dv_value]
+        if _dv_value and "xml" in _dv_sources and ({"imdb", "wiki", "wikidata"} & _dv_sources):
+            vc["yonetmen"] = [str(x).strip() for x in _dv_value if str(x).strip()]
+            vc["guven"] = (str(vc.get("guven") or "").strip() + " + C2-validated-director").strip()
     yon = vc.get("yonetmen") or []
     cast = vc.get("cast") or []
     yap = vc.get("yapimci") or []
@@ -800,6 +916,9 @@ def main():
                 sys.stderr.write(f"[deferans] yapımcı KB-fill atlandı (OCR-teyitsiz): {_kb_yap}\n")
     cast = _split_dedup_names(cast)
     yap = _split_dedup_names(yap)[:3]               # "&"/"ve" birlesik bol + tekrar ele, sonra en fazla 3 yapimci
+    yap, _yap_fuzzy_changes = _canonicalize_read_producers(yap)
+    if _yap_fuzzy_changes:
+        rapor["adimlar"]["yapimci_fuzzy_canonical"] = _yap_fuzzy_changes
 
     # GLOBAL KİŞİ KAPISI (2026-06-16): XML aynı rolde ilk ankraj; yoksa film havuzu; yoksa
     # global IMDb/Wiki kişi doğrulama. Tek kelime ve 1 harften fazla fuzzy resmi PDF alanına girmez.
@@ -867,7 +986,7 @@ def main():
         film_notu.insert(0, "ANİMASYON — oyuncu alanı kullanılmaz; jenerikteki isimler seslendirme kadrosudur.")
         rapor["adimlar"]["animasyon"] = {"tur": tur, "tur_imdb": cc.get("tur_imdb"), "xml_tur": a.tur,
                                          "cast_gizlendi": True}
-    afis = _web_afis or cc.get("afis")   # QC2-web afişi ÖNCELİKLİ (KB'de afiş yok ama web bulduysa korunur)
+    afis = _web_afis or cc.get("afis") or _existing_poster_fallback(clip)   # v4, önceki PDF afişini kaybetmesin
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
@@ -909,6 +1028,7 @@ def main():
                 ozet=meta.get("ozet", ""), afis_yolu=(afis if poster_ok(afis) else None),
                 xml_roles=xml_roles, raw_names_groundtruth=_raw_gt,
                 nonlatin_source=bool(vc.get("nonlatin_source")),   # Latin-dışı kaynak → KONTROL (erken-translit, 2026-06-22)
+                director_validation=vc.get("_director_validation"),
                 raw_context_lines=_rcl,)   # C5a: non-cast filtre bağlamı (MITAS_QC_NONCAST_FILTER, default-OFF)
             if _qcb_res.get("temiz_cast"):           # OCR-otorite: temiz alanları kullan (boşsa eskiyi koru)
                 cast = list(_qcb_res["temiz_cast"])
@@ -926,6 +1046,9 @@ def main():
                 _yon_resurrect_blocked = _qcb_yon
             if _qcb_res.get("temiz_yap"):
                 yap = list(_qcb_res["temiz_yap"])
+                yap, _qcb_yap_fuzzy_changes = _canonicalize_read_producers(yap)
+                if _qcb_yap_fuzzy_changes:
+                    rapor["adimlar"]["yapimci_fuzzy_canonical"] = _qcb_yap_fuzzy_changes
             rapor["adimlar"]["qc_block"] = {
                 "karar": _qcb_res["karar"], "kontrol_tip": _qcb_res["kontrol_tip"],
                 "gerekceler": _qcb_res["gerekceler"], "kimlik": _qcb_res["kimlik"],

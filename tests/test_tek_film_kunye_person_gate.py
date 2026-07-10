@@ -90,3 +90,71 @@ def test_global_person_gate_uses_role_pool_for_small_ocr_name_errors():
     assert out == ["Deirdre Molloy"]
     assert report["kept"][0]["match"] == "fuzzy2"
     assert report["dropped"] == []
+
+
+def test_read_producer_names_are_canonicalized_without_global_drop():
+    mod = _load_tek_film_kunye()
+
+    class FakeCreditKB:
+        def global_person_match(self, name, role="producer", max_edits=1):
+            if name == "Jerpy Wald" and role == "producer":
+                return {"source": "fake-global", "name": "Jerry Wald", "distance": 1}
+            return None
+
+        def close(self):
+            pass
+
+    class FakeCC:
+        CreditKB = FakeCreditKB
+
+        @staticmethod
+        def name_match(a, b):
+            return str(a).lower() == str(b).lower()
+
+        @staticmethod
+        def strict_name_close(a, b):
+            return str(a).lower() == str(b).lower()
+
+    old_cc = mod._cc
+    try:
+        mod._cc = FakeCC
+        out, changes = mod._canonicalize_read_producers(["Jerpy Wald", "Unknown Producer"])
+    finally:
+        mod._cc = old_cc
+
+    assert out == ["Jerry Wald", "Unknown Producer"]
+    assert changes == [{"in": "Jerpy Wald", "out": "Jerry Wald", "source": "fake-global", "distance": 1}]
+
+
+def test_read_producer_names_preserve_kb_diacritics():
+    mod = _load_tek_film_kunye()
+
+    class FakeCreditKB:
+        def global_person_match(self, name, role="producer", max_edits=1):
+            if name == "Memduh Un" and role == "producer":
+                return {"source": "fake-global", "name": "Memduh Ün", "distance": 0}
+            return None
+
+        def close(self):
+            pass
+
+    class FakeCC:
+        CreditKB = FakeCreditKB
+
+        @staticmethod
+        def name_match(a, b):
+            return str(a).lower().replace("ü", "u") == str(b).lower().replace("ü", "u")
+
+        @staticmethod
+        def strict_name_close(a, b):
+            return FakeCC.name_match(a, b)
+
+    old_cc = mod._cc
+    try:
+        mod._cc = FakeCC
+        out, changes = mod._canonicalize_read_producers(["Memduh Un"])
+    finally:
+        mod._cc = old_cc
+
+    assert out == ["Memduh Ün"]
+    assert changes == [{"in": "Memduh Un", "out": "Memduh Ün", "source": "fake-global", "distance": 0}]
