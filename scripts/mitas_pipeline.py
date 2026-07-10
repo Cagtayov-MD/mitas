@@ -3303,11 +3303,12 @@ def main(argv=None) -> int:
             "cast_cap_dusen":    any("CAST_CAP_DUSEN" in r for r in _R),
         }
         _r = _router.classify(_sig)
-        # FLAT KURAL (Çağatay 2026-06-21): export'ta SADECE ONAYLI ve KONTROL var. AutoFix ve Kontrol
-        # tier'larının her ikisi de KONTROL'e gider; sorun etiketi dosya adına yazılır.
+        # FLAT KURAL (Çağatay 2026-06-21): export'ta SADECE ONAYLI ve KONTROL var. NEEDS_REVIEW_HAFIF
+        # (eski adıyla AUTOFIX — İP-4 2026-07-11 davranış-nötr rename) ve KONTROL tier'larının her
+        # ikisi de KONTROL'e gider; sorun etiketi dosya adına yazılır.
         if _r["tier"] == "TEMIZ":
             karar, dest_root = "Hazır", HAZIR
-        else:                                              # AUTOFIX veya KONTROL → KONTROL/ (flat)
+        else:                                              # NEEDS_REVIEW_HAFIF veya KONTROL → KONTROL/ (flat)
             karar, dest_root = "Kontrol", KONTROL
         # GÜVENLİK: 'reasons' var ama tipe eşlenmedi → yine KONTROL (mis-deliver önle)
         if _R and (not _r["agir"]):
@@ -3416,6 +3417,21 @@ def main(argv=None) -> int:
         "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "ts": now_iso(),
     }
     write_json(clip_dir / "_DURUM.json", summary_obj)
+    # İP-4 (2026-07-11): karar.pipeline.json GÖLGE-yazımı — _DURUM'u üreten AYNI noktadan
+    # (tek-yazıcı sözleşmesi). Otorite _DURUM'da; gölge asla koşuyu bozmaz.
+    try:
+        import credit_severity_router as _router_shadow
+        _router_shadow.write_pipeline_karar(
+            clip_dir, route_info, karar=karar, reasons=reasons, qwen_uyari=qwen_uyari,
+            extraction_status=(video_credits.get("extraction_status")
+                               if isinstance(video_credits, dict) else None),
+            run_id=_manifest.get("run_id"))
+        _drift = _router_shadow.check_drift(clip_dir)
+        if _drift:
+            log_event("karar_drift", summary=_drift[:300], module="pipeline", media_id=media_id)
+    except Exception as _shexc:  # noqa: BLE001 — gölge-yazım koşuyu ASLA bozmaz
+        log_event("karar_shadow_fail", summary=f"{type(_shexc).__name__}: {_shexc}",
+                  module="pipeline", media_id=media_id)
     # İP-1: manifest'i kapat (status=karar; best-effort, koşuyu asla bozmaz).
     _rm.finalize(clip_dir, status=karar,
                  extra={"teslim": str(dest), "timings": timings,

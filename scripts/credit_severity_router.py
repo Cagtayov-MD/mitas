@@ -8,18 +8,30 @@ gider. Hafif kusurlar deterministik düzeltilebilirken insan kontrolüne sokuluy
 da tipine göre ayrılmıyor (yönetmen sorunu = temel sorun, ayrı klasör olmalı).
 
 ÇÖZÜM: Kusurları İKİ EKSENDE sınıflandır:
-  • ŞİDDET: HAFİF (auto-fix → kontrole gitmez) | AĞIR (insan kontrolü)
-  • TİP:    YÖNETMEN | KİMLİK | CAST | ÖZET | RENDER | SES   → her ağır tip AYRI klasör
+  • ŞİDDET: HAFİF (NEEDS_REVIEW_HAFIF — hafif-işaretli insan kontrolü) | AĞIR (insan kontrolü)
+  • TİP:    YÖNETMEN | KİMLİK | CAST | ÖZET | RENDER | SES
 
-KARAR:
-  1) Film yalnız HAFİF kusurluysa → AUTO-FIX (corrections+render pipeline'ına; kontrole GİTMEZ).
+KARAR (İP-4 2026-07-11 güncellemesi — plan rev.4):
+  1) Film yalnız HAFİF kusurluysa → tier=NEEDS_REVIEW_HAFIF, klasör=KONTROL (dosya-adı HAFIF_
+     etiketli). ESKİ ad "AUTOFIX" yanıltıcıydı: hiçbir otomatik-düzeltme yürütücüsü YOKTU ve
+     davranış zaten KONTROL'dü (C1 doğrulaması). Yeniden-adlandırma DAVRANIŞ-NÖTRDÜR; 7 hafif
+     kodun hedef-davranışı GECIS_TABLOSU'nda (aşağıda) — kod başına gelecekte warning/insan/
+     blocker'a bilinçli atanacak, sessizce TEMIZ'e düşme İMKÂNSIZ.
   2) En az bir AĞIR kusur varsa → KONTROL_<en-temel-tip> (öncelik: YÖNETMEN>KİMLİK>CAST>ÖZET>RENDER).
-     (Ağır filmin hafif kusurları da auto-fix listesine yazılır ama kontrol şart kalır.)
   3) Hiç kusur yoksa → TEMİZ (ONAYLI/HAZIR).
+
+Ek (İP-4): write_pipeline_karar() — karar.pipeline.json GÖLGE-yazımı (otorite _DURUM'da kalır;
+tek-yazıcı: _DURUM'u üreten AYNI çağrı-yeri) + karar.view.json atomik-regenerate + check_drift().
+karar.human.json'a bu modül ASLA yazmaz (insan/UI sahipliği — fiziksel ayrım).
 
 Bu modül SAF (izole). mitas_pipeline'a bağlanması: §INTEGRATION (en altta).
 """
 import os, sys, json, glob, shutil, argparse, re
+from datetime import datetime
+
+GATE_VERSION = "2026-07-11.ip4.1"   # kapı-mantığı değişince BUMP'lanır — eski kararların hangi
+                                     # sürümle verildiği karar.pipeline.json'dan izlenir (GPT tur-2)
+KARAR_SCHEMA_VERSION = 1
 
 # ───────────────────────── TAKSONOMİ ─────────────────────────
 HAFIF, AGIR = "HAFIF", "AGIR"
@@ -38,7 +50,7 @@ AGIR_TIP = {
 }
 ONCELIK_SIRASI = sorted(AGIR_TIP, key=lambda t: AGIR_TIP[t]["oncelik"])
 
-# Hafif kusur → auto-fix aksiyonu (hepsi corrections+render ile çözülür; insan gerekmez)
+# Hafif kusur → olası düzeltme aksiyonu (AÇIKLAYICI tablo — yürütücü YOK; İP-4 doğrulaması)
 HAFIF_FIX = {
     "CASING":    "render-yenile: tr_upper/ozet_v4 deterministik (büyük-harf, yabancı-ASCII, kısmi-ASCII)",
     "KEYWORD":   "render-yenile: keywords=cast otomatik senkron",
@@ -46,6 +58,21 @@ HAFIF_FIX = {
     "AFIS":      "poster_fetch: imdb/tmdb id ile doğru afiş çek",
     "OZET_STIL": "web-özet yeniden: tarih-girişi/meta-açılış kaldır (konu-başlı)",
     "YAP_FILL":  "web/KB yapımcı-doldur (destek; OCR ezmez)",
+}
+
+# İP-4 GEÇİŞ TABLOSU (2026-07-11, GPT tur-3 şartı): 7 hafif kodun HER BİRİNE açık hedef-davranış.
+# v1'de hepsi davranış-nötr "insan-kontrolü" (bugünkü fiilî durum — KONTROL klasörü); gelecekte
+# kod-başına bilinçli değişir (örn. AFIS→warning-nonblocking, poster_fetch güvenilir olunca).
+# Sessizce TEMIZ'e düşüş bu tabloyla İMKÂNSIZ: classify() yalnız-hafif seti her zaman
+# NEEDS_REVIEW_HAFIF/KONTROL'e yollar; tablo dışı kod görülürse de aynı güvenli yola düşer.
+HAFIF_GECIS = {
+    "AFIS":            "insan-kontrolü",   # hedef-aday: warning-nonblocking (poster_fetch olgunlaşınca)
+    "CASING":          "insan-kontrolü",   # hedef-aday: warning-nonblocking (deterministik render)
+    "GENRE":           "insan-kontrolü",
+    "KEYWORD":         "insan-kontrolü",
+    "OZET_STIL":       "insan-kontrolü",
+    "YAP_FILL":        "insan-kontrolü",
+    "CAST_CAP_DUSEN":  "insan-kontrolü",   # görünürlük kodu (fix3-A); asla sessiz-TEMIZ olamaz
 }
 
 
@@ -143,13 +170,15 @@ def classify(sig: dict) -> dict:
                 "agir": agir, "hafif": sorted(set(hafif)),
                 "aciklama": f"AĞIR {sorted(types)} → {folder}"}
     if hafif:
-        # Çağatay 2026-06-21: iki-uç kural (ONAYLI|KONTROL). Auto-fix henüz pipeline-içi değil →
-        # yalnız-HAFİF film bugün otomatik düzelmiyor; teslime hazır SAYILAMAZ → KONTROL'e gider.
-        # Etiket dosya adına yazılır (HAFİF_<kod>...), reviewer 1-bakışta görür.
+        # Çağatay 2026-06-21: iki-uç kural (ONAYLI|KONTROL). Yalnız-HAFİF film teslime hazır
+        # SAYILAMAZ → KONTROL'e gider; etiket dosya adına yazılır (HAFİF_<kod>...).
+        # İP-4 (2026-07-11): tier adı AUTOFIX→NEEDS_REVIEW_HAFIF — eski ad yanıltıcıydı (yürütücü
+        # yok, davranış zaten KONTROL'dü). DAVRANIŞ-NÖTR yeniden-adlandırma; kod-başına hedef
+        # davranış HAFIF_GECIS tablosunda.
         lbl = "HAFIF_" + "_".join(sorted(set(hafif)))
-        return {"tier": "AUTOFIX", "kontrol_tip": lbl, "folder": "KONTROL",
+        return {"tier": "NEEDS_REVIEW_HAFIF", "kontrol_tip": lbl, "folder": "KONTROL",
                 "agir": [], "hafif": sorted(set(hafif)),
-                "aciklama": "yalnız HAFİF kusur → KONTROL (auto-fix pipeline-içi değil)"}
+                "aciklama": "yalnız HAFİF kusur → KONTROL (hafif-işaretli insan kontrolü)"}
     return {"tier": "TEMIZ", "kontrol_tip": None, "folder": "ONAYLI", "agir": [], "hafif": [],
             "aciklama": "kusursuz"}
 
@@ -210,6 +239,88 @@ def from_signals(**kw) -> dict:
     return base
 
 
+# ───────────────────────── İP-4: KARAR-SÖZLEŞMESİ GÖLGE-YAZIMI ─────────────────────────
+def _atomic_write_json(path, obj) -> None:
+    """Windows-güvenli atomik yazım (tmp + os.replace) — yarım-dosya asla okunmaz."""
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as h:
+        json.dump(obj, h, ensure_ascii=False, indent=1)
+    os.replace(tmp, str(path))
+
+
+def write_pipeline_karar(clip_dir, route, *, karar=None, reasons=None, qwen_uyari=None,
+                         extraction_status=None, run_id=None) -> dict:
+    """karar.pipeline.json GÖLGE-yazımı (İP-4, plan rev.4). SÖZLEŞME:
+      • OTORİTE _DURUM.json'da KALIR — bu dosya read-model/telemetri (tüketici değiştirmez).
+      • TEK-YAZICI: _DURUM'u üreten AYNI çağrı-yerinden çağrılır (dual-write drift'e karşı
+        qwen uyarısının çözümü); ayrık yazar YASAK.
+      • karar.human.json'a ASLA dokunmaz (insan/UI sahipliği — GPT tur-3 fiziksel-ayrım şartı).
+      • Yazım sonrası karar.view.json atomik regenerate edilir (bayat-view yasak — GLM).
+    NOT (İP-9'a): blocking_reason_codes v1'de classify-tipi düzeyinde (YONETMEN/KIMLIK/...);
+    hatanın doğduğu aşamada tam-typed üretim strangler fazında gelir. evidence_refs v1 =
+    reasons/uyari metinleri (insan-okur kanıt; hash'li evidence İP-6 semantic-diff ile)."""
+    route = route if isinstance(route, dict) and route.get("tier") else {
+        "tier": None, "kontrol_tip": None, "agir": [], "hafif": []}
+    blocking = [t for t, _ in (route.get("agir") or [])]
+    if str(extraction_status or "").upper() == "TECHNICAL_FAILURE":
+        blocking = ["TEKNIK_ARIZA_EXTRACTION"] + blocking
+    obj = {
+        "schema_version": KARAR_SCHEMA_VERSION,
+        "gate_version": GATE_VERSION,
+        "ts": datetime.now().isoformat(timespec="seconds"),
+        "run_id": run_id,
+        "processing_status": ("RETRYABLE_FAILURE"
+                              if str(extraction_status or "").upper() == "TECHNICAL_FAILURE"
+                              else "SUCCEEDED"),
+        "proposed_review_status": ("AUTO_APPROVED" if route.get("tier") == "TEMIZ" and karar == "Hazır"
+                                   else "NEEDS_REVIEW"),
+        "tier": route.get("tier"),
+        "kontrol_tip": route.get("kontrol_tip"),
+        "first_blocker": (blocking[0] if blocking else None),
+        "blocking_reason_codes": blocking,
+        "warning_codes": sorted(set(route.get("hafif") or [])),
+        "evidence_refs": {"reasons": list(reasons or []), "qwen_uyari": list(qwen_uyari or [])},
+        "extraction_status": extraction_status,
+        "karar_durum_esleme": karar,   # yazım-anı _DURUM kararı (drift-kontrolünün çapası)
+    }
+    clip_dir = str(clip_dir)
+    _atomic_write_json(os.path.join(clip_dir, "karar.pipeline.json"), obj)
+    regen_view(clip_dir)
+    return obj
+
+
+def regen_view(clip_dir) -> None:
+    """karar.view.json = pipeline + human birleşimi (SALT-türetilmiş; her kaynak-yazımda atomik
+    regenerate — GLM bayat-view uyarısı). human alanları pipeline'ı GÖLGELEMEZ, yan-yana durur."""
+    clip_dir = str(clip_dir)
+    view = {"schema_version": KARAR_SCHEMA_VERSION, "derived_at": datetime.now().isoformat(timespec="seconds")}
+    for kaynak, anahtar in (("karar.pipeline.json", "pipeline"), ("karar.human.json", "human")):
+        p = os.path.join(clip_dir, kaynak)
+        if os.path.exists(p):
+            try:
+                view[anahtar] = json.load(open(p, encoding="utf-8"))
+            except Exception as exc:  # noqa: BLE001 — bozuk kaynak view'i düşürmez, işaretlenir
+                view[anahtar] = {"_parse_error": str(exc)}
+    _atomic_write_json(os.path.join(clip_dir, "karar.view.json"), view)
+
+
+def check_drift(clip_dir) -> str | None:
+    """_DURUM.json kararı ile karar.pipeline.json eşlemesini karşılaştır — uyuşmazlık = drift
+    (başka bir yazar _DURUM'u değiştirmiş demektir). None=temiz; str=uyuşmazlık açıklaması.
+    İP-8 worklist-üretimi bunu tüm hub'larda periyodik koşacak."""
+    clip_dir = str(clip_dir)
+    try:
+        d = json.load(open(os.path.join(clip_dir, "_DURUM.json"), encoding="utf-8"))
+        k = json.load(open(os.path.join(clip_dir, "karar.pipeline.json"), encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — dosya yoksa drift-hükmü verilemez
+        return None
+    if str(d.get("karar")) != str(k.get("karar_durum_esleme")):
+        return (f"DRIFT: _DURUM.karar={d.get('karar')!r} != "
+                f"karar.pipeline.karar_durum_esleme={k.get('karar_durum_esleme')!r} "
+                f"(gate={k.get('gate_version')})")
+    return None
+
+
 # ───────────────────────── RE-SORT ARACI (mevcut klasörü tip-bazlı ayır) ─────────────────────────
 def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\export",
            database=r"E:\MITAS\Database"):
@@ -219,7 +330,7 @@ def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\ex
     import re
     src = os.path.join(export, folder_name)
     pdfs = sorted(glob.glob(os.path.join(src, "*.pdf")))
-    plan = {"AUTOFIX": [], "TEMIZ": []}
+    plan = {"NEEDS_REVIEW_HAFIF": [], "TEMIZ": []}
     for f in pdfs:
         base = os.path.basename(f)
         m = re.match(r"(\d{4}-\d{4}-\d-\d{4}-\d{2}-\d)", base)
