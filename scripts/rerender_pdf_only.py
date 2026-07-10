@@ -24,7 +24,7 @@ KISITLAR: OCR'ı ASLA yeniden koşmaz. Mevcut pipeline kodunu DEĞİŞTİRMEZ (y
 Fail-safe: temp'e yazar, rc==0 + PDF>10KB ise replace; aksi halde mevcut PDF korunur.
 """
 from __future__ import annotations
-import argparse, datetime, json, os, subprocess, sys
+import argparse, datetime, json, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 try:
@@ -36,6 +36,9 @@ except Exception:  # noqa: BLE001
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
 DB_ROOT = PROJECT_ROOT / "Database"
+EXPORT_ROOT = PROJECT_ROOT / "Mitas Output" / "export"
+EXPORT_ONAYLI = EXPORT_ROOT / "ONAYLI"
+EXPORT_KONTROL = EXPORT_ROOT / "KONTROL"
 # tek_film_kunye reportlab'ı global python'da → V4 render orada koşmalı (venv ocr DEĞİL).
 PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
 if not PY_PDF.exists():
@@ -101,6 +104,65 @@ def _md_meta(folder: Path) -> dict:
     return out
 
 
+def _video_credits_from_trace(folder: Path) -> dict | None:
+    """Üretim koşusunda v4'e verilen doğru video_okuma girdisini PDF-only rerender'a taşır."""
+    trace = folder / "debug_trace" / "trace.jsonl"
+    if not trace.exists():
+        return None
+    found = None
+    try:
+        with trace.open("r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                try:
+                    ev = json.loads(line)
+                except Exception:  # noqa: BLE001
+                    continue
+                if ev.get("stage") != "v4" or ev.get("event") != "candidate_read":
+                    continue
+                subj = ev.get("subject") or {}
+                if subj.get("field") != "video_okuma":
+                    continue
+                after = subj.get("after") or {}
+                if not isinstance(after, dict):
+                    continue
+                vc = {
+                    "yonetmen": after.get("yonetmen") or after.get("yon") or [],
+                    "cast": after.get("cast") or after.get("cast_okunan") or [],
+                    "yapimci": after.get("yapimci") or [],
+                    "guven": after.get("guven") or "trace-video-okuma",
+                }
+                if vc["yonetmen"] or vc["cast"] or vc["yapimci"]:
+                    found = vc
+    except Exception:  # noqa: BLE001
+        return None
+    return found
+
+
+def _export_fixed_pdf(trt: str, title: str, pdf_src: Path) -> dict:
+    """Düzgün üretilmiş Hazır PDF'i ONAYLI'ya koy, eski KONTROL kopyasını kuyruktan çıkar."""
+    res = {"export_synced": False, "onayli": None, "kontrol_moved": []}
+    if not trt or not pdf_src.exists() or pdf_src.stat().st_size <= 10000:
+        res["export_error"] = "geçerli pdf/trt yok"
+        return res
+    EXPORT_ONAYLI.mkdir(parents=True, exist_ok=True)
+    EXPORT_KONTROL.mkdir(parents=True, exist_ok=True)
+    safe_title = re.sub(r'[\\/:*?"<>|]+', " ", (title or "")).strip()
+    dest = EXPORT_ONAYLI / f"{trt} {safe_title}_onaylı.pdf"
+    shutil.copy2(pdf_src, dest)
+    if not dest.exists() or dest.stat().st_size <= 10000:
+        res["export_error"] = "ONAYLI kopyası doğrulanamadı"
+        return res
+    backup = EXPORT_ROOT / "_KONTROL_duzeltilen_yedek" / datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    for old in sorted(EXPORT_KONTROL.glob(f"*{trt}*.pdf")):
+        backup.mkdir(parents=True, exist_ok=True)
+        target = backup / old.name
+        shutil.move(str(old), str(target))
+        res["kontrol_moved"].append(str(target))
+    res["export_synced"] = True
+    res["onayli"] = str(dest)
+    return res
+
+
 def _find_folders(args) -> list[Path]:
     """--folder / --trt / --all → işlenecek Database klasör listesi."""
     if args.folder:
@@ -135,10 +197,19 @@ def _derive_karar(qcb: dict, qwen_uyari: list | None = None):
     temelli yeniden-karar — ASR/OCR-bucket/genre kapıları re-eval EDİLMEZ (bunlar mevcut _DURUM'da kalır,
     aşağıda 'onceki_disi_nedenler' olarak korunur). Bu rerender'ın amacı künye-temizliği; tam-pipeline değil."""
     qcb = qcb or {}
-    gerekceler = qcb.get("gerekceler") or []
+    qwen_uyari = qwen_uyari or []
+    gerekceler_raw = list(qcb.get("gerekceler") or [])
+    gerekceler = list(gerekceler_raw)
+    person_teyit = any("kişi-teyit:" in str(u).lower() for u in qwen_uyari)
+    if person_teyit and gerekceler:
+        bastir = ("kimlik", "zayıf-teyit", "versiyon cast-teyitsiz",
+                  "yönetmen doğrulama: kaynak-çelişkisi")
+        gerekceler = [g for g in gerekceler if not any(b in str(g) for b in bastir)]
     floor = qcb.get("floor") or {}
     qcb_karar = (qcb.get("karar") or "").strip().upper()
     qcb_tip = qcb.get("tip")
+    if person_teyit and gerekceler_raw and not gerekceler and qcb_karar == "KONTROL":
+        qcb_karar = "AUTO-FIX" if qcb_tip else ""
     reasons = ["qc_block: " + g for g in gerekceler]
     floor_fail = bool(floor.get("hedef") == 8 and not floor.get("kabul")
                       and (floor.get("ulasilan", 0) or 0) >= 1)
@@ -146,7 +217,7 @@ def _derive_karar(qcb: dict, qwen_uyari: list | None = None):
     karar = "Kontrol" if (qcb_karar == "KONTROL" or floor_fail) else "Hazır"
     route = {"reasons": reasons, "qc_block_karar": qcb_karar or None, "kontrol_tip": qcb_tip}
     if _router is not None:
-        _U = qwen_uyari or []
+        _U = qwen_uyari
         sig = {
             "yon_missing": any("yön+yapımcı yok" in g for g in gerekceler),
             "yon_garble": any("yönetmen" in g and ("okunamadı" in g or "garble" in g) for g in gerekceler),
@@ -169,13 +240,35 @@ def _derive_karar(qcb: dict, qwen_uyari: list | None = None):
             route = r
             if r["tier"] == "TEMIZ" and karar != "Kontrol":
                 karar = "Hazır"
-            elif r["tier"] == "AUTOFIX":
-                karar = "AutoFix"
-            elif r["tier"].startswith("KONTROL") or r.get("agir"):
+            elif r["tier"] != "TEMIZ" or r.get("agir"):
                 karar = "Kontrol"
         except Exception as e:  # noqa: BLE001
             route["router_error"] = str(e)
     return karar, route
+
+
+def _current_person_teyit_warning(v4: dict) -> str | None:
+    """Pipeline'daki kişi-teyit kapısını rerender'da mevcut v4 listesiyle yeniden hesapla."""
+    cast = [str(x).strip() for x in (v4.get("cast_list") or []) if str(x).strip()]
+    yon = [str(x).strip() for x in (v4.get("yonetmen_list") or v4.get("yonetmen") or []) if str(x).strip()]
+    if len(cast) < 3:
+        return None
+    try:
+        import credit_video_read as _cvr
+        kb = _cvr.KB()
+        verdicts = [kb.verify(n, "actor") for n in cast]
+        onay = sum(1 for v in verdicts if v == "ONAY")
+        bilinen = sum(1 for v in verdicts if v != "kayit-yok")
+        oran = onay / max(1, len(cast))
+        oran_bilinen = onay / bilinen if bilinen else 0.0
+        yon_ok = (not yon) or any(kb.verify(n, "director") == "ONAY" for n in yon)
+        if (oran >= 0.6 or (bilinen >= 2 and oran_bilinen >= 0.75)) and yon_ok:
+            return ("kişi-teyit: cast %d/%d KB-ONAY" % (onay, len(cast))
+                    + (", yön KB-ONAY" if yon else ", yön boş")
+                    + " → film-KB'siz doğrulama (Çağatay kuralı)")
+    except Exception:  # noqa: BLE001
+        return None
+    return None
 
 
 def rerender_one(folder: Path, dry_run: bool = True) -> dict:
@@ -199,12 +292,16 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
             return res
         meta = _md_meta(folder)
 
-        # tek_film_kunye'yi --video-credits VERMEDEN çağır → kendisi ocr/<job>/kunye.txt'i okur
-        # (read_credits_auto: dublaj/asistan-yön rolleri elenir) + kunye_teslim.md'den özet/kanal/başlık.
+        # Üretimde v4'e verilen video_okuma girdisi trace'te varsa aynen kullan; yoksa eski davranış:
+        # tek_film_kunye OCR metninden yeniden okur.
         tmp_pdf = folder / "pdf" / "kunye_rerender_tmp.pdf"
         cmd = [str(PY_PDF), str(HERE / "tek_film_kunye.py"),
                "--clip", str(folder), "--title", title, "--out", str(tmp_pdf),
                "--profile", profile]
+        trace_vc = _video_credits_from_trace(folder)
+        if trace_vc:
+            cmd += ["--video-credits", json.dumps(trace_vc, ensure_ascii=False)]
+            res["video_credits_source"] = "debug_trace/v4/candidate_read"
         if meta.get("year"):
             cmd += ["--year", str(meta["year"])]
         if clip.get("bolum"):
@@ -243,8 +340,23 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
         }
         _stderr = r.stderr or ""
         res["v4_yonetmen"] = v4.get("yonetmen_list") or v4.get("yonetmen") or []
+        res["v4_yapimci"] = v4.get("yapimci_list") or v4.get("yapimci") or []
         res["v4_cast_n"] = v4.get("cast") if isinstance(v4.get("cast"), int) else len(v4.get("cast_list") or [])
         res["v4_afis"] = bool(v4.get("afis"))
+        try:
+            _durum_for_route = json.loads((folder / "_DURUM.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            _durum_for_route = {}
+        _qwen_route = list(_durum_for_route.get("qwen_uyari") or [])
+        if res["v4_afis"]:
+            _qwen_route = [u for u in _qwen_route if "afiş yok" not in str(u).lower()]
+        elif not any("afiş yok" in str(u).lower() for u in _qwen_route):
+            _qwen_route.append("qwen: afiş yok (deterministik poster_fetch garanti — uyarı)")
+        _person_teyit = _current_person_teyit_warning(v4)
+        if _person_teyit:
+            _qwen_route = [u for u in _qwen_route if "kişi-teyit:" not in str(u).lower()]
+            _qwen_route.append(_person_teyit)
+        res["qwen_uyari_for_route"] = _qwen_route
         # DUBLAJ/ROL-FİLTRE KANITI: (a) stderr'de rol-atfı düşüş satırı VEYA (b) ham OCR'da dublaj/seslendirme
         # markeri VARDI ama nihai yönetmen o garble adı İÇERMİYOR (filtre temizledi). İki sinyal de yeterli.
         _stderr_sig = ("rol-atfı" in _stderr) or ("yönetmen-dışı rol" in _stderr) or ("dublaj" in _stderr.lower())
@@ -259,7 +371,7 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
         res["dublaj_filtre_uygulandi"] = bool(_stderr_sig or _ocr_dub)
 
         # yeni kararı türet (qc_block-temelli; qc_block.karar OTORİTE)
-        karar_yeni, route = _derive_karar(res["qc_block"])
+        karar_yeni, route = _derive_karar(res["qc_block"], qwen_uyari=_qwen_route)
         res["karar_yeni"] = karar_yeni
         res["route"] = route
 
@@ -311,6 +423,12 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
             except Exception as e:  # noqa: BLE001 — yüzeyleme PDF'i bozmaz
                 res["surface_error"] = f"{type(e).__name__}: {e}"
 
+        if karar_yeni == "Hazır":
+            try:
+                res["export"] = _export_fixed_pdf(trt, title, pdf_dst)
+            except Exception as e:  # noqa: BLE001 — export senkronu PDF'i bozmaz
+                res["export"] = {"export_synced": False, "export_error": f"{type(e).__name__}: {e}"}
+
         # _DURUM.json: yeni karar/neden yaz, eskisini karar_onceki olarak SAKLA (denetlenebilir iz).
         try:
             dp = folder / "_DURUM.json"
@@ -319,9 +437,32 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
             # eski kararı arşivle (önceki rerender izini EZME: zincir tut)
             onceki = {"karar": durum.get("karar"), "neden": durum.get("neden"),
                       "ts": durum.get("ts"), "kaynak": durum.get("rerender_kaynak") or "pipeline"}
+            gecmis = durum.get("karar_gecmisi")
+            if not isinstance(gecmis, list):
+                gecmis = []
+            if isinstance(durum.get("karar_onceki"), dict):
+                gecmis.append(durum["karar_onceki"])
+            gecmis.append(onceki)
+            durum["karar_gecmisi"] = gecmis[-20:]
             durum["karar_onceki"] = onceki
             durum["karar"] = karar_yeni
+            durum["route"] = route
             durum["neden"] = route.get("reasons") or []
+            if karar_yeni == "Hazır":
+                _export_onayli = ((res.get("export") or {}).get("onayli")
+                                  if isinstance(res.get("export"), dict) else None)
+                durum["teslim"] = _export_onayli or str(pdf_dst)
+            _qw = list(res.get("qwen_uyari_for_route") or durum.get("qwen_uyari") or [])
+            if res.get("v4_afis"):
+                _qw = [u for u in _qw if "afiş yok" not in str(u).lower()]
+            if isinstance(durum.get("qwen_qc"), dict):
+                durum["qwen_qc"]["afis_var"] = bool(res.get("v4_afis"))
+                durum["qwen_qc"]["oyuncu_sayisi"] = int(res.get("v4_cast_n") or 0)
+                durum["qwen_qc"]["yonetmen_var"] = bool(res.get("v4_yonetmen"))
+                durum["qwen_qc"]["yapimci_var"] = bool(res.get("v4_yapimci"))
+                if res.get("v4_yapimci") and "yapımcı bilgisi yok" in str(durum["qwen_qc"].get("notlar") or "").lower():
+                    durum["qwen_qc"]["notlar"] = ""
+            durum["qwen_uyari"] = _qw
             durum["rerender_kaynak"] = "rerender_pdf_only"
             durum["rerender_ts"] = now
             durum["rerender_qc_block"] = res["qc_block"]
