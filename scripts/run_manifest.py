@@ -33,8 +33,11 @@ from datetime import datetime
 from pathlib import Path
 
 PROJECT_ROOT = Path(r"E:\MITAS")
-OUT_MANIFEST_DIR = PROJECT_ROOT / "outputs" / "manifests"
-LOCK_PATH = PROJECT_ROOT / "outputs" / ".mitas_writer.lock"
+# İP-5 (2026-07-11): candidate modunda (MITAS_RUN_ROOT) bu yüzeyler de run-root altına gider —
+# env-köprüsü mitas_roots.export_child_env kurar; env boşsa üretim yolları BYTE-AYNI.
+_OUTPUTS_DIR = Path(os.environ.get("MITAS_OUTPUTS_DIR", str(PROJECT_ROOT / "outputs")))
+OUT_MANIFEST_DIR = Path(os.environ.get("MITAS_MANIFEST_DIR", str(PROJECT_ROOT / "outputs" / "manifests")))
+LOCK_PATH = _OUTPUTS_DIR / ".mitas_writer.lock"
 OLLAMA = os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434")
 # credit_crosscheck.py ile AYNI env adları/varsayılanları (tek-kaynak: oradaki tanım esas).
 WIKIDATA_DB = os.environ.get("MITAS_WIKIDATA_DUCKDB", r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb")
@@ -303,7 +306,7 @@ def finalize(clip_dir: Path, status: str, extra: dict | None = None) -> None:
 
 
 # --------------------------------------------------------------------------- telemetri
-TELEMETRY_PATH = PROJECT_ROOT / "outputs" / "telemetry_extraction.jsonl"
+TELEMETRY_PATH = _OUTPUTS_DIR / "telemetry_extraction.jsonl"
 
 
 def append_telemetry(row: dict) -> None:

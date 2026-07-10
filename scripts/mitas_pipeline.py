@@ -32,22 +32,34 @@ for _std in (sys.stdout, sys.stderr):
     except Exception:  # noqa: BLE001 — reconfigure yoksa (eski py)/pipe değilse sessiz geç
         pass
 
-PROJECT_ROOT = Path(r"E:\MITAS")
-DB_ROOT = PROJECT_ROOT / "Database"
-OUT_ROOT = PROJECT_ROOT / "Mitas Output"
-# SABİT KURAL (Çağatay 2026-06-08): tüm çıktı export/ altında. QC onaylarsa → export/ONAYLI (ad sonuna _ONAYLI),
-# onaylamazsa → export/KONTROL. Başka teslim klasörü YOK.
-EXPORT_ROOT = OUT_ROOT / "export"
-HAZIR = EXPORT_ROOT / "ONAYLI"
-KONTROL = EXPORT_ROOT / "KONTROL"
-# ÖZEL-TÜR TOPLAMA (Çağatay 2026-06-21): müzikal/belgesel/animasyon ARTIK silinmez.
-# Tam künye üretilir ama ONAYLI/KONTROL'e DEĞİL, doğrudan 'Mitas Output/muzikal_animasyon_belgesel/'
-# altında toplanır (export/ kardeşi). Eski 'işlenmez/sil' davranışı: MITAS_SKIP_SPECIAL_GENRE=1.
-SPECIAL_GENRE_DIR = OUT_ROOT / "muzikal_animasyon_belgesel"
-EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
-MASTER_MD = EXPORT_ROOT / "_ISLEM_LOG.md"
-MASTER_JSONL = EXPORT_ROOT / "_ISLEM_LOG.jsonl"
+# İP-5 (2026-07-11, plan rev.4): kökler artık mitas_roots.resolve()'den — MITAS_RUN_ROOT boşsa
+# üretim yolları BYTE-AYNI; doluysa (candidate modu) TÜM yazma-yüzeyleri run-root altına gider
+# (izolasyon; --run-root CLI aşağıda argparse'ta env'i set eder, _rebind_roots yeniden bağlar).
+# SABİT KURAL (Çağatay 2026-06-08): tüm çıktı export/ altında → ONAYLI | KONTROL. Başka teslim yok.
+# ÖZEL-TÜR (Çağatay 2026-06-21): müzikal/belgesel/animasyon 'muzikal_animasyon_belgesel/' altında.
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import mitas_roots as _roots  # noqa: E402
+
+PROJECT_ROOT = _roots.PROJECT_ROOT
+DB_ROOT = OUT_ROOT = EXPORT_ROOT = HAZIR = KONTROL = None  # _rebind_roots doldurur
+SPECIAL_GENRE_DIR = EVENTS_PATH = MASTER_MD = MASTER_JSONL = None
+
+
+def _rebind_roots(run_root=None):
+    """Modül-global kökleri (yeniden) bağla. Candidate modunda alt-süreç env-köprüsünü de kurar."""
+    global DB_ROOT, OUT_ROOT, EXPORT_ROOT, HAZIR, KONTROL
+    global SPECIAL_GENRE_DIR, EVENTS_PATH, MASTER_MD, MASTER_JSONL
+    r = _roots.resolve(run_root)
+    DB_ROOT, OUT_ROOT, EXPORT_ROOT = r["DB_ROOT"], r["OUT_ROOT"], r["EXPORT_ROOT"]
+    HAZIR, KONTROL = r["HAZIR"], r["KONTROL"]
+    SPECIAL_GENRE_DIR, EVENTS_PATH = r["SPECIAL_GENRE_DIR"], r["EVENTS_PATH"]
+    MASTER_MD, MASTER_JSONL = r["MASTER_MD"], r["MASTER_JSONL"]
+    _roots.export_child_env(r)
+    return r
+
+
+_rebind_roots()
 FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
 FFPROBE = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
 PY_OCR = PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"
@@ -1489,7 +1501,18 @@ def main(argv=None) -> int:
     ap.add_argument("--no-asr", action="store_true")
     ap.add_argument("--no-ocr", action="store_true")
     ap.add_argument("--no-copy-source", action="store_true", help="kaynak videoyu hub'a kopyalama (test)")
+    ap.add_argument("--run-root", default=None,
+                    help="İP-5 candidate modu: TÜM yazma-kökleri bu dizin altına (üretime sıfır dokunuş). "
+                         "Env eşdeğeri: MITAS_RUN_ROOT (alt-süreçlere otomatik geçer).")
     args = ap.parse_args(argv)
+
+    # İP-5: --run-root verildiyse env'i set edip kökleri YENİDEN bağla (import-anı çözümü ezilir).
+    if args.run_root:
+        os.environ["MITAS_RUN_ROOT"] = str(args.run_root)
+    if os.environ.get("MITAS_RUN_ROOT", "").strip():
+        _rebind_roots()
+        print(f"[candidate] RUN_ROOT aktif: {os.environ['MITAS_RUN_ROOT']} "
+              f"(DB={DB_ROOT} | export={EXPORT_ROOT}) — üretim köklerine YAZILMAZ")
 
     t_all = time.perf_counter()
     timings = {}

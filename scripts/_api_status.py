@@ -18,14 +18,22 @@ import tempfile
 from datetime import datetime, timezone
 
 # outputs/api_status.json — bu dosya scripts/ altinda, outputs kardes dizin.
-_OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
-_STATUS_PATH = os.path.join(_OUT_DIR, "api_status.json")
+# İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR env'i run-root'a yönlendirir.
+# ÇAĞRI-ANINDA çözülür (import-anında DEĞİL): mitas_pipeline bu modülü env kurulmadan önce
+# import edebilir (--run-root main'de işlenir) — import-anı çözümü üretime sızdırırdı.
+_FALLBACK_OUT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
+
+
+def _status_path() -> str:
+    return os.path.join(os.environ.get("MITAS_OUTPUTS_DIR") or _FALLBACK_OUT_DIR,
+                        "api_status.json")
 
 
 def read_all() -> dict:
     """api_status.json'u oku. Yoksa/bozuksa/hata -> {} (asla cokme)."""
     try:
-        with open(_STATUS_PATH, "r", encoding="utf-8") as f:
+        with open(_status_path(), "r", encoding="utf-8") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
     except Exception:  # noqa: BLE001 - dosya yok/bozuk/izin -> bos
@@ -46,13 +54,14 @@ def mark(api: str, ok: bool, detail: str = "") -> None:
             "detail": str(detail or ""),
             "ts": datetime.now(timezone.utc).isoformat(),
         }
-        os.makedirs(_OUT_DIR, exist_ok=True)
+        out_dir = os.path.dirname(_status_path())
+        os.makedirs(out_dir, exist_ok=True)
         # ayni dizine temp yaz -> os.replace ATOMIK (kismi/bozuk dosya birakmaz)
-        fd, tmp = tempfile.mkstemp(dir=_OUT_DIR, prefix=".api_status_", suffix=".tmp")
+        fd, tmp = tempfile.mkstemp(dir=out_dir, prefix=".api_status_", suffix=".tmp")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(cur, f, ensure_ascii=False, indent=2)
-            os.replace(tmp, _STATUS_PATH)
+            os.replace(tmp, _status_path())
         finally:
             # replace basarisizsa temp'i temizle
             try:

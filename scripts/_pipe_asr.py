@@ -21,7 +21,9 @@ FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-sha
 # --- Canlı log: system_events.jsonl'e tek-satir olay yaz (UI per-film adim-logu icin). ---
 # mitas_pipeline.log_event ile AYNI format/dosya; ASR uzun transkripsiyon boyunca "donuk" gorunmesin
 # diye periyodik ilerleme basar. observability'yi import ETME (agir dep, ayri venv) — dogrudan append.
-_EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"
+# İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR run-root'a işaret eder (pilot side-effect
+# kanıtının yakaladığı sızıntı — üretim event'ine yazıyordu); env boşsa üretim yolu BYTE-AYNI.
+_EVENTS_PATH = Path(os.environ.get("MITAS_OUTPUTS_DIR") or (PROJECT_ROOT / "outputs")) / "system_events.jsonl"
 
 # whisper'in (faster-whisper) DESTEKLEDIGI dil kodlari. MMS-LID buradan FARKLI (1024 dil) bir kod
 # uretebilir; _channel_lang._LANG_MAP cogunu 2-harf'e cevirir ama eslenemeyen/whisper-disi kod

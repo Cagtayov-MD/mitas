@@ -18,7 +18,10 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(r"E:\MITAS")
 FF = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
 FP = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
-TMP = ROOT / "outputs" / "_ocrpdf_run" / "_chlang"
+# İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR run-root'a işaret eder (pilot kanıtının
+# yakaladığı 44-dosyalık sızıntı). NOT (İP-7'ye): bu scratch GLOBAL — iki PARALEL koşu aynı wav
+# adlarında yarışır; job-scoped dizine taşınması ayrı iş (davranış-değişikliği, burada yapılmadı).
+TMP = Path(os.environ.get("MITAS_OUTPUTS_DIR") or (ROOT / "outputs")) / "_ocrpdf_run" / "_chlang"
 TMP.mkdir(parents=True, exist_ok=True)
 
 MMS_MODEL = "facebook/mms-lid-1024"
