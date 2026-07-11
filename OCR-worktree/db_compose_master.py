@@ -73,6 +73,22 @@ DEDUP_HIRES = os.environ.get("MITAS_MASTER_DEDUP_HIRES", "1") == "1"
 DEDUP_HI_SIZE = int(os.environ.get("MITAS_DEDUP_HI_SIZE", "16"))
 DEDUP_TDIFF = int(os.environ.get("MITAS_DEDUP_TDIFF", "40"))  # hi-res hamming above which two cards are DISTINCT (rescue)
 
+# HİBRİT-DY (şartname: outputs/MASKELI_DY_KONTROLLU_GECIS_SARTNAME_2026-07-09.md).
+# slitscan hız-kestirimi kanal seçimi: "0"=KAPALI (bit-identik eski yol; yeni fonksiyonlar
+# hiç çağrılmaz), "golge"=karar+seriler AYRI sidecar'a yazılır, piksel/manifest değişmez,
+# "1"=karar uygulanır (FULL: tam-kare dy; DEMOTE: allow_demote'lu çağrıda None→statik-fallback).
+# Ölçülmüş zemin: donmuş-arkaplan dizi jeneriğinde şişik maske (cov 0.576) maskeli-dy'yi
+# çökertti (105/120 skip), tam-kare 31.63'ü kusursuz ölçtü; ters yönde (footage-hareketli)
+# maskeli doğruydu → içerik-koşullu seçim şart, tek-metrik iki yönde de batıyor.
+SLIT_DY_HYBRID = os.environ.get("MITAS_SLIT_DY_HYBRID", "0").strip().lower()
+# Eşikler — KANITSIZ-VARSAYILAN: gölge korpusu ayrılabilirlik-kanıtıyla kalibre edilecek
+# (sağlam-p99 < eşik < patolojik-min). vmin/vmax'a DOKUNULMAZ.
+SLIT_HY_COV_THR = float(os.environ.get("MITAS_SLIT_HY_COV_THR", "0.40"))
+SLIT_HY_SKIP_THR = float(os.environ.get("MITAS_SLIT_HY_SKIP_THR", "0.5"))
+SLIT_HY_NCOIN_NULL = 1
+SLIT_HY_MIN_MEAS = 8          # bundan kısa run'da istatistik anlamsız → hibrit karar verilmez
+HYBRID_LOG: list = []          # gölge kayıtları; process_film koşu sonunda sidecar'a boşaltır
+
 
 # --------------------------------------------------------------------------- #
 # resolution-normalized parameters
@@ -659,10 +675,149 @@ def split_runs_reading(frames: list[str], p: Params, args) -> list[list]:
     return _resolve_reading_runs(raw_runs, min_scroll)
 
 
-def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
+def _slit_channel_stats(frames: list[str], p: Params, args) -> dict | None:
+    """HİBRİT-DY şartname 1a: R-run için iki kanalın (maskeli/tam-kare) dy+response
+    serileri + maske kapsaması TEK geçişte. TÜM istatistikler bu tek geçişin
+    serilerinden türetilir (ölçüm-hijyeni: ikinci sayım kaynağı YASAK —
+    skip105+spike18=123>120 dersi). Kısa run'da (n<SLIT_HY_MIN_MEAS) None."""
+    hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
+    prev_m = prev_f = None
+    prev_has = False
+    dy_m: list[float] = []
+    dy_f: list[float] = []
+    resp_m: list[float] = []
+    resp_f: list[float] = []
+    cov: list[float] = []
+    for frame in frames:
+        image = _prep(frame, p, args)
+        if image is None:
+            continue
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gf = gray.astype(np.float32)
+        mask = text_mask(gray, p, args.polarity)
+        dil = cv2.dilate(mask, np.ones((11, 11), np.uint8))
+        m = gf.copy()
+        m[dil == 0] = 0.0
+        cov.append(float((dil > 0).mean()))
+        if prev_m is not None and bool(dil.any()) and prev_has:
+            (_, dm), rm = cv2.phaseCorrelate(prev_m * hann, m * hann)
+            (_, df), rf = cv2.phaseCorrelate(prev_f * hann, gf * hann)
+            dy_m.append(float(dm))
+            dy_f.append(float(df))
+            resp_m.append(float(rm))
+            resp_f.append(float(rf))
+        prev_m, prev_f, prev_has = m, gf, bool(dil.any())
+    n = len(dy_m)
+    if n < SLIT_HY_MIN_MEAS:
+        return None
+    am = np.abs(np.array(dy_m, dtype=np.float64))
+    af = np.abs(np.array(dy_f, dtype=np.float64))
+    gecerli_f = np.array([v for v in dy_f if p.vmin <= abs(v) <= p.vmax], dtype=np.float64)
+    med_f = float(np.median(np.abs(gecerli_f))) if gecerli_f.size else 0.0
+    med_f_signed = float(np.median(gecerli_f)) if gecerli_f.size else 0.0
+    if gecerli_f.size:
+        q1, q3 = np.percentile(np.abs(gecerli_f), [25, 75])
+        iqr_f = float(q3 - q1)
+    else:
+        iqr_f = 0.0
+    tol = max(2.0, 0.1 * med_f)
+    return {
+        "n_meas": n,
+        "skip_frac_m": float(((am < p.vmin) | (am > p.vmax)).mean()),
+        "cov_med": float(np.median(cov)) if cov else 0.0,
+        "med_f": med_f, "med_f_signed": med_f_signed, "iqr_f": iqr_f,
+        "valid_rate_f": float(gecerli_f.size) / n,
+        "n_coin": int((np.abs(am - af) <= tol).sum()),
+        "tol_coin": tol,
+        "resp_m_med": float(np.median(resp_m)),
+        "resp_f_med": float(np.median(resp_f)),
+        "dy_m": [round(float(x), 3) for x in dy_m],
+        "dy_f": [round(float(x), 3) for x in dy_f],
+        "cov_seri": [round(float(x), 4) for x in cov],
+    }
+
+
+def _slit_channel_decision(stats: dict | None, p: Params) -> str:
+    """HİBRİT-DY şartname 3: run-başına TEK karar. SAF — birim-test edilebilir.
+    FULL   = maske-şişme (çelişki + kesişme tanığı): şişik maske ara ara gerçek hıza
+             kilitlenip 'itiraf eder' (n_coin), gerçekten duran yazı asla etmez.
+    DEMOTE = duran-yazı (maske dürüst ama hareket yok; kesişme sıfır).
+    MASKED = statüko — sağlıklı ve TÜM belirsiz durumlar (üçüncü mod dahil)."""
+    if stats is None:
+        return "MASKED"
+    n_coin_min = max(3, int(np.ceil(0.05 * stats["n_meas"])))
+    if (stats["cov_med"] >= SLIT_HY_COV_THR
+            and stats["skip_frac_m"] >= SLIT_HY_SKIP_THR
+            and stats["n_coin"] >= n_coin_min
+            and stats["med_f"] >= p.vmin):
+        return "FULL"
+    if (stats["skip_frac_m"] >= SLIT_HY_SKIP_THR
+            and stats["n_coin"] <= SLIT_HY_NCOIN_NULL
+            and stats["cov_med"] < SLIT_HY_COV_THR):
+        return "DEMOTE"
+    return "MASKED"
+
+
+def _slit_hybrid_log(frames: list[str], stats: dict | None, decision: str, applied: bool) -> dict:
+    """Gölge kaydı: HYBRID_LOG'a ekle (process_film sidecar'a boşaltır). Ana manifest'e
+    ve PNG'ye golge modda DOKUNULMAZ (SHA bit-identikliği şartı)."""
+    kayit = {
+        "src_first": Path(frames[0]).name if frames else None,
+        "src_last": Path(frames[-1]).name if frames else None,
+        "n_frames": len(frames),
+        "decision": decision,
+        "applied": bool(applied),
+        "stats": stats,
+    }
+    HYBRID_LOG.append(kayit)
+    return kayit
+
+
+def _hy_manifest_ozet(hy: dict, block_h: int) -> dict:
+    """Bayrak='1' iken manifest scroll bloğuna yazılacak kompakt hibrit özeti
+    (+TRAVEL bekçi girdileri). Gölge modda manifest'e ASLA yazılmaz (SHA şartı)."""
+    st = hy.get("stats") or {}
+    med_f = float(st.get("med_f") or 0.0)
+    n = int(st.get("n_meas") or 0)
+    beklenen = med_f * n
+    return {
+        "decision": hy.get("decision"),
+        "applied": bool(hy.get("applied")),
+        "dy_source": "full" if (hy.get("applied") and hy.get("decision") == "FULL") else "masked",
+        "cov_med": round(float(st.get("cov_med") or 0.0), 4),
+        "skip_frac_masked": round(float(st.get("skip_frac_m") or 0.0), 4),
+        "n_coin": int(st.get("n_coin") or 0),
+        "med_f": round(med_f, 3),
+        "travel_expected": round(beklenen, 1),
+        "travel_ratio": round(block_h / beklenen, 4) if beklenen > 0 else None,
+    }
+
+
+def slitscan(frames: list[str], p: Params, args,
+             allow_demote: bool = False) -> tuple[np.ndarray | None, dict | None]:
+    """Dönüş: (block, hybrid_info|None). HİBRİT-DY bayrağı '0' iken hybrid_info=None
+    ve kod yolu bit-identik (yeni fonksiyonlar hiç çağrılmaz)."""
+    hy_info = None
+    hy_full = False
+    med_signed = 0.0
+    clamp_band = 0.0
+    if SLIT_DY_HYBRID in ("golge", "1"):
+        stats = _slit_channel_stats(frames, p, args)
+        decision = _slit_channel_decision(stats, p)
+        uygula = SLIT_DY_HYBRID == "1" and stats is not None
+        if uygula and decision == "DEMOTE" and allow_demote:
+            hy_info = _slit_hybrid_log(frames, stats, decision, True)
+            return None, hy_info      # çağıran statik-sayfa fallback'ine düşer
+        hy_full = bool(uygula and decision == "FULL")
+        hy_info = _slit_hybrid_log(frames, stats, decision, hy_full)
+        if hy_full:
+            med_signed = stats["med_f_signed"]
+            clamp_band = 3.0 * max(stats["iqr_f"], 0.5)   # parlama/interlace sigortası
+
     hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
     ref = round(SLIT_FRAC * p.h)
     prev = None
+    prev_full = None
     prev_has_text = False
     strips = []
     seed_top = None       # FIX: first frame's region ABOVE the slit (else it's lost)
@@ -688,8 +843,16 @@ def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
 
         dy = 0.0
         if prev is not None and bool(dilated.any()) and prev_has_text:
-            (_, dy), _ = cv2.phaseCorrelate(prev * hann, masked * hann)
+            if hy_full:
+                # FULL kanal: hız tam-kareden akar (kare-başına; rampa serbest) +
+                # med±3·IQR kelepçesi. Maske yalnız yazı-varlığı kapısı olarak kalır.
+                (_, dy), _ = cv2.phaseCorrelate(prev_full * hann, gray_float * hann)
+                if abs(dy - med_signed) > clamp_band:
+                    dy = med_signed
+            else:
+                (_, dy), _ = cv2.phaseCorrelate(prev * hann, masked * hann)
         prev = masked
+        prev_full = gray_float
         prev_has_text = bool(dilated.any())
 
         velocity = int(round(abs(dy)))
@@ -702,7 +865,7 @@ def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
             last_v = velocity
 
     if not strips:
-        return None
+        return None, hy_info
     # FIX: prepend the first frame's above-slit content and append the last
     # frame's below-slit content so the head/tail of the roll aren't dropped.
     parts = []
@@ -711,7 +874,7 @@ def slitscan(frames: list[str], p: Params, args) -> np.ndarray | None:
     parts.append(np.vstack(strips))
     if last_image is not None and ref + last_v < p.h:
         parts.append(last_image[ref + last_v:, :].copy())
-    return np.vstack(parts)
+    return np.vstack(parts), hy_info
 
 
 def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, list[dict], np.ndarray | None]:
@@ -751,11 +914,15 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
             if not has_text(best_mask, p):
                 manifest.append({"run": [si, ei], "lab": label, "skip": "no-text"})
                 continue
-            block = slitscan(run_frames, p, args)
+            block, hy = slitscan(run_frames, p, args)   # allow_demote=False: film-ortak
+            # hat; DEMOTE kararı statüko-MASKED'e düşer, yalnız sidecar'a yazılır.
             if block is not None and block.size:
+                girdi = {"run": [si, ei], "lab": label, "kind": "scroll",
+                         "h": int(block.shape[0]), "src": Path(best_frame).name}
+                if SLIT_DY_HYBRID == "1" and hy:
+                    girdi["hybrid"] = _hy_manifest_ozet(hy, int(block.shape[0]))
                 blocks.append(block)
-                manifest.append({"run": [si, ei], "lab": label, "kind": "scroll",
-                                 "h": int(block.shape[0]), "src": Path(best_frame).name})
+                manifest.append(girdi)
             else:
                 manifest.append({"run": [si, ei], "lab": label, "skip": "empty"})
             continue
@@ -1018,22 +1185,32 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
         run_meta = {"run": [si, ei], "lab": str(label), "frames": len(run_frames)}
 
         if label == "R":
-            block = slitscan(run_frames, p, args)
+            # allow_demote=True: DEMOTE kararı None döndürür → mevcut statik-sayfa
+            # fallthrough'u devreye girer (kısmi-çökme baypası da böylece kapanır).
+            block, hy = slitscan(run_frames, p, args, allow_demote=True)
             if block is not None and block.size:
-                blocks.append(block)
-                last_static_hash = None
-                last_static_mask = None
-                last_static_index = None
-                block_manifest.append({
+                girdi = {
                     **run_meta,
                     "kind": "scroll_slit",
                     "h": int(block.shape[0]),
                     "w": int(block.shape[1]),
                     "src_first": Path(run_frames[0]).name if run_frames else None,
                     "src_last": Path(run_frames[-1]).name if run_frames else None,
-                })
+                }
+                if SLIT_DY_HYBRID == "1" and hy:
+                    girdi["hybrid"] = _hy_manifest_ozet(hy, int(block.shape[0]))
+                blocks.append(block)
+                last_static_hash = None
+                last_static_mask = None
+                last_static_index = None
+                block_manifest.append(girdi)
                 continue
-            block_manifest.append({**run_meta, "kind": "scroll_slit", "skip": "empty"})
+            girdi = {**run_meta, "kind": "scroll_slit",
+                     "skip": "demote" if (hy and hy.get("applied") and hy.get("decision") == "DEMOTE")
+                     else "empty"}
+            if SLIT_DY_HYBRID == "1" and hy:
+                girdi["hybrid"] = _hy_manifest_ozet(hy, 0)
+            block_manifest.append(girdi)
 
         _append_static_pages(run_frames, run_meta)
 
@@ -1311,6 +1488,7 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
         if args.seg and seg != args.seg:
             continue
         clear_cache()  # FIX(9): bound cache memory per segment
+        del HYBRID_LOG[:]   # hibrit gölge kayıtları segment-kapsamlı
 
         frames = sorted(glob.glob(str(film_dir / subdir / "*.png")), key=nat_sort_key)
         film_safe = safe(film_dir.name, args.hash_names)
@@ -1365,6 +1543,7 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
                         seg_result[mode]["debug"] = str(mpath.with_suffix(".debug.csv"))
                 except Exception as exc:
                     seg_result[mode] = {"frames": len(frames), "err": repr(exc)[:200]}
+            _hybrid_flush(segment_dir)
             result[seg] = seg_result if args.mode == "both" else seg_result[modes[0]]
             continue
 
@@ -1442,9 +1621,26 @@ def process_film(film_dir: Path, out_dir: Path, args) -> dict:
             info["trace"] = traceback.format_exc()[-700:]
 
         (segment_dir / "manifest.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+        _hybrid_flush(segment_dir)
         result[seg] = {k: info.get(k) for k in ("status", "selected_mode", "master", "flags", "frames")}
 
     return result
+
+
+def _hybrid_flush(segment_dir: Path) -> None:
+    """HİBRİT-DY gölge kayıtlarını AYRI sidecar'a boşalt (ana manifest/PNG'ye dokunmaz;
+    SHA bit-identiklik şartının tesisatı). Bayrak '0' iken HYBRID_LOG hep boştur."""
+    if not HYBRID_LOG:
+        return
+    try:
+        yol = segment_dir / "hybrid_shadow.jsonl"
+        with yol.open("w", encoding="utf-8") as h:
+            for kayit in HYBRID_LOG:
+                h.write(json.dumps(kayit, ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001 — gölge kaydı compose'u ASLA bozamaz
+        print(f"[warn] hybrid_shadow yazilamadi: {exc}", flush=True)
+    finally:
+        del HYBRID_LOG[:]
 
 
 def select_films(db_root: Path, film_filter: str | None, start: int, count: int) -> list[Path]:
@@ -1518,7 +1714,15 @@ def main() -> None:
     parser.add_argument("--min-hold", type=int, default=5, help="slit: min frames per run")
     parser.add_argument("--cut-resp", type=float, default=0.05,
                         help="mosaic: phaseCorrelate peak below this == cut")
+    parser.add_argument("--slit-dy-hybrid", choices=["0", "golge", "1"], default=None,
+                        help="HIBRIT-DY kanal secimi (sartname 2026-07-09): 0=kapali "
+                             "(bit-identik eski yol), golge=karar+seriler sidecar'a, "
+                             "1=uygula. Env aynasi: MITAS_SLIT_DY_HYBRID")
     args = parser.parse_args()
+
+    global SLIT_DY_HYBRID
+    if args.slit_dy_hybrid is not None:
+        SLIT_DY_HYBRID = args.slit_dy_hybrid
 
     args.out.mkdir(parents=True, exist_ok=True)
     selected = select_films(args.db_root, args.film, args.start, args.count)

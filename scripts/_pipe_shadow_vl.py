@@ -302,6 +302,10 @@ def build_pool(
                 # SCROLL → slitscan → dikey dilimleme
                 try:
                     strip = dcm.slitscan(run_frames, p, args_ns)
+                    # HİBRİT-DY imza değişikliği (2026-07-09): slitscan artık
+                    # (block, hybrid_info) tuple döner; eski dcm ile geriye-uyumlu kal.
+                    if isinstance(strip, tuple):
+                        strip = strip[0]
                 except Exception as e:
                     print(f"[shadow_vl] slitscan hata seg={seg} run={src_run}: {e}", file=sys.stderr)
                     strip = None
