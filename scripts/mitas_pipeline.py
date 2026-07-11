@@ -2096,6 +2096,16 @@ def main(argv=None) -> int:
     # ASR komutu hazırla ve başlat
     asr_proc = None
     t_asr = None
+    # === ASR KALICI DEVRE-DIŞI (Çağatay 2026-07-11): test/kalite-ölçüm koşularında ASR ===
+    # tamamen ayrı bir işlemdir, frame-okumayla (OCR/künye) İLGİSİ YOK → boşa zaman+token harcamasın.
+    # İki tetik (aksi emre kadar): sentinel dosya E:\MITAS\ASR_KAPALI.flag VEYA MITAS_DISABLE_ASR=1.
+    # Yeniden açmak için: dosyayı sil / env'i kaldır. (--no-asr tek-koşu; bu KALICI kill-switch.)
+    _asr_kapali = ((PROJECT_ROOT / "ASR_KAPALI.flag").exists()
+                   or os.environ.get("MITAS_DISABLE_ASR", "").strip().lower()
+                   in ("1", "true", "on", "yes"))
+    if _asr_kapali and not args.no_asr:
+        args.no_asr = True
+        print("[ASR] KALICI DEVRE-DIŞI (ASR_KAPALI.flag/MITAS_DISABLE_ASR) — özet/transkript atlanır")
     if not args.no_asr:
         _pa = PROFILE_ASR.get(profile)
         # KRİTİK: auto-language'da _pipe_asr'e VİDEO ver (downmix değil). Kanal-LID (MMS-LID) +
