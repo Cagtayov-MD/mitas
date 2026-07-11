@@ -13,7 +13,7 @@ master/ alt-klasörü SİLİNİR; üretilemediyse eski master/ KORUNUR ("kötü 
   Tek film:   python master_png_monitor.py --once "<Database klasör adı VEYA tam yol>" [--base "<TRT BAŞLIK>"]
   Monitör:    python master_png_monitor.py            (Database'i izler, biten filmlere üretir)
 """
-import sys, os, time, glob, json, types, shutil, importlib.util
+import sys, os, re, time, glob, json, types, shutil, importlib.util
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -35,6 +35,20 @@ except Exception:
 
 DB = Path(r"E:\MITAS\Database")
 POLL_SEC = 60
+
+
+# PROFİL AYRIM KİLİDİ (Çağatay 2026-07-11: "FİLM İÇİN AYRI DİZİ İÇİN AYRI PROFİL — %100").
+# Hub adındaki TRT tip parseli hibrit-dy bayrağını ZORLAR — ortam değişkeni ne derse desin:
+#   tip=1 (FİLM) → '0' (eski yol, bit-identik)   ·   tip=0 (DİZİ) → '1' (hibrit aktif)
+# TRT kimliği yoksa (lab/test hub'ı) karar verilemez → mevcut değer korunur.
+_TRT_TIP_RE = re.compile(r"\d{4}-\d{3,4}-(\d)-\d{3,4}-\d{2}-\d")
+
+
+def _profil_dy_kilidi(film: Path) -> str:
+    m = _TRT_TIP_RE.search(film.name)
+    if m:
+        dc.SLIT_DY_HYBRID = "0" if m.group(1) == "1" else "1"
+    return dc.SLIT_DY_HYBRID
 
 
 def make_args():
@@ -262,6 +276,7 @@ def _seg_source(film: Path, seg: str):
 
 
 def gen_master(film: Path, base_override: str | None = None) -> dict:
+    _profil_dy_kilidi(film)   # FİLM→hibrit-0 / DİZİ→hibrit-1 (profil ayrımı %100)
     base = _delivery_base(film, base_override)
     args = make_args()
     res = {"film": film.name, "base": base}
@@ -343,6 +358,7 @@ def gen_reading_master(
 ) -> dict:
     if seg not in {"giris", "cikis"}:
         raise ValueError(f"unsupported reading-master segment: {seg!r}")
+    _profil_dy_kilidi(film)   # FİLM→hibrit-0 / DİZİ→hibrit-1 (profil ayrımı %100)
     base = _delivery_base(film, base_override)
     args = make_args()
     frames, src = _seg_source(film, seg)

@@ -140,11 +140,28 @@ def stop_kart_suz(lines: list[str], dosya_bolum_no: int | None) -> tuple[list[st
     Döner: (kalan, kart_bolum_no, uyarilar). Kart no'su dosya parseliyle çelişirse
     'BOLUM_NO_CELISKI: kart=X dosya=Y' uyarısı. Birden çok no'lu kart varsa İLKİ alınır
     (sözleşmede tanımsız → muhafazakâr: ilk görülen)."""
-    kalan: list[str] = []
     kart_no: int | None = None
     uyarilar: list[str] = []
-    for l in lines:
-        f = _fold(l).strip(" .:-!…")
+    foldlar = [_fold(l).strip(" .:-!…") for l in lines]
+    # BU-DİZİ kapanış-kalıbı (2026-07-11): "Bu Dizi TRT / Tarafından X'e / Yaptırılmıştır."
+    # OCR'da 2-4 satıra bölünür ve parçaları isim sanılır. Pencere kuralı: "bu dizi" ile
+    # başlayan satırdan sonraki ≤4 satır içinde "yaptirilmistir" varsa BLOK düşer;
+    # tek başına "yaptirilmistir" içeren satır da düşer. "BU DİZİDE OYNAYANLAR" gibi
+    # kalıpsız satırlar (pencerede yaptirilmistir yok) DOKUNULMAZ.
+    dusur: set[int] = set()
+    for i, f in enumerate(foldlar):
+        if "yaptirilmistir" in f:
+            dusur.add(i)
+        if f.startswith("bu dizi"):
+            for j in range(i + 1, min(i + 5, len(foldlar))):
+                if "yaptirilmistir" in foldlar[j]:
+                    dusur.update(range(i, j + 1))
+                    break
+    kalan: list[str] = []
+    for i, l in enumerate(lines):
+        if i in dusur:
+            continue
+        f = foldlar[i]
         m = _BOLUM_SONU_RE.match(f)
         if m:
             if kart_no is None:
@@ -185,6 +202,55 @@ def _dilim_taze_mi(damga: str, job: str | None) -> bool:
     return str(damga or "") in (base_job, job)
 
 
+def _logo_kolon_suz(md_dir: str, lines: list[str], uyarilar: list[str]) -> list[str]:
+    """LOGO-KOLON süzgeci (2026-07-11, Diriliş vakası): modern dizi jeneriklerinde sol kolon
+    sponsor logoları, sağ kolon künye akışıdır; OneOCR ikisini aynı satır-akışına karıştırır.
+    dilim_oneocr.jsonl kutu-x koordinatlarıyla iki-kolon yerleşimi tespit edilir
+    (sol küme ≥3 satır ∧ sağ küme ≥ max(6, 2×sol)); tespit varsa SOL-kolon satırları
+    düşürülür ve uyarıya listelenir (izlenebilir kayıp — 'okunamadı > yanlış oku': logo
+    çorbası isim listesine sızmasın). Tek-kolon/jsonl-siz hub'da HİÇBİR ŞEY değişmez."""
+    jl = os.path.join(md_dir, "dilim_oneocr.jsonl")
+    if not os.path.isfile(jl):
+        return lines
+    try:
+        sol_metin: list[str] = []
+        sag_fold: set[str] = set()
+        kayitlar = []
+        with open(jl, encoding="utf-8", errors="ignore") as h:
+            for ln in h:
+                ln = ln.strip()
+                if ln:
+                    kayitlar.append(json.loads(ln))
+        if not kayitlar:
+            return lines
+        w = max(int(k.get("x1") or 0) for k in kayitlar)
+        if w <= 0:
+            return lines
+        for k in kayitlar:
+            t = str(k.get("text") or "").strip()
+            if not t:
+                continue
+            merkez = (int(k.get("x0") or 0) + int(k.get("x1") or 0)) / 2.0 / w
+            if merkez < 0.42:
+                sol_metin.append(t)
+            elif merkez >= 0.5:
+                sag_fold.add(_fold(t))
+        if len(sol_metin) < 3 or len(sag_fold) < max(6, 2 * len(sol_metin)):
+            return lines
+        dusecek = {_fold(t) for t in sol_metin} - sag_fold   # sağda da geçen fold KORUNUR
+        if not dusecek:
+            return lines
+        kalan = [l for l in lines if _fold(l) not in dusecek]
+        n = len(lines) - len(kalan)
+        if n:
+            ornek = ", ".join(sol_metin[:5])
+            uyarilar.append(f"LOGO_KOLON: {n} satır düşürüldü (sol-kolon): {ornek}")
+        return kalan
+    except Exception as exc:  # noqa: BLE001 — süzgeç hatası okuma akışını ASLA bozmaz
+        uyarilar.append(f"LOGO_KOLON_HATA: {type(exc).__name__}: {exc}")
+        return lines
+
+
 def _satirlar_oku(clip_dir: str) -> tuple[list[str], str, list[str]]:
     """Hub'dan okuma satırları → (satirlar, kaynak, uyarilar). kaynak: master_dilim|kare|yok."""
     uyarilar: list[str] = []
@@ -204,6 +270,7 @@ def _satirlar_oku(clip_dir: str) -> tuple[list[str], str, list[str]]:
                         s = ln.strip()
                         if s and not s.startswith("### DILIM-SINIRI"):
                             out.append(s)
+                out = _logo_kolon_suz(md, out, uyarilar)
                 return out, "master_dilim", uyarilar
             uyarilar.append(f"DILIM_BAYAT: meta={damga or '—'} en_yeni={job or '—'}")
         except Exception as exc:  # noqa: BLE001 — dilim hatası akışı BOZMAZ, kare'ye düşülür

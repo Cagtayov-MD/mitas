@@ -190,6 +190,9 @@ def _pipeline_kos(video, python_exe=None) -> int:
            "--video", str(video), "--no-copy-source"]
     env = os.environ.copy()
     env["MITAS_SHADOW_VL"] = "1"
+    # DİZİ PROFİLİ = hibrit-dy AÇIK (şartname G1; monitor'ün TRT-tip kilidi de aynı yöne
+    # zorlar — çift güvence). Film hattı bu bayrağı hiç görmez (monitor tip=1'de '0'a kilitler).
+    env["MITAS_SLIT_DY_HYBRID"] = "1"
     return subprocess.run(cmd, env=env).returncode
 
 

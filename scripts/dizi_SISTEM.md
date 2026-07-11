@@ -262,6 +262,19 @@ class DiffPolitika:
     varsayılan glm-ocr) okutur — ADDITIVE: stop-kart no'su VL'den dolabilir (`STOP_KART_VL: n` uyarısı),
     sparse okumaya fold-dedup'lu ek satırlar katılır (`VL_DILIM_EK: n satır`). Kill-switch
     `MITAS_DIZI_VL_DILIM=0`; hata yutulur (`VL_DILIM_HATA`), PNG'siz hub sessiz geçilir.
+## PROFİL AYRIMI — FİLM ≠ DİZİ (Çağatay 2026-07-11: "%100 EMİN")
+| Eksen | FİLM profili (tip parseli =1) | DİZİ profili (tip parseli =0) |
+|---|---|---|
+| Hibrit-dy (slitscan kanal seçimi) | **ZORLA '0'** — eski yol bit-identik | **ZORLA '1'** — hibrit aktif |
+| Zorlama noktası | `master_png_monitor._profil_dy_kilidi` hub adındaki TRT tipinden — **ortam değişkeni ne derse desin** | aynı kilit + `dizi_isle._pipeline_kos` env=1 (çift güvence) |
+| Gölge-VL | pipeline bayrağına tabi | dizi_isle koşusunda ZORUNLU (=1, kalıcı-değişim VL-teyidi için) |
+| Kaynak kopyalama | pipeline varsayılanı | `--no-copy-source` (disk) |
+| Künye karar katmanı | tek-film v4 akışı (mitas_pipeline) | seri katmanı (konsensüs+diff+kanonik; bu sözleşme) |
+| Okuma yüzeyi | kare-kare OneOCR birincil; dilim additive | master-PNG dilim birincil; kare fallback; VL-dilim fallback |
+| KB kullanımı | kimlik/cross-check (v4) | kb=None (KB dizi-crew kapsaması ~0; yalnız-pozitif ileride) |
+| TRT'siz hub (lab/test) | kilit karar veremez → env/varsayılan geçerli | aynı |
+Kanıt-testi: `tests/test_dizi_profil_ayrimi.py` (film-zorla-0, dizi-zorla-1, TRT'siz-dokunma, env-bayrakları).
+
 13. **CAST-ajans kuralı (Çağatay 2026-07-09):** jenerikte `cast` başlığı altında TEK büyük-harf
     girdi = casting AJANSI kredisi ("cast: MAVİ FİL") → oyuncu listesine DEĞİL `crew["Cast"]`
     satırına yazılır + `CAST_AJANS: <isim>` uyarısı. Blok sonu = rol başlığı veya küçük-harf-ağırlıklı

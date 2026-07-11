@@ -323,3 +323,65 @@ def test_vl_dilim_hata_yutulur(tmp_path):
     clip = _vl_hub(tmp_path, _VL_DILIM)
     o = d.okuma_topla(str(clip), 63, vl_http=vl_http)   # çökmez
     assert any(u.startswith("VL_DILIM_HATA") for u in o["uyarilar"])
+
+
+# ─────────── LOGO-KOLON süzgeci + BU-DİZİ kapanış kalıbı (2026-07-11) ───────────
+
+def test_bu_dizi_kapanis_blogu_dusurulur():
+    lines = ["YÖNETMEN", "SAMET POLAT", "Bu Dizi TRT", "Tarafından FORA FİLM'e",
+             "Yaptırılmıştır.", "2002 ©", "MUSA KUTLU"]
+    kalan, kart, uy = d.stop_kart_suz(lines, 5)
+    assert "Bu Dizi TRT" not in kalan
+    assert "Tarafından FORA FİLM'e" not in kalan
+    assert "Yaptırılmıştır." not in kalan
+    assert "SAMET POLAT" in kalan and "MUSA KUTLU" in kalan   # gerçek isimler dokunulmaz
+
+
+def test_bu_dizi_yaptirilmistir_yoksa_dusmez():
+    # "bu dizi" içeren ama yapım-kalıbı olmayan satır (nadir) korunur
+    lines = ["BU DİZİDE OYNAYANLAR", "ALİ VELİ"]
+    kalan, _, _ = d.stop_kart_suz(lines, 1)
+    assert "ALİ VELİ" in kalan
+
+
+def _kolonlu_hub(tmp_path, sol, sag, w=854):
+    """İki-kolonlu sentetik hub: jsonl kutularıyla sol(logo)/sağ(künye) satırlar."""
+    import json as _j
+    clip = _hub(tmp_path, dilim_lines=[t for t, _ in sol] + [t for t, _ in sag],
+                meta={"ocr_job": "ocr-0001"}, ocr_jobs=[("ocr-0001", ["x"])])
+    kayitlar = []
+    for t, y in sol:
+        kayitlar.append({"part": "p01", "text": t, "x0": 60, "y0": y, "x1": 260, "y1": y + 30})
+    for t, y in sag:
+        kayitlar.append({"part": "p01", "text": t, "x0": 480, "y0": y, "x1": 820, "y1": y + 30})
+    (clip / "master_dilim" / "dilim_oneocr.jsonl").write_text(
+        "\n".join(_j.dumps(k, ensure_ascii=False) for k in kayitlar), encoding="utf-8")
+    return clip
+
+
+def test_logo_kolon_sol_dusurulur_sag_korunur(tmp_path):
+    sol = [("ÖZAK GLOBAL", 100), ("www.hanhali.com", 200), ("DECORiSTAN", 300)]
+    sag = [("YAPIMCI", 80), ("MEHMET BOZDAĞ", 120), ("KOSTÜM ŞEFİ", 200),
+           ("VEDA BAYCAN", 240), ("IŞIK ŞEFİ", 320), ("MURAT OKAN", 360),
+           ("KURGU", 440), ("SERAP MUTLU", 480)]
+    clip = _kolonlu_hub(tmp_path, sol, sag)
+    o = d.okuma_topla(str(clip), 3)
+    assert o["crew"].get("Yapımcı") == ["MEHMET BOZDAĞ"]
+    assert "ÖZAK GLOBAL" not in (o["crew"].get("Yapımcı") or [])
+    duz = [n for ns in o["crew"].values() for n in ns] + o["cast"]
+    assert "ÖZAK GLOBAL" not in duz and "DECORiSTAN" not in duz
+    assert any(u.startswith("LOGO_KOLON") for u in o["uyarilar"])
+
+
+def test_tek_kolon_hub_dokunulmaz(tmp_path):
+    # jsonl var ama tek kolon (hepsi geniş/ortada) → süzgeç devreye girmez
+    import json as _j
+    clip = _hub(tmp_path, dilim_lines=["YÖNETMEN", "SAMET POLAT"],
+                meta={"ocr_job": "ocr-0001"}, ocr_jobs=[("ocr-0001", ["x"])])
+    kayitlar = [{"part": "p01", "text": "YÖNETMEN", "x0": 200, "y0": 100, "x1": 420, "y1": 130},
+                {"part": "p01", "text": "SAMET POLAT", "x0": 180, "y0": 160, "x1": 440, "y1": 190}]
+    (clip / "master_dilim" / "dilim_oneocr.jsonl").write_text(
+        "\n".join(_j.dumps(k, ensure_ascii=False) for k in kayitlar), encoding="utf-8")
+    o = d.okuma_topla(str(clip), 3)
+    assert o["crew"].get("Yönetmen") == ["SAMET POLAT"]
+    assert not any(u.startswith("LOGO_KOLON") for u in o["uyarilar"])
