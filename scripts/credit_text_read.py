@@ -570,7 +570,22 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
     return kept, dropped
 
 
-SCHEMA = {
+# === _reasoning KALDIRMA (2026-07-11, plan rev.4 İP-3-devamı; Çağatay ONAYI) ===
+# ÖLÇÜLMÜŞ GEREKÇE: frames-rerun 289-film koşusunda 13 TECHNICAL_FAILURE'ın HEPSİ >250-satır
+# dev-künye (DEFİNE GEZEGENİ 744, YÜZÜKLERİN EFENDİSİ 629, SEVİMLİ KÖPEK 492...) — required-İLK
+# _reasoning, num_predict bütçesini yiyip JSON'u yarıda kesiyordu (KARAR KİMİN kanıtı: model
+# şema alanlarına hiç ulaşamadan done_reason=length). GERİ-DÖNÜŞ ANAHTARI (şartname):
+# MITAS_REASONING=1 eski davranışı aynen geri getirir (rollback; A/B kötü çıkarsa).
+SCHEMA_LEAN = {
+    "type": "object",
+    "properties": {
+        "yonetmen": {"type": "array", "items": {"type": "string"}},
+        "yapimci": {"type": "array", "items": {"type": "string"}},
+        "oyuncular": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["yonetmen", "yapimci", "oyuncular"],
+}
+SCHEMA_REASONING = {
     "type": "object",
     "properties": {
         "_reasoning": {"type": "string"},
@@ -580,6 +595,17 @@ SCHEMA = {
     },
     "required": ["_reasoning", "yonetmen", "yapimci", "oyuncular"],
 }
+
+
+def _reasoning_on() -> bool:
+    return os.environ.get("MITAS_REASONING", "0").strip().lower() in ("1", "true", "on", "yes")
+
+
+def _schema():
+    return SCHEMA_REASONING if _reasoning_on() else SCHEMA_LEAN
+
+
+SCHEMA = SCHEMA_LEAN   # geri-uyum adı (statik import edenler için; canlı seçim _schema() ile)
 
 PROMPT = """Aşağıda bir filmin jeneriğinden (künye) OCR ile okunan satırlar var. Satırlar BOZUK/eksik olabilir.
 GÖREVİN: bu satırlardan YÖNETMEN, YAPIMCI ve baş OYUNCULARI çıkarmak — YENİDEN OKUMAK ya da bilgiden EKLEMEK DEĞİL.
@@ -605,13 +631,18 @@ KESİN KURALLAR:
 5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla __CAP__, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
 6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı / Uygulayıcı Yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29; Uygulayıcı=AYNADAKİ DÜŞMAN 2026-07-04
 
-ÇIKTI: yalnız JSON:
-{"_reasoning": "<her satırı kısaca etiketle: YÖNETMEN / YAPIMCI / OYUNCU / EKİP-DİĞER>", "yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
-_reasoning bölümünde önce her satırın hangi role ait olduğunu sınıflandır, SONRA alanları doldur.
+__CIKTI__
 
 SATIRLAR:
 %s
 """
+
+_CIKTI_LEAN = """ÇIKTI: yalnız JSON (başka hiçbir şey yazma):
+{"yonetmen": [...], "yapimci": [...], "oyuncular": [...]}"""
+
+_CIKTI_REASONING = """ÇIKTI: yalnız JSON:
+{"_reasoning": "<her satırı kısaca etiketle: YÖNETMEN / YAPIMCI / OYUNCU / EKİP-DİĞER>", "yonetmen": [...], "yapimci": [...], "oyuncular": [...]}
+_reasoning bölümünde önce her satırın hangi role ait olduğunu sınıflandır, SONRA alanları doldur."""
 
 
 def _cast_cap():
@@ -653,8 +684,11 @@ def _prompt(text):
     _llm_cast_ceiling() (+8 paylı — bkz o fonksiyonun docstring'i, ilk +30 denemesi risk
     taşıdığı için küçültüldü). Gerçek kesim hâlâ _cast_cap() ile Python tarafında,
     sıra-koruyarak yapılır; bu satır yalnız modelin JSON-array üretimini ürün cap'inde
-    ERKEN durdurmasını önler."""
-    return (PROMPT % text).replace("__CAP__", str(_llm_cast_ceiling()))
+    ERKEN durdurmasını önler.
+    2026-07-11 (_reasoning-kaldırma, ölçülmüş): ÇIKTI bloğu __CIKTI__ ile enjekte edilir —
+    default LEAN (yalnız 3 alan; taşma-kaynağı satır-etiketleme yok), MITAS_REASONING=1 eskiyi getirir."""
+    cikti = _CIKTI_REASONING if _reasoning_on() else _CIKTI_LEAN
+    return (PROMPT % text).replace("__CAP__", str(_llm_cast_ceiling())).replace("__CIKTI__", cikti)
 
 
 def _deepseek_json(model, prompt, timeout=120):
@@ -1936,7 +1970,7 @@ def read_credits_from_text(lines, title="", model=None, *, dizi=False):
         if str(model).startswith("deepseek"):
             raw = _deepseek_json(model, _prompt(text))
         else:
-            raw = _ollama_json(model, _prompt(text), SCHEMA)
+            raw = _ollama_json(model, _prompt(text), _schema())
     except Exception as e:
         out["hata"] = f"{type(e).__name__}: {e}"
         return out
@@ -2205,7 +2239,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 raw = _deepseek_json(m, _prompt(text))
                 model_meta[m] = {"status": "ok", "model": m}
             else:
-                raw, _meta = _ollama_json_ex(m, _prompt(text), SCHEMA)
+                raw, _meta = _ollama_json_ex(m, _prompt(text), _schema())
                 # İP-3 (2026-07-11): length'te TEK-SEFERLİK num_ctx-yükseltmeli retry (Opus formülü:
                 # "length görülürse bir kez yükselt"). Prompt BÖLÜNMEZ — naif bölme VL/OCR bağlam
                 # bütünlüğünü kırar (qwen+GLM ortak vetosu); kart-sınırı chunking bilinçli ertelendi
@@ -2213,7 +2247,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
                 if _meta.get("status") != "ok" and _meta.get("reason") == "length":
                     _retry_ctx = int(os.environ.get("MITAS_OLLAMA_NUM_CTX_RETRY", "12288") or 12288)
                     sys.stderr.write(f"[credit_text_read] {m} length → tek-retry num_ctx={_retry_ctx}\n")
-                    raw, _meta2 = _ollama_json_ex(m, _prompt(text), SCHEMA, num_ctx=_retry_ctx)
+                    raw, _meta2 = _ollama_json_ex(m, _prompt(text), _schema(), num_ctx=_retry_ctx)
                     _meta2["length_retry"] = True
                     _meta = _meta2
                 model_meta[m] = _meta

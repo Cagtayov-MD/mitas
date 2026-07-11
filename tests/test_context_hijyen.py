@@ -84,3 +84,22 @@ def test_telemetri_yazilir_ve_cokmez(monkeypatch, tmp_path):
     assert len(satirlar) == 1
     j = json.loads(satirlar[0])
     assert j["run_id"] == "r1" and j["schema_version"] == rm.SCHEMA_VERSION and "ts" in j
+
+
+# ── _reasoning-kaldırma (2026-07-11, Çağatay onayı; ölçülmüş gerekçe: 13 TF dev-künye) ──
+def test_reasoning_default_kaldirilmis(monkeypatch):
+    monkeypatch.delenv("MITAS_REASONING", raising=False)
+    s = ctr._schema()
+    assert "_reasoning" not in s["required"] and "_reasoning" not in s["properties"]
+    p = ctr._prompt("SATIR1")
+    assert "_reasoning" not in p, "prompt'ta taşma-kaynağı satır-etiketleme talimatı kalmamalı"
+    assert '{"yonetmen"' in p
+
+
+def test_reasoning_rollback_anahtari(monkeypatch):
+    """Şartname geri-dönüş anahtarı: MITAS_REASONING=1 eski davranışı AYNEN getirir."""
+    monkeypatch.setenv("MITAS_REASONING", "1")
+    s = ctr._schema()
+    assert s["required"][0] == "_reasoning"
+    p = ctr._prompt("SATIR1")
+    assert "_reasoning" in p
