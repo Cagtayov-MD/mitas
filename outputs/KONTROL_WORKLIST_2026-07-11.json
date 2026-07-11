@@ -1,0 +1,756 @@
+{
+ "kontrol_pdf": 194,
+ "benzersiz_trt": 185,
+ "hub_eslesen": 168,
+ "kovalar": {
+  "TEKNIK_ARIZA_ASR": [
+   {
+    "trt": "1933-0013-1-0000-00-1",
+    "hub": "YÜZYILIN CİNAYETİ 1933-0013-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1967-0037-1-0000-00-1",
+    "hub": "MUTLU GÜNLER 1967-0037-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1968-0020-1-0000-00-1",
+    "hub": "DOĞUM GÜNÜ 1968-0020-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1969-0094-1-0000-00-1",
+    "hub": "KESS 1969-0094-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1970-0061-1-0000-00-1",
+    "hub": "BAHAR VE ŞARAP 1970-0061-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1971-0057-1-0000-00-1",
+    "hub": "RODEO TUTKUSU 1971-0057-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1975-0182-1-0000-00-1",
+    "hub": "BİR ZAMANLAR 1975-0182-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1981-0266-1-0000-00-1",
+    "hub": "KARAR KİMİN 1981-0266-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1988-0420-1-0000-00-1",
+    "hub": "LA BOHEME 1988-0420-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1988-0430-1-0000-00-1",
+    "hub": "LALELER 1988-0430-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1990-0321-1-0000-00-1",
+    "hub": "MOSKOVA BUZ BALESİ 1990-0321-1-0000-00-1",
+    "asr_status": "partial"
+   },
+   {
+    "trt": "1990-0390-1-0000-00-1",
+    "hub": "SISSI-1 1990-0390-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1990-0403-1-0000-00-1",
+    "hub": "TOPLU GÖSTERİLER 1990-0403-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1991-0355-1-0000-00-1",
+    "hub": "PARİS'İN DIAGHILEV İLE DANSI 1991-0355-1-0000-00-1",
+    "asr_status": "partial"
+   },
+   {
+    "trt": "1991-0406-1-0000-40-1",
+    "hub": "YAPRAK BİTTİ 1991-0406-1-0000-40-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1991-0442-1-0000-00-1",
+    "hub": "KIRIK KALPLER LOKANTASI 1991-0442-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1991-0525-1-0000-00-1",
+    "hub": "OSCAR 1991-0525-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1992-0223-1-0000-00-1",
+    "hub": "KONTES ALICE 1992-0223-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1992-0299-1-0000-00-1",
+    "hub": "GLORIA KUŞATMASI 1992-0299-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1992-0332-1-0000-00-1",
+    "hub": "BUZ ÜSTÜNDE 1992-0332-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1992-0465-1-0000-00-1",
+    "hub": "İKİNCİ ŞANS 1992-0465-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1992-0484-1-0000-00-1",
+    "hub": "YALNIZ TOM 1992-0484-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1993-0312-1-0000-00-1",
+    "hub": "ÖLÜMSÜZ TUCK 1993-0312-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1993-0401-1-0000-00-1",
+    "hub": "ARCEDIA 1993-0401-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1993-0439-1-0000-00-1",
+    "hub": "SON BOLŞEVİK 1993-0439-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1994-0338-1-0000-00-1",
+    "hub": "KİNG'İN SERVETİ 1994-0338-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1994-0345-1-0000-00-1",
+    "hub": "KOMİSER 1994-0345-1-0000-00-1",
+    "asr_status": "partial"
+   },
+   {
+    "trt": "1995-0289-1-0000-00-1",
+    "hub": "ÜÇ KURUŞLUK OPERA 1995-0289-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1995-0326-1-0000-00-1",
+    "hub": "DELİLİĞİN SINIRINDA 1995-0326-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1996-0356-1-0000-00-1",
+    "hub": "SİNDİRELLA'NIN KIZININ MACERALARI 1996-0356-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1997-0217-1-0000-00-1",
+    "hub": "ÖRGÜT 1997-0217-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1997-0353-1-0000-00-1",
+    "hub": "KÜÇÜK AYICIK 1997-0353-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1997-0411-1-0000-00-1",
+    "hub": "OMAGGIO A CARUSO 1997-0411-1-0000-00-1",
+    "asr_status": "partial"
+   },
+   {
+    "trt": "1998-0401-1-0000-00-1",
+    "hub": "BLACKJACK 1998-0401-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1998-0464-1-0000-90-1",
+    "hub": "ELMA 1998-0464-1-0000-90-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1998-0519-1-0000-00-1",
+    "hub": "SON CÜCE 1998-0519-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1999-0383-1-0000-00-1",
+    "hub": "PUNKTCHEN VE ANTON 1999-0383-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1999-0394-1-0000-90-1",
+    "hub": "13. SAVAŞÇI 1999-0394-1-0000-90-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "1999-0508-1-0000-00-1",
+    "hub": "PAMUK MARY 1999-0508-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2000-0303-1-0000-00-1",
+    "hub": "MOTORSİKLETLİ POLİSLER 2000-0303-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2001-9314-1-0000-00-1",
+    "hub": "VAHŞİ AFRİKA 2001-9314-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2003-9104-1-0000-00-1",
+    "hub": "UFAKLIK İÇİN BİR BABA 2003-9104-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2004-9139-1-0000-00-1",
+    "hub": "GÜLLERİN SAVAŞI 2004-9139-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2005-9051-1-0000-00-1",
+    "hub": "MURPHY KANUNLARI 2 2005-9051-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2006-9063-1-0000-40-1",
+    "hub": "KUMRULAR GİBİ 2006-9063-1-0000-40-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2008-9064-1-0000-00-1",
+    "hub": "ANNEM ANNEM 2008-9064-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2009-9007-1-000-00-1",
+    "hub": "HAYATIN TUZU 2009-9007-1-000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2009-9137-1-0000-00-1",
+    "hub": "KUSURSUZ BİR GÜN CENAZE TÖRENİ 2009-9137-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2010-9150-1-0000-00-1",
+    "hub": "HANNA'NIN ALTINLARI 2010-9150-1-0000-00-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2010-9169-1-0000-90-1",
+    "hub": "PERCY JACKSON-ŞİMŞEK HIRSIZI 2010-9169-1-0000-90-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2011-9209-1-0000-90-1",
+    "hub": "EL GUSTO 2011-9209-1-0000-90-1",
+    "asr_status": "failed"
+   },
+   {
+    "trt": "2015-0138-1-0000-85-1",
+    "hub": "YA NASİP YA KISMET 2015-0138-1-0000-85-1",
+    "asr_status": "partial"
+   },
+   {
+    "trt": "2018-9036-1-0000-00-1",
+    "hub": "KRAL LEAR 2018-9036-1-0000-00-1",
+    "asr_status": "failed"
+   }
+  ],
+  "TRIAJ_HAZIR": [
+   {
+    "trt": "1958-0044-1-0000-90-1",
+    "hub": "KOVBOY 1958-0044-1-0000-90-1",
+    "neden": [
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: FRANK HARRIS)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1961-0005-1-000-00-1",
+    "hub": "UTANMAZ ADAM 1961-0005-1-000-00-1",
+    "neden": [
+     "QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1964-0002-1-000-00-1",
+    "hub": "DİŞİ ŞEYTAN 1964-0002-1-000-00-1",
+    "neden": [
+     "QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1975-2246-1-0000-72-0",
+    "hub": "DERSU UZALA 1975-2246-1-0000-72-0",
+    "neden": [
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1987-0352-1-0000-00-1",
+    "hub": "TILSIMLI DÜNYA 1987-0352-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: CARL MACEK)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1989-0570-1-0000-00-1",
+    "hub": "BİR YAZ MACERASI 1989-0570-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)",
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 986 oyuncu dustu (Colt Summer, Colt Original, Original Idea)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1990-0336-1-0000-00-1",
+    "hub": "ZAMAN VE RÜZGAR 1990-0336-1-0000-00-1",
+    "neden": [
+     "yönetmen listesi şüpheli (3 isim — crew karışması olası)",
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 671 oyuncu dustu (Ter Vento, Vento Ter, Vento Obra)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1991-0469-1-0000-00-1",
+    "hub": "ZERK'İN HİKAYESİ 1991-0469-1-0000-00-1",
+    "neden": [],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1992-0308-1-0000-00-1",
+    "hub": "SON YARIŞ 1992-0308-1-0000-00-1",
+    "neden": [
+     "qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: JAVON RONCIC)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1992-0324-0-0001-00-1",
+    "hub": "YARGIÇ VE POLİS 1992-0324-0-0001-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1992-0455-1-0000-00-1",
+    "hub": "MELEKLERİ GÖRMEK İSTEDİM 1992-0455-1-0000-00-1",
+    "neden": [
+     "qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)",
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1993-0437-1-0000-00-1",
+    "hub": "LENI REIFENSTAHL'IN KORKUNÇ MUHTEŞEM YAŞAMI 1993-0437-1-0000-00-1",
+    "neden": [
+     "QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)",
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1996-0330-1-0000-00-1",
+    "hub": "İKİ SEVGİLİM VAR 1996-0330-1-0000-00-1",
+    "neden": [],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1996-0353-1-0000-00-1",
+    "hub": "AŞK EVLİLİĞİ 1996-0353-1-0000-00-1",
+    "neden": [],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1997-0421-1-0000-00-1",
+    "hub": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+    "neden": [
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 3041 oyuncu dustu (One Presentent, Presentent Arena, Hommage Dennis)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "1999-0361-1-0000-90-1",
+    "hub": "RÜZGAR BİZİ SÜRÜKLEYECEK 1999-0361-1-0000-90-1",
+    "neden": [
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2001-9167-1-0000-00-1",
+    "hub": "HALIFAX-CANİ RUH 2001-9167-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: LYNN HEGARTY)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2001-9194-1-0000-00-1",
+    "hub": "İNTİKAM 2001-9194-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2001-9201-1-0000-00-1",
+    "hub": "HAYAL PEŞİNDE 2001-9201-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "XML-PDF cast kesişimi 0 (yanlış-film şüphesi)",
+     "qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2001-9318-1-0000-00-1",
+    "hub": "MANASLU 2001-9318-1-0000-00-1",
+    "neden": [
+     "QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)",
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen listesi şüpheli (3 isim — crew karışması olası)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2002-9115-1-0000-00-1",
+    "hub": "HALIFAX - İKİ SUÇLU 2002-9115-1-0000-00-1",
+    "neden": [
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 621 oyuncu dustu (Beyond Simpson, Simpson Mesurier, Gibney Rebecca)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2003-9049-1-0000-00-1",
+    "hub": "DENİZLER ALTINDA 20.000 FERSAH 2003-9049-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2003-9136-1-0000-00-1",
+    "hub": "HARİKA KÖPEK 5 2003-9136-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "XML-PDF cast kesişimi 0 (yanlış-film şüphesi)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: MIKE SOUTHON)",
+     "qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2003-9195-1-0000-00-1",
+    "hub": "JERICO APARTMANI 2003-9195-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: ALBERTO SCIAMMA)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2003-9198-1-0000-00-1",
+    "hub": "JERICO APARTMANI 2003-9198-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: ALBERTO SCİAMMA)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2003-9208-1-0000-00-1",
+    "hub": "BORÇ 2003-9208-1-0000-00-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: İBRAHİM HABİBULLAHOĞLU)",
+     "qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2005-9162-1-0000-00-1",
+    "hub": "DİPTEKİLER 2005-9162-1-0000-00-1",
+    "neden": [
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 2696 oyuncu dustu (Low Fuel, Fuel Low, Fuel Wiu)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2006-9110-1-0000-00-1",
+    "hub": "GERÇEK KUZEY 2006-9110-1-0000-00-1",
+    "neden": [
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 1858 oyuncu dustu (Bbcfilms Bbcfilms, Bbcfilms Bbc, Filmstiftunc Ffa)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2007-9067-1-0000-00-1",
+    "hub": "YARIŞMA DÜNYASI 2007-9067-1-0000-00-1",
+    "neden": [],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2008-9069-1-0000-00-1",
+    "hub": "BEYAZ AVUÇLAR 2008-9069-1-0000-00-1",
+    "neden": [
+     "temiz-okunan oyuncu PDF finaline taşınamadı: SILAS RADIES"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2008-9110-1-0000-90-1",
+    "hub": "ŞAMPİYONLAR 2008-9110-1-0000-90-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2009-9153-1-0000-00-1",
+    "hub": "AJAMİ 2009-9153-1-0000-00-1",
+    "neden": [
+     "OCR bucket=GOZDEN_GECIR",
+     "qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)",
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GOZDEN_GECIR"
+   },
+   {
+    "trt": "2010-9199-0-0001-88-1",
+    "hub": "AYNADAKİ DÜŞMAN 2010-9199-0-0001-88-1",
+    "neden": [
+     "yönetmen doğrulama: kaynak-çelişkisi (aday: CEM AKYOLDAŞ)",
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2010-9252-1-0000-88-1",
+    "hub": "DERTLER BENİM OLSUN 2010-9252-1-0000-88-1",
+    "neden": [
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2010-9265-1-0000-88-1",
+    "hub": "HASİP İLE NASİP 2010-9265-1-0000-88-1",
+    "neden": [
+     "qc_block: CAST_CAP_DUSEN: cap-ustu okunan 103 oyuncu dustu (Nasip Hasip, Nasip Zeki, Alasya Zeki)"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   },
+   {
+    "trt": "2011-9224-1-0000-88-1",
+    "hub": "KANDAHAR 2011-9224-1-0000-88-1",
+    "neden": [
+     "kimlik çelişkisi (KB cross-check)",
+     "qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 — insan onayı)",
+     "qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek"
+    ],
+    "ocr_bucket": "GUVENILIR"
+   }
+  ],
+  "HUB_YOK": [
+   {
+    "trt": "1959-0005-1-000-00-1",
+    "pdf": [
+     "1959-0005-1-000-00-1 BEKLENEN BOMBA _YONETMEN_KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "1985-0221-1-0000-40-1",
+    "pdf": [
+     "1985-0221-1-0000-40-1 SUÇ MEVSİMİ _RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1989-0299-1-0000-00-1",
+    "pdf": [
+     "1989-0299-1-0000-00-1 BÜYÜK KANDINSKY _YONETMEN.pdf"
+    ]
+   },
+   {
+    "trt": "1989-0503-1-0000-00-1",
+    "pdf": [
+     "1989-0503-1-0000-00-1 ACI ZAFER _YONETMEN_RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1989-0611-1-0000-00-1",
+    "pdf": [
+     "1989-0611-1-0000-00-1 JUMP SOKAĞI _YONETMEN_KIMLIK_OZET_RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1990-0285-1-0000-00-1",
+    "pdf": [
+     "1990-0285-1-0000-00-1 TOPLU GÖSTERİLER _YONETMEN_KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "1993-0241-1-0000-00-1",
+    "pdf": [
+     "1993-0241-1-0000-00-1 ÖZGÜRLÜĞÜMÜ VER _OZET.pdf"
+    ]
+   },
+   {
+    "trt": "1993-0435-1-0000-00-1",
+    "pdf": [
+     "1993-0435-1-0000-00-1 SEN TOM SAWYER DEĞİLSİN _KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "1996-0177-1-0000-00-1",
+    "pdf": [
+     "1996-0177-1-0000-00-1 ŞERİF SHAUGNESSY _YONETMEN_RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1998-0484-1-0000-00-1",
+    "pdf": [
+     "1998-0484-1-0000-00-1 KÖSTEBEK _KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "1998-0970-1-0000-00-1",
+    "pdf": [
+     "1998-0970-1-0000-00-1 BAŞKAN VE MARI _YONETMEN.pdf"
+    ]
+   },
+   {
+    "trt": "2003-9088-1-0000-00-1",
+    "pdf": [
+     "2003-9088-1-0000-00-1 OLAY YERİ BIENZLE VE TAKSİ CİNAYETİ _KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "2003-9162-1-0000-90-1",
+    "pdf": [
+     "2003-9162-1-0000-90-1 MATRIX RELOADED _KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "2004-9076-1-0000-00-1",
+    "pdf": [
+     "2004-9076-1-0000-00-1 SUÇ VE GÜNAH _KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "2005-9063-1-0000-00-1",
+    "pdf": [
+     "2005-9063-1-0000-00-1 KOMİSER CORDIER UZMAN RAPOR _HAFIF_CAST_CAP_DUSEN.pdf"
+    ]
+   },
+   {
+    "trt": "2005-9097-1-0000-00-1",
+    "pdf": [
+     "2005-9097-1-0000-00-1 GÜZELLİK MERKEZİ _YONETMEN.pdf"
+    ]
+   },
+   {
+    "trt": "2024-1224-1-0000-80-1",
+    "pdf": [
+     "2024-1224-1-0000-80-1 VENEDİK SONSUZ AVANGART _YONETMEN_KIMLIK.pdf"
+    ]
+   }
+  ],
+  "CIFT_PDF": [
+   {
+    "trt": "1961-0005-1-000-00-1",
+    "pdf": [
+     "1961-0005-1-000-00-1 UTANMAZ ADAM _HAFIF_CAST_CAP_DUSEN.pdf",
+     "1961-0005-1-000-00-1 UTANMAZ ADAM.pdf"
+    ]
+   },
+   {
+    "trt": "1964-0002-1-000-00-1",
+    "pdf": [
+     "1964-0002-1-000-00-1 DİŞİ ŞEYTAN _YONETMEN_OZET.pdf",
+     "1964-0002-1-000-00-1 DİŞİ ŞEYTAN.pdf"
+    ]
+   },
+   {
+    "trt": "1991-0355-1-0000-00-1",
+    "pdf": [
+     "1991-0355-1-0000-00-1 PARİS'İN DIAGHILEV İLE DANSI _OZET_RENDER.pdf",
+     "1991-0355-1-0000-00-1 PARİS'İN DIAGHILEV İLE DANSI _RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1991-0356-1-0000-00-1",
+    "pdf": [
+     "1991-0356-1-0000-00-1 TOPLU GÖSTERİLER _YONETMEN_KIMLIK_CAST_RENDER.pdf",
+     "1991-0356-1-0000-00-1 TOPLU GÖSTERİLER _YONETMEN_KIMLIK_RENDER.pdf"
+    ]
+   },
+   {
+    "trt": "1995-0448-1-0000-00-1",
+    "pdf": [
+     "1995-0448-1-0000-00-1 KATİLLER HER ZAMAN SARI PABUÇ GİYER _YONETMEN_KIMLIK_CAST.pdf",
+     "1995-0448-1-0000-00-1 KATİLLER HER ZAMAN SARI PABUÇ GİYER _YONETMEN_KIMLIK_CAST_OZET.pdf"
+    ]
+   },
+   {
+    "trt": "2000-0477-1-0000-00-1",
+    "pdf": [
+     "2000-0477-1-0000-00-1 FUTBOLCU PRENSES _YONETMEN.pdf",
+     "2000-0477-1-0000-00-1 FUTBOLCU PRENSES _YONETMEN_KIMLIK.pdf"
+    ]
+   },
+   {
+    "trt": "2004-9160-1-0000-90-1",
+    "pdf": [
+     "2004-9160-1-0000-90-1 HOTEL RWANDA _HAFIF_CAST_CAP_DUSEN.pdf",
+     "2004-9160-1-0000-90-1 HOTEL RWANDA _YONETMEN.pdf"
+    ]
+   },
+   {
+    "trt": "2016-2213-1-0000-90-1",
+    "pdf": [
+     "2016-2213-1-0000-90-1 NİNJA KAPLUMBAĞALAR _HAFIF_CAST_CAP_DUSEN.pdf",
+     "2016-2213-1-0000-90-1 NİNJA KAPLUMBAĞALAR _YONETMEN_KIMLIK.pdf",
+     "2016-2213-1-0000-90-1 NİNJA KAPLUMBAĞALAR _YONETMEN_KIMLIK_CAST.pdf"
+    ]
+   }
+  ]
+ },
+ "ozet": {
+  "CIFT_PDF": 8,
+  "HUB_YOK": 17,
+  "TEKNIK_ARIZA_ASR": 53,
+  "TRIAJ_HAZIR": 36
+ }
+}
