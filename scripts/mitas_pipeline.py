@@ -727,6 +727,16 @@ def _skip_special_genre(video: Path, clip_dir: Path, *, media_id: str, trt: str,
 def ffprobe_specs(video: Path):
     res = fps = dur = "—"
     dur_sec = 0.0
+    # FROM-HUB modu (2026-07-11, Opus akış-incelemesi sonrası): kaynak video OFFLINE iken
+    # frames-only TAM-kapı koşusu — specs kaynak-hub clip.json/_DURUM'dan gelir, ffprobe atlanır.
+    _fh = os.environ.get("MITAS_FROM_HUB_SPECS", "")
+    if _fh:
+        try:
+            s = json.loads(_fh)
+            return (s.get("res", "—"), s.get("fps", "—"), s.get("dur", "—"),
+                    float(s.get("dur_sec") or 0.0))
+        except Exception:  # noqa: BLE001 — bozuk env → normal yola düş
+            pass
     try:
         rc, out, _ = run([FFPROBE if FFPROBE.exists() else "ffprobe", "-v", "error",
                           "-select_streams", "v:0", "-show_entries",
@@ -775,6 +785,12 @@ def exit_frame_contract(duration: float, tail: float, fps: float) -> tuple[float
 def extract_window(video: Path, dst: Path, *, prefix, fps, start=None, length=None,
                    expected_count=None, timeout=1800):
     """Native kareleri gecici alanda uretir; eksik ciktiyi yayina almadan reddeder."""
+    # FROM-HUB modu: frames junction'la hazir geldi — ffmpeg KOSULMAZ, mevcut sayi doner
+    # (video offline; kare-sozlesmesi kaynak-hub'da zaten saglanmisti).
+    if os.environ.get("MITAS_FROM_HUB", "") == "1" and dst.exists():
+        _mevcut = len(list(dst.glob(f"{prefix}_*.png"))) or len(list(dst.glob("*.png")))
+        if _mevcut:
+            return _mevcut
     stage = dst.parent / f".{dst.name}.{prefix}.extract-{uuid4().hex}"
     stage.mkdir(parents=True, exist_ok=False)
     cmd = [FFMPEG if FFMPEG.exists() else "ffmpeg", "-y", "-hide_banner", "-loglevel", "error"]
@@ -814,6 +830,8 @@ def extract_window(video: Path, dst: Path, *, prefix, fps, start=None, length=No
 
 
 def extract_audio(video: Path, dst: Path, timeout=1800):
+    if os.environ.get("MITAS_FROM_HUB", "") == "1":
+        return False, "from-hub modu: video offline, ses cikarilamaz (ASR zaten kapali)"
     dst.parent.mkdir(parents=True, exist_ok=True)
     cmd = [FFMPEG if FFMPEG.exists() else "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
            "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", str(dst)]
@@ -1504,7 +1522,34 @@ def main(argv=None) -> int:
     ap.add_argument("--run-root", default=None,
                     help="İP-5 candidate modu: TÜM yazma-kökleri bu dizin altına (üretime sıfır dokunuş). "
                          "Env eşdeğeri: MITAS_RUN_ROOT (alt-süreçlere otomatik geçer).")
+    ap.add_argument("--from-hub", default=None,
+                    help="FRAMES-ONLY TAM-KAPI modu (2026-07-11, Opus incelemesi): kaynak video offline "
+                         "iken üretim-hub'ının frames+ocr'ından TÜM kapıları (kimlik/QC/karar/PDF) koş. "
+                         "--run-root ZORUNLU (üretime yazma imkânsızlaştırılır). ASR/detect otomatik kapalı.")
     args = ap.parse_args(argv)
+
+    # === FROM-HUB hazırlığı (video'suz tam-kapı) ===
+    _from_hub = Path(args.from_hub) if args.from_hub else None
+    if _from_hub:
+        if not (args.run_root or os.environ.get("MITAS_RUN_ROOT", "").strip()):
+            print("HATA: --from-hub yalnız --run-root ile koşar (üretim-koruması)")
+            return 2
+        if not (_from_hub / "clip.json").exists():
+            print(f"HATA: from-hub clip.json yok: {_from_hub}")
+            return 2
+        _src_clip = json.loads((_from_hub / "clip.json").read_text(encoding="utf-8"))
+        # video = KAYNAK DOSYA ADI (parse_filename TRT/başlığı addan çözer; dosya var olmayabilir)
+        args.video = str(_from_hub / "source" / (_src_clip.get("filename") or _from_hub.name))
+        os.environ["MITAS_FROM_HUB"] = "1"
+        os.environ["MITAS_JENERIK_DETECT"] = "0"          # detect video ister → kapalı (kill-switch)
+        try:
+            _src_durum = json.loads((_from_hub / "_DURUM.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            _src_durum = {}
+        os.environ["MITAS_FROM_HUB_SPECS"] = json.dumps({
+            "res": _src_durum.get("res", "—"), "fps": "—",
+            "dur": _src_durum.get("dur", "—"),
+            "dur_sec": _src_durum.get("dur_sec") or 0.0})
 
     # İP-5: --run-root verildiyse env'i set edip kökleri YENİDEN bağla (import-anı çözümü ezilir).
     if args.run_root:
@@ -1517,7 +1562,7 @@ def main(argv=None) -> int:
     t_all = time.perf_counter()
     timings = {}
     video = Path(args.video)
-    if not video.exists():
+    if not video.exists() and not _from_hub:
         print(f"HATA: video yok: {video}")
         return 2
 
@@ -1591,8 +1636,29 @@ def main(argv=None) -> int:
     _rm.write_start(clip_dir, _manifest)
     print(f"[hub] {clip_dir}  profil={profile} trt={trt} baslik={title!r} run_id={_manifest['run_id']}")
 
+    # === FROM-HUB: frames junction + ocr-kopyası (video offline; kaynak-hub salt-okunur) ===
+    if _from_hub:
+        args.no_copy_source = True
+        for _fdir in ("giris", "cikis"):
+            _src_f = _from_hub / "frames" / _fdir
+            _dst_f = clip_dir / "frames" / _fdir
+            if _src_f.exists() and not _dst_f.exists():
+                _rcj, _, _errj = run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
+                                     timeout=30)
+                if _rcj:  # junction başarısızsa (yetki vb.) kopyaya düş — yavaş ama güvenli
+                    shutil.copytree(_src_f, _dst_f)
+        _src_ocrs = sorted((d for d in (_from_hub / "ocr").glob("ocr-*")
+                            if (d / "kunye.txt").exists() and not d.name.endswith("-fb")),
+                           key=lambda d: d.stat().st_mtime)
+        if _src_ocrs:  # en-yeni ocr işi kopyalanır → OCR adımı taze koşsa da referans hazır
+            _dst_ocr = clip_dir / "ocr" / _src_ocrs[-1].name
+            if not _dst_ocr.exists():
+                shutil.copytree(_src_ocrs[-1], _dst_ocr)
+        print(f"[from-hub] frames junction + ocr-kopya hazır ← {_from_hub.name}")
+
     # --- source kopya + clip.json ---
-    size = video.stat().st_size
+    size = (video.stat().st_size if video.exists()
+            else int(_src_clip.get("size_bytes") or 0) if _from_hub else 0)
     if args.no_copy_source:
         source_path = video
     else:

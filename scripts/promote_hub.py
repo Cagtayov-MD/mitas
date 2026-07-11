@@ -235,6 +235,22 @@ def promote(candidate_hub: Path, *, apply: bool = False, approved_by: str = "",
         raise PromoteError(f"candidate hub adında TRT-ID yok: {candidate_hub.name}")
     trt = m.group(1)
 
+    # TESLİM-TAMLIK KAPISI (Opus akış-incelemesi 2026-07-11): promote bütün-dizin taşımadır —
+    # iskelet-aday (yalnız ocr/ içeren LEAN çıktısı gibi) TAM kanoniği DEĞİŞTİRİRSE teslim bozulur.
+    # Zorunlu: _DURUM.json + clip.json + ≥1 PDF (hepsi boyut>0). Eksikse promotion RED.
+    _eksik = []
+    for _gerekli in ("_DURUM.json", "clip.json"):
+        _p = candidate_hub / _gerekli
+        if not (_p.exists() and _p.stat().st_size > 0):
+            _eksik.append(_gerekli)
+    _pdfler = [p for p in candidate_hub.rglob("*.pdf") if p.stat().st_size > 0]
+    if not _pdfler:
+        _eksik.append("teslim-PDF (hiç yok)")
+    if _eksik:
+        raise PromoteError(
+            f"TESLİM-TAMLIK: aday-hub eksik ({', '.join(_eksik)}) — iskelet-aday tam kanoniği "
+            f"değiştiremez; önce tam-kapı koşusuyla (mitas_pipeline --from-hub) teslim-seti üretin")
+
     canonical = resolve_canonical(trt, db_root)
     diff = semantic_diff(canonical, candidate_hub)
     plan = {"trt": trt, "canonical": str(canonical) if canonical else None,

@@ -25,6 +25,8 @@ def _hub_yap(kok: Path, ad: str, *, yonetmen=None, cast=None, karar="Kontrol") -
          "hub": str(h)}), encoding="utf-8")
     (h / "clip.json").write_text(json.dumps({"source_path": str(h / "source" / "x.mp4")}),
                                  encoding="utf-8")
+    (h / "pdf").mkdir(exist_ok=True)
+    (h / "pdf" / "kunye.pdf").write_bytes(b"%PDF-sahte")   # teslim-tamlik kapisi icin
     return h
 
 
@@ -142,3 +144,14 @@ def test_arsiv_gc_silmez_aday_raporlar(sahte_db, tmp_path):
     assert len(list(arch.iterdir())) == 4, "hiçbir arşiv-sürümü silinmedi"
     j = json.loads((sahte_db / "_promotion_journal" / f"{TRT}.journal.json").read_text(encoding="utf-8"))
     assert j.get("gc_adayi"), "aşım gc-adayı olarak raporlandı"
+
+
+def test_teslim_tamlik_iskelet_aday_red(sahte_db, tmp_path):
+    """Opus akış-incelemesi: yalnız ocr/ içeren LEAN-iskelet aday, TAM kanoniği değiştiremez."""
+    _hub_yap(sahte_db, f"TEST FILM {TRT}", yonetmen=["Eski"])
+    iskelet = tmp_path / "cand" / f"TEST FILM {TRT}"
+    (iskelet / "ocr" / "ocr-x").mkdir(parents=True)
+    (iskelet / "ocr" / "ocr-x" / "kunye.txt").write_text("x", encoding="utf-8")
+    (iskelet / "_DURUM.json").write_text(json.dumps({"karar": "Hazır"}), encoding="utf-8")
+    with pytest.raises(ph.PromoteError, match="TESLİM-TAMLIK"):
+        ph.promote(iskelet, apply=False)   # dry-run bile RED — yanlış-güven verilmesin
