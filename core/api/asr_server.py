@@ -803,15 +803,26 @@ def _flow_queue_worker_loop() -> None:
                     )
                     continue
 
-                # Reused-skip: zaten Database'de işlenmişse atla — AMA item force=true ise ATLAMA-yı atla
-                # (stale Database'i sil, taze koş). F4: tek-film yeniden-testi sessizce engellenmesin.
+                # Reused-skip: zaten Database'de işlenmişse atla — AMA item force=true ise ATLAMA-yı atla.
+                # İP-7 (2026-07-11, plan rev.4): force ARTIK HUB SİLMEZ. Eski davranış (shutil.rmtree
+                # _existing_hub) BAŞKAN VE MARI veri-kaybının kanıtlı kökenidir (07-06 force-rerun canonical
+                # hub'ı geri-dönüşsüz sildi, golden 3/3-FAIL). Yeni: force → CANDIDATE moduna geç
+                # (MITAS_RUN_ROOT candidate_runs/<run_id>); pipeline üretim köklerine YAZMAZ, insan
+                # promote_hub.py ile taşır. delete_existing kavramı YOK.
                 clip_id = _flow_clip_id(video_path)   # UI media_id eşleşmesi (clipId, aşağıda) için KORUNUR
                 _force_item = bool(target.get("force"))
-                # clip_id dosya-adı sanitize'ıdır; gerçek hub BAŞLIK+TRT'den kurulur → eşleşmez.
-                # reused-skip'i gerçek hub'ı TRT-id ile bularak yap (clip_id ile DEĞİL).
                 _existing_hub = _find_processed_hub(video_path)
+                _candidate_run_root = None
                 if _force_item and _existing_hub is not None:
-                    shutil.rmtree(_existing_hub, ignore_errors=True)   # zorla yeniden çöz → stale Database sil
+                    # SİLME YOK — candidate-root'a yönlendir (retry_planner sözleşmesi).
+                    import retry_planner as _rp
+                    _cand_run_id = _rp.make_run_id("FULL", f"{clip_id}:{target['id']}")
+                    _candidate_run_root = str(_rp.CANDIDATE_ROOT / _cand_run_id)
+                    system_events.log_event(
+                        "flow_force_candidate",
+                        summary=f"force-retry CANDIDATE modunda (hub SİLİNMEZ): {_candidate_run_root}",
+                        module="flow", detail={"item_id": target["id"], "hub": str(_existing_hub),
+                                               "candidate_run_root": _candidate_run_root})
                 elif _existing_hub is not None:
                     _flow_update_item(
                         target["id"],
@@ -857,6 +868,12 @@ def _flow_queue_worker_loop() -> None:
                         # 500 filmde ~350GB gereksiz kopyayı önler. (Cagatay_22.02 gibi: path-tabanlı.)
                         "--no-copy-source",
                     ]
+                    # İP-7: force-retry ise candidate moduna geç — üretim köklerine YAZMAZ (SİLME YOK).
+                    _run_env = None
+                    if _candidate_run_root:
+                        cmd += ["--run-root", _candidate_run_root]
+                        import retry_planner as _rp2
+                        _run_env = _rp2.retry_env(dict(os.environ), _candidate_run_root)
                     # GPU semaforu + ABORT-GÖRÜNÜR koşu (F2): subprocess.run DEĞİL Popen → çocuk PID'i
                     # _pipeline_proc/_flow_worker_proc'a yaz ki /api/pipeline/abort ve zorla-dur GERÇEKTEN
                     # öldürebilsin. _run_pipeline_job ile AYNI kanıtlı desen (deadlock'suz).
@@ -865,6 +882,7 @@ def _flow_queue_worker_loop() -> None:
                         proc = subprocess.Popen(
                             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             text=True, encoding="utf-8", errors="replace", cwd=str(PROJECT_ROOT),
+                            env=_run_env,
                         )
                         _pipeline_proc = proc
                         _flow_worker_proc = proc
@@ -1085,15 +1103,19 @@ async def post_flow_queue_retry(request: Request) -> dict[str, Any]:
         if not src:
             raise HTTPException(status_code=400, detail="no_source_path")
         clip_id = _flow_clip_id(src)
-        clip_dir = CLIPS_ROOT / clip_id
-        if clip_dir.exists():
-            shutil.rmtree(clip_dir, ignore_errors=True)  # reused-skip atlamasın + taze koşu
-            removed = True
-        # eski öğeyi çıkar + YENİ 'waiting' (yeni id → worker tekrar işler)
+        # İP-7 (2026-07-11, plan rev.4): retry ARTIK HUB SİLMEZ. Eski davranış çift-bozuktu:
+        # (1) rmtree(CLIPS_ROOT/clip_id) sanitize-adı sildiği için TRT'li gerçek hub'ı ISKALIYORDU
+        #     (no-op) — ama isabet ettiğinde (BAŞKAN VE MARI, force yolu) VERİ-KAYBI yapıyordu;
+        # (2) force'suz requeue → worker reused-skip → SESSİZ NO-OP (48 ASR-failed hiç retry görmedi).
+        # Yeni: requeue'ya force=True konur → worker candidate moduna geçer (SİLME YOK, üretim
+        # dokunulmaz); insan sonucu promote_hub.py ile taşır. removed_db artık DAİMA False.
+        removed = False
+        # eski öğeyi çıkar + YENİ 'waiting' + force=True (candidate-retry; no-op tuzağı kapandı)
         new_items = [it for it in items if it is not target]
         new_items.append({
             "id": f"retry-{uuid4().hex[:12]}", "name": target.get("name") or Path(src).name,
             "sourcePath": src, "status": "waiting", "profile": target.get("profile") or "film_dizi",
+            "force": True,
         })
         if not isinstance(state, dict):
             state = {"id": "main", "bulkProfile": "film_dizi"}
@@ -1108,9 +1130,10 @@ async def post_flow_queue_retry(request: Request) -> dict[str, Any]:
             _flow_worker_thread.start()
     system_events.log_event(
         "flow_item_retry",
-        summary=f"{filename}: SIFIRDAN yeniden çöz (stale silindi={removed}) → kuyruğa 'waiting' eklendi.",
-        module="flow", detail={"filename": filename, "clip_id": clip_id, "removed_db": removed})
-    return {"status": "requeued", "clip_id": clip_id, "removed_db": removed}
+        summary=f"{filename}: CANDIDATE-retry (hub SİLİNMEZ; force→candidate-root) → kuyruğa 'waiting' eklendi.",
+        module="flow", detail={"filename": filename, "clip_id": clip_id, "removed_db": removed,
+                               "candidate_mode": True})
+    return {"status": "requeued", "clip_id": clip_id, "removed_db": removed, "candidate_mode": True}
 
 
 @app.get("/api/flow-queue/worker")
