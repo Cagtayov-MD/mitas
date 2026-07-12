@@ -8,15 +8,12 @@ gider. Hafif kusurlar deterministik düzeltilebilirken insan kontrolüne sokuluy
 da tipine göre ayrılmıyor (yönetmen sorunu = temel sorun, ayrı klasör olmalı).
 
 ÇÖZÜM: Kusurları İKİ EKSENDE sınıflandır:
-  • ŞİDDET: HAFİF (NEEDS_REVIEW_HAFIF — hafif-işaretli insan kontrolü) | AĞIR (insan kontrolü)
+  • ŞİDDET: HAFİF (kod-politikasına göre warning veya insan kontrolü) | AĞIR (insan kontrolü)
   • TİP:    YÖNETMEN | KİMLİK | CAST | ÖZET | RENDER | SES
 
 KARAR (İP-4 2026-07-11 güncellemesi — plan rev.4):
-  1) Film yalnız HAFİF kusurluysa → tier=NEEDS_REVIEW_HAFIF, klasör=KONTROL (dosya-adı HAFIF_
-     etiketli). ESKİ ad "AUTOFIX" yanıltıcıydı: hiçbir otomatik-düzeltme yürütücüsü YOKTU ve
-     davranış zaten KONTROL'dü (C1 doğrulaması). Yeniden-adlandırma DAVRANIŞ-NÖTRDÜR; 7 hafif
-     kodun hedef-davranışı GECIS_TABLOSU'nda (aşağıda) — kod başına gelecekte warning/insan/
-     blocker'a bilinçli atanacak, sessizce TEMIZ'e düşme İMKÂNSIZ.
+  1) Yalnız AFIS → warning-nonblocking, tier=TEMIZ, klasör=ONAYLI; warning kaybolmaz.
+     Diğer yalnız-hafif kusurlar → tier=NEEDS_REVIEW_HAFIF, klasör=KONTROL.
   2) En az bir AĞIR kusur varsa → KONTROL_<en-temel-tip> (öncelik: YÖNETMEN>KİMLİK>CAST>ÖZET>RENDER).
   3) Hiç kusur yoksa → TEMİZ (ONAYLI/HAZIR).
 
@@ -61,12 +58,11 @@ HAFIF_FIX = {
 }
 
 # İP-4 GEÇİŞ TABLOSU (2026-07-11, GPT tur-3 şartı): 7 hafif kodun HER BİRİNE açık hedef-davranış.
-# v1'de hepsi davranış-nötr "insan-kontrolü" (bugünkü fiilî durum — KONTROL klasörü); gelecekte
-# kod-başına bilinçli değişir (örn. AFIS→warning-nonblocking, poster_fetch güvenilir olunca).
-# Sessizce TEMIZ'e düşüş bu tabloyla İMKÂNSIZ: classify() yalnız-hafif seti her zaman
-# NEEDS_REVIEW_HAFIF/KONTROL'e yollar; tablo dışı kod görülürse de aynı güvenli yola düşer.
+# AFIS künye içeriğini bozmaz ve poster_fetch'in başarısız olması temiz künyeyi rehin alamaz:
+# warning olarak görünür, tek başınaysa teslimi engellemez. Diğer hafif kodların insan-kontrolü
+# davranışı korunur. Tablo dışı kod güvenli varsayılanla insan-kontrolüne düşer.
 HAFIF_GECIS = {
-    "AFIS":            "insan-kontrolü",   # hedef-aday: warning-nonblocking (poster_fetch olgunlaşınca)
+    "AFIS":            "warning-nonblocking",
     "CASING":          "insan-kontrolü",   # hedef-aday: warning-nonblocking (deterministik render)
     "GENRE":           "insan-kontrolü",
     "KEYWORD":         "insan-kontrolü",
@@ -169,18 +165,20 @@ def classify(sig: dict) -> dict:
         return {"tier": "KONTROL", "kontrol_tip": etiket, "folder": folder,
                 "agir": agir, "hafif": sorted(set(hafif)),
                 "aciklama": f"AĞIR {sorted(types)} → {folder}"}
-    if hafif:
+    blocking_hafif = [h for h in hafif if HAFIF_GECIS.get(h, "insan-kontrolü") != "warning-nonblocking"]
+    if blocking_hafif:
         # Çağatay 2026-06-21: iki-uç kural (ONAYLI|KONTROL). Yalnız-HAFİF film teslime hazır
         # SAYILAMAZ → KONTROL'e gider; etiket dosya adına yazılır (HAFİF_<kod>...).
         # İP-4 (2026-07-11): tier adı AUTOFIX→NEEDS_REVIEW_HAFIF — eski ad yanıltıcıydı (yürütücü
         # yok, davranış zaten KONTROL'dü). DAVRANIŞ-NÖTR yeniden-adlandırma; kod-başına hedef
         # davranış HAFIF_GECIS tablosunda.
-        lbl = "HAFIF_" + "_".join(sorted(set(hafif)))
+        lbl = "HAFIF_" + "_".join(sorted(set(blocking_hafif)))
         return {"tier": "NEEDS_REVIEW_HAFIF", "kontrol_tip": lbl, "folder": "KONTROL",
                 "agir": [], "hafif": sorted(set(hafif)),
                 "aciklama": "yalnız HAFİF kusur → KONTROL (hafif-işaretli insan kontrolü)"}
-    return {"tier": "TEMIZ", "kontrol_tip": None, "folder": "ONAYLI", "agir": [], "hafif": [],
-            "aciklama": "kusursuz"}
+    return {"tier": "TEMIZ", "kontrol_tip": None, "folder": "ONAYLI", "agir": [],
+            "hafif": sorted(set(hafif)),
+            "aciklama": ("teslimi engellemeyen uyarı" if hafif else "kusursuz")}
 
 
 # ───────────────────────── ADAPTÖR: _DURUM.json → sinyaller ─────────────────────────

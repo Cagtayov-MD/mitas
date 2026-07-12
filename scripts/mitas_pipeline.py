@@ -846,6 +846,104 @@ def write_json(p: Path, obj):
     os.replace(str(tmp), str(p))
 
 
+def _is_technical_failure(video_credits) -> bool:
+    """Teslim kapisinin tek teknik-kaza sinyali (saf/test-edilebilir)."""
+    return (isinstance(video_credits, dict)
+            and str(video_credits.get("extraction_status") or "").upper() == "TECHNICAL_FAILURE")
+
+
+def _is_strong_screen_alias_conflict(cross_check: dict) -> bool:
+    """Kimlik kilitliyken guclu ekran-rol kanitli ad farki (mahlas/AKA) blocker degildir."""
+    if not isinstance(cross_check, dict) or cross_check.get("kimlik_dogru") is not True:
+        return False
+    conflicts = cross_check.get("yon_screen_conflict") or []
+    return bool(conflicts) and all(
+        isinstance(x, dict) and x.get("okunan") and x.get("ekran_kaniti") for x in conflicts)
+
+
+def _has_identity_contradiction(cross_check: dict, *, qc2_resolved: bool = False,
+                                strong_director: bool = False) -> bool:
+    """Gercek kimlik celiskisini mahlas/AKA ekran farkindan ayir."""
+    if qc2_resolved or strong_director or not isinstance(cross_check, dict):
+        return False
+    if cross_check.get("kimlik_dogru") is False:
+        return True
+    return (cross_check.get("verdict") == "ÇELİŞKİ"
+            and not _is_strong_screen_alias_conflict(cross_check))
+
+
+def _write_extraction_retry_work_item(clip_dir: Path, *, video: Path, profile: str,
+                                      source_run_id: str, from_hub: Path | None = None) -> dict:
+    """TF kosusunu kaybolmayan, candidate-only FULL retry isine cevir.
+
+    Bu dosya kuyruk tuketicisi gelene kadar hub icindeki kalici PENDING is kaydidir; komut
+    retry_planner'in silmesiz candidate sozlesmesinden uretilir. Otomatik calistirmaz.
+    """
+    import retry_planner as _rp
+
+    seed = f"{source_run_id or 'norun'}:TECHNICAL_FAILURE"
+    plan = _rp.plan_retry(str(video), "FULL", seed=seed,
+                          db_root=PROJECT_ROOT / "Database")
+    if from_hub is not None:
+        # Kaynak video offline olan frames-only kosu ayni canonical hub'dan tekrar edilmelidir.
+        plan["cmd"] = ["--from-hub", str(from_hub), "--profile", profile,
+                       "--run-root", plan["run_root"]]
+        plan["source_hub"] = str(from_hub)
+    item = {
+        "schema_version": 1,
+        "status": "PENDING",
+        "reason_code": "TEKNIK_ARIZA_EXTRACTION",
+        "stage": "FULL",
+        "source_run_id": source_run_id,
+        "created_at": now_iso(),
+        "plan": plan,
+    }
+    write_json(clip_dir / "retry_work_item.json", item)
+    return item
+
+
+def _write_mesru_bos_pending(clip_dir: Path, *, v4_credits: dict | None,
+                             video_credits: dict | None) -> dict | None:
+    """Bos final alanlari VL/insan ikinci tanigina PENDING yaz; terminal/muhur URETMEZ."""
+    import mesru_bos as _mb
+
+    v4 = v4_credits if isinstance(v4_credits, dict) else {}
+    vc = video_credits if isinstance(video_credits, dict) else {}
+    alanlar = {
+        "YONETMEN": list(v4.get("yonetmen_list") or vc.get("yonetmen") or []),
+        "YAPIMCI": list(v4.get("yapimci_list") or vc.get("yapimci") or []),
+        "CAST": list(v4.get("cast_list") or vc.get("cast") or []),
+    }
+    # Opening+closing pencerelerinin ikisi de mevcut degilse kapsam kaniti yetersizdir.
+    giris = clip_dir / "frames" / "giris"
+    cikis = clip_dir / "frames" / "cikis"
+    coverage_ok = (giris.exists() and any(giris.glob("*.png"))
+                   and cikis.exists() and any(cikis.glob("*.png")))
+    pending = []
+    for field, values in alanlar.items():
+        if values:
+            continue
+        sonuc = _mb.classify_field(
+            ocr_empty=True, legibility="unknown", vl_verdict=None,
+            coverage_ok=bool(coverage_ok), policy_na=False)
+        # Bu production koprusu OCR-only'dir: terminal karar ve muhur verme yetkisi yoktur.
+        if sonuc.get("terminal"):
+            raise RuntimeError(f"OCR-only MESRU_BOS terminal uretmeye calisti: {field} {sonuc}")
+        pending.append({"field": field, **sonuc})
+    if not pending:
+        return None
+    obj = {
+        "schema_version": 1,
+        "gate_version": _mb.GATE_VERSION,
+        "status": "PENDING_SECOND_WITNESS",
+        "created_at": now_iso(),
+        "coverage_ok": bool(coverage_ok),
+        "items": pending,
+    }
+    write_json(clip_dir / "mesru_bos.pending.json", obj)
+    return obj
+
+
 _PERSON_GATE_HEADERS = [
     "TRT_ID", "Film", "Karar", "Rol", "Durum", "Okunan", "PDF_Yazilan",
     "Kaynak", "Harf_Farki", "Neden", "Teslim_PDF", "Saat",
@@ -1544,6 +1642,15 @@ def main(argv=None) -> int:
         # video = KAYNAK DOSYA ADI (parse_filename TRT/başlığı addan çözer; dosya var olmayabilir)
         args.video = str(_from_hub / "source" / (_src_clip.get("filename") or _from_hub.name))
         os.environ["MITAS_FROM_HUB"] = "1"
+        os.environ["MITAS_FROM_HUB_PATH"] = str(_from_hub.resolve())
+        try:
+            _parent_manifest = json.loads(
+                (_from_hub / "run_manifest.json").read_text(encoding="utf-8"))
+            _parent_run_id = str(_parent_manifest.get("run_id") or "").strip()
+            if _parent_run_id:
+                os.environ["MITAS_PARENT_RUN_ID"] = _parent_run_id
+        except Exception:  # noqa: BLE001 — eski hub'da manifest olmayabilir; from-hub yine calisir
+            pass
         os.environ["MITAS_JENERIK_DETECT"] = "0"          # detect video ister → kapalı (kill-switch)
         try:
             _src_durum = json.loads((_from_hub / "_DURUM.json").read_text(encoding="utf-8"))
@@ -2809,6 +2916,9 @@ def main(argv=None) -> int:
     # ===== BLOK PDF / teslim =====
     pdf_out = clip_dir / "pdf"
     pdf_info = {}
+    _ext_tf = _is_technical_failure(video_credits)
+    _ext_degraded = (isinstance(video_credits, dict)
+                     and str(video_credits.get("extraction_status") or "").upper() == "DEGRADED")
     t0 = time.perf_counter()
     try:
         # ozet: ASR transcript'inden Sonnet ile gercek olay-orgusu ozeti.
@@ -2889,11 +2999,20 @@ def main(argv=None) -> int:
             if _chl.exists():
                 cmd += ["--chlang", str(_chl)]
             cmd += ["--subtitle", str(asr_out / "subtitle.json")]   # 1.3 altyazi cache: yoksa _pipe_pdf hesaplar+yazar, varsa okur (yeniden tarama yok)
-        rc, out, err = run(cmd, timeout=PDF_TIMEOUT)  # altyazı Paddle taraması / kanal-dil self-run payı
-        pdf_info = last_json(out) or {"status": "failed", "pdf_error": err[-300:]}
+        if _ext_tf:
+            # Teknik-kaza bilincli-bos degildir. Hub/OCR/trace korunur fakat teslim render'i
+            # calistirilmaz; boylece kismi mekanik/LLM verisi PDF veya export'a sizamaz.
+            pdf_info = {
+                "status": "withheld_technical_failure",
+                "delivery_withheld": True,
+                "reason_code": "TEKNIK_ARIZA_EXTRACTION",
+            }
+        else:
+            rc, out, err = run(cmd, timeout=PDF_TIMEOUT)  # altyazı Paddle taraması / kanal-dil self-run payı
+            pdf_info = last_json(out) or {"status": "failed", "pdf_error": err[-300:]}
         timings["pdf"] = round(time.perf_counter() - t0, 2)
         dbg.emit("pdf", "stage_completed",
-                 status="ok" if pdf_info.get("status") == "done" else "warn",
+                 status=("error" if _ext_tf else ("ok" if pdf_info.get("status") == "done" else "warn")),
                  duration_ms=timings["pdf"] * 1000,
                  subject={"field": "pdf", "after": pdf_info.get("pdf_path") or pdf_info.get("md_path"),
                           "reason": "PDF/MD delivery render"},
@@ -2902,9 +3021,12 @@ def main(argv=None) -> int:
                          "input_paths": [str(kunye_path)],
                          "output_paths": [str(pdf_info.get("pdf_path") or ""),
                                           str(pdf_info.get("md_path") or "")]})
-        log_event("pdf_completed" if pdf_info.get("status") == "done" else "pdf_partial",
-                  level="info" if pdf_info.get("status") == "done" else "warn",
-                  summary=f"{video.name}: teslim hazirlandi (PDF={'var' if pdf_info.get('pdf_path') else 'yok, md'}, cast={pdf_info.get('cast_count')}) ({timings['pdf']} sn).",
+        log_event(("pdf_withheld_technical_failure" if _ext_tf else
+                   ("pdf_completed" if pdf_info.get("status") == "done" else "pdf_partial")),
+                  level=("error" if _ext_tf else ("info" if pdf_info.get("status") == "done" else "warn")),
+                  summary=(f"{video.name}: extraction TECHNICAL_FAILURE — PDF/teslim URETILMEDI."
+                           if _ext_tf else
+                           f"{video.name}: teslim hazirlandi (PDF={'var' if pdf_info.get('pdf_path') else 'yok, md'}, cast={pdf_info.get('cast_count')}) ({timings['pdf']} sn)."),
                   module="pdf", media_id=media_id, filename=video.name, duration_seconds=timings["pdf"],
                   detail={"clip_id": clip_id, "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"), "pdf_error": pdf_info.get("pdf_error")})
     except Exception as exc:  # noqa: BLE001
@@ -3150,8 +3272,13 @@ def main(argv=None) -> int:
                 # "kimlik çelişkisi" reason'ı tetikleme — QC2 hatayı düzeltti → ONAYLI'ya gidebilir.
                 _qc2_on = os.environ.get("MITAS_QC2", "").strip().lower() in ("1", "true", "on", "yes")
                 _qc2_resolved = str(_cc4.get("yonetmen_kaynak", "")).startswith("QC2")
-                if (_cc4.get("verdict") == "ÇELİŞKİ" or _cc4.get("kimlik_dogru") is False) \
-                        and not (_qc2_on and _qc2_resolved) and not _cv_strong_director:
+                if _is_strong_screen_alias_conflict(_cc4):
+                    qwen_uyari.append(
+                        "yönetmen ekran adı KB adından farklı (güçlü rol kanıtlı; mahlas/AKA olabilir)"
+                    )
+                if _has_identity_contradiction(
+                        _cc4, qc2_resolved=bool(_qc2_on and _qc2_resolved),
+                        strong_director=bool(_cv_strong_director)):
                     reasons.append("kimlik çelişkisi (KB cross-check)")
                 # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
                 # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
@@ -3430,13 +3557,18 @@ def main(argv=None) -> int:
         route_info = {"error": f"router: {type(_rexc).__name__}: {_rexc}"}
     # ── İP-2 (2026-07-11, plan rev.4): TEKNİK-ARIZA İNSAN KAPISINI ATLAYAMAZ ──────────────────
     # extraction TECHNICAL_FAILURE olan koşu ASLA Hazır/ONAYLI'ya gidemez — kaza "film boşmuş"
-    # diye arşive mühürlenemez. (Şartname "teslim üretilmez" der; v1 bilinçli-sapma: PDF üretilir
-    # ama KONTROL'e düşer + TECH_RETRY kodu. Tam teslim-atlaması İP-7 retry-kuyruğuyla gelir.)
+    # diye arşive mühürlenemez. PDF/render/export yukarıda withheld; burada retryable karar kaydı
+    # zorlanır ve aşağıda silmesiz candidate FULL retry work-item'i üretilir.
     _ext_st = (str(video_credits.get("extraction_status") or "").upper()
                if isinstance(video_credits, dict) else "")
-    if _ext_st == "TECHNICAL_FAILURE" and karar == "Hazır":
+    if _ext_st == "TECHNICAL_FAILURE":
         karar, dest_root = "Kontrol", KONTROL
-        reasons.append("TEKNIK_ARIZA: LLM-extraction TECHNICAL_FAILURE (TECH_RETRY adayı)")
+        if not any(str(r).startswith("TEKNIK_ARIZA: LLM-extraction") for r in reasons):
+            reasons.append("TEKNIK_ARIZA: LLM-extraction TECHNICAL_FAILURE (TECH_RETRY adayı)")
+    elif _ext_st == "DEGRADED":
+        karar, dest_root = "Kontrol", KONTROL
+        if not any(str(r).startswith("DEGRADED: LLM-extraction") for r in reasons):
+            reasons.append("DEGRADED: LLM-extraction kısmi model teknik arızası (insan kontrolü)")
     # ── ÖZEL-TÜR YÖNLENDİRME (Çağatay 2026-06-21): müzikal/belgesel/animasyon AYRI klasörde toplanır
     #    (ONAYLI/KONTROL'e DEĞİL). Erken sinyal (XML/profil) VEYA final TÜR (KB/IMDb) — biri yeterli
     #    ("her türlü sağla"). Tam künye üretildi; yalnız hedef klasör değişir, teslim akışı aynı kalır.
@@ -3449,7 +3581,9 @@ def main(argv=None) -> int:
             special_genre = ""
     except Exception:  # noqa: BLE001 — FAIL-SAFE: tür-tespit hatası kararı/teslimi bozmaz
         special_genre = ""
-    dest_root.mkdir(parents=True, exist_ok=True)
+    # TF'de export klasoru dahil hicbir teslim yuzeyine yazma. Hub teknik kayitlari asagida korunur.
+    if not _ext_tf:
+        dest_root.mkdir(parents=True, exist_ok=True)
     # ÇIKTI ADI — TEK FORMAT: "<TRT-ID> <BAŞLIK>". Teslime hazır → "_onaylı" eki + ONAYLI klasörü
     # (Çağatay 2026-06-15: ayrı "teslime hazır" klasörü YOK, hazırsa doğrudan ONAYLI'ya).
     # Düz dosya (alt-klasör yok): export\ONAYLI\1999-2020-1-0000-90-1 PİNOKYO_onaylı.pdf
@@ -3467,29 +3601,61 @@ def main(argv=None) -> int:
     md_src = Path(pdf_info.get("md_path") or "")
     src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
     ext = ".pdf" if (pdf_src and pdf_src.exists()) else (".md" if (md_src and md_src.exists()) else "")
-    dest = dest_root / f"{base_name}{ext}"
-    if src_file:
+    dest = (dest_root / f"{base_name}{ext}") if not _ext_tf else None
+    if src_file and dest is not None:
         shutil.copy2(src_file, dest)
     dbg.emit("routing", "qc_decision",
              status="ok" if karar == "Hazır" else "warn",
              subject={"field": "karar", "after": karar,
                       "reason": "; ".join(reasons) if reasons else "tüm bloklar temiz"},
              evidence={"reasons": reasons, "qwen_uyari": qwen_uyari,
-                       "route_info": route_info, "dest": str(dest),
+                       "route_info": route_info, "dest": str(dest) if dest is not None else None,
                        "special_genre": special_genre},
              source={"module": "scripts/mitas_pipeline.py",
                      "input_paths": [str(src_file) if src_file else ""],
-                     "output_paths": [str(dest)]})
-    _write_person_gate_excel(EXPORT_ROOT / "_KISI_KAPISI_RAPORU.xlsx",
-                             trt or "", title or "", karar, _person_gate_report, dest)
+                     "output_paths": [str(dest) if dest is not None else ""]})
+    if not _ext_tf:
+        _write_person_gate_excel(EXPORT_ROOT / "_KISI_KAPISI_RAPORU.xlsx",
+                                 trt or "", title or "", karar, _person_gate_report, dest)
     # Köke temiz teslimat yüzeyle (DATABASE düzeni): '<TRT> <BAŞLIK>.pdf' + afis.jpg + '<TRT> <BAŞLIK>.txt'.
-    try:
-        surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final, v4_credits=v4_credits)
-    except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
-        log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
-                  media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
+    if not _ext_tf:
+        try:
+            surface_deliverables(clip_dir, trt, title, pdf_info, tur_override=tur_final, v4_credits=v4_credits)
+        except Exception as exc:  # noqa: BLE001 — yüzeyleme ASLA pipeline kararını bozmaz
+            log_event("surface_failed", summary=f"kok yuzeyleme hata: {exc}", module="pipeline",
+                      media_id=media_id, filename=video.name, detail={"clip_id": clip_id})
     total = round(time.perf_counter() - t_all, 2)
     timings["toplam"] = total
+
+    _retry_work_item = None
+    _mesru_bos_pending = None
+    if _ext_tf:
+        try:
+            _retry_work_item = _write_extraction_retry_work_item(
+                clip_dir, video=video, profile=profile,
+                source_run_id=str(_manifest.get("run_id") or ""), from_hub=_from_hub)
+            log_event("retry_work_item_created", level="warn",
+                      summary=f"{video.name}: extraction TF icin PENDING FULL candidate-retry isi yazildi.",
+                      module="pipeline", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id, "retry": _retry_work_item})
+        except Exception as exc:  # noqa: BLE001 — teknik kayit yine _DURUM/manifest'te kalir
+            log_event("retry_work_item_failed", level="error",
+                      summary=f"{video.name}: retry work item yazilamadi: {exc}",
+                      module="pipeline", media_id=media_id, filename=video.name, error=str(exc))
+    else:
+        try:
+            _mesru_bos_pending = _write_mesru_bos_pending(
+                clip_dir, v4_credits=v4_credits, video_credits=video_credits)
+            if _mesru_bos_pending:
+                log_event("mesru_bos_pending", level="warn",
+                          summary=f"{video.name}: bos final alanlar ikinci-tanik bekliyor; muhur yok.",
+                          module="pipeline", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id,
+                                  "fields": [x["field"] for x in _mesru_bos_pending["items"]]})
+        except Exception as exc:  # noqa: BLE001 — pending koprusu karari/teslimi bozamaz
+            log_event("mesru_bos_pending_failed", level="error",
+                      summary=f"{video.name}: mesru-bos pending yazilamadi: {exc}",
+                      module="pipeline", media_id=media_id, filename=video.name, error=str(exc))
 
     summary_obj = {
         "clip_id": clip_id, "video": str(video), "profile": profile, "trt_id": trt, "title": title,
@@ -3501,7 +3667,13 @@ def main(argv=None) -> int:
         # taşımıyordu (summary_obj'de alan yoktu) → QC/denetim ara-dosyaya bakınca "eksik" sanıyordu.
         # Teslimle hizala (2026-06-28). tur_final: xml_genre→v4 nihai; original: XML <TITLE> (yabancı ad).
         "tur": tur_final, "orijinal_ad": original,
-        "hub": str(clip_dir), "teslim": str(dest),
+        "hub": str(clip_dir), "teslim": (str(dest) if dest is not None else None),
+        "processing_status": ("RETRYABLE_FAILURE" if _ext_tf else
+                              ("DEGRADED" if _ext_degraded else "SUCCEEDED")),
+        "delivery_status": "WITHHELD_TECHNICAL_FAILURE" if _ext_tf else "PRODUCED",
+        "retry_work_item": (str(clip_dir / "retry_work_item.json") if _retry_work_item else None),
+        "mesru_bos_pending": (str(clip_dir / "mesru_bos.pending.json")
+                              if _mesru_bos_pending else None),
         # FIX-D/B (2026-06-23): OCR-otorite denetim sinyalini _DURUM'a yüzeyle (görünürlük) —
         # ocr_dropped/kb_floor_added/ocr_authority_violation + s5_form_overwrites. v4 raporundan okunur;
         # yoksa None (additive, kararı etkilemez). "başarısızlığı nereden anlarız" sinyali burada görünür.
@@ -3545,15 +3717,20 @@ def main(argv=None) -> int:
         log_event("karar_shadow_fail", summary=f"{type(_shexc).__name__}: {_shexc}",
                   module="pipeline", media_id=media_id)
     # İP-1: manifest'i kapat (status=karar; best-effort, koşuyu asla bozmaz).
-    _rm.finalize(clip_dir, status=karar,
-                 extra={"teslim": str(dest), "timings": timings,
+    _rm.finalize(clip_dir, status=("RETRYABLE_FAILURE" if _ext_tf else karar),
+                 extra={"teslim": (str(dest) if dest is not None else None), "timings": timings,
                         "ocr_bucket": ocr_bucket, "reasons": reasons,
+                        "processing_status": ("RETRYABLE_FAILURE" if _ext_tf else
+                                              ("DEGRADED" if _ext_degraded else "SUCCEEDED")),
+                        "delivery_status": "WITHHELD_TECHNICAL_FAILURE" if _ext_tf else "PRODUCED",
+                        "retry_work_item": (str(clip_dir / "retry_work_item.json") if _retry_work_item else None),
                         "extraction_status": (video_credits.get("extraction_status")
                                               if isinstance(video_credits, dict) else None)})
     if _batch_mode:
         _rm.release_writer_lock()
-    dbg.finalize_trace(timings=timings, final_status=karar, reasons=reasons,
-                       outputs={"hub": str(clip_dir), "teslim": str(dest),
+    dbg.finalize_trace(timings=timings,
+                       final_status=("RETRYABLE_FAILURE" if _ext_tf else karar), reasons=reasons,
+                       outputs={"hub": str(clip_dir), "teslim": (str(dest) if dest is not None else None),
                                 "pdf": pdf_info.get("pdf_path"), "md": pdf_info.get("md_path"),
                                 "durum": str(clip_dir / "_DURUM.json")})
     # Köke insan-okunur _teknik.txt + per-film _log.jsonl (DATABASE düzeni — herşey tek klasörde).
@@ -3574,7 +3751,7 @@ def main(argv=None) -> int:
         f"- Künye: {ocr_lines} satır (bucket={ocr_bucket})  |  Transcript: {asr_info.get('clean_segments') or 0} segment, {asr_info.get('transcript_chars') or 0} karakter",
         f"- Çözünürlük: {res}  ·  Süre: {dur}",
         f"- Hub: {clip_dir}",
-        f"- Teslim: {dest}",
+        f"- Teslim: {dest if dest is not None else 'URETILMEDI (TECHNICAL_FAILURE)'}",
         "",
     ]
     if not MASTER_MD.exists():
@@ -3781,12 +3958,21 @@ def main(argv=None) -> int:
                       module="shadow-vl", media_id=media_id, filename=video.name,
                       detail={"clip_id": clip_id})
 
-    log_event("routed_" + ("hazir" if karar == "Hazır" else "kontrol"),
-              level="info" if karar == "Hazır" else "warn",
-              summary=f"{video.name} → {karar}" + (f" ({'; '.join(reasons)})" if reasons else "") + f" · toplam {total} sn.",
+    log_event(("routed_retryable_failure" if _ext_tf else
+               "routed_" + ("hazir" if karar == "Hazır" else "kontrol")),
+              level="error" if _ext_tf else ("info" if karar == "Hazır" else "warn"),
+              summary=(f"{video.name} → RETRYABLE_FAILURE / teslim yok" if _ext_tf else
+                       f"{video.name} → {karar}")
+                      + (f" ({'; '.join(reasons)})" if reasons else "") + f" · toplam {total} sn.",
               module="pipeline", media_id=media_id, filename=video.name, duration_seconds=total,
               detail=summary_obj)
-    print(json.dumps({"karar": karar, "neden": reasons, "hub": str(clip_dir), "teslim": str(dest), "timings": timings}, ensure_ascii=False))
+    print(json.dumps({"karar": karar,
+                      "processing_status": ("RETRYABLE_FAILURE" if _ext_tf else
+                                            ("DEGRADED" if _ext_degraded else "SUCCEEDED")),
+                      "delivery_status": "WITHHELD_TECHNICAL_FAILURE" if _ext_tf else "PRODUCED",
+                      "neden": reasons, "hub": str(clip_dir),
+                      "teslim": str(dest) if dest is not None else None, "timings": timings},
+                     ensure_ascii=False))
     return 0
 
 

@@ -776,6 +776,16 @@ def _ollama_json_ex(model, prompt, schema, timeout=None, num_ctx=None):
     meta["done_reason"] = resp.get("done_reason")
     meta["prompt_eval_count"] = resp.get("prompt_eval_count")
     meta["eval_count"] = resp.get("eval_count")
+    # done_reason=length, yanit tesadufen parse edilebilir JSON olsa bile TAMAMLANMIS degildir.
+    # Parse'tan once reddet ki kesilmis nesne status=ok olamasin ve cagirandaki tek retry calissin.
+    if resp.get("done_reason") == "length":
+        meta["reason"] = "length"
+        sys.stderr.write(
+            f"[ollama-json] TEKNIK-KAZA: {model} cevap length ile kesildi "
+            f"(JSON parse edilebilir olsa bile gecersiz; prompt_eval={meta['prompt_eval_count']}, "
+            f"eval={meta['eval_count']})\n"
+        )
+        return {}, meta
     try:
         data = json.loads(txt)
         meta["status"] = "ok"
@@ -794,7 +804,7 @@ def _ollama_json_ex(model, prompt, schema, timeout=None, num_ctx=None):
     # ESKİ davranış: sessizce {} → çağıran boş/rescue sanıyordu (TOM SAWYER, BEYAZ AVUÇLAR — günlerce
     # fark edilmedi). YENİ: meta.status=technical_failure + reason=length/invalid_json TAŞINIR;
     # read_credits_auto → _pipe_credit_text → mitas_pipeline zinciri bunu görür (Hazır'a ASLA gidemez).
-    meta["reason"] = "length" if resp.get("done_reason") == "length" else "invalid_json"
+    meta["reason"] = "invalid_json"
     sys.stderr.write(
         f"[ollama-json] TEKNIK-KAZA: {model} JSON-parse basarisiz (reason={meta['reason']}, "
         f"done_reason={resp.get('done_reason')!r}, prompt~{len(prompt) if isinstance(prompt, str) else '?'} char, "
@@ -2408,16 +2418,25 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
     _final_yap = _only_persons(yap_kb)
     _final_cast = _only_persons(cast_kb)
     # ── İP-2 (2026-07-11): extraction_status aggregate — PRECEDENCE (şartname):
-    #   ≥1 model geçerli-JSON + alanlar dolu → OK
-    #   ≥1 model geçerli-JSON + üç alan da boş → ABSTAIN (bilinçli-boş; DEFERANS uygulanabilir)
+    #   Tüm modeller geçerli-JSON + alanlar dolu → OK
+    #   Tüm modeller geçerli-JSON + üç alan da boş → ABSTAIN (bilinçli-boş; DEFERANS uygulanabilir)
+    #   Geçerli-JSON + teknik-kaza karışık → DEGRADED (kısmi model kazası görünür)
     #   HİÇ geçerli-JSON yok → TECHNICAL_FAILURE (rescue dolu olsa bile MASKELENMEZ — rescue kanıt
     #   olarak korunur ama koşu insan-kapısını atlayamaz). Romanizasyon unidecode-fallback = DEGRADED.
     _ok_models = [m for m, mt in model_meta.items() if mt.get("status") == "ok"]
-    if _ok_models:
+    _failed_models = [m for m, mt in model_meta.items() if mt.get("status") != "ok"]
+    # Kismi model kazasi, baska bir model basarili oldu diye OK/ABSTAIN icinde maskelenemez.
+    # DEGRADED kullanilabilir kaniti korur; hic basarili model yoksa terminal teknik durum TF kalir.
+    if _ok_models and _failed_models:
+        extraction_status = "DEGRADED"
+    elif _ok_models:
         extraction_status = "OK" if (_final_yon or _final_yap or _final_cast) else "ABSTAIN"
     else:
         extraction_status = "TECHNICAL_FAILURE"
-    _degraded_reasons = []
+    _degraded_reasons = [
+        f"model_technical_failure:{m}:{model_meta[m].get('reason') or 'unknown'}"
+        for m in _failed_models
+    ]
     if nonlatin_source and translit_method and not str(translit_method).startswith("llm:"):
         _degraded_reasons.append("romanize_unidecode_fallback")
     return {
@@ -2431,6 +2450,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         "extraction_detail": {
             "models": model_meta,
             "ok_models": _ok_models,
+            "failed_models": _failed_models,
             "rescue_filled": bool(_final_yon) and not _ok_models,
         },
         "degraded": bool(_degraded_reasons),

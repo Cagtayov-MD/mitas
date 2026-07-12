@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -37,7 +38,10 @@ PROJECT_ROOT = Path(r"E:\MITAS")
 # env-köprüsü mitas_roots.export_child_env kurar; env boşsa üretim yolları BYTE-AYNI.
 _OUTPUTS_DIR = Path(os.environ.get("MITAS_OUTPUTS_DIR", str(PROJECT_ROOT / "outputs")))
 OUT_MANIFEST_DIR = Path(os.environ.get("MITAS_MANIFEST_DIR", str(PROJECT_ROOT / "outputs" / "manifests")))
-LOCK_PATH = _OUTPUTS_DIR / ".mitas_writer.lock"
+# Tek-writer kilidi candidate köküne taşınamaz: aksi halde production + iki ayrı candidate aynı anda
+# yazabilir. Tüm run-root'ların paylaştığı proje-global kilit; test/özel kurulum env ile değiştirebilir.
+LOCK_PATH = Path(os.environ.get(
+    "MITAS_WRITER_LOCK_PATH", str(PROJECT_ROOT / "outputs" / ".mitas_writer.lock")))
 OLLAMA = os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434")
 # credit_crosscheck.py ile AYNI env adları/varsayılanları (tek-kaynak: oradaki tanım esas).
 WIKIDATA_DB = os.environ.get("MITAS_WIKIDATA_DUCKDB", r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb")
@@ -46,6 +50,11 @@ IMDB_DB = os.environ.get("MITAS_IMDB_DUCKDB", r"Y:\DIGER\Mitas_Files\IMDB\db\imd
 # gate_version ile rafine edilir).
 PROMPT_SOURCES = ("credit_text_read.py", "credit_qc_block.py", "_pipe_pdf.py")
 SCHEMA_VERSION = 1
+_LOCK_TOKEN: str | None = None
+_SECRET_KEY_RE = re.compile(
+    r"(?:TOKEN|SECRET|PASSWORD|PASSWD|API[_-]?KEY|AUTH|CREDENTIAL|COOKIE)",
+    re.IGNORECASE,
+)
 
 
 class PreflightError(RuntimeError):
@@ -79,8 +88,16 @@ def git_state() -> dict:
 def input_signature(video: Path, chunk_mb: int = 8) -> dict:
     """Tam-dosya sha256 çok pahalı (W:\\ üzerinde 4GB video). İmza: boyut + ilk/son 8MB sha256.
     Aynı dosyanın sessiz değişimini yakalamaya yeter; kriptografik bütünlük iddiası değildir."""
-    if not video.exists():   # from-hub modu: kaynak video offline — imza yok, manifest not düşer
-        return {"size_bytes": 0, "sig_sha256": None, "offline": True}
+    if not video.exists():
+        # from-hub modunda video offline olabilir; bu durumda boş imza üretmek promotion'ın
+        # yanlış/sonradan değişmiş frame setini ayırt edememesine yol açıyordu. Pipeline kaynak
+        # hub'ı env ile geçirir; frame envanteri + kritik metinler + uç-frame içerikleri imzalanır.
+        hub_s = os.environ.get("MITAS_FROM_HUB_PATH", "").strip()
+        if hub_s:
+            hub = Path(hub_s)
+            if hub.is_dir():
+                return hub_input_signature(hub)
+        return {"kind": "offline", "size_bytes": 0, "sig_sha256": None, "offline": True}
     size = video.stat().st_size
     h = hashlib.sha256()
     n = chunk_mb * 1024 * 1024
@@ -90,7 +107,48 @@ def input_signature(video: Path, chunk_mb: int = 8) -> dict:
             f.seek(size - n)
             h.update(f.read(n))
     h.update(str(size).encode())
-    return {"size_bytes": size, "sig_sha256": h.hexdigest()}
+    return {"kind": "video", "size_bytes": size, "sig_sha256": h.hexdigest()}
+
+
+def hub_input_signature(hub: Path) -> dict:
+    """Offline from-hub girdisinin kararlı, maliyeti sınırlı imzası.
+
+    Tüm frame'lerin yol+boyut+mtime envanteri, kritik JSON/OCR metinlerinin tam içeriği ve her
+    frame klasörünün ilk/son karesinin içeriği hash'e girer. Böylece yüzlerce kareyi yeniden
+    okumadan yanlış hub veya koşu sırasında değişen kaynak seti yakalanır.
+    """
+    hub = Path(hub).resolve()
+    h = hashlib.sha256()
+    files: list[Path] = []
+    for rel in ("clip.json", "_DURUM.json"):
+        p = hub / rel
+        if p.is_file():
+            files.append(p)
+    files.extend(sorted(hub.glob("ocr/ocr-*/kunye.txt")))
+    files.extend(sorted(hub.glob("ocr/ocr-*/ocr_ham.txt")))
+    frame_groups: list[list[Path]] = []
+    for rel in (Path("frames/giris"), Path("frames/cikis")):
+        group = sorted(p for p in (hub / rel).glob("*") if p.is_file())
+        frame_groups.append(group)
+        files.extend(group)
+
+    total = 0
+    for p in sorted(set(files)):
+        st = p.stat()
+        total += st.st_size
+        rel = p.relative_to(hub).as_posix()
+        h.update(f"{rel}\0{st.st_size}\0{st.st_mtime_ns}\n".encode("utf-8"))
+        if p.suffix.lower() in {".json", ".txt"}:
+            h.update(p.read_bytes())
+    for group in frame_groups:
+        for p in ({group[0], group[-1]} if group else set()):
+            h.update(p.relative_to(hub).as_posix().encode("utf-8"))
+            with p.open("rb") as f:
+                h.update(f.read())
+    return {
+        "kind": "hub", "hub": str(hub), "file_count": len(set(files)),
+        "size_bytes": total, "sig_sha256": h.hexdigest(), "offline": True,
+    }
 
 
 # --------------------------------------------------------------------------- ollama / KB
@@ -147,6 +205,35 @@ def duckdb_check() -> list[str]:
 
 # --------------------------------------------------------------------------- kilit
 def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        # os.kill(pid, 0) Windows'ta POSIX'teki salt-sorgu garantisine sahip değil; bazı Python/
+        # test kombinasyonlarında hedef süreci sonlandırabiliyor. WinAPI ile yalnız sorgula.
+        try:
+            import ctypes
+            from ctypes import wintypes
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            STILL_ACTIVE = 259
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel32.OpenProcess.restype = wintypes.HANDLE
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, int(pid))
+            if not handle:
+                return False
+            try:
+                code = wintypes.DWORD()
+                if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                    return True  # erişilebilen handle var; sorgu hatasında fail-safe canlı say
+                return code.value == STILL_ACTIVE
+            finally:
+                kernel32.CloseHandle(handle)
+        except Exception:  # noqa: BLE001 — WinAPI yoksa güvenli psutil sorgusuna düş
+            try:
+                import psutil
+                return psutil.pid_exists(pid)
+            except Exception:
+                return True
     try:
         os.kill(pid, 0)
     except OSError:
@@ -157,32 +244,56 @@ def _pid_alive(pid: int) -> bool:
 
 
 def acquire_writer_lock() -> None:
-    """Batch tek-writer kilidi. Bayat kilit (ölü pid) uyarıyla devralınır."""
+    """Batch tek-writer kilidi. O_EXCL ile atomik; bayat kilit yarışsız devralınır."""
+    global _LOCK_TOKEN
     LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if LOCK_PATH.exists():
+    token = uuid.uuid4().hex
+    payload = json.dumps({"pid": os.getpid(), "token": token,
+                          "ts": datetime.now().isoformat()}).encode("utf-8")
+    for _attempt in range(5):
         try:
-            old = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
+            fd = os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                old = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
+            except Exception:  # noqa: BLE001 — bozuk kilit bayat kabul edilir
+                old = {}
             if _pid_alive(int(old.get("pid", -1))):
                 raise PreflightError(
                     f"writer-kilidi dolu: pid={old.get('pid')} ts={old.get('ts')} ({LOCK_PATH})")
-            sys.stderr.write(f"[preflight] bayat writer-kilidi devralindi (olu pid={old.get('pid')})\n")
-        except PreflightError:
-            raise
-        except Exception:  # noqa: BLE001 — bozuk kilit dosyası = bayat say
-            sys.stderr.write("[preflight] bozuk writer-kilidi devralindi\n")
-    LOCK_PATH.write_text(json.dumps({"pid": os.getpid(), "ts": datetime.now().isoformat()}),
-                         encoding="utf-8")
+            stale = LOCK_PATH.with_name(
+                f"{LOCK_PATH.name}.stale.{os.getpid()}.{uuid.uuid4().hex[:8]}")
+            try:
+                os.replace(str(LOCK_PATH), str(stale))
+                stale.unlink(missing_ok=True)
+                sys.stderr.write(
+                    f"[preflight] bayat writer-kilidi devralindi (olu pid={old.get('pid')})\n")
+            except FileNotFoundError:
+                pass  # başka contender önce devraldı; yeniden O_EXCL dene
+            continue
+        else:
+            try:
+                os.write(fd, payload)
+            finally:
+                os.close(fd)
+            _LOCK_TOKEN = token
+            break
+    else:
+        raise PreflightError(f"writer-kilidi atomik olarak alınamadı: {LOCK_PATH}")
     # Erken-return/istisna yollarında kilit sızmasın: süreç çıkışında idempotent release.
     import atexit
     atexit.register(release_writer_lock)
 
 
 def release_writer_lock() -> None:
+    global _LOCK_TOKEN
     try:
         if LOCK_PATH.exists():
             old = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-            if int(old.get("pid", -1)) == os.getpid():
+            if (int(old.get("pid", -1)) == os.getpid()
+                    and old.get("token") == _LOCK_TOKEN):
                 LOCK_PATH.unlink()
+                _LOCK_TOKEN = None
     except Exception:  # noqa: BLE001 — kilit temizliği asla koşuyu bozmaz
         pass
 
@@ -249,7 +360,17 @@ def run_preflight(batch_mode: bool = False) -> dict:
 # --------------------------------------------------------------------------- manifest
 def build_manifest(video: Path, profile: str, argv: list[str] | None,
                    preflight_info: dict | None = None) -> dict:
-    cfg = {k: v for k, v in sorted(os.environ.items()) if k.startswith("MITAS_")}
+    # Manifest paylaşılabilir bir provenance artefaktıdır; MITAS_* altında API anahtarı/parola
+    # bulunabilir. Değeri yazmak yerine varlığını ve değişimini takip edecek kısa hash saklanır.
+    cfg = {}
+    for k, v in sorted(os.environ.items()):
+        if not k.startswith("MITAS_"):
+            continue
+        if _SECRET_KEY_RE.search(k):
+            vh = hashlib.sha256(v.encode("utf-8")).hexdigest()[:12] if v else "empty"
+            cfg[k] = f"<redacted:{vh}>"
+        else:
+            cfg[k] = v
     prompt_hashes = {}
     for name in PROMPT_SOURCES:
         p = PROJECT_ROOT / "scripts" / name
@@ -295,6 +416,13 @@ def finalize(clip_dir: Path, status: str, extra: dict | None = None) -> None:
         m = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
         m["status"] = status
         m["finished_at"] = datetime.now().isoformat(timespec="seconds")
+        current_git = git_state()
+        m["final_git_state"] = current_git
+        m["source_drift"] = bool(
+            current_git.get("git_sha") != m.get("git_sha")
+            or current_git.get("git_dirty") != m.get("git_dirty")
+            or current_git.get("dirty_patch_sha256") != m.get("dirty_patch_sha256")
+        )
         if extra:
             m["result"] = extra
         p.write_text(json.dumps(m, ensure_ascii=False, indent=1), encoding="utf-8")

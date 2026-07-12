@@ -617,13 +617,10 @@ def _find_processed_hub(video_path: str) -> "Path | None":
     stem = Path(video_path).stem
     m = _TRT_RE.search(stem)
     if m:
-        trt = m.group(0)
-        try:
-            for d in CLIPS_ROOT.iterdir():
-                if d.is_dir() and trt in d.name and (d / "_DURUM.json").exists():
-                    return d
-        except OSError:
-            pass
+        # Tek-kaynak resolver: 0=None, 1=hub, >1=HARD-FAIL. Eski "ilk eşleşeni return et"
+        # davranışı aynı TRT'nin iki kopyası olduğunda yanlış canonical'ı sessizce seçiyordu.
+        import retry_planner as _rp
+        return _rp.resolve_hub(m.group(0), CLIPS_ROOT)
     # Fallback: TRT-id'siz yerel test dosyaları → dosya-adı clip_id ile doğrudan eşleşme (eski davranış)
     direct = CLIPS_ROOT / _flow_clip_id(video_path)
     if (direct / "_DURUM.json").exists():

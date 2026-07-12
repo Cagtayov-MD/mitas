@@ -103,13 +103,31 @@ def make_seal(*, trt: str, field: str, durum: str, source_hash: str, evidence_ha
             "seal_id": _hash(trt, field, source_hash, evidence_hash, GATE_VERSION)}
 
 
-def is_seal_valid(seal: dict, *, current_source_hash: str, current_evidence_hash: str) -> bool:
-    """Mühür hâlâ geçerli mi? Kaynak/kanıt hash'i değiştiyse (yeni frame/OCR) GEÇERSİZ."""
+def is_seal_valid(seal: dict, *, current_source_hash: str, current_evidence_hash: str,
+                  expected_trt: str | None = None, expected_field: str | None = None) -> bool:
+    """Mühür hâlâ geçerli mi?
+
+    Yalnız hash eşitliği yetmez: başka film/alandan kopyalanmış, durumu değiştirilmiş veya
+    onaysız mühür reddedilir. seal_id tüm kimlik alanlarından yeniden hesaplanır.
+    """
     if not seal:
         return False
-    return (seal.get("source_hash") == current_source_hash
-            and seal.get("evidence_hash") == current_evidence_hash
-            and seal.get("gate_version") == GATE_VERSION)
+    trt = str(seal.get("trt") or "").strip()
+    field = str(seal.get("field") or "").strip()
+    durum = str(seal.get("durum") or "").strip()
+    source_hash = str(seal.get("source_hash") or "")
+    evidence_hash = str(seal.get("evidence_hash") or "")
+    if (not trt or not field or durum not in TERMINAL or not seal.get("approved_by")
+            or seal.get("gate_version") != GATE_VERSION):
+        return False
+    if expected_trt is not None and trt != expected_trt:
+        return False
+    if expected_field is not None and field != expected_field:
+        return False
+    expected_id = _hash(trt, field, source_hash, evidence_hash, GATE_VERSION)
+    return (seal.get("seal_id") == expected_id
+            and source_hash == current_source_hash
+            and evidence_hash == current_evidence_hash)
 
 
 # ─────────────────────────── mevcut-verdict köprüsü (168 bulgu) ───────────────────────────

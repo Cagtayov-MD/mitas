@@ -67,13 +67,14 @@ def test_oyuncu_yok_kontrol():
     assert r["tier"] == "KONTROL" and "CAST" in r["kontrol_tip"]
 
 
-# ── INVARIANT: hafif-only ASLA sessiz-ONAYLI/TEMIZ olamaz ────────────────────
-def test_afis_yok_hafif_kontrole_gider_ama_hafif_etiketli():
+# ── INVARIANT: AFIS tek başına warning; görünür ama teslimi engellemez ─────────
+def test_afis_yok_warning_ile_onayliya_gider():
     r = _route(qwen_qc={"ozet_var": True, "oyuncu_sayisi": 8, "yonetmen_var": True,
                         "yapimci_var": True, "afis_var": False, "hepsi_buyuk_harf": True})
-    assert r["tier"] == "NEEDS_REVIEW_HAFIF"
-    assert r["folder"] == "KONTROL"
-    assert r["kontrol_tip"].startswith("HAFIF_")
+    assert r["tier"] == "TEMIZ"
+    assert r["folder"] == "ONAYLI"
+    assert r["kontrol_tip"] is None
+    assert r["hafif"] == ["AFIS"]
 
 
 # ── INVARIANT: AĞIR, hafifi gölgede bırakır (kontrol şart kalır) ─────────────

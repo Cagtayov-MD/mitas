@@ -41,7 +41,7 @@ import os
 import re
 import sys
 import time
-import unicodedata
+from name_fold import latin_ascii
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _ollama import ollama_chat as _ollama_chat  # noqa: E402  merkezi retry/timeout
@@ -79,7 +79,7 @@ def fold(s):
                  ("Ğ", "g"), ("ğ", "g"), ("Ü", "u"), ("ü", "u"),
                  ("Ö", "o"), ("ö", "o"), ("Ç", "c"), ("ç", "c")):
         s = s.replace(a, b)
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()
+    s = latin_ascii(s)
     return re.sub(r"\s+", " ", s).strip()
 
 def is_abstain(v):

@@ -16,6 +16,7 @@ KAYNAKLAR (ikisi de kalıcı/direkt — "arada kaynamasın"):
 CLI:  python scripts/credit_crosscheck.py --baslik "AHLAT AĞACI" --yonetmen "Nuri Bilge Ceylan" --yil 2018
 """
 import argparse, os, re, sys, unicodedata
+from name_fold import latin_ascii
 
 WIKIDATA_DB = os.environ.get("MITAS_WIKIDATA_DUCKDB", r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb")
 IMDB_DB = os.environ.get("MITAS_IMDB_DUCKDB", r"Y:\DIGER\Mitas_Files\IMDB\db\imdb.duckdb")
@@ -25,7 +26,7 @@ def fold(s):
     for a, b in (("İ","i"),("I","i"),("ı","i"),("Ş","s"),("ş","s"),("Ğ","g"),("ğ","g"),
                  ("Ü","u"),("ü","u"),("Ö","o"),("ö","o"),("Ç","c"),("ç","c")):
         s = s.replace(a, b)
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()
+    s = latin_ascii(s)
     return re.sub(r"[^a-z0-9 ]", " ", s).strip()
 
 _TR = (("İ","i"),("I","i"),("ı","i"),("Ş","s"),("ş","s"),("Ğ","g"),("ğ","g"),

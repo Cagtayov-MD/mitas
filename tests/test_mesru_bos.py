@@ -81,6 +81,21 @@ def test_muhur_bos_gecersiz():
     assert mb.is_seal_valid({}, current_source_hash="a", current_evidence_hash="b") is False
 
 
+def test_muhur_kimlik_alanlari_ve_seal_id_tahrif_edilemez():
+    seal = mb.make_seal(trt="1990-0001-1-0000-00-1", field="YONETMEN",
+                        durum=mb.ROLE_ABSENT, source_hash="src", evidence_hash="ev",
+                        approved_by="cagatay")
+    assert mb.is_seal_valid(seal, current_source_hash="src", current_evidence_hash="ev",
+                            expected_trt=seal["trt"], expected_field="YONETMEN")
+    for key, bad in (("trt", "baska"), ("field", "CAST"),
+                     ("durum", mb.SOURCE_UNREADABLE), ("approved_by", ""),
+                     ("seal_id", "sahte")):
+        changed = dict(seal)
+        changed[key] = bad
+        assert not mb.is_seal_valid(changed, current_source_hash="src",
+                                    current_evidence_hash="ev")
+
+
 # ── KOKNEDEN köprüsü ─────────────────────────────────────────────────────────
 def test_d_jenerikte_yok_hepsi_vl_gerektirir():
     m = mb.from_kokneden_verdict("D_JENERIKTE_YOK", "jenerikte hiç mevcut değil", "")

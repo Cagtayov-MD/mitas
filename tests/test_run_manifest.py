@@ -20,7 +20,49 @@ def _clean_env(monkeypatch, tmp_path):
     monkeypatch.delenv("MITAS_PREFLIGHT", raising=False)
     monkeypatch.delenv("MITAS_BATCH_MODE", raising=False)
     monkeypatch.setattr(rm, "LOCK_PATH", tmp_path / ".writer.lock")
+    monkeypatch.setattr(rm, "_LOCK_TOKEN", None)
     yield
+
+
+def test_from_hub_input_signature_degisikligi_yakalar(monkeypatch, tmp_path):
+    hub = tmp_path / "hub"
+    (hub / "frames" / "cikis").mkdir(parents=True)
+    (hub / "clip.json").write_text('{"filename":"x.mp4"}', encoding="utf-8")
+    (hub / "frames" / "cikis" / "0001.png").write_bytes(b"frame-a")
+    monkeypatch.setenv("MITAS_FROM_HUB_PATH", str(hub))
+    a = rm.input_signature(tmp_path / "offline.mp4")
+    (hub / "frames" / "cikis" / "0001.png").write_bytes(b"frame-b")
+    b = rm.input_signature(tmp_path / "offline.mp4")
+    assert a["kind"] == "hub" and a["sig_sha256"] != b["sig_sha256"]
+
+
+def test_writer_lock_sahiplik_tokeni_olmadan_silinmez(monkeypatch, tmp_path):
+    lock = tmp_path / ".writer.lock"
+    monkeypatch.setattr(rm, "LOCK_PATH", lock)
+    rm.acquire_writer_lock()
+    assert lock.exists()
+    gercek = rm._LOCK_TOKEN
+    rm._LOCK_TOKEN = "baska-sahip"
+    rm.release_writer_lock()
+    assert lock.exists()
+    rm._LOCK_TOKEN = gercek
+    rm.release_writer_lock()
+    assert not lock.exists()
+
+
+def test_manifest_secret_env_degerini_sizdirmaz(monkeypatch, tmp_path):
+    video = tmp_path / "x.mp4"
+    video.write_bytes(b"video")
+    monkeypatch.setenv("MITAS_API_KEY", "cok-gizli-deger")
+    monkeypatch.setenv("MITAS_NORMAL_FLAG", "1")
+    monkeypatch.setattr(rm, "git_state", lambda: {
+        "git_sha": "abc", "git_dirty": False, "dirty_patch_sha256": None,
+        "dirty_patch_bytes": 0})
+    monkeypatch.setattr(rm, "ollama_models", lambda: {})
+    m = rm.build_manifest(video, "film", [])
+    assert "cok-gizli-deger" not in json.dumps(m)
+    assert m["config_snapshot"]["MITAS_API_KEY"].startswith("<redacted:")
+    assert m["config_snapshot"]["MITAS_NORMAL_FLAG"] == "1"
 
 
 def _ok_git(monkeypatch, dirty=False):

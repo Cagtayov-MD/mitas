@@ -51,6 +51,17 @@ def test_ex_length_kesilmesi_technical_failure(monkeypatch):
     assert meta["reason"] == "length"
 
 
+def test_ex_length_parse_edilebilir_json_olsa_da_technical_failure(monkeypatch):
+    """Kesilmis cevap sentaktik JSON olabilir; done_reason=length yine tamamlanmamis demektir."""
+    monkeypatch.setattr(ctr.urllib.request, "urlopen", _fake_urlopen(
+        {"response": json.dumps({"yonetmen": ["Eksik Ama Parse Edilir"]}),
+         "done_reason": "length", "prompt_eval_count": 8000, "eval_count": 2048}))
+    data, meta = ctr._ollama_json_ex("m", "p", {})
+    assert data == {}
+    assert meta["status"] == "technical_failure"
+    assert meta["reason"] == "length"
+
+
 def test_ex_baglanti_kazasi_technical_failure(monkeypatch):
     def _boom(req, timeout=None):
         raise OSError("connection refused")
@@ -102,6 +113,25 @@ def test_auto_dolu_OK(monkeypatch, _izole):
     res = ctr.read_credits_auto(["JOHN SMITH", "JANE DOE"], "FILM")
     assert res["extraction_status"] == "OK"
     assert "John Smith" in res["cast"]
+
+
+def test_auto_kismi_model_kazasi_DEGRADED_olarak_gorunur(monkeypatch, _izole):
+    monkeypatch.setattr(ctr, "model_chain", lambda: ["m_ok", "m_fail"])
+
+    def _mixed(model, prompt, schema, timeout=None, num_ctx=None):
+        if model == "m_ok":
+            return ({"yonetmen": [], "yapimci": [],
+                     "oyuncular": ["John Smith", "Jane Doe"]},
+                    {"status": "ok", "model": model})
+        return {}, {"status": "technical_failure", "reason": "timeout", "model": model}
+
+    monkeypatch.setattr(ctr, "_ollama_json_ex", _mixed)
+    res = ctr.read_credits_auto(["JOHN SMITH", "JANE DOE"], "FILM")
+    assert res["extraction_status"] == "DEGRADED"
+    assert res["degraded"] is True
+    assert res["extraction_detail"]["ok_models"] == ["m_ok"]
+    assert res["extraction_detail"]["failed_models"] == ["m_fail"]
+    assert any("m_fail:timeout" in r for r in res["degraded_reasons"])
 
 
 def test_auto_rescue_teknik_kazayi_MASKELEMEZ(monkeypatch, _izole):

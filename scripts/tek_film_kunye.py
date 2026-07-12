@@ -22,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY_OCR = os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe")
 PDFMITAS = r"E:\MITAS\OCR-worktree\pdf-mitas"
-AFIS_CACHE = r"E:\MITAS\_102_afis_cache"
+AFIS_CACHE = os.environ.get("MITAS_AFIS_CACHE_DIR", r"E:\MITAS\_102_afis_cache")
 OUT_DEFAULT = r"E:\MITAS\Mitas Output\GUNCEL_ORNEK"
 # KB cast-ekleme kaldırıldı: KB yalnız OCR'da okunan ismin yazımını düzeltir, sıfırdan kişi eklemez.
 _ADD_ON = False
@@ -57,6 +57,7 @@ nn = _load("nn", os.path.join(PDFMITAS, "name_normalize.py"))
 # OCR cast LİSTESİ otorite; KB yalnız OKUNAN ismin YAZIMINI düzeltir → name_match gerekir.
 # credit_crosscheck top-level'da duckdb import etmez (sadece CreditKB.__init__'te) → global python'da güvenli.
 sys.path.insert(0, HERE)
+from name_fold import latin_ascii
 try:
     import credit_crosscheck as _cc
 except Exception as _e:                              # import edilemezse cast'a DOKUNMA (graceful)
@@ -401,6 +402,64 @@ def _yapimci_ocr_corroborated(kb_names, clip):
     return out
 
 
+def _ocr_corroborated_directors(kb_names, clip):
+    """Kimlik-kilitli filmin KB yönetmenini güncel OCR korpusunda birebir doğrula.
+
+    Bu bir kör KB-fill değildir: isim fiziksel OCR korpusunda tam ad olarak bulunur;
+    KB yalnız rolü ve kanonik yazımı sağlar. En fazla iki otoriter aday kabul edilir
+    ve çağıran yalnız tek hit olduğunda alanı doldurur.
+    """
+    names = [str(x).strip() for x in (kb_names or []) if str(x).strip()]
+    if not names or len(names) > 2 or not clip:
+        return []
+    chunks = []
+    try:
+        import glob as _g
+        patterns = (
+            os.path.join(clip, "ocr", "ocr-*", "kunye.txt"),
+            os.path.join(clip, "ocr", "ocr-*", "ocr_ham.txt"),
+            os.path.join(clip, "ocr", "ocr-*", "ocr_raw_all.txt"),
+        )
+        for pat in patterns:
+            files = sorted(_g.glob(pat), key=os.path.getmtime)
+            if files:
+                with open(files[-1], encoding="utf-8", errors="ignore") as handle:
+                    chunks.append(handle.read())
+        dilim = os.path.join(clip, "master_dilim", "dilim_oneocr.txt")
+        if os.path.isfile(dilim):
+            with open(dilim, encoding="utf-8", errors="ignore") as handle:
+                chunks.append(handle.read())
+    except Exception:  # noqa: BLE001 — OCR kanıtı okunamazsa fill yapılmaz
+        return []
+    corpus = " " + " ".join(re.sub(r"[^a-z0-9]+", " ", latin_ascii(x)).strip() for x in chunks) + " "
+    hits = []
+    for name in names:
+        folded = re.sub(r"[^a-z0-9]+", " ", latin_ascii(name)).strip()
+        if len(folded) >= 7 and f" {folded} " in corpus:
+            hits.append(name)
+    return hits
+
+
+def _strong_director_screen_evidence(name, video_credits):
+    """OCR/VL'nin yönetmen rolüne exact/crossline bağladığı temiz adayın kanıtını döndür.
+
+    Amaç mahlas/AKA nedeniyle KB primaryName ile eşleşmeyen gerçek ekran kredisini
+    sessizce silmemektir. Yalnız güçlü rol-bağlı yöntemler kabul edilir; fuzzy/kb-anchor
+    bu kapıdan geçmez ve mevcut insan-kontrolü davranışını korur.
+    """
+    wanted = re.sub(r"[^a-z0-9]+", " ", latin_ascii(name)).strip()
+    matches = (video_credits or {}).get("vl_yon_eslesme") or {}
+    if not wanted or not isinstance(matches, dict):
+        return None
+    for candidate, evidence in matches.items():
+        folded = re.sub(r"[^a-z0-9]+", " ", latin_ascii(candidate)).strip()
+        method = str((evidence or {}).get("method") or "").strip().lower() if isinstance(evidence, dict) else ""
+        if folded == wanted and method in {"exact", "crossline"}:
+            return {"candidate": candidate, "method": method,
+                    "kanit": (evidence or {}).get("kanit") if isinstance(evidence, dict) else None}
+    return None
+
+
 def _load_director_validation_from_trace(clip):
     """Önceki pipeline credit_validate teyidini tekil rerender'a taşır."""
     trace_path = os.path.join(clip, "debug_trace", "trace.jsonl")
@@ -693,6 +752,8 @@ def main():
     #   • OCR var + (KB yok / kimlik yok) → OCR'ı AYNEN koru (doğrulayacak şey yok).
     yon_kaynak = "kareler"
     yon_ocr_teyit = False                       # OCR yönetmeni KB ile BAĞIMSIZ teyit edildi mi (cast-ADD çapası)
+    yon_screen_conflict = []                    # mahlas/AKA: alan korunur, uyuşmazlık kanıtı görünür kalır
+    yon_ocr_restore = []                        # KB adı ham OCR'da birebir görüldüyse güvenli geri-kazanım
     _yon_before_kb = list(yon)
     if yon and _cc is not None and kimlik_dogru and auth_yon:
         _yeni = []
@@ -710,18 +771,42 @@ def main():
             # var mı? Gerçek-ama-bu-filme-KB'siz kişi (Reuben Rose) bulunur; saf gürültü bulunmaz.
             import credit_text_read as _ctr_vp
             _yon_kb_hit = False
-            if all(_ctr_vp._valid_person_name(_d) for _d in yon):
+            _screen_hits = []
+            if all(_ctr_vp._valid_person_name(_d) and _ctr_vp._looks_garble(_d) is None
+                   and _ctr_vp._rsc_name_ok(_d) for _d in yon):
+                _screen_hits = [(_d, _strong_director_screen_evidence(_d, vc)) for _d in yon]
+                _screen_hits = [(n, e) for n, e in _screen_hits if e]
                 try:
                     _kb3 = _cc.CreditKB()
                     _yon_kb_hit = all(_kb3._imdb_people_by_folds([_cc.fold(_d)]) for _d in yon)
                 except Exception:
                     _yon_kb_hit = False
-            if _yon_kb_hit:
+            if len(_screen_hits) == len(yon):
+                # BANA TRINITY DERLER: E.B. Clucher ekran kredisi, KB primaryName=Enzo Barboni.
+                # Exact/crossline rol kanıtı OCR otoritesidir; uyuşmazlık raporda açık kalır.
+                yon_kaynak = "kareler (güçlü ekran-rol kanıtı; KB adı farklı/mahlas olabilir → OCR korundu)"
+                yon_screen_conflict = [
+                    {"okunan": n, "otoriter_yonetmen": list(auth_yon), "ekran_kaniti": e}
+                    for n, e in _screen_hits
+                ]
+            elif _yon_kb_hit:
                 yon_kaynak = "kareler (KB eşleşmedi ama OCR temiz + KB'de gerçek kişi → okunan korundu)"
             else:
                 yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
     elif not yon:
         yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"
+
+    # APOLLO 11: 'ND UNIT' yanlış adayı düşünce alan boş kalır. Otoriter yönetmen
+    # kimlik-kilitli filmin ham OCR korpusunda birebir ise bu kör KB-fill değil,
+    # OCR-kanıtlı rol geri-kazanımıdır.
+    _kimlik_guclu_yon = (verdict == "TEYİT") or (cast_ov >= 3)
+    if not yon and _kimlik_guclu_yon and auth_yon:
+        _corrob = _ocr_corroborated_directors(auth_yon, clip)
+        if len(_corrob) == 1:
+            yon = [_corrob[0]]
+            yon_kaynak = "OCR-teyitli KB-yönetmen (ham korpusta birebir; KB yalnız rol/kanonik yazım)"
+            yon_ocr_teyit = True
+            yon_ocr_restore = list(_corrob)
     if _yon_before_kb != yon:
         dbg.emit("fuzzy", "candidate_changed" if yon else "candidate_dropped",
                  status="ok" if yon else "warn",
@@ -989,6 +1074,8 @@ def main():
     afis = _web_afis or cc.get("afis") or _existing_poster_fallback(clip)   # v4, önceki PDF afişini kaybetmesin
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
+                                       "yon_screen_conflict": yon_screen_conflict or None,
+                                       "yon_ocr_restore": yon_ocr_restore or None,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
                                        "cast_add_tier": cast_add_tier, "afis": bool(afis),
                                        "cast_garble": bool(_cast_garble),
@@ -1139,6 +1226,11 @@ def main():
                 rapor["adimlar"]["teyit_iptal"] = "çekirdek<3 → süzgeç uygulanmadı, KONTROL-yolu"
             if yon:
                 _yk = [_n for _n in yon if _kbx.verify(_n, "director") in ("ONAY", "meslek-bos")]
+                # BANA TRINITY DERLER sınıfı: exact/crossline yönetmen-kartı kanıtlı mahlas,
+                # IMDb primaryName kapısında ikinci kez sessizce silinemez.
+                for _n in yon:
+                    if _strong_director_screen_evidence(_n, vc) and _n not in _yk:
+                        _yk.append(_n)
                 _teyitsiz_yon = [_n for _n in yon if _n not in _yk]
                 # hakim-fix (çok-yönetmen): KISMİ teyitte SİLME YOK — ekran-okuma aynen kalır (kimlik-çapası);
                 # yalnız HİÇBİRİ teyitli değilse boş bırakılır (meşru-boş yolu).

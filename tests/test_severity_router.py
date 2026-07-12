@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """İP-4 router + karar-sözleşmesi testleri (2026-07-11, plan rev.4) — GERÇEK production import.
-Kapsam: (1) NEEDS_REVIEW_HAFIF davranış-nötrlüğü (7 hafif kodun HİÇBİRİ TEMIZ'e düşemez, klasör
-hep KONTROL); (2) write_pipeline_karar şema+dosya sözleşmesi (human'a dokunmaz, view regenerate);
+Kapsam: (1) AFIS warning-nonblocking; diğer 6 hafif kod KONTROL davranışını korur;
+(2) write_pipeline_karar şema+dosya sözleşmesi (human'a dokunmaz, view regenerate);
 (3) TECHNICAL_FAILURE → RETRYABLE_FAILURE + first_blocker; (4) drift tespiti."""
 import json
 import sys
@@ -34,9 +34,11 @@ HAFIF_SENARYOLAR = {
 }
 
 
-def test_hafif_7_kod_asla_temiz_dusmez():
-    """GPT tur-3 riski: tier-dalı silinirse hafif→TEMIZ sızardı. Geçiş-tablosu + bu test kilit."""
+def test_insan_kontrollu_6_hafif_kod_asla_temiz_dusmez():
+    """AFIS dışındaki hafif kodlar mevcut insan-kontrolü davranışını korur."""
     for kod, sig in HAFIF_SENARYOLAR.items():
+        if kod == "AFIS":
+            continue
         r = router.classify({"cast_count": 8, **sig})
         assert r["tier"] == "NEEDS_REVIEW_HAFIF", f"{kod}: tier={r['tier']}"
         assert r["folder"] == "KONTROL", f"{kod}: sessiz-TEMIZ YASAK"
@@ -44,15 +46,20 @@ def test_hafif_7_kod_asla_temiz_dusmez():
         assert kod in router.HAFIF_GECIS, f"{kod} geçiş-tablosunda tanımsız"
 
 
-def test_eski_autofix_adi_artik_yok():
+def test_afis_only_warning_nonblocking_onayli():
     r = router.classify({"cast_count": 8, "afis_missing": True})
-    assert r["tier"] != "AUTOFIX", "yanıltıcı eski ad geri gelmemeli"
+    assert r["tier"] == "TEMIZ"
+    assert r["folder"] == "ONAYLI"
+    assert r["kontrol_tip"] is None
+    assert r["hafif"] == ["AFIS"], "warning görünürlüğü kaybolmamalı"
 
 
-def test_davranis_notr_hafif_etiket_ayni():
-    """Yeniden-adlandırma dosya-adı etiketini DEĞİŞTİRMEZ (reviewer alışkanlığı korunur)."""
-    r = router.classify({"cast_count": 8, "afis_missing": True})
-    assert r["kontrol_tip"] == "HAFIF_AFIS"
+def test_afis_baska_hafif_veya_agir_sorunu_maskelemez():
+    r = router.classify({"cast_count": 8, "afis_missing": True, "genre_format": True})
+    assert r["tier"] == "NEEDS_REVIEW_HAFIF" and r["kontrol_tip"] == "HAFIF_GENRE"
+    assert set(r["hafif"]) == {"AFIS", "GENRE"}
+    r2 = router.classify({"cast_count": 8, "afis_missing": True, "yon_garble": True})
+    assert r2["tier"] == "KONTROL" and "AFIS" in r2["hafif"]
 
 
 # ── karar.pipeline.json gölge-yazımı ─────────────────────────────────────────

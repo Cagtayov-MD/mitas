@@ -38,7 +38,7 @@ def test_video_credits_from_trace_uses_last_v4_candidate_read(tmp_path):
     }
 
 
-def test_derive_karar_keeps_missing_poster_in_kontrol():
+def test_derive_karar_missing_poster_is_nonblocking_warning():
     qcb = {
         "karar": "AUTO-FIX",
         "tip": "AFIS",
@@ -51,9 +51,10 @@ def test_derive_karar_keeps_missing_poster_in_kontrol():
         qwen_uyari=["qwen: afiş yok (deterministik poster_fetch garanti — uyarı)"],
     )
 
-    assert karar == "Kontrol"
-    assert route["tier"] == "AUTOFIX"
-    assert route["kontrol_tip"] == "HAFIF_AFIS"
+    assert karar == "Hazır"
+    assert route["tier"] == "TEMIZ"
+    assert route["kontrol_tip"] is None
+    assert route["hafif"] == ["AFIS"]
 
 
 def test_derive_karar_clean_qc_without_qwen_warning_is_ready():
