@@ -1510,7 +1510,8 @@ def main(argv=None) -> int:
     except Exception:  # noqa: BLE001 — config-log ASLA pipeline'i bozmaz (fail-safe)
         pass
     ap = argparse.ArgumentParser()
-    ap.add_argument("--video", required=True)
+    ap.add_argument("--video", required=False, default=None,
+                    help="kaynak video (ZORUNLU — yalnız --from-hub modunda otomatik türetilir)")
     ap.add_argument("--profile", default=None, help="film_dizi (tip TRT 3.parselden oto) | haber|belgesel|muzik|stt (yoksa TRT'den)")
     ap.add_argument("--fps", type=float, default=1.5, help="kare cikarim fps (native cozunurluk)")
     ap.add_argument("--ocr-head", type=float, default=180.0, help="acilis penceresi sn")
@@ -1530,6 +1531,8 @@ def main(argv=None) -> int:
 
     # === FROM-HUB hazırlığı (video'suz tam-kapı) ===
     _from_hub = Path(args.from_hub) if args.from_hub else None
+    if not args.video and not _from_hub:
+        ap.error("--video zorunlu (veya --from-hub kullanın)")
     if _from_hub:
         if not (args.run_root or os.environ.get("MITAS_RUN_ROOT", "").strip()):
             print("HATA: --from-hub yalnız --run-root ile koşar (üretim-koruması)")
@@ -1546,10 +1549,20 @@ def main(argv=None) -> int:
             _src_durum = json.loads((_from_hub / "_DURUM.json").read_text(encoding="utf-8"))
         except Exception:  # noqa: BLE001
             _src_durum = {}
+        _fh_dursec = float(_src_durum.get("dur_sec") or 0.0)
+        _fh_dur = _src_durum.get("dur", "—")
+        if not _fh_dursec and isinstance(_fh_dur, str) and _fh_dur.count(":") == 2:
+            try:  # "HH:MM:SS" → saniye
+                _hh, _mm, _ss = (int(x) for x in _fh_dur.split(":"))
+                _fh_dursec = _hh * 3600 + _mm * 60 + _ss
+            except ValueError:
+                pass
+        if not _fh_dursec:  # son çare: çıkış-frame sayısından tahmin (fps=1.5, kuyruk 480s varsayımı)
+            _nc = len(list((_from_hub / "frames" / "cikis").glob("*.png")))
+            _fh_dursec = max(1800.0, (_nc / 1.5) + 900.0)
         os.environ["MITAS_FROM_HUB_SPECS"] = json.dumps({
             "res": _src_durum.get("res", "—"), "fps": "—",
-            "dur": _src_durum.get("dur", "—"),
-            "dur_sec": _src_durum.get("dur_sec") or 0.0})
+            "dur": _fh_dur, "dur_sec": _fh_dursec})
 
     # İP-5: --run-root verildiyse env'i set edip kökleri YENİDEN bağla (import-anı çözümü ezilir).
     if args.run_root:

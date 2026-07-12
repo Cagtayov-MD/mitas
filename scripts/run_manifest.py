@@ -79,6 +79,8 @@ def git_state() -> dict:
 def input_signature(video: Path, chunk_mb: int = 8) -> dict:
     """Tam-dosya sha256 çok pahalı (W:\\ üzerinde 4GB video). İmza: boyut + ilk/son 8MB sha256.
     Aynı dosyanın sessiz değişimini yakalamaya yeter; kriptografik bütünlük iddiası değildir."""
+    if not video.exists():   # from-hub modu: kaynak video offline — imza yok, manifest not düşer
+        return {"size_bytes": 0, "sig_sha256": None, "offline": True}
     size = video.stat().st_size
     h = hashlib.sha256()
     n = chunk_mb * 1024 * 1024
