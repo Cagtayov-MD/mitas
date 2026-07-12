@@ -863,11 +863,22 @@ def _is_strong_screen_alias_conflict(cross_check: dict) -> bool:
 
 def _has_identity_contradiction(cross_check: dict, *, qc2_resolved: bool = False,
                                 strong_director: bool = False) -> bool:
-    """Gercek kimlik celiskisini mahlas/AKA ekran farkindan ayir."""
+    """Gercek kimlik celiskisini mahlas/AKA ekran farkindan VE OCR yazim-variantindan ayir."""
     if qc2_resolved or strong_director or not isinstance(cross_check, dict):
         return False
     if cross_check.get("kimlik_dogru") is False:
         return True
+    # DENİZ EJDERİ C-fix (2026-07-12): kimlik_dogru cast-çapasıyla (cast_ov>=2) yönetmenden BAĞIMSIZ
+    # kurulabilir → kimlik_dogru=True TEK BAŞINA verdict=ÇELİŞKİ'yi aklamaz. verdict=ÇELİŞKİ iken:
+    #   • OCR-yönetmeni KB'ye name_close (yazım/OCR varyantı, ör. AUGUST~Ágúst) → yanlış-film DEĞİL → aklanır.
+    #   • name_close PATLARSA (gerçek farklı yönetmen / aynı-başlık remake tuzağı; cast örtüşse bile) → KORUNUR.
+    # Mahlas/AKA güçlü-ekran-kanıtı istisnası da korunur. (qwen+glm konsey: A çok açar, C güvenli koridor.)
+    if cross_check.get("kimlik_dogru") is True:
+        if (cross_check.get("verdict") == "ÇELİŞKİ"
+                and not cross_check.get("yon_name_close")
+                and not _is_strong_screen_alias_conflict(cross_check)):
+            return True
+        return False
     return (cross_check.get("verdict") == "ÇELİŞKİ"
             and not _is_strong_screen_alias_conflict(cross_check))
 
@@ -3211,8 +3222,18 @@ def main(argv=None) -> int:
     # yanlış-kimlikten yön doldurursa diğer kapılar maskelenip sessizce ONAYLI olabiliyordu → KONTROL'e bağla.
     _cv_strong_director = _credit_validate_strong_director(cv_result) if cv_result else bool(
         isinstance(video_credits, dict) and video_credits.get("_credit_validate_strong_director"))
+    # APOLLO 11 fix (2026-07-12): QC1-RED kriteri "yönetmen boş VEYA cast<3". Yönetmen QC1 anında
+    # ND-UNIT-garble bloklandığı için BOŞtu → RED; ama tek_film_kunye SONRA ham-OCR'da KB-adıyla BİREBİR
+    # corroborate etti (yon_ocr_teyit) ve cast≥3 → QC1-RED artık BAYAT sinyal (yönetmen okundu + cast yeterli).
+    # Bu, credit_validate strong-director override'ının (2910) OCR-corroboration muadili. Cast<3 veya
+    # corroboration yoksa QC1-RED KORUNUR (gerçek düşük-kalite). (read-after-resolve dikişi, aynı kök.)
+    _yon_ocr_corrob = bool((((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}).get("yon_ocr_teyit"))
+    _qc1_cast_ok = bool(isinstance(video_credits, dict) and len(video_credits.get("cast") or []) >= 3)
     if isinstance(video_credits, dict) and video_credits.get("_qc1_failed") and not _cv_strong_director:
-        reasons.append("QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)")
+        if _yon_ocr_corrob and _qc1_cast_ok:
+            qwen_uyari.append("QC1-RED bayat: yönetmen ham-OCR'da KB-adıyla teyitli + cast≥3 (yon_ocr_teyit) → karar-etkisiz uyarı")
+        else:
+            reasons.append("QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)")
     # --- B-4 bonus: tek_film_kunye.py (v4) KB cross-check çelişkisini karara yansıt ---
     # out_v4 yakalanıyordu ama parse edilmiyordu. tek_film_kunye.py rapor'u indent=2 ÇOK-SATIR
     # basar (last_json tek-satır arar, tutmaz) → ilk '{'tan raw_decode ile blok-parse.
@@ -3374,7 +3395,15 @@ def main(argv=None) -> int:
             _ad = ", ".join((_cvd.get("conflict_candidates") or [])[:3])
             reasons.append(f"yönetmen doğrulama: kaynak-çelişkisi (aday: {_ad})" if _ad else "yönetmen doğrulama: kaynak-çelişkisi")
         elif _cvd.get("status") == "OKUNAMADI":
-            reasons.append("yönetmen doğrulama: okunamadı (yeniden-okuma/insan)")
+            # APOLLO 11 fix (2026-07-12): credit_validate garble-ÖNCESİ girdide "okunamadı" der; ama
+            # tek_film_kunye yönetmeni ham-OCR korpusunda KB-adıyla BİREBİR teyit ettiyse (yon_ocr_teyit:
+            # kimlik güçlü + isim fiziksel OCR'da mevcut → KÖR KB-fill DEĞİL) alan aslında OKUNDU. Bu bayat
+            # sinyal routing'i yanlış-Kontrol'e sürüklemesin → karar-etkisiz uyarıya indir. (read-after-resolve)
+            _yon_ocr_teyit = bool((((_v4j or {}).get("adimlar") or {}).get("cross_check") or {}).get("yon_ocr_teyit"))
+            if _yon_ocr_teyit:
+                qwen_uyari.append("yönetmen: credit_validate 'okunamadı' DEDİ ama ham-OCR'da KB-adıyla birebir teyitli (yon_ocr_teyit) → karar-etkisiz uyarı")
+            else:
+                reasons.append("yönetmen doğrulama: okunamadı (yeniden-okuma/insan)")
         # KIRILGAN ikili → uyarı (karar değil): false-Kontrol azalt. C4 FIX (2026-06-20): qwen_qc None-guard
         # (qwen-QC atlandıysa qwen_qc=None kalır; bu blok `if cv_result:` içinde → MITAS_CREDIT_VALIDATE=1 +
         # preview-PNG yok'ta None.get → AttributeError film-çökme. Guard ile önlenir; default env'de zaten dormant).

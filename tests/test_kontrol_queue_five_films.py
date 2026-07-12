@@ -77,3 +77,32 @@ def test_candidate_afis_cache_env_ile_productiondan_ayrilir(monkeypatch, tmp_pat
     mod = _load_tek_film_kunye()
     assert Path(mod.AFIS_CACHE) == candidate_cache
     assert Path(mod.AFIS_CACHE) != Path(r"E:\MITAS\_102_afis_cache")
+
+
+def test_deniz_ejderi_kimlik_dogru_ocr_yazim_varyanti_celiski_saymaz():
+    """DENİZ EJDERİ C-fix (2026-07-12): kimlik cast-çapasıyla (cast_ov>=2) yön'den BAĞIMSIZ
+    kurulabilir → kimlik_dogru=True TEK BAŞINA verdict=ÇELİŞKİ'yi aklamaz. OCR-yönetmeni KB'ye
+    name_close (yazım varyantı) ise yanlış-film DEĞİL; name_close patlarsa (gerçek farklı yönetmen /
+    remake tuzağı) contradiction KORUNUR. Konsey: A çok açar, C güvenli koridor."""
+    import mitas_pipeline as mp  # noqa: E402
+
+    # DENİZ: OCR 'AUGUST GUDMUNDSSON' ~ KB 'Ágúst Guðmundsson' → name_close TRUE → yanlış-film DEĞİL
+    deniz = {"kimlik_dogru": True, "verdict": "ÇELİŞKİ", "yon_name_close": True}
+    assert mp._has_identity_contradiction(deniz) is False
+
+    # REMAKE tuzağı: cast örtüştü (kimlik_dogru=True) ama yönetmen GERÇEKTEN farklı (name_close=False)
+    # → kimlik_dogru=True OLMASINA RAĞMEN contradiction KORUNUR (A seçeneğinin maskeleme riski kapalı).
+    remake = {"kimlik_dogru": True, "verdict": "ÇELİŞKİ", "yon_name_close": False}
+    assert mp._has_identity_contradiction(remake) is True
+
+    # kimlik_dogru=False → her hâlükârda contradiction (fuzzy katman bile farklı-kişi dedi).
+    assert mp._has_identity_contradiction({"kimlik_dogru": False, "verdict": "ÇELİŞKİ"}) is True
+
+    # verdict=TEYİT → hiçbir zaman contradiction (yön exact-eşleşti).
+    assert mp._has_identity_contradiction({"kimlik_dogru": True, "verdict": "TEYİT"}) is False
+
+    # Güçlü ekran-mahlas/AKA istisnası korunur: kimlik_dogru=True + ÇELİŞKİ + name_close=False AMA
+    # güçlü ekran-rol kanıtlı ad-farkı → blocker değil (mevcut _is_strong_screen_alias_conflict precedent).
+    alias = {"kimlik_dogru": True, "verdict": "ÇELİŞKİ", "yon_name_close": False,
+             "yon_screen_conflict": [{"okunan": "X", "ekran_kaniti": "directed by X"}]}
+    assert mp._has_identity_contradiction(alias) is False

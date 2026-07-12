@@ -1072,8 +1072,20 @@ def main():
         rapor["adimlar"]["animasyon"] = {"tur": tur, "tur_imdb": cc.get("tur_imdb"), "xml_tur": a.tur,
                                          "cast_gizlendi": True}
     afis = _web_afis or cc.get("afis") or _existing_poster_fallback(clip)   # v4, önceki PDF afişini kaybetmesin
+    # DENİZ EJDERİ C-fix (2026-07-12): OCR-yönetmeni KB-yönetmenine fuzzy-yakın mı (name_close)?
+    # kimlik_dogru cast-çapasıyla (cast_ov>=2) yön'den BAĞIMSIZ kurulabildiği için, routing'in
+    # verdict=ÇELİŞKİ'yi "yanlış-film" mi yoksa "OCR/yazım-varyantı" mı ayırt etmesi bu bayrakla olur.
+    # (DENİZ: OCR 'AUGUST GUDMUNDSSON' ~ KB 'Ágúst Guðmundsson' → name_close TRUE → yanlış-film DEĞİL.)
+    _yon_name_close = False
+    try:
+        if _cc is not None and hasattr(_cc, "name_close") and auth_yon and (_yon_before_kb or yon):
+            _yon_name_close = any(_cc.name_close(str(_rd), str(_ad))
+                                  for _rd in (_yon_before_kb or yon) for _ad in auth_yon)
+    except Exception:  # noqa: BLE001 — bayrak hesabı künye akışını ASLA bozmaz
+        _yon_name_close = False
     rapor["adimlar"]["cross_check"] = {"verdict": verdict, "kimlik_dogru": kimlik_dogru,
                                        "yonetmen_kaynak": yon_kaynak, "yon_ocr_teyit": yon_ocr_teyit,
+                                       "yon_name_close": bool(_yon_name_close),
                                        "yon_screen_conflict": yon_screen_conflict or None,
                                        "yon_ocr_restore": yon_ocr_restore or None,
                                        "yapimci": yap, "tur": tur, "cast_ortusme": cast_ov,
