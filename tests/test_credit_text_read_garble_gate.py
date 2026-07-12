@@ -183,3 +183,17 @@ def _run_all():
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.exit(1 if _run_all() else 0)
+
+
+# ── APOLLO 11 kökü (2026-07-12): rescue rol-parçası garble'ini yonetmen sanmasin ──
+def test_rescue_unit_assistant_rol_parcasi_reddedilir():
+    """'2ND UNIT DIRECTOR' garble'i 'ND UNIT' olarak yonetmene sizmasin (APOLLO 11);
+    LOTR 'directes by' deseninin ayni sinifi — garble-varyantlari da kapanmali."""
+    import credit_text_read as ctr
+    for cop in ["ND UNIT", "2ND UNIT", "SECOND UNIT", "1ST ASSISTANT", "2ND ASSISTANT",
+                "UNIT DIRECTOR", "ASSISTANT DIRECTOR"]:
+        assert ctr._rsc_name_ok(cop) is False, f"rol-parcasi gecmemeli: {cop!r}"
+    # gercek isimler KORUNUR (regresyon-kalkani: Sam Raimi/Peter Jackson/LOTR/BASKAN sinifi)
+    for ok in ["Norberto Barba", "Peter Jackson", "Sam Raimi", "Leslie Martinson",
+               "Jean-Dominique de la Rochefoucauld"]:
+        assert ctr._rsc_name_ok(ok) is True, f"gercek isim reddedilmemeli: {ok!r}"

@@ -1876,9 +1876,14 @@ def _rsc_label_fuzzy(_f):
     return any(_dl.SequenceMatcher(None, _f, _L).ratio() >= 0.85 for _L in _RSC_DIRF)
 
 
-_RSC_BAD_TOK = {"OF", "BY", "THE", "AND", "WITH", "FOR", "IN"}
+_RSC_BAD_TOK = {"OF", "BY", "THE", "AND", "WITH", "FOR", "IN", "UNIT", "UNITS"}
+# APOLLO 11 kökü (2026-07-12, canlı-üretimle: rescue '2ND UNIT DIRECTOR' garble'ından 'ND UNIT'
+# üretiyordu — veto 'SECOND UNIT'/'2ND UNIT' vardı ama garble '2' düşünce 'ND UNIT' kalıp sızıyordu,
+# LOTR 'directes by' deseninin aynısı). "UNIT" token + "ASSIST/SUPERVIS/COORDINAT/OPERATOR" alt-dize
+# (asistan-yönetmen/2.-ünite/koordinatör/operatör rol-parçaları) EKLENDİ → garble-varyantları da kapar.
 _RSC_BAD_SUB = ("PHOTOGRAPH", "HOTOGRAPH", "OTOGRAPH", "CASTING", "EDITOR", "PRODUC",
-                "DIRECT", "MUSIC", "DESIGN", "SOUND", "COSTUME", "MAKEUP", "EFFECT", "STUNT")
+                "DIRECT", "MUSIC", "DESIGN", "SOUND", "COSTUME", "MAKEUP", "EFFECT", "STUNT",
+                "ASSIST", "SUPERVIS", "COORDINAT", "OPERATOR")
 
 
 def _rsc_name_ok(cand):
