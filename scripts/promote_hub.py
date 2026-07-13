@@ -307,12 +307,19 @@ def _candidate_context(candidate_hub: Path, canonical: Path | None, trt: str) ->
         if current_input.get("sig_sha256") != inp.get("sig_sha256"):
             raise PromoteError(
                 "INPUT-DRIFT: canonical hub, candidate kosusundan sonra degismis; taze rerun gerekir")
-        parent_manifest = _load_json(canonical / "run_manifest.json", "canonical run_manifest")
-        expected_parent_run = str(parent_manifest.get("run_id") or "")
-        if not expected_parent_run or str(manifest.get("parent_run_id") or "") != expected_parent_run:
-            raise PromoteError(
-                f"PARENT-RUN-DRIFT: candidate={manifest.get('parent_run_id')!r} "
-                f"canonical={expected_parent_run!r}")
+        # LEGACY-CANONICAL uyumu (2026-07-12): İP-1-öncesi üretim hub'larında run_manifest.json YOK
+        # (tüm mevcut üretim hub'ları böyle). O durumda parent-run_id doğrulanamaz; ama parent-kanıtı
+        # zaten YUKARIDAKİ INPUT-DRIFT ile sağlanıyor (deterministik input-imza + EXPECTED-PARENT yol
+        # eşleşmesi) — bu, run_id'den DAHA güçlü, içerik-tabanlı bir kanıt. Manifest VARSA run_id de
+        # kontrol edilir (yeni-nesil hub'lar için sıkı kalır); YOKSA input-imza kanıtına güvenilir.
+        _canon_mf = canonical / "run_manifest.json"
+        if _canon_mf.is_file():
+            parent_manifest = _load_json(_canon_mf, "canonical run_manifest")
+            expected_parent_run = str(parent_manifest.get("run_id") or "")
+            if not expected_parent_run or str(manifest.get("parent_run_id") or "") != expected_parent_run:
+                raise PromoteError(
+                    f"PARENT-RUN-DRIFT: candidate={manifest.get('parent_run_id')!r} "
+                    f"canonical={expected_parent_run!r}")
 
     ext = str(durum.get("extraction_status") or "").upper()
     if ext == "TECHNICAL_FAILURE":
