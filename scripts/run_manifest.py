@@ -141,7 +141,11 @@ def hub_input_signature(hub: Path) -> dict:
         if p.suffix.lower() in {".json", ".txt"}:
             h.update(p.read_bytes())
     for group in frame_groups:
-        for p in ({group[0], group[-1]} if group else set()):
+        # DETERMİNİZM fix (2026-07-12): önceki `{group[0], group[-1]}` SET-iterasyonu PYTHONHASHSEED'e
+        # bağlı sıra üretiyordu → imza her process'te farklı → INPUT-DRIFT hep yanlış-tetikleniyor,
+        # promote tümden bloke oluyordu. Sıralı+tekilleştirilmiş listeyle kararlı hâle getirildi.
+        _edge = sorted({group[0], group[-1]}) if group else []
+        for p in _edge:
             h.update(p.relative_to(hub).as_posix().encode("utf-8"))
             with p.open("rb") as f:
                 h.update(f.read())
