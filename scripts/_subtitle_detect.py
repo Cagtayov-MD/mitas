@@ -8,15 +8,16 @@ Kaliteli/stabil ise PDF ses-bloğuna "altyazılıdır" eklenir.
 ocr venv:
   venvs/ocr/Scripts/python.exe scripts/_subtitle_detect.py "<video>"
 """
-import sys, json, subprocess, tempfile
+import sys, json, subprocess, tempfile, os
 from pathlib import Path
-sys.path.insert(0, r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+sys.path.insert(0, str(ROOT))
 sys.stdout.reconfigure(encoding="utf-8")
 from core.pipelines.ocr.credit_experiment import PaddleOcrEngine
 
-ROOT = Path(r"E:\MITAS")
-FF = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
-FP = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
+FF = Path(os.environ.get("MITAS_FFMPEG") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
+FP = Path(os.environ.get("MITAS_FFPROBE") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
 
 N = 60                # film gövdesinden örnek kare
 SUB_THRESH = 0.20     # alt-bant yazı oranı bu üstündeyse → altyazılı

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """MITAS Profil AKIS SEMASI - her profil bir modul zinciri (yatay A4)."""
+import os
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.colors import HexColor
 
-OUT = r"E:\MITAS\OCR-worktree\pdf-mitas"
-F = r"C:\Windows\Fonts"
-pdfmetrics.registerFont(TTFont("AR", F + r"\arial.ttf"))
-pdfmetrics.registerFont(TTFont("ARB", F + r"\arialbd.ttf"))
+OUT = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS", "OCR-worktree", "pdf-mitas")
+F = os.environ.get("MITAS_MSFONT_DIR") or r"C:\Windows\Fonts"
+pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
+pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
 
 
 def tf(n, p, fb):

@@ -10,11 +10,13 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import simpleSplit, ImageReader
 from reportlab.lib.colors import HexColor
 
-OUT = r"E:\MITAS\OCR-worktree\pdf-mitas"
-F = r"C:\Windows\Fonts"
+# Linux geçişi 2026-07-16: kök+font env'den (Windows'ta env yoksa eski davranış birebir).
+OUT = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS", "OCR-worktree", "pdf-mitas") \
+    if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\OCR-worktree\pdf-mitas"
+F = os.environ.get("MITAS_MSFONT_DIR") or r"C:\Windows\Fonts"
 
-pdfmetrics.registerFont(TTFont("AR", F + r"\arial.ttf"))
-pdfmetrics.registerFont(TTFont("ARB", F + r"\arialbd.ttf"))
+pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
+pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
 
 
 def tryfont(name, path, fb):

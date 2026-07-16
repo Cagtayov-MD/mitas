@@ -60,11 +60,23 @@ def _rebind_roots(run_root=None):
 
 
 _rebind_roots()
-FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
-FFPROBE = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
-PY_OCR = PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"
-PY_ASR = PROJECT_ROOT / "venvs" / "asr" / "Scripts" / "python.exe"
-PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
+# Linux geçişi 2026-07-16: araç/yorumlayıcı yolları env+platform-farkında (Windows'ta env yoksa birebir eski).
+FFMPEG = Path(os.environ.get("MITAS_FFMPEG") or (
+    PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
+FFPROBE = Path(os.environ.get("MITAS_FFPROBE") or (
+    PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
+
+
+def _venv_python(_ad):
+    if os.name == "nt":
+        return PROJECT_ROOT / "venvs" / _ad / "Scripts" / "python.exe"
+    return PROJECT_ROOT / "venvs" / _ad / "bin" / "python"
+
+
+PY_OCR = _venv_python("ocr")
+PY_ASR = _venv_python("asr")
+PY_PDF = Path(os.environ.get("MITAS_PDF_PYTHON")
+              or r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
 
 # Dis API kredi/kota durum kaydi (best-effort). HERE (=scripts) zaten _generate_ozet
 # cagrildiginda sys.path'e ekleniyor (798/828) ama import'u burada da deneyelim;

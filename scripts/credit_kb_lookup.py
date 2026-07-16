@@ -255,7 +255,9 @@ def main():
     out["afis"] = None
     if a.afis_out:
         try:
-            spec = importlib.util.spec_from_file_location("pf", r"E:\MITAS\OCR-worktree\pdf-mitas\poster_fetch.py")
+            _pf_root = os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS"
+            spec = importlib.util.spec_from_file_location(
+                "pf", os.path.join(_pf_root, "OCR-worktree", "pdf-mitas", "poster_fetch.py"))
             pf = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(pf)
             os.makedirs(os.path.dirname(os.path.abspath(a.afis_out)), exist_ok=True)

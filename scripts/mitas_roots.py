@@ -24,7 +24,8 @@ import os
 import stat
 from pathlib import Path
 
-PROJECT_ROOT = Path(r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
 CANDIDATE_ROOT = PROJECT_ROOT / "candidate_runs"
 
 

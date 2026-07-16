@@ -16,12 +16,22 @@ from pathlib import Path
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
-PDFMITAS = Path(r"E:\MITAS\OCR-worktree\pdf-mitas")
+# Linux geçişi 2026-07-16: kökler env'den (yoksa eski Windows davranışı birebir).
+_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+PDFMITAS = Path(os.environ.get("MITAS_PDFMITAS_DIR") or (_ROOT / "OCR-worktree" / "pdf-mitas"))
 MAKE_PDF = PDFMITAS / "_make_pdf.py"
 CREDIT_PARSE = PDFMITAS / "credit_parse.py"
 HERE = Path(__file__).resolve().parent
-PY_ASR = Path(r"E:\MITAS\venvs\asr\Scripts\python.exe")   # kanal-dil (faster-whisper)
-PY_OCR = Path(r"E:\MITAS\venvs\ocr\Scripts\python.exe")   # altyazı (Paddle)
+
+
+def _venv_py(ad: str) -> Path:
+    if os.name == "nt":
+        return _ROOT / "venvs" / ad / "Scripts" / "python.exe"
+    return _ROOT / "venvs" / ad / "bin" / "python"
+
+
+PY_ASR = _venv_py("asr")   # kanal-dil (faster-whisper)
+PY_OCR = _venv_py("ocr")   # altyazı (Paddle)
 CHLANG_SCRIPT = HERE / "_channel_lang.py"
 SUBTITLE_SCRIPT = HERE / "_subtitle_detect.py"
 

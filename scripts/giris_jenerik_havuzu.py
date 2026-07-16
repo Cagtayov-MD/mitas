@@ -55,7 +55,8 @@ except Exception:
     pass
 
 # ── proje kökü sys.path ────────────────────────────────────────────────────────
-PROJECT_ROOT = Path(r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))  # _pipe_ocr importu için
 

@@ -382,7 +382,11 @@ def refine_scores_with_paddle(paths: list[Path], scores: list[FrameScore], cfg: 
         ) from exc
 
     if cfg.ocr_lang not in _PADDLE_CACHE:
-        model_root = Path(os.environ.get("JENERIK_PADDLE_MODEL_ROOT", r"E:\MITAS\models\ocr\paddle\official_models"))
+        # Linux geçişi 2026-07-16: MITAS_ önekli env de kabul (mitas.env bu adı kullanıyor — önek uyuşmazlığı fix'i).
+        model_root = Path(
+            os.environ.get("JENERIK_PADDLE_MODEL_ROOT")
+            or os.environ.get("MITAS_JENERIK_PADDLE_MODEL_ROOT")
+            or r"E:\MITAS\models\ocr\paddle\official_models")
         rec_name = "latin_PP-OCRv5_mobile_rec" if cfg.ocr_lang.lower() == "latin" else "en_PP-OCRv5_mobile_rec"
         kwargs = {
             "lang": cfg.ocr_lang,

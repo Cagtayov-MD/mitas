@@ -67,6 +67,7 @@ outputs/auto_roi_*/
 outputs/row_*/
 outputs/ui_*.png
 outputs/jenerik_*
+outputs/closing_credit_onset_vlm/
 outputs/asr_backfill/
 outputs/asr_current_pipeline_*/
 outputs/asr_*_audit_*/
@@ -160,3 +161,9 @@ Desktop.ini
 .idea/
 dagitim/
 teslimat/
+
+# Linux kurulum (2026-07-16)
+/mitas.env
+/kurulum/logs/
+/models/ollama/
+/seriler/

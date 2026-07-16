@@ -15,9 +15,10 @@ from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")  # pytest/redirect altında reconfigure olmayabilir
 
-ROOT = Path(r"E:\MITAS")
-FF = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
-FP = ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"
+# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+FF = Path(os.environ.get("MITAS_FFMPEG") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
+FP = Path(os.environ.get("MITAS_FFPROBE") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
 # İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR run-root'a işaret eder (pilot kanıtının
 # yakaladığı 44-dosyalık sızıntı). NOT (İP-7'ye): bu scratch GLOBAL — iki PARALEL koşu aynı wav
 # adlarında yarışır; job-scoped dizine taşınması ayrı iş (davranış-değişikliği, burada yapılmadı).

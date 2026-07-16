@@ -24,8 +24,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import credit_qc
 
-SRC = r"E:\MITAS\Database"
-TESLIMAT = r"E:\MITAS\teslimat"
+# Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
+_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS"
+SRC = os.path.join(_ROOT, "Database")
+TESLIMAT = os.path.join(_ROOT, "teslimat")
 
 def _safe(name):
     return re.sub(r"[^0-9A-Za-zĞÜŞİÖÇğüşıöç._-]", "_", str(name)) or "clip"

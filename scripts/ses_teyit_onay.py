@@ -13,7 +13,9 @@ import shutil
 from pathlib import Path
 from pypdf import PdfReader
 
-SES_DIR = Path(r"E:/MITAS/Mitas Output/export/KONTROL/SES TEYİT")  # 2026-06-15: KONTROL altına taşındı
+# Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
+import os as _os
+SES_DIR = Path(_os.environ.get("MITAS_PROJECT_ROOT") or r"E:/MITAS") / "Mitas Output" / "export" / "KONTROL" / "SES TEYİT"  # 2026-06-15: KONTROL altına taşındı
 ONAY_DIR = SES_DIR / "onaylı"
 
 # Garble belirteci — büyük harfle cümle fragmanları (film sloganı/altyazı tuzağı)
