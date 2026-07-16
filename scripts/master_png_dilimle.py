@@ -211,6 +211,10 @@ def main() -> int:
     ap.add_argument("--out", help="--png için çıktı klasörü (default: yanına master_dilim/)")
     ap.add_argument("--include-kanonik", action="store_true",
                     help="'<ad> giris.png/cikis.png' kanonik master'ları da dilimle")
+    ap.add_argument("--source", default="reading", choices=["canonical", "reading", "both"],
+                    help="VARSAYILAN reading: reading_master_runaware (TAM künye — oyuncu+ekip+sponsor). "
+                         "canonical: '<ad> giris/cikis.png' — DEDUP uzun kaydırmalı künyeyi KESER (eksik). "
+                         "Not: footage-şişkinlik reading'de değil AŞAMA-1 erken-tespit havuzundan gelir.")
     a = ap.parse_args()
     p = params_from_env()
     if a.png:
@@ -228,9 +232,15 @@ def main() -> int:
         ap.error("--clip, --all veya --png verin")
     total = {"clips": 0, "masters": 0, "parts": 0, "errors": 0}
     for clip in clips:
-        sources = list(DEFAULT_SOURCES)
-        if a.include_kanonik:
-            sources += [q.name for q in clip.glob("* giris.png")] + [q.name for q in clip.glob("* cikis.png")]
+        canon = [q.name for q in sorted(clip.glob("* giris.png"))] + [q.name for q in sorted(clip.glob("* cikis.png"))]
+        if a.source == "reading":
+            sources = list(DEFAULT_SOURCES)
+        elif a.source == "both":
+            sources = canon + list(DEFAULT_SOURCES)
+        else:  # canonical (VARSAYILAN): kanonik master; yoksa reading'e düş
+            sources = canon if canon else list(DEFAULT_SOURCES)
+        if a.include_kanonik and a.source == "reading":
+            sources += canon
         s = process_clip(clip, tuple(sources), p)
         if s["found"]:
             total["clips"] += 1

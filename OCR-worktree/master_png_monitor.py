@@ -19,21 +19,22 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, r"E:\MITAS\OCR-worktree")
-_spec = importlib.util.spec_from_file_location("dcmaster", r"E:\MITAS\OCR-worktree\db_compose_master.py")
+_PR = os.environ.get("MITAS_PROJECT_ROOT", r"E:\MITAS")
+sys.path.insert(0, str(Path(_PR) / "OCR-worktree"))
+_spec = importlib.util.spec_from_file_location("dcmaster", str(Path(_PR) / "OCR-worktree" / "db_compose_master.py"))
 dc = importlib.util.module_from_spec(_spec); sys.modules["dcmaster"] = dc; _spec.loader.exec_module(dc)
 
 # GİRİŞ master motoru: crop-stack (Çağatay fikri 2026-06-29) — her kredi satırını kırp+alt alta diz,
 # footage'sız temiz künye listesi. ÇIKIŞ slit-scan kalır. Yüklenemezse giriş eski slit'e düşer.
 try:
-    sys.path.insert(0, r"E:\MITAS\scripts")
-    _cs_spec = importlib.util.spec_from_file_location("giris_cropstack", r"E:\MITAS\scripts\giris_master_cropstack.py")
+    sys.path.insert(0, str(Path(_PR) / "scripts"))
+    _cs_spec = importlib.util.spec_from_file_location("giris_cropstack", str(Path(_PR) / "scripts" / "giris_master_cropstack.py"))
     cs = importlib.util.module_from_spec(_cs_spec); sys.modules["giris_cropstack"] = cs
     _cs_spec.loader.exec_module(cs)
 except Exception:
     cs = None
 
-DB = Path(r"E:\MITAS\Database")
+DB = Path(_PR) / "Database"
 POLL_SEC = 60
 
 

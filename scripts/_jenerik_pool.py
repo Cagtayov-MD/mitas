@@ -40,6 +40,193 @@ from core.pipelines.ocr.jenerik_frame_pool_detector import (  # noqa: E402
     detect_frame_dir,
     list_images,
 )
+import core.pipelines.ocr.jenerik_frame_pool_detector as _det  # noqa: E402  (footage-baş trim için paddle)
+
+
+def _footage_trim_enabled() -> bool:
+    # FOOTAGE-BAŞ TRIM (2026-07, KKF-Aşama1): detector start_pos'u gerçek krediden ÖNCE footage'a
+    # anchor'layabiliyor (CV-metin-maskesi footage dokusuna takılıyor). Havuz baştan footage ile
+    # dolunca reading-master/VL boşa okuyor. OCR ile (isim/keyword/iki-sütun) gerçek kredi bloğu
+    # başlayana kadar baştaki footage kareleri kırp. ADDITIVE + FAIL-SAFE. Kapat: =0.
+    return os.environ.get("MITAS_JENERIK_FOOTAGE_TRIM", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _plain_credit(f: Path, mean_thr: float = 45.0, max_thr: float = 150.0) -> bool:
+    """[KULLANILMIYOR — DENENDİ, REGRESYON VERDİ, 2026-07]
+
+    Fikir: koyu-zemin+yazı = kredi (BABAM'ın seyrek/soluk kartlarını yakalasın diye).
+    SONUÇ: GT testinde ort|hata| 64→114, tam-isabet 5/8→3/8. KARANLIK SAHNEYİ kredi sanıyor
+    (DRAKULA yanan-kule ateşi, MARIE koyu kareler → 'koyu zemin + parlak piksel' testini geçiyor).
+    Ders: parlaklık-tabanlı 'kredi' sinyali footage'tan ayırt edemiyor. Semantik gerekiyor (VLM).
+    Fonksiyon dersi belgelemek için duruyor; ÇAĞIRMA.
+
+    (eski docstring) KOYU-ZEMİN + YAZI = kredi (yüksek güven, isim-sayısına bakmaz).
+
+    Neden: paddle'ın _is_credit_frame'i 'name_like>=2' ister; BABAM gibi siyah-zeminli SEYREK/SOLUK
+    kartlarda (tek satır isim) bunu bulamaz → kredi değil sayar → geriye-genişletme 415'e inemez
+    (GT testi: BABAM 433 kaldı, gerçek 415). Oysa 'koyu zemin + parlak yazı' zaten kredi kartının
+    tanımıdır (sahne olsa zemin koyu olmazdı). Sahne-üstü krediler bu testten geçmez, onlar paddle
+    yoluyla değerlendirilir — bu EK bir sinyal, ikame değil."""
+    try:
+        from PIL import Image
+        import numpy as np
+        g = np.asarray(Image.open(f).convert("L"), dtype=np.uint8)
+        n = g.size
+        dark_frac = float((g < 60).sum()) / n          # zemin gerçekten koyu mu
+        bright_frac = float((g > max_thr).sum()) / n   # parlak piksel ORANI (yazı = AZ)
+        return (float(g.mean()) < mean_thr and dark_frac > 0.85
+                and 0.0008 < bright_frac < 0.10)       # yazı-benzeri: var ama az (lamba/leke değil)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _is_credit_frame(ocr, f: Path, cfg: DetectorConfig) -> bool | None:
+    """Tek kare: gerçek kredi mi (isim-benzeri>=2 / anahtar-kelime / iki-sütun; altyazı-tabela-düzmetin DEĞİL).
+    None = OCR hatası."""
+    try:
+        _, feat = _det.paddle_frame_score(ocr, f, cfg)
+    except Exception:  # noqa: BLE001
+        return None
+    if not feat:
+        return False
+    is_credit = (int(feat.get("name_like_count", 0) or 0) >= 2
+                 or int(feat.get("credit_keyword_count", 0) or 0) >= 1
+                 or bool(feat.get("two_column_layout")))
+    is_noise = bool(feat.get("subtitle_like") or feat.get("scene_sign_like") or feat.get("prose_like"))
+    return bool(is_credit and not is_noise)
+
+
+def _vlm_rescue_enabled() -> bool:
+    # VLM-RESCUE (2026-07, KKF-Aşama1): CV detector NOT_FOUND (çok-dilli/Farsça kaçan CENNETİN) ya da
+    # ŞÜPHELİ (çok-erken start_pos + dev havuz = footage-bloat/diegetik-erken-anchor SON_METRO) olduğunda
+    # VLM sondan-tarama detector'ına (credit_start_vlm) sor. Ampirik: SON_METRO 12→766, CENNETİN nf→728.
+    # Ortak-vaka CV+footage-trim'de kalır (hassas). Kapat: =0.
+    return os.environ.get("MITAS_JENERIK_VLM_RESCUE", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _trim_footage_head_v2(pool_frames: list[Path], cfg: DetectorConfig,
+                          stride: int = 6, sustain: int = 2) -> int:
+    """İLERİ footage-trim v2 (2026-07): CV anchor ÇOK ERKEN olabilir (footage-içi metne yapışır:
+    ATTİLA CV=141 ama gerçek 539; MARIE CV=126 ama gerçek 585 → 400+ kare footage havuza girer).
+    Eski v1'in max_scan=60'ı bunu göremezdi.
+
+    v2: havuz başından STRIDE'lı, TAM-MENZİL ileri tara → ilk SÜRDÜRÜLEN kredi bölgesini bul
+    (siyah kareler köprülenir, kredi sayılmaz) → sonra stride penceresinde kare-kare geri gelip
+    ilk gerçek kredi karesini bul. Atılacak kare sayısını döndürür (0 = kırpma yok)."""
+    if not _footage_trim_enabled():
+        return 0
+    ocr = _det._PADDLE_CACHE.get(cfg.ocr_lang)
+    if ocr is None or not pool_frames:
+        return 0
+    n = len(pool_frames)
+    hits = 0
+    anchor = None
+    for i in range(0, n, stride):
+        f = pool_frames[i]
+        if _blackish(f):
+            continue                              # kart-arası siyah → köprüle (kredi de değil, footage da)
+        c = _is_credit_frame(ocr, f, cfg)
+        if c:
+            hits += 1
+            if hits >= sustain:
+                anchor = i - stride * (sustain - 1)   # sürdürülen bloğun İLK örneği
+                break
+        else:
+            hits = 0
+    if anchor is None or anchor <= 0:
+        return 0
+    # İNCE: [anchor-stride, anchor+stride] kare-kare → ilk gerçek kredi karesi
+    lo = max(0, anchor - stride)
+    for j in range(lo, min(n, anchor + stride + 1)):
+        if _blackish(pool_frames[j]):
+            continue
+        if _is_credit_frame(ocr, pool_frames[j], cfg):
+            return j
+    return max(0, anchor)
+
+
+def _trim_footage_head(pool_frames: list[Path], cfg: DetectorConfig, max_scan: int = 60) -> int:
+    """Baştaki footage karelerini OCR ile kırp; atılacak kare sayısını döndür (0 = kırpma yok).
+    Baştan max_scan kareyi kare-kare tarar; gerçek kredi bloğu (ardışık 2 kredi karesi) başlayınca
+    kredinin İLK karesine kırpar → YALAZA'da trim=1 (YÖNETMEN kartı KORUNUR). Küçük footage-baş
+    (~%80 vaka) çözülür. FAIL-SAFE: paddle yok / ilk 60'ta net kredi yok → 0 (temiz havuz zaten
+    ilk kareden kredi → 0; SON_METRO gibi diegetik-erken-anchor ekstremleri trim'le çözülmez → 0,
+    ayrı ele alınır — KKF)."""
+    if not _footage_trim_enabled():
+        return 0
+    ocr = _det._PADDLE_CACHE.get(cfg.ocr_lang)
+    if ocr is None or not pool_frames:
+        return 0
+    hits = 0
+    for i, f in enumerate(pool_frames[:max_scan]):
+        c = _is_credit_frame(ocr, f, cfg)
+        if c:
+            hits += 1
+            if hits >= 2:                    # ardışık 2 kredi karesi = gerçek kredi başladı
+                return max(0, i - 1)         # ikilinin İLK karesinden başlat (baş krediyi kaybetme)
+        elif c is False:
+            hits = 0
+    return 0
+
+
+def _blackish(f: Path, mean_thr: float = 20.0, max_thr: float = 70.0) -> bool:
+    """GERÇEKTEN boş siyah kare (kart-arası BOŞLUK) mu?
+
+    KRİTİK: yalnız ORTALAMA parlaklığa bakmak YANLIŞ — siyah zeminde soluk beyaz yazılı kredi
+    kareleri de düşük ortalamalıdır (BABAM: mean~3 ama yazı VAR). Ayrımı EN PARLAK piksel yapar:
+    saf siyah → max ~0-30 ; yazılı siyah → max ~180-255. İkisi birlikte gerekir."""
+    try:
+        from PIL import Image
+        import numpy as np
+        g = np.asarray(Image.open(f).convert("L"))
+        return float(g.mean()) < mean_thr and float(g.max()) < max_thr
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _backward_extend_enabled() -> bool:
+    return os.environ.get("MITAS_JENERIK_BACK_EXTEND", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _backward_extend_credits(images: list[Path], start_pos: int, cfg: DetectorConfig,
+                             max_back: int = 160, gap: int = 8) -> int:
+    """GERİYE-GENİŞLETME (GPT 'earliest supported regime', 2026-07): CV anchor'ı GEÇ kalabiliyor —
+    soluk/siyah-zeminli ilk kredi kartlarını kaçırıp ilk GÜÇLÜ kredide duruyor (BABAM: CV 449,
+    gerçek 415 → 34 kare kredi KAYBI; DON_KİŞOT/ATTİLA/KULÜBE/CENNETİN de geç).
+
+    Anchor'dan geriye yürü:
+      - SİYAH kare (kart-arası boşluk)      → KÖPRÜLE (kredi rejimi sürüyor sayılır)
+      - kredi karesi                        → en-erken adayı güncelle
+      - footage (içerikli, kredi değil)     → gap kadar üst üste görülürse DUR
+    Sonra BLANK-VETO: başlangıç siyah kareye denk geldiyse ileri kaydır (ilk gerçek kredi karesine).
+    Kapat: MITAS_JENERIK_BACK_EXTEND=0"""
+    if not _backward_extend_enabled() or start_pos is None or start_pos <= 0:
+        return int(start_pos or 0)
+    ocr = _det._PADDLE_CACHE.get(cfg.ocr_lang)
+    if ocr is None:
+        return int(start_pos)
+    best = int(start_pos)
+    foot_run = 0
+    i = int(start_pos) - 1
+    lo = max(0, int(start_pos) - max_back)
+    while i >= lo:
+        f = images[i]
+        if _blackish(f):
+            i -= 1                       # kart-arası siyah boşluk → köprüle, rejimi kırma
+            continue
+        c = _is_credit_frame(ocr, f, cfg)
+        if c:
+            best = i; foot_run = 0
+        else:
+            foot_run += 1
+            if foot_run >= gap:
+                break                    # sürdürülen footage → kredi rejimi burada başlamış
+        i -= 1
+    # BLANK-VETO: siyah kareden başlama (GPT: CENNETİN 725 fiziksel siyahtı) → ilk siyah-olmayana kaydır
+    j = best
+    while j < int(start_pos) and _blackish(images[j]):
+        j += 1
+    return int(j)
 
 
 ACCEPT_STATUSES = {"already_in_credit"}
@@ -64,7 +251,9 @@ def _append_jsonl(path: Path, obj: dict) -> None:
 
 def _safe_reset_pool(pool_dir: Path) -> None:
     resolved = pool_dir.resolve()
-    if resolved.name.lower() != "cikis_jenerik":
+    # P-open (Linux, 2026-07): giriş jeneriği simetrik havuzu için giris_jenerik'e de izin ver.
+    # cikis_jenerik = mevcut/varsayılan davranış (bit-identik); giris_jenerik = OneOCR'siz açılış havuzu.
+    if resolved.name.lower() not in ("cikis_jenerik", "giris_jenerik"):
         raise ValueError(f"refusing to reset unexpected pool dir: {resolved}")
     if resolved.parent.name.lower() != "frames":
         raise ValueError(f"refusing to reset pool outside frames dir: {resolved}")
@@ -126,8 +315,61 @@ def create_pool(
     copied: list[dict] = []
     status = result.status
     start_pos = result.start_pos
-    will_fill = (_accepted(status) and start_pos is not None
-                 and 0 <= int(start_pos) < len(images))
+    # VLM-RESCUE: CV başarısız (not_found) ya da şüpheli (çok-erken start + dev havuz = footage-bloat)
+    vlm_used = False
+    _accepted_cv = _accepted(status)
+    # ŞÜPHE (v2, GT-kalibre): "dev havuz VE başı gerçek-kredi-kartı DEĞİL" → CV footage'a yapışmış olabilir.
+    # Eski eşik (start < 0.15n) ATTİLA'yı 8 kareyle kaçırıyordu (CV=141, eşik=135). Yeni ölçüt içerik-tabanlı:
+    #   - havuz > 450 kare (yarıdan fazlası) VE
+    #   - başlangıç karesi _plain_credit DEĞİL (koyu-zemin+yazı olsaydı gerçek kredi kartıdır → dokunma)
+    # Böylece ATTİLA (baş=otobüs sahnesi) → VLM'e gider; BABAM (baş=siyah+yazı kart) → VLM'e GİTMEZ (CV+trim doğru).
+    def _bright(f):
+        try:
+            from PIL import Image
+            import numpy as np
+            return float(np.asarray(Image.open(f).convert("L")).mean())
+        except Exception:  # noqa: BLE001
+            return 0.0
+    _suspicious = (start_pos is not None and len(images) > 0
+                   and (len(images) - int(start_pos)) > 450
+                   and _bright(images[int(start_pos)]) > 50.0)
+    if _vlm_rescue_enabled() and (not _accepted_cv or _suspicious):
+        try:
+            import credit_start_vlm as _cvlm
+            vr = _cvlm.detect(frames_dir)
+            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "vlm_rescue",
+                          "trigger": "not_found" if not _accepted_cv else "suspicious",
+                          "cv_start": start_pos, "vlm": {k: v for k, v in vr.items() if k != "labels"}})
+            if vr.get("status") in ("found", "left_censored") and vr.get("start_frame") is not None:
+                start_pos = int(vr["start_frame"]); status = "found"; engine_used = "vlm_rescue"; vlm_used = True
+        except Exception as exc:  # noqa: BLE001 — rescue hatası pipeline'ı bozmaz
+            _append_jsonl(debug_root / "errors.jsonl",
+                          {"ts": _now(), "stage": "vlm_rescue", "error": f"{type(exc).__name__}: {exc}"})
+    # İKİ-YÖNLÜ ANCHOR DÜZELTME (2026-07, GPT-GT ile kalibre):
+    #  1) İLERİ footage-trim  → anchor ÇOK ERKEN ise (footage-metnine yapışmış: ATTİLA 141/gerçek 539,
+    #                            MARIE 126/gerçek 585) ilk SÜRDÜRÜLEN krediye kadar ilerlet.
+    #  2) GERİYE-genişletme    → anchor ÇOK GEÇ ise (soluk/siyah-zeminli ilk kartları kaçırmış:
+    #                            BABAM 447/gerçek 415) siyah boşlukları köprüleyip en-erken krediye çek.
+    # SIRA ÖNEMLİ: önce ileri (footage'tan çık), sonra geri (rejimin başına in).
+    cv_start_before = start_pos
+    footage_trimmed = 0
+    back_extended = 0
+    if start_pos is not None and 0 <= int(start_pos) < len(images) and (_accepted(status) or vlm_used):
+        fwd = _trim_footage_head_v2(images[int(start_pos):], cfg)
+        if fwd > 0:
+            footage_trimmed = fwd
+            start_pos = int(start_pos) + fwd
+        _ext = _backward_extend_credits(images, int(start_pos), cfg)
+        if _ext < int(start_pos):
+            back_extended = int(start_pos) - _ext
+            start_pos = _ext
+        if footage_trimmed or back_extended:
+            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "anchor_fix",
+                          "cv_start": cv_start_before, "fwd_trim": footage_trimmed,
+                          "back_extend": back_extended, "final_start": start_pos})
+
+    will_fill = (start_pos is not None and 0 <= int(start_pos) < len(images)
+                 and (_accepted(status) or vlm_used))
     preserved_existing = False
     if will_fill:
         # Yeni kareler dolduracağız → bayat kareleri temizle, sonra doldur.
@@ -149,10 +391,14 @@ def create_pool(
         "preserved_existing_pool": preserved_existing,
         "input_frames": len(images),
         "pool_frames": len(copied),
+        "footage_head_trimmed": footage_trimmed,
         "source_frames_dir": str(frames_dir),
         "pool_dir": str(pool_dir),
-        "start_pos": result.start_pos,
-        "start_file": result.start_file,
+        "start_pos": start_pos,
+        "start_file": (copied[0]["file"] if copied else result.start_file),
+        "vlm_rescued": vlm_used,
+        "back_extended": back_extended,
+        "cv_start_pos": result.start_pos,
         "first_text_pos": result.first_text_pos,
         "first_text_file": result.first_text_file,
         "confidence": result.confidence,

@@ -167,3 +167,7 @@ teslimat/
 /kurulum/logs/
 /models/ollama/
 /seriler/
+/harness/scratch/
+/filmtest/
+/models/QwenOmni/
+/linux_backup_wsl2_20260714/
