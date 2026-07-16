@@ -3846,6 +3846,32 @@ def main(argv=None) -> int:
     if _pp_par:
         _cikis_fallback_pool()   # havuz kapalı/lansman-hata dallarında da çalışır (kendi guard'ları var)
 
+    # ===== VIDEO-VL JENERİK OKUMA (2026-07-16): mp4-parçalı ADAY-ÜRETİCİ =====
+    # Havuz dedektörünün start_pos'u → film sonuna 60s SESSİZ mp4 parçaları → vLLM (Qwen3-VL-8B,
+    # kıyas kazananı) kare-bölümlü okuma → hub/video_vl/. Karar/PDF'e DOKUNMAZ (OCR-otorite korunur).
+    # Default KAPALI; açmak: MITAS_VIDEO_VL=1 + kurulum/vlm_sunucu.sh start (sunucu yoksa dürüst-atlar).
+    if (os.environ.get("MITAS_VIDEO_VL", "0").strip().lower() in ("1", "true", "on", "yes")
+            and not args.no_ocr):
+        _vv_t = time.perf_counter()
+        try:
+            _vv_cmd = [str(PY_OCR), str(HERE / "_pipe_video_vl.py"),
+                       "--clip", str(clip_dir), "--video", str(video)]
+            _rcvv, _outvv, _errvv = run(
+                _vv_cmd,
+                timeout=int(os.environ.get("MITAS_VIDEO_VL_TIMEOUT", "1800") or 1800),
+            )
+            timings["video_vl"] = round(time.perf_counter() - _vv_t, 2)
+            log_event("video_vl_completed", level="info" if _rcvv == 0 else "warn",
+                      summary=f"{video.name}: video-VL jenerik okuma bitti "
+                              f"(rc={_rcvv}, {timings['video_vl']} sn).",
+                      module="video-vl", media_id=media_id, filename=video.name,
+                      duration_seconds=timings["video_vl"], detail={"clip_id": clip_id})
+        except Exception as _vve:  # noqa: BLE001
+            log_event("video_vl_failed", level="warn",
+                      summary=f"{video.name}: video-VL hata ({type(_vve).__name__}).",
+                      module="video-vl", media_id=media_id, filename=video.name,
+                      error=str(_vve)[:300], detail={"clip_id": clip_id})
+
     # ===== PARALEL JENERIK DEBUG: OneOCR normal havuz + GLM/VL/master cikis_jenerik havuzu =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. Kalıcı provenance:
     # Database/<film>/jenerik_debug/{oneocr,glm,vl,master_png,compare,analysis_report.md}
