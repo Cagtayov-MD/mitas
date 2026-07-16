@@ -108,8 +108,31 @@ def _saglik() -> bool:
         return False
 
 
+def _dejenerasyon_filtresi(metin: str) -> str:
+    """Bilinen VLM dejenerasyonlarını temizle (2026-07-16 depo-10 bulguları):
+    (a) '[Name]'/'[İsim]' şablon satırları atılır (okunamayan kare = boş bırak, uydurma-kuzeni),
+    (b) ardışık ÖZDEŞ satır tekrarı 2'ye kırpılır (Strehler/McGaughy döngü sınıfı)."""
+    cikti: list[str] = []
+    onceki = None
+    tekrar = 0
+    for satir in metin.splitlines():
+        s = satir.strip()
+        if s and s.strip("[]() ").lower() in ("name", "isim", "i̇sim", "unknown", "n/a"):
+            continue
+        if s and s == onceki:
+            tekrar += 1
+            if tekrar >= 2:          # aynı satır en fazla 2 kez ardışık
+                continue
+        else:
+            tekrar = 0
+        onceki = s
+        cikti.append(satir)
+    return "\n".join(cikti)
+
+
 def _oku(mp4: Path) -> dict:
     payload = {"model": MODEL, "temperature": 0, "max_tokens": 2500,
+               "repetition_penalty": 1.05,   # tekrar-döngüsü freni (McGaughy sınıfı)
                "messages": [{"role": "user", "content": [
                    {"type": "video_url", "video_url": {"url": f"file://{mp4}"}},
                    {"type": "text", "text": SORU}]}]}
@@ -119,7 +142,7 @@ def _oku(mp4: Path) -> dict:
     t0 = time.time()
     r = json.load(urllib.request.urlopen(req, timeout=1800))
     u = r.get("usage", {}) or {}
-    return {"metin": (r["choices"][0]["message"]["content"] or "").strip(),
+    return {"metin": _dejenerasyon_filtresi((r["choices"][0]["message"]["content"] or "").strip()),
             "sure_s": round(time.time() - t0, 1),
             "prompt_tok": u.get("prompt_tokens"), "cikti_tok": u.get("completion_tokens")}
 
