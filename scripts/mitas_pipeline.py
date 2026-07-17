@@ -3944,6 +3944,21 @@ def main(argv=None) -> int:
         _has_fr = any(p.exists() and any(p.glob("*.png")) for p in
                       (giris_jenerik_frames, cikis_jenerik_frames, giris_frames, cikis_frames))
         if _has_fr:
+            # AŞAMA-2v2 DENSE (2026-07-17): master'dan ÖNCE çıkış havuzu için adaptif yoğun-kare
+            # KARDEŞ havuz üret (frames/cikis_jenerik_dense) — 1.5fps'te kayan kredi dy≈75px
+            # 'cut' sanılıp smear/collapse üretiyordu (HALLERİ/MAVZER/ZENGİN kökü). Havuz
+            # DEĞİŞMEZ; tercihi monitor yapar. Kill: MITAS_MASTER_DENSE=0. FAIL-SAFE: hata/
+            # timeout/video-yok (from-hub offline) → dense'siz devam, mevcut davranış birebir.
+            if os.environ.get("MITAS_MASTER_DENSE", "1").strip().lower() not in ("0", "false", "off", "no"):
+                try:
+                    if video is not None and Path(video).exists() and cikis_jenerik_frames.is_dir() \
+                            and any(cikis_jenerik_frames.glob("*.png")):
+                        run([str(PY_OCR), str(HERE / "_jenerik_dense.py"), "--clip", str(clip_dir),
+                             "--video", str(video), "--seg", "cikis",
+                             "--win-start", f"{float(_cik_start):.3f}", "--src-fps", str(args.fps)],
+                            timeout=int(os.environ.get("MITAS_DENSE_TIMEOUT", "600") or 600))
+                except Exception:  # noqa: BLE001 — dense ASLA master'ı/kararı bozmaz
+                    pass
             _mp_runner = PROJECT_ROOT / "OCR-worktree" / "master_png_monitor.py"
             _mp_base = file_base(trt, title)
             try:

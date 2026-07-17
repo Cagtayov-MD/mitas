@@ -268,6 +268,16 @@ def _seg_source(film: Path, seg: str):
     pool_fs = sorted(glob.glob(str(pool / "*.png")), key=dc.nat_sort_key) if pool.is_dir() else []
     if not pool_fs:
         return [], seg
+    # AŞAMA-2v2 (2026-07-17): çıkışta adaptif-yoğun KARDEŞ havuz varsa onu tercih et
+    # (üretici: scripts/_jenerik_dense.py — 1.5fps'te scroll dy≈75px 'cut' sanılıp
+    # smear/collapse üretiyordu). Dense yalnız havuz doluyken ve SCROLL ölçülünce var;
+    # kill-switch MITAS_MASTER_DENSE=0 tercihi de kapatır → havuz davranışı birebir.
+    if seg == "cikis" and os.environ.get("MITAS_MASTER_DENSE", "1").strip().lower() not in ("0", "false", "off", "no"):
+        dense = film / "frames" / f"{seg}_jenerik_dense"
+        if dense.is_dir():
+            dense_fs = sorted(glob.glob(str(dense / "*.png")), key=dc.nat_sort_key)
+            if len(dense_fs) >= 5:
+                return dense_fs, f"{seg}_jenerik_dense"
     man = film / "frames" / f"{seg}_jenerik_manifest.json"
     if man.exists() and raw.is_dir():
         ts = _textset_from_manifest(man, raw)
