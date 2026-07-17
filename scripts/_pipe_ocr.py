@@ -375,8 +375,21 @@ class _PaddleReadEngine:
         for r in (recs or []):
             t = (r.get("text") if isinstance(r, dict) else str(r)) or ""
             t = t.strip()
-            if t:
-                lines.append({"text": t})
+            if not t:
+                continue
+            ln = {"text": t}
+            # GİRİŞ-HAVUZU FİX (2026-07-17): oneocr_line_boxes bounding_rect İSTER; bbox'sız
+            # satırlar orada atlanıp HER kare 'yazısız' sayılıyordu → Linux'ta giris_jenerik
+            # havuzu sessiz-BOŞ → giriş master'ı hiç üretilmiyordu (kanıt: 13. SAVAŞÇI 7/7
+            # footage-sayıldı). Paddle bbox'ı [x,y,w,h] → OneOCR köşe-şemasına çevrilir;
+            # altyazı-eleme (KATMAN-A y-konumsal) da ancak böyle çalışabilir.
+            bb = r.get("bbox") if isinstance(r, dict) else None
+            if bb and len(bb) >= 4:
+                x0, y0 = float(bb[0]), float(bb[1])
+                x1, y1 = x0 + float(bb[2]), y0 + float(bb[3])
+                ln["bounding_rect"] = {"x1": x0, "y1": y0, "x2": x1, "y2": y0,
+                                       "x3": x1, "y3": y1, "x4": x0, "y4": y1}
+            lines.append(ln)
         return {"lines": lines, "text": "\n".join(l_["text"] for l_ in lines)}
 
 

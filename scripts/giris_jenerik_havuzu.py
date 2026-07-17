@@ -409,6 +409,7 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
         r.pop("_hash", None)
 
     manifest = _base_manifest("ok", {
+        "engine": kind,   # 2026-07-17: sabit 'oneocr' etiketi yalan söylüyordu (Linux'ta paddle koşar)
         "total_input_frames": len(paths),
         "total_kept": n_kept,
         "total_dropped_footage": n_drop,
