@@ -51,33 +51,9 @@ def _footage_trim_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_FOOTAGE_TRIM", "1").strip().lower() not in ("0", "false", "off", "no")
 
 
-def _plain_credit(f: Path, mean_thr: float = 45.0, max_thr: float = 150.0) -> bool:
-    """[KULLANILMIYOR — DENENDİ, REGRESYON VERDİ, 2026-07]
-
-    Fikir: koyu-zemin+yazı = kredi (BABAM'ın seyrek/soluk kartlarını yakalasın diye).
-    SONUÇ: GT testinde ort|hata| 64→114, tam-isabet 5/8→3/8. KARANLIK SAHNEYİ kredi sanıyor
-    (DRAKULA yanan-kule ateşi, MARIE koyu kareler → 'koyu zemin + parlak piksel' testini geçiyor).
-    Ders: parlaklık-tabanlı 'kredi' sinyali footage'tan ayırt edemiyor. Semantik gerekiyor (VLM).
-    Fonksiyon dersi belgelemek için duruyor; ÇAĞIRMA.
-
-    (eski docstring) KOYU-ZEMİN + YAZI = kredi (yüksek güven, isim-sayısına bakmaz).
-
-    Neden: paddle'ın _is_credit_frame'i 'name_like>=2' ister; BABAM gibi siyah-zeminli SEYREK/SOLUK
-    kartlarda (tek satır isim) bunu bulamaz → kredi değil sayar → geriye-genişletme 415'e inemez
-    (GT testi: BABAM 433 kaldı, gerçek 415). Oysa 'koyu zemin + parlak yazı' zaten kredi kartının
-    tanımıdır (sahne olsa zemin koyu olmazdı). Sahne-üstü krediler bu testten geçmez, onlar paddle
-    yoluyla değerlendirilir — bu EK bir sinyal, ikame değil."""
-    try:
-        from PIL import Image
-        import numpy as np
-        g = np.asarray(Image.open(f).convert("L"), dtype=np.uint8)
-        n = g.size
-        dark_frac = float((g < 60).sum()) / n          # zemin gerçekten koyu mu
-        bright_frac = float((g > max_thr).sum()) / n   # parlak piksel ORANI (yazı = AZ)
-        return (float(g.mean()) < mean_thr and dark_frac > 0.85
-                and 0.0008 < bright_frac < 0.10)       # yazı-benzeri: var ama az (lamba/leke değil)
-    except Exception:  # noqa: BLE001
-        return False
+# NOT (_plain_credit, 2026-07 — DENENDİ, SÖKÜLDÜ): "koyu-zemin+parlak-yazı = kredi" parlaklık
+# sinyali GT'de regresyon verdi (ort|hata| 64→114; DRAKULA ateşi / MARIE koyu kareleri kredi sandı).
+# Ders: parlaklık footage'tan kredi ayırt edemiyor, semantik gerekiyor (VLM). Kod: git geçmişinde.
 
 
 def _is_credit_frame(ocr, f: Path, cfg: DetectorConfig) -> bool | None:
