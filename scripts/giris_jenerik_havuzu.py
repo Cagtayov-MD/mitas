@@ -135,6 +135,79 @@ def _hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+# ── VL SEMANTİK DEKOR-KAPISI (2026-07-17) ─────────────────────────────────────
+_VL_DEKOR_PROMPT = (
+    "Look at this movie frame. Is the visible text an OVERLAID opening-credit graphic "
+    "(actor/crew names or film title rendered OVER the picture), or is it text that exists "
+    "INSIDE the scene itself (a poster, sign, storefront, newspaper, letter, book, screen prop)? "
+    'Answer with JSON only: {"overlay_credit": true} if it is an overlaid credit, '
+    '{"overlay_credit": false} if it is scene/set text.'
+)
+
+
+def _vl_dekor_enabled() -> bool:
+    return os.environ.get("MITAS_GIRIS_VL_DEKOR", "0").strip().lower() in ("1", "true", "on", "yes")
+
+
+def _vl_dekor_sor(image_path: Path, model: str, timeout: float) -> bool | None:
+    """True=ekran-üstü jenerik, False=sahne-içi dekor, None=karar-yok (kare TUTULUR)."""
+    import base64
+    import urllib.request
+    try:
+        b64 = base64.b64encode(image_path.read_bytes()).decode("ascii")
+        base = (os.environ.get("MITAS_OLLAMA") or os.environ.get("MITAS_OLLAMA_URL")
+                or "http://127.0.0.1:11434").rstrip("/")
+        req = urllib.request.Request(
+            base + "/api/chat",
+            data=json.dumps({
+                "model": model,
+                "messages": [{"role": "user", "content": _VL_DEKOR_PROMPT, "images": [b64]}],
+                "stream": False, "format": "json",
+                # qwen3-vl ollama think-bug reçetesi (2026-07-16 kayıtlı): düşük num_predict'te
+                # bütçe 'thinking'de bitiyor, content BOŞ dönüyor → num_predict≥4096 + rp=1.0 ŞART.
+                "options": {"temperature": 0,
+                            "num_predict": int(os.environ.get("MITAS_GIRIS_VL_DEKOR_NUMPRED", "4096") or 4096),
+                            "repeat_penalty": 1.0},
+            }).encode("utf-8"),
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            j = json.loads(resp.read().decode("utf-8"))
+        v = json.loads(((j.get("message") or {}).get("content") or "{}"))
+        ov = v.get("overlay_credit")
+        return ov if isinstance(ov, bool) else None
+    except Exception:  # noqa: BLE001 — VL erişilemedi/parse-fail → karar-yok (fail-safe TUT)
+        return None
+
+
+def _vl_dekor_gate(kept: list[dict], src_paths: dict) -> dict:
+    """Dedup TEMSİLCİLERİNDEN şüphelileri (credit_lines <= eşik) VL'e sorar; 'sahne-içi dekor'
+    hükmü alanı decision=dropped_vl_dekor yapar. Her belirsizlikte TUT. Özet-istatistik döner."""
+    if not _vl_dekor_enabled():
+        return {"enabled": False}
+    model = os.environ.get("MITAS_GIRIS_VL_DEKOR_MODEL", "qwen3-vl:8b")
+    esik = int(os.environ.get("MITAS_GIRIS_VL_DEKOR_MAXLINES", "2") or 2)
+    timeout = float(os.environ.get("MITAS_GIRIS_VL_DEKOR_TIMEOUT", "30") or 30)
+    soruldu = dusen = karar_yok = 0
+    for r in kept:
+        if not r.get("dedup_representative"):
+            continue
+        if len(r.get("credit_lines") or []) > esik:      # çok-satırlı kart → jenerik, sorma
+            continue
+        src = src_paths.get(r["file"])
+        if src is None:
+            continue
+        hukum = _vl_dekor_sor(src, model, timeout)
+        soruldu += 1
+        if hukum is False:
+            r["decision"] = "dropped_vl_dekor"
+            r["reason"] = "vl_dekor_scene_text"
+            dusen += 1
+        elif hukum is None:
+            karar_yok += 1
+    return {"enabled": True, "model": model, "maxlines": esik,
+            "asked": soruldu, "dropped": dusen, "undecided": karar_yok}
+
+
 # ── OneOCR motoru (önbellekli) ─────────────────────────────────────────────────
 _ENGINE_CACHE: dict = {}
 
@@ -373,6 +446,15 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
     # ── dedup ──
     _dedup_kept(kept, src_paths, params)
 
+    # ── VL SEMANTİK DEKOR-KAPISI (2026-07-17, Çağatay onayı: "VL semantik kapı") ──
+    # KÖK: şekil-bazlı süzgeç sahne-İÇİ dekor yazısını (afiş/tabela/gazete) jenerik sanıyor
+    # (AŞK EVLİLİĞİ kök-vakası, 3/20 yaygınlık). Ders kayıtlı: şekil/parlaklık ayırt edemiyor,
+    # SEMANTİK gerekiyor (VLM). Yalnız ŞÜPHELİ temsilcilere sorulur (credit_lines <= eşik;
+    # gerçek jenerik kartı tipik çok-satırlı, dekor tek-blok). FAIL-SAFE: VL yok/hata/timeout
+    # → kare TUTULUR (mevcut davranış birebir; "okunamadı > yanlış oku" — yanlış-eleme en kötüsü).
+    # Bayrak: MITAS_GIRIS_VL_DEKOR=1 (default KAPALI; iki-kapı kanıtından sonra aktivasyon kararı).
+    vl_dekor_stats = _vl_dekor_gate(kept, src_paths)
+
     # ── disk: havuz = DOĞRUDAN AZALTILMIŞ SET (Çağatay 2026-06-29) ──
     # giris_jenerik = yazı-var kareler ∩ benzer-silinmiş (yalnız dedup TEMSİLCİLERİ).
     # Kayan jenerik korunur (fuzzy-birleştirme yok → kayan kareler ayrı küme = hepsi temsilci).
@@ -388,6 +470,9 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
 
     for r in kept:
         r["dedup_file"] = None
+        if r.get("decision") == "dropped_vl_dekor":
+            r["pool_file"] = None              # VL hükmü: sahne-içi dekor yazısı → havuza girmez
+            continue
         if not r.get("dedup_representative"):
             r["pool_file"] = None              # benzer-kopya → havuza GİRMEZ (silindi)
             continue
@@ -402,7 +487,8 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
 
     n_kept = len(kept)                                            # yazı-var kare sayısı (azaltma öncesi)
     n_drop = sum(1 for r in rows if r["decision"] == "dropped_footage")
-    n_reps = sum(1 for r in kept if r.get("dedup_representative"))  # = havuzdaki kare (azaltma sonrası)
+    n_reps = sum(1 for r in kept if r.get("dedup_representative")
+                 and r.get("decision") != "dropped_vl_dekor")       # = havuzdaki kare (azaltma sonrası)
 
     # iç görsel-imza (büyük int) manifest'e yazılmaz.
     for r in rows:
@@ -410,6 +496,7 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
 
     manifest = _base_manifest("ok", {
         "engine": kind,   # 2026-07-17: sabit 'oneocr' etiketi yalan söylüyordu (Linux'ta paddle koşar)
+        "vl_dekor": vl_dekor_stats,   # semantik dekor-kapısı özeti (bayrak kapalıysa {"enabled": False})
         "total_input_frames": len(paths),
         "total_kept": n_kept,
         "total_dropped_footage": n_drop,
