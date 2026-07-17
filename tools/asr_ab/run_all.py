@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ALIGNMENT_PYTHON = ROOT / "venvs" / "alignment" / "Scripts" / "python.exe"
+ALIGNMENT_PYTHON = ROOT / "venvs" / "alignment" / "bin" / "python"
 VARIANTS = (
     ("tools.asr_ab.transcribe_v0", None),
     ("tools.asr_ab.transcribe_v1", None),

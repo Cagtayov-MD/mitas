@@ -8,21 +8,22 @@ server worker işleyemiyor). Bu betik orijinal dosyaları (doğru adlı, yerel) 
 tarayıcı/kayıt-hatası YOK, künye garanti, her film bağımsız (tek çökme tüm batch'i bozmaz).
 
 ÇALIŞTIR: venvs/asr python ile + ANTHROPIC_API_KEY env'de (özet için). Resumable (işlenmiş atlanır).
-  $env:ANTHROPIC_API_KEY=[Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY','User')
-  & 'E:\MITAS\venvs\asr\Scripts\python.exe' 'E:\MITAS\scripts\gece_batch.py'
+  /opt/mitas/venvs/asr/bin/python /opt/mitas/scripts/gece_batch.py
 """
 import glob, json, os, re, subprocess, sys, time
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
-sys.path.insert(0, r"E:\MITAS\scripts")
+# Linux geçişi 2026-07-17: env-aware kök (env yoksa betiğin kendi konumundan türet —
+# MITAS_PROJECT_ROOT yalnız systemd/harness ortamında yüklü, elle koşuşta olmayabilir).
+ROOT = os.environ.get("MITAS_PROJECT_ROOT") or str(Path(__file__).resolve().parents[1])
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
 import mitas_pipeline as mp  # sadece sanitize (resume) için
 
-ROOT = r"E:\MITAS"
-SRC = r"E:\filmtest\aaaa"
-DB = r"E:\MITAS\Database"
-PIPELINE = r"E:\MITAS\scripts\mitas_pipeline.py"
-LOG = r"E:\MITAS\outputs\gece_batch.log"
+SRC = os.environ.get("FILMS_DIR") or os.path.join(ROOT, "filmtest", "aaaa")
+DB = os.path.join(ROOT, "Database")
+PIPELINE = os.path.join(ROOT, "scripts", "mitas_pipeline.py")
+LOG = os.path.join(ROOT, "outputs", "gece_batch.log")
 PY = sys.executable  # venvs/asr (bu betik onunla koşuyor)
 
 def log(m):

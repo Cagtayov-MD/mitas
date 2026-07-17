@@ -9,7 +9,9 @@ Her batch klibi için: v4 PDF'ten yön+cast çek → OCR metniyle karşılaştı
 import glob, json, os, re, sys, unicodedata
 import fitz
 
-DB = r"E:\MITAS\Database"
+# Linux geçişi 2026-07-17: env-aware kök (elle koşuşta betik konumundan türet).
+DB = os.path.join(os.environ.get("MITAS_PROJECT_ROOT")
+                  or os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Database")
 _TR = str.maketrans("ışğçöüİI", "isgcoui i".replace(" ", ""))
 
 def fold(s):

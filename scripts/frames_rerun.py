@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import time
@@ -29,10 +30,13 @@ FORCE_OCR = False
 import credit_severity_router as router  # noqa: E402
 import mesru_bos as mb  # noqa: E402
 
-PROJECT_ROOT = Path(r"E:\MITAS")
+# Linux geçişi 2026-07-17: env-aware kök + platform-farkında yorumlayıcılar (mitas_pipeline deseni).
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or Path(__file__).resolve().parents[1])
 DB = PROJECT_ROOT / "Database"
-PY_OCR = PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"
-PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
+PY_OCR = (PROJECT_ROOT / "venvs" / "ocr"
+          / ("Scripts" if os.name == "nt" else "bin")
+          / ("python.exe" if os.name == "nt" else "python"))
+PY_PDF = Path(os.environ.get("MITAS_PDF_PYTHON") or sys.executable)
 BASELINE = PROJECT_ROOT / "outputs" / "KALITE_TABANI_BEFORE_2026-07-11.json"
 
 

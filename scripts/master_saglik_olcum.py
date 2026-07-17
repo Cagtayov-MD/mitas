@@ -12,7 +12,9 @@ import os
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-DB = r"E:\MITAS\Database"
+# Linux geçişi 2026-07-17: env-aware kök (elle koşuşta betik konumundan türet).
+DB = os.path.join(os.environ.get("MITAS_PROJECT_ROOT")
+                  or os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Database")
 
 # Sağlık eşikleri (ÖN-DEĞER, ölçümden sonra kalibre edilecek — şimdilik yalnız sınıflama):
 MIN_YUKSEK = 200      # <200px = neredeyse-boş/bozuk (KÜÇÜK KAHRAMAN kök 13px vakası)

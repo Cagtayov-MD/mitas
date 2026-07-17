@@ -11,11 +11,13 @@ import json, os, subprocess, sys, time
 from collections import Counter
 
 sys.stdout.reconfigure(encoding="utf-8")
-QJ = r"E:\MITAS\outputs\flow_queue\queue.json"
-EV = r"E:\MITAS\outputs\system_events.jsonl"
-LOG = r"E:\MITAS\outputs\gece_monitor.log"
-PY_PDF = r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe"
-GECE_QC = r"E:\MITAS\scripts\gece_qc.py"
+# Linux geçişi 2026-07-17: env-aware kök + MITAS_PDF_PYTHON (mitas.env) — Windows sabitleri kaldırıldı.
+ROOT = os.environ.get("MITAS_PROJECT_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+QJ = os.path.join(ROOT, "outputs", "flow_queue", "queue.json")
+EV = os.path.join(ROOT, "outputs", "system_events.jsonl")
+LOG = os.path.join(ROOT, "outputs", "gece_monitor.log")
+PY_PDF = os.environ.get("MITAS_PDF_PYTHON") or sys.executable
+GECE_QC = os.path.join(ROOT, "scripts", "gece_qc.py")
 
 def log(m):
     s = f'[{time.strftime("%H:%M:%S")}] {m}'

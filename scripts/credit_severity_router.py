@@ -320,12 +320,16 @@ def check_drift(clip_dir) -> str | None:
 
 
 # ───────────────────────── RE-SORT ARACI (mevcut klasörü tip-bazlı ayır) ─────────────────────────
-def resort(folder_name="KONTROL", apply=False, export=r"E:\MITAS\Mitas Output\export",
-           database=r"E:\MITAS\Database"):
+def resort(folder_name="KONTROL", apply=False, export=None, database=None):
     """Var olan bir export klasöründeki filmleri _DURUM.json'a göre yeniden sınıflandır,
     AĞIR tipine göre alt-klasörlere TAŞI (dry-run varsayılan). Hafif-only olanları işaretler
     (auto-fix kuyruğuna)."""
     import re
+    # Linux geçişi 2026-07-17: eski E:\MITAS varsayılanları env-aware köke taşındı.
+    if export is None or database is None:
+        _root = os.environ.get("MITAS_PROJECT_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        export = export or os.path.join(_root, "Mitas Output", "export")
+        database = database or os.path.join(_root, "Database")
     src = os.path.join(export, folder_name)
     pdfs = sorted(glob.glob(os.path.join(src, "*.pdf")))
     plan = {"NEEDS_REVIEW_HAFIF": [], "TEMIZ": []}

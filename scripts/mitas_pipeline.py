@@ -1786,10 +1786,18 @@ def main(argv=None) -> int:
             _src_f = _from_hub / "frames" / _fdir
             _dst_f = clip_dir / "frames" / _fdir
             if _src_f.exists() and not _dst_f.exists():
-                _rcj, _, _errj = run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
-                                     timeout=30)
-                if _rcj:  # junction başarısızsa (yetki vb.) kopyaya düş — yavaş ama güvenli
-                    shutil.copytree(_src_f, _dst_f)
+                if os.name == "nt":
+                    _rcj, _, _errj = run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
+                                         timeout=30)
+                    if _rcj:  # junction başarısızsa (yetki vb.) kopyaya düş — yavaş ama güvenli
+                        shutil.copytree(_src_f, _dst_f)
+                else:
+                    # Linux geçişi 2026-07-17: cmd/mklink yok (FileNotFoundError → tüm from-hub
+                    # koşusu çöküyordu). Junction'ın karşılığı symlink; başarısızsa kopyaya düş.
+                    try:
+                        os.symlink(_src_f, _dst_f, target_is_directory=True)
+                    except Exception:  # noqa: BLE001
+                        shutil.copytree(_src_f, _dst_f)
         _src_ocrs = sorted((d for d in (_from_hub / "ocr").glob("ocr-*")
                             if (d / "kunye.txt").exists() and not d.name.endswith("-fb")),
                            key=lambda d: d.stat().st_mtime)
@@ -2362,19 +2370,30 @@ def main(argv=None) -> int:
                             headers={"Content-Type": "application/json"}), timeout=15).read()
                     except Exception:  # noqa: BLE001 — model yüklü değil/hata: sonrakine geç
                         pass
-                import ctypes as _ct
+                if os.name == "nt":
+                    import ctypes as _ct
 
-                class _MSX(_ct.Structure):
-                    _fields_ = ([("dwLength", _ct.c_ulong), ("dwMemoryLoad", _ct.c_ulong)]
-                                + [(_n, _ct.c_ulonglong) for _n in
-                                   ("ullTotalPhys", "ullAvailPhys", "ullTotalPageFile",
-                                    "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual",
-                                    "ullAvailExtendedVirtual")])
+                    class _MSX(_ct.Structure):
+                        _fields_ = ([("dwLength", _ct.c_ulong), ("dwMemoryLoad", _ct.c_ulong)]
+                                    + [(_n, _ct.c_ulonglong) for _n in
+                                       ("ullTotalPhys", "ullAvailPhys", "ullTotalPageFile",
+                                        "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual",
+                                        "ullAvailExtendedVirtual")])
 
-                def _commit_bos_gb():
-                    _m = _MSX(); _m.dwLength = _ct.sizeof(_MSX)
-                    _ct.windll.kernel32.GlobalMemoryStatusEx(_ct.byref(_m))
-                    return _m.ullAvailPageFile / 2**30
+                    def _commit_bos_gb():
+                        _m = _MSX(); _m.dwLength = _ct.sizeof(_MSX)
+                        _ct.windll.kernel32.GlobalMemoryStatusEx(_ct.byref(_m))
+                        return _m.ullAvailPageFile / 2**30
+                else:
+                    # Linux geçişi 2026-07-17: windll yok → sübap sessizce hiç çalışmıyordu.
+                    # Commit-boşluğu karşılığı: MemAvailable + SwapFree (/proc/meminfo, kB→GB).
+                    def _commit_bos_gb():
+                        _mi = {}
+                        with open("/proc/meminfo", encoding="ascii") as _f:
+                            for _ln in _f:
+                                _k, _, _rest = _ln.partition(":")
+                                _mi[_k] = int(_rest.split()[0])
+                        return (_mi.get("MemAvailable", 0) + _mi.get("SwapFree", 0)) / 2**20
 
                 _hedef = float(os.environ.get("MITAS_ASR_MIN_COMMIT_GB", "8") or 8)
                 _t_v = time.perf_counter()
@@ -2619,18 +2638,23 @@ def main(argv=None) -> int:
                 # Kill-switch: MITAS_OLLAMA_BEKCI=0.
                 if os.environ.get("MITAS_OLLAMA_BEKCI", "1").strip().lower() not in ("0", "false", "off", "no"):
                     try:
-                        subprocess.run(
-                            ["powershell", "-NoProfile", "-Command",
-                             "Get-CimInstance Win32_Process -Filter \"Name='llama-server.exe'\" | "
-                             "ForEach-Object { if (-not (Get-Process -Id $_.ParentProcessId "
-                             "-ErrorAction SilentlyContinue)) { Stop-Process -Id $_.ProcessId -Force } }"],
-                            capture_output=True, timeout=30)
-                        try:
-                            urllib.request.urlopen(_oll + "/api/version", timeout=5).read()
-                        except Exception:  # noqa: BLE001 — sunucu kapalı → başlat
-                            _oexe = os.path.join(os.environ.get("LOCALAPPDATA", ""),
-                                                 "Programs", "Ollama", "ollama.exe")
-                            subprocess.Popen([_oexe, "serve"], creationflags=0x08000000)
+                        if os.name == "nt":
+                            subprocess.run(
+                                ["powershell", "-NoProfile", "-Command",
+                                 "Get-CimInstance Win32_Process -Filter \"Name='llama-server.exe'\" | "
+                                 "ForEach-Object { if (-not (Get-Process -Id $_.ParentProcessId "
+                                 "-ErrorAction SilentlyContinue)) { Stop-Process -Id $_.ProcessId -Force } }"],
+                                capture_output=True, timeout=30)
+                            try:
+                                urllib.request.urlopen(_oll + "/api/version", timeout=5).read()
+                            except Exception:  # noqa: BLE001 — sunucu kapalı → başlat
+                                _oexe = os.path.join(os.environ.get("LOCALAPPDATA", ""),
+                                                     "Programs", "Ollama", "ollama.exe")
+                                subprocess.Popen([_oexe, "serve"], creationflags=0x08000000)
+                        # Linux geçişi 2026-07-17: powershell/ollama.exe/creationflags üçü de POSIX'te
+                        # patlayıp bekçiyi ilk satırda öldürüyordu. Linux'ta ollama systemd servisi
+                        # (Restart=always) — çöktüyse systemd diriltir; restart yetkimiz yok
+                        # (mitas-asr User=cagatay). Aşağıdaki probe-bekleme döngüsü yeterli.
                         _t_ob = time.perf_counter()
                         while time.perf_counter() - _t_ob < 120:
                             try:

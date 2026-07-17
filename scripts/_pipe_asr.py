@@ -16,7 +16,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.stdout.reconfigure(encoding="utf-8")
 
-FFMPEG = PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"
+# Linux geçişi 2026-07-17: MITAS_FFMPEG env önceliği (mitas_pipeline ile tutarlı); yoksa eski yol.
+FFMPEG = Path(os.environ.get("MITAS_FFMPEG") or (
+    PROJECT_ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
 
 # --- Canlı log: system_events.jsonl'e tek-satir olay yaz (UI per-film adim-logu icin). ---
 # mitas_pipeline.log_event ile AYNI format/dosya; ASR uzun transkripsiyon boyunca "donuk" gorunmesin

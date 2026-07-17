@@ -307,9 +307,12 @@ def _default_ocr_python() -> Path:
     configured = os.environ.get("MITAS_OCR_PYTHON", "").strip()
     if configured:
         return Path(configured)
-    candidates = [PROJECT_ROOT / "venvs" / "ocr" / "Scripts" / "python.exe"]
+    # Linux geçişi 2026-07-17: platform-farkında venv düzeni (yoksa sys.executable'a
+    # düşüp OCR bağımlılıksız yanlış venv ile koşuyordu).
+    _bin, _py = ("Scripts", "python.exe") if os.name == "nt" else ("bin", "python")
+    candidates = [PROJECT_ROOT / "venvs" / "ocr" / _bin / _py]
     for parent in PROJECT_ROOT.parents:
-        candidates.append(parent / "venvs" / "ocr" / "Scripts" / "python.exe")
+        candidates.append(parent / "venvs" / "ocr" / _bin / _py)
     for candidate in candidates:
         if candidate.exists():
             return candidate

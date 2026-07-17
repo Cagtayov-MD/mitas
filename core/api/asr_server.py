@@ -86,7 +86,11 @@ GENERATED_MODULE_ALIASES = {
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024 * 1024
 LIVE_STT_SAMPLE_RATE = 16_000
 LIVE_STT_MAX_CHUNK_BYTES = LIVE_STT_SAMPLE_RATE * 2 * 15
-TRANSLATE_PYTHON = PROJECT_ROOT / "venvs" / "translate" / "Scripts" / "python.exe"
+# Linux geçişi 2026-07-17: env+platform-farkında (mitas_pipeline._venv_python deseni).
+TRANSLATE_PYTHON = Path(os.environ.get("MITAS_TRANSLATE_PYTHON") or (
+    PROJECT_ROOT / "venvs" / "translate"
+    / ("Scripts" if os.name == "nt" else "bin")
+    / ("python.exe" if os.name == "nt" else "python")))
 TRANSLATE_API_SCRIPT = PROJECT_ROOT / "scripts" / "translate_api_call.py"
 TRANSLATE_TIMEOUT_SECONDS = 600
 SUMMARY_TIMEOUT_SECONDS = 90
@@ -246,11 +250,32 @@ def _kill_proc_tree(proc: "subprocess.Popen") -> None:
     abort yolundaki kanıtlı taskkill /T /F desenini kullan; başarısızsa proc.kill()'e düş."""
     pid = proc.pid if (proc is not None and proc.poll() is None) else None
     if pid is not None:
-        try:
-            subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
-            return
-        except Exception:  # noqa: BLE001
-            pass
+        if os.name == "nt":
+            try:
+                subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=30)
+                return
+            except Exception:  # noqa: BLE001
+                pass
+        else:
+            # Linux geçişi 2026-07-17: taskkill yok — alt-ağacı (torunlar dahil) ps ile topla,
+            # yapraktan köke SIGKILL. killpg KULLANILMAZ: çocuklar ayrı session'da başlatılmıyor,
+            # getpgid sunucunun kendi grubunu döndürür → sunucu kendini öldürürdü.
+            try:
+                pids, queue = [], [pid]
+                while queue:
+                    p = queue.pop(0)
+                    pids.append(p)
+                    out = subprocess.run(["ps", "-o", "pid=", "--ppid", str(p)],
+                                         capture_output=True, text=True, timeout=5).stdout
+                    queue.extend(int(x) for x in out.split())
+                for p in reversed(pids):
+                    try:
+                        os.kill(p, 9)  # SIGKILL
+                    except Exception:  # noqa: BLE001
+                        pass
+                return
+            except Exception:  # noqa: BLE001
+                pass
     try:
         proc.kill()
     except Exception:  # noqa: BLE001
@@ -1162,7 +1187,20 @@ class _MEMSTATUSEX(ctypes.Structure):
     ]
 
 def _ram_percent() -> int:
-    """Instant RAM read via Windows kernel API — no subprocess needed."""
+    """Instant RAM read — Windows: kernel API; Linux: /proc/meminfo (subprocess yok)."""
+    if os.name != "nt":
+        try:
+            info = {}
+            with open("/proc/meminfo", encoding="ascii") as f:
+                for line in f:
+                    k, _, rest = line.partition(":")
+                    info[k] = int(rest.split()[0])
+            total = info.get("MemTotal", 0)
+            if total <= 0:
+                return -1
+            return max(0, min(100, round(100.0 * (total - info.get("MemAvailable", 0)) / total)))
+        except Exception:
+            return -1
     try:
         stat = _MEMSTATUSEX()
         stat.dwLength = ctypes.sizeof(_MEMSTATUSEX)
@@ -1178,7 +1216,24 @@ _prev_cpu = {"idle": 0, "total": 0}
 def _cpu_percent() -> int:
     """Instant CPU% via Windows GetSystemTimes delta — subprocess YOK (sysinfo poller hot-path).
     Eski typeperf/wmic/powershell subprocess'leri kaldirildi (5sn'de bir ~340ms blok + CPU/log yuku);
-    GetSystemTimes, _ram_percent'in GlobalMemoryStatusEx'i kadar guvenilir cekirdek (kernel32) API."""
+    GetSystemTimes, _ram_percent'in GlobalMemoryStatusEx'i kadar guvenilir cekirdek (kernel32) API.
+    Linux: /proc/stat delta (ayni _prev_cpu semantigi — idle+iowait / toplam)."""
+    if os.name != "nt":
+        try:
+            with open("/proc/stat", encoding="ascii") as f:
+                vals = [int(x) for x in f.readline().split()[1:]]
+            idle_v = vals[3] + (vals[4] if len(vals) > 4 else 0)
+            total_v = sum(vals)
+            first = _prev_cpu["total"] == 0
+            d_idle = idle_v - _prev_cpu["idle"]
+            d_total = total_v - _prev_cpu["total"]
+            _prev_cpu["idle"] = idle_v
+            _prev_cpu["total"] = total_v
+            if first or d_total <= 0:
+                return -1
+            return max(0, min(100, round(100.0 * (d_total - d_idle) / d_total)))
+        except Exception:
+            return -1
     try:
         idle = ctypes.c_ulonglong(0)
         kernel = ctypes.c_ulonglong(0)

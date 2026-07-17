@@ -25,7 +25,8 @@ import sys
 import time
 from pathlib import Path
 
-PROJECT_ROOT = Path(r"E:\MITAS")
+# Linux geçişi 2026-07-17: env-aware kök (elle koşuşta betik konumundan türet).
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or Path(__file__).resolve().parents[1])
 DB_ROOT = PROJECT_ROOT / "Database"
 OUT_ROOT = PROJECT_ROOT / "Mitas Output"
 EVENTS_PATH = PROJECT_ROOT / "outputs" / "system_events.jsonl"

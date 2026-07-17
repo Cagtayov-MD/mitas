@@ -6,10 +6,11 @@ from pathlib import Path
 import re
 from difflib import SequenceMatcher
 
-from tools.asr_ab.common import DEFAULT_OUTPUT_ROOT, write_json
+from tools.asr_ab.common import DEFAULT_OUTPUT_ROOT, PROJECT_ROOT, write_json
 
 
-DEFAULT_REFERENCE = Path(r"C:\Users\TRT03\Downloads\beyaz2 08 11.txt")
+# Linux geçişi 2026-07-17: eski C:\Users\TRT03\Downloads kopyası references/ altına alındı.
+DEFAULT_REFERENCE = PROJECT_ROOT / "references" / "asr_model_final" / "beyaz2_08_11.txt"
 BAD_TOKENS = ("É", "I don't know", "Are the days", "Konuklar Türkçe sohbet ediyor")
 CODE_SWITCH_TOKENS = ("Dancin", "Dancing", "Beer", "Bear", "Ayılar Dans")
 MODEL_ISOLATION_VARIANTS = ("out_v7", "out_v10", "out_v11")

@@ -30,7 +30,12 @@ ALIGNMENT_STATUS_SKIPPED = "skipped"
 ALIGNMENT_STATUS_NOT_APPLICABLE = "not_applicable"
 WHISPERX_WORD_TIMING_METHOD = "whisperx"
 
-DEFAULT_ALIGNMENT_PYTHON = PROJECT_ROOT / "venvs" / "alignment" / "Scripts" / "python.exe"
+# Linux geçişi 2026-07-17: env+platform-farkında — Scripts/python.exe sabiti Linux'ta
+# align'ı her koşuda sessizce 'interpolated' fallback'e düşürüyordu (whisperx hiç çalışmıyordu).
+DEFAULT_ALIGNMENT_PYTHON = Path(os.environ.get("MITAS_ALIGNMENT_PYTHON") or (
+    PROJECT_ROOT / "venvs" / "alignment"
+    / ("Scripts" if os.name == "nt" else "bin")
+    / ("python.exe" if os.name == "nt" else "python")))
 DEFAULT_ALIGNMENT_SCRIPT = PROJECT_ROOT / "scripts" / "alignment_subprocess.py"
 DEFAULT_ALIGNMENT_MODEL_DIR = PROJECT_ROOT / "models" / "alignment" / "whisperx"
 

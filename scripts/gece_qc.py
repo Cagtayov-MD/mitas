@@ -20,9 +20,11 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 OLLAMA_CHAT = "http://127.0.0.1:11434/api/chat"
 VISUAL_MODEL = "gemma4:26b"
-DB = r"E:\MITAS\Database"
-REPORT_MD = r"E:\MITAS\outputs\gece_rapor.md"
-REPORT_TSV = r"E:\MITAS\outputs\gece_rapor.tsv"
+# Linux geçişi 2026-07-17: env-aware kök (elle koşuşta betik konumundan türet).
+_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB = os.path.join(_ROOT, "Database")
+REPORT_MD = os.path.join(_ROOT, "outputs", "gece_rapor.md")
+REPORT_TSV = os.path.join(_ROOT, "outputs", "gece_rapor.tsv")
 
 ROLE_WORDS = {"YÖNETMEN", "YAPIMCI", "OYUNCU", "KAMERA", "GÖRÜNTÜ", "SENARYO", "MÜZİK", "KURGU",
               "YAPIM", "SES", "IŞIK", "MONTAJ", "DEKOR", "KOSTÜM", "MAKYAJ", "EFEKT"}

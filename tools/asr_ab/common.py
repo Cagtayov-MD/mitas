@@ -27,14 +27,7 @@ DEFAULT_AUDIO_PATH = (
     / "beyaz2_08_11_c1022f8a96_16000hz_mono_s16.wav"
 )
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "outputs" / "asr_ab" / "beyaz2_08_11"
-DEFAULT_FFMPEG_EXE = (
-    PROJECT_ROOT
-    / "tools"
-    / "ffmpeg-shared"
-    / "ffmpeg-8.1.1-full_build-shared"
-    / "bin"
-    / "ffmpeg.exe"
-)
+DEFAULT_FFMPEG_EXE = Path(os.environ.get("MITAS_FFMPEG", "/usr/bin/ffmpeg"))
 CODE_SWITCH_PROMPT = (
     "Türkçe yayın programı. Konuklar Türkçe sohbet ediyor, "
     "zaman zaman İngilizce şarkı, film veya marka adı geçiyor."
