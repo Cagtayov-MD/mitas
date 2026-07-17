@@ -60,7 +60,7 @@ mark "ÇEKİRDEK VL TAMAM"
 touch "$RUN/CORE_DONE.flag"
 
 # --- E5: STRETCH ollama (best-effort, yavaş/sıkı; çekirdeği bloklamaz) ---
-STRETCH_MODELS=(minicpm-v:latest qwen3-vl:32b qwen36-35b-test)
+STRETCH_MODELS=(minicpm-v:latest qwen3-vl:32b qwen36-35b-test qwen2.5vl:32b mistral-small3.2)
 for m in "${STRETCH_MODELS[@]}"; do run_vl_model "$m" "E5"; done
 
 mark "TÜM OLLAMA VL TAMAM"
