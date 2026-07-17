@@ -1,0 +1,920 @@
+{
+ "toplam": 289,
+ "iyilesme": 118,
+ "kotulesme": 10,
+ "hazir_once": 73,
+ "hazir_sonra": 183,
+ "ext": {
+  "OK": 257,
+  "ABSTAIN": 31,
+  "TECHNICAL_FAILURE": 1
+ },
+ "promote_adaylari": [
+  {
+   "title": "13. SAVAŞÇI",
+   "trt": "1999-0394-1-0000-90-1",
+   "yonetmen": [
+    "JOHN MCTIERNAN"
+   ]
+  },
+  {
+   "title": "ADI CARMEN",
+   "trt": "1983-0256-1-0000-00-1",
+   "yonetmen": [
+    "Jean-Luc Godard"
+   ]
+  },
+  {
+   "title": "AHTAPOT (DEAD EYE SIX)",
+   "trt": "2000-0274-1-0000-00-1",
+   "yonetmen": [
+    "SECOND UNLT"
+   ]
+  },
+  {
+   "title": "AJAMİ",
+   "trt": "2009-9153-1-0000-00-1",
+   "yonetmen": [
+    "Yaron Shani",
+    "Scandar Copti"
+   ]
+  },
+  {
+   "title": "AMANSIZ TAKİP",
+   "trt": "1985-0223-1-0000-00-1",
+   "yonetmen": [
+    "Hong Jia Bao"
+   ]
+  },
+  {
+   "title": "ANGOLA'DAN KAÇIŞ",
+   "trt": "1976-0184-1-0000-00-1",
+   "yonetmen": [
+    "LESLIE MARTINSON"
+   ]
+  },
+  {
+   "title": "ANNEM ANNEM",
+   "trt": "2008-9064-1-0000-00-1",
+   "yonetmen": [
+    "MICKI DICKOFF"
+   ]
+  },
+  {
+   "title": "APOLLO 11",
+   "trt": "1996-0222-1-0000-00-1",
+   "yonetmen": [
+    "ND UNIT"
+   ]
+  },
+  {
+   "title": "ARCEDIA",
+   "trt": "1993-0401-1-0000-00-1",
+   "yonetmen": [
+    "PAUL BAMBOROUGH"
+   ]
+  },
+  {
+   "title": "AYAK TAKIMI",
+   "trt": "1991-0415-1-0000-00-1",
+   "yonetmen": [
+    "Ken Loach"
+   ]
+  },
+  {
+   "title": "AYNADAKİ DÜŞMAN",
+   "trt": "2010-9199-0-0001-88-1",
+   "yonetmen": [
+    "HAKAN KURŞUN"
+   ]
+  },
+  {
+   "title": "AĞAÇ",
+   "trt": "1986-0334-1-0000-00-1",
+   "yonetmen": [
+    "Jacques Doillon"
+   ]
+  },
+  {
+   "title": "AŞK EVLİLİĞİ",
+   "trt": "1996-0353-1-0000-00-1",
+   "yonetmen": [
+    "Pascale BAILLY"
+   ]
+  },
+  {
+   "title": "BANA TRINITY DERLER",
+   "trt": "1968-0082-1-0000-00-1",
+   "yonetmen": [
+    "E. B. CLUCHER"
+   ]
+  },
+  {
+   "title": "BJ VE AYI",
+   "trt": "1978-0215-1-0000-00-1",
+   "yonetmen": [
+    "ND UNIT"
+   ]
+  },
+  {
+   "title": "BLACKJACK",
+   "trt": "1998-0401-1-0000-00-1",
+   "yonetmen": [
+    "JOHN WOO"
+   ]
+  },
+  {
+   "title": "BORÇ",
+   "trt": "2003-9208-1-0000-00-1",
+   "yonetmen": [
+    "İbrahim Habibulla oğlu"
+   ]
+  },
+  {
+   "title": "BUL VE YOK ET",
+   "trt": "1988-0423-1-0000-40-1",
+   "yonetmen": [
+    "AT ASSIXTENTT"
+   ]
+  },
+  {
+   "title": "BUZ ÜSTÜNDE",
+   "trt": "1992-0332-1-0000-00-1",
+   "yonetmen": [
+    "PAUL M. GLASER"
+   ]
+  },
+  {
+   "title": "BÜYÜK MÜCADELE",
+   "trt": "1960-0021-1-0000-00-1",
+   "yonetmen": [
+    "MICHAEL DARLOW"
+   ]
+  },
+  {
+   "title": "BİR YAZ MACERASI",
+   "trt": "1989-0570-1-0000-00-1",
+   "yonetmen": [
+    "ANDRÉ MELANÇON"
+   ]
+  },
+  {
+   "title": "BİR ZAMANLAR",
+   "trt": "1975-0182-1-0000-00-1",
+   "yonetmen": [
+    "Simon Curtis"
+   ]
+  },
+  {
+   "title": "CENNETE GELDİK Mİ",
+   "trt": "1992-0468-1-0000-00-1",
+   "yonetmen": [
+    "CARL CALDANA"
+   ]
+  },
+  {
+   "title": "CİNAYET YERİ",
+   "trt": "2003-9059-1-0000-00-1",
+   "yonetmen": [
+    "ROB KING"
+   ]
+  },
+  {
+   "title": "DELİLİĞİN SINIRINDA",
+   "trt": "1995-0326-1-0000-00-1",
+   "yonetmen": [
+    "NICK MCLEAN"
+   ]
+  },
+  {
+   "title": "DENİZ EJDERİ",
+   "trt": "1990-0350-1-0000-00-1",
+   "yonetmen": [
+    "AUGUST GUDMUNDSSON"
+   ]
+  },
+  {
+   "title": "DENİZLER ALTINDA 20.000 FERSAH",
+   "trt": "2003-9049-1-0000-00-1",
+   "yonetmen": [
+    "SCOTT HEMING"
+   ]
+  },
+  {
+   "title": "DERSU UZALA",
+   "trt": "1975-2246-1-0000-72-0",
+   "yonetmen": [
+    "Vladimir Vasilyev",
+    "Akira Kurosawa"
+   ]
+  },
+  {
+   "title": "DERTLER BENİM OLSUN",
+   "trt": "2010-9252-1-0000-88-1",
+   "yonetmen": [
+    "SAFA ONAL"
+   ]
+  },
+  {
+   "title": "DOĞRU KILAVUZ",
+   "trt": "2004-9143-1-0000-00-1",
+   "yonetmen": [
+    "Lewin Webb"
+   ]
+  },
+  {
+   "title": "DOĞUM GÜNÜ",
+   "trt": "1968-0020-1-0000-00-1",
+   "yonetmen": [
+    "KENNETH IVES"
+   ]
+  },
+  {
+   "title": "DİPTEKİLER",
+   "trt": "2005-9162-1-0000-00-1",
+   "yonetmen": [
+    "David Twohy"
+   ]
+  },
+  {
+   "title": "DİŞİ ŞEYTAN",
+   "trt": "1964-0002-1-000-00-1",
+   "yonetmen": [
+    "NEVZAT PESEN"
+   ]
+  },
+  {
+   "title": "EL GUSTO",
+   "trt": "2011-9209-1-0000-90-1",
+   "yonetmen": [
+    "SAFINEZ BOUSBIA"
+   ]
+  },
+  {
+   "title": "FISILTILAR",
+   "trt": "1999-0321-1-0000-00-1",
+   "yonetmen": [
+    "david koepp"
+   ]
+  },
+  {
+   "title": "FUTBOLCU PRENSES",
+   "trt": "2000-0477-1-0000-00-1",
+   "yonetmen": [
+    "JOHN STOCKWELL"
+   ]
+  },
+  {
+   "title": "GERONIMO",
+   "trt": "1962-0022-1-0000-00-1",
+   "yonetmen": [
+    "ARNOLD LAVEN"
+   ]
+  },
+  {
+   "title": "GERÇEK KUZEY",
+   "trt": "2006-9110-1-0000-00-1",
+   "yonetmen": [
+    "STEVE HUDSON"
+   ]
+  },
+  {
+   "title": "GLORIA KUŞATMASI",
+   "trt": "1992-0299-1-0000-00-1",
+   "yonetmen": [
+    "Brian Trenchard-Smith"
+   ]
+  },
+  {
+   "title": "GÖKDAĞ",
+   "trt": "2025-1032-1-0000-80-0",
+   "yonetmen": [
+    "Renat SALİXOV"
+   ]
+  },
+  {
+   "title": "GÜLLERİN SAVAŞI",
+   "trt": "2004-9139-1-0000-00-1",
+   "yonetmen": [
+    "Patrick Leung"
+   ]
+  },
+  {
+   "title": "HALIFAX - İKİ SUÇLU",
+   "trt": "2002-9115-1-0000-00-1",
+   "yonetmen": [
+    "KEN CAMERON"
+   ]
+  },
+  {
+   "title": "HANNA'NIN ALTINLARI",
+   "trt": "2010-9150-1-0000-00-1",
+   "yonetmen": [
+    "FIRT ANISTAST"
+   ]
+  },
+  {
+   "title": "HASİP İLE NASİP",
+   "trt": "2010-9265-1-0000-88-1",
+   "yonetmen": [
+    "ATIF YILMAZ"
+   ]
+  },
+  {
+   "title": "HAYAL PEŞİNDE",
+   "trt": "2001-9201-1-0000-00-1",
+   "yonetmen": [
+    "Alain ROBAK"
+   ]
+  },
+  {
+   "title": "HAYAT BİR ŞARKIDIR",
+   "trt": "1997-0421-1-0000-00-1",
+   "yonetmen": [
+    "Alain Resnais"
+   ]
+  },
+  {
+   "title": "HAYATIMIN ERKEĞİ",
+   "trt": "1992-0454-1-0000-00-1",
+   "yonetmen": [
+    "Jean-Charles Tacchella"
+   ]
+  },
+  {
+   "title": "HAYATIN TUZU",
+   "trt": "2009-9007-1-000-00-1",
+   "yonetmen": [
+    "MURAT DÜZGÜNOĞLU"
+   ]
+  },
+  {
+   "title": "HOTEL RWANDA",
+   "trt": "2004-9160-1-0000-90-1",
+   "yonetmen": [
+    "TERRY GEORGE"
+   ]
+  },
+  {
+   "title": "HİTLER'İN HAZİNESİ",
+   "trt": "2000-0479-1-0000-00-1",
+   "yonetmen": [
+    "REGULA GRALWILLER"
+   ]
+  },
+  {
+   "title": "JARRAPELLEJOSILAR",
+   "trt": "1991-0454-1-0000-00-1",
+   "yonetmen": [
+    "ANTONIO GIMENEZ RICO"
+   ]
+  },
+  {
+   "title": "JERICO APARTMANI",
+   "trt": "2003-9195-1-0000-00-1",
+   "yonetmen": [
+    "ANTONIO WILFORD"
+   ]
+  },
+  {
+   "title": "JERICO APARTMANI",
+   "trt": "2003-9198-1-0000-00-1",
+   "yonetmen": [
+    "ANTONIO WILFORD"
+   ]
+  },
+  {
+   "title": "JOE SHARP",
+   "trt": "1992-0483-1-0000-00-1",
+   "yonetmen": [
+    "DON HULETTE"
+   ]
+  },
+  {
+   "title": "JONSSON ÇETESİ",
+   "trt": "1981-0287-1-0000-00-1",
+   "yonetmen": [
+    "CHRISTJAN WEGNER"
+   ]
+  },
+  {
+   "title": "KANDAHAR",
+   "trt": "2011-9224-1-0000-88-1",
+   "yonetmen": [
+    "Mohsen Makhmalbaf"
+   ]
+  },
+  {
+   "title": "KANDIRMACA",
+   "trt": "2002-9058-1-0000-00-1",
+   "yonetmen": [
+    "ROTH BILL MACDONALD"
+   ]
+  },
+  {
+   "title": "KARA GÜNLER",
+   "trt": "1998-0312-1-0000-00-1",
+   "yonetmen": [
+    "NIKOLAUS LEYTNER"
+   ]
+  },
+  {
+   "title": "KARAR KİMİN",
+   "trt": "1981-0266-1-0000-00-1",
+   "yonetmen": [
+    "JOHN BADHAM"
+   ]
+  },
+  {
+   "title": "KIRIK KALPLER LOKANTASI",
+   "trt": "1991-0442-1-0000-00-1",
+   "yonetmen": [
+    "RICHARD SHEPARD"
+   ]
+  },
+  {
+   "title": "KIZIL HAYAT",
+   "trt": "1996-0325-1-0000-00-1",
+   "yonetmen": [
+    "ENSEMBLE DES VETERANS"
+   ]
+  },
+  {
+   "title": "KOPAR ZİNCİRLERİNİ GÜLSARI",
+   "trt": "1969-0091-1-0000-00-1",
+   "yonetmen": [
+    "SERGUEI OUROUSSEVSKY"
+   ]
+  },
+  {
+   "title": "KOVBOY",
+   "trt": "1958-0044-1-0000-90-1",
+   "yonetmen": [
+    "Delmer Daves"
+   ]
+  },
+  {
+   "title": "KÖPEKBALIĞI KÖRFEZİNİN YUNUSLARI",
+   "trt": "2011-9186-1-0000-90-1",
+   "yonetmen": [
+    "NICK STRINGER"
+   ]
+  },
+  {
+   "title": "KİNG'İN SERVETİ",
+   "trt": "1994-0338-1-0000-00-1",
+   "yonetmen": [
+    "TOM LOGAN"
+   ]
+  },
+  {
+   "title": "LA BOHEME",
+   "trt": "1988-0420-1-0000-00-1",
+   "yonetmen": [
+    "LUIGI COMENCINI"
+   ]
+  },
+  {
+   "title": "LALELER",
+   "trt": "1988-0430-1-0000-00-1",
+   "yonetmen": [
+    "STAN FERRIS"
+   ]
+  },
+  {
+   "title": "LAUREL HARDY",
+   "trt": "1942-0020-1-0000-00-1",
+   "yonetmen": [
+    "ALFRED WERKER"
+   ]
+  },
+  {
+   "title": "LENI REIFENSTAHL'IN KORKUNÇ MUHTEŞEM YAŞAMI",
+   "trt": "1993-0437-1-0000-00-1",
+   "yonetmen": [
+    "Ray Müller"
+   ]
+  },
+  {
+   "title": "MANASLU",
+   "trt": "2001-9318-1-0000-00-1",
+   "yonetmen": [
+    "Bernd Seidel"
+   ]
+  },
+  {
+   "title": "MELEKLERİ GÖRMEK İSTEDİM",
+   "trt": "1992-0455-1-0000-00-1",
+   "yonetmen": [
+    "SERGEY BODROV"
+   ]
+  },
+  {
+   "title": "MEVLANA AŞKIN DANSI",
+   "trt": "2008-9046-1-0000-88-1",
+   "yonetmen": [
+    "KÜRŞAT KIZBAZ"
+   ]
+  },
+  {
+   "title": "MOTORSİKLETLİ POLİSLER",
+   "trt": "2000-0303-1-0000-00-1",
+   "yonetmen": [
+    "CARMEN KURZ"
+   ]
+  },
+  {
+   "title": "MURPHY KANUNLARI 2",
+   "trt": "2005-9051-1-0000-00-1",
+   "yonetmen": [
+    "PETER LYDON"
+   ]
+  },
+  {
+   "title": "MİRAS",
+   "trt": "2010-9280-1-0000-88-1",
+   "yonetmen": [
+    "OZEL CTEKT"
+   ]
+  },
+  {
+   "title": "NİNJA KAPLUMBAĞALAR",
+   "trt": "2016-2213-1-0000-90-1",
+   "yonetmen": [
+    "SEAN MACKENZIE",
+    "MARCEL MARTINEZ",
+    "MATT MITCHELL",
+    "CHRIS F. MOORE",
+    "JEAN-BAPTISTE NOYAU",
+    "MARK OSBORNE",
+    "RICHARD OWEN",
+    "DAVID PATE",
+    "CHRISTOPHER POTTER",
+    "MOHAMMAD RASTKAR",
+    "ANTHONY RIZZO",
+    "EDWIN SCHAAP",
+    "SAM STEWART",
+    "ALEX",
+    "MICHAEL WARE",
+    "DANIEL WARREN",
+    "MIKE WHITE",
+    "ANDY WONG",
+    "DEAN YURKE"
+   ]
+  },
+  {
+   "title": "OMAGGIO A CARUSO",
+   "trt": "1997-0411-1-0000-00-1",
+   "yonetmen": [
+    "KENJI MIZOGUCHI"
+   ]
+  },
+  {
+   "title": "ONDAN UZAKTA",
+   "trt": "2006-9175-1-0000-00-1",
+   "yonetmen": [
+    "ERNST KETTLER"
+   ]
+  },
+  {
+   "title": "PAMUK MARY",
+   "trt": "1999-0508-1-0000-00-1",
+   "yonetmen": [
+    "ISMAIL MERCHANT"
+   ]
+  },
+  {
+   "title": "PARİS'İN DIAGHILEV İLE DANSI",
+   "trt": "1991-0355-1-0000-00-1",
+   "yonetmen": [
+    "COLIN NEARS"
+   ]
+  },
+  {
+   "title": "PEPPER VE ARABASI",
+   "trt": "1972-0336-1-0000-00-1",
+   "yonetmen": [
+    "AVCO EMBASSY"
+   ]
+  },
+  {
+   "title": "PERCY JACKSON-ŞİMŞEK HIRSIZI",
+   "trt": "2010-9169-1-0000-90-1",
+   "yonetmen": [
+    "CHRIS COLUMBUS"
+   ]
+  },
+  {
+   "title": "PUNKTCHEN VE ANTON",
+   "trt": "1999-0383-1-0000-00-1",
+   "yonetmen": [
+    "CAROLINE LINK"
+   ]
+  },
+  {
+   "title": "RED KIT BATIYA HÜCUM",
+   "trt": "2007-9074-1-0000-00-1",
+   "yonetmen": [
+    "OLIVIER JEAN-MARIE"
+   ]
+  },
+  {
+   "title": "REKABET",
+   "trt": "1983-0234-1-0000-00-1",
+   "yonetmen": [
+    "FRANZ MARX"
+   ]
+  },
+  {
+   "title": "RENE",
+   "trt": "2002-9246-1-0000-00-1",
+   "yonetmen": [
+    "Alain Cavalier"
+   ]
+  },
+  {
+   "title": "ROBOCOP KARA ADALET",
+   "trt": "2002-9173-1-0000-00-1",
+   "yonetmen": [
+    "JULIAN GRANT"
+   ]
+  },
+  {
+   "title": "SAVAŞTAN DÖNÜŞ",
+   "trt": "1996-0368-1-0000-00-1",
+   "yonetmen": [
+    "BUS DEPOT"
+   ]
+  },
+  {
+   "title": "SESSİZ AMERİKALI",
+   "trt": "2002-9241-1-0000-00-1",
+   "yonetmen": [
+    "ND UNIT"
+   ]
+  },
+  {
+   "title": "SHAOLIN",
+   "trt": "2011-9175-1-0000-90-1",
+   "yonetmen": [
+    "Benny Chan"
+   ]
+  },
+  {
+   "title": "SISSI-1",
+   "trt": "1990-0390-1-0000-00-1",
+   "yonetmen": [
+    "ERNST MARISCHKA"
+   ]
+  },
+  {
+   "title": "SON TANIK",
+   "trt": "1999-0483-1-0000-00-1",
+   "yonetmen": [
+    "GRAEME CLIFFORD"
+   ]
+  },
+  {
+   "title": "TAKKELİ MELEK",
+   "trt": "1978-0227-1-0000-00-1",
+   "yonetmen": [
+    "GREG MCLEAN"
+   ]
+  },
+  {
+   "title": "TOPLU GÖSTERİLER",
+   "trt": "1990-0403-1-0000-00-1",
+   "yonetmen": [
+    "DAVID SWIFT"
+   ]
+  },
+  {
+   "title": "UFAKLIK İÇİN BİR BABA",
+   "trt": "2003-9104-1-0000-00-1",
+   "yonetmen": [
+    "Peter Kahane"
+   ]
+  },
+  {
+   "title": "UTANMAZ ADAM",
+   "trt": "1961-0005-1-000-00-1",
+   "yonetmen": [
+    "Abdurrahman Palay"
+   ]
+  },
+  {
+   "title": "VAHŞİ ORMAN",
+   "trt": "1994-0316-1-0000-00-1",
+   "yonetmen": [
+    "RANDY BROWN",
+    "KEVIN STEWART",
+    "DAVE PORTER",
+    "BRIAN WHITE",
+    "TONY VERNA",
+    "CHRIS HINTON",
+    "ANDY MYERS"
+   ]
+  },
+  {
+   "title": "VANYA DAYI",
+   "trt": "1989-0476-1-0000-00-1",
+   "yonetmen": [
+    "Yevgeniy MAKAROV"
+   ]
+  },
+  {
+   "title": "VİDEO OYUNU",
+   "trt": "1986-0240-1-0000-00-1",
+   "yonetmen": [
+    "Walter Deuber",
+    "Peter Stierlin"
+   ]
+  },
+  {
+   "title": "YA NASİP YA KISMET",
+   "trt": "2015-0138-1-0000-85-1",
+   "yonetmen": [
+    "GOKMEN TOSUN"
+   ]
+  },
+  {
+   "title": "YAPRAK BİTTİ",
+   "trt": "1991-0406-1-0000-40-1",
+   "yonetmen": [
+    "Claudia Prietzel"
+   ]
+  },
+  {
+   "title": "YARATILAN KADIN",
+   "trt": "1982-0271-1-0000-00-1",
+   "yonetmen": [
+    "CHARLES WALTERS"
+   ]
+  },
+  {
+   "title": "YARGIÇ VE POLİS",
+   "trt": "1992-0324-0-0001-00-1",
+   "yonetmen": [
+    "Alain BONNOT"
+   ]
+  },
+  {
+   "title": "ZAMAN VE RÜZGAR",
+   "trt": "1990-0336-1-0000-00-1",
+   "yonetmen": [
+    "WALTER CAMPOS",
+    "DENISE SARACENI"
+   ]
+  },
+  {
+   "title": "ZERK'İN HİKAYESİ",
+   "trt": "1991-0469-1-0000-00-1",
+   "yonetmen": [
+    "Gene McPherson"
+   ]
+  },
+  {
+   "title": "ÇÖL ASLANI",
+   "trt": "1987-1235-1-0000-00-1",
+   "yonetmen": [
+    "MOUSTAPHA AKKAD"
+   ]
+  },
+  {
+   "title": "ÖLÜM VURUŞU",
+   "trt": "1971-0079-1-0000-40-1",
+   "yonetmen": [
+    "HENRY HATHAWAY"
+   ]
+  },
+  {
+   "title": "ÖNEM DERECESİ",
+   "trt": "1991-0495-1-0000-00-1",
+   "yonetmen": [
+    "AMY SHAPIRO"
+   ]
+  },
+  {
+   "title": "ÖRGÜT",
+   "trt": "1997-0217-1-0000-00-1",
+   "yonetmen": [
+    "UGO FABRIZIO GIORDANI"
+   ]
+  },
+  {
+   "title": "ÜÇ KURUŞLUK OPERA",
+   "trt": "1995-0289-1-0000-00-1",
+   "yonetmen": [
+    "JIŘÍ MENZEL"
+   ]
+  },
+  {
+   "title": "İHTİRAS CİNAYETİ",
+   "trt": "2003-9048-1-0000-00-1",
+   "yonetmen": [
+    "Bill L. Norton"
+   ]
+  },
+  {
+   "title": "İKİ SEVGİLİM VAR",
+   "trt": "1996-0330-1-0000-00-1",
+   "yonetmen": [
+    "CAROLINE HUPPERT"
+   ]
+  },
+  {
+   "title": "İKİNCİ ŞANS",
+   "trt": "1992-0465-1-0000-00-1",
+   "yonetmen": [
+    "REUBEN ROSE"
+   ]
+  },
+  {
+   "title": "İNTİKAM",
+   "trt": "2001-9194-1-0000-00-1",
+   "yonetmen": [
+    "KJELL SUNDVALL"
+   ]
+  },
+  {
+   "title": "İSYAN",
+   "trt": "2004-9094-1-0000-00-1",
+   "yonetmen": [
+    "GULZAR"
+   ]
+  },
+  {
+   "title": "İŞTE BIRD",
+   "trt": "1988-0425-1-0000-00-1",
+   "yonetmen": [
+    "Marc Huraux"
+   ]
+  },
+  {
+   "title": "ŞAMPİYONLAR",
+   "trt": "2008-9110-1-0000-90-1",
+   "yonetmen": [
+    "TRADITIONAL CHINESE MARTIAL ARTS"
+   ]
+  },
+  {
+   "title": "ŞEYTAN RUHLU İNSANLAR",
+   "trt": "1955-0046-1-0000-00-1",
+   "yonetmen": [
+    "H.G. CLOUZOT"
+   ]
+  }
+ ],
+ "kotulesenler": [
+  {
+   "title": "FERDİNAND",
+   "trt": "2025-1240-1-0000-90-1",
+   "ext": "OK"
+  },
+  {
+   "title": "GÜLE GÜLE JÜPİTER",
+   "trt": "1991-0544-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "HAROLD VE MAUDE",
+   "trt": "1971-0060-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "KANADA SALAMI",
+   "trt": "1995-0300-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "LELAND BİRLEŞİK DEVLETLERİ",
+   "trt": "2005-9174-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "NAPOLYON",
+   "trt": "1988-0308-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "SÜPER FOK",
+   "trt": "1975-0226-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "TEK PATİ",
+   "trt": "1994-0323-1-0000-00-1",
+   "ext": "OK"
+  },
+  {
+   "title": "YÜZÜKLERİN EFENDİSİ",
+   "trt": "2001-9135-1-0000-90-1",
+   "ext": "OK"
+  },
+  {
+   "title": "ŞİRKET İLİŞKİLERİ",
+   "trt": "1990-0521-1-0000-00-1",
+   "ext": "OK"
+  }
+ ]
+}

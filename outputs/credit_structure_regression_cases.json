@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "description": "Independent regression cases for OCR temporal credit structure, role parsing, and strict person gate checks.",
+  "cases": [
+    {
+      "id": "vahsi_sevgili_static_cards",
+      "title_tr": "VAHŞİ SEVGİLİ",
+      "original_title": "Savage Messiah",
+      "year": 1972,
+      "frames_dir": "E:/MITAS/Database/VAHŞİ SEVGİLİ 1972-0342-1-0000-00-1/frames/cikis_fb",
+      "start": 201,
+      "end": 380,
+      "expected_roles": {
+        "yonetmen": ["KEN RUSSELL"],
+        "yapimci": ["KEN RUSSELL"],
+        "senaryo_yazar": ["CHRISTOPHER LOGUE"],
+        "oyuncular": [
+          "DOROTHY TUTIN",
+          "SCOTT ANTONY",
+          "HELEN MIRREN",
+          "MICHAEL GOUGH",
+          "LINDSAY KEMP",
+          "AUBREY RICHARDS",
+          "JOHN JUSTIN",
+          "PETER VAUGHAN",
+          "ELEANOR FAZAN",
+          "BEN ARIS",
+          "IMOGEN CLAIRE",
+          "OTTO DIAMANT",
+          "SUSANNA EAST",
+          "MAGGY MAXWELL",
+          "JUDITH PARIS",
+          "ROBERT LANG"
+        ]
+      },
+      "must_not_include": [
+        "H.S.EDE",
+        "H.S. EDE",
+        "Gosh Boyle",
+        "Sophie Brzeska",
+        "Henri Gaudier",
+        "Museum Attendant",
+        "Major Boyle",
+        "HARRY BENN",
+        "MICHAEL GARRETT",
+        "SHIRLEY RUSSELL",
+        "GEORGE LACK",
+        "DEREK JARMAN"
+      ],
+      "expected_events": [
+        {
+          "id": "produced_directed",
+          "type": "static_card",
+          "frame_start": "c_0221.png",
+          "frame_end": "c_0230.png",
+          "must_contain": ["Produced and Directed by", "KEN RUSSELL"]
+        },
+        {
+          "id": "screenplay",
+          "type": "static_card",
+          "frame_start": "c_0232.png",
+          "frame_end": "c_0246.png",
+          "must_contain": ["Screenplay by", "CHRISTOPHER LOGUE"]
+        },
+        {
+          "id": "dorothy_tutin",
+          "type": "static_card",
+          "frame_start": "c_0247.png",
+          "frame_end": "c_0257.png",
+          "must_contain": ["DOROTHY TUTIN", "Sophie Brzeska"]
+        },
+        {
+          "id": "robert_lang",
+          "type": "static_card",
+          "frame_start": "c_0321.png",
+          "frame_end": "c_0328.png",
+          "must_contain": ["ROBERT LANG", "Major Boyle"]
+        }
+      ],
+      "gate_pools": {
+        "director": ["KEN RUSSELL"],
+        "producer": ["KEN RUSSELL"],
+        "writer": ["CHRISTOPHER LOGUE"],
+        "cast": [
+          "DOROTHY TUTIN",
+          "SCOTT ANTONY",
+          "HELEN MIRREN",
+          "MICHAEL GOUGH",
+          "LINDSAY KEMP",
+          "AUBREY RICHARDS",
+          "JOHN JUSTIN",
+          "PETER VAUGHAN",
+          "ELEANOR FAZAN",
+          "BEN ARIS",
+          "IMOGEN CLAIRE",
+          "OTTO DIAMANT",
+          "SUSANNA EAST",
+          "MAGGY MAXWELL",
+          "JUDITH PARIS",
+          "ROBERT LANG"
+        ]
+      }
+    }
+  ],
+  "fuzzy_gate_tests": [
+    {
+      "id": "one_letter_fix_cast",
+      "role": "cast",
+      "input": "CHUCK CONNONS",
+      "pool": ["CHUCK CONNORS"],
+      "expected_action": "FUZZY_DUZELDI",
+      "expected_output": "CHUCK CONNORS"
+    },
+    {
+      "id": "one_letter_fix_director",
+      "role": "director",
+      "input": "KEN RUSELL",
+      "pool": ["KEN RUSSELL"],
+      "expected_action": "FUZZY_DUZELDI",
+      "expected_output": "KEN RUSSELL"
+    },
+    {
+      "id": "single_token_drop",
+      "role": "cast",
+      "input": "AHMET",
+      "pool": ["AHMET YILMAZ"],
+      "expected_action": "DUSTU",
+      "expected_output": null
+    },
+    {
+      "id": "too_far_drop",
+      "role": "writer",
+      "input": "CHRL TOPHERLOGUE",
+      "pool": ["CHRISTOPHER LOGUE"],
+      "expected_action": "DUSTU",
+      "expected_output": null
+    },
+    {
+      "id": "exact_pass",
+      "role": "cast",
+      "input": "HELEN MIRREN",
+      "pool": ["HELEN MIRREN"],
+      "expected_action": "GECTI",
+      "expected_output": "HELEN MIRREN"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+<title>vLLM Video-Girdi Jenerik Deneyi — MITAS</title>
+<style>
+  :root{
+    --bg:#16130e; --surface:#201c14; --surface2:#282217; --line:#3a3222;
+    --text:#ece4d2; --muted:#a39678; --accent:#e8a33d; --accent-ink:#16130e;
+    --good:#8fbf6f; --warn:#d97f4a; --bad:#cf6157; --mono:ui-monospace,'Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f4efe4; --surface:#fbf8f0; --surface2:#efe8d8; --line:#d8cdb2;
+      --text:#292317; --muted:#7c7057; --accent:#a86b14; --accent-ink:#fff;
+      --good:#4c7a33; --warn:#b05a20; --bad:#a43d34; }
+  }
+  :root[data-theme="dark"]{
+    --bg:#16130e; --surface:#201c14; --surface2:#282217; --line:#3a3222;
+    --text:#ece4d2; --muted:#a39678; --accent:#e8a33d; --accent-ink:#16130e;
+    --good:#8fbf6f; --warn:#d97f4a; --bad:#cf6157;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4efe4; --surface:#fbf8f0; --surface2:#efe8d8; --line:#d8cdb2;
+    --text:#292317; --muted:#7c7057; --accent:#a86b14; --accent-ink:#fff;
+    --good:#4c7a33; --warn:#b05a20; --bad:#a43d34;
+  }
+  html{background:var(--bg)}
+  body{background:var(--bg); color:var(--text); font:16px/1.65 system-ui,-apple-system,'Segoe UI',sans-serif;
+       margin:0; padding:0 20px 80px;}
+  .sayfa{max-width:880px; margin:0 auto;}
+  /* ---- jenerik-hero: sinema kapanış kartı ---- */
+  .perde{background:#000; color:#f2ecdf; border-radius:6px; margin:28px 0 40px; padding:56px 24px 48px;
+         text-align:center; border:1px solid var(--line);}
+  .perde .ust{font-size:12px; letter-spacing:.35em; text-transform:uppercase; color:#b8ab8d; margin-bottom:18px;}
+  .perde h1{font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(26px,4.6vw,40px);
+            letter-spacing:.08em; margin:0 0 10px; text-wrap:balance;}
+  .perde .alt{font-size:13px; letter-spacing:.22em; text-transform:uppercase; color:#cfc3a4;}
+  .perde .rol{display:flex; justify-content:center; gap:14px; margin-top:26px; flex-wrap:wrap;}
+  .perde .rol span{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#8f8468;}
+  .perde .rol b{font-size:12px; letter-spacing:.14em; color:#e8a33d; font-weight:600;}
+  h2{font-size:13px; letter-spacing:.24em; text-transform:uppercase; color:var(--accent);
+     border-bottom:1px solid var(--line); padding-bottom:8px; margin:46px 0 18px;}
+  p{max-width:66ch;}
+  .vurgu{color:var(--accent); font-weight:600;}
+  /* ---- kutular ---- */
+  .kutu{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:18px 20px; margin:14px 0;}
+  .satirlar{display:grid; gap:8px;}
+  .olcum{display:flex; gap:16px; align-items:baseline; flex-wrap:wrap;}
+  .olcum .k{font-family:var(--mono); font-size:26px; color:var(--accent); font-variant-numeric:tabular-nums;}
+  .olcum .a{font-size:13px; color:var(--muted);}
+  /* ---- kredi-listesi (okuma örnekleri, gerçek jenerik dizgisi gibi) ---- */
+  .kredi{background:#000; color:#efe8d8; border-radius:6px; padding:26px 18px; border:1px solid var(--line);}
+  .kredi .blokbaslik{text-align:center; font-size:11px; letter-spacing:.3em; text-transform:uppercase;
+                     color:#a99a76; margin-bottom:16px;}
+  .kredi .cift{display:grid; grid-template-columns:1fr 1fr; gap:4px 22px; max-width:560px; margin:0 auto;}
+  .kredi .rolAd{ text-align:right; font-size:13px; color:#a99a76; letter-spacing:.04em;}
+  .kredi .kisi{ text-align:left; font-size:13px; letter-spacing:.06em;}
+  .kredi .tek{ text-align:center; font-size:13px; letter-spacing:.12em; line-height:2;}
+  .not{font-size:13px; color:var(--muted); margin-top:8px;}
+  /* ---- tablolar ---- */
+  .tasar{overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; font-size:14px;}
+  th{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); text-align:left;
+     border-bottom:1px solid var(--line); padding:8px 12px 6px;}
+  td{padding:8px 12px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums;}
+  td.mono{font-family:var(--mono); font-size:13px;}
+  .ok{color:var(--good); font-weight:600;} .hata{color:var(--bad); font-weight:600;} .uyari{color:var(--warn); font-weight:600;}
+  /* ---- engel zinciri ---- */
+  .zincir{display:grid; gap:0; margin:10px 0;}
+  .halka{display:grid; grid-template-columns:26px 1fr; gap:14px; padding:10px 4px;}
+  .halka + .halka{border-top:1px dashed var(--line);}
+  .isaret{width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+          font-size:12px; font-weight:700; margin-top:2px;}
+  .isaret.c{background:var(--good); color:var(--bg);} .isaret.x{background:var(--bad); color:#fff;}
+  .halka .baslik{font-weight:600; font-size:14px;}
+  .halka .aciklama{font-size:13px; color:var(--muted); max-width:70ch;}
+  .halka .fix{font-family:var(--mono); font-size:12.5px; color:var(--accent);}
+  /* ---- reçete ---- */
+  .recete{background:var(--surface2); border-left:3px solid var(--accent); border-radius:0 6px 6px 0;
+          padding:16px 20px; font-size:14.5px;}
+  .recete code{font-family:var(--mono); font-size:13px; background:var(--surface); padding:1px 6px; border-radius:4px;}
+  .dipnot{font-size:12.5px; color:var(--muted); margin-top:40px; border-top:1px solid var(--line); padding-top:14px;}
+  .iki{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:640px){ .iki{grid-template-columns:1fr;} .kredi .cift{grid-template-columns:1fr; text-align:center;} .kredi .rolAd{text-align:center;} .kredi .kisi{text-align:center;} }
+</style>
+<div class="sayfa">
+
+  <div class="perde">
+    <div class="ust">MITAS · bare-metal Linux · RTX 3090</div>
+    <h1>vLLM'e Film Jeneriği İzlettik</h1>
+    <div class="alt">mp4 dosyası girdi &nbsp;·&nbsp; Qwen2.5-VL-7B &nbsp;·&nbsp; Akıl Oyunları (2001)</div>
+    <div class="rol">
+      <span>video</span><b>400 saniye kapanış jeneriği</b>
+      <span>aracı</span><b>yok — ollama yok, transformers yok</b>
+    </div>
+  </div>
+
+  <h2>Sonuç — mp4 dosyası verildi, isimler geldi</h2>
+  <div class="kutu">
+    <div class="olcum">
+      <span><span class="k">4/4</span> <span class="a">parça okundu</span></span>
+      <span><span class="k">~5,2 dk</span> <span class="a">toplam süre (400 sn jenerik)</span></span>
+      <span><span class="k">14.474</span> <span class="a">token/parça — örnekleme model tarafında</span></span>
+    </div>
+  </div>
+
+  <div class="kredi">
+    <div class="blokbaslik">Parça 1 · ana kartlar — modelin okuduğu (birebir)</div>
+    <div class="tek">
+      RON HOWARD · AKIVA GOLDSMAN · BRIAN GRAZER<br>
+      RUSSELL CROWE · ED HARRIS · JENNIFER CONNELLY · PAUL BETTANY<br>
+      ROGER DEAKINS, A.S.C., B.S.C. · WYNN THOMAS · MIKE HILL · DAN HANLEY<br>
+      JAMES HORNER · WILL JENNINGS · CHARLOTTE CHURCH · SYLVIA NASAR
+    </div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div class="kredi">
+    <div class="blokbaslik">Parça 2 · rol → oyuncu eşleşmeleri (kayan jenerikten)</div>
+    <div class="cift">
+      <div class="rolAd">John Nash</div><div class="kisi">Russell Crowe</div>
+      <div class="rolAd">Alicia</div><div class="kisi">Jennifer Connelly</div>
+      <div class="rolAd">Dr. Rosen</div><div class="kisi">Adam Goldberg*</div>
+      <div class="rolAd">Co-Producer</div><div class="kisi">Maureen Peyrot</div>
+      <div class="rolAd">Associate Producers</div><div class="kisi">Aldric La'Auli Porter · Louisa Velis</div>
+    </div>
+    <div class="not" style="text-align:center">* düşük çözünürlükte küçük isimlerde tırtıklanma var: "Jason Groot Stanford" (doğrusu Gray-Stanford) gibi — bu yüzden bu hat <b>aday-üretici</b>, otorite değil.</div>
+  </div>
+
+  <h2>Soru 1 — kare sıklığı ne kadar artar?</h2>
+  <div class="tasar"><table>
+    <tr><th>Kare (60 sn pencere)</th><th>FPS</th><th>Prompt token</th><th>Süre</th><th>Durum</th></tr>
+    <tr><td>12</td><td>0,20</td><td class="mono">2.533</td><td>142 s</td><td class="ok">✓</td></tr>
+    <tr><td>30</td><td>0,50</td><td class="mono">6.178</td><td>135 s</td><td class="ok">✓</td></tr>
+    <tr><td>60</td><td>1,00</td><td class="mono">12.253</td><td>142 s</td><td class="ok">✓</td></tr>
+  </table></div>
+  <p class="not">768px'te kare başı ≈ <b>205 token</b>. Süre kare sayısıyla değil üretim uzunluğuyla belirleniyor — yani sıklığı artırmak neredeyse bedava; sınır context.</p>
+
+  <h2>Soru 2 — en fazla kaç dakika video?</h2>
+  <div class="tasar"><table>
+    <tr><th>Çözünürlük</th><th>Token/kare</th><th>32k context'e sığan</th><th>Tek atış video</th></tr>
+    <tr><td>Sunucu varsayılanı</td><td class="mono">~490</td><td>~65 kare</td><td class="uyari">~1 dk @1fps</td></tr>
+    <tr><td>768px</td><td class="mono">~205</td><td>~130 kare</td><td>~2 dk @1fps · ~4 dk @0,5fps</td></tr>
+    <tr><td>~420px (max_pixels)</td><td class="mono">~36</td><td>~500+ kare</td><td class="ok">8+ dk @1fps</td></tr>
+  </table></div>
+  <p class="not">Denendi: 400 sn @0,5fps @768px = <span class="hata">40.560 token — SIĞMADI</span>. Kural: <b>çözünürlük × süre = sabit bütçe</b>. Tam jenerik tek atışta ancak düşük çözünürlükte girer; kalite için doğru desen <b>100 sn'lik mp4 parçaları</b>.</p>
+
+  <h2>Engel zinciri — her biri tek tek düşürüldü</h2>
+  <div class="zincir">
+    <div class="halka"><div class="isaret x">✕</div><div>
+      <div class="baslik">Kart karıştırma (ilk okuma)</div>
+      <div class="aciklama">İki kartın satırları kaynaştı ("Bayonne" + "Artists Rights Society" tek uydurma satır oldu).</div>
+      <div class="fix">fix → kare-bölümlü prompt: "--- Kare N ---" · kartlar temiz ayrıştı</div>
+    </div></div>
+    <div class="halka"><div class="isaret x">✕</div><div>
+      <div class="baslik">195.910 token (mp4 tam, varsayılan örnekleme)</div>
+      <div class="aciklama">Sunucu 400 kareyi yüksek çözünürlükte aldı; 32k context'in 6 katı.</div>
+      <div class="fix">fix → --mm-processor-kwargs '{"max_pixels": 125440}'</div>
+    </div></div>
+    <div class="halka"><div class="isaret x">✕</div><div>
+      <div class="baslik">51-55k token (hâlâ taşıyor)</div>
+      <div class="aciklama">fps/num_frames ayarları örneklemeye işlemedi; dosya süresi kısalmalıydı.</div>
+      <div class="fix">fix → jeneriği 4 × 100 sn mp4 parçasına kes (girdi yine mp4)</div>
+    </div></div>
+    <div class="halka"><div class="isaret x">✕</div><div>
+      <div class="baslik">Encoder önbelleği 2.048 &lt; video 14.400</div>
+      <div class="aciklama">Context sığdı ama V1 motorunun çok-modlu encoder bütçesi küçük kaldı.</div>
+      <div class="fix">fix → --max-num-batched-tokens 20480</div>
+    </div></div>
+    <div class="halka"><div class="isaret c">✓</div><div>
+      <div class="baslik">4/4 parça okundu — 12,7 s + 3 × ~98 s</div>
+      <div class="aciklama">mp4 → vLLM OpenAI API (video_url) → isimler. Örnekleme tamamen model tarafında.</div>
+    </div></div>
+  </div>
+
+  <h2>Model kıyası — 19 model, aynı jenerik, aynı prompt</h2>
+  <div class="tasar"><table>
+    <tr><th>Model</th><th>Girdi</th><th>Süre</th><th>Kapsam</th><th>Etiketler</th><th>Uydurma-direnci</th><th>Hüküm</th></tr>
+    <tr><td><b>Qwen3-VL-8B</b> 🏆</td><td>gerçek mp4</td><td>9,7s</td><td class="ok">12/12 kart</td><td class="ok">✓ doğru</td><td class="ok">✓ geçti</td><td class="ok">ÜRETİM ADAYI #1</td></tr>
+    <tr><td><b>olmOCR-2-7B-FP8</b> 🥈</td><td>gerçek mp4</td><td>7,6s</td><td>iyi</td><td class="ok">✓</td><td class="ok">✓ en disiplinli</td><td class="ok">İkinci görüş adayı</td></tr>
+    <tr><td>Qwen2.5-VL-7B</td><td>gerçek mp4</td><td>8,6s</td><td>iyi</td><td class="ok">✓</td><td class="uyari">kalıp dayatınca uydurdu</td><td>Sağlam taban</td></tr>
+    <tr><td>qwen3-vl:30b (ollama)</td><td>12 kare</td><td>50s</td><td class="uyari">~5 kart</td><td class="ok">✓ (Deakins'i düzeltti)</td><td class="ok">✓</td><td>Kare-modunda iyi, video-modu OOM</td></tr>
+    <tr><td>qwen2.5vl:32b (ollama)</td><td>12 kare</td><td>34s</td><td class="uyari">~5 kart</td><td class="ok">✓ "(etiket yok)" dedi</td><td class="ok">✓ en dürüst</td><td>Kare-modu adayı</td></tr>
+    <tr><td>glm-ocr (üretim modu)</td><td>kare-başına</td><td>41s/12</td><td class="ok">tam</td><td class="ok">✓</td><td class="ok">✓</td><td class="uyari">Okuma kusursuz, self-talk post-filter ister</td></tr>
+    <tr><td>deepseek-ocr</td><td>kare-başına</td><td>17s/12</td><td>kısmi</td><td>—</td><td class="ok">✓</td><td>Yalnız "Free OCR." prompt'uyla</td></tr>
+    <tr><td>MiMo-VL-7B</td><td>gerçek mp4</td><td>4,9s</td><td class="hata">1 kart</td><td class="ok">✓</td><td class="ok">✓</td><td class="uyari">Susuyor (think-refleksi)</td></tr>
+    <tr><td>MiniCPM-V-4.5</td><td>gerçek mp4</td><td>8,3s</td><td>iyi</td><td class="ok">✓</td><td class="hata">✗ yönetmen UYDURDU</td><td class="hata">Diskalifiye (kimlik-çapası)</td></tr>
+    <tr><td>InternVL3.5-8B</td><td>gerçek mp4</td><td>66s</td><td>—</td><td>—</td><td class="hata">✗✗ isim+rol uydurma loop'u</td><td class="hata">Diskalifiye</td></tr>
+    <tr><td>Qwen2.5-Omni-7B</td><td>gerçek mp4</td><td>20s</td><td class="hata">0</td><td>—</td><td>—</td><td class="hata">OCR yapmıyor, betimliyor</td></tr>
+    <tr><td>Qwen3-VL-30B/32B-AWQ · Qwen3-Omni-30B · Kimi-VL · ERNIE-VL · GLM-4.1V · Nemotron-FP8 · LLaVA-OV-1.5</td><td colspan="5">—</td><td class="hata">3090'da video-modu: sığmıyor / desteksiz (gerekçeler raporda)</td></tr>
+  </table></div>
+  <p class="not">Turnusol: etiketsiz cast kartına etiket uyduran model künye işinde elenir (OCR-otorite kanunu). Tam metinler: /opt/mitas/outputs/VL_KIYAS_JENERIK_20260716.md (819 satır).</p>
+
+  <h2>Üretim reçetesi</h2>
+  <div class="recete">
+    <b>jenerik.mp4 → 100 sn parçalar → vLLM <code>video_url</code> → kare-bölümlü okuma → MITAS dedup + iki-sütun ayrıştırma</b><br><br>
+    · Rolü: <b>aday-üretici / kurtarma hattı</b> — OCR-otorite kanunu korunur (Paddle/GLM birincil kalır)<br>
+    · Mevcut koda giriş noktası hazır: <code>_pipe_dilim_vl.py --backend openai</code> aynı sunucuya bağlanıyor<br>
+    · Maliyet: ~5 dk/film (7B model, enforce-eager; CUDA-graph açılırsa düşer)<br>
+    · Video-okuyucu seçimi (kıyas sonucu): birincil <code>Qwen3-VL-8B</code>, ikinci görüş <code>olmOCR-2-7B-FP8</code>
+  </div>
+
+  <div class="dipnot">
+    Dosyalar: /opt/mitas/outputs/JENERIK_MP4_GIRDI_SONUC.md · JENERIK_VL_AKIL_OYUNLARI_20260716.md ·
+    jenerik_kesit_akiloyunlari.mp4 (+4 parça) · scriptler: /opt/mitas/kurulum/15-16_vllm_mp4_*.sh, vllm_jenerik_full.py<br>
+    MITAS bare-metal Linux göçünün ilk canlı VL-video deneyi — 16 Temmuz 2026.
+  </div>
+</div>

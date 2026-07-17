@@ -1,0 +1,60 @@
+=== IP-0 GOLDEN-BASELINE (kirli agac) ===
+tarih: 2026-07-10 23:50:23
+HEAD: e374cb59 fix(kunye): dot-leader "Karakter......OYUNCU" kredi kartinda kasa-kapisi (LAUREL HARDY koku)
+--- numstat ---
+warning: in the working copy of 'scripts/credit_qc_block.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/mitas_pipeline.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/rerender_pdf_only.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_credit_crew_leak_gate.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_credit_qc_block.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_tek_film_kunye_person_gate.py', LF will be replaced by CRLF the next time Git touches it
+20	1	OCR-worktree/pdf-mitas/poster_fetch.py
+39	1	scripts/credit_qc_block.py
+165	11	scripts/credit_text_read.py
+76	2	scripts/mitas_pipeline.py
+150	9	scripts/rerender_pdf_only.py
+125	2	scripts/tek_film_kunye.py
+54	0	tests/test_credit_crew_leak_gate.py
+82	0	tests/test_credit_qc_block.py
+68	0	tests/test_tek_film_kunye_person_gate.py
+
+=== GOLDEN KOSU 1/3 ===
+=== REGRESYON-GOLDEN (künye-okuma) ===
+  PASS TOPLU GÖSTERİLER       bekle=Minnelli       → Vincente Minnelli            | çok-varyant fuzzy: garble→KB-kanonik
+  PASS CENNETE GELDİK Mİ      bekle=Caldana        → Carl Caldana                 | fabrikasyon-freni: temiz KB-yok isim korunur
+  FAIL BAŞKAN VE MARI         bekle=Rochefoucauld  → (boş)                        | FR MISE EN SCENE + soy-bağlaç token-cap
+  PASS TILSIMLI DÜNYA         bekle=(boş)          → (boş)                        | dublaj-freni: yön boş kalmalı
+  PASS HALIFAX                bekle=Cameron        → Ken Cameron                  | devised-by fren + normal dolu
+  PASS BUZDAN GELEN SESLER    bekle=Johnson        → Dale Johnson                 | rescue: DIRECTED & PHOTOGRAPHED kombine
+  PASS ANGOLA'DAN KAÇIŞ       bekle=Martinson      → Leslie Martinson             | orta/baş-harf toleransı: ekran 'Leslie Martinson' → KB 'Leslie H. Martinson' köprü
+
+=== SONUÇ: 6/7 — REGRESYON VAR!
+
+=== GOLDEN KOSU 2/3 ===
+=== REGRESYON-GOLDEN (künye-okuma) ===
+  FAIL TOPLU GÖSTERİLER       bekle=Minnelli       → VincenTe Minnati             | çok-varyant fuzzy: garble→KB-kanonik
+  PASS CENNETE GELDİK Mİ      bekle=Caldana        → Carl Caldana                 | fabrikasyon-freni: temiz KB-yok isim korunur
+  FAIL BAŞKAN VE MARI         bekle=Rochefoucauld  → (boş)                        | FR MISE EN SCENE + soy-bağlaç token-cap
+  PASS TILSIMLI DÜNYA         bekle=(boş)          → (boş)                        | dublaj-freni: yön boş kalmalı
+  PASS HALIFAX                bekle=Cameron        → Ken Cameron                  | devised-by fren + normal dolu
+  PASS BUZDAN GELEN SESLER    bekle=Johnson        → Dale Johnson                 | rescue: DIRECTED & PHOTOGRAPHED kombine
+  PASS ANGOLA'DAN KAÇIŞ       bekle=Martinson      → Leslie Martinson             | orta/baş-harf toleransı: ekran 'Leslie Martinson' → KB 'Leslie H. Martinson' köprü
+
+=== SONUÇ: 5/7 — REGRESYON VAR!
+
+=== GOLDEN KOSU 3/3 ===
+=== REGRESYON-GOLDEN (künye-okuma) ===
+  FAIL TOPLU GÖSTERİLER       bekle=Minnelli       → VincenTe Minnati             | çok-varyant fuzzy: garble→KB-kanonik
+  PASS CENNETE GELDİK Mİ      bekle=Caldana        → Carl Caldana                 | fabrikasyon-freni: temiz KB-yok isim korunur
+  FAIL BAŞKAN VE MARI         bekle=Rochefoucauld  → (boş)                        | FR MISE EN SCENE + soy-bağlaç token-cap
+  PASS TILSIMLI DÜNYA         bekle=(boş)          → (boş)                        | dublaj-freni: yön boş kalmalı
+  PASS HALIFAX                bekle=Cameron        → Ken Cameron                  | devised-by fren + normal dolu
+  PASS BUZDAN GELEN SESLER    bekle=Johnson        → Dale Johnson                 | rescue: DIRECTED & PHOTOGRAPHED kombine
+  PASS ANGOLA'DAN KAÇIŞ       bekle=Martinson      → Leslie Martinson             | orta/baş-harf toleransı: ekran 'Leslie Martinson' → KB 'Leslie H. Martinson' köprü
+
+=== SONUÇ: 5/7 — REGRESYON VAR!
+
+=== PYTEST (hedefli) ===
+........................................................................ [ 97%]
+..                                                                       [100%]
+74 passed in 25.52s

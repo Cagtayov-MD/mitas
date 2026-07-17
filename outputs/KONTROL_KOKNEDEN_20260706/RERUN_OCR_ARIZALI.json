@@ -1,0 +1,352 @@
+{
+ "ocr_hata": [
+  [
+   "1967-0037",
+   "MUTLU GÜNLER",
+   "HATA",
+   0
+  ],
+  [
+   "1970-0061",
+   "BAHAR VE ŞARAP",
+   "HATA",
+   0
+  ],
+  [
+   "1971-0057",
+   "RODEO TUTKUSU",
+   "HATA",
+   0
+  ],
+  [
+   "1975-0182",
+   "BİR ZAMANLAR",
+   "HATA",
+   0
+  ],
+  [
+   "1984-0286",
+   "ALTIN VE ŞÖHRET",
+   "BOS",
+   0
+  ],
+  [
+   "1988-0420",
+   "LA BOHEME",
+   "HATA",
+   0
+  ],
+  [
+   "1988-0430",
+   "LALELER",
+   "HATA",
+   0
+  ],
+  [
+   "1991-0441",
+   "GÖLGELER PRENSİ",
+   "BOS",
+   0
+  ],
+  [
+   "1992-0223",
+   "KONTES ALICE",
+   "HATA",
+   0
+  ],
+  [
+   "1993-0312",
+   "ÖLÜMSÜZ TUCK",
+   "HATA",
+   0
+  ],
+  [
+   "1993-0439",
+   "SON BOLŞEVİK",
+   "HATA",
+   0
+  ],
+  [
+   "1994-0338",
+   "KİNG'İN SERVETİ",
+   "HATA",
+   0
+  ],
+  [
+   "1995-0444",
+   "KORKUNÇ GECE",
+   "BOS",
+   0
+  ],
+  [
+   "1996-0316",
+   "TANGO ARGENTINO",
+   "BOS",
+   0
+  ],
+  [
+   "1996-0356",
+   "SİNDİRELLA'NIN KIZININ MACERALARI",
+   "HATA",
+   0
+  ],
+  [
+   "1997-0217",
+   "ÖRGÜT",
+   "MOTOR_YOK",
+   0
+  ],
+  [
+   "1997-0353",
+   "KÜÇÜK AYICIK",
+   "HATA",
+   0
+  ],
+  [
+   "1998-0401",
+   "BLACKJACK",
+   "HATA",
+   0
+  ],
+  [
+   "1998-0464",
+   "ELMA",
+   "HATA",
+   0
+  ],
+  [
+   "1998-0519",
+   "SON CÜCE",
+   "HATA",
+   0
+  ],
+  [
+   "1999-0383",
+   "PUNKTCHEN VE ANTON",
+   "HATA",
+   0
+  ],
+  [
+   "1999-0394",
+   "13. SAVAŞÇI",
+   "MOTOR_YOK",
+   0
+  ],
+  [
+   "1999-0508",
+   "PAMUK MARY",
+   "HATA",
+   0
+  ],
+  [
+   "2000-0303",
+   "MOTORSİKLETLİ POLİSLER",
+   "HATA",
+   0
+  ],
+  [
+   "2001-9314",
+   "VAHŞİ AFRİKA",
+   "HATA",
+   0
+  ],
+  [
+   "2002-9089",
+   "YÜZÜKLERİN EFENDİSİ",
+   "BOS",
+   0
+  ],
+  [
+   "2003-9104",
+   "UFAKLIK İÇİN BİR BABA",
+   "HATA",
+   0
+  ],
+  [
+   "2004-9139",
+   "GÜLLERİN SAVAŞI",
+   "HATA",
+   0
+  ],
+  [
+   "2005-9051",
+   "MURPHY KANUNLARI 2",
+   "MOTOR_YOK",
+   0
+  ],
+  [
+   "2006-9063",
+   "KUMRULAR GİBİ",
+   "HATA",
+   0
+  ],
+  [
+   "2008-9064",
+   "ANNEM ANNEM",
+   "HATA",
+   0
+  ],
+  [
+   "2009-9137",
+   "KUSURSUZ BİR GÜN CENAZE TÖRENİ",
+   "HATA",
+   0
+  ],
+  [
+   "2010-9150",
+   "HANNA'NIN ALTINLARI",
+   "HATA",
+   0
+  ],
+  [
+   "2010-9169",
+   "PERCY JACKSON-ŞİMŞEK HIRSIZI",
+   "HATA",
+   0
+  ],
+  [
+   "2011-9209",
+   "EL GUSTO",
+   "HATA",
+   0
+  ],
+  [
+   "2018-9036",
+   "KRAL LEAR",
+   "HATA",
+   0
+  ]
+ ],
+ "ollama_llm_olu": [
+  [
+   "1967-0037",
+   "MUTLU GÜNLER",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1970-0061",
+   "BAHAR VE ŞARAP",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1971-0057",
+   "RODEO TUTKUSU",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1975-0182",
+   "BİR ZAMANLAR",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1988-0420",
+   "LA BOHEME",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1988-0430",
+   "LALELER",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1991-0356",
+   "TOPLU GÖSTERİLER",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1991-0356",
+   "TOPLU GÖSTERİLER",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1992-0223",
+   "KONTES ALICE",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1996-0356",
+   "SİNDİRELLA'NIN KIZININ MACERALARI",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1997-0217",
+   "ÖRGÜT",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1997-0353",
+   "KÜÇÜK AYICIK",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1998-0464",
+   "ELMA",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "1999-0394",
+   "13. SAVAŞÇI",
+   "OCR bucket=MOTOR_YOK QC1 başarısız (OCR+VL ikisi de RED — dü"
+  ],
+  [
+   "2000-0303",
+   "MOTORSİKLETLİ POLİSLER",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2001-9314",
+   "VAHŞİ AFRİKA",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2003-9104",
+   "UFAKLIK İÇİN BİR BABA",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2004-9139",
+   "GÜLLERİN SAVAŞI",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2005-9051",
+   "MURPHY KANUNLARI 2",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2006-9063",
+   "KUMRULAR GİBİ",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2008-9064",
+   "ANNEM ANNEM",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2009-9137",
+   "KUSURSUZ BİR GÜN CENAZE TÖRENİ",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2010-9150",
+   "HANNA'NIN ALTINLARI",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2010-9169",
+   "PERCY JACKSON-ŞİMŞEK HIRSIZI",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2011-9209",
+   "EL GUSTO",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ],
+  [
+   "2018-9036",
+   "KRAL LEAR",
+   "LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — "
+  ]
+ ]
+}

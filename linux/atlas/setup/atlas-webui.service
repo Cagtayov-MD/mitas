@@ -1,0 +1,16 @@
+[Unit]
+Description=ATLAS webui (vite dev, :8420, izole)
+After=network-online.target atlas-search.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/atlas/webui
+Environment="PATH=/usr/bin:/bin"
+ExecStart=/usr/bin/node node_modules/vite/bin/vite.js --host
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

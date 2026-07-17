@@ -1,0 +1,111 @@
+{
+  "summary": "Film-pipelining (hız #4) tasarımını 4-üyeli Opus konseyi tartışır: tezler → çapraz-ateş → sentez-şartname",
+  "agentCount": 4,
+  "logs": [],
+  "result": {
+    "sartname": "KONSEY SENTEZ — aşağıdaki şartname üç tezin hayatta kalan parçalarından kuruldu; tüm satır-referansları bu oturumda kaynak koddan yeniden doğrulandı (`asr_server.py` 230-298, 660-1021, 1616-1639; `mitas_pipeline.py` 1516-1800, 1850-2180).\n\n---\n\n# ŞARTNAME: FİLM-PIPELINING (Hız #4) — \"ÇÖZ-PREFETCH, DAR KESİM\"\n\n## 1) SEÇİLEN MİMARİ\n\n**Seçenek E (dar kesim): mevcut STAGING-PREFETCH thread'inin terfisi — film N tam-pipeline koşarken, film N+1 için YALNIZ deterministik-CPU çıkarımı (ffprobe + ÇIKIŞ-frame extract + ses extract) ayrı bir subprocess'te önden üret.** Ne credit_detect, ne giriş-extract, ne OCR, ne havuz, ne GPU front'a girer.\n\n**Yük-taşıyan kod gerçeği (E'yi mümkün kılan):** `mitas_pipeline.py:1708-1735` \"BAĞLAYICI ÇIKIŞ KARE SÖZLEŞMESİ\" — dedektör ne bulursa bulsun `_cik_start = _fixed_cik_start; _cik_len = _fixed_cik_len` koşulsuz dayatılır. Yani **çıkış-frame seti yalnız `dur_sec + args.ocr_tail + args.fps`'ten deterministiktir**, detect'e bağımlı DEĞİLDİR. Ses (`extract_audio`, 1751) de pencere-bağımsızdır. Bu ikisi byte-özdeş önden üretilebilir. GİRİŞ-extract ise detect-bağımlıdır (`_giris_start`/`head`, 1594-1615) → front'a alınamaz (byte-özdeşlik bozulur).\n\n**Reddedilenler (tek cümle):**\n- **A (geniş faz-bölme, detect+OCR dahil):** RED — coz-idempotent-guard kodda yok (extract_window 1747-1751 koşulsuz), giriş-penceresi detect-bağımlı, detect CLIP=GPU (ASR-valve geçiş-peak'iyle çakışma ölçümsüz), re-OCR yedeği (2082-2126) \"ASR hâlâ paralel\" varsayar.\n- **B (iki tam worker + GPU-mutex):** RED — `_gpu_lock` (235) TÜM pipeline'ı sarar (864-880): kilit kalırsa paralellik=0, kalkarsa GPU-çakışma; ayrıca tek-slot `_pipeline_proc`/`_flow_worker_proc` (236-238) iki child'ı takip edemez.\n- **C (pipeline kendi sonunda N+1'i tetikler):** RED — kuyruk-state iki yere sızar, crash-izolasyon ve Zorla-Durdur sahipsiz kalır.\n- **D (yapma):** RED DEĞİL, CANLI ÇIKIŞ KAPISI — Adım-0 ölçümü veya pilot eşiği tutmazsa hüküm D'dir ve Stage-2'ye (item #5) geçilir.\n\n**Akış:**\n```\n_flow_queue_worker_loop:\n  film N:  with _gpu_lock: Popen(mitas_pipeline.py --video N ...)      ← bugünkü gibi, DEĞİŞMEZ\n  aynı anda (kilitsiz, mevcut prefetch thread'inin devamı):\n    N+1 SMB→lokal kopya bitince →\n    Popen(mitas_pipeline.py --video N+1 <AYNI argümanlar> --phase front-only)\n      → clip_dir/frames/cikis + audio/audio16k.wav + clip_dir/_front.done (sentinel)\n  film N+1 sırası gelince: NORMAL tam koşu (--phase full, default).\n    ÇÖZ bloğunda guard: MITAS_FILM_PIPELINING=1 VE _front.done GEÇERLİ\n      → çıkış-extract + ses-extract ATLANIR (cache-hit loglanır); giriş-extract + detect NORMAL koşar.\n    Sentinel yok/geçersiz → front artıkları (frames/cikis, audio, sentinel) SİLİNİR + tam extract (fail-safe = bugün).\n```\n`--phase back` modu YOKTUR — tam koşu + sentinel-guard yeterlidir (daha az yüzey).\n\n**Sentinel içeriği (`_front.done`, JSON):** `{source_size, dur_sec, fps, ocr_tail, expected_frames, actual_frames, audio_ok, ts}`. Guard hepsini o anki koşunun değerleriyle karşılaştırır; PNG sayısı `_fixed_cik_expected` ile eşleşmezse geçersiz.\n\n## 2) GPU-KURALI\n\n| Sahne | Kilit/Kural |\n|---|---|\n| Film N tam-koşu (ASR+LLM+VL+qwen dahil) | `_gpu_lock` altında, bugünkü gibi (asr_server.py:864). N ve N+1 tam-koşuları ASLA örtüşmez. |\n| N+1 SMB kopya (mevcut prefetch) | Kilitsiz (bugünkü gibi). |\n| N+1 front-only (ffprobe+çıkış-extract+ses) | **Kilitsiz — GPU-SIZ YAPISAL GARANTİ:** front-only kod yolu yalnız `ffprobe_specs`, `exit_frame_contract`, `extract_window`, `extract_audio` çağırabilir. `_jenerik_detect.py`, `_pipe_ocr.py`, `_pipe_asr.py`, ollama'ya dokunan HERHANGİ bir çağrı front-only yolunda **kod-inceleme red kriteridir**. |\n| ASR↔ollama valve, keep_alive=15m resident | DEĞİŞMEZ (tek film içinde, tam-koşu serial olduğu için bugünkü davranış aynen). |\n\nGlobal GPU-mutex EKLENMEZ; ihtiyaç yapısal olarak ortadan kalkar (GPU'da her an en fazla bir film).\n\n## 3) CRASH-İZOLASYON + ZORLA-DURDUR\n\n- **Yeni global slot:** `_flow_front_proc` (asr_server.py, 236-238 yanına). Mevcut tek-slot ezme riski (869-870) front için tekrarlanmaz.\n- **İki endpoint birden düzeltilir** (Eleştirmen bulgusu): `/api/flow-queue/stop force` (1001-1015) VE `/api/pipeline/abort` (1616-1639) — her ikisi `(_flow_worker_proc, _pipeline_proc, _flow_front_proc)` slotlarının HEPSİNİ `_kill_proc_tree` (242) ile öldürür.\n- **Zorla-Durdur semantiği:** HER İKİ süreç ölür. N item → failed (\"ZORLA DURDURULDU\"), N+1 item → 'waiting' KALIR (statüsü zaten waiting'di), mesajı temizlenir. N+1'in yarım front artığı sentinel yazılmadığı için sonraki koşuda guard tarafından silinip full-coz yapılır. UI beklentisi: \"Zorla Durdur her şeyi durdurur\" — bugünkü beklenti korunur.\n- **Güvenli Dur (default):** front-proc'a dokunulmaz (kısa iş, biter, sentinel zararsız diskte kalır); yeni front başlatılmaz.\n- **Front çökmesi:** rc≠0 → sentinel yok → N+1 tam koşuda full-coz (davranış-özdeş). N'in tam-koşusu ayrı süreç, ETKİLENMEZ.\n- **Sıra-çakışması:** N+1'in sırası geldiğinde front-proc hâlâ canlıysa en fazla 30 sn `wait`; bitmezse kill-tree + guard-temizlik → full-coz. Deadlock imkânsız.\n- **error-1455 bekçisi (ZORUNLU):** front Popen'dan önce `psutil` ile kullanılabilir commit-charge kontrolü; `< MITAS_FRONT_MIN_COMMIT_GB` (default 8) ise front ATLANIR (kazanç 0, çökme 0). Mevcut disk-bekçisi deseni (714-716) front için de uygulanır. Front'un RAM ayak izi zaten küçüktür (yalnız ffmpeg; OneOCR front'ta YOK — E'nin ana avantajlarından).\n- **force=true etkileşimi:** hub rmtree (814) front-artığını da siler → israf ama bozulma yok; reused-skip temizliği (827-829) front artıklarını da kapsayacak şekilde genişletilir.\n\n## 4) TELEMETRİ / TAKİPÇİ UYUMU\n\n- Front-only **`media_imported` YAZMAZ** (çift-log önlenir); kendi olayları: `front_extract_started/completed/failed`, guard'da `front_cache_hit` / `front_cache_invalid` — hepsi aynı `media_id`/`filename` ile, `detail.phase=\"front\"`.\n- `dalga_takip.py` DEĞİŞMEZ: filename/media_id-bazlı gruplama interleave'e bağışıktır (her log_event media_id taşır — kanıtlı); yeni olay adları mevcut filtrelere görünmez, bilgi olarak eklenir.\n- **WebUI:** N+1 item statüsü **'waiting' KALIR** (kuyruk mantığı bozulmaz); yalnız `_flow_update_item(message=\"Ön-çözümleme (arka planda)…\")` yazılır. Tek \"running\" film illüzyonu korunur; `_flow_worker_current` (295) tek kalır. `clipId` running'e geçişte set edilir (bugünkü gibi, 835).\n\n## 5) KİLL-SWITCH'LER\n\n| Env | Default | =0 davranışı |\n|---|---|---|\n| `MITAS_FILM_PIPELINING` | **0** (pilot geçene kadar) | Worker front-Popen HİÇ başlatmaz + mitas_pipeline sentinel-guard HİÇ bakmaz → **birebir bugünkü davranış** (bayat sentinel bile yok sayılır) |\n| `MITAS_FRONT_MIN_COMMIT_GB` | 8 | (eşik; bekçi her zaman aktif, pipelining açıkken) |\n| `MITAS_FRONT_TIMEOUT` | 900 | front subprocess duvar-limiti; aşımı → kill + sentinel yok → full-coz |\n| `MITAS_FLOW_PREFETCH` (mevcut) | 1 | DOKUNULMAZ; pipelining'den bağımsız |\n\n## 6) KADEMELİ İNŞA PLANI (kanıt-kapılı)\n\n**Adım 0 — ÖLÇÜM (kod değişikliği YOK):** salt-okunur `scripts/pipelining_olcum.py` — `system_events.jsonl`'den media_id-bazlı: coz süresi (`cozumleme_completed.duration_seconds`), detect payı (credit_detect_* zaman aralığı), OCR/ASR süreleri, film-arası boşluk. Ek mikro-bench: 2-3 örnek filmde çıkış-extract+ses'i scratch'e koşup süre ölç (kaynak salt-okunur).\n**KAPI-0:** örtülebilir pay (çıkış-extract+ses) medyan **≥60 sn/film → devam; <45 sn → D + Stage-2; 45-60 sn → Çağatay kararı.**\n\n**Adım 1 — Güvenlik ön-fixi (pipelining'siz de değerli):** `_flow_front_proc` slotu + stop(1001-1015) ve abort(1616-1639) tüm-slot kill. Davranış-nötr.\n**KAPI-1:** mevcut tek-film akışı regresyonsuz; Zorla-Durdur tatbikatı temiz.\n\n**Adım 2 — `--phase front-only` + sentinel + ÇÖZ-guard** (`mitas_pipeline.py`): default `full`; guard `MITAS_FILM_PIPELINING=1` şartlı.\n**KAPI-2:** flag=0'da golden 28/28 + 2-film çıktı-farksızlık (dead-code kanıtı); flag=1 elle-tek-film: `frames/cikis` PNG seti SHA256 + `audio16k.wav` + `kunye.txt` cache'li/cache'siz koşuda **byte-özdeş**.\n\n**Adım 3 — Worker entegrasyonu:** `_prefetch_start`/`_copy` (704-733) genişletmesi: kopya `os.replace` sonrası bekçiler + front-Popen; `_prefetch_take` (737) 30sn-bekle/kill kuralı; telemetri + UI mesajı.\n**KAPI-3:** 2-film duman testi: doğru sıra, temiz kill-tatbikatı, sentinel-hit loglandı.\n\n**Adım 4 — 5-film pilot** (Bölüm 7). **KAPI-4:** eşikler tutarsa →\n**Adım 5 — 20-film gözlem koşusu** (`nvidia-smi` peak + commit-charge telemetrisi ile) → temizse default `MITAS_FILM_PIPELINING=1`.\n\n**Faz-2 adayı (bu şartname DIŞI, ayrı karar):** detect'i front'a taşımak — ancak pilot verisi + CLIP∥resident-31b∥valve-geçiş VRAM-peak ölçümünden sonra, ayrı konseyle.\n\n## 7) PİLOT PROTOKOLÜ (5 film)\n\n- **Kollar:** BASELINE `MITAS_FILM_PIPELINING=0`, PILOT `=1`; **her iki kolda `MITAS_FLOW_PREFETCH=1`** (Eleştirmen kuralı: prefetch kazancı pipelining'e yanlış atfedilmesin). Aynı 5 film, aynı sıra, `force=true` (temiz hub). Set: kısa+uzun karışık, ≥1 yabancı (large-v3 yolu), 1 sessiz/kısa-ASR.\n- **Metrik = KUYRUK-VERİMİ:** `T = son flow_item_done ts − ilk running ts` (system_events.jsonl). `KAZANÇ = (T_base − T_pilot) / T_base`.\n- **Başarı:** KAZANÇ **≥ %10**; %5-10 gri bant → Çağatay kararı; **< %5 → geri-al (D)**.\n- **Kalite kapısı (HARD):** pipelining'in dokunduğu artefaktlar koşular arası **byte-özdeş**: frames/cikis PNG sayısı+SHA256 seti, audio16k.wav, kunye.txt. (PDF/özet LLM-varyansı taşıdığı için byte değil içerik-eşdeğerlik denetlenir; künye alanları eşdeğer olmalı.) Fark → DERHAL geri-al.\n- **Çökme kapısı:** sıfır OOM / error-1455 / VRAM-yetim; `nvidia-smi` peak baseline'a eşit (front GPU-sız olduğu için ARTMAMALI — artış = ihlal kanıtı).\n- **Kill tatbikatı:** pilot ölçümünü kirletmeyen AYRI 2-film mini-koşuda 1 kez Zorla-Durdur: iki proc de ölmeli, N+1 waiting'e dönmeli, sonraki koşu temiz başlamalı.\n- **Geri-alma = tek env:** `MITAS_FILM_PIPELINING=0` → anında birebir eski davranış.\n\n## 8) KAZANÇ HESABI (varsayımlar açık)\n\n- V1: coz (Faz-1 paralel sonrası) ≈ ffprobe + detect(30-60s) + max(çıkış-extract, giriş-extract, ses) ≈ 80-150s (görev verisi + kod yorumu 1736-1742).\n- V2: örtülebilir pay = max(çıkış, giriş, ses) − giriş-extract; çıkış (720 kare, kuyruk-seek) + tam-film ses demux tipik olarak giriş 270-kareden yavaş → **gizlenen ~40-100 sn/film ≈ 0.7-1.7 dk/film**.\n- V3: front (~1-2 dk) N'in tam-koşusu (~8-10 dk) içine HER ZAMAN sığar → kuyruk kazancı ≈ film-başı gizlenen süre (steady-state: `T ≈ front₁ + Σ back`).\n- **Sonuç:** medyan 650s → **~550-610s efektif; kuyruk-verimi %6-15.** 100-film dalga: 18.1 saat → ~16.4-17.0 saat → **~1.1-1.7 saat tasarruf** (staging-prefetch'in üzerine ADDİTİF).\n- **Dürüst not:** bu, hedef bandın (−15..25) alt ucunun altında kalabilir — tezlerin %13-27 iddiaları detect-GPU ve idempotent-guard gerçekleriyle çürütüldü. Bu yüzden Adım-0 ölçüm kapısı ZORUNLUDUR ve **D canlı bir sonuçtur**; sayı tutmazsa Stage-2 (item #5) önceliklenir.\n\n## 9) İLK ADIM (bu gece yazılacak kod)\n\n**Tek dosya, salt-okunur, üretim koduna SIFIR dokunuş:** `E:\\MITAS\\scripts\\pipelining_olcum.py`\n- `load_events(jsonl_path)` → `outputs/system_events.jsonl` satır-satır parse.\n- `per_film(events)` → media_id gruplu: `media_imported→cozumleme_completed` (coz), `credit_detect_opening/closing` zaman-aralığı (detect payı), `ocr_completed`/`asr_completed` `duration_seconds`, ardışık filmler arası `flow_item_done → media_imported` boşluğu.\n- `microbench(video, scratch_dir)` (opsiyonel `--bench <film>` bayrağı) → `mitas_pipeline`'daki `exit_frame_contract` mantığıyla aynı pencerede çıkış-extract + ses-extract'ı **scratch dizinine** koşup duvar-süre ölç (kaynak film salt-okunur; Database'e YAZMAZ).\n- Çıktı: film-başına tablo + medyanlar + karar satırı: `örtülebilir(çıkış+ses) medyan ≥60s → DEVAM / 45-60s → ÇAĞATAY / <45s → D (Stage-2'ye geç)`.\n\nSonraki kod adımı (Adım 1) ancak KAPI-0 yeşilse: `asr_server.py`'de `_flow_front_proc` slotu + 1001-1015 ve 1616-1639'un tüm-slot kill'i.\n\n---\n**Kanıt dosyaları:** `E:\\MITAS\\core\\api\\asr_server.py` (235-257, 686-885, 990-1021, 1616-1639), `E:\\MITAS\\scripts\\mitas_pipeline.py` (1531-1800 ÇÖZ+detect+kontrat, 1971-2170 OCR∥ASR+re-OCR), `E:\\MITAS\\scripts\\_pipe_asr.py` (valve). Ölçüm girdisi: `E:\\MITAS\\outputs\\system_events.jsonl`."
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Tezler"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Çapraz-ateş"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 3,
+      "title": "Sentez"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "yaratici-tez",
+      "phaseIndex": 1,
+      "phaseTitle": "Tezler",
+      "agentId": "a15eacc9f43539d3b",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1783280899169,
+      "queuedAt": 1783280899168,
+      "attempt": 1,
+      "lastToolName": "Bash",
+      "lastToolSummary": "grep -n \"_gpu_lock\\|_pipeline_proc\\|_flow_worker_proc\\b\\|_p…",
+      "promptPreview": "Sen KONSEY'in YARATICI üyesisin (cesur, kazanç-maksimalist, ama kanıt-temelli).\n\nKONU: MITAS künye-pipeline'ında FİLM-PIPELINING (hız item #4): film N'in arka-yarısı (GPU/LLM/web)\nkoşarken film N+1'in ön-yarısını (CPU/disk) başlatmak. Hedef: medyan ~650sn/film → ~480-550sn EFEKTİF\n(verim artışı −15..25%). Çağatay talimatı: \"kontrollü şekilde inşa et, adım adım, başka şeyleri bozmadan,\ngetiriyi hes…",
+      "lastProgressAt": 1783281085885,
+      "tokens": 83235,
+      "toolCalls": 5,
+      "durationMs": 186716,
+      "resultPreview": "Kanıt tam. Kritik bulgular kesinleşti:\n\n1. **`_gpu_lock` bugün worker'ı komple sarıyor** (satır 864): tüm film-pipeline'ı `with _gpu_lock:` içinde. Bu, GPU-serilleştirme değil, TÜM-PIPELINE-serilleştirme — CPU/disk fazları (coz/OCR-extract) da kilit altında. İki-worker için bu kilit BÜYÜK darboğaz.\n2. Ollama ayrı süreç (HTTP), pipeline-child değil — kill-tree ollama'yı öldürmez, ama VRAM'i _kill_p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "muhafazakar-tez",
+      "phaseIndex": 1,
+      "phaseTitle": "Tezler",
+      "agentId": "ae654169d17caebda",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1783280899171,
+      "queuedAt": 1783280899168,
+      "attempt": 1,
+      "lastToolName": "Read",
+      "lastToolSummary": "E:\\MITAS\\scripts\\mitas_pipeline.py",
+      "promptPreview": "Sen KONSEY'in MUHAFAZAKÂR MÜHENDİS üyesisin (üretim-güvenliği birinci; \"çalışan dalgayı bozma\"\nsenin kanunun; ama OBSTRÜKSİYONİST DEĞİLSİN — güvenli kazanç varsa alırsın).\n\nKONU: MITAS künye-pipeline'ında FİLM-PIPELINING (hız item #4): film N'in arka-yarısı (GPU/LLM/web)\nkoşarken film N+1'in ön-yarısını (CPU/disk) başlatmak. Hedef: medyan ~650sn/film → ~480-550sn EFEKTİF\n(verim artışı −15..25%). Ç…",
+      "lastProgressAt": 1783281045774,
+      "tokens": 66606,
+      "toolCalls": 5,
+      "durationMs": 146603,
+      "resultPreview": "Yeterli kod gördüm. Mimarinin kritik gerçekleri netleşti:\n\n1. **Global tek-slot proc handle** (`_pipeline_proc`, `_flow_worker_proc`): abort/kill iki filmi ayırt edemez.\n2. **`_gpu_lock`** film-başına TÜM pipeline'ı (coz→OCR→ASR→LLM→PDF→master-PNG) sarıyor — yani şu an CPU-only front-faz bile GPU-lock altında serileşiyor.\n3. **OCR∥ASR pipeline İÇİNDE zaten paralel** (iki Popen). \"Front/back\" kesim…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "elestirmen",
+      "phaseIndex": 2,
+      "phaseTitle": "Çapraz-ateş",
+      "agentId": "a77e45b9e3eaa2144",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1783281085887,
+      "queuedAt": 1783281085886,
+      "attempt": 1,
+      "lastToolName": "Read",
+      "lastToolSummary": "E:\\MITAS\\scripts\\mitas_pipeline.py",
+      "promptPreview": "Sen KONSEY'in ELEŞTİRMEN üyesisin (görev: İKİ TEZİ DE YIKMAK; eksen-eksen kıyas;\ngizli varsayımları söküp çıkar; üretimde patlayacak senaryoları isimlendir).\n\nKONU: MITAS künye-pipeline'ında FİLM-PIPELINING (hız item #4): film N'in arka-yarısı (GPU/LLM/web)\nkoşarken film N+1'in ön-yarısını (CPU/disk) başlatmak. Hedef: medyan ~650sn/film → ~480-550sn EFEKTİF\n(verim artışı −15..25%). Çağatay talimat…",
+      "lastProgressAt": 1783281302604,
+      "tokens": 91771,
+      "toolCalls": 7,
+      "durationMs": 216717,
+      "resultPreview": "Bütün kritik iddiaları doğruladım. İki tez de bazı gerçekleri doğru gördü, bazı iddialarda kod-kanıtı çürütüyor. Son bir kontrol: staging-prefetch'in gerçekte neyi örttüğü (film-arası ölü-zaman ~6dk iddiası) ve `_gpu_lock`'un `communicate` içindeki gerçek kapsamı — çünkü her iki tezin kazanç-hesabı buna dayanıyor.\n\nKanıtlar tamam. Eksen-eksen çürütme raporunu yazıyorum.\n\n---\n\n# ELEŞTİRMEN TEZİ — F…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "sentezci",
+      "phaseIndex": 3,
+      "phaseTitle": "Sentez",
+      "agentId": "abbdcfb7c6e0c2030",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1783281302607,
+      "queuedAt": 1783281302606,
+      "attempt": 1,
+      "lastToolName": "Read",
+      "lastToolSummary": "E:\\MITAS\\scripts\\mitas_pipeline.py",
+      "promptPreview": "Sen KONSEY'in SENTEZCİ üyesisin. Görev: tek tutarlı, UYGULANABİLİR şartname.\n\nKONU: MITAS künye-pipeline'ında FİLM-PIPELINING (hız item #4): film N'in arka-yarısı (GPU/LLM/web)\nkoşarken film N+1'in ön-yarısını (CPU/disk) başlatmak. Hedef: medyan ~650sn/film → ~480-550sn EFEKTİF\n(verim artışı −15..25%). Çağatay talimatı: \"kontrollü şekilde inşa et, adım adım, başka şeyleri bozmadan,\ngetiriyi hesapl…",
+      "lastProgressAt": 1783281662573,
+      "tokens": 105529,
+      "toolCalls": 7,
+      "durationMs": 359966,
+      "resultPreview": "KONSEY SENTEZ — aşağıdaki şartname üç tezin hayatta kalan parçalarından kuruldu; tüm satır-referansları bu oturumda kaynak koddan yeniden doğrulandı (`asr_server.py` 230-298, 660-1021, 1616-1639; `mitas_pipeline.py` 1516-1800, 1850-2180).\n\n---\n\n# ŞARTNAME: FİLM-PIPELINING (Hız #4) — \"ÇÖZ-PREFETCH, DAR KESİM\"\n\n## 1) SEÇİLEN MİMARİ\n\n**Seçenek E (dar kesim): mevcut STAGING-PREFETCH thread'inin terfis…"
+    }
+  ],
+  "totalTokens": 347141,
+  "totalToolCalls": 24
+}
