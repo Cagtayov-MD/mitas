@@ -58,13 +58,36 @@ def satirlar(frame_path: str) -> list[str]:
     return [t.strip() for t in txt if t and t.strip()]
 
 
-def _isim_gibi(satir: str) -> bool:
-    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü."""
+# nokta-lider deseni: '..' / '. .' (Avrupa kredi tipografisi — rol . . isim).
+# Üç-nokta (ELLIPSIS, ara-yazı/epilogda yaygın) YANLIŞLIKLA tetiklemesin diye
+# etraftaki noktalar dışlanır (lookaround) — "..." iki-nokta gibi görünse de
+# reddedilir (T6, ÖLDÜRME_ZAMANI atlas kanıtı).
+_NOKTA_LIDER = re.compile(r"(?<!\.)\.\s*\.(?!\.)")
+
+
+def _tum_kucuk_cok_kelime(s: str) -> bool:
+    """Tamamı-küçük-harf ≥2 kelimeli satır mı (İtalyanca kredi isim-satırı deseni)."""
+    if len(s.split()) < 2:
+        return False
+    return s.islower()
+
+
+def _isim_gibi(satir: str, baglam: list[str] | None = None) -> bool:
+    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü.
+
+    `baglam` (T6): AYNI KAREDEKİ tüm satırlar. Küçük-harf çok-kelimeli bir satır
+    (İtalyanca/Fransızca kredi isimleri — 'sergio martinelli') tek başına
+    reddedilir (ara-yazı gardı); ama AYNI KAREDE rol-keyword'lü başka bir satır
+    varsa (örn. 'ispettore di produzione') bu satır da isim sayılır — atlas
+    kanıtı: ÖLDÜRME_ZAMANI'nda OCR kusursuz ama tüm satırlar küçük-harf."""
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:
         return False
     # rol keyword → kredi
     if _ROL.search(s):
+        return True
+    # nokta-lider deseni (Avrupa kredi tipografisi) → kredi
+    if _NOKTA_LIDER.search(s):
         return True
     kelimeler = s.split()
     if not kelimeler:
@@ -77,7 +100,14 @@ def _isim_gibi(satir: str) -> bool:
     # BÜYÜK-HARF isim (PAUL FIX) veya Title Case (Doc Cushman)
     buyuk = sum(1 for w in kelimeler if len(w) >= 2 and w.isupper())
     title = sum(1 for w in kelimeler if len(w) >= 2 and w[0].isupper() and not w.isupper())
-    return buyuk >= 1 or title >= 2
+    if buyuk >= 1 or title >= 2:
+        return True
+    # aynı karede rol-keyword'lü başka satır varsa, küçük-harf çok-kelimeli
+    # satır da isim say (tek başına küçük-harf cümle gene reddedilir — yukarıdaki
+    # cümle-gardı zaten bu satırları erken eledi).
+    if baglam is not None and _tum_kucuk_cok_kelime(s) and any(_ROL.search(x) for x in baglam):
+        return True
+    return False
 
 
 def kredi_benzeri(satir_listesi: list[str]) -> float:
@@ -85,7 +115,7 @@ def kredi_benzeri(satir_listesi: list[str]) -> float:
     if not satir_listesi:
         return 0.0
     n = len(satir_listesi)
-    isim = sum(1 for s in satir_listesi if _isim_gibi(s))
+    isim = sum(1 for s in satir_listesi if _isim_gibi(s, satir_listesi))
     return round((isim / n) * min(1.0, n / 3.0), 3)
 
 
@@ -95,7 +125,7 @@ def _norm(s: str) -> str:
 
 def isim_sayisi(satir_listesi: list[str]) -> int:
     """Bir karede isim-benzeri satır sayısı."""
-    return sum(1 for s in satir_listesi if _isim_gibi(s))
+    return sum(1 for s in satir_listesi if _isim_gibi(s, satir_listesi))
 
 
 def _tek_isim_sutunu(satir: str) -> bool:
