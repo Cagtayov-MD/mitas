@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import glob
 import os
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -529,6 +530,75 @@ def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
     return None
 
 
+# "kart-başına-tek-isim" dizilerinde stüdyo/yapımcı logo kartları ("FIREWORKS
+# ENTERTAINMENT presents", "a JULIAN GRANT production") credit_box.jenerik_
+# benzeri'yi (n>=2 ister) hiç geçmiyor olabilir (n==1) — yalnız bu dar yardımcı
+# içinde kullanılan tamamlayıcı desen.
+_PRESENTS_KALIBI = re.compile(r"presents|production", re.I)
+
+
+def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
+                                onset: int, azami_geri: int = 80,
+                                bosluk_tol: int = 4, min_metin: int = 4) -> tuple[int, str]:
+    """Kart-dizisi geri-genişletme (T6 2.tur, alt-adım3 — konsey kırmızı-takım,
+    ROBOCOP sınıfı). Kart-başına-tek-aktör düzeninde (her karede yalnız 1 kutu/
+    1 isim) credit_box.kutu_serisi jbayrak'ı hiç kaldırmıyor (jenerik_benzeri
+    n>=2 ister) — bu yüzden dizi kendi `adaylar` koşusunu OLUŞTURMUYOR ve
+    _statik_icerik_onset'in kredi_karti_mi'si de (isim>=3 tek karede ister)
+    tek-satırlı kartları hep reddediyor (atlas kanıtı: ROBOCOP'ta 1093-1127
+    arası her kare 1 aktör adı, geri-genişletme hiç ilerlemiyordu).
+
+    Kazanan koşunun (zaten seçilmiş `onset`) HEMEN ÖNCESİNDEN geriye, ham kutu
+    sayısı (credit_box, tek_genis elenmişler DAHİL) 1 veya 2 olan VE rec'i
+    isim-benzeri (cc._isim_gibi) VEYA 'presents/production' logosu olan
+    kareler boyunca yürür; ara boşluk (kalifiye-olmayan kare) `bosluk_tol`'u
+    aşınca durur. ≥`min_metin` FARKLI metin biriktiyse onset'i dizinin en
+    erken bulunan karesine çeker — BAĞIMSIZ TETİKLEME DEĞİL, yalnız zaten
+    kazanmış koşuya bitişik geriye-genişletme (kredisiz-film güvencesi
+    buradan geliyor: rastgele bir kart hiçbir yerde tek başına tetiklemez)."""
+    onbellek: dict[int, list[str]] = {}
+
+    def satir(fi: int) -> list[str]:
+        if fi not in onbellek:
+            try:
+                onbellek[fi] = cc_mod.satirlar(g[idx[fi]])
+            except Exception:
+                onbellek[fi] = []
+        return onbellek[fi]
+
+    def kart_mi(fi: int) -> tuple[bool, str]:
+        analiz = cb_mod.kutu_analiz(g[idx[fi]])
+        if analiz["n"] not in (1, 2):
+            return False, ""
+        lines = satir(fi)
+        if not lines:
+            return False, ""
+        metin = " / ".join(lines)
+        if _PRESENTS_KALIBI.search(metin) or any(cc_mod._isim_gibi(s) for s in lines):
+            return True, metin
+        return False, ""
+
+    metinler: list[str] = []
+    fi = onset - 1
+    bosluk = 0
+    toplam = 0
+    yeni_onset = onset
+    while fi >= 0 and toplam < azami_geri and bosluk <= bosluk_tol:
+        ok, metin = kart_mi(fi)
+        if ok:
+            metinler.append(metin)
+            yeni_onset = fi
+            bosluk = 0
+        else:
+            bosluk += 1
+        fi -= 1
+        toplam += 1
+
+    if len(set(metinler)) >= min_metin:
+        return yeni_onset, f"kart-dizisi_genislet={onset - yeni_onset}"
+    return onset, ""
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -801,6 +871,19 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # (koşu başı kredi-dışı metni atla) + geri-genişletme (kartın gerçek
         # başlangıcına geri çek). Atlas kanıtı: ERKEN_METIN (KNUTE/TESS/...).
         onset, ek_not = _statik_icerik_onset(g, idx, a, b)
+        # Kart-dizisi geri-genişletme (T6 2.tur, alt-adım3 — konsey kırmızı-
+        # takım, ROBOCOP sınıfı): _statik_icerik_onset'in kredi_karti_mi'si tek
+        # karede isim>=3 ister; kart-başına-tek-aktör dizilerinde (her karede
+        # 1 isim) bu hiç tutmuyor. SADECE (zaten budanmış) `onset`in kendisine
+        # bitişik geriye bakar — bağımsız tetikleme değil. DİKKAT (ölçüldü,
+        # regresyon bulundu): `a` (ham koşu başı) değil `onset` (budama-sonrası
+        # gerçek çapa) referans alınmalı — yoksa budama zaten `a`dan ileri
+        # taşımışken bu fonksiyon "değişmedi" (kart_onset==a) dönse bile
+        # a<onset olduğundan yanlışlıkla "genişledi" sanılıp budama iptal olur.
+        kart_onset, kart_not = _kart_dizisi_geri_genislet(g, idx, cc, cb, onset)
+        if kart_onset < onset:
+            onset = kart_onset
+            ek_not = (ek_not + " " if ek_not else "") + kart_not
 
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
