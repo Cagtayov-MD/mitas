@@ -219,7 +219,14 @@ def cop_desenli_mi(kare_satirlari: list[list[str]], esik: float = 0.30) -> bool:
 def _isim_gibi_kiril(satir: str) -> bool:
     """Kiril satırın isim/rol-benzeri olup olmadığı — Python'un Unicode-farkında
     isupper()/title-case testleri Kiril'de de doğru çalışır (T6 2.tur kanıtı:
-    'РЕЖИССЁР'.isupper()==True); yalnız rol-sözlüğü _ROL_KIRIL'e çevrilir."""
+    'РЕЖИССЁР'.isupper()==True); yalnız rol-sözlüğü _ROL_KIRIL'e çevrilir.
+
+    T8 Kod-avı #3 (üretim-sertleştirme): Latin _isim_gibi'deki cümle-gardı
+    (satır-sonu noktalama + ≥4 kelime = ara-yazı/altyazı cümlesi) burada
+    EKSİKTİ — hardcoded Rusça altyazı ("Здравствуйте, как дела сегодня.")
+    title-case sayılıp kredisiz bir Rus filminde yanlış-pozitif üretebilirdi
+    (110-filmlik ölçüm setinde görünmez, üretimde risk). Aynı gard buraya da
+    uygulandı — Python'un islower()/isupper()'ı Kiril'de de doğru çalışıyor."""
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:
         return False
@@ -230,6 +237,10 @@ def _isim_gibi_kiril(satir: str) -> bool:
     kelimeler = s.split()
     if not kelimeler:
         return False
+    if s.endswith((".", "?", "!")) and len(kelimeler) >= 4:
+        kucuk = sum(1 for w in kelimeler if w and w[0].islower())
+        if kucuk >= 2:
+            return False
     buyuk = sum(1 for w in kelimeler if len(w) >= 2 and w.isupper())
     title = sum(1 for w in kelimeler if len(w) >= 2 and w[0].isupper() and not w.isupper())
     return buyuk >= 1 or title >= 2
