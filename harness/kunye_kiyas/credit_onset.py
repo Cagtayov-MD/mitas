@@ -838,6 +838,15 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     # denenir; gerekçe atlasa da düşülmüştür (bkz. commit notu).
     KISA_BOSLUK = max(20, int(fps * 3.6 / stride))  # ~45 örnek-kare (38 geçmeli/84 engellenmeli — ölçüldü)
     TOPLAM_BUTCE = 120  # plan T4 — _statik_icerik_onset.azami_geri ile AYNI birim/büyüklük
+    # T8 Kod-avı #1 (üretim-sertleştirme, 2026-07-23): `butce` yalnız ARA-BOŞLUKLARDAN
+    # düşüyordu — bitişik/küçük-boşluklu (bosluk≈0) aday ZİNCİRİNDE her adayın KENDİ
+    # uzunluğu bütçeye hiç yansımıyordu, onset teorik olarak sınırsız geriye
+    # kaçabilirdi (110-filmlik ölçüm setinde görünmüyor, 2400-filmlik üretimde risk).
+    # TOPLAM_MESAFE, `a`dan (kazanan koşu başı) toplam geri-yürüyüşü MUTLAK sınırlar —
+    # `butce`den BAĞIMSIZ. 200 = ölçülen en büyük gerçek kazanım MESLEĞE_DÖNÜŞ'ün
+    # ihtiyacı (a-a_prev=160 örnek-kare) üstünde güvenlik payı; KARAVAN(88)/
+    # DİPTEKİLER(78)/"6"(60) rahatça altında kalıyor (ölçüldü, bkz. T8 commit notu).
+    TOPLAM_MESAFE = 200
     onset_birlesik, birlesme_notu = None, None
     try:
         w = adaylar.index((a, b))
@@ -852,6 +861,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             a_prev, b_prev = adaylar[k - 1]
             bosluk = onset_z - b_prev - 1
             if bosluk < 0 or bosluk > KISA_BOSLUK or bosluk > butce:
+                break
+            if (a - a_prev) > TOPLAM_MESAFE:
                 break
             if not _gecis_icerik_onayi(g, idx, cc, a_prev, b_prev):
                 break
