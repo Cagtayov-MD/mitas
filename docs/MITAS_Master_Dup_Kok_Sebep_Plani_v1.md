@@ -114,6 +114,18 @@ yorumla) → commit `feat(master-dup): şerit-tabanlı dup-metriği + sentetik t
 
 ### Görev M4: Kök-sebep fix'leri — FLAG arkasında (atlas kanıtı + konsey turu SONRASI)
 
+KONSEY KARARI (2026-07-23, GLM tam katılım; Kimi 429, Qwen 403-unpurchased):
+- KABUL: dHash uzak-kart aday kapısı ham≤2→≤4 (codec artefaktı); IoU≥0.5 yerine
+  hizalı-XOR fark-bandı (yerel bant farkı → kart KORUNUR; silme yalnız
+  metin-özdeşliğinde); F3 dy eşiği ≥30px (titreme/gate-weave bandı 0-15px ezilir);
+  her distant-dup atlaması manifest'e denetlenebilir yazılır + harness'ta
+  atlanan-blok OCR-özdeşlik denetimi; F2 kırpma yalnız NCC≥0.9 hizada ve
+  segment-yarısı üst sınırıyla (dur-devam scroll koruması). H5 ertelemesi ONAYLI
+  (güvenli yön notu: kart kabulünde sharpv kararlılığı).
+- RED (hakem: Fable): composer içinde OCR-Levenshtein kapısı — üretim yoluna
+  PaddleOCR bağımlılığı/maliyeti; GLM'in "üretimde zaten OCR var" varsayımı yanlış.
+  Levenshtein-tarzı metin denetimi HARNESS tarafında (M5 skip-audit) yapılır.
+
 ÖN KOŞUL: M3 atlası + GLM/Kimi kırmızı-takım turu (orkestratör açar; M3 kanıtı
 brifinge girer). Muhtemel fix'ler (atlas neyi kanıtlarsa O uygulanır):
 - H1 → slit dilim birleştirmede dy-doğrulamalı örtüşme kırpma (bindirmeyi NCC ile
