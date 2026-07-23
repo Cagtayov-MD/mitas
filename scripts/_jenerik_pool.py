@@ -260,6 +260,49 @@ def _oneocr_fallback_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_ONEOCR_FALLBACK", "1").strip().lower() not in ("0", "false", "off", "no")
 
 
+def _v5_enabled() -> bool:
+    # JENERİK-V5 (2026-07-23, %92 kampanyası — Çağatay kararı: "artık aktif jenerik başlangıç
+    # bulma stratejimiz bu"). harness/kunye_kiyas/credit_onset.tespit_v5: 110-film doğrulanmış
+    # GT'de %93.6 simetrik / %96.4 üretim-ölçütü / kredisiz-red 29/29. Açıkken eski dedektörün
+    # yama yığını (oneocr-fallback / vlm-rescue / footage-trim / backward-extend) ATLANIR —
+    # v5 kendi rafinelerini içerir, üstüne eski yamalar bindirilirse onset bozulur.
+    # v5 kredi_yok/hata verirse ESKİ akışa birebir düşülür (fail-safe). Kapat: =0.
+    return os.environ.get("MITAS_JENERIK_V5", "0").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _v5_detect(frames_dir: Path, images: list, debug_root: Path) -> int | None:
+    """tespit_v5 → images-listesi İNDEKSİ (güvenlik payı düşülmüş) ya da None (→ eski akış).
+
+    Güvenlik payı (MITAS_JENERIK_V5_PAD, varsayılan 10 kare): asimetri politikası
+    (Çağatay 2026-07-23) — erken başlamak zararsız, geç kalmak cast'i kaybettirir."""
+    sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
+    import credit_onset as _co
+    r = _co.tespit_v5(str(frames_dir))
+    if r.start_frame is None or int(r.start_frame) < 0:
+        _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
+                      "sonuc": "kredi_yok", "yontem": r.yontem, "notlar": r.notlar})
+        return None
+    hedef = int(r.start_frame)
+    idx = None
+    for i, f in enumerate(images):
+        if _co._kare_no(str(f)) == hedef:
+            idx = i
+            break
+    if idx is None and images:  # dosya-adı eşleşmedi (beklenmez) → en yakın kare
+        idx = min(range(len(images)), key=lambda i: abs(_co._kare_no(str(images[i])) - hedef))
+    if idx is None:
+        return None
+    try:
+        pad = max(0, int(os.environ.get("MITAS_JENERIK_V5_PAD", "10") or "10"))
+    except ValueError:
+        pad = 10
+    son = max(0, idx - pad)
+    _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
+                  "kare": hedef, "indeks": idx, "pad": pad, "final_indeks": son,
+                  "yontem": r.yontem, "guven": r.guven, "notlar": r.notlar})
+    return son
+
+
 def create_pool(
     *,
     frames_dir: Path,
@@ -274,8 +317,18 @@ def create_pool(
     images = list_images(frames_dir)
     engine_used = "paddle"
 
+    # JENERİK-V5 birincil yol (bayraklı): başarılıysa start_pos'u geçersiz kılar,
+    # eski yama yığını atlanır; None dönerse (kredi_yok/hata) eski akış birebir sürer.
+    v5_start = None
+    if _v5_enabled():
+        try:
+            v5_start = _v5_detect(frames_dir, images, debug_root)
+        except Exception as exc:  # noqa: BLE001 — v5 hatası pipeline'ı bozmaz, eski akışa düşer
+            _append_jsonl(debug_root / "errors.jsonl",
+                          {"ts": _now(), "stage": "v5_onset", "error": f"{type(exc).__name__}: {exc}"})
+
     # OneOCR FALLBACK: paddle kredi-başlangıcı bulamadıysa OneOCR-detektörü dene (non-Latin/FR kurtarır).
-    if not _accepted(result.status) and _oneocr_fallback_enabled():
+    if v5_start is None and not _accepted(result.status) and _oneocr_fallback_enabled():
         os.environ.setdefault("MITAS_JENERIK_LATIN_LC_NAMES", "1")
         os.environ.setdefault("MITAS_JENERIK_NONLATIN_NAMES", "1")
         try:
@@ -291,6 +344,11 @@ def create_pool(
     copied: list[dict] = []
     status = result.status
     start_pos = result.start_pos
+    if v5_start is not None:
+        # v5 onset otoritesi devralır; eski CV sonucu manifest'te teşhis olarak kalır.
+        start_pos = int(v5_start)
+        status = "found"
+        engine_used = "v5_onset"
     # VLM-RESCUE: CV başarısız (not_found) ya da şüpheli (çok-erken start + dev havuz = footage-bloat)
     vlm_used = False
     _accepted_cv = _accepted(status)
@@ -306,10 +364,11 @@ def create_pool(
             return float(np.asarray(Image.open(f).convert("L")).mean())
         except Exception:  # noqa: BLE001
             return 0.0
-    _suspicious = (start_pos is not None and len(images) > 0
+    _suspicious = (engine_used != "v5_onset"
+                   and start_pos is not None and len(images) > 0
                    and (len(images) - int(start_pos)) > 450
                    and _bright(images[int(start_pos)]) > 50.0)
-    if _vlm_rescue_enabled() and (not _accepted_cv or _suspicious):
+    if engine_used != "v5_onset" and _vlm_rescue_enabled() and (not _accepted_cv or _suspicious):
         try:
             import credit_start_vlm as _cvlm
             vr = _cvlm.detect(frames_dir)
@@ -330,7 +389,9 @@ def create_pool(
     cv_start_before = start_pos
     footage_trimmed = 0
     back_extended = 0
-    if start_pos is not None and 0 <= int(start_pos) < len(images) and (_accepted(status) or vlm_used):
+    # v5 yolunda anchor-düzeltme yamaları ÇALIŞMAZ: v5 onset'i içerik/hareket-rafineli,
+    # üstüne footage-trim bindirmek "geç kalma" (cast kaybı) riski doğurur.
+    if engine_used != "v5_onset" and start_pos is not None and 0 <= int(start_pos) < len(images) and (_accepted(status) or vlm_used):
         fwd = _trim_footage_head_v2(images[int(start_pos):], cfg)
         if fwd > 0:
             footage_trimmed = fwd
