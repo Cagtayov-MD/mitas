@@ -265,7 +265,10 @@ def _ncc_en_iyi(gray: np.ndarray, kaynak_sin: tuple[int, int], hedef_sin: tuple[
 # --------------------------------------------------------------------------- #
 
 
-def olc(png_yolu, esik: float = VARSAYILAN_ESIK, satir_yuksekligi: int | None = None) -> dict:
+def olc(
+    png_yolu, esik: float = VARSAYILAN_ESIK, satir_yuksekligi: int | None = None,
+    *, korunan_araliklari: list[tuple[int, int]] | None = None,
+) -> dict:
     """Master-PNG üzerinde şerit-tabanlı dup-metriğini hesaplar.
 
     Args:
@@ -274,6 +277,15 @@ def olc(png_yolu, esik: float = VARSAYILAN_ESIK, satir_yuksekligi: int | None = 
         satir_yuksekligi: testte determinizm için otokorelasyon tahminini
             atlayıp doğrudan satır yüksekliği vermek için opsiyonel eklenti
             (public arayüzü bozmaz — verilmezse otomatik tahmin edilir).
+        korunan_araliklari: K3 (Görev M8, MITAS_Master_Dup_Kok_Sebep_Plani_v1.md)
+            -- composer'ın manifest'e kaydettiği `korunan_esleme` (protected)
+            bloklarının ORİJİNAL-görüntü y-aralıkları [(y0,y1), ...]. Verilirse,
+            "es" (tekrar/duplike) tarafı bu aralıklardan biriyle ÇOĞUNLUKLA
+            (>=%50 piksel) örtüşen eşleşme blokları dup_oran hesabından
+            (tekrar_mask) DIŞLANIR -- meşru-farklı-metin (Sınıf C) metrik
+            yanlış-pozitifini düzeltir; composer'ın SKIP/KORU kararını
+            ETKİLEMEZ (yalnız bu ÖLÇÜM katmanında). Verilmezse davranış eskisiyle
+            BİREBİR aynı (varsayılan None -- geriye-dönük uyumlu).
 
     Returns:
         {"dup_oran": float, "blok_sayisi": int, "bloklar": [...],
@@ -373,18 +385,33 @@ def olc(png_yolu, esik: float = VARSAYILAN_ESIK, satir_yuksekligi: int | None = 
         j0, j1 = i0 + delta, i1 + delta
         if j1 >= n:
             continue
-        tekrar_mask[j0 : j1 + 1] = True
         y1n, y2n = hucreler[i0][0], hucreler[i1][1]
         ey1n, ey2n = hucreler[j0][0], hucreler[j1][1]
-        bloklar_out.append(
-            {
-                "y1": int(round(y1n / olcek)),
-                "y2": int(round(y2n / olcek)),
-                "es_y1": int(round(ey1n / olcek)),
-                "es_y2": int(round(ey2n / olcek)),
-                "benzerlik": round(float(benzerlik), 4),
-            }
-        )
+        es_y1_orig = ey1n / olcek
+        es_y2_orig = ey2n / olcek
+        # K3: "es" (tekrar) tarafı bir korunan aralıkla ÇOĞUNLUKLA örtüşüyorsa
+        # bu blok dup_oran'ın tekrar_mask'ına KATILMAZ (metrik-katmanı düzeltmesi,
+        # composer kararını etkilemez).
+        korunan_disi = False
+        if korunan_araliklari:
+            es_h = max(1.0, es_y2_orig - es_y1_orig)
+            for ky0, ky1 in korunan_araliklari:
+                kesisim = max(0.0, min(es_y2_orig, ky1) - max(es_y1_orig, ky0))
+                if kesisim / es_h >= 0.5:
+                    korunan_disi = True
+                    break
+        if not korunan_disi:
+            tekrar_mask[j0 : j1 + 1] = True
+        blok = {
+            "y1": int(round(y1n / olcek)),
+            "y2": int(round(y2n / olcek)),
+            "es_y1": int(round(es_y1_orig)),
+            "es_y2": int(round(es_y2_orig)),
+            "benzerlik": round(float(benzerlik), 4),
+        }
+        if korunan_disi:
+            blok["korunan_disi_birakildi"] = True
+        bloklar_out.append(blok)
 
     doku_piksel_toplam = float(hucre_piksel[doku_mask].sum())
     tekrar_piksel_toplam = float(hucre_piksel[tekrar_mask & doku_mask].sum())
