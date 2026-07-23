@@ -6,8 +6,11 @@ Kullanım:
   olc_pool.py                 # tüm mevcut filmler
   olc_pool.py --sadece-hatalar  # GT'de karar!=dogru olan 31 film
   olc_pool.py --film TAKKELİ    # ad-parçası eşleşen tek film (ayrıntılı)
+  olc_pool.py --paralel 6       # 6 işçi süreçle (spawn; det-önbellekle birleşince hızlı)
 """
 import glob, json, os, sys, time
+
+os.environ.setdefault("OMP_NUM_THREADS", "4")   # paralel işçilerde çekirdek taşmasını önle
 
 BURASI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BURASI)
@@ -22,6 +25,23 @@ def norm(s: str) -> str:
     return s.replace("’", "'").split(" (")[0].strip()
 
 
+def _isci(gorev: tuple) -> dict:
+    """Paralel işçi: (film_adi, klasor, gercek_onset) → ölçüm kaydı.
+    spawn ile taze süreçte koşar; paddle her işçide bir kez init olur."""
+    ad, p, go = gorev
+    import credit_onset as co_w
+    r = co_w.tespit_v5(p)
+    return {"film": ad, "gt": go, "tahmin": r.start_frame,
+            "yontem": r.yontem, "notlar": r.notlar}
+
+
+def _isci_yerel(co_mod, gorev: tuple) -> dict:
+    ad, p, go = gorev
+    r = co_mod.tespit_v5(p)
+    return {"film": ad, "gt": go, "tahmin": r.start_frame,
+            "yontem": r.yontem, "notlar": r.notlar}
+
+
 def main() -> int:
     gt = json.load(open(f"{V}/dogrulama_sonuc.json", encoding="utf-8"))["filmler"]
     klas = {norm(os.path.basename(p.rstrip("/"))): p
@@ -30,11 +50,14 @@ def main() -> int:
     tekil = None
     if "--film" in sys.argv:
         tekil = sys.argv[sys.argv.index("--film") + 1]
+    paralel = 1
+    if "--paralel" in sys.argv:
+        paralel = max(1, int(sys.argv[sys.argv.index("--paralel") + 1]))
 
     n_kapsam = n_dogru = 0
     kv = {"n": 0, "dogru": 0}   # kredi-var alt-küme
     ky = {"n": 0, "dogru": 0}   # kredi-yok alt-küme (KIRMIZI ÇİZGİ)
-    hatalar, eksikler = [], []
+    hatalar, eksikler, isler = [], [], []
     t0 = time.time()
     for x in gt:
         ad = norm(x["film"])
@@ -46,8 +69,21 @@ def main() -> int:
         if not p or len(glob.glob(p + "*.png")) < 50:
             eksikler.append(ad)
             continue
-        r = co.tespit_v5(p)
-        go, pred = x["gercek_onset"], r.start_frame
+        isler.append((ad, p, x["gercek_onset"]))
+
+    if paralel > 1 and not tekil:
+        import multiprocessing as mp
+        havuz = mp.get_context("spawn").Pool(paralel)
+        try:
+            kayitlar = list(havuz.imap_unordered(_isci, isler))
+        finally:
+            havuz.close()
+            havuz.join()
+    else:
+        kayitlar = [_isci_yerel(co, g) for g in isler]
+
+    for k in kayitlar:
+        go, pred = k["gt"], k["tahmin"]
         if go == -1:
             ky["n"] += 1
             ok = (pred == -1)
@@ -59,11 +95,9 @@ def main() -> int:
         n_kapsam += 1
         n_dogru += ok
         if not ok:
-            hatalar.append({"film": ad, "gt": go, "tahmin": pred,
-                            "sapma": (pred - go) if (go != -1 and pred != -1) else None,
-                            "yontem": r.yontem, "notlar": r.notlar})
+            hatalar.append({**k, "sapma": (pred - go) if (go != -1 and pred != -1) else None})
         if tekil:
-            print(f"{ad}\n  gt={go} tahmin={pred} yöntem={r.yontem}\n  not={r.notlar}")
+            print(f"{k['film']}\n  gt={go} tahmin={pred} yöntem={k['yontem']}\n  not={k['notlar']}")
     hatalar.sort(key=lambda h: -abs(h["sapma"]) if h["sapma"] is not None else 0)
     rapor = {"kapsam": n_kapsam, "dogru": n_dogru,
              "genel": round(100 * n_dogru / max(1, n_kapsam), 1),
