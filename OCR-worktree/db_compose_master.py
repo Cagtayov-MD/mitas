@@ -116,6 +116,25 @@ F1_TOTAL_DIFF_GATE = 0.05   # skip-audit (M4 adım 5e) özdeş-olmayan atlama bu
 F1_BAND_DIFF_GATE = 0.30
 F1_BAND_PX = 32             # KONSEY KARARI: sabit 32px (çözünürlüğe göre ölçeklenmez)
 
+# F1b DÜZELTMESİ (2026-07-23 gece, orkestratör ölçümleri -- docs/MITAS_Master_Dup_
+# Kok_Sebep_Plani_v1.md "F1b DÜZELTMESİ"): F1'in dHash aday kapısı GRENLİ donuk-
+# sahne sayfalarında hiç tetiklenmiyor (film greni textmask-dHash'i ham<=4'ün çok
+# ötesine savuruyor). F1b, hash ön-eleme OLMADAN gri (metin maskesi DEĞİL) tam-kare
+# görüntüyü faz-hizalayıp doğrudan piksel farkı ölçer (kalibre eşikler -- ölçülmüş,
+# marjlı: aynı-donuk çiftler 0.005-0.045/0.005-0.080, farklı kartlar 0.087+/0.130+).
+# Salt piksel kapısı TEK BAŞINA yeterli DEĞİL (görsel kanıt: farklı-altyazılı bir
+# çiftin piksel farkı, gren farkından ayırt edilemiyor) -- bu yüzden piksel-aday
+# bulununca PaddleOCR TextDetection (det-only, TEMBEL init, yalnız v2 + yalnız
+# aday sayfalarda) ile doğrulanır: iki sayfada da kutu YOKSA (donuk sahne, kaybolacak
+# metin yok) veya kutu sayıları+konumları+içerik NCC'si eşleşiyorsa (özdeş metin
+# tekrarı) skip; aksi halde (kutu sayısı/konum/NCC uyuşmuyorsa -- farklı altyazı,
+# farklı "Gün 1/Gün 2" rakamı vb.) KORU. Eski dHash+XOR yolu (F1) DEĞİŞMEDEN kalır;
+# F1b yalnız F1 eşleşme BULAMADIĞINDA devreye giren EK bir kapı.
+F1B_GLOBAL_DIFF_GATE = 0.06
+F1B_BAND_DIFF_GATE = 0.10
+F1B_NCC_GATE = 0.90
+F1B_CENTER_TOL = 0.10
+
 # F2 (H1 kök-sebep: slit dy tahmin hatası -> bitişik dilimlerde satır tekrarı) --
 # ardışık iki slit/scroll bloğu (aralarında hiç statik/kart bloğu YOKSA) dikiş
 # örtüşmesi için NCC ile hizalanır; en iyi hizada benzerlik>=0.9 ise örtüşen kısım
@@ -436,6 +455,181 @@ def _card_distant_dup_match(
             "fark_orani": round(diff["fark_orani"], 4),
             "en_yuksek_bant_farki": round(diff["max_band_fark"], 4),
         }
+    return None
+
+
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F1b -- gren-dirençli sahne-tekrarı denetimi (H2 kök-sebep,
+# F1'in dHash aday kapısı GRENLİ donuk-sahne sayfalarında hiç tetiklenmediği için)
+# --------------------------------------------------------------------------- #
+_F1B_DET_ENGINE = None  # TEMBEL -- yalnız v2 modda İLK aday sayfa çıktığında yüklenir
+
+
+def _f1b_det_engine():
+    """PaddleOCR TextDetection (det-only, ~0.02sn/sayfa) -- TEMBEL init. Flag KAPALI
+    yol bu fonksiyonu ASLA çağırmaz (bit-parite: paddle'a hiç dokunulmaz)."""
+    global _F1B_DET_ENGINE
+    if _F1B_DET_ENGINE is None:
+        os.environ.setdefault("FLAGS_json_format_model", "0")
+        os.environ.setdefault("FLAGS_enable_pir_api", "0")
+        from paddleocr import TextDetection
+        det_name = os.environ.get("MITAS_PADDLEOCR_TEXT_DET_MODEL_NAME") or "PP-OCRv5_mobile_det"
+        _F1B_DET_ENGINE = TextDetection(model_name=det_name)
+    return _F1B_DET_ENGINE
+
+
+def _f1b_gray_band_diff(first_gray: np.ndarray, second_gray: np.ndarray, band_px: int = F1_BAND_PX) -> dict | None:
+    """F1b kapı-1: iki TAM-KARE GRİ görüntü (metin maskesi DEĞİL -- donuk/metinsiz
+    sahne tekrarını da yakalamak için) arasında faz-hizalı SÜREKLİ piksel farkı.
+    F1'in ikili maske XOR'undan farklı: burada 0-1 normalize edilmiş gri fark
+    kullanılır (kalibrasyon: KONSEY/orkestratör ölçümleri, F1B_GLOBAL/BAND_DIFF_GATE)."""
+    if first_gray is None or second_gray is None or first_gray.shape != second_gray.shape:
+        return None
+    a = first_gray.astype(np.float32) / 255.0
+    b = second_gray.astype(np.float32) / 255.0
+    hann = cv2.createHanningWindow((a.shape[1], a.shape[0]), cv2.CV_32F)
+    (dx, dy), response = cv2.phaseCorrelate(a * hann, b * hann)
+    transform = np.float32([[1, 0, dx], [0, 1, dy]])
+    aligned = cv2.warpAffine(a, transform, (a.shape[1], a.shape[0]))
+    diff = np.abs(aligned - b)
+    h = diff.shape[0]
+    max_band_fark = 0.0
+    for y0 in range(0, h, band_px):
+        y1 = min(h, y0 + band_px)
+        band_fark = float(diff[y0:y1, :].mean())
+        if band_fark > max_band_fark:
+            max_band_fark = band_fark
+    return {
+        "dx": float(dx), "dy": float(dy), "response": float(response),
+        "global_fark": float(diff.mean()),
+        "max_band_fark": max_band_fark,
+    }
+
+
+def _f1b_det_boxes(gray: np.ndarray) -> list[tuple] | None:
+    """Det-only kutu listesi: [(cx,cy,bw,bh normalize 0-1, x0,y0,x1,y1 piksel), ...].
+    Det başarısız/kullanılamazsa None (çağıran bunu "kapı geçmedi" -- KORU -- olarak
+    okur, ASLA "kutu yok" ile karıştırılmaz -- ikisi de ayrı anlam taşır)."""
+    try:
+        eng = _f1b_det_engine()
+        bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        res = eng.predict(bgr)
+    except Exception:
+        return None
+    h, w = gray.shape[:2]
+    boxes = []
+    for item in res:
+        polys = item.get("dt_polys")
+        if polys is None:
+            continue
+        for poly in polys:
+            arr = np.asarray(poly, dtype=np.float32).reshape(-1, 2)
+            if arr.shape[0] < 3:
+                continue
+            x0, y0 = float(arr[:, 0].min()), float(arr[:, 1].min())
+            x1, y1 = float(arr[:, 0].max()), float(arr[:, 1].max())
+            boxes.append((
+                (x0 + x1) / 2.0 / max(1, w), (y0 + y1) / 2.0 / max(1, h),
+                (x1 - x0) / max(1, w), (y1 - y0) / max(1, h),
+                x0, y0, x1, y1,
+            ))
+    return boxes
+
+
+def _f1b_boxes_sorted(boxes: list[tuple]) -> list[tuple]:
+    return sorted(boxes, key=lambda b: (round(b[1], 2), round(b[0], 2)))
+
+
+def _f1b_boxes_match(boxes_a: list[tuple], boxes_b: list[tuple], *, center_tol: float = F1B_CENTER_TOL) -> bool:
+    """Kutu sayıları eşit VE (y sonra x'e göre sıralı) her kutu merkezi toleransta
+    eşleşiyor mu. Farklı-altyazı / farklı "Gün 1"-"Gün 2" gibi konum/sayı farklı
+    içerikler burada elenir (kutu sayısı/konumu tutarsız kalır)."""
+    if len(boxes_a) != len(boxes_b) or not boxes_a:
+        return False
+    for a, b in zip(_f1b_boxes_sorted(boxes_a), _f1b_boxes_sorted(boxes_b)):
+        if abs(a[0] - b[0]) > center_tol or abs(a[1] - b[1]) > center_tol:
+            return False
+    return True
+
+
+def _f1b_box_ncc(gray_a: np.ndarray, gray_b: np.ndarray, boxes_a: list[tuple], boxes_b: list[tuple]) -> float:
+    """Eşleşmiş kutu çiftlerinin HER birinde NCC hesapla, EN DÜŞÜĞÜ döndür (tek bir
+    kutu bile farklıysa -- örn. altyazı metni değişmiş -- "özdeş metin" iddiası
+    çöker). Kutu boyları farklıysa küçüğe yeniden ölçeklenir (NCC eşit-şekil ister)."""
+    worst = 1.0
+    a_f = gray_a.astype(np.float32)
+    b_f = gray_b.astype(np.float32)
+    for a, b in zip(_f1b_boxes_sorted(boxes_a), _f1b_boxes_sorted(boxes_b)):
+        ax0, ay0, ax1, ay1 = a[4:8]
+        bx0, by0, bx1, by1 = b[4:8]
+        pa = a_f[int(ay0):max(int(ay0) + 1, int(ay1)), int(ax0):max(int(ax0) + 1, int(ax1))]
+        pb = b_f[int(by0):max(int(by0) + 1, int(by1)), int(bx0):max(int(bx0) + 1, int(bx1))]
+        if pa.size == 0 or pb.size == 0:
+            return 0.0
+        th, tw = min(pa.shape[0], pb.shape[0]), min(pa.shape[1], pb.shape[1])
+        if th < 2 or tw < 2:
+            return 0.0
+        pa_r = cv2.resize(pa, (tw, th)) if pa.shape[:2] != (th, tw) else pa
+        pb_r = cv2.resize(pb, (tw, th)) if pb.shape[:2] != (th, tw) else pb
+        a0 = pa_r - pa_r.mean()
+        b0 = pb_r - pb_r.mean()
+        denom = float(np.sqrt(float((a0 * a0).sum())) * np.sqrt(float((b0 * b0).sum())))
+        ncc = float((a0 * b0).sum() / denom) if denom > 1e-6 else 0.0
+        if ncc < worst:
+            worst = ncc
+    return worst
+
+
+def _card_distant_dup_match_f1b(
+    new_gray: np.ndarray,
+    registry: list[dict],
+    *,
+    global_gate: float = F1B_GLOBAL_DIFF_GATE,
+    band_gate: float = F1B_BAND_DIFF_GATE,
+    ncc_gate: float = F1B_NCC_GATE,
+    center_tol: float = F1B_CENTER_TOL,
+) -> dict | None:
+    """F1b: F1 (dHash+XOR) eşleşme BULAMADIĞINDA çağrılan EK kapı. Hash ön-elemesi
+    YOK -- doğrudan gri piksel-benzerlik adayı arar, sonra det-only kutu kapısıyla
+    doğrular. İki karar yolu: "distant-dup-scene" (iki sayfada da metin kutusu YOK
+    -- donuk sahne, kaybolacak içerik yok) ve "distant-dup-text" (kutu sayısı+konumu+
+    NCC'si eşleşen özdeş metin tekrarı). Herhangi bir kapı tutmazsa (piksel farkı
+    büyük, det başarısız, kutu sayısı/konum/NCC uyuşmuyor) None -- kart KORUNUR."""
+    boxes_b: list[tuple] | None = None
+    boxes_b_ready = False
+    for entry in registry:
+        prev_gray = entry.get("gray")
+        if prev_gray is None:
+            continue
+        diff = _f1b_gray_band_diff(prev_gray, new_gray)
+        if diff is None:
+            continue
+        if diff["global_fark"] >= global_gate or diff["max_band_fark"] >= band_gate:
+            continue  # piksel-aday bile değil
+        if not boxes_b_ready:
+            boxes_b = _f1b_det_boxes(new_gray)
+            boxes_b_ready = True
+        if boxes_b is None:
+            continue  # det başarısız -- güvenli taraf: KORU
+        boxes_a = entry.get("f1b_boxes")
+        if boxes_a is None:
+            boxes_a = _f1b_det_boxes(prev_gray)
+            entry["f1b_boxes"] = boxes_a  # sayfa-başına önbellek -- yalnız BİR kez det
+        if boxes_a is None:
+            continue
+        base = {
+            "es_blok_indeksi": int(entry["block_index"]),
+            "global_fark": round(diff["global_fark"], 4),
+            "max_band_fark": round(diff["max_band_fark"], 4),
+            "det_kutular_a": len(boxes_a),
+            "det_kutular_b": len(boxes_b),
+        }
+        if len(boxes_a) == 0 and len(boxes_b) == 0:
+            return {**base, "karar_yolu": "distant-dup-scene"}
+        if _f1b_boxes_match(boxes_a, boxes_b, center_tol=center_tol):
+            ncc = _f1b_box_ncc(prev_gray, new_gray, boxes_a, boxes_b)
+            if ncc >= ncc_gate:
+                return {**base, "karar_yolu": "distant-dup-text", "kutu_ncc": round(ncc, 4)}
     return None
 
 
@@ -1226,6 +1420,7 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                     manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                                      "skip": "dup", "src": Path(best_frame).name})
                     continue
+                f1b_gray = None
                 if v2_on:
                     # F1 (H2 kök-sebep): eski coarse_dup ardışık/pencere-içi eşleşmeyi
                     # yakalamadı -- global kayıtla UZAK (ardışık-olmayan) tekrarı denetle.
@@ -1236,12 +1431,26 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                         skip_entry.update(match)
                         manifest.append(skip_entry)
                         continue
+                    # F1b DÜZELTMESİ: F1 dHash aday kapısı GRENLİ donuk-sahne sayfalarında
+                    # hiç tetiklenmiyordu -- hash ön-elemesi olmadan gri piksel-benzerlik +
+                    # det-only kutu doğrulaması ile EK kapı.
+                    f1b_gray = cv2.cvtColor(best_image, cv2.COLOR_BGR2GRAY)
+                    match_f1b = _card_distant_dup_match_f1b(f1b_gray, card_registry)
+                    if match_f1b is not None:
+                        skip_entry = {"run": [si, ei], "card": ci, "lab": label, "kind": "card",
+                                      "skip": match_f1b.pop("karar_yolu"), "src": Path(best_frame).name}
+                        skip_entry.update(match_f1b)
+                        manifest.append(skip_entry)
+                        continue
                 seen_hashes.append(hh)
                 seen_text.append(thh)
                 if DEDUP_HIRES:
                     seen_hi.append(hhi if hhi is not None else dhash_hi(block))
                 if v2_on:
-                    card_registry.append({"dhash": thh, "mask": best_mask, "block_index": len(blocks)})
+                    card_registry.append({
+                        "dhash": thh, "mask": best_mask, "block_index": len(blocks),
+                        "gray": f1b_gray,
+                    })
             blocks.append(block)
             block_kinds.append("card")
             manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
@@ -1359,7 +1568,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
         score, frame, rel, block, _, full_mask = best
         return block, frame, rel, score, stability_distance, full_mask, None
 
-    def _append_static(block: np.ndarray, full_mask: np.ndarray, meta: dict) -> None:
+    def _append_static(block: np.ndarray, full_mask: np.ndarray, meta: dict, frame_path: str | None = None) -> None:
         nonlocal last_static_hash, last_static_mask, last_static_index
         if block is None or not block.size or block.shape[0] < 2:
             return
@@ -1381,6 +1590,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             skipped["skip"] = "consecutive-dup"
             block_manifest.append(skipped)
             return
+        full_gray = None
         if v2_on:
             # F1 (H2 kök-sebep -- birincil, 60/112 film): yukarıdaki kontroller yalnız
             # HEMEN ÖNCEKİ kartla kıyaslar. Burada kart ÖNCEKİ TÜM kartlarla (global
@@ -1394,10 +1604,27 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                 skipped.update(match)
                 block_manifest.append(skipped)
                 return
+            # F1b DÜZELTMESİ: F1 dHash aday kapısı GRENLİ donuk-sahne sayfalarında
+            # hiç tetiklenmiyordu (görsel kanıt: BAŞKAN_VE_MARI). Hash ön-elemesi
+            # OLMADAN gri piksel-benzerlik + det-only kutu doğrulaması ile EK kapı.
+            if frame_path is not None:
+                image = _prep(frame_path, p, args)
+                if image is not None:
+                    full_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                    match_f1b = _card_distant_dup_match_f1b(full_gray, card_registry)
+                    if match_f1b is not None:
+                        skipped = dict(meta)
+                        skipped["skip"] = match_f1b.pop("karar_yolu")
+                        skipped.update(match_f1b)
+                        block_manifest.append(skipped)
+                        return
         blocks.append(block)
         block_kinds.append("card")
         if v2_on:
-            card_registry.append({"dhash": thh, "mask": full_mask, "block_index": len(blocks) - 1})
+            card_registry.append({
+                "dhash": thh, "mask": full_mask, "block_index": len(blocks) - 1,
+                "gray": full_gray,
+            })
         last_static_hash = thh
         last_static_mask = full_mask
         last_static_index = int(current_index) if current_index is not None else None
@@ -1463,7 +1690,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                 meta["skip"] = skip
                 block_manifest.append(meta)
                 continue
-            _append_static(block, full_mask, meta)
+            _append_static(block, full_mask, meta, frame_path=frame)
 
     for start, end, label in runs:
         si, ei = int(start), int(end)
