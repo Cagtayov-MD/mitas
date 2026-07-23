@@ -725,13 +725,22 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # REDDEDİLECEKSE (kb_max<EŞIK) ve <2 çekirdek-rol bulunduysa, SADECE bu
         # durumda geniş örneklemle rol-çeşitliliğini yeniden ara (maliyet yalnız
         # başarısız adaylarda artar).
-        if len(core_roller) < 2 and kb_max < EŞIK and (b - a + 1) > len(ornek):
+        #
+        # mini-tur3 alt-adım1: genişletme KARARI (yalnız burada, ≥2 sayımında)
+        # cekirdek_rol_bul_genis kullanır — STRICT core_roller (SON_ERISIM_GEVSEK
+        # kapısında aşağıda kullanılıyor) DEĞİŞMEZ. Gerekçe credit_content.py'de
+        # cekirdek_rol_bul_genis docstring'inde: 'produc' ailesini ham
+        # _ROL_CEKIRDEK'e eklemek DÖNÜŞÜ_OLMAYAN_NEHİR'i bozdu (ölçüldü); kanonik
+        # tek-rol ("producer") + yalnız-bu-karar-noktasına sınırlama düzeltti.
+        core_roller_genis = cc.cekirdek_rol_bul_genis(kare_satirlari)
+        if len(core_roller_genis) < 2 and kb_max < EŞIK and (b - a + 1) > len(ornek):
             genis_idx = sorted(set(int(x) for x in np.linspace(a, b, min(16, say_c))))
             genis_satirlari = [_satir_al(fi) for fi in genis_idx]
-            core_roller = cc.cekirdek_rol_bul(genis_satirlari)
-            if len(core_roller) >= 2:
+            core_roller_genis = cc.cekirdek_rol_bul_genis(genis_satirlari)
+            if len(core_roller_genis) >= 2:
                 kare_satirlari = genis_satirlari
-        if len(core_roller) >= 2:
+                core_roller = cc.cekirdek_rol_bul(genis_satirlari)
+        if len(core_roller_genis) >= 2:
             kb_seyrek = cc.kredi_skoru_coklu(kare_satirlari, yogun_esik=2)
             kb_max = max(kb_max, kb_seyrek)
         # İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b, konsey kırmızı-takım):

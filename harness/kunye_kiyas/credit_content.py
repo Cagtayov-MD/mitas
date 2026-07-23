@@ -16,13 +16,27 @@ _OCR = None
 # rol/görev keyword'leri (EN + TR + İtalyanca/Fransızca/Almanca/İspanyolca/Macarca — T6 2.tur)
 # Yabancı-dil kalıpları _ROL_CEKIRDEK ile AYNI (GLM uyarısı: 'distributed/production
 # company' türü logo-kuşağı kelimeleri EKLENMEDİ — bkz. _ROL_CEKIRDEK).
+#
+# PREFIX-GÜVENLİ DÜZELTME (mini-tur 3, alt-adım1): paylaşılan \b(...)\b grubu
+# yüzünden KISALTILMIŞ-KÖK niyetli alternatifler (produc, photograph,
+# cinematograph, edit, yönet, senaryo, yapım, réalisat, interprét) hiç
+# eşleşmiyordu — kapanış \b, kökten sonra gelen ek harfine (producER,
+# photographY, yönetMEN, senaryoSU) çarpıp boundary'yi bozuyordu (2. tur
+# ajanının kanıtlı bulgusu, ölçüldü: 'Producer'/'photography'/'yönetmen'/
+# 'senaryosu'/'yapımcı' hiçbiri tutmuyordu). Köklere `\w*` eklendi — TAM
+# KELİME alternatifleri (director/directed/screenplay/written/writer/story/
+# music/script/editor/cast/starring/art/costume/sound/camera/design/makeup/
+# producer/executive/associate/assistant/görüntü/müzik/kurgu/oyuncu/kostüm/
+# montaj/ses ve diğer dil tam-kelimeleri) KASITLI DOKUNULMADI — bunlara `\w*`
+# eklemek isim çarpışması riski açardı (örn. 'art'+\w* → 'ARTHUR', 'cast'+\w*
+# → 'Castro/Castellano' yanlış-tetikler; ölçüldü, ayırt edici DEĞİL).
 _ROL = re.compile(
-    r"\b(director|directed|produc|screenplay|written|writer|story|music|script|"
-    r"photograph|cinematograph|edit|editor|cast|starring|art|costume|sound|"
+    r"\b(director|directed|produc\w*|screenplay|written|writer|story|music|script|"
+    r"photograph\w*|cinematograph\w*|edit\w*|editor|cast|starring|art|costume|sound|"
     r"camera|design|makeup|make-up|producer|executive|associate|assistant|"
-    r"yönet|yapım|senaryo|görüntü|müzik|kurgu|oyuncu|kostüm|montaj|ses|"
+    r"yönet\w*|yapım\w*|senaryo\w*|görüntü|müzik|kurgu|oyuncu|kostüm|montaj|ses|"
     r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
-    r"réalisat|scénario|musique|montage|image|décors|interprét|"
+    r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
     r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
@@ -34,12 +48,21 @@ _ROL = re.compile(
 # (GLM tur-2 uyarısı: film-ortası şirket logosu/kredi-dışı insert yanlış tetikler).
 # Macarca eklendi (T6 2.tur, alt-adım1a — konsey kırmızı-takım): DOĞUM_GÜNÜN gibi
 # Macar yapımlarında kredi kartları yalnız Macarca rol adları taşıyor.
+#
+# PREFIX-GÜVENLİ DÜZELTME (mini-tur 3, alt-adım1): _ROL'deki aynı \b(...)\b
+# kapanış-sınırı bozukluğu burada da var — 'photograph'/'cinematograph'/
+# 'yönet'/'senaryo'/'réalisat'/'interprét' köklerine `\w*` eklendi (aynı
+# gerekçe: photographY/cinematographER/yönetMEN/senaryoSU/réalisateur/
+# interprétation hiç tutmuyordu). 'produc'/'yapım' (producer/yapımcı analogu)
+# BİLEREK EKLENMEDİ — bu liste zaten "produc"sız tasarlandı (logo-kuşağı
+# riski, yukarıdaki gerekçe); prefix-düzeltmesi bu kasıtlı dışlamayı
+# GENİŞLETMEZ, yalnız zaten listede olan köklerin kendi bozukluğunu giderir.
 _ROL_CEKIRDEK = re.compile(
-    r"\b(director|directed|screenplay|written|writer|cinematograph|photograph|"
+    r"\b(director|directed|screenplay|written|writer|cinematograph\w*|photograph\w*|"
     r"editor|edited|music|starring|cast|script|"
-    r"yönet|senaryo|görüntü|kurgu|müzik|oyuncu|"
+    r"yönet\w*|senaryo\w*|görüntü|kurgu|müzik|oyuncu|"
     r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
-    r"réalisat|scénario|musique|montage|image|décors|interprét|"
+    r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
     r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
@@ -77,6 +100,36 @@ def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
                 roller.add(m.lower())
             for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
                 roller.add(m.lower())
+    return sorted(roller)
+
+
+# 'produc' ailesi (producer/production/produced/…) — SADECE seyrek-yol
+# genişletme KARARI için (mini-tur3, alt-adım1 fallback). DENENDİ VE
+# ÖLÇÜLDÜ: bunu doğrudan _ROL_CEKIRDEK'e eklemek (dolayısıyla cekirdek_rol_bul
+# + _gecis_icerik_onayi/_scroll_kurtarma/SON_ERISIM_GEVSEK'in TÜMÜNÜ etkiler)
+# kırmızı-çizgiyi BOZDU: DÖNÜŞÜ_OLMAYAN_NEHİR'in şirket-kalıbı satırı
+# ("A CINEMASCOPE PRODUCTION" + "Produced and Released by") "production" VE
+# "produced" diye İKİ FARKLI yüzey-formu üretiyor — bunlar set'e 2 AYRI rol
+# olarak düşüp len(core_roller)>=2'yi TEK BAŞINA (başka HİÇBİR gerçek rol
+# olmadan) sağlıyor, seyrek-yolu (yogun_esik=2) yanlış açıyor, kredi_yok
+# 29/29→28/29 (ölçüldü). Çözüm: 'produc' ailesi kaç yüzey-formu geçerse
+# geçsin TEK kanonik rol ("producer") sayılır — rol-çeşitliliğine EN FAZLA +1
+# katkı yapar. KÜÇÜK_SİMBA (gerçek 'Producer'+'Director' — İKİ FARKLI GERÇEK
+# rol) hâlâ açılıyor; DÖNÜŞÜ_OLMAYAN_NEHİR (yalnız produc-ailesi, başka rol
+# yok → +1'den öteye geçmiyor → hâlâ <2) artık AÇILMIYOR (ölçüldü, 29/29 geri
+# geldi). Yalnız cekirdek_rol_bul_genis() içinde kullanılır; ham _ROL_CEKIRDEK
+# ve strict cekirdek_rol_bul()'un davranışı DEĞİŞMEZ.
+_PRODUC_GENIS = re.compile(r"\b(produc\w*|yapım\w*)\b", re.I)
+
+
+def cekirdek_rol_bul_genis(kare_satirlari: list[list[str]]) -> list[str]:
+    """SADECE tespit_v5'in seyrek-yol GENİŞLETME KARARINDA kullanılır (mini-tur3
+    alt-adım1). Diğer riskli kapılar (_gecis_icerik_onayi/_scroll_kurtarma/
+    SON_ERISIM_GEVSEK) STRICT cekirdek_rol_bul()'u kullanmaya devam eder — bu
+    fonksiyon ONLARI etkilemez (kırmızı-çizgi güvencesi buradan gelir)."""
+    roller = set(cekirdek_rol_bul(kare_satirlari))
+    if any(_PRODUC_GENIS.search(s) for sl in kare_satirlari for s in sl):
+        roller.add("producer")
     return sorted(roller)
 
 
