@@ -918,11 +918,11 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         w = adaylar.index((a, b))
     except ValueError:
         w = -1
+    onset_z = a
+    birlesenler = []
     if w > 0:
         butce = TOPLAM_BUTCE
-        onset_z = a
         k = w
-        birlesenler = []
         while k > 0 and butce > 0:
             a_prev, b_prev = adaylar[k - 1]
             bosluk = onset_z - b_prev - 1
@@ -936,9 +936,43 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             butce -= bosluk
             k -= 1
             birlesenler.append(f"[{_kare_no(g[idx[a_prev]])}-{_kare_no(g[idx[b_prev]])}]")
-        if onset_z < a:
-            onset_birlesik = onset_z
-            birlesme_notu = f"geri-birlesme={','.join(birlesenler)}"
+
+    # alt-adım3 (köprü kapısında producer+isim çifti — Çağatay politika
+    # güncellemesi 2026-07-23: GEÇ kalma artık en kötü hata sınıfı, PRENSESİN
+    # +37 GEÇ hedefi). Görsel kanıt: PRENSESİN_AŞKI'nin gerçek onsetinde
+    # ('Executive Producers / PETER LOCKE / DONALD KUSHNER') box-koşusu yalnız
+    # ~3 sn sürüyor — min_kosu eşiğini hiç geçemiyor, `adaylar`e HİÇ KAYDOLMUYOR,
+    # yukarıdaki köprü onu hiç GÖRMÜYOR (ne registrasyon ne _gecis_icerik_onayi
+    # bu içeriğe erişebiliyor). Kayıt-dışı ham tarama: onset_z'den geriye, AYNI
+    # KISA_BOSLUK/TOPLAM_MESAFE bütçesiyle sınırlı VE bir önceki kayıtlı adayın
+    # kendi kare-aralığına ASLA taşmadan (b_bariyer — o aralık ya zaten birleşti
+    # ya da _gecis_icerik_onayi'nin daha sıkı kapısınca reddedildi, ham tarama
+    # onu ATLAMAZ), HER örnek-karede doğrudan bakar: cc._PRODUC_GENIS (kanonik
+    # 'producer' ailesi) VE AYNI karede ≥1 isim-satırı (cc._isim_gibi) varsa
+    # köprü-noktası kabul. Yalnız zaten kazanmış (en_iyi bulunmuş) koşuya
+    # bitişik — kredisiz-film güvencesi buradan gelir, bağımsız tetikleme YOK.
+    b_bariyer = -1
+    for cand_a, cand_b in adaylar:
+        if cand_b < onset_z:
+            b_bariyer = max(b_bariyer, cand_b)
+    ham_butce = max(0, min(KISA_BOSLUK, TOPLAM_MESAFE - (a - onset_z)))
+    ham_sinir = max(0, b_bariyer + 1, onset_z - ham_butce)
+    fi = onset_z - 1
+    while fi >= ham_sinir:
+        try:
+            satirlar_fi = cc.satirlar(g[idx[fi]])
+        except Exception:
+            satirlar_fi = []
+        if satirlar_fi and cc._PRODUC_GENIS.search(" ".join(satirlar_fi)) \
+                and any(cc._isim_gibi(s) for s in satirlar_fi):
+            onset_z = fi
+            birlesenler.append(f"kopru-ham=[{_kare_no(g[idx[fi]])}]")
+            break
+        fi -= 1
+
+    if onset_z < a:
+        onset_birlesik = onset_z
+        birlesme_notu = f"geri-birlesme={','.join(birlesenler)}"
 
     ek_not = ""
     if onset_birlesik is not None:
