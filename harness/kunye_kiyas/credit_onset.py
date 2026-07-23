@@ -14,6 +14,7 @@ OCR YOK — bu katman OCR'dan bağımsız (OCR sadece opsiyonel doğrulayıcı).
 """
 from __future__ import annotations
 
+import difflib
 import glob
 import os
 import re
@@ -556,6 +557,31 @@ def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
 _PRESENTS_KALIBI = re.compile(r"presents|production", re.I)
 
 
+def _rakam_agirlikli_mi(s: str) -> bool:
+    """T8 Kod-avı #7: 'Year 1999' tipi montaj/tarih kartları isim-satırı
+    SAYILMASIN — satırın alfasayısal karakterlerinin ≥%50'si rakamsa
+    diskalifiye (yalnız _kart_dizisi_geri_genislet içinde kullanılır, global
+    cc._isim_gibi'ye DOKUNULMADI — blast-radius'u dar tutmak için)."""
+    alnum = [c for c in s if c.isalnum()]
+    if not alnum:
+        return False
+    rakam = sum(1 for c in alnum if c.isdigit())
+    return (rakam / len(alnum)) >= 0.5
+
+
+def _farkli_metin_sayisi(metinler: list[str], esik: float = 0.8) -> int:
+    """T8 Kod-avı #4: aynı fiziksel kartın ardışık OCR okumaları küçük
+    gürültüyle (tek harf farkı vb.) birbirinden farklı string üretebilir —
+    ham `len(set(...))` bunları YANLIŞLIKLA ayrı kart sayardı. difflib
+    benzerliği ≥`esik` olan metinler AYNI kartın temsilcisiyle birleştirilir;
+    yalnız gerçekten FARKLI kart sayısı döner."""
+    temsilciler: list[str] = []
+    for m in metinler:
+        if not any(difflib.SequenceMatcher(None, m, t).ratio() >= esik for t in temsilciler):
+            temsilciler.append(m)
+    return len(temsilciler)
+
+
 def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
                                 onset: int, azami_geri: int = 80,
                                 bosluk_tol: int = 4, min_metin: int = 4) -> tuple[int, str]:
@@ -574,7 +600,16 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
     aşınca durur. ≥`min_metin` FARKLI metin biriktiyse onset'i dizinin en
     erken bulunan karesine çeker — BAĞIMSIZ TETİKLEME DEĞİL, yalnız zaten
     kazanmış koşuya bitişik geriye-genişletme (kredisiz-film güvencesi
-    buradan geliyor: rastgele bir kart hiçbir yerde tek başına tetiklemez)."""
+    buradan geliyor: rastgele bir kart hiçbir yerde tek başına tetiklemez).
+
+    T8 Kod-avı #4+#7 (üretim-sertleştirme): "FARKLI metin" sayacı iki riske
+    açıktı — (1) aynı fiziksel kartın gürültülü OCR tekrarları (tek harf
+    farkıyla) ayrı kart sanılabiliyordu → artık difflib benzerliği ≥0.8 olan
+    metinler AYNI kart sayılır (_farkli_metin_sayisi); (2) 'Year 1999' gibi
+    rakam-ağırlıklı satırlar isim sanılabiliyordu → satırın alfasayısal
+    karakterlerinin ≥%50'si rakamsa `kart_mi` o satırı hiç değerlendirmez
+    (_rakam_agirlikli_mi). İkisi de yalnız bu dar yardımcıda; global
+    cc._isim_gibi/kredi_karti_mi DEĞİŞMEDİ."""
     onbellek: dict[int, list[str]] = {}
 
     def satir(fi: int) -> list[str]:
@@ -589,7 +624,7 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
         analiz = cb_mod.kutu_analiz(g[idx[fi]])
         if analiz["n"] not in (1, 2):
             return False, ""
-        lines = satir(fi)
+        lines = [s for s in satir(fi) if not _rakam_agirlikli_mi(s)]
         if not lines:
             return False, ""
         metin = " / ".join(lines)
@@ -613,7 +648,7 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
         fi -= 1
         toplam += 1
 
-    if len(set(metinler)) >= min_metin:
+    if _farkli_metin_sayisi(metinler) >= min_metin:
         return yeni_onset, f"kart-dizisi_genislet={onset - yeni_onset}"
     return onset, ""
 
