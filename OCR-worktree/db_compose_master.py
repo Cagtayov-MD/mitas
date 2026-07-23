@@ -132,6 +132,14 @@ F2_NCC_GATE = 0.9
 # phaseCorrelate yanıtı bunun belirgin altında kalır; council/Çağatay onayına açık.
 F3_RUN_DY_FLOOR_PX = 30.0
 F3_RUN_RESP_FLOOR = 0.15
+# M4 doğrulama bulgusu (worst-10 pilotu, 1999-0407 KÜÇÜK_KAHRAMAN): bazı filmlerde
+# gerçek scroll hızı ~p.cut eşiğine denk geliyor (örn. p.cut=33.6px, ölçülen dy
+# -32..-34px arası salınıyor) -- bu, TEK KARELİK "R" parçacıklarının "C"(kesim) ile
+# art arda gelmesine yol açıyor. Medyan tek örnekten güvenilir değil (gürültü/kesim
+# sınırında yanlış-pozitif rescue riski); "F3 eşiğini yükselt" (plan M4 adım 5e
+# kaçış maddesi) burada uygulanıyor: en az 3 kare (mevcut min_scroll tabanıyla
+# aynı konvansiyon) olmadan rescue YOK.
+F3_RUN_MIN_FRAMES = 3
 
 
 # --------------------------------------------------------------------------- #
@@ -700,12 +708,16 @@ def _resolve_reading_runs(
     F3 (MITAS_MASTER_V2, H3 kök-sebep -- docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
     Görev M4 KONSEY KARARI): bayrak AÇIK ve dy_signed/resp verilmişse, kısa bir "R"
     koşusu (yukarıdaki uzunluk şartını sağlamadığı için normalde "S"ye düşecek olan)
-    medyan |dy| >= F3_RUN_DY_FLOOR_PX (30px -- titreme/gate-weave bandının güvenle
-    üstü) VE korelasyon kanıtı (medyan faz-korelasyon yanıtı >= F3_RUN_RESP_FLOOR)
-    taşıyorsa "S"ye DÜŞÜRÜLMEZ, "R" (slit) kalır -- gerçek scroll'un sayfa/kart
-    moduna düşüp kare-kare örtüşen tekrar üretmesini (H3) engeller. Bayrak kapalıyken
-    (varsayılan) ya da dy_signed/resp verilmediyse bu dal hiç çalışmaz -- eski
-    davranış bit-birebir korunur.
+    EN AZ F3_RUN_MIN_FRAMES kare uzunluğundaysa VE medyan |dy| >= F3_RUN_DY_FLOOR_PX
+    (30px -- titreme/gate-weave bandının güvenle üstü) VE korelasyon kanıtı (medyan
+    faz-korelasyon yanıtı >= F3_RUN_RESP_FLOOR) taşıyorsa "S"ye DÜŞÜRÜLMEZ, "R"
+    (slit) kalır -- gerçek scroll'un sayfa/kart moduna düşüp kare-kare örtüşen tekrar
+    üretmesini (H3) engeller. Uzunluk şartı: gerçek scroll hızı p.cut eşiğine yakın
+    filmlerde TEK KARELİK "R"/"C" salınımı (ölçüm gürültüsü, medyan tek örnekten
+    güvenilir değil) yanlış-pozitif rescue'a yol açabiliyordu (M4 worst-10 pilotu,
+    KÜÇÜK_KAHRAMAN bulgusu) -- "F3 eşiğini yükselt" kaçışı burada uygulanıyor.
+    Bayrak kapalıyken (varsayılan) ya da dy_signed/resp verilmediyse bu dal hiç
+    çalışmaz -- eski davranış bit-birebir korunur.
     """
     f3_on = _v2_enabled() and dy_signed is not None and resp is not None
     classified = []
@@ -714,7 +726,7 @@ def _resolve_reading_runs(
         resolved = "U" if label == "C" else (
             "R" if label == "R" and length >= min_scroll else "S"
         )
-        if f3_on and label == "R" and resolved == "S":
+        if f3_on and label == "R" and resolved == "S" and length >= F3_RUN_MIN_FRAMES:
             seg_dy = np.abs(np.asarray(dy_signed[int(start): int(end) + 1], dtype=np.float64))
             seg_resp = np.asarray(resp[int(start): int(end) + 1], dtype=np.float64)
             if seg_dy.size:
