@@ -836,6 +836,25 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                 kb_max = kb_kiril
                 core_roller = roller_kiril
                 kare_satirlari = kare_satirlari_kiril
+        # İKİNCİ-ŞANS ARAPÇA/FARSÇA REC (alt-adım4 — Çağatay politikası:
+        # tespit-yok = cast komple kayıp, artık zorunlu deneme). Kiril'den
+        # FARKLI tetikleyici: Arapça/Farsça glyph'lerde EN-rec çoğu zaman
+        # RASTGELE METİN değil, HİÇ (veya neredeyse hiç) METİN üretmiyor
+        # (KANDAHAR atlas+ölçüm kanıtı: 10 örnek kareden 8'i tam boş, 2'si
+        # 'PT'/'年号'/'是'/'5555'/'bA21' gibi anlamsız 1-4 karakterlik kırıntı
+        # — katı "== 0" şartı bunu kaçırır). cc.cop_desenli_mi burada anlamsız
+        # (bu kırıntılarda len>=4 alpha token hiç oluşmuyor, her zaman False
+        # döner) — tetikleyici "kareler EN-rec ile NEREDEYSE tamamen boş"
+        # (≤2/10 karede iz). AYNI güvenlik ilkesi: yalnız GERÇEK bir
+        # cc._ROL_ARAP eşleşmesi (roller_arap dolu) kb'yi override eder.
+        en_bos_kare = sum(1 for sl in kare_satirlari if not sl)
+        if kb_max < EŞIK and not core_roller and en_bos_kare >= max(1, len(kare_satirlari) - 2):
+            kare_satirlari_arap = [cc.satirlar_ar(g[idx[fi]]) for fi in ornek]
+            kb_arap, roller_arap = cc.kredi_skoru_arap(kare_satirlari_arap)
+            if roller_arap and kb_arap > kb_max:
+                kb_max = kb_arap
+                core_roller = roller_arap
+                kare_satirlari = kare_satirlari_arap
         if gevsetme_aday and not (kb_max >= 0.9 and core_roller):
             # gevşetme hakkı kazanılmadı (kb<0.9 VEYA çekirdek-rol yok) — normal
             # SON_ERISIM'e takılmış gibi davran (kb'yi teşhis için sakla).

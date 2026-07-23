@@ -277,6 +277,95 @@ def kredi_skoru_kiril(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> t
     return skor, sorted(roller)
 
 
+# ── İKİNCİ-ŞANS ARAPÇA/FARSÇA REC (alt-adım4, T8 sonrası — Çağatay politikası:
+# tespit-yok = cast komple kayıp, artık "opsiyonel" değil) ──────────────────
+# Kiril ikinci-şansının farklı bir varyantı: Kiril'de EN-rec metni YANLIŞ
+# okuyup rastgele Latin harf yığını üretiyordu (cop_desenli_mi bunu yakalar);
+# Arapça/Farsça yazıda ise EN-rec çoğu zaman HİÇBİR ŞEY üretmiyor (glyph'ler
+# Latin/Kiril alfabesinden o kadar uzak ki det/rec boş dönüyor — KANDAHAR atlas
+# kanıtı: gt-civarı örneklerde credit_content.satirlar() tamamen []). Bu yüzden
+# tetikleyici cop_desenli_mi DEĞİL — "EN-rec hiç metin bulamadı" sinyali
+# (tespit_v5 tarafında ayrıca kontrol edilir).
+_OCR_AR = None
+
+
+def _ocr_ar():
+    global _OCR_AR
+    if _OCR_AR is None:
+        from paddleocr import PaddleOCR
+        _OCR_AR = PaddleOCR(use_textline_orientation=False, lang="ar")
+    return _OCR_AR
+
+
+def satirlar_ar(frame_path: str) -> list[str]:
+    r = _ocr_ar().predict(frame_path)
+    if not r or not r[0]:
+        return []
+    rr = r[0]
+    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+    return [t.strip() for t in txt if t and t.strip()]
+
+
+# Farsça/Arapça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Arapça yolunda
+# kullanılır (global _ROL/_ROL_CEKIRDEK'e KARIŞTIRILMAZ, Kiril deseniyle AYNI
+# izolasyon ilkesi). کارگردان=yönetmen, تهیه=yapımcı/prodüksiyon,
+# فیلمبردار=görüntü yönetmeni, تدوین=kurgu, موسیقی=müzik, بازیگران=oyuncular.
+_ROL_ARAP = re.compile(r"(کارگردان|تهیه|فیلمبردار|تدوین|موسیقی|بازیگران)")
+
+# ARAPÇA/FARSÇA HARF-NORMALİZASYONU (KANDAHAR ölçümü, alt-adım4): PaddleOCR'nin
+# 'arabic' rec modeli Farsça girdide bile ARAP-standart harf biçimlerini
+# üretiyor — Farsça 'ی' (FARSI YEH, U+06CC) yerine Arapça 'ي' (ARABIC YEH,
+# U+064A) / 'ى' (ALEF MAKSURA, U+0649), Farsça 'ک' (U+06A9) yerine Arapça 'ك'
+# (U+0643). Görsel olarak ayırt edilemez ama farklı Unicode kod noktaları —
+# normalize edilmeden _ROL_ARAP (Farsça yazımıyla) HİÇ eşleşmiyordu (ölçüldü:
+# KANDAHAR'da 'بازيگران'/'موسيقى' OCR çıktısı gerçek eşleşmeyi kaçırıyordu).
+_ARAP_NORMALIZE = str.maketrans({
+    "ي": "ی",  # ARABIC YEH -> FARSI YEH
+    "ى": "ی",  # ARABIC ALEF MAKSURA -> FARSI YEH
+    "ك": "ک",  # ARABIC KAF -> FARSI KEH
+})
+
+
+def _arapca_normalize(s: str) -> str:
+    return s.translate(_ARAP_NORMALIZE)
+
+
+def _isim_gibi_arap(satir: str) -> bool:
+    """Arapça/Farsça satırın isim/rol-benzeri olup olmadığı — Arap alfabesinde
+    büyük/küçük harf AYRIMI YOK (Kiril/Latin'deki title-case sinyali burada
+    KULLANILAMAZ). Ayırt edici: rol-sözlüğü VEYA kısa satır (1-4 kelime —
+    isim-listesi düzeni); uzun/çok-kelimeli satırlar ara-yazı/altyazı cümlesi
+    sayılır ve reddedilir (Latin/Kiril'deki cümle-gardının kaba eşleniği)."""
+    s = satir.strip().strip('"“”\'')
+    if len(s) < 2:
+        return False
+    if _ROL_ARAP.search(_arapca_normalize(s)):
+        return True
+    kelimeler = s.split()
+    return 1 <= len(kelimeler) <= 4
+
+
+def kredi_skoru_arap(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> tuple[float, list[str]]:
+    """İkinci-şans Arapça/Farsça rec içerik skoru + bulunan rol listesi —
+    kredi_skoru_kiril'in Arapça/Farsça eşleniği, AYNI güvenlik ilkesiyle:
+    salt yoğunluk (kısa-satır sayımı) TEK BAŞINA yetmez — tespit_v5 tarafında
+    yalnız `roller` GERÇEKTEN doluysa (bir _ROL_ARAP eşleşmesi varsa) kb
+    override edilir."""
+    if not kare_satirlari:
+        return 0.0, []
+    yogun = 0
+    roller: set[str] = set()
+    for sl in kare_satirlari:
+        isim_n = sum(1 for s in sl if _isim_gibi_arap(s))
+        if isim_n >= yogun_esik:
+            yogun += 1
+        for s in sl:
+            for m in _ROL_ARAP.findall(_arapca_normalize(s)):
+                roller.add(m)
+    skor = round(min(1.0, yogun / 3.0), 3)
+    return skor, sorted(roller)
+
+
 # nokta-lider deseni: '..' / '. .' (Avrupa kredi tipografisi — rol . . isim).
 # Üç-nokta (ELLIPSIS, ara-yazı/epilogda yaygın) YANLIŞLIKLA tetiklemesin diye
 # etraftaki noktalar dışlanır (lookaround) — "..." iki-nokta gibi görünse de
