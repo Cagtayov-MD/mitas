@@ -377,6 +377,75 @@ def tespit_v4(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     )
 
 
+def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
+                          adim: int = 2, azami_ileri: int = 30, azami_geri: int = 120
+                          ) -> tuple[int, str]:
+    """Statik-tip (scroll-dışı) kazanan koşuda içerik-çapalı onset (T5).
+
+    Görev 5: koşu başı sık sık kredi-DIŞI metin taşır (epilog/ara-yazı/stüdyo
+    kartı — atlas kanıtı: ERKEN_METIN vakaları KNUTE/TESS/KIZIL_HAYAT/...).
+    Koşu sınırını onset saymak yerine İÇERİKTEN al:
+      1) İleri-budama: koşu başından ileri, her `adim` örnek-karede bir, en çok
+         `azami_ileri` örnek-kare — `kredi_karti_mi` False olduğu sürece ilerle;
+         ilk True örnek-karesi aday-onset. Guard: budama koşu uzunluğunun
+         yarısını geçemez — geçiyorsa (veya hiç bulunamazsa) DOKUNMA (OCR genel
+         başarısızlığı işareti).
+      2) Atlanan (adim-1) karede daha erken True olabilir — bulunan karadan 1
+         örnek-kare geri de kontrol et, o da True ise onu al.
+      3) Geri-genişletme: (budanmış) onset'ten geriye kare-kare (jbayrak şart
+         DEĞİL) — `kredi_karti_mi` True ise geri çek; 2 ardışık False'ta dur;
+         toplam ≤ `azami_geri` örnek-kare.
+
+    Önbellek: her örnek-kare EN ÇOK BİR KEZ OCR'lanır (PaddleOCR-rec pahalı —
+    aynı kare iki kez OCR'lanmasın)."""
+    import credit_content as cc
+    cache: dict[int, list[str]] = {}
+
+    def satir(fi: int) -> list[str]:
+        if fi not in cache:
+            try:
+                cache[fi] = cc.satirlar(g[idx[fi]])
+            except Exception:
+                cache[fi] = []
+        return cache[fi]
+
+    kosu_uzunluk = b - a
+    azami_budama = kosu_uzunluk / 2.0
+
+    bulunan = None
+    fi = a
+    denenen = 0
+    while denenen < azami_ileri and fi <= b:
+        if cc.kredi_karti_mi(satir(fi)):
+            bulunan = fi
+            break
+        fi += adim
+        denenen += 1
+
+    if bulunan is None or (bulunan - a) > azami_budama:
+        return a, "budama-yok(guard/bulunamadı)"
+
+    if bulunan - 1 >= a and cc.kredi_karti_mi(satir(bulunan - 1)):
+        bulunan -= 1
+
+    onset = bulunan
+    prob = bulunan
+    ardisik_false = 0
+    denenen = 0
+    while denenen < azami_geri and prob - 1 >= 0:
+        prob -= 1
+        if cc.kredi_karti_mi(satir(prob)):
+            onset = prob
+            ardisik_false = 0
+        else:
+            ardisik_false += 1
+            if ardisik_false >= 2:
+                break
+        denenen += 1
+
+    return onset, f"budama={bulunan - a} genislet={bulunan - onset}"
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -491,18 +560,30 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
 
     joint, a, b, kb, scroll_var = en_iyi
     onset = a
-    # scroll varsa kart→scroll geri-tarama
-    if scroll_var and onset < len(scroll):
-        alt = max(0, onset - int(fps * 1.5 / stride))
-        while onset - 1 >= alt and onset - 1 < len(scroll) and scroll[onset - 1] and jbayrak[onset - 1]:
-            onset -= 1
+    # kazanan koşuda scroll-aktif kare oranı — statik/scroll ayrımı (T5)
+    scroll_orani = float(scroll[a:b + 1].mean()) if b >= a else 0.0
+    ek_not = ""
+    if scroll_orani >= 0.3:
+        # SCROLL-tip koşu — Görev 4'ün alanı, burada DOKUNMA. Mevcut davranış:
+        # scroll varsa kart→scroll geri-tarama.
+        if scroll_var and onset < len(scroll):
+            alt = max(0, onset - int(fps * 1.5 / stride))
+            while onset - 1 >= alt and onset - 1 < len(scroll) and scroll[onset - 1] and jbayrak[onset - 1]:
+                onset -= 1
+    else:
+        # STATİK-tip koşu (T5) — koşu sınırı değil İÇERİK çapası: ileri-budama
+        # (koşu başı kredi-dışı metni atla) + geri-genişletme (kartın gerçek
+        # başlangıcına geri çek). Atlas kanıtı: ERKEN_METIN (KNUTE/TESS/...).
+        onset, ek_not = _statik_icerik_onset(g, idx, a, b)
 
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
         yontem="kutu+scroll+içerik" if scroll_var else "kutu+içerik",
         guven=round(kb, 2),
         dy_medyan=float(np.median(dys[a:b])) if a < len(dys) else 0.0,
-        notlar=f"aday={len(adaylar)} seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] kb={kb:.2f} joint={joint:.2f}",
+        notlar=(f"aday={len(adaylar)} seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] "
+                f"kb={kb:.2f} joint={joint:.2f} scroll_oran={scroll_orani:.2f}"
+                + (f" {ek_not}" if ek_not else "")),
         seri={"adaylar": kayitlar},
     )
 
