@@ -476,16 +476,35 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
     T6 adım6: cc._ROL yerine cc._ROL_CEKIRDEK — 'produc' (production company
     logo-kuşağı riski, GLM uyarısı) bu kapıda ARTIK tetiklemiyor. T4 kazanımları
     ölçüldü (bkz. commit notu); PRODUCER'a bağımlı bir kazanım geriliyorsa bu
-    fonksiyon cc._ROL'e geri alınır."""
+    fonksiyon cc._ROL'e geri alınır.
+
+    T8 Kod-avı #2 (üretim-sertleştirme): TEK rol-kelimesi tek başına ARTIK
+    yetmiyor — hardcoded altyazıda geçen tek bir cümle ("He was the director.")
+    öncesinde bu kapıyı yanlışlıkla açabiliyordu (110-filmlik ölçüm setinde
+    görünmez, üretimde altyazılı kaynaklarda risk). Onay artık İKİ yoldan biri:
+    (1) AYNI karede rol-keyword + ≥1 isim-satırı (cc._isim_gibi) BİRLİKTE, ya da
+    (2) adayın örneklenen karelerinde toplam ≥2 FARKLI çekirdek-rol bulunması
+    (tek kart üzerinde tek role güvenmek yerine rol-çeşitliliği ister — sessiz-
+    film kırmızı-çizgi senaryosuyla aynı ilke, bkz. cekirdek_rol_bul_genis).
+    Dört mevcut kazanım (MESLEĞE_DÖNÜŞ/KARAVAN/"6"/DİPTEKİLER) ÖLÇÜLDÜ: hepsi
+    en az bir örnek karede rol+isim birlikteliğini taşıyor (yol 1) — bu
+    sıkılaştırma onları BOZMADI (bkz. T8 commit notu)."""
     n = min(ornek, b - a + 1)
     if n <= 0:
         return False
+    roller_tumu: set[str] = set()
     for fi in sorted(set(int(x) for x in np.linspace(a, b, n))):
         try:
             satirlar = cc_mod.satirlar(g[idx[fi]])
         except Exception:
             continue
-        if any(cc_mod._ROL_CEKIRDEK.search(s) for s in satirlar):
+        roller_kare = {m.lower() for s in satirlar for m in cc_mod._ROL_CEKIRDEK.findall(s)}
+        if not roller_kare:
+            continue
+        if any(cc_mod._isim_gibi(s) for s in satirlar):
+            return True
+        roller_tumu |= roller_kare
+        if len(roller_tumu) >= 2:
             return True
     return False
 
