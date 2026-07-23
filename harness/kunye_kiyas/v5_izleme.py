@@ -24,6 +24,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--esik", type=int, default=40,
                     help="v5 ile eski-CV ayrışma eşiği (kare)")
+    ap.add_argument("--baslangic", default="2026-07-23T19:00",
+                    help="v5 aktivasyon anı — bundan ESKİ eski-motor koşuları tarihi sayılır, aday olmaz")
     ap.add_argument("--json", help="özeti JSON olarak da yaz")
     a = ap.parse_args()
 
@@ -49,9 +51,16 @@ def main() -> int:
             fark = int(k["start_pos"]) - int(k["cv_start"])
             if abs(fark) >= a.esik:
                 adaylar.append({**k, "sebep": f"ayrışma {fark:+d} kare (v5 vs eski-CV)"})
+    tarihi = 0
     for k in eski:
-        # bayrak açıkken eski motora düşenler = v5 kredi_yok/hata dedi → ilgi listesi
+        # bayrak açıkken eski motora düşenler = v5 kredi_yok/hata dedi → ilgi listesi.
+        # Aktivasyondan önceki koşular tarihi kayıttır, aday değildir.
+        if (k.get("ts") or "") < a.baslangic:
+            tarihi += 1
+            continue
         adaylar.append({**k, "sebep": f"v5 devre dışı kaldı (engine={k['engine']}, status={k['status']})"})
+    if tarihi:
+        print(f"(aktivasyon-öncesi tarihi koşu: {tarihi} — aday sayılmadı)")
 
     if adaylar:
         print(f"\nİNCELEME ADAYLARI ({len(adaylar)}):")
