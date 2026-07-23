@@ -124,6 +124,15 @@ F1_BAND_PX = 32             # KONSEY KARARI: sabit 32px (çözünürlüğe göre
 F2_PROBE_PX = 200
 F2_NCC_GATE = 0.9
 
+# F3 (H3 kök-sebep: dy-kanıtlı koşu kısa diye statik/sayfa moduna düşüyordu) --
+# split_runs_reading kısa-run demote kararında, medyan |dy| bu eşiğin üstündeyse VE
+# korelasyon kanıtı (faz-korelasyon yanıtı) gürültü tabanının üstündeyse run "R"
+# (slit) kalır, "S"(sayfa/kart)'a düşemez. 30px KONSEY KARARI (titreme/gate-weave
+# bandı 0-15px'in güvenle üstü). Yanıt tabanı (0.15) uygulayıcı takdiri -- gürültüde
+# phaseCorrelate yanıtı bunun belirgin altında kalır; council/Çağatay onayına açık.
+F3_RUN_DY_FLOOR_PX = 30.0
+F3_RUN_RESP_FLOOR = 0.15
+
 
 # --------------------------------------------------------------------------- #
 # resolution-normalized parameters
@@ -674,20 +683,45 @@ def split_runs(frames: list[str], p: Params, args) -> list[list]:
     ]
 
 
-def _resolve_reading_runs(raw_runs: list[list], min_scroll: int) -> list[list]:
+def _resolve_reading_runs(
+    raw_runs: list[list],
+    min_scroll: int,
+    *,
+    dy_signed=None,
+    resp=None,
+) -> list[list]:
     """Resolve cut/noisy motion conservatively while preserving card boundaries.
 
     Sustained vertical motion stays R. Short R bursts become ordinary S because a
     false static page may duplicate content, while a false slit can lose it. Cuts
     become uncertain static boundaries and are absorbed by the following S run
     when possible because the first cut frame commonly carries the new card.
+
+    F3 (MITAS_MASTER_V2, H3 kök-sebep -- docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
+    Görev M4 KONSEY KARARI): bayrak AÇIK ve dy_signed/resp verilmişse, kısa bir "R"
+    koşusu (yukarıdaki uzunluk şartını sağlamadığı için normalde "S"ye düşecek olan)
+    medyan |dy| >= F3_RUN_DY_FLOOR_PX (30px -- titreme/gate-weave bandının güvenle
+    üstü) VE korelasyon kanıtı (medyan faz-korelasyon yanıtı >= F3_RUN_RESP_FLOOR)
+    taşıyorsa "S"ye DÜŞÜRÜLMEZ, "R" (slit) kalır -- gerçek scroll'un sayfa/kart
+    moduna düşüp kare-kare örtüşen tekrar üretmesini (H3) engeller. Bayrak kapalıyken
+    (varsayılan) ya da dy_signed/resp verilmediyse bu dal hiç çalışmaz -- eski
+    davranış bit-birebir korunur.
     """
+    f3_on = _v2_enabled() and dy_signed is not None and resp is not None
     classified = []
     for start, end, label in raw_runs:
         length = int(end) - int(start) + 1
         resolved = "U" if label == "C" else (
             "R" if label == "R" and length >= min_scroll else "S"
         )
+        if f3_on and label == "R" and resolved == "S":
+            seg_dy = np.abs(np.asarray(dy_signed[int(start): int(end) + 1], dtype=np.float64))
+            seg_resp = np.asarray(resp[int(start): int(end) + 1], dtype=np.float64)
+            if seg_dy.size:
+                med_dy = float(np.median(seg_dy))
+                med_resp = float(np.median(seg_resp)) if seg_resp.size else 0.0
+                if med_dy >= F3_RUN_DY_FLOOR_PX and med_resp >= F3_RUN_RESP_FLOOR:
+                    resolved = "R"
         if classified and resolved == "U" and classified[-1][2] == "U":
             classified[-1][1] = int(end)
         elif classified and resolved == "S" and classified[-1][2] == "S":
@@ -806,18 +840,28 @@ def split_runs_reading(frames: list[str], p: Params, args) -> list[list]:
     hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
     prev = None
     abs_dy: list[float] = []
+    # F3 (MITAS_MASTER_V2) girdisi: imzalı dy + faz-korelasyon yanıtı. Var olan
+    # abs_dy hesaplamasına EK yük getirmiyor (aynı phaseCorrelate çağrısının daha
+    # önce atılan dönüş değerleri) -- bayrak kapalıyken bu diziler hiç okunmaz.
+    dy_signed: list[float] = []
+    resp_list: list[float] = []
 
     for frame in frames:
         image = _prep(frame, p, args)
         if image is None:
             abs_dy.append(0.0)
+            dy_signed.append(0.0)
+            resp_list.append(0.0)
             continue
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
         dy = 0.0
+        resp = 0.0
         if prev is not None:
-            (_, dy), _ = cv2.phaseCorrelate(prev * hann, gray * hann)
+            (_, dy), resp = cv2.phaseCorrelate(prev * hann, gray * hann)
         prev = gray
         abs_dy.append(abs(dy))
+        dy_signed.append(float(dy))
+        resp_list.append(float(resp))
 
     abs_dy_arr = np.array(abs_dy)
     is_cut = abs_dy_arr > p.cut
@@ -849,7 +893,10 @@ def split_runs_reading(frames: list[str], p: Params, args) -> list[list]:
             start = i
 
     min_scroll = max(3, int(p.min_hold))
-    return _resolve_reading_runs(raw_runs, min_scroll)
+    return _resolve_reading_runs(
+        raw_runs, min_scroll,
+        dy_signed=np.array(dy_signed), resp=np.array(resp_list),
+    )
 
 
 def _slit_channel_stats(frames: list[str], p: Params, args) -> dict | None:
