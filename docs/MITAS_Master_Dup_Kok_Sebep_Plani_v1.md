@@ -8,7 +8,7 @@
 
 **Hedef:** `reading_master_runaware` master-PNG'lerindeki tekrar bloklarını
 (VL modellerini thinking-döngüsüne kilitleyen kusur) kök sebebiyle çözmek.
-Kabul: 110-film üretiminde dup-metriği eşik altı + içerik-koruma (benzersiz
+Kabul: 112-film üretiminde dup-metriği eşik altı + içerik-koruma (benzersiz
 OCR-satır recall ≥ legacy) + flag kapalıyken legacy bit-parite + Çağatay'ın
 vereceği KÖR büyük test setinde doğrulama.
 
@@ -99,7 +99,7 @@ yorumla) → commit `feat(master-dup): şerit-tabanlı dup-metriği + sentetik t
    `outputs/SON_METRO_master_probe_.../reading_master_runaware.png` ile boyut/manifest
    karşılaştır (sadakat kanıtı). Commit `feat(master-dup): üretim harness'ı (M2)`.
 
-### Görev M3: 110-film duplikasyon atlası
+### Görev M3: 112-film duplikasyon atlası
 
 1. `uret.py --paralel 3` ile tüm filmler (indirme ~30-60s/film; toplam birkaç saat,
    arka planda; ilerleme logu). smb kopması → bekle-tekrarla (havuz_kur deseni).
@@ -110,7 +110,7 @@ yorumla) → commit `feat(master-dup): şerit-tabanlı dup-metriği + sentetik t
    H, beklenen-scroll-boyunun katı). Her kötü vaka için master'dan kanıt-kırpımı
    PNG'si (`kanit/` klasörü) — orkestratör ve Çağatay GÖZLE doğrulayabilsin.
 3. ÖZET tablosu orkestratöre raporlanır (hipotez → film sayısı → önerilen fix yönü).
-   Commit `feat(master-dup): 110-film duplikasyon atlası (M3)`.
+   Commit `feat(master-dup): 112-film duplikasyon atlası (M3)`.
 
 ### Görev M4: Kök-sebep fix'leri — FLAG arkasında (atlas kanıtı + konsey turu SONRASI)
 
@@ -125,11 +125,11 @@ brifinge girer). Muhtemel fix'ler (atlas neyi kanıtlarsa O uygulanır):
 - H4 → pencere-sağlık kapısı: beklenen-boy üst sınırı (toplam_scroll_dy + kart_toplamı
   payı) aşılırsa manifest'e `size_anomaly` + slit'e sınır.
 Hepsi `MITAS_MASTER_V2=1` arkasında; flag kapalı → M2 pilotlarında bit-parite testi
-(`np.array_equal`). Her fix ayrı commit + 110'da metrik yeniden.
+(`np.array_equal`). Her fix ayrı commit + 112'de metrik yeniden.
 
 ### Görev M5: Kabul
 
-(a) 110'da dup_oran medyanı ≈0 ve maksimum < 0.05 (eşik atlas dağılımına göre
+(a) 112'de dup_oran medyanı ≈0 ve maksimum < 0.05 (eşik atlas dağılımına göre
 kesinleşir, orkestratör onayı); (b) içerik-koruma: 20-film örnekleminde v2 master'ın
 benzersiz OCR-satır kümesi (PaddleOCR rec, normalize) ⊇ legacy'nin %98'i — künye
 kesilmedi kanıtı; (c) flag kapalı bit-parite; (d) 5 en-kötü vakada önce/sonra
