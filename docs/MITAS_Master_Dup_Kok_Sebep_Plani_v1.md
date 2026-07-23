@@ -210,6 +210,31 @@ gözle karşılaştırma PNG'leri; (e) VL spot-testi: eski kilitlenen tip (think
 3 filmde v2 master ile denenir — döngü yok beklentisi; (f) Çağatay'ın KÖR test seti
 geldiğinde aynı ölçüm tekrarı.
 
+### Görev M7: BÜYÜK KOŞU — Ex_Frame 427 film (/goal: sağlıklı-master ≥%91)
+
+Çağatay direktifi (2026-07-24): korpus artık `/home/cagatay/Ex_Frame/*-exit_frames/`
+(427 film; kareler JENERİK BAŞLANGICINDAN başlıyor — onset adımı YOK; ~1.25fps,
+exit_%06d.png, 600×480). Hedef: filmlerin ≥%91'i SAĞLIKLI master üretsin.
+
+**SAĞLIK TANIMI (ölçülebilir; taban koşusundan sonra kalibre edilip kilitlenir):**
+bir master sağlıklıdır ⇔
+1. üretim OK (status=OK, istisna yok, kept_blocks≥1);
+2. dup_oran ≤ 0.10 (F1/F1b/F1c sonrası);
+3. boy makul: 300px ≤ H ≤ 45000px (canavar/boş değil);
+4. imha-imzası YOK (statik-sayfa alanı >%70 VE ≥2 cılız blok (h<25px) birlikteliği
+   = footage-üstü kayan yazı ezilmesi şüphesi → sağlıksız);
+5. doku_kapsami ≥ 0.05 (kapkara/boş master değil).
+
+**Yol:** (1) uret_ex.py adaptörü — yerel kare klasörlerinden (indirme yok),
+monitor-birebir args + MITAS_MASTER_V2=1; (2) saglik.py sınıflandırıcı + toplu
+rapor; (3) TABAN koşusu 427'de → sağlık oranı + sağlıksızların sınıf dağılımı;
+(4) en büyük sınıftan başlayarak kanıt-güdümlü düzeltme turları (F1c ayarı /
+M4b-fallback OCR kutu-hasadı — Ex_Frame'de kaynak video YOK, D-ROI çıkarımı
+uygulanamaz, fallback birincil kurtarıcı) → her turda tam yeniden ölçüm;
+(5) ≥%91'de kabul + 112-sette regresyon kontrolü.
+Not: 1.25fps, Nyquist açısından 1.5'ten de kötü — overlay sınıfı Ex_Frame'de
+daha görünür olabilir; sağlık dağılımı bunu ölçecek.
+
 ### Görev M6: Kayıt
 
 GUNLUK kaydı + bu doküman güncellemesi (konsey kararları, sayılar) + görev #12 kapanışı.
