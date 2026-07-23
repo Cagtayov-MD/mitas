@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
-"""Atlanan-blok (distant-dup) OCR-özdeşlik denetimi (Görev M4 adım 5e,
+"""Atlanan-blok (distant-dup*) OCR-özdeşlik denetimi (Görev M4 adım 5e,
 docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md).
 
-MITAS_MASTER_V2 F1 fix'i (OCR-worktree/db_compose_master.py -- global kart kaydı,
-H2 kök-sebep), bir statik kartı "distant-dup" olarak atladığında bunu
-data/master_dup/masters_v2/<FİLM>/manifest.json'a {skip:"distant-dup",
-es_blok_indeksi, response, fark_orani, en_yuksek_bant_farki} olarak yazar.
+MITAS_MASTER_V2 F1/F1b fix'leri (OCR-worktree/db_compose_master.py -- global
+kart kaydı, H2 kök-sebep), bir statik kartı atladığında bunu
+data/master_dup/masters_v2/<FİLM>/manifest.json'a üç olası skip türünden
+biriyle yazar:
+  - "distant-dup"       (F1, dHash+XOR): {es_blok_indeksi, response, fark_orani,
+    en_yuksek_bant_farki}
+  - "distant-dup-text"  (F1b, det-kutu+NCC eşleşti -- özdeş metin tekrarı):
+    {es_blok_indeksi, global_fark, max_band_fark, det_kutular_a/b, kutu_ncc}
+  - "distant-dup-scene" (F1b, iki sayfada da det-kutusu YOK -- donuk sahne):
+    {..., det_kutular_a: 0, det_kutular_b: 0}
 
-Bu betik HER atlamayı İÇERİK-KORUMA açısından denetler: atlanan kartın kaynak
-karesi + eşleştiği (es_blok_indeksi) kartın kaynak karesi -- ikisi de kaynak
-video'dan hedefli (tek kare) yeniden çıkarılıp PaddleOCR (rec) ile okunur,
-metinler normalize edilip (harness/kunye_kiyas/isim_normalize.normalize --
-SALT-OKUNUR import) karşılaştırılır. ÖZDEŞ OLMAYAN atlama = TASARIM HATASI:
-F1'in üç kapısı (dHash aday + hizalama yanıtı + XOR fark-bandı) yanlış-pozitif
-üretmiş demektir -- eşikler sıkılaştırılmalı (F1_TOTAL_DIFF_GATE 0.05->0.03,
-bkz. db_compose_master.py) ve o vaka sınıfı için fix devre dışı bırakılmalı.
+Denetim türe göre değişir (orkestratör kararı, F1b DÜZELTMESİ):
+  - "distant-dup" / "distant-dup-text": atlanan kartın kaynak karesi + eşleştiği
+    (es_blok_indeksi) kartın kaynak karesi -- ikisi de kaynak video'dan hedefli
+    (tek kare) yeniden çıkarılıp PaddleOCR (rec) ile okunur, metinler normalize
+    edilip (harness/kunye_kiyas/isim_normalize.normalize -- SALT-OKUNUR import)
+    karşılaştırılır. ÖZDEŞ OLMAYAN atlama = TASARIM HATASI (eşikler sıkılaştırılmalı
+    -- F1_TOTAL_DIFF_GATE 0.05->0.03 / F1B_NCC_GATE yükseltilmeli -- ve o vaka
+    sınıfı için fix devre dışı bırakılmalı).
+  - "distant-dup-scene": manifest'e zaten yazılmış det_kutular_a=0/det_kutular_b=0
+    kanıtı YETERLİ (det-only kutu sayımı yeniden hesaplanmaz -- kaybolacak metin
+    yoktu demek zaten "iki sayfada da 0 kutu" ölçümünün kendisi). Bu betik yalnız
+    bu ÖN-KOŞULUN (kayıtlı alanların gerçekten 0/0 olduğu) tutarlılığını doğrular.
 
 Kullanım:
   /opt/mitas/venvs/ocr/bin/python harness/master_dup/skip_audit.py
@@ -66,6 +76,9 @@ def _kept_block_index_map(blocks: list[dict]) -> dict[int, dict]:
     return idx_map
 
 
+DISTANT_DUP_SKIP_TYPES = ("distant-dup", "distant-dup-text", "distant-dup-scene")
+
+
 def find_distant_dup_cases() -> list[dict]:
     cases = []
     for man_path in sorted(MASTERS_V2.glob("*/manifest.json")):
@@ -81,12 +94,14 @@ def find_distant_dup_cases() -> list[dict]:
         idx_map = _kept_block_index_map(blocks)
         prov = man.get("_uret_provenance", {})
         for entry in blocks:
-            if entry.get("skip") != "distant-dup":
+            skip_type = entry.get("skip")
+            if skip_type not in DISTANT_DUP_SKIP_TYPES:
                 continue
             es_idx = entry.get("es_blok_indeksi")
             twin = idx_map.get(es_idx)
             cases.append({
                 "film": film,
+                "skip_type": skip_type,
                 "kaynak_dosya": prov.get("kaynak_dosya"),
                 "pencere_basi_s": prov.get("pencere_basi_s"),
                 "skipped_src": entry.get("src"),
@@ -95,6 +110,11 @@ def find_distant_dup_cases() -> list[dict]:
                 "response": entry.get("response"),
                 "fark_orani": entry.get("fark_orani"),
                 "en_yuksek_bant_farki": entry.get("en_yuksek_bant_farki"),
+                "global_fark": entry.get("global_fark"),
+                "max_band_fark": entry.get("max_band_fark"),
+                "det_kutular_a": entry.get("det_kutular_a"),
+                "det_kutular_b": entry.get("det_kutular_b"),
+                "kutu_ncc": entry.get("kutu_ncc"),
             })
     return cases
 
@@ -198,54 +218,75 @@ def audit(overlap_gate: float = 0.5) -> dict:
     if not cases:
         return result
 
-    uret.ensure_mount()
-    TMP_ROOT.mkdir(parents=True, exist_ok=True)
-
-    by_film: dict[str, list[dict]] = {}
-    for c in cases:
-        by_film.setdefault(c["film"], []).append(c)
-
     ozdes_olmayan = 0
-    for film, film_cases in by_film.items():
-        kaynak_dosya = film_cases[0]["kaynak_dosya"]
-        pencere_basi_s = film_cases[0]["pencere_basi_s"]
-        film_tmp = TMP_ROOT / film
-        film_tmp.mkdir(parents=True, exist_ok=True)
-        local_mp4 = film_tmp / "kaynak.mp4"
-        try:
-            src = uret.locate_source(kaynak_dosya)
-            if src is None or not uret.gio_copy(src, local_mp4):
-                for c in film_cases:
-                    result["vakalar"].append({**c, "denetim": "hata", "not": "kaynak/gio_copy basarisiz"})
-                continue
-            for c in film_cases:
-                skipped_png = film_tmp / "skipped.png"
-                twin_png = film_tmp / "twin.png"
-                ok1 = extract_single_frame(local_mp4, pencere_basi_s, c["skipped_src"], skipped_png)
-                ok2 = c["twin_src"] and extract_single_frame(local_mp4, pencere_basi_s, c["twin_src"], twin_png)
-                if not ok1 or not ok2:
-                    result["vakalar"].append({**c, "denetim": "hata", "not": "kare cikarilamadi"})
+
+    # "distant-dup-scene" (F1b): manifest'e zaten yazılmış det_kutular_a=0/
+    # det_kutular_b=0 kanıtı YETERLİ (orkestratör kararı) -- yeniden kare
+    # çıkarma/OCR YOK, yalnız bu ÖN-KOŞULUN kayıtlı haliyle tutarlılığı doğrulanır.
+    scene_cases = [c for c in cases if c["skip_type"] == "distant-dup-scene"]
+    for c in scene_cases:
+        tutarli = c.get("det_kutular_a") == 0 and c.get("det_kutular_b") == 0
+        if not tutarli:
+            ozdes_olmayan += 1
+        result["vakalar"].append({
+            **c,
+            "denetim": "ozdes" if tutarli else "OZDES_DEGIL",
+            "not": "det=0/0 kanıtı (manifest'te zaten kayıtlı) yeterli -- yeniden OCR gerekmedi",
+        })
+
+    # "distant-dup" (F1) / "distant-dup-text" (F1b): tam OCR-rec özdeşlik denetimi
+    # -- atlanan kartın kaynak karesi + eşleştiği kartın kaynak karesi hedefli
+    # yeniden çıkarılır, PaddleOCR ile okunur, normalize edilip karşılaştırılır.
+    ocr_cases = [c for c in cases if c["skip_type"] in ("distant-dup", "distant-dup-text")]
+    if ocr_cases:
+        uret.ensure_mount()
+        TMP_ROOT.mkdir(parents=True, exist_ok=True)
+        by_film: dict[str, list[dict]] = {}
+        for c in ocr_cases:
+            by_film.setdefault(c["film"], []).append(c)
+
+        for film, film_cases in by_film.items():
+            kaynak_dosya = film_cases[0]["kaynak_dosya"]
+            pencere_basi_s = film_cases[0]["pencere_basi_s"]
+            film_tmp = TMP_ROOT / film
+            film_tmp.mkdir(parents=True, exist_ok=True)
+            local_mp4 = film_tmp / "kaynak.mp4"
+            try:
+                src = uret.locate_source(kaynak_dosya)
+                if src is None or not uret.gio_copy(src, local_mp4):
+                    for c in film_cases:
+                        result["vakalar"].append({**c, "denetim": "hata", "not": "kaynak/gio_copy basarisiz"})
                     continue
-                lines_skip = ocr_lines(skipped_png)
-                lines_twin = ocr_lines(twin_png)
-                set_skip = normalized_set(lines_skip)
-                set_twin = normalized_set(lines_twin)
-                overlap = line_overlap(set_skip, set_twin)
-                ozdes = overlap >= overlap_gate
-                if not ozdes:
-                    ozdes_olmayan += 1
-                result["vakalar"].append({
-                    **c,
-                    "denetim": "ozdes" if ozdes else "OZDES_DEGIL",
-                    "overlap": round(overlap, 3),
-                    "skipped_ocr": sorted(set_skip),
-                    "twin_ocr": sorted(set_twin),
-                })
-        finally:
-            import shutil
-            shutil.rmtree(film_tmp, ignore_errors=True)
+                for c in film_cases:
+                    skipped_png = film_tmp / "skipped.png"
+                    twin_png = film_tmp / "twin.png"
+                    ok1 = extract_single_frame(local_mp4, pencere_basi_s, c["skipped_src"], skipped_png)
+                    ok2 = c["twin_src"] and extract_single_frame(local_mp4, pencere_basi_s, c["twin_src"], twin_png)
+                    if not ok1 or not ok2:
+                        result["vakalar"].append({**c, "denetim": "hata", "not": "kare cikarilamadi"})
+                        continue
+                    lines_skip = ocr_lines(skipped_png)
+                    lines_twin = ocr_lines(twin_png)
+                    set_skip = normalized_set(lines_skip)
+                    set_twin = normalized_set(lines_twin)
+                    overlap = line_overlap(set_skip, set_twin)
+                    ozdes = overlap >= overlap_gate
+                    if not ozdes:
+                        ozdes_olmayan += 1
+                    result["vakalar"].append({
+                        **c,
+                        "denetim": "ozdes" if ozdes else "OZDES_DEGIL",
+                        "overlap": round(overlap, 3),
+                        "skipped_ocr": sorted(set_skip),
+                        "twin_ocr": sorted(set_twin),
+                    })
+            finally:
+                import shutil
+                shutil.rmtree(film_tmp, ignore_errors=True)
 
     result["ozdes_olmayan_sayisi"] = ozdes_olmayan
+    result["n_scene_dogrulanan"] = len(scene_cases)
+    result["n_ocr_denetlenen"] = len(ocr_cases)
     return result
 
 
@@ -257,12 +298,15 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     r = audit(overlap_gate=args.overlap_esik)
-    print(f"n_atlama (distant-dup skip): {r['n_atlama']}")
+    print(f"n_atlama (distant-dup* skip toplam): {r['n_atlama']}")
     if r["n_atlama"]:
+        print(f"  -> n_scene_dogrulanan (det=0/0, OCR gerekmedi): {r.get('n_scene_dogrulanan')}")
+        print(f"  -> n_ocr_denetlenen (distant-dup/distant-dup-text): {r.get('n_ocr_denetlenen')}")
         print(f"ozdes_olmayan_sayisi: {r.get('ozdes_olmayan_sayisi')}")
         for v in r["vakalar"]:
-            print(f"  [{v.get('denetim')}] {v['film']}  overlap={v.get('overlap')}  "
-                  f"skip={v['skipped_src']} twin={v['twin_src']}")
+            if v.get("denetim") != "ozdes":
+                print(f"  [{v.get('denetim')}] {v['film']} ({v.get('skip_type')})  overlap={v.get('overlap')}  "
+                      f"skip={v['skipped_src']} twin={v['twin_src']}")
     if args.json:
         args.json.write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"-> {args.json}")
