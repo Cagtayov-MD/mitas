@@ -348,3 +348,28 @@ _ROL_CEKIRDEK = re.compile(
   ROI-şeridi YAGNI — atlas split-screen vakası gösterirse eklenir.
 - Kimi her iki turda da 429 (Moonshot altyapı) — edge-case merceği eksik kaldı;
   telafi: Görev 3 atlası her düzeltmeyi vaka-kanıtına bağlıyor.
+
+---
+
+## KAMPANYA SONUCU (2026-07-23 akşam) — HEDEF AŞILDI ✅
+
+**%73.7 (87/118) → %93.6 (103/110)** simetrik ±20 ölçütünde; **%96.4 (106/110)** üretim
+ölçütünde (erken≤120 kabul / geç≤20 — Çağatay asimetri politikası). Kredisiz-red **29/29**
+(kampanya başında 1 FP vardı, o da düzeldi). ×2 üst üste ölçüm birebir aynı (deterministik);
+bağımsız orkestratör doğrulaması birebir. `tespit`/`tespit_v4` davranışı değişmedi.
+
+**Turların katkısı:** T5 statik içerik-çapası +3 · T4 hareket-otoriteli geri-birleştirme +4 ·
+T6 çok-dil/FP-gardı/kart-dizisi/seyrek-yol +4+6 · politika-GT düzeltmesi +1 (TAKKELİ) ·
+mini-tur3 produc-regex +1 · final tur (producer-köprüsü, Arapça ikinci-şans, şirket-budaması,
+yabancı-yol gardı) +3. Veri-hijyeni: 8 yanlış-dosya tespiti (5 kurtarıldı, 3 dışlandı).
+
+**Kalan 7 hata:** 5'i kabul-edilebilir erken sınıfı (−25…−124: TV-bandı/epilog/tabela —
+"metin var ama kredi değil" kör noktaları), 2'si geç (GELECEK +91: 238-kare yapısal boşluk;
+İNİŞLİ +89: başlık kartı + şarkı-sözü bölgesi). Kalıcı çözüm adayı: sınır-vakalarına dar-VLM
+(bkz. KONSEY_KARARLARI kod-avı bölümü ve karşı-örnek KAHRAMAN_UZAYLILAR — salt piksel-hareketi
+yetmiyor). Görsel hata raporu: `outputs/jenerik_hata_raporu/rapor.html`.
+
+**Üretim entegrasyonu önerileri (ayrı karar):** (1) start_pos'a güvenlik payı — onset−10..20
+kare (erken zararsız politikasının bedava sigortası); (2) T8 sertleştirme gardları üretimde
+aynen geçerli; (3) dislanan.json deseni — arşivde aynı-id-farklı-içerik dosyalar var,
+kare-sayısı paritesi içerik paritesi değildir.
