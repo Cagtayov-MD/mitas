@@ -41,7 +41,9 @@ sinyaller kullanılır:
     kullanılan "reading" sınıflandırıcı) aynı karelerde 'S' (statik/sayfa)
     ise -> gerçek scroll sahne "sayfa" sanılmış, örtüşen kare-kare tekrar riski.
 
-CLI: `atlas.py` (argümansız; masters/ altını tarar).
+CLI: `atlas.py` (argümansız; masters/ altını tarar). `atlas.py --v2` (Görev M4):
+masters_v2/ + veri_ozet_v2.json'u tarar, dup_dokumu_v2.md + kanit_v2/ üretir
+(legacy dosyalara dokunmaz -- önce/sonra karşılaştırması için ikisi de kalır).
 """
 from __future__ import annotations
 
@@ -60,6 +62,20 @@ MASTERS_ROOT = OUT_ROOT / "masters"
 VERI_OZET_PATH = OUT_ROOT / "veri_ozet.json"
 KANIT_ROOT = OUT_ROOT / "kanit"
 DOKUM_PATH = Path(__file__).resolve().parent / "dup_dokumu.md"
+
+# --v2 (Görev M4): uret.py --v2 çıktısını (masters_v2/ + veri_ozet_v2.json) tara,
+# ayrı dup_dokumu_v2.md + kanit_v2/ üret -- legacy dosyalar (--v2 verilmezse
+# kullanılan yollar) hiç DOKUNULMADAN kalır (önce/sonra karşılaştırma tabanı).
+V2_MODE = False
+
+
+def configure_v2(enabled: bool) -> None:
+    global V2_MODE, MASTERS_ROOT, VERI_OZET_PATH, KANIT_ROOT, DOKUM_PATH
+    V2_MODE = bool(enabled)
+    MASTERS_ROOT = OUT_ROOT / ("masters_v2" if V2_MODE else "masters")
+    VERI_OZET_PATH = OUT_ROOT / ("veri_ozet_v2.json" if V2_MODE else "veri_ozet.json")
+    KANIT_ROOT = OUT_ROOT / ("kanit_v2" if V2_MODE else "kanit")
+    DOKUM_PATH = Path(__file__).resolve().parent / ("dup_dokumu_v2.md" if V2_MODE else "dup_dokumu.md")
 
 FPS = 1.5
 
@@ -678,10 +694,20 @@ def build_report(merged: list[dict], dy_rate: float | None) -> tuple[str, list[d
 # --------------------------------------------------------------------------- #
 # main
 # --------------------------------------------------------------------------- #
-def main() -> int:
+def main(argv=None) -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument(
+        "--v2", action="store_true",
+        help="uret.py --v2 çıktısını tara (masters_v2/+veri_ozet_v2.json) -> "
+             "dup_dokumu_v2.md + kanit_v2/ (legacy dosyalara DOKUNMAZ)",
+    )
+    args = ap.parse_args(argv)
+    configure_v2(args.v2)
+
     merged = merge_all()
     if not merged:
-        print("uret.py çalışma özeti bulunamadı (data/master_dup/veri_ozet.json yok/boş).")
+        print(f"uret.py çalışma özeti bulunamadı ({VERI_OZET_PATH} yok/boş).")
         return 1
 
     dy_rate = pool_scroll_rate(merged)

@@ -34,9 +34,12 @@ Kullanım:
   uret.py --n 5                            # havuzdan ilk 5 film
   uret.py --n 5 --paralel 3                # 3 film eşzamanlı (ayrı süreçler)
   uret.py                                  # tüm havuz (112 film — bkz. not aşağıda)
+  uret.py --v2 --n 10 --paralel 3          # Görev M4 F1/F2/F3 fix'leri (MITAS_MASTER_V2=1)
+                                            # -> masters_v2/ + veri_ozet_v2.json (legacy masters/ KORUNUR)
 
 ÇIKTI:
   /opt/mitas/data/master_dup/masters/<FİLM>/{reading_master.png, manifest.json, metrik.json}
+  --v2 ile: /opt/mitas/data/master_dup/masters_v2/<FİLM>/{...} + veri_ozet_v2.json
   /opt/mitas/data/master_dup/veri_ozet.json (toplu özet)
 
 NOT (film listesi sayımı): Plan dokümanı "110-film havuzu" der; bu betiğin kendi
@@ -82,6 +85,25 @@ TMP_ROOT = OUT_ROOT / "_pencere_tmp"
 MASTERS_ROOT = OUT_ROOT / "masters"
 VERI_OZET_PATH = OUT_ROOT / "veri_ozet.json"
 
+# --v2 (Görev M4): MITAS_MASTER_V2=1 üretim akışı -- eski masters/ SİLİNMEZ/EZİLMEZ,
+# çıktılar ayrı masters_v2/ + veri_ozet_v2.json altına yazılır (karşılaştırma tabanı
+# korunur). configure_v2() main()'de --v2 görülünce çağrılır; ProcessPoolExecutor
+# Linux'ta fork ile başladığından (ex.map çağrılmadan ÖNCE mutasyon yapıldığı için)
+# alt süreçler bu güncel modül durumunu miras alır -- ayrıca process_film() kendi
+# içinde de env'i açıkça set eder (spawn/başka platform güvencesi, ucuz/idempotent).
+V2_MODE = False
+
+
+def configure_v2(enabled: bool) -> None:
+    global V2_MODE, MASTERS_ROOT, VERI_OZET_PATH
+    V2_MODE = bool(enabled)
+    MASTERS_ROOT = OUT_ROOT / ("masters_v2" if V2_MODE else "masters")
+    VERI_OZET_PATH = OUT_ROOT / ("veri_ozet_v2.json" if V2_MODE else "veri_ozet.json")
+    # os.environ üzerinden set etmek fork/spawn ayrımından bağımsız çalışır (OS
+    # ortam değişkenleri her iki başlatma yönteminde de alt sürece geçer).
+    os.environ["MITAS_MASTER_V2"] = "1" if V2_MODE else "0"
+
+
 FPS = 1.5
 KREDISIZ_PENCERE_S = 240.0
 ONSET_ON_PENCERE_S = 15.0
@@ -89,6 +111,10 @@ GT_FPS = 2.0  # dogrulama_sonuc kare numaraları bu fps'e göre (son-600s çıka
 GT_PENCERE_S = 600.0
 
 DUP_METRIK_PATH = Path(__file__).resolve().parent / "dup_metrik.py"
+
+# gio-copy üstel backoff (M3 bulgusu: 3-paralel yükte kırılgan -- flat 2s retry
+# yetersizdi). 3 deneme arası bekleme: 2s -> 5s -> 15s (toplam 4 deneme).
+GIO_COPY_BACKOFF_S = [2.0, 5.0, 15.0]
 
 
 # --------------------------------------------------------------------------- #
@@ -260,18 +286,23 @@ def locate_source(kaynak_dosya: str) -> Path | None:
     return hits[0] if hits else None
 
 
-def gio_copy(src: Path, dst: Path, tries: int = 3) -> bool:
+def gio_copy(src: Path, dst: Path, backoff: list[float] | None = None) -> bool:
+    """gio copy + üstel backoff (M3 bulgusu: 3-paralel yükte flat 2s retry kırılgandı).
+    backoff=[2,5,15] -> 4 deneme (1 ilk + 3 tekrar), her tekrar öncesi artan bekleme."""
+    delays = list(GIO_COPY_BACKOFF_S if backoff is None else backoff)
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():
         dst.unlink()
-    for attempt in range(1, tries + 1):
+    attempts = len(delays) + 1
+    for attempt in range(1, attempts + 1):
         r = subprocess.run(
             ["gio", "copy", str(src), str(dst)],
             capture_output=True, text=True,
         )
         if r.returncode == 0 and dst.exists() and dst.stat().st_size > 0:
             return True
-        time.sleep(2)
+        if attempt <= len(delays):
+            time.sleep(delays[attempt - 1])
     return False
 
 
@@ -378,7 +409,7 @@ def process_film(row: dict, *, keep_tmp: bool = False) -> dict:
 
         if not gio_copy(src, local_mp4):
             result["status"] = "hata"
-            result["hata"] = "gio copy 3 denemede başarısız"
+            result["hata"] = f"gio copy {len(GIO_COPY_BACKOFF_S) + 1} denemede başarısız (backoff {GIO_COPY_BACKOFF_S})"
             return result
 
         sure_s = ffprobe_duration(local_mp4)
@@ -429,6 +460,7 @@ def process_film(row: dict, *, keep_tmp: bool = False) -> dict:
             "src_last": Path(frames[-1]).name,
             "args": vars(args),
             "slit_dy_hybrid": dc.SLIT_DY_HYBRID,
+            "mitas_master_v2": os.environ.get("MITAS_MASTER_V2", "0"),
         }
         manifest_out = dict(manifest) if isinstance(manifest, dict) else {"raw_info": manifest}
         manifest_out["_uret_provenance"] = provenance
@@ -502,7 +534,17 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=None, help="havuzdan ilk N film")
     ap.add_argument("--paralel", type=int, default=1, help="eşzamanlı film sayısı (ayrı süreç)")
     ap.add_argument("--selfcheck", action="store_true", help="sadakat kanıtını yazdır ve çık (ağ/ffmpeg gerekmez)")
+    ap.add_argument(
+        "--v2", action="store_true",
+        help=(
+            "MITAS_MASTER_V2=1 (Görev M4 F1/F2/F3 fix'leri) ile üret; çıktılar "
+            "masters_v2/<FİLM>/ + veri_ozet_v2.json altına yazılır (legacy masters/ "
+            "KORUNUR -- karşılaştırma tabanı)"
+        ),
+    )
     args = ap.parse_args(argv)
+
+    configure_v2(args.v2)
 
     if args.selfcheck:
         proof = sadakat_kaniti()
@@ -519,7 +561,7 @@ def main(argv=None) -> int:
         print("Havuzda eşleşen film yok.", file=sys.stderr)
         return 1
 
-    print(f"=== uret.py: {len(pool)} film işlenecek (paralel={args.paralel}) ===", flush=True)
+    print(f"=== uret.py: {len(pool)} film işlenecek (paralel={args.paralel}, v2={V2_MODE}) ===", flush=True)
     results = run(pool, paralel=args.paralel)
     ok = sum(1 for r in results if r.get("status") == "OK")
     print(f"\n-> {VERI_OZET_PATH}  ({ok}/{len(results)} OK)", flush=True)
