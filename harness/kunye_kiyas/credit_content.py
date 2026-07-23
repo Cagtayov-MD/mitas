@@ -9,10 +9,11 @@ PaddleOCR rec sadece ADAY karelerde (birkaç), maliyet düşük.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 _OCR = None
 
-# rol/görev keyword'leri (EN + TR + İtalyanca/Fransızca/Almanca/İspanyolca — T6)
+# rol/görev keyword'leri (EN + TR + İtalyanca/Fransızca/Almanca/İspanyolca/Macarca — T6 2.tur)
 # Yabancı-dil kalıpları _ROL_CEKIRDEK ile AYNI (GLM uyarısı: 'distributed/production
 # company' türü logo-kuşağı kelimeleri EKLENMEDİ — bkz. _ROL_CEKIRDEK).
 _ROL = re.compile(
@@ -23,13 +24,16 @@ _ROL = re.compile(
     r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
     r"réalisat|scénario|musique|montage|image|décors|interprét|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
-    r"dirección|guión|música|montaje|reparto)\b",
+    r"dirección|guión|música|montaje|reparto|"
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
     re.I)
 
 # ÇEKİRDEK-ROL beyaz listesi (T6, plan Görev6/Adım1) — SON_ERISIM gevşetmesi/
 # scroll-kurtarma/seyrek-yol gibi RİSKLİ gevşetmeleri SADECE bunlar tetikler.
 # "distributed/production/copyright" türü logo-kuşağı kelimeleri KASITLI DIŞARIDA
 # (GLM tur-2 uyarısı: film-ortası şirket logosu/kredi-dışı insert yanlış tetikler).
+# Macarca eklendi (T6 2.tur, alt-adım1a — konsey kırmızı-takım): DOĞUM_GÜNÜN gibi
+# Macar yapımlarında kredi kartları yalnız Macarca rol adları taşıyor.
 _ROL_CEKIRDEK = re.compile(
     r"\b(director|directed|screenplay|written|writer|cinematograph|photograph|"
     r"editor|edited|music|starring|cast|script|"
@@ -37,8 +41,43 @@ _ROL_CEKIRDEK = re.compile(
     r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
     r"réalisat|scénario|musique|montage|image|décors|interprét|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
-    r"dirección|guión|música|montaje|reparto)\b",
+    r"dirección|guión|música|montaje|reparto|"
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
     re.I)
+
+
+def _diakritik_kaldir_basit(s: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+
+
+# Macarca diyakritik-toleranslı önek (T6 2.tur, alt-adım1a — atlas kanıtı:
+# DOĞUM_GÜNÜN'de OCR aksanları düşürüyor: 'operatőr'->'operatori'/'operator',
+# 'rendező'->'rendentar'). _ROL_CEKIRDEK'in \b...\b TAM-kelime eşleşmesi bu
+# OCR-bozuk biçimleri hiç yakalamıyor (ölçüldü — 36 karenin hiçbirinde tutmadı).
+# Kapanış \b KASITLI YOK (Macarca çekimli dil + OCR gürültüsü tam kelimeyi asla
+# tutturmuyor). 'vágó' (editör) listeye ALINMADI: diyakritiksiz 3 harfli önek
+# ("vag") İngilizce 'vagrancy/vague' ile çakışıyor (kod tabanında zaten bilinen
+# bir gazete-insert test vakası — MODERN "WANTED FOR Vagrancy"); risk/kazanç
+# dengesi olumsuz, dışarıda bırakıldı. Yalnız cekirdek_rol_bul() içinde
+# kullanılır — global _ROL_CEKIRDEK'in davranışı DEĞİŞMEZ.
+_ROL_MACAR_ONEK = re.compile(
+    r"\b(rendez|operat|fenykepez|szerepl|gyartasvezet)", re.I)
+
+
+def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
+    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca diyakritik-toleranslı
+    önek eşleşmesinin BİRLEŞİMİ (T6 2.tur, alt-adım1a). credit_onset.py'deki
+    iki `cc._ROL_CEKIRDEK.findall` çağrısının yerini alır — davranış EN/TR/
+    İT/FR/DE/ES/HU tam-kelime eşleşmesinde AYNI, yalnız Macarca'da OCR aksan
+    kaybına dayanıklılık EKLENİR."""
+    roller: set[str] = set()
+    for sl in kare_satirlari:
+        for s in sl:
+            for m in _ROL_CEKIRDEK.findall(s):
+                roller.add(m.lower())
+            for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
+                roller.add(m.lower())
+    return sorted(roller)
 
 
 def _ocr():
@@ -56,6 +95,113 @@ def satirlar(frame_path: str) -> list[str]:
     rr = r[0]
     txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
     return [t.strip() for t in txt if t and t.strip()]
+
+
+# ── İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b) ─────────────────────────
+# EN-rec modeli Kiril-script kareyi okuyunca rastgele Latin harf yığınları
+# üretir (VANYA_DAYI/MELEKLERİ_GÖRMEK atlas kanıtı: 'ATbA OA', 'OeAHEeUHK').
+# Ayrı lazy-init global — yalnız çöp-desenli çıktı veren, içerik-eşiğini
+# geçemeyen adaylarda, o adayın birkaç örnek karesinde tetiklenir (det zaten
+# var; yalnız rec farklı model, maliyet düşük ve nadir).
+_OCR_RU = None
+
+
+def _ocr_ru():
+    global _OCR_RU
+    if _OCR_RU is None:
+        from paddleocr import PaddleOCR
+        _OCR_RU = PaddleOCR(use_textline_orientation=False, lang="ru")
+    return _OCR_RU
+
+
+def satirlar_ru(frame_path: str) -> list[str]:
+    r = _ocr_ru().predict(frame_path)
+    if not r or not r[0]:
+        return []
+    rr = r[0]
+    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+    return [t.strip() for t in txt if t and t.strip()]
+
+
+# Rusça+Kazakça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Kiril yolunda
+# kullanılır (global _ROL/_ROL_CEKIRDEK'e KARIŞTIRILMAZ). Rusça/Kazakça çekimli
+# dillerdir (режиссёр/режиссёра/режиссёрі...) — kapanış \b YOK, önek eşleşmesi
+# kasıtlı (İngilizce _ROL'deki 'produc' önekinin AKSİNE: orada kapanış \b'sinin
+# hiç eşleşmediği bir regresyon var — ayrı sorun, bu görev kapsamında DOKUNULMADI).
+_ROL_KIRIL = re.compile(
+    r"\b(режисс|оператор|композитор|звукооператор|художник|сценари|монтаж|"
+    r"актер|актёр|роля|қатысқандар)", re.I)
+
+
+_LATIN_SESLI = set("aeiouAEIOU")
+
+
+def _sesli_orani(tok: str) -> float:
+    harfler = [c for c in tok if c.isalpha()]
+    if not harfler:
+        return 0.0
+    return sum(1 for c in harfler if c in _LATIN_SESLI) / len(harfler)
+
+
+def cop_desenli_mi(kare_satirlari: list[list[str]], esik: float = 0.30) -> bool:
+    """EN-rec çıktısı çöp-desenli mi (T6 2.tur, alt-adım1b) — Kiril bir kareyi
+    yanlış (lang='en') modelle okuma belirtisi. Gerçek İngilizce/Türkçe kelimeler
+    (≥4 harf) sesli-harf-oranı tipik 0.25-0.6 aralığında kalır; Kiril→Latin
+    yanlış-okuma rastgele harf yığınları üretir, oran uçlara savrulur. Pragmatik
+    eşik (ölçüldü): tokenlerin <%30'u bu aralıkta ise çöp say. Az örnekte (< 3
+    token) karar verilemez — çöp DAMGALANMAZ (varsayılan davranış korunur)."""
+    tokenler = []
+    for satirlar_ in kare_satirlari:
+        for s in satirlar_:
+            for tok in s.split():
+                w = "".join(c for c in tok if c.isalpha())
+                if len(w) >= 4:
+                    tokenler.append(w)
+    if len(tokenler) < 3:
+        return False
+    gercek = sum(1 for t in tokenler if 0.25 <= _sesli_orani(t) <= 0.6)
+    return (gercek / len(tokenler)) < esik
+
+
+def _isim_gibi_kiril(satir: str) -> bool:
+    """Kiril satırın isim/rol-benzeri olup olmadığı — Python'un Unicode-farkında
+    isupper()/title-case testleri Kiril'de de doğru çalışır (T6 2.tur kanıtı:
+    'РЕЖИССЁР'.isupper()==True); yalnız rol-sözlüğü _ROL_KIRIL'e çevrilir."""
+    s = satir.strip().strip('"“”\'')
+    if len(s) < 2:
+        return False
+    if _ROL_KIRIL.search(s):
+        return True
+    if _NOKTA_LIDER.search(s):
+        return True
+    kelimeler = s.split()
+    if not kelimeler:
+        return False
+    buyuk = sum(1 for w in kelimeler if len(w) >= 2 and w.isupper())
+    title = sum(1 for w in kelimeler if len(w) >= 2 and w[0].isupper() and not w.isupper())
+    return buyuk >= 1 or title >= 2
+
+
+def kredi_skoru_kiril(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> tuple[float, list[str]]:
+    """İkinci-şans Kiril rec içerik skoru + bulunan çekirdek-rol listesi.
+
+    kredi_skoru_coklu'nun Kiril-eşleniği: yogun_esik düşük tutulur (2) çünkü
+    ikinci-şans yalnız birkaç örnek karede çalışır (dar örneklem, seyrek-kredi
+    T6 adım4'teki gerekçeyle aynı: sessiz/az-metinli jenerik kare-başına az
+    isim gösterebilir)."""
+    if not kare_satirlari:
+        return 0.0, []
+    yogun = 0
+    roller: set[str] = set()
+    for sl in kare_satirlari:
+        isim_n = sum(1 for s in sl if _isim_gibi_kiril(s))
+        if isim_n >= yogun_esik:
+            yogun += 1
+        for s in sl:
+            for m in _ROL_KIRIL.findall(s):
+                roller.add(m.lower())
+    skor = round(min(1.0, yogun / 3.0), 3)
+    return skor, sorted(roller)
 
 
 # nokta-lider deseni: '..' / '. .' (Avrupa kredi tipografisi — rol . . isim).

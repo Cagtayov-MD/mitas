@@ -643,8 +643,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
 
         kare_satirlari = [_satir_al(fi) for fi in ornek]
         kb_max = cc.kredi_skoru_coklu(kare_satirlari)
-        core_roller = sorted({m.lower() for sl in kare_satirlari for s in sl
-                               for m in cc._ROL_CEKIRDEK.findall(s)})
+        core_roller = cc.cekirdek_rol_bul(kare_satirlari)
         # Seyrek-kredi yolu (T6, plan Görev6/Adım4): bazı jenerikler kare-başına
         # 1-3 isim gösterir (KÜÇÜK_SİMBA/ROBOCOP/TAKTİKLER_SAVAŞI atlas kanıtı) —
         # varsayılan yogun_esik=4 hiç yakalamıyor. Ama gerçek kredi ile gazete/tabela
@@ -659,13 +658,39 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         if len(core_roller) < 2 and kb_max < EŞIK and (b - a + 1) > len(ornek):
             genis_idx = sorted(set(int(x) for x in np.linspace(a, b, min(16, say_c))))
             genis_satirlari = [_satir_al(fi) for fi in genis_idx]
-            core_roller = sorted({m.lower() for sl in genis_satirlari for s in sl
-                                   for m in cc._ROL_CEKIRDEK.findall(s)})
+            core_roller = cc.cekirdek_rol_bul(genis_satirlari)
             if len(core_roller) >= 2:
                 kare_satirlari = genis_satirlari
         if len(core_roller) >= 2:
             kb_seyrek = cc.kredi_skoru_coklu(kare_satirlari, yogun_esik=2)
             kb_max = max(kb_max, kb_seyrek)
+        # İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b, konsey kırmızı-takım):
+        # içerik-eşiği hâlâ geçilmediyse VE 7 dilin (EN/TR/IT/FR/DE/ES/HU)
+        # HİÇBİRİNDE çekirdek-rol bulunamadıysa — güçlü "yanlış dil modeliyle
+        # okundu" sinyali (VANYA_DAYI/MELEKLERİ_GÖRMEK atlas kanıtı: Rusça/
+        # Kazakça kredi, lang='en' modeliyle rastgele Latin harf yığını üretmiş).
+        # cc.cop_desenli_mi (sesli-harf-oranı istatistiği) ÖLÇÜLDÜ: tek başına
+        # ayırt edici DEĞİL — Kiril→Latin harf-şekli ikamesi doğal sesli-
+        # yoğunluğunu KORUYOR (MELEKLERİ_GÖRMEK örneğinde gerçek-İngilizceyle
+        # aynı aralığa düşüyor, %90 vs %94). Asıl güvenilir sinyal core_roller
+        # boşluğu (nadir — 7 dilin hiçbiri tutmuyor, film-özel değil); cop_desenli_mi
+        # yalnız EK bir zayıf süzgeç olarak kullanılır (net-temiz İngilizce'yi
+        # dışlar, maliyeti sınırlar).
+        if kb_max < EŞIK and not core_roller and cc.cop_desenli_mi(kare_satirlari, esik=0.92):
+            kare_satirlari_kiril = [cc.satirlar_ru(g[idx[fi]]) for fi in ornek]
+            kb_kiril, roller_kiril = cc.kredi_skoru_kiril(kare_satirlari_kiril)
+            # GÜVENLİK (ölçüldü, ASRİ_ZAMANLAR/Modern-Times regresyonu): salt
+            # yoğunluk (kb_kiril) TEK BAŞINA yetersiz — Türkçe ara-yazı ("BU KADAR
+            # ÇABALAMANIN ANLAMI NE?") kısa/az-satırlı olduğu için EN yolunda
+            # yogun_esik=4'ü geçemiyordu ama Kiril yolunun seyrek yogun_esik=2'si
+            # bunu yanlışlıkla kredi sayıyordu. Codebase'in genel ilkesiyle aynı
+            # (T6 seyrek-yol/SON_ERISIM gevşetmesi/scroll-kurtarma): risk taşıyan
+            # her gevşetme yalnız GERÇEK bir _ROL_KIRIL eşleşmesiyle (roller_kiril
+            # dolu) kazanılır.
+            if roller_kiril and kb_kiril > kb_max:
+                kb_max = kb_kiril
+                core_roller = roller_kiril
+                kare_satirlari = kare_satirlari_kiril
         if gevsetme_aday and not (kb_max >= 0.9 and core_roller):
             # gevşetme hakkı kazanılmadı (kb<0.9 VEYA çekirdek-rol yok) — normal
             # SON_ERISIM'e takılmış gibi davran (kb'yi teşhis için sakla).
@@ -676,7 +701,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         scroll_var = bool(scroll[a:b + 1].any())
         yogunluk = min(1.0, float(say[a:b + 1].max()) / 8.0)
         joint = kb_max * (1.0 + 0.3 * scroll_var + 0.35 * son_capa_orani + 0.15 * yogunluk)
-        roller = sorted({m.lower()
+        roller = sorted(set(core_roller) | {m.lower()
                           for sl in kare_satirlari for s in sl for m in cc._ROL.findall(s)})
         kayitlar.append({"a": a, "b": b, "kare_a": kare_a, "kare_b": kare_b,
                           "son_ok": True, "kb": round(kb_max, 3), "joint": round(joint, 3),
