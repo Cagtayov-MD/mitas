@@ -135,6 +135,23 @@ F1B_BAND_DIFF_GATE = 0.10
 F1B_NCC_GATE = 0.90
 F1B_CENTER_TOL = 0.10
 
+# F1c KARARI (2026-07-24 M4-sonu teşhisi -- docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
+# "F1c KARARI"): F1b'nin metin-yolu bazı donuk (statik/kredisiz) sayfa çiftlerinde
+# TEK KÜÇÜK HAYALET kutu buluyor -- det, doku/özne hareketini kutu sanıyor (gözlenen
+# skor 0.7-0.93); sayfa böylece "text" yoluna düşüyor ama doku-NCC (gözlenen 0.29-0.69)
+# eşiği (0.90) doğal olarak tutmuyor -> KORU (yanlış-negatif: gerçek tekrar silinmiyor).
+# Alan/skor filtresi RİSKLİ (YAKIN_PLAN'ın gerçek altyazı kutusu da küçük -- filtre onu
+# da öldürür, İÇERİK KAYBI). GÜVENLİ ayrım: text-yolu REDDETTİĞİNDE (kutu sayısı/konumu
+# uyuşmuyor YA DA NCC eşiği tutmuyor) tartışmalı kutulara PaddleOCR REC (rec-only,
+# TEMBEL init, yalnız v2 + yalnız bu aday-çiftte) uygulanır -- rec BOŞ ya da güven<0.6
+# olan kutu HAYALET sayılır (yok say). Hayalet elendikten sonra: iki sayfada da gerçek
+# kutu kalmadıysa "distant-dup-scene" (kaybolacak metin yok); gerçek kutular kaldıysa
+# normalize (küçük-harf, noktalama/boşluk sadeleştir) metin EŞİTLİĞİ şartıyla
+# "distant-dup-rec"; aksi halde (gerçek metinler FARKLI -- örn. YAKIN_PLAN'ın farklı
+# altyazısı) None -- KORU. Maliyet sınırlı: yalnız piksel-benzer aday çiftlerinde
+# (F1b'nin global/band-fark kapısını geçmiş sayfalarda).
+F1C_REC_CONF_GATE = 0.6
+
 # F2 (H1 kök-sebep: slit dy tahmin hatası -> bitişik dilimlerde satır tekrarı) --
 # ardışık iki slit/scroll bloğu (aralarında hiç statik/kart bloğu YOKSA) dikiş
 # örtüşmesi için NCC ile hizalanır; en iyi hizada benzerlik>=0.9 ise örtüşen kısım
@@ -580,6 +597,70 @@ def _f1b_box_ncc(gray_a: np.ndarray, gray_b: np.ndarray, boxes_a: list[tuple], b
     return worst
 
 
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F1c -- hayalet-kutu REC hakemi (H2 kök-sebep artığı; bkz.
+# docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md "F1c KARARI")
+# --------------------------------------------------------------------------- #
+_F1C_REC_ENGINE = None  # TEMBEL -- yalnız F1b'nin text-yolu REDDETTİĞİ anda yüklenir
+
+
+def _f1c_rec_engine():
+    """PaddleOCR TextRecognition (rec-only) -- TEMBEL init. Flag KAPALI yol VE F1b'nin
+    text-yolunun zaten skip/koru kararı verdiği durumlar bu fonksiyonu HİÇ çağırmaz
+    (bit-parite: paddle'a hiç dokunulmaz; maliyet: yalnız gerçekten tartışmalı adayda)."""
+    global _F1C_REC_ENGINE
+    if _F1C_REC_ENGINE is None:
+        os.environ.setdefault("FLAGS_json_format_model", "0")
+        os.environ.setdefault("FLAGS_enable_pir_api", "0")
+        from paddleocr import TextRecognition
+        rec_name = os.environ.get("MITAS_PADDLEOCR_TEXT_REC_MODEL_NAME") or "PP-OCRv5_mobile_rec"
+        _F1C_REC_ENGINE = TextRecognition(model_name=rec_name)
+    return _F1C_REC_ENGINE
+
+
+def _f1c_normalize_text(s: str) -> str:
+    """Küçük-harf + noktalama/boşluk sadeleştirme -- iki bağımsız REC okumasının
+    biçimsel farkları (nokta, çoklu boşluk, vb.) yüzünden aynı metnin yanlışlıkla
+    'farklı' sayılmasını önler (F1c metin-eşitliği karşılaştırması için)."""
+    s = s.lower()
+    s = re.sub(r"[^\w]+", " ", s, flags=re.UNICODE)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _f1c_rec_text(gray: np.ndarray, box: tuple) -> tuple[str, float]:
+    """Bir det-kutusunu kırp, REC uygula -> (ham metin, güven). Kutu boş/rec
+    başarısızsa ("", 0.0) -- çağıran bunu HAYALET olarak okur (F1c_REC_CONF_GATE
+    ile birlikte: boş metin zaten güven eşiğinin altına düşer)."""
+    x0, y0, x1, y1 = box[4:8]
+    h, w = gray.shape[:2]
+    xi0, yi0 = max(0, int(x0)), max(0, int(y0))
+    xi1 = min(w, max(xi0 + 1, int(x1)))
+    yi1 = min(h, max(yi0 + 1, int(y1)))
+    crop = gray[yi0:yi1, xi0:xi1]
+    if crop.size == 0:
+        return "", 0.0
+    try:
+        eng = _f1c_rec_engine()
+        res = eng.predict(cv2.cvtColor(crop, cv2.COLOR_GRAY2BGR))
+    except Exception:
+        return "", 0.0
+    if not res:
+        return "", 0.0
+    item = res[0]
+    return str(item.get("rec_text") or ""), float(item.get("rec_score") or 0.0)
+
+
+def _f1c_rec_boxes(gray: np.ndarray, boxes_sorted: list[tuple]) -> list[tuple[str, float]]:
+    """Sıralı (okuma sırasıyla) kutu listesindeki HER kutuya REC uygula ->
+    [(normalize_metin, güven), ...]. Sıra korunur ki A/B metin karşılaştırması
+    konum-tutarlı kalsın."""
+    out = []
+    for box in boxes_sorted:
+        text, score = _f1c_rec_text(gray, box)
+        out.append((_f1c_normalize_text(text), score))
+    return out
+
+
 def _card_distant_dup_match_f1b(
     new_gray: np.ndarray,
     registry: list[dict],
@@ -588,15 +669,21 @@ def _card_distant_dup_match_f1b(
     band_gate: float = F1B_BAND_DIFF_GATE,
     ncc_gate: float = F1B_NCC_GATE,
     center_tol: float = F1B_CENTER_TOL,
+    rec_conf_gate: float = F1C_REC_CONF_GATE,
 ) -> dict | None:
     """F1b: F1 (dHash+XOR) eşleşme BULAMADIĞINDA çağrılan EK kapı. Hash ön-elemesi
     YOK -- doğrudan gri piksel-benzerlik adayı arar, sonra det-only kutu kapısıyla
-    doğrular. İki karar yolu: "distant-dup-scene" (iki sayfada da metin kutusu YOK
-    -- donuk sahne, kaybolacak içerik yok) ve "distant-dup-text" (kutu sayısı+konumu+
-    NCC'si eşleşen özdeş metin tekrarı). Herhangi bir kapı tutmazsa (piksel farkı
-    büyük, det başarısız, kutu sayısı/konum/NCC uyuşmuyor) None -- kart KORUNUR."""
+    doğrular. Üç karar yolu: "distant-dup-scene" (iki sayfada da metin kutusu YOK
+    -- donuk sahne, kaybolacak içerik yok), "distant-dup-text" (kutu sayısı+konumu+
+    NCC'si eşleşen özdeş metin tekrarı), "distant-dup-rec" (F1c -- kutu-kapısı
+    REDDETTİĞİNDE, yani kutu sayısı/konumu uyuşmadığında YA DA NCC eşiği tutmadığında,
+    tartışmalı kutulara REC hakemi devreye girer: rec boş/güven<0.6 olan kutu HAYALET
+    sayılır, elenir; iki sayfada da gerçek kutu kalmazsa scene, kalan gerçek kutu
+    metinleri normalize-eşitse rec-skip). Herhangi bir kapı tutmazsa (piksel farkı
+    büyük, det başarısız, gerçek metinler farklı) None -- kart KORUNUR."""
     boxes_b: list[tuple] | None = None
     boxes_b_ready = False
+    boxes_b_rec: list[tuple[str, float]] | None = None
     for entry in registry:
         prev_gray = entry.get("gray")
         if prev_gray is None:
@@ -630,6 +717,33 @@ def _card_distant_dup_match_f1b(
             ncc = _f1b_box_ncc(prev_gray, new_gray, boxes_a, boxes_b)
             if ncc >= ncc_gate:
                 return {**base, "karar_yolu": "distant-dup-text", "kutu_ncc": round(ncc, 4)}
+            base["kutu_ncc"] = round(ncc, 4)
+        # F1c KARARI: text-yolu REDDETTİ (kutu sayısı/konumu uyuşmadı YA DA NCC
+        # eşiği tutmadı) -- tartışmalı kutulara REC hakemi (hayalet-kutu ayrımı).
+        # Yalnız BURADA çağrılır: piksel-benzer aday + kutu-kapısı zaten reddetmiş
+        # (maliyet sınırlı -- docs "F1c KARARI").
+        if boxes_b_rec is None:
+            boxes_b_rec = _f1c_rec_boxes(new_gray, _f1b_boxes_sorted(boxes_b))
+        boxes_a_rec = entry.get("f1c_rec")
+        if boxes_a_rec is None:
+            boxes_a_rec = _f1c_rec_boxes(prev_gray, _f1b_boxes_sorted(boxes_a))
+            entry["f1c_rec"] = boxes_a_rec  # kutu-kırpım başına önbellek
+        ghost_scores = [round(score, 4) for norm, score in (boxes_a_rec + boxes_b_rec)
+                        if not norm or score < rec_conf_gate]
+        real_a = [norm for norm, score in boxes_a_rec if norm and score >= rec_conf_gate]
+        real_b = [norm for norm, score in boxes_b_rec if norm and score >= rec_conf_gate]
+        rec_kanit = {
+            "karar_yolu": "rec",
+            "hayalet_kutular": ghost_scores,
+            "metin_a": " ".join(real_a),
+            "metin_b": " ".join(real_b),
+        }
+        if not real_a and not real_b:
+            return {**base, "karar_yolu": "distant-dup-scene", "rec_kanit": rec_kanit}
+        if real_a and real_a == real_b:
+            return {**base, "karar_yolu": "distant-dup-rec", "rec_kanit": rec_kanit}
+        # gerçek kutu metinleri FARKLI (örn. YAKIN_PLAN'ın farklı altyazısı) --
+        # bu aday KORUNUR; döngü sıradaki registry adayına bakmaya devam eder.
     return None
 
 

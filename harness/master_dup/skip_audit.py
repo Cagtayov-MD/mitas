@@ -10,21 +10,35 @@ biriyle yazar:
     en_yuksek_bant_farki}
   - "distant-dup-text"  (F1b, det-kutu+NCC eşleşti -- özdeş metin tekrarı):
     {es_blok_indeksi, global_fark, max_band_fark, det_kutular_a/b, kutu_ncc}
-  - "distant-dup-scene" (F1b, iki sayfada da det-kutusu YOK -- donuk sahne):
-    {..., det_kutular_a: 0, det_kutular_b: 0}
+  - "distant-dup-scene" (F1b, iki sayfada da det-kutusu YOK -- donuk sahne, VEYA
+    F1c: det-kutuları rec hakemiyle HAYALET çıktı -- ikisi de {..., rec_kanit:
+    {karar_yolu, hayalet_kutular, metin_a:"", metin_b:""}}):
+    {..., det_kutular_a: 0, det_kutular_b: 0} (F1b) ya da det_kutular_b>0 ama
+    rec_kanit.metin_a==metin_b=="" (F1c)
+  - "distant-dup-rec"   (F1c, docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
+    "F1c KARARI": kutu-kapısı REDDETTİ (kutu sayısı/konumu uyuşmadı YA DA NCC
+    tutmadı) -- tartışmalı kutulara REC hakemi uygulandı, hayalet kutular
+    elendi, kalan GERÇEK kutu metinleri normalize-EŞİT çıktı):
+    {es_blok_indeksi, global_fark, max_band_fark, det_kutular_a/b, [kutu_ncc],
+    rec_kanit: {karar_yolu:"rec", hayalet_kutular, metin_a, metin_b (eşit,
+    boş-DEĞİL)}}
 
-Denetim türe göre değişir (orkestratör kararı, F1b DÜZELTMESİ):
-  - "distant-dup" / "distant-dup-text": atlanan kartın kaynak karesi + eşleştiği
-    (es_blok_indeksi) kartın kaynak karesi -- ikisi de kaynak video'dan hedefli
-    (tek kare) yeniden çıkarılıp PaddleOCR (rec) ile okunur, metinler normalize
-    edilip (harness/kunye_kiyas/isim_normalize.normalize -- SALT-OKUNUR import)
-    karşılaştırılır. ÖZDEŞ OLMAYAN atlama = TASARIM HATASI (eşikler sıkılaştırılmalı
-    -- F1_TOTAL_DIFF_GATE 0.05->0.03 / F1B_NCC_GATE yükseltilmeli -- ve o vaka
-    sınıfı için fix devre dışı bırakılmalı).
-  - "distant-dup-scene": manifest'e zaten yazılmış det_kutular_a=0/det_kutular_b=0
-    kanıtı YETERLİ (det-only kutu sayımı yeniden hesaplanmaz -- kaybolacak metin
-    yoktu demek zaten "iki sayfada da 0 kutu" ölçümünün kendisi). Bu betik yalnız
-    bu ÖN-KOŞULUN (kayıtlı alanların gerçekten 0/0 olduğu) tutarlılığını doğrular.
+Denetim türe göre değişir (orkestratör kararı, F1b DÜZELTMESİ + F1c KARARI):
+  - "distant-dup" / "distant-dup-text" / "distant-dup-rec": atlanan kartın kaynak
+    karesi + eşleştiği (es_blok_indeksi) kartın kaynak karesi -- ikisi de kaynak
+    video'dan hedefli (tek kare) yeniden çıkarılıp PaddleOCR (rec) ile okunur,
+    metinler normalize edilip (harness/kunye_kiyas/isim_normalize.normalize --
+    SALT-OKUNUR import) karşılaştırılır. "distant-dup-rec" için bu, üretim-anı
+    REC kararının BAĞIMSIZ bir ikinci OCR geçişiyle doğrulanması demek (aynı
+    kutu-kırpımı değil, TAM kare yeniden okunur). ÖZDEŞ OLMAYAN atlama = TASARIM
+    HATASI (eşikler sıkılaştırılmalı -- F1_TOTAL_DIFF_GATE 0.05->0.03 /
+    F1B_NCC_GATE yükseltilmeli / F1C_REC_CONF_GATE gözden geçirilmeli -- ve o
+    vaka sınıfı için fix devre dışı bırakılmalı).
+  - "distant-dup-scene": manifest'e zaten yazılmış kanıt YETERLİ -- yeniden kare
+    çıkarma/OCR YOK. F1b-kaynaklı ise det_kutular_a=0/det_kutular_b=0 kanıtı;
+    F1c-kaynaklı ise (rec_kanit var) rec_kanit.metin_a==metin_b=="" kanıtı
+    (kaybolacak metin yoktu demek zaten o ölçümün kendisi). Bu betik yalnız
+    bu ÖN-KOŞULUN (kayıtlı alanların gerçekten tutarlı olduğu) doğrular.
 
 Kullanım:
   /opt/mitas/venvs/ocr/bin/python harness/master_dup/skip_audit.py
@@ -76,7 +90,7 @@ def _kept_block_index_map(blocks: list[dict]) -> dict[int, dict]:
     return idx_map
 
 
-DISTANT_DUP_SKIP_TYPES = ("distant-dup", "distant-dup-text", "distant-dup-scene")
+DISTANT_DUP_SKIP_TYPES = ("distant-dup", "distant-dup-text", "distant-dup-scene", "distant-dup-rec")
 
 
 def find_distant_dup_cases() -> list[dict]:
@@ -99,6 +113,7 @@ def find_distant_dup_cases() -> list[dict]:
                 continue
             es_idx = entry.get("es_blok_indeksi")
             twin = idx_map.get(es_idx)
+            rec_kanit = entry.get("rec_kanit") or {}
             cases.append({
                 "film": film,
                 "skip_type": skip_type,
@@ -115,6 +130,11 @@ def find_distant_dup_cases() -> list[dict]:
                 "det_kutular_a": entry.get("det_kutular_a"),
                 "det_kutular_b": entry.get("det_kutular_b"),
                 "kutu_ncc": entry.get("kutu_ncc"),
+                # F1c (docs "F1c KARARI") -- hayalet-kutu REC hakemi kanıtı, yalnız
+                # kutu-kapısının REDDETTİĞİ (text-yolu başarısız) adaylarda dolu.
+                "rec_hayalet_kutular": rec_kanit.get("hayalet_kutular"),
+                "rec_metin_a": rec_kanit.get("metin_a"),
+                "rec_metin_b": rec_kanit.get("metin_b"),
             })
     return cases
 
@@ -220,24 +240,35 @@ def audit(overlap_gate: float = 0.5) -> dict:
 
     ozdes_olmayan = 0
 
-    # "distant-dup-scene" (F1b): manifest'e zaten yazılmış det_kutular_a=0/
-    # det_kutular_b=0 kanıtı YETERLİ (orkestratör kararı) -- yeniden kare
-    # çıkarma/OCR YOK, yalnız bu ÖN-KOŞULUN kayıtlı haliyle tutarlılığı doğrulanır.
+    # "distant-dup-scene" (F1b VEYA F1c): manifest'e zaten yazılmış kanıt YETERLİ
+    # (orkestratör kararı) -- yeniden kare çıkarma/OCR YOK, yalnız bu ÖN-KOŞULUN
+    # kayıtlı haliyle tutarlılığı doğrulanır. F1c-farkındalığı: rec_kanit VARSA
+    # (F1c hakemliği devreye girmiş -- det_kutular_b>0 olabilir, hayalet elenmiş)
+    # kanıt det=0/0 DEĞİL, rec_kanit.metin_a==metin_b=="" olmalı; rec_kanit YOKSA
+    # (saf F1b yolu) eski det=0/0 kuralı geçerli.
     scene_cases = [c for c in cases if c["skip_type"] == "distant-dup-scene"]
     for c in scene_cases:
-        tutarli = c.get("det_kutular_a") == 0 and c.get("det_kutular_b") == 0
+        rec_var = c.get("rec_metin_a") is not None or c.get("rec_metin_b") is not None
+        if rec_var:
+            tutarli = c.get("rec_metin_a") == "" and c.get("rec_metin_b") == ""
+            not_metni = "F1c rec_kanit (metin_a==metin_b=='') kanıtı yeterli -- yeniden OCR gerekmedi"
+        else:
+            tutarli = c.get("det_kutular_a") == 0 and c.get("det_kutular_b") == 0
+            not_metni = "det=0/0 kanıtı (manifest'te zaten kayıtlı) yeterli -- yeniden OCR gerekmedi"
         if not tutarli:
             ozdes_olmayan += 1
         result["vakalar"].append({
             **c,
             "denetim": "ozdes" if tutarli else "OZDES_DEGIL",
-            "not": "det=0/0 kanıtı (manifest'te zaten kayıtlı) yeterli -- yeniden OCR gerekmedi",
+            "not": not_metni,
         })
 
-    # "distant-dup" (F1) / "distant-dup-text" (F1b): tam OCR-rec özdeşlik denetimi
-    # -- atlanan kartın kaynak karesi + eşleştiği kartın kaynak karesi hedefli
-    # yeniden çıkarılır, PaddleOCR ile okunur, normalize edilip karşılaştırılır.
-    ocr_cases = [c for c in cases if c["skip_type"] in ("distant-dup", "distant-dup-text")]
+    # "distant-dup" (F1) / "distant-dup-text" (F1b) / "distant-dup-rec" (F1c):
+    # tam OCR-rec özdeşlik denetimi -- atlanan kartın kaynak karesi + eşleştiği
+    # kartın kaynak karesi hedefli yeniden çıkarılır, PaddleOCR ile okunur,
+    # normalize edilip karşılaştırılır. "distant-dup-rec" için bu, üretim-anı
+    # kutu-REC kararının BAĞIMSIZ tam-kare ikinci-OCR doğrulaması demek.
+    ocr_cases = [c for c in cases if c["skip_type"] in ("distant-dup", "distant-dup-text", "distant-dup-rec")]
     if ocr_cases:
         uret.ensure_mount()
         TMP_ROOT.mkdir(parents=True, exist_ok=True)
