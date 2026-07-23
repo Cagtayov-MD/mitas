@@ -12,12 +12,32 @@ import re
 
 _OCR = None
 
-# rol/görev keyword'leri (EN + TR)
+# rol/görev keyword'leri (EN + TR + İtalyanca/Fransızca/Almanca/İspanyolca — T6)
+# Yabancı-dil kalıpları _ROL_CEKIRDEK ile AYNI (GLM uyarısı: 'distributed/production
+# company' türü logo-kuşağı kelimeleri EKLENMEDİ — bkz. _ROL_CEKIRDEK).
 _ROL = re.compile(
-    r"\b(director|directed|produc|screenplay|written|writer|story|music|"
+    r"\b(director|directed|produc|screenplay|written|writer|story|music|script|"
     r"photograph|cinematograph|edit|editor|cast|starring|art|costume|sound|"
     r"camera|design|makeup|make-up|producer|executive|associate|assistant|"
-    r"yönet|yapım|senaryo|görüntü|müzik|kurgu|oyuncu|kostüm|montaj|ses)\b",
+    r"yönet|yapım|senaryo|görüntü|müzik|kurgu|oyuncu|kostüm|montaj|ses|"
+    r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
+    r"réalisat|scénario|musique|montage|image|décors|interprét|"
+    r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
+    r"dirección|guión|música|montaje|reparto)\b",
+    re.I)
+
+# ÇEKİRDEK-ROL beyaz listesi (T6, plan Görev6/Adım1) — SON_ERISIM gevşetmesi/
+# scroll-kurtarma/seyrek-yol gibi RİSKLİ gevşetmeleri SADECE bunlar tetikler.
+# "distributed/production/copyright" türü logo-kuşağı kelimeleri KASITLI DIŞARIDA
+# (GLM tur-2 uyarısı: film-ortası şirket logosu/kredi-dışı insert yanlış tetikler).
+_ROL_CEKIRDEK = re.compile(
+    r"\b(director|directed|screenplay|written|writer|cinematograph|photograph|"
+    r"editor|edited|music|starring|cast|script|"
+    r"yönet|senaryo|görüntü|kurgu|müzik|oyuncu|"
+    r"regia|produzione|operatore|montaggio|musich|fotografia|scenografia|costumi|interpreti|"
+    r"réalisat|scénario|musique|montage|image|décors|interprét|"
+    r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
+    r"dirección|guión|música|montaje|reparto)\b",
     re.I)
 
 
