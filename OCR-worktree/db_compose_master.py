@@ -152,6 +152,32 @@ F1B_CENTER_TOL = 0.10
 # (F1b'nin global/band-fark kapısını geçmiş sayfalarda).
 F1C_REC_CONF_GATE = 0.6
 
+# K1 (Görev M8, MITAS_Master_Dup_Kok_Sebep_Plani_v1.md "M8: Ex sağlık turları"):
+# Ex_Frame korpusunda film-içi aynı-kart/farklı-kart çiftleriyle YENİDEN kalibre
+# edilen eşikler (harness/master_dup/kalibrasyon_k1.py) + GÜVENLİK hakem kararı:
+# "rec-eşitlik yolu kalibre eşiklerle çalışır; 0-kutu SAHNE-birleştirme yolu
+# YALNIZ ÇOK SIKI piksel-özdeşlikte (global_fark<0.02); rec boş/conf<0.6 ->
+# DAİMA koru." Bu, F1c'nin "hayalet-kutu elendikten sonra iki sayfa da
+# gerçek-kutusuz kalırsa scene-skip" kuralını SIKILAŞTIRIYOR: eskiden bu dal
+# yalnız F1B_GLOBAL/BAND_DIFF_GATE'in (candidate ön-filtresi, gevşek) altında
+# kalan HERHANGİ bir çiftte tetiklenebiliyordu; artık "sahne" kararı ayrıca
+# K1_SCENE_PIXEL_IDENTIK_GATE'in de altında olmayı ŞART koşuyor -- piksel
+# gerçekten özdeşse det'in kaçırdığı silik metin bile tutulan kopyada birebir
+# vardır (içerik-kaybı riski matematiksel kapalı), aksi halde KORU.
+K1_SCENE_PIXEL_IDENTIK_GATE = 0.02
+
+# K1: "koşu-içi TÜM-ÇİFT karşılaştırma ... aday tavanı 50/koşu" -- kayıt
+# (card_registry) taraması, pathological (çok-kartlı, ör. uzun oyuncu listesi)
+# filmlerde O(n^2) maliyetini sınırlamak için en-yakın-tarihli N kayıtla
+# sınırlanır (H2'nin "ÖNCEKİ TÜM kartlar" hedefiyle çelişmez -- pratikte
+# tekrarlar birkaç kart arayla olur, çok-uzak eşleşme nadir/kabul edilebilir
+# artık-risk, plan metninde açıkça sanılan bir ödünleşim).
+F1_REGISTRY_CAP = 50
+
+# K1: rec-çağrı sayacı (film başına, clear_cache() ile sıfırlanır) -- süre/
+# maliyet gözlemi için manifest'e yazılır, >REC_CALL_WARN_ESIK olursa uyarı.
+REC_CALL_WARN_ESIK = 200
+
 # F2 (H1 kök-sebep: slit dy tahmin hatası -> bitişik dilimlerde satır tekrarı) --
 # ardışık iki slit/scroll bloğu (aralarında hiç statik/kart bloğu YOKSA) dikiş
 # örtüşmesi için NCC ile hizalanır; en iyi hizada benzerlik>=0.9 ise örtüşen kısım
@@ -231,9 +257,19 @@ def derive_params(h: int, w: int, args) -> Params:
 _CACHE: dict[str, np.ndarray] = {}
 _CACHE_CAP = 2000  # credit sequences are small; cap just bounds memory
 
+# K1: film başına rec-çağrı sayacı -- process_film() her segmentte clear_cache()
+# çağırdığı için (zaten var olan per-film/per-segment sıfırlama noktası) buraya
+# eklendi, ayrı bir reset kancası GEREKMEDİ.
+_REC_CALL_COUNT = [0]
+
 
 def clear_cache() -> None:
     _CACHE.clear()
+    _REC_CALL_COUNT[0] = 0
+
+
+def rec_call_count() -> int:
+    return _REC_CALL_COUNT[0]
 
 
 def rd_cached(path: str | Path) -> np.ndarray | None:
@@ -658,7 +694,72 @@ def _f1c_rec_boxes(gray: np.ndarray, boxes_sorted: list[tuple]) -> list[tuple[st
     for box in boxes_sorted:
         text, score = _f1c_rec_text(gray, box)
         out.append((_f1c_normalize_text(text), score))
+    _REC_CALL_COUNT[0] += len(boxes_sorted)  # K1: rec-çağrı sayacı
     return out
+
+
+# --------------------------------------------------------------------------- #
+# K3 (Görev M8): korunması-gereken-farklı-metin kanıtı -- normalize Levenshtein
+# + token-Jaccard. Küçük, bağımsız (harici kütüphane yok) -- composer'ın
+# harness/master_dup/* katmanına bağımlılığı OLMAMASI için burada tanımlı
+# (harness kendi kalibrasyon/recall script'lerinde bu modülü SALT-OKUNUR
+# import eder, tersi asla).
+# --------------------------------------------------------------------------- #
+K3_PROTECTED_CONF_GATE = 0.7
+K3_PROTECTED_LEV_GATE = 3
+K3_PROTECTED_JACCARD_GATE = 0.7
+
+
+def _levenshtein(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i] + [0] * len(b)
+        for j, cb in enumerate(b, 1):
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb))
+        prev = cur
+    return prev[-1]
+
+
+def _token_jaccard(a: str, b: str) -> float:
+    ta, tb = set(a.split()), set(b.split())
+    if not ta and not tb:
+        return 1.0
+    union = ta | tb
+    return len(ta & tb) / len(union) if union else 1.0
+
+
+def _k3_protected_evidence(
+    rec_a: list[tuple[str, float]], rec_b: list[tuple[str, float]],
+    *, conf_gate: float = K3_PROTECTED_CONF_GATE,
+    lev_gate: int = K3_PROTECTED_LEV_GATE, jaccard_gate: float = K3_PROTECTED_JACCARD_GATE,
+) -> dict | None:
+    """K3: iki karede de det>=1 kutu + rec conf>=0.7 (STRICT -- F1C_REC_CONF_GATE'in
+    0.6'sından farklı, K3'e özgü daha sıkı bir eşik) + normalize Levenshtein>=3
+    VEYA token-Jaccard<=0.7 ise korunması-gereken-farklı-metin kanıtı üretir.
+    Karar mantığını (skip/koru) DEĞİŞTİRMEZ -- yalnız manifest KAYDI için."""
+    real_a = [(n, s) for n, s in rec_a if n and s >= conf_gate]
+    real_b = [(n, s) for n, s in rec_b if n and s >= conf_gate]
+    if not real_a or not real_b:
+        return None
+    text_a = " ".join(n for n, _ in real_a)
+    text_b = " ".join(n for n, _ in real_b)
+    lev = _levenshtein(text_a, text_b)
+    jac = _token_jaccard(text_a, text_b)
+    if lev < lev_gate and jac > jaccard_gate:
+        return None
+    return {
+        "text_a": text_a, "text_b": text_b,
+        "conf_a": round(min(s for _, s in real_a), 4),
+        "conf_b": round(min(s for _, s in real_b), 4),
+        "protected": True,
+        "levenshtein": lev, "jaccard": round(jac, 4),
+    }
 
 
 def _card_distant_dup_match_f1b(
@@ -670,21 +771,37 @@ def _card_distant_dup_match_f1b(
     ncc_gate: float = F1B_NCC_GATE,
     center_tol: float = F1B_CENTER_TOL,
     rec_conf_gate: float = F1C_REC_CONF_GATE,
-) -> dict | None:
+    scene_pixel_identik_gate: float = K1_SCENE_PIXEL_IDENTIK_GATE,
+    registry_cap: int = F1_REGISTRY_CAP,
+) -> tuple[dict | None, dict | None]:
     """F1b: F1 (dHash+XOR) eşleşme BULAMADIĞINDA çağrılan EK kapı. Hash ön-elemesi
     YOK -- doğrudan gri piksel-benzerlik adayı arar, sonra det-only kutu kapısıyla
     doğrular. Üç karar yolu: "distant-dup-scene" (iki sayfada da metin kutusu YOK
-    -- donuk sahne, kaybolacak içerik yok), "distant-dup-text" (kutu sayısı+konumu+
-    NCC'si eşleşen özdeş metin tekrarı), "distant-dup-rec" (F1c -- kutu-kapısı
-    REDDETTİĞİNDE, yani kutu sayısı/konumu uyuşmadığında YA DA NCC eşiği tutmadığında,
-    tartışmalı kutulara REC hakemi devreye girer: rec boş/güven<0.6 olan kutu HAYALET
-    sayılır, elenir; iki sayfada da gerçek kutu kalmazsa scene, kalan gerçek kutu
-    metinleri normalize-eşitse rec-skip). Herhangi bir kapı tutmazsa (piksel farkı
-    büyük, det başarısız, gerçek metinler farklı) None -- kart KORUNUR."""
+    -- donuk sahne, kaybolacak içerik yok -- K1 hakem kararı: YALNIZ piksel
+    global_fark<scene_pixel_identik_gate ise, aksi KORU), "distant-dup-text"
+    (kutu sayısı+konumu+NCC'si eşleşen özdeş metin tekrarı), "distant-dup-rec"
+    (F1c -- kutu-kapısı REDDETTİĞİNDE, yani kutu sayısı/konumu uyuşmadığında YA
+    DA NCC eşiği tutmadığında, tartışmalı kutulara REC hakemi devreye girer: rec
+    boş/güven<0.6 olan kutu HAYALET sayılır, elenir; iki sayfada da gerçek kutu
+    kalmazsa -- K1 hakem kararı: YALNIZ piksel de özdeşse -- scene, kalan gerçek
+    kutu metinleri normalize-eşitse rec-skip). Herhangi bir kapı tutmazsa (piksel
+    farkı büyük, det başarısız, gerçek metinler farklı, ya da "sahne" kararı
+    piksel-özdeşlik şartını tutmuyorsa) None -- kart KORUNUR.
+
+    K1: `registry`, en-yakın-tarihli `registry_cap` kayıtla sınırlı taranır
+    (maliyet sınırı, "aday tavanı 50/koşu" -- bkz. F1_REGISTRY_CAP tanımı).
+
+    Dönüş (K3, Görev M8): `(match, korunan_kanit)`. `match` eskisiyle BİREBİR
+    aynı sözleşme (skip kararı, None=KORU -- ÇAĞIRAN DAVRANIŞI DEĞİŞMEDİ).
+    `korunan_kanit`: KORUNAN bir kart, K3'ün sıkı kanıt şartını (iki karede de
+    det>=1 + rec conf>=0.7 + normalize Levenshtein>=3 VEYA Jaccard<=0.7)
+    karşılıyorsa {text_a,text_b,conf_a,conf_b,protected:True,...} -- yalnız
+    KAYIT amaçlı, skip/koru kararını ETKİLEMEZ. İlk karşılanan adayda durur."""
     boxes_b: list[tuple] | None = None
     boxes_b_ready = False
     boxes_b_rec: list[tuple[str, float]] | None = None
-    for entry in registry:
+    korunan_kanit: dict | None = None
+    for entry in registry[-registry_cap:] if registry_cap else registry:
         prev_gray = entry.get("gray")
         if prev_gray is None:
             continue
@@ -711,12 +828,19 @@ def _card_distant_dup_match_f1b(
             "det_kutular_a": len(boxes_a),
             "det_kutular_b": len(boxes_b),
         }
+        # K1 GÜVENLİK HAKEM KARARI: "sahne" (distant-dup-scene) kararı candidate
+        # ön-filtresinden (global_gate/band_gate, gevşek) DAHA SIKI bir ikinci
+        # piksel-özdeşlik şartına tabi -- yalnız bu iki dalın (0-kutu VE
+        # hayalet-elendikten-sonra-0-gerçek-kutu) ortak şartı.
+        pixel_ozdes = diff["global_fark"] < scene_pixel_identik_gate
         if len(boxes_a) == 0 and len(boxes_b) == 0:
-            return {**base, "karar_yolu": "distant-dup-scene"}
+            if pixel_ozdes:
+                return {**base, "karar_yolu": "distant-dup-scene"}, korunan_kanit
+            continue  # kutu yok ama piksel özdeş DEĞİL -- KORU, sıradaki adaya bak
         if _f1b_boxes_match(boxes_a, boxes_b, center_tol=center_tol):
             ncc = _f1b_box_ncc(prev_gray, new_gray, boxes_a, boxes_b)
             if ncc >= ncc_gate:
-                return {**base, "karar_yolu": "distant-dup-text", "kutu_ncc": round(ncc, 4)}
+                return {**base, "karar_yolu": "distant-dup-text", "kutu_ncc": round(ncc, 4)}, korunan_kanit
             base["kutu_ncc"] = round(ncc, 4)
         # F1c KARARI: text-yolu REDDETTİ (kutu sayısı/konumu uyuşmadı YA DA NCC
         # eşiği tutmadı) -- tartışmalı kutulara REC hakemi (hayalet-kutu ayrımı).
@@ -739,12 +863,20 @@ def _card_distant_dup_match_f1b(
             "metin_b": " ".join(real_b),
         }
         if not real_a and not real_b:
-            return {**base, "karar_yolu": "distant-dup-scene", "rec_kanit": rec_kanit}
+            # K1 HAKEM KARARI: rec boş/düşük-güven -> DAİMA KORU -- SADECE piksel
+            # de (0-kutu yoluyla AYNI sıkı eşik) özdeşse sahne-skip'e izin var.
+            if pixel_ozdes:
+                return {**base, "karar_yolu": "distant-dup-scene", "rec_kanit": rec_kanit}, korunan_kanit
+            continue  # KORU
         if real_a and real_a == real_b:
-            return {**base, "karar_yolu": "distant-dup-rec", "rec_kanit": rec_kanit}
+            return {**base, "karar_yolu": "distant-dup-rec", "rec_kanit": rec_kanit}, korunan_kanit
         # gerçek kutu metinleri FARKLI (örn. YAKIN_PLAN'ın farklı altyazısı) --
         # bu aday KORUNUR; döngü sıradaki registry adayına bakmaya devam eder.
-    return None
+        # K3 (Görev M8): bu "farklı-metin, korunan" anı sıkı kanıt şartını
+        # karşılıyorsa KAYDET (karar mantığını ETKİLEMEZ, yalnız manifest için).
+        if korunan_kanit is None:
+            korunan_kanit = _k3_protected_evidence(boxes_a_rec, boxes_b_rec)
+    return None, korunan_kanit
 
 
 # --------------------------------------------------------------------------- #
@@ -1549,7 +1681,7 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                     # hiç tetiklenmiyordu -- hash ön-elemesi olmadan gri piksel-benzerlik +
                     # det-only kutu doğrulaması ile EK kapı.
                     f1b_gray = cv2.cvtColor(best_image, cv2.COLOR_BGR2GRAY)
-                    match_f1b = _card_distant_dup_match_f1b(f1b_gray, card_registry)
+                    match_f1b, korunan_kanit = _card_distant_dup_match_f1b(f1b_gray, card_registry)
                     if match_f1b is not None:
                         skip_entry = {"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                                       "skip": match_f1b.pop("karar_yolu"), "src": Path(best_frame).name}
@@ -1567,8 +1699,15 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                     })
             blocks.append(block)
             block_kinds.append("card")
-            manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
-                             "h": int(block.shape[0]), "src": Path(best_frame).name})
+            kept_entry = {"run": [si, ei], "card": ci, "lab": label, "kind": "card",
+                          "h": int(block.shape[0]), "src": Path(best_frame).name}
+            # K3 (Görev M8): korunan (skip edilmeyen) kart, sıkı kanıt şartını
+            # karşılıyorsa manifest'e {text_a,text_b,conf_a,conf_b,protected:true}
+            # kaydı -- karar mantığını DEĞİŞTİRMEZ, saglik.py'nin protected-çift
+            # muafiyeti + recall testi için.
+            if v2_on and korunan_kanit is not None:
+                kept_entry["korunan_esleme"] = korunan_kanit
+            manifest.append(kept_entry)
 
     if not blocks:
         return None, manifest, None
@@ -1705,6 +1844,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             block_manifest.append(skipped)
             return
         full_gray = None
+        korunan_kanit = None
         if v2_on:
             # F1 (H2 kök-sebep -- birincil, 60/112 film): yukarıdaki kontroller yalnız
             # HEMEN ÖNCEKİ kartla kıyaslar. Burada kart ÖNCEKİ TÜM kartlarla (global
@@ -1725,7 +1865,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                 image = _prep(frame_path, p, args)
                 if image is not None:
                     full_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                    match_f1b = _card_distant_dup_match_f1b(full_gray, card_registry)
+                    match_f1b, korunan_kanit = _card_distant_dup_match_f1b(full_gray, card_registry)
                     if match_f1b is not None:
                         skipped = dict(meta)
                         skipped["skip"] = match_f1b.pop("karar_yolu")
@@ -1745,6 +1885,11 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
         kept = dict(meta)
         kept["h"] = int(block.shape[0])
         kept["w"] = int(block.shape[1])
+        # K3 (Görev M8): korunan kart, sıkı kanıt şartını (det>=1 + rec conf>=0.7 +
+        # normalize Levenshtein>=3 VEYA Jaccard<=0.7) karşılıyorsa manifest kaydı --
+        # karar mantığını DEĞİŞTİRMEZ, saglik.py'nin protected-çift muafiyeti için.
+        if v2_on and korunan_kanit is not None:
+            kept["korunan_esleme"] = korunan_kanit
         block_manifest.append(kept)
 
     def _append_static_pages(run_frames: list[str], run_meta: dict) -> None:
@@ -1888,6 +2033,13 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
     manifest["status"] = "OK"
     manifest["size"] = [int(master.shape[1]), int(master.shape[0])]
     manifest["kept_blocks"] = len(blocks)
+    if v2_on:
+        # K1 (Görev M8): rec-çağrı sayacı -- süre/maliyet gözlemi (film başına
+        # clear_cache() ile sıfırlanır, process_film()'in zaten çağırdığı nokta).
+        manifest["rec_calls"] = rec_call_count()
+        if manifest["rec_calls"] > REC_CALL_WARN_ESIK:
+            print(f"  [K1 UYARI] rec-çağrı sayısı yüksek: {manifest['rec_calls']} "
+                  f"(> {REC_CALL_WARN_ESIK})", file=sys.stderr)
     return master, manifest, None
 
 
