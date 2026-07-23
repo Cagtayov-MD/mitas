@@ -7,6 +7,88 @@
 
 ---
 
+## 2026-07-24 — Master-PNG kampanyası: dedup fix'leri sahada, Nyquist keşfi, Ex_Frame büyük koşusu başladı
+
+**Hat:** master-PNG penceresi (fork). /goal: Ex_Frame 427'de sağlıklı-master ≥%91 (tam yetki).
+
+**Teşhis→fix zinciri (hepsi MITAS_MASTER_V2 bayrağı arkasında, flag kapalı=bit-parite):**
+M1 dup-metriği + M2 aslına-sadık harness (SON_METRO bit-parite kanıtı) + M3 112-film
+kusur dökümü (H2 uzak-kart baskın, 60 film) → F1 (3-kapılı uzak-kart dedup) →
+**F1b** (gren dHash'i kör ediyor keşfi; gri bant-fark + det kapısı; 165 birleşme,
+içerik kaybı 0, >0.10 film 36→31) → **F1c** (hayalet-kutu rec hakemi; 112 doğrulama
+koşusu sürüyor). F2/F3 yazıldı ama havuzda hiç tetiklenmedi (dürüst kayıt).
+
+**BÜYÜK KEŞİF (görsel kanıtlı, GLM-Nyquist çerçevesi):** footage-üstü kayan künye
+sınıfında (~8-17 film) kompozitör metni İMHA ediyor — 1.5fps'te kare-arası kayma
+satır yüksekliğini aşınca satırlar örnekleme boşluğuna düşüyor; BAŞKAN_VE_MARI:
+zemin 16× sayfa, yazı 13px'e ezik. Dedup bunu geri getiremez. M4b kararı:
+overlay-tespit + pencere-hedefli 6-12fps ROI yeniden çıkarım (kaynak eldeyken);
+kaynak yoksa (Ex_Frame!) OCR kutu-hasadı "metin duvarı" fallback.
+Salt-piksel dedup kapısının imkânsızlığı ÖLÇÜLDÜ: YAKIN_PLAN farklı-altyazı çifti
+farkı < BAŞKAN gren gürültüsü (yp_P2_P4.png kanıtı).
+
+**Görsel rapor (Çağatay'a):** claude.ai/code/artifact/c9db78a9-0c53-4e64-8755-23f52b48337a
+
+**Konsey altyapısı:** Kimi kök sebep bulundu-düzeltildi (thinking 180sn timeout aşımı +
+boş-str TimeoutException 429-koşulunu ıskalıyor; timeout 420 + timeout'ta k2.6 yedeği,
+2fcbf40). Qwen Çağatay talimatıyla DEVRE DIŞI (.env'de yorumlu). Nemotron+MiniMax+
+Gemini+GPT kayıtlı ama ÇALIŞAN sunucu süreci eski — restart'a kadar katılamazlar;
+çözüm: sonraki turlar doğrudan-çağrı (konsey_dogrudan.py).
+
+**Koşan:** F1c 112-doğrulama (~43/112); M7 Ex_Frame taban koşusu (adaptör+sağlık
+sınıflandırıcı+427 ölçüm). Sırada: taban ihlal dağılımı → kanıt-güdümlü turlar
+(muhtemel ana kaldıraç: M4b-fallback kutu-hasadı) → ≥%91 → M5 kabul + kayıt.
+
+## 2026-07-23 (gece, 2. giriş) — NVIDIA canlı doğrulama + MiniMax-M3 konsey üyesi
+
+**İş:** Çağatay nvapi- anahtarını girdi (anahtar_gir --uye nvidia) → canlı testler: (1) Nemotron
+Ultra chat ✓, (2) MiniMax-M3 chat ✓, (3) DeepSeek NVIDIA yedek-ucu ✓ ("CALISIYOR" cevabı,
+harness/env.sh'ın kendi source deseniyle). Anahtar mitas.env'e de kopyalandı (transcript'e
+yazılmadan, sed ile). **MiniMax-M3 7. konsey üyesi yapıldı** (Çağatay kararı: "Qwen genelde
+sorunlu, Gemini şimdilik yok — elde ciddi alternatifler olsun"): providers/minimax.py, Nemotron'la
+AYNI NVIDIA_API_KEY'i paylaşır (tek anahtar iki üye açar), MINIMAX_MODEL ile override.
+Konsey artık: gemini, qwen, glm, gpt, kimi, nemotron, minimax.
+
+**Öğrenilen/DÜZELTİLEN:** NVIDIA katalogunda deepseek-v3.2 YOK (web aramasının verdiği slug
+yanlıştı) — /models canlı teyidi: deepseek-v4-pro (amiral) + deepseek-v4-flash (hızlı).
+Fallback varsayılanı v4-pro yapıldı; özette 90sn timeout sorun olursa
+MITAS_DEEPSEEK_NVIDIA_MODEL=deepseek-ai/deepseek-v4-flash. DERS: katalog slug'ları web
+kaynağından değil /models ucundan teyit edilir. Kalan tek varsayım-riski kapandı.
+
+**Bekleyen:** shell mitas.env'i OTOMATİK yüklemiyor (sadece harness/env.sh source ediyor) —
+pipeline'ı env.sh dışından çağıran bir yol varsa NVIDIA_API_KEY oraya ulaşmaz; ilk gerçek
+özet koşusunda doğrula. anahtar_test çıktısındaki "★ MAX" işaretinin anlamına bakılmadı (kozmetik).
+
+---
+
+## 2026-07-23 (gece) — NVIDIA Build entegrasyonu: konsey'e Nemotron + DeepSeek yedek ucu
+
+**İş:** Çağatay build.nvidia.com'a kayıt olup nvapi- anahtarı aldı (ücretsiz katman: kredi yok,
+~40 istek/dk/model rate-limit, 140 model tek OpenAI-uyumlu uçtan: integrate.api.nvidia.com/v1).
+İki ekleme yapıldı: (1) **Konsey 6. üye:** `council_mcp/providers/nemotron.py`
+(nvidia/nemotron-3-ultra-550b-a55b — 550B hibrit Mamba-Transformer MoE, 1M bağlam; mevcut 5 üyeyle
+mimari akrabalığı yok = farklı kör nokta). server.py + .env.example + anahtar_gir/anahtar_test'e
+`--uye nvidia` eklendi. (2) **DeepSeek yedek ucu:** `scripts/_deepseek.py` — DeepSeek bugün özet
+zincirinin BİRİNCİL motoru yapılmıştı; resmi uç düşerse özet gemma-yerel'e düşüyordu (bake-off:
+yerel güvenilmez). Artık birincil uç başarısızsa (402/kota/denemeler tükendi) NVIDIA'daki
+deepseek-ai/deepseek-v3.2'ye otomatik geçer. TDD: `tests/test_deepseek_nvidia_fallback.py`
+7 test + mevcut 25 özet testi YEŞİL. Davranış korundu: hiç anahtar yoksa sessiz None.
+
+**Elenen adaylar (gerekçeli):** TencentDB-Agent-Memory (çoklu-ajan paylaşımlı hafıza — MITAS'ta
+karşılığı yok), code-review-graph (27K+ dosya monorepo aracı; MITAS ~1.7K py dosyası),
+OmniRoute (council_mcp zaten aynı işi disiplinli yapıyor). MiniMax-M3/Inkling/diffusiongemma
+konsey adaylığı ertelendi (sinyal seyrelmesi + Preview-etiketi riski) — MiniMax-M3 LM Arena
+~1491 ile güçlü, Çağatay isterse aynı NVIDIA anahtarıyla 5 dk'da eklenir.
+
+**Bekleyen:** (1) Anahtar girişi: `python3 council_mcp/anahtar_gir.py --uye nvidia` +
+`anahtar_test.py --uye nvidia`; mitas.env'de `#NVIDIA_API_KEY=` satırını doldur (placeholder hazır).
+(2) Canlı doğrulama: NVIDIA'daki deepseek model slug'ı (deepseek-ai/deepseek-v3.2 varsayıldı)
+anahtar_test /models listesinden teyit edilmeli — yanlışsa MITAS_DEEPSEEK_NVIDIA_MODEL ile düzelt.
+(3) Aday (benchmark ister, kurulmadı): nemotron-ocr-v2 — PaddleOCR/py3.14 boşluğuna API alternatifi;
+kutu-koordinatı dönüp dönmediği + Türkçe jenerik isabeti test edilmeden karar yok (eval-harness-first).
+
+---
+
 ## 2026-07-23 (akşam) — Ex_Frame exit-frame jenerik kesimi: 487 film, 30 Sonnet ajanı (master PNG verisi)
 
 **İş:** `/home/cagatay/Ex_Frame/*-exit_frames/` — 487 film × ~600 kare (son 8dk, exit_%06d.png,
