@@ -665,6 +665,73 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
     return onset, ""
 
 
+def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: int,
+                           azami_ileri: int = 30) -> tuple[int, str]:
+    """Scroll-tip koşuda şirket/stüdyo-kartı ileri-budaması (alt-adım2, T8
+    sonrası — Çağatay politikası 2026-07-23: GEÇ kalma artık en kötü hata
+    sınıfı, İLERİ-çekme EN RİSKLİ işlem; şüphede İLERİ ÇEKME, erken kalmak
+    tercih edilir). Scroll-tip koşu sık sık şirket/stüdyo satırıyla başlar
+    (Görsel kanıt: YÜREKTEN_SEVMEK v5-karesi 'Filmed entirely on the Stages
+    of Zoetrope Studios', gt-karesi 'CAST OF CHARACTERS'; İKİ_KAFADAR benzer
+    — logo/prodüksiyon-adı montajı).
+
+    Onset'ten ileri, en çok `azami_ileri` örnek-kare: OCR satırları BOŞ,
+    (BİRLEŞİK kare metni şirket-kalıbına uyuyor), VEYA hiçbir satır isim-
+    satırı (cc._isim_gibi) DEĞİLSE o kareyi atla (boş kare RİSKSİZ atlanır —
+    atlanacak bir isim-satırı zaten yok); İLK isim-satırlı VE şirket-kalıbına
+    UYMAYAN karede DUR ve ÇAPALA. KATI GARD: böyle bir kare ASLA atlanmaz —
+    bulunduğu anda döngü kesin durur. BİRLEŞİK metin kontrolü şart: OCR
+    satır sınırları cümleyi rastgele böler (YÜREKTEN_SEVMEK ölçümü —
+    'Filmed entirely on the Stages' / 'of Zoetrope Studios' İKİ ayrı satıra
+    düşüyor; 'studios' kelimesi olmayan ilk parça, Title-Case kelime sayımıyla
+    yanlışlıkla isim-satırı sayılıyordu); satır-satır değil BİRLEŞTİRİLMİŞ
+    metinde arandığında şirket-kalıbı doğru yakalanıyor. TÜM-YA-DA-HİÇ:
+    bütçe (`azami_ileri`) içinde uygun bir çapa bulunamazsa onset HİÇ
+    değiştirilmez — belirsizlikte ileri gitmemek yanlış ileri çekmekten
+    daha güvenli."""
+    onbellek: dict[int, list[str]] = {}
+
+    def satir(fi: int) -> list[str]:
+        if fi not in onbellek:
+            try:
+                onbellek[fi] = cc_mod.satirlar(g[idx[fi]])
+            except Exception:
+                onbellek[fi] = []
+        return onbellek[fi]
+
+    ileri_sinir = min(n - 1, onset + azami_ileri)
+    fi = onset
+    capa_bulundu = False
+    while fi < ileri_sinir:
+        satirlar_fi = satir(fi)
+        # YABANCI-ALFABE GARDI (KANDAHAR/ARKADAŞIMIN_EVİ_NEREDE regresyonu,
+        # ölçüldü ve GERİ ALINDI önce): cc._isim_gibi Latin-odaklı (büyük/
+        # küçük-harf ayrımı Arapça/Farsça'da YOK) — Arapça/Farsça/Kiril kredi
+        # içeriğinde isim_var HEP False dönüyor, bu da GERÇEK isim satırlarının
+        # "şirket-kartı" sanılıp yanlışlıkla İLERİ atlanmasına yol açıyordu
+        # (KANDAHAR +5→+23, ARKADAŞIMIN kredi-var kaybı — iki GEÇ regresyonu).
+        # Çağatay politikası: yanlış ileri-çekme en kötü hata sınıfı — bu
+        # yüzden Latin harfi TAŞIMAYAN dolu kare "bilinmiyor" sayılır ve
+        # İLERİ GİTMEYİ DURDURUR (ne atlanır ne çapalanır — mevcut onset
+        # olduğu gibi kalır, şüphede erken kalmak tercih edilir).
+        if satirlar_fi and not any(c.isalpha() and ord(c) < 0x250 for s in satirlar_fi for c in s):
+            break
+        # boş kare RİSKSİZ atlanır — atlanacak bir isim-satırı yoktur zaten
+        # (geçiş bulanıklığı/kısa kare-arası boşluk, kart-dizisi/statik-içerik
+        # geri-genişletmelerindeki aynı bosluk-toleransı ilkesi). Yalnız
+        # BÜTÇE (azami_ileri) sınırı ileri gitmeyi durdurur.
+        sirket_mi = bool(satirlar_fi) and cc_mod._SIRKET_KALIBI.search(" ".join(satirlar_fi))
+        isim_var = any(cc_mod._isim_gibi(s) for s in satirlar_fi)
+        if isim_var and not sirket_mi:
+            capa_bulundu = True
+            break  # isim-satırlı VE şirket-kalıbı DEĞİL — ASLA atlanmaz, dur
+        fi += 1  # şirket-kalıbı VEYA hiçbiri isim-değil — atla
+
+    if capa_bulundu and fi > onset:
+        return fi, f"sirket-budama={fi - onset}"
+    return onset, ""
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -871,7 +938,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                           "son_ok": True, "kb": round(kb_max, 3), "joint": round(joint, 3),
                           "roller": roller})
         if kb_max >= EŞIK and (en_iyi is None or joint > en_iyi[0]):
-            en_iyi = (joint, a, b, kb_max, scroll_var)
+            en_iyi = (joint, a, b, kb_max, scroll_var, roller)
 
     if en_iyi is None:
         kurtarma = _scroll_kurtarma(g, idx, cc, scroll, jbayrak, n, fps, stride)
@@ -881,7 +948,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             kayitlar.append({"a": ks, "b": ke, "kare_a": kare_ks, "kare_b": kare_ke,
                               "son_ok": True, "kb": 1.0, "joint": 1.0,
                               "roller": ["scroll_kurtarma"]})
-            en_iyi = (1.0, ks, ke, 1.0, True)
+            en_iyi = (1.0, ks, ke, 1.0, True, ["scroll_kurtarma"])
         else:
             degerlendirilmis = [k for k in kayitlar if k["son_ok"]]
             if not degerlendirilmis:
@@ -891,7 +958,18 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                 sebep = f"içerik-eşiği geçilemedi (en iyi kb={en_iyi_kb:.2f})"
             return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
 
-    joint, a, b, kb, scroll_var = en_iyi
+    joint, a, b, kb, scroll_var, roller_kazanan = en_iyi
+    # alt-adım2 güvenlik gardı (KANDAHAR/ARKADAŞIMIN_EVİ_NEREDE regresyonu,
+    # ölçüldü ve GİDERİLDİ): kazanan aday Kiril/Arapça ikinci-şans REC'i ya
+    # da scroll_kurtarma (son-çare, içerik-anlamsız-onset) yoluyla kazanmışsa
+    # `roller_kazanan` YABANCI-ALFABE token'lar taşır (ör. Farsça 'بازيگران')
+    # veya literal 'scroll_kurtarma' işaretidir — bu durumda cc._isim_gibi'nin
+    # (Latin-odaklı) o filmin GERÇEK kredi içeriğini "isim değil" sanıp
+    # _scroll_sirket_budama'yı yanlışlıkla İLERİ çekmesi riski YÜKSEK (ölçüldü:
+    # KANDAHAR +5→+23, ARKADAŞIMIN kredi-var kaybı). Bu bayrak True ise
+    # ileri-budama HİÇ ÇAĞRILMAZ (aşağıda kullanılıyor).
+    yabanci_yol = ("scroll_kurtarma" in roller_kazanan) or any(
+        r and not any(c.isalpha() and ord(c) < 0x250 for c in r) for r in roller_kazanan)
     # kazanan koşuda scroll-aktif kare oranı — statik/scroll ayrımı (T5) +
     # ardışık-scroll uzunluğu (T4 scroll-tip ölçütü, yalnız notlarda/teşhiste
     # kullanılır — bkz. aşağıdaki geri-birleştirme yorumu).
@@ -998,13 +1076,19 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         onset = onset_birlesik
         ek_not = birlesme_notu
     elif scroll_orani >= 0.3:
-        # SCROLL-tip koşu — Görev 4'ün alanı, burada DOKUNMA. Mevcut davranış:
-        # scroll varsa kart→scroll geri-tarama.
+        # SCROLL-tip koşu — Görev 4'ün alanı (geri-tarama), burada DOKUNMA.
+        # Mevcut davranış: scroll varsa kart→scroll geri-tarama.
         onset = a
         if scroll_var and onset < len(scroll):
             alt = max(0, onset - int(fps * 1.5 / stride))
             while onset - 1 >= alt and onset - 1 < len(scroll) and scroll[onset - 1] and jbayrak[onset - 1]:
                 onset -= 1
+        # alt-adım2 (şirket/stüdyo-kartı ileri-budaması) — yalnız `yabanci_yol`
+        # DEĞİLSE çağrılır (yukarıdaki gard: Kiril/Arapça/scroll_kurtarma
+        # yoluyla kazanılmış adaylarda bu bütünüyle atlanır, şüphede ileri
+        # çekme yapılmaz).
+        if not yabanci_yol:
+            onset, ek_not = _scroll_sirket_budama(g, idx, cc, onset, n)
     else:
         # STATİK-tip koşu (T5) — koşu sınırı değil İÇERİK çapası: ileri-budama
         # (koşu başı kredi-dışı metni atla) + geri-genişletme (kartın gerçek
