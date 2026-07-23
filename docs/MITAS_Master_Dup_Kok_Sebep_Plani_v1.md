@@ -149,6 +149,19 @@ F1b DÜZELTMESİ (2026-07-23 gece, orkestratör ölçümleri — M4 ilk turu H2'
   (rakam kutusu NCC düşük) yapısal olarak korunur. Eski dHash+XOR yolu aynen
   kalır (temiz özdeş kartlar için).
 
+F1c KARARI (2026-07-24 M4-sonu teşhisi): kalan direncin kök sebebi HAYALET
+KUTULAR — det, donuk sayfalardaki doku/özne hareketini kutu sanıyor (skor
+0.7-0.93, tek küçük kutu), sayfa "text" yoluna düşüyor, doku-NCC (0.29-0.69)
+doğal olarak eşiği tutmuyor → KORU. Alan/skor filtresi RİSKLİ (YAKIN'ın gerçek
+altyazı kutusu da küçük — filtre onu da öldürür, içerik kaybı). GÜVENLİ ayrım:
+aday-çiftte tartışmalı kutulara REC — rec boş/`skor<0.6` → hayalet, yok say;
+iki sayfa da gerçek-kutusuz kalırsa scene-skip; gerçek kutular kalırsa normalize
+metin EŞİTLİĞİ şartıyla skip ("distant-dup-rec"), aksi KORU. Maliyet sınırlı:
+yalnız piksel-benzer aday çiftlerinde. Ayrıca F2'nin hiç tetiklenmemesi
+(ardışık slit-slit bloğu havuzda oluşmuyor) ve F3-kapsam bulgusu
+(ŞEYTAN_RUHLU: split_runs/split_runs_reading etiket ayrışması — farklı
+mekanizma) kayda geçti; H1/H3 artıkları M5 sonrası ayrı mini-karar.
+
 ÖN KOŞUL: M3 atlası + GLM/Kimi kırmızı-takım turu (orkestratör açar; M3 kanıtı
 brifinge girer). Muhtemel fix'ler (atlas neyi kanıtlarsa O uygulanır):
 - H1 → slit dilim birleştirmede dy-doğrulamalı örtüşme kırpma (bindirmeyi NCC ile
