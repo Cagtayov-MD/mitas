@@ -104,15 +104,29 @@ def main() -> int:
         if tekil:
             print(f"{k['film']}\n  gt={go} tahmin={pred} yöntem={k['yontem']}\n  not={k['notlar']}")
     hatalar.sort(key=lambda h: -abs(h["sapma"]) if h["sapma"] is not None else 0)
+    # ÜRETİM SKORU (Çağatay politikası 2026-07-23): ERKEN kabul edilebilir
+    # (fazla kare zararsız), GEÇ kabul edilemez (cast'in başı atlanır).
+    # Asimetrik tolerans: erken ≤120 kare (60 sn) OK, geç ≤20 kare OK.
+    ERKEN_TOL, GEC_TOL = 120, 20
+    uretim_dogru = n_dogru
+    for h in hatalar:
+        s = h.get("sapma")
+        if s is not None and -ERKEN_TOL <= s <= GEC_TOL:
+            uretim_dogru += 1          # simetrikte hata, üretimde kabul
     rapor = {"kapsam": n_kapsam, "dogru": n_dogru,
              "genel": round(100 * n_dogru / max(1, n_kapsam), 1),
+             "uretim": {"dogru": uretim_dogru,
+                        "pct": round(100 * uretim_dogru / max(1, n_kapsam), 1),
+                        "erken_tol": ERKEN_TOL, "gec_tol": GEC_TOL},
              "kredi_var": kv, "kredi_yok": ky,
              "eksik": len(eksikler), "sure_sn": round(time.time() - t0),
              "hatalar": hatalar}
     json.dump(rapor, open(f"{V}/olcum_son.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
     print(f"\nKAPSAM {n_kapsam} (eksik {len(eksikler)})  "
-          f"GENEL {n_dogru}/{n_kapsam} = %{rapor['genel']}")
+          f"GENEL {n_dogru}/{n_kapsam} = %{rapor['genel']}"
+          f"   ÜRETİM {uretim_dogru}/{n_kapsam} = %{rapor['uretim']['pct']}"
+          f" (erken≤{ERKEN_TOL} OK / geç≤{GEC_TOL})")
     print(f"  kredi-var: {kv['dogru']}/{kv['n']}   "
           f"kredi-yok: {ky['dogru']}/{ky['n']}  (kırmızı çizgi ≥29/30)")
     for h in hatalar[:40]:
