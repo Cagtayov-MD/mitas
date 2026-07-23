@@ -235,6 +235,37 @@ uygulanamaz, fallback birincil kurtarıcı) → her turda tam yeniden ölçüm;
 Not: 1.25fps, Nyquist açısından 1.5'ten de kötü — overlay sınıfı Ex_Frame'de
 daha görünür olabilir; sağlık dağılımı bunu ölçecek.
 
+### Görev M8: Ex sağlık turları — KONSEY KARARLARI (GLM+Nemotron, 2026-07-24)
+
+Sınıflandırma (30-örneklem, görsel tanıklı): A1 statik-kart-tekrar ~63, A2 slit-tekrar
+~41, C meşru-farklı-metin ~27, D metrik-FP ~5, B(imha) ~0. 51/135'te fix'ler hiç
+tetiklenmemiş (gren aday-eşiklerini aşıyor). Konsey verdiktleri (ikisi de şartlı-kabul;
+Kimi/MiniMax uzun-brifing zaman aşımı):
+
+- **K1 (A1)**: aday eşikleri EX-korpusta yeniden kalibre (film-içi aynı/farklı çift
+  setiyle, F1≥0.95 hedefli) + koşu-içi tüm-çift (hash ön-eleme + aday tavanı 50/koşu
+  + rec-çağrı logu). GÜVENLİK HAKEM KARARI (GLM-Nemotron ihtilafı çözümü):
+  rec-eşitlik yolu kalibre eşiklerle çalışır; 0-kutu SAHNE-birleştirme yolu ise
+  yalnız ÇOK SIKI piksel-özdeşlikte (global_fark<0.02) — pikseller özdeşse det'in
+  kaçırdığı silik metin bile tutulan kopyada birebir vardır → içerik-kaybı yolu
+  matematiksel kapalı. rec düşük-güven/boş → DAİMA koru.
+- **K2 (A2)**: (c) ama mutfak (b): dy düzeltmesi ÖNCE (slit-bbox kilitli, metin-satır
+  profili/FFT periyot, kutu-maskeli); kırpma yalnız DİRENÇLİ artıklarda ve
+  rec-Levenshtein≤2 + ≥2 ardışık + ikinci-kopya-atılır + düşük-güven→koru gardlarıyla.
+  dy düzeltmeden slit-içi kırpma ASLA. EN SON uygulanır (en riskli).
+- **K3 (C-muafiyeti)**: meşru ölçüm düzeltmesi — ama kanıt sıkı: iki karede de det≥1
+  kutu + rec conf≥0.7 + normalize sonrası Levenshtein≥3 VEYA Jaccard≤0.7; manifest'e
+  {text_a,text_b,protected} kaydı; ≥100 etiketli çiftlik recall≥0.9 testi ŞART.
+- **K4**: (i) imha-imzası SAĞLIK formülünden ÇIKAR (Ex'te 6/6 FP) — teşhis bayrağı
+  olarak kalır, sağlığı etkilemez; (ii) tek-kart istisnası: kept_blocks≤3 AND
+  status=OK AND det-metin-var → boy kontrolü atlanır.
+- Uygulama SIRASI: K4 → K1 → K3 → K2; her aşamada golden-set (30 film + ≥100 çift)
+  yeniden koşulur, içerik-kaybı 0 şartı; toplam süre ≤1.5× mevcut; film başına
+  health_report alanları (dup_pairs/protected_pairs/removed_pairs/rec_calls).
+- K5 (opsiyonel güçlendirici, GLM): det/rec KARAR girdilerine hafif zamansal-medyan
+  gren azaltma (kompozisyon pikselleri DEĞİŞMEZ, yalnız karar yolu) — K1 sonrası
+  ölçülerek denenebilir.
+
 ### Görev M6: Kayıt
 
 GUNLUK kaydı + bu doküman güncellemesi (konsey kararları, sayılar) + görev #12 kapanışı.
