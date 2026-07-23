@@ -446,6 +446,44 @@ def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
     return onset, f"budama={bulunan - a} genislet={bulunan - onset}"
 
 
+def _ardisik_maks(mask) -> int:
+    """Bool dizide en uzun ardışık True koşusunun uzunluğu (T4 scroll-tip ölçütü:
+    ardışık scroll ≥16 örnek-kare)."""
+    en = cur = 0
+    for v in mask:
+        cur = cur + 1 if v else 0
+        en = max(en, cur)
+    return en
+
+
+def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
+                         ornek: int = 8) -> bool:
+    """T4 geri-birleştirme kapısı: ÖNCEKİ aday [a,b] gerçekten kredi içeriği mi.
+
+    Aday zaten bir kutu-koşusu (jbayrak-sürdürülen) — burada yalnız ÇEKİRDEK
+    ROL-KEYWORD (yönetmen/senaryo/görüntü/müzik/kurgu/oyuncu/yapımcı ...) arandığı
+    doğrulanır. `kredi_karti_mi`'nin genel isim-listesi testi (isim≥3) YETERSİZ
+    çıktı: BÜYÜK_TEHDİT/HAYATIMIN_ERKEĞİ regresyonu — mid-film bir "personel
+    dosyası" ekran-arayüzü (DESCRIPTION/REMARKS/... gibi ALLCAPS OCR gürültüsü)
+    isim≥3'ü rastlantısal geçiyor ama HİÇBİR rol-keyword'ü yok; UYKUNUN'un mid-
+    film tarif-kartı ("Tarte aux Pommes") de aynı şekilde reddedilir. Buna karşın
+    dört pozitif hedef (MESLEĞE_DÖNÜŞ/KARAVAN/"6"/DİPTEKİLER) örneklenen 8 karenin
+    en az birinde gerçek rol-keyword taşıyor (DIRECTED BY / MUSIC BY / EDITOR /
+    PRODUCER ...) — ölçüldü. Birden fazla örnek karede dener — tek karenin OCR'ı
+    bozuk çıkabilir (geçiş bulanıklığı)."""
+    n = min(ornek, b - a + 1)
+    if n <= 0:
+        return False
+    for fi in sorted(set(int(x) for x in np.linspace(a, b, n))):
+        try:
+            satirlar = cc_mod.satirlar(g[idx[fi]])
+        except Exception:
+            continue
+        if any(cc_mod._ROL.search(s) for s in satirlar):
+            return True
+    return False
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -465,10 +503,15 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     band = head_band_kirp(gk)
     if band:
         gk = [k[: k.shape[0] - band] for k in gk]
+    # T4: max_shift 40→60 — hızlı-akan jenerikte kayma sınıra yapışıp korelasyonu
+    # düşürüyordu (GLM tur-2 aliasing uyarısı). Yalnız v5'in KENDİ çağrısı;
+    # tespit()/tespit_v4() dy_cift'i varsayılan max_shift=40 ile çağırmaya devam
+    # eder — imzaları/davranışları DEĞİŞMEDİ.
+    MAX_SHIFT_V5 = 60
     dys = []
     corrs = []
     for i in range(len(gk) - 1):
-        s, r = dy_cift(gk[i], gk[i + 1])
+        s, r = dy_cift(gk[i], gk[i + 1], max_shift=MAX_SHIFT_V5)
         dys.append(s)
         corrs.append(r)
     dys = np.array(dys, dtype=np.float32)
@@ -476,7 +519,10 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     n = len(gk)
     scroll = np.zeros(n, bool)
     for i in range(len(dys)):
-        scroll[i] = (dys[i] > 3 and corrs[i] >= 0.85)
+        # aliasing gardı: dy sınıra yapışmışsa (gerçek kayma max_shift'i aşıyor,
+        # arama sınırda kırpılıyor) VE korelasyon yine de güçlüyse scroll say.
+        scroll[i] = (dys[i] > 3 and corrs[i] >= 0.85) or (
+            abs(dys[i]) >= MAX_SHIFT_V5 - 2 and corrs[i] >= 0.85)
 
     alt_g = [g[i] for i in idx]
     jbayrak, say = cb.kutu_serisi(alt_g, stride=ocr_stride)
@@ -559,13 +605,70 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
 
     joint, a, b, kb, scroll_var = en_iyi
-    onset = a
-    # kazanan koşuda scroll-aktif kare oranı — statik/scroll ayrımı (T5)
+    # kazanan koşuda scroll-aktif kare oranı — statik/scroll ayrımı (T5) +
+    # ardışık-scroll uzunluğu (T4 scroll-tip ölçütü, yalnız notlarda/teşhiste
+    # kullanılır — bkz. aşağıdaki geri-birleştirme yorumu).
     scroll_orani = float(scroll[a:b + 1].mean()) if b >= a else 0.0
+    ardisik_scroll = _ardisik_maks(scroll[a:b + 1]) if b >= a else 0
+
+    # ── T4: geri-birleştirme — SON_ERISIM'e takılmış ÖNCEKİ adaylarla birleş ──
+    # ÖNCE denenir (kazanan koşunun KENDİ başlangıcı `a`'dan) — içerik-çapalı
+    # budama/genişletme yalnız birleştirme uygulanamazsa devreye girer (budama
+    # onset'i `a`'dan uzaklaştırır; boşluk hesabı candidate-candidate mesafesine
+    # değil budanmış noktaya göre yapılırsa DİPTEKİLER gibi vakalarda boşluk
+    # yapay şekilde şişer — DİPTEKİLER'in gerçek boşluğu 28 örnek-kare ama budama
+    # sonrası nokta kullanılırsa ~51 ölçülüyor, KISA_BOSLUK'u yanlışlıkla aşıyor).
+    #
+    # Atlas kanıtı (2. tur): MESLEĞE_DÖNÜŞ / KARAVAN / "6" / DİPTEKİLER aynı
+    # kalıbı gösteriyor — gerçek-onset SON_ERISIM'e takılmış bir ÖNCEKİ adayın
+    # içinde/başında, kazanan koşuyla arasında KISA bir boşluk var (16-38
+    # örnek-kare, ölçüldü). Plan taslağı bu köprülemeyi "scroll-tip" (scroll_oran
+    # ≥0.3 VEYA ardışık≥16) koşularla sınırlıyordu; ÖLÇÜM bunu çürüttü: bu dört
+    # hedefin scroll_oran'ı 0.07-0.24, ardışık-maks 3-5 — İKİSİ DE eşiğin altında
+    # (yalnız MESLEĞE_DÖNÜŞ=0.95 ve TAKKELİ_MELEK=0.86 "scroll-tip" eşiğini
+    # geçiyor). Güvenlik scroll oranından değil aşağıdaki İKİ kapıdan geliyor:
+    #   (1) KISA boşluk — HARİKA_KÖPEK_5'in önceki adayına boşluk ~84 örnek-kare,
+    #       bloklanır (negatif-guard, sahne+tabela riski, atlas kanıtlı).
+    #   (2) içerik-kapısı — İNİŞLİ_ÇIKIŞLI'nın boşluğu KISA (14) ama içerik
+    #       CJK/şarkı-adı karışığı, kredi_karti_mi hiçbir örnekte geçmiyor →
+    #       bloklanır.
+    # Bu yüzden birleştirme "scroll-tip" şartı ARANMADAN, kazanan her koşu için
+    # denenir; gerekçe atlasa da düşülmüştür (bkz. commit notu).
+    KISA_BOSLUK = max(20, int(fps * 3.6 / stride))  # ~45 örnek-kare (38 geçmeli/84 engellenmeli — ölçüldü)
+    TOPLAM_BUTCE = 120  # plan T4 — _statik_icerik_onset.azami_geri ile AYNI birim/büyüklük
+    onset_birlesik, birlesme_notu = None, None
+    try:
+        w = adaylar.index((a, b))
+    except ValueError:
+        w = -1
+    if w > 0:
+        butce = TOPLAM_BUTCE
+        onset_z = a
+        k = w
+        birlesenler = []
+        while k > 0 and butce > 0:
+            a_prev, b_prev = adaylar[k - 1]
+            bosluk = onset_z - b_prev - 1
+            if bosluk < 0 or bosluk > KISA_BOSLUK or bosluk > butce:
+                break
+            if not _gecis_icerik_onayi(g, idx, cc, a_prev, b_prev):
+                break
+            onset_z = a_prev
+            butce -= bosluk
+            k -= 1
+            birlesenler.append(f"[{_kare_no(g[idx[a_prev]])}-{_kare_no(g[idx[b_prev]])}]")
+        if onset_z < a:
+            onset_birlesik = onset_z
+            birlesme_notu = f"geri-birlesme={','.join(birlesenler)}"
+
     ek_not = ""
-    if scroll_orani >= 0.3:
+    if onset_birlesik is not None:
+        onset = onset_birlesik
+        ek_not = birlesme_notu
+    elif scroll_orani >= 0.3:
         # SCROLL-tip koşu — Görev 4'ün alanı, burada DOKUNMA. Mevcut davranış:
         # scroll varsa kart→scroll geri-tarama.
+        onset = a
         if scroll_var and onset < len(scroll):
             alt = max(0, onset - int(fps * 1.5 / stride))
             while onset - 1 >= alt and onset - 1 < len(scroll) and scroll[onset - 1] and jbayrak[onset - 1]:
@@ -582,7 +685,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         guven=round(kb, 2),
         dy_medyan=float(np.median(dys[a:b])) if a < len(dys) else 0.0,
         notlar=(f"aday={len(adaylar)} seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] "
-                f"kb={kb:.2f} joint={joint:.2f} scroll_oran={scroll_orani:.2f}"
+                f"kb={kb:.2f} joint={joint:.2f} scroll_oran={scroll_orani:.2f} "
+                f"ardisik={ardisik_scroll}"
                 + (f" {ek_not}" if ek_not else "")),
         seri={"adaylar": kayitlar},
     )
