@@ -519,10 +519,22 @@ def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
     kabul (gazete/tabela/tek-intertitle KAYMAZ — gerekçe budur, sahte-pozitif
     riski düşük). `adaylar` listesindeki bir kutu-koşusuna denk gelmeyebilir
     (jbayrak-boşluk-toleransı farklı) — o yüzden ham scroll&jbayrak kesişiminde
-    kendi ardışık-koşusunu arar."""
+    kendi ardışık-koşusunu arar.
+
+    T8 Kod-avı #6 (üretim-sertleştirme): tarama `baslangic` (%75 sınırı)
+    NOKTASINDAN başlıyordu — eğer gerçek koşu bu sınırdan ÖNCE başlayıp
+    sınırı aşıyorsa (sınır koşunun ORTASINA denk geliyorsa), koşunun
+    ölçülen başı (`ks`) yanlışlıkla sınıra sabitlenip koşu kısa/geç
+    sayılıyordu (110-filmlik ölçüm setinde görünmez — bu filmlerin hiçbirinde
+    gerçek koşu tam sınırda başlamıyor, ama üretimde risk). Şimdi taramadan
+    ÖNCE sınırdan geriye yürüyüp `aktif` sürdüğü sürece gerçek koşu başını
+    buluyor."""
     baslangic = int(0.75 * (n - 1))
     min_kosu = max(16, int(fps * 8.0 / stride))
     aktif = scroll & jbayrak
+    if 0 <= baslangic < n and aktif[baslangic]:
+        while baslangic - 1 >= 0 and aktif[baslangic - 1]:
+            baslangic -= 1
     en_uzun = (0, -1, -1)  # (uzunluk, start, end)
     i = baslangic
     while i < n:
