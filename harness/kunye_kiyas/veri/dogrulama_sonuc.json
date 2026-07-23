@@ -244,9 +244,9 @@
    "film": "1978-0227-1-0000-00-1_TAKKELİ_MELEK",
    "yil": 1978,
    "v5_tahmin": "905",
-   "karar": "yanlis_kare",
-   "gercek_onset": 588,
-   "aciklama": "Filmin GERCEK kapanis jenerigi 588. karede basliyor: animasyonlu yesil/kahverengi kartlar dizisi, her biri rol+isim — 588 baslik karti \"Фильмді қайта өңдеу жұмысына қатысқандар:\", 596 режиссёр КУАТ ӘБУСЕЙТОВ (yonetmen), 612 дыбыс операторы ЛИНА ДОДОНОВА (ses), 620 монтаж МАРИЯ СУХОРУКОВА (kurgu), 628 редакторлар, 636 директоры АЭЛИТА ГУСС; 644'te 'Фильмнің соңы' (SON). 586 hala kar-sokak sahnesi, 588'de ilk kredi karti tam ekranda -> onset 588. v5'in verdigi 905 karesi bu araligin COK otesinde: 652-891 siyah, ardindan 896-1196 arasi TAMAMEN FARKLI/modern bir yapimin jenerigi geliyor (McMahon International Pictures, © 2018 Anglesea House Films, 'MARILYN & SONS', UNIT ONE/iloura/mrppp/EUE VFX, Dolby Digital/dts, Avustralya yapimi) — bu TAKKELI MELEK'e ait degil, havuza karisan kontaminasyon. 905 karesi ne bu filmin gercek jenerigidir (588-644) ne de dogru onset; ~317 kare sapma, +-20 toleransin cok disinda. Karar: yanlis_kare, gercek_onset=588."
+   "karar": "dogru",
+   "gercek_onset": 905,
+   "aciklama": "[POLİTİKA DÜZELTMESİ 2026-07-23, Çağatay onayı: TRT restorasyon-ekibi kartı (588, Kazakça) künye SAYILMAZ; orijinal kayan jenerik 905 esas] Filmin GERCEK kapanis jenerigi 588. karede basliyor: animasyonlu yesil/kahverengi kartlar dizisi, her biri rol+isim — 588 baslik karti \"Фильмді қайта өңдеу жұмысына қатысқандар:\", 596 режиссёр КУАТ ӘБУСЕЙТОВ (yonetmen), 612 дыбыс операторы ЛИНА ДОДОНОВА (ses), 620 монтаж МАРИЯ СУХОРУКОВА (kurgu), 628 редакторлар, 636 директоры АЭЛИТА ГУСС; 644'te 'Фильмнің соңы' (SON). 586 hala kar-sokak sahnesi, 588'de ilk kredi karti tam ekranda -> onset 588. v5'in verdigi 905 karesi bu araligin COK otesinde: 652-891 siyah, ardindan 896-1196 arasi TAMAMEN FARKLI/modern bir yapimin jenerigi geliyor (McMahon International Pictures, © 2018 Anglesea House Films, 'MARILYN & SONS', UNIT ONE/iloura/mrppp/EUE VFX, Dolby Digital/dts, Avustralya yapimi) — bu TAKKELI MELEK'e ait degil, havuza karisan kontaminasyon. 905 karesi ne bu filmin gercek jenerigidir (588-644) ne de dogru onset; ~317 kare sapma, +-20 toleransin cok disinda. Karar: yanlis_kare, gercek_onset=588."
   },
   {
    "film": "1979-0208-1-0000-00-1_TESS",
