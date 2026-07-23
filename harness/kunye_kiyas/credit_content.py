@@ -211,6 +211,19 @@ def kredi_skoru_kiril(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> t
 _NOKTA_LIDER = re.compile(r"(?<!\.)\.\s*\.(?!\.)")
 
 
+# ŞİRKET-KALIBI GARDI (T6 2.tur, alt-adım2 — konsey kırmızı-takım): stüdyo/
+# dağıtımcı boilerplate satırları İSİM-SATIRI SAYILMAZ. Atlas kanıtı:
+# DÖNÜŞÜ_OLMAYAN_NEHİR'in THE-END/Fox koşusu ("A CINEMASCOPE PRODUCTION",
+# "Produced and Released by", "Twentieth Century-Fox Film Corporation")
+# Title-Case/CAPS deseniyle _isim_gibi'yi yanlışlıkla geçiyordu (kb=1.0 →
+# yanlış-pozitif kredi_var, kırmızı-çizgi ihlali). Gerçek 'produced by JERRY
+# BRUCKHEIMER' tipi satırlar bu kalıbı İÇERMEZ (corporation/pictures/studios/
+# vb yok) → etkilenmez.
+_SIRKET_KALIBI = re.compile(
+    r"(corporation|pictures|studios|released by|presents|cinemascope|"
+    r"a\s+\w+\s+production\b)", re.I)
+
+
 def _tum_kucuk_cok_kelime(s: str) -> bool:
     """Tamamı-küçük-harf ≥2 kelimeli satır mı (İtalyanca kredi isim-satırı deseni)."""
     if len(s.split()) < 2:
@@ -228,6 +241,9 @@ def _isim_gibi(satir: str, baglam: list[str] | None = None) -> bool:
     kanıtı: ÖLDÜRME_ZAMANI'nda OCR kusursuz ama tüm satırlar küçük-harf."""
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:
+        return False
+    # şirket-kalıbı (T6 2.tur) → isim-satırı DEĞİL (bkz. yukarıdaki gerekçe)
+    if _SIRKET_KALIBI.search(s):
         return False
     # rol keyword → kredi
     if _ROL.search(s):
