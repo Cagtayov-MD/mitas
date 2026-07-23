@@ -44,6 +44,11 @@ def _isci_yerel(co_mod, gorev: tuple) -> dict:
 
 def main() -> int:
     gt = json.load(open(f"{V}/dogrulama_sonuc.json", encoding="utf-8"))["filmler"]
+    try:  # kaynak dosyası yanlış-içerikli filmler (görsel teyitli) ölçüm dışı
+        dis = {norm(f) for f in json.load(open(f"{V}/dislanan.json", encoding="utf-8"))["filmler"]}
+    except Exception:
+        dis = set()
+    gt = [x for x in gt if norm(x["film"]) not in dis]
     klas = {norm(os.path.basename(p.rstrip("/"))): p
             for p in sorted(glob.glob(f"{KOK}/*/"))}
     sadece_hata = "--sadece-hatalar" in sys.argv
