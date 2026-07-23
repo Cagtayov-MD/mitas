@@ -576,13 +576,41 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         yogun = list(np.argsort(say[a:b + 1])[-5:] + a)
         esit = list(np.linspace(a, b, min(5, say_c)).astype(int))
         ornek = sorted(set(int(x) for x in yogun + esit))
-        kare_satirlari = []
-        for fi in ornek:
-            try:
-                kare_satirlari.append(cc.satirlar(g[idx[fi]]))
-            except Exception:
-                kare_satirlari.append([])
+        satir_onbellek: dict[int, list[str]] = {}
+
+        def _satir_al(fi: int) -> list[str]:
+            if fi not in satir_onbellek:
+                try:
+                    satir_onbellek[fi] = cc.satirlar(g[idx[fi]])
+                except Exception:
+                    satir_onbellek[fi] = []
+            return satir_onbellek[fi]
+
+        kare_satirlari = [_satir_al(fi) for fi in ornek]
         kb_max = cc.kredi_skoru_coklu(kare_satirlari)
+        core_roller = sorted({m.lower() for sl in kare_satirlari for s in sl
+                               for m in cc._ROL_CEKIRDEK.findall(s)})
+        # Seyrek-kredi yolu (T6, plan Görev6/Adım4): bazı jenerikler kare-başına
+        # 1-3 isim gösterir (KÜÇÜK_SİMBA/ROBOCOP/TAKTİKLER_SAVAŞI atlas kanıtı) —
+        # varsayılan yogun_esik=4 hiç yakalamıyor. Ama gerçek kredi ile gazete/tabela
+        # ayrımı hala gerekiyor: yalnız koşuda ≥2 FARKLI ÇEKİRDEK-rol varsa (tek
+        # 'Yönetmen' intertitle'ı YETMEZ — sessiz-film kırmızı-çizgi senaryosu)
+        # yogun_esik=2 ile yeniden skorla, büyük olanı al.
+        # Dar örneklem (5 yoğun+5 eşit) rol-çeşitliliğini kaçırabilir (ROBOCOP
+        # ölçümü: 'music'/'written' örneklemin dışında kaldı) — aday zaten
+        # REDDEDİLECEKSE (kb_max<EŞIK) ve <2 çekirdek-rol bulunduysa, SADECE bu
+        # durumda geniş örneklemle rol-çeşitliliğini yeniden ara (maliyet yalnız
+        # başarısız adaylarda artar).
+        if len(core_roller) < 2 and kb_max < EŞIK and (b - a + 1) > len(ornek):
+            genis_idx = sorted(set(int(x) for x in np.linspace(a, b, min(16, say_c))))
+            genis_satirlari = [_satir_al(fi) for fi in genis_idx]
+            core_roller = sorted({m.lower() for sl in genis_satirlari for s in sl
+                                   for m in cc._ROL_CEKIRDEK.findall(s)})
+            if len(core_roller) >= 2:
+                kare_satirlari = genis_satirlari
+        if len(core_roller) >= 2:
+            kb_seyrek = cc.kredi_skoru_coklu(kare_satirlari, yogun_esik=2)
+            kb_max = max(kb_max, kb_seyrek)
         scroll_var = bool(scroll[a:b + 1].any())
         son_capa = b / max(1, n - 1)                 # sona yakınlık 0..1
         yogunluk = min(1.0, float(say[a:b + 1].max()) / 8.0)
