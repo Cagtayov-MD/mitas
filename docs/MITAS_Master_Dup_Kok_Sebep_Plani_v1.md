@@ -126,6 +126,29 @@ KONSEY KARARI (2026-07-23, GLM tam katılım; Kimi 429, Qwen 403-unpurchased):
   PaddleOCR bağımlılığı/maliyeti; GLM'in "üretimde zaten OCR var" varsayımı yanlış.
   Levenshtein-tarzı metin denetimi HARNESS tarafında (M5 skip-audit) yapılır.
 
+F1b DÜZELTMESİ (2026-07-23 gece, orkestratör ölçümleri — M4 ilk turu H2'yi ÇÖZEMEDİ):
+- Bulgu 1: v2 çıktıları legacy ile birebir aynıydı; sebep bayrak DEĞİL (provenance=1
+  doğrulandı) — F1'in dHash aday kapısı GRENLİ donuk-sahne sayfalarında hiç
+  tetiklenmiyor (film greni textmask-dHash'i ham≤4'ün çok ötesine savuruyor;
+  BAŞKAN 16 sayfa, 0 aday).
+- Bulgu 2: metin-yoğunluğu sınıf ayıramıyor (donuk 0.02-0.08 vs gerçek kart
+  0.02-0.27 — örtüşüyor); "metinsizse NCC yeter" öncülü ÇÖKTÜ.
+- Bulgu 3 (GÖRSEL KANIT, yp_P2_P4.png): YAKIN_PLAN'da farklı-altyazılı çiftin
+  piksel farkı (global 0.013/bant 0.045), BAŞKAN'ın aynı-donuk çiftlerinin gren
+  farkından (0.013-0.045/0.021-0.080) AYIRT EDİLEMEZ → salt-piksel kapısı
+  imkânsız; ayrım sinyali METİN VARLIĞI.
+- KARAR (GLM'in composer-içi OCR önerisine kısmi dönüş — det-only orta yol):
+  F1b: gri faz-hizalı bant-fark ile piksel-benzer sayfa-çifti adayı bul
+  (kalibre eşikler: global<0.06 VE maksbant<0.10; ölçüldü, marjlı) → sonra
+  PaddleOCR TextDetection (det-only, ~0.02sn/sayfa, TEMBEL init, yalnız v2 +
+  yalnız aday sayfalarda, sayfa-başına önbellek):
+  (a) iki sayfada da det-kutusu 0 → SKIP (kaybolacak metin yok);
+  (b) kutular varsa: kutu sayıları eşit + konumlar toleransta + HER kutu-bölgesi
+      kırpımı NCC≥0.90 → özdeş-metin tekrarı, SKIP; aksi halde KORU.
+  YAKIN_PLAN altyazı farkı (kutu içeriği farklı → NCC çöker) ve "Gün 1/Gün 2"
+  (rakam kutusu NCC düşük) yapısal olarak korunur. Eski dHash+XOR yolu aynen
+  kalır (temiz özdeş kartlar için).
+
 ÖN KOŞUL: M3 atlası + GLM/Kimi kırmızı-takım turu (orkestratör açar; M3 kanıtı
 brifinge girer). Muhtemel fix'ler (atlas neyi kanıtlarsa O uygulanır):
 - H1 → slit dilim birleştirmede dy-doğrulamalı örtüşme kırpma (bindirmeyi NCC ile
