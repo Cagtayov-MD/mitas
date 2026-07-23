@@ -1,0 +1,81 @@
+{
+ "kapsam": 8,
+ "dogru": 0,
+ "genel": 0.0,
+ "kredi_var": {
+  "n": 7,
+  "dogru": 0
+ },
+ "kredi_yok": {
+  "n": 1,
+  "dogru": 0
+ },
+ "eksik": 23,
+ "sure_sn": 138,
+ "hatalar": [
+  {
+   "film": "2003-9136-1-0000-00-1_HARİKA_KÖPEK_5",
+   "gt": 737,
+   "tahmin": 613,
+   "sapma": -124,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=5 seçilen=[613-1195] kb=1.00 joint=1.80"
+  },
+  {
+   "film": "2000-0323-1-0000-00-1_6",
+   "gt": 434,
+   "tahmin": 557,
+   "sapma": 123,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[557-1195] kb=1.00 joint=1.80"
+  },
+  {
+   "film": "2023-1047-1-0000-90-1_GELECEK_GÜNLER",
+   "gt": 672,
+   "tahmin": 741,
+   "sapma": 69,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=2 seçilen=[741-1199] kb=1.00 joint=1.50"
+  },
+  {
+   "film": "1979-0208-1-0000-00-1_TESS",
+   "gt": 1074,
+   "tahmin": 1037,
+   "sapma": -37,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=1 seçilen=[1037-1199] kb=1.00 joint=1.50"
+  },
+  {
+   "film": "1940-0026-1-0000-00-1_KNUTE_ROICKNE",
+   "gt": 1146,
+   "tahmin": 1117,
+   "sapma": -29,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=5 seçilen=[1117-1201] kb=1.00 joint=1.50"
+  },
+  {
+   "film": "1989-0624-1-0000-00-1_DÖNÜŞÜ_OLMAYAN_NEHİR",
+   "gt": -1,
+   "tahmin": 1125,
+   "sapma": null,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[1125-1191] kb=1.00 joint=1.76"
+  },
+  {
+   "film": "1989-0955-1-0000-00-1_ÖLDÜRME_ZAMANI",
+   "gt": 1137,
+   "tahmin": -1,
+   "sapma": null,
+   "yontem": "kredi_yok",
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)"
+  },
+  {
+   "film": "2006-9139-1-0000-90-1_TAKTİKLER_SAVAŞI",
+   "gt": 651,
+   "tahmin": -1,
+   "sapma": null,
+   "yontem": "kredi_yok",
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)"
+  }
+ ]
+}

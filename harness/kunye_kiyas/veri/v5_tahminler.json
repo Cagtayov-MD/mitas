@@ -1,0 +1,1194 @@
+{
+ "filmler": [
+  {
+   "film": "1925-1185-1-0000-50-0_OPERADAKİ_HAYALET",
+   "yil": 1925,
+   "kare": 1201,
+   "tahmin": 1161,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[1161-1199] kb=1.00 joint=1.50",
+   "sure": 17.1
+  },
+  {
+   "film": "1927-0010-1-0000-00-1_NAPOLYON_1",
+   "yil": 1927,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.6
+  },
+  {
+   "film": "1933-0010-1-0000-00-1_14_TEMMUZ",
+   "yil": 1933,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "3 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.5
+  },
+  {
+   "film": "1933-0013-1-0000-00-1_YÜZYILIN_CİNAYETİ",
+   "yil": 1933,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=1",
+   "sure": 9.9
+  },
+  {
+   "film": "1936-0018-1-0000-00-1_ASRİ_ZAMANLAR",
+   "yil": 1936,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.2
+  },
+  {
+   "film": "1936-1045-1-0000-50-0_MODERN_ZAMANLAR",
+   "yil": 1936,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 6.9
+  },
+  {
+   "film": "1938-0020-1-0000-00-1_YARININ_GENÇLERİ",
+   "yil": 1938,
+   "kare": 1200,
+   "tahmin": 1037,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[1037-1123] kb=1.00 joint=1.48",
+   "sure": 11.5
+  },
+  {
+   "film": "1946-1050-1-0000-90-1_İKİ_YAVRU",
+   "yil": 1946,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=4",
+   "sure": 12.4
+  },
+  {
+   "film": "1955-0046-1-0000-00-1_ŞEYTAN_RUHLU_İNSANLAR",
+   "yil": 1955,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10
+  },
+  {
+   "film": "1960-0021-1-0000-00-1_BÜYÜK_MÜCADELE",
+   "yil": 1960,
+   "kare": 1201,
+   "tahmin": 989,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[989-1187] kb=1.00 joint=1.80",
+   "sure": 11.4
+  },
+  {
+   "film": "1960-0039-1-0000-00-1_BELL_BOY",
+   "yil": 1960,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 9.7
+  },
+  {
+   "film": "1969-0076-1-0000-90-1_GENÇ_BILLY_YOUNG",
+   "yil": 1969,
+   "kare": 1200,
+   "tahmin": 1137,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[1137-1187] kb=1.00 joint=1.50",
+   "sure": 14.5
+  },
+  {
+   "film": "1969-0091-1-0000-00-1_KOPAR_ZİNCİRLERİNİ_GÜLSAR",
+   "yil": 1969,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=2",
+   "sure": 10.7
+  },
+  {
+   "film": "1977-0213-1-0000-00-1_AÇILIŞ_GECESİ",
+   "yil": 1977,
+   "kare": 1200,
+   "tahmin": 925,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[925-1103] kb=1.00 joint=1.47",
+   "sure": 11
+  },
+  {
+   "film": "1980-0149-1-0000-00-1_METİN",
+   "yil": 1980,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 12
+  },
+  {
+   "film": "1983-1123-1-0000-71-1_NOSTALJİ",
+   "yil": 1983,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 14.7
+  },
+  {
+   "film": "1984-0286-1-0000-00-1_ALTIN_VE_ŞÖHRET",
+   "yil": 1984,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.6
+  },
+  {
+   "film": "1988-0250-1-0000-00-1_FİDELER",
+   "yil": 1988,
+   "kare": 1200,
+   "tahmin": 905,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[905-1195] kb=1.00 joint=1.80",
+   "sure": 11.5
+  },
+  {
+   "film": "1988-0361-1-0000-00-1_DOĞUM_GÜNÜN_KUTLU_OLSUN_MAR",
+   "yil": 1988,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.4
+  },
+  {
+   "film": "1988-0362-1-0000-00-1_DİLEK_AĞACI",
+   "yil": 1988,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "8 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.7
+  },
+  {
+   "film": "1988-0366-1-0000-00-1_PARİS'TE_BİR_AMERİKALI",
+   "yil": 1988,
+   "kare": 1201,
+   "tahmin": 1077,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1077-1187] kb=1.00 joint=1.78",
+   "sure": 11.3
+  },
+  {
+   "film": "1988-0423-1-0000-40-1_BUL_VE_YOK_ET",
+   "yil": 1988,
+   "kare": 1202,
+   "tahmin": 937,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[937-1201] kb=1.00 joint=1.80",
+   "sure": 12.1
+  },
+  {
+   "film": "1988-0780-1-0000-00-1_İKİ_KAFADAR",
+   "yil": 1988,
+   "kare": 1200,
+   "tahmin": 969,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[969-1195] kb=1.00 joint=1.80",
+   "sure": 12.2
+  },
+  {
+   "film": "1989-0476-1-0000-00-1_VANYA_DAYI",
+   "yil": 1989,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "3 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.3
+  },
+  {
+   "film": "1989-0567-1-0000-00-1_UYKUNUN_YANI_BAŞINDA_ÜÇ_ELM",
+   "yil": 1989,
+   "kare": 1201,
+   "tahmin": 921,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[921-1195] kb=1.00 joint=1.80",
+   "sure": 11.2
+  },
+  {
+   "film": "1989-0624-1-0000-00-1_DÖNÜŞÜ_OLMAYAN_NEHİR",
+   "yil": 1989,
+   "kare": 1202,
+   "tahmin": 1125,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[1125-1191] kb=1.00 joint=1.76",
+   "sure": 12.3
+  },
+  {
+   "film": "1989-0955-1-0000-00-1_ÖLDÜRME_ZAMANI",
+   "yil": 1989,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.6
+  },
+  {
+   "film": "1990-1068-1-0000-56-0_YAKIN_PLAN",
+   "yil": 1990,
+   "kare": 1201,
+   "tahmin": 909,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[909-1201] kb=1.00 joint=1.50",
+   "sure": 9.3
+  },
+  {
+   "film": "1992-0454-1-0000-00-1_HAYATIMIN_ERKEĞİ",
+   "yil": 1992,
+   "kare": 1200,
+   "tahmin": 841,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[841-1143] kb=1.00 joint=1.78",
+   "sure": 10.9
+  },
+  {
+   "film": "1993-0467-1-0000-00-1_BİR_KATİLLE_EVLENDİM",
+   "yil": 1993,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.5
+  },
+  {
+   "film": "1996-0316-1-0000-00-1_TANGO_ARGENTINO",
+   "yil": 1996,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=2",
+   "sure": 9.8
+  },
+  {
+   "film": "1996-0325-1-0000-00-1_KIZIL_HAYAT",
+   "yil": 1996,
+   "kare": 1200,
+   "tahmin": 901,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[901-1183] kb=1.00 joint=1.80",
+   "sure": 11.7
+  },
+  {
+   "film": "1998-0970-1-0000-00-1_BAŞKAN_VE_MARI",
+   "yil": 1998,
+   "kare": 1200,
+   "tahmin": 1009,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1009-1151] kb=1.00 joint=1.49",
+   "sure": 11.6
+  },
+  {
+   "film": "1999-0394-1-0000-90-1_13",
+   "yil": 1999,
+   "kare": 1201,
+   "tahmin": 669,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[669-1199] kb=1.00 joint=1.80",
+   "sure": 13.4
+  },
+  {
+   "film": "1999-0407-1-0000-00-1_KÜÇÜK_KAHRAMAN",
+   "yil": 1999,
+   "kare": 1200,
+   "tahmin": 973,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[973-1151] kb=1.00 joint=1.79",
+   "sure": 11.8
+  },
+  {
+   "film": "1999-0430-1-0000-00-1_NE_TREN_VAR_NE_DE_UÇAK",
+   "yil": 1999,
+   "kare": 1201,
+   "tahmin": 989,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[989-1195] kb=1.00 joint=1.80",
+   "sure": 11.7
+  },
+  {
+   "film": "1999-0483-1-0000-00-1_SON_TANIK",
+   "yil": 1999,
+   "kare": 1202,
+   "tahmin": 1001,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1001-1195] kb=1.00 joint=1.80",
+   "sure": 12.6
+  },
+  {
+   "film": "2000-0282-1-0000-40-1_SEVİMLİ_KÖPEK-YEDİNCİ_OYU",
+   "yil": 2000,
+   "kare": 1201,
+   "tahmin": 1085,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1085-1199] kb=1.00 joint=1.80",
+   "sure": 13.9
+  },
+  {
+   "film": "2000-0454-1-0000-00-1_BUZDAN_GELEN_SESLER",
+   "yil": 2000,
+   "kare": 1200,
+   "tahmin": 1093,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1093-1147] kb=1.00 joint=1.77",
+   "sure": 11.5
+  },
+  {
+   "film": "2000-0491-1-0000-00-1_PARDAYYAN",
+   "yil": 2000,
+   "kare": 1200,
+   "tahmin": 1089,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1089-1159] kb=1.00 joint=1.49",
+   "sure": 11.8
+  },
+  {
+   "film": "2001-9194-1-0000-00-1_İNTİKAM",
+   "yil": 2001,
+   "kare": 1200,
+   "tahmin": 929,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[929-1195] kb=1.00 joint=1.80",
+   "sure": 12.9
+  },
+  {
+   "film": "2003-9064-1-0000-00-1_VIDOCQ",
+   "yil": 2003,
+   "kare": 1200,
+   "tahmin": 1073,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1073-1199] kb=1.00 joint=1.80",
+   "sure": 13
+  },
+  {
+   "film": "2003-9195-1-0000-00-1_JERICO_APARTMANI",
+   "yil": 2003,
+   "kare": 1200,
+   "tahmin": 765,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[765-1195] kb=1.00 joint=1.80",
+   "sure": 13
+  },
+  {
+   "film": "2005-9105-1-0000-00-1_İMPARATORUN_YOLCULUĞU",
+   "yil": 2005,
+   "kare": 1200,
+   "tahmin": 813,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[813-1191] kb=1.00 joint=1.80",
+   "sure": 12.4
+  },
+  {
+   "film": "2006-9143-1-0000-90-1_300_SPARTALI",
+   "yil": 2006,
+   "kare": 1200,
+   "tahmin": 325,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[325-1191] kb=1.00 joint=1.80",
+   "sure": 15.2
+  },
+  {
+   "film": "2008-9066-1-0000-00-1_MESLEĞE_DÖNÜŞ",
+   "yil": 2008,
+   "kare": 1200,
+   "tahmin": 693,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[693-1199] kb=1.00 joint=1.80",
+   "sure": 12.9
+  },
+  {
+   "film": "2018-0017-1-0000-90-1_KAPAN",
+   "yil": 2018,
+   "kare": 1201,
+   "tahmin": 861,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[861-1201] kb=1.00 joint=1.80",
+   "sure": 8.7
+  },
+  {
+   "film": "2019-1091-1-0000-70-0_SAKLI_GERÇEKLER",
+   "yil": 2019,
+   "kare": 1202,
+   "tahmin": 857,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[857-1201] kb=1.00 joint=1.80",
+   "sure": 8.4
+  },
+  {
+   "film": "2023-1047-1-0000-90-1_GELECEK_GÜNLER",
+   "yil": 2023,
+   "kare": 1200,
+   "tahmin": 741,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[741-1199] kb=1.00 joint=1.50",
+   "sure": 14.8
+  },
+  {
+   "film": "2025-1112-1-0000-56-1_İNİŞLİ_ÇIKIŞLI_BİR_ÖYK",
+   "yil": 2025,
+   "kare": 1201,
+   "tahmin": 945,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=5 seçilen=[945-1201] kb=1.00 joint=1.80",
+   "sure": 14.1
+  },
+  {
+   "film": "_",
+   "yil": 0,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=1",
+   "sure": 6
+  },
+  {
+   "film": "1925-1028-1-0000-90-1_POTEMKİN_ZIRHLISI",
+   "yil": 1925,
+   "kare": 1200,
+   "tahmin": 1097,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=5 seçilen=[1097-1199] kb=1.00 joint=1.80",
+   "sure": 21.5
+  },
+  {
+   "film": "1940-0026-1-0000-00-1_KNUTE_ROICKNE",
+   "yil": 1940,
+   "kare": 1201,
+   "tahmin": 1117,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=5 seçilen=[1117-1201] kb=1.00 joint=1.50",
+   "sure": 12.3
+  },
+  {
+   "film": "1945-0037-1-0000-00-1_ROMA_AÇIK_ŞEHİR",
+   "yil": 1945,
+   "kare": 1201,
+   "tahmin": 1077,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[1077-1183] kb=1.00 joint=1.49",
+   "sure": 11.1
+  },
+  {
+   "film": "1954-0034-1-0000-00-1_KARA_KALKAN",
+   "yil": 1954,
+   "kare": 1201,
+   "tahmin": 1081,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1081-1123] kb=1.00 joint=1.48",
+   "sure": 10.1
+  },
+  {
+   "film": "1956-0062-1-0000-00-1_PROFESÖR_HANNIBAL",
+   "yil": 1956,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.5
+  },
+  {
+   "film": "1957-1095-1-0000-50-0_NEW_YORK’TA_BİR_KRAL",
+   "yil": 1957,
+   "kare": 1201,
+   "tahmin": 1137,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1137-1199] kb=1.00 joint=1.80",
+   "sure": 7.4
+  },
+  {
+   "film": "1958-0046-1-0000-00-1_BEKARLIK_SULTANLIKTIR",
+   "yil": 1958,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=2",
+   "sure": 9.4
+  },
+  {
+   "film": "1962-0022-1-0000-00-1_GERONIMO",
+   "yil": 1962,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.4
+  },
+  {
+   "film": "1962-1124-1-0000-72-0_IVAN'IN_ÇOCUKLUĞU",
+   "yil": 1962,
+   "kare": 1200,
+   "tahmin": 1169,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[1169-1199] kb=1.00 joint=1.50",
+   "sure": 11.6
+  },
+  {
+   "film": "1966-0006-1-0000-90-1_İYİ_KÖTÜ_VE_ÇİRKİN",
+   "yil": 1966,
+   "kare": 1202,
+   "tahmin": 1137,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[1137-1199] kb=1.00 joint=1.50",
+   "sure": 8.5
+  },
+  {
+   "film": "1969-0094-1-0000-00-1_KESS",
+   "yil": 1969,
+   "kare": 1200,
+   "tahmin": 1077,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1077-1171] kb=1.00 joint=1.79",
+   "sure": 11.5
+  },
+  {
+   "film": "1970-0072-1-0000-00-1_KIRKSEKİZ_SAAT",
+   "yil": 1970,
+   "kare": 1202,
+   "tahmin": 1133,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1133-1201] kb=1.00 joint=1.50",
+   "sure": 11.5
+  },
+  {
+   "film": "1970-0076-1-0000-00-1_ŞAŞKIN_REKLAMCI",
+   "yil": 1970,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 9.9
+  },
+  {
+   "film": "1974-0161-1-0000-90-1_BABA_2",
+   "yil": 1974,
+   "kare": 1201,
+   "tahmin": 625,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[625-1183] kb=1.00 joint=1.79",
+   "sure": 7.5
+  },
+  {
+   "film": "1975-1016-1-0000-00-1_AYNA",
+   "yil": 1975,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=2",
+   "sure": 10.2
+  },
+  {
+   "film": "1975-2246-1-0000-72-0_DERSU_UZALA",
+   "yil": 1975,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 13.7
+  },
+  {
+   "film": "1978-0227-1-0000-00-1_TAKKELİ_MELEK",
+   "yil": 1978,
+   "kare": 1200,
+   "tahmin": 905,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[905-1199] kb=1.00 joint=1.80",
+   "sure": 12.1
+  },
+  {
+   "film": "1979-0208-1-0000-00-1_TESS",
+   "yil": 1979,
+   "kare": 1201,
+   "tahmin": 1037,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1037-1199] kb=1.00 joint=1.50",
+   "sure": 10.4
+  },
+  {
+   "film": "1981-0253-1-0000-00-1_YÜREKTEN_SEVMEK",
+   "yil": 1981,
+   "kare": 1201,
+   "tahmin": 697,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[697-1179] kb=1.00 joint=1.79",
+   "sure": 13.1
+  },
+  {
+   "film": "1981-0287-1-0000-00-1_JONSSON_ÇETESİ",
+   "yil": 1981,
+   "kare": 1200,
+   "tahmin": 1081,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1081-1175] kb=1.00 joint=1.79",
+   "sure": 11.9
+  },
+  {
+   "film": "1983-0202-1-0000-00-1_PARA_UĞRUNA",
+   "yil": 1983,
+   "kare": 1202,
+   "tahmin": 925,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[925-1059] kb=1.00 joint=1.76",
+   "sure": 10.1
+  },
+  {
+   "film": "1984-0287-1-0000-00-1_HİNDİSTAN'A_BİR_GEÇİT",
+   "yil": 1984,
+   "kare": 1202,
+   "tahmin": 909,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[909-1171] kb=1.00 joint=1.79",
+   "sure": 12.3
+  },
+  {
+   "film": "1986-0227-1-0000-00-1_6",
+   "yil": 1986,
+   "kare": 1200,
+   "tahmin": 925,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[925-1195] kb=1.00 joint=1.80",
+   "sure": 11.3
+  },
+  {
+   "film": "1986-0334-1-0000-00-1_AĞAÇ",
+   "yil": 1986,
+   "kare": 1201,
+   "tahmin": 1109,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1109-1199] kb=1.00 joint=1.50",
+   "sure": 11.6
+  },
+  {
+   "film": "1987-0232-1-0000-00-1_BAYAN_JULIE",
+   "yil": 1987,
+   "kare": 1200,
+   "tahmin": 1001,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1001-1139] kb=1.00 joint=1.48",
+   "sure": 11.6
+  },
+  {
+   "film": "1987-0352-1-0000-00-1_TILSIMLI_DÜNYA",
+   "yil": 1987,
+   "kare": 1202,
+   "tahmin": 1085,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1085-1195] kb=1.00 joint=1.48",
+   "sure": 11.5
+  },
+  {
+   "film": "1988-0244-1-0000-85-1_SEVİMLİ_HIRSIZ",
+   "yil": 1988,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=4",
+   "sure": 7.6
+  },
+  {
+   "film": "1989-0307-1-0000-85-1_GÜLEN_ADAM",
+   "yil": 1989,
+   "kare": 1201,
+   "tahmin": 1113,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1113-1195] kb=1.00 joint=1.78",
+   "sure": 7.9
+  },
+  {
+   "film": "1990-0390-1-0000-00-1_SISSI-1",
+   "yil": 1990,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.4
+  },
+  {
+   "film": "1990-0488-1-0000-00-1_HAYALET_BABAM",
+   "yil": 1990,
+   "kare": 1200,
+   "tahmin": 1053,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[1053-1187] kb=1.00 joint=1.80",
+   "sure": 11.9
+  },
+  {
+   "film": "1990-0513-1-0000-00-1_INNISFREE",
+   "yil": 1990,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=37",
+   "sure": 10.9
+  },
+  {
+   "film": "1991-0275-1-0000-00-1_SPOOTWOOD",
+   "yil": 1991,
+   "kare": 1201,
+   "tahmin": 821,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[821-1201] kb=1.00 joint=1.80",
+   "sure": 11.9
+  },
+  {
+   "film": "1991-0355-1-0000-00-1_PARİS'İN_DIAGHILEV_İLE_DANS",
+   "yil": 1991,
+   "kare": 1200,
+   "tahmin": 785,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[785-1083] kb=1.00 joint=1.47",
+   "sure": 10.7
+  },
+  {
+   "film": "1992-0296-1-0000-00-1_GÜNDÖNÜMÜ_GÜNEŞ",
+   "yil": 1992,
+   "kare": 1200,
+   "tahmin": 757,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[757-1131] kb=1.00 joint=1.78",
+   "sure": 11.6
+  },
+  {
+   "film": "1992-0455-1-0000-00-1_MELEKLERİ_GÖRMEK_İSTEDİM",
+   "yil": 1992,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.4
+  },
+  {
+   "film": "1992-0472-1-0000-00-1_KALP_HIRSIZI",
+   "yil": 1992,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=6",
+   "sure": 9.9
+  },
+  {
+   "film": "1992-0483-1-0000-00-1_JOE_SHARP",
+   "yil": 1992,
+   "kare": 1200,
+   "tahmin": 801,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[801-1131] kb=1.00 joint=1.78",
+   "sure": 11.6
+  },
+  {
+   "film": "1993-0216-1-0000-00-1_RIGOLETTO",
+   "yil": 1993,
+   "kare": 1201,
+   "tahmin": 729,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[729-1199] kb=1.00 joint=1.50",
+   "sure": 12
+  },
+  {
+   "film": "1993-0435-1-0000-00-1_SEN_TOM_SAWYER_DEĞİLSİN",
+   "yil": 1993,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.7
+  },
+  {
+   "film": "1994-0238-1-0000-00-1_MASUMİYET_DÜŞLERİ",
+   "yil": 1994,
+   "kare": 1200,
+   "tahmin": 905,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[905-1195] kb=1.00 joint=1.80",
+   "sure": 11.8
+  },
+  {
+   "film": "1995-0363-1-0000-00-1_KÜÇÜK_SİMBA_DÜNYA_KUPASIN",
+   "yil": 1995,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.5
+  },
+  {
+   "film": "1995-0404-1-0000-00-1_BÜYÜK_SAVAŞTA_KÜÇÜK_ADAM",
+   "yil": 1995,
+   "kare": 1200,
+   "tahmin": 861,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[861-1103] kb=1.00 joint=1.47",
+   "sure": 11.6
+  },
+  {
+   "film": "1998-0312-1-0000-00-1_KARA_GÜNLER",
+   "yil": 1998,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.3
+  },
+  {
+   "film": "1998-0519-1-0000-00-1_SON_CÜCE",
+   "yil": 1998,
+   "kare": 1202,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "kutu-koşusu yok; maxkutu=1",
+   "sure": 10.8
+  },
+  {
+   "film": "1999-0403-1-0000-00-1_PRENSESİN_AŞKI",
+   "yil": 1999,
+   "kare": 1201,
+   "tahmin": 1085,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[1085-1179] kb=1.00 joint=1.49",
+   "sure": 10.8
+  },
+  {
+   "film": "1999-0489-1-0000-00-1_AMY'NİN_TALİHSİZLİKLERİ",
+   "yil": 1999,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.8
+  },
+  {
+   "film": "2000-0289-1-0000-00-1_KÜÇÜK_OLMAK_ZOR",
+   "yil": 2000,
+   "kare": 1200,
+   "tahmin": 1133,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1133-1191] kb=1.00 joint=1.50",
+   "sure": 12
+  },
+  {
+   "film": "2000-0323-1-0000-00-1_6",
+   "yil": 2000,
+   "kare": 1200,
+   "tahmin": 557,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=3 seçilen=[557-1195] kb=1.00 joint=1.80",
+   "sure": 10.7
+  },
+  {
+   "film": "2000-0477-1-0000-00-1_FUTBOLCU_PRENSES",
+   "yil": 2000,
+   "kare": 1200,
+   "tahmin": 1033,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=5 seçilen=[1033-1143] kb=1.00 joint=1.48",
+   "sure": 11.9
+  },
+  {
+   "film": "2000-0505-1-0000-00-1_DURUMU_ANLAMAK",
+   "yil": 2000,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "2 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 9.9
+  },
+  {
+   "film": "2002-9168-1-0000-00-1_DEFİNE_GEZEGENİ",
+   "yil": 2002,
+   "kare": 1202,
+   "tahmin": 485,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[485-1201] kb=1.00 joint=1.80",
+   "sure": 12.5
+  },
+  {
+   "film": "2002-9173-1-0000-00-1_ROBOCOP_KARA_ADALET",
+   "yil": 2002,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "4 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.6
+  },
+  {
+   "film": "2003-9048-1-0000-00-1_İHTİRAS_CİNAYETİ",
+   "yil": 2003,
+   "kare": 1200,
+   "tahmin": 1101,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1101-1199] kb=1.00 joint=1.50",
+   "sure": 11.2
+  },
+  {
+   "film": "2003-9136-1-0000-00-1_HARİKA_KÖPEK_5",
+   "yil": 2003,
+   "kare": 1200,
+   "tahmin": 613,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=5 seçilen=[613-1195] kb=1.00 joint=1.80",
+   "sure": 12
+  },
+  {
+   "film": "2004-9110-1-0000-00-1_BÜYÜK_TEHDİT",
+   "yil": 2004,
+   "kare": 1200,
+   "tahmin": 805,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=7 seçilen=[805-1175] kb=1.00 joint=1.79",
+   "sure": 10.5
+  },
+  {
+   "film": "2004-9131-1-0000-00-1_YALNIZ_SAVAŞÇI",
+   "yil": 2004,
+   "kare": 1200,
+   "tahmin": 909,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[909-1199] kb=1.00 joint=1.80",
+   "sure": 10.5
+  },
+  {
+   "film": "2005-9162-1-0000-00-1_DİPTEKİLER",
+   "yil": 2005,
+   "kare": 1200,
+   "tahmin": 573,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[573-1191] kb=1.00 joint=1.80",
+   "sure": 10.3
+  },
+  {
+   "film": "2006-9139-1-0000-90-1_TAKTİKLER_SAVAŞI",
+   "yil": 2006,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 14
+  },
+  {
+   "film": "2008-9046-1-0000-88-1_MEVLANA_AŞKIN_DANSI",
+   "yil": 2008,
+   "kare": 1200,
+   "tahmin": 733,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=4 seçilen=[733-1191] kb=1.00 joint=1.80",
+   "sure": 7
+  },
+  {
+   "film": "2010-9139-1-0000-00-1_ROBIN_HOOD",
+   "yil": 2010,
+   "kare": 1200,
+   "tahmin": 1049,
+   "yontem": "kutu+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1049-1147] kb=1.00 joint=1.48",
+   "sure": 11.2
+  },
+  {
+   "film": "2010-9150-1-0000-00-1_HANNA'NIN_ALTINLARI",
+   "yil": 2010,
+   "kare": 1201,
+   "tahmin": 741,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[741-1183] kb=1.00 joint=1.79",
+   "sure": 11.7
+  },
+  {
+   "film": "2011-9026-0-0001-85-1_MYSTER_ALASKA",
+   "yil": 2011,
+   "kare": 1201,
+   "tahmin": 1049,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=6 seçilen=[1049-1199] kb=1.00 joint=1.80",
+   "sure": 7.2
+  },
+  {
+   "film": "2011-9186-1-0000-90-1_KÖPEKBALIĞI_KÖRFEZİNİN_YU",
+   "yil": 2011,
+   "kare": 1201,
+   "tahmin": 1149,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=1 seçilen=[1149-1201] kb=1.00 joint=1.80",
+   "sure": 13.8
+  },
+  {
+   "film": "2011-9224-1-0000-88-1_KANDAHAR",
+   "yil": 2011,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 10.5
+  },
+  {
+   "film": "2014-9078-1-0000-90-1_KAHRAMAN_UZAYLILAR",
+   "yil": 2014,
+   "kare": 1201,
+   "tahmin": 345,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[345-1179] kb=1.00 joint=1.79",
+   "sure": 14.9
+  },
+  {
+   "film": "2017-1081-1-0000-50-0_KARAVAN",
+   "yil": 2017,
+   "kare": 1201,
+   "tahmin": 753,
+   "yontem": "kutu+scroll+içerik",
+   "guven": 1,
+   "notlar": "aday=2 seçilen=[753-1199] kb=1.00 joint=1.80",
+   "sure": 8.4
+  },
+  {
+   "film": "2018-0053-1-0000-85-1_UZUN_ZAMAN_ÖNCE",
+   "yil": 2018,
+   "kare": 1201,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 11.5
+  },
+  {
+   "film": "2023-1224-1-0000-56-1_ARKADAŞIMIN_EVİ_NEREDE",
+   "yil": 2023,
+   "kare": 1200,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "guven": 0,
+   "notlar": "1 aday, hiçbiri isim-listesi değil (eşik 0.6)",
+   "sure": 13.1
+  }
+ ]
+}

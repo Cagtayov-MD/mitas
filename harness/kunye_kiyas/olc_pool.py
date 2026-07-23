@@ -75,7 +75,7 @@ def main() -> int:
     print(f"\nKAPSAM {n_kapsam} (eksik {len(eksikler)})  "
           f"GENEL {n_dogru}/{n_kapsam} = %{rapor['genel']}")
     print(f"  kredi-var: {kv['dogru']}/{kv['n']}   "
-          f"kredi-yok: {ky['dogru']}/{ky['n']}  (kırmızı çizgi ≥30/31)")
+          f"kredi-yok: {ky['dogru']}/{ky['n']}  (kırmızı çizgi ≥29/30)")
     for h in hatalar[:40]:
         s = f"{h['sapma']:+d}" if h["sapma"] is not None else "  - "
         print(f"  {s:>5}  gt={h['gt']:>5} v5={h['tahmin']:>5}  {h['film'][:44]}")

@@ -1,0 +1,41 @@
+{
+ "filmler": [
+  {
+   "film": "ANNEM ANNEM-frame (Mother, Mother — 1989, Micki Dickoff)",
+   "gercek_onset_kare": 289
+  },
+  {
+   "film": "BAJA'YA KAÇIŞ",
+   "gercek_onset_kare": 333
+  },
+  {
+   "film": "Friday the 13th (1980) — 13.CUMA-frame",
+   "gercek_onset_kare": 29
+  },
+  {
+   "film": "HANNA'NIN ALTINLARI-frame",
+   "gercek_onset_kare": 18
+  },
+  {
+   "film": "HERŞEY YOLUNDA GİDERSE SENEYE",
+   "gercek_onset_kare": 216
+  },
+  {
+   "film": "SICAK ÇİKOLATA-frame",
+   "gercek_onset_kare": 59
+  },
+  {
+   "film": "URANÜS",
+   "gercek_onset_kare": 84
+  },
+  {
+   "film": "UĞURSUZ-frame",
+   "gercek_onset_kare": 291
+  },
+  {
+   "film": "YILDIZ-frame",
+   "gercek_onset_kare": 46,
+   "not": "Çağatay kuralı: kare 26 THE END kartı, gerçek onset 46"
+  }
+ ]
+}

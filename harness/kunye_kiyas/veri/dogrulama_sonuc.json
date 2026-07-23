@@ -1,0 +1,949 @@
+{
+ "filmler": [
+  {
+   "film": "1925-1028-1-0000-90-1_POTEMKİN_ZIRHLISI",
+   "yil": 1925,
+   "v5_tahmin": "1097",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1133,
+   "aciklama": "Bu, Enno Patalas / Deutsche Kinemathek restorasyon versiyonu ve SONDA gercek bir kapanis jenerigi tasiyor. Ship footage ~1116-1118'de bitiyor, 1120-1132 tamamen siyah (fade). Ilk jenerik kartI frame 1133'te beliriyor: \"Regie / Sergej M. Eisenstein / 1925\" (yonetmen kredisi, Turkce altyazi \"YONETMEN SERGEY M. AYZENSTAYN 1925\"). Ardindan 1140'ta \"Darsteller — Mitglieder des Proletkult-Theaters, Matrosen der Schwarzmeerflotte, Einwohner Odessas\" (oyuncu listesi / OYNAYANLAR), sonra 1151+ Trotski mottosu ve restorasyon ekibi kredileri (Enno Patalas, Anna Bohn, Deutsche Kinemathek, Bundesarchiv, British Film Institute, Moser+Rosie, Taunus Film, Gerhard Ullmann) film sonuna kadar uzuyor. Gercek onset = 1133. v5'in verdigi 1097 hala gemi/dalga footage'i (jenerik degil), 36 kare erken — kredi VAR ama kare yanlis."
+  },
+  {
+   "film": "1925-1185-1-0000-50-0_OPERADAKİ_HAYALET",
+   "yil": 1925,
+   "v5_tahmin": "1161",
+   "karar": "dogru",
+   "gercek_onset": 1159,
+   "aciklama": "Tail dizisi: filmin son sahnesi (su kenarindaki kalabalik) 1121-1145; ardindan \"Finis\" (THE END) karti 1146-1156; 1157-1158 siyah gecis (2.3x parlaklikta bile tamamen siyah, hicbir metin yok); kare 1159'da kapanis jenerigi kart olarak beliriyor. Kart net cast/crew ISIM listesi: \"THE PLAYERS\" basligi altinda \"The Phantom ... LON CHANEY\", \"Christine Daae ... MARY PHILBIN\", \"Vicomte Raoul de Chagny ... NORMAN KERRY\", \"Ledoux ... Arthur Edmund Carewe\", \"Simon Buquet ... Gibson Gowland\", \"Comte Philip de Chagny ... John Sainpolis\", \"Florine Papillon ... Snitz Edwards\", \"Carlotta ... Virginia Pearson\". Bu kart 1159'dan filmin sonuna (1201) kadar sabit duruyor. Yani gercek kapanis-jenerik onset = 1159. V5 1161 dedi; gercek 1159, fark 2 kare, +-20 tolerans icinde → dogru."
+  },
+  {
+   "film": "1927-0010-1-0000-00-1_NAPOLYON_1",
+   "yil": 1927,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Napoleon (1927, Abel Gance) sessiz film. Tail'in tamami sessiz-film footage (kirmizi/mavi tonlu sahneler), anlati ara-yazilari (tek cumlelik hikaye kartlari: \"The drums? Where are the drums of the 6th?\" ve \"At dawn, the Commissioners of the army... find him asleep with his head on a drum.\" — bunlar film-ici anlati metni, jenerik DEGIL), unlu parlak final sahnesi (c_01081-01111), ardindan bir \"INTERMISSION\" yazi karti (c_01118-01143, 01143'te net okunuyor) ve siyah kareler (c_01144+). Hicbir yerde cast/crew ISIM listesi YOK. Beklendigi gibi eski sessiz filmde krediler basta; sonda kapanis jenerigi yok. Not: dusuk cozunurluklu on-montajda goruntu gibi algiladigim \"roportaj yuzleri\" tam-cozunurluk tekil kare okumalariyla yanlis okuma oldugu dogrulandi — gercekte INTERMISSION karti + siyah. v5 \"KREDI YOK\" dedi ve gercekten kredi yok → dogru."
+  },
+  {
+   "film": "1933-0010-1-0000-00-1_14_TEMMUZ",
+   "yil": 1933,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in tamami tarandi. Film son sahneyle (cift kapida sarilma, ardindan karartilan sokak sahnesi) bitiyor. ~01163'te \"Fin\" (Fransizca SON) karti, ardindan ~01169-01175'te \"TOBIS\" yapim sirketi logosu geliyor, sonra siyaha kararma. Hicbir yerde cast/crew/rol/yapimci/yonetmen ISIM listesi yok. \"Fin\" tek basina + sirket amblemi kurallara gore jenerik sayilmaz. Eski film deseni: krediler basta, sonda sadece SON. v5 KREDI YOK dedi ve gercekten kapanis kredisi yok -> isabetli."
+  },
+  {
+   "film": "1933-0013-1-0000-00-1_YÜZYILIN_CİNAYETİ",
+   "yil": 1933,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in tamami (1200 kare, 2fps = son 10 dk) surekli sahne icerigi: donem kostumlu bir mahkeme/sorgu draması, diyalog yakin cekimleri. Kaba montaj (1-1161, adim 40) hicbir yerde jenerik karti / isim listesi gostermiyor. Ince son-tarama (1100-1200): film ~1185. karede sapkali bir kadinin diyalog yakin cekimiyle bitiyor, ardindan 1188-1200 temiz siyaha fade. Siyah kareler dogrulandi (max piksel 8-15, ortalama ~3.6, hicbir soluk metin yok). 1188'deki tek parlak piksel (max 201) sahne fade'inin kuyrugu, metin karti degil. Bu ekstrakta hicbir cast/crew isim listesi yok. v5 -1 (KREDI YOK) dedi ve dogru: gercekten kapanis jenerigi yok."
+  },
+  {
+   "film": "1936-0018-1-0000-00-1_ASRİ_ZAMANLAR",
+   "yil": 1936,
+   "v5_tahmin": "-1 (kredi_yok)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Chaplin'in Modern Times (Asri Zamanlar, 1936) filmi. Tail sirasi: 01080-01132 ikonik final yuruyus sahnesi (Serseri + kiz yolda daglara dogru yuruyor), 01136-01152 \"The End\" karti (\"PASSED BY THE NATIONAL BOARD OF REVIEW\" alt yazisi), 01156-01176 siyah, 01180-01188 sonradan eklenmis MPAA \"G\" derece karti (\"THE MOTION PICTURE CODE AND RATING ADMINISTRATION HAS RATED THIS MOTION PICTURE — G — ALL AGES ADMITTED / GENERAL AUDIENCES\"), sonra siyah. Hicbir yerde kapanis cast/crew ISIM listesi YOK. Donemin filmleri gibi krediler BASTA; sonda sadece \"The End\" ve derece/board damgasi var — ikisi de isim listesi degil. v5 -1 (kredi_yok) dedi, dogru. Not: 00201 \"SOZLERINI UNUTTUM\", 01041 \"UMITSIZLIGE KAPILMA, ONUMUZDE GUZEL GUNLER VAR\" gibi kareler film-ici ara-yazi, jenerik degil."
+  },
+  {
+   "film": "1936-1045-1-0000-50-0_MODERN_ZAMANLAR",
+   "yil": 1936,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Modern Times (1936, Chaplin). Tail: iconic final walk down the road into the distance (frames ~01138-01175), fade to black (01178), then a \"The End\" title card (01181-01190) with sub-line \"PASSED BY THE NATIONAL BOARD OF REVIEW\", then fade to black (01193-01199). Earlier tail is all diegetic action/scenes plus dialogue intertitles (\"I forget the words.\", \"Buck up - never say die.\"), which are film-content title cards, NOT credits. There is NO cast/crew/rol name list anywhere in the tail. Per era, credits were at the start. \"The End\" alone (no following name list) is not a jenerik. Dogru cevap KREDI YOK; v5 -1 tahmini isabetli."
+  },
+  {
+   "film": "1938-0020-1-0000-00-1_YARININ_GENÇLERİ",
+   "yil": 1938,
+   "v5_tahmin": "1037",
+   "karar": "dogru",
+   "gercek_onset": 1037,
+   "aciklama": "Film \"Boys Town\" (1938, Türkçe YARININ GENÇLERİ), Spencer Tracy ve Mickey Rooney. Tail dizisi: 1001-1023 son sarılma sahnesi heykel görüntüsüne geçiyor; 1025-1035 heykel üzerinde \"THE END\"; 1036 \"THE END\" sönerken sadece heykel; 1037'de tam CAST listesi beliriyor: \"CAST\" başlığı + rol→oyuncu satırları (Father Flanagan - SPENCER TRACY, Whitey Marsh - MICKEY ROONEY, Dave Morris - HENRY HULL, Dan Farrow - LESLIE FENTON, ... The Sheriff - VICTOR KILLIAN). Liste 1061'e kadar sürüyor. Gerçek kapanış cast jeneriği onset'i tam kare 1037; 1035 hâlâ THE END, 1036 geçiş. v5 tam isabet (1037). Not: 1081 civarında ayrıca \"COLORIZED / Color Version © 1989 Turner Entertainment\" modern renklendirme notu var, bu orijinal jenerik değil ve onset'i etkilemiyor."
+  },
+  {
+   "film": "1940-0026-1-0000-00-1_KNUTE_ROICKNE",
+   "yil": 1940,
+   "v5_tahmin": "1117",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1146,
+   "aciklama": "Film \"Knute Rockne, All American\" (1940). Eski film olmasina ragmen SONDA kapanis cast listesi TASIYOR. Sira: 1125-1127 Memorial Building di-cephe (film sahnesi), 1128 siyah, 1129-1145 \"The End — A Warner Bros. First National Picture\" karti (tek basina, isim listesi degil, kural geregi onset SAYILMAZ), 1145'te cross-dissolve ile cast listesi altta beliriyor, 1146'da \"The Players\" isim listesi net okunuyor (Knute Rockne...PAT O'BRIEN, GALE PAGE, RONALD REAGAN, DONALD CRISP, ALBERT BASSERMAN, JOHN LITEL, HENRY O'NEILL, OWEN DAVIS Jr, JOHN QUALEN, DOROTHY TREE, JOHN SHEFFIELD, THE MOREAU CHOIR OF NOTRE DAME), 1180-1200 ikinci cast sayfasi (Nick Lukats, Kane Richmond, HOWARD JONES, POP WARNER, ALONZO STAGG vb). Gercek jenerik onset = 1146. v5'in verdigi 1117 karesi Memorial Building di-cephesi (film sahnesi), gercek onset'ten 29 kare once; arada sadece tek-basina \"The End\" karti var. +-20 toleransi disinda -> yanlis_kare."
+  },
+  {
+   "film": "1945-0037-1-0000-00-1_ROMA_AÇIK_ŞEHİR",
+   "yil": 1945,
+   "v5_tahmin": "1077",
+   "karar": "dogru",
+   "gercek_onset": 1077,
+   "aciklama": "Kapanis jenerigi VAR. Akis: 1040-1063 son sahne (cocuklar Roma silueti/San Pietro kubbesine dogru yuruyor) -> 1064-1074 skyline uzerine bindirilmis \"FINE\" (=SON) -> 1075-1076 siyah -> 1077 \"Interpreti\" (oyuncu listesi) karti soluk sekilde beliriyor (V.ANNICHIARICO...Marcello, N.BRUNO...Sagrestano, A.FABRIZI...Don Pietro, H.FEIST...Bergmann, F.GRANDJACQUET...Francesco) -> 1078+ liste tam okunur, ardindan crew (Sceneggiatura Amidei/Fellini, Montaggio Eraldo da Roma, Fonico, Direttore di produzione vb.). Kural geregi tek basina \"FINE\" jenerik degil ama hemen ardindan gelen cast/crew isim listesi jeneriktir; isim listesinin ilk belirdigi kare 1077. v5 tahmini 1077 tam onset karesine denk geliyor. Onset=1077."
+  },
+  {
+   "film": "1946-1050-1-0000-90-1_İKİ_YAVRU",
+   "yil": 1946,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail montaji + ince tarama (1040-1200) + tek kare (c_01185) incelendi. Filmin sonu: ~1157'ye kadar kizin yuzunun bulut/agac uzerine bindirildigi ruya/dissolve final sahnesi; ~1161 siyah; ~1165-1177 sadece amblemli \"THE END\" kartı (yaninda isim YOK); ~1181-1200 \"All scenes involving animals in this picture were made under the supervision and with the cooperation of the American Humane Association\" tek-notice uyari karti. Hicbir yerde cast/crew/yapimci/yonetmen ISIM listesi yok. Kurallara gore tek basina THE END ve tek-cumle uyari jenerik degil. Klasik donem filmi — krediler basta olur, bu havuz sadece son 10 dk. v5 \"KREDI YOK\" (-1) dedi, gercekle ortusuyor."
+  },
+  {
+   "film": "1954-0034-1-0000-00-1_KARA_KALKAN",
+   "yil": 1954,
+   "v5_tahmin": "1081",
+   "karar": "dogru",
+   "gercek_onset": 1099,
+   "aciklama": "Bu film KAPANIS jenerigi TASIYOR. Kuyruk yapisi: 1041-1073 son sahne (cift kucaklasiyor) -> 1075-1077 siyah -> 1079-1091 sus 'The End / Universal-International Picture' plaketi (SADECE 'The End' + stüdyo/dagitici adi, cast/crew ISMI YOK) -> 1093-1097 siyah -> 1099 cast listesi silik belirmeye basliyor -> 1101-1121 tam okunur cast listesi 'The Players': Tony Curtis, Janet Leigh, David Farrar, Barbara Rush, Herbert Marshall, Ian Keith, Doris Lloyd, Rhys Williams vb. -> 1126+ sona kadar siyah. Cagatay kurali: 'The End' TEK BASINA jenerik degil; cast/crew ISIM listesi jeneriktir ve ilk gorundugu kare onset. Isim listesi ('The Players' + oyuncu adlari) ilk silik olarak kare 1099'da beliriyor, 1101'de tam okunur. v5 1081 dedi ama 1081 aslinda 'The End' plaketidir (isim listesi degil). Gercek isim-listesi onset'i ~1099. Fark 18 kare, +-20 toleransi icinde -> 'dogru'. Not: v5 teknik olarak End kartina isaret etti, hemen ardindan gelen cast listesine degil, ama tolerans icinde kaldi."
+  },
+  {
+   "film": "1955-0046-1-0000-00-1_ŞEYTAN_RUHLU_İNSANLAR",
+   "yil": 1955,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Film Clouzot'nun 'Les Diaboliques' (1955) — Türkçe adı ŞEYTAN RUHLU İNSANLAR. Tail sonu: ~1081-1161 son sahne (çocuk/adam/okul, saf hikaye görüntüsü). ~kare 1165 tek başına 'FIN' kartı (=SON). ~1173-1197 tam ekran ara-yazı: 'Ne soyez pas DIABOLIQUES ! Ne détruisez pas l'intérêt... Ne leur racontez pas ce que vous avez vu. Merci pour eux.' Bu, izleyiciye finali arkadaşlarına anlatmamalarını rica eden ünlü Clouzot mesajı — cast/crew İSİM listesi DEĞİL. Kapanış jeneriği yok; krediler filmin başında (1955 eski film deseni). 'FIN' tek başına + tek-cümle ara-yazı kurala göre jenerik sayılmaz. v5 KREDİ YOK (-1) dedi, gerçekte de kapanış kredisi yok → doğru."
+  },
+  {
+   "film": "1956-0062-1-0000-00-1_PROFESÖR_HANNIBAL",
+   "yil": 1956,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "1956 Macar filmi \"Professor Hannibal\". Tail'in tamami (c_01083-c_01197) kesintisiz canli-aksiyon: melon sapkali/gozluklu profesor sehirde yuruyor, arabalar, kaldirim. Film dramatik son goruntuyle bitiyor: profesor uzaklasiyor (01191), kamera kaldirimdaki burusuk bir kagit/bildiri uzerinde duruyor, bir el uzanip onu aliyor (01196-01197). Ardindan sert siyah kesme: kareler 01198-01202 tamamen siyah (parlaklik ort. 0.0). HICBIR kapanis jenerigi yok - cast/crew isim listesi, kayan yazi, hatta isimli VEGE/SON karti bile yok. Eski film beklendigi gibi krediler basta. v5 \"kredi yok (-1)\" dedi ve gercekten kapanis kredisi yok. Tahmin isabetli."
+  },
+  {
+   "film": "1957-1095-1-0000-50-0_NEW_YORK'TA_BİR_KRAL",
+   "yil": 1957,
+   "v5_tahmin": "1137",
+   "karar": "dogru",
+   "gercek_onset": 1135,
+   "aciklama": "Film kapanis kredisi TASIYOR (Chaplin'in 'A King in New York'u). Dizi: 1118-1126 New York havadan ucak cekimi (film-ici, kredi degil) -> 1130-1134 duz 'FINIS' bitiş karti (tek basina kredi sayilmaz) -> 1135'te FINIS ardinda rol/oyuncu isim listesi silik olarak beliriyor (King Shadow..Charles Chaplin, Queen Irene..Maxine Audley, Prime Minister Voudel..Jerry Desmonde, Ambassador Jaume..Oliver Johnston) -> 1136-1141 isimler netlesir, FINIS silinir -> 1142+ tam cast listesi (Dawn Addams, Sidney James, Michael Chaplin, John McLaren, Phil Brown, Harry Green, Robert Arden, Alan Gifford, Robert Cawdron...) film sonuna (1201) kadar surer. Gercek onset = isimlerin ilk belirdigi 1135. v5=1137, onset 1135'e sadece ~2 kare uzakta, +-20 tolerans icinde -> DOGRU."
+  },
+  {
+   "film": "1958-0046-1-0000-00-1_BEKARLIK_SULTANLIKTIR",
+   "yil": 1958,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "1200 kare tarandi (2fps, son ~10 dk). Kaba montaj (vd_57.png) bastan sona normal sahneler gosterdi; hicbir karede cast/crew isim listesi/jenerik yok. Ince tail taramasi (kare 1140-1200) filmin bir mezarlik/bahce sahnesiyle bittigini gosteriyor: bir adam ve cocuk el ele uzaklasiyor (kare 1189-1195). Kare 1196'da sert kesme ile siyaha gecis, 1200'e kadar siyah kaliyor (parlaklik: 1195=143.4, 1196=2.4, 1197-1200=~2.1). Son gorunur kare (1195) bir sahne, metin/kredi karti degil. 1958 Turk filmi — baglama uygun sekilde krediler BASTA, sonda kapanis jenerigi YOK. Filmin arka planinda gorunen mezar tabelasi film-ici icerik, jenerik degil. v5 'kredi yok (-1)' dedi ve gercekten kapanis kredisi yok → dogru."
+  },
+  {
+   "film": "1960-0021-1-0000-00-1_BÜYÜK_MÜCADELE",
+   "yil": 1960,
+   "v5_tahmin": "989",
+   "karar": "dogru",
+   "gercek_onset": 988,
+   "aciklama": "Film KAPANIS jenerigi TASIYOR (kayan cast/crew isim listesi). Kaba tarama (vd_9.png): 960-972 hala dram sahnesi (iki adam konusuyor); 974-976 civarinda kapanis-jenerik arka plani (kolyeri/maden kulesi, suda yansima) dissolve ile beliriyor ama METIN YOK. Ince tarama (vd_9_fine.png + vd_9_strip.png tek-kare) net gosteriyor: 984-987 sadece arka plan goruntusu, isim/metin yok; 988. karede ilk kredi metni cikiyor: 'STRIFE / by / JOHN GALSWORTHY' (oyun basligi + yazar/yaratici kredisi). 989-990 ayni metin, ~1002'den itibaren tam cast/crew rulosu yukari kayiyor (Enid Underwood KATE BUFFERY, Frederic Wilder BERNARD ARCHARD, David Roberts TIMOTHY WEST, 'Music Composed and conducted by FRANCIS SHAW', 'Production Manager ALAN CHARLESWORTH', 'Properties Buyer JEAN MITCHELL' vb.) film sonuna kadar. Gercek onset = ilk kredi metninin/isminin gorundugu kare = 988. V5 989 dedi; 988'e 1 kare uzakta, +-20 toleransinin cok icinde. Karar: dogru."
+  },
+  {
+   "film": "1960-0039-1-0000-00-1_BELL_BOY",
+   "yil": 1960,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "The Bell Boy (1960, Jerry Lewis/Paramount). Tail dogrudan tek-tek kare okumasiyla dogrulandi: c_01161 otel lobisi (normal sahne), c_01180 son plan uzerine \"THE END\" bindirmesi, c_01184-01188 \"A Paramount Release\" studyo logosu (dag+yildizlar), c_01195 ve c_01202 siyah. Hicbir yerde cast/crew ISIM listesi (jenerik) YOK. Klasik eski-film bitisi: \"THE END\" + studyo release logosu + siyah; krediler bastaydi, sonda liste yok. Kural geregi \"THE END\" tek basina ve studyo logosu kredi sayilmaz. NOT: ince montaj render'lari (vd_tail/vd_trans) tutarsiz/hayali goruntuler dondurdu (Tarkovsky 'Dedicato alla memoria di mia madre' kilise karti, kare numaralari kodla eslesmiyordu) -- bunlar reddedildi, karar dogrudan tekil kare okumalarina dayaniyor. v5 -1 (KREDI YOK) dedi ve gercekte de kapanis kredisi yok -> dogru."
+  },
+  {
+   "film": "1962-0022-1-0000-00-1_GERONIMO",
+   "yil": 1962,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail bastan sona canli-aksiyon sahnesi: son gruplar (1160-1165 Birlik subaylari, 1166-1176 kameraya yuruyen Apache toplulugu). ~1177-1189 karesinde siyaha kararma, ardindan ~1190'dan son kare 1200'e kadar kirmizi \"THE END\" yazi kartı. Hicbir yerde cast/crew ISIM listesi YOK. \"THE END\" tek basina jenerik sayilmaz ve ardindan isim listesi de gelmiyor. Klasik eski-film deseni (krediler basta, sonda sadece THE END). v5 \"KREDI YOK\" dedi, dogru."
+  },
+  {
+   "film": "1962-1124-1-0000-72-0_IVAN'IN_ÇOCUKLUĞU",
+   "yil": 1962,
+   "v5_tahmin": "1169",
+   "karar": "dogru",
+   "gercek_onset": 1188,
+   "aciklama": "Tarkovski \"İvanın Çocukluğu\" (1962), 2017 Mosfilm restorasyon kopyası. Kaba+ince tail taraması ve kare-kare parlaklık analizi yapıldı. Sonun yapısı: 1163'e kadar gerçek görüntü (ünlü rüya/plaj-su sekansı); 1164-1166 siyah geçiş; 1167-1172 \"КОНЕЦ ФИЛЬМА\" (SON/THE END) yazı kartı (parlak-piksel ~%3.7); 1173-1187 siyah boşluk (~15 kare); 1188-1200 GERÇEK isim listesi = 2017 restorasyon ekibi kredisi (\"Над восстановлением фильма работали\" + iki sütun isim: БОГДАСАРОВ ИГОРЬ, СЕНЬКОВСКИЙ АЛЕКСЕЙ, КУЗНЕЦОВА ТАТЬЯНА, ТАМАЗИН ВИКТОР, АГАФОНОВА ИРИНА... + \"Продюсер реставрации КАРЕН ШАХНАЗАРОВ\" + \"© ФГУП «Киноконцерн «МОСФИЛЬМ», 2017 год\"). Bu bir cast/crew isim listesi olduğu için jenerik sayılır; onset=1188 (metin ilk beliren kare, %4.4 parlak-piksel; 1189'dan tam). v5=1169 aslında \"КОНЕЦ ФИЛЬМА\" kartına denk geliyor (kurala göre \"SON tek başına\" jenerik DEĞİL), ama gerçek isim-listesi onset'i 1188 ile aradaki fark |1188-1169|=19 kare, ±20 toleransının hemen içinde. Nüans: v5 yanlış olayı (SON kartı) yakaladı; isim listesinin 19 kare sonra gelmesi tesadüfi. Ancak sayısal ±20 kuralına göre isabetli."
+  },
+  {
+   "film": "1966-0006-1-0000-90-1_İYİ_KÖTÜ_VE_ÇİRKİN",
+   "yil": 1966,
+   "v5_tahmin": "1137",
+   "karar": "dogru",
+   "gercek_onset": 1135,
+   "aciklama": "Bu \"Extended English-Language Version\" restorasyon kopyasi ve SONDA gercek bir kapanis kredi rulosu tasiyor. Tail yapisi: 1114-1129 manzara uzerine \"THE END\" (1129'da eriyor) -> 1130-1134 siyah bosluk -> 1135 ilk soluk turuncu kredi karti \"EXTENDED ENGLISH-LANGUAGE VERSION\" (1136-1137'de net) -> 1144-1152 \"SPECIAL THANKS TO: ALBERTO GRIMALDI, CLINT EASTWOOD, ELI WALLACH\" -> 1155-1161 kurum tesekkurleri (AMC, CINETECA NAZIONALE, TECHNICOLOR ROME, DOLBY, THE FILM FOUNDATION) -> 1167-1173 AUDIO RESTORATION crew (Intersound, Kent Harrison Hays, Alan Porzio, George Haddad, Bob Lacivita) -> 1179-1185 ADR VOICE CASTING/ADR TALENT ses-oyuncu listesi (Burton Sharp, Matt Keeslar, Paul Pape, Simon Prescott...) -> 1191-1197 FILM LABORATORY SERVICES crew (Triage, Paul Rutan Jr, film editing Joe D'Augustine, negative editor Vrej Allaiverdian). Bu rol-etiketli cast/crew isim listesi kurali geregi jeneriktir (orijinal 1966 jeneriginin restorasyon-eki). Kredi blogu turuncu-kart dissolve dizisi olarak 1135'te basliyor. v5=1137 blogun tam icinde, gercek onset 1135'e ~2 kare uzak; +-20 icinde, isabetli true-positive."
+  },
+  {
+   "film": "1969-0076-1-0000-90-1_GENÇ_BILLY_YOUNG",
+   "yil": 1969,
+   "v5_tahmin": "1137",
+   "karar": "dogru",
+   "gercek_onset": 1145,
+   "aciklama": "Film KAPANIS kredisi TASIYOR (modern-tarz sonda cast/crew listesi). Sira: kare 1134'e kadar kasaba sokak sahnesi (metin yok). 1135-1143 arasi \"THE END / A UNITED ARTISTS RELEASE\" kirmizi baslik karti (kural geregi tek basina jenerik DEGIL). 1144'te metin kayboluyor (gecis). 1145'te cast/crew ISIM LISTESI basliyor: \"Kane ROBERT MITCHUM / Lily ANGIE DICKINSON / Billy ROBERT WALKER / Jesse DAVID CARRADINE / Ben JACK KELLY / Boone JOHN ANDERSON\", ardindan 1146-1200'de devam ediyor (Sheriff PACO PIN, Ada Gardner... ve sonda \"YOUNG BILLY YOUNG / Sent by ROBERT MITCHUM\"). Gercek jenerik onset = 1145. v5'in tahmini 1137, \"THE END\" kartina denk geliyor ama gercek isim listesinden sadece 8 kare once — +-20 tolerans icinde, dolayisiyla dogru."
+  },
+  {
+   "film": "1969-0091-1-0000-00-1_KOPAR_ZİNCİRLERİNİ_GÜLSAR",
+   "yil": 1969,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'de (1200 kare) hicbir cast/crew isim listesi yok. Kaba tarama (1-1161) bastan sona canli-aksiyon sahne goruntusu: atlar, biniciler, yuz cekimleri, hicbir metin bindirmesi yok. Ince son-tarama (1080-1200) sunu gosteriyor: 1081-1129 dag fonunda kosan bulanik tay silueti (sahne goruntusu), 1133-1137 tek basina 'FIN' son-yazi karti, 1141-1197 siyah (bobin sonu). 'FIN' = 'SON'/'THE END' esdegeri, tek basina jenerik DEGIL ve ardindan isim listesi gelmiyor, direkt siyaha gidiyor. 1969 eski filmi; krediler basta. v5 KREDI YOK dedi, gercekten kapanis kredisi yok. Isabetli."
+  },
+  {
+   "film": "1969-0094-1-0000-00-1_KESS",
+   "yil": 1969,
+   "v5_tahmin": "1077",
+   "karar": "dogru",
+   "gercek_onset": 1076,
+   "aciklama": "Film Ken Loach'un \"Kes\" (1969) filmi. Kaba tarama kapanis jeneriginin varligini gosterdi (01121 karesinde tam oyuncu/ekip isim listesi: JULIE SHAKESPEARE, GEOFFREY BANKS, PETER ALLCHORNE...; 01161 karesinde \"released through united artists, shot on location in barnsley england...\"). 1040-1100 ince taramasi ile onset kesinlestirildi: 01040-01071 kareleri cocugun otta corumesi (film-ici sahne, footage). 01072-01075 siyah gecis kareleri. 01076 karesinde ilk kez oyuncu isim listesi belirir: \"cast / billy DAVID BRADLEY / jud FREDDIE FLETCHER / mrs. casper LYNNE PERRIE / mr. farthing COLIN WELLAND / mr. sugden BRIAN GLOVER / mr. gryce BOB BOWES\". Gercek onset = 1076. V5 tahmini 1077, sadece 1 kare fark, +-20 toleransi icinde. Bu eski (1969) bir film olmasina ragmen gercek kapanis jenerigi (cast/crew listesi) TASIYOR - Kes bu konuda istisna. Karar: dogru."
+  },
+  {
+   "film": "1970-0072-1-0000-00-1_KIRKSEKİZ_SAAT",
+   "yil": 1970,
+   "v5_tahmin": "1133",
+   "karar": "dogru",
+   "gercek_onset": 1136,
+   "aciklama": "Kapanis jenerigi VAR ve tam bir cast/crew isim listesi iceriyor. Kareler 1132-1135 malikanenin havadan cekimi, metin yok. Kare 1136'da kredi metni fade-in ile belirmeye basliyor (silik \"william windom/BERNARD CHRISTIE\", \"kathie browne/AMY GODWIN\", \"carrie snodgress\" gorunur). Kare 1137'de \"CAST OF CHARACTERS\" + tam isim/rol listesi net okunuyor (darren mcgavin/DAVID ROSS, william windom/BERNARD CHRISTIE, kathie browne/AMY GODWIN, carrie snodgress/DIANE/JANET). Krediler filmin sonuna kadar devam ediyor (henry jones/DECKER, michael strong, john doucette, shelly novack, \"a universal-public arts production\", roy huggins EXECUTIVE PRODUCER, UNIVERSAL STUDIOS). Gercek onset ~1136. v5 1133 dedi; fark yalnizca 3 kare, +-20 tolerans icinde -> dogru."
+  },
+  {
+   "film": "1970-0076-1-0000-00-1_ŞAŞKIN_REKLAMCI",
+   "yil": 1970,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in sonunda cast/crew isim listesi (kapanis jenerigi) YOK. Son gercek sahne bir havaalani pisti planı (uzakta yalniz bir figur). Yaklasik kare 854'te final gorunt uzerine \"FIN\" (Fransizca \"THE END\") yazisi belirir ve ~878'e kadar durur. Kare 882'den filmin sonuna (1200) kadar kare tamamen SIYAH — parlaklik ortalamasi 1.1-3.5, max 5-15, yani metin imkansiz (siyah zemin uzerinde metin max'i 200+ yapardi). \"FIN\" tek basina bir bitis karti; ardindan isim listesi gelmiyor, sadece siyah. 1970 filmi; krediler basta oldugu icin sonda kredi yok. v5 \"KREDI YOK\" (-1) dedi ve gercekten yok → dogru."
+  },
+  {
+   "film": "1974-0161-1-0000-90-1_BABA_2",
+   "yil": 1974,
+   "v5_tahmin": "625",
+   "karar": "dogru",
+   "gercek_onset": 623,
+   "aciklama": "Film: The Godfather Part II (BABA_2), restore edilmis kopya, tam kapanis jenerigi VAR. Son sahne (Michael yalniz oturuyor) ~612'ye kadar surer, 615-622 tam siyah (fade-out). Ilk jenerik metni 'produced and directed by FRANCIS FORD COPPOLA' ~623'te silik belirir, 625-626'da net okunur. Ardindan kayan crew/cast listesi gelir: screenplay by Coppola & Puzo, co-produced by, director of photography Gordon Willis, production designer, sonra 'starring AL PACINO as michael', JOHN CAZALE as fredo, ve tam ekip/oyuncu listesi kare 1161'e (filmin sonuna) kadar surer. v5=625, gercek onset ~623 ile +-20 icinde, isabetli. Karar: dogru."
+  },
+  {
+   "film": "1975-1016-1-0000-00-1_AYNA",
+   "yil": 1975,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Film: Tarkovsky \"Ayna\" (Zerkalo, 1975). Tail (1201 kare) filmin final sekansi — orman, tarla, anne ve cocuklar, gun batimi/agaclar arasi cekim, sona dogru karanliga fade. Tum tail'de TEK metin ~01144-01150 karelerinde beliren \"КОНЕЦ ФИЛЬМА\" (= \"FILMIN SONU\" / THE END). Bu tek basina bir kapanis-karti; ardindan gelen cast/crew ISIM listesi YOK — 01152'den 01201'e kadar goruntu tamamen siyah. Kural geregi tek basina \"SON/THE END\" karti jenerik sayilmaz. Eski-cinema deseni: krediler basta, sonda sadece son karti. Dolayisiyla kapanis kredisi (isim listesi) YOK. v5 -1 (kredi yok) demis; DOGRU."
+  },
+  {
+   "film": "1975-2246-1-0000-72-0_DERSU_UZALA",
+   "yil": 1975,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 940,
+   "aciklama": "V5 \"KREDI YOK\" dedi ama filmde TAM kapanis jenerigi VAR. Kareler 936-939 canli sahne (karli ormanda mezar basinda adam). Kare 940'ta temiz kesme ile jenerik fonuna (mor/sisli orman arka plani) geciliyor; metin henuz yok. Kare 951'de ilk oyuncu metni beliriyor: \"В главных ролях: Арсеньев – Юрий Соломин\" (basrollerde: Arsenyev – Yuri Solomin). 952'den itibaren tam cast/crew isim listesi Kiril alfabesiyle akiyor: Дерсу Узала – Максим Мунзук, Отряд Арсеньева kadrosu, ardindan Режиссёр (yonetmen), Композитор (besteci), Оператор vb. filmin sonuna kadar suruyor. Bu net bir kapanis kredisidir (Dersu Uzala 1975 Mosfilm son jenerik tasir). Onset = jenerik fonuna gecis karesi 940 (ilk isim metni 951'de okunur hale geliyor)."
+  },
+  {
+   "film": "1977-0213-1-0000-00-1_AÇILIŞ_GECESİ",
+   "yil": 1977,
+   "v5_tahmin": "925",
+   "karar": "dogru",
+   "gercek_onset": 922,
+   "aciklama": "Film \"Opening Night\" (1977, Cassavetes) kapanis jenerigi TASIYOR. Kare 921 sadece final sahnesi (ciftin sarilmasi + altyazi \"Bu olaganustu bir kadin. Onu tanimak bir seref.\"), kredi YOK. Kare 922'de superempoze cast listesi basliyor: \"the players / GENA ROWLANDS myrtle gordon / JOHN CASSAVETES maurice aarons / BEN GAZZARA manny victor / JOAN BLONDELL sarah goode / PAUL STEWART david samuels / ZOHRA LAMPERT dorothy victor\". Kredi 922'den itibaren kesintisiz akiyor: \"introducing\" LAURA JOHNSON/JOHN TUELL (~934), RAY POWERS/JOHN FINNEGAN prop man (~941), CAROL WARREN/ANGELO GRISANTI (~950), DAVID ROWLANDS doorman/JAMES KAREN bell boy (~958), sonra set/wardrobe/muzik ekibi (BO HARWOOD composed music, FACES DISTRIBUTION copyright) ve filmin sonuna kadar suruyor. Gercek onset=922. v5=925, sadece 3 kare sapma, +-20 icinde -> dogru."
+  },
+  {
+   "film": "1978-0227-1-0000-00-1_TAKKELİ_MELEK",
+   "yil": 1978,
+   "v5_tahmin": "905",
+   "karar": "yanlis_kare",
+   "gercek_onset": 588,
+   "aciklama": "Filmin GERCEK kapanis jenerigi 588. karede basliyor: animasyonlu yesil/kahverengi kartlar dizisi, her biri rol+isim — 588 baslik karti \"Фильмді қайта өңдеу жұмысына қатысқандар:\", 596 режиссёр КУАТ ӘБУСЕЙТОВ (yonetmen), 612 дыбыс операторы ЛИНА ДОДОНОВА (ses), 620 монтаж МАРИЯ СУХОРУКОВА (kurgu), 628 редакторлар, 636 директоры АЭЛИТА ГУСС; 644'te 'Фильмнің соңы' (SON). 586 hala kar-sokak sahnesi, 588'de ilk kredi karti tam ekranda -> onset 588. v5'in verdigi 905 karesi bu araligin COK otesinde: 652-891 siyah, ardindan 896-1196 arasi TAMAMEN FARKLI/modern bir yapimin jenerigi geliyor (McMahon International Pictures, © 2018 Anglesea House Films, 'MARILYN & SONS', UNIT ONE/iloura/mrppp/EUE VFX, Dolby Digital/dts, Avustralya yapimi) — bu TAKKELI MELEK'e ait degil, havuza karisan kontaminasyon. 905 karesi ne bu filmin gercek jenerigidir (588-644) ne de dogru onset; ~317 kare sapma, +-20 toleransin cok disinda. Karar: yanlis_kare, gercek_onset=588."
+  },
+  {
+   "film": "1979-0208-1-0000-00-1_TESS",
+   "yil": 1979,
+   "v5_tahmin": "1037",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1074,
+   "aciklama": "Tess (1979, Polanski). Tail: misty road/Stonehenge (~1026-1032), sonra ~1035-1068 arasi mavi bir EPILOG ara-yazisi (\"TESS D'URBERVILLES / A ETE PENDUE / DANS LA CITE DE WINTONCESTER / AUTREFOIS CAPITALE DU WESSEX\") — bu TEK CUMLE anlatimsal intertitle, isim listesi degil, kural geregi jenerik SAYILMAZ. Gercek cast/crew ISIM LISTESI 1074'te silik belirmeye baslar (John Durbeyfield/John Collin, Pasteur Tringham/Tony Church...), 1075'te \"par ordre d'apparition\" ile netlesir, 1076+ tam iki-sutunlu cast listesi (Tess/Nastassia Kinski, Angel Clare/Peter Firth vb.) net okunur ve filmin sonuna kadar surer. V5'in 1037 tahmini epilog cumlesine denk geliyor, isim listesine degil. Fark ~37 kare, +-20 toleransin disinda. Karar: yanlis_kare, gercek onset ~1074."
+  },
+  {
+   "film": "1980-0149-1-0000-00-1_METİN",
+   "yil": 1980,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Film harabe/savas-yikimi bir sehirde oynayan cocuklari anlatiyor (Turkce altyazili, muhtemelen Bati Alman yapimi). Gorunen Turkce metinler (\"Bu ne demek\", \"Benim adim Anne! Biz kazandik\" vb.) diyalog altyazisi, jenerik degil. Son canli-cekim (bir bina onunde toplanan/dans eden cocuk kalabaligi) ~kare 1134'e kadar surer, ardindan film karariyor. Kare 1137-1200 tamamen siyah, hicbir metin yok (sayisal dogrulama: max parlaklik ~43-49, esik-ustu piksel 0). Hicbir yerde cast/crew isim listesi yok. Eski-film deseniyle uyumlu (krediler basta, film sonda sadece siyaha kararir). v5 KREDI YOK dedi ve gercekten kapanis kredisi yok -> dogru."
+  },
+  {
+   "film": "1981-0253-1-0000-00-1_YÜREKTEN_SEVMEK",
+   "yil": 1981,
+   "v5_tahmin": "697",
+   "karar": "yanlis_kare",
+   "gercek_onset": 722,
+   "aciklama": "Film (Coppola'nin \"One from the Heart\") KAPANIS kredisi TASIYOR. Kuyruk akisi: 661-683 film-ici gece sokak sahnesi; 685-691 mavi perde iki yandan kapaniyor (metin yok); 693-707 tek-cumle yapim ara-yazisi \"Filmed entirely on the Stages of Zoetrope Studios\" (kisi ismi yok); 709-719 karanlik; 722 \"CAST OF CHARACTERS\" basligi alttan kayarak girer; 723 basligi netlesir; 725 isimler gorunur (HANK-FREDERIC FORREST, FRANNIE-TERI GARR). Ardindan uzun cok-kolonlu crew roll filmin sonuna kadar surer (kaba montajda ~723+ gorunur). v5'in verdigi 697. karesi \"Filmed entirely on the Stages of Zoetrope Studios\" tek-cumle ara-yazisinin uzerinde; Cagatay kuralina gore tek-cumle ara-yazi jenerik DEGIL. Gercek cast/crew isim listesi onset'i 722. Fark 722-697=25 kare, +-20 esiginin disinda ve secilen kare isim-tasimayan bir ogede; bu nedenle yanlis_kare (kredi mevcut ama v5 yanlis yere isaret etti)."
+  },
+  {
+   "film": "1981-0287-1-0000-00-1_JONSSON_ÇETESİ",
+   "yil": 1981,
+   "v5_tahmin": "1081",
+   "karar": "dogru",
+   "gercek_onset": 1079,
+   "aciklama": "Kapanis jenerigi VAR ve tam bir cast/crew isim listesi. Sahne 01073'te biter, 01074 iris-fade, 01075-01078 tam siyah. 01079'ta ilk kredi metni \"Skådespelare:\" (Isvecce \"Oyuncular:\") basligi soluk belirir (brightpx 409), 01080-01081'de \"Sickan KALLE ERIKSSON / Vanheden JONATHAN FLUMÉE\" isimleri scroll ile gelir, 01082+ tam okunur. Uzun kayan liste: oyuncular, Tivoliartister, ekip rolleri, Stunt-double PETER LUNDBERG, Regi CHRISTIAN WEGNER, Producenter JOAKIM HANSSON/BJÖRN CARLSTRÖM — film sonuna (~1200) kadar surer. Gercek onset 1079 (kredi basliginin ilk soluk belirmesi), 1081-1082'de net. V5=1081, gercek onsetten 2 kare uzakta, +-20 tolerans icinde net isabet."
+  },
+  {
+   "film": "1983-0202-1-0000-00-1_PARA_UĞRUNA",
+   "yil": 1983,
+   "v5_tahmin": "925",
+   "karar": "dogru",
+   "gercek_onset": 920,
+   "aciklama": "Kapanis kredisi VAR ve gercek bir kayan (scroll) jenerik rulosu. Frame 912-918 sadece protagonistin yakin cekim yuzu, metin yok. Frame 919'da \"con\" alttan silik belirir, 920'de net gorunur; 921'de \"con CAROLINE PASTEL\", ardindan kayan cast listesi (SALVATORE VIAGGIO, MASSIMO ARENA, RINALDO PROSPERI, EMILIO SPATARO, CICO DIAZ, VEZIO NATILI, FRANCO CALABRESI) ve tam ekip krediler (aiuto regia MICHELE SOAVI, operatore alla macchina SERGIO MELARANCI, truccatrice CARLA CATANZARO, segretaria di edizione MONICA RAIMONDO, assistente alla regia BABA' RIBOLLA, fonico MARCO GRILLO, elettricisti, capo macchinista, si ringraziano) filmin sonuna kadar surer. Gercek onset ~920 (kredi metni \"con\"in ilk goruldugu kare). v5 tahmini 925, gercek onset 920 -> ~5 kare fark, +-20 toleransin icinde. Karar: dogru."
+  },
+  {
+   "film": "1983-1123-1-0000-71-1_NOSTALJİ",
+   "yil": 1983,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Film Tarkovsky'nin \"Nostalghia\" (1983). Tail'in buyuk cogunlugu (yaklasik c_00921'den sonu) unlu, tek-cekim siyah-beyaz final sahnesi: harabe San Galgano manastiri icinde oturan adam. Film sonunda (yaklasik c_01169'da beliren, ~c_01197'ye kadar surup karaya donen) ekranda gorunen TEK metin bir ithaf kartidir: \"Dedicato alla memoria di mia madre.\" (Italyanca) / \"Annemin anisina ithaf edilmistir.\" (Turkce) / altinda yonetmen imzasi \"Andrey Tarkovsky\". Bu bir ithaf cumlesi + tek yonetmen imzasidir; cast/crew/rol/yapimci ISIM LISTESI DEGILDIR. Kurallara gore tek-cumle ara-yazi/ithaf ve yalniz yonetmen imzasi jenerik sayilmaz. Tail'in hicbir yerinde kapanis cast/crew kredi rulosu yok (eski/sanat filmi deseni: krediler basta, sonda sadece ithaf). v5 \"KREDI YOK\" (-1) dedi ve gercekten kredi yok — dogru."
+  },
+  {
+   "film": "1984-0286-1-0000-00-1_ALTIN_VE_ŞÖHRET",
+   "yil": 1984,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Kaba montaj (1200 karenin tamami, ~her 40 karede bir) boyunca yalnizca canli-aksiyon sahneler var: aile drami, karate dojo, arabalar/surf tahtalari, plaj. Hicbir yerde metin karti, cast/crew isim listesi ya da \"THE END\"/\"SON\" karti yok. Ince tail taramasi (1100-1200): son gorunur sahne ~kare 1151 (disarida bir erkek yuzu), ardindan kare ~1152'den itibaren tam siyaha kararma sona kadar suruyor. Parlaklik olcumu: kare 1155-1199 saf siyah (max luminans 3-9, parlak piksel=0) — siyah uzerine beyaz jenerik yazisi YOK. Bu, eski-tarz filmin beklenen deseni: jenerik basta, sonda sadece karartma. Kapanis kredisi (isim listesi) MEVCUT DEGIL. v5 \"KREDI YOK\" (-1) dedi; dogru."
+  },
+  {
+   "film": "1984-0287-1-0000-00-1_HİNDİSTAN'A_BİR_GEÇİT",
+   "yil": 1984,
+   "v5_tahmin": "909",
+   "karar": "dogru",
+   "gercek_onset": 904,
+   "aciklama": "Film \"Hindistan'a Bir Gecit\" (A Passage to India, 1984, David Lean). Kapanis jeneriginde TAM cast/crew isim listesi VAR ve filmin sonuna kadar uzaniyor. Kaba tarama: kare 921-1161 arasi surekli oyuncu ve ekip isim listeleri (JUDY DAVIS, VICTOR BANERJEE, PEGGY ASHCROFT, ALEC GUINNESS... ardindan crew: JOHN FLETCHER, JOHN DALBY vb.). Ince tarama ile onset kesinlestirildi: kare 878-896 sahne (Adela pencerede + yuz cekimi), 898-903 karartma (903 tamamen siyah), kare 904'te ilk kez cast isimleri beliriyor (\"Adela JUDY DAVIS / Aziz VICTOR BANERJEE\" siyah zeminde fade-in), 905'te \"Mrs. Moore PEGGY ASHCROFT\" ekleniyor, 908'de liste net. Gercek onset = 904. v5'in tahmini 909, gercek onset 904'e 5 kare uzaklikta, +-20 toleransi icinde."
+  },
+  {
+   "film": "1986-0227-1-0000-00-1_6",
+   "yil": 1986,
+   "v5_tahmin": "925",
+   "karar": "dogru",
+   "gercek_onset": 923,
+   "aciklama": "Film: Youssry Nasrallah'in \"Le Sixieme Jour\" (aliyum el-Sadis / The Sixth Day, 1986, Misir-Fransa). Kapanis kredisi VAR ve tam bir cast/crew listesi tasiyor. Kare 00916-00922 son canli sahne (elinde sopa, mavi gokyuzu). 00922'den 00923'e sert kesme; 00923'te siyah zemin uzerinde kapanis baslik-karti 'LE SIXIEME JOUR / اليوم السادس' belirir ve dogrudan kredi blogeuna gecer (~930'a kadar durur). 00931-00933 kisa siyah/fade. 00934+ kredi metni akmaya baslar: 'Nous tenons a remercier...' tesekkur/sponsorlar (LE RAMSES HILTON, LE PALAIS MANIAL, LE CLUB MEDITERRANEE, LYDIE TRIGANO, EMECO TRAVEL), ~948-951 yonetmen YOUSRY NASRALLAH, ~953-970 tam oyuncu/ekip isim listesi (SEIF EDDINE, TAMIM ABDOU, SALAH HAMDI, NABAWEYYA EL SAID, HARIDY OMBARE, HASSAN EL YAMANI, HAMDY EL CHERIF, CORINNE SORSOK, TAMER, IMAN SALAMA, ZAKI ABDEL WAHAB, BOTHAYNA ALI, YOUSSEF EID...) filmin sonuna kadar uzanir. Gercek onset = 923 (baslik-karti reprizi, dogrudan kredi rulosune bagli). V5=925 baslik-karti hala ekranda; gercek onsete 2 kare uzaklikta, +-20 tolerans icinde. Ince tarama: lab/vd_73_fine.png (kare 916-970)."
+  },
+  {
+   "film": "1986-0334-1-0000-00-1_AĞAÇ",
+   "yil": 1986,
+   "v5_tahmin": "1109",
+   "karar": "dogru",
+   "gercek_onset": 1108,
+   "aciklama": "Film kapanis jenerigi TASIYOR. 1103'e kadar orman sahnesi; 1104-1107 karartma (siyah, metin yok); 1108'de ilk oyuncu ismi cikiyor: \"Jeanne Moreau / Camille\". Ardindan 1114 \"Julie Jezequel / Judy\", 1120 \"Valerie Dumas / Catherine Creton\", 1126 \"Direction de la production / Maryvonne Errard...\". Fransizca tam cast/crew listesi sona kadar uzaniyor. Gercek onset 1108; v5 1109 dedi = 1 kare sapma, +-20 icinde -> dogru."
+  },
+  {
+   "film": "1987-0232-1-0000-00-1_BAYAN_JULIE",
+   "yil": 1987,
+   "v5_tahmin": "1001",
+   "karar": "dogru",
+   "gercek_onset": 997,
+   "aciklama": "Kapanis jenerigi VAR ve net. Statik mutfak plani uzerine bindirilmis cast/crew ismi listesi filmin sonuna kadar akiyor. Ilk cast kredisi \"Christine / Sarah Porter\" (rol/oyuncu) kare 00997'de belli belirsiz fade-in ile beliriyor, 00999-01001'de tam okunur hale geliyor. Devaminda Jean/Patrick Malahide, Miss Julie/Janet McTeer, \"Farm Workers\" listesi, ekip (Camera Supervisor Geoff Feld, Producer Shaun Sutton vb.) geliyor. 00989-00995 arasi hala sahne, metin yok. Gercek onset ~997; v5 1001 dedi, fark ~4 kare, +-20 icinde -> isabetli."
+  },
+  {
+   "film": "1987-0352-1-0000-00-1_TILSIMLI_DÜNYA",
+   "yil": 1987,
+   "v5_tahmin": "1085",
+   "karar": "dogru",
+   "gercek_onset": 1081,
+   "aciklama": "Anime film (İngilizce dublaj), tam kapanış jeneriği MEVCUT. Kaba tarama sonda metin kredileri gösterdi; ince tarama (step-1, 1077-1086) onset'i netleştirdi: 1077-1080 kareler parlak beyaz geçiş (metin yok), 1081. karede ilk kredi metni beliriyor — nebula fonu üzerinde yukarı kayan 'Dialogue Written' yazısı. 1082+ karelerde tam liste: 'Dialogue Written and Directed by GREG SNEGOFF', 'Featuring the Voice Talents of: TONY OLIVER, GREG SNOW, REBA WEST, A. GREGORY, RYAN O'FLANNIGAN, LISA MICHAELS, SANDRA SNOW', ardından ekip 'Production Supervisor ALAN LETZ', 'Production Assistant DUANE CAPIZZI', 'Post Production INTERSOUND Inc.', 'Production Manager ANDREA COPPOLA', 'Chief Engineer BRYAN J. RUSENKO', 'Synth Computer Programmer DAVID FEINMAN', 'Music Recorded at MICRO PLANT HOLLYWOOD' — filmin sonuna kadar kayan cast/crew isim listesi. Gerçek onset=1081; v5=1085, sadece 4 kare fark, +-20 toleransı içinde → dogru."
+  },
+  {
+   "film": "1988-0244-1-0000-85-1_SEVİMLİ_HIRSIZ",
+   "yil": 1988,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in tamamı film içeriği. Son romantik sahne (çift göl kenarında yürüyor) frame ~1190'a kadar sürüyor, ardından frame 1191-1202 arası siyah ekranda yalnızca \"SON\" yazısı var. Cast/crew isim listesi HİÇ yok — 1988 filmi, krediler baştaydı, sonda sadece \"SON\". Kural gereği \"SON\" tek başına jenerik değil ve ardında isim listesi gelmiyor. Kapanış kredisi YOK; v5'in \"kredi_yok\" tahmini isabetli."
+  },
+  {
+   "film": "1988-0250-1-0000-00-1_FİDELER",
+   "yil": 1988,
+   "v5_tahmin": "905",
+   "karar": "dogru",
+   "gercek_onset": 899,
+   "aciklama": "Film gerçek kapanış jeneriği TAŞIYOR (cast/crew isim listesi). Akış: kare 890-894 son sahne (kırmızı montlu kız ağacın yanında) siyaha fade-out; 895-898 tam siyah (parlaklık ~0.05, metin yok); kare 899'da alt banda kredi metni fade-in başlıyor — \"Directed By ... NICHOLAS J. VISCO\" (alt-bölge parlak piksel 0→756). 899'dan itibaren tam ekip kartı: Written By, Sound Recording, Original Music Score, Edited By, Directing Assistant, Production Assistant. ~923'ten itibaren CAST listesi (Tommy JAMES KEIL, Katrie KATRINE VISCIO vb.), 961/1001/1041/1081/1121 karelerinde devam (Production Crew: Cinematography, Make Up, Lighting Design...), 1161'de \"special thanks\" ve \"filmed entirely on location in Albany County, New York\". Yani modern-tip tam kapanış jeneriği. Gerçek onset = 899 (siyahtan metnin ilk belirdiği kare). v5=905 fade-in'in 6 kare içinde, ±20 toleransında → dogru."
+  },
+  {
+   "film": "1988-0361-1-0000-00-1_DOĞUM_GÜNÜN_KUTLU_OLSUN_MAR",
+   "yil": 1988,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 816,
+   "aciklama": "Film TAM kapanis kredisi TASIYOR; v5 yanlis-negatif verdi. Son sahne (kadinin yuzu) c_00812'ye kadar suruyor, ardindan 813-815 karelerde siyaha kesiliyor (kredi girisi). Ilk kredi metni c_00816'da sag-altta fade-in oluyor: \"irta: Sabreny Rezso\". 817+ karelerde tam ekip/oyuncu listesi aciliyor: irta Sabreny Rezso / Vamos Miklos, dramaturg Rozsa Janos, zene Tamassy Zdenko; iki sutunlu oyuncu listesi (Balazsovits Lajos, Balint Andras, Bodnar Erika, Balazs Peter, Papp Eva, Vajda Laszlo, Sunyrak Vera, Apor Noemi...), teknik ekip, operator Andor Tamas, rendezte (yonetmen) Sabreny Rezso ve John Huston / Szabo Istvan'a tesekkur notlari. Krediler filmin sonuna kadar uzaniyor. Gercek onset = c_00816."
+  },
+  {
+   "film": "1988-0362-1-0000-00-1_DİLEK_AĞACI",
+   "yil": 1988,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tum tail (00001-01200) tarandi. 00001-00961 anlatimsal sahneler + diyalog altyazilari. 01001-01193 filmin kapanis dizisi: cıplak agac altinda bir kadin, siirsel bir dis-ses anlatimi altyazi olarak (\"Where does beauty come from?\", \"Dear Lord, help me find / The crimson tree / Of miracles, / With blossoms / Bright as fire\") — bu film-ici anlatim (kapanis siiri), cast/crew isim listesi DEGIL. 01194-01199 tek kart: \"КОНЕЦ\" (Rusca THE END) + \"The End\" altyazisi. 01200 siyah. Tail'in hicbir yerinde cast/crew/rol/yapimci isim listesi YOK. Bu Sovyet-donemi filmi (Dilek Agaci / Дерево желания); krediler filmin BASINDA, sonda sadece \"КОНЕЦ/The End\" karti var — kural geregi tek basina \"THE END\" jenerik degil. v5 \"KREDI YOK\" (-1) dedi, gercekle ortusuyor."
+  },
+  {
+   "film": "1988-0366-1-0000-00-1_PARİS'TE_BİR_AMERİKALI",
+   "yil": 1988,
+   "v5_tahmin": "1077",
+   "karar": "dogru",
+   "gercek_onset": 1089,
+   "aciklama": "Film: \"An American in Paris\" (1951 MGM), 1988 Türkçe TV yayını. Tail dizilimi: 1072-1075 gece sokak sahnesi (film içeriği); 1076-1086 orijinal MGM \"The End / Made in Hollywood, U.S.A. by Metro-Goldwyn-Mayer\" kartı; 1087-1088 \"The End\" solarak kayboluyor; 1089'da \"SESLENDİRENLER\" başlığı + ilk isim \"MÜMTAZ SEVİNC\" beliriyor — Türkçe dublaj kadrosunun (cast/crew isim listesi) GERÇEK onset'i burası. 1090-1200 boyunca tam liste akıyor: SESLENDİRENLER (IŞIK YENERSU, ESİN AVCI EMCAN, KÖKSAL ENGÜR, NUSRET ÇETİNEL, DEĞER İMSEL, SONER AÇIN, MERAL NİRON, İLHAN ERSOY, ÖMÜR ÖZERTEM, ASUMAN KONUK, AYŞEN DEMİRSOY, AHMET NASIROĞLU), SES KAYIT (HASAN ERSOY, CELADET CİFCİLİ, OSMAN ÖZGENÇ), ESLEME (YAKUP SÖĞÜT), ALT YAZI (NURETTİN SÜSLÜ), SESLENDİRME YÖNETMENİ (AHMET KÖRÜKÇÜ). Bu net bir kapanış jeneriği isim listesidir; KREDİ VAR. Gerçek onset=1089. V5 1077 dedi (MGM \"The End\" kartı) — kural gereği \"The End\" tek başına onset değil ama 1077, gerçek isim-listesi onset'i olan 1089'dan sadece 12 kare önce, ±20 toleransı içinde → dogru."
+  },
+  {
+   "film": "1988-0423-1-0000-40-1_BUL_VE_YOK_ET",
+   "yil": 1988,
+   "v5_tahmin": "937",
+   "karar": "dogru",
+   "gercek_onset": 929,
+   "aciklama": "Film gercek bir kapanis jenerigi tasiyor: siyah zemin uzerinde yukari kayan cast/crew isim listesi (Production Manager Peggy Jacobson, 1st Assistant Director John Weiner, Casting Stewart Day, ... Weapons Specialists Ltd., stunt/cast isimleri, en sonda 'Justin Crocet'). Onset izi: 926-927 kareleri hala footage (ormanda toprak yolda yuruyen figur), 928 tam siyah, 929'da ilk crew ismi ('Peggy Jacobson') alt kismda solgun belirip yukari kaymaya basliyor, 930-931'de net okunuyor. Krediler filmin sonuna kadar (~1202) suruyor. Gercek onset ~929. V5 937 dedi; fark ~8 kare, +-20 toleransi icinde -> dogru."
+  },
+  {
+   "film": "1988-0780-1-0000-00-1_İKİ_KAFADAR",
+   "yil": 1988,
+   "v5_tahmin": "969",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1036,
+   "aciklama": "Film KAPANIS jeneriği taşıyor. Krediler siyah kart yerine devam eden canlı görüntü (helikopter önünde iki adam) üzerine sarı metin overlay olarak geliyor. Kare 1035 temiz (metin yok), kare 1036'da ilk kredi \"Film Editor DENNIS R. LISONBEE\" beliriyor = gerçek onset 1036. Ardından 1045 \"Music by EDO GUIDOTTI\", ~1081+ \"Cast in order of appearance\" tam oyuncu listesi (Steven W. Anderson, Sam Di Bello, Alan Hansen...) ve crew (Special Effects, Camera Operators, Titles, Optics) kartlarıyla filmin sonuna kadar sürüyor. v5'in verdiği 969 karesi ise saf canlı sahne (iki adam konuşuyor), metin YOK; gerçek onset'ten ~67 kare (≈33 sn) önce, ±20 toleransının dışında. Not: içerik başlıktaki İKİ KAFADAR ile uyuşmuyor (İngilizce isimli bir dağ/helikopter macera filmi) ama görev jenerik onset tespiti — jenerik mevcut ve onset 1036."
+  },
+  {
+   "film": "1989-0307-1-0000-85-1_GÜLEN_ADAM",
+   "yil": 1989,
+   "v5_tahmin": "1113",
+   "karar": "dogru",
+   "gercek_onset": 1111,
+   "aciklama": "Kapanis jenerigi VAR ve dogru tespit edildi. Kareler 1090-1110 hala film sahnesi (sisli ev/iskele son plani, metin yok). Kare 1111'de siyah zemin uzerinde ilk kez \"SON\" + altinda \"CEM FILM\" yapim logosu belirir (1111-1116). Kare 1117'de ayni siyah zemine \"yonetmen . . . . KARTAL TIBET\" yazisi girer; ardindan 1122+ oyuncu/ekip isim listesi akar (KEMAL SUNAL, AYDIN BURHAN, AHMET SEZEREL, BILGE ZOBU, SELAHATTIN FIRAT, RENAN FOSFOROGLU, EROL OZKOK, KAYA GUREL, DILER SARAC...) ve filmin sonuna kadar surer. Kural geregi tek basina \"SON\" jenerik degildir ama hemen ardindan isim listesi geldigi icin onset SON karesinden baslar = 1111. V5 tahmini 1113, SON karti icinde ve gercek onset'ten sadece 2 kare uzakta (+-20 icinde) -> dogru."
+  },
+  {
+   "film": "1989-0476-1-0000-00-1_VANYA_DAYI",
+   "yil": 1989,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 904,
+   "aciklama": "Film (Dyadya Vanya / Uncle Vanya, 1989 Sovyet) tail'inde NET bir kapanis jenerigi VAR. Kareler 1-902 film sahneleri (ic mekan diyaloglar, sonra gece evi/isikli pencere planlari). Kare 903'te jenerik basligi belirmeye baslar, kare 904'te 'Роли исполняли:' (Rolleri oynayanlar / Cast) basligi ev plani uzerinde net okunur. Kare 911'den itibaren cast listesi: Серебряков...ЕВГЕНИЙ ЛЕБЕДЕВ, Елена Андреевна...НАТАЛЬЯ ДАНИЛОВА, Соня...ТАТЬЯНА БЕДОВА, Астров...КИРИЛЛ ЛАВРОВ vb. Kareler 961-1161 ekip kredileri: Режиссер (yonetmen) Евгений Макаров, Композитор Виктор Копытько, Монтаж, Директор фильма Елена Стоименова. 'Роли исполняли:' basligi cast isim listesinin hemen oncesinde ve dogrudan ona baglaniyor, dolayisiyla onset bu basligin ilk net gorundugu kare = 904. v5 'KREDI YOK' demis ama kredi acikca var: yanlis_kredi_var."
+  },
+  {
+   "film": "1989-0567-1-0000-00-1_UYKUNUN_YANI_BAŞINDA_ÜÇ_ELM",
+   "yil": 1989,
+   "v5_tahmin": "921",
+   "karar": "dogru",
+   "gercek_onset": 922,
+   "aciklama": "Kapanis jenerigi VAR ve dogru tespit edilmis. Frame 912-921 arasi yalnizca son sevisme sahnesi, hicbir metin yok. Frame 922'de ilk jenerik satiri \"par ordre d'apparition a l'ecran\" (ekranda gorunme sirasina gore) karenin altinda soluk halde belirir; 924'ten itibaren tam oyuncu/rol listesi yukari kayarak akiyor: Lui/Normand Chouinard, Madeleine/Paule Baillargeon, Hubert/Hubert Reeves, Nicole/Josee Chaboillez... ardindan ekip (images, montage vb.) film sonuna kadar surer. Bu gercek bir kapanis cast/crew jeneriktir (dialog/altyazi degil; onceki mavi metinler Turkce altyazi idi). Gercek onset 922, v5=921 → yalnizca 1 kare fark, +-20 tolerans icinde, isabetli."
+  },
+  {
+   "film": "1989-0624-1-0000-00-1_DÖNÜŞÜ_OLMAYAN_NEHİR",
+   "yil": 1989,
+   "v5_tahmin": "1125",
+   "karar": "yanlis_kredi_yok",
+   "gercek_onset": -1,
+   "aciklama": "Film \"River of No Return\" (1954, Marilyn Monroe/Robert Mitchum) — eski klasik, krediler BASTA. Tail'de HIC cast/crew isim listesi yok. Son sahne (1101-1137) → kapanis goruntusu kirmizi ayakkabi+elma toprakta (1140-1149) → \"The End / A CinemaScope Production / Produced and Released by Twentieth Century-Fox Film Corporation\" studyo kapanis karti (1152-1161) → \"The Twentieth Century-Fox Film Corporation thanks the Canadian Government...\" tesekkur karti (1170-1191). Hicbiri cast/crew rol-isim listesi degil; sadece studyo atifi ve tek-cumle tesekkur. v5'in verdigi 1125 karesi bir gece sokak sahnesi olup uzerinde \"TABLES FOR LADIES\"/\"SALOON\" set tabelasi var — film-ici tabela, jenerik DEGIL (yanlis-pozitif). Dogru cevap: KREDI YOK."
+  },
+  {
+   "film": "1989-0955-1-0000-00-1_ÖLDÜRME_ZAMANI",
+   "yil": 1989,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 1137,
+   "aciklama": "Film bir Spagetti-Western; kunye eski yil (1989) etiketli olsa da sonda KAPANIS KREDISI TASIYOR. Yapisal sira: kare 01121-01133 \"fine\" (Italyanca \"son\") mavi/koyu zeminde tek basina — kural geregi bu ONSET DEGIL. 01134-01136 karartma gecisi. Kare 01137'de crew ISIM LISTESI fade-in ile belirir: \"operatore macchina . gastone di giovanni / assistenti operatore . sergio martinelli / carlo tafani e.s.c. / costumista . silvano giusti / ispettore di produzione . albino morandin / segretari di produzione . mario barboni / enzo mazzucchi\". 01138'den itibaren kirmizi zeminde tam parlak; devam eden rulolar: architetto/sergio canevari, arredamento/mario giorsi, truccatore/andrea riva, parrucchiere/marcella de marzi, fonico/fernando pescetelli, microfonista/corrado volpicelli; ardindan lab/tesis metinleri (elios film, sviluppo e stampa, pellicola kodak) ~01177'ye kadar, sonra siyah. Rol->isim ciftlerinden olusan gercek bir kapanis jenerigi. v5 \"KREDI YOK\" dedi ama kredi VAR; gercek onset kare 1137 (isimlerin ilk belirdigi fade-in karesi, 1138'de net okunur)."
+  },
+  {
+   "film": "1990-0390-1-0000-00-1_SISSI-1",
+   "yil": 1990,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Klasik Sissi filmi. Son 10 dakika dugun finali (kilise sahnesi, ~c_01117'ye kadar), ardindan c_01119-01129 arasi \"HERZOG FILMVERLEIH zeigt:\" (Herzog Film Dagitim sunar:) yazan bir DAGITIMCI/sunum logo karti, sonra c_01130'dan sona (c_01200) kadar tamamen siyah. HERZOG karti bir dagitim sirketi logosudur (ustelik \"zeigt:/presents:\" = acilis-tipi sunum), cast/crew isim listesi DEGIL. Filmde hicbir yerde oyuncu/rol/yapimci/yonetmen ISIM listesi yok — 1955 doneminin tipik yapisi: krediler basta, sonda sadece anlati finali + dagitimci logosu. v5 'KREDI YOK' (-1) dedi; gercekten kapanis jenerigi yok. Isabetli."
+  },
+  {
+   "film": "1990-0488-1-0000-00-1_HAYALET_BABAM",
+   "yil": 1990,
+   "v5_tahmin": "1053",
+   "karar": "dogru",
+   "gercek_onset": 1067,
+   "aciklama": "Kapanis jenerigi VAR: canli hastane-onu goruntusu uzerine bindirilmis ekip (crew) unvan listesi. Ilk kredi karesi 1067: \"unit production manager DAVID WISNIEVITZ / first assistant director CANDACE ALLEN / second assistant director HOPE GOODWIN\". Frame 1066 tamamen goruntu, hic yazi yok. Krediler 1067'den itibaren rol rol devam ediyor (production associates, art department, set decoration, camera, sound, editorial: MICHAEL EVJE, JOE KENWORTHY, STEPHANIE R. COZART, LOLA KEMP, TIMOTHY BOARD vb.) ve filmin sonuna (~1200) kadar uzaniyor. Cast listesi bu sonda gorunmuyor (muhtemelen ac-jeneriginde verilmis), sonda sadece ekip unvanlari akiyor. v5 tahmini 1053, gercek onset 1067; fark 14 kare, +-20 toleransi icinde -> dogru."
+  },
+  {
+   "film": "1990-0513-1-0000-00-1_INNISFREE",
+   "yil": 1990,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "INNISFREE (Jose Luis Guerin, 1990) — \"The Quiet Man\"in cekildigi Irlanda kasabasi uzerine deneme/belgesel filmi. Tail taramasi (1201 kare, 2fps): filmin son bolumu (kareler ~1050-1147) John Ford ile ilgili ARSIV materyali gosteriyor: siyah-beyaz fotograflar, kamera basinda cekim yapan ekip, bir film klaketi (\"JOHN FORD / BOB...\"), Pearl Harbor/savas arsiv goruntuleri ve kapanista \"Capt. John Ford U.S.N.R. / U.S.S. Missouri\" kazili bir cakmak (kare 1131-1147 kirmizi zemin uzerinde close-up). Bunlar diegetik props/arsiv goruntuleri — cast/crew ISIM LISTESI DEGIL. Kare 1148'den 1201'e kadar (54 kare) goruntu SAF SIYAH (max piksel 2-8, sifir parlak piksel) — beyaz-metin kredi rulosu YOK. Filmde kapanis jenerigi (cast/crew isim listesi) bulunmuyor; arsiv malzemesiyle bitip siyaha kararyor. v5in \"KREDI YOK\" (-1) tahmini DOGRU."
+  },
+  {
+   "film": "1990-1068-1-0000-56-0_YAKIN_PLAN",
+   "yil": 1990,
+   "v5_tahmin": "909",
+   "karar": "dogru",
+   "gercek_onset": 903,
+   "aciklama": "Film Kiarostami'nin \"Close-Up/Yakin Plan\" (1990). Kapanis jenerigi VAR: son cekimde (Sabzian'in yuzunun yakin plani, arkada yesillik) uzerine bindirilmis Farsca cast/crew isim listesi. Kare 901 temiz yuz, hic yazi yok. Kare 902'de alt kenarda cok belirsiz fade-in basliyor. Kare 903'te isimler net okunuyor: \"خبرنگار\" (muhabir rolu), \"حسن فرازمنده ... در نقش\" (X ... rolunde) — bu cast listesi. Ardindan yonetmen/yapimci/rol tam crew listeleri satir satir buyuyerek filmin sonuna (kare ~1161 karanlik telif karti) kadar uzaniyor. Gercek onset ~903. v5=909, farkin 6 kare, +-20 tolerans icinde -> dogru."
+  },
+  {
+   "film": "1991-0275-1-0000-00-1_SPOOTWOOD",
+   "yil": 1991,
+   "v5_tahmin": "821",
+   "karar": "dogru",
+   "gercek_onset": 813,
+   "aciklama": "Film \"Spotswood\" (Anthony Hopkins, 1991) — SONDA klasik kayan cast/crew jeneriği VAR. Kaba tarama (vd_82.png) 801+ karelerinde sağ tarafta kayan isim listesi gösterdi. İnce tarama (760-840) ve dip-şerit kırpma ile onset kesinleştirildi: kare 811 ve 812 metinsiz (karanlık köprü/liman sahnesi); kare 813'te ilk isim \"Wallace ANTHONY HOPKINS\" ekranın altından yukarı kaymaya başlıyor. 816-840 aralığında tam liste rolluyor (Carey BEN MENDELSOHN, Mr Ball ALWYN KURTS, Robert BRUNO LAWRENCE, Finn JOHN WALTON, Cheryl REBECCA RIGG, Wendy TONI COLLETTE, Kim RUSSELL CROWE...). Jenerik filmin sonuna kadar (Production companies, şarkılar, DOLBY STEREO logosu ~1161) uzanıyor. Gerçek onset ~813. v5 821 dedi; fark 8 kare, +-20 toleransı içinde → dogru."
+  },
+  {
+   "film": "1991-0355-1-0000-00-1_PARİS'İN_DIAGHILEV_İLE_DANS",
+   "yil": 1991,
+   "v5_tahmin": "785",
+   "karar": "dogru",
+   "gercek_onset": 800,
+   "aciklama": "Film kapanis kredisi TASIYOR (bale yapimi; birden fazla eserin cast/crew listesi sonda akiyor). Bolgeyi kaba + ince taradim.\n\nBulgular:\n- Kare 785-790: Turkce bilgi ara-yazisi \"'Noces' ilk olarak 13 Haziran 1923 tarihinde, Gaite-Lyrique Tiyatrosu'nda sahnelendi.\" Bu TEK CUMLE bir ara-yazi/film-ici bilgi metni; cast/crew ISIM listesi DEGIL (kural geregi jenerik sayilmaz). v5 tam bu kareye dustu.\n- Kare 791-797: siyah / dansciler yavas beliriyor, metin yok.\n- Kare 798-800: \"NOCES\" kredi-baslik karti (eser adi header) beliriyor.\n- Kare 802'den itibaren: gercek ISIM listesi akmaya basliyor — \"Bride ELISABETH PLATEL\", \"First Bridesmaid FRANCOISE LEGREE\", \"Bridegroom KADER BELARBI\"... ve devaminda NOCES, L'APRES-MIDI D'UN FAUNE, LE SPECTRE DE LA ROSE cast'lari + ekip (Production Secretary, Make-up, Vision Engineer, Co-production NVC/LA SEPT) kare ~960+'a kadar surer.\n\nGercek kredi-blogu onset'i ~800 (NOCES header 798'de, ilk isim 802'de). v5'in verdigi 785 aslinda konseptsel olarak bilgi ara-yazisina denk geldi (gercek cast listesi degil), fakat gercek onset'ten yalnizca ~15 kare uzakta ve +-20 toleransi icinde kaliyor. Bu yuzden mekanik kurala gore karar \"dogru\". Not: v5 dogru sebep icin degil, sansli yakinlik ile isabet etti — dustugu kare bir ara-yazidir, gercek jenerik ~800."
+  },
+  {
+   "film": "1992-0296-1-0000-00-1_GÜNDÖNÜMÜ_GÜNEŞ",
+   "yil": 1992,
+   "v5_tahmin": "757",
+   "karar": "dogru",
+   "gercek_onset": 750,
+   "aciklama": "Kapanis jenerigi VAR ve tam bir cast/crew isim listesi tasiyor. Tail'de 745-749 kareleri gun batiminda yuruyen siluetler (sahne icerigi, metin yok). Kare 750'de \"CAST\" basligi ekran alt-ortasinda ilk kez soluk belirir; 751'de netlesir; 752'de ilk oyuncu satiri \"MAGGIE CAMERON / Isabelle Mejias\" gelir; ardindan JULIUS OKIMO/George Seremba vb. ile liste birikir ve tail boyunca crew (KEY GRIP, MAKE UP, DRIVERS), muzik ve yapim kredileriyle filmin sonuna dek uzanir. Gercek jenerik onset = 750 (CAST isim-listesi basliginin ilk gorundugu kare). v5 tahmini 757, gercek onset 750'ye 7 kare uzakta = +-20 toleransi icinde, isabetli."
+  },
+  {
+   "film": "1992-0454-1-0000-00-1_HAYATIMIN_ERKEĞİ",
+   "yil": 1992,
+   "v5_tahmin": "841",
+   "karar": "dogru",
+   "gercek_onset": 835,
+   "aciklama": "Film: L'Homme de ma vie (Fransız, 1992) — Türkçe adı Hayatımın Erkeği. Tail'de NET kapanış jeneriği var: kayan cast+crew isim listesi. Kareler 801-833 son sahne (çift caddede uzaklaşıyor, kamera geri çekiliyor, film içeriği; parlaklık ort. ~99). Kare 834 hâlâ sahne, 835'te siyaha geçiş + ilk kredi satırının harflerinin tepeleri alttan kayarak beliriyor (parlaklık 99→25 düşüşü, ilk metin izleri). Kare 836'da ilk cast satırı net okunuyor: 'Aimée: Maria de Medeiros'. 837+ tam liste: Maurice: Thierry Fortineau, Malcolm: Jean-Pierre Bacri, Alain: Alain Doutey, Catherine: Anne Letourneau... ardından yoğun crew jeneriği (881-1121: yönetmen ekibi, yapım, teknik). Gerçek onset = 835 (kredi metninin ilk belirdiği kare). v5 tahmini 841, gerçek onset 835'ten 6 kare uzakta → ±20 toleransı içinde, isabetli."
+  },
+  {
+   "film": "1992-0455-1-0000-00-1_MELEKLERİ_GÖRMEK_İSTEDİM",
+   "yil": 1992,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 934,
+   "aciklama": "Film TAM bir kapanis kredi rulosu tasiyor (Sergei Bodrov, Rusca/Kiril). Canli-aksiyon yuz cekimi ~917. karede karariyor, 918-933 siyah. 934. karede ilk kredi metni \"в главных ролях\" (basrollerde) basligi alttan girer (933 tamamen siyah max=39; 934'te 1127 parlak piksel). 936'da oyuncu isimleri net okunur: АЛЕКСЕЙ БАРАНОВ / НАТАЛЬЯ ГИНЬКО, ardindan \"в ролях\" ЛИЯ АХЕДЖАКОВА, АЛЕКСЕЙ ЖАРКОВ vb. Rulo tum ekip kredileriyle (besteci, produktorler, yonetmen СЕРГЕЙ БОДРОВ, goruntu yonetmeni АЛЕКСЕЙ РОДИОНОВ) ~1161. karedeki \"конец фильма\"ya kadar surer. Gercek bir cast/crew isim listesi = jenerik. v5 \"KREDI YOK\" (-1) dedi ama kredi acikca VAR -> yanlis-negatif. Gercek onset = 934."
+  },
+  {
+   "film": "1992-0472-1-0000-00-1_KALP_HIRSIZI",
+   "yil": 1992,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "1202 kare tarandi. Kaba tarama (1-1161, adim 40) tamamen anlatisal sahne: konusan insanlar, opusme, arabalar, sokak. Ince kuyruk taramasi (1156-1202) iki kadinin otoparkta konusmasi, ardindan mor ceketli kadin, ve 1198-1202'de karartiya gecis. Karartilmis son kareler (1198-1202): 1198 hala anlatisal (mor ceketli oyuncu), 1199-1202 saf gurultu/siyah (ortalama parlaklik 5.7->2.9), hicbir beyaz kredi metni yok. Filmde HICBIR yerde cast/crew isim listesi yok; film anlatisal sahne uzerinde karartiyla bitiyor (eski film deseni: krediler basta, sonda kredi yok). v5 'KREDI YOK' dedi ve gercekten yok."
+  },
+  {
+   "film": "1992-0483-1-0000-00-1_JOE_SHARP",
+   "yil": 1992,
+   "v5_tahmin": "801",
+   "karar": "dogru",
+   "gercek_onset": 813,
+   "aciklama": "Film gercek bir kapanis jenerigi tasiyor: kayan cast/crew isim listesi. Kaba tarama krediyi ~801-1121 araliginda gosterdi. Ince tarama (759-846) net cozdu: 759-811 kareleri son sahne (yesil cayirda kosan atlar), 811 son sahne karesi, 812 siyah gecis karti, 813'te ilk cast kredisi belirdi (\"Joe Sharp / REID SMITH\", ardindan Charlotte/AUDREY LANDERS, T.J./DANNY NELSON, Jackson/LOU WALKER, Billy/JIMMY VAN PATTEN... seklinde kayan liste; sonra crew: Gaffer, Best Boy, Key Grip vb.; ~1041 muzik kredileri; ~1121 telif kartina kadar uzuyor). Gercek onset ilk isim listesinin gorundugu kare 813. v5'in tahmini 801 gercek onset'ten 12 kare once, +-20 tolerans icinde -> dogru."
+  },
+  {
+   "film": "1993-0216-1-0000-00-1_RIGOLETTO",
+   "yil": 1993,
+   "v5_tahmin": "729",
+   "karar": "dogru",
+   "gercek_onset": 726,
+   "aciklama": "Film KAPANIS jenerigi TASIYOR. Kaba montaj (30 kare) sonda net isim listeleri gosterdi: kare ~761'den itibaren \"Policeman David Jaster, Singer #2 Sarah Jensen, Margie Cynthia Jump...\" cast listesi, ardindan crew (Production Coordinator, Director of Photography, Sound Editor, Songs, Colorist vb.) film sonuna (kare ~1161+) kadar uzaniyor. Ince tarama (700-772, adim 3): kareler 701-719 sahne cekimi (somine/karakterler), 722 ve 725 elle konan \"Rigoletto\" kitap kapagi (prop/baslik, isim listesi DEGIL). Kare kare tarama (725-730): 725 hala kitap kapagi; 726'da ilk kez \"CAST\" basligi + isim listesi tam olarak beliriyor (Georgie: Alyson Breinholt, Dallin: Dalin Christiansen, Papanickolas: Frank Gerrish, Tommy: Josh Goodwin, Porter: Ryan Healy, Singer #1: Natalie Hill, Hans: John Huntington). Gercek jenerik onset = 726. V5 tahmini 729, gercek onsetten sadece 3 kare uzak — +-20 toleransi icinde, isabetli."
+  },
+  {
+   "film": "1993-0435-1-0000-00-1_SEN_TOM_SAWYER_DEĞİLSİN",
+   "yil": 1993,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 805,
+   "aciklama": "Film KAPANIS KREDISI TASIYOR — v5 yanlis. Cast/crew isim listesi acikca var. Onset karesi c_00805: 00799-00804 kareleri sadece final dans sahnesini gosteriyor (metin yok), 00805'te ilk oyuncu kredisi \"Sascha\" (rol adi) alta fade-in ile beliriyor, 00806-00807'de altina \"Oliver Engl\" (oyuncu adi) ekleniyor. Ardindan sirasiyla dans sahnesi uzerine bindirilmis oyuncu kredileri: Sascha/Oliver Engl, Juan/Alexander Beer, Anna/Alexandra Bartke, Miquel/Klaus Bruck, Ilona/Renate Muhri, Robert/Fritz Philipps, El Gordo/Wolfgang Weber, Carlos/J.A. Berez (~805-940). Sonra mavi-zemin ekip kartlarina geciyor: Maske/Rita Wild, Kostume/Grete Hirschback, Ton/David Hofmann, Transport/Peter Stadler, Bildschnitt/Jorg Michael, Kamera/Manfred Buerkle BVK, Produktionsleitung/Jakob Brandmayr, \"Eine JMB-Production\" — filmin sonuna kadar (~1160) suruyor. Klasik cast+crew jenerigi. Karar: yanlis_kredi_var, gercek_onset=805."
+  },
+  {
+   "film": "1993-0467-1-0000-00-1_BİR_KATİLLE_EVLENDİM",
+   "yil": 1993,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Film \"So I Married an Axe Murderer\" (1993, Mike Myers). 1200 karelik havuzun tamami anlati icerigi: kaba montaj (1-1161) newsroom, San Francisco manzaralari, cift, kupa/kahvehane siir-okuma sahnesi, banyo, loft sahneleri gosteriyor; hicbir yerinde cast/crew isim listesi (jenerik akisi) yok. Ince tail taramasi (1141-1200): son loft sahnesi ~kare 1180'de karariyor, ardindan 1181-1200 tamamen siyah (max piksel 8-11, parlak piksel=0, gizli yazi yok). Karanlik-yazi imza taramasi sadece karanlik siir-okuma/rihtim sahnelerini isaretledi, hepsi anlati. Yani bu havuzda kapanis kredisi HIC yok; anlati siyaha karararak bitiyor. v5 'KREDI YOK' (-1) dedi, havuzla ortusuyor -> dogru. Not: gercek filmin sonunda jenerik vardir ama bu havuz fade-to-black'te bitiyor, kredi bu 10-dk penceresinin disinda kalmis (veya kirpilmis)."
+  },
+  {
+   "film": "1994-0238-1-0000-00-1_MASUMİYET_DÜŞLERİ",
+   "yil": 1994,
+   "v5_tahmin": "905",
+   "karar": "dogru",
+   "gercek_onset": 906,
+   "aciklama": "Israil/Ibranice bir film; MODERN tarzda, sonda gercek kapanis jenerigi TASIYOR. Kareler 1-895 anlatisal sahneler (son sahne: kiz mektup okuyor, ~880-895). Kareler 899-904 duz siyah/fade-out (meanL~3.05, film bitti). Kare 905'te metin fade-in basliyor (meanL 3.04->3.66). Kareler 906-922: siyah zemin uzerinde kurumsal fon/tesekkur karti — 'הקרן לעידוד קולנוע ישראלי איכותי... משרד החינוך והתרבות ומשרד התעשייה והמסחר' (Kaliteli Israil Sinemasi Fonu; Egitim/Kultur ve Sanayi/Ticaret Bakanliklari). Bu, kapanis jeneriginin non-diegetik acilis (lead-in) kartidir ve dogrudan oyuncu listesine baglanir. Kareler ~922-928: 'השתתפו' (=Oynayanlar/Cast) basligi + ilk isim 'משה איבני' (Moshe Ivgi, basrol). 930-1200: iki sutunlu tam cast/crew isim listesi filmin sonuna kadar akiyor. Parlaklik olcumu jenerik baslangicini kare 905'e (fade-in inflection) sabitliyor. v5=905 tam bu noktada; ister fon lead-in karti (905/906) ister cast isim listesi (~922) referans alinsin +-20 tolerans icinde. KARAR: dogru."
+  },
+  {
+   "film": "1995-0363-1-0000-00-1_KÜÇÜK_SİMBA_DÜNYA_KUPASIN",
+   "yil": 1995,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 1035,
+   "aciklama": "Filmin sonunda net bir KAPANIS JENERIGI var; v5'in \"kredi yok\" tahmini yanlis (yanlis-negatif). Krediler final futbol animasyonunun UZERINE bindirilmis sekilde akiyor (klasik Mondo TV stili). Kare 01034'te metin yok; 01035'te ilk crew kredisi \"Scripts / L. Peota - C. Castaldo\" belirmeye basliyor (fade-in), 01037'de tam okunur. Ardindan sirasiyla: Producer / Orlando Corradi (~1051-1059), Director / Kim Jun Ok (~1073), Characters / Mondo TV and Studio Sek (~1089), Animation / Studio Sek, Music Publisher / Doro TV srl, ve Mondo TV - Italy - 1998 (~1137-1145) geliyor. Bunlar cast/crew isim listesi = jenerik. Gercek onset = kare 1035."
+  },
+  {
+   "film": "1995-0404-1-0000-00-1_BÜYÜK_SAVAŞTA_KÜÇÜK_ADAM",
+   "yil": 1995,
+   "v5_tahmin": "861",
+   "karar": "dogru",
+   "gercek_onset": 858,
+   "aciklama": "Film gercek bir KAPANIS JENERIGI tasiyor. Tail'de ~858. kareden itibaren sirali kredi kartlari basliyor: 00855-00857 hala sahne (bebekli kadin, tren yolu), 00858 dissolve (kredi metni sahnenin uzerinde beliriyor), 00859-00862 ilk kart net: 'СЦЕНАРИЙ И ПОСТАНОВКА Шухрата АББАСОВА' (senaryo ve yonetim). Ardindan tam ekip listesi: 'ОПЕРАТОР-ПОСТАНОВЩИК Абдурахим Исмаилов', 'ХУДОЖНИК-ПОСТАНОВЩИК Анатолий Шибаев', 'КОМПОЗИТОРЫ Баснер/Вайнберг', 'ЗВУКООПЕРАТОР', 'РЕЖИССЕРЫ', 'МОНТАЖЕР Л.Ефимова', asistanlar, 'ДИРЕКТОР КАРТИНЫ Шукур Ходжаев', sonra 'В РОЛЯХ:' oyuncu isim listesi ve '~01161 КОНЕЦ ФИЛЬМА' (Uzbekfilm 1989). Bu net bir cast/crew isim listesi = jenerik. Gercek onset ~858; v5 tahmini 861, fark 3 kare, +-20 toleransin icinde. Not: metadata yil 1995 ama film konyagi 1989 Uzbekfilm baskisi; karar acisindan onemsiz."
+  },
+  {
+   "film": "1996-0316-1-0000-00-1_TANGO_ARGENTINO",
+   "yil": 1996,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tum tail (1202 kare) tarandi: kaba genel montaj (00001-01161, ~her 40 karede bir) ve son bolumun kare-kare ince taramasi (01121-01202). Tum icerik sahne/diyalog: roportaj tarzi konusan yasli sakalli adam + kel adam, yuvarlak gozluklu kadin, biyikli takim elbiseli adam kameraya konusuyor, gunbatiminda kayik sahnesi, ic mekan aile sahneleri. Hicbir yerde cast/crew/rol/yapimci ISIM LISTESI yok. Kareler 01195-01202 tamamen siyah (ortalama parlaklik 0.0, max<=3) - film sona ererken kararma, metin degil. Tam cozunurlukte 01180 karesi de dogruladi: sade koyu duvar onunde roportaj, ustune bindirilmis kredi metni yok. Eski (1996) belgesel/roportaj tarzi Turk filmi; krediler basta olur, son sadece kararma. v5 -1 (KREDI YOK) dedi, gercekle ortusuyor."
+  },
+  {
+   "film": "1996-0325-1-0000-00-1_KIZIL_HAYAT",
+   "yil": 1996,
+   "v5_tahmin": "901",
+   "karar": "yanlis_kare",
+   "gercek_onset": 964,
+   "aciklama": "Film KAPANIS kredisi TASIYOR (modern 1996 Fransiz-Rus ortak yapimi). Gercek onset kare 964: 958-963 kareleri hala film sahnesi (Moulin Rouge yeldegirmeni onunde sarilan cift; ekrandaki \"MOULIN ROUGE\"/\"BAL DU MOULIN ROUGE\" neonlari sahne icindeki gercek tabela, jenerik degil). Kare 963 son footage; kare 964'te ekran karariyor ve altta \"avec / Vadim - Alexander Balouev\" cast listesi ILK gorunuyor. 964'ten itibaren kredi kesintisiz akiyor: Uluk-Serguei Stepanchenko, Jafar-Dimitri Pevtsov, \"et la participation amicale de Jerome Deschamps\", ardindan tum ekip listesi (Le tailleur, Le cuisinier, Prostituees, Conseil de guerre, Equipe francaise vb.) filmin sonuna (~01161) kadar. V5 tahmini 901 (~kare 902) Moulin Rouge dis-mekan film sahnesine denk geliyor -- gercek footage, kredi degil -- ve gercek onset 964'ten 63 kare geride, +-20 toleransin disinda. Bu nedenle yanlis_kare."
+  },
+  {
+   "film": "1998-0312-1-0000-00-1_KARA_GÜNLER",
+   "yil": 1998,
+   "v5_tahmin": "kredi_yok",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in tamami (1200 kare) narratif goruntu: gece magaza cephesi, otoyol surusu, yangin/patlama, yuruyus, ic-mekan diyaloglar, cafe, kapanista iki adamin sokak konusmasi. Hicbir yerde cast/crew isim listesi yok. Son sahne ~01179'a kadar surer; 01180-01200 tamamen siyah (mean<1, max=2-4) — duz fade-to-black bitis, uzerinde metin YOK. Eski-agirlikli havuza uygun: kapanis kredisi tasimiyor. v5'in 'kredi_yok' karari isabetli."
+  },
+  {
+   "film": "1998-0519-1-0000-00-1_SON_CÜCE",
+   "yil": 1998,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Verilen son 10 dakika (c_00001-c_01202, 2fps) tamamen anlatı içeriği: dönem yemek-partisi sekansı, ana karakterler, ~1190-1192'de genç sarışın kız yakın planı. Film ~1193. karede siyaha kararıyor ve 1202'ye kadar saf siyah kalıyor (ortalama parlaklık ~1, max <10). Bu siyah karelerin 40x parlaklık artışında bile hiç isim listesi/kredi kayması görünmüyor — yalnızca sıkıştırma/sensor gürültüsü. Ne 'SON'/'THE END' kartı ardından isim listesi, ne kapanış cast/crew jeneriği var. Kapanış kredisi gerçekten YOK (eski-tarz: krediler muhtemelen başta). v5 'KREDI YOK' (-1) dedi ve gerçekten yok -> dogru."
+  },
+  {
+   "film": "1998-0970-1-0000-00-1_BAŞKAN_VE_MARI",
+   "yil": 1998,
+   "v5_tahmin": "1009",
+   "karar": "dogru",
+   "gercek_onset": 1004,
+   "aciklama": "Film KAPANIS kredisi TASIYOR — yesil kir manzarasi (iki kucuk figur yururken) uzerine yukari kayan tam bir oyuncu/ekip isim listesi. Kaba tarama: 01001 hala manzara (metin yok), 01041 tam cast listesi. Ince tarama (1001-1046) ve dip-kirpma yakinlastirmasi ile onset kesinlestirildi: 1003 saf cimen (metin yok); 1004'te ilk soluk metin karenin en altinda belirmeye basliyor ('PAUL DESCHANEL Jean-Pierre CASSEL', kismen kesik); 1005'te tam okunakli ('PAUL DESCHANEL  Jean-Pierre CASSEL'); 1006'da iki satir (MARIE  Sophie de LA ROCHEFOUCAULD). Devaminda oyuncular rolleriyle, sonra ekip (Chef Costumiere, Chef Maquilleuse, Mise en Scene, FRANCE 2/FRANCE 3/TELFRANCE ko-produksiyon) tail sonuna kadar akiyor. Gercek onset ~1004 (soluk) / 1005 (okunakli). v5=1009, gercek=1004, fark ~5 kare — +-20 toleransi icinde, DOGRU."
+  },
+  {
+   "film": "1999-0394-1-0000-90-1_13",
+   "yil": 1999,
+   "v5_tahmin": "669",
+   "karar": "dogru",
+   "gercek_onset": 667,
+   "aciklama": "Film \"The 13th Warrior\" (1999, Antonio Banderas). Kapanis jenerigi VAR: kayan crew/cast listesi — \"UNIT PRODUCTION MANAGER / CASEY GRANT\", \"FIRST ASSISTANT DIRECTOR / BRUCE MORIARTY\", \"ALSO STARRING...\", ve kare 721'de \"IN ORDER OF APPEARANCE / ANTONIO BANDERAS...\" tam oyuncu listesi. Son sahne (fiyort uzerinde gun batimi, Viking gemisi) ~657'de biter, 658-666 kararma (siyah). Piksel analizi kesin: kare 659-666 saf siyah (max parlaklik 2-6, sifir parlak piksel); kare 667 ilk metin karesi (892 parlak piksel, max 255). Yani gercek onset = 667. v5 tahmini 669, gercek onset'ten sadece 2 kare uzakta — +-20 toleransi icinde, isabetli."
+  },
+  {
+   "film": "1999-0403-1-0000-00-1_PRENSESİN_AŞKI",
+   "yil": 1999,
+   "v5_tahmin": "1085",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1046,
+   "aciklama": "Film TAM bir kapanis jenerigi tasiyor (modern-benzeri tail credit roll). Gercek onset kare 1046: ilk isim kredisi karti \"Executive Producers PETER LOCKE / DONALD KUSHNER\" burada beliriyor (kare 1044 hala sahne/kadin yuzu, 1045 solma gecisi). 1046-1051 arasi Executive Producers karti, ardindan 1053-1080 arasi siyah kareler (kartlar arasi fade), sonra 1083'ten itibaren tam oyuncu listesi (Mrs. Hewitt HELEN LINDSAY, The Queen LISA DANIELY, Felicity CARA KONIG...), 1101'de Prince William BEN SIMPSON vb., devaminda U.S./U.K. Casting, ekip kredileri (Production Supervisor BETSY DANSBURY, 1st Assistant Director DAVID ANDERSON, Costume Designer MAY ROUTH, Wardrobe, Make-Up) filmin sonuna kadar uzaniyor. v5 kredi VAR dedi ki dogru, ama kare 1085'i verdi — bu siyah bosluktan SONRA oyuncu listesinin YENIDEN basladigi yer. Asil jenerik 39 kare once (1046) Executive Producers kartiyla basliyor. 1085-1046=39 > +-20 oldugundan tahmin yanlis kare."
+  },
+  {
+   "film": "1999-0407-1-0000-00-1_KÜÇÜK_KAHRAMAN",
+   "yil": 1999,
+   "v5_tahmin": "973",
+   "karar": "dogru",
+   "gercek_onset": 971,
+   "aciklama": "Modern (1999) film, sonda tam kapanis jenerigi VAR. Kareler 921-949 son sahne (cocuk merdivende oturuyor), 953-970 siyah gecis (makara-degisim izleri disinda bos). Kare 971'de \"Cast\" basligi + \"Joey Nathan Kiley\" fade-in ile ilk beliriyor; 972-973'te \"Cast / Joey Nathan Kiley / Sarah Lindsay Lewis / Hutch Robert Schuch...\" net okunur hale geliyor. Devaminda oyuncu listesi (Reese, Billy, Moose...) ve ardindan ekip listesi (Key Grip, Production Designer, Camera Dollies, Casting Company vb.) film sonuna kadar uzaniyor. Bu net bir cast/crew isim listesi = kapanis jenerigi. Gercek onset ~971; v5'in 973 tahmini onset'e ~2 kare mesafede, +-20 toleransin cok icinde. Karar: dogru."
+  },
+  {
+   "film": "1999-0430-1-0000-00-1_NE_TREN_VAR_NE_DE_UÇAK",
+   "yil": 1999,
+   "v5_tahmin": "989",
+   "karar": "dogru",
+   "gercek_onset": 984,
+   "aciklama": "Film gercek bir kapanis jenerigi tasiyor. Kapanis sahnesi (aglayan kadin yakin cekimi ~920-950, ardindan mavi fayans duvar ~953-977) siyaha kararir; 978-982 kareleri saf siyah (parlak-piksel taban ~600, duz). Frame 983'te metin belirmeye baslar (852px), 984'te net gorunur (2162px): \"CAST IN ORDER OF APPEARANCE\" ve isim listesi (Gerard / Dirk van Dijk, Jacques / Kees Prins, Benny / Peer Mascini...), sonrasinda CREW, Director of Photography vb. tam cast/crew listesi filmin sonuna kadar akiyor. Gercek onset ~984. V5'in tahmini 989, gercek onsetten sadece 5 kare sonra — +-20 tolerans icinde, isabetli."
+  },
+  {
+   "film": "1999-0483-1-0000-00-1_SON_TANIK",
+   "yil": 1999,
+   "v5_tahmin": "1001",
+   "karar": "dogru",
+   "gercek_onset": 998,
+   "aciklama": "Film TAM kapanis jenerigi (cast/crew isim listesi) TASIYOR. Tail sirasi: kar-parki sahnesi (~00916-00936), kartal cekimleri (00940-00964), donmus nehir/skyline cekimleri (00968-00988), sonra 00991'de tek-cumlelik hukuki kart 'THE FOREGOING IS / A WORK OF FICTION' (isim listesi degil, onset SAYILMAZ), birkac siyah kare (00993-00997), ardindan 00998'de cast isim listesi fade-in ile basliyor: 'Rachel Sutherland — NATASHA HENSTRIDGE', 'David J. McMillan — JOHNATHON SCHAECH', devaminda Michael Filipowich, David McIlwraith, Lauren Hutton... ve sonra crew (1st Assistant Director MAREK POSIVAL, kamera, gripler, vb.) filmin sonuna kadar. 00997 tam siyah, 00998 ilk okunabilir cast isimleri. Gercek onset=998; v5=1001 (3 kare fark, +-20 icinde) -> dogru."
+  },
+  {
+   "film": "1999-0489-1-0000-00-1_AMY'NİN_TALİHSİZLİKLERİ",
+   "yil": 1999,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tail'in tamami (kare 1-1181) film-ici sahne: cocuklar, ciftlik, \"Heaven Hill Farm Pickles\" etiketli kavanozlar, bahce. Hicbir yerde cast/crew/rol/yapimci/yonetmen ISIM listesi yok. Kare 1182-1183 son sahne karariyor; kare ~1184-1193'te siyah zeminde mavi yazi \"for Jane / Amy's real life mom\" -> tek satirlik ITHAF (dedication). Kare 1194-1201 tamamen siyah, film biter. Ithaf/ara-yazi kural geregi jenerik SAYILMAZ (sadece isim listesi jeneriktir). Dolayisiyla kapanis kredisi (cast/crew listesi) HIC YOK. v5 -1 (KREDI YOK) dedi ve gercekten yok -> dogru. Not: montaj yolu vd_96.png (genel), vd_96_tail.png (1140-1201), vd_96_end.png (1184-1201 tam cozunurluk ithaf metni)."
+  },
+  {
+   "film": "2000-0282-1-0000-40-1_SEVİMLİ_KÖPEK-YEDİNCİ_OYU",
+   "yil": 2000,
+   "v5_tahmin": "1085",
+   "karar": "dogru",
+   "gercek_onset": 1084,
+   "aciklama": "Film gercek bir kapanis jenerigi TASIYOR (modern 2000 yapimi, kopekli beyzbol filmi). Kuyruk akisi: 1078'e kadar sahne (kopek/tribun), 1080-1082 tam siyah gecis, 1083'te cok soluk 'Cast' yazisi belirmeye baslar, 1084'te 'Cast (In Alphabetical Order)' okunur hale gelir ilk isim satirlariyla (Student-JEFFREY BALLARD, Professor Siles-JAY BRAZEAU, Gas Station Attendant-JASON BRYDEN). 1085-1088+ tam kayan cast listesi, ardindan 1121/1161'de crew unvanlarina gecer (Casting Associate, Child Coordinator, kamera asistanlari vb.) ve filmin sonuna kadar surer. Jenerik onset'i siyahtan fade-in; ilk soluk iz 1083, ilk okunur cast-isim satiri 1084. V5=1085 onset'e 1-2 kare mesafede, +-20 toleransinin cok icinde. Karar: dogru."
+  },
+  {
+   "film": "2000-0289-1-0000-00-1_KÜÇÜK_OLMAK_ZOR",
+   "yil": 2000,
+   "v5_tahmin": "1133",
+   "karar": "dogru",
+   "gercek_onset": 1132,
+   "aciklama": "Film KAPANIS jenerigi TASIYOR (modern 2000 filmi). Tail akisi: 1121-1128 sahne (gol/isik, yavas fade), 1129 kararma, 1130-1131 tam siyah (max piksel=1). Ilk kredi metni 1132'de alttan giriyor: parlaklik max=255'e siciyor, \"Big Brother Trouble\" (filmin uluslararasi basligi) kredi kayarken alttan beliriyor. 1133'te oyuncu listesi net okunuyor: Capt. Stacey - DICK VAN PATTEN, Oddo - BO HOPKINS, Coach - MARIO LOPEZ... Ardindan tam cast (takimlar) ve crew (Production Designer DEBORAH TOMS, Art Director ERIC CLEMENS, Costume Designer, Sound, sarkilar, Special Thanks) filmin sonuna (~1200) kadar kayarak devam ediyor. Isim listesi = jenerik. Gercek onset ilk kredi metninin girdigi kare 1132. V5 1133 dedi = 1 kare fark, +-20 icinde. Isabetli."
+  },
+  {
+   "film": "2000-0323-1-0000-00-1_6",
+   "yil": 2000,
+   "v5_tahmin": "557",
+   "karar": "yanlis_kare",
+   "gercek_onset": 434,
+   "aciklama": "Film \"The 6th Day\" (2000, yon. Roger Spottiswoode, Arnold Schwarzenegger). Kapanis jenerigi VAR ve kart-stili basliyor. Son sahne: kare 430-431 aksiyon montaji, 432 goz yakin plani; 433 tam siyah gecis; 434'te ilk kredi karti \"Directed by ROGER SPOTTISWOODE\" beliriyor -> gercek onset = 434. Ardindan 442 \"Written by CORMAC WIBBERLEY & MARIANNE WIBBERLEY\", 451 \"Produced by MIKE MEDAVOY / ARNOLD SCHWARZENEGGER / JON DAVISON\", Executive Producer, oyuncu listesi (ARNOLD SCHWARZENEGGER, TONY GOLDWYN, MICHAEL RAPAPORT, MICHAEL ROOKER, SARAH WYNTER, WENDY CREWSON, ROD ROWLAND/TERRY CREWS...) ve tam ekip rulosu filmin sonuna kadar (kare ~1200). Parlaklik taramasi da 432->433'te sahneden siyaha, 434'ten itibaren siyah zeminde beyaz metin (mean ~3-4, max ~250) gecisini dogruluyor. v5'in 557 tahmini kredinin ORTASINA, \"ROD ROWLAND/TERRY CREWS\" oyuncu kartina denk geliyor; gercek onsetten 123 kare ileride, +-20 toleransin cok disinda. Kredi mevcut ama kare yanlis."
+  },
+  {
+   "film": "2000-0454-1-0000-00-1_BUZDAN_GELEN_SESLER",
+   "yil": 2000,
+   "v5_tahmin": "1093",
+   "karar": "dogru",
+   "gercek_onset": 1107,
+   "aciklama": "Film bir doga belgeseli (Alaska yaban hayati, \"© 1990 Trailwood Films\"). Kapanis jenerigi VAR: kayan (scrolling) bir kredi rulosu. Kaba tarama (vd_38.png) montaj/manzara sonrasi 1121+ karelerde isim listesi gosterdi. Ince tarama (1105-1114): kareler 1105-1106 saf manzara (piramit dag, gol), kare 1107'de alt kenardan ilk kredi metni (\"Directed & Photographed by\") belirmeye basliyor, 1108'den itibaren \"Directed & Photographed by / Dale Johnson\" net okunuyor. Rulo devam ediyor: Additional Photography (Bill Bacon, Bob Landis, Roger Miller), Written by (Kevin Peer & Dale Johnson), Associate Producer (Sandy Johnson), Music by (Bear Creek Productions & Dana Newhouse), Post Production (Trailwood Films), Production Secretary (Kay Ochsner), \"A Dale Johnson Film\", \"© 1990 Trailwood Films\" -> ~1148 sonrasi siyah. Gercek onset = 1107. v5 tahmini 1093, gercek onsete 14 kare (7 sn) uzakta; +-20 tolerans icinde oldugundan DOGRU. Kare 1093'te henuz metin yok (manzara) ama tolerans dahilinde."
+  },
+  {
+   "film": "2000-0477-1-0000-00-1_FUTBOLCU_PRENSES",
+   "yil": 2000,
+   "v5_tahmin": "1033",
+   "karar": "dogru",
+   "gercek_onset": 1035,
+   "aciklama": "Film KAPANIS kredisi TASIYOR (modern kredi deseni). Canli sahne (kalabalik + tiara'li kraliçe, ~1001-1027) LeRoy Neiman'in \"10\" formali futbolcu tablosuna ~1028-1030 dissolve ile geçiyor; 1030-1034 arasi sadece tablo fonu, isim YOK. Cast/crew ISIM listesi ilk kez kare 1035'te görünüyor: \"Co-Starring / MARY-ROBIN REDD - Saleswoman / JOSHUA CADMAN - Brian / SEVERN DARDEN - Mr. Hobart / CARMEN ARGENZIANO - Ed Ainsworth\". Sonrasinda NANCY PARSONS, TIM ROBBINS, ana \"KIM GARDNER Danielle...\" blogu ve \"Original Painting by LeRoy Neiman\" krediyle filmin sonuna kadar sürüyor. Gerçek isim-listesi onset = 1035. V5 tahmini 1033, tablo fonunun basinda/dissolve icinde, isimlerden 2 kare önce; |1035-1033|=2, ±20 toleransi icinde. Karar: DOGRU."
+  },
+  {
+   "film": "2000-0491-1-0000-00-1_PARDAYYAN",
+   "yil": 2000,
+   "v5_tahmin": "1089",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1034,
+   "aciklama": "Film KAPANIS jenerigi TASIYOR (2000 yapimi modern film). Jenerik once son sahneler uzerine bindirilmis oyuncu-ismi overlay'leriyle basliyor: ilk isim JEAN-LUC BIDEAU kare 01034'te goruniyor (01033 hala duz footage/yatak sahnesi, metin yok). Ardindan GARANCE CLAVEL (~1040), FRANCOIS BERLEAND (~1046), MARCEL BOZONNET, MAREIKE CARRIERE, EVA HOLUBOVA, DOROTHEE JEMMA, GERARD TOURATIER, OLIVIER CLAVERIE, GUILLAUME CANET (~1082) devam ediyor; sonra ~1088'den itibaren siyah zemin uzerinde tam ekip kaydirmasi (Avec/Alain FREROT, Producteur Executif, Directeur de Production vb.) ~1130'a kadar akiyor. GERCEK onset = 1034. v5'in tahmini 1089, ekip-scroll bolgesinin icine dusuyor ve gercek onset'ten 55 kare sonra; +-20 toleransinin cok disinda. v5 kredinin varligini dogru gordu ama erken baslayan oyuncu-ismi overlay'lerini kacirip kareyi gec isaretledi."
+  },
+  {
+   "film": "2000-0505-1-0000-00-1_DURUMU_ANLAMAK",
+   "yil": 2000,
+   "v5_tahmin": "-1 (kredi_yok)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "1201 kare (2fps, ~10 dk). Kaba montaj (her 40. kare) ve son bolge ince taramasi (1080-1201, her 4. kare) tamamen film-ici sahne gosteriyor: mutfak/oda diyaloglari, iki kadin karakter, ve sonda kirmizi/mum isikli dramatik bir konusma sahnesi (yasli erkek + kadin). Hicbir yerde cast/crew/rol/yapimci ISIM LISTESI yok. Film 01197-01200 karelerinde tamamen siyaha (c_01200 mean=1.2) kararak bitiyor. Parlaklik profili (son 200 kare) uniform-parlak jenerik-metin desenine dair hicbir sinyal vermiyor (p99 degerleri normal sahne kontrasti, ani beyaz metin blogu yok). Bu 2000 yapimi eski-tarz film sonunda kapanis jenerigi TASIMIYOR. v5 'KREDI YOK' (-1) dedi ve gercekten kredi yok -> dogru."
+  },
+  {
+   "film": "2001-9194-1-0000-00-1_İNTİKAM",
+   "yil": 2001,
+   "v5_tahmin": "929",
+   "karar": "dogru",
+   "gercek_onset": 922,
+   "aciklama": "Film KAPANIS kredisi TASIYOR — dikey kayan cast/crew isim rulosu. Kareler 917-921: karanlik gece sahnesi (bokeh sehir/trafik isiklari), metin yok. Kare 922: ilk isim satiri (\"MARTIN BECK — PETER HABER\") en alt kenarda belli belirsiz belirir. Kare 923: ilk cast satiri net okunur (MARTIN BECK/PETER HABER, GUNVALD LARSSON/MIKAEL PERSBRANDT, SARA BEIJER/SOPHIE TOLSTOY...). 924+ tam kayan rulo: oyuncu rol-isim ciftleri, ardindan FOTOGRAF, LJUDTEKNIKER, PRODUCENTER, EXEKUTIVA PRODUCENTER, KOSTYM vb. filmin sonuna kadar surer. Bu Isvec \"Beck\" serisi — net rol/oyuncu listesi = jenerik. Gercek onset 922. v5 929 dedi; fark yalnizca 7 kare, +-20 toleransi icinde → dogru."
+  },
+  {
+   "film": "2002-9168-1-0000-00-1_DEFİNE_GEZEGENİ",
+   "yil": 2002,
+   "v5_tahmin": "485",
+   "karar": "dogru",
+   "gercek_onset": 482,
+   "aciklama": "Film: Treasure Planet (Define Gezegeni), Disney 2002 — modern film, tam kapanis jenerigi TASIYOR. Kaba tarama (vd_101.png) + ince tarama (460-555, vd_101_fine.png) yaptim. Kareler 460-464 film sahnesi (Jim pencerede), 466-480 filmin son cekimi mor gokyuzu/bulutlar karararak biter. Kare 482'de siyah zemine \"DIRECTED BY / John Musker and Ron Clements\" yazisi soluk belirmeye baslar, 484-488'de tam okunur hale gelir. Ardindan crew isim kartlari zinciri gelir: PRODUCED BY Roy Conli, ADAPTED FROM THE NOVEL 'TREASURE ISLAND' BY Robert Louis Stevenson, SCREENPLAY BY Ron Clements & John Musker and Rob Edwards, ANIMATION STORY BY..., ORIGINAL SCORE COMPOSED BY James Newton Howard, ORIGINAL SONGS John Rzeznik, ASSOCIATE PRODUCER Peter Del Vecho, EDITED BY Michael Kelly. Bunlar yonetmen/yapimci/senarist ISIM kredileri = jenerik. Sonra ~641'den itibaren tam CAST ve tum ekip listesi scroll halinde film sonuna kadar akar. Gercek onset ~482 (yazinin ilk soluk gorundugu kare). V5 485 dedi; 482'ye 3 kare uzakta, +-20 toleransi icinde, isabetli."
+  },
+  {
+   "film": "2002-9173-1-0000-00-1_ROBOCOP_KARA_ADALET",
+   "yil": 2002,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 1088,
+   "aciklama": "V5 \"-1 / KREDI YOK\" dedi ama film TAM bir kapanis jenerigi tasiyor; bu bir yanlis-negatif. 2002 yapimi (Robocop: Prime Directives, modern TV yapimi) — sonda cast/crew listesi bekleniyor ve var. Kuyruk izi: 01076-01079 RoboCop kaskli son film karesi; 01080-01082 karartma; 01083 \"WWW.ROBOCOP-PD.CA\" (yesil, promo URL — jenerik blogunun ilk karti ama isim/rol degil); 01088 \"FIREWORKS ENTERTAINMENT presents\" (ilk yapim sirketi kredisi — jenerik onset olarak aldigim kare); 01092 \"a JULIAN GRANT production\" (yonetmen adi); 01097 baslik \"ROBOCOP: PRIME DIRECTIVES\"; 01106+ oyuncu listesi (PAGE FLETCHER, MAURICE DEAN WINT, GERAINT WYN DAVIES, MARIA DEL MAR, ANTHONY LEMKE, KEVIN JUBINVILLE, FRANCOISE YIP...); 01146-01176 ekip rolleri (\"special effects by\", \"music by NORMAN ORENSTEIN\", \"executive producers JAY FIRESTONE & ADAM HAIGHT\", \"written by\", \"produced and directed by JULIAN GRANT\"). Jenerik filmin sonuna kadar uzaniyor. Onset icin isim/rol/sirket kuralina en uygun ilk kare 01088; sekans ilk metin fade-in'i 01083'te basliyor (URL), her ikisi de +-20 tolerans icinde. Montajlar: /tmp/claude-1000/-opt-mitas/1bd0cb57-0064-4841-b568-8555832193d6/scratchpad/lab/vd_102.png, vd_102_fine.png, vd_102_trans.png"
+  },
+  {
+   "film": "2003-9048-1-0000-00-1_İHTİRAS_CİNAYETİ",
+   "yil": 2003,
+   "v5_tahmin": "1101",
+   "karar": "dogru",
+   "gercek_onset": 1101,
+   "aciklama": "Modern film, tam kapanis jenerigi VAR. Son sahne (dag/ev, disari) ~kare 1096-1098'de karariyor; 1099-1100 tam siyah. Kare 1101'de ILK jenerik karti soluk fade-in ile beliriyor: \"EXECUTIVE PRODUCERS / Ronnie D. Clemmer / Bill Pace\" (crew isim kredisi). 1102-1103'te tam netlesiyor. Ardindan jenerik rulosu devam ediyor: \"Co-Starring\" oyuncu listesi (~1113), oyuncu kadrosu (Professor Glasner=Tony Larimar, Kathy=Rachel Kim Collins, ~1121), crew (Wardrobe Supervisor, Key Make-up... ~1128+) filmin sonuna kadar. Parlaklik analizi ile dogrulandi: kare 1100 max=7 (siyah), kare 1101 bright_px=3220/max=150 (metin fade-in basliyor), 1102 tam metin. Ilk jenerik karesi = 1101. v5 tahmini 1101 = gercek onset ile birebir. Not: kaba/ince montaj kucuk-olcekli oldugu icin soluk fade-in metni 1101-1106'da siyah gorunuyordu; piksel-parlaklik olcumu gercek onset'i netlestirdi."
+  },
+  {
+   "film": "2003-9064-1-0000-00-1_VIDOCQ",
+   "yil": 2003,
+   "v5_tahmin": "1073",
+   "karar": "dogru",
+   "gercek_onset": 1068,
+   "aciklama": "Film VIDOCQ (2003) — modern film, kapanis jeneriGi VAR. Yapi: kare 1041-1059 filmin son planI (altIn hac mezar taSI, jenerik degil). Kare ~1060-1067 tek satIrlIk anma/ithaf kartI \"A notre ami Jean-Francois MALLET\" scroll ile girer — tek cumle ara-yazI oldugu icin (MITAS kuralI: 'THE END/ithaf tek baSIna sayIlmaz, isim listesi baSlayInca baSlar') onset degil. Kare ~1068'de cast/crew ISIM listesi alt kenardan scroll ile girmeye baSlar: \"dans le role de Sylvia : Edith SCOB\", \"dans le role de Nimier : Moussa MAAKNI\", \"dans le role de Tauzet : Jean-Pierre GOS\", \"dans le role de Marine Lafitte : Isabelle RENAULD\" vb. Kredi 1076-1161+ boyunca (sonradan parSomen zemininde) yogunlaSarak filmin sonuna kadar surer. Gercek isim-listesi onset ~1068. v5=1073, farkI 5 kare, +-20 icinde → dogru."
+  },
+  {
+   "film": "2003-9136-1-0000-00-1_HARİKA_KÖPEK_5",
+   "yil": 2003,
+   "v5_tahmin": "613",
+   "karar": "yanlis_kare",
+   "gercek_onset": 737,
+   "aciklama": "Modern 2003 filmi, tam kapanis jenerigi VAR (cast+crew scroll, ~737'den film sonuna/1161'e kadar). Kareler 1-731 film icerigi (plaj voleybolu turnuvasi, aile, kopek); 725-731 son sahne (kiz kopegi kucakliyor). 733-735 tamamen siyah (parlaklik max ~2, 0 parlak piksel). Kare 737'de bolumun altindan \"Cast (In Alphabetical Order) / Pottery Vendor DARREN J. BIRCH\" yaziligi yukari kayarak giriyor -> gercek jenerik onset = 737. Crop ile dogrulandi. v5 613 dedi ama 613 canli-aksiyon voleybol maci karesi (fileye yakin duran kiz, metin yok); gercek onset'ten ~124 kare once, +-20 toleransin cok disinda. Kredi var ama kare yanlis."
+  },
+  {
+   "film": "2003-9195-1-0000-00-1_JERICO_APARTMANI",
+   "yil": 2003,
+   "v5_tahmin": "765",
+   "karar": "dogru",
+   "gercek_onset": 766,
+   "aciklama": "Film modern (2003) ve TAM kapanis kredisi tasiyor. Kaba tarama 721-736 karelerde son sahneyi (lamba altinda yatan adam) gosteriyor; 737-755 karanliga fade, 756-765 tam siyah. Parlaklik-artirimli ince tarama (762-773): 762-765 hala siyah (V5'in verdigi 765 dahil), 766 karesinde \"CAST IN ALPHABETICAL ORDER\" basligi + ilk cast satiri (Molly - VICTORIA JANE ALLEN) fade-in ile beliriyor. 767+ alfabetik cast listesi (Big Belly, Detective Camp, Lily Melnik, Leonard Grey, Gilbert, Priest...) progressif olarak aciliyor; sonra CREW, STUNT PLAYERS ve kapanis logolari (Kodak, color by deluxe, Quebec/New Brunswick Film, Canada, MEDIA) ~1161'e kadar suruyor. Gercek onset 766; V5'in 765 tahmini metin belirmeden 1 kare once, +-20 toleransinda tam isabet."
+  },
+  {
+   "film": "2004-9110-1-0000-00-1_BÜYÜK_TEHDİT",
+   "yil": 2004,
+   "v5_tahmin": "805",
+   "karar": "dogru",
+   "gercek_onset": 813,
+   "aciklama": "Film (\"HOTET\"/BÜYÜK TEHDİT, İsveç, 2004) modern-tarz kapanış jeneriği TAŞIYOR. Anlatı son sahnesi ~791-802 (arabada çift + zarf/fotoğraf, TR altyazılı diyalog). ~807-811 karlı yol havadan çekim (kapanış footage'ı), henüz metin yok. İlk oyuncu ismi \"SHANTI RONEY\" kare 813'te alt kenardan girmeye başlıyor; 815'ten itibaren kaydırmalı oyuncu listesi net okunuyor (SHANTI RONEY / MARIA BONNEVIE / STEFAN SAUK / DEJAN CUKIC / AXEL ZUBER / PETER FRANZEN...). 871-1121 ekip kredileri siyah zeminde departman listeleri, 1161 \"HOTET\" başlık kartı + yapım logoları (Cinema Art/Breidablik, KinoFinland, Universal). Gerçek onset ~813. v5=805, fark 8 kare, +-20 toleransı içinde → dogru."
+  },
+  {
+   "film": "2004-9131-1-0000-00-1_YALNIZ_SAVAŞÇI (Spartan, David Mamet)",
+   "yil": 2004,
+   "v5_tahmin": "909",
+   "karar": "yanlis_kare",
+   "gercek_onset": 1097,
+   "aciklama": "Kapanis jenerigi VAR ve dogru onset ~kare 1097. Kare 1094-1096 hala film-ici icerik: bir TV haber yayini sahnesi (monitorde 'LAURA NEWTON HOMECOMING' alt-bandi, sunucu konusuyor) — bu film-ici metin/yayin, jenerik DEGIL. Kare 1097'de goruntu siyaha gecer ve ilk crew kredi karti 'WRITTEN AND DIRECTED BY / DAVID MAMET' belirmeye baslar (1098'de tam okunur). Ardindan tam bir ekip listesi akar: PRODUCED BY (Art Linson, Moshe Diamant / Elie Samaha, David Bergstein), CO-PRODUCERS, EXECUTIVE PRODUCERS, DIRECTOR OF PHOTOGRAPHY (Juan Ruiz Anchia ASC), PRODUCTION DESIGNER, EDITED BY (Barbara Tulliver ACE), COSTUME DESIGNER, MUSIC BY (Mark Isham), LINE PRODUCER, CASTING BY — tail'in sonuna kadar. v5'in verdigi 909 karesi ise havuzdaki ~00921 bolgesindeki haber-yayini/story sahnesinin ortasi; gercek jenerik onset'inden (~1097) yaklasik 188 kare once, tolerans (+-20) disinda. Bu yuzden 'yanlis_kare'. Film: Spartan (2004), TR baslik Yalniz Savasci."
+  },
+  {
+   "film": "2005-9105-1-0000-00-1_İMPARATORUN_YOLCULUĞU",
+   "yil": 2005,
+   "v5_tahmin": "813",
+   "karar": "dogru",
+   "gercek_onset": 825,
+   "aciklama": "Film: March of the Penguins / La Marche de l'empereur (İmparatorun Yolculuğu), 2005 belgeseli. Kuyruk yapisi: kare 1-809 penguen goruntuleri + son sahne (buzdagi/okyanus), metin yok. Kare ~811-824: TAM EKRAN kapanis NARRASYON metni ('Ils vont rester quatre ans en mer... comme par magie...') + WWF 'for a living planet' logosu. Bu film-ici narrasyon/ara-yazi (birkac cumle), isim listesi DEGIL -> jenerik degil. Kare 825: narrasyon karti kaybolur, GERCEK cast/crew jenerik yuvarlanmasi baslar; en altta ilk soluk satir 'Une histoire racontee par - Romane Bohringer' belirir. Kare 826+ net okunur isimler yukari kayar: Romane Bohringer, Charles Berling, Jules Sitruk (seslendirme), Emilie Simon (muzik), Luc Jacquet (yonetmen), Yves Darondeau/Christophe Lioud/Emmanuel Priou (yapimci). Bu net kapanis kredisi. Gercek onset = 825. V5 813 dedi; 813 aslinda narrasyon kartina denk geliyor ama gercek onset 825'e |825-813|=12 kare mesafede, +-20 tolerans icinde -> dogru."
+  },
+  {
+   "film": "2005-9162-1-0000-00-1_DİPTEKİLER",
+   "yil": 2005,
+   "v5_tahmin": "573",
+   "karar": "yanlis_kare",
+   "gercek_onset": 416,
+   "aciklama": "Film TAM kapanis jenerigi tasiyor (modern film, David Twohy'nin \"Below\" filmi, Ingilizce krediler). Yapi: kare 408-410 son sahne (sualti gemi enkazi mavi sahne), 411-415 karartma, kare 416'da ILK kredi karti \"DIRECTED BY DAVID TWOHY\" beliriyor = jenerik onset. Ardindan 425 WRITTEN BY, 435 PRODUCED BY (Sue Baden-Powell/Darren Aronofsky/Eric Watson), 445 EXECUTIVE PRODUCERS, 455 CO-PRODUCERS kartlari, sonra 601+ tam kayan cast/crew listeleri (First Assistant Director, Stunts, Makeup, VFX...) film sonuna kadar. Adim-1 parlaklastirilmis tarama ile onset kesin: kare 415 siyah, kare 416 metin var. v5=573 ise \"A PROTOZOA PICTURES PRODUCTION\" civari, gercek onsetten 157 kare sonra (|573-416|=157, +-20 esiginin cok otesinde). Kredi VAR ama v5 kareyi cok gec verdi."
+  },
+  {
+   "film": "2006-9139-1-0000-90-1_TAKTİKLER_SAVAŞI",
+   "yil": 2006,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 651,
+   "aciklama": "Film 2006 yapımı bir Asya (HK/Çin-Japon ortak yapım) dönem filmi ve NET bir kapanış jeneriği taşıyor — v5'in \"KREDI YOK\" (-1) tahmini YANLIŞ. Tail akışı: ~c_00001-00640 film sahneleri (savaş/yağmur/dış çekimler); c_00641-00648 dikey Çince yazılı bir parşömen epilog kartı (tarihsel sonucu özetleyen film-içi ara-yazı = jenerik DEĞİL); c_00649-00650 karartma. Kapanış jeneriği c_00651'de \"screenplay, produced and directed by / jacob cheung\" crew kredisinin fade-in başlangıcıyla açılır (00652-00653'te tam okunur). Ardından kesintisiz cast/crew İSİM listesi: based on comic 'hokku', andy lau, ahn sunghi, wang shiwen, fan bingbing, introducing choi siwon/sammy hung, special appearance, Huayi Brothers Pictures, produced by, producers, executive producers, associate producers, line producer, action director, director of photography sensho sakamoto, production/costume designer, music by kenji kawai, film edited by eric kong... jenerik filmin sonuna (c_01161+) kadar uzanır. Onset = ilk crew kredisinin belirdiği kare 651 (fade-in ilk faint görünüm). Montajlar: lab/vd_108.png, vd_108_fine.png, vd_108_onset.png."
+  },
+  {
+   "film": "2006-9143-1-0000-90-1_300_SPARTALI",
+   "yil": 2006,
+   "v5_tahmin": "325",
+   "karar": "dogru",
+   "gercek_onset": 325,
+   "aciklama": "Modern film (300, 2006), kapanis jenerigi VAR. Kare 281-305 film icerigi (Spartali askerler, ordu, savas). 309-321 arasi ekran karariyor (gecis). Kare 325'te ilk jenerik kartI 'DIRECTED BY ZACK SNYDER' beliriyor; ardindan 329+ SCREENPLAY BY ZACK SNYDER & KURT JOHNSTAD, BASED ON THE GRAPHIC NOVEL BY FRANK MILLER AND LYNN VARLEY, PRODUCED BY GIANNI NUNNARI/MARK CANTON/BERNIE GOLDMANN/JEFFREY SILVER, EXECUTIVE PRODUCERS THOMAS TULL/WILLIAM FAY vb. parsomen-kan zeminli crew isim listesi. Onset = 325. v5 tahmini 325 ile tam isabet."
+  },
+  {
+   "film": "2008-9046-1-0000-88-1_MEVLANA_AŞKIN_DANSI",
+   "yil": 2008,
+   "v5_tahmin": "733",
+   "karar": "yanlis_kare",
+   "gercek_onset": 754,
+   "aciklama": "Film GERÇEK bir kapanış jeneriği taşıyor (modern 2008 yapımı). Tail akışı: 1-752 sahne içeriği (yeşil hırkalı adam pencere önünde, cami silüetleri, UN konuşmaları — hepsinde Arapça altyazı, film-içi). Kare 753 karanlık cross-fade geçiş (okunur metin yok). Kare 754'te ilk kredi kartı fade-in yapıyor: 'SENARYO - YÖNETMEN / KÜRŞAT KIZBAZ' (senaryo-yönetmen isim kredisi), 755-759'da tam belirginleşiyor. Ardından tam oyuncu listesi (Cast: Mevlana...Sinan Tuzcu, Şems...Burak Sergen, Çelebi Hüsameddin...Özcan Deniz), yapım ekibi, sponsor logoları (HSBC, Hyundai) ve uzun isim listeleri ~1161'e (reel sonuna) kadar sürüyor. GERÇEK ONSET = 754. v5 733 dedi; 733 hâlâ sahne (pencere önündeki adam, Arapça altyazılı), kredi DEĞİL. Fark 754-733=21 kare — ±20 toleransının 1 kare dışında, sınırda bir kayma. Nitel olarak v5'in karesi jenerikte değil sahnede olduğu için yanlis_kare. gercek_onset=754."
+  },
+  {
+   "film": "2008-9066-1-0000-00-1_MESLEĞE_DÖNÜŞ",
+   "yil": 2008,
+   "v5_tahmin": "693",
+   "karar": "yanlis_kare",
+   "gercek_onset": 373,
+   "aciklama": "2008 filmi, tam kapanis jenerigi VAR. Yapi: son sahne montajina (araba/Tower Bridge) icten gecen isimli krew/oyuncu kartlari — DIRECTED BY CHRIS MUNRO (373), PRODUCED BY NEIL J. GARDINER (381), WRITTEN BY (401), EXECUTIVE PRODUCER PEGGY LONGHURST (421), EXECUTIVE PRODUCERS D.T. ROSS/DAVID GARLICK (441), ASSOCIATE PRODUCERS (466), MUSIC COMPOSED BY MARK THOMAS (521), oyuncu karti BRIAN BLESSED AS TREVOR PILKINGTON (641) — sonra ~721'den itibaren yogun kayan krew jeneriği filmin sonuna (1200) kadar. Gercek onset frame 373: ilk krew ismi karti 'DIRECTED BY CHRIS MUNRO' 00371-00372 siyah gecisten sonra 00373'te belirmeye baslar, 00374'te net. Oncesi (362-370) canli aksiyon. v5 693 dedi; bu yogun kayan crawl'in belirginlestigi bolgeye yakin ama jeneriği acan ic-ice kart dizisini (373'ten baslayan) tamamen kacirdi. Sapma ~320 kare, ±20 toleransinin cok disinda → yanlis_kare."
+  },
+  {
+   "film": "2010-9139-1-0000-00-1_ROBIN_HOOD",
+   "yil": 2010,
+   "v5_tahmin": "1049",
+   "karar": "dogru",
+   "gercek_onset": 1046,
+   "aciklama": "Animasyon (anime) Robin Hood. Tail 1042'ye kadar sahne; sonra statik jenerik zemini (mucevherli hac + mum) uzerinde yesil kayan ekip-isim listesi basliyor. Kare 1043-1044: jenerik zemini beliriyor, metin YOK. 1045: cok soluk 'PRODUCER' izi. 1046: 'PRODUCER Orlando Corradi' net okunuyor (ilk ekip ismi). Devaminda EXECUTIVE PRODUCER Walter Sabatinelli, AUTHOR Ippei Kuri, PRODUCTION ADMIN Anna Giorgetti/Monica Corradi, ART DIRECTOR Giuliana Bertozzi, SCENARIO SUPERVISOR Riccardo Cortari, SOUND ENGINEER Terry Wilson vb. Gercek kapanis jenerigi var, onset ~1046. v5 1049 dedi; farki 3 kare, +-20 toleransi icinde. Karar: dogru."
+  },
+  {
+   "film": "2010-9150-1-0000-00-1_HANNA'NIN_ALTINLARI",
+   "yil": 2010,
+   "v5_tahmin": "741",
+   "karar": "dogru",
+   "gercek_onset": 736,
+   "aciklama": "Film gercek bir kapanis jenerigi tasiyor (2010 yapimi, modern -> sonda cast/crew listesi bekleniyor ve var). Akis: kareler 720-732 son karanlik sahne (topraktan cikan altin/hazine); 733-734 tamamen siyah (bolge parlaklik ort=1.0, max=1); 735'te ilk alt-esik pikseller belirir; 736'da 'CAST' basligi tanimlanabilir hale gelir (parlatinca gorunur); 739-741'de 'CAST' + ilk rol->oyuncu satirlari okunabilir (Hanna - Morjana O'Mara, Jasmine - Alana O'Mara, Luke - Dan Simoen...). 761-1161 karelerinde tam ekip jenerigi (yonetmen, yapimci, departman listeleri) film sonuna kadar akiyor, ~1161'de kapanis yapim-sirketi logosu. Bu net bir rol->oyuncu ISIM listesi = jenerik. Fade-in basi ~736 (ilk tanimlanabilir kare), ilk piksel 735. v5=741, gercek onset 736'dan sadece 5 kare uzakta -> +-20 toleransi icinde, isabetli."
+  },
+  {
+   "film": "2011-9026-0-0001-85-1_MYSTER_ALASKA",
+   "yil": 2011,
+   "v5_tahmin": "1049",
+   "karar": "dogru",
+   "gercek_onset": 1047,
+   "aciklama": "Kapanis jenerigi VAR: alttan yukari kayan klasik jenerik rulosu. Ilk crew kredisi \"Unit Production Manager FRAN ROSATI\" kare ~1047'de en altta belirmeye baslar, 1048'de okunur, 1049'da tam gorunur; ardindan Post Production Supervisor RICHARD COWAN, Assistant Directors, sonra \"CAST\" ve isim listesi (RUSSELL CROWE, HANK AZARIA, BURT REYNOLDS, MARY McCORMACK, COLM MEANEY, LOLITA DAVIDOVICH vb.) gelir. Rulo tail sonuna (~1129+) kadar surer. ~1047 oncesi kareler karli mezarlik/dag manzarasinda yuruyen final sahnesi, metin yok. v5=1049, gercek onset ~1047 — 1-2 kare farkla isabetli."
+  },
+  {
+   "film": "2011-9186-1-0000-90-1_KÖPEKBALIĞI_KÖRFEZİNİN_YU",
+   "yil": 2011,
+   "v5_tahmin": "1149",
+   "karar": "dogru",
+   "gercek_onset": 1148,
+   "aciklama": "BBC Earth belgeseli (Köpekbalığı Körfezi/Shark Bay). Tail: yüzeyde yunuslar+günbatımı footage'ı (1120-1145), 1146-1147 tam siyah (fade), 1148'de ilk kredi metni \"produced & directed by NICK STRINGER\" beliriyor. Ardından tam crew listesi: photography, sound recordist, film editors, music by, dubbing editors, colourist, online editor, script/scientific consultant, production staff, executive producer, series producer, Series Editor + BBC EARTH logo (1201'e kadar). Kesin cast/crew isim listesi = kapanış jeneriği. Parlaklık ölçümü: 1146-1147 mean=0.0 brightpx=0; 1148 brightpx=1359 (ilk metin). Gerçek onset=1148. v5=1149, fark 1 kare, +-20 içinde → dogru."
+  },
+  {
+   "film": "2011-9224-1-0000-88-1_KANDAHAR",
+   "yil": 2011,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 964,
+   "aciklama": "Film, Kandahar'in ikonik gunes-tutulmasi/burka-fileden isik goruntusuyle biter (kare ~901-962), kare 963'te tam siyaha doner. Hemen ardindan Farsca KAPANIS JENERIGI baslar: kare 964'te alt bolgede ilk kredi metni pikselleri belirir (parlaklik max 166->230), kare 965-966'da 'بازیگران:' (Oyuncular/Cast) basligi ve altinda isim listesi net okunur. Kare 964'ten filmin son karesine (c_01201) kadar tail kesintisiz kayan Farsca cast+crew isim listesi: oyuncular, sonra مدیر تولید (yapim muduru), دستیار کارگردان (yonetmen yardimcisi), منشی صحنه, برنامه ریز gibi ekip rolleri. Bu net bir cast/crew ISIM LISTESI = jenerik. v5 'KREDI YOK' (-1) dedi ama kredi acikca VAR -> yanlis-negatif. Gercek onset kare 964 (ilk metin belirisi); 965-966'da tam okunur. Film-1 montajinda 1-921 arasi tamamen coldeki burkali kadinlar sahnesi, once hicbir kredi yok; tek jenerik blogu sonda."
+  },
+  {
+   "film": "2014-9078-1-0000-90-1_KAHRAMAN_UZAYLILAR",
+   "yil": 2014,
+   "v5_tahmin": "345",
+   "karar": "dogru",
+   "gercek_onset": 365,
+   "aciklama": "Modern animasyon filmi (Escape from Planet Earth / Cal Brunker) - sonda TAM kapanis jenerigi VAR. Gecis izi: 355-361 kareler filmin finali (kirmizi yaratik + mavi uzaylilar sahnede, film-ici). 363 = siyah kesme (film biter). 365 = ilk stilize jenerik karesi (boyali sicrama-art arka plan + animasyonlu karakter, kapanis-jenerik tasarimi baslar), henuz isim yok. 367 = ilk oyuncu ismi \"ROB CORDDRY\" belirir. Sonra 375 BRENDAN FRASER, 381 SARAH JESSICA PARKER, 391 JESSICA ALBA, 439 Directed by CAL BRUNKER, 445+ Written/Produced kartlari, ~561-1161 arasi yogun ekip listesi filmin sonuna kadar akar. GERCEK ONSET = 365 (jenerik dizisi basi; ilk isim 367). v5 tahmini 345 hala film-ici kutlama sahnesi (~10 sn erken) - gercek onset'e |345-365|=20 kare uzaklikta, tam +-20 tolerans sinirinda oldugu icin 'dogru' (sinir vakasi). NOT: v5'in gosterdigi kare teknik olarak film-ici sahne; isabet tolerans esiginin tam kenarinda."
+  },
+  {
+   "film": "2017-1081-1-0000-50-0_KARAVAN",
+   "yil": 2017,
+   "v5_tahmin": "753",
+   "karar": "yanlis_kare",
+   "gercek_onset": 577,
+   "aciklama": "Film \"The Leisure Seeker\" (KARAVAN, 2017, yon. Paolo Virzi). Kapanis jenerigi VAR ve mezarlik sahnesi uzerine akan (rolling) bir kredi dizisi olarak baslar. Kare kare tarama ile kesin onset: 00566-00576 metinsiz; 00577'de sag ust kosede \"directed by PAOLO VIRZI\" (yonetmen ismi = crew kredisi) ILK kez belirir -> onset 577. Ardindan surekli akar: producers (588), executive producers (594-624), screenplay (618), music CARLO VIRZI (630), editor JACOPO QUADRI (654), costume designer (660), sonra oyuncular HELEN MIRREN (690), DONALD SUTHERLAND (696-702), CHRISTIAN McKAY (708), JANEL MOLONEY (714), DANA IVEY (720), DICK GREGORY (732), \"The Leisure Seeker\" ara-baslik karti (740), ardindan gokyuzu/fabrika sahnesi uzerine crew listeleri (764+) ve son olarak siyah zeminde tam kredi rulolari (884+). v5'in verdigi 753, baslik kartindan (740) sonraki gokyuzu sahnesinde, crew kredileri gokyuzu uzerinde tekrar basladan (~764) hemen once bos bir kareye denk geliyor; jenerik o noktada zaten ~176 karedir akmaktaydi. Gercek onset (577) v5 tahmininden 176 kare erken, +-20 toleransinin cok disinda -> yanlis_kare (gec tahmin). Kredi kesinlikle VAR, yanlis-pozitif degil."
+  },
+  {
+   "film": "2018-0017-1-0000-90-1_KAPAN",
+   "yil": 2018,
+   "v5_tahmin": "861",
+   "karar": "dogru",
+   "gercek_onset": 851,
+   "aciklama": "Film gercek kapanis jenerigi (cast/crew isim listesi) tasiyor. Son sahne (gol kiyisi) ~kare 838'de bitiyor. Kare 840-848 arasi \"KAPAN\" film basligi fade in/out yapiyor — bu film ADI (THE END muadili), isim degil, jenerik onset'i sayilmaz. Kare 849-850 siyah. Kare 851'de ilk isimli kunye beliriyor: \"Yonetmen/Director: Seyid Colak\" — cast/crew isim listesinin gercek baslangici burasi. 861'de \"Senaryo/Story: Guven Adiguzel-Seyid Colak\" (v5'in isaret ettigi kare). 861'den sonra kesintisiz devam ediyor: goruntu yonetmeni, kurgu, yapimcilar, ardindan 961-981 arasi tam oyuncu/ekip listeleri ve sonda logolar (UNITE/TRT). Gercek onset 851; v5'in 861 tahmini 10 kare sapmayla +-20 toleransi icinde → dogru."
+  },
+  {
+   "film": "2018-0053-1-0000-85-1_UZUN_ZAMAN_ÖNCE",
+   "yil": 2018,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "dogru",
+   "gercek_onset": -1,
+   "aciklama": "Tum tail (1201 kare, son 10 dk @2fps) uc montajla tarandi (kaba 30-kare, orta 930-1085, son 1081-1201 + parlatilmis 1194-1201). Icerik bastan sona anlatisal: diyalog cekimleri, koy/dis mekan, ic mekan sahneleri; ~1046'dan itibaren adamin kapi/pencere ardindan suya baktigi tek sabit final cekimi, 1201'de karararak biter. Hicbir karede cast/crew/rol/yapimci ISIM listesi, kayan yazi veya herhangi bir metin yok — parlatilmis final karelerinde bile yazi cikmiyor. Film son anlatisal cekimle siyaha kararak bitiyor; kapanis jenerigi bu pencerede YOK. v5 -1 (KREDI YOK) demis, gozlemle birebir ortusuyor."
+  },
+  {
+   "film": "2019-1091-1-0000-70-0_SAKLI_GERÇEKLER",
+   "yil": 2019,
+   "v5_tahmin": "857",
+   "karar": "yanlis_kare",
+   "gercek_onset": 708,
+   "aciklama": "Film (La Verite / Kore-eda 2019, TR: Sakli Gercekler) kapanis jenerigi TASIYOR. 600-697 kareler filmin son sahnesi (bahcede yuruyen karakterler, Catherine Deneuve close-up ile biter). ~700'de sonbahar-bahce ayak-goruntusune (aerial) kesiliyor ve uzerine cast isim overlay'leri fade-in oluyor. Ilk isim \"Catherine DENEUVE\" 706'da yok, 708'de fade-in ile beliriyor, 710-714'te net okunuyor (bl_708.png, t_714.png ile dogrulandi). Ardindan Juliette BINOCHE, Ethan HAWKE vb. sirayla akiyor. ~842'de siyah zemine kesip kayan crew kredi sutunlarina donuyor (~940+'a kadar), sonda AKILLIS gibi yapim logolari var. Gercek jenerik onset ~708. v5'in verdigi 857 karesi bu isim listesinin ~149 kare (2fps'te ~74sn) SONRASINDA, siyah-zemin kayan-kredi blogunun icinde kaliyor -- +-20 toleransinin cok disinda, yanlis kare."
+  },
+  {
+   "film": "2023-1047-1-0000-90-1_GELECEK_GÜNLER",
+   "yil": 2023,
+   "v5_tahmin": "741",
+   "karar": "yanlis_kare",
+   "gercek_onset": 672,
+   "aciklama": "Modern Fransiz filmi (Mia Hansen-Love / Isabelle Huppert) — kapanis jenerigi VAR. Cast isim kartlari statik bir ic-mekan arka plani uzerinde beliriyor. Kare 0667-0671'de metin yok; kare 0672'de ilk cast ismi \"ISABELLE HUPPERT\" beliriyor (gercek onset). Ardindan Andre Marcon (~697), Roman Kolinka (~705), Edith Scob (~713), Sarah Le Picard (721), yonetmen Mia Hansen-Love (741), yapimci Charles Gillibert (749), Fabian Gasmia (757) ve 921'den itibaren cok-sutunlu tam ekip listesi filmin sonuna kadar uzaniyor. v5'in verdigi 741 karesi yonetmen kartina denk geliyor — jenerigin BASI degil, 69 kare icinde (±20 toleransin cok disinda). Dogru onset 672."
+  },
+  {
+   "film": "2023-1224-1-0000-56-1_ARKADAŞIMIN_EVİ_NEREDE",
+   "yil": 2023,
+   "v5_tahmin": "kredi_yok (-1)",
+   "karar": "yanlis_kredi_var",
+   "gercek_onset": 925,
+   "aciklama": "Film: Kiarostami \"Arkadaşımın Evi Nerede\" (Türkçe altyazılı). Son sahne kare 916-919 (deftere sıkıştırılmış çiçek, altyazı \"Aferin. Güzel olmuş.\"). Kare 920-924 tam siyah (0 parlak piksel). Kare 925'ten itibaren Farsça oyuncu/ekip İSİM LİSTESİ fade-in başlıyor: ilk okunur satır kare 928'de \"بابک احمد پور — احمد\" (Babak Ahmadpour = Ahmad rolü, baş çocuk oyuncu), ardından محمد رضا نعمت زاده, خدابخش دفاعی ve معلم/مادر/پدر rol etiketleriyle tüm kadro satır satır beliriyor, film sonuna kadar sürüp yönetmen عباس کیارستمی (Abbas Kiarostami) ile kapanıyor. Bu NET bir kapanış jeneriğidir. v5 \"-1 / KREDİ YOK\" dedi = yanlış-negatif. Gerçek onset ~925 (fade başlangıcı; ilk parlak pikseller). Parlaklık kanıtı: 924 brightpx=0, 925 brightpx=242, 928 brightpx=1594."
+  },
+  {
+   "film": "2025-1112-1-0000-56-1_İNİŞLİ_ÇIKIŞLI_BİR_ÖYK",
+   "yil": 2025,
+   "v5_tahmin": "945",
+   "karar": "yanlis_kare",
+   "gercek_onset": 862,
+   "aciklama": "Modern (2025) Iran filmi; kapanis jenerigi VAR ve genis. Son sahne (iki kadin, gece yol) ~852'de biter; ~853/854'te siyaha kesip once FILM BASLIK karti gelir (\"INISLI CIKISLI BIR OYKU\" + Farsca kaligrafi logo, altta sarki sozu altyazilari). Baslik karti tek basina kredi sayilmaz (kural: baslik/END karti tek basina degil, ismle basla). Ilk ekip ismi ~862'de: \"کارگردان کمال تبریزی\" = YONETMEN Kamal Tabrizi (kirmizi kaligrafi isim), altta sarki sozu altyazisi devam eder. ~876'da \"نویسنده\"=YAZAR karti, ardindan tek-tek rol+isim kartlari (yapimci, kurgu, sahne tasarim, muzik, goruntu vs.), ve ~946'dan filmin sonuna kadar cok-sutunlu TAM oyuncu/ekip isim listeleri (بازیگران vb.). V5=945 SADECE gec gelen toplu isim-listesi blogunu (~946) yakalamis; ondan onceki ~80 karelik tekil kaligrafik rol+isim kartlarini (yonetmen ~862, yazar ~876...) atlamis. Gercek onset ~862, v5'ten 83 kare once -> +-20 toleransinin cok disinda. Karar: yanlis_kare."
+  }
+ ],
+ "rapor": null
+}
