@@ -92,7 +92,14 @@ regresyonla geri alındı — dürüst ret). ×2 ölçüm deterministik + bağı
 Kalan 7: 5 kabul-edilebilir-erken (TV-bandı/epilog/tabela sınıfı) + 2 geç (GELECEK +91
 yapısal boşluk, İNİŞLİ +89). Kalıcı çözüm adayı: dar-VLM (ayrı karar).
 
-**Bekleyen:** üretim entegrasyonu kararı (start_pos güvenlik payı önerisi planda);
+**ÜRETİM AKTİVASYONU (Çağatay: "artık aktif stratejimiz bu", d757ecc):** tespit_v5,
+_jenerik_pool.py'de bayraklı birincil yol olarak ÜRETİMDE (MITAS_JENERIK_V5=1, mitas.env).
+v5 başarılıysa start_pos otoritesi + eski yama yığını atlanır; kredi_yok/hata → eski akış
+birebir (fail-safe). Güvenlik payı PAD=10 kare (asimetri politikası). Smoke: 13. SAVAŞÇI
+kopyasında v5=319 vs eski-CV=318 (çapraz-doğrulama), bayrak-kapalı davranış birebir.
+GitHub'a push edildi (main).
+
+**Bekleyen:** 
 açılış-jeneriği tasarımı; Qwen için Alibaba Model Studio aktivasyonu (Çağatay).
 
 ## 2026-07-23 (öğleden sonra) — testas özet stratejisi MITAS'a entegre edildi (v2, flag arkasında)
