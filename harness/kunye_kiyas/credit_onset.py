@@ -561,12 +561,22 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     # uzanır. Film-ortası metin insertı (MODERN arananıyor-afişi) daha erken biter,
     # ardından FİLM DEVAM EDER. Aday sonu son %18'e ulaşmıyorsa kredi değildir.
     SON_ERISIM = 0.82
+    # SON_ERISIM gevşetmesi (T6, plan Görev6/Adım3): bazı gerçek kapanış kredileri
+    # filmin en son birkaç saniyesine ULAŞMADAN biter (DOĞUM_GÜNÜN atlas kanıtı —
+    # son_capa=0.74, yayın-sonu boş/logo kareleri kutu üretmiyor). Yalnız filmin
+    # SON metin-koşusu (sonrasında başka aday YOK) VE kb≥0.9 (çok yüksek içerik
+    # güveni) VE ≥1 _ROL_CEKIRDEK VARSA eşik 0.82→0.70'e gevşer. 0.70'i AŞAN
+    # gevşetme YASAK (plan: film-ortası insert kapısı, kırmızı-çizgi riski).
+    SON_ERISIM_GEVSEK = 0.70
     en_iyi = None
     kayitlar = []   # teşhis: aday başına {a,b,kare_a,kare_b,son_ok,kb,joint,roller} (T2)
-    for (a, b) in adaylar:
+    for widx, (a, b) in enumerate(adaylar):
         kare_a, kare_b = _kare_no(g[idx[a]]), _kare_no(g[idx[b]])
-        son_ok = b >= SON_ERISIM * (n - 1)
-        if not son_ok:
+        son_capa_orani = b / max(1, n - 1)
+        son_ok = son_capa_orani >= SON_ERISIM
+        is_last = (widx == len(adaylar) - 1)
+        gevsetme_aday = (not son_ok) and is_last and son_capa_orani >= SON_ERISIM_GEVSEK
+        if not son_ok and not gevsetme_aday:
             # SON_ERISIM'e takıldı → içerik OCR'ı hiç ÇALIŞTIRMA (maliyet artmasın)
             kayitlar.append({"a": a, "b": b, "kare_a": kare_a, "kare_b": kare_b,
                               "son_ok": False, "kb": None, "joint": None, "roller": []})
@@ -611,10 +621,16 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         if len(core_roller) >= 2:
             kb_seyrek = cc.kredi_skoru_coklu(kare_satirlari, yogun_esik=2)
             kb_max = max(kb_max, kb_seyrek)
+        if gevsetme_aday and not (kb_max >= 0.9 and core_roller):
+            # gevşetme hakkı kazanılmadı (kb<0.9 VEYA çekirdek-rol yok) — normal
+            # SON_ERISIM'e takılmış gibi davran (kb'yi teşhis için sakla).
+            kayitlar.append({"a": a, "b": b, "kare_a": kare_a, "kare_b": kare_b,
+                              "son_ok": False, "kb": round(kb_max, 3), "joint": None,
+                              "roller": []})
+            continue
         scroll_var = bool(scroll[a:b + 1].any())
-        son_capa = b / max(1, n - 1)                 # sona yakınlık 0..1
         yogunluk = min(1.0, float(say[a:b + 1].max()) / 8.0)
-        joint = kb_max * (1.0 + 0.3 * scroll_var + 0.35 * son_capa + 0.15 * yogunluk)
+        joint = kb_max * (1.0 + 0.3 * scroll_var + 0.35 * son_capa_orani + 0.15 * yogunluk)
         roller = sorted({m.lower()
                           for sl in kare_satirlari for s in sl for m in cc._ROL.findall(s)})
         kayitlar.append({"a": a, "b": b, "kare_a": kare_a, "kare_b": kare_b,
