@@ -91,6 +91,33 @@ HYBRID_LOG: list = []          # gölge kayıtları; process_film koşu sonunda 
 
 
 # --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 — Görev M4 (docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md) kök-sebep
+# fix'leri (F1: bu commit; F2/F3 sonraki commit'lerde eklenecek) bu bayrak ARKASINDA.
+# KRİTİK: bayrak MODÜL YÜKLEME zamanında DEĞİL, her compose_reading_runaware/
+# compose_slit ÇAĞRISINDA os.environ'dan okunur (_v2_enabled()) -- böylece aynı
+# süreçte (örn. bit-parite testinde) flag AÇIK/KAPALI iki çağrı art arda yapılabilir.
+# Bayrak KAPALI (varsayılan) -> bu fonksiyonların hiçbiri çağrılmaz, eski kod yolu
+# bit-birebir (np.array_equal kanıtı: harness/master_dup/test_bit_parite.py).
+def _v2_enabled() -> bool:
+    return os.environ.get("MITAS_MASTER_V2", "0").strip() == "1"
+
+
+# F1 (H2 kök-sebep: ardışık-OLMAYAN kart tekrarı gardı yoktu, 60/112 filmde birincil
+# hipotez) -- global kart kaydı eşikleri. KONSEY KARARI (2026-07-23, GLM tam katılım):
+# kapı-1 dHash ham eşiği 2'den 4'e gevşetildi (codec artefaktı payı); kapı-2 hizalı-
+# maske faz-korelasyon yanıtı >=0.8; kapı-3 hizalı-maske XOR fark-oranı (toplam +
+# 32px bant-yerel) -- bant-yerel kontrol tek IoU sayısı yerine, çünkü iki kart genel
+# olarak örtüşse bile TEK bir bantta (örn. isim satırı) farklıysa bu "aynı" değil
+# "farklı kredi" demektir; herhangi bir kapı tutmazsa kart KORUNUR (yanlış-silmeye
+# ASLA yatma).
+F1_HASH_GATE = 4
+F1_RESP_GATE = 0.8
+F1_TOTAL_DIFF_GATE = 0.05   # skip-audit (M4 adım 5e) özdeş-olmayan atlama bulursa ->0.03
+F1_BAND_DIFF_GATE = 0.30
+F1_BAND_PX = 32             # KONSEY KARARI: sabit 32px (çözünürlüğe göre ölçeklenmez)
+
+
+# --------------------------------------------------------------------------- #
 # resolution-normalized parameters
 # --------------------------------------------------------------------------- #
 @dataclass
@@ -309,6 +336,82 @@ def _aligned_text_mask_similarity(first: np.ndarray, second: np.ndarray) -> tupl
     union = np.logical_or(aligned_on, b_on).sum()
     iou = np.logical_and(aligned_on, b_on).sum() / max(1, int(union))
     return float(response), float(iou)
+
+
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F1 -- global kart kaydı (H2 kök-sebep) yardımcıları
+# --------------------------------------------------------------------------- #
+def _aligned_mask_diff_bands(first: np.ndarray, second: np.ndarray, band_px: int = F1_BAND_PX) -> dict | None:
+    """F1 kapı-2/kapı-3: faz-korelasyonla hizala, toplam XOR fark-oranı + 32px'lik
+    yatay bantlarda YEREL fark-oranı hesapla. Şekiller farklıysa (ya da None) None
+    döner -- çağıran bunu "kapı geçmedi" (kart KORUNUR) olarak okur.
+
+    Not: toplam fark_oranı = XOR/birleşim = 1 - IoU (matematiksel olarak
+    _aligned_text_mask_similarity'nin IoU'suyla özdeş); burada AYRICA bant-yerel
+    fark gerektiği için hizalanmış ikili maskeler yeniden üretiliyor (mevcut
+    fonksiyon yalnız skaler döndürüyor, _aligned_text_mask_similarity'nin kendisi
+    bit-parite şartı nedeniyle DEĞİŞTİRİLMEDİ)."""
+    if first is None or second is None or first.shape != second.shape:
+        return None
+    a = (first > 0).astype(np.float32)
+    b = (second > 0).astype(np.float32)
+    (dx, dy), response = cv2.phaseCorrelate(a, b)
+    transform = np.float32([[1, 0, dx], [0, 1, dy]])
+    aligned = cv2.warpAffine(a, transform, (a.shape[1], a.shape[0]))
+    aligned_on = aligned > 0.5
+    b_on = b > 0.5
+    union = np.logical_or(aligned_on, b_on)
+    inter = np.logical_and(aligned_on, b_on)
+    union_n = int(union.sum())
+    fark_orani = float((union_n - int(inter.sum())) / union_n) if union_n else 0.0
+    h = aligned_on.shape[0]
+    max_band_fark = 0.0
+    for y0 in range(0, h, band_px):
+        y1 = min(h, y0 + band_px)
+        band_union_n = int(union[y0:y1, :].sum())
+        if band_union_n == 0:
+            continue
+        band_inter_n = int(inter[y0:y1, :].sum())
+        band_fark = (band_union_n - band_inter_n) / band_union_n
+        if band_fark > max_band_fark:
+            max_band_fark = band_fark
+    return {
+        "response": float(response),
+        "fark_orani": fark_orani,
+        "max_band_fark": float(max_band_fark),
+    }
+
+
+def _card_distant_dup_match(
+    new_thh: int,
+    new_mask: np.ndarray,
+    registry: list[dict],
+    *,
+    hash_gate: int = F1_HASH_GATE,
+    resp_gate: float = F1_RESP_GATE,
+    total_diff_gate: float = F1_TOTAL_DIFF_GATE,
+    band_diff_gate: float = F1_BAND_DIFF_GATE,
+    band_px: int = F1_BAND_PX,
+) -> dict | None:
+    """F1 (H2): yeni kart, kaydedilmiş ÖNCEKİ TÜM kartlarla üç-kapılı denetimden
+    geçirilir (kapı-1 dHash aday, kapı-2 hizalama yanıtı, kapı-3 XOR fark-bandı).
+    Herhangi bir kapı tutmazsa (ya da hiçbir aday geçmezse) None -- kart KORUNUR.
+    Yalnız ilk eşleşen aday döner (registry ekleniş sırasıyla, en erken eş kart)."""
+    for entry in registry:
+        if hamming(new_thh, entry["dhash"]) > hash_gate:
+            continue  # kapı-1: aday bile değil
+        diff = _aligned_mask_diff_bands(entry["mask"], new_mask, band_px=band_px)
+        if diff is None or diff["response"] < resp_gate:
+            continue  # kapı-2: hizalama güvenilir değil
+        if diff["fark_orani"] >= total_diff_gate or diff["max_band_fark"] > band_diff_gate:
+            continue  # kapı-3: içerik yeterince farklı -> distinct kart, KORU
+        return {
+            "es_blok_indeksi": int(entry["block_index"]),
+            "response": round(diff["response"], 4),
+            "fark_orani": round(diff["fark_orani"], 4),
+            "en_yuksek_bant_farki": round(diff["max_band_fark"], 4),
+        }
+    return None
 
 
 def dhash_hi(image: np.ndarray, size: int = DEDUP_HI_SIZE) -> int:
@@ -878,9 +981,14 @@ def slitscan(frames: list[str], p: Params, args,
 
 
 def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, list[dict], np.ndarray | None]:
+    # MITAS_MASTER_V2 (Görev M4): ÇAĞRI ZAMANINDA okunur (bkz. _v2_enabled) --
+    # bayrak kapalıyken v2_on=False, aşağıdaki F1 dalı hiç çalışmaz ve bu fonksiyon
+    # eski (bit-birebir) davranışını korur.
+    v2_on = _v2_enabled()
     runs = split_runs(frames, p, args)
     blocks = []
     manifest = []
+    card_registry: list[dict] = []  # F1: {"dhash","mask","block_index"} -- yalnız v2_on
     seen_hashes: list[int] = []
     seen_text: list[int] = []   # text-mask hashes (bg-tolerant) for moving-bg dedup
     seen_hi: list[int] = []     # hi-res 256-bit content hashes (DEDUP_HIRES veto anchors)
@@ -974,10 +1082,22 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                     manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                                      "skip": "dup", "src": Path(best_frame).name})
                     continue
+                if v2_on:
+                    # F1 (H2 kök-sebep): eski coarse_dup ardışık/pencere-içi eşleşmeyi
+                    # yakalamadı -- global kayıtla UZAK (ardışık-olmayan) tekrarı denetle.
+                    match = _card_distant_dup_match(thh, best_mask, card_registry)
+                    if match is not None:
+                        skip_entry = {"run": [si, ei], "card": ci, "lab": label, "kind": "card",
+                                      "skip": "distant-dup", "src": Path(best_frame).name}
+                        skip_entry.update(match)
+                        manifest.append(skip_entry)
+                        continue
                 seen_hashes.append(hh)
                 seen_text.append(thh)
                 if DEDUP_HIRES:
                     seen_hi.append(hhi if hhi is not None else dhash_hi(block))
+                if v2_on:
+                    card_registry.append({"dhash": thh, "mask": best_mask, "block_index": len(blocks)})
             blocks.append(block)
             manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                              "h": int(block.shape[0]), "src": Path(best_frame).name})
@@ -1005,6 +1125,9 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
     This is intentionally not the canonical master. It is more inclusive, keeps
     short/noisy timeline spans visible, and is meant for OCR/VL comparison.
     """
+    # MITAS_MASTER_V2 (Görev M4): ÇAĞRI ZAMANINDA okunur -- bayrak kapalıyken
+    # v2_on=False, F1 dalı çalışmaz (bit-parite: harness/master_dup/test_bit_parite.py).
+    v2_on = _v2_enabled()
     strict_runs = split_runs(frames, p, args)
     strict_static = sum(int(r[1]) - int(r[0]) + 1 for r in strict_runs if r[2] == "S")
     strict_scroll = sum(int(r[1]) - int(r[0]) + 1 for r in strict_runs if r[2] == "R")
@@ -1049,6 +1172,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
     last_static_hash: int | None = None
     last_static_mask: np.ndarray | None = None
     last_static_index: int | None = None
+    card_registry: list[dict] = []    # F1: {"dhash","mask","block_index"} -- yalnız v2_on
 
     def _frame_text_block(frame: str) -> tuple[np.ndarray | None, np.ndarray | None, str | None]:
         image = _prep(frame, p, args)
@@ -1111,7 +1235,22 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             skipped["skip"] = "consecutive-dup"
             block_manifest.append(skipped)
             return
+        if v2_on:
+            # F1 (H2 kök-sebep -- birincil, 60/112 film): yukarıdaki kontroller yalnız
+            # HEMEN ÖNCEKİ kartla kıyaslar. Burada kart ÖNCEKİ TÜM kartlarla (global
+            # kayıt) üç-kapılı denetimden geçirilir -- ardışık-OLMAYAN tekrar (kart A
+            # -> sahne -> kart A yine girer) böylece yakalanır. Herhangi bir kapı
+            # tutmazsa None -- kart KORUNUR (yanlış-silmeye ASLA yatmaz).
+            match = _card_distant_dup_match(thh, full_mask, card_registry)
+            if match is not None:
+                skipped = dict(meta)
+                skipped["skip"] = "distant-dup"
+                skipped.update(match)
+                block_manifest.append(skipped)
+                return
         blocks.append(block)
+        if v2_on:
+            card_registry.append({"dhash": thh, "mask": full_mask, "block_index": len(blocks) - 1})
         last_static_hash = thh
         last_static_mask = full_mask
         last_static_index = int(current_index) if current_index is not None else None
