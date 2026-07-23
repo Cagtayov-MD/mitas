@@ -175,6 +175,31 @@ brifinge girer). Muhtemel fix'ler (atlas neyi kanıtlarsa O uygulanır):
 Hepsi `MITAS_MASTER_V2=1` arkasında; flag kapalı → M2 pilotlarında bit-parite testi
 (`np.array_equal`). Her fix ayrı commit + 112'de metrik yeniden.
 
+### Görev M4b: Footage-üstü kayan künye İMHASI — kompozisyon fix'i (KONSEY KARARI)
+
+KEŞİF (2026-07-24, görsel kanıt + 112-tarama): kompozitör, künyesi footage üstünde
+kayan filmlerde metni İMHA ediyor (BAŞKAN: zemin 16× sayfa, yazı 13px'e ezik;
+sınıf ~8-17 film). Dedup bunu GERİ GETİRMEZ — kök kompozisyonda.
+KONSEY (GLM tam katılım; Kimi 3× boş; Gemini/GPT/NVIDIA sunucu-restart bekliyor):
+teşhis "Nyquist ihlali" — 1.5fps'te kare-arası kayma (75px+) satır yüksekliğini
+aşıyor; satırlar kare-arası boşluğa DÜŞÜYOR → hiçbir piksel sihri geri getiremez.
+A (medyan) parçalar; C (kutu-hasadı) tek başına satır kaçırır (örtüşme sıfır
+olabilir); B tek başına dedektör, restoratör değil. KARAR (hakem: Fable, GLM'in
+hibrit savunması kabul):
+- **B-tespit**: OVERLAY_SCROLL koşu imzası = global kare-korelasyon yüksek (zemin
+  durağan) + det-kutu bölgelerinde tutarlı kayan dy + ardışık karelerde kutu
+  İÇERİĞİ farklı (rec). Üçü birden → tetik (yanlış-pozitif ≈ 0; mevcut düzgün
+  masterlar KIRMIZI ÇİZGİ).
+- **D-ROI yeniden çıkarım**: yalnız tetiklenen pencere + yalnız kutu-birleşke ROI,
+  6-12fps yeniden decode (üretimde video elde; maliyet pencere-sınırlı).
+- **Slit'i yüksek-fps ROI karelerle koştur** (dy 15-20px'e düşer, mevcut matematik
+  çalışır); metin şeridi + zeminden TEK temsilci sayfa.
+- **Fallback (kaynak erişilemezse): OCR kutu-hasadı metin-duvarı** — kutu
+  kırpımlarının koordinat-sıralı istifi; görsel stil kaybolur ama künye OKUNUR
+  (MITAS'ın asıl tüketicisi dilim→VL okuma olduğundan iş-değeri yüksek).
+Uygulama F1c kapanışından SONRA (aynı dosya, sıralı); MITAS_MASTER_V2 bayrağı
+altında, bit-parite korunarak.
+
 ### Görev M5: Kabul
 
 (a) 112'de dup_oran medyanı ≈0 ve maksimum < 0.05 (eşik atlas dağılımına göre
