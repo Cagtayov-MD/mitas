@@ -7,6 +7,147 @@
 
 ---
 
+## 2026-07-23 (akşam) — Ex_Frame exit-frame jenerik kesimi: 487 film, 30 Sonnet ajanı (master PNG verisi)
+
+**İş:** `/home/cagatay/Ex_Frame/*-exit_frames/` — 487 film × ~600 kare (son 8dk, exit_%06d.png,
+~1.25fps, 288k kare/54GB). Her film için kapanış-jeneriği başlangıç karesini bulup öncesindeki
+FİLM SAHNESİ karelerini kalıcı sildik (master PNG yalnız jenerikten kurulmalı). Çağatay kararları:
+tümü (önce pilot) + doğrudan rm + kesim=kapanış-bloğu ilk karesi (SON/THE END/ithaf/logo dahil).
+
+**Neden vizyon:** MITAS `credit_onset.py` v4/v5 PaddleOCR gerektiriyor, py3.14'te kurulu değil
+→ deterministik dedektör kullanılamadı. Jenerik sık footage ÜSTÜNE akıyor (siyah-kare heuristiği
+patlar). Çözüm: **montaj-tabanlı Sonnet vizyon**. Araçlar: `harness/kunye_kiyas/exit_kesim/montaj.py`
+(etiketli kontakt-sayfa: kaba→ince) + `kes.py` (gardlı silici: guven<0.60 / onset<=ilk / bayrak /
+<8 kare kalır → SİLMEZ, flag'ler; her kesimde audit-şerit + manifest.jsonl).
+
+**Sonuç (doğrulandı):** 10-film pilot %100 doğru (footage-üstü künye dahil) → onay → 30 paralel
+Sonnet ajanı, 16'lık batch. **427 film KESİLDİ (193.122 kare silindi), integrity 427/427 tam**
+(kalan kare=manifest, ilk-kalan==onset). Kesilmedi (güvenli, tümü duruyor): 43 jenerik_yok/tut_hepsi
+(kredi 8dk penceresi dışında ya da ön-jenerikli eski film), 14 cok_az_jenerik (SON sadece son ~5
+karede, <8 gard), 1 anomali (tapilacak-yalanlar = iki film birleşmiş → GUNLUK veri-hijyeni deseni),
+2 atlandı (oyuncu, iyi-geceler-iyi-sanslar = kaynak tamamen siyah/bozuk). Sadece 1 düşük-güven
+kesim (kaptan-january 0.65). Elle-ikinci-tur listesi: `outputs/exit_kesim/elle_inceleme.txt`.
+
+**Öğrenilen:** (1) Montaj kontakt-sayfa + ajan = 600 kareyi tek tek okumadan ~2-3 görselde frame-doğru
+onset. (2) Gard tasarımı (min-kare + bayrak) yanlış-kesimi sıfırladı; flag=güvenli. (3) 43 jenerik_yok
+üretim sinyali: bu filmlerin kapanış künyesi 8dk exit-penceresinde YOK — daha geniş pencere ya da
+giriş-jeneriği gerekebilir. **Kapanış (Çağatay kararı):** kesilemeyen 60 film "havuz zaten yeterli"
+denerek KOMPLE SİLİNDİ (35.506 kare; log: `outputs/exit_kesim/silinen_60_klasor.log`). Ex_Frame'de
+artık yalnız **427 kesilmiş film** var — hepsi master-PNG başlangıcına hizalı. Bekleyen yok.
+
+---
+
+## 2026-07-23 (akşamüstü) — %92 kampanyası: T4 doğrulandı+commit'lendi (88/110), T6 koşuyor
+
+**Rewind olayı:** Çağatay yanlışlıkla rewind yaptı — HİÇBİR İŞ KAYBOLMADI (tüm commit'ler +
+T4'ün diskteki kodu sağlam; tam yedek: ~/mitas_yedek_rewind_152202/). Master PNG çalışması
+ayrı FORK oturumuna alındı; bu oturum jenerik-başlangıç hattı.
+
+**T4 (hareket-otoriteli onset) doğrulandı ve commit'lendi (4e0818b):** 84→**88/110 (%80.0)**,
+kredisiz 28/29 korundu. Kazanılan: MESLEĞE_DÖNÜŞ(+320), DİPTEKİLER(+203), KARAVAN(+182), "6"(+155).
+Tasarım plandan bilinçli saptı: geri-birleştirme scroll-tip şartı OLMADAN her kazanan koşuda
+denenir (dört hedefin scroll_oran'ı 0.07-0.24 çıktı — ölçüm planı çürüttü); güvenlik kısa-boşluk
+(~45 örnek-kare) + rol-keyword içerik kapısından. Kalıntı risk: kapı geniş _ROL kullanıyor
+('produc' logo-riski) — T6'da _ROL_CEKIRDEK'e geçirilecek.
+
+**Veri-hijyeni bulgusu (ÜRETİM İÇİN ÖNEMLİ):** Film Kapanış'ta aynı TRT-id FARKLI film içeriği
+taşıyabiliyor (görsel teyit: DİLEK_AĞACI dosyasında Coppola kapanışı, INNISFREE'de TV dizisi).
+Asıl kopyalar '30062026SAYFA' batch önekinde. 5 film oradan kurtarıldı (5/5 arşiv-uyum),
+3 film dışlandı (veri/dislanan.json). Kare-sayısı paritesi İÇERİK paritesi DEĞİL.
+
+**Perf:** det-önbelleği (_det_cache.json) + olc_pool --paralel 8 → tam 110-film ölçümü ~2 dk
+(eskiden ~30 dk). Isıtıcı: veri/det_isit.py.
+
+**T6 (6 alt-adım):** 88→92/110. Kazanılan: SEN_TOM(Almanca sözlük), ÖLDÜRME(İtalyanca
+nokta-lider+küçük-harf), TAKTİKLER(seyrek-yol ≥2-çekirdek-rol), ARKADAŞIMIN(scroll-kurtarma).
+Kalan engel sınıfları teşhisli: Kiril/Farsça OCR, tek-isim kart dizisi, şirket-kalıbı FP.
+
+**Politika kararı (Çağatay, 13ba2fc):** Restorasyon/TRT-ekleme kartları KÜNYE SAYILMAZ —
+orijinal jenerik esas. TAKKELİ GT 588→905 düzeltildi (Kazakça restorasyon kartıydı).
+
+**2. tur (konsey-GLM kırmızı-takım sonrası, 5 alt-adım):** 92→**99/110 (%90.0)**, kredisiz
+**29/29** (tek FP DÖNÜŞÜ de düştü — şirket-kalıbı gardı: corporation/pictures/released-by
+satırları isim sayılmaz). Kazanılan: VANYA+MELEKLERİ (ikinci-şans KİRİL rec — en-rec çöpü
+sezilince lang='ru' yeniden okuma; homoglif çözümü), DOĞUM(Macarca sözlük), ROBOCOP+PARDAYYAN
+(kazanan-koşuya bitişik kart-dizisi geri-genişletme — tek_genis'in elediği tek-isim kartları).
+GERİ ALINAN: kf-tabanlı scroll-erken gardı (tüm-kare farkı gerçek-scroll'u sahne-bandından
+ayıramıyor; 11 film bozdu → revert; DOĞRU yol kutu-MASKELİ zemin farkı). BUG BULUNDU:
+_ROL'deki 'produc' \b(...)\b yüzünden HİÇ eşleşmiyormuş (producer/production yakalanmıyor).
+
+**Mini-tur 3:** produc-regex bug'ı düzeltildi (\b(...)\b önek-alternatifleri hiç eşleşmiyordu)
+→ KÜÇÜK_SİMBA (+1). Kutu-maskeli zemin-hareketi KALİBRE EDİLEMEDİ (karşı-örnek KAHRAMAN_
+UZAYLILAR: gerçek jenerik animasyonlu zemin ÜSTÜNDE başlıyor — salt piksel-hareketi "sahne mi
+kredi mi"yi çözemez, geri alındı). CJK hipotezi çürütüldü (İNİŞLİ'deki metin OCR gürültüsü).
+
+**ASİMETRİ POLİTİKASI (Çağatay):** erken KABUL (fazla kare zararsız), geç KABUL EDİLEMEZ
+(cast atlanır). olc_pool'a ÜRETİM skoru eklendi (erken≤120/geç≤20, 0eb5f58). Görsel hata
+raporu: outputs/jenerik_hata_raporu/rapor.html.
+
+**FİNAL TUR + T8 → KAMPANYA KAPANDI ✅: 103/110 = %93.6 simetrik, ÜRETİM %96.4 (106/110),
+kredisiz 29/29.** Kazanımlar: PRENSESİN (producer+isim köprü kapısı), KANDAHAR (Arapça/Farsça
+ikinci-şans: kredi_yok→+5), YÜREKTEN (şirket-budaması). Kritik gard: yabancı-alfabe yoluyla
+kazanılan koşuda Latin ileri-budama ÇALIŞMAZ (yabanci_yol bayrağı — KANDAHAR/ARKADAŞIMIN
+regresyonunun kök-sebep düzeltmesi). T8: GLM kod-avı gardları indi ('y-sesli' ölçülen
+regresyonla geri alındı — dürüst ret). ×2 ölçüm deterministik + bağımsız doğrulama birebir.
+Kalan 7: 5 kabul-edilebilir-erken (TV-bandı/epilog/tabela sınıfı) + 2 geç (GELECEK +91
+yapısal boşluk, İNİŞLİ +89). Kalıcı çözüm adayı: dar-VLM (ayrı karar).
+
+**Bekleyen:** üretim entegrasyonu kararı (start_pos güvenlik payı önerisi planda);
+açılış-jeneriği tasarımı; Qwen için Alibaba Model Studio aktivasyonu (Çağatay).
+
+## 2026-07-23 (öğleden sonra) — testas özet stratejisi MITAS'a entegre edildi (v2, flag arkasında)
+
+**Talep (Çağatay):** MITAS künye-özeti (System A) "gereksiz uzun/dağınık, salak salak anlatıyor";
+testas'ın prompt+stratejisi "tam istenen format". İki sistem birebir incelendi.
+
+**Kök bulgu:** Prompt'lar AKRABA (aynı Jean-Picard altın örneği, aynı yasaklar). Fark prompt
+metni DEĞİL, prompt'u saran 3 mekanizma: (1) MITAS prompt aşırı-reçeteli (135 satır, 5-adım
+zorunlu YAPI + "Sabit cümle sayısı YOK" → model uzatıyor), (2) kontrol döngüsü yok (ilk
+boş-olmayan çıktıyı körlemesine kabul), (3) kalite kapısı/onarım yok. → Rambling'i öldüren 1+3.
+
+**Yapılan (MITAS_OZET_V2=1 flag arkasında; legacy birebir korundu, Prensip 2):**
+- `scripts/_ozet_kalite.py` — testas pdf_auditor/pilot10 gate+repair BİREBİR portu (17 golden test).
+- `core/api/prompts/ozet_film_v2.txt` — yalın prompt (legacy'nin ~%42'si) + 2-satır ASR önsözü.
+- `mitas_pipeline._generate_ozet_v2` — sağlayıcı-içi 3-deneme öz-düzeltme + kapı + onarım (8 test).
+- Girdi (ASR transkripti) ve model zinciri (gemini→sonnet→gemma, bake-off kazananı) DEĞİŞMEDİ.
+- `.gitignore`: `!scripts/_ozet_kalite.py` — `scripts/_*` yeni modülü yutuyordu (dağıtımda
+  kaybolurdu; git-status'ta görünmemesinden yakalandı).
+
+**Konsey (kırmızı takım, GLM):** KABUL → ASR'de twist-kaybı riski gerçek (Sixth Sense senaryosu:
+2 saat gürültü frekansı tek-replik twist'i bastırır) → v2 prompt'a "frekansı betimlemeyle doldurma,
+dönümü merkeze koy" satırı eklendi. RED → "kelime limitini 45-75'e genişlet"; kullanıcının şikayeti
+TAM DA uzunluk + testas'ın 32-65'i zaten kullanıcı-onaylı (konseyi geçtim). Qwen HTTP 401
+(geçersiz anahtar — council_mcp/.env'de düzeltilmeli), Kimi 429 (aşırı yük) → tur TEK üyeli.
+
+**A/B eval SONUCU (6 çeşitli film, aynı ASR, eski vs v2):** v2 AÇIK ARA kazandı. Ortalama
+uzunluk eski 73 → v2 55 kelime; kapı-geçme eski 3/6 → v2 6/6. Eski 3 filmde 65-kelime sınırını
+aştı (71/83/92 kl — "salak salak uzatıyor"un tam kanıtı), v2 hepsini 52-59'a çekti. GLM'in "twist
+kaybolur" korkusu ÇÜRÜDÜ: HALIFAX (whodunit) + ÜÇ RENK MAVİ (aldatma reveal) twist'leri v2'de
+merkeze geldi — eklenen "dönümü merkeze koy" satırı çalışıyor. AEON FLUX'ta isim farkı (Aeon/Catherine
+vs Ion/Una) = ASR belirsizliği, prompt kusuru değil. Yan bulgu: koşuda gemini 429 (kota) → zincir
+Sonnet'e düştü, çıktı geldi (dayanıklılık OK ama gemini kotası üretimde de dolabilir).
+
+**Bağımsız inceleme:** codex CLI kurulu DEĞİL → CLAUDE.md'nin eşleştirdiği dış konsey kod-avı
+yapıldı (GLM; Qwen 401/Kimi 429 düştü). GLM 4 bulgu: (1) "produced_any ölü kod" YANLIŞ POZİTİF —
+konseye sadeleştirilmiş kod verdiğimden (gerçekte satır 1442'de var; ders: brifingde GERÇEK kod ver);
+(2) enforce ValueError→çıktı kaybı: MITAS'ta kelime-bazlı + URL yok + placeholder-by-design (testas
+felsefesi) → bug değil; (3) birikimsiz feedback→osilasyon: GERÇEK, KABUL → feedback birikimli yapıldı
+(testas orijinaliyle de hizalandı); (4) best ilk-gelen-kazanır: kasıtlı tasarım. 25/25 test hâlâ yeşil.
+
+**PROMOTE YAPILDI (Çağatay onayı "aç"):** mitas.env satır 97-98'e `MITAS_OZET_V2=1` +
+`MITAS_OZET_DEEPSEEK=1` eklendi. Ayrıca Çağatay talebi "testas hangi API'yi kullanıyorsa MITAS da
+onu kullansın (DeepSeek)" → `_ozet_chain`'e MITAS_OZET_DEEPSEEK flag'i eklendi, DeepSeek zincirin
+BAŞINA (birincil). Üretim zinciri artık: **deepseek → gemini → sonnet → gemma-local**.
+
+**Uçtan-uca doğrulama (v2+DeepSeek, 2 yeni film):** SON YARIŞ 47 kl / ROBOCOP 50 kl, ikisi de
+kapı GEÇTİ, **Türkçe temiz ve doğal** (Çağatay'ın özel isteği), twist korundu (ROBOCOP: Cable=Alex
+Murphy reveal). DeepSeek HIZLI (2.7-3.1s) ve gemini'nin 429 kota sorununu yaşamıyor. 25/25 test yeşil.
+
+**Açık kalem:** Qwen konsey anahtarı council_mcp/.env'de kırık (401) — konsey tek-üyeli (GLM).
+Kanıt dosyaları: scratchpad/ab_sonuc.txt (6-film eski-vs-v2), scratchpad/dogrula_deepseek.py.
+
+---
+
 ## 2026-07-23 — Reboot veri kaybı KURTARILDI; %92 kampanyası planlandı, Sonnet'e devredildi
 
 **Olay:** Sistem 11:24'te yeniden başladı → /tmp scratchpad SİLİNDİ (119-film GT,
