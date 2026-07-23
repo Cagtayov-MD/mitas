@@ -484,6 +484,46 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
     return False
 
 
+def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
+                      jbayrak: np.ndarray, n: int, fps: float, stride: int
+                      ) -> tuple[int, int] | None:
+    """Scroll-kurtarma (T6, plan Görev6/Adım2): HİÇBİR aday içerik-eşiğini
+    geçemediyse son çare — filmin son %25'inde ≥8 sn SÜRDÜRÜLEN scroll+kutu
+    koşusu VAR mı, ve o koşuda ≥1 _ROL_CEKIRDEK eşleşmesi var mı. Varsa kredi
+    kabul (gazete/tabela/tek-intertitle KAYMAZ — gerekçe budur, sahte-pozitif
+    riski düşük). `adaylar` listesindeki bir kutu-koşusuna denk gelmeyebilir
+    (jbayrak-boşluk-toleransı farklı) — o yüzden ham scroll&jbayrak kesişiminde
+    kendi ardışık-koşusunu arar."""
+    baslangic = int(0.75 * (n - 1))
+    min_kosu = max(16, int(fps * 8.0 / stride))
+    aktif = scroll & jbayrak
+    en_uzun = (0, -1, -1)  # (uzunluk, start, end)
+    i = baslangic
+    while i < n:
+        if aktif[i]:
+            j = i
+            while j < n and aktif[j]:
+                j += 1
+            uzunluk = j - i
+            if uzunluk > en_uzun[0]:
+                en_uzun = (uzunluk, i, j - 1)
+            i = j
+        else:
+            i += 1
+    uzunluk, ks, ke = en_uzun
+    if uzunluk < min_kosu:
+        return None
+    ornek = sorted(set(int(x) for x in np.linspace(ks, ke, min(8, ke - ks + 1))))
+    for fi in ornek:
+        try:
+            satirlar = cc_mod.satirlar(g[idx[fi]])
+        except Exception:
+            continue
+        if any(cc_mod._ROL_CEKIRDEK.search(s) for s in satirlar):
+            return ks, ke
+    return None
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -640,13 +680,22 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             en_iyi = (joint, a, b, kb_max, scroll_var)
 
     if en_iyi is None:
-        degerlendirilmis = [k for k in kayitlar if k["son_ok"]]
-        if not degerlendirilmis:
-            sebep = "tüm adaylar SON_ERISIM'e takıldı"
+        kurtarma = _scroll_kurtarma(g, idx, cc, scroll, jbayrak, n, fps, stride)
+        if kurtarma is not None:
+            ks, ke = kurtarma
+            kare_ks, kare_ke = _kare_no(g[idx[ks]]), _kare_no(g[idx[ke]])
+            kayitlar.append({"a": ks, "b": ke, "kare_a": kare_ks, "kare_b": kare_ke,
+                              "son_ok": True, "kb": 1.0, "joint": 1.0,
+                              "roller": ["scroll_kurtarma"]})
+            en_iyi = (1.0, ks, ke, 1.0, True)
         else:
-            en_iyi_kb = max(k["kb"] for k in degerlendirilmis)
-            sebep = f"içerik-eşiği geçilemedi (en iyi kb={en_iyi_kb:.2f})"
-        return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
+            degerlendirilmis = [k for k in kayitlar if k["son_ok"]]
+            if not degerlendirilmis:
+                sebep = "tüm adaylar SON_ERISIM'e takıldı"
+            else:
+                en_iyi_kb = max(k["kb"] for k in degerlendirilmis)
+                sebep = f"içerik-eşiği geçilemedi (en iyi kb={en_iyi_kb:.2f})"
+            return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
 
     joint, a, b, kb, scroll_var = en_iyi
     # kazanan koşuda scroll-aktif kare oranı — statik/scroll ayrımı (T5) +
