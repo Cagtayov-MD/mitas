@@ -470,7 +470,12 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
     dört pozitif hedef (MESLEĞE_DÖNÜŞ/KARAVAN/"6"/DİPTEKİLER) örneklenen 8 karenin
     en az birinde gerçek rol-keyword taşıyor (DIRECTED BY / MUSIC BY / EDITOR /
     PRODUCER ...) — ölçüldü. Birden fazla örnek karede dener — tek karenin OCR'ı
-    bozuk çıkabilir (geçiş bulanıklığı)."""
+    bozuk çıkabilir (geçiş bulanıklığı).
+
+    T6 adım6: cc._ROL yerine cc._ROL_CEKIRDEK — 'produc' (production company
+    logo-kuşağı riski, GLM uyarısı) bu kapıda ARTIK tetiklemiyor. T4 kazanımları
+    ölçüldü (bkz. commit notu); PRODUCER'a bağımlı bir kazanım geriliyorsa bu
+    fonksiyon cc._ROL'e geri alınır."""
     n = min(ornek, b - a + 1)
     if n <= 0:
         return False
@@ -479,7 +484,7 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
             satirlar = cc_mod.satirlar(g[idx[fi]])
         except Exception:
             continue
-        if any(cc_mod._ROL.search(s) for s in satirlar):
+        if any(cc_mod._ROL_CEKIRDEK.search(s) for s in satirlar):
             return True
     return False
 
