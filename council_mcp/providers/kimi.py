@@ -23,7 +23,8 @@ DEFAULT_MODEL = "kimi-k3"
 # k3 Moonshot tarafında sık "engine overloaded" (429) veriyor (2026-07-21..23 boyunca
 # konsey turlarını kaçırdı). Cevapsız kalmaktansa bir alt modele düş — k3 BİRİNCİL kalır.
 DEFAULT_FALLBACK_MODEL = "kimi-k2.6"
-TIMEOUT_SECONDS = 180.0  # qwen.py/glm.py ile ayni gerekce: uzun konsey sorularinda 60sn yetmiyor
+TIMEOUT_SECONDS = 420.0  # k3 düşünen model: uzun kırmızı-takım brifinglerinde 180sn'de
+# düşünme bitmiyor (boş-str'li httpx.ReadTimeout → tur boş dönüyordu, 2026-07-23 teşhisi)
 
 
 def is_configured() -> bool:
@@ -62,8 +63,16 @@ async def ask(question: str, context: str = "") -> str:
     try:
         return await with_retry(_yap(model), provider_name="Kimi K3")
     except Exception as exc:
-        # yalnız aşırı-yük/429 durumunda alt modele tek şans; başka hatalar aynen yükselir
-        if fallback and fallback != model and ("429" in str(exc) or "overload" in str(exc).lower()):
+        # aşırı-yük/429 VEYA zaman aşımı durumunda alt modele tek şans.
+        # k3 düşünen model: uzun konsey brifinglerinde düşünme süresi timeout'u
+        # aşıyor ve httpx.TimeoutException'ın str()'i BOŞ olduğundan eski
+        # "429/overload" metin koşulu hiç tetiklenmiyordu → tur boş dönüyordu.
+        s = str(exc)
+        zaman_asimi = isinstance(exc, httpx.TimeoutException) or (
+            exc.__cause__ is not None and isinstance(exc.__cause__, httpx.TimeoutException)
+        ) or not s.strip() or "timeout" in s.lower() or "timed out" in s.lower()
+        if fallback and fallback != model and ("429" in s or "overload" in s.lower() or zaman_asimi):
             cevap = await with_retry(_yap(fallback), provider_name=f"Kimi ({fallback} yedek)")
-            return f"[not: kimi-k3 aşırı yüklü, cevap {fallback} yedeğinden]\n\n{cevap}"
+            sebep = "zaman aşımı (düşünme süresi)" if zaman_asimi else "aşırı yüklü"
+            return f"[not: kimi-k3 {sebep}, cevap {fallback} yedeğinden]\n\n{cevap}"
         raise
