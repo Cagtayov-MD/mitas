@@ -101,6 +101,16 @@ def _uret_mod():
 
 TEK_KART_DET_DENEME_VARSAYILAN = 3  # bkz. modül içi not: paylaşılan det motoru kararsız
 
+# M9 (det-None stabilite fix'i, docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md M7/M8
+# takibi): mavzer/solaris (H=25/31px) 4 art arda tam-427 ölçümünde True/False
+# arasında SIÇRADI -- ikisi de bu eşiğin ALTINDA. ipek-yolu/kasabanin-gulu/
+# yilmayan-adam (H=43-73px) İSE 4/4 tutarlı kaldı -- eşiğin ÜSTÜNDE kararlı.
+# Bu ayrım kırılma noktasını işaret ediyor: paylaşılan PaddleOCR TextDetection
+# motoru bu kadar kısa/dar kırpımlarda (h VEYA w < 32px) içeriden istisna atıp
+# sessizce None dönmeye YATKIN -- motora hiç girilmez, deterministik "metin-yok"
+# sayılır (None-belirsizliği ölçüm katmanında burada kapanır).
+DET_MIN_KIRPIM_PX = 32
+
 
 def det_metin_var(
     png_path: Path,
@@ -132,7 +142,20 @@ def det_metin_var(
     biri metin bulursa True kabul et (yanlış-negatifi azalt); tüm denemeler
     boşsa False (gerçek metin yokluğu ile motor-kararsızlığını normal
     şartlarda ayırt edemeyiz, ama biriktirilmiş 4-tekrar kanıtı gerçek-boş
-    filmlerin HİÇ sıçramadığını gösteriyor -- bkz. dup_dokumu K4 raporu)."""
+    filmlerin HİÇ sıçramadığını gösteriyor -- bkz. dup_dokumu K4 raporu).
+
+    M9 GÜNCELLEMESİ (docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md M7/M8 takibi,
+    saglik/dup_metrik ölçüm yolundaki det-None salınımı fix'i): yukarıdaki
+    SIÇRAMA sınırı tam olarak `DET_MIN_KIRPIM_PX` (32px) civarında -- mavzer/
+    solaris (25/31px, sıçrayan) bu eşiğin ALTINDA, ipek-yolu/kasabanin-gulu/
+    yilmayan-adam (43-73px, 4/4 tutarlı) ÜSTÜNDE. Artık h VEYA w < 32px ise
+    det'e HİÇ girilmez (deterministik False) -- motorun bilinen-kararsız
+    rejimine hiç girilmediği için salınım kalkar (mavzer/solaris artık HER
+    ölçümde tutarlı False = tek-kart istisnası uygulanmaz = boy_anormal).
+    32px ÜSTÜ kırpımlarda ise `_f1b_det_boxes`'ın None dönüşü (composer'ın
+    "istisna/kapı geçmedi" durumu -- bkz. o fonksiyonun docstring'i) artık BİR
+    kez daha denenir; hâlâ None ise bu tur için deterministik boş-kutu-listesi
+    sayılır (None bir daha asla dışarı sızmaz, `boxes` bundan sonra hep liste)."""
     key = str(png_path)
     if key in _DET_METIN_VAR_CACHE:
         return _DET_METIN_VAR_CACHE[key]
@@ -145,17 +168,31 @@ def det_metin_var(
             sonuc = False
         else:
             gray = np.array(Image.open(png_path).convert("L"))
-            dc = _uret_mod()._dc()
-            for _ in range(max(1, deneme)):
-                boxes = dc._f1b_det_boxes(gray)
-                if boxes:
-                    for box in dc._f1b_boxes_sorted(boxes):
-                        _text, conf = dc._f1c_rec_text(gray, box)
-                        if conf >= rec_esik:
-                            sonuc = True
-                            break
-                if sonuc:
-                    break
+            h_px, w_px = gray.shape[:2]
+            if h_px < DET_MIN_KIRPIM_PX or w_px < DET_MIN_KIRPIM_PX:
+                # M9: kısa/dar kırpım -- det motoru bu boyutlarda kararsız
+                # (bkz. modül-üstü not); HİÇ ÇAĞRILMAZ, deterministik metin-yok.
+                sonuc = False
+            else:
+                dc = _uret_mod()._dc()
+                for _ in range(max(1, deneme)):
+                    boxes = dc._f1b_det_boxes(gray)
+                    if boxes is None:
+                        # M9: istisna durumu (_f1b_det_boxes içeride yakalayıp
+                        # None döndürdü) -- 1 yeniden-deneme; hâlâ None ise bu
+                        # turu deterministik "kutu yok" say (None-belirsizliği
+                        # kalksın -- bundan sonra `boxes` her zaman bir liste).
+                        boxes = dc._f1b_det_boxes(gray)
+                        if boxes is None:
+                            boxes = []
+                    if boxes:
+                        for box in dc._f1b_boxes_sorted(boxes):
+                            _text, conf = dc._f1c_rec_text(gray, box)
+                            if conf >= rec_esik:
+                                sonuc = True
+                                break
+                    if sonuc:
+                        break
     except Exception:
         sonuc = False
     _DET_METIN_VAR_CACHE[key] = sonuc
