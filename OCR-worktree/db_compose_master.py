@@ -116,6 +116,14 @@ F1_TOTAL_DIFF_GATE = 0.05   # skip-audit (M4 adım 5e) özdeş-olmayan atlama bu
 F1_BAND_DIFF_GATE = 0.30
 F1_BAND_PX = 32             # KONSEY KARARI: sabit 32px (çözünürlüğe göre ölçeklenmez)
 
+# F2 (H1 kök-sebep: slit dy tahmin hatası -> bitişik dilimlerde satır tekrarı) --
+# ardışık iki slit/scroll bloğu (aralarında hiç statik/kart bloğu YOKSA) dikiş
+# örtüşmesi için NCC ile hizalanır; en iyi hizada benzerlik>=0.9 ise örtüşen kısım
+# yeni bloğun BAŞINDAN kırpılır. "dur-devam koruması": kırpma segment yüksekliğinin
+# yarısını asla aşmaz (gerçek/uzun scroll içeriğinin yanlışlıkla silinmesini önler).
+F2_PROBE_PX = 200
+F2_NCC_GATE = 0.9
+
 
 # --------------------------------------------------------------------------- #
 # resolution-normalized parameters
@@ -412,6 +420,72 @@ def _card_distant_dup_match(
             "en_yuksek_bant_farki": round(diff["max_band_fark"], 4),
         }
     return None
+
+
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F2 -- slit dikiş kırpma (H1 kök-sebep) yardımcısı
+# --------------------------------------------------------------------------- #
+def _slit_seam_crop(
+    prev_block: np.ndarray,
+    new_block: np.ndarray,
+    *,
+    probe_px: int = F2_PROBE_PX,
+    ncc_gate: float = F2_NCC_GATE,
+    min_crop_px: int = 4,
+) -> dict | None:
+    """F2 (H1): iki ARDIŞIK slit bloğu arasında (aralarında statik/kart bloğu YOK)
+    dikiş örtüşmesini bulur. Önceki bloğun son `probe_px` satırı ile yeni bloğun
+    ilk `probe_px` satırı arasında, olası HER örtüşme derinliği `crop` (4..probe_px)
+    için NCC (normalize çapraz-korelasyon: önceki bloğun SON `crop` satırı vs yeni
+    bloğun İLK `crop` satırı) hesaplanır -- sabit boy bir şablon yerine değişken
+    derinlik taranır, çünkü gerçek dikiş örtüşmesi birkaç pikselden ~200px'e kadar
+    herhangi bir derinlikte olabilir (1.5fps'te kare-arası dy büyük -> örtüşme de
+    büyük olabilir). En iyi NCC >= ncc_gate ise, o derinlik yeni bloğun BAŞINDAN
+    kırpılır. "dur-devam koruması": kırpma miktarı segment yüksekliğinin yarısını
+    asla aşmaz (gerçek/uzun scroll içeriğinin yanlışlıkla kesilmesine karşı) --
+    ARAMA aralığı 200px probe penceresiyle sınırlı kalır (dur-devam kapağı yalnız
+    SONUCU kırpar, aksi halde derin ama meşru bir örtüşme yarıdan büyük diye hiç
+    aranmadan atlanır, hiç kırpma yapılmaz). Hizalama yetersizse (veya bloklar çok
+    kısaysa) None -- kırpma YAPILMAZ.
+
+    Manifest alanı "y": önceki bloğun İÇİNDE örtüşen içeriğin BAŞLADIĞI satır
+    (prev_block.shape[0] - kırpılan_px) -- dikişin önceki segmentteki konumunu
+    izlenebilir kılar (uygulayıcı tercihi; şartname yalnız alan adını verdi)."""
+    if prev_block is None or new_block is None or not prev_block.size or not new_block.size:
+        return None
+    tail_h = min(probe_px, prev_block.shape[0])
+    head_h = min(probe_px, new_block.shape[0])
+    limit = min(tail_h, head_h)
+    if limit < min_crop_px:
+        return None
+    w = min(prev_block.shape[1], new_block.shape[1])
+    if w <= 0:
+        return None
+    tail = cv2.cvtColor(prev_block[-tail_h:, :w], cv2.COLOR_BGR2GRAY).astype(np.float32)
+    head = cv2.cvtColor(new_block[:head_h, :w], cv2.COLOR_BGR2GRAY).astype(np.float32)
+    best_ncc, best_crop = 0.0, 0
+    for crop in range(min_crop_px, limit + 1):
+        a = tail[-crop:, :]
+        b = head[:crop, :]
+        a0 = a - a.mean()
+        b0 = b - b.mean()
+        denom = float(np.sqrt(float((a0 * a0).sum())) * np.sqrt(float((b0 * b0).sum())))
+        if denom < 1e-6:
+            continue
+        ncc = float((a0 * b0).sum() / denom)
+        if ncc > best_ncc:
+            best_ncc, best_crop = ncc, crop
+    if best_crop <= 0 or best_ncc < ncc_gate:
+        return None
+    max_crop = new_block.shape[0] // 2   # dur-devam koruması: SONUCU kırp (aramayı değil)
+    crop = min(best_crop, max_crop)
+    if crop <= 0:
+        return None
+    return {
+        "y": int(prev_block.shape[0] - crop),
+        "kirpilan_px": int(crop),
+        "ncc": round(best_ncc, 4),
+    }
 
 
 def dhash_hi(image: np.ndarray, size: int = DEDUP_HI_SIZE) -> int:
@@ -988,6 +1062,7 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
     runs = split_runs(frames, p, args)
     blocks = []
     manifest = []
+    block_kinds: list[str] = []  # F2: "scroll"/"card" -- ardışık scroll tespiti için
     card_registry: list[dict] = []  # F1: {"dhash","mask","block_index"} -- yalnız v2_on
     seen_hashes: list[int] = []
     seen_text: list[int] = []   # text-mask hashes (bg-tolerant) for moving-bg dedup
@@ -1025,11 +1100,21 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
             block, hy = slitscan(run_frames, p, args)   # allow_demote=False: film-ortak
             # hat; DEMOTE kararı statüko-MASKED'e düşer, yalnız sidecar'a yazılır.
             if block is not None and block.size:
+                seam = None
+                if v2_on and block_kinds and block_kinds[-1] == "scroll":
+                    # F2 (H1 kök-sebep): aralarında statik/kart bloğu OLMAYAN iki
+                    # ardışık slit bloğu -- dikiş örtüşmesini NCC ile bul+kırp.
+                    seam = _slit_seam_crop(blocks[-1], block)
+                    if seam is not None:
+                        block = block[seam["kirpilan_px"]:, :]
                 girdi = {"run": [si, ei], "lab": label, "kind": "scroll",
                          "h": int(block.shape[0]), "src": Path(best_frame).name}
+                if seam is not None:
+                    girdi["dikis"] = seam
                 if SLIT_DY_HYBRID == "1" and hy:
                     girdi["hybrid"] = _hy_manifest_ozet(hy, int(block.shape[0]))
                 blocks.append(block)
+                block_kinds.append("scroll")
                 manifest.append(girdi)
             else:
                 manifest.append({"run": [si, ei], "lab": label, "skip": "empty"})
@@ -1099,6 +1184,7 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
                 if v2_on:
                     card_registry.append({"dhash": thh, "mask": best_mask, "block_index": len(blocks)})
             blocks.append(block)
+            block_kinds.append("card")
             manifest.append({"run": [si, ei], "card": ci, "lab": label, "kind": "card",
                              "h": int(block.shape[0]), "src": Path(best_frame).name})
 
@@ -1173,6 +1259,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
     last_static_mask: np.ndarray | None = None
     last_static_index: int | None = None
     card_registry: list[dict] = []    # F1: {"dhash","mask","block_index"} -- yalnız v2_on
+    block_kinds: list[str] = []       # F2: "scroll_slit"/"card" -- ardışık scroll tespiti
 
     def _frame_text_block(frame: str) -> tuple[np.ndarray | None, np.ndarray | None, str | None]:
         image = _prep(frame, p, args)
@@ -1249,6 +1336,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                 block_manifest.append(skipped)
                 return
         blocks.append(block)
+        block_kinds.append("card")
         if v2_on:
             card_registry.append({"dhash": thh, "mask": full_mask, "block_index": len(blocks) - 1})
         last_static_hash = thh
@@ -1328,6 +1416,13 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             # fallthrough'u devreye girer (kısmi-çökme baypası da böylece kapanır).
             block, hy = slitscan(run_frames, p, args, allow_demote=True)
             if block is not None and block.size:
+                seam = None
+                if v2_on and block_kinds and block_kinds[-1] == "scroll_slit":
+                    # F2 (H1 kök-sebep): aralarında statik/kart bloğu OLMAYAN iki
+                    # ardışık slit bloğu -- dikiş örtüşmesini NCC ile bul+kırp.
+                    seam = _slit_seam_crop(blocks[-1], block)
+                    if seam is not None:
+                        block = block[seam["kirpilan_px"]:, :]
                 girdi = {
                     **run_meta,
                     "kind": "scroll_slit",
@@ -1336,9 +1431,12 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                     "src_first": Path(run_frames[0]).name if run_frames else None,
                     "src_last": Path(run_frames[-1]).name if run_frames else None,
                 }
+                if seam is not None:
+                    girdi["dikis"] = seam
                 if SLIT_DY_HYBRID == "1" and hy:
                     girdi["hybrid"] = _hy_manifest_ozet(hy, int(block.shape[0]))
                 blocks.append(block)
+                block_kinds.append("scroll_slit")
                 last_static_hash = None
                 last_static_mask = None
                 last_static_index = None
