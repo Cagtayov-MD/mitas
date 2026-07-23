@@ -186,6 +186,15 @@ _ROL_KIRIL = re.compile(
     r"актер|актёр|роля|қатысқандар)", re.I)
 
 
+# T8 Kod-avı #5 (üretim-sertleştirme) — DENENDİ VE GERİ ALINDI: 'y/Y'yi sesli
+# saymak CRYSTAL/RHYTHM tipi gerçek kelimeleri "çöp" damgalanmaktan kurtarır
+# (amaçlanan düzeltme), AMA MELEKLERİ_GÖRMEK_İSTEDİM'in Kiril-kurtarma yolunu
+# BOZAR: o filmin gerçek adayı gercek/len=0.906 (esik=0.92 altında → 'çöp',
+# Kiril ikinci-şans tetiklenir, kredi doğru bulunur); 'y' eklenince aynı
+# örneklem 0.938'e çıkıp eşiği aşıyor → Kiril denenmiyor → kredi_yok'a düşüyor
+# (ölçüldü: 100/110→99/110). Marj o kadar dar ki (0.906 vs 0.92) iki hedefi
+# aynı anda karşılayan güvenli bir ayar yok — mevcut kazanım DAHA DEĞERLİ
+# (gerçek FP değil, yalnız gereksiz-maliyet riski vardı). 'y' EKLENMEDİ.
 _LATIN_SESLI = set("aeiouAEIOU")
 
 
