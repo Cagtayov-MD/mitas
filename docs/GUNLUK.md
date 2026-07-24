@@ -7,6 +7,107 @@
 
 ---
 
+## 2026-07-24 (öğle) — Master-PNG kampanyası BEKLEMEDE (Çağatay: token tasarrufu). Durum: %86.4
+
+**Sayı:** Ex_Frame sağlık **369/427 = %86.4** (taban %62.8; hedef ≥%91, kalan 20 film).
+Her şey commit'li (437dce8), bit-parite yeşil, ölçüm deterministik (iç-JSON, stdout değil —
+saglik.py yalnız en-kötü-15 basar, stdout ayrıştırma TUZAK).
+
+**Kapanan:** M10 Şerit-Atlası (konsey 4/4: dikiş-düzeyi rec doğrulama; +30 film; hizli-silah
+0.93→0.026) + M10c korunan-kayıt taşıma (alt-aralık muafiyeti; flip 2→1).
+
+**KALDIĞI YER / devam planı:** (1) tek gerçek flip: daha-kotusu-olamaz dup=0.1032 (0.003 sınır-üstü —
+incele); (2) kalan 53 dup-ihlali: sınır bandı 0.10-0.14'te ~15 film + dirençliler → plan M10-O1
+(X-T imzalı dar sınıflandırıcı, konsey gardlarıyla) SON tur adayı; boy-6/doku-1/üretim-1 küçük işler;
+(3) M5 kabul: VL-kilidi spot-testi + kör doğrulama + skip-audit tam tarama; (4) M4b üretim-tarafı
+(1.5fps overlay onarımı) ayrı iş. Araç notu: konsey_dogrudan.py (tam kadro, MCP-restart'sız);
+kapanis_kaniti.py İÇ-JSON'a çevrilmeli (stdout-parser hatası ders oldu). det-kararsızlık görevi
+(task_84752ed4) Çağatay'da ayrı oturumda.
+
+## 2026-07-24 (öğleden sonra) — ACİL: Film Kapanış → 1691 künye PDF hattı (NIM'e devir)
+
+**İş:** depo01 "Film Kapanış" (1691 tam film) → künye (yönetmen/yapımcı/ilk 8) + afiş + özet PDF.
+Hat: 25 (hasat: son 600s+ilk 245s kare, TAMAM 1691/1691) → 28 (paddle metin-filtre, ~30 kare/film)
+→ 29 (NIM Maverick: okuma+kimlik+özet — Claude token=0) → 27 (birleştir+fuzzy yazım düzeltme+patch)
+→ 26 (PDF, afiş cache→IMDb). Bekçi: 30_kapanis_zincir.sh (nohup, oturumdan bağımsız; _DUR ile durur).
+Rehber: filmtest/kapanis_hasat/README_KAPANIS.md. Durum: 65+ PDF export'ta, NIM tam koşu sürüyor.
+
+**Öğrenilen:** vLLM GPU'yu tutunca paddle CUDA-OOM (vlm durduruldu; v5 hattan çıkarıldı — okuma işi
+onset hassasiyeti istemiyor); 32 paralel Sonnet API hız sınırı + oturum limiti yedi (NIM'e devir bundan);
+tr_upper_prose yabancı adlarda İ üretiyor (RİPPER vakası — özetlerde yabancı adlar BÜYÜK-ASCII yazılır);
+Sonnet okuması 149 filmde altın-standart olarak duruyor. Fable = sadece hakem (tablo tarama + patch).
+
+**Bekleyen:** NIM koşusu bitince tablo QC turu (Fable), şüpheli/bayraklı filmler, POROROCA-sınıfı
+okunamayanlar, TEYZEM-tipi çok parçalılarda kardeş künye kontrolü.
+
+---
+
+## 2026-07-24 (gece) — İLK BÜYÜK VL KOŞUSU: test_film 40 film, çıkış+giriş jenerik → Qwen3-VL-8B
+
+**İş:** Yeni süreç — test_film'deki 40 MP4 filmde v5 ile jenerik başlangıcı bul → 60s+5s
+bindirmeli sessiz parçalar → vLLM Qwen3-VL-8B (video_url) ham transkript. Pilot(3)→onay→tümü.
+Gece Çağatay talimatıyla eklendi: ilk-240s GİRİŞ okuması + süre×piksel taraması + QA/kök-sebep.
+Yeni: `kurulum/22_testfilm_video_vl.py` (ASCII slug — file:// boşluk fix'i; mitas.env yükleme +
+v5 assert; checkpoint/resume; artımlı rapor), `kurulum/23_testfilm_giris_vl.py` (245s giriş
+klibi → aynı hat), `vlm_sunucu.sh`'a 2 geriye-uyumlu env düğmesi (GPU_UTIL, MAX_PIXELS).
+
+**Sonuç:** ÇIKIŞ 40/40 rc=0 (172 parça, motor: 34 v5 / 3 rescue / 3 paddle), GİRİŞ 40/40 rc=0
+(200 parça). QA (36 ajan + 26 kare-doğrulama): 10 iyi/20 orta/10 kötü. **Yönetmen: çıkışta 19
+(≥4'ü UYDURMA), girişle 30/40 GERÇEK** (Ray Enright, Louis Malle, Truffaut, Resnais, Majidi,
+Orhan Elmas…). Raporlar: `outputs/SABAH_RAPORU_20260724.md` (ana analiz),
+`TESTFILM_VL_RAPOR_20260723.md` (çıkış), `TESTFILM_GIRIS_VL_RAPOR_20260724.md` (giriş).
+
+**Öğrenilen (kritik):** (1) vlm_rescue 3 filmde v5'in DOĞRU "kredi yok" kararını bozup sahte
+künye üretti (KIZGIN_SİLAH "John Ford", DERT_BENDE "Bollywood künyesi") → fallback iptali
+önerildi (konsey GLM aynı yönde). (2) Model boş/footage karesine ŞABLON künye uyduruyor —
+"Directed by John Ford" 3 filmde uydurma; jenerik-sonrası parçalar çöp sayılmalı. (3) Sweep
+(27 ölçüm): sınır süre değil süre×yoğunluk — yoğun kayan jenerikte 90s+ dejenerasyon duvarı
+(tekrar 0.95), 30-45s en sadık; statikte 120s bile temiz; `max_pixels` video girdisinde ETKİSİZ
+(işlemci ~12k tokene oto-sığdırıyor); 2500 çıktı tavanı meşru metni kırpıyor → 3500 önerisi;
+dinamik pencere önerisi: credit_type=scroll→30-40s, statik→60s. (4) Operasyon: vLLM 0.85'te
+KV-cache'e takılıyor (alt sınır ~0.885); pgrep öz-eşleşmesi gece zincirini 20 dk kilitledi
+(kural: `[2]2_testfilm` deseni). (5) VL yönetmen alanı teyitsiz KULLANILMAZ (≥%21 uydurma) —
+çift-kaynak (giriş+çıkış) teyidi şart.
+
+**R2 eki (aynı sabah, Çağatay onayıyla):** en kötü 10 film 30s+3500 profiliyle yeniden koşuldu
+(`kurulum/24_r2_kotu10.py`; run-1 korunarak `video_vl_r2/`). Sonuç: 5 büyük kazanım (+%46…+%136
+benzersiz içerik; PRODUTTORI-döngüsü 0), 2 kalite kazanımı (CENNETİN_RENGİ artık GERÇEK Farsça
+okuyor; MAKSİM zincir 28→1), 2 nötr-pozitif, 1 direnç (POROROCA — okunabilirlik tabanı,
+kare-tabanlı sonda adayı). 15s sondası: +%40 içerik ama 2× GPU — standart 30s, 15s istisnalara.
+UYARI_İŞARETİ dersi: "Siegel" gitti "John Carpenter" geldi → ünlü-isim önseli pencereyle
+çözülmüyor, çift-kaynak teyit şart. Rapor §8'e işlendi.
+
+**R3 (öğle):** Kova-1 profili kalan 27 filme uygulandı (27/27) + 10 filme giriş-300s (10/10).
+vLLM koşu ortasında dış etkiyle düştü → R3-bekçisi otomatik toparladı (bekleme molası dahil).
+Giriş-300s: HAL BARWOOD (UYARI_İŞARETİ — 300s fix kanıtı) + KEVIN REYNOLDS (MONTE_KRİSTO)
+GERÇEK kazanç; 5 uydurma yakalandı (jenerik-dışı bölge konfabülasyonu; "John Ford" 4. kez,
+kare-kanıtlı). Kural kesinleşti: kart-kanıtlı okuma kazanır, jenerik-dışı bölge çöp,
+"John Ford" bilinen-halüsinasyon kara listesinde. Konsey performans turu (GLM): eşzamanlılık +
+CUDA-graphs + erken-durdurma Tier-1; fps-ön-örnekleme yeni fikir; quantize + repetition_penalty
+tuzak uyarısı. Kimi 2 turda da 3 denemede düştü — anahtar/endpoint bakımı gerek.
+
+**Kova-3 (öğleden sonra):** `harness/kunye_kiyas/kunye_cikar.py` yazıldı (24 test; deterministik,
+LLM'siz) → 40 film kunye.json + `outputs/TESTFILM_KUNYE_20260724.json`. Yönetmen: 7 guvenli +
+21 tek_kaynak + 7 celiskili + 3 supheli + 2 yok; 90 oyuncu kaydı. 8-film ajan-doğrulaması →
+düzeltmelerle 8/8 (Truffaut "DIRECTION DE PRODUCTION" tuzağından kurtarıldı). Kritik tasarım
+dersi: aday sıralaması ERKEN-GÖRÜLME ile (tekrar sayısı uydurma döngülerinde anti-sinyal).
+v2 backlog: ikincil-alan kontaminasyonu, düz oyuncu listeleri, etiketsiz/Farsça kartlar.
+
+**Sondalar (akşamüstü):** (1) POROROCA 512×288 "okunmaz" sınıfı → **30b tek-kare ~%85-90
+OKUDU** (zoom-gözle teyit; 8B@1M bozdu — "30b fark yaratmaz" ön-tahmini ölçümle çürüdü).
+(2) MAVZER + Kol D → **fps ön-örnekleme (video @0.4fps) kazandı**: prompt 12k→2.5k, doğal
+çözünürlük, temiz okuma (konsey fikri deneysel doğrulandı). (3) GLM kolu (Çağatay talebi):
+glm-ocr aynı karelerde dejeneratif döngü ("nəmərən"×80) — mikro-punto sınıfında ELENDİ.
+Motor seçim tablosu rapora işlendi (§11): varsayılan=fps-ön-örneklemeli video;
+mikro-punto=30b-kare (tek kanıtlı); boş bölge=okuma. NOT: bu bulgular 1691-film Kapanış
+kampanyasının "POROROCA-sınıfı okunamayanlar" bekleyenine doğrudan aktarılabilir.
+
+**Bekleyen:** fps-ön-örneklemenin _pipe_video_vl'ye env-opsiyonlu eklenmesi + R4 doğrulama
+(onay); performans paketi (eşzamanlılık+erken-durdurma+CUDA-graphs); Kova 2 non-Latin yaması;
+kunye v2 backlog; celiskili 7 filmin insan kararı; Kimi endpoint bakımı.
+
+---
+
 ## 2026-07-24 — Master-PNG kampanyası: dedup fix'leri sahada, Nyquist keşfi, Ex_Frame büyük koşusu başladı
 
 **Hat:** master-PNG penceresi (fork). /goal: Ex_Frame 427'de sağlıklı-master ≥%91 (tam yetki).
