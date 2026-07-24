@@ -210,8 +210,17 @@ def det_metin_var(
 # --------------------------------------------------------------------------- #
 def korunan_araliklari(manifest: dict, sep_px: int) -> list[tuple[int, int]]:
     """manifest.blocks (kept/skip'siz, h alanı olan) için final PNG y-aralığını
-    kümülatif olarak hesaplar (h + sep_px ayraç); `korunan_esleme` taşıyanları
-    [(y0,y1), ...] olarak döner."""
+    kümülatif olarak hesaplar (h + sep_px ayraç); `korunan_esleme` taşıyan
+    bloklarda TÜM blok, `korunan_alt_araliklar` taşıyan atlas bloklarında ise
+    YALNIZ o alt-aralık(lar) [(y0,y1), ...] olarak döner.
+
+    M10 (docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md kök-sebep düzeltmesi):
+    Şerit-Atlası'na (db_compose_master.py `_atlas_post_process`) katılan üye
+    sayfaların `korunan_esleme` kaydı atlas bloğunun KENDİSİNE taşınmıyordu --
+    composer artık atlasa giren protected üyenin atlas-yerel katkı aralığını
+    `korunan_alt_araliklar`a yazıyor; burada yalnız O aralık(lar) muaf tutulur
+    (TÜM-ŞERİT MUAFİYETİ YASAK -- atlasın protected-olmayan kısımları normal
+    dup denetimine tabi kalır)."""
     y = 0
     araliklar: list[tuple[int, int]] = []
     for b in manifest.get("blocks") or []:
@@ -220,6 +229,12 @@ def korunan_araliklari(manifest: dict, sep_px: int) -> list[tuple[int, int]]:
         h = int(b["h"])
         if b.get("korunan_esleme"):
             araliklar.append((y, y + h))
+        for alt in b.get("korunan_alt_araliklar") or []:
+            if not isinstance(alt, (list, tuple)) or len(alt) != 2:
+                continue
+            y0, y1 = max(0, min(h, int(alt[0]))), max(0, min(h, int(alt[1])))
+            if y1 > y0:
+                araliklar.append((y + y0, y + y1))
         y += h + sep_px
     return araliklar
 
@@ -354,6 +369,23 @@ def degerlendir(
     if doku_kapsami is None or doku_kapsami < doku_esik:
         ihlaller.append("doku_kapsami_dusuk")
 
+    # --- F4/M10 (Şerit-Atlası) rapor alanları -- SAĞLIĞI ETKİLEMEZ, yalnız
+    # izlenebilirlik (anti-gaming md.4): manifest'teki atlas_gruplari'ndan
+    # kabul/red sayıları + sayfa değişimi + dikiş-doğrulama özetleri.
+    atlas_gruplari = manifest.get("atlas_gruplari") or []
+    if atlas_gruplari or "sayfa_sayisi_once" in manifest:
+        kabul = [g for g in atlas_gruplari if g.get("rec_dogrulama") == "gecti"]
+        red = [g for g in atlas_gruplari if g.get("rec_dogrulama") == "atildi"]
+        detay["atlas_grup_sayisi"] = len(atlas_gruplari)
+        detay["atlas_kabul"] = len(kabul)
+        detay["atlas_red"] = len(red)
+        detay["atlas_red_sebepleri"] = sorted({g.get("red_sebebi") for g in red if g.get("red_sebebi")})
+        detay["sayfa_sayisi_once"] = manifest.get("sayfa_sayisi_once")
+        detay["sayfa_sayisi_sonra"] = manifest.get("sayfa_sayisi_sonra")
+        if kabul:
+            detay["atlas_overlap_ratio"] = [g.get("overlap_ratio") for g in kabul]
+            detay["atlas_dy_tutarli"] = [g.get("dy_tutarli") for g in kabul]
+
     return {
         "film": film,
         "saglikli": len(ihlaller) == 0,
@@ -380,6 +412,15 @@ def olc_kok(masters_kok: Path, **kwargs) -> dict:
             dagilim[ihlal] = dagilim.get(ihlal, 0) + 1
         for bayrak in s.get("teshis_bayraklari", []):
             teshis_dagilim[bayrak] = teshis_dagilim.get(bayrak, 0) + 1
+    # F4/M10: toplu atlas özeti (anti-gaming md.4 -- kaç filmde ateşlendi,
+    # kaçında kabul/red; G0 denetimi bu alandan tek komutla okunabilir)
+    atlas_ozet = {
+        "ateslenen_film": sum(1 for s in sonuclar if (s["detay"].get("atlas_grup_sayisi") or 0) > 0),
+        "kabul_film": sum(1 for s in sonuclar if (s["detay"].get("atlas_kabul") or 0) > 0),
+        "toplam_grup": sum(s["detay"].get("atlas_grup_sayisi") or 0 for s in sonuclar),
+        "toplam_kabul": sum(s["detay"].get("atlas_kabul") or 0 for s in sonuclar),
+        "toplam_red": sum(s["detay"].get("atlas_red") or 0 for s in sonuclar),
+    }
     return {
         "masters_kok": str(masters_kok),
         "n": n,
@@ -387,6 +428,7 @@ def olc_kok(masters_kok: Path, **kwargs) -> dict:
         "saglik_orani": round(saglikli_n / n, 4) if n else 0.0,
         "ihlal_dagilimi": dagilim,
         "teshis_dagilimi": teshis_dagilim,
+        "atlas_ozet": atlas_ozet,
         "sonuclar": sonuclar,
     }
 
@@ -436,6 +478,7 @@ def _cli(argv=None):
     print(f"{sonuc['saglikli_sayi']}/{sonuc['n']} sağlıklı (%{sonuc['saglik_orani'] * 100:.1f})")
     print("İhlal dağılımı:", json.dumps(sonuc["ihlal_dagilimi"], ensure_ascii=False))
     print("Teşhis dağılımı (sağlığı etkilemez):", json.dumps(sonuc["teshis_dagilimi"], ensure_ascii=False))
+    print("Atlas özeti (F4/M10):", json.dumps(sonuc["atlas_ozet"], ensure_ascii=False))
     print(f"\nEn kötü {args.en_kotu}:")
     for s in en_kotu_n(sonuc, args.en_kotu):
         print(f"  {s['film'][:55]:55} ihlaller={s['ihlaller']} dup={s['detay'].get('dup_oran')} "

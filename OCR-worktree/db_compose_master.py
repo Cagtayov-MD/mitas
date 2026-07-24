@@ -203,6 +203,71 @@ F3_RUN_RESP_FLOOR = 0.15
 # aynı konvansiyon) olmadan rescue YOK.
 F3_RUN_MIN_FRAMES = 3
 
+# F4 -- Şerit-Atlası (Görev M10, docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md,
+# KONSEY OYBİRLİĞİ hakem sentezi -- Nemotron O2+/Kimi S5 tasarımı). Kanıt (M9):
+# kalan-91'in %80'i (S2=73) YAVAŞ-KAYAN bir listenin "statik kart" sanılıp
+# örtüşen sayfalara aşırı bölünmesi (çift-mesafe medyanı 4 kare); F1/F1b/F1c'nin
+# "uzak kart" varsayımı bu popülasyonda neredeyse hiç tetiklenmiyor. F4, "statik"
+# koşunun ARDIŞIK sayfalarını dikey NCC ile zincir-hizalar; zincir kurulursa TÜM
+# içerik TEK atlas şeridine taşınır (kırpma-hatası riski yapısal olarak yok --
+# yalnız örtüşen kısım atılır, benzersiz kısım hep korunur). Zincir KURULAMAZSA
+# (gerçek farklı-içerikli kart koşusu -- NCC düşük) otomatik veto, sayfalar AYNEN
+# kalır. Rec-doğrulama (F1b/F1c motorlarını yeniden kullanır) ZORUNLU ikinci kapı.
+ATLAS_DY_MIN_PX = 3.0        # dy≈0 çiftler zincire girmez -- F1b/F1c dedup yoluna zaten düşer
+# ATLAS_RESP_GATE: F3_RUN_RESP_FLOOR (0.15) ile AYNI değer -- aynı fiziksel sinyal
+# (1.25fps gerçek/gürültülü Ex_Frame görüntüsünde phaseCorrelate yanıtı), aynı
+# proje-kalibreli gürültü tabanı. Ölçülmüş kanıt (gecmisten-gelen pilot, GÖRSEL
+# doğrulanmış gerçek kayan-liste çifti): response=0.31-0.61 -- 0.5'lik ilk
+# varsayım gerçek çekimde GERÇEK eşleşmeleri reddediyordu. Zayıf ön-eleme --
+# asıl doğrulama NCC + ZORUNLU rec-token denetimi (md.2).
+ATLAS_RESP_GATE = 0.15
+# ATLAS_NCC_GATE: F1B_NCC_GATE (0.90) kutu-içi lokal NCC için kalibre edilmişti
+# (arka plan gürültüsü yok); tüm-sayfa örtüşme NCC'si (metin+arka plan karışık,
+# büyük kaymalarda warp-ekstrapolasyonu da eklenince) doğal olarak daha düşük
+# çıkıyor -- ölçülmüş kanıt (gecmisten-gelen, GÖRSEL doğrulanmış İKİ gerçek
+# eşleşme, AYNI zincir): ncc=0.82 (büyük kayma/düşük yanıt) ve 0.8996 (küçük
+# kayma/yüksek yanıt). NCC burada ADAY kapısı -- asıl içerik-güvenliği ZORUNLU
+# rec-token alt-küme denetimi (md.2, "NCC-tek başına RED" konsey kararı).
+# Ölçülmüş kanıta göre gevşetildi; G0 (333 sağlıklı filmde 0-ateşleme) bu
+# seçimi ampirik olarak doğrulayacak/reddedecek.
+ATLAS_NCC_GATE = 0.80
+# ATLAS_DY_TOL_ORAN -- REVİZYON (2026-07-24, koordinatör direktifi + ölçülmüş teşhis):
+# dy-hız tutarlılığı artık zincir-KIRICI kapı DEĞİL, yalnız manifest TEŞHİS alanı.
+# Ölçülmüş kanıt (hizli-silah, GÖRSEL doğrulanmış gerçek yavaş-kayan liste):
+# 4/4 çift NCC'yi geçti (0.9064-0.9741) ama dy-hızlar -19.75/-37.71/-51.00/-23.31
+# px/kare -- ardışık oranlar 0.48/0.26/0.54, ±%20 hepsini reddediyordu (±%35 bile
+# 2/3'ünü). KÖK SEBEP yapısal: sayfalar metin-bandına kırpılıyor (text_rows, y0
+# sayfa-başına farklı) -- kırpımlar-arası dy = gerçek-kayma + kırpım-orijin-farkı;
+# sabit hızlı scroll'da bile çift-dy'si değişken. md.3'ün bu şartla önlemek
+# istediği senaryo (satır-periyot yanlış-kilitleme) DİKİŞ-DÜZEYİ rec sıfır-çelişki
+# kapısıyla (ATLAS_SEAM_*) yakalanır: yanlış satıra kilitlenen hizalamada örtüşme
+# bölgesinin iki kırpımı FARKLI gerçek metin taşır -> çelişki -> atlas atılır.
+ATLAS_DY_TOL_ORAN = 0.35     # yalnız manifest'teki dy_tutarli teşhis bayrağı için
+ATLAS_OVERLAP_MIN_SATIR = 2  # örtüşme >= 2 satır-yüksekliği (hakem sentezi md.3)
+# ATLAS_MIN_CHAIN_EDGES -- REVİZYON (koordinatör direktifi): 2-sayfalı çiftlerde
+# tek-dikiş + dikiş-rec yeterli (>=2-ardışık-çift şartı kaldırıldı; güvenlik
+# NCC>=0.8 + örtüşme>=2satır + dikiş-başına rec sıfır-çelişki üçlüsünde).
+ATLAS_MIN_CHAIN_EDGES = 1
+# Dikiş-düzeyi rec-doğrulama (Kimi kuralının doğru uygulaması -- koordinatör
+# direktifi md.2): her dikişte örtüşen bölge İKİ sayfada da fiziksel olarak var;
+# iki kırpım AYRI AYRI det+rec'lenir. Konum-eşleşmiş kutu çiftlerinde İKİSİ DE
+# yüksek-güvenliyse (conf>=0.8) SIFIR ÇELİŞKİ şart (kısa token birebir; uzun
+# token'da -- >=6 harf -- Levenshtein<=1 kabul, OCR tek-karakter gürültüsü);
+# düşük-güvenli/eşleşmemiş kutu TOLERE edilir. Bütün-atlas OCR'ı KULLANILMAZ:
+# sentetik uzun şeridin bütün-OCR'ı satır-parçalanması yüzünden güvenilmez
+# (ölçüldü: 59/63 sahte red -- aynı kelime farklı sayfalarda farklı garble).
+ATLAS_SEAM_CONF = 0.8
+ATLAS_SEAM_KISA_TOKEN = 5    # <=5 harf (isim/kısaltma boyutu): birebir şart, tolerans yok
+# Kırpım-SINIRINA değen kutular çelişki denetiminden MUAF (pilot kanıtı,
+# gecmisten-gelen dikiş[2,3]: örtüşme sınırı bir metin satırını ORTADAN kesince
+# yarım-glifli kırpım rec'i 'dave parker 0' okudu, tam satır 'dave parker craig
+# woods' -- İKİSİ AYNI FİZİKSEL SATIR, sahte çelişki). Sınır-kesiği yapısal bir
+# kırpım artefaktı, gerçek içerik farkı değil; sınırdan uzak kutulardaki gerçek
+# çelişkiler (yanlış-hizalama kanıtı: 'barfly' vs 'stranger') ETKİLENMEZ.
+ATLAS_SEAM_KENAR_PAY = 6     # px -- kutunun üst/alt kenarı bu kadar yakınsa muaf
+ATLAS_CANVAS_H_MAKS = 20000  # güvenlik: patolojik zincir büyümesine karşı mutlak tavan
+ATLAS_LINE_H_VARSAYILAN = 24
+
 
 # --------------------------------------------------------------------------- #
 # resolution-normalized parameters
@@ -1726,6 +1791,544 @@ def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None,
     return np.vstack(stacked[:-1]), manifest, None
 
 
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F4 -- Şerit-Atlası (Görev M10, yavaş-kayan-liste onarımı)
+# --------------------------------------------------------------------------- #
+def _atlas_line_height_estimate(gray: np.ndarray, *, min_lag: int = 8, max_lag: int = 200,
+                                 varsayilan: int = ATLAS_LINE_H_VARSAYILAN) -> int:
+    """dup_metrik.py'nin satır-yüksekliği tahminiyle AYNI fikir (yatay kenar-
+    yoğunluğu profilinin otokorelasyon tepesi) -- composer harness'a bağımlı
+    OLMASIN diye burada bağımsız/küçük olarak yeniden uygulanır (tek yönlü
+    bağımlılık: harness composer'ı import eder, tersi asla)."""
+    h = gray.shape[0]
+    if h < min_lag * 4:
+        return varsayilan
+    gy = cv2.Sobel(gray.astype(np.float32), cv2.CV_32F, 0, 1, ksize=3)
+    profil = np.abs(gy).mean(axis=1)
+    profil = profil - profil.mean()
+    varyans = float(np.dot(profil, profil))
+    if varyans <= 1e-6:
+        return varsayilan
+    lag_max = min(h // 3, max_lag)
+    if lag_max <= min_lag:
+        return varsayilan
+    skorlar = np.array(
+        [float(np.dot(profil[:-lag], profil[lag:])) / varyans for lag in range(min_lag, lag_max + 1)]
+    )
+    tepe = float(skorlar.max())
+    if tepe < 0.15:
+        return varsayilan
+    esik = 0.6 * tepe
+    for offset, skor in enumerate(skorlar):
+        if skor >= esik:
+            return int(min_lag + offset)
+    return varsayilan  # pragma: no cover
+
+
+def _atlas_pair_align(prev_gray: np.ndarray, new_gray: np.ndarray) -> dict | None:
+    """İki ardışık 'statik' sayfa arasında dikey kaymayı (dy) faz-korelasyonla
+    bul, hizalanmış örtüşme bölgesinde NCC ile DOĞRULA (iki bağımsız kanıt --
+    F1/F1b'nin phaseCorrelate+XOR-doğrulama desenini izler). Genişlik ORTAK
+    (aynı film/run çözünürlüğü); yükseklikler farklı olabilir -- ortak
+    (maksimum) yüksekliğe alta sıfır-doldurma ile getirilir. Herhangi bir kapı
+    tutmazsa None (çağıran bunu 'zincir kurulamadı' -- sayfalar AYNEN kalır --
+    olarak okur)."""
+    if prev_gray is None or new_gray is None or not prev_gray.size or not new_gray.size:
+        return None
+    if prev_gray.shape[1] != new_gray.shape[1]:
+        return None
+    h1, h2 = prev_gray.shape[0], new_gray.shape[0]
+    w = prev_gray.shape[1]
+    if h1 < 8 or h2 < 8 or w < 8:
+        return None
+    hmax = max(h1, h2)
+    a = np.zeros((hmax, w), np.float32)
+    b = np.zeros((hmax, w), np.float32)
+    a[:h1, :] = prev_gray.astype(np.float32) / 255.0
+    b[:h2, :] = new_gray.astype(np.float32) / 255.0
+    hann = cv2.createHanningWindow((w, hmax), cv2.CV_32F)
+    (dx, dy), response = cv2.phaseCorrelate(a * hann, b * hann)
+    if response < ATLAS_RESP_GATE:
+        return None
+    if abs(dy) < ATLAS_DY_MIN_PX:
+        return None  # dy≈0 -- zaten F1b/F1c dedup yoluna düşmüş olmalı, atlas dokunmaz
+    y_lo = max(0.0, dy)
+    y_hi = min(float(h2), float(h1) + dy)
+    if y_hi - y_lo < 2:
+        return None
+    transform = np.float32([[1, 0, dx], [0, 1, dy]])
+    prev_f = prev_gray.astype(np.float32) / 255.0
+    aligned = cv2.warpAffine(prev_f, transform, (w, h2))
+    y0, y1 = int(round(y_lo)), int(round(y_hi))
+    if y1 - y0 < 2:
+        return None
+    seg_a = aligned[y0:y1, :]
+    seg_b = new_gray.astype(np.float32)[y0:y1, :] / 255.0
+    a0 = seg_a - seg_a.mean()
+    b0 = seg_b - seg_b.mean()
+    denom = float(np.sqrt(float((a0 * a0).sum())) * np.sqrt(float((b0 * b0).sum())))
+    ncc = float((a0 * b0).sum() / denom) if denom > 1e-6 else 0.0
+    if ncc < ATLAS_NCC_GATE:
+        return None
+    line_h = min(_atlas_line_height_estimate(prev_gray), _atlas_line_height_estimate(new_gray))
+    overlap_px = int(round(y1 - y0))
+    if overlap_px < ATLAS_OVERLAP_MIN_SATIR * line_h:
+        return None
+    return {
+        "dy": float(dy), "dx": float(dx), "response": round(float(response), 4),
+        "ncc": round(ncc, 4), "overlap_px": overlap_px, "line_height": int(line_h),
+        # dikiş-doğrulama için örtüşme koordinatları: YENİ sayfa yerelinde
+        # [y0,y1); ÖNCEKİ sayfa yerelinde aynı bölge = [y0-round(dy), y1-round(dy))
+        "overlap_new": [int(y0), int(y1)],
+    }
+
+
+def _atlas_seam_verify(prev_gray: np.ndarray, new_gray: np.ndarray, align: dict) -> dict:
+    """Dikiş-düzeyi rec-doğrulama (Kimi kuralı -- bkz. ATLAS_SEAM_* sabit notu).
+
+    Örtüşme bölgesinin İKİ kırpımı (önceki sayfadan + yeni sayfadan) ayrı ayrı
+    det+rec'lenir; kutular konum-eşleştirilir (merkez toleransı F1B_CENTER_TOL).
+    ÇELİŞKİ = konum-eşleşmiş bir kutu çiftinde İKİ taraf da yüksek-güvenli
+    (conf>=ATLAS_SEAM_CONF) okunduğu halde metinler uyuşmuyor (kısa token birebir
+    değil; uzun token Levenshtein>1). Düşük-güvenli/eşleşmemiş kutu TOLERE.
+    Dönüş: {"gecti": bool, "celiski": [...], "kontrol_cift": int, ...}."""
+    dyi = int(round(align["dy"]))
+    ny0, ny1 = align["overlap_new"]
+    py0, py1 = ny0 - dyi, ny1 - dyi
+    py0 = max(0, py0)
+    py1 = min(prev_gray.shape[0], py1)
+    ny0 = max(0, ny0)
+    ny1 = min(new_gray.shape[0], ny1)
+    h_ortak = min(py1 - py0, ny1 - ny0)
+    sonuc = {"gecti": True, "celiski": [], "kontrol_cift": 0,
+             "kutu_prev": 0, "kutu_new": 0, "overlap_h": int(h_ortak)}
+    if h_ortak < 32:
+        # det motoru bu kısalıkta güvenilmez (bkz. saglik.py DET_MIN_KIRPIM_PX
+        # kanıtı) -- metin denetimi yapılamaz; NCC+örtüşme kapıları geçilmişti,
+        # boş/metinsiz kısa dikiş vacuous-geçer (Kimi kuralı: eksik TOLERE).
+        return sonuc
+    crop_prev = prev_gray[py0:py0 + h_ortak, :]
+    crop_new = new_gray[ny0:ny0 + h_ortak, :]
+    boxes_p = _f1b_det_boxes(crop_prev) or []
+    boxes_n = _f1b_det_boxes(crop_new) or []
+    sonuc["kutu_prev"] = len(boxes_p)
+    sonuc["kutu_new"] = len(boxes_n)
+    if not boxes_p or not boxes_n:
+        return sonuc  # bir tarafta hiç kutu yok -- eksik TOLERE (çelişki tanımsız)
+    def _sinira_degiyor(box) -> bool:
+        # box[5]=y0piksel, box[7]=y1piksel (bkz. _f1b_det_boxes şeması)
+        return box[5] < ATLAS_SEAM_KENAR_PAY or box[7] > h_ortak - ATLAS_SEAM_KENAR_PAY
+
+    kullanildi: set[int] = set()
+    for bp in _f1b_boxes_sorted(boxes_p):
+        if _sinira_degiyor(bp):
+            continue  # sınır-kesikli kutu -- yapısal kırpım artefaktı, MUAF
+        # konum-eşleşme: en yakın merkezli yeni-kutu (normalize koordinatta)
+        best_j, best_d = None, None
+        for j, bn in enumerate(boxes_n):
+            if j in kullanildi:
+                continue
+            d = abs(bp[0] - bn[0]) + abs(bp[1] - bn[1])
+            if best_d is None or d < best_d:
+                best_j, best_d = j, d
+        if best_j is None or best_d is None or best_d > 2 * F1B_CENTER_TOL:
+            continue  # eşleşmemiş kutu -- TOLERE
+        kullanildi.add(best_j)
+        bn = boxes_n[best_j]
+        if _sinira_degiyor(bn):
+            continue  # karşı-taraf sınır-kesikli -- MUAF
+        text_p, conf_p = _f1c_rec_text(crop_prev, bp)
+        text_n, conf_n = _f1c_rec_text(crop_new, bn)
+        if conf_p < ATLAS_SEAM_CONF or conf_n < ATLAS_SEAM_CONF:
+            continue  # düşük-güvenli -- TOLERE (Kimi kuralı)
+        na = _f1c_normalize_text(text_p)
+        nb = _f1c_normalize_text(text_n)
+        sonuc["kontrol_cift"] += 1
+        if na == nb:
+            continue
+        tok_a, tok_b = na.split(), nb.split()
+        uyusuyor = False
+        if len(tok_a) == len(tok_b):
+            uyusuyor = all(
+                ta == tb or (len(ta) > ATLAS_SEAM_KISA_TOKEN and len(tb) > ATLAS_SEAM_KISA_TOKEN
+                             and _levenshtein(ta, tb) <= 1)
+                for ta, tb in zip(tok_a, tok_b)
+            )
+        else:
+            # kelime-bölme farkı ("johnsmith" vs "john smith"): boşluksuz kıyas
+            ja, jb = na.replace(" ", ""), nb.replace(" ", "")
+            uyusuyor = ja == jb or (len(ja) > ATLAS_SEAM_KISA_TOKEN and len(jb) > ATLAS_SEAM_KISA_TOKEN
+                                     and _levenshtein(ja, jb) <= 1)
+        if not uyusuyor:
+            sonuc["celiski"].append({"prev": na, "new": nb,
+                                      "conf": [round(conf_p, 3), round(conf_n, 3)]})
+    sonuc["gecti"] = len(sonuc["celiski"]) == 0
+    return sonuc
+
+
+def _atlas_dy_tutarli(a: dict, b: dict, *, oran: float = ATLAS_DY_TOL_ORAN) -> bool:
+    """REVİZYON (koordinatör direktifi): artık zincir-KIRICI değil, yalnız
+    manifest TEŞHİS bayrağı (dy_tutarli alanı -- anti-gaming denetimi md.4 için
+    izlenebilirlik). Gerekçe: bant-kırpım orijin farkı yüzünden çift-dy'si sabit
+    hızlı gerçek scroll'da bile değişken (bkz. ATLAS_DY_TOL_ORAN sabit notu,
+    hizli-silah ölçümü). Karşılaştırma dy-HIZI (px/kare, 'dy_rate') üzerinden --
+    temsilci kart-kareleri zaman ekseninde eşit aralıklı değildir (gecmisten-
+    gelen kanıtı); 'dy_rate' yoksa ham dy'ye düşülür."""
+    da = a.get("dy_rate", a["dy"])
+    db = b.get("dy_rate", b["dy"])
+    if (da >= 0) != (db >= 0):
+        return False
+    m = max(abs(da), abs(db))
+    if m <= 1e-6:
+        return False
+    return abs(da - db) / m <= oran
+
+
+def _atlas_refine_seam_row(card: np.ndarray, candidate_row: int, line_h: int, *, yon: str = "erken") -> int:
+    """Dikiş satırını, yatay kenar-yoğunluğu (Sobel-y) profilinin candidate_row
+    çevresindeki YEREL minimumuna yaslar -- bağlı bir metin satırının/glifin
+    ortadan bölünmesini önler (hakem sentezi md.3, 'bağlı-bileşen bölünmez').
+
+    `yon` YÖN KISITI (pilot görsel-kanıt fix'i -- hizli-silah atlası): arama
+    penceresi TEK yönlüdür. "erken" (alt-büyüme: piece=card[cut:]) -> dikiş
+    yalnız candidate_row'dan ERKEN (örtüşmenin İÇİNE) kayabilir; erken kayan
+    dikişte fazladan kopyalanan satırlar önceki kartın AYNI dünya-satırlarının
+    üzerine hizalı yazılır (zararsız), GEÇ kayan dikişte ise [candidate,cut)
+    satırları hiçbir karttan kopyalanmaz -- SİYAH BANT + yarım-satır KAYBI
+    (ölçüldü: hizli-silah ilk atlasında ~15px bantlar, 'Reverend Slater' satırı
+    yarım). "gec" (üst-büyüme: piece=card[:cut]) simetrik olarak yalnız GEÇ."""
+    h = card.shape[0]
+    candidate_row = max(0, min(h, candidate_row))
+    radius = max(2, line_h // 2)
+    if yon == "erken":
+        y0 = max(0, candidate_row - radius)
+        y1 = min(h, candidate_row + 1)
+    else:  # "gec"
+        y0 = max(0, candidate_row)
+        y1 = min(h, candidate_row + radius + 1)
+    if y1 - y0 < 3:
+        return candidate_row
+    gray = cv2.cvtColor(card, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gy = np.abs(cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3))
+    profil = gy[y0:y1, :].mean(axis=1)
+    best = int(np.argmin(profil))
+    return y0 + best
+
+
+def _atlas_stitch_chain(cards: list[np.ndarray], aligns: list[dict]) -> tuple[np.ndarray, dict] | None:
+    """Zincire giren N kartı (BGR, sırayla) kümülatif dünya-koordinatı
+    yerleşimiyle tek şeride birleştirir: İLK kart TAM, her sonraki kartın
+    yalnız ÖRTÜŞMEYEN (yeni) kısmı eklenir -- yükseklik = toplam kayma, TÜM
+    YENİ içerik BİREBİR (piksel-kopyalama, harmanlama YOK) taşınır. Yön-
+    bağımsız (dy pozitif/negatif her iki tarafa büyümeyi de doğru işler).
+
+    rapor["atilan_bolgeler"]: her kart için ATILAN (örtüşen, kopyalanmayan)
+    YEREL satır aralığı (y0,y1) ya da None (hiç atılmadı -- kart0 HER ZAMAN
+    None, tamamı korunur). Rec-doğrulama (md.2) SADECE bu aralıkları kontrol
+    eder -- kopyalanan (asla atılmayan) pikseller yapısal olarak zaten
+    korunuyor; onların token'ını da istemek yalnız OCR'ın aynı pikseli farklı
+    kırpım-bağlamında (tek sayfa vs uzun atlas) FARKLI okumasından kaynaklanan
+    YANLIŞ-ALARM üretir, gerçek bir içerik-kaybı riskini YAKALAMAZ.
+
+    rapor["katki_araliklari"]: her kart için atlas-YEREL (bu şeridin 0..canvas_h
+    çerçevesi) KOPYALANAN aralık(lar)ı -- [(y0,y1), ...], kart0 için HER ZAMAN
+    tek [(top0, top0+h0)] (tamamı kopyalanır). M10 protected-pair taşıma
+    (_atlas_post_process) BUNU kullanır: bir üye korunan_esleme taşıyorsa,
+    yalnız BU aralık(lar) atlas bloğunun korunan_alt_araliklar'ına eklenir --
+    TÜM-ŞERİT MUAFİYETİ YASAK (bkz. docs M10)."""
+    n = len(cards)
+    if n < 2 or len(aligns) != n - 1:
+        return None
+    w = cards[0].shape[1]
+    if any(c.shape[1] != w for c in cards):
+        return None
+    shift = [0.0]
+    for a in aligns:
+        shift.append(shift[-1] - a["dy"])
+    heights = [int(c.shape[0]) for c in cards]
+    lo = min(shift[k] for k in range(n))
+    hi = max(shift[k] + heights[k] for k in range(n))
+    canvas_h = int(round(hi - lo))
+    if canvas_h < heights[0] or canvas_h > ATLAS_CANVAS_H_MAKS:
+        return None
+    canvas = np.zeros((canvas_h, w, 3), np.uint8)
+    top0 = int(round(shift[0] - lo))
+    canvas[top0:top0 + heights[0], :] = cards[0]
+    covered_lo, covered_hi = shift[0], shift[0] + heights[0]
+    toplam_yeni_px = 0
+    atilan_bolgeler: list[tuple[int, int] | None] = [None]  # kart0: hiç atılmadı
+    # M10: kart0 TAM kopyalanır -- atlas-YEREL (canvas 0..canvas_h) katkısı tüm
+    # şeridin kendisidir (bkz. korunan_alt_araliklar taşıma -- _atlas_post_process).
+    katki_araliklari: list[list[tuple[int, int]]] = [[(top0, top0 + heights[0])]]
+    for k in range(1, n):
+        card = cards[k]
+        h_k = heights[k]
+        card_lo, card_hi = shift[k], shift[k] + h_k
+        line_h = aligns[k - 1]["line_height"]
+        kopyalanan: list[tuple[int, int]] = []  # bu kartın YEREL kopyalanan aralık(lar)ı
+        katki_bu_kart: list[tuple[int, int]] = []  # aynı aralık(lar), ATLAS-YEREL (canvas) çerçevesinde
+        if card_hi > covered_hi + 1e-6:
+            cut_local = max(0.0, covered_hi - card_lo)
+            cut_row = _atlas_refine_seam_row(card, int(round(cut_local)), line_h, yon="erken")
+            piece = card[cut_row:, :]
+            dst0 = int(round(card_lo + cut_row - lo))
+            dst1 = min(canvas_h, dst0 + piece.shape[0])
+            if dst1 > dst0:
+                canvas[dst0:dst1, :] = piece[: dst1 - dst0]
+                toplam_yeni_px += dst1 - dst0
+                kopyalanan.append((cut_row, cut_row + (dst1 - dst0)))
+                katki_bu_kart.append((dst0, dst1))
+            covered_hi = max(covered_hi, card_lo + cut_row + (dst1 - dst0))
+        if card_lo < covered_lo - 1e-6:
+            cut_local = min(float(h_k), covered_lo - card_lo)
+            cut_row2 = _atlas_refine_seam_row(card, int(round(cut_local)), line_h, yon="gec")
+            piece = card[:cut_row2, :]
+            dst1 = int(round(card_lo + cut_row2 - lo))
+            dst0 = max(0, dst1 - piece.shape[0])
+            if dst1 > dst0:
+                canvas[dst0:dst1, :] = piece[-(dst1 - dst0):]
+                toplam_yeni_px += dst1 - dst0
+                kopyalanan.append((cut_row2 - (dst1 - dst0), cut_row2))
+                katki_bu_kart.append((dst0, dst1))
+            covered_lo = min(covered_lo, card_lo)
+        katki_araliklari.append(katki_bu_kart)
+        # ATILAN = [0,h_k) EKSİ kopyalanan aralık(lar) -- basit/güvenli yaklaşım:
+        # kopyalanan TEK bir sürekli aralık (normal durum -- bir kart ya üstten
+        # ya alttan büyür, ikisi birden NADİR); en büyük kopyalanan parçanın
+        # TAMAMLAYICISI atılan sayılır (hiç kopyalanmadıysa TÜM kart atılmıştır).
+        if not kopyalanan:
+            atilan_bolgeler.append((0, h_k))
+        else:
+            c0, c1 = max(kopyalanan, key=lambda r: r[1] - r[0])
+            if c0 <= 0 and c1 >= h_k:
+                atilan_bolgeler.append(None)  # kart tamamı kopyalandı (nadir, tam büyüme)
+            elif c0 <= 0:
+                atilan_bolgeler.append((c1, h_k))
+            elif c1 >= h_k:
+                atilan_bolgeler.append((0, c0))
+            else:
+                # kopyalanan ORTADA -- atılan iki parçalı; basit/güvenli: daha
+                # büyük atılan parçayı kontrol kapsamına al (küçük uç zaten
+                # komşu karta ait bir sonraki/önceki karşılaştırmada örtük
+                # denetlenir; aşırı-mühendislik yerine güvenli-basit tercih).
+                atilan_bolgeler.append((0, c0) if c0 >= (h_k - c1) else (c1, h_k))
+    rapor = {
+        "dy_ort": round(float(np.mean([a["dy"] for a in aligns])), 2),
+        "dy_liste": [round(a["dy"], 2) for a in aligns],
+        "overlap_ratio": round(1.0 - (toplam_yeni_px / max(1, sum(heights[1:]))), 4),
+        "boy_once": heights,
+        "boy_sonra": int(canvas_h),
+        "atilan_bolgeler": atilan_bolgeler,
+        "katki_araliklari": katki_araliklari,
+    }
+    return canvas, rapor
+
+
+# NOT (REVİZYON, koordinatör direktifi): bütün-atlas token-kapsama doğrulaması
+# (_atlas_verify_rec/_atlas_rec_tokens/_atlas_token_*) KALDIRILDI -- sentetik
+# uzun şeridin bütün-OCR'ı satır-parçalanması ve tekrar-garble yüzünden
+# güvenilmezdi (ölçüldü: 59/63 sahte red; aynı kelime farklı sayfalarda farklı
+# yanlış-okundu, atlasın tek okuması hepsini birebir içeremez). Yerine DİKİŞ-
+# DÜZEYİ doğrulama: _atlas_seam_verify (yukarıda) -- örtüşme bölgesinin iki
+# GERÇEK sayfa kırpımı karşılaştırılır, sentetik şerit OCR'ına hiç gidilmez.
+
+
+def _atlas_post_process(
+    blocks: list[np.ndarray],
+    block_manifest: list[dict],
+    block_manifest_idx: list[int],
+    run_card_ranges: list[tuple[int, int]],
+) -> dict:
+    """F4 ana sürücüsü: her 'statik' koşunun kart-aralığında NCC-zincir arar,
+    zincir kurulan gruplarda rec-doğrulama ŞARTIYLA blocks/block_manifest'i
+    YERİNDE günceller (yalnız çağıran v2_on ise çağırır). block_manifest'teki
+    ARADAKİ skip-kayıtları (consecutive-dup/distant-dup vb.) DOKUNULMADAN
+    korunur -- yalnız GRUBUN kendi kept-girdileri tek atlas girdisine indirgenir."""
+    sayfa_once = len(blocks)
+    atlas_gruplari: list[dict] = []
+    replacements: list[tuple[int, int, np.ndarray, dict]] = []
+
+    for start, end in run_card_ranges:
+        n = end - start
+        if n < ATLAS_MIN_CHAIN_EDGES + 1:
+            continue
+        grays = [cv2.cvtColor(blocks[i], cv2.COLOR_BGR2GRAY) for i in range(start, end)]
+        # F4: temsilci kart-kareleri zaman ekseninde eşit aralıklı DEĞİL (medoid
+        # seçimi) -- dy_rate (px/kare) için block_manifest'teki timeline_index
+        # farkı kullanılır (bkz. _atlas_dy_tutarli docstring'i).
+        tlines = [block_manifest[block_manifest_idx[i]].get("timeline_index") for i in range(start, end)]
+        aligns: list[dict | None] = []
+        for i in range(n - 1):
+            a = _atlas_pair_align(grays[i], grays[i + 1])
+            if a is not None:
+                t0, t1 = tlines[i], tlines[i + 1]
+                gap = (t1 - t0) if (t0 is not None and t1 is not None and t1 > t0) else None
+                a["frame_gap"] = gap
+                a["dy_rate"] = (a["dy"] / gap) if gap else a["dy"]
+            aligns.append(a)
+
+        i = 0
+        while i < n - 1:
+            if aligns[i] is None:
+                i += 1
+                continue
+            # REVİZYON (koordinatör direktifi): zincir = ARDIŞIK geçerli kenarların
+            # AYNI dy-YÖNLÜ maksimal koşusu. dy-hız tutarlılığı zincir-kırıcı DEĞİL
+            # (bkz. ATLAS_DY_TOL_ORAN notu -- bant-kırpım orijin farkı yüzünden
+            # yapısal olarak güvenilmez sinyal); yalnız manifest teşhis alanı.
+            # Yön-değişimi (scroll tersine dönemez) zinciri yine KIRAR -- zigzag
+            # dikişe karşı minimal geometrik gard.
+            chain = [i]
+            j = i + 1
+            while (
+                j < n - 1
+                and aligns[j] is not None
+                and (aligns[j]["dy"] >= 0) == (aligns[chain[-1]]["dy"] >= 0)
+            ):
+                chain.append(j)
+                j += 1
+            # chain, EDGE indeksleri listesi (chain[k] = kart[chain[k]]<->kart[chain[k]+1]
+            # çifti) -- m kenar zinciri m+1 kart kapsar; bu yüzden hi = son-kenar+2
+            # (son-kenarın İKİNCİ kartını da dahil et), son-kenar+1 DEĞİL.
+            lo, hi = start + chain[0], start + chain[-1] + 2
+            grup_cards = blocks[lo:hi]
+            grup_aligns = [aligns[k] for k in chain]
+            grup_kayit: dict = {"sayfalar": [lo, hi - 1], "sayfa_sayisi": hi - lo}
+            # dy-tutarlılık TEŞHİS bayrağı (anti-gaming md.4 izlenebilirliği)
+            grup_kayit["dy_tutarli"] = all(
+                _atlas_dy_tutarli(grup_aligns[k], grup_aligns[k + 1])
+                for k in range(len(grup_aligns) - 1)
+            ) if len(grup_aligns) > 1 else True
+            # DİKİŞ-DÜZEYİ rec-doğrulama (Kimi kuralı): HER dikiş ayrı denetlenir.
+            # Stitch'ten ÖNCE koşulur (rec maliyeti dikiş-kırpımlarıyla sınırlı;
+            # sentetik şerit OCR'ı hiç yok).
+            seam_sonuclari = []
+            seam_gecti: list[bool] = []
+            for k_idx, k in enumerate(chain):
+                sv = _atlas_seam_verify(grays[k], grays[k + 1], grup_aligns[k_idx])
+                seam_gecti.append(sv["gecti"])
+                seam_sonuclari.append({
+                    "dikis": [start + k, start + k + 1],
+                    "gecti": sv["gecti"],
+                    "kontrol_cift": sv["kontrol_cift"],
+                    "kutu": [sv["kutu_prev"], sv["kutu_new"]],
+                    "overlap_h": sv["overlap_h"],
+                    **({"celiski": sv["celiski"][:5]} if sv["celiski"] else {}),
+                })
+            grup_kayit["dikisler"] = seam_sonuclari
+            # ZİNCİR-BÖLME (koordinatör direktifi ruhu -- 'dikişlerin hepsi geçerse
+            # atlas geçer' kuralı ALT-ZİNCİR başına uygulanır): çelişkili dikiş
+            # zinciri KIRAR ama geçen-dikişli ardışık alt-zincirler bağımsız
+            # kabul edilir (her alt-zincirin TÜM dikişleri geçmiştir). Çelişkili
+            # dikişin paylaştığı kartlar yalnız KOMŞU alt-zincirlere gider --
+            # alt-zincirler kart paylaşmaz (kenar b'de kırılınca: A=..b-1 kenarı
+            # -> kart b'ye kadar; B=b+1 kenarından -> kart b+1'den; ayrık).
+            alt_zincirler: list[list[int]] = []
+            cur: list[int] = []
+            for k_idx, k in enumerate(chain):
+                if seam_gecti[k_idx]:
+                    cur.append(k)
+                else:
+                    if cur:
+                        alt_zincirler.append(cur)
+                    cur = []
+            if cur:
+                alt_zincirler.append(cur)
+            kabul_sayisi = 0
+            son_kenar_kabul = False
+            for alt in alt_zincirler:
+                a_lo, a_hi = start + alt[0], start + alt[-1] + 2
+                alt_cards = blocks[a_lo:a_hi]
+                alt_aligns = [aligns[k] for k in alt]
+                stitched = _atlas_stitch_chain(alt_cards, alt_aligns)
+                if stitched is None:
+                    continue  # bu alt-zincir kurulamadı; kartlar aynen kalır
+                canvas, rapor = stitched
+                rapor.pop("atilan_bolgeler", None)  # dikiş-doğrulamada kullanılmıyor
+                katki_araliklari = rapor.pop("katki_araliklari", None) or []
+                # M10 (docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md, K3 protected-pair
+                # taşıma): atlasa giren üye sayfalardan `korunan_esleme` taşıyanların
+                # ATLAS-YEREL (bu bloğun 0..h çerçevesi) katkı aralık(lar)ı taşınır --
+                # yalnız BU aralıklar; TÜM-ŞERİT MUAFİYETİ YASAK (saglik.py'nin K3
+                # muafiyeti bu yüzden zayıflamıştı -- bkz. M10 kök-sebep notu).
+                korunan_alt_araliklar: list[list[int]] = []
+                korunan_esleme_tasinan: list[dict] = []
+                for m, k_global in enumerate(range(a_lo, a_hi)):
+                    uye_manifest = block_manifest[block_manifest_idx[k_global]]
+                    korunan = uye_manifest.get("korunan_esleme") if isinstance(uye_manifest, dict) else None
+                    if not korunan:
+                        continue
+                    uye_katki = katki_araliklari[m] if m < len(katki_araliklari) else []
+                    for y0, y1 in uye_katki:
+                        korunan_alt_araliklar.append([int(y0), int(y1)])
+                    korunan_esleme_tasinan.append({
+                        "sayfa": k_global,
+                        "korunan_esleme": korunan,
+                        "atlas_yerel_araliklar": [[int(y0), int(y1)] for y0, y1 in uye_katki],
+                    })
+                alt_kayit = {
+                    "sayfalar": [a_lo, a_hi - 1], "sayfa_sayisi": a_hi - a_lo, **rapor,
+                }
+                yeni_manifest = {
+                    "kind": "static_page_atlas",
+                    "h": int(canvas.shape[0]), "w": int(canvas.shape[1]),
+                    "atlas_uye_sayfalar": [
+                        dict(block_manifest[block_manifest_idx[k]]) for k in range(a_lo, a_hi)
+                    ],
+                    "atlas_bilgisi": dict(alt_kayit),
+                }
+                if korunan_alt_araliklar:
+                    yeni_manifest["korunan_alt_araliklar"] = korunan_alt_araliklar
+                    yeni_manifest["korunan_esleme_tasinan"] = korunan_esleme_tasinan
+                replacements.append((a_lo, a_hi, canvas, yeni_manifest))
+                grup_kayit.setdefault("kabul_alt_zincirler", []).append(alt_kayit)
+                kabul_sayisi += 1
+                if alt[-1] == chain[-1]:
+                    son_kenar_kabul = True
+            if kabul_sayisi == len(alt_zincirler) and kabul_sayisi > 0 and all(seam_gecti):
+                grup_kayit["rec_dogrulama"] = "gecti"
+            elif kabul_sayisi > 0:
+                grup_kayit["rec_dogrulama"] = "kismi"
+                grup_kayit["red_sebebi"] = "dikis_rec_celiski_kismi"
+            else:
+                grup_kayit["rec_dogrulama"] = "atildi"
+                grup_kayit["red_sebebi"] = (
+                    "dikis_rec_celiski" if not all(seam_gecti) else "stitch_basarisiz"
+                )
+            atlas_gruplari.append(grup_kayit)
+            # YEREL kenar-imleci ilerletme: zincirin SON kenarı bir kabul-edilen
+            # alt-zincire girdiyse son kart tüketildi -- bir sonraki kenar
+            # (chain[-1]+1, o kartı paylaşır) kullanılamaz, +2'ye atla. Aksi
+            # halde +1'den devam (replacement aralıkları asla çakışmaz).
+            i = chain[-1] + (2 if son_kenar_kabul else 1)
+
+    if replacements:
+        manifest_action: dict[int, dict] = {}
+        drop_positions: set[int] = set()
+        for lo, hi, _canvas, yeni_manifest in replacements:
+            manifest_action[block_manifest_idx[lo]] = yeni_manifest
+            for k in range(lo + 1, hi):
+                drop_positions.add(block_manifest_idx[k])
+        final_manifest = []
+        for idx, entry in enumerate(block_manifest):
+            if idx in manifest_action:
+                final_manifest.append(manifest_action[idx])
+            elif idx in drop_positions:
+                continue
+            else:
+                final_manifest.append(entry)
+        block_manifest[:] = final_manifest
+
+        for lo, hi, canvas, _m in sorted(replacements, key=lambda r: -r[0]):
+            blocks[lo:hi] = [canvas]
+
+    return {
+        "atlas_gruplari": atlas_gruplari,
+        "sayfa_sayisi_once": sayfa_once,
+        "sayfa_sayisi_sonra": len(blocks),
+    }
+
+
 def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, dict, None]:
     """Parallel reading master: scroll runs as slit, static/noisy runs as pages.
 
@@ -1781,6 +2384,9 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
     last_static_index: int | None = None
     card_registry: list[dict] = []    # F1: {"dhash","mask","block_index"} -- yalnız v2_on
     block_kinds: list[str] = []       # F2: "scroll_slit"/"card" -- ardışık scroll tespiti
+    block_manifest_idx: list[int] = []      # F4: blocks[i] <-> block_manifest[block_manifest_idx[i]]
+    # F4 (run_card_ranges): ana run-döngüsü BİTTİKTEN SONRA block_kinds'ten
+    # türetilir (bkz. döngü sonu) -- burada YER TUTUCU gerekmiyor.
 
     def _frame_text_block(frame: str) -> tuple[np.ndarray | None, np.ndarray | None, str | None]:
         image = _prep(frame, p, args)
@@ -1890,6 +2496,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
         # karar mantığını DEĞİŞTİRMEZ, saglik.py'nin protected-çift muafiyeti için.
         if v2_on and korunan_kanit is not None:
             kept["korunan_esleme"] = korunan_kanit
+        block_manifest_idx.append(len(block_manifest))  # F4: blocks[-1] <-> bu girdi
         block_manifest.append(kept)
 
     def _append_static_pages(run_frames: list[str], run_meta: dict) -> None:
@@ -1985,6 +2592,7 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
                 last_static_hash = None
                 last_static_mask = None
                 last_static_index = None
+                block_manifest_idx.append(len(block_manifest))  # F4: blocks[-1] <-> bu girdi
                 block_manifest.append(girdi)
                 continue
             girdi = {**run_meta, "kind": "scroll_slit",
@@ -1995,6 +2603,35 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             block_manifest.append(girdi)
 
         _append_static_pages(run_frames, run_meta)
+
+    # F4 (Görev M10, Şerit-Atlası): yalnız v2_on -- ardışık 'statik' SAYFALARI
+    # NCC-zincir ile atlas şeridine birleştirir (rec-doğrulama ŞARTIYLA).
+    # Kapsam: block_kinds'te KESİNTİSİZ "card" aralıkları (final İSTİF SIRASINDA
+    # fiziksel bitişiklik) -- split_runs_reading'in ORİJİNAL run sınırı DEĞİL.
+    # ÖLÇÜLMÜŞ KANIT (belki-bir-gun pilotu): yavaş-kayan listeler pratikte tek
+    # bir uzun "S" run'a değil, art arda gelen ÇOK SAYIDA KISA "S" run'a
+    # bölünüyor (split_runs_reading'in kendi gürültüsü) -- run-sınırlı kapsam bu
+    # yüzden gerçek adayların büyük kısmını KAÇIRIYORDU (belki-bir-gun'da 7 aday
+    # grup, run-sınırlı taramada 0 -- hiçbiri >=3 kart içeren TEK bir run'a
+    # sığmıyordu). Aralarında scroll_slit blok YOKSA (block_kinds kesintisiz)
+    # bu sayfalar zaten final PNG'de bitişik duruyor -- atlas için önemli olan
+    # BUDUR, hangi run-nesnesinden geldikleri değil. Güvenlik DEĞİŞMEDİ: NCC +
+    # rec-doğrulama kapıları aynı sıkılıkta, yalnız ADAY HAVUZU genişledi.
+    run_card_ranges: list[tuple[int, int]] = []
+    ci = 0
+    while ci < len(block_kinds):
+        if block_kinds[ci] == "card":
+            cj = ci
+            while cj < len(block_kinds) and block_kinds[cj] == "card":
+                cj += 1
+            run_card_ranges.append((ci, cj))
+            ci = cj
+        else:
+            ci += 1
+
+    atlas_rapor: dict | None = None
+    if v2_on and run_card_ranges:
+        atlas_rapor = _atlas_post_process(blocks, block_manifest, block_manifest_idx, run_card_ranges)
 
     manifest = {
         "mode": "reading_runaware",
@@ -2014,6 +2651,13 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
         },
         "blocks": block_manifest,
     }
+    if atlas_rapor is not None:
+        # F4 (Görev M10): atlas_gruplari HEM kabul (rec_dogrulama="gecti") HEM RED
+        # (rec_dogrulama="atildi") adaylarını içerir -- anti-gaming/G0 denetimi için
+        # her ateşleme (kabul edilmese bile) tek tek izlenebilir olsun diye.
+        manifest["atlas_gruplari"] = atlas_rapor["atlas_gruplari"]
+        manifest["sayfa_sayisi_once"] = atlas_rapor["sayfa_sayisi_once"]
+        manifest["sayfa_sayisi_sonra"] = atlas_rapor["sayfa_sayisi_sonra"]
     if not blocks:
         manifest["status"] = "NO_OUTPUT"
         return None, manifest, None

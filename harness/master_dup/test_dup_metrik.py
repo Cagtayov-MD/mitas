@@ -169,3 +169,33 @@ def test_e_tek_serit_tekrari_blok_sayilmaz(tmp_path):
 
     assert sonuc["dup_oran"] == 0.0, sonuc
     assert sonuc["blok_sayisi"] == 0, sonuc
+
+
+# --------------------------------------------------------------------------- #
+# (f) M10: periyodik noktalı-lider listesi (her satır AYNI nokta deseni, isim
+#     alanı farklı) -> periyodik-doku muafiyeti devreye girer, dup ~ 0.
+#     Karşıt-kanıt: gerçek iki-kopya (test b) hala ~0.5 ölçülüyor -- muafiyet
+#     yalnız YOĞUN delta-kümesi imzasında çalışır, ayrık tekrara dokunmaz.
+# --------------------------------------------------------------------------- #
+
+
+def test_f_periyodik_noktali_liste_muafiyeti(tmp_path):
+    rng = np.random.default_rng(7)
+    h = 1400
+    tuval = np.zeros((h, GENISLIK), dtype=np.uint8)
+    # her SATIR_ARA'da: solda kısa benzersiz 'isim' bloğu + genis SABİT
+    # noktalı-lider deseni (satırdan satıra AYNI -- periyodik doku kaynağı)
+    nokta = np.zeros((SATIR_H, GENISLIK - 160), dtype=np.uint8)
+    nokta[SATIR_H // 2 - 1 : SATIR_H // 2 + 1, ::12] = 255  # nokta dizisi
+    y = 10
+    while y + SATIR_H <= h:
+        isim_w = int(rng.integers(40, 120))
+        tuval[y : y + SATIR_H, 10 : 10 + isim_w] = _satir_deseni(rng, SATIR_H, isim_w)
+        tuval[y : y + SATIR_H, 140 : 140 + nokta.shape[1]] = nokta
+        y += SATIR_ARA
+    p = _png_yaz(tmp_path, tuval, "f_noktali.png")
+
+    sonuc = olc(str(p), satir_yuksekligi=SATIR_H)
+
+    assert sonuc["dup_oran"] < 0.10, sonuc
+    assert sonuc["periyodik_dusulen_eslesme"] >= 0  # alan raporlanıyor

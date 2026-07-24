@@ -267,7 +267,7 @@ def _fmt(r: dict, *, tag: str = "") -> str:
     )
 
 
-def run(slugs: list[str], paralel: int = 1, force: bool = False) -> list[dict]:
+def run(slugs: list[str], paralel: int = 1, force: bool = False, ozet_yolu: Path | None = None) -> list[dict]:
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
     results: list[dict] = []
     to_process: list[str] = []
@@ -296,7 +296,8 @@ def run(slugs: list[str], paralel: int = 1, force: bool = False) -> list[dict]:
     order = {slug: i for i, slug in enumerate(slugs)}
     results.sort(key=lambda r: order.get(r["film"], 10**9))
 
-    OZET_PATH.write_text(
+    hedef = ozet_yolu if ozet_yolu is not None else OZET_PATH
+    hedef.write_text(
         json.dumps({"n": len(results), "sonuclar": results}, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
@@ -310,11 +311,20 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--film", default=None, help="slug alt-dizesi -> eşleşen film(ler)")
     ap.add_argument("--n", type=int, default=None, help="havuzdan ilk N film (ad sırasıyla)")
+    ap.add_argument("--liste", default=None, help="slug listesi dosyası (satır-başına bir slug -- G0/golden-50/regresyon setleri için)")
     ap.add_argument("--paralel", type=int, default=1, help="eşzamanlı film sayısı (ayrı süreç)")
     ap.add_argument("--force", action="store_true", help="idempotent atlamayı yoksay, yeniden üret")
+    ap.add_argument("--ozet-yolu", default=None, help="toplu özet JSON çıktı yolu (varsayılan: data/master_ex/ozet_ex.json)")
     args = ap.parse_args(argv)
 
     slugs = list_films()
+    if args.liste:
+        istenen = [s.strip() for s in Path(args.liste).read_text(encoding="utf-8").splitlines() if s.strip()]
+        havuz = set(slugs)
+        eksik = [s for s in istenen if s not in havuz]
+        if eksik:
+            print(f"UYARI: liste'de havuzda olmayan {len(eksik)} slug atlanıyor: {eksik[:10]}", file=sys.stderr)
+        slugs = [s for s in istenen if s in havuz]
     if args.film:
         slugs = [s for s in slugs if args.film in s]
     if args.n:
@@ -324,10 +334,12 @@ def main(argv=None) -> int:
         print("Havuzda eşleşen film yok.", file=sys.stderr)
         return 1
 
+    ozet_yolu = Path(args.ozet_yolu) if args.ozet_yolu else None
     print(f"=== uret_ex.py: {len(slugs)} film işlenecek (paralel={args.paralel}, force={args.force}) ===", flush=True)
-    results = run(slugs, paralel=args.paralel, force=args.force)
+    results = run(slugs, paralel=args.paralel, force=args.force, ozet_yolu=ozet_yolu)
     ok = sum(1 for r in results if r.get("status") == "OK")
-    print(f"\n-> {OZET_PATH}  ({ok}/{len(results)} OK)", flush=True)
+    hedef = ozet_yolu if ozet_yolu is not None else OZET_PATH
+    print(f"\n-> {hedef}  ({ok}/{len(results)} OK)", flush=True)
     return 0
 
 

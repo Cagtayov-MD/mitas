@@ -77,6 +77,22 @@ ON_ELEME_ESIK_SERIT_SAYISI = 200
 HASH_BOYUT = 8  # 8x8 -> 64 bit dHash
 HASH_HAMMING_ESIK = 10  # 64 bitten en çok bu kadar farklıysa "yakın" say
 
+# PERİYODİK-DOKU MUAFİYETİ (M10 bulgusu + kalan91 S4-kendine-eslesme reçetesi):
+# noktalı-lider satırlı kredi listeleri ("Ad ...... OYUNCU") yarı-periyodik
+# dokudur -- FARKLI satırlar (farklı isimler) bile NCC>=esik verir çünkü
+# piksellerin çoğu nokta/çizgidir. Ayırt edici imza: aynı KAYNAK şerit, YOĞUN
+# ardışık delta kümesinde (delta, delta+1, delta+2, ...) birden eşleşir --
+# GERÇEK ayrık tekrar (aynı sayfanın ikinci kopyası) ise TEK bir sayfa-mesafesi
+# deltasında (üçlü kopyada d ve 2d -- aralıklı, yoğun DEĞİL) eşleşir. ÖLÇÜLMÜŞ
+# KANIT (hizli-silah atlas-sonrası, görsel olarak DOĞRULANMIŞ tekrarsız şerit):
+# kaynak şeritler delta=3,4,5,6... zincirinde eşleşip dup=0.89 ürettti.
+# Kural: bir kaynak şeridin delta kümesinde, ardışık-boşluğu <=PERIYODIK_BOSLUK
+# olan >=PERIYODIK_MIN_DELTA elemanlı yoğun küme varsa, o şeridin O KÜMEDEKİ
+# eşleşmeleri dup sayımından düşülür (seyrek/tekil deltalar AYNEN kalır --
+# gerçek sayfa-tekrarı tespiti değişmez).
+PERIYODIK_MIN_DELTA = 3
+PERIYODIK_BOSLUK = 2
+
 _POPCOUNT_TABLO = np.array([bin(i).count("1") for i in range(256)], dtype=np.uint16)
 
 
@@ -360,6 +376,34 @@ def olc(
                 if i not in mevcut or benzerlik > mevcut[i]:
                     mevcut[i] = benzerlik
 
+    # --- periyodik-doku muafiyeti (bkz. PERIYODIK_* sabit notu) ---
+    # kaynak şerit -> eşleştiği delta kümesi
+    src_deltalar: dict[int, list[int]] = {}
+    for delta, esleme in eslesmeler_by_delta.items():
+        for i in esleme:
+            src_deltalar.setdefault(i, []).append(delta)
+    periyodik_dususler = 0
+    for i, dl in src_deltalar.items():
+        dl = sorted(set(dl))
+        if len(dl) < PERIYODIK_MIN_DELTA:
+            continue
+        # yoğun kümeleri bul: ardışık elemanlar arası boşluk <= PERIYODIK_BOSLUK
+        kume: list[int] = [dl[0]]
+        kumeler: list[list[int]] = []
+        for d in dl[1:]:
+            if d - kume[-1] <= PERIYODIK_BOSLUK:
+                kume.append(d)
+            else:
+                kumeler.append(kume)
+                kume = [d]
+        kumeler.append(kume)
+        for kume in kumeler:
+            if len(kume) >= PERIYODIK_MIN_DELTA:
+                for d in kume:
+                    if i in eslesmeler_by_delta.get(d, {}):
+                        del eslesmeler_by_delta[d][i]
+                        periyodik_dususler += 1
+
     # --- blok şartı: aynı delta'da >= 2 ardışık şerit-indeksi ---
     ham_bloklar: list[tuple[int, int, int, float]] = []  # (i0, i1, delta, ort_benzerlik)
     for delta, esleme in eslesmeler_by_delta.items():
@@ -426,6 +470,7 @@ def olc(
         "bloklar": bloklar_out,
         "boy": [int(w0), int(h0)],
         "doku_kapsami": round(float(doku_kapsami), 4),
+        "periyodik_dusulen_eslesme": int(periyodik_dususler),
     }
 
 
