@@ -266,6 +266,35 @@ Kimi/MiniMax uzun-brifing zaman aşımı):
   gren azaltma (kompozisyon pikselleri DEĞİŞMEZ, yalnız karar yolu) — K1 sonrası
   ölçülerek denenebilir.
 
+### Görev M10: Şerit-Atlası — yavaş-kayan-liste onarımı (KONSEY OYBİRLİĞİ, tam kadro)
+
+Kanıt (M9): kalan 91'in %80'i (S2=73) yavaş-kayan listenin "statik kart" sanılıp
+örtüşen sayfalara bölünmesi; çift-mesafe medyanı 4 kare; 1.25fps'te yavaş kayma
+slit-DOSTU (Nyquist sorunu yok). Konsey (GLM+Kimi+Nemotron+MiniMax, 4/4 katılım):
+O2-önce KABUL, O1 yalnız artıklara KOŞULLU, rec-doğrulama 4/4 ŞART (NCC-tek başına
+RED — satır-periyot kayması/aynı-zemin/siyah-bant senaryoları).
+
+HAKEM SENTEZİ (uygulanacak tasarım):
+1. **Şerit-Atlası (Nemotron O2+ + Kimi S5):** sınıflandırıcıya DOKUNMA. v2-modda,
+   "statik" koşunun sayfalarını dikey NCC ile zincir-hizala (çift→graf→en-uzun-yol);
+   zincir kurulursa tek ATLAS şeridi üret (yükseklik=toplam kayma; TÜM içerik taşınır,
+   kırpma-hatası riski yapısal olarak yok). GERÇEK kart koşusunda zincir KURULAMAZ
+   (NCC düşük) → otomatik veto, sayfalar aynen kalır.
+2. **Rec-doğrulama (4/4 şart):** atlas rec-metni, sayfa rec-metinlerinin birleşimini
+   KAPSAMALI — "sıfır çelişen yüksek-güvenli token" kuralı (Kimi; isimlerde tolerans
+   yok). Geçemezse atlas ATILIR, sayfalar kalır.
+3. **Dikiş disiplini (Kimi):** hizalama ≥2 ardışık çiftte tutarlı dy; dikiş çizgisi
+   projeksiyon-minimumuna yaslanır (bağlı-bileşen bölünmez); dy≈0 çiftler dikiş değil
+   A1-dedup yoluna; örtüşme ≥2 satır.
+4. **Anti-gaming (Kimi):** health_report'a seam/atlas alanları
+   (atlas_uygulandi, sayfa_sayisi_önce/sonra, rec_verified_overlap_ratio);
+   atlas'lı filmler görsel-tanıklık kuyruğuna örneklenir.
+5. **Regresyon seti (sentez):** G0 = 333 sağlıklıda atlas-adayı 0 ateşleme kanıtı
+   (tek ateşleme=elle incele); golden-50 byte-parite; tam-427'de sağlıklı→sağlıksız
+   flip 0; bit-parite (flag kapalı). 112-set 15-film örnek regresyonu.
+6. **O1 (sınıflandırıcı) UYGULANMAZ** — yalnız atlas-artıkları hedefi karşılamazsa,
+   GLM'in X-T uzay-zaman imzası + Kimi 5-kapı + Nemotron veto protokolüyle ayrı tur.
+
 ### Görev M6: Kayıt
 
 GUNLUK kaydı + bu doküman güncellemesi (konsey kararları, sayılar) + görev #12 kapanışı.
