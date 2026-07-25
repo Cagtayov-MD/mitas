@@ -7,6 +7,33 @@
 
 ---
 
+## 2026-07-26 — KARAR: kredi-çıkarım standardı 3 fps (Çağatay onayı). Mod-hatası keşfi + kök fix
+
+**PIPELINE STANDARDI (Çağatay, 2026-07-26):** Bundan sonra kredi/jenerik kare-çıkarımı
+**3 fps**. Gerekçe DENEYLE kanıtlandı (casanova kaynaktan 12fps çıkarıldı): okunabilir
+kredi jenerikleri ≤0.5 ekran/sn kayar; 3fps = ~%17 kare-arası kayma = yüksek-kalite
+örtüşme, çözünürlükten bağımsız. Kredi penceresi kısa (60-90s) → 3fps ~200-270 kare/film,
+ucuz. Adaptif optimal (statik 1-2fps, kayan 3-4fps). Değişim noktası: mitas_pipeline
+`--fps` default 1.5→3.0 (üretim değişikliği — diğer aktif kampanyalar da çıkarım kullanıyor,
+KOORDİNELİ uygulanmalı, bu oturumda dokunulmadı). Eski Ex_Frame ~1.25fps çekilmişti = kusur kaynağı.
+
+**MOD-HATASI KEŞFİ (Çağatay QC uyarısı sonrası):** benimle-dans-et "sağlıklı" görünürken
+kayan jenerik STATİK-sayfa derlenmiş (Çağatay yakaladı — ben bütünsel göz denetimi hiç
+yapmamıştım). Bağımsız mod-denetimi (harness/master_dup/mod_denetim.py, metin-maskeli
+kayma vs sınıflandırma): **137/427 mod-hatası**. K6 uygulanınca gerçek sağlık %86.4 DEĞİL
+**%58.3 (249/427)** — dup metriği bu kusura KÖRDÜ.
+
+**KÖK SEBEP:** split_runs scroll/static kararını TÜM-KARE faz-korelasyonuyla veriyor;
+kredi koyu zemin üstünde kayınca arka plan domine → dy≈0 → statik. Fix: metin-maskeli karar.
+
+**DÜRÜST DÜZELTME (deney sonrası):** 1.25fps ölçümlerim ALIASLI'ydı — casanova gerçekte
+95px/sn (yavaş), 1.25fps'te bile %60 örtüşme. Yani "86 film Nyquist-doomed" FAZLA KARAMSARDI;
+sınıflandırıcı fix'i 137'nin çoğunu kurtarabilir, %91 kaynak-yeniden-çıkarım OLMADAN mümkün olabilir.
+
+**QC MİMARİSİ (Katman 0/1/2, [[master-dup-kalite-kontrol]]):** asıl metrik = SADAKAT
+(ham-kare vs master text-recall), dup değil. Koşan: Aşama-1 sadakat harness, Aşama-2
+sınıflandırıcı fix (master_ex_modfix'e, master_ex EZİLMEDEN). Sonuç ölçülünce gelecek.
+
 ## 2026-07-24 (öğle) — Master-PNG kampanyası BEKLEMEDE (Çağatay: token tasarrufu). Durum: %86.4
 
 **Sayı:** Ex_Frame sağlık **369/427 = %86.4** (taban %62.8; hedef ≥%91, kalan 20 film).
@@ -23,6 +50,33 @@ incele); (2) kalan 53 dup-ihlali: sınır bandı 0.10-0.14'te ~15 film + direnç
 (1.5fps overlay onarımı) ayrı iş. Araç notu: konsey_dogrudan.py (tam kadro, MCP-restart'sız);
 kapanis_kaniti.py İÇ-JSON'a çevrilmeli (stdout-parser hatası ders oldu). det-kararsızlık görevi
 (task_84752ed4) Çağatay'da ayrı oturumda.
+
+## 2026-07-24 (akşam) — Kapanış PDF: NIM'e devir + sıkı QC → 1082 doğrulanmış teslim
+
+**İş:** 1475 benzersiz kapanış filmi → künye PDF. Token krizi sonrası okuma+kimlik+özet
+NVIDIA NIM'e devredildi (Claude token=0): VLM=llama-4-maverick (kare→transkript),
+LLM=maverick (kimlik+özet+kadro). Otonom hat: 25 hasat → 28 filtre → 29 NIM → 27 birleştir
+→ 26 PDF, orkestratör 30_kapanis_zincir.sh (nohup+cron nöbetçi, token'dan bağımsız biter).
+
+**Sıkı QC (Fable, basımdan ÖNCE kapı):** 1278 ham PDF → makine taraması 0 format-kusuru;
+bilinen-film bilgi karşılaştırması 14/15 doğru. YAKALANAN: kimlik katmanı güven=yuksek dese
+de halüsinasyon üretebiliyor (SINEMA_TEZGAHI→sahte "THE SALE"; ANNA KARENINA/CEVIZ Kiril-translit;
+DERSU UZALA translit kadro→Kurosawa patch'i). Eklenen kalıcı filtreler (27): okuma-kanıtı
+zorunluluğu (kanıtsız title-guess oyuncu-dolgusu YAPILMAZ), bozuk-metin dedektörü (sesli-harfsiz
+parça/çift-baş), Latin-saflık, şirket→kişi, dublaj-kadro, fuzzy yazım düzeltme.
+
+**Sonuç:** 1082 yüksek-güven PDF teslim (export/KAPANIS_PDF_20260724, 0 kusur). 392 film manuel:
+199 okuma-kanıtsız-kimlik-tahmini (kaliteden ödün vermemek için geri çekildi), 156 oyuncu<3,
+23 jenerik-okunamadı, 8 yönetmen-yok, 6 sahte-kimlik. Liste: _TESLIM_RAPORU.md.
+
+**Öğrenilen:** (1) LLM kimlik güveni ölçüt DEĞİL — okuma-kanıtı korroborasyonu şart. (2) Teslim
+kapısı basımdan ÖNCE, koda gömülü olmalı ([[teslim-kalite-kapisi]]). (3) Özet PDF'i engellemesin
+— çekirdek künye (yön+≥3 oyuncu) esas. Runbook: filmtest/kapanis_hasat/README_KAPANIS.md.
+
+**Bekleyen:** 392 manuel film — famous olanlara patch, okunamayanlara geniş-pencere re-hasat;
+Çağatay kararı: identity-tier'ı (199) spot-check riskiyle salıvermek mi, patch mi.
+
+---
 
 ## 2026-07-24 (öğleden sonra) — ACİL: Film Kapanış → 1691 künye PDF hattı (NIM'e devir)
 
