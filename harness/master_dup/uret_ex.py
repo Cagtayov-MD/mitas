@@ -165,11 +165,11 @@ def load_cached_result(slug: str, masters_dir: Path) -> dict | None:
 # --------------------------------------------------------------------------- #
 # Tek film uçtan uca
 # --------------------------------------------------------------------------- #
-def process_film_ex(slug: str) -> dict:
+def process_film_ex(slug: str, out_root: Path | None = None) -> dict:
     t0 = time.time()
     result: dict = {"film": slug}
     source_dir = source_dir_for(slug)
-    masters_dir = OUT_ROOT / slug
+    masters_dir = (Path(out_root) if out_root is not None else OUT_ROOT) / slug
 
     try:
         uret = _uret_core()
@@ -255,8 +255,11 @@ def process_film_ex(slug: str) -> dict:
 # --------------------------------------------------------------------------- #
 # Toplu çalıştırma
 # --------------------------------------------------------------------------- #
-def _worker(slug: str) -> dict:
-    return process_film_ex(slug)
+def _worker(gorev: tuple[str, str]) -> dict:
+    """ProcessPoolExecutor worker'ı -- (slug, out_root) çifti açıkça geçirilir
+    (env/fork-kalıtımına GÜVENMEZ; --paralel ile ayrı süreçlerde de doğru kök)."""
+    slug, out_root = gorev
+    return process_film_ex(slug, Path(out_root))
 
 
 def _fmt(r: dict, *, tag: str = "") -> str:
@@ -267,13 +270,23 @@ def _fmt(r: dict, *, tag: str = "") -> str:
     )
 
 
-def run(slugs: list[str], paralel: int = 1, force: bool = False, ozet_yolu: Path | None = None) -> list[dict]:
-    OUT_ROOT.mkdir(parents=True, exist_ok=True)
+def run(
+    slugs: list[str],
+    paralel: int = 1,
+    force: bool = False,
+    ozet_yolu: Path | None = None,
+    out_root: Path | None = None,
+) -> list[dict]:
+    """out_root verilmezse mevcut davranış (data/master_ex) AYNEN korunur -- yeni
+    parametre geriye-uyumlu (kök-sebep fix doğrulaması: /opt/mitas/data/master_ex_modfix/,
+    mevcut master_ex EZILMEZ -- sadakat ölçümü onu okuyor)."""
+    kok = Path(out_root) if out_root is not None else OUT_ROOT
+    kok.mkdir(parents=True, exist_ok=True)
     results: list[dict] = []
     to_process: list[str] = []
 
     for slug in slugs:
-        masters_dir = OUT_ROOT / slug
+        masters_dir = kok / slug
         cached = None if force else load_cached_result(slug, masters_dir)
         if cached is not None:
             print(_fmt(cached, tag="(atlandı/önbellek) "), flush=True)
@@ -284,19 +297,20 @@ def run(slugs: list[str], paralel: int = 1, force: bool = False, ozet_yolu: Path
     if to_process:
         if paralel <= 1 or len(to_process) <= 1:
             for slug in to_process:
-                r = process_film_ex(slug)
+                r = process_film_ex(slug, kok)
                 print(_fmt(r), flush=True)
                 results.append(r)
         else:
             with concurrent.futures.ProcessPoolExecutor(max_workers=paralel) as ex:
-                for r in ex.map(_worker, to_process):
+                gorevler = [(slug, str(kok)) for slug in to_process]
+                for r in ex.map(_worker, gorevler):
                     print(_fmt(r), flush=True)
                     results.append(r)
 
     order = {slug: i for i, slug in enumerate(slugs)}
     results.sort(key=lambda r: order.get(r["film"], 10**9))
 
-    hedef = ozet_yolu if ozet_yolu is not None else OZET_PATH
+    hedef = ozet_yolu if ozet_yolu is not None else (OZET_PATH if out_root is None else kok / "ozet_ex.json")
     hedef.write_text(
         json.dumps({"n": len(results), "sonuclar": results}, ensure_ascii=False, indent=1),
         encoding="utf-8",
@@ -315,6 +329,12 @@ def main(argv=None) -> int:
     ap.add_argument("--paralel", type=int, default=1, help="eşzamanlı film sayısı (ayrı süreç)")
     ap.add_argument("--force", action="store_true", help="idempotent atlamayı yoksay, yeniden üret")
     ap.add_argument("--ozet-yolu", default=None, help="toplu özet JSON çıktı yolu (varsayılan: data/master_ex/ozet_ex.json)")
+    ap.add_argument(
+        "--cikti-kok", default=None,
+        help="çıktı kökü override (varsayılan: data/master_ex). Kök-sebep fix doğrulaması "
+             "için: /opt/mitas/data/master_ex_modfix -- mevcut master_ex'i EZMEZ (sadakat "
+             "ölçümü onu okuyor). Belirtilirse özet de bu kökte yazılır (--ozet-yolu ile ezilebilir).",
+    )
     args = ap.parse_args(argv)
 
     slugs = list_films()
@@ -335,10 +355,15 @@ def main(argv=None) -> int:
         return 1
 
     ozet_yolu = Path(args.ozet_yolu) if args.ozet_yolu else None
-    print(f"=== uret_ex.py: {len(slugs)} film işlenecek (paralel={args.paralel}, force={args.force}) ===", flush=True)
-    results = run(slugs, paralel=args.paralel, force=args.force, ozet_yolu=ozet_yolu)
+    out_root = Path(args.cikti_kok) if args.cikti_kok else None
+    print(
+        f"=== uret_ex.py: {len(slugs)} film işlenecek (paralel={args.paralel}, "
+        f"force={args.force}, cikti_kok={out_root or OUT_ROOT}) ===",
+        flush=True,
+    )
+    results = run(slugs, paralel=args.paralel, force=args.force, ozet_yolu=ozet_yolu, out_root=out_root)
     ok = sum(1 for r in results if r.get("status") == "OK")
-    hedef = ozet_yolu if ozet_yolu is not None else OZET_PATH
+    hedef = ozet_yolu if ozet_yolu is not None else (OZET_PATH if out_root is None else out_root / "ozet_ex.json")
     print(f"\n-> {hedef}  ({ok}/{len(results)} OK)", flush=True)
     return 0
 

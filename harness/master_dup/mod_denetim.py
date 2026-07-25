@@ -97,8 +97,20 @@ def denetle(slug: str) -> dict:
 
 
 def main() -> int:
+    global EX_MASTER
+    # --kok <path>: master manifest'lerinin okunacağı (ve mod_denetim.json'un
+    # yazılacağı) kökü override eder -- varsayılan EX_MASTER (data/master_ex)
+    # AYNEN korunur, mevcut çağrılar/davranış DEĞİŞMEZ. Kök-sebep fix doğrulaması:
+    # data/master_ex_modfix üzerinde koşmak için (mevcut master_ex'i EZMEDEN).
+    if "--kok" in sys.argv:
+        EX_MASTER = sys.argv[sys.argv.index("--kok") + 1].rstrip("/")
     slugs = sorted(os.path.basename(p.rstrip("/")).replace("-exit_frames", "")
                    for p in glob.glob(f"{EX_KARE}/*-exit_frames"))
+    if "--liste" in sys.argv:
+        liste_yolu = sys.argv[sys.argv.index("--liste") + 1]
+        istenen = [s.strip() for s in open(liste_yolu, encoding="utf-8") if s.strip()]
+        havuz = set(slugs)
+        slugs = [s for s in istenen if s in havuz]
     if "--film" in sys.argv:
         slugs = [sys.argv[sys.argv.index("--film") + 1]]
     sonuc = []
