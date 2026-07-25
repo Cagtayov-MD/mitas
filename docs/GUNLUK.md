@@ -7,6 +7,69 @@
 
 ---
 
+## 2026-07-26 (devam) — Mod-hatası KÖK-SEBEP FIX'i uygulandı: 137→13 (F3b)
+
+**İş:** Bir alt oturumda, aşağıdaki kayıttaki "Aşama-2 sınıflandırıcı fix" tamamlandı.
+`OCR-worktree/db_compose_master.py`'e F3b eklendi (MITAS_MASTER_V2 flag arkasında):
+`_text_masked_dy_series()` (estimate_offsets ile AYNI text_mask+11x11-dilate deseni,
+her karede EK metin-maskeli dy/response) + `_f3b_text_masked_rescue()` (mod_denetim.py
+ile TAM AYNI imza: kayan_oran>=0.35, monoton>=0.75, medyan|dy|>=F3_RUN_DY_FLOOR_PX/30px,
+response>0.10, min 8 örnek). `_resolve_reading_runs()`'ta nihai "S" koşuları bu imzayla
+yeniden sınanıp tutarsa "R"ye çevriliyor + bitişik "R" koşuları TEK run'a birleştiriliyor
+(ayrı bulgu aşağıda). Commit'ler: 3dc9435 (fix+testler), 1990d16 (uret_ex --cikti-kok /
+mod_denetim --kok, ayrı kök `data/master_ex_modfix/` — mevcut master_ex EZİLMEDİ).
+
+**Sayı:** 427-film tam koşu: mod_hatası **137→13** (%90.5 azalma). 290 orijinal-sağlıklı
+filmin **0'ı** yeni mod_hatası oldu (regresyon sinyali TEMİZ); 215'i byte+run birebir
+aynı kaldı; **75'i değişti ama mod_hatasi=False kaldı** — bunlar mod_denetim'in kaba
+40-örnekli tüm-film ölçümünün KAÇIRDIĞI ek gerçek mod-hatalarıydı (matematiksel doğrulama:
+427 filmin TAMAMINDA yalnız S->R yükseltme + bitişik-R birleşme oldu, hiç R içeriği
+kaybolmadı, zaman-çizelgesi kapsamı birebir korundu — 0 anomali). 5 film (acemiler-cetesi,
+dogrucu-dudley, komiser-cordier-yuksek-guvenlik, babam-ve-ben, benimle-dans-et) GÖRSEL
+doğrulandı: ghosting/tekrar kalktı, isimler tek sefer, ek içerik ortaya çıktı (ör.
+dogrucu-dudley: 32 blok tekrarlı → 1 temiz şerit). solaris (gerçek-statik pilot) byte-
+birebir DEĞİŞMEDİ. Bit-parite (flag kapalı) YEŞİL.
+
+**ÖNEMLİ BULGU (dış konsey turu, GLM+Kimi bağımsız bug-avcılığı, Qwen 403-unpurchased):**
+diff'i ilk seferinde placeholder-metniyle gönderdim (gerçek kod gitmedi) — Kimi bunu
+DÜRÜSTÇE reddetti ("göremediğim kodu onaylayamam"), GLM bağlamdan genel değerlendirme
+yaptı. İkisi de BAĞIMSIZ olarak aynı riski işaret etti: bitişik-R birleştirmesi yalnızca
+bir çeviriden kaynaklanan bitişikliği mi hedefliyor, yoksa körü körüne HER bitişik R-R'yi
+mi birleştiriyor? Yapısal ispat (raw_runs hiç bitişik-R-R üretemez) doğruydu ama "kemer-
+ve-aski" gardı (merge yalnız en az bir taraf O geçişte çevrildiyse) yine de eklendi —
+ucuz, zararsız, ileride başka bir F1/F2/F4 etkileşimi ispatı bozarsa koruma sağlıyor.
+
+**Öğrenilen (ders):** (1) mod_denetim.py'nin 40-örnekli TÜM-FİLM alt-örneklemesi, uzun
+filmlerde (>40 kare) ADIM-ARASI değil SEYREK-ARALIKLI dy ölçüyor (213 kareli karinca'da
+ölçülen dy_medyan=116.9 ama GERÇEK ardışık-kare dy_medyan=23.2 — ~5x fark, tam da
+213/40 örnekleme-aralığı oranı). Kalan 13'ün 8'i BUNDAN: gerçek/monoton kayma ama
+ardışık-kare hızı 21-28px, F3_RUN_DY_FLOOR_PX=30 tabanının HEMEN altında kalıyor —
+sonraki kalibrasyon adayı (taban veriyle yeniden ölçülebilir, ama bu oturumda
+DOKUNULMADI — mevcut F3 mekanizmasının da paylaştığı established güvenlik marjı).
+(2) 1'i örnek-sayısı (SLIT_HY_MIN_MEAS=8) tabanının altında kısa run (beklenmedik-miras).
+(3) 3'ü (aydaki-adam, gercek-yalanlar, kucuk-dev-adam) mod_denetim'in BAĞIMSIZ Sobel-
+gradyan maskesiyle benim text_mask (tophat/blackhat) arasında ayrışıyor — iki FARKLI
+maskeleme yöntemi, beklenen sapma, hangisi "doğru" görsel incelemeyle netleşir. (4)
+komiser-cordier-yuksek-guvenlik + babam-ve-ben görsel incelemesinde: künye SABİT bir
+fotoğraf/sahne üstünde kayarken slit-scan metni temiz yakalıyor ama ARKA PLAN görseli
+dikey olarak "döşeniyor" (fayans gibi tekrarlıyor) — içerik kaybı YOK, estetik artık ama
+M4b'nin ("footage-üstü kayan künye") bahsettiği ayrı sınıfla örtüşüyor, bu oturumda
+düzeltilmedi.
+
+**Bilinçli kapsam kararı (Fable/Çağatay onayına açık):** Fix YALNIZ `split_runs_reading`
+(mixed-mode karar) yolunu değiştiriyor; `split_runs` (strict_scroll_frac/passthrough
+kapısı + compose_slit'in kendi iç R/S kararı) BİLEREK dokunulmadı — 137 filmin TAMAMI
+zaten ssf<0.25 mixed-mode yolundaydı (ölçülmüş), yani split_runs_reading fix'i ölçülen
+hedefe yeterliydi; split_runs'a AYNI tedaviyi uygulamak muhtemelen daha da iyi olurdu
+(daha temiz tek-parça passthrough) ama 249 sağlıklı filmin ssf'ini de değiştirebilir —
+regresyon yüzeyi daha geniş/az-sınanmış. Bilinçli olarak ERTELENDİ, ayrı karar/tur önerilir.
+
+**Bekleyen:** (1) 30px taban kalibrasyonu (8 filmi daha kurtarabilir — veri-güdümlü ayrı
+tur); (2) split_runs'ın kendisi de mi fixlensin (yukarıdaki kapsam kararı); (3) M4b
+(footage-üstü döşeme) bu fix'le mi ele alınsın yoksa ayrı mı kalsın; (4) Katman-0/1
+sadakat kabul-kapısı (aşağıdaki kayıt) bu fix'in çıktısını (master_ex_modfix) ölçmeli;
+(5) 3 ayrışan-maskeli film (aydaki-adam vb.) görsel karar bekliyor.
+
 ## 2026-07-26 — KARAR: kredi-çıkarım standardı 3 fps (Çağatay onayı). Mod-hatası keşfi + kök fix
 
 **PIPELINE STANDARDI (Çağatay, 2026-07-26):** Bundan sonra kredi/jenerik kare-çıkarımı
