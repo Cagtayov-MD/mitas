@@ -203,6 +203,27 @@ F3_RUN_RESP_FLOOR = 0.15
 # aynı konvansiyon) olmadan rescue YOK.
 F3_RUN_MIN_FRAMES = 3
 
+# F3b (MITAS_MASTER_V2, H3 kök-sebep ARTIĞI -- docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
+# kök-sebep turu, bağımsız denetim: harness/master_dup/mod_denetim.py, taban koşusunda
+# 137/427 "mod hatası"). F3 (yukarısı) yalnız raw etiketi zaten "R" olan KISA patlamaları
+# kurtarır. Burada hedeflenen kusur farklı: kredi koyu/düz zemin üstünde kayarken TÜM-KARE
+# phaseCorrelate (split_runs_reading'in birincil sinyali) ARKA PLAN tarafından domine
+# edilip dy≈0 ölçüyor -- raw etiket hiç "R" olmuyor, koşu baştan "S" (statik/sayfa)
+# kalıyor, kayan jenerik tekrarlı statik-sayfa olarak derleniyor (görsel kanıt:
+# acemiler-cetesi, benimle-dans-et). Çözüm: estimate_offsets() ile AYNI maskeleme
+# deseniyle (text_mask + 11x11 dilate + maske-dışını sıfırla -- bkz. _text_masked_dy_series)
+# METİN-MASKELİ dy de hesaplanır; nihai "S" koşusu bu ikinci sinyalle mod_denetim.py'nin
+# TAM AYNI imzasıyla yeniden sınanır: kayan_oran (|dy|>2px payı) >= 0.35 VE monoton
+# (baskın-yön payı, kayan alt-kümesinde) >= 0.75 VE medyan|dy| (kayan alt-kümesinde)
+# >= F3_RUN_DY_FLOOR_PX (mevcut gate-weave/titreme tabanıyla PAYLAŞILIYOR -- yeni bir
+# eşik icat edilmiyor). Üçü de tutarsa "S" -> "R" (slit'e gider). response>0.10 kapısı
+# mod_denetim.py ile birebir aynı (güvenilmez korelasyon tepesini eler). Bayrak kapalıyken
+# ya da diziler verilmediyse bu geçiş hiç çalışmaz -- eski davranış bit-birebir korunur.
+F3B_KAYAN_FLOOR_PX = 2.0       # mod_denetim.py: "anlamlı kayma" eşiğiyle AYNI
+F3B_KAYAN_ORAN_MIN = 0.35      # mod_denetim.py imzasıyla AYNI
+F3B_MONOTON_MIN = 0.75         # mod_denetim.py imzasıyla AYNI
+F3B_RESP_FLOOR = 0.10          # mod_denetim.py: güvenilmez faz-korelasyon tepesini eler
+
 # F4 -- Şerit-Atlası (Görev M10, docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md,
 # KONSEY OYBİRLİĞİ hakem sentezi -- Nemotron O2+/Kimi S5 tasarımı). Kanıt (M9):
 # kalan-91'in %80'i (S2=73) YAVAŞ-KAYAN bir listenin "statik kart" sanılıp
@@ -1196,12 +1217,78 @@ def split_runs(frames: list[str], p: Params, args) -> list[list]:
     ]
 
 
+def _text_masked_dy_series(
+    frames: list[str], p: Params, args
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Per-adjacent-frame TEXT-MASKED vertical motion: (dy, response, measured?).
+
+    F3b yardımcısı -- masking deseni estimate_offsets() ile BİREBİR AYNI (text_mask
+    + 11x11 dilate + maske-dışını sıfırla + Hanning-pencereli phaseCorrelate); yeni
+    bir görüntü-işleme yolu İCAT EDİLMİYOR, Mode B (mozaik) zaten kullandığı birincil
+    sinyal split_runs_reading'in karar yoluna yeniden kullanılıyor. estimate_offsets'i
+    doğrudan çağırmak yerine küçük bir ikiz fonksiyon yazıldı çünkü o fonksiyonun
+    yön-çözümleme/kesim/entegrasyon mantığı (mozaike özgü) burada gerekmiyor -- yalnız
+    ham (dy, response, ölçüldü mü) üçlüsü lazım. `image is None` durumunda estimate_
+    offsets ile AYNI davranış: `prev` SIFIRLANMAZ (sonraki geçerli kare, son geçerli
+    öncekiyle karşılaştırılır) -- ölçüm boşluğu atlanır, sahte-sıfır enjekte edilmez.
+    """
+    hann = cv2.createHanningWindow((p.w, p.h), cv2.CV_32F)
+    prev = None
+    prev_has_text = False
+    dy = np.zeros(len(frames), dtype=np.float64)
+    resp = np.zeros(len(frames), dtype=np.float64)
+    measured = np.zeros(len(frames), dtype=bool)
+
+    for i, frame in enumerate(frames):
+        image = _prep(frame, p, args)
+        if image is None:
+            continue
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        mask = cv2.dilate(text_mask(gray, p, args.polarity), np.ones((11, 11), np.uint8))
+        masked = gray.astype(np.float32)
+        masked[mask == 0] = 0.0
+        has_text = bool(mask.any())
+        if prev is not None and prev_has_text and has_text:
+            (_, d), r = cv2.phaseCorrelate(prev * hann, masked * hann)
+            dy[i] = float(d)
+            resp[i] = float(r)
+            measured[i] = True
+        prev = masked
+        prev_has_text = has_text
+    return dy, resp, measured
+
+
+def _f3b_text_masked_rescue(
+    dy_seg: np.ndarray, resp_seg: np.ndarray, measured_seg: np.ndarray
+) -> bool:
+    """mod_denetim.py'nin TAM AYNI imzası, run-yerel dilimde: kayan_oran>=0.35,
+    monoton>=0.75, medyan|dy| (kayan alt-kümede) >= F3_RUN_DY_FLOOR_PX. Örnek sayısı
+    SLIT_HY_MIN_MEAS'ın (8) altındaysa istatistik güvenilmez -- rescue YOK (statüko)."""
+    valid = measured_seg & (resp_seg > F3B_RESP_FLOOR)
+    if int(valid.sum()) < SLIT_HY_MIN_MEAS:
+        return False
+    d = dy_seg[valid]
+    kayan = np.abs(d) > F3B_KAYAN_FLOOR_PX
+    if float(kayan.mean()) < F3B_KAYAN_ORAN_MIN:
+        return False
+    moving = d[kayan]
+    if not moving.size:
+        return False
+    monoton = float(max((moving > 0).mean(), (moving < 0).mean()))
+    if monoton < F3B_MONOTON_MIN:
+        return False
+    return float(np.median(np.abs(moving))) >= F3_RUN_DY_FLOOR_PX
+
+
 def _resolve_reading_runs(
     raw_runs: list[list],
     min_scroll: int,
     *,
     dy_signed=None,
     resp=None,
+    dy_masked=None,
+    resp_masked=None,
+    measured_masked=None,
 ) -> list[list]:
     """Resolve cut/noisy motion conservatively while preserving card boundaries.
 
@@ -1223,6 +1310,25 @@ def _resolve_reading_runs(
     KÜÇÜK_KAHRAMAN bulgusu) -- "F3 eşiğini yükselt" kaçışı burada uygulanıyor.
     Bayrak kapalıyken (varsayılan) ya da dy_signed/resp verilmediyse bu dal hiç
     çalışmaz -- eski davranış bit-birebir korunur.
+
+    F3b (MITAS_MASTER_V2, H3 kök-sebep ARTIĞI -- bkz. modül-üstü F3b yorumu +
+    _text_masked_dy_series/_f3b_text_masked_rescue): F3, raw etiketi zaten "R" olan
+    KISA patlamaları kurtarır; ama tam-kare sinyal arka plan tarafından domine
+    edildiğinde raw etiket hiç "R" olmuyor -- koşu baştan sona "S" kalıyor, F3'ün
+    hedefi dışında kalır (görsel kanıt: acemiler-cetesi, benimle-dans-et). Burada,
+    NİHAİ (birleşmiş) "S" koşuları üzerinde -- kısa "U" parçalarını yutmuş olsa
+    bile yeterli örnek sayısına ulaşsın diye ayrı bir SON geçiş yapılır: her "S"
+    koşusunun metin-maskeli dy/response dilimine mod_denetim.py imzası uygulanır
+    (_f3b_text_masked_rescue); tutarsa "R"ye çevrilir (slit'e gider). Bu çevirme
+    ardışık iki (ya da daha fazla) "R" bloğu oluşturabilir (biri F3b'den, biri
+    zaten "R"yse, ya da art arda birden çok F3b-çevirisi) -- bunlar AYRI bir
+    geçişte TEK run'a birleştirilir (bkz. altındaki "adjacent-R merge" bloğu);
+    F2 (_slit_seam_crop) böyle bir bitişikliği NCC ile SONRADAN kırpmayı dener
+    ama HER ZAMAN güvenli örtüşme bulamıyor (gözlem: babam-ve-ben pilotu) --
+    baştan birleştirmek dy-entegrasyonunu kesintisiz tutar, dikiş ihtiyacını
+    yapısal olarak ortadan kaldırır. Bayrak kapalıyken ya da dy_masked/
+    resp_masked/measured_masked verilmediyse bu geçişlerin hiçbiri çalışmaz --
+    eski davranış bit-birebir korunur.
     """
     f3_on = _v2_enabled() and dy_signed is not None and resp is not None
     classified = []
@@ -1266,6 +1372,61 @@ def _resolve_reading_runs(
 
     if pending_uncertain is not None:
         runs.append([int(pending_uncertain[0]), int(pending_uncertain[1]), "S"])
+
+    f3b_on = (
+        _v2_enabled()
+        and dy_masked is not None
+        and resp_masked is not None
+        and measured_masked is not None
+    )
+    if f3b_on:
+        flipped = [False] * len(runs)
+        for i, run in enumerate(runs):
+            if run[2] != "S":
+                continue
+            start, end = int(run[0]), int(run[1])
+            seg = slice(start, end + 1)
+            if _f3b_text_masked_rescue(
+                np.asarray(dy_masked[seg], dtype=np.float64),
+                np.asarray(resp_masked[seg], dtype=np.float64),
+                np.asarray(measured_masked[seg], dtype=bool),
+            ):
+                run[2] = "R"
+                flipped[i] = True
+
+        # Bitişik "R" koşularını TEK koşuya birleştir. Öncesi-algoritma yapısal
+        # olarak ASLA bitişik iki "R" üretmiyordu (raw_runs ardışık farklı
+        # etiketlerden oluşur; aralarına giren "C"/kısa-"R" hep kendi "S" koşusuna
+        # düşer -- bkz. yukarıdaki U-çözümleme) -- bitişiklik YALNIZ burada, bir
+        # "S" koşusu iki "R" koşusunun arasında (ya da bir başka yeni-"R"nin
+        # yanında) "R"ye çevrildiğinde ortaya çıkar. Birleştirmezsek her parça
+        # AYRI slitscan() çağrısı alır (dy-entegrasyonu parça başına sıfırlanır);
+        # F2 (_slit_seam_crop) bunu NCC ile SONRADAN kırpmaya çalışır ama HER
+        # ZAMAN güvenli örtüşme bulamaz (gözlemlenen: babam-ve-ben pilotu -- 3
+        # bitişik F3b-çevirisi, F2 hiçbirinde kırpmadı, iç-dikişte birkaç satır
+        # tekrarı kaldı). Baştan birleştirmek F2'nin sonradan-kırpmasından daha
+        # güvenilir: TEK slitscan() çağrısı kesintisiz dy entegre eder, dikiş
+        # İHTİYACI YAPISAL OLARAK ORTADAN KALKAR.
+        # KEMER-VE-ASKI (dış konsey bulgusu, GLM+Kimi bağımsız turu, 2026-07-26):
+        # yukarıdaki yapısal ispat "bitişik R-R yalnız bir çeviri varsa oluşur"
+        # diyor, ama merge'i yine de EN AZ BİR taraf bu geçişte çevrildiyse
+        # şartına bağlıyoruz -- ispat başka bir F1/F1b/F1c/F2/F4 etkileşiminde
+        # bozulursa bile iki BAĞIMSIZ/önceden-var "R" koşusu YANLIŞLIKLA
+        # birleştirilemez (flip provenance zincirleme birleşmelerde de taşınır).
+        merged: list[list] = []
+        merged_flipped: list[bool] = []
+        for i, run in enumerate(runs):
+            if (
+                merged and merged[-1][2] == "R" and run[2] == "R"
+                and (merged_flipped[-1] or flipped[i])
+            ):
+                merged[-1][1] = run[1]
+                merged_flipped[-1] = True
+            else:
+                merged.append(run)
+                merged_flipped.append(flipped[i])
+        runs = merged
+
     return runs
 
 
@@ -1410,9 +1571,16 @@ def split_runs_reading(frames: list[str], p: Params, args) -> list[list]:
             start = i
 
     min_scroll = max(3, int(p.min_hold))
+    # F3b (MITAS_MASTER_V2): metin-maskeli dy/response yalnız bayrak AÇIKKEN
+    # hesaplanır (ek maliyet: tüm kareler üzerinde bir text_mask+phaseCorrelate
+    # geçişi daha) -- bayrak kapalıyken bu satır hiç çalışmaz, bit-parite korunur.
+    dy_masked = resp_masked = measured_masked = None
+    if _v2_enabled():
+        dy_masked, resp_masked, measured_masked = _text_masked_dy_series(frames, p, args)
     return _resolve_reading_runs(
         raw_runs, min_scroll,
         dy_signed=np.array(dy_signed), resp=np.array(resp_list),
+        dy_masked=dy_masked, resp_masked=resp_masked, measured_masked=measured_masked,
     )
 
 
