@@ -94,6 +94,9 @@ NET_KRIP_ESIK_YONLU = 10.0  # duraksama koşusunun NET sürüklenmesi bunu aşar
                          # (kucuk-dev 0.73) plato yolunda kalır
 DOGRULAMA_NCC = 0.50     # scroll dy'si kaydırılmış-NCC ile bunun altında kalırsa
                          # ölçüm desteksiz → scroll sayma (aydaki-adam dikiş-kayması)
+MASKE_KAPSAMA_ESIK = 0.25  # parlaklık maskesinin medyan kare-kapsaması bunu aşarsa
+                         # maske yozlaşmıştır (parlak zemin, korelasyon statik zemine
+                         # kilitlenir — parti) → ölçüm Sobel kenar-maskesi yoluna geçer
 H_MAKS = 45000           # saglik.py ile aynı canavar-boy tavanı
 
 
@@ -161,14 +164,32 @@ def _dy_dogrula(g1: np.ndarray, g2: np.ndarray, m1: np.ndarray, dy: float) -> fl
     return float(((av - av.mean()) * (bv - bv.mean())).mean() / (sa * sb))
 
 
-def cift_olc(maskeler: list[np.ndarray], griler: list[np.ndarray],
-             varliklar: list[np.ndarray], h: int, w: int) -> list[dict]:
-    """Ardışık çiftleri ölç ve sınıfla → [{dy, resp, sinif}, ...] (N-1 adet)."""
+def sobel_metin_maskesi(gray: np.ndarray) -> np.ndarray:
+    """Kenar-enerjisi maskesi (mod_denetim._metin_maske ile aynı): parlak-zeminli
+    filmlerde parlaklık eşiği yozlaşır (gökyüzü/duvar maskeyi doldurur, korelasyon
+    statik zemine kilitlenir — parti vakası, çift dökümüyle kanıtlandı). Düz parlak
+    alanların gradyanı yoktur; yazı kenarları güçlü gradyandır — maske metinde kalır.
+    mod_denetim bu maskeyle parti'yi doğru ölçmüştü (kayan=0.74, dy_med=48)."""
+    gx = cv2.Sobel(gray, cv2.CV_32F, 1, 0)
+    gy = cv2.Sobel(gray, cv2.CV_32F, 0, 1)
+    mag = cv2.magnitude(gx, gy)
+    m = (mag > (mag.mean() + mag.std())).astype(np.uint8)
+    return cv2.dilate(m, np.ones((7, 7), np.uint8))
+
+
+def cift_olc(olcum: list[np.ndarray], bosluk_px: list[int],
+             griler: list[np.ndarray], varliklar: list[np.ndarray],
+             h: int, w: int) -> list[dict]:
+    """Ardışık çiftleri ölç ve sınıfla → [{dy, resp, sinif}, ...] (N-1 adet).
+
+    `olcum[i]`: korelasyona giren float görüntü (standart yol: ikili parlaklık
+    maskesi; sobel yolu: maskeli gri değerler). `bosluk_px[i]`: o karenin
+    metin-piksel sayısı (boşluk kararı)."""
     han = cv2.createHanningWindow((w, h), cv2.CV_32F)
     out: list[dict] = []
-    for i in range(len(maskeler) - 1):
-        m1, m2 = maskeler[i], maskeler[i + 1]
-        px1, px2 = int(m1.sum()), int(m2.sum())
+    for i in range(len(olcum) - 1):
+        m1, m2 = olcum[i], olcum[i + 1]
+        px1, px2 = bosluk_px[i], bosluk_px[i + 1]
         if px1 < MIN_MASKE_PX or px2 < MIN_MASKE_PX:
             # metin yok(a yakın) → slit'e katacak içerik yok; duraksama say
             out.append({"dy": 0.0, "resp": 0.0, "sinif": "duraksama_bos"})
@@ -236,7 +257,23 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
     griler = [cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) for im in ims]
     maskeler = [(g > MASK_ESIK).astype(np.float32) for g in griler]    # ölçüm (dy)
     varliklar = [(g > VARLIK_ESIK).astype(np.float32) for g in griler] # kimlik/varlık
-    ciftler = cift_olc(maskeler, griler, varliklar, h, w)
+    # ölçüm yolu KARARI (film-bazlı, parti-sınıfı fix'i): parlaklık maskesi kareyi
+    # dolduruyorsa (median kapsama > eşik) korelasyon statik parlak zemine kilitlenir
+    # → Sobel kenar-maskeli GRİ ile ölç (mod_denetim'in parti'de kanıtlı yolu).
+    # Kapsaması düşük filmler (benimle/gercek/karadeniz... 14 doğrulanmış film)
+    # MEVCUT yoldan hiç ayrılmaz.
+    kapsama = float(np.median([m.mean() for m in maskeler[:: max(1, len(maskeler) // 10)]]))
+    if kapsama > MASKE_KAPSAMA_ESIK:
+        olcum_yolu = "sobel"
+        sobeller = [sobel_metin_maskesi(g) for g in griler]
+        olcum = [np.where(sb > 0, g, 0).astype(np.float32)
+                 for sb, g in zip(sobeller, griler)]
+        bosluk = [int(sb.sum()) for sb in sobeller]
+    else:
+        olcum_yolu = "parlaklik"
+        olcum = maskeler
+        bosluk = [int(m.sum()) for m in maskeler]
+    ciftler = cift_olc(olcum, bosluk, griler, varliklar, h, w)
 
     # ---- PLATO MİMARİSİ (v4) --------------------------------------------- #
     # Gözle yakalanan iki kayıp sınıfı bunu zorunlu kıldı:
@@ -429,6 +466,7 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
         "slug": slug, "durum": "OK", "mode": "adaptif_slit",
         "kare": len(ims), "size": [int(kanvas.shape[1]), int(kanvas.shape[0])],
         "segment": len(parcalar), "dissolve_kesme": dissolve_kesme,
+        "olcum_yolu": olcum_yolu, "maske_kapsama": round(kapsama, 3),
         "segment_kareler": segment_kareler,
         "sinif_sayimi": sinif_sayimi,
         "scroll_dy_medyan": round(float(np.median(
