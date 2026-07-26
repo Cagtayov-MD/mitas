@@ -55,11 +55,32 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 
 import cv2
 import numpy as np
+
+# üretim det+rec motorları (F1c altyapısı) — TEMBEL yüklenir ve YALNIZ
+# duraksama-temsilcisi kimlik kararlarında kullanılır (scroll yolu OCR'sız).
+# Motor yüklenemezse geometrik fark fallback'i devrededir (script bağımsız kalır).
+_DC = None
+_DC_DENENDI = False
+
+
+def _dc_al():
+    global _DC, _DC_DENENDI
+    if _DC_DENENDI:
+        return _DC
+    _DC_DENENDI = True
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        import saglik
+        _DC = saglik._uret_mod()._dc()
+    except Exception:
+        _DC = None
+    return _DC
 
 EX_KARE_ROOT = Path("/home/cagatay/Ex_Frame")
 EX_SUFFIX = "-exit_frames"
@@ -97,6 +118,17 @@ DOGRULAMA_NCC = 0.50     # scroll dy'si kaydırılmış-NCC ile bunun altında k
 MASKE_KAPSAMA_ESIK = 0.25  # parlaklık maskesinin medyan kare-kapsaması bunu aşarsa
                          # maske yozlaşmıştır (parlak zemin, korelasyon statik zemine
                          # kilitlenir — parti) → ölçüm Sobel kenar-maskesi yoluna geçer
+FARK_ESIK = 30           # normalize-farkta "değişmiş piksel" eşiği (gri birim)
+FARK_TABAN_KATSAYI = 3.0 # fark_px > katsayı×film-gren-tabanı → İÇERİK DEĞİŞTİ
+FARK_MUTLAK_MIN = 800    # gren-tabanı sıfıra yakınken alt koruma (px)
+METIN_KONSANTRASYON = 0.35  # sobel satır-profilinin en yoğun %12.5 satırı toplamın
+                         # bu oranını taşımalı ki kare "metin içeriyor" sayılsın
+TOKEN_CONF_ESIK = 0.40   # kimlik tokenına girecek rec kutusunun asgari güveni
+TOKEN_MIN_GUVEN = 3      # iki tarafta da en az bu kadar token yoksa token hükmü
+                         # güvenilmez (loş-kart OCR kararsızlığı) → geometrik fark
+TOKEN_KAPSAMA = 0.60     # |kesişim|/min(|a|,|b|) bunun üstünde → AYNI kart
+                         # (soluk↔parlak fade'de OCR bazı tokenları düşürse de
+                         # kapsama-oranı dayanıklı; farklı kartlarda ~0)
 H_MAKS = 45000           # saglik.py ile aynı canavar-boy tavanı
 
 
@@ -293,29 +325,83 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
     ref_idx = 0  # kanvasa en son giren karenin indeksi
     dissolve_kesme = 0
 
-    kimlikler: dict[int, np.ndarray] = {}
+    def _fark_px(a: int, b: int) -> int:
+        """Parlaklık-NORMALİZE piksel-farkı (v15 tek benzerlik ölçüsü).
 
-    def kimlik_maskesi(a: int) -> np.ndarray:
-        """Parlaklığa-UYARLANAN harf maskesi: kare kendi tepe-parlaklığına göre
-        eşiklenir → aynı kartın soluk/parlak halleri AYNI harf şeklini verir.
-        Sabit eşikli varlık maskesi fade boyunca şekil değiştirir; gren, soluk
-        karede NCC'yi de öldürür (kucuk-dev 22vs26: NCC 0.03) — kimlik maskesi
-        bu ikisinin kör noktasını kapatır."""
-        if a not in kimlikler:
-            g = griler[a]
-            tepe = float(np.percentile(g, 99.5))
-            esik = max(40.0, 0.55 * tepe)
-            kimlikler[a] = (g > esik).astype(np.float32)
-        return kimlikler[a]
+        NCC/IoU/kimlik üçlüsü statik-zemin kartlarında (jetgiller/totoro/
+        hayat-agaci/havaci — zemin kartlar arasında AYNI, yalnız yazı değişiyor)
+        zemine domine olup kartları "aynı" sayıyordu; 427-koşu gözle doğrulanmış
+        gerileme sınıfı. Fark ise zemini kendiliğinden düşürür: b, a'nın
+        parlaklık istatistiğine normalize edilir (fade nötrlenir), kalan mutlak
+        fark yalnız DEĞİŞEN içeriktir (eski yazı + yeni yazı pikselleri)."""
+        ga = griler[a].astype(np.float32)
+        gb = griler[b].astype(np.float32)
+        sa, sb_ = float(ga.std()), float(gb.std())
+        if sb_ > 1e-3:
+            gb = (gb - gb.mean()) * (sa / sb_) + ga.mean()
+        return int((np.abs(ga - gb) > FARK_ESIK).sum())
+
+    # filmin gren-tabanı: hareketsiz (duraksama) çiftlerin fark'ı = saf
+    # gürültü/gren. Karar eşiği filme göre kendini kalibre eder. NOT: kar/yağmur
+    # gibi sürekli-hareketli zeminlerde bu taban kart-değişimiyle AYNI mertebeye
+    # çıkar (hayat-agaci: komşu-çift 7-11k px ≈ kart farkı — ölçümle kanıtlandı);
+    # bu yüzden fark yalnız FALLBACK'tir, birincil kimlik TOKEN karşılaştırmasıdır.
+    _taban_ornek = [(_fark_px(i, i + 1))
+                    for i, c in enumerate(ciftler) if c["sinif"] == "duraksama"][:40]
+    fark_taban = float(np.median(_taban_ornek)) if _taban_ornek else 500.0
+
+    token_onbellek: dict[int, set[str]] = {}
+
+    def _tokenlar(a: int) -> set[str]:
+        """Karenin det+rec token kümesi (üretim F1c motorları; kimlik kararı için).
+        Motor yoksa/patlarsa boş küme döner (geometrik fallback devreye girer)."""
+        if a in token_onbellek:
+            return token_onbellek[a]
+        toks: set[str] = set()
+        dc = _dc_al()
+        if dc is not None:
+            try:
+                boxes = dc._f1b_det_boxes(griler[a])
+                if boxes:
+                    rec = dc._f1c_rec_boxes(griler[a], dc._f1b_boxes_sorted(boxes))
+                    for text, conf in rec:
+                        if conf < TOKEN_CONF_ESIK:
+                            continue
+                        for t in text.split():
+                            if len(t) >= 3:
+                                toks.add(t)
+            except Exception:
+                toks = set()
+        token_onbellek[a] = toks
+        return toks
 
     def ayni_icerik(a: int, b: int) -> bool:
-        ncc = _icerik_ncc(griler[a], griler[b], varliklar[a], varliklar[b])
-        if ncc >= AYNILIK_NCC:
-            return True  # içerik kanıtı tek başına yeter (fade dahil)
-        if (_iou(varliklar[a], varliklar[b]) >= AYNI_IOU_GUCLU
-                and ncc >= AYNI_NCC_TABAN):
-            return True  # güçlü konum + nötr-üstü içerik
-        return _iou(kimlik_maskesi(a), kimlik_maskesi(b)) >= KIMLIK_IOU
+        """Kart kimliği (v16): BİRİNCİL kanıt = metin tokenları. Üç geometrik
+        vekil de birer gerçek sınıfta battı (IoU: aynı-yerleşim farklı-metin;
+        NCC/kimlik: statik-zemin dominasyonu; normalize-fark: kar yağışı) —
+        hepsi gözle + ölçümle belgelendi. Metnin kimliğini metin okur:
+        iki kare de token veriyorsa kapsama-oranı karar verir; token yoksa
+        (logo/çizim/ultra-soluk) geometrik fark fallback'i."""
+        ta, tb = _tokenlar(a), _tokenlar(b)
+        if min(len(ta), len(tb)) >= TOKEN_MIN_GUVEN:
+            return len(ta & tb) / min(len(ta), len(tb)) >= TOKEN_KAPSAMA
+        # az-token: OCR loş karede aynı kartı her okuyuşta farklı çıkarabilir
+        # (havaci 46-sayfa patlaması) → token hükmü güvenilmez, geometrik fark
+        return _fark_px(a, b) <= max(FARK_TABAN_KATSAYI * fark_taban, FARK_MUTLAK_MIN)
+
+    def metin_gibi(a: int) -> bool:
+        """Sayfa-açılış kapısı: temsilcide GERÇEK metin var mı? Birincil kanıt
+        det+rec (>=2 token); motor yoksa satır-profili sezgiseli (metin kenar
+        enerjisini satırlarda yoğunlaştırır, gök/doku greni yaymaz)."""
+        if _dc_al() is not None:
+            return len(_tokenlar(a)) >= 2
+        sob = sobel_metin_maskesi(griler[a]).astype(np.float32)
+        toplam = float(sob.sum())
+        if toplam < MIN_MASKE_PX:
+            return False
+        prof = np.sort(sob.sum(axis=1))[::-1]
+        ust = float(prof[: max(1, len(prof) // 8)].sum())
+        return ust / toplam >= METIN_KONSANTRASYON
 
     def koşu_platolari(kareler: list[int]) -> list[int]:
         """Duraksama koşusundaki kart temsilcilerini döndür (sayfa adayları).
@@ -381,6 +467,15 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
     while i < n_cift:
         c = ciftler[i]
         if c["sinif"] == "kesme":
+            # KESME de kimlik+metin kapılarından geçer (affedilmeyenler "THE END
+            # ×5": fade/pozlama sıçramaları kesme sayılıp her seferinde sorgusuz
+            # sayfa açıyordu — tam-çözünürlük okumayla doğrulandı).
+            if ayni_icerik(i + 1, ref_idx) or not metin_gibi(i + 1):
+                # aynı içerik veya metinsiz sahne: kanvasa yeni sayfa YOK.
+                # ref DEĞİŞMEZ (ref = kanvasa en son giren içerik) — sonraki
+                # metinli/farklı kart normal yoldan sayfalanır.
+                i += 1
+                continue
             segmentler.append((seg_im, seg_ofs)); segment_kareler.append(seg_idx)
             seg_im, seg_ofs, akum = [ims[i + 1]], [0.0], 0.0
             seg_idx = [i + 1]
@@ -438,14 +533,30 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
                 ref_idx = k
             i = j
             continue
-        for tem in koşu_platolari(kosu):
+        # sayfa ADAYLARI: geometrik istikrar tepeleri + (uzun koşularda) TOKEN
+        # yoklama ızgarası. Parlak/dolu-varlık filmlerde (jetgiller göğü, karlı
+        # hayat-agaci) istikrar eğrisi dümdüz kalıp koca koşudan 1-2 tepe
+        # çıkarıyordu → kartlar yutuluyordu (427-koşu gözle doğrulandı). Izgara
+        # adayları token-kimliğe sorulur; karışım kareleri token-KAPSAMA
+        # sayesinde kendiliğinden elenir (karışım, referans kartın tokenlarını
+        # İÇERİR → "aynı" → sayfa açmaz; saf yeni kart içermez → açar).
+        adaylar = set(koşu_platolari(kosu))
+        if len(kosu) >= 6:
+            adaylar.update(kosu[::3])
+        for tem in sorted(adaylar):
             if ayni_icerik(tem, ref_idx):
-                # aynı içeriğin daha dolu hali tek-kareli kart sayfasını yükseltir
-                if len(seg_im) == 1 and float(varliklar[tem].sum()) > float(
-                        varliklar[ref_idx].sum()):
-                    seg_im[0] = ims[tem]
-                    ref_idx = tem
+                # aynı içeriğin daha iyi hali tek-kareli kart sayfasını yükseltir:
+                # token sayısı (okunurluk kanıtı) > varlık toplamı (parlak filmde kör)
+                if len(seg_im) == 1:
+                    ta, tr = _tokenlar(tem), _tokenlar(ref_idx)
+                    daha_iyi = (len(ta) > len(tr)) if (ta or tr) else (
+                        float(varliklar[tem].sum()) > float(varliklar[ref_idx].sum()))
+                    if daha_iyi:
+                        seg_im[0] = ims[tem]
+                        ref_idx = tem
                 continue
+            if not metin_gibi(tem):
+                continue  # metinsiz içerik (gök/doku) sayfa açamaz — affedilmeyenler çöpü
             segmentler.append((seg_im, seg_ofs)); segment_kareler.append(seg_idx)
             seg_im, seg_ofs, akum = [ims[tem]], [0.0], 0.0
             seg_idx = [tem]
@@ -454,7 +565,13 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
         i = j
     segmentler.append((seg_im, seg_ofs)); segment_kareler.append(seg_idx)
 
-    parcalar = [_segment_kanvas(si, so) for si, so in segmentler if si]
+    # derleme filtresi: TEK-kareli ve metinsiz segmentler (açılış gökyüzü tabanı
+    # gibi) master'a girmez — ama her şey elenirse en az bir parça tutulur.
+    secilen = [(si, so) for (si, so), idxs in zip(segmentler, segment_kareler)
+               if si and (len(si) > 1 or metin_gibi(idxs[0]))]
+    if not secilen:
+        secilen = [(si, so) for si, so in segmentler if si]
+    parcalar = [_segment_kanvas(si, so) for si, so in secilen]
     kanvas = np.vstack(parcalar) if len(parcalar) > 1 else parcalar[0]
     if kanvas.shape[0] > H_MAKS:
         return None, {"slug": slug, "durum": "boy_asimi", "boy": int(kanvas.shape[0])}
