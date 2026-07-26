@@ -74,6 +74,7 @@ IHLAL_ETIKETLERI = {
 # hesaplarına asla karışmasın; --imha-saglik-etkiler eski davranışı geri getirir).
 TESHIS_ETIKETLERI = {
     "imha_imzasi": "statik-sayfa alanı > eşik VE >=N cılız blok (footage-üstü ezilme şüphesi) -- SAĞLIĞI ETKİLEMEZ, teşhis amaçlı",
+    "dikis_tekrari_supheli": "kept static_page hemen ardından kept scroll_slit -- bağımsız det+rec yeniden-denetimi dikiş-tekrarı kanıtı buldu (F3c'nin kaçırdığı/hiç çalışmadığı olay olabilir) -- SAĞLIĞI ETKİLEMEZ, teşhis amaçlı",
 }
 
 
@@ -239,6 +240,78 @@ def korunan_araliklari(manifest: dict, sep_px: int) -> list[tuple[int, int]]:
     return araliklar
 
 
+# --------------------------------------------------------------------------- #
+# F3c takip -- "dikiş-tekrarı" KÖRLÜK denetimi (M4, docs/MITAS_Master_Dup_Kok_
+# Sebep_Plani_v1.md "F3c KARARI"): dup_metrik.py'nin şerit-tabanlı metriği
+# KÜÇÜK (<200px) tekrarları YAKALAMAZ -- "blok şartı" (>=2 ARDIŞIK şerit aynı
+# ofsetle eşleşmeli) tam da bu sınıfı (tek kısa static_page + slit-başı örtüşmesi)
+# gürültü sayıp eler. F3c composer'da bu sınıfı ÜRETİM SIRASINDA kaldırıyor
+# (skip="seam-dup"); burada AYRICA -- final manifest+PNG üzerinden, composer'ın
+# KENDİ kararına GÜVENMEDEN -- bağımsız bir SAFETY-NET olarak yeniden denetlenir:
+# (a) flag kapalı/legacy (F3c hiç çalışmamış) çıktılarda GERÇEK kalan-kusur payını
+#     görünür kılar (dup_metrik'in kör olduğu sınıf artık QC'de raporlanır);
+#     (b) F3c'nin KENDİSİ bir kenar-durumu kaçırırsa (ör. oran %69 -- eşiğin hemen
+#     altı) ileride REGRESYON sinyali verir. K4-i (imha_imzasi) ile AYNI felsefe:
+# SAĞLIĞI ETKİLEMEZ (teshis_bayraklari, ihlal DEĞİL) -- composer'ın det+rec
+# altyapısı (_f3c_seam_dup_check) SALT-OKUNUR yeniden kullanılır (K4-ii'nin
+# det_metin_var'ı gibi -- yeni bir OCR çağrı yolu icat edilmez).
+# --------------------------------------------------------------------------- #
+def _kept_blocks_with_offsets(manifest: dict, sep_px: int) -> list[tuple[int, int, dict]]:
+    """kept (skip'siz, h alanlı) her bloğu (y0, y1, blok_sozlugu) olarak, final PNG
+    kümülatif y-ekseninde döner (korunan_araliklari ile AYNI kümülatif mantık)."""
+    y = 0
+    out: list[tuple[int, int, dict]] = []
+    for b in manifest.get("blocks") or []:
+        if not isinstance(b, dict) or "skip" in b or b.get("h") is None:
+            continue
+        h = int(b["h"])
+        out.append((y, y + h, b))
+        y += h + sep_px
+    return out
+
+
+def dikis_tekrari_supheli_kontrol(manifest: dict, png_path: Path, sep_px: int) -> list[dict]:
+    """Final manifest+PNG üzerinde, kept static_page hemen ardından kept
+    scroll_slit bloğu bulunan HER yerde (F3c uygulanmış olsa da olmasa da --
+    composer'ın SKIP kararına bakılmaksızın bağımsız yeniden ölçüm) db_compose_
+    master.py'nin `_f3c_seam_dup_check`ini (det+rec, SALT-OKUNUR import) çağırır.
+    Dikiş-tekrarı kanıtı bulunan HER olay için kanıt sözlüğü döner (boş liste =
+    şüpheli olay yok). PNG yalnız gerçek aday VARSA okunur (maliyet: yalnız
+    tartışmalı filmlerde)."""
+    adaylar = [
+        (y0, y1, b) for y0, y1, b in _kept_blocks_with_offsets(manifest, sep_px)
+    ]
+    olaylar = []
+    for i in range(len(adaylar) - 1):
+        y0a, y1a, a = adaylar[i]
+        y0b, y1b, b = adaylar[i + 1]
+        if a.get("kind") != "static_page" or b.get("kind") != "scroll_slit":
+            continue
+        olaylar.append((y0a, y1a, y0b, y1b))
+    if not olaylar or not png_path.is_file():
+        return []
+    try:
+        from PIL import Image
+        import numpy as np
+        import cv2
+
+        png = cv2.cvtColor(np.array(Image.open(png_path).convert("RGB")), cv2.COLOR_RGB2BGR)
+    except Exception:
+        return []
+    dc = _uret_mod()._dc()
+    sonuc = []
+    for y0a, y1a, y0b, y1b in olaylar:
+        static_crop = png[y0a:y1a, :]
+        slit_crop = png[y0b:y1b, :]
+        try:
+            kanit = dc._f3c_seam_dup_check(static_crop, slit_crop)
+        except Exception:
+            kanit = None
+        if kanit is not None:
+            sonuc.append({"static_y": [y0a, y1a], "slit_y": [y0b, y1b], "kanit": kanit})
+    return sonuc
+
+
 def _load_json(path: Path) -> dict | None:
     if not path.is_file():
         return None
@@ -263,6 +336,7 @@ def degerlendir(
     tek_kart_rec_esik: float = TEK_KART_REC_ESIK_VARSAYILAN,
     imha_saglik_etkiler: bool = False,
     k3_protected_muafiyet: bool = True,
+    dikis_kontrolu: bool = True,
 ) -> dict:
     """Tek film klasörünü değerlendirir (K4 SONRASI: 4 sağlık kriteri VE 1
     teşhis-amaçlı bayrak -- bkz. modül docstring'i)."""
@@ -365,6 +439,21 @@ def degerlendir(
         if imha_saglik_etkiler:  # --imha-saglik-etkiler: K4-öncesi davranışla karşılaştırma
             ihlaller.append("imha_imzasi")
 
+    # --- Teşhis (SAĞLIĞI ETKİLEMEZ): F3c takip -- dikiş-tekrarı KÖRLÜK denetimi
+    # (bkz. modül-üstü dikis_tekrari_supheli_kontrol yorumu). Tembel: yalnız kept
+    # static_page->kept scroll_slit bitişikliği VARSA PNG okunur+det/rec çağrılır. ---
+    dikis_olaylari: list[dict] = []
+    if dikis_kontrolu and png_var:
+        try:
+            dikis_olaylari = dikis_tekrari_supheli_kontrol(
+                manifest, film_dir / "reading_master.png", _uret_mod()._dc().SEP_PX,
+            )
+        except Exception:
+            dikis_olaylari = []
+    if dikis_olaylari:
+        teshis_bayraklari.append("dikis_tekrari_supheli")
+        detay["dikis_tekrari_olaylari"] = dikis_olaylari
+
     # --- Kriter 4: doku_kapsami ---
     if doku_kapsami is None or doku_kapsami < doku_esik:
         ihlaller.append("doku_kapsami_dusuk")
@@ -459,6 +548,8 @@ def _cli(argv=None):
                      help="K4-i öncesi davranış: imha_imzasi'nı yeniden sağlık ihlaline çevir (karşılaştırma amaçlı)")
     ap.add_argument("--no-k3-protected-muafiyet", dest="k3_protected_muafiyet", action="store_false",
                      help="K3 protected-çift muafiyetini kapat (karşılaştırma/K1-sonrası-K3-öncesi ölçüm)")
+    ap.add_argument("--no-dikis-kontrolu", dest="dikis_kontrolu", action="store_false",
+                     help="F3c dikiş-tekrarı KÖRLÜK denetimini kapat (maliyet: PNG+det/rec, yalnız aday filmlerde)")
     ap.add_argument("--en-kotu", type=int, default=15, help="konsolda gösterilecek en kötü N (varsayılan 15)")
     args = ap.parse_args(argv)
 
@@ -473,7 +564,7 @@ def _cli(argv=None):
         ciliz_h_esik=args.ciliz_h_esik, ciliz_min_sayi=args.ciliz_min_sayi,
         tek_kart_istisna=args.tek_kart_istisna, tek_kart_kept_maks=args.tek_kart_kept_maks,
         tek_kart_rec_esik=args.tek_kart_rec_esik, imha_saglik_etkiler=args.imha_saglik_etkiler,
-        k3_protected_muafiyet=args.k3_protected_muafiyet,
+        k3_protected_muafiyet=args.k3_protected_muafiyet, dikis_kontrolu=args.dikis_kontrolu,
     )
     print(f"{sonuc['saglikli_sayi']}/{sonuc['n']} sağlıklı (%{sonuc['saglik_orani'] * 100:.1f})")
     print("İhlal dağılımı:", json.dumps(sonuc["ihlal_dagilimi"], ensure_ascii=False))
