@@ -295,6 +295,111 @@ HAKEM SENTEZİ (uygulanacak tasarım):
 6. **O1 (sınıflandırıcı) UYGULANMAZ** — yalnız atlas-artıkları hedefi karşılamazsa,
    GLM'in X-T uzay-zaman imzası + Kimi 5-kapı + Nemotron veto protokolüyle ayrı tur.
 
+### Görev M11: Mod-hatası (F3/F3b) + Dikiş-tekrarı (F3c) — H3 kök-sebep serisi
+
+**F3 (orijinal, M4 içinde) + F3b (2026-07-26, GUNLUK.md'de kayıtlı):** split_runs_
+reading'in kısa-run demote kararı (F3) ve kredi koyu zemin üstünde kayarken tüm-kare
+phaseCorrelate'in arka plan tarafından domine edilmesi (F3b, bağımsız denetim
+`harness/master_dup/mod_denetim.py`) — ikisi de S/R ETİKET kararını düzeltiyor. F3b
+taban koşusunda 427 filmde 137 "mod hatası"nı 13'e indirdi (commit 3dc9435). Bu bölüm
+retroaktif olarak F3b'yi anar; ayrıntı GUNLUK.md "2026-07-26 (devam)" kaydında.
+
+**F3c KARARI (2026-07-26, bu tur — "dikiş-tekrarı"):** F3/F3b S/R ETİKETİNİ değil,
+BİR SONRAKİ katmanı (blok-kompozisyonu) düzeltir. Teşhis: split_runs_reading kayan
+koşunun BAŞ ucunu (hareket henüz ölçülebilir hızda değilken) kısa bir "S" run'a böler,
+bu run TEK statik kart olarak dondurulur -- ama HEMEN SONRASINDAKİ "R" run'u slitscan()
+KENDİ TÜM karelerini baştan tarar, dondurulan kartın yakaladığı an ile örtüşür -- aynı
+içerik iki kez derlenir (görsel kanıt: acemiler-cetesi, run=[0,1] 90px static_page
+"Harry Spikes/LEE MARVIN..." kesik + run=[2,34] scroll_slit AYNI metinle yine
+başlıyor). 104/427 filmde `static_page(h<250)→scroll_slit` deseni (195/427 h'siz);
+AMA HEPSİ TEKRAR DEĞİL.
+
+Fix (`_f3c_seam_dup_check` + `_f3c_align_static_in_slit`, db_compose_master.py,
+MITAS_MASTER_V2 flag): statik kartın hemen ardından yeni bir scroll_slit eklenmeden
+önce, `cv2.matchTemplate` (TM_CCOEFF_NORMED) ile statik kartın TAMAMI slit'in üst
+`frame_h`-sınırlı bölgesinde HER olası y-hizasında NCC ile taranır (F3C_NCC_GATE=0.3
+-- **İLK sürüm 0.85 kullanmıştı, GERÇEK 24-film kalibrasyonu bunu ÇÜRÜTTÜ**: yasli-
+adamlar-toplulugu token-oranı TAM 1.0 ama NCC yalnız 0.4811 -- 0.85 bunu KAÇIRIRDI;
+ayrıca NCC ile token-oranı ZAYIF KORELE, ör. birdy/tas-devri NCC=0.88-0.91 AMA
+oran=0.0-0.54 -- **NCC gerçek karar mercii DEĞİL, yalnız "nerede aranacağını" bulan
+zayıf bir ön-filtre**). Hiza bulununca (+1 satır payı) F1c'nin det+rec altyapısı
+AYNEN yeniden kullanılır: statik kart + hizalı slit bölgesi ayrı ayrı normalize
+(küçük-harf, >=3 karakter) token'lara bölünür; statik token'ların >=%70'i (F3C_TOKEN_
+MATCH_RATIO) hizalı slit kümesinde VARSA dikiş-tekrarı KANITLANMIŞ -- statik kart
+düşürülür (manifest: `skip:"seam-dup"` + `seam_kanit` — static/slit token'ları,
+match_ratio, align_y, align_ncc). NCC hizası YOK ya da token oranı düşükse (ya da
+HERHANGİ bir tarafta rec boş/düşük-güven) -- kanıtsız KORU. Ardışık birden çok statik
+kart varsa en yakından geriye tek tek sınanır (kaskad: bir static_page düşünce bir
+ÖNCEKİ scroll_slit'e bitişik hale gelirse F2 dikiş-kırpması da normal şekilde devreye
+girer).
+
+**KÖK-SEBEP BULUNAN GERÇEK HATA (rigor sürecinde yakalandı, ders):** İlk uygulama
+"slit'in İLK (static_h+1 satır) bölgesi" varsayımıyla yazılmıştı (sabit yükseklik,
+konum=0 varsayımı) -- GERÇEK acemiler-cetesi verisinde tekrar y=283'te başlıyordu
+(static_h=90 iken), (static_h+line_h)=98'lik pencere bunu TAMAMEN KAÇIRIYORDU (0
+token buluyor, "KORU" diyordu -- tam da düzeltilmek istenen kusuru SESSİZCE
+yeniden üretiyordu). Neden: slitscan()'ın `seed_top` (ref=SLIT_FRAC*frame_h≈%55)
+ham kare oranındadır, statik kart METİN BANDINA sıkı kırpılmıştır (text_rows) --
+metin kare içinde nerede duruyorsa (bu filmde alt-yarıda) tekrar da o kadar aşağıda.
+Görsel doğrulama (Read tool ile piksel inceleme) OLMASAYDI bu kaçırılırdı --
+"acemiler-cetesi düzeldi" iddiası YÜZEYSEL/YANLIŞ olurdu. cv2.matchTemplate tabanlı
+hiza-arama düzeltmesiyle çözüldü (regresyon-kilidi testi:
+`test_gercek_ocr_derinde_konumlanan_tekrar_yakalanir`).
+
+**Doğrulama (`data/master_ex_modfix`, 427 film, idempotent-yeniden-üretim):**
+- 104 (h<250 taban) → **89** kalan aday (15 düştü); 195 (h'siz taban) → **175** kalan
+  (27 toplam düştü, 27/427 filmde).
+- 8-rastgele-örneklem (h<250 popülasyonundan, kalibrasyon setinden AYRI): 0 düştü/8
+  korundu (rastgele çekiliş; algoritmanın MUHAFAZAKAR olduğunun kanıtı) — HER biri
+  için rec-kanıtı (static_token/slit_token/oran) kaydedildi, 3'ü (guvercin-hirsizlari,
+  umudunu-kaybetme, col-kralicesi) görsel doğrulandı (gerçekten ayrı kart: yazar/
+  yönetmen vs oyuncu listesi; epilog-altyazısı vs oyuncu listesi; ekip vs oyuncu
+  listesi AYNI çöl-fonu üstünde — yüksek-NCC/sıfır-token-örtüşme örneği).
+- Ek 2 DÜŞEN örnek görsel doğrulandı (james-ve-dev-seftali: "STORYBOARD SUPERVISORS/
+  KELLY ASBURY AND JOE RANFT" tam tekrarı ortadan kalktı; acemiler-cetesi: ana örnek).
+- YANLIŞ-SİLME KONTROLÜ: van-gogh-sonsuzlugun-kapisinda -- statik kart "Paul Gauguin,
+  1894." (sahne-altyazısı) KORUNDU; "Gauguin" ismi SONRAKİ oyuncu listesinde de
+  geçmesine RAĞMEN (farklı stil/hizasız -- NCC=0.17<0.3) yanlış-silme OLUŞMADI.
+- Regresyon: 195-aday-DIŞI 20 rastgele filmde (`--force` ile yeniden üretim) byte-
+  birebir aynı (0 fark) — yapısal kanıt (adjacency yoksa yeni kod yolu HİÇ çalışmaz)
+  + ampirik doğrulama ikisi de YEŞİL.
+- Bit-parite (flag kapalı, SON_METRO, `test_bit_parite.py`): YEŞİL.
+- Testler: `test_f3c_seam_fix.py` (19 test — saf karar-mantığı + gerçek-OCR birim +
+  uçtan-uca sentetik-görüntü + derinde-konumlanan-tekrar regresyon-kilidi).
+
+**dup_metrik/saglik.py KÖRLÜK denetimi (madde 6):** dup_metrik.py'nin şerit-tabanlı
+metriği ("blok şartı": >=2 ARDIŞIK şerit eşleşmeli) küçük (<200px) dikiş-tekrarını
+gürültü sayıp ELİYORDU -- bu sınıf QC'de görünmezdi. `saglik.py`'ye `dikis_tekrari_
+supheli_kontrol` eklendi: final manifest+PNG üzerinde (composer'ın KENDİ seam-dup
+kararına GÜVENMEDEN) bağımsız yeniden-denetim -- `_f3c_seam_dup_check`'i final PNG
+kırpımlarına yeniden uygular. K4-i (imha_imzasi) ile AYNI felsefe: SAĞLIĞI ETKİLEMEZ
+(`teshis_bayraklari`, ihlal DEĞİL) -- (a) flag-kapalı/legacy çıktılarda gerçek kalan-
+kusur payını görünür kılar, (b) F3c'nin kendisi bir kenar-durumu kaçırırsa (ör. oran
+%69) gelecekte REGRESYON sinyali verir. `--no-dikis-kontrolu` ile kapatılabilir
+(maliyet: yalnız aday filmlerde PNG+det/rec). Test: `test_saglik_dikis.py` (5 test).
+
+**Dış konsey bağımsız bug-avcılığı (ask_council, GLM+Qwen+Kimi'ye gerçek diff
+verilerek):** Qwen iki turda da hesap-erişim hatası (403 unpurchased), Kimi
+ikinci turda boş döndü — yalnız GLM (üç mercek dahil) yanıt verdi. KABUL EDİLEN
+bulgu: statik kartta yalnız 1-2 jenerik token varsa %70 oran kolayca (1/1, 2/2)
+tetiklenebilir. GERÇEK 427-film koşusunda 2 örnek çıktı (son-yolculuk/ufaklik,
+ikisi TEK token "cast") — GÖRSEL doğrulama ikisinin de gerçek tekrar olduğunu
+kanıtladı ama NCC'leri de çok yüksekti (0.95/0.98) -- kod bunu GARANTİ ETMİYORDU.
+27 düşenin TAMAMI ölçülüp (token_sayısı, NCC) korelasyonu doğrulandı: token<3
+her zaman NCC>=0.90; NCC<0.85 her zaman token>=3. Fix: `F3C_NCC_HIGH_CONFIDENCE=
+0.85`/`F3C_MIN_TOKENS_LOW_CONF=3` (az-token yalnız yüksek-NCC ile yeterli).
+DOĞRULAMA: 427-film tam yeniden üretim → 27 düşen BİREBİR AYNI (0 fark) --
+mevcut sonuçları değiştirmedi, yalnız gelecek riskini kapattı. Diğer bulgular
+(slw!=sw guard, NaN/dtype) kodda zaten ele alınmış bulundu; np.argmax flat-index
+kırılganlığı (yalnız slw==sw gevşetilirse aktif olur) kayda geçti, DOKUNULMADI
+(spekülatif, kapsam dışı). İTİRAF: brifingin İLK turu placeholder metniyle
+gönderildi (F3b turunda da olan hata tekrarlandı) -- GLM/Kimi dürüstçe fark
+edip genel değerlendirme yaptı, ikinci turda gerçek diff'le düzeltildi.
+
+Commit'ler: composer fix (F3c) + testler; dış-konsey-bulgusu refinement (aynı
+commit'e katıldı, ayrı yeniden-üretim doğrulamasıyla); dup-metrik/saglik.py
+dikiş-tekrarı teşhis sinyali (ayrı commit).
+
 ### Görev M6: Kayıt
 
 GUNLUK kaydı + bu doküman güncellemesi (konsey kararları, sayılar) + görev #12 kapanışı.

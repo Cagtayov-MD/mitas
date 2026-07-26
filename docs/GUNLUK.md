@@ -7,6 +7,114 @@
 
 ---
 
+## 2026-07-26 (devam 2) — "Dikiş-tekrarı" kök-sebep fix'i (F3c): 195 aday, 27 düştü
+
+**İş:** F3b'nin ÜSTÜNE, `db_compose_master.py`'ye F3c eklendi (MITAS_MASTER_V2 flag
+altında): kayan jenerik öncesi TUTULAN İLK KART bir static_page olarak dondurulup
+HEMEN ardından gelen scroll_slit'in AYNI içeriği baştan tekrar etmesi ("dikiş-
+tekrarı", görsel kanıt: acemiler-cetesi 90px "Harry Spikes/LEE MARVIN..." kesik +
+slit aynı metinle yine başlıyor). `_f3c_seam_dup_check`/`_f3c_align_static_in_slit`:
+cv2.matchTemplate ile statik kartın TAMAMI slit'in üst bölgesinde hizalanır, hizalı
+bölge F1c'nin det+rec altyapısıyla token-karşılaştırılır (>=%70 örtüşme -> düş).
+Testler: `test_f3c_seam_fix.py` (21), `test_saglik_dikis.py` (5) — saf mantık +
+gerçek-OCR birim + uçtan-uca sentetik + REGRESYON-KİLİDİ (aşağıya bkz). Ayrıntı:
+`docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md` "Görev M11".
+
+**DIŞ KONSEY bug-avcılığı turu (GLM cevap verdi; Qwen hesap-erişim HTTP 403
+"AccessDenied.Unpurchased" hatasıyla İKİ turda da başarısız, Kimi ikinci turda
+boş/hatalı döndü — ikisi de bilinen/harici sorunlar, koddan bağımsız):
+**GERÇEK BULGU, KABUL EDİLDİ VE UYGULANDI:** statik kartta yalnız 1-2 (jenerik)
+token varsa, %70 oran kolayca (1/1, 2/2) tetiklenebilir — F3C_TOKEN_MIN_LEN=3
+karakter filtresi "cast"/"director" gibi kelimeleri elemiyor. GERÇEK 427-film
+koşusunda BUNUN 2 örneği ÇIKTI (son-yolculuk-1999-.../ufaklik, ikisi de TEK
+token: "cast") — görsel doğrulama ikisinin de GERÇEK dikiş-tekrarı olduğunu
+kanıtladı (aynı "CAST" başlığı birebir konum/yazı-tipiyle iki kez) AMA NCC'leri
+de çok yüksekti (0.9508/0.9754) — yani doğru kararlar TESADÜFEN değil güçlü
+piksel-kanıtıyla tutarlıydı, kod bunu ise HİÇ ZORUNLU KILMIYORDU. Tüm 27 düşenin
+(token_sayısı, NCC) çifti ölçülüp desen doğrulandı: token<3 olan HER düşende
+NCC>=0.90; NCC<0.85 olan HER düşende token>=3 (silverado, 3 token, NCC=0.5512
+en düşük sınır). Yani gerçek veri bu iki değişkenin BAĞIMSIZ ayrışmadığını
+gösterdi ama kod bunu garanti etmiyordu (şans eseri tutarlı). Fix: `F3C_NCC_
+HIGH_CONFIDENCE=0.85` / `F3C_MIN_TOKENS_LOW_CONF=3` — NCC>=0.85 ise az-token
+yeterli (mevcut 2 gerçek vaka gibi), NCC bunun altındaysa >=3 FARKLI token
+şart. DOĞRULAMA: 427-film TAM yeniden üretim → **27 düşen BİREBİR AYNI KALDI**
+(0 fark, ne kaybolan ne yeni eklenen) — yani bu fix mevcut sonuçları DEĞİŞTİRMEDİ,
+yalnız gelecekteki "birkaç jenerik kelime + orta-NCC" senaryosuna karşı kapıyı
+kapattı. 20-film regresyon + bit-parite bu düzeltme SONRASI da yeniden koşulup
+YEŞİL. 2 yeni test eklendi (`test_tek_jenerik_token_zayif_ncc_ile_korunur`,
+`test_tek_jenerik_token_yuksek_ncc_ile_dusurulur`).
+
+**Diğer konsey bulguları (değerlendirildi, düşük öncelik/asılsız):** `slw != sw`
+guard'ı ve NaN/dtype riski kod incelemesinde zaten ele alınmış bulundu (`not
+np.isfinite(best_ncc)` guard'ı mevcut); `np.argmax` flat-index kırılganlığı
+(yalnız `slw==sw` guard'ı gevşetilirse potansiyel gizli hata) kayda geçti ama
+GÜNCEL kodda tetiklenmiyor, DOKUNULMADI (spekülatif/gelecek-riski, bu turun
+kapsamı dışı).
+
+**Öğrenilen (ders, İKİNCİ kez tekrarlanan bir hata): konseye context alanına
+İLK seferinde yanlışlıkla "DIFF_PLACEHOLDER" string'i gönderildi (gerçek kod
+GİTMEDİ) — F3b turunda AYNI hata bir kez daha yapılmıştı (GUNLUK 2026-07-26
+devam kaydı). GLM/Kimi bunu fark edip tarif-metninden genel değerlendirme
+yaptı (dürüstlük doğruydu), ikinci turda gerçek diff'le düzeltilip yeniden
+soruldu. KURAL HATIRLATMASI: konsey brifingine kod YAPIŞTIRIRKEN, gönderilen
+mesajı bir daha oku, placeholder/özet SIZMADIĞINDAN emin ol.
+
+**KENDİ HATAMI YAKALADIĞIM an (rigor sürecinin işe yaradığı somut örnek):** İlk
+uygulama "slit'in İLK (static_h+1 satır) bölgesi"ni sabit varsayımla kırpıyordu.
+Görsel doğrulama adımında (Read tool, piksel inceleme) acemiler-cetesi'nin HÂLÂ
+düzelmediği ortaya çıktı — static_h=90 iken tekrar GERÇEKTE y=283'te başlıyordu
+(slitscan()'ın `seed_top` ham-kare oranlı, statik kart METİN BANDINA sıkı kırpılı —
+ikisi FARKLI koordinat sistemi). Sabit-pencere varsayımı bunu SESSİZCE kaçırıyordu
+(0 token, "KORU" -- tam da düzeltilmek istenen kusuru yeniden üretiyordu). Düzeltme:
+cv2.matchTemplate tabanlı hiza-arama (frame_h sınırlı). Ayrıca NCC-eşiği de yanlış
+kalibre edilmişti (0.85, TEK örnekten) — 24-film GERÇEK-VERİ kalibrasyonu
+(`harness/master_dup/kalibrasyon_f3c_ncc.py`) bunu ÇÜRÜTTÜ: yasli-adamlar-toplulugu
+token-oranı TAM 1.0 ama NCC yalnız 0.4811 (0.85 KAÇIRIRDI); NCC ile token-oranı ZAYIF
+KORELE (birdy/tas-devri NCC=0.88-0.91 AMA oran=0.0-0.54) — NCC'yi 0.3'e (zayıf ön-
+filtre) düşürüp asıl kararı token-oranına bıraktım. DERS: "çalışıyor" demeden önce
+GERÇEK veride GÖRSEL doğrulama + çok-örnekli kalibrasyon şart — tek temiz örnek
+(acemiler'in İLK NCC ölçümü 0.9486) yanıltıcı güven verebiliyor.
+
+**Ayrıca bir yan-hata (itiraf, düzeltildi):** Doğrulama sırasında bir zamanlama
+testinde `out_root=None` ile `uret_ex.process_film_ex` çağrıldı, YANLIŞLIKLA
+`data/master_ex/acemiler-cetesi` (F3b-ÖNCESİ taban referansı, `fix_dogrula.py`'nin
+"ESKI" karşılaştırması kullanıyor) ÜZERİNE YAZILDI. Git commit 437dce8'in (bu dosyayı
+üreten tam commit, timestamp+"369/427" sayısıyla doğrulandı) db_compose_master.py
+sürümüyle YENİDEN üretilip düzeltildi (runs=['S','S'] deseni + F4-atlas izi ile
+tutarlılığı doğrulandı) — ama orijinal dosyanın byte-birebir YEDEĞİ yoktu, bu yüzden
+%100 kanıtlanamaz (yalnız yapısal/mantıksal tutarlılık). Düşük-blast-radius (yalnız
+1/427 film, yalnız gelecekteki fix_dogrula.py yeniden-koşularını etkiler, F3c işini
+etkilemez) ama KAYDA GEÇMELİ. DERS: `uret_ex`/`uret` fonksiyonlarını ASLA `out_root`
+açıkça scratch'e işaret etmeden çağırma.
+
+**Sayı (`data/master_ex_modfix`, F3b ÜSTÜNE F3c, 427 film idempotent-yeniden-üretim):**
+104 (h<250 taban, teşhis sayımı) → **89** kalan aday (15 düştü); 195 (h'siz TÜM aday) →
+**175** kalan (27 toplam düştü, 27/427 film). 8-rastgele-örneklem (h<250, kalibrasyon-
+setinden ayrı): 0 düştü/8 korundu (rastgele çekiliş — MUHAFAZAKARLIĞIN kanıtı), her
+biri rec-kanıtlı, 3'ü görsel doğrulandı (guvercin-hirsizlari: yazar/yönetmen vs
+oyuncu listesi; umudunu-kaybetme: epilog-altyazısı vs oyuncu listesi; col-kralicesi:
+ekip vs oyuncu listesi AYNI çöl-fonu üstünde — yüksek-NCC/sıfır-token örneği, NCC
+tek başına yeterli OLMADIĞININ kanıtı). Ek 2 DÜŞEN örnek görsel doğrulandı (james-ve-
+dev-seftali, acemiler-cetesi). YANLIŞ-SİLME KONTROLÜ: van-gogh-sonsuzlugun-kapisinda
+("Paul Gauguin, 1894." sahne-altyazısı KORUNDU, "Gauguin" ismi sonraki oyuncu
+listesinde geçmesine RAĞMEN — farklı stil/hizasız, NCC=0.17<0.3). Regresyon: 195-
+aday-DIŞI 20 rastgele filmde byte-birebir aynı (0 fark, hem yapısal hem ampirik).
+Bit-parite (flag kapalı, SON_METRO): YEŞİL.
+
+**dup_metrik/saglik.py körlük denetimi:** dup_metrik'in "blok şartı" (>=2 ARDIŞIK
+şerit) küçük (<200px) dikiş-tekrarını gürültü sayıp ELİYORDU. `saglik.py`'ye
+`dikis_tekrari_supheli_kontrol` eklendi — final PNG üzerinde composer kararına
+GÜVENMEDEN bağımsız yeniden-denetim, K4-i (imha_imzasi) gibi SAĞLIĞI ETKİLEMEYEN
+teşhis bayrağı (`--no-dikis-kontrolu` ile kapatılabilir).
+
+**Bekleyen:** (1) `compose_slit`'in KENDİ card→scroll bitişikliği (F3c'nin dokunmadığı
+AYRI kod yolu, passthrough'ta kullanılıyor) AYNI kusuru taşıyor mu — ÖLÇÜLMEDİ, emin
+değilim, ayrı inceleme önerilir; (2) 89 kalan (h<250) + 175 kalan (h'siz) adayın
+TAMAMI gerçek-ayrı-kart mı yoksa F3c'nin kaçırdığı ek dikiş-tekrarı mı içeriyor --
+saglik.py'nin yeni sinyali bunu izleyecek ama tam-427 saglik.py koşusu bu oturumda
+TAMAMLANMADI/sonucu henüz özetlenmedi; (3) data/master_ex/acemiler-cetesi'nin
+restorasyonu %100 byte-doğrulanamadı (yukarı bkz).
+
 ## 2026-07-26 (devam) — Mod-hatası KÖK-SEBEP FIX'i uygulandı: 137→13 (F3b)
 
 **İş:** Bir alt oturumda, aşağıdaki kayıttaki "Aşama-2 sınıflandırıcı fix" tamamlandı.
