@@ -224,6 +224,105 @@ F3B_KAYAN_ORAN_MIN = 0.35      # mod_denetim.py imzasıyla AYNI
 F3B_MONOTON_MIN = 0.75         # mod_denetim.py imzasıyla AYNI
 F3B_RESP_FLOOR = 0.10          # mod_denetim.py: güvenilmez faz-korelasyon tepesini eler
 
+# F3c (MITAS_MASTER_V2, H3 kök-sebep ARTIĞI -- docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md
+# "F3c KARARI"): F3/F3b split_runs_reading'in ÇIKTISINI (S/R etiket kararını) düzeltiyordu;
+# burada hedeflenen kusur BİR SONRAKİ katmanda -- "dikiş-tekrarı" (görsel kanıt: acemiler-
+# cetesi -- run=[0,1] 90px static_page "Harry Spikes/LEE MARVIN..." (kesik), HEMEN ardından
+# run=[2,34] scroll_slit AYNI metinle YİNE İÇERİYOR). Mekanizma: kayan koşunun BAŞ ucu
+# (hareket henüz ölçülebilir hızda değilken/geçiş karesi) split_runs_reading tarafından kısa
+# ayrı bir "S" run'a bölünür, bu run TEK statik kart olarak dondurulur (en keskin/kararlı
+# kare) -- ama HEMEN SONRASINDAKİ "R" run'u slitscan() ile KENDİ TÜM karelerini baştan
+# tarar; bu kareler statik kartın yakaladığı ana ÖRTÜŞTÜĞÜ İÇİN aynı görsel içerik iki kez
+# derlenir (önce "sayfa", sonra slit'in İÇİNDE yine).
+#
+# DÜZELTME (ilk uygulama sonrası, GERÇEK veri testinde bulunan kök-sebep hatası --
+# bkz. GUNLUK.md): slit'in İÇİNDEKİ tekrar static_page'in HEMEN BAŞINDA olmak
+# ZORUNDA değil -- slitscan()'ın `seed_top` (ref=SLIT_FRAC*frame_h, kare-yüksekliğinin
+# ~%55'i) + ilk birkaç şeridi statik kartın YAKALADIĞI kareyle görsel olarak örtüşür,
+# ama statik kart METİN BANDINA SIKI kırpılmışken (text_rows) slit'in üst bölgesi
+# kırpılMAMIŞ ham kare oranındadır -- metin kare içinde nerede duruyorsa (ör. alt
+# yarıda) tekrar da o KADAR aşağıda olur. İlk uygulama "slit'in ilk (static_h+1 satır)
+# bölgesi" varsayımıyla yazılmıştı; GERÇEK acemiler-cetesi verisinde (static_h=90)
+# tekrar aslında y=283'te başlıyordu (görsel+cv2.matchTemplate kanıtı: NCC=0.9486,
+# sivri tek tepe y=282-285 dışında hızla düşüyor) -- (static_h+line_h)=98'lik pencere
+# bunu TAMAMEN KAÇIRIYORDU (ilk sürüm sıfır token buluyor, "KORU" diyordu -- gerçek
+# dikiş-tekrarı SESSİZCE kaçırılıyordu). DÜZELTME: sabit-yükseklik varsayımı yerine
+# cv2.matchTemplate (TM_CCOEFF_NORMED) ile statik kartın TAMAMI, slit'in üst
+# `search_h` (= çağıranın verdiği kare-yüksekliği `frame_h`, yoksa cömert bir
+# varsayılan) bölgesinde HER olası y-hizasında NCC ile taranır; en iyi hiza
+# F3C_NCC_GATE'i geçerse (piksel-kanıtı: aynı görsel içerik) o hizadan itibaren
+# (+1 satır payı) det+rec ile TOKEN doğrulaması yapılır -- NCC TEK BAŞINA karar
+# vermez (F1b/F1c/M10 ile AYNI "piksel-aday + rec-doğrulama" iki-kapılı deseni).
+# NCC hizası bulunamazsa (gate altı/hiç aday yok) -- kanıt yok, KORU.
+#
+# Token doğrulaması: statik kartın TAMAMI + hizalı slit bölgesi ayrı ayrı F1c'nin
+# det+rec altyapısıyla (AYNEN yeniden kullanılır, yeni bir OCR motoru/çağrı yolu
+# icat edilmez) normalize (küçük-harf, noktalama sadeleştirilmiş) token'lara
+# bölünür, >=F3C_TOKEN_MIN_LEN karakterli VE F3C_REC_CONF_GATE üstü güvenli
+# token'lar kümeye alınır. Statik token kümesinin >=F3C_TOKEN_MATCH_RATIO'u
+# hizalı slit kümesinde VARSA dikiş-tekrarı KANITLANMIŞ sayılır (statik kart
+# DÜŞÜRÜLÜR), aksi halde (NCC hizası yok, YA DA hizalansa bile token'lar farklı)
+# GERÇEK ayrı başlık kartı (KORUNUR, içerik kaybı YOK). Rec boş/düşük-güven
+# (HERHANGİ bir tarafta) -- kanıtsız KORU (asla kanıtsız silme; F1c/K1 ile aynı
+# felsefe). Ardışık birden çok statik kart varsa (nadiren -- ör. iki kısa geçiş
+# karesi ayrı "kart" sayılmışsa) en yakından geriye TEK TEK sınanır, İLK KORU
+# kararında durulur (geriye doğru zincirleme silme yapılmaz -- yalnız kanıtlı
+# olanlar düşer).
+F3C_TOKEN_MIN_LEN = 3
+F3C_TOKEN_MATCH_RATIO = 0.70
+F3C_REC_CONF_GATE = F1C_REC_CONF_GATE  # F1c ile AYNI başlangıç eşiği -- bağımsız ayarlanabilir
+# F3C_NCC_GATE: ÖLÇÜLMÜŞ KANIT -- İLK ölçüm (acemiler-cetesi, GERÇEK dikiş-tekrarı,
+# görsel doğrulanmış) tek başına 0.85 gibi SIKI bir eşiği makul gösteriyordu (NCC=
+# 0.9486, tek keskin tepe). AMA 24-film GERÇEK-VERİ kalibrasyonu (rastgele örneklem,
+# harness/master_dup/kalibrasyon_f3c_ncc.py) bunu ÇÜRÜTTÜ: (a) yasli-adamlar-
+# toplulugu -- token oranı TAM 1.0 (6/6 isim birebir: gossett/louis/mapes/mathu/
+# richard/widmark), GERÇEK dikiş-tekrarı -- ama NCC yalnız 0.4811 (yeniden-örnekleme/
+# sıkıştırma artefaktı NCC'yi düşürüyor, token bütünlüğünü DÜŞÜRMÜYOR); 0.85 eşiği
+# BUNU KAÇIRIRDI (yanlış-negatif, tam da düzeltilmek istenen kusur). (b) NCC ile
+# token-oranı ZAYIF KORELE: birdy/stadin-cilginlari/tas-devri NCC=0.88-0.91 AMA
+# oran=0.0-0.54 (yüksek piksel-benzerliği metinle İLGİSİZ olabilir -- ör. benzer
+# düzen/yazı-tipi, FARKLI kelimeler). SONUÇ: NCC gerçek karar mercii OLAMAZ, yalnız
+# "nerede aranacağını" bulan ZAYIF bir ön-filtredir -- asıl kanıt her zaman token
+# oranıdır (üstteki yorum, F3C_TOKEN_MATCH_RATIO). 0.3 -- doğrulanmış-gerçek en
+# düşük değerin (0.4811) BELİRGİN altında (güvenlik marjı) ama net gürültü
+# tabanından (gercek-yalanlar 0.05, van-gogh 0.17, baba-2 0.18, uzayli-kuklalar
+# 0.19, canim-kardesim 0.23) ayrık -- yalnız düz-siyah/doku-yok bölgelere karşı
+# ucuz bir "tamamen anlamsız" sigortası. Token doğrulaması (üstteki yorum) HER
+# ZAMAN ikinci ZORUNLU kapıdır -- NCC düşük OLSA BİLE token oranı >=0.70 ise
+# dikiş-tekrarı kabul edilir.
+F3C_NCC_GATE = 0.3
+# F3C_MIN_TOKENS_LOW_CONF / F3C_NCC_HIGH_CONFIDENCE (dış konsey bağımsız bug-avcılığı
+# turu SONRASI eklendi -- GLM'in bulduğu gerçek risk): match_ratio_gate TEK BAŞINA
+# "az token + kanıtsız NCC" ikilisine karşı korumasız -- statik kartta yalnız 1-2
+# token varsa (ör. yalnız "CAST" başlığı), 1/1 ya da 2/2 = %100 oran KOLAYCA
+# tetiklenir; jenerik kelimeler (F3C_TOKEN_MIN_LEN=3 karakter filtresi "cast"/
+# "director" gibi kelimeleri ELEMEZ). GERÇEK 427-film koşusunda bunun İKİ örneği
+# ÇIKTI (son-yolculuk-1999-.../ufaklik, ikisi de TEK token: "cast") -- GÖRSEL
+# doğrulama İKİSİNİN de GERÇEK dikiş-tekrarı olduğunu kanıtladı (aynı "CAST"
+# başlığı iki kez, birebir konum/yazı tipi) AMA NCC'leri de çok yüksekti (0.9508/
+# 0.9754) -- yani doğru kararlar TESADÜFEN değil güçlü piksel-kanıtıyla
+# doğrulanmıştı, kod bunu ise HİÇ ZORUNLU KILMIYORDU (yalnız match_ratio_gate
+# kontrol ediyordu, token sayısı/NCC gücü arasında bağ YOKTU). Gerçek 27 düşenin
+# TAMAMI ölçülüp şu desen doğrulandı: token sayısı <3 olan HER düşende NCC>=0.90;
+# NCC<0.85 olan HER düşende token sayısı>=3 (silverado, 3 token, NCC=0.5512 en
+# düşük sınır örneği). Yani "az token" ve "zayıf NCC" ile ayrışan gerçek bir örnek
+# YOK -- ama kod bunu GARANTİ ETMİYORDU (şans eseri tutarlıydı). Bu iki eşik,
+# ölçülen 27/27 gerçek düşeni DEĞİŞTİRMEDEN (regresyon YOK, doğrulandı) gelecekte
+# "birkaç jenerik kelime + orta/zayıf piksel-hizası" kombinasyonuyla oluşabilecek
+# bir yanlış-silmeyi kapatır: NCC>=F3C_NCC_HIGH_CONFIDENCE (0.85) ise az token
+# (>=1) yeterli (piksel-kanıtı zaten güçlü); NCC bunun altındaysa (0.3-0.85 zayıf/
+# orta bölge) en az F3C_MIN_TOKENS_LOW_CONF (3) FARKLI token şart (tek/iki jenerik
+# kelimenin orta-NCC'li rastgele bir hizada tesadüfen eşleşmesine karşı sigorta).
+F3C_NCC_HIGH_CONFIDENCE = 0.85
+F3C_MIN_TOKENS_LOW_CONF = 3
+# F3C_SEARCH_H_FALLBACK: çağıran (ör. saglik.py'nin bağımsız QC yeniden-denetimi)
+# gerçek kare-yüksekliğini (p.h) BİLMİYORSA kullanılan cömert varsayılan --
+# modülün "~720x576 baseline" kalibrasyon geleneğiyle (bkz. dosya başlığı) tutarlı,
+# yuvarlak/cömert bir üst sınır. Composer'ın KENDİSİ (compose_reading_runaware)
+# HER ZAMAN gerçek `frame_h=p.h`'yi geçirir -- bu sadece bağımsız/harici çağıranlar
+# için bir GÜVENLİ varsayılandır.
+F3C_SEARCH_H_FALLBACK = 720
+
 # F4 -- Şerit-Atlası (Görev M10, docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md,
 # KONSEY OYBİRLİĞİ hakem sentezi -- Nemotron O2+/Kimi S5 tasarımı). Kanıt (M9):
 # kalan-91'in %80'i (S2=73) YAVAŞ-KAYAN bir listenin "statik kart" sanılıp
@@ -1028,6 +1127,145 @@ def _slit_seam_crop(
         "y": int(prev_block.shape[0] - crop),
         "kirpilan_px": int(crop),
         "ncc": round(best_ncc, 4),
+    }
+
+
+# --------------------------------------------------------------------------- #
+# MITAS_MASTER_V2 / F3c -- statik-kart/slit dikiş-tekrarı REC hakemi (H3 kök-sebep
+# artığı; bkz. docs/MITAS_Master_Dup_Kok_Sebep_Plani_v1.md "F3c KARARI" -- modül-üstü
+# F3c yorumu). F1c'nin det+rec motorlarını (_f1b_det_boxes/_f1c_rec_boxes) AYNEN
+# yeniden kullanır -- yeni bir OCR çağrı yolu YOK.
+# --------------------------------------------------------------------------- #
+def _f3c_seam_tokens(
+    gray: np.ndarray,
+    *,
+    token_min_len: int = F3C_TOKEN_MIN_LEN,
+    rec_conf_gate: float = F3C_REC_CONF_GATE,
+) -> set[str]:
+    """Bir gri kırpımda det+rec ile bulunan TÜM kutuların normalize metnini
+    token'lara böler; >=token_min_len karakterli VE rec_conf_gate üstü güvenli
+    token'ları küme olarak döndürür. Det kutu bulamazsa/başarısızsa (None ya da
+    boş liste -- _f1b_det_boxes ikisini de üretebilir) BOŞ küme -- çağıran bunu
+    'kanıt yok' olarak okur (F3c: kanıtsız asla silme)."""
+    boxes = _f1b_det_boxes(gray)
+    if not boxes:
+        return set()
+    boxes_sorted = _f1b_boxes_sorted(boxes)
+    rec = _f1c_rec_boxes(gray, boxes_sorted)  # [(normalize_metin, conf), ...] + rec-çağrı sayacı
+    tokens: set[str] = set()
+    for text, conf in rec:
+        if not text or conf < rec_conf_gate:
+            continue
+        for tok in text.split():
+            if len(tok) >= token_min_len:
+                tokens.add(tok)
+    return tokens
+
+
+def _f3c_align_static_in_slit(
+    static_gray: np.ndarray,
+    slit_gray: np.ndarray,
+    *,
+    frame_h: int | None,
+    ncc_gate: float = F3C_NCC_GATE,
+    search_h_fallback: int = F3C_SEARCH_H_FALLBACK,
+) -> tuple[int, float] | None:
+    """cv2.matchTemplate (TM_CCOEFF_NORMED) ile `static_gray`'i `slit_gray`'in üst
+    `search_h` bölgesinde HER olası y-hizasında tarar (bkz. modül-üstü F3c DÜZELTME
+    yorumu -- tekrar sabit bir yükseklikte DEĞİL, kare içindeki metin konumuna bağlı
+    HERHANGİ bir derinlikte olabilir). En iyi NCC >= ncc_gate ise (best_y, best_ncc)
+    döner; aksi halde (hizasız/gate altı) None -- kanıt yok, çağıran KORU okur."""
+    sh, sw = static_gray.shape[:2]
+    slh, slw = slit_gray.shape[:2]
+    if sh < 4 or slw != sw or slh < sh:
+        return None
+    search_h = min(slh, max(sh, int(frame_h) if frame_h else int(search_h_fallback)))
+    search_region = slit_gray[:search_h, :]
+    if search_region.shape[0] < sh:
+        return None
+    result = cv2.matchTemplate(
+        search_region.astype(np.float32), static_gray.astype(np.float32), cv2.TM_CCOEFF_NORMED,
+    )
+    best_y = int(np.argmax(result))
+    best_ncc = float(result[best_y, 0])
+    if not np.isfinite(best_ncc) or best_ncc < ncc_gate:
+        return None
+    return best_y, best_ncc
+
+
+def _f3c_seam_dup_check(
+    static_block: np.ndarray,
+    slit_block: np.ndarray,
+    *,
+    frame_h: int | None = None,
+    match_ratio_gate: float = F3C_TOKEN_MATCH_RATIO,
+    token_min_len: int = F3C_TOKEN_MIN_LEN,
+    rec_conf_gate: float = F3C_REC_CONF_GATE,
+    ncc_gate: float = F3C_NCC_GATE,
+    search_h_fallback: int = F3C_SEARCH_H_FALLBACK,
+    ncc_high_confidence: float = F3C_NCC_HIGH_CONFIDENCE,
+    min_tokens_low_conf: int = F3C_MIN_TOKENS_LOW_CONF,
+) -> dict | None:
+    """F3c (H3 kök-sebep artığı): `static_block` (hemen ÖNCEKİ static_page kırpımı,
+    BGR) TAMAMI, `slit_block`'un (yeni scroll_slit, BGR) üst `frame_h`-sınırlı
+    bölgesinde cv2.matchTemplate ile piksel-hizalanır (bkz. modül-üstü F3c DÜZELTME
+    yorumu -- tekrar slit'in BAŞINDA değil, kare içindeki metin konumuna bağlı
+    HERHANGİ bir derinlikte olabilir). Piksel-hizası bulunamazsa (NCC gate altı)
+    None -- KORU. Hizalanırsa, o noktadan (+1 satır payı) itibaren statik kartın
+    TAMAMI ile hizalı slit bölgesi ayrı ayrı det+rec'lenir; normalize token
+    kümeleri karşılaştırılır. Statik token'ların >=match_ratio_gate'i hizalı slit
+    kümesinde VARSA dikiş-tekrarı kanıtı (dict, manifest'e yazılabilir) döner. Rec
+    boş/düşük-güven (HERHANGİ bir tarafta) ya da eşleşme oranı düşükse None -- KORU
+    (kanıtsız silme YOK; NCC TEK BAŞINA asla karar vermez -- F1b/F1c/M10 ile AYNI
+    piksel-aday + rec-doğrulama iki-kapılı deseni). AYRICA (dış konsey bug-avcılığı
+    turu sonrası -- bkz. modül-üstü F3C_MIN_TOKENS_LOW_CONF yorumu): NCC yalnız
+    ncc_high_confidence üstündeyse az-token (>=1) kanıt yeterli sayılır; NCC bunun
+    altındaysa (zayıf/orta piksel-kanıtı) en az min_tokens_low_conf FARKLI token
+    şarttır -- aksi halde birkaç jenerik kelimenin orta-NCC'li bir hizada tesadüfen
+    eşleşmesiyle yanlış-silme riskine karşı kanıt yetersiz sayılır, KORU."""
+    if static_block is None or not static_block.size or slit_block is None or not slit_block.size:
+        return None
+    static_gray = cv2.cvtColor(static_block, cv2.COLOR_BGR2GRAY)
+    slit_gray_full = cv2.cvtColor(slit_block, cv2.COLOR_BGR2GRAY)
+    static_h = int(static_gray.shape[0])
+
+    hiza = _f3c_align_static_in_slit(
+        static_gray, slit_gray_full, frame_h=frame_h, ncc_gate=ncc_gate, search_h_fallback=search_h_fallback,
+    )
+    if hiza is None:
+        return None  # piksel-hizası yok -- kanıt yok, KORU
+    best_y, best_ncc = hiza
+
+    line_h = _atlas_line_height_estimate(static_gray)
+    crop_y1 = min(int(slit_gray_full.shape[0]), best_y + static_h + line_h)
+    if crop_y1 <= best_y:
+        return None
+    slit_gray = slit_gray_full[best_y:crop_y1, :]
+
+    static_tokens = _f3c_seam_tokens(static_gray, token_min_len=token_min_len, rec_conf_gate=rec_conf_gate)
+    if not static_tokens:
+        return None  # kanıt yok -- KORU
+    if len(static_tokens) < min_tokens_low_conf and best_ncc < ncc_high_confidence:
+        return None  # az token + zayıf/orta NCC -- kanıt yetersiz (dış konsey bulgusu), KORU
+    slit_tokens = _f3c_seam_tokens(slit_gray, token_min_len=token_min_len, rec_conf_gate=rec_conf_gate)
+    if not slit_tokens:
+        return None  # kanıt yok -- KORU
+
+    matched = static_tokens & slit_tokens
+    ratio = len(matched) / len(static_tokens)
+    if ratio < match_ratio_gate:
+        return None  # farklı/gerçek kart -- KORU
+
+    return {
+        "static_tokens": sorted(static_tokens),
+        "slit_tokens": sorted(slit_tokens),
+        "matched_tokens": sorted(matched),
+        "match_ratio": round(ratio, 4),
+        "static_h": static_h,
+        "align_y": int(best_y),
+        "align_ncc": round(best_ncc, 4),
+        "slit_crop_h": int(crop_y1 - best_y),
+        "line_h": int(line_h),
     }
 
 
@@ -2737,12 +2975,37 @@ def compose_reading_runaware(frames: list[str], p: Params, args) -> tuple[np.nda
             block, hy = slitscan(run_frames, p, args, allow_demote=True)
             if block is not None and block.size:
                 seam = None
-                if v2_on and block_kinds and block_kinds[-1] == "scroll_slit":
-                    # F2 (H1 kök-sebep): aralarında statik/kart bloğu OLMAYAN iki
-                    # ardışık slit bloğu -- dikiş örtüşmesini NCC ile bul+kırp.
-                    seam = _slit_seam_crop(blocks[-1], block)
-                    if seam is not None:
-                        block = block[seam["kirpilan_px"]:, :]
+                if v2_on:
+                    # F3c (H3 kök-sebep artığı): hemen ÖNCEKİ blok(lar) statik-kart
+                    # (kayan koşunun baş ucu kısa "S" run'a bölünüp dondurulmuş olabilir)
+                    # ise, slit'in KENDİ taraması bu kartın yakaladığı içerikle örtüşüp
+                    # "dikiş-tekrarı" üretebilir -- bkz. modül-üstü F3c yorumu. En yakın
+                    # statik karttan geriye TEK TEK sınanır (rec-kanıtlı ise düşürülür),
+                    # İLK kanıtsız/farklı kararda durulur (zincirleme silme YOK).
+                    while block_kinds and block_kinds[-1] == "card":
+                        seam_kanit = _f3c_seam_dup_check(blocks[-1], block, frame_h=p.h)
+                        if seam_kanit is None:
+                            break
+                        dus_idx = len(blocks) - 1
+                        if card_registry and card_registry[-1].get("block_index") == dus_idx:
+                            card_registry.pop()
+                        blocks.pop()
+                        block_kinds.pop()
+                        dusen_manifest_idx = block_manifest_idx.pop()
+                        dusen_girdi = block_manifest[dusen_manifest_idx]
+                        dusen_girdi.pop("h", None)
+                        dusen_girdi.pop("w", None)
+                        dusen_girdi["skip"] = "seam-dup"
+                        dusen_girdi["seam_kanit"] = seam_kanit
+                    if block_kinds and block_kinds[-1] == "scroll_slit":
+                        # F2 (H1 kök-sebep): aralarında statik/kart bloğu OLMAYAN iki
+                        # ardışık slit bloğu -- dikiş örtüşmesini NCC ile bul+kırp.
+                        # F3c YUKARIDA tüm önceki kart(lar)ı düşürmüşse block_kinds[-1]
+                        # artık bir ÖNCEKİ scroll_slit olabilir -- F2 bu durumda da
+                        # normal şekilde tetiklenir (kaskad, kasıtlı).
+                        seam = _slit_seam_crop(blocks[-1], block)
+                        if seam is not None:
+                            block = block[seam["kirpilan_px"]:, :]
                 girdi = {
                     **run_meta,
                     "kind": "scroll_slit",
