@@ -258,7 +258,7 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
         roller_kare = {m.lower() for s in satirlar for m in cc_mod._ROL_CEKIRDEK.findall(s)}
         if not roller_kare:
             continue
-        if any(cc_mod._isim_gibi(s) for s in satirlar):
+        if any(cc_mod._isim_gibi(s, satirlar) for s in satirlar):
             return True
         roller_tumu |= roller_kare
         if len(roller_tumu) >= 2:
@@ -416,7 +416,7 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
         if not lines:
             return False, ""
         metin = " / ".join(lines)
-        if _PRESENTS_KALIBI.search(metin) or any(cc_mod._isim_gibi(s) for s in lines):
+        if _PRESENTS_KALIBI.search(metin) or any(cc_mod._isim_gibi(s, lines) for s in lines):
             return True, metin
         return False, ""
 
@@ -497,7 +497,7 @@ def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: i
         # geri-genişletmelerindeki aynı bosluk-toleransı ilkesi). Yalnız
         # BÜTÇE (azami_ileri) sınırı ileri gitmeyi durdurur.
         sirket_mi = bool(satirlar_fi) and cc_mod._SIRKET_KALIBI.search(" ".join(satirlar_fi))
-        isim_var = any(cc_mod._isim_gibi(s) for s in satirlar_fi)
+        isim_var = any(cc_mod._isim_gibi(s, satirlar_fi) for s in satirlar_fi)
         if isim_var and not sirket_mi:
             capa_bulundu = True
             break  # isim-satırlı VE şirket-kalıbı DEĞİL — ASLA atlanmaz, dur
@@ -848,7 +848,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         except Exception:
             satirlar_fi = []
         if satirlar_fi and cc._PRODUC_GENIS.search(" ".join(satirlar_fi)) \
-                and any(cc._isim_gibi(s) for s in satirlar_fi):
+                and any(cc._isim_gibi(s, satirlar_fi) for s in satirlar_fi):
             onset_z = fi
             birlesenler.append(f"kopru-ham=[{_kare_no(g[idx[fi]])}]")
             break

@@ -476,9 +476,9 @@ def kredi_karti_mi(satir_listesi: list[str]) -> bool:
     değil YAPISAL düzen; _isim_gibi'nin ≥2-kelime şartı bu düzeni kaçırıyordu."""
     if not satir_listesi:
         return False
-    isim = sum(1 for s in satir_listesi if _isim_gibi(s))
+    isim = sum(1 for s in satir_listesi if _isim_gibi(s, satir_listesi))
     isim += sum(1 for s in satir_listesi
-                if not _isim_gibi(s) and _tek_isim_sutunu(s))
+                if not _isim_gibi(s, satir_listesi) and _tek_isim_sutunu(s))
     rol = any(_ROL.search(s) for s in satir_listesi)
     noktali = sum(1 for s in satir_listesi
                   if s.strip().endswith((".", "!", "?", "...")) and len(s.split()) >= 4)
