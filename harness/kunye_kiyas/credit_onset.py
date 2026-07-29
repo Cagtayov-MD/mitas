@@ -664,6 +664,12 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # boşluğu (nadir — 7 dilin hiçbiri tutmuyor, film-özel değil); cop_desenli_mi
         # yalnız EK bir zayıf süzgeç olarak kullanılır (net-temiz İngilizce'yi
         # dışlar, maliyeti sınırlar).
+        # İNVARİANT (⑥, 2026-07-30): tetikleyici `kare_satirlari`'ya, kurtarma `ornek`'e
+        # bakar — bugün İKİSİ AYNI kare kümesi. Genişletme (kare_satirlari=genis_satirlari)
+        # yalnız core_roller non-empty iken olur; tetikleyiciler `not core_roller` şartına
+        # takılı → genişleme olduğunda tetikleyici KAPALI, tetikleyici açıkken kare_satirlari
+        # hâlâ dar `ornek`. `not core_roller` kapısını gevşeten HER değişiklik bu invariant'ı
+        # bozar ve pahalı RU/AR OCR'ını yanlış örnekleme kaydırır — dikkat.
         if kb_max < EŞIK and not core_roller and cc.cop_desenli_mi(kare_satirlari, esik=0.92):
             kare_satirlari_kiril = [cc.satirlar_ru(g[idx[fi]]) for fi in ornek]
             kb_kiril, roller_kiril = cc.kredi_skoru_kiril(kare_satirlari_kiril)
