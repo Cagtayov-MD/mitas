@@ -125,6 +125,14 @@ class Sonuc:
     dy_medyan: float = 0.0
     notlar: str = ""
     seri: dict = field(default_factory=dict)
+    # Dalga-2 teşhis alanları (2026-07-29, katkısal — hepsi DEFAULT'lu, geriye
+    # uyumluluk bozulmaz). kredi_yok/kare_yok dönüşlerinde default'ta kalırlar;
+    # yalnız tespit_v5'in BAŞARILI (kredi bulunan) dönüş bloğu doldurur.
+    tip: str = ""
+    scroll_orani: float = 0.0
+    ardisik_scroll: int = 0
+    son_capa: float = 0.0
+    aday_sayisi: int = 0
 
 
 def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
@@ -706,7 +714,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                           "son_ok": True, "kb": round(kb_max, 3), "joint": round(joint, 3),
                           "roller": roller})
         if kb_max >= EŞIK and (en_iyi is None or joint > en_iyi[0]):
-            en_iyi = (joint, a, b, kb_max, scroll_var, roller)
+            en_iyi = (joint, a, b, kb_max, scroll_var, roller, son_capa_orani)
 
     kurtarma_yolu = False
     if en_iyi is None:
@@ -725,7 +733,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             # sonrasına `kb`'ye bağlı YENİ bir karar eklenecekse önce
             # `kurtarma_yolu` kontrol edilmeli — aksi halde bu yer-tutucu 1.0
             # gerçek ölçümmüş gibi kullanılır.
-            en_iyi = (1.0, ks, ke, 1.0, True, ["scroll_kurtarma"])
+            kurtarma_son_capa = ke / max(1, n - 1)      # GERÇEK ölçüm (son_capa_orani ile aynı formül)
+            en_iyi = (1.0, ks, ke, 1.0, True, ["scroll_kurtarma"], kurtarma_son_capa)
             kurtarma_yolu = True
         else:
             degerlendirilmis = [k for k in kayitlar if k["son_ok"]]
@@ -736,7 +745,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                 sebep = f"içerik-eşiği geçilemedi (en iyi kb={en_iyi_kb:.2f})"
             return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
 
-    joint, a, b, kb, scroll_var, roller_kazanan = en_iyi
+    joint, a, b, kb, scroll_var, roller_kazanan, son_capa_kazanan = en_iyi
     # alt-adım2 güvenlik gardı (KANDAHAR/ARKADAŞIMIN_EVİ_NEREDE regresyonu,
     # ölçüldü ve GİDERİLDİ): kazanan aday Kiril/Arapça ikinci-şans REC'i ya
     # da scroll_kurtarma (son-çare, içerik-anlamsız-onset) yoluyla kazanmışsa
@@ -908,6 +917,18 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                   f"ardisik={ardisik_scroll} guven={guven:.2f}"
                   + (f" {ek_not}" if ek_not else ""))
 
+    # Dalga-2 teşhis alanı `tip` (2026-07-29, SALT RAPORLAMA — karar dalı DEĞİL):
+    # EŞİK burada BİLEREK 0.30 (yukarıdaki `elif scroll_orani >= 0.3:` karar dalı)
+    # DEĞİL, 0.50 — 110-film korpusunda scroll_orani dağılımı bimodal: düşük küme
+    # ≤0.42, sonra 0.42→0.55 arası BOŞLUK, sonra yoğun küme 0.55-1.00. 0.50 tam bu
+    # boşluğa denk gelip sağlam ayrım verir; 0.30 düşük kümenin ortasında kalır
+    # (0.27/0.32/0.32/0.34/0.35 komşularıyla kırılgan) ve %42 "scroll" oranı verir
+    # (ölçülen doğru oran ~%36). `tip` yalnız teşhis/izleme amaçlı — onset seçimini
+    # yöneten karar dalına (scroll-tip geri-tarama + şirket-budama vs statik-tip
+    # içerik-onset) DOKUNMAZ, o dal kendi (ampirik kalibre) 0.3 eşiğini kullanmaya
+    # devam eder.
+    tip = "scroll" if scroll_orani >= 0.50 else "statik"
+
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
         yontem=yontem,
@@ -915,6 +936,11 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         dy_medyan=float(np.median(dys[a:b])) if a < len(dys) else 0.0,
         notlar=notlar,
         seri={"adaylar": kayitlar},
+        tip=tip,
+        scroll_orani=scroll_orani,
+        ardisik_scroll=ardisik_scroll,
+        son_capa=son_capa_kazanan,
+        aday_sayisi=len(adaylar),
     )
 
 
