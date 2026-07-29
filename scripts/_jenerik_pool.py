@@ -183,6 +183,10 @@ def _backward_extend_credits(images: list[Path], start_pos: int, cfg: DetectorCo
 
 ACCEPT_STATUSES = {"already_in_credit"}
 
+# Dalga 3 metin-kapı eşiği: son %15 karede jbayrak (credit-benzeri kutu) oranı >= bu
+# → review_required (insan kuyruğu); altındaysa kredi_yok (bugünkü gibi red).
+METIN_KAPI_ESIK = 0.30
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -229,11 +233,12 @@ def _accepted(status: str) -> bool:
     return status == "review_boundary_ambiguous" and _accept_review_enabled()
 
 
-def _oneocr_fallback_enabled() -> bool:
-    # B kararı (Çağatay 2026-06-27): paddle başarısızsa (not_found/review-scene/low-conf) OneOCR-detektörü
-    # dene → non-Latin/FR'yi kurtarır. OneOCR ~80sn/film yavaş ama YALNIZ paddle-başarısızlarında koşar
-    # (paddle hızını korur, sadece gerekli ~%20'de OneOCR). DEFAULT ON; kapat =0.
-    return os.environ.get("MITAS_JENERIK_ONEOCR_FALLBACK", "1").strip().lower() not in ("0", "false", "off", "no")
+def _metin_kapi_enabled() -> bool:
+    # Dalga 3 (konsey kararı 2026-07-29): v5 kredi_yok derse CV DEVRALMAZ; credit_box
+    # det-only metin taraması son %15'te credit-benzeri kutu arar. DEFAULT KAPALI —
+    # üretim davranışı Çağatay onayı + return-3 denetimi + insan FN=0 doğrulaması
+    # olmadan değişmesin. Aç: MITAS_JENERIK_METIN_KAPI=1.
+    return os.environ.get("MITAS_JENERIK_METIN_KAPI", "0").strip().lower() not in ("0", "false", "off", "no")
 
 
 def _v5_enabled() -> bool:
@@ -337,6 +342,11 @@ def create_pool(
     images = list_images(frames_dir)
     engine_used = "paddle"
 
+    # harness/kunye_kiyas sys.path'e ekli olsun garanti et (credit_onset _v5_detect
+    # içinde zaten ekliyor ama metin-kapı dalı v5 hiç çağrılmadan da credit_box'a
+    # ihtiyaç duyabilir — idempotent, yinelenen insert zararsız).
+    sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
+
     # SEGMENT GARDI (Dalga 2, 2026-07-29): --segment giris → v5 HİÇ ÇAĞRILMAZ,
     # CV bugünkü gibi (birebir) koşar. Sebep: v5'in SON_ERISIM=0.82 kuralı "aday
     # dizinin son %18'ine ulaşmalı" diyor — açılış penceresinde (270 kare, ilk
@@ -366,34 +376,66 @@ def create_pool(
     # eski CV dedektörünü ŞİMDİ çalıştır (öncesinde v5-öncelikli akışta EN BAŞTA
     # koşuyordu — tembel-CV bunu yalnız gerekince koşar hale getiriyor).
     result = None
-    if v5_start is None:
-        result = detect_frame_dir(frames_dir, detector_dir, cfg, debug_sheet)
+    review_required = False
+    metin_kapi_karari = False          # metin-kapı bu koşuda karar verdiyse True (VLM/trim/CV baypas)
 
-    # OneOCR FALLBACK: paddle kredi-başlangıcı bulamadıysa OneOCR-detektörü dene (non-Latin/FR kurtarır).
-    if v5_start is None and not _accepted(result.status) and _oneocr_fallback_enabled():
-        os.environ.setdefault("MITAS_JENERIK_LATIN_LC_NAMES", "1")
-        os.environ.setdefault("MITAS_JENERIK_NONLATIN_NAMES", "1")
-        try:
-            from core.pipelines.ocr.jenerik_oneocr_detector import detect_frame_dir_oneocr
-            oc = detect_frame_dir_oneocr(frames_dir, debug_root / "detector_oneocr", cfg)
-            if _accepted(oc.status):
-                result = oc
-                engine_used = "oneocr"
-        except Exception as exc:  # noqa: BLE001 — fallback hatası pipeline'ı bozmaz
-            if not kuru:
-                _append_jsonl(debug_root / "errors.jsonl",
-                              {"ts": _now(), "stage": "oneocr_fallback", "error": f"{type(exc).__name__}: {exc}"})
-
-    copied: list[dict] = []
     if v5_start is not None:
         # v5 onset otoritesi devralır; `result` hiç oluşmadı (tembel CV) — eski CV
         # teşhisi (cv_start_pos/detector/...) bu koşuda YOK, `v5` alt-nesnesi var.
         status = "found"
         start_pos = int(v5_start)
         engine_used = "v5_onset"
+    elif (_metin_kapi_enabled() and segment_v5_uygun and v5_hata_bilgi is None
+          and v5_info is not None):
+        # Dalga 3 (konsey 2026-07-29): v5 KREDİ_YOK dedi — HATA DEĞİL, v5 GERÇEKTEN
+        # ÇAĞRILDI (v5_info dolu) ve çıkış segmenti. Eski akışta bu durum CV'ye
+        # sessizce düşerdi; metin-kapı bunun yerine CV'yi DEVREYE SOKMAZ — credit_box
+        # det-only ile son %15 karede credit-benzeri kutu var mı diye ucuz bir tarama
+        # yapar. v5 hata verdiyse (v5_hata_bilgi) YA DA v5 hiç çağrılmadıysa
+        # (v5_info None — segment=giris ya da MITAS_JENERIK_V5 kapalı) BU DALA
+        # GİRİLMEZ → CV fallback bugünkü gibi korunur (hata/atlandı ≠ kredi_yok).
+        metin_kapi_karari = True
+        engine_used = "v5_kredi_yok"
+        start_pos = None
+        oran = 0.0
+        son_kareler: list[str] = []
+        try:
+            son_bas = int(len(images) * 0.85)
+            son_kareler = [str(f) for f in images[son_bas:]]
+            if son_kareler:
+                import credit_box as _cb
+                jbayrak, _say = _cb.kutu_serisi(son_kareler, stride=2)
+                import numpy as _np
+                oran = float(_np.mean(jbayrak)) if len(jbayrak) else 0.0
+        except Exception as exc:  # noqa: BLE001 — metin-kapı hatası pipeline'ı bozmaz, kredi_yok'a düş
+            oran = 0.0
+            if not kuru:
+                _append_jsonl(debug_root / "errors.jsonl",
+                              {"ts": _now(), "stage": "metin_kapi", "error": f"{type(exc).__name__}: {exc}"})
+        if oran >= METIN_KAPI_ESIK:
+            status = "review_kredi_yok"
+            review_required = True
+        else:
+            status = "kredi_yok"
+        if not kuru:
+            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "metin_kapi",
+                          "jbayrak_oran": round(oran, 3), "esik": METIN_KAPI_ESIK,
+                          "sonuc": status, "son_kare_sayisi": len(son_kareler)})
     else:
+        # BUGÜNKÜ DAVRANIŞ: bayrak kapalı VEYA v5 hata VEYA v5 hiç çağrılmadı
+        # (segment=giris / MITAS_JENERIK_V5 kapalı) → CV devralır.
+        result = detect_frame_dir(frames_dir, detector_dir, cfg, debug_sheet)
+        # OneOCR fallback SÖKÜLDÜ (2026-07-30, Çağatay: "oneocr ne alaka, Linux'tayız").
+        # `oneocr` paketi (Microsoft Windows OCR) Linux'ta YOK: make_oneocr_engine() →
+        # ModuleNotFoundError. Fallback her v5-kredi_yok filminde ateşleyip except'e
+        # düşüyor, errors.jsonl'i kirletiyordu; v5 aktivasyonundan (2026-07-23) beri
+        # engine=oneocr TEK manifest üretmemiş — Linux'ta ölü kod, davranış-nötr söküm.
+        # (jenerik_oneocr_detector.py SİLİNMEDİ — giris_jenerik_havuzu.py:76 hâlâ
+        # oneocr_line_boxes import ediyor; o da Linux'ta çöküyor olabilir, AYRI iş.)
         status = result.status
         start_pos = result.start_pos
+
+    copied: list[dict] = []
     # VLM-RESCUE: CV başarısız (not_found) ya da şüpheli (çok-erken start + dev havuz = footage-bloat)
     vlm_used = False
     _accepted_cv = _accepted(status)
@@ -409,11 +451,12 @@ def create_pool(
             return float(np.asarray(Image.open(f).convert("L")).mean())
         except Exception:  # noqa: BLE001
             return 0.0
-    _suspicious = (engine_used != "v5_onset"
+    _suspicious = (engine_used != "v5_onset" and not metin_kapi_karari
                    and start_pos is not None and len(images) > 0
                    and (len(images) - int(start_pos)) > 450
                    and _bright(images[int(start_pos)]) > 50.0)
-    if engine_used != "v5_onset" and _vlm_rescue_enabled() and (not _accepted_cv or _suspicious):
+    if (engine_used != "v5_onset" and not metin_kapi_karari
+            and _vlm_rescue_enabled() and (not _accepted_cv or _suspicious)):
         try:
             import credit_start_vlm as _cvlm
             vr = _cvlm.detect(frames_dir)
@@ -437,8 +480,11 @@ def create_pool(
     footage_trimmed = 0
     back_extended = 0
     # v5 yolunda anchor-düzeltme yamaları ÇALIŞMAZ: v5 onset'i içerik/hareket-rafineli,
-    # üstüne footage-trim bindirmek "geç kalma" (cast kaybı) riski doğurur.
-    if engine_used != "v5_onset" and start_pos is not None and 0 <= int(start_pos) < len(images) and (_accepted(status) or vlm_used):
+    # üstüne footage-trim bindirmek "geç kalma" (cast kaybı) riski doğurur. metin-kapı
+    # yolunda da ÇALIŞMAZ (start_pos zaten None, ama niyet açık kalsın diye gard eklendi).
+    if (engine_used != "v5_onset" and not metin_kapi_karari
+            and start_pos is not None and 0 <= int(start_pos) < len(images)
+            and (_accepted(status) or vlm_used)):
         fwd = _trim_footage_head_v2(images[int(start_pos):], cfg)
         if fwd > 0:
             footage_trimmed = fwd
@@ -480,7 +526,19 @@ def create_pool(
     # yok); credit_type/reason v5'in kendi teşhisinden (v5.tip/v5.notlar) gelir.
     # CV devraldıysa (result != None) bugünkü gibi yazılır — sözleşme korunur
     # (kurulum/25_r3_kalan.py:pencere_sec "scroll" in credit_type → 30sn testi).
+    # Dalga 3: metin-kapı yolunda (result None, v5_kazandi False) credit_type="none"
+    # (scroll/static değil — v5 zaten kredi_yok dedi), reason v5'in kredi_yok
+    # teşhisinin notlarından (v5_info["sonuc"].notlar) gelir.
     v5_kazandi = (engine_used == "v5_onset")
+    if v5_kazandi and v5_info is not None:
+        _credit_type = {"scroll": "scroll_credit", "statik": "static_credit"}.get(v5_info["sonuc"].tip, "none")
+        _reason = v5_info["sonuc"].notlar
+    elif metin_kapi_karari:
+        _credit_type = "none"
+        _reason = (v5_info["sonuc"].notlar if v5_info is not None else None)
+    else:
+        _credit_type = (result.credit_type if result is not None else None)
+        _reason = (result.reason if result is not None else None)
     manifest = {
         "status": status,
         "engine": engine_used,
@@ -495,11 +553,9 @@ def create_pool(
         "start_file": (copied[0]["file"] if copied else (result.start_file if result is not None else None)),
         "vlm_rescued": vlm_used,
         "back_extended": back_extended,
-        "credit_type": ({"scroll": "scroll_credit", "statik": "static_credit"}.get(v5_info["sonuc"].tip, "none")
-                        if v5_kazandi and v5_info is not None
-                        else (result.credit_type if result is not None else None)),
-        "reason": (v5_info["sonuc"].notlar if v5_kazandi and v5_info is not None
-                   else (result.reason if result is not None else None)),
+        "credit_type": _credit_type,
+        "reason": _reason,
+        "review_required": review_required,
         "v5": _v5_manifest_alt_nesne(v5_start, v5_info, v5_hata_bilgi, segment_v5_uygun),
         "copied_files": copied,
         "duration_sec": round(time.perf_counter() - started, 3),
