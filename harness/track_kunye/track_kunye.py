@@ -193,7 +193,7 @@ def rowlari_kur(kare_idx: int, kutular: list[Kutu]) -> list[Row]:
 
 # ── 2) kayma zinciri + bölüm sınırları ──────────────────────────────────────
 
-def kayma_ve_bolumler(kare_rows: list[list[Row]]) -> tuple[list[float], list[int]]:
+def kayma_ve_bolumler(kare_rows: list[list[Row]], ekran_h: int = 480) -> tuple[list[float], list[int]]:
     """Ardışık kareler arasında token-eşleşmeli dy medyanı → S_k zinciri.
     Eşleşme yoksa VE içerik koptuysa yeni bölüm (kart geçişi). S bölüm başında sıfırlanır.
     dy işareti: satır bir SONRAKİ karede yukarı kayar (cy küçülür) → dy=önceki−sonraki>0,
@@ -219,7 +219,14 @@ def kayma_ve_bolumler(kare_rows: list[list[Row]]) -> tuple[list[float], list[int
         jac = (len(a_tok & b_tok) / len(birlesim)) if birlesim else 1.0
         if ortak >= MIN_TOKEN_ESLESME and farklar:
             dy = float(np.median(farklar))
-            S[i] = S[i - 1] + dy
+            # GLM Bug-2 fix'i: dissolve anında iki kartın token'ları çapraz eşleşip
+            # dy medyanını sıçratabilir (200px) → S bozulur, track'ler kırılır.
+            # Fiziksel scroll adımı kare yüksekliğinin ~yarısını aşamaz → aşan
+            # ölçüm gürültüdür, kaymayı DONDUR (bölüm korunur).
+            if abs(dy) > 0.5 * ekran_h:
+                S[i] = S[i - 1]
+            else:
+                S[i] = S[i - 1] + dy
             bolum[i] = bolum[i - 1]
         elif jac >= KART_JACCARD or (not a_tok and not b_tok):
             # içerik benzer ama eşleşme sayısı az (soluk kare) VEYA iki taraf da boş
@@ -273,14 +280,16 @@ def komsu_birlestir(tracks: list[Track], g_pen: float) -> list[Track]:
             if o.bolum != t.bolum or (t.g - o.g) > 1.6 * g_pen:
                 break
             m_o, _, _ = konsensus(o)
-            if benzer(m_o, m_t) >= 0.66 or icerme(m_o, m_t):
+            if benzer(m_o, m_t) >= 0.85 or icerme(m_o, m_t):
                 hedef = o
                 break
         if hedef is None:
             out.append(t)
         else:
+            # GLM Bug-4 fix'i: hedefin g'si KAYMASIN — yeni track'in g'siyle
+            # beslemek hedefi 20-30px sürükleyip sonraki eşleşmeleri kırıyordu.
             for r in t.gozlemler:
-                hedef.ekle(r, t.g)
+                hedef.ekle(r, hedef.g)
     return out
 
 
@@ -300,42 +309,64 @@ def konsensus(t: Track) -> tuple[str, float, Row]:
     kazanan = max(gruplar, key=len)
     uyeler = [t.gozlemler[i] for i in kazanan]
     en_iyi = max(uyeler, key=lambda r: (r.conf, -garble_skoru(r.canon)))
-    # temsilci metin: kazanan grupta EN SIK ham okuma; eşitlikte en temizi
+    # temsilci metin (GLM Bug-1 fix'i, 2026-07-30): TEMİZLİK birincil, conf ikincil,
+    # frekans yalnız eşitlik bozucu. Eski kural "en sık ham okuma" idi — Paddle bir
+    # ismi TUTARLI yanlış okuyunca (10× "eminler ca s", 2× "mike minkler") çoğunluk
+    # bozuk metni kazandırıyordu; en temiz okuma elimizdeyken metne yansımıyordu.
     sayim = Counter(t.gozlemler[i].canon for i in kazanan)
-    en_sik_n = sayim.most_common(1)[0][1]
-    temsil = min((c for c, n in sayim.items() if n == en_sik_n), key=garble_skoru)
+    conf_ort = {c: float(np.mean([r.conf for r in uyeler if r.canon == c])) for c in sayim}
+    en_az_garble = min(garble_skoru(c) for c in sayim)
+    adaylar = [c for c in sayim if garble_skoru(c) <= en_az_garble + 0.75]
+    temsil = max(adaylar, key=lambda c: (conf_ort[c], sayim[c], len(c)))
     guven = (len(kazanan) / len(okumalar)) * float(np.mean([r.conf for r in uyeler]))
     return temsil, guven, en_iyi
 
 
 # ── 5) çöp filtreleri ───────────────────────────────────────────────────────
 
-def siniflandir(t: Track, metin: str, guven: float, H: int, havuz_n: int) -> str:
-    """'ana' | 'dusuk' | 'cop:<neden>'"""
+def watermark_metinleri(tracks: list[Track], konsensuslar: dict[int, str]) -> set[str]:
+    """GLM Bug-3'ün sağlamlaştırılmışı: track'ler bölüm-İÇİ yaşadığı için eski
+    track-bazlı kapsama kuralı hem neredeyse hiç tetiklenmiyor hem de uzun tek-kart
+    filmde GERÇEK kartı silme riski taşıyordu. Yeni sinyal: aynı fold-metin 3+
+    FARKLI bölümde track açmışsa (kart bölüm sınırını aşamaz, logo aşar) ve kısa
+    ve konumu oynamıyorsa → watermark."""
+    metin_bolumleri: dict[str, set[int]] = {}
+    metin_cy_std: dict[str, list[float]] = {}
+    for i, t in enumerate(tracks):
+        m = fold(konsensuslar.get(i, ""))
+        if not m or len(m) > 24:
+            continue
+        metin_bolumleri.setdefault(m, set()).add(t.bolum)
+        metin_cy_std.setdefault(m, []).extend(r.cy for r in t.gozlemler)
+    return {m for m, bl in metin_bolumleri.items()
+            if len(bl) >= 3 and float(np.std(metin_cy_std[m])) < 8.0}
+
+
+def siniflandir(t: Track, metin: str, guven: float, H: int,
+                med_conf_film: float, wm_metinler: set[str]) -> str:
+    """'ana' | 'dusuk' | 'cop:<neden>'. Güven eşikleri film medyan conf'una
+    ORANTILI (GLM Bug-5: sabit 0.75/0.35 loş filmi — havaci — komple düşük-güvene
+    boğuyordu; parlak filmde ise gürültüye fazla cömertti)."""
     med_cy = float(np.median([r.cy for r in t.gozlemler]))
-    tekil = fold(metin)
-    # altyazı bandı: alt %18'de VE kredi-deseni değil → çöp (crop-stack kanıtlı eşik)
     if med_cy >= SUB_FRAC * H and not is_credit_text_line(metin.replace(" | ", " ")):
         return "cop:altyazi_bandi"
-    # watermark/logo: havuzun >%60'ında görünen, kaymayan, kısa metin
-    if len(t.kareler) >= WATERMARK_KAPSAMA * havuz_n and len(tekil) <= 24:
-        g_std = float(np.std([r.cy for r in t.gozlemler]))
-        if g_std < 4.0:
-            return "cop:watermark"
-    # düz cümle / sahne yazısı deseni (uzun, nokta bitişli, düşük harf oranı)
+    if fold(metin) in wm_metinler:
+        return "cop:watermark"
     if not is_credit_text_line(metin.replace(" | ", " ")) and len(metin.split()) >= 6:
         return "dusuk"
-    # tek-gözlem: gerçek olabilir (yönetmen kartı!) — atma, insan görsün
+    esik_tek = min(0.75, max(0.30, med_conf_film * 1.1))
+    esik_cok = min(0.35, max(0.15, med_conf_film * 0.6))
     if len(t.gozlemler) < MIN_GOZLEM_ANA:
-        return "dusuk" if guven < 0.75 else "ana"
-    if guven < 0.35:
+        return "dusuk" if guven < esik_tek else "ana"
+    if guven < esik_cok:
         return "dusuk"
     return "ana"
 
 
 # ── 6) sentetik master render ───────────────────────────────────────────────
 
-def _bant_al(row: Row, imgs: dict[int, np.ndarray]) -> np.ndarray | None:
+def _bant_al(row: Row, imgs: dict[int, np.ndarray],
+             kare_x: dict[int, tuple[int, int]] | None = None) -> np.ndarray | None:
     """Row bandı: yalnız YAZININ x-aralığı (footage kesilir) + kutu-dışı karartma.
     (Çağatay QC'si 2026-07-29: tam-genişlik bant footage-üstü filmde okunmaz
     duvar ördü — mufreze 21577px. Yazı-dışı %25 parlaklığa düşürülür ki bağlam
@@ -346,19 +377,23 @@ def _bant_al(row: Row, imgs: dict[int, np.ndarray]) -> np.ndarray | None:
     H, W = im.shape[:2]
     y0 = max(0, int(row.y0) - BANT_PAD)
     y1 = min(H, int(row.y1) + BANT_PAD)
-    x0 = max(0, int(min(k.x0 for k in row.kutular)) - 2 * BANT_PAD)
-    x1 = min(W, int(max(k.x1 for k in row.kutular)) + 2 * BANT_PAD)
+    # x-aralığı: yalnız bu row değil, o KAREDEKİ TÜM yazının kapladığı sütun
+    # (2026-07-30: dar row-kırpımı kare-OCR'ın kaçırdığı yan yazıyı da kesiyordu;
+    # kare-genel sütun kaçağı bantta tutar, footage kenarları yine kesilir).
+    kx = (kare_x or {}).get(row.kare)
+    rx0 = int(min(k.x0 for k in row.kutular)); rx1 = int(max(k.x1 for k in row.kutular))
+    if kx is not None:
+        rx0, rx1 = min(rx0, kx[0]), max(rx1, kx[1])
+    marj = max(2 * BANT_PAD, int(0.06 * W))
+    x0 = max(0, rx0 - marj)
+    x1 = min(W, rx1 + marj)
     if y1 - y0 < 8 or x1 - x0 < 16:
         return None
     b = im[y0:y1, x0:x1].copy()
-    # kutu-dışını karart (yazı vurgusu) — kutular bant koordinatına çevrilir
-    maske = np.zeros(b.shape[:2], np.uint8)
-    for k in row.kutular:
-        ka, kb = max(0, int(k.x0) - x0 - 3), min(b.shape[1], int(k.x1) - x0 + 3)
-        kc, kd = max(0, int(k.y0) - y0 - 3), min(b.shape[0], int(k.y1) - y0 + 3)
-        if kb > ka and kd > kc:
-            maske[kc:kd, ka:kb] = 1
-    b[maske == 0] = (b[maske == 0] * 0.25).astype(np.uint8)
+    # KARARTMA YOK (2026-07-30 regresyon dersi): kutu-dışı karartma, kare-OCR'ın
+    # KAÇIRDIGI yazıyı mühürlüyordu — karadeniz sentetik recall 0.643->0.164.
+    # x-kırpım footage'ın çoğunu zaten atıyor; bant HAM kalır ki kaçan yazı hem
+    # insan gözüne hem ikinci-geçiş OCR'a açık kalsın ("okunamadı > yanlış oku").
     # sabit kanvas genişliğine SOL hizalı yerleştir (ölçek yalnız taşarsa)
     if b.shape[1] > RENDER_W:
         b = cv2.resize(b, (RENDER_W, max(1, int(b.shape[0] * RENDER_W / b.shape[1]))),
@@ -374,19 +409,36 @@ def _bolum_cizgisi() -> np.ndarray:
     return g
 
 
-def render(siralı_ana: list[tuple[Track, str, Row]], imgs: dict[int, np.ndarray]) -> np.ndarray | None:
-    """ANA master: yalnız ana satırlar (düşük-güven AYRI dosyada). Bölüm sınırında
-    ince çizgi; bant araları 3px — kompakt, VL-okunur."""
+def _ayrac(metin: str) -> np.ndarray:
+    g = np.full((30, RENDER_W, 3), (36, 36, 36), np.uint8)
+    cv2.putText(g, metin, (10, 21), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (130, 190, 255), 1, cv2.LINE_AA)
+    return g
+
+
+def render(siralı_ana: list[tuple[Track, str, Row]], imgs: dict[int, np.ndarray],
+           kare_x: dict[int, tuple[int, int]] | None = None,
+           dusukler: list[tuple[Track, str, Row]] | None = None) -> np.ndarray | None:
+    """Tek dosya: ana satırlar + ayraçla DÜŞÜK GÜVEN bölümü (2026-07-30: düşük
+    bölümünü ayrı dosyaya almak hem QC'yi iki dosyaya bölüyor hem sadakat kıyasını
+    adaletsiz kılıyordu — adaptif master her şeyi tek gövdede taşıyor). Bölüm
+    sınırında ince çizgi; bant araları 3px."""
     bantlar: list[np.ndarray] = []
     onceki_bolum = None
     for t, _m, row in siralı_ana:
         if onceki_bolum is not None and t.bolum != onceki_bolum:
             bantlar.append(_bolum_cizgisi())
         onceki_bolum = t.bolum
-        b = _bant_al(row, imgs)
+        b = _bant_al(row, imgs, kare_x)
         if b is not None:
             bantlar.append(b)
             bantlar.append(np.zeros((3, RENDER_W, 3), np.uint8))
+    if dusukler:
+        bantlar.append(_ayrac(f"--- DUSUK GUVEN ({len(dusukler)}) - insan karari ---"))
+        for _t, _m, row in dusukler:
+            b = _bant_al(row, imgs, kare_x)
+            if b is not None:
+                bantlar.append(b)
+                bantlar.append(np.zeros((3, RENDER_W, 3), np.uint8))
     if not bantlar:
         return None
     return np.vstack(bantlar)
@@ -431,16 +483,22 @@ def calistir(slug: str, cikti_kok: Path, kare_dizini: str | None = None) -> dict
     man["det_basarisiz_kare"] = det_basarisiz
     man["det_kor"] = bool(med_det < DET_KOR_MEDYAN)   # VLM-fallback işareti
 
-    S, bolum = kayma_ve_bolumler(kare_rows)
+    S, bolum = kayma_ve_bolumler(kare_rows, H)
     tracks = tracklari_kur(kare_rows, S, bolum)
     man["bolum"] = int(max(bolum) + 1) if bolum else 0
     man["track"] = len(tracks)
 
+    tum_conf = [k.conf for rows in kare_rows for r in rows for k in r.kutular]
+    med_conf_film = float(np.median(tum_conf)) if tum_conf else 0.0
+    man["medyan_conf"] = round(med_conf_film, 3)
+
+    konsensuslar = {i: konsensus(t)[0] for i, t in enumerate(tracks)}
+    wm = watermark_metinleri(tracks, konsensuslar)
+
     ana, dusuk, cop = [], [], Counter()
-    havuz_n = len(yollar)
     for t in tracks:
         metin, guven, en_iyi = konsensus(t)
-        sinif = siniflandir(t, metin, guven, H, havuz_n)
+        sinif = siniflandir(t, metin, guven, H, med_conf_film, wm)
         if sinif == "ana":
             ana.append((t, metin, en_iyi, guven))
         elif sinif == "dusuk":
@@ -458,12 +516,15 @@ def calistir(slug: str, cikti_kok: Path, kare_dizini: str | None = None) -> dict
         "\n".join(f"{m}\t(guven={g:.2f}, gozlem={len(t.gozlemler)})" for t, m, _r, g in dusuk) + "\n",
         encoding="utf-8")
 
-    png = render([(t, m, r) for t, m, r, _ in ana], imgs)
+    kare_x = {}
+    for i, rows in enumerate(kare_rows):
+        ks = [k for r in rows for k in r.kutular]
+        if ks:
+            kare_x[i] = (int(min(k.x0 for k in ks)), int(max(k.x1 for k in ks)))
+    png = render([(t, m, r) for t, m, r, _ in ana], imgs, kare_x,
+                 dusukler=[(t, m, r) for t, m, r, _ in dusuk])
     if png is not None:
         cv2.imwrite(str(out / "reading_master.png"), png)
-    dpng = render([(t, m, r) for t, m, r, _ in dusuk], imgs)
-    if dpng is not None:
-        cv2.imwrite(str(out / "dusuk_guven.png"), dpng)
 
     man.update({
         "durum": "OK", "ana_satir": len(ana), "dusuk_guven": len(dusuk),
