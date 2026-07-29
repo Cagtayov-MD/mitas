@@ -146,10 +146,14 @@ def stage1(film: Path) -> dict:
                         "pool_frames": mc.get("pool_frames"), "engine": mc.get("engine"),
                         "credit_type": mc.get("credit_type"), "accepted": mc.get("accepted")}
     # paddle havuz: giris (P-open, OneOCR'siz)
+    # --segment giris (Dalga 2, 2026-07-29): v5'in SON_ERISIM kuralı ("aday son
+    # %18'e ulaşmalı") açılış penceresinde anlamsız (ölçüldü: 270 karelik giriş
+    # penceresinde v5 kare 135/181 döndürüyor) — CV bu segmentte birincil kalır.
     pg = _run([PY_OCR, "scripts/_jenerik_pool.py",
                "--frames", str(cd / "frames" / "giris"),
                "--pool", str(cd / "frames" / "giris_jenerik"),
-               "--debug-root", str(cd / "jenerik_debug_giris")], timeout=1800)
+               "--debug-root", str(cd / "jenerik_debug_giris"),
+               "--segment", "giris"], timeout=1800)
     mg = _last_json_line(pg["stdout"]) or {"status": "error", "stderr": pg["stderr"][:300]}
     if det_json.exists():
         shutil.copy2(det_json, cd / "frames" / "jenerik_detection_giris.json")

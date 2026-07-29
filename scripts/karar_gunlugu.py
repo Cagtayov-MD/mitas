@@ -392,8 +392,12 @@ def build_gunluk(film: Path) -> str:
     jen_accepted = jd.get("accepted")
     jen_pool = jd.get("pool_frames")
     jen_input = jd.get("input_frames")
-    # motor: detector.config.ocr_mode (paddle/oneocr)
-    jen_motor = ((jd.get("detector") or {}).get("config") or {}).get("ocr_mode")
+    # motor: Dalga 2'den (2026-07-29) itibaren v5 yolunda `detector` alt-ağacı hiç
+    # YAZILMIYOR (tembel CV — v5 kazandıysa CV hiç koşmadı) — üst-seviye `engine`
+    # (her koşuda yazılır: v5_onset/paddle/oneocr/vlm_rescue) artık BİRİNCİL
+    # kaynak. Eski (Dalga 2 öncesi) manifestlerde `engine` yoksa detector.config.
+    # ocr_mode'a düş — .get zinciri crash etmez, yalnızca None döner.
+    jen_motor = jd.get("engine") or ((jd.get("detector") or {}).get("config") or {}).get("ocr_mode")
     jen_start_file = jd.get("start_file")
     jen_start_pos = jd.get("start_pos")
     jen_conf = jd.get("confidence")
