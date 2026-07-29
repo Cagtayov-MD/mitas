@@ -89,10 +89,12 @@ _ROL_MACAR_ONEK = re.compile(
 
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
     """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca diyakritik-toleranslı
-    önek eşleşmesinin BİRLEŞİMİ (T6 2.tur, alt-adım1a). credit_onset.py'deki
-    iki `cc._ROL_CEKIRDEK.findall` çağrısının yerini alır — davranış EN/TR/
-    İT/FR/DE/ES/HU tam-kelime eşleşmesinde AYNI, yalnız Macarca'da OCR aksan
-    kaybına dayanıklılık EKLENİR."""
+    önek eşleşmesinin BİRLEŞİMİ (T6 2.tur, alt-adım1a). Bu fonksiyon tespit_v5
+    ana yolunda (kredi_skoru koşu-seçimi) kullanılır. `_gecis_icerik_onayi` ve
+    `_scroll_kurtarma` kapıları BİLEREK ham `_ROL_CEKIRDEK` kullanır (Macarca
+    diyakritik toleransı HARİÇ) — bu kapılar sahte-pozitif üreticisi olduğu
+    için `_ROL_MACAR_ONEK`'in kapanış-`\\b`-taşımayan öneklerinin `operation`/
+    `render` gibi kelimelere çarpma riski oralarda kabul edilmiyor."""
     roller: set[str] = set()
     for sl in kare_satirlari:
         for s in sl:
@@ -124,9 +126,12 @@ _PRODUC_GENIS = re.compile(r"\b(produc\w*|yapım\w*)\b", re.I)
 
 def cekirdek_rol_bul_genis(kare_satirlari: list[list[str]]) -> list[str]:
     """SADECE tespit_v5'in seyrek-yol GENİŞLETME KARARINDA kullanılır (mini-tur3
-    alt-adım1). Diğer riskli kapılar (_gecis_icerik_onayi/_scroll_kurtarma/
-    SON_ERISIM_GEVSEK) STRICT cekirdek_rol_bul()'u kullanmaya devam eder — bu
-    fonksiyon ONLARI etkilemez (kırmızı-çizgi güvencesi buradan gelir)."""
+    alt-adım1). `_gecis_icerik_onayi` ve `_scroll_kurtarma` kapıları BİLEREK
+    ham `_ROL_CEKIRDEK` kullanır (Macarca diyakritik toleransı HARİÇ) — bu
+    kapılar sahte-pozitif üreticisi olduğu için `_ROL_MACAR_ONEK`'in kapanış-
+    `\\b`-taşımayan öneklerinin `operation`/`render` gibi kelimelere çarpma
+    riski oralarda kabul edilmiyor; bu fonksiyon ONLARI etkilemez (kırmızı-
+    çizgi güvencesi buradan gelir)."""
     roller = set(cekirdek_rol_bul(kare_satirlari))
     if any(_PRODUC_GENIS.search(s) for sl in kare_satirlari for s in sl):
         roller.add("producer")
