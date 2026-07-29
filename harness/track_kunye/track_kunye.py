@@ -335,40 +335,58 @@ def siniflandir(t: Track, metin: str, guven: float, H: int, havuz_n: int) -> str
 
 # ── 6) sentetik master render ───────────────────────────────────────────────
 
-def render(siralı_ana: list[tuple[Track, str, Row]], dusukler: list[tuple[Track, str, Row]],
-           imgs: dict[int, np.ndarray]) -> np.ndarray | None:
+def _bant_al(row: Row, imgs: dict[int, np.ndarray]) -> np.ndarray | None:
+    """Row bandı: yalnız YAZININ x-aralığı (footage kesilir) + kutu-dışı karartma.
+    (Çağatay QC'si 2026-07-29: tam-genişlik bant footage-üstü filmde okunmaz
+    duvar ördü — mufreze 21577px. Yazı-dışı %25 parlaklığa düşürülür ki bağlam
+    görünsün ama yazı öne çıksın; VL girdisi olarak da okunur kalsın.)"""
+    im = imgs.get(row.kare)
+    if im is None:
+        return None
+    H, W = im.shape[:2]
+    y0 = max(0, int(row.y0) - BANT_PAD)
+    y1 = min(H, int(row.y1) + BANT_PAD)
+    x0 = max(0, int(min(k.x0 for k in row.kutular)) - 2 * BANT_PAD)
+    x1 = min(W, int(max(k.x1 for k in row.kutular)) + 2 * BANT_PAD)
+    if y1 - y0 < 8 or x1 - x0 < 16:
+        return None
+    b = im[y0:y1, x0:x1].copy()
+    # kutu-dışını karart (yazı vurgusu) — kutular bant koordinatına çevrilir
+    maske = np.zeros(b.shape[:2], np.uint8)
+    for k in row.kutular:
+        ka, kb = max(0, int(k.x0) - x0 - 3), min(b.shape[1], int(k.x1) - x0 + 3)
+        kc, kd = max(0, int(k.y0) - y0 - 3), min(b.shape[0], int(k.y1) - y0 + 3)
+        if kb > ka and kd > kc:
+            maske[kc:kd, ka:kb] = 1
+    b[maske == 0] = (b[maske == 0] * 0.25).astype(np.uint8)
+    # sabit kanvas genişliğine SOL hizalı yerleştir (ölçek yalnız taşarsa)
+    if b.shape[1] > RENDER_W:
+        b = cv2.resize(b, (RENDER_W, max(1, int(b.shape[0] * RENDER_W / b.shape[1]))),
+                       interpolation=cv2.INTER_AREA)
+    kanvas = np.zeros((b.shape[0], RENDER_W, 3), np.uint8)
+    kanvas[:, :b.shape[1]] = b
+    return kanvas
+
+
+def _bolum_cizgisi() -> np.ndarray:
+    g = np.zeros((7, RENDER_W, 3), np.uint8)
+    g[3, :] = (70, 70, 70)
+    return g
+
+
+def render(siralı_ana: list[tuple[Track, str, Row]], imgs: dict[int, np.ndarray]) -> np.ndarray | None:
+    """ANA master: yalnız ana satırlar (düşük-güven AYRI dosyada). Bölüm sınırında
+    ince çizgi; bant araları 3px — kompakt, VL-okunur."""
     bantlar: list[np.ndarray] = []
-
-    def bant_al(row: Row) -> np.ndarray | None:
-        im = imgs.get(row.kare)
-        if im is None:
-            return None
-        H, W = im.shape[:2]
-        y0 = max(0, int(row.y0) - BANT_PAD)
-        y1 = min(H, int(row.y1) + BANT_PAD)
-        if y1 - y0 < 8:
-            return None
-        b = im[y0:y1, :]
-        if W != RENDER_W:
-            b = cv2.resize(b, (RENDER_W, max(1, int(b.shape[0] * RENDER_W / W))),
-                           interpolation=cv2.INTER_AREA)
-        return b
-
-    def ayrac(metin: str) -> np.ndarray:
-        g = np.full((34, RENDER_W, 3), (40, 40, 40), np.uint8)
-        cv2.putText(g, metin, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (140, 200, 255), 1, cv2.LINE_AA)
-        return g
-
-    for _t, _m, row in siralı_ana:
-        b = bant_al(row)
+    onceki_bolum = None
+    for t, _m, row in siralı_ana:
+        if onceki_bolum is not None and t.bolum != onceki_bolum:
+            bantlar.append(_bolum_cizgisi())
+        onceki_bolum = t.bolum
+        b = _bant_al(row, imgs)
         if b is not None:
             bantlar.append(b)
-    if dusukler:
-        bantlar.append(ayrac(f"--- DUSUK GUVEN ({len(dusukler)}) — insan karari ---"))
-        for _t, _m, row in dusukler:
-            b = bant_al(row)
-            if b is not None:
-                bantlar.append(b)
+            bantlar.append(np.zeros((3, RENDER_W, 3), np.uint8))
     if not bantlar:
         return None
     return np.vstack(bantlar)
@@ -440,9 +458,12 @@ def calistir(slug: str, cikti_kok: Path, kare_dizini: str | None = None) -> dict
         "\n".join(f"{m}\t(guven={g:.2f}, gozlem={len(t.gozlemler)})" for t, m, _r, g in dusuk) + "\n",
         encoding="utf-8")
 
-    png = render([(t, m, r) for t, m, r, _ in ana], [(t, m, r) for t, m, r, _ in dusuk], imgs)
+    png = render([(t, m, r) for t, m, r, _ in ana], imgs)
     if png is not None:
         cv2.imwrite(str(out / "reading_master.png"), png)
+    dpng = render([(t, m, r) for t, m, r, _ in dusuk], imgs)
+    if dpng is not None:
+        cv2.imwrite(str(out / "dusuk_guven.png"), dpng)
 
     man.update({
         "durum": "OK", "ana_satir": len(ana), "dusuk_guven": len(dusuk),
