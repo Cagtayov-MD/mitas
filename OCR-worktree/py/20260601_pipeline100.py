@@ -10,10 +10,15 @@ import numpy as np, cv2
 sys.stdout.reconfigure(encoding="utf-8")
 def load(m, p):
     s = importlib.util.spec_from_file_location(m, p); mod = importlib.util.module_from_spec(s); sys.modules[m] = mod; s.loader.exec_module(mod); return mod
-cp = load("cp", r"E:\MITAS\OCR-worktree\py\20260601_clip_probe.py")
-cl = load("cl", r"E:\MITAS\OCR-worktree\py\20260601_clean.py")
-sl = load("sl", r"E:\MITAS\OCR-worktree\py\20260601_slitscan2.py")   # piksel-mozaiği (hareketli scroll için)
-stx = load("stx", r"E:\MITAS\OCR-worktree\py\20260601_stitch.py")    # OCR-uzayında dikme (künye METNİ)
+# Linux fix (2026-07-30): _pipe_ocr 07-16'da env-aware yapılmış ama BU dosyanın
+# kendi load'ları ham E:\MITAS kalmıştı — köprü dizin OCR-worktree içermeyince
+# import patlıyor, üretim sessizce eski-OneOCR fallback'ine düşüyordu.
+# Aynı sınıf: crop-stack'in yarım Linux fix'i (bounding_rect eklendi, words unutuldu).
+_PY_KOK = str(Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py")
+cp = load("cp", _PY_KOK + os.sep + "20260601_clip_probe.py")
+cl = load("cl", _PY_KOK + os.sep + "20260601_clean.py")
+sl = load("sl", _PY_KOK + os.sep + "20260601_slitscan2.py")   # piksel-mozaiği (hareketli scroll için)
+stx = load("stx", _PY_KOK + os.sep + "20260601_stitch.py")    # OCR-uzayında dikme (künye METNİ)
 fp = cl.fp; fold = cl.fold; tr_upper = cl.tr_upper; cr = cl.cr
 import duckdb
 

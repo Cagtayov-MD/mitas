@@ -7,7 +7,7 @@ import sys, glob, importlib.util
 from pathlib import Path
 import numpy as np, cv2
 sys.stdout.reconfigure(encoding="utf-8")
-fp = importlib.util.module_from_spec(importlib.util.spec_from_file_location("fp", r"E:\MITAS\OCR-worktree\py\20260530_1744_full_pipeline.py"))
+fp = importlib.util.module_from_spec(importlib.util.spec_from_file_location("fp", str(__import__("pathlib").Path(__import__("os").environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py" / "20260530_1744_full_pipeline.py")))
 sys.modules["fp"] = fp; fp.__spec__.loader.exec_module(fp)
 
 def row_sig(img):

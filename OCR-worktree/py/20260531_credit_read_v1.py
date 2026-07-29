@@ -9,7 +9,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # ── fp modülünü import (rd / wr / META / WIN / safe / OLLAMA / MODEL) ──────
 spec = importlib.util.spec_from_file_location(
-    "fp", r"E:\MITAS\OCR-worktree\py\20260530_1744_full_pipeline.py"
+    "fp", str(__import__("pathlib").Path(__import__("os").environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py" / "20260530_1744_full_pipeline.py")
 )
 fp = importlib.util.module_from_spec(spec)
 sys.modules["fp"] = fp

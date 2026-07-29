@@ -15,12 +15,59 @@ import numpy as np, duckdb
 sys.stdout.reconfigure(encoding="utf-8")
 
 # credit_read_v1 modülünü yeniden kullan (fold, FOLD_SQL, kb_exact_batch, get_paddle, ocr_master, fp)
-spec = importlib.util.spec_from_file_location("cr", r"E:\MITAS\OCR-worktree\py\20260531_credit_read_v1.py")
+spec = importlib.util.spec_from_file_location("cr", str(__import__("pathlib").Path(__import__("os").environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py" / "20260531_credit_read_v1.py"))
 cr = importlib.util.module_from_spec(spec); sys.modules["cr"] = cr; spec.loader.exec_module(cr)
 fp = cr.fp
 fold = cr.fold
 
-import cv2, oneocr
+import cv2
+# Linux shim (2026-07-30): oneocr Windows-özel — Linux venv'inde HİÇ kurulmadı,
+# bu yüzden pipeline100 zinciri Linux geçişinden (07-16) beri import'ta ölüp
+# üretimi sessizce eski-OneOCR fallback'ine düşürüyordu (son gerçek pipeline100
+# koşusu 06-Tem = Windows dönemi). Shim OcrEngine arayüzünü Paddle det+rec ile
+# birebir taklit eder; `words`+confidence DAHİL (crop-stack'i öldüren yarım-fix
+# dersi: bounding_rect eklenip words unutulunca her satır conf=0 sayılmıştı).
+try:
+    import oneocr
+except Exception:  # noqa: BLE001 - Linux: Paddle-uyumlu shim devreye girer
+    class _PaddleOcrShim:
+        def __init__(self):
+            import os as _os, sys as _sys
+            _kok = str(Path(_os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree")
+            if _kok not in _sys.path:
+                _sys.path.insert(0, _kok)
+            import db_compose_master as _dc
+            self._dc = _dc
+
+        def recognize_cv2(self, bgr):
+            gray = cv2.cvtColor(np.ascontiguousarray(bgr), cv2.COLOR_BGR2GRAY) if bgr.ndim == 3 else bgr
+            boxes = self._dc._f1b_det_boxes(gray)
+            lines = []
+            if boxes:
+                sirali = self._dc._f1b_boxes_sorted(boxes)
+                rec = self._dc._f1c_rec_boxes(gray, sirali)
+                for (text, conf), b in zip(rec, sirali):
+                    t = (text or "").strip()
+                    if not t:
+                        continue
+                    x0, y0, x1, y1 = float(b[4]), float(b[5]), float(b[6]), float(b[7])
+                    lines.append({
+                        "text": t,
+                        "bounding_rect": {"x1": x0, "y1": y0, "x2": x1, "y2": y0,
+                                          "x3": x1, "y3": y1, "x4": x0, "y4": y1},
+                        "words": [{"text": w, "confidence": float(conf)} for w in t.split()],
+                    })
+            return {"lines": lines, "text": "\n".join(l["text"] for l in lines)}
+
+        def recognize_pil(self, pil_image):
+            arr = np.array(pil_image)
+            bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR) if arr.ndim == 3 else arr
+            return self.recognize_cv2(bgr)
+
+    class _OneocrModulShim:
+        OcrEngine = _PaddleOcrShim
+
+    oneocr = _OneocrModulShim()
 
 # ── sabitler ──────────────────────────────────────────────────────────────
 TESTER_IN  = Path(r"E:\MITAS\OCR-worktree\tester_fiso")
