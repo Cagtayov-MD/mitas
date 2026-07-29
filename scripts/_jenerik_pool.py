@@ -121,30 +121,6 @@ def _trim_footage_head_v2(pool_frames: list[Path], cfg: DetectorConfig,
     return max(0, anchor)
 
 
-def _trim_footage_head(pool_frames: list[Path], cfg: DetectorConfig, max_scan: int = 60) -> int:
-    """Baştaki footage karelerini OCR ile kırp; atılacak kare sayısını döndür (0 = kırpma yok).
-    Baştan max_scan kareyi kare-kare tarar; gerçek kredi bloğu (ardışık 2 kredi karesi) başlayınca
-    kredinin İLK karesine kırpar → YALAZA'da trim=1 (YÖNETMEN kartı KORUNUR). Küçük footage-baş
-    (~%80 vaka) çözülür. FAIL-SAFE: paddle yok / ilk 60'ta net kredi yok → 0 (temiz havuz zaten
-    ilk kareden kredi → 0; SON_METRO gibi diegetik-erken-anchor ekstremleri trim'le çözülmez → 0,
-    ayrı ele alınır — KKF)."""
-    if not _footage_trim_enabled():
-        return 0
-    ocr = _det._PADDLE_CACHE.get(cfg.ocr_lang)
-    if ocr is None or not pool_frames:
-        return 0
-    hits = 0
-    for i, f in enumerate(pool_frames[:max_scan]):
-        c = _is_credit_frame(ocr, f, cfg)
-        if c:
-            hits += 1
-            if hits >= 2:                    # ardışık 2 kredi karesi = gerçek kredi başladı
-                return max(0, i - 1)         # ikilinin İLK karesinden başlat (baş krediyi kaybetme)
-        elif c is False:
-            hits = 0
-    return 0
-
-
 def _blackish(f: Path, mean_thr: float = 20.0, max_thr: float = 70.0) -> bool:
     """GERÇEKTEN boş siyah kare (kart-arası BOŞLUK) mu?
 

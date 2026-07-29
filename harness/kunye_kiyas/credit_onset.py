@@ -1,16 +1,34 @@
-"""Jenerik başlangıç tespiti — v1 prototip (konsey-revize).
+"""Jenerik başlangıç tespiti — TEK MOTOR: tespit_v5.
 
-Tasarım: iki iz (scroll dy + statik kart nabzı) + ızgara-doğrulamalı hakemlik.
-Konsey (GLM+Kimi, 2026-07-21) kararları uygulandı:
-  - zemin-kararması SİNYALİ YOK (10 getiri / 17 zarar)
-  - statik nabız ZAMAN-bazlı (fps-normalize), kare-sayısı değil
-  - dy jitter-toleranslı: kümülatif monotonik kayma, kare-başı katı sabitlik değil
-  - head-switching bandı TESPİT+kırp (kör 30px değil)
-  - metin-ızgara (iki-sütun) yanlış-pozitif kalkanı: flicker/gate-weave/parçacık
-    ELENIR çünkü ızgara üretmezler
+Tasarım (v5): aday kutu-koşuları (credit_box.kutu_serisi, PaddleOCR det) → her
+adayı OCR-içerikle (credit_content) 'gerçekten isim-listesi mi' doğrula →
+son-çapa + scroll ağırlıklı `joint` skoruyla en iyi adayı seç → statik-tip
+koşularda içerik-çapalı budama/geri-genişletme, scroll-tip koşularda kart→
+scroll geri-tarama + şirket-kartı ileri-budaması → hiçbir aday geçemezse
+`_scroll_kurtarma` son-çare yolu ya da `kredi_yok`. Girdi: c_0001.png ...
+sıralı kare klasörü. Çıktı: `Sonuc` (start_frame, yöntem, güven, notlar, seri).
+OCR bu sürümde ANA ayırıcı (v1'deki "OCR yok" tasarımı terk edildi — bkz.
+aşağıdaki tarihçe).
 
-Girdi: c_0001.png ... sıralı kare klasörü. Çıktı: {start_frame, ...}.
-OCR YOK — bu katman OCR'dan bağımsız (OCR sadece opsiyonel doğrulayıcı).
+ÖNCEDEN BÖYLEYDİK, ARTIK DEĞİLİZ (2026-07-29, söküm öncesi commit 7b0a46f):
+Bu dosya üç nesil dedektör taşıyordu — v3 (`tespit`, salt CV: scroll dy +
+ızgara/metin-satır skorları, OCR YOK) ve v4 (`tespit_v4`, kutu-sinyali ana
+ayırıcı + opsiyonel VLM tie-breaker doğrulayıcısı) artık YOK. Çağatay'ın
+tek-motor kararıyla (2026-07-29) sökülmüşlerdir: ikisi de üretimde
+ÇAĞRILMIYORDU (yalnız bu paketteki bir ölçüm/deney betiğinin ölçtüğü kod
+yoluydu, o betik de kendisi kırıktı — scratchpad'e bağlı sabit bir yola
+bağımlıydı, o dizin artık yok — yani ölçtükleri sinyal zaten güvenilmezdi).
+`tespit_v5` tek gerçek/canlı yol; ölçülen kapı (110 film) yalnız v5
+üzerinden alınıyor. Aynı söküm turunda v4'ün VLM tie-breaker'ı ve az önce
+bahsedilen kırık ölçüm betiği de (ilişkili bir deney dizini dahil) ayrıca
+kaldırıldı (bkz. commit mesajı).
+
+Kafa karışıklığı için önemli ayrım: bu dosyadaki "kutu" sinyali salt-CV bir
+kart-varlığı tespiti (credit_box, ısıl OCR-det) — jeneriğin GERÇEK içeriğinin
+CV-KARŞILAŞTIRMA motoru (frame-pool arasında görsel benzerlik/eşleştirme) bu
+dosyada DEĞİL, `core/pipelines/ocr/jenerik_frame_pool_detector.detect_frame_dir`
+içinde yaşıyor ve `scripts/jenerik_start_eval.py` onu kullanıyor — o motor bu
+söküm turunda DOKUNULMADI.
 """
 from __future__ import annotations
 
@@ -98,56 +116,6 @@ def dy_cift(a: np.ndarray, b: np.ndarray, max_shift: int = 40) -> tuple[int, flo
     return en
 
 
-# ── metin-ızgara skoru (yanlış-pozitif kalkanı) ──────────────────────────
-def metin_satir_skoru(a: np.ndarray) -> float:
-    """Jenerik metni düzenli aralıklı yatay satır bantları yapar → satır-yoğunluk
-    profilinin otokorelasyonunda tepe. Sahne düzensiz, tepe yok. izgara_skoru'dan
-    daha ayırt edici (o doyuyordu). SINIR: başlık kartı/sahne-metni de yüksek verir
-    — 'cast/crew mi' ayrımı için OCR/VLM gerekir (statik/görüntü-üzeri filmlerde)."""
-    gx = np.abs(np.diff(a, axis=1))
-    row = gx.mean(axis=1)
-    if row.std() < 1e-3:
-        return 0.0
-    r = row - row.mean()
-    ac = np.correlate(r, r, "full")[len(r) - 1:]
-    ac = ac / (ac[0] + 1e-9)
-    seg = ac[5:41]
-    if len(seg) == 0:
-        return 0.0
-    tepe = float(seg.max())
-    rn = row / (row.max() + 1e-9)
-    nsat = int(((rn[1:-1] > rn[:-2]) & (rn[1:-1] > rn[2:]) & (rn[1:-1] > 0.35)).sum())
-    return tepe * (1.0 if nsat >= 3 else 0.4)
-
-
-def izgara_skoru(a: np.ndarray) -> float:
-    """Jenerik metni: yatay satırlar + (çoğunlukla) iki dikey sütun.
-    Flicker/gate-weave/parçacık bu yapıyı ÜRETMEZ. 0..1 skor.
-
-    Yöntem: yüksek-kontrast kenar maskesi → satır-yoğunluğu düzenliliği +
-    sütun-histogramı bimodalliği."""
-    # yerel kontrast (metin kenarları)
-    gx = np.abs(np.diff(a, axis=1))
-    kenar = gx > (gx.mean() + 2 * gx.std())
-    yog = kenar.mean()
-    if yog < 0.002:
-        return 0.0
-    # satır profili: metin satırları düzenli tepe/vadi yapar
-    satir = kenar.mean(axis=1)
-    if satir.max() < 1e-6:
-        return 0.0
-    satir_n = satir / satir.max()
-    tepe = ((satir_n[1:-1] > satir_n[:-2]) & (satir_n[1:-1] > satir_n[2:]) & (satir_n[1:-1] > 0.3)).sum()
-    # sütun profili: iki-sütun jenerik → sol+sağ yoğunluk, orta boşluk
-    sut = kenar.mean(axis=0)
-    w = len(sut)
-    sol = sut[: w // 3].mean()
-    orta = sut[w // 3: 2 * w // 3].mean()
-    sag = sut[2 * w // 3:].mean()
-    iki_sutun = 1.0 if (sol > orta * 1.2 or sag > orta * 1.2) and orta < max(sol, sag) else 0.4
-    return min(1.0, (tepe / 12.0) * 0.6 + iki_sutun * 0.4)
-
-
 # ── ana dedektör ─────────────────────────────────────────────────────────
 @dataclass
 class Sonuc:
@@ -157,226 +125,6 @@ class Sonuc:
     dy_medyan: float = 0.0
     notlar: str = ""
     seri: dict = field(default_factory=dict)
-
-
-def tespit(dizin: str, fps: float = 25.0, stride: int = 2) -> Sonuc:
-    """v2: iki iz → tek 'jenerik-aktivite' sinyali → ilk SÜRDÜRÜLEN uzun koşu.
-
-    Konsey dersi: kaçan geri-tarama (v1) sahneye taşıyor → kaldırıldı. Onset,
-    sürdürülen aktivite koşusunun BAŞI. Kısa sahne-metni yanlış-pozitifleri
-    'uzun koşu' şartıyla elenir (banner/tabela kısa; jenerik ≥2 sn sürer)."""
-    g = kareler(dizin)
-    if len(g) < 10:
-        return Sonuc(-1, "kare_yok", 0.0, notlar=f"{len(g)} kare")
-
-    idx = list(range(0, len(g), stride))
-    gk = [_gri(g[i]) for i in idx]
-    band = head_band_kirp(gk)
-    if band:
-        gk = [k[: k.shape[0] - band] for k in gk]
-
-    dys, corrs, izg = [], [], []
-    for i in range(len(gk) - 1):
-        s, r = dy_cift(gk[i], gk[i + 1])
-        dys.append(s)
-        corrs.append(r)
-        izg.append(izgara_skoru(gk[i]))
-    izg.append(izg[-1] if izg else 0.0)  # son kareye de skor
-    dys = np.array(dys, dtype=np.float32)
-    corrs = np.array(corrs, dtype=np.float32)
-    izg = np.array(izg, dtype=np.float32)
-    kf = np.array([np.abs(gk[i] - gk[i + 1]).mean() for i in range(len(gk) - 1)], dtype=np.float32)
-    kf = np.append(kf, kf[-1] if len(kf) else 0.0)
-    kf_med = float(np.median(kf)) if len(kf) else 1.0
-
-    # ── v3: SCROLL-birincil. İlk UZUN sürdürülen scroll koşusu = onset ──
-    # Sinyal keşfi (2026-07-21): scroll (dy>3, corr>0.85) TEMİZ ve güçlü; nerede
-    # jenerik kayıyorsa onlarca kare dy~20 corr>0.9. "Statik" (dy=0+corr>0.9)
-    # AYIRT EDİCİ DEĞİL — yavaş/durgun sahne de aynısını veriyor (VAHŞİ AFRİKA
-    # idx0-215 hepsi 'statik' ama jenerik idx221). O yüzden statik onset ATILDI.
-    n = len(gk)
-    scroll = np.zeros(n, bool)
-    for i in range(len(dys)):
-        scroll[i] = (dys[i] > 3 and corrs[i] >= 0.85)
-
-    W = max(6, int(fps * 0.5 / stride))          # ~0.5 sn pencere
-    min_kosu = max(12, int(fps * 2.0 / stride))  # jenerik scroll ≥2 sn sürer
-    bosluk_tol = W                                # koşu içi kısa kesinti toleransı
-
-    def ilk_uzun_kosu(mask: np.ndarray) -> int | None:
-        i = 0
-        while i < n - W:
-            if mask[i:i + W].mean() >= 0.6:
-                j = i
-                bosluk = 0
-                while j < n and bosluk < bosluk_tol:
-                    bosluk = 0 if mask[j] else bosluk + 1
-                    j += 1
-                if (j - i) >= min_kosu:
-                    return i
-                i = j
-            else:
-                i += 1
-        return None
-
-    onset = ilk_uzun_kosu(scroll)
-    yontem = "scroll"
-
-    # ── scroll over-shoot fix: statik-kart-önce-scroll ──
-    # LALELER/ELMA/ÖRGÜT: jenerik STATİK KARTLA başlar, scroll sonra gelir. Scroll
-    # onset kartı atlar (+30..+80 kare geç). Çözüm: onset'ten SINIRLI geriye yürü,
-    # metin-var + statik (kayma yok) kareler boyunca; SAHNE KESMESİNDE dur (v1'in
-    # kaçan geri-taramasının aksine sınırlı + kesme-durduruculu).
-    if onset is not None and onset > 0:
-        sinir = max(0, onset - int(fps * 5.0 / stride))  # en çok ~5 sn geri
-        g = onset
-        while g - 1 >= sinir:
-            i = g - 1
-            metin_var = izg[i] >= 0.5
-            kayma_yok = abs(dys[i]) <= 3 if i < len(dys) else True
-            sahne_kesme = kf[i] > kf_med * 2.5 if i < len(kf) else False
-            if metin_var and kayma_yok and not sahne_kesme:
-                g -= 1
-            else:
-                break
-        if g < onset:
-            onset = g
-            yontem = "scroll+kart"
-
-    if onset is None:
-        # scroll yok → statik/görüntü-üzeri film. Sinyal-işleme burada YETERSİZ:
-        # metin-satır/ızgara başlık kartı + sahne metnine de tetikliyor, "cast/crew mi"
-        # ayrımı OCR/VLM ister (konsey: OCR doğrulayıcı). GEÇİCİ: izgara fallback,
-        # DÜŞÜK güven damgasıyla — pipeline bunu OCR-doğrulamasına yönlendirmeli.
-        metin = np.array([izg[i] >= 0.55 for i in range(n)], bool)
-        onset = ilk_uzun_kosu(metin)
-        yontem = "statik_metin_DÜŞÜK_GÜVEN"
-
-    if onset is None:
-        return Sonuc(-1, "sinyal_yok", 0.0,
-                     notlar=f"scroll/metin koşusu yok; dy_med={np.median(np.abs(dys)):.1f} izg_max={izg.max():.2f}",
-                     seri={"dy": dys.round(1).tolist(), "corr": corrs.round(2).tolist(), "izg": izg.round(2).tolist()})
-
-    guven = float(max(corrs[onset:onset + W].mean(), izg[onset:onset + W].mean()))
-    return Sonuc(
-        start_frame=_kare_no(g[idx[onset]]),
-        yontem=yontem,
-        guven=guven,
-        dy_medyan=float(np.median(dys[onset:onset + W])),
-        notlar=f"onset_idx={onset} band_kirp={band} min_koşu={min_kosu}",
-        seri={"dy": dys.round(1).tolist(), "corr": corrs.round(2).tolist(), "izg": izg.round(2).tolist()},
-    )
-
-
-def tespit_v4(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 1) -> Sonuc:
-    """v4: kutu sinyali (PaddleOCR det) ANA ayırıcı + dy scroll hassasiyeti.
-
-    Ölçüm (2026-07-21): kenar-yoğunluğu sahne kenarlarına doyuyor; PaddleOCR gerçek
-    metni bulur (sahne 0-1 kutu, jenerik ≥2). Kutu geçişi (0→sürdürülen≥2) onset.
-    Scroll bölgesinde dy ile kare-hassas ince ayar."""
-    import credit_box as cb
-    g = kareler(dizin)
-    if len(g) < 10:
-        return Sonuc(-1, "kare_yok", 0.0, notlar=f"{len(g)} kare")
-
-    idx = list(range(0, len(g), stride))
-    gk = [_gri(g[i]) for i in idx]
-    band = head_band_kirp(gk)
-    if band:
-        gk = [k[: k.shape[0] - band] for k in gk]
-
-    dys = []
-    corrs = []
-    for i in range(len(gk) - 1):
-        s, r = dy_cift(gk[i], gk[i + 1])
-        dys.append(s)
-        corrs.append(r)
-    dys = np.array(dys, dtype=np.float32)
-    corrs = np.array(corrs, dtype=np.float32)
-
-    # kutu sinyali (orijinal kareler üzerinden, stride'lı)
-    alt_g = [g[i] for i in idx]
-    jbayrak, say = cb.kutu_serisi(alt_g, stride=ocr_stride)
-    n = len(gk)
-
-    scroll = np.zeros(n, bool)
-    for i in range(len(dys)):
-        scroll[i] = (dys[i] > 3 and corrs[i] >= 0.85)
-
-    # KUTU-BİRİNCİL: onset yalnız kutu-jenerik ile tetiklenir. Scroll-yalnız
-    # tetikleme KALDIRILDI — sahne hareketi/letterbox/pan yanlış-tetikliyordu
-    # (AFACAN kare9 scroll ama kutu yok; Kimi'nin letterbox/crawler uyarısı).
-    # Scroll yalnızca kutu-doğrulanmış bölgede onset'i kare-hassas iyileştirir.
-    aktif = jbayrak.copy()
-
-    W = max(6, int(fps * 0.5 / stride))
-    min_kosu = max(10, int(fps * 1.5 / stride))   # ≥1.5 sn (VAHŞİ görüntü-üzeri seyrek 2-kutu)
-    bosluk_tol = max(4, int(fps * 0.6 / stride))
-
-    onset = None
-    i = 0
-    while i < n - W:
-        if aktif[i:i + W].mean() >= 0.55:
-            j = i
-            bosluk = 0
-            while j < n and bosluk < bosluk_tol:
-                bosluk = 0 if aktif[j] else bosluk + 1
-                j += 1
-            if (j - i) >= min_kosu:
-                onset = i
-                break
-            i = j
-        else:
-            i += 1
-
-    if onset is None:
-        return Sonuc(-1, "sinyal_yok", 0.0,
-                     notlar=f"kutu+scroll koşusu yok; max_kutu={int(say.max())}",
-                     seri={"say": say.tolist()[:80]})
-
-    # kutu-onset bulundu; scroll bu bölgede daha ERKEN başlıyorsa (kart→scroll),
-    # scroll başına kadar geri çek — AMA kutu-yok bölgeye TAŞMA (13.CUMA frame3
-    # regresyonu). Hem scroll HEM kutu-jenerik olan karelerde geri yürü.
-    if onset < len(scroll):
-        g2 = onset
-        alt = max(0, onset - int(fps * 1.5 / stride))
-        while g2 - 1 >= alt and g2 - 1 < len(scroll) and scroll[g2 - 1] and jbayrak[g2 - 1]:
-            g2 -= 1
-        onset = g2
-
-    # ── VLM doğrulama (konsey tie-breaker): kutu-onset gerçekten cast/crew mi? ──
-    # Epilog şiiri/başlık/sahne-metni de kutu üretir (UĞURSUZ). VLM okur; DEGIL ise
-    # gerçek cast'e kadar İLERİ yürü. MITAS_JENERIK_VLM=1 ile açılır.
-    if os.environ.get("MITAS_JENERIK_VLM") == "1":
-        try:
-            import credit_vlm as cv
-            ileri, denendi = onset, 0
-            while ileri < n and denendi < 12:
-                if aktif[ileri]:
-                    if cv.jenerik_mi(g[idx[ileri]]):
-                        break
-                    j = ileri
-                    while j < n and aktif[j]:
-                        j += 1
-                    while j < n and not aktif[j]:
-                        j += 1
-                    ileri, denendi = j, denendi + 1
-                else:
-                    ileri += 1
-            if ileri < n:
-                onset = ileri
-        except Exception:
-            pass
-
-    yontem = "kutu+scroll" if (onset < len(scroll) and scroll[onset:onset + W].any()) else "kutu"
-    return Sonuc(
-        start_frame=_kare_no(g[idx[onset]]),
-        yontem=yontem,
-        guven=float(corrs[onset:onset + W].mean()) if onset < len(corrs) else 0.5,
-        dy_medyan=float(np.median(dys[onset:onset + W])) if onset < len(dys) else 0.0,
-        notlar=f"onset_idx={onset} band={band} maxkutu={int(say.max())}",
-        seri={"say": say.round().tolist(), "dy": dys.round(1).tolist()},
-    )
 
 
 def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
@@ -753,8 +501,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         gk = [k[: k.shape[0] - band] for k in gk]
     # T4: max_shift 40→60 — hızlı-akan jenerikte kayma sınıra yapışıp korelasyonu
     # düşürüyordu (GLM tur-2 aliasing uyarısı). Yalnız v5'in KENDİ çağrısı;
-    # tespit()/tespit_v4() dy_cift'i varsayılan max_shift=40 ile çağırmaya devam
-    # eder — imzaları/davranışları DEĞİŞMEDİ.
+    # dy_cift'in varsayılan max_shift=40'ı DEĞİŞMEDİ — hata_atlasi.py hâlâ
+    # varsayılanla çağırıyor, imza/davranış korunuyor.
     MAX_SHIFT_V5 = 60
     dys = []
     corrs = []
@@ -1123,11 +871,30 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
 
 if __name__ == "__main__":
     import sys
-    if "--v5" in sys.argv:
-        fn = tespit_v5
-    elif "--v4" in sys.argv:
-        fn = tespit_v4
-    else:
-        fn = tespit
-    r = fn([a for a in sys.argv[1:] if not a.startswith("--")][0])
-    print(f"start={r.start_frame} yöntem={r.yontem} güven={r.guven:.2f}  {r.notlar}")
+
+    # v3 (`tespit`) ve v4 (`tespit_v4`) 2026-07-29'da Çağatay'ın tek-motor
+    # kararıyla söküldü (söküm öncesi commit 7b0a46f) — üretimde hiç
+    # çağrılmıyorlardı, tek ölçen yolları da zaten kırıktı (bkz. modül
+    # docstring'i). Bayrak hâlâ kas hafızasıyla yazılabilir diye sessizce
+    # yok saymak yerine AÇIKÇA reddediyoruz.
+    if "--v3" in sys.argv or "--v4" in sys.argv:
+        print(
+            "credit_onset.py --v3/--v4: bu motorlar 2026-07-29'da Çağatay'ın "
+            "tek-motor kararıyla söküldü (söküm öncesi commit 7b0a46f). Tek "
+            "yaşayan yol tespit_v5 (bayraksız veya --v5). CV karşılaştırma "
+            "motoru hâlâ core/pipelines/ocr/jenerik_frame_pool_detector."
+            "detect_frame_dir içinde yaşıyor — scripts/jenerik_start_eval.py "
+            "onu kullanıyor.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    # --v5 kabul edilir ve yok sayılır (kas hafızası uyumu) — tek motor zaten
+    # tespit_v5, bayrak yalnız eski çağrı alışkanlığını kırmamak için tolere edilir.
+    yollar = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if not yollar:
+        print("kullanım: credit_onset.py [--v5] <kare-klasörü>", file=sys.stderr)
+        raise SystemExit(2)
+
+    r = tespit_v5(yollar[0])
+    print(f"start={r.start_frame} yöntem={r.yontem} {r.notlar}")
