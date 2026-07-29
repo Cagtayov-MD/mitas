@@ -7,7 +7,12 @@ tools/
 testklipler/
 
 # Local assistant/session state
-.claude/
+# NOT: dizinin KENDISI ignore edilmez (.claude/ yazilirsa alt dosyalar geri alinamaz,
+# git kurali: "parent dizin exclude ise cocuk re-include edilemez"). Icerik ignore,
+# hooks/ haric — mitas_guard.py 1.1 TB'lik uretim agacini koruyan guvenlik dosyasi,
+# repo disinda tutulamaz (2026-07-29).
+.claude/*
+!/.claude/hooks/
 .pytest_cache/
 config/.mitas_access_secret
 /*bookmarks_*.html
@@ -103,6 +108,8 @@ scripts/_*
 !scripts/_kb_suffix_split.py
 # health-probe (UI 'Check' tusu: Anthropic+DeepSeek+KB aktif saglik probu) — asr_server runtime
 !scripts/_health_probe.py
+# ozet v2 kalite kapisi + onarim (testas kapali-dongu portu) — mitas_pipeline v2 ozet runtime
+!scripts/_ozet_kalite.py
 # QC scratch/cache (kök seviye .qc_* dosyalari/dizinleri) — git'e girmez
 .qc_*
 
