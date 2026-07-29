@@ -47,6 +47,21 @@ from core.pipelines.asr.profiles import ContentProfileName
 from core.pipelines.asr.version import get_code_version
 
 
+def asr_kapali_mi() -> tuple[bool, str]:
+    """ASR kalıcı kill-switch (Çağatay 2026-07-11) — API yolu için.
+
+    scripts/mitas_pipeline.py:2394-2396 ile BİREBİR aynı mantık. 2026-07-29'a
+    kadar bu kontrol yalnız pipeline'da vardı; API/webui yükleme yolu flag'e
+    hiç bakmıyordu ve 2026-07-29 11:24'te ASR'yi gerçekten başlattı
+    (outputs/system_events.jsonl: asr_queued -> asr_started -> asr_failed).
+    """
+    if (PROJECT_ROOT / "ASR_KAPALI.flag").exists():
+        return True, "ASR_KAPALI.flag"
+    if os.environ.get("MITAS_DISABLE_ASR", "").strip().lower() in ("1", "true", "on", "yes"):
+        return True, "MITAS_DISABLE_ASR"
+    return False, ""
+
+
 JobState = Literal["queued", "running", "done", "partial", "failed", "interrupted"]
 LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 DiarizeMode = Literal["auto", "on", "off"]
@@ -1423,6 +1438,12 @@ async def create_asr_job(
     is reused (no new clip, no new ASR run) unless ``force=full`` is set.
     ``force=full`` attaches a fresh ASR job under the existing clip.
     """
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     job_id = f"asr-{uuid4().hex[:12]}"
     safe_name = _safe_filename(filename)
     media_id = Path(safe_name).stem or "media"
@@ -2133,6 +2154,12 @@ def reprocess_clip_asr(
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
 ) -> dict[str, Any]:
     """Start a fresh ASR job from a clip's preserved source media."""
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     safe_clip_id = _safe_artifact_id(clip_id)
     record = _load_clip_record(safe_clip_id)
     if record is None:
@@ -2228,6 +2255,12 @@ def process_clip_asr_range(
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
 ) -> dict[str, Any]:
     """Start a fresh ASR job from a bounded time range of a preserved clip."""
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     safe_clip_id = _safe_artifact_id(clip_id)
     record = _load_clip_record(safe_clip_id)
     if record is None:
@@ -2549,6 +2582,12 @@ async def stt_preview_socket(websocket: WebSocket) -> None:
 
 
 def _run_job(job_id: str) -> None:
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     job = _load_job(job_id)
     if job is None:
         return
