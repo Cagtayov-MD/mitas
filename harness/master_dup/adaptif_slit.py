@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -131,6 +132,48 @@ TOKEN_KAPSAMA = 0.60     # |kesişim|/min(|a|,|b|) bunun üstünde → AYNI kart
                          # kapsama-oranı dayanıklı; farklı kartlarda ~0)
 H_MAKS = 45000           # saglik.py ile aynı canavar-boy tavanı
 
+# ---- İYİLEŞTİRME BAYRAKLARI (varsayılan KAPALI = eski davranış bit-birebir) ---- #
+# Her biri bağımsız açılıp kapatılabilir; benchmark_iyilestirmeler.py ile test edilir.
+IYIL_OTSU = os.environ.get("MITAS_IYIL_OTSU", "0") == "1"
+IYIL_DY_SMOOTH = os.environ.get("MITAS_IYIL_DY_SMOOTH", "0") == "1"
+IYIL_FUZZY = os.environ.get("MITAS_IYIL_FUZZY", "0") == "1"
+IYIL_SUBPX = os.environ.get("MITAS_IYIL_SUBPX", "0") == "1"
+
+
+def _median_filtre(vals: list[float], pencere: int = 3) -> list[float]:
+    """Simetrik pencereli median filtre (scipy bağımlılığı olmadan).
+    Scroll dy dizisindeki film greni / codec titremesinden kaynaklanan
+    aykırı tepeleri bastırır; monoton kaymayı korur."""
+    n = len(vals)
+    yarim = pencere // 2
+    sonuc = []
+    for i in range(n):
+        bas = max(0, i - yarim)
+        bit = min(n, i + yarim + 1)
+        sonuc.append(float(np.median(vals[bas:bit])))
+    return sonuc
+
+
+def _fuzzy_token_kesisim(ta: set[str], tb: set[str]) -> int:
+    """Levenshtein ≤ 1 toleranslı token eşleştirmesi.
+    OCR gürültüsü (DIRECTOR → DIRECT0R, SMITH → SM1TH) tek-karakter
+    hataları üretir; birebir küme kesişimi bunları kaçırır."""
+    eslesme = 0
+    tb_list = list(tb)
+    for a in ta:
+        for b in tb_list:
+            if a == b:
+                eslesme += 1
+                break
+            if len(a) >= 4 and abs(len(a) - len(b)) <= 1:
+                # basit Levenshtein ≤ 1 kontrolü (substitution + 1-char len diff)
+                fark = sum(1 for ca, cb in zip(a, b) if ca != cb)
+                fark += abs(len(a) - len(b))  # uzunluk farkı da 1 edit
+                if fark <= 1:
+                    eslesme += 1
+                    break
+    return eslesme
+
 
 def kareleri_yukle(slug: str, kare_dizini: str | None = None) -> list[np.ndarray]:
     d = Path(kare_dizini) if kare_dizini else EX_KARE_ROOT / f"{slug}{EX_SUFFIX}"
@@ -140,6 +183,12 @@ def kareleri_yukle(slug: str, kare_dizini: str | None = None) -> list[np.ndarray
 
 def metin_maskesi(im: np.ndarray) -> np.ndarray:
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    if IYIL_OTSU:
+        # Otsu: filmin kendi histogram dağılımından optimal eşik.
+        # Sabit 110 soluk filmlerde kaçırıyor, parlak filmlerde şişiriyor;
+        # Otsu her karenin ışık koşuluna otomatik adapte olur.
+        esik, _ = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        return (gray > esik).astype(np.float32)
     return (gray > MASK_ESIK).astype(np.float32)
 
 
@@ -263,7 +312,11 @@ def _segment_kanvas(ims: list[np.ndarray], ofsetler: list[float]) -> np.ndarray:
     """Satır-seçimli slit: her kanvas satırını kare-merkezine en yakın kaynaktan al.
 
     Ofsetler işaretli-kümülatif; taban 0'a çekilir (negatif yön = aşağı kayan
-    jenerik de aynı matematikle çalışır)."""
+    jenerik de aynı matematikle çalışır).
+
+    IYIL_SUBPX=1 iken sub-pixel bilinear interpolasyon: kümülatif ofset float
+    olarak korunur, piksel-arası satırlar komşu iki satırın ağırlıklı ortalamasıyla
+    hesaplanır → tırtıklanma/basamak artifaktları kaybolur."""
     h, w = ims[0].shape[:2]
     taban = min(ofsetler)
     ofs = [o - taban for o in ofsetler]
@@ -275,13 +328,30 @@ def _segment_kanvas(ims: list[np.ndarray], ofsetler: list[float]) -> np.ndarray:
         if len(aday) == 0:
             continue
         best = aday[np.argmin(np.abs((y - ofs_arr[aday]) - h / 2))]
-        kanvas[y] = ims[best][int(y - ofs_arr[best])]
+        frac_y = y - ofs_arr[best]
+        if IYIL_SUBPX:
+            y_int = int(frac_y)
+            y_kesir = frac_y - y_int
+            if y_kesir < 0.01 or y_int + 1 >= h:
+                kanvas[y] = ims[best][y_int]
+            else:
+                # bilinear: komşu iki satırın ağırlıklı ortalaması
+                kanvas[y] = (ims[best][y_int].astype(np.float32) * (1.0 - y_kesir)
+                             + ims[best][y_int + 1].astype(np.float32) * y_kesir
+                             ).astype(np.uint8)
+        else:
+            kanvas[y] = ims[best][int(frac_y)]
     return kanvas
 
 
-def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarray | None, dict]:
+def compose_adaptif(slug: str, kare_dizini: str | None = None,
+                    ims: list[np.ndarray] | None = None) -> tuple[np.ndarray | None, dict]:
+    """`ims` verilirse kareler diskten OKUNMAZ. Üretim hattı (master_png_monitor)
+    kendi seçtiği kare listesini önceden yükleyip geçirir; böylece bu modül
+    Ex_Frame klasör düzenine bağlı kalmaz. `ims=None` → eski davranış aynen."""
     t0 = time.time()
-    ims = kareleri_yukle(slug, kare_dizini)
+    if ims is None:
+        ims = kareleri_yukle(slug, kare_dizini)
     if len(ims) < 2:
         return None, {"slug": slug, "durum": "kare_yok", "kare": len(ims)}
     h, w = ims[0].shape[:2]
@@ -306,6 +376,28 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
         olcum = maskeler
         bosluk = [int(m.sum()) for m in maskeler]
     ciftler = cift_olc(olcum, bosluk, griler, varliklar, h, w)
+
+    # ---- İYİLEŞTİRME: dy Smoothing (median filtre) ---- #
+    # Scroll olarak sınıflandırılmış ardışık çiftlerin dy değerlerine
+    # 3'lü pencereli median filtre uygular. Film greni / codec titremesinden
+    # kaynaklanan ±3-5 px sapmayı bastırır, monoton kaymayı korur.
+    # Kesme/duraksama sınırlarına DOKUNMAZ.
+    if IYIL_DY_SMOOTH:
+        _i = 0
+        while _i < len(ciftler):
+            if ciftler[_i]["sinif"] == "scroll":
+                _j = _i
+                while _j < len(ciftler) and ciftler[_j]["sinif"] == "scroll":
+                    _j += 1
+                if _j - _i >= 3:
+                    _dyler = [ciftler[_k]["dy"] for _k in range(_i, _j)]
+                    _yumusak = _median_filtre(_dyler, 3)
+                    for _k, _dy in zip(range(_i, _j), _yumusak):
+                        ciftler[_k]["dy_ham"] = ciftler[_k]["dy"]
+                        ciftler[_k]["dy"] = round(_dy, 2)
+                _i = _j
+            else:
+                _i += 1
 
     # ---- PLATO MİMARİSİ (v4) --------------------------------------------- #
     # Gözle yakalanan iki kayıp sınıfı bunu zorunlu kıldı:
@@ -381,9 +473,16 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None) -> tuple[np.ndarr
         NCC/kimlik: statik-zemin dominasyonu; normalize-fark: kar yağışı) —
         hepsi gözle + ölçümle belgelendi. Metnin kimliğini metin okur:
         iki kare de token veriyorsa kapsama-oranı karar verir; token yoksa
-        (logo/çizim/ultra-soluk) geometrik fark fallback'i."""
+        (logo/çizim/ultra-soluk) geometrik fark fallback'i.
+
+        IYIL_FUZZY=1 iken Levenshtein ≤ 1 toleranslı eşleştirme: OCR'ın
+        tek-karakter hataları (0↔O, 1↔I, M↔W) yanlış 'farklı kart' kararına
+        yol açmaz."""
         ta, tb = _tokenlar(a), _tokenlar(b)
         if min(len(ta), len(tb)) >= TOKEN_MIN_GUVEN:
+            if IYIL_FUZZY:
+                eslesme = _fuzzy_token_kesisim(ta, tb)
+                return eslesme / min(len(ta), len(tb)) >= TOKEN_KAPSAMA
             return len(ta & tb) / min(len(ta), len(tb)) >= TOKEN_KAPSAMA
         # az-token: OCR loş karede aynı kartı her okuyuşta farklı çıkarabilir
         # (havaci 46-sayfa patlaması) → token hükmü güvenilmez, geometrik fark

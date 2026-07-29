@@ -102,6 +102,64 @@ def _v2_enabled() -> bool:
     return os.environ.get("MITAS_MASTER_V2", "0").strip() == "1"
 
 
+def _otsu_enabled() -> bool:
+    return os.environ.get("MITAS_IYIL_OTSU", "1").strip() == "1"
+
+
+def _dy_smooth_enabled() -> bool:
+    return os.environ.get("MITAS_IYIL_DY_SMOOTH", "1").strip() == "1"
+
+
+def _fuzzy_enabled() -> bool:
+    return os.environ.get("MITAS_IYIL_FUZZY", "1").strip() == "1"
+
+
+def _subpx_enabled() -> bool:
+    return os.environ.get("MITAS_IYIL_SUBPX", "1").strip() == "1"
+
+
+def _median_filtre(vals: list[float], pencere: int = 3) -> list[float]:
+    """Simetrik pencereli median filtre (scipy bağımlılığı olmadan)."""
+    n = len(vals)
+    yarim = pencere // 2
+    sonuc = []
+    for i in range(n):
+        bas = max(0, i - yarim)
+        bit = min(n, i + yarim + 1)
+        sonuc.append(float(np.median(vals[bas:bit])))
+    return sonuc
+
+
+def _fuzzy_lists_match(list_a: list[str], list_b: list[str]) -> bool:
+    """Metin kutuları listesini Levenshtein mesafesi <= 1 toleransıyla karşılaştırır."""
+    if len(list_a) != len(list_b):
+        return False
+    for a, b in zip(list_a, list_b):
+        if a == b:
+            continue
+        if len(a) < 4 or abs(len(a) - len(b)) > 1:
+            return False
+        if _levenshtein(a, b) > 1:
+            return False
+    return True
+
+
+def _fuzzy_token_kesisim(ta: set[str], tb: set[str]) -> set[str]:
+    """Levenshtein <= 1 toleranslı token kesişim kümesini hesaplar."""
+    matched = set()
+    tb_list = list(tb)
+    for a in ta:
+        for b in tb_list:
+            if a == b:
+                matched.add(a)
+                break
+            if len(a) >= 4 and abs(len(a) - len(b)) <= 1:
+                if _levenshtein(a, b) <= 1:
+                    matched.add(a)
+                    break
+    return matched
+
+
 # F1 (H2 kök-sebep: ardışık-OLMAYAN kart tekrarı gardı yoktu, 60/112 filmde birincil
 # hipotez) -- global kart kaydı eşikleri. KONSEY KARARI (2026-07-23, GLM tam katılım):
 # kapı-1 dHash ham eşiği 2'den 4'e gevşetildi (codec artefaktı payı); kapı-2 hizalı-
@@ -522,7 +580,10 @@ def text_mask(gray: np.ndarray, p: Params, polarity: str = "auto") -> np.ndarray
         pol = "dark" if float(np.median(gray)) > 127 else "bright"
     op = cv2.MORPH_TOPHAT if pol == "bright" else cv2.MORPH_BLACKHAT
     morph = cv2.morphologyEx(gray, op, kernel)
-    _, mask = cv2.threshold(morph, p.tht, 255, cv2.THRESH_BINARY)
+    if _v2_enabled() and _otsu_enabled():
+        _, mask = cv2.threshold(morph, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    else:
+        _, mask = cv2.threshold(morph, p.tht, 255, cv2.THRESH_BINARY)
     return mask
 
 
@@ -1053,7 +1114,7 @@ def _card_distant_dup_match_f1b(
             if pixel_ozdes:
                 return {**base, "karar_yolu": "distant-dup-scene", "rec_kanit": rec_kanit}, korunan_kanit
             continue  # KORU
-        if real_a and real_a == real_b:
+        if real_a and (real_a == real_b or (_v2_enabled() and _fuzzy_enabled() and _fuzzy_lists_match(real_a, real_b))):
             return {**base, "karar_yolu": "distant-dup-rec", "rec_kanit": rec_kanit}, korunan_kanit
         # gerçek kutu metinleri FARKLI (örn. YAKIN_PLAN'ın farklı altyazısı) --
         # bu aday KORUNUR; döngü sıradaki registry adayına bakmaya devam eder.
@@ -1251,7 +1312,10 @@ def _f3c_seam_dup_check(
     if not slit_tokens:
         return None  # kanıt yok -- KORU
 
-    matched = static_tokens & slit_tokens
+    if _v2_enabled() and _fuzzy_enabled():
+        matched = _fuzzy_token_kesisim(static_tokens, slit_tokens)
+    else:
+        matched = static_tokens & slit_tokens
     ratio = len(matched) / len(static_tokens)
     if ratio < match_ratio_gate:
         return None  # farklı/gerçek kart -- KORU
@@ -1971,57 +2035,151 @@ def slitscan(frames: list[str], p: Params, args,
     last_image = None
     last_v = 0
 
-    for frame in frames:
-        image = _prep(frame, p, args)
-        if image is None:
-            continue
-        if args.luma_key:  # FIX(10): wired up, was dead code
-            image = luma_key(image)
-        if seed_top is None:
-            seed_top = image[:ref, :].copy()
-        last_image = image
+    v2_on = _v2_enabled()
+    if not v2_on:
+        for frame in frames:
+            image = _prep(frame, p, args)
+            if image is None:
+                continue
+            if args.luma_key:  # FIX(10): wired up, was dead code
+                image = luma_key(image)
+            if seed_top is None:
+                seed_top = image[:ref, :].copy()
+            last_image = image
 
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray_float = gray.astype(np.float32)
-        mask = text_mask(gray, p, args.polarity)
-        dilated = cv2.dilate(mask, np.ones((11, 11), np.uint8))
-        masked = gray_float.copy()
-        masked[dilated == 0] = 0.0
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            gray_float = gray.astype(np.float32)
+            mask = text_mask(gray, p, args.polarity)
+            dilated = cv2.dilate(mask, np.ones((11, 11), np.uint8))
+            masked = gray_float.copy()
+            masked[dilated == 0] = 0.0
 
-        dy = 0.0
-        if prev is not None and bool(dilated.any()) and prev_has_text:
-            if hy_full:
-                # FULL kanal: hız tam-kareden akar (kare-başına; rampa serbest) +
-                # med±3·IQR kelepçesi. Maske yalnız yazı-varlığı kapısı olarak kalır.
-                (_, dy), _ = cv2.phaseCorrelate(prev_full * hann, gray_float * hann)
-                if abs(dy - med_signed) > clamp_band:
-                    dy = med_signed
+            dy = 0.0
+            if prev is not None and bool(dilated.any()) and prev_has_text:
+                if hy_full:
+                    # FULL kanal: hız tam-kareden akar (kare-başına; rampa serbest) +
+                    # med±3·IQR kelepçesi. Maske yalnız yazı-varlığı kapısı olarak kalır.
+                    (_, dy), _ = cv2.phaseCorrelate(prev_full * hann, gray_float * hann)
+                    if abs(dy - med_signed) > clamp_band:
+                        dy = med_signed
+                else:
+                    (_, dy), _ = cv2.phaseCorrelate(prev * hann, masked * hann)
+            prev = masked
+            prev_full = gray_float
+            prev_has_text = bool(dilated.any())
+
+            velocity = int(round(abs(dy)))
+            # FIX(5): strip height == real motion; drop only jitter or glitch/cut.
+            if velocity < p.vmin or velocity > p.vmax:
+                continue
+            strip = image[ref: ref + velocity, :].copy()
+            if strip.shape[0] > 0:
+                strips.append(strip)
+                last_v = velocity
+
+        if not strips:
+            return None, hy_info
+        # FIX: prepend the first frame's above-slit content and append the last
+        # frame's below-slit content so the head/tail of the roll aren't dropped.
+        parts = []
+        if seed_top is not None and seed_top.shape[0] > 0:
+            parts.append(seed_top)
+        parts.append(np.vstack(strips))
+        if last_image is not None and ref + last_v < p.h:
+            parts.append(last_image[ref + last_v:, :].copy())
+        return np.vstack(parts), hy_info
+    else:
+        # V2 yolu: dy smoothing ve sub-pixel interpolasyon destekli iki geçişli mimari
+        prepped = []
+        for frame in frames:
+            image = _prep(frame, p, args)
+            if image is None:
+                continue
+            if args.luma_key:
+                image = luma_key(image)
+            prepped.append(image)
+        if not prepped:
+            return None, hy_info
+
+        # Geçiş 1: Tüm dy değerlerini ölç
+        dys = [0.0]
+        prev = None
+        prev_full = None
+        prev_has_text = False
+        for img in prepped:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            gray_float = gray.astype(np.float32)
+            mask = text_mask(gray, p, args.polarity)
+            dilated = cv2.dilate(mask, np.ones((11, 11), np.uint8))
+            masked = gray_float.copy()
+            masked[dilated == 0] = 0.0
+
+            dy = 0.0
+            if prev is not None and bool(dilated.any()) and prev_has_text:
+                if hy_full:
+                    (_, dy), _ = cv2.phaseCorrelate(prev_full * hann, gray_float * hann)
+                    if abs(dy - med_signed) > clamp_band:
+                        dy = med_signed
+                else:
+                    (_, dy), _ = cv2.phaseCorrelate(prev * hann, masked * hann)
+            if prev is not None:
+                dys.append(dy)
+            prev = masked
+            prev_full = gray_float
+            prev_has_text = bool(dilated.any())
+
+        # dy Smoothing (median filtre)
+        if _dy_smooth_enabled():
+            dys_smoothed = [0.0]
+            actual_dys = dys[1:]
+            if len(actual_dys) >= 3:
+                for idx in range(len(actual_dys)):
+                    bas = max(0, idx - 1)
+                    bit = min(len(actual_dys), idx + 2)
+                    dys_smoothed.append(float(np.median(actual_dys[bas:bit])))
             else:
-                (_, dy), _ = cv2.phaseCorrelate(prev * hann, masked * hann)
-        prev = masked
-        prev_full = gray_float
-        prev_has_text = bool(dilated.any())
+                dys_smoothed = dys
+        else:
+            dys_smoothed = dys
 
-        velocity = int(round(abs(dy)))
-        # FIX(5): strip height == real motion; drop only jitter or glitch/cut.
-        if velocity < p.vmin or velocity > p.vmax:
-            continue
-        strip = image[ref: ref + velocity, :].copy()
-        if strip.shape[0] > 0:
-            strips.append(strip)
-            last_v = velocity
+        # Ofsetleri biriktir (p.vmin/p.vmax filtrelemeli)
+        ofs = [0.0]
+        for dy in dys_smoothed[1:]:
+            velocity = int(round(abs(dy)))
+            if velocity < p.vmin or velocity > p.vmax:
+                ofs.append(ofs[-1])
+            else:
+                ofs.append(ofs[-1] - dy)
 
-    if not strips:
-        return None, hy_info
-    # FIX: prepend the first frame's above-slit content and append the last
-    # frame's below-slit content so the head/tail of the roll aren't dropped.
-    parts = []
-    if seed_top is not None and seed_top.shape[0] > 0:
-        parts.append(seed_top)
-    parts.append(np.vstack(strips))
-    if last_image is not None and ref + last_v < p.h:
-        parts.append(last_image[ref + last_v:, :].copy())
-    return np.vstack(parts), hy_info
+        taban = min(ofs)
+        ofs = [o - taban for o in ofs]
+        toplam_h = int(round(max(ofs))) + p.h
+
+        # Kanvas oluştur
+        canvas = np.zeros((toplam_h, p.w, 3), dtype=np.uint8)
+        ofs_arr = np.array(ofs)
+        subpx = _subpx_enabled()
+
+        for y in range(toplam_h):
+            aday = np.where((ofs_arr <= y) & (y < ofs_arr + p.h))[0]
+            if len(aday) == 0:
+                continue
+            best = aday[np.argmin(np.abs((y - ofs_arr[aday]) - ref))]
+            y_local = y - ofs_arr[best]
+
+            if subpx:
+                y_int = int(y_local)
+                y_kesir = y_local - y_int
+                if y_kesir < 0.01 or y_int + 1 >= p.h:
+                    canvas[y] = prepped[best][y_int]
+                else:
+                    canvas[y] = (prepped[best][y_int].astype(np.float32) * (1.0 - y_kesir)
+                                 + prepped[best][y_int + 1].astype(np.float32) * y_kesir
+                                 ).astype(np.uint8)
+            else:
+                canvas[y] = prepped[best][int(y_local)]
+
+        return canvas, hy_info
 
 
 def compose_slit(frames: list[str], p: Params, args) -> tuple[np.ndarray | None, list[dict], np.ndarray | None]:
