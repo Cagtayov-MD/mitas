@@ -258,6 +258,26 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
     return False
 
 
+# Kurtarma-yolu raporlanan güveni (Görev 1b, 2026-07-29 — Seçenek B): son-çare
+# yolu hiçbir adayın content-eşiğini (EŞIK=0.6, aşağıda) geçemediği durumda
+# devreye girer; bu, "en zayıf kanıt" demektir, "1.00 güven" değil. Dört sınır:
+#   (a) >0.0 — 0.0 codebase'de "tespit yok" (kredi_yok/kare_yok/sinyal_yok) için
+#       ayrılmış; kurtarma yolu bir TESPİT'tir (start_frame≥0 döner), 0.0 yanlış.
+#   (b) <EŞIK(0.6) — içerik eşiği zaten geçilemedi; kurtarma bunu telafi etmiyor,
+#       yalnız farklı (daha zayıf) bir kanıt yoluyla erişiyor.
+#   (c) <exit_kesim/kes.py'deki GUVEN_ESIK=0.60 — bu filmler otomatik kesime
+#       değil insan incelemesine düşmeli (kes.py guven<GUVEN_ESIK ise inceleme
+#       kuyruğuna atıyor).
+#   (d) normal kazananların ÖLÇÜLEN değer kümesinden ({0.67, 1.0} — 110-film
+#       korpusunda gözlenen tek iki kb değeri) net uzak — karıştırılmasın.
+# TÜRETİLMİŞ DEĞİL — kalibrasyon verisi yok; _scroll_kurtarma'nın beş sinyali
+# (son-%25 sınırı, ≥8sn sürdürülen scroll+kutu, ≥1 _ROL_CEKIRDEK, min_kosu,
+# sınır-öncesi geri-yürüme) zaten geçilmiş bir İKİLİ KAPI (var/yok) — sürekli
+# bir skor üretmiyor, bu yüzden 0.35 sabit bir düşük-güven damgası, ölçülmüş
+# bir olasılık değil.
+KURTARMA_GUVEN = 0.35
+
+
 def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
                       jbayrak: np.ndarray, n: int, fps: float, stride: int
                       ) -> tuple[int, int] | None:
@@ -688,6 +708,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         if kb_max >= EŞIK and (en_iyi is None or joint > en_iyi[0]):
             en_iyi = (joint, a, b, kb_max, scroll_var, roller)
 
+    kurtarma_yolu = False
     if en_iyi is None:
         kurtarma = _scroll_kurtarma(g, idx, cc, scroll, jbayrak, n, fps, stride)
         if kurtarma is not None:
@@ -696,7 +717,16 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             kayitlar.append({"a": ks, "b": ke, "kare_a": kare_ks, "kare_b": kare_ke,
                               "son_ok": True, "kb": 1.0, "joint": 1.0,
                               "roller": ["scroll_kurtarma"]})
+            # UYARI (Görev 1b): buradaki kb=1.0/joint=1.0 ÖLÇÜLMÜŞ DEĞİL — yalnız
+            # `en_iyi` tuple'ının şeklini ve aşağıdaki `yabanci_yol` türetimini
+            # ("scroll_kurtarma" in roller_kazanan) korumak için konmuş yer-tutucu.
+            # Raporlanan güven bu değerden DEĞİL, `kurtarma_yolu` bayrağıyla
+            # KURTARMA_GUVEN'e düşürülüyor (aşağıda dönüş bloğunda). Unpack
+            # sonrasına `kb`'ye bağlı YENİ bir karar eklenecekse önce
+            # `kurtarma_yolu` kontrol edilmeli — aksi halde bu yer-tutucu 1.0
+            # gerçek ölçümmüş gibi kullanılır.
             en_iyi = (1.0, ks, ke, 1.0, True, ["scroll_kurtarma"])
+            kurtarma_yolu = True
         else:
             degerlendirilmis = [k for k in kayitlar if k["son_ok"]]
             if not degerlendirilmis:
@@ -856,15 +886,34 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             onset = kart_onset
             ek_not = (ek_not + " " if ek_not else "") + kart_not
 
+    # Görev 1b (Seçenek B, 2026-07-29): _scroll_kurtarma son-çare yoluyla kazanılan
+    # adayın kb/joint'i GERÇEK ÖLÇÜM DEĞİL (bkz. KURTARMA_GUVEN tanımı ve yukarıdaki
+    # yer-tutucu uyarısı) — bu yüzden `guven` burada kb'den DEĞİL kurtarma_yolu
+    # bayrağından türetilir, ve notlar'da uydurma kb/joint sayıları yerine
+    # "kb=yok joint=yok" yazılır (okuyanı 1.00 güvenle yanıltmasın).
+    if kurtarma_yolu:
+        yontem = "kutu+scroll+kurtarma"
+        guven = KURTARMA_GUVEN
+        notlar = (f"yol=scroll_kurtarma aday={len(adaylar)} "
+                  f"seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] "
+                  f"kb=yok joint=yok (içerik-eşiği geçilemedi) "
+                  f"scroll_oran={scroll_orani:.2f} ardisik={ardisik_scroll} "
+                  f"guven={guven:.2f}"
+                  + (f" {ek_not}" if ek_not else ""))
+    else:
+        yontem = "kutu+scroll+içerik" if scroll_var else "kutu+içerik"
+        guven = round(kb, 2)
+        notlar = (f"aday={len(adaylar)} seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] "
+                  f"kb={kb:.2f} joint={joint:.2f} scroll_oran={scroll_orani:.2f} "
+                  f"ardisik={ardisik_scroll} guven={guven:.2f}"
+                  + (f" {ek_not}" if ek_not else ""))
+
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
-        yontem="kutu+scroll+içerik" if scroll_var else "kutu+içerik",
-        guven=round(kb, 2),
+        yontem=yontem,
+        guven=guven,
         dy_medyan=float(np.median(dys[a:b])) if a < len(dys) else 0.0,
-        notlar=(f"aday={len(adaylar)} seçilen=[{_kare_no(g[idx[a]])}-{_kare_no(g[idx[b]])}] "
-                f"kb={kb:.2f} joint={joint:.2f} scroll_oran={scroll_orani:.2f} "
-                f"ardisik={ardisik_scroll}"
-                + (f" {ek_not}" if ek_not else "")),
+        notlar=notlar,
         seri={"adaylar": kayitlar},
     )
 
