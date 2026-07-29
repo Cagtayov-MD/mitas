@@ -7,6 +7,296 @@
 
 ---
 
+## 2026-07-29 (devam) — dizin sadeleştirme turu: 3 MAYIN bulundu, temizlik ikinci plana düştü
+
+**Tetikleyen:** Çağatay "proje çok dağınık, testler/scriptler/sonuçlar/pipeline/test
+filmleri hep burada — temizleyip sadeleştirelim, sonra yer boşalt".
+
+**Yapılan:** Yaklaşım A (karantina + kök sadeleştirme) seçildi; silme yetkisi Çağatay'da
+kaldı ("Claude taşır, Çağatay siler"). Tasarım `docs/MITAS_Dizin_Sadelestirme_v1.md`.
+Sonra 53 ajanlık kırmızı-takım doğrulama turu (16 aday × 3 mercek + 4 yapısal +
+tamamlayıcılık eleştirmeni, 4.4 M token) açıldı.
+
+**EN ÖNEMLİ BULGU — `git clean -fdx` bu repoda 1.1 TB siler.** `models/` 587 G,
+`Mitas_Files/` 157 G, `Database/` 119 G (199 filmlik üretim çıktısı), `venvs/` 105 G,
+`Mitas Output/`, `mitas.env` (API anahtarları), `CLAUDE.md` — hepsi `.gitignore`'lu
+olduğu için `-x` kapsamında. `git clean -ndx` 1429 giriş listeliyor.
+`.claude/hooks/mitas_guard.py:96` regex'i yalnız `rm|rmdir|shred|-delete` arıyor,
+`git clean`'i **yakalamıyor**. Temizlikle ilgisi yok, ondan acil.
+
+**İKİNCİ MAYIN — `git gc` üç benzersiz test dosyasını yok edecekti.** 3 packed yetim
+commit'te `tests/test_regresyon_koruma.py`, `tests/test_credit_crosscheck_reachability.py`,
+`tests/test_fr_soybaglac_yonetmen_gate.py` vardı — ne diskte, ne bir dalda/tag'de/remote'ta.
+`kurtarma/e3320e7-regresyon-koruma`, `kurtarma/3ff10b2-golden-veri-kaybi`,
+`kurtarma/9b7e90d` dalları açıldı. **BU DALLAR SİLİNMEZ.** Ayrıca `git prune` bir
+düşürülmüş stash'i (2026-07-23) silecekti; yaması yedeklendi.
+
+**ÜÇÜNCÜ MAYIN — ASR kill-switch API yolunda delik.** `ASR_KAPALI.flag`'i yalnız
+`scripts/mitas_pipeline.py:2394` kontrol ediyor; `core/api/asr_server.py` bakmıyor ve
+2026-07-29 11:24'te ASR'yi gerçekten başlattı (`asr_queued`→`asr_started`→`asr_failed`).
+Onu durduran şey bir kontrol değil, `venvs/asr`'da `libcublas.so.12`'nin **olmaması** —
+bir kaza. `venvs/alignment`'ta ve ollama cuda dizininde o kütüphane zaten var.
+Çağatay'ın 2026-07-11 talimatı 18 gündür yarım uygulanıyormuş.
+
+**BAŞARISIZ/ÇÜRÜTÜLEN VARSAYIMLARIM (aynı çıkmaza iki kez girilmesin):**
+- "Kökte 48 giriş" → **57** (`ls -A`; gizli dosyalar sayılmamış)
+- "206 G kazanılır" → **~38 G anında**. Tüm adaylar aynı ext4'te (`stat -c %d` → 66314);
+  `mv` inode taşımaz, `df` değişmez. Kalan ~168 G Çağatay silene kadar diskte durur.
+- "`__file__`/`parents[1]` tek merkezi fix" → **YANLIŞ.**
+  `.claude/worktrees/musing-aryabhata-1d5189` **canlı** worktree ve orada `Database/`,
+  `venvs/` yok; naif çözüm pipeline'ı boş ağaca yazdırır. **Çapa** (`Database` +
+  `model_manifest.yaml`) ile yukarı tırmanmak zorunlu.
+- "`_karantina/` güvenli bir hedef" → `.gitignore:112 /_*` ile ignore ediliyor;
+  `git clean -fdx` karantinayı da siler. Ad `KARANTINA_2026-07-29/` olmalı.
+- "pytest + smoke = doğrulama kapısı" → `tests/` altında taşınacak yollara **0 referans**;
+  145 G venv/model taşınsa pytest aynen yeşil kalır. Gerçek kapı
+  `kurulum/13_surum_denetimi.py` diff'i + `ollama show` roster'ı.
+- "Her ölü venv'e tek referans Windows probe'u" → 8 adayın **5'inde çürütüldü**; ilk
+  kanıt turu `kurulum/` ve `linux/` dizinlerini hiç taramamış.
+- Aktif dal **`main` değil `jenerik-tek-motor`**.
+
+**Kanıtla ayakta kalan temizlik:** ~17 G (`venvs/nemo` 6.2 G — RECORD sha256 denetimi
+75.240 yol/0 kayıtsız/0 mismatch, `venvs/tts`+`models/tts` 5.6 G, `venvs/locateanything`
+5.2 G, `hf-cache/` 2.3 M). Çağatay onayıyla eklenen: `models/QwenOmni` 49 G, 3 ollama
+test modeli 54 G, eski candidate koşuları ~18 G → toplam ~138 G karantina adayı.
+**`vllm_bench_20260718/claude_gt/` HARİÇ** — 31 film 313 dilim elle yargılı altın standart.
+
+**Bekleyen:** Blok A planı hazır (`docs/superpowers/plans/2026-07-29-dizin-sadelestirme.md`)
+— 3 mayın, TDD, veri taşınmıyor. Blok A yeşillenince Blok B (karantina taşıması) kendi
+planına yazılacak; kritik girdisi "`E:\MITAS/` 10 dk cron sonrası geri geldi mi" sorusunun
+cevabı. Kapsam dışı bırakılan hatalar: `models/lid` kırık symlink (dil tespiti çalışmıyor),
+`asr_server.py:736` `Path("E:\\")` (prefetch Linux'ta sessizce ölü),
+`kurulum/26_kapanis_pdf.py:26` hardcode (candidate izolasyonunu deliyor),
+`venvs/asr` libcublas eksiği (**Görev 2'den önce düzeltilmemeli**).
+
+**Disk durumu:** `/` %93 dolu, 139 G boş.
+
+---
+
+## 2026-07-29 — fork envanteri + 25-film 3-kollu motor kıyası: recall ayırıyor, dup ayırmıyor
+
+**Tetikleyen:** Çağatay "master PNG'de sistem karışık, çok fazla fork var, en
+güncel ve kaliteli model ne aşamada" dedi. Envanter + ölçüm yapıldı.
+
+**Envanter bulgusu (en önemli):** Üretimde master PNG üreten TEK yol var —
+`mitas_pipeline` → `master_png_monitor --once` → `db_compose_master.compose_slit`
+/ `compose_reading_runaware`. Ve `MITAS_MASTER_V2` varsayılanı `"0"`
+(db_compose_master.py:102); `mitas.env`'de de `_PROD_DEFAULTS`'ta da yok. Yani
+**F1/F1b/F1c/F2/F3/F3b/F3c/F4/K1'in tamamı üretimde ölü** — bir ayın kök-sebep
+fix'leri yalnız harness'te koşuyor (uret.py:104, uret_ex.py:176 açıyor).
+`data/master_ex*` altındaki %86.4 sağlık üretimin değil harness'in rakamı.
+İkinci sanılan canlı zincir (`_pipe_ocr.py` → `20260601_pipeline100.compose_hybrid`)
+aslında `MITAS_MASTER_PNG` bayrağına bağlı ve o bayrak hiç set edilmiyor → uykuda.
+Ölü fork sayısı ~35 (1 Haziran prototipleri, film-özel `compose_*` scriptleri,
+`credit_mosaic_methods` yarışmasından 2 sıfır-referans motor, `dense_master.py`,
+`jenerik_tek_png.py` — 4 dokümanda anlatılıyor, kodda çağıran yok).
+
+**adaptif_slit'in gerçek aşaması:** `outputs/footage_pano427` (tek büyük yatak)
+**üç sürümün karışımı** — koşu 07-26 09:18→10:13, v14 commit'i 09:33, v16 commit'i
+10:16 → 371 film v14-öncesi, 56 film v14, **0 film v16**. Manifest şeması üç
+sürümde de aynı olduğu için içerikten ayırt edilemiyor, yalnız zaman damgasından.
+
+**25-film 3-kollu kıyas (yeni ölçüm, scratchpad):** A=üretim bugünkü hâli (V2=0),
+B=üretim fix'li (V2=1), C=adaptif v16 (iyileştirme bayrakları kapalı).
+Film seçimi: 6 bilinen-zor çapa + 19 hiç test edilmemiş taze film.
+
+| kol | ort. metin-recall | dup>0.10 | medyan boy |
+|---|---|---|---|
+| A üretim bugün | 0.4575 | 6/24 | 3776 |
+| B üretim fix'li | 0.5217 | 5/24 | 3735 |
+| C adaptif v16 | **0.5888** | 5/24 | 5444 |
+
+Film başına (fark≤0.02 berabere): C 11.5, B 5.0, A 2.5, 5 berabere.
+
+**ÖĞRENİLEN — metrik seçimi:** `dup_oran` üç motoru AYIRT ETMİYOR (6/5/5, medyan
+boylar bile yakın). Haftalardır optimize edilen metrik motor kararı için kör.
+Ayıran tek şey `sadakat.py`'nin Katman-0 metin-recall'i — A→B +0.065, B→C +0.067.
+Bundan sonra motor kıyaslarında birincil metrik recall, dup ikincil.
+
+**Başarısız/açık kalanlar:** `hayat-agaci` üç kolda da recall 0.000 (Farsça rec
+token üretmiyor — bilinen açık sınıf, hâlâ çözülmedi). `kuzeyde` üç kolda da
+<0.09. `totoro`nun Ex_Frame karesi yok (24/25 ölçüldü). adaptif temiz süpürme
+YAPMADI: 20-bulusma (−0.079) ve gecmisten-gelen (−0.070) üretim lehine.
+
+**Yan bulgu (risk):** uret_ex.py'de commit'lenmemiş bir blok, untracked
+`OCR-worktree/panoramic_composer.py`'yi sabit `/home/cagatay/Programlar/mitas/...`
+yoluyla import ediyor (o yol /opt/mitas'a symlink — çalışıyor ama kırılgan) ve
+her koşuda 4. bir kompozitör olarak `panoramic_master.png` üretiyor. Ayrıca
+`master_png_monitor.py:29` `giris_master_cropstack`'i çıplak `except` ile
+yüklüyor; korpusta 189 manifest cropstack, 157 textset — 07-29 koşusu textset'e
+düşmüş, yani giriş master'ı ortama göre sessizce mod değiştiriyor.
+
+**Görsel QC turu (Çağatay 3 film seçti) — metrikleri çürüten bulgular:**
+- `hayat-agaci`: metriklerin TAMAMEN yanıldığı vaka. Üç kolda da recall 0.000
+  (PP-OCR Farsça okumuyor), dup_oran ESKİ'ye 0.941 "sağlıksız" / adaptife 0.000
+  "sağlıklı" diyor. GÖZLE tam tersi: ESKİ 8 sütun dolu okunaklı Farsça künye,
+  V2 3 sütun (ciddi kayıp), adaptif TEK KART (480px). Adaptifin dup'ı 0 çünkü
+  tekrar edecek içerik bırakmamış — boşluk, sağlık sanılıyor.
+- `ozel-bir-anne`: V2 fix'leri GÖRÜNÜR BOZULMA üretiyor — dikey şeritlenme/
+  hayalet (yüz jaluzi gibi çizgilenmiş, satırlar üst üste). recall 0.724 (V2=0)
+  → 0.599 (V2=1). **"V2 kapısını üretimde aç" önerisi bu yüzden GERİ ÇEKİLDİ.**
+- `gercek-yalanlar`: V2'nin recall galibiyeti (0.608 vs 0.580) SAHTE. Token
+  kıyası: V2 420, adaptif 412 — fark ağırlıklı olarak aynı kelimenin OCR
+  varyantı. Kuyruk işaretçileri (`mcfadden`,`simulator`,`flight`,`pennington`,
+  `minkus`) adaptifte VAR, V2'de YOK. Yarıda kesilen adaptif değil, V2.
+
+**hayat-agaci KÖK SEBEP (kanıtlı, Görev tamam):** 113 karenin 112 çifti de
+`duraksama` (dy≈0, sıfır scroll, sıfır kesme) — kartlar sabit footage üstünde
+durduğu için faz-korelasyonu değişimi görmüyor. v16 kart değişimini token
+kimliğiyle ayırmaya çalışıyor ama Farsça'da OCR ateşlenmiyor: kare 0 → 0 kutu/
+0 token, kare 20 → 2 kutu/1 token (`1521`), kare 49 → 3/2 (`cam`,`lol`), kare
+80 → 2/0, kare 110 → 3/2 (`295jya`). Boş∩boş = "aynı kart" → yeni sayfa hiç
+açılmıyor → 480px. **ÖNEMLİ:** planlanan fix "det-kutu-yerleşimi kimliği (det
+yazıdan bağımsız)" bu filmde ÇALIŞMAZ — det'in kendisi ateşlenmiyor (6-10 satır
+görünen kartta 0-3 kutu).
+
+**BAŞARISIZ FIX ADAYLARI (tekrar denenmesin):**
+1. *Kırmızı-kanal maskesi + piksel IoU.* Maske metni gerçekten izole ediyor
+   (kapsama %1-4.5, Sobel'in yozlaşmış %70'ine karşı) AMA kimlik sinyali
+   vermiyor: aynı-kart 20↔21 IoU=0.038, farklı-kart 49↔80 IoU=0.060 — ayrım
+   yok, ters bile. Sebep: ince/antialiaslı kırmızı yazı kare-kare oynuyor.
+2. *Kırmızı maske + 24-kovalı satır-yoğunluk profili korelasyonu.* Yakın
+   çiftler ort=0.395, uzak çiftler ort=0.394 — sıfır ayrım.
+Sonuç: bu sınıf için metinden-bağımsız kart-kimliği hâlâ ÇÖZÜLMEDİ; iki ucuz
+aday tükendi, tasarım kararı gerekiyor (konsey turu adayı).
+
+**UYGULANAN (Çağatay kararı, aynı oturum):**
+- *adaptif üretime entegre edildi.* `master_png_monitor.gen_reading_master`
+  ÇIKIŞ yolunda adaptif BİRİNCİL, V2 YEDEK. Bayrak `MITAS_MASTER_ADAPTIF`
+  (varsayılan açık). `_compose_reading_seg`'e DOKUNULMADI — onu uret.py/
+  uret_ex.py bit-parite için import ediyor; dispatch yalnız üretim giriş
+  noktasında. `compose_adaptif`'e `ims=` parametresi eklendi (kareler diskten
+  değil çağırandan gelir; Ex_Frame klasör düzenine bağımlılık kalktı).
+- *Yedeğe düşme kuralı:* `segment==1` ve `kare>=20` ve `boy<=2×kare_h` → çökme
+  sayılır, V2'ye düşülür ve SEBEP manifest'e `adaptif_yedek` olarak yazılır.
+  Duman testi: hayat-agaci → yedeğe düştü (`cokme`, 113 kare/480px), karadeniz
+  → adaptif 7318px/14 segment. Tembel import hatası YUTULMUYOR (giris_master_
+  cropstack'in çıplak `except` deseni tekrarlanmadı).
+- *23 ölü fork silindi* (commit, 25 dosya / 4749 satır). KALDIRILMADI çünkü
+  gerçek bağımlılığı var: `20260601_slitscan2.py` (CANLI pipeline100),
+  `20260530_2350_full_pipeline_v2.py`, `db_compose_standalone.py`. Gitignore'lu
+  olduğu için git geçmişinde HİÇ olmayan `linemosaic`/`panorama` önce
+  `arsiv/master-png-fosilleri` dalına alındı (`0a76963`).
+- *Hatam:* silme commit'ini `scripts` pathspec'iyle attım, Çağatay'ın 6
+  commit'lenmemiş dosyası içeri girdi (`mitas_pipeline`, `_jenerik_pool`,
+  `_deepseek`, `karar_gunlugu`, `_pipe_dilim_vl`, `_pipe_video_vl`).
+  `reset --soft` + `restore --staged` ile geri alındı, iş kaybı yok.
+  **Ders: pathspec'e dizin verme, dosyaları tek tek say.**
+
+**Bekleyen:** (1) 40-film V2↔adaptif kıyası — bu turda EŞİT BAYRAK şartı:
+`MITAS_IYIL_*` dörtlüsü iki motorda ZIT varsayılana sahip (db_compose_master
+`"1"`, adaptif_slit `"0"`), ilk 25-film kıyası V2 LEHİNE eğikti ve adaptif yine
+kazandı; (2) yedeğe düşme oranı — 427'de kaç film çöküyor, manifest'teki
+`adaptif_yedek` alanından toplanacak; (3) OCR kapsama taraması — kaç filmde det
+neredeyse sıfır ateşleniyor (hayat-agaci sınıfı, Latin-dışı betik); (4) V2
+kapısı `MITAS_MASTER_V2` hâlâ üretimde 0 — açma kararı ozel-bir-anne
+şeritlenmesi yüzünden ASKIDA, önce şeritlenme taraması gerekiyor.
+
+---
+
+## 2026-07-26 (devam 5) — v16 token-kimlik: kart sınıfı büyük ölçüde kırıldı, 3 açık kaldı
+
+**Çağatay düzeltmeleri (kalıcı):** (1) İş GELECEK filmler için TEK motor —
+427 test yatağı, "bozulanda eskiye düşeriz" SAYILMAZ (hafıza:
+master-png-motor-stratejisi); (2) kıyas görsellerinde ESKİ/YENİ etiketi BÜYÜK
+olacak (outputs/kiyas_427 yeniden basıldı); (3) QC = master PNG'yi GERÇEKTEN
+açıp okumak — küçültülmüş yapı bakışı yetmez ("ikisi de bok gibi" affedilmeyenler
+vakası: ikisinin de kötü olduğunu söylemek görev).
+
+**v15→v16 (commit 5a44aab):** geometrik kimlik vekillerinin tümü battı
+(ölçümle: hayat-agaci kar yağışı komşu-fark 7-11k px ≈ kart farkı) → kimlik
+BİRİNCİL kanıtı det+rec TOKEN kapsaması (yalnız duraksama-temsilcileri, tembel
+motor). Token-yoklama ızgarası (düz istikrar eğrili parlak filmlerde aday
+üretimi), az-token güvencesi (havaci 46-sayfa patlaması), kesme dalına
+kimlik+metin kapıları (affedilmeyenler THE END ×5), metinsiz-sayfa filtresi.
+**Tam-okuma kabul:** jetgiller 13/13 kart birebir ✓ (Jayne Barbera→telif),
+totoro 27 segment içerik-zengin, beklenmedik tek THE END ✓, affedilmeyenler
+gök-çöpü öldü (3 sayfa, ideal 1-2), benimle 2298 ✓ parti ✓ korunmuş.
+
+**AÇIK 3 sınıf (motor hazır DEĞİL):** (a) gercek-yalanlar: 2 balo-kartı
+(Pamela Easley/Thomas Fisher) küçük-dy mikro-slit'e yapıştı — scroll-append
+sırasında segment-içi kart-geçişi körlüğü; fix adayı: küçük-dy appendlerde
+token-süreklilik şartı; (b) hayat-agaci: Farsça rec token üretemiyor →
+det-KUTU-YERLEŞİMİ kimliği (det yazıdan bağımsız); (c) havaci: loş metin
+gray>110 ölçüm maskesine görünmez (106 'bos' çifti) → film-bazlı eşik
+kalibrasyonu. Sonra: 14+kabul5 tam-okuma QC, 427 yeniden, konsey kırmızı-takım
+(mimari artık kararlı olunca), OCR-recall toplu ölçüm.
+
+---
+
+## 2026-07-26 (devam 4) — 427-tam koşu + gerileme avı: adaptif'in haritası çıktı
+
+**İş:** adaptif_slit 427 filmin TAMAMINA koşuldu (outputs/footage_pano427,
+korpusa dokunulmadı) + parti kök-fix'i (v14, commit 4dfefe2): parlaklık-maskesi
+kapsaması >0.25 olan filmlerde ölçüm mod_denetim'in Sobel kenar-maskeli grisine
+geçer — parti 527→2355px tek geçiş TAM liste; 79 parlak-maskeli film yeni yolla
+yeniden üretildi (umitsizlik %96-kapsama dahi tertemiz), 14 doğrulanmış filmin
+çıktıları değişmedi. Yapısal triyaj (boy eski/yeni + dup_metrik + sınıf):
+KAYIP-şüphesi 16, TEKRAR-şüphesi 23, PATLAMA 26, İYİLEŞEN 26 — şüpheliler gözle
+ayıklandı ("yeni kısa" çoğu kez DOĞRU dedup çıkıyor; triyaj hüküm değil aday).
+
+**GERÇEK gerileme sınıfı (gözle doğrulandı): STATİK-ZEMİN KARTLARI** — zemin
+kartlar arasında hiç değişmiyor (jetgiller/totoro çizgi-film çerçevesi,
+hayat-agaci karlı ağaç, havaci hangar), yalnız yazı değişiyor; içerik-NCC ve
+kimlik-IoU zemine domine olup kartları "aynı" sayıyor → sayfalar yutuluyor.
+Ters ucu affedilmeyenler: gök dokusu sahte-"farklı" verip boş sayfa çöpü.
+PATLAMA sınıfı (mookie/mufreze) kayıp DEĞİL: sahne-kartı başına sayfa (içerik
+tam, biçim şişkin). ESKİ kompozitör tam bu statik-kart sınıfında güçlü —
+adaptif'in kazandığı yer scroll/footage/parlak-zemin.
+
+**Tasarlanan sonraki fix (v15):** aynılık kararını NCC yerine PARLAKLIK-
+NORMALİZE PİKSEL-FARKI ile ver: b'yi a'nın istatistiğine normalize et,
+|fark|>eşik pikselleri say — fade→küçük fark (aynı), aynı-zeminde metin
+değişimi→metin-boyu fark (farklı). Zemin paylaşımından bağımsız tek ayırıcı.
+
+**Strateji (/goal ≥91 için):** motor zorlaması YOK — film başına (eski, yeni)
+adaylarından sağlık-kapılarıyla (recall + dup + boy) İYİ olanı seçen SEÇİM
+korpusu. Hiçbir film statükodan kötüye gidemez (seçimde eski de var); adaptif
+kurtardıklarını ekler. v15 sonrası kart-sınıfı da adaptif'e açılabilir.
+
+---
+
+## 2026-07-26 (devam 3) — ADAPTİF SLIT kompozitörü (footage-üstü sınıf kırıldı)
+
+**İş:** `harness/master_dup/adaptif_slit.py` (commit 2366ac2) — F3b sonrası bile
+mod_hatasi=True kalan 13 film + benimle-dans-et için kareden bağımsız yeni
+kompozitör. Çekirdek: kare-başı METİN-MASKELİ (gray>110) phaseCorrelate dy +
+duraksama-atlama + satır-seçimli gerçek slit; kart/melez akışlar için Çağatay'ın
+"panoramik foto modu" kuralları (duraksa→bekle, cut/dissolve→alta in yeni sayfa,
+hareket→panorama) mimariye işlendi. 14 filmde 13 iterasyon GÖZLE doğrulamayla
+(Çağatay talebi: "sürekli örnekleri göster gözle doğrulayalım yoksa patlıyoruz")
+gelişti; her mekanizmanın gerekçesi = gözle yakalanmış somut bir kusur:
+- dissolve bekçisi + siyahtan-kart tetiği (karadeniz açılış kartları kaybı),
+- NCC fade-kapısı (beklenmedik-miras THE END ×4), istikrar YEREL-TEPE temsilci +
+  düz-plato ORTA kare (kucuk-dev karışım-karesi), İÇERİK-kanıtlı aynılık
+  (IoU 0.35 kuralı farklı-metin/aynı-yerleşim kartları yutuyordu — IoU konum
+  ölçer içerik ölçmez), parlaklığa-uyarlanan KİMLİK maskesi (soluk↔parlak),
+  küçük-dy sahte-scroll + scroll-süreklilik bekçileri (Frankenstein sayfa:
+  üst yarı kart2 alt yarı kart3), yönlü yavaş-sürünme mikro-scroll'u.
+**QC (footage_qc, üretim OCR ile):** 14 filmde ort. text_recall 0.337→0.400;
+karadeniz +0.23, son-konser +0.22, aile-babasi +0.16, beklenmedik +0.40;
+benimle/gercek −0.05 (eski tekrarlı sayfalar OCR'a çift şans veriyordu; görsel
+içerik tam). aydaki-adam'ın kayıp 4 ismi (Dr. Wilmot, Prof. Stephens,
+Prospector, Storekeeper) geri geldi; kucuk-dev kart2 tamamen kurtuldu.
+
+**Öğrenilen / başarısız denemeler:** (a) dy'yi tüm-gri veya metin-piksel NCC ile
+doğrulama İKİ kez de sağlıklı filmleri bozdu (footage zemini / 1px yuvarlama) —
+geri alındı, teşhis-amaçlı tutuluyor; (b) sabit istikrar-eşiği (0.75) grenli
+soluk kartları dissolve'la aynı banda düşürüyor — eşik değil ŞEKİL (yerel tepe)
+ayırır; (c) "en dolu kare" temsilci seçimi karışım karesini seçer (iki kartın
+pikseli toplanır) — temsilci geçişten EN UZAK kare olmalı.
+
+**Bekleyen:** (1) parti kök-sebebi bulundu: parlak zemin gray>110 maskesini
+domine ediyor, korelasyon statik zemine kilitleniyor (dy≈0 ölçülürken yazı
+akıyor) → det-kutu maske fallback'i (maske-kapsama >%25 → det yolu) YAPILACAK;
+(2) kucuk-dev soluk kart çifti (dup 0.167) + segment-sınırı blok örtüşmeleri
+(aydaki/yaren) → OCR-kanıtlı dikiş-kırpma son geçişi; (3) 427-tam koşu arka
+planda (outputs/footage_pano427) — bitince eski-vs-yeni metrik kıyas + gerileme
+avı ("bir şeyi düzeltirken başka şey bozduk mu" — Çağatay talebi); (4) son-metro
+885-kare yüksek-fps boy_asimi (45k tavanı) — ölçek/birleştirme kararı; (5)
+kompozitöre entegrasyon kararı (hangi filmler adaptif yola düşer: mod_hatasi
+imzası mı, her scroll mu) → konsey kırmızı-takım turu SONRA.
+
 ## 2026-07-26 (devam 2) — "Dikiş-tekrarı" kök-sebep fix'i (F3c): 195 aday, 27 düştü
 
 **İş:** F3b'nin ÜSTÜNE, `db_compose_master.py`'ye F3c eklendi (MITAS_MASTER_V2 flag

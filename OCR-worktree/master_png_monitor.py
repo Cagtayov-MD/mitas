@@ -108,6 +108,79 @@ def _compose_reading_seg(frames, args):
     return master, info | {"manifest": manifest}
 
 
+# --- adaptif_slit entegrasyonu (2026-07-29, Çağatay kararı) ----------------- #
+# ÇIKIŞ okuma-master'ının BİRİNCİL kompozitörü artık harness/master_dup/adaptif_slit.
+# Gerekçe (25-film 3-kollu kıyas, aynı filmler + aynı metrik): metin-recall
+# adaptif 0.589 · V2 0.522 · V2-kapalı 0.457. Görsel QC'de adaptif, V2'nin
+# kaçırdığı künye KUYRUĞUNU taşıyor (gercek-yalanlar: mcfadden/simulator/
+# pennington token'ları adaptifte VAR, V2'de YOK) ve blokları tekrarlamıyor.
+# V2 (compose_reading_runaware) YEDEK olarak durur — adaptif ÇÖKERSE ona düşülür.
+# Çökme tanımı hayat-agaci vakasından: 113 kareden tek kart / 480px üretmişti.
+# Sebebi kompozitör DEĞİL, OCR kapsaması: Farsça karelerde det 0-3 kutu buluyor
+# (normal filmde 19-35), dolayısıyla kart-kimliği sinyalinin girdisi yok.
+ADAPTIF_KOK = Path(_PR) / "harness" / "master_dup"
+ADAPTIF_COKME_MIN_KARE = 20   # bu kadar KAREDEN tek kart çıkıyorsa çökmedir
+_ADAPTIF_MOD = None
+
+
+def _adaptif_acik() -> bool:
+    return os.environ.get("MITAS_MASTER_ADAPTIF", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _adaptif_modul():
+    """Tembel import — hata YUTULMAZ, çağırana yükselir.
+    (Yukarıdaki `cs` bloğunun çıplak `except: cs = None` deseni üretimde giriş
+    master'ını sessizce mod değiştirmişti: korpusta 189 manifest cropstack,
+    157 textset. Aynı hatayı burada tekrarlama — sebep log'a yazılır.)"""
+    global _ADAPTIF_MOD
+    if _ADAPTIF_MOD is None:
+        if str(ADAPTIF_KOK) not in sys.path:
+            sys.path.insert(0, str(ADAPTIF_KOK))
+        import adaptif_slit
+        _ADAPTIF_MOD = adaptif_slit
+    return _ADAPTIF_MOD
+
+
+def _adaptif_cokmus(manifest: dict, kare_sayisi: int, kare_h: int) -> bool:
+    """Kart-kimliği körlüğü yüzünden master'ın tek karta çökmesi.
+    KARE şartı, gerçekten kısa (az kareli) tek-kart jeneriklerini muaf tutar —
+    örn. supheli-zafer 480px üretir ama kare sayısı düşüktür, çökme değildir."""
+    if manifest.get("segment") != 1 or kare_sayisi < ADAPTIF_COKME_MIN_KARE:
+        return False
+    boy = (manifest.get("size") or [None, None])[1]
+    return bool(boy) and kare_h > 0 and boy <= 2 * kare_h
+
+
+def _compose_reading_seg_adaptif(frames):
+    """Birincil kompozitör. Kapalı/başarısız/çökmüş → (None, sebep); çağıran V2'ye düşer."""
+    if not _adaptif_acik():
+        return None, {"adaptif": "kapali"}
+    try:
+        ad = _adaptif_modul()
+        ims = [im for im in (dc.rd_cached(f) for f in frames) if im is not None]
+        if len(ims) < 2:
+            return None, {"adaptif": "kare_yok", "yuklenen": len(ims)}
+        master, manifest = ad.compose_adaptif("uretim", ims=ims)
+        if master is None:
+            return None, {"adaptif": "cikti_yok", "durum": manifest.get("durum")}
+        if _adaptif_cokmus(manifest, len(ims), ims[0].shape[0]):
+            return None, {"adaptif": "cokme", "segment": manifest.get("segment"),
+                          "size": manifest.get("size"), "kare": len(ims)}
+        info = {
+            "frames": len(ims),
+            "mode": "adaptif_slit",
+            "status": manifest.get("durum"),
+            "size": manifest.get("size"),
+            "kept_blocks": manifest.get("segment"),
+            "olcum_yolu": manifest.get("olcum_yolu"),
+        }
+        return master, info | {"manifest": manifest}
+    except Exception as exc:
+        print(f"[adaptif] HATA -> V2 yedegine dusuluyor: {type(exc).__name__}: {exc}",
+              file=sys.stderr, flush=True)
+        return None, {"adaptif": "hata", "hata": f"{type(exc).__name__}: {exc}"}
+
+
 def _semantic_giris_groups(film: Path, frames: list[str], *, min_frames: int = 2):
     """Manifest OCR imzalarıyla görsel olarak aynı yerleşimli farklı kartları ayır."""
     path = film / "frames" / "giris_jenerik_manifest.json"
@@ -386,7 +459,15 @@ def gen_reading_master(
     if seg == "giris":
         master, info = _compose_giris_reading_seg(film, frames, args)
     else:
-        master, info = _compose_reading_seg(frames, args)
+        # ÇIKIŞ: adaptif birincil, V2 yedek. Yedeğe düşüldüyse SEBEBİ manifest'e
+        # yazılır -- 40-film kıyasında "kaç filmde çöktü, neden" ölçülebilsin.
+        master, info = _compose_reading_seg_adaptif(frames)
+        if master is None:
+            sebep = info
+            master, info = _compose_reading_seg(frames, args)
+            info["adaptif_yedek"] = sebep
+            if isinstance(info.get("manifest"), dict):
+                info["manifest"]["adaptif_yedek"] = sebep
     manifest = info.pop("manifest", None)
     info["source"] = src
     info["segment"] = seg
