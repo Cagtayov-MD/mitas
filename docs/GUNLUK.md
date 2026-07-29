@@ -7,6 +7,53 @@
 
 ---
 
+## 2026-07-29 (gece) — track_kunye: frame-first künye çıkarma kuruldu, ilk ölçümde sentetik master adaptifi geçti
+
+**Tetikleyen:** Çağatay'ın tasarım sorusu ("çıkış jeneriğini en verimli nasıl
+okuruz — tarafsız tasarla") + sipariş: "7 maddelik sistemi kur da görelim,
+sentetik master'ı da dene, GLM/Kimi'ye danış, bana çalışan bir şey getir".
+
+**Kurulan:** `harness/track_kunye/track_kunye.py` (~480 satır, üretime
+DOKUNMAZ). Akış: her karede det+rec (db_compose_master F1b/F1c tembel
+motorları — tek OCR kaynağı) → kare-içi ROW gruplama (y-bandı; kolonlar
+x-sıralı `" | "` canon — rol|isim geometrisi bedavaya korunur) →
+token-eşleşmeli kayma zinciri S_k → bölüm/kart sınırları (Jaccard<0.2 + dy
+yok → yeni bölüm) → g=cy+S_k uzayında ROW-track kümeleme → komşu-track
+garble-birleştirme (cuslodian/gustodian vakası) → bulanık-mode konsensüs
+(stitch fikri) → çöp filtreleri (altyazı bandı 0.82H / watermark-ömrü /
+tek-gözlem→düşük-güven) → çıktılar: kunye_track.txt + dusuk_guven.txt +
+SENTETİK MASTER (her track'in en iyi kırpımı g-sırasında; düşük-güven ayrı
+bölümde render — insan kararı) + manifest.
+
+**İLK ÖLÇÜM (10 film, sadakat token-recall):** det-kör olmayan 7 filmde
+ortalama: adaptif master 0.549 · trackTXT 0.524 · **sentetik master 0.653**.
+karadeniz 0.204→0.643 (3×), mufreze 0.618→0.768, 20-bulusma 0.827→0.896
+(adaptifin kazandığı filmde bile önde). Tek kayıp havaci (0.184 vs 0.285) —
+loş-metin sınıfı, bilinen açık kalem. det-körlük kapısı 3 filmi doğru
+işaretledi: hayat-agaci (ana=0, YALAN ÜRETMEDİ), kucuk-dev-adam, sihirli-flut
+— son ikisinin 25-film kıyasındaki kötü sonuçlarının kök sebebi de böylece
+bulundu (düşük det yoğunluğu sınıfı).
+
+**ÖĞRENİLEN (önemli):** sentetik master recall'ı trackTXT'den YÜKSEK —
+konsensüs doğru SATIRI seçiyor ama Paddle latin-mobile rec METNİ bozuk
+("MIKE MINKLER, C.A.S." → "eminler ca s"); piksel bandı doğru olduğundan
+yeniden-OCR daha iyi okuyor. Güçlü halka görsel seçim, zayıf halka rec metni.
+İyileştirme adayları konseye soruldu (rec'i server modele çevirmek / ikinci
+geçiş yeniden-OCR / karakter-düzeyi oylama).
+
+**Konsey:** ask_council MCP koptu ("Connection closed") →
+`council_mcp/konsey_dogrudan.py` ile iki tur arka planda: (1) tasarım sorusu
+(A-uzamsal vs B-zamansal, mercekli), (2) track_kunye TAM KODU ile bug
+avcılığı. Cevaplar gelince sentezlenecek.
+
+**Bekleyen:** (1) konsey cevapları + fix turu; (2) havaci/loş-metin
+kalibrasyonu; (3) det-kör sınıfa VLM tam-kare fallback (kapı hazır, çağrı
+yok); (4) 40-film genişletme + QC turu (Çağatay: "sonra qc üzerinden tekrar
+geçeriz"); (5) rec metni iyileştirme; (6) paodycullen-tipi garble-bitişik
+tekrar (düşük öncelik).
+
+---
+
 ## 2026-07-29 (devam) — dizin sadeleştirme turu: 3 MAYIN bulundu, temizlik ikinci plana düştü
 
 **Tetikleyen:** Çağatay "proje çok dağınık, testler/scriptler/sonuçlar/pipeline/test
