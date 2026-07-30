@@ -1117,12 +1117,12 @@ if __name__ == "__main__":
     # yok saymak yerine AÇIKÇA reddediyoruz.
     if "--v3" in sys.argv or "--v4" in sys.argv:
         print(
-            "credit_onset.py --v3/--v4: bu motorlar 2026-07-29'da Çağatay'ın "
+            "figo.py --v3/--v4: bu motorlar 2026-07-29'da Çağatay'ın "
             "tek-motor kararıyla söküldü (söküm öncesi commit 7b0a46f). Tek "
             "yaşayan yol tespit_v5 (bayraksız veya --v5). CV karşılaştırma "
             "motoru hâlâ core/pipelines/ocr/jenerik_frame_pool_detector."
-            "detect_frame_dir içinde yaşıyor (giriş-jeneriği havuzu kullanıyor, FIGO DEĞİL) "
-            "onu kullanıyor.",
+            "detect_frame_dir içinde yaşıyor — onu giriş-jeneriği havuzu kullanıyor, "
+            "FIGO DEĞİL.",
             file=sys.stderr,
         )
         raise SystemExit(2)
@@ -1131,7 +1131,7 @@ if __name__ == "__main__":
     # tespit_v5, bayrak yalnız eski çağrı alışkanlığını kırmamak için tolere edilir.
     yollar = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not yollar:
-        print("kullanım: credit_onset.py [--v5] <kare-klasörü>", file=sys.stderr)
+        print("kullanım: figo.py [--v5] <kare-klasörü>", file=sys.stderr)
         raise SystemExit(2)
 
     r = tespit_v5(yollar[0])

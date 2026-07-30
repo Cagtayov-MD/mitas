@@ -71,6 +71,170 @@ video_vl/video_vl_okuma.txt, parçalar).
 - **SIRADA:** MiniCPM-V-4.5 tek dizi/tek bölümde öne çıktı — motor kararı İÇİN DEĞİL
   (eval-harness-first: film yatağı + daha çok bölümle benchmark + konsey turu gerekir).
 
+## 2026-07-30 (kapanış) — FIGO doğdu: temizlik + rename + net pipeline bağlama (92aee5e, 59379b3)
+
+**Çağatay kararı:** "Jenerik bulma modelinin adı FIGO. Projede sadece bu iş
+kalsın, net pipeline'a bağla — 'şurada da jenerik bulma var' karışıklığı bitsin."
+
+**FIGO = `/opt/mitas/harness/kunye_kiyas/figo.py`** (eski credit_onset.py, git mv;
+import edenler güncellendi: _jenerik_pool/olc_pool/hata_atlasi/det_isit).
+Kimlik kartı: `docs/FIGO.md` (path'ler, zincir, skor, bayraklar, FIGO-olmayanlar).
+
+**TEMİZLİK (tümü tüketicisiz doğrulandı, 12 dosya):** jenerik_start_eval +
+jenerik_label_sheets (eski GT-etiketleme), test_gt/asama1_v2/apply_trim/
+repool_all_hybrid (eski onset harness), phase2_vlm_rescue/phase3_verify_fix/
+test_fullscan/test_resolution (eski VLM sürücüleri), batch_v5/_gecici_eski_kuru_
+parite (artefakt). 17 ölçüm snapshot'ı → veri/arsiv_olcum/. SİLİNMEYENLER
+(başka işlerin bağımlılığı — FIGO.md'de belgeli): jenerik_frame_pool_detector
+(giriş-havuzu + FIGO-HATA fail-safe), jenerik_oneocr_detector, credit_start_vlm,
+cikis_tail_scan/giris_trailing_trim.
+
+**PİPELİNE NET BAĞLAMA:** `MITAS_JENERIK_METIN_KAPI=1` kök mitas.env + linux/
+şablon (drift önlemi). Kredisizde eski CV DEVRALMAZ — FIGO son söz.
+⚠️ OPERASYONEL: systemd mitas-asr env'i başlangıçta okur — METIN_KAPI'nin
+canlı servise geçmesi için `systemctl restart mitas-asr` gerekir (Çağatay kararı).
+
+**KAPILAR:** rename sonrası 110-film BİREBİR (104/%94.5/%97.3/kredi-yok 29/29,
+hata-fark yok) + kredisiz duman: AMY → status=kredi_yok, engine=v5_kredi_yok,
+havuz=0, CV KOŞMADI ✓. Codex-review borcu: Çağatay "GLM de olur, önemli değil"
+dedi — GLM zaten 2 kod-turu yaptı, borç kapalı sayıldı.
+
+## 2026-07-30 (akşam) — ŞÜPHE KATMANI indi (konsey-gardlı); zor-grup avı kapandı; FINAL koşu birebir
+
+**Tetikleyen:** Çağatay: "zor grupta elimizden geleni yapalım, denemeden bırakmak
+olmaz; sorun olduğunu BİLİRSEK gerekirse tüm havuzu alırız, yoksa isim kaçar PDF
+şaşar" + "son kez tam koşu, bozmadığımızdan emin olalım" + skill eleştirisi.
+
+**ŞÜPHE KATMANI (de4708b + 3f45c91 + 63f19f5):** Sonuc.suphe (davranış-NÖTR):
+gec_riski (kazanan önünde birleşememiş + ≥%65 okunamaz komşu blok — İNİŞLİ ✓
+yanıyor; KNUTE bilinen yanlış-pozitif, kabul), erken_riski (Latin kazanan + baş
+%80 kart-değil — HARİKA yapısal olarak YAKALANMIYOR: footage markaları AQUAFINA/
+VOLLEYBALL kart gibi okunuyor, dürüst sınır), parcalanma_riski (seyrek-kart
+etiketi). Manifest v5.suphe + v5_izleme ŞÜPHE KUYRUĞU. MITAS_JENERIK_SUPHE_
+GENIS_HAVUZ bayrağı (default KAPALI): açıkken gec_riski'nde havuz elenen-aday
+başından, tavan 120 kare, YALNIZ kazanan varken (kredisizde asla — AMY dersi).
+Mekanizma monkeypatch'le kanıtlı (853'e çekiyor, 120-tavan kesiyor). Dış konsey
+(GLM+Nemotron) gardları: %65-70 eşik, kredi_var kilidi, Kiril muafiyeti.
+110-film şüphe-ORANI ölçülmedi — ilk üretim koşularında v5_izleme gösterecek.
+
+**ZOR-GRUP AVI SONUÇ:** HARİKA için scroll-dal içerik-çapası DENENDİ-ELENDİ
+(HARİKA+İKİ_KAFADAR düzeldi AMA SEN_TOM+132/KAHRAMAN+90/KAPAN+84 GEÇ bozuldu —
+seyrek-kart jenerikleri footage'dan ucuz sinyalle AYIRT EDİLEMİYOR: 'Sascha
+Oliver Engl' 2-isim kartı vs 'SPEEDO/COACH' footage'ı satır/kart/rol'de özdeş;
+geri alındı). YALNIZ: TV-bandı her karede kart=True, jenerik başı çöp — hiçbir
+içerik sinyali ayırt etmiyor. Kalan 6 hata: 3 üretim (YALNIZ/HARİKA/İNİŞLİ —
+hepsi dar-VLM sınıfı, İNİŞLİ artık ŞÜPHEDE GÖRÜNÜR), 3 simetrik-only (üretimde
+doğru). OCR-tabanlı av resmen kapandı.
+
+**FINAL KOŞU (Çağatay şartı) BİREBİR:** 104/110 %94.5 · üretim 107/110 %97.3 ·
+kredi-yok 29/29 · hata-fark YOK — tüm deneme geri-alımları temiz kanıtlandı.
+(İlk final denemesi 2 kez düştü: (1) göreli-yol sessiz-hata — olc_pool.py'yi
+cwd'den çağırma, MUTLAK yol kullan + rc kontrol et; (2) SIGABRT — GPU'da paralel
+oturum 23GB doluyken; paralel 6 ile temiz.)
+
+**SKILL DİSİPLİNİ (Çağatay eleştirisi, hafızaya işlendi):** skill İÇERİĞİNİ
+taklit etmek yetmez — Skill tool'uyla INVOKE et; kritik commit zincirinde
+codex-review atlandı (bu oturumda 15+ commit codex-review'suz — borç olarak
+kayıtlı). verification-before-completion yüklendi, Iron Law uygulandı.
+
+**KONSEY DURUMU:** GLM aktif+değerli (2 kırmızı-takım turu tasarımı değiştirdi),
+Nemotron aktif, Kimi 429-bakiye, MiniMax düzensiz, Gemini+GPT anahtarları VAR
+ama son turlarda SESSİZ düşüyor (teşhis: anahtar_test.py — bekleyen iş),
+Qwen anahtarı hiç girilmemiş.
+
+## 2026-07-30 (öğlen) — HATA AVI: GELECEK düzeldi (%93.6→%94.5!), İNİŞLİ çözülemez sınıf, kalan-5 haritalandı
+
+**Tetikleyen:** Çağatay: "İNİŞLİ'de jenerik çok net, neden çözmüyoruz? Kalan 5'e de bakalım."
+
+**🎯 GELECEK_GÜNLER +91→+1 (390e04b): İLK GERÇEK DOĞRULUK ARTIŞI.** GT %93.6→%94.5
+(104/110), üretim %96.4→%97.3 (107/110), kredi-yok 29/29, başka film oynamadı.
+Yeni baseline sabit: olcum_BASELINE_9455.json (90a8d81). Kök: _kart_dizisi_geri_
+genislet zinciri 743-733 arası 6'lık boşlukta (dissolve+n=3 ara kareler) kopuyordu
+→ bosluk_tol 4→6 (tek parametre). Teşhis yöntemi: kare-kare kart_mi anatomisi
+(672-763'te 27 kalifiye kart bulundu — ISABELLE HUPPERT...Produit par).
+
+**İNİŞLİ +89 = ÇÖZÜLEMEZ SINIF (3 yol denendi, 3'ü veriyle elendi):**
+(1) sınırsız nötr-köprüleme → AMY kredisizde SAHTE onset (28/29 kırmızı çizgi,
+geri alındı; ayrıca KNUTE -129, HAYATIMIN -86 yeni hatalar). (2) tavanlı köprüleme
+→ köprü-anatomi ölçümü İMKANSIZ dedi: İNİŞLİ'nin köprülenecek gap'i (nötr=12/14)
+ile KNUTE'nin kesilecek gap'i (nötr=12/20) AYNI nötr değerde — sayaç ayıramaz.
+(3) _gecis_icerik_onayi'ye AR ikinci-şansı (salt-ekleyici, ≥2 farklı AR-rol) →
+zincir kapıya ULAŞIYOR (bosluk 14≤45 ✓) ama Farsça KIRMIZI KALİGRAFİ Paddle-AR'de
+de OKUNMUYOR (kareler 'ابلاز/افد' kırıntı, roller_ar=[]) → içerik kanıtı üretilemez
+→ geri alındı (YAGNI: hedefini ıskalayan kod kalmaz). İNİŞLİ 'okunamayan-kaligrafi
+tek-yazı kart' sınıfı → dar-VLM adayı.
+
+**KALAN-5 HARİTASI (Çağatay 'belki kolay fix' — cevap: HAYIR):**
+- YALNIZ_SAVAŞÇI -190 + HARİKA -124 + KIZIL_HAYAT -63: AYNI SINIF = 'film-içi
+  ekran-metni yapışması' (TV haber bandı 'LAURA NEWTON' / plaj grafikleri / MOULIN
+  ROUGE neonları kutu üretip jeneriğe yapışıyor) — kampanyanın dar-VLM'e bıraktığı
+  sınıf, kolay fix YOK. Yalnız ilk ikisi üretim hatası; KIZIL üretimde doğru.
+- İKİ_KAFADAR -67 (dissolve bindirmesi) + TESS -37 (Fransızca epilog ara-yazısı):
+  üretim ölçütünde ZATEN DOĞRU, simetrik-only.
+ÖZET: üretim ölçütünde gerçek hatalar 3'e indi (YALNIZ/HARİKA/İNİŞLİ), üçü de
+dar-VLM sınıfı. OCR-tabanlı kolay kazanımlar TÜKENDİ.
+
+**Yan olay:** kalan-5 teşhisinde tek-süreç çoklu-model birikimi CUDA 700 çökmesi
+verdi → film-başına izole süreç deseniyle çözüldü (GUNLUK'teki 'v5 GPU şart'
+notunun kardeşi: uzun teşhis döngülerinde süreç-başına-film).
+
+## 2026-07-30 (sabah 2) — Farsça tetik boşluğu KAPANDI (c2f131e); koşu-devam denemesi kırmızı çizgiden GERİ ALINDI
+
+**1) FARSÇA TETİK FIX (c2f131e, TDD: RED→GREEN→kapı birebir):** Mercek-4 boşluğu
+kapatıldı. `en_bos_kare` artık kırıntı-kareleri (alpha≥4-harf token'sız satırlar,
+'<_ III1') boş sayıyor — SALT-GEVŞETME (tetiklenen vaka tetiklenmez olamaz;
+oransal-eşik alternatifi küçük örneklemde sıkılaştırdığı için reddedildi).
+RED: monkeypatch EN-rec→kırıntı, KANDAHAR kredi_yok'a düştü (2 varyant).
+GREEN: fix sonrası bulundu (+5). 110-film kapısı BİREBİR 103/29-29.
+Repro: scratchpad/farsca_tetik_repro.py (commit'lenmedi, tek seferlik).
+
+**2) İNİŞLİ TEŞHİSİ (Çağatay 'jenerik çok net, neden çözmüyoruz'):** Kök sebep
+DİL DEĞİL, GEOMETRİ — 917-937 arası kartlar TEK-yazı (Farsça kaligrafi tek
+rol/isim) → credit_box `n>=2` kuralı jbayrak=False → koşu BÖLÜNDÜ → ilk parça
+(853-915, GT 862'yi içeriyor!) SON_ERISIM'e takılıp elendi → +89 GEÇ. GELECEK
+(+91) akraba sınıf ama farklı: tek-isim bölgesinde koşu HİÇ BAŞLAMIYOR.
+
+**3) KOŞU-DEVAM FIX DENEMESİ → GERİ ALINDI (kırmızı çizgi çalıştı):** 'n=1
+kareler koşuyu kesmesin (nötr)' fix'i İNİŞLİ'yi düzeltti (+89→-85 güvenli yön)
+AMA 110-filmde: kredi-yok 28/29 (AMY'NİN_TALİHSİZLİKLERİ kredisizde SAHTE onset
+1159 — nötr kareler sınırsız köprü kurup kutu-bölgesini sona bağladı), KNUTE
+-129 ve HAYATIMIN_ERKEĞİ -86 yeni hatalar, genel %90.9. git checkout ile geri
+alındı, baseline doğrulandı. DERS: nötr köprüleme TAVANSIZ olamaz — gelecekte
+denenecekse nötr-sayaca üst sınır (ör. ≤8 örnek-indeks) + kredisiz-set ön-testi
+şart. 'Tek-yazı kart koşu-bölünmesi' sınıfı (İNİŞLİ/GELECEK, 2 film) AÇIK.
+
+## 2026-07-30 (sabah) — Fable taze-göz denetimi: ikinci-şans CANLI doğrulandı, 2 gedik kapatıldı, 1 gedik ayrı işe
+
+**Tetikleyen:** Çağatay (model→Fable): "ikinci tur aktif mi? iyice bakın, eksik gedik kalmasın."
+
+**İKİNCİ-ŞANS CANLI DOĞRULAMA (sayaçlı enstrümantasyon, 6 yabancı-alfabe film):**
+EVET aktif ve kazanıyor — VANYA/MELEKLERİ: Kiril-RU 10 çağrı, kazanan roller
+режисс/оператор (✓+7/-17). KANDAHAR: Arap-AR 10 çağrı, kazanan بازیگران/فیلمبردار
+(✓+5). ARKADAŞIMIN: ikinci-şans yetmedi → scroll_kurtarma yakaladı (guven=0.35
+insan-işaretli, ✓+8). YAKIN_PLAN: gerek kalmadı, jenerikteki İngilizce teknik
+krediler Latin yolundan yetti (✓+8). İNİŞLİ ✗+89 = baseline'ın zaten bilinen hatası.
+Sistem KATMANLI savunmayla çalışıyor. (Dünkü "Paddle-RU VANYA'yı çöp okuyor" gözlemim
+de 2-karelik yanıltıcı örneklemmiş — 10-kare örneklemde RU rol-anahtarları yakalıyor.)
+
+**TAZE-GÖZ DENETİMİ (4 salt-okur mercek):**
+- Blast-radius ✓ TEMİZ: 10 paralel commit (havuz/pilot-hat, track_kunye ağacı)
+  jenerik dosyalarına SIFIR temas; track_kunye↔kunye_kiyas kod bağı yok.
+- Tesseract sızıntı ✓ TEMİZ: kod yolunda sıfır referans; tek artık olcum_tess.json
+  → silindi. 7 jenerik kod dosyası working-tree'de HEAD ile birebir.
+- Bayrak/env: (a-d) temiz (V5=1, METIN_KAPI default kapalı, OneOCR sökülü,
+  review şubesi yerinde). (e) **GEDİK BULUNDU+KAPATILDI (b2b4b1b):** linux/mitas.env
+  kurulum ŞABLONU V5 bayraklarını içermiyordu → taze re-provision üretimi v5
+  SESSİZCE KAPALI tohumlardı (cp -n + kod default 0 + assert yok). Şablon hizalandı.
+- İkinci-şans statik: **GERÇEK boşluk doğrulandı** — Arapça tetiği `en_bos_kare >=
+  len-2` MUTLAK eşik, KANDAHAR tam sınırda (8+2/10, sıfır pay); ≥3 kırıntı-kare
+  üreten bir Farsça film iki tetikten de kaçar → sessiz kredi_yok/cast kaybı.
+  GT'de görünmüyor (yalnız 2 Farsça film, ikisi de sınırda geçiyor = aşırı-
+  kalibrasyon). Davranış-değiştiren fix ölçümsüz inmez → AYRI İŞ çipi açıldı
+  (oransal eşik + 110-film kapısı + sentetik 3-kırıntı repro).
+
+**Durum:** Üretim motoru (tespit_v5 Paddle %93.6) sağlıklı, defter kapandı.
+olcum_son.json commit'lenmedi (skorboard her koşuda ezilir; baseline ayrı sabit).
+
 ## 2026-07-30 (gece 4) — jenerik OKUMA motoru: Tesseract araştırması → 110-filmde DÜŞTÜ (%87.3<%93.6), hibrit yol
 
 **Tetikleyen:** Çağatay "dil sorunu = Paddle rec yabancı-alfabede çöp okuyor; başka
@@ -108,10 +272,28 @@ bloklayıcı — (1) kredi-yok FP (Tesseract sahne-yazısı/altyazı→isim; gü
 (master-PNG) sorusu içeriyor, args göz ardı edildi → jenerik-onset için ALAKASIZ
 çıktı (585k token boşa). Skill başka iş için yazılmış; jenerik-onset'e uymuyor.
 
-**KARAR:** Tek-motor Tesseract HAYIR (110'da düştü). Doğru yol HİBRİT: Paddle KAL
-(Latin gücü %93.6), yabancı-alfabede Tesseract FALLBACK (Paddle çöp okuyunca —
-credit_content.cop_desenli_mi zaten tetikliyor, satirlar_ru/ar yolunu Tesseract yap).
-Latin'de Paddle kaybı önlenir, yabancı-alfabede Tesseract kazanılır.
+**KESİN SONUÇ (Çağatay'ın QC'si yakaladı — PREMISE BAŞTAN YANLIŞMIŞ):** Tesseract
+GEREKSİZ, İPTAL. Kanıt: (a) `olcum_son.json` — tespit_v5 (Paddle) VANYA/MELEKLERİ/
+KANDAHAR/ARKADAŞIMIN'ı ZATEN DOĞRU buluyor (7 hatası: TESS/İKİ_KAFADAR/KIZIL_HAYAT/
+HARİKA/YALNIZ_SAVAŞÇI/GELECEK/İNİŞLİ — hiçbiri yabancı-alfabe değil). (b) Paddle-RU
+VANYA'yı ÇÖP okuyor (`['O H','дозфоди нон']`) AMA tespit_v5 yine DOĞRU buluyor →
+**onset'i rec DEĞİL, credit_box KUTU-KOŞUSU + SCROLL buluyor (dilden bağımsız).**
+Yani "Paddle yabancı-alfabede çöp → yabancı film yanlış → Tesseract lazım" premise'i
+TEMELDEN YANLIŞTI: rec çöp OLSA DA onset doğru. tespit_v5 yabancı-alfabeyi zaten
+hallediyor. 110-film Tesseract düşüşü (%87.3) = Tesseract DÜZELTMEDİ, BOZDU (mevcut
+sistem zaten çalışıyordu). Ayrıca Paddle'ın satirlar_ar (Arapça ikinci-şans) Farsça'yı
+DOĞRU okuyor (`بازيگران`) — kod BAŞTAN oradaydı. ⑤⑥⑦/Dalga 0-3 (Paddle) DEĞİŞMEDİ,
+Tesseract üretime SIZMADI (credit_content/credit_onset temiz), izole scratchpad'de
+kaldı. Temizlendi (olc_tess.py sil, Surya venv 5.1G sil, http server dur).
+
+**KÖK HATA (ders):** premise'i (muhtemelen önceki-oturum özeti "dil=Paddle rec çöp")
+DOĞRULAMADAN koca araştırma kurdum. `olcum_son.json`'a BAŞTAN bakıp "bu filmler zaten
+doğru mu" deseydim tüm iş gereksizdi. GT-karar (eski `yanlis_kredi_var`) ile güncel
+ölçümü karıştırdım. Bir oturum (5 OCR motor testi, izole venv, 2 konsey turu, model
+indirme) olmayan sorunu çözdü. [[eval-harness-first]] + [[kirmizi-takim-degeri]]:
+premise'i ilk adımda ölçümle doğrula. Yan-bulgu (acil değil): cop_desenli_mi Farsça
+çöpünde False veriyor (<3 token) — Kiril-tetiği Farsça'ya uymuyor, ama en_bos_kare +
+kutu+scroll zaten buluyor, onset'e etkisiz.
 
 **BAŞARISIZ/ÖĞRENİLEN:** (1) 15-film YANLI örneklem yanılttı — küçük+seçili set
 iyimser, tam GT gerçek ([[eval-harness-first]] dersi: örneklem çeşitli+rastgele
@@ -164,6 +346,11 @@ _PaddleReadEngine`) kullanıyor — Linux'ta PADDLE döner (kind=paddle, recogni
 2026-07-17'de Çağatay geçirmiş). Giriş havuzu Linux'ta ÇALIŞIYOR, çökmüyor. İki yol
 FARKLI: create_pool make_oneocr_engine (ölü) vs giris build_engine (Paddle). Ayrı not:
 v5-sonrası giris_jenerik_manifest = 0 (giriş havuzu v5'ten beri hiç üretilmemiş — ayrı konu).
+> **DÜZELTME (2026-07-30):** Bu son cümle YANILTICI. Sayım `Database/` üzerinden
+> yapılmıştı; oysa Linux'a geçişten (17 Tem) sonra `Database/`'e hiç üretim koşusu
+> yazılmadı — koşular `candidate_runs/` ve `filmtest/` altına gitti. Gerçek durum:
+> 28 Tem `candidate_runs/test_frame_vs_master` koşularında giris_jenerik havuzu
+> ÜRETİLMİŞ (50 / 5 / 91 kare + manifest). Giriş havuzu Linux'ta çalışıyor.
 
 **DATABASE:** ~103 film (07-28 yedeği 300, restore 197) Çağatay "geri alma" dedi — bırakıldı.
 
