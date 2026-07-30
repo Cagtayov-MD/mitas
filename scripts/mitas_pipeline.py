@@ -4117,6 +4117,62 @@ def main(argv=None) -> int:
                           module="master-png", media_id=media_id, filename=video.name,
                           error=str(_mpe)[:200], detail={"clip_id": clip_id})
 
+    # ===== TRACK-KUNYE GÖLGE (2026-07-30): MESSİ + İBRA-OKUMA + RONALDO — 3 çıktı =====
+    # Spec: docs/superpowers/specs/2026-07-30-track-kunye-uretim-entegrasyon-design.md
+    # ÜRETİME DOKUNMAZ: karar/PDF/teslim verildi; çıktılar clip_dir/track_kunye/ + kökte
+    # "<ad> kunye3.txt". MASTER-PNG bloğundan SONRA koşmak ZORUNDA (runaware'i salt-okur).
+    # FAIL-SAFE: hata/timeout ASLA pipeline'ı/kararı bozmaz. Kill: MITAS_TRACK_KUNYE=0.
+    if (os.environ.get("MITAS_TRACK_KUNYE", "1").strip().lower() not in ("0", "false", "off", "no")
+            and not args.no_ocr):
+        _tk_t = time.perf_counter()
+        _tk_ad = video.name if video is not None else clip_dir.name
+        try:
+            if cikis_frames.is_dir() and any(cikis_frames.glob("*.png")):
+                _tk_cmd = [str(PY_OCR), str(HERE / "_pipe_track_kunye.py"),
+                           "--clip", str(clip_dir), "--frames", str(cikis_frames),
+                           "--base", file_base(trt, title)]
+                _rctk, _outtk, _errtk = run(
+                    _tk_cmd,
+                    timeout=int(os.environ.get("MITAS_TRACK_KUNYE_TIMEOUT", "1200") or 1200))
+                _jtk = last_json(_outtk) or {}
+                timings["track_kunye"] = round(time.perf_counter() - _tk_t, 2)
+                _tk_status = str(_jtk.get("status") or ("done" if _rctk == 0 else "failed"))
+                _tk_band = _jtk.get("band")
+                log_event("track_kunye_completed" if _tk_status == "done" else
+                          ("track_kunye_skipped" if _tk_status == "skipped"
+                           else "track_kunye_failed"),
+                          level="info" if _tk_status == "done" else "warn",
+                          summary=f"{_tk_ad}: track-kunye {_tk_status} "
+                                  f"(band={_tk_band}, {timings['track_kunye']} sn).",
+                          module="track-kunye", media_id=media_id, filename=_tk_ad,
+                          duration_seconds=timings["track_kunye"],
+                          detail={"clip_id": clip_id, "ozet": _jtk,
+                                  "stderr": (_errtk or "")[-300:] if _rctk else None})
+                if _tk_status == "done" and _tk_band in ("red", None):
+                    log_event("ronaldo_band_red" if _tk_band == "red" else "ronaldo_band_null",
+                              level="warn",
+                              summary=f"{_tk_ad}: Ronaldo güven bandı {_tk_band or 'yok'} — göz-QC önerilir.",
+                              module="track-kunye", media_id=media_id, filename=_tk_ad,
+                              detail={"clip_id": clip_id, "common_blind": _jtk.get("common_blind")})
+                if _tk_status == "done" and _jtk.get("common_blind"):
+                    log_event("ronaldo_common_blind", level="warn",
+                              summary=f"{_tk_ad}: ortak-körlük bayrağı — kapsama düşük, içerik-tamlık garantisi YOK.",
+                              module="track-kunye", media_id=media_id, filename=_tk_ad,
+                              detail={"clip_id": clip_id, "coverage_ratio": _jtk.get("coverage_ratio")})
+                summary_obj["track_kunye"] = {"status": _tk_status, "band": _tk_band,
+                                              "dir": str(clip_dir / "track_kunye")}
+                write_json(clip_dir / "_DURUM.json", summary_obj)
+            else:
+                log_event("track_kunye_skipped", level="info",
+                          summary=f"{_tk_ad}: track-kunye atlandı — frames/cikis yok/boş.",
+                          module="track-kunye", media_id=media_id, filename=_tk_ad,
+                          detail={"clip_id": clip_id})
+        except Exception as _tke:  # noqa: BLE001 — gölge blok ASLA pipeline'ı bozmaz
+            log_event("track_kunye_failed", level="warn",
+                      summary=f"{_tk_ad}: track-kunye atlandı ({type(_tke).__name__}).",
+                      module="track-kunye", media_id=media_id, filename=_tk_ad,
+                      error=str(_tke)[:300], detail={"clip_id": clip_id})
+
     # ===== LEGACY GÖLGE VL — paralel debug kapalıysa eski davranışı koru =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.
     # Paralel debug açıkken VL artık frames/cikis_jenerik üzerinden jenerik_debug/vl altında çalışır.
