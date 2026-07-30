@@ -181,3 +181,45 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# ── RONALDO ghost katmanı bağları (2026-07-30 spec) ─────────────────────────
+import ronaldo as rn_mod
+
+
+def oku_master(master_png: Path, out_dir: Path, bant_h: int = 1100, bindirme: int = 120) -> list[str]:
+    """İbrahimovic master'ını dikey bantlara bölüp deepseek'le okur (tek-okuyucu kararı)."""
+    im = cv2.imread(str(master_png))
+    if im is None:
+        return []
+    bant_dir = out_dir / "master_bantlar"
+    bant_dir.mkdir(parents=True, exist_ok=True)
+    yollar = []
+    y, i = 0, 0
+    H = im.shape[0]
+    while y < H:
+        bant = im[y:min(y + bant_h, H)]
+        if bant.shape[0] >= 40:
+            p = bant_dir / f"bant_{i:03d}.png"
+            cv2.imwrite(str(p), bant)
+            yollar.append(p)
+            i += 1
+        if y + bant_h >= H:
+            break
+        y += bant_h - bindirme
+    return oku_deepseek(yollar)
+
+
+def ronaldo_kos(slug: str, out_dir: Path, messi_dokum: list[str], master_dokum: list[str],
+                kb: set[str], kb_tok: set[str], kare_toplam: int | None,
+                messi_kare: int | None, ibra_kare: int | None) -> dict:
+    """Ronaldo'yu koştur, gölge çıktıları yaz, manifest alanlarını döndür."""
+    r = rn_mod.capraz(messi_dokum, master_dokum, kb, kb_tok,
+                      kare_toplam=kare_toplam, messi_kare=messi_kare, ibra_kare=ibra_kare)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "ronaldo_kunye.txt").write_text("\n".join(r.birlesik) + "\n", encoding="utf-8")
+    (out_dir / "ronaldo_fark.json").write_text(
+        json.dumps({**r.fark, "confidence_band": r.band, **r.bayraklar},
+                   ensure_ascii=False, indent=1), encoding="utf-8")
+    return {"film": slug, "confidence_band": r.band, **r.bayraklar,
+            "birlesik_n": len(r.birlesik)}
