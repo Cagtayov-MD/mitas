@@ -7,6 +7,7 @@ bandı yan dosya üretir. Saf metin-işlem — OCR çağırmaz.
 from __future__ import annotations
 
 import unicodedata
+from dataclasses import dataclass, field
 
 _TR = str.maketrans({"ı": "i", "İ": "i", "I": "i"})
 
@@ -177,3 +178,48 @@ def bayraklar(birlesik: list[str], kare_toplam: int | None,
     anchor_var = any(c in metin for c in YAPISAL_CAPALAR)
     return {"common_blind": common_blind, "coverage_ratio": coverage,
             "structural_anchor_missing": not anchor_var}
+
+
+@dataclass
+class RonaldoSonuc:
+    birlesik: list[str]
+    band: str | None
+    bayraklar: dict
+    fark: dict
+
+
+def capraz(messi_dokum: list[str], master_dokum: list[str],
+           kb: set[str], kb_tok: set[str],
+           kare_toplam: int | None = None,
+           messi_kare: int | None = None,
+           ibra_kare: int | None = None) -> RonaldoSonuc:
+    """Ana giriş: iki dökümü çaprazla → birleşik künye + fark + band + bayraklar."""
+    # 1) halüsinasyon ayıklama (iki koldan da, rapora düşerek)
+    hal: list[str] = []
+    def temiz(satirlar):
+        out = []
+        for s in satirlar:
+            if halusinasyon_mu(s, kb_tok):
+                hal.append(s)
+            else:
+                out.append(s)
+        return out
+    messi_t, ibra_t = temiz(ic_dedup(messi_dokum)), temiz(ic_dedup(master_dokum))
+    # 2) birleşim
+    b = birlestir(messi_t, ibra_t, kb, kb_tok)
+    # 3) messi-only listesi (fark raporu simetrisi için)
+    messi_only = [ms for ms in messi_t
+                  if not any(satir_esle(ms, is_, kb_tok) for is_ in ibra_t)]
+    # 4) band + bayraklar
+    band = guven_bandi(len(messi_t), len(ibra_t), b["eslesen_n"])
+    bay = bayraklar(b["birlesik"], kare_toplam, messi_kare, ibra_kare)
+    if bay["common_blind"]:
+        band = None      # ortak körlükte asla güven raporlanmaz (konsey #2)
+    fark = {"ibra_only_eklenen": b["ibra_eklenen"],
+            "ibra_only_reddedilen": b["ibra_reddedilen"],
+            "messi_only": messi_only,
+            "varyantlar": b["varyantlar"],
+            "hallucinations": hal,
+            "eslesen_n": b["eslesen_n"],
+            "messi_n": len(messi_t), "ibra_n": len(ibra_t)}
+    return RonaldoSonuc(birlesik=b["birlesik"], band=band, bayraklar=bay, fark=fark)

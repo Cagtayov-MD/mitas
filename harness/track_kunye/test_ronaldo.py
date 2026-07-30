@@ -117,3 +117,19 @@ def test_bayraklar_ortak_korluk_ve_yapisal_capa():
     b2 = rn.bayraklar(["Directed by Valeri Ugarov"], kare_toplam=200, messi_kare=53, ibra_kare=60)
     assert b2["common_blind"] is False
     assert b2["structural_anchor_missing"] is False
+
+
+def test_capraz_uctan_uca():
+    messi = ["SUNG BY", "Tamino - Neill Archer",
+             "The image displays a large dinosaur in a stylized scene with people around a table",
+             "Directed by"]
+    ibra = ["Tamino - Neill Archer", "Sarastro - John Connell",
+            "YONETMEN YARDIMCISI YONETMEN YARDIMCISI"]
+    kb_tok = {"neill", "archer", "john", "connell", "tamino", "sarastro"}
+    r = rn.capraz(messi, ibra, set(), kb_tok, kare_toplam=200, messi_kare=50, ibra_kare=60)
+    assert "Sarastro - John Connell" in r.birlesik
+    assert all("dinosaur" not in s for s in r.birlesik)          # halüsinasyon dışarıda
+    assert r.fark["hallucinations"]                               # ama raporda
+    assert "YONETMEN YARDIMCISI YONETMEN YARDIMCISI" in r.fark["ibra_only_reddedilen"]
+    assert r.band in ("green", "yellow", "red")
+    assert r.bayraklar["structural_anchor_missing"] is False
