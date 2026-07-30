@@ -131,3 +131,17 @@ def test_temsilci_medyan_keskinlige_yakin():
     kareler[0] = bulanik                       # grubun ilk karesi bulanık
     s = havuz.havuz_derle(kareler)
     assert s.sayfalar[0] != 0                  # bulanık uç temsilci olmamalı
+
+
+def test_kar_firtinasi_alarmi_ve_kurtarma():
+    # medyan filtresinin TEK BAŞINA çözemeyeceği yoğun kar (yogunluk 0.25):
+    kareler = senaryo.kar_ekle(senaryo.kart("TEK KART FIRTINADA", 60), 0.25)
+    s = havuz.havuz_derle(kareler, medyan_pencere=0)   # medyan kapalı → en kötü durum
+    assert s.istatistik.alarm is True
+    assert len(s.sayfalar) <= 12       # 60 kopya sayfa DEĞİL — kümeleme kurtardı
+
+
+def test_normal_film_alarm_calmaz():
+    kareler = _kartlar("A KARTI", "B KARTI", "C KARTI", kopya=15)
+    s = havuz.havuz_derle(kareler)
+    assert s.istatistik.alarm is False

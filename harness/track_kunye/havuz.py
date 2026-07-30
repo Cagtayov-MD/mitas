@@ -125,9 +125,25 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
     # (Task 5 ölçümü; GLM'in P95 önerisi bu ölçümle yanlışlandı).
     sayfalar = [s for s in sayfalar if float(griler[s].std()) >= 3.0]
     f = np.array(ardisik, dtype=np.float64)
+    fark_medyani = float(np.median(f))
+    # 90.0 ≈ 0.35×256; bağımsız-rastgele imza çiftleri Binom(256,0.5)→merkez
+    # 128'e yapışır; gerçek içerik geçişleri medyanı buraya taşıyamaz
+    # (ölçüm: fırtına 119-127, normal 0).
+    alarm = bool(fark_medyani >= 90.0 and len(sayfalar) > 0.3 * n and n >= 20)
+    if alarm:
+        # Kurtarma (spec §6): seçici ayırt edemiyor — sayfaları imza-zinciriyle
+        # kümele, her kümeden BAŞ+SON kalsın (fade uçları korunur). 'Hepsini oku'
+        # israfı yerine kapsam-koruyan indirgeme (GLM: 500→20).
+        kume: list[list[int]] = [[sayfalar[0]]]
+        for a, b in zip(sayfalar, sayfalar[1:]):
+            if hamming(imzalar[a], imzalar[b]) <= 2 * esik:
+                kume[-1].append(b)
+            else:
+                kume.append([b])
+        sayfalar = sorted({k[0] for k in kume} | {k[-1] for k in kume})
     ist = HavuzIstatistik(
-        kare_sayisi=n, fark_medyani=float(np.median(f)),
+        kare_sayisi=n, fark_medyani=fark_medyani,
         fark_iqr=float(np.percentile(f, 75) - np.percentile(f, 25)),
         esik=esik, birikim_esigi=birikim_esigi,
-        grup_sayisi=len(gruplar), alarm=False)
+        grup_sayisi=len(gruplar), alarm=alarm)
     return HavuzSonucu(sayfalar, ist)
