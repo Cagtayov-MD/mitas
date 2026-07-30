@@ -7,7 +7,7 @@ OYLAMA SİNYALİ'dir (stitch kanıtı: JAMES DARREN ×7, DAMES DARREN ×1'i yene
 
 BORÇLAR (fikir kaynağı — kod kopyalanmadı, mantık olgunlaştırıldı):
   * stitch (20260601_stitch.py): birikimli kayma S_k, g=cy+S_k, bulanık-mode oylama.
-  * line_mosaic_run (20260601_pipeline100.py): ROW birimi (aynı kare y-bandı grubu),
+  * line_mosaic_run (eski pipeline100 görsel dalı; 2026-07-30 söküldü): ROW birimi (aynı kare y-bandı grubu),
     en-keskin-kare bant kırpımı, MININST geçiş-çöpü fikri.
   * crop-stack: SUB_FRAC=0.82 altyazı bandı, union-find geçişli fuzzy birleştirme.
   * adaptif_slit v16 çöküşü (hayat-agaci): det-körlük KAPISI şart — token yoksa
