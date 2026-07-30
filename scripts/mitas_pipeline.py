@@ -1716,6 +1716,9 @@ def main(argv=None) -> int:
     ap.add_argument("--asr-max-seconds", type=float, default=0.0, help="ASR'i ilk N sn ile sinirla (test)")
     ap.add_argument("--no-asr", action="store_true")
     ap.add_argument("--no-ocr", action="store_true")
+    ap.add_argument("--force-ocr", action="store_true",
+                    help="from-hub: kopyalanan hub OCR'ını yeniden kullanma, frame'den TAZE OCR koş "
+                         "(yalnız OCR/pipeline değişikliğini test ederken gerekir)")
     ap.add_argument("--no-copy-source", action="store_true", help="kaynak videoyu hub'a kopyalama (test)")
     ap.add_argument("--run-root", default=None,
                     help="İP-5 candidate modu: TÜM yazma-kökleri bu dizin altına (üretime sıfır dokunuş). "
@@ -1858,22 +1861,10 @@ def main(argv=None) -> int:
     # === FROM-HUB: frames junction + ocr-kopyası (video offline; kaynak-hub salt-okunur) ===
     if _from_hub:
         args.no_copy_source = True
-        for _fdir in ("giris", "cikis"):
-            _src_f = _from_hub / "frames" / _fdir
-            _dst_f = clip_dir / "frames" / _fdir
-            if _src_f.exists() and not _dst_f.exists():
-                if os.name == "nt":
-                    _rcj, _, _errj = run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
-                                         timeout=30)
-                    if _rcj:  # junction başarısızsa (yetki vb.) kopyaya düş — yavaş ama güvenli
-                        shutil.copytree(_src_f, _dst_f)
-                else:
-                    # Linux geçişi 2026-07-17: cmd/mklink yok (FileNotFoundError → tüm from-hub
-                    # koşusu çöküyordu). Junction'ın karşılığı symlink; başarısızsa kopyaya düş.
-                    try:
-                        os.symlink(_src_f, _dst_f, target_is_directory=True)
-                    except Exception:  # noqa: BLE001
-                        shutil.copytree(_src_f, _dst_f)
+        # frames giris/cikis → mutlak-hedefli symlink (mitas_roots.link_hub_frames).
+        # KÖK-SEBEP FIX (2026-07-30): eskiden inline `os.symlink(_src_f, ...)` göreli --from-hub'da
+        # göreli/DANGLING link üretiyordu → 0 kare → sahte-MOTOR_YOK. Helper from_hub'ı mutlağa çevirir.
+        _roots.link_hub_frames(_from_hub, clip_dir)
         _src_ocrs = sorted((d for d in (_from_hub / "ocr").glob("ocr-*")
                             if (d / "kunye.txt").exists() and not d.name.endswith("-fb")),
                            key=lambda d: d.stat().st_mtime)
@@ -2369,7 +2360,30 @@ def main(argv=None) -> int:
     # OCR komutu hazırla
     ocr_proc = None
     t_ocr = None
-    if not args.no_ocr:
+    # Q1 (from-hub reuse, Çağatay 2026-07-30): hub'ın GUVENILIR OCR'ı yukarıda kopyalandı; --force-ocr
+    # YOKSA taze OCR KOŞMA → from-hub candidate koşusu bir daha sahte-MOTOR_YOK/regresyon üretmez +
+    # ~10x hız. OCR/pipeline değişikliği test edilecekse --force-ocr ile taze koşulur. Karar tek-kaynaktan
+    # (_roots.should_reuse_hub_ocr: from-hub + not force + kullanılabilir kopya OCR var).
+    if _roots.should_reuse_hub_ocr(_from_hub, args.force_ocr, clip_dir):
+        _reused_kunye = Path(_roots.find_usable_ocr(str(clip_dir)))
+        ocr_out = _reused_kunye.parent
+        ocr_job = ocr_out.name
+        kunye_path = _reused_kunye
+        try:
+            _rs = json.loads((ocr_out / "ocr_summary.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001 — summary yok/bozuk → satır say
+            _rs = {}
+        ocr_bucket = _rs.get("bucket", "GUVENILIR")
+        ocr_lines = int(_rs.get("kunye_line_count") or sum(
+            1 for _l in kunye_path.read_text(encoding="utf-8", errors="replace").splitlines() if _l.strip()))
+        timings["ocr"] = 0.0
+        update_clip_module(clip_dir, "ocr", "done", ocr_job)
+        log_event("ocr_reused",
+                  summary=f"{video.name}: from-hub OCR yeniden kullanıldı ({ocr_lines} satır, "
+                          f"bucket={ocr_bucket}) — taze OCR atlandı (--force-ocr ile koşulur).",
+                  module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job,
+                  detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "reused": True})
+    elif not args.no_ocr:
         frame_dirs = [str(giris_frames)]
         if cikis_frames.exists() and any(cikis_frames.glob("*.png")):
             frame_dirs.append(str(cikis_frames))

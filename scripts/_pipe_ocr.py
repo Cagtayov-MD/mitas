@@ -344,6 +344,18 @@ def _glm_only_keep(line: str, classify_fn=None) -> bool:
     return True
 
 
+def _ensure_project_root_on_path() -> None:
+    """core.* importu icin PROJECT_ROOT'u sys.path'e ekle (idempotent).
+
+    KÖK-SEBEP FIX (2026-07-30): _PaddleReadEngine `from core...` yapar; ama fallback yolunda core'u
+    sys.path'e ekleyen HİÇBİR ŞEY yoktu — core yalnız pipeline100 zincirinin (read_3way shim)
+    YAN-ETKİSİYLE path'e giriyordu. Zincir atlanınca (0-kare) / hızlı-patlayınca (EK_TAKS webui,
+    2026-07-29) core bulunamayıp fallback MOTOR_YOK'a düşüyordu. Bunu deterministik yaparız."""
+    _pr = os.environ.get("MITAS_PROJECT_ROOT")
+    if _pr and _pr not in sys.path:
+        sys.path.insert(0, _pr)
+
+
 class _PaddleReadEngine:
     """OneOCR recognize_pil arayuzunu PaddleOCR ile karsilar (Linux'ta oneocr yok).
     Jenerik OCR-refine icin (Cagatay 2026-07-12: jenerik=Paddle, ham-OCR-oku=GLM)."""
@@ -353,6 +365,7 @@ class _PaddleReadEngine:
 
     def __init__(self):
         if _PaddleReadEngine._shared is None:
+            _ensure_project_root_on_path()   # core.* fallback yolunda da import edilebilsin
             from core.pipelines.ocr.credit_experiment import PaddleOcrEngine
             _PaddleReadEngine._shared = PaddleOcrEngine()
         self._eng = _PaddleReadEngine._shared
@@ -1096,6 +1109,14 @@ def main(argv=None) -> int:
 
     # Once scroll-aware pipeline100 zincirini dene; coker/None -> eski OneOCR.
     res = None
+    if not frames:
+        # 0 kare = footage/boş pencere; motor kurmadan deterministik BOS (MOTOR_YOK sahte-kırmızısı DEĞİL).
+        # KÖK-SEBEP FIX (2026-07-30): eskiden 0-kare → run_oneocr_fallback([]) → build_engine → Linux'ta
+        # core yok → MOTOR_YOK (fitz_dogrulama/YAĞMACILAR). Kareler gerçekten boşsa BOS doğru sınıftır;
+        # from-hub dangling-symlink bug'ı ayrıca mitas_roots.link_hub_frames ile giderildi.
+        res = {"lines": [], "engine": "bos-kare-yok", "engine_error": None,
+               "frame_read_errors": 0, "raw_line_count": 0, "garble_frac": 0.0, "bucket": "BOS",
+               "glm_attempted": False, "glm_status": "skipped", "glm_skip_reason": "no_frames"}
     if frames:
         try:
             res = run_pipeline100(frames, started, args.profile, ocr_out=out)

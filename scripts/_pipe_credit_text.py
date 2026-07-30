@@ -22,11 +22,18 @@ import time
 import debug_trace as dbg
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mitas_roots as _roots  # noqa: E402 — tek-kaynak OCR seçici (find_usable_ocr)
 
 
 def _find_ocr(clip):
     if not clip:
         return None
+    # Tek-kaynak seçici (mitas_roots.find_usable_ocr): BOŞ/MOTOR_YOK/-fb dizini iyi okumayı
+    # GÖLGELEYEMEZ (KÖK-SEBEP 2026-07-30; from-hub candidate MOTOR_YOK, eski GUVENILIR'i gölgeleyip
+    # sahte 'Kontrol' veriyordu). Kullanılabilir yoksa eski davranış korunur: en-yeni mtime.
+    usable = _roots.find_usable_ocr(clip)
+    if usable:
+        return usable
     g = sorted(glob.glob(os.path.join(clip, "ocr", "*", "kunye.txt")), key=lambda p: os.path.getmtime(p))
     return g[-1] if g else None
 
