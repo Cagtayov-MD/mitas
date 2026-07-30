@@ -696,7 +696,19 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # döner) — tetikleyici "kareler EN-rec ile NEREDEYSE tamamen boş"
         # (≤2/10 karede iz). AYNI güvenlik ilkesi: yalnız GERÇEK bir
         # cc._ROL_ARAP eşleşmesi (roller_arap dolu) kb'yi override eder.
-        en_bos_kare = sum(1 for sl in kare_satirlari if not sl)
+        # Kırıntı-kare fix (2026-07-30, taze-göz denetimi Mercek-4 + sentetik repro):
+        # EN-rec'in Arapça/Farsça karede ürettiği kısa çöp-kırıntılar ('<_ III1' —
+        # alpha>=4-harf token'ı OLMAYAN satırlar) anlamlı içerik DEĞİL; böyle
+        # kareler boş sayılır. SALT-GEVŞETME: en_bos_kare yalnız ARTABİLİR →
+        # bugün tetiklenen hiçbir vaka tetiklenmez olamaz (KANDAHAR 8+2/10
+        # sıfır-pay → 10/10). Eski mutlak eşik (len-2) ≥3 kırıntı-karede tetiği
+        # sessizce öldürüp filmi kredi_yok'a düşürüyordu (repro: monkeypatch EN
+        # → '<_ III1', KANDAHAR kredi_yok'a düştü; fix sonrası bulunur).
+        # ≥4-harf ölçütü cop_desenli_mi'nin kendi token konvansiyonuyla aynı.
+        def _anlamli_kare(sl):
+            return any(len("".join(c for c in tok if c.isalpha())) >= 4
+                       for s in sl for tok in s.split())
+        en_bos_kare = sum(1 for sl in kare_satirlari if not sl or not _anlamli_kare(sl))
         if kb_max < EŞIK and not core_roller and en_bos_kare >= max(1, len(kare_satirlari) - 2):
             kare_satirlari_arap = [cc.satirlar_ar(g[idx[fi]]) for fi in ornek]
             kb_arap, roller_arap = cc.kredi_skoru_arap(kare_satirlari_arap)
