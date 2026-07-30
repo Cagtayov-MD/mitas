@@ -275,6 +275,11 @@ def build(path, d):
             _nyy -= nt_lh
         ty -= nt_h
 
+    if not (d.get("ozet") or "").strip():   # özet boşsa panel hiç çizilmez (2026-07-24)
+        c.showPage()
+        c.save()
+        print("yazildi:", path)
+        return
     ty -= 16
     oz_size, oz_lh = 10.5, 16.0
     while True:  # özeti sayfaya sığdır (alta taşmayı önler)
