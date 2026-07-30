@@ -444,6 +444,65 @@ def render(siralı_ana: list[tuple[Track, str, Row]], imgs: dict[int, np.ndarray
     return np.vstack(bantlar)
 
 
+
+
+# ── 7) KARE-ALBÜMÜ render (Çağatay önerisi, 2026-07-30) ─────────────────────
+# Satır-kesme render'ı kart yapısını öldürüyor ve kesim lekesi bırakıyordu.
+# Bu mod TAM KARELERİ dizer: statik bölümden EN ZENGİN tek kare, scroll
+# bölümünden S-uzayında örtüşmesiz pencere temsilcileri ("benzer kare eleme"
+# dhash'le değil ölçülmüş kaymayla — aynı içerik = yakın S). Kesim yok →
+# leke yok; 480px doğal sayfalar → VL'e dilimlemeden verilebilir.
+
+def album_kareleri(kare_rows: list[list[Row]], S: list[float], bolum: list[int],
+                   ekran_h: int) -> list[int]:
+    from collections import defaultdict
+    bolum_kareleri: dict[int, list[int]] = defaultdict(list)
+    for i, rows in enumerate(kare_rows):
+        if rows:
+            bolum_kareleri[bolum[i]].append(i)
+
+    def zenginlik(i: int) -> float:
+        toks = sum(len(tokenlar(r.canon)) for r in kare_rows[i])
+        conf = float(np.mean([r.conf for r in kare_rows[i]])) if kare_rows[i] else 0.0
+        return toks * (0.5 + conf)
+
+    secim: list[int] = []
+    for b in sorted(bolum_kareleri):
+        idxler = bolum_kareleri[b]
+        s_vals = [S[i] for i in idxler]
+        aralik = max(s_vals) - min(s_vals)
+        if aralik < 0.35 * ekran_h:
+            secim.append(max(idxler, key=zenginlik))          # statik kart: tek temsilci
+            continue
+        # scroll: S-aralığını %85 ekran adımlı pencerelere böl, pencere başına
+        # hedefe en yakın S'li kareler arasından en zenginini al
+        hedef = min(s_vals)
+        adim = 0.85 * ekran_h
+        while hedef <= max(s_vals) + 1:
+            yakinlar = sorted(idxler, key=lambda i: abs(S[i] - hedef))[:3]
+            secim.append(max(yakinlar, key=zenginlik))
+            hedef += adim
+    gorulen: set[int] = set()
+    return [i for i in sorted(secim) if not (i in gorulen or gorulen.add(i))]
+
+
+def album_render(secim: list[int], imgs: dict[int, np.ndarray]) -> np.ndarray | None:
+    parcalar: list[np.ndarray] = []
+    W = None
+    for i in secim:
+        im = imgs.get(i)
+        if im is None:
+            continue
+        if W is None:
+            W = im.shape[1]
+        if im.shape[1] != W:
+            im = cv2.resize(im, (W, int(im.shape[0] * W / im.shape[1])), interpolation=cv2.INTER_AREA)
+        parcalar.append(im)
+        parcalar.append(np.full((6, W, 3), (80, 80, 80), np.uint8))
+    if not parcalar:
+        return None
+    return np.vstack(parcalar[:-1])
+
 # ── ana akış ────────────────────────────────────────────────────────────────
 
 def calistir(slug: str, cikti_kok: Path, kare_dizini: str | None = None) -> dict:
@@ -521,10 +580,15 @@ def calistir(slug: str, cikti_kok: Path, kare_dizini: str | None = None) -> dict
         ks = [k for r in rows for k in r.kutular]
         if ks:
             kare_x[i] = (int(min(k.x0 for k in ks)), int(max(k.x1 for k in ks)))
+    secim = album_kareleri(kare_rows, S, bolum, H)
+    apng = album_render(secim, imgs)
+    if apng is not None:
+        cv2.imwrite(str(out / "reading_master.png"), apng)   # BİRİNCİL görsel: kare albümü
+    man["album_kare"] = len(secim)
     png = render([(t, m, r) for t, m, r, _ in ana], imgs, kare_x,
                  dusukler=[(t, m, r) for t, m, r, _ in dusuk])
     if png is not None:
-        cv2.imwrite(str(out / "reading_master.png"), png)
+        cv2.imwrite(str(out / "satir_master.png"), png)       # ikincil: satır görünümü
 
     man.update({
         "durum": "OK", "ana_satir": len(ana), "dusuk_guven": len(dusuk),

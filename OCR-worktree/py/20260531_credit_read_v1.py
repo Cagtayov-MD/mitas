@@ -1,7 +1,7 @@
 """20260531 — credit_read_v1 — Jenerik OKUMA pipeline v1.
 Paddle → KB-yazim-düzelt → qwen çapraz-kontrol → transcript.txt + labels.json + _SUMMARY.json
 """
-import sys, json, re, base64, difflib, csv, time, urllib.request, importlib.util
+import sys, os, json, re, base64, difflib, csv, time, urllib.request, importlib.util
 from pathlib import Path
 import cv2, numpy as np, duckdb
 
@@ -16,7 +16,12 @@ sys.modules["fp"] = fp
 spec.loader.exec_module(fp)
 
 # ── sabitler ──────────────────────────────────────────────────────────────
-DB         = r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb"
+# Linux fix (2026-07-30): X:\DIGER köprüsü Linux'ta yok — KB'siz kalınıyordu
+# (pipeline100 kb_exact_batch/kb_suffix_split/dedup hepsi sessiz devre dışı).
+DB = os.environ.get("MITAS_DUCKDB") or (
+    "/opt/mitas/Mitas_Files/MitaData/mitas.duckdb"
+    if os.path.exists("/opt/mitas/Mitas_Files/MitaData/mitas.duckdb")
+    else r"X:\DIGER\Mitas_Files\MitaData\mitas.duckdb")
 TR_DIR     = Path(r"X:\DIGER\Mitas_Files\MitaData\06_name_databases\turkish")
 TESTER_IN  = Path(r"E:\MITAS\OCR-worktree\tester_fiso")
 TESTER_OUT = Path(r"E:\MITAS\OCR-worktree\tester_read")
