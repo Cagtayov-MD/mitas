@@ -10,7 +10,7 @@ Katman 4 DOĞRULA: KB (mitas_people_index) fold-eşleşme + Paddle-track kesişi
   → satır işaretleri: [KB] [2K] (iki kaynak) [!] (tek kaynak, insan baksın).
 """
 from __future__ import annotations
-import base64, difflib, json, time, unicodedata, urllib.request
+import base64, difflib, json, os, time, unicodedata, urllib.request
 from pathlib import Path
 
 import cv2
@@ -18,7 +18,8 @@ import numpy as np
 
 import messi as havuz_mod
 
-OLLAMA = "http://127.0.0.1:11434/api/generate"
+OLLAMA = os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/generate"
+KB_DUCKDB = os.environ.get("MITAS_KB_DUCKDB", "/opt/mitas/Mitas_Files/MitaData/mitas.duckdb")
 S = Path(__file__).resolve().parent
 EX = Path("/home/cagatay/Ex_Frame")
 OUT = S / "pilot"
@@ -45,8 +46,9 @@ def ollama_iste(model: str, prompt: str, imgs: list[str] | None = None,
 
 # ── Katman 1: havuz ─────────────────────────────────────────────────────────
 
-def havuz_derle(slug: str) -> list[Path]:
-    yollar = sorted((EX / f"{slug}-exit_frames").glob("exit_*.png"))
+def havuz_derle_dizin(kare_dizin: Path, desen: str = "*.png") -> tuple[list[Path], dict]:
+    """Dizin-parametreli havuz derleme (üretim yüzeyi) — istatistik DÖNÜŞTE, global yok."""
+    yollar = sorted(Path(kare_dizin).glob(desen))
     griler, gecerli = [], []
     for p in yollar:
         im = cv2.imread(str(p))
@@ -54,25 +56,34 @@ def havuz_derle(slug: str) -> list[Path]:
             continue
         griler.append(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY))
         gecerli.append(p)
+    if not griler:
+        return [], {"kare": 0, "sayfa": 0}
     sonuc = havuz_mod.havuz_derle(griler)
     ekler = havuz_mod.ikinci_gecis(griler, sonuc)
+    ist = {"kare": len(griler), "esik": sonuc.istatistik.esik,
+           "grup": sonuc.istatistik.grup_sayisi, "alarm": sonuc.istatistik.alarm,
+           "sayfa": len(sonuc.sayfalar), "ikinci_gecis_ek": len(ekler)}
+    return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))], ist
+
+
+def havuz_derle(slug: str) -> list[Path]:
+    secim, ist = havuz_derle_dizin(EX / f"{slug}-exit_frames", "exit_*.png")
     global SON_HAVUZ_ISTATISTIK
-    SON_HAVUZ_ISTATISTIK = {
-        "esik": sonuc.istatistik.esik, "grup": sonuc.istatistik.grup_sayisi,
-        "alarm": sonuc.istatistik.alarm, "sayfa": len(sonuc.sayfalar),
-        "ikinci_gecis_ek": len(ekler)}
-    return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))]
+    SON_HAVUZ_ISTATISTIK = {k: ist.get(k) for k in
+                            ("esik", "grup", "alarm", "sayfa", "ikinci_gecis_ek")}
+    return secim
 
 
 # ── Katman 2: deepseek-ocr sayfa sayfa ──────────────────────────────────────
 
-def oku_deepseek(sayfalar: list[Path]) -> list[str]:
+def oku_deepseek(sayfalar: list[Path], cagri_timeout: int = 900) -> list[str]:
     satirlar: list[str] = []
     onceki: set[str] = set()
     for p in sayfalar:
         try:
             cevap = ollama_iste("deepseek-ocr:latest", "Free OCR.",
-                                [base64.b64encode(p.read_bytes()).decode()], num_predict=2048)
+                                [base64.b64encode(p.read_bytes()).decode()], num_predict=2048,
+                                timeout=cagri_timeout)
         except Exception as e:
             print(f"    {p.name}: {type(e).__name__}", flush=True)
             continue
@@ -115,7 +126,7 @@ def yapilandir(satirlar: list[str]) -> str:
 
 def kb_yukle() -> set[str]:
     import duckdb
-    con = duckdb.connect("/opt/mitas/Mitas_Files/MitaData/mitas.duckdb", read_only=True)
+    con = duckdb.connect(KB_DUCKDB, read_only=True)
     adlar = {fold(r[0]) for r in con.execute(
         "SELECT DISTINCT name FROM main.mitas_people_index").fetchall() if r[0]}
     con.close()
@@ -187,7 +198,8 @@ if __name__ == "__main__":
 import ronaldo as rn_mod
 
 
-def oku_master(master_png: Path, out_dir: Path, bant_h: int = 1100, bindirme: int = 120) -> list[str]:
+def oku_master(master_png: Path, out_dir: Path, bant_h: int = 1100, bindirme: int = 120,
+               cagri_timeout: int = 900) -> list[str]:
     """İbrahimovic master'ını dikey bantlara bölüp deepseek'le okur (tek-okuyucu kararı)."""
     im = cv2.imread(str(master_png))
     if im is None:
@@ -207,7 +219,7 @@ def oku_master(master_png: Path, out_dir: Path, bant_h: int = 1100, bindirme: in
         if y + bant_h >= H:
             break
         y += bant_h - bindirme
-    return oku_deepseek(yollar)
+    return oku_deepseek(yollar, cagri_timeout=cagri_timeout)
 
 
 def ronaldo_kos(slug: str, out_dir: Path, messi_dokum: list[str], master_dokum: list[str],
