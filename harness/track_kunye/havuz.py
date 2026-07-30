@@ -65,3 +65,17 @@ def film_esigi(farklar: list[int]) -> int:
     if ayrim < 0.8:
         return max(2, int(np.percentile(f, 25)) + 2)
     return int(en_iyi_esik)
+
+
+def temporal_median(griler: list[np.ndarray], pencere: int = 3) -> list[np.ndarray]:
+    """Zaman-medyanı: kar/grén/interlace gibi kare-bağımsız gürültüyü İMZADAN
+    siler (konsey: 'bunu en başa alın — kirli veride eşik çöp üretir').
+    Yalnız SİNYAL hesabında kullanılır; okumaya orijinal kare gider."""
+    if pencere < 2 or len(griler) < 2:
+        return list(griler)
+    yarim = pencere // 2
+    out = []
+    for i in range(len(griler)):
+        a, b = max(0, i - yarim), min(len(griler), i + yarim + 1)
+        out.append(np.median(np.stack(griler[a:b]), axis=0).astype(np.uint8))
+    return out
