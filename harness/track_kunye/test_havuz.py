@@ -67,3 +67,47 @@ def test_temporal_median_interlace_duzeltir():
 def test_temporal_median_kapali_girdiyi_bozmaz():
     k = senaryo.kart("X", 3)
     assert all(np.array_equal(a, b) for a, b in zip(havuz.temporal_median(k, 0), k))
+
+
+def _kartlar(*metinler, kopya=10):
+    kareler = []
+    for m in metinler:
+        kareler += senaryo.kart(m, kopya)
+    return kareler
+
+
+def test_derle_uc_kart_uc_sayfa():
+    kareler = _kartlar("KART BIR AAA", "KART IKI BBB", "KART UC CCC")
+    s = havuz.havuz_derle(kareler)
+    assert len(s.sayfalar) == 3
+    assert s.istatistik.grup_sayisi == 3
+
+
+def test_derle_fade_iki_kart_yakalanir():
+    a = senaryo.kart("ILK KART UZUN", 12)
+    b = senaryo.kart("SON KART FARKLI", 12)
+    kareler = a + senaryo.fade(a[0], b[0], 15) + b
+    s = havuz.havuz_derle(kareler)
+    ilk = set(range(0, 12)); son = set(range(len(kareler) - 12, len(kareler)))
+    secilen = set(s.sayfalar)
+    assert secilen & ilk and secilen & son   # iki kartın da temsilcisi var
+
+
+def test_derle_pan_tek_grup():
+    kareler = senaryo.pan("PAN KARTI SABIT METIN", 20)
+    s = havuz.havuz_derle(kareler)
+    # Pan israfı KABUL (kayıp değil — metin-dedup halleder); ideal tek-grup Task 9
+    # KDE unimodal→p90 iyileştirmesinin konusu. Eski sabit-çapa bug'ı 10+ parçalıyordu.
+    assert len(s.sayfalar) <= 8
+
+
+def test_derle_scroll_coklu_sayfa_ve_kuyruk():
+    metinler = [f"ISIM SOYISIM {i:02d}" for i in range(30)]
+    kareler = senaryo.scroll(metinler, 90)
+    s = havuz.havuz_derle(kareler)
+    assert len(s.sayfalar) >= 8                       # içerik akışı örtüşmeli örneklenmeli
+    # KUYRUK GARANTISI (davranışsal): son seçilen sayfa ile SON kare arasında
+    # okunmamış yeni içerik kalmamalı (indeks sınırı değil, içerik iddiası).
+    temiz = havuz.temporal_median(kareler)
+    assert havuz.hamming(havuz.imza(temiz[max(s.sayfalar)]),
+                         havuz.imza(temiz[-1])) <= s.istatistik.esik

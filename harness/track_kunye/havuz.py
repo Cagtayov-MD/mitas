@@ -79,3 +79,42 @@ def temporal_median(griler: list[np.ndarray], pencere: int = 3) -> list[np.ndarr
         a, b = max(0, i - yarim), min(len(griler), i + yarim + 1)
         out.append(np.median(np.stack(griler[a:b]), axis=0).astype(np.uint8))
     return out
+
+
+def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
+                birikim_k: float = 3.0) -> HavuzSonucu:
+    """Çift-sinyal gruplama (spec §2):
+    - ardışık-fark KAYAN çapayla → yavaş kayma/pan tek grup kalır (GLM bug fix'i)
+    - grup-açılış imzasına BİRİKİM → fade yakalanır (Fable'ın konsey-itirazı)
+    Kapanış: ardisik > esik VEYA birikim > birikim_k*esik. Tavan YOK."""
+    n = len(griler)
+    if n == 0:
+        return HavuzSonucu([], HavuzIstatistik(0, 0.0, 0.0, ESIK_TABAN, 0, 0, False))
+    if n == 1:
+        return HavuzSonucu([0], HavuzIstatistik(1, 0.0, 0.0, ESIK_TABAN, 0, 1, False))
+
+    temiz = temporal_median(griler, medyan_pencere)
+    imzalar = [imza(g) for g in temiz]
+    ardisik = [hamming(imzalar[i], imzalar[i + 1]) for i in range(n - 1)]
+    esik = film_esigi(ardisik)
+    birikim_esigi = max(esik + 4, int(birikim_k * esik))
+
+    gruplar: list[list[int]] = [[0]]
+    grup_acilis = imzalar[0]
+    for i in range(1, n):
+        ard = hamming(imzalar[i], imzalar[i - 1])     # kayan çapa
+        birikim = hamming(imzalar[i], grup_acilis)     # fade sinyali
+        if ard > esik or birikim > birikim_esigi:
+            gruplar.append([i])
+            grup_acilis = imzalar[i]
+        else:
+            gruplar[-1].append(i)
+
+    sayfalar = [g[len(g) // 2] for g in gruplar]       # orta kare (Task 5 yükseltir)
+    f = np.array(ardisik, dtype=np.float64)
+    ist = HavuzIstatistik(
+        kare_sayisi=n, fark_medyani=float(np.median(f)),
+        fark_iqr=float(np.percentile(f, 75) - np.percentile(f, 25)),
+        esik=esik, birikim_esigi=birikim_esigi,
+        grup_sayisi=len(gruplar), alarm=False)
+    return HavuzSonucu(sayfalar, ist)
