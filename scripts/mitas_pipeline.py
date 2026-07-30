@@ -280,14 +280,16 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, t
     v4_credits: V4 rapor 'v4' bloğu (cast_list/yonetmen_list/yapimci_list/keywords) → .txt'yi PDF ile hizalar."""
     base = file_base(trt, title)
     pdf_out = clip_dir / "pdf"
+    # is_file (exists DEĞİL): pdf_path=None → Path("")=Path('.') var olan DİZİN sayılır,
+    # copy2('.', hedef) Errno 21 patlatır + fallback araması atlanırdı (2026-07-30 kanıtlı).
     pdf_src = Path((pdf_info or {}).get("pdf_path") or "")
-    if not (pdf_src and pdf_src.exists()):
+    if not (pdf_src and pdf_src.is_file()):
         for cand in ("kunye_fixed.pdf", "kunye.pdf"):
             p = pdf_out / cand
-            if p.exists():
+            if p.is_file():
                 pdf_src = p
                 break
-    if pdf_src and pdf_src.exists():
+    if pdf_src and pdf_src.is_file():
         shutil.copy2(pdf_src, clip_dir / f"{base}.pdf")
     afis = pdf_out / "afis.jpg"
     if afis.exists():
@@ -3736,10 +3738,12 @@ def main(argv=None) -> int:
         base_name = (f"{trt} {_safe_title}").strip() + f"_{special_genre}" + (_kontrol_lbl if karar == "Kontrol" else "")
     else:
         base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
+    # is_file (exists DEĞİL): pdf_path=None → Path('.') dizini "var" sayılıp md teslimini
+    # İPTAL ediyor ve sahte .pdf yolu raporluyordu (Errno 21, 2026-07-30 kanıtlı).
     pdf_src = Path(pdf_info.get("pdf_path") or "")
     md_src = Path(pdf_info.get("md_path") or "")
-    src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
-    ext = ".pdf" if (pdf_src and pdf_src.exists()) else (".md" if (md_src and md_src.exists()) else "")
+    src_file = pdf_src if (pdf_src and pdf_src.is_file()) else (md_src if (md_src and md_src.is_file()) else None)
+    ext = ".pdf" if (pdf_src and pdf_src.is_file()) else (".md" if (md_src and md_src.is_file()) else "")
     dest = (dest_root / f"{base_name}{ext}") if not _ext_tf else None
     if src_file and dest is not None:
         try:
