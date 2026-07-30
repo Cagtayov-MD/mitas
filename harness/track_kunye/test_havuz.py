@@ -145,3 +145,22 @@ def test_normal_film_alarm_calmaz():
     kareler = _kartlar("A KARTI", "B KARTI", "C KARTI", kopya=15)
     s = havuz.havuz_derle(kareler)
     assert s.istatistik.alarm is False
+
+
+def test_ikinci_gecis_surunen_scrollu_yakalar():
+    # fark hep eşik-altı kalan sürünen içerik: gruplar kapanmaz, tek sayfa çıkar;
+    # sigorta aradaki birikmiş enerjiyi görüp ek kare istemeli.
+    metinler = [f"SATIR {i}" for i in range(40)]
+    kareler = senaryo.scroll(metinler, 120)          # yavaş: kare-başı fark küçük
+    s = havuz.havuz_derle(kareler)
+    if len(s.sayfalar) >= 8:
+        pytest.skip("gruplama zaten yakaladı — sigorta senaryosu oluşmadı")
+    ek = havuz.ikinci_gecis(kareler, s)
+    assert len(ek) >= 3
+    assert not set(ek) & set(s.sayfalar)
+
+
+def test_ikinci_gecis_statik_filmde_bos():
+    kareler = _kartlar("SABIT A", "SABIT B", kopya=20)
+    s = havuz.havuz_derle(kareler)
+    assert havuz.ikinci_gecis(kareler, s) == []

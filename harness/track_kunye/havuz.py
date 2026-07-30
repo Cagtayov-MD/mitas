@@ -147,3 +147,31 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
         esik=esik, birikim_esigi=birikim_esigi,
         grup_sayisi=len(gruplar), alarm=alarm)
     return HavuzSonucu(sayfalar, ist)
+
+
+def ikinci_gecis(griler: list[np.ndarray], sonuc: HavuzSonucu, *,
+                 medyan_pencere: int = 3) -> list[int]:
+    """Delta-enerji kapsama sigortası (spec §7): iki seçili sayfa arasında
+    elenen karelerde birikmiş fark-enerjisi 'kaçmış içerik' imzasıdır —
+    aralıktan en yüksek-farklı kareyi geri çağır. Konsey: 'tavansız dünyada
+    daha da kritik; OCR kalite sigortası'."""
+    if sonuc.istatistik is None or len(sonuc.sayfalar) < 1:
+        return []
+    temiz = temporal_median(griler, medyan_pencere)
+    imzalar = [imza(g) for g in temiz]
+    esik = max(1, sonuc.istatistik.esik)
+    sinir = 2.0 * (esik ** 2)
+    ekler: list[int] = []
+    noktalar = sorted(set(sonuc.sayfalar))
+    araliklar = list(zip(noktalar, noktalar[1:]))
+    if noktalar[-1] < len(griler) - 1:
+        araliklar.append((noktalar[-1], len(griler) - 1))
+    for a, b in araliklar:
+        if b - a < 2:
+            continue
+        farklar = [(hamming(imzalar[i], imzalar[i + 1]), i + 1)
+                   for i in range(a, b - 1)]
+        enerji = float(sum(d * d for d, _ in farklar))
+        if enerji > sinir:
+            ekler.append(max(farklar)[1])
+    return sorted(set(ekler) - set(noktalar))
