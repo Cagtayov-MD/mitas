@@ -36,13 +36,17 @@ def skor_satiri(slug: str, ibra: dict, messi: dict, ronaldo: dict) -> str:
 def pencere_cek(klip: Path, slug: str, pencere_s: int) -> Path:
     hedef = EX / f"{slug}-exit_frames"
     hedef.mkdir(parents=True, exist_ok=True)
+    # stdin=DEVNULL şart: ffmpeg/ffprobe miras stdin'i tüketir — toplu koşuda
+    # sürücü betiğin okuduğu listeyi yer (2026-07-30 pilot: 3 satır bozuldu)
     sure = float(subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(klip)], capture_output=True, text=True).stdout.strip())
+         "-of", "csv=p=0", str(klip)], capture_output=True, text=True,
+        stdin=subprocess.DEVNULL).stdout.strip())
     bas = max(0.0, sure - pencere_s)
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
                     "-ss", str(bas), "-i", str(klip), "-vf", "fps=1",
-                    str(hedef / "exit_%06d.png")], check=True)
+                    str(hedef / "exit_%06d.png")], check=True,
+                   stdin=subprocess.DEVNULL)
     return hedef
 
 
