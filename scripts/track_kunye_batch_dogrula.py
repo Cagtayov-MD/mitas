@@ -43,19 +43,27 @@ def _pdf_saglam(pdf: Path) -> bool:
 
 def klip_dogrula(clip_dir: Path, olaylar: list[dict]) -> dict:
     eksikler: list[str] = []
-    uyari = ""
+    uyarilar: list[str] = []
     mid_m = MID_DESEN.search(clip_dir.name)
     mid = mid_m.group(1) if mid_m else ""
-    film_olaylari = [e for e in olaylar if e.get("media_id") == mid] if mid else []
+    # Üretimde event media_id'si dosya-adı türevi ("evoArcadmin_..._<mid>-...") —
+    # çıplak TRT no ile TAM eşleşmez; alt-dizgi araması şart (2026-07-30 smoke bulgusu).
+    film_olaylari = [e for e in olaylar
+                     if mid and (mid in str(e.get("media_id") or "")
+                                 or mid in str(e.get("filename") or ""))]
     kinds = {str(e.get("kind") or "") for e in film_olaylari}
 
     # K1 — PDF
     if not _pdf_saglam(clip_dir / "pdf" / "kunye.pdf"):
         eksikler.append("pdf/kunye.pdf yok/bozuk/kucuk")
 
-    # K2 — QC olay zinciri (media_id ile)
+    # K2 — QC olay zinciri. credit_qc1_* YALNIZ RED tetiklenince yazılır
+    # (mitas_pipeline.py:2874,2945,2957); temiz geçişin kanıtı karar.pipeline.json.
     if not any(k.startswith("credit_qc1") for k in kinds):
-        eksikler.append("QC1 olayı yok (credit_qc1_*)")
+        if (clip_dir / "karar.pipeline.json").is_file():
+            uyarilar.append("qc1_temiz_yol")
+        else:
+            eksikler.append("QC1 kanıtı yok (credit_qc1_* eventi de karar.pipeline.json da yok)")
     if not any(("validate" in k) or ("qc2" in k.lower()) for k in kinds):
         eksikler.append("QC2/validate olayı yok")
     if not any(k.startswith("track_kunye") for k in kinds):
@@ -89,14 +97,14 @@ def klip_dogrula(clip_dir: Path, olaylar: list[dict]) -> dict:
             eksikler.append("kök kunye3.txt yok")
     elif durum == "skipped":
         if man.get("reason"):
-            uyari = f"skipped:{man['reason']}"
+            uyarilar.append(f"skipped:{man['reason']}")
         else:
             eksikler.append("skipped ama reason yok")
     elif durum is not None:
         eksikler.append(f"track_kunye status={durum}")
 
     return {"film": clip_dir.name, "gecti": not eksikler,
-            "eksikler": eksikler, "uyari": uyari}
+            "eksikler": eksikler, "uyari": ",".join(uyarilar)}
 
 
 def main() -> int:
