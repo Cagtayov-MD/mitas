@@ -84,6 +84,39 @@ def test_derle_uc_kart_uc_sayfa():
     assert s.istatistik.grup_sayisi == 3
 
 
+def test_los_kart_std_yedegiyle_kurtulur():
+    # loş kart: temsilci düz çıkabilir ama grubun EN parlak üyesi kurtarmalı
+    los = senaryo.kart("LOS KART", 9, parlaklik=40, zemin=25)
+    # tek üye biraz kontrastlı (65 → std 3.21: kapının ÜSTÜNDE; 60 std 2.81 verip
+    # kapının altında kalıyordu — senaryo kalibrasyonu, üretim kapısı 3.0 değişmedi)
+    los[4] = senaryo.kart("LOS KART", 1, parlaklik=65, zemin=25)[0]
+    duz = [np.full((160, 200), 25, np.uint8) for _ in range(9)]      # gerçek boş grup
+    kareler = los + senaryo.kart("NORMAL PARLAK KART", 9) + duz
+    s = havuz.havuz_derle(kareler)
+    assert any(i < 9 for i in s.sayfalar)          # loş kartın sayfası VAR
+    assert not any(i >= 18 for i in s.sayfalar)    # gerçek boş grup yine YOK
+
+
+def test_birikim_esigi_yuksek_esikte_ulasilabilir(monkeypatch):
+    # gercek-yalanlar vakası: Otsu 46 → 3×46=138 > maks fark 112, fade sinyali ölüyordu
+    monkeypatch.setattr(havuz, "film_esigi", lambda farklar: 46)
+    kareler = _kartlar("AA BB", "CC DD", kopya=12)
+    s = havuz.havuz_derle(kareler)
+    assert s.istatistik.birikim_esigi <= 90
+
+
+def test_dev_sessiz_grup_periyodik_bolunur(monkeypatch):
+    # van-gogh vakası: yüksek eşik altında 253-kare sürünen grup tek sayfaya iniyordu
+    monkeypatch.setattr(havuz, "film_esigi", lambda farklar: 200)  # hiçbir fark eşiği aşamaz
+    metinler = [f"SURUNEN SATIR {i}" for i in range(20)]
+    kareler = senaryo.scroll(metinler, 100)
+    s = havuz.havuz_derle(kareler)
+    sirali = sorted(s.sayfalar)
+    araliklar = [b - a for a, b in zip(sirali, sirali[1:])]
+    assert (max(araliklar) if araliklar else 0) <= 25    # 25+ karelik okunmamış boşluk YOK
+    assert max(sirali) >= s.istatistik.kare_sayisi - 25  # kuyruk temsil edildi
+
+
 def test_derle_fade_iki_kart_yakalanir():
     a = senaryo.kart("ILK KART UZUN", 12)
     b = senaryo.kart("SON KART FARKLI", 12)

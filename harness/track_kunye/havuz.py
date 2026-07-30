@@ -106,7 +106,10 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
     imzalar = [imza(g) for g in temiz]
     ardisik = [hamming(imzalar[i], imzalar[i + 1]) for i in range(n - 1)]
     esik = film_esigi(ardisik)
-    birikim_esigi = max(esik + 4, int(birikim_k * esik))
+    birikim_esigi = min(90, max(esik + 4, int(birikim_k * esik)))
+    # 90 = rastgelelik-merkezi sınırı (bkz. alarm sabiti): birikim bundan öteye
+    # "içerik değişti"den başka anlam taşıyamaz; yüksek-eşikli filmde (Otsu 46)
+    # 3×esik=138 max-fark 112'nin üstünde kalıp fade sinyalini KAPATIYORDU.
 
     gruplar: list[list[int]] = [[0]]
     grup_acilis = imzalar[0]
@@ -119,11 +122,28 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
         else:
             gruplar[-1].append(i)
 
-    sayfalar = [_temsilci(g, keskinlikler) for g in gruplar]
+    DEV_GRUP = 20
+    bolunmus: list[list[int]] = []
+    for g in gruplar:
+        if len(g) <= DEV_GRUP:
+            bolunmus.append(g)
+        else:
+            # Dev sessiz grup (van-gogh 253-kare vakası): sürünen içerik eşik-altı
+            # kalıp tek sayfaya iniyordu — kaçırmamak ilkesi periyodik temsilci ister.
+            for b in range(0, len(g), DEV_GRUP):
+                bolunmus.append(g[b:b + DEV_GRUP])
+    gruplar = bolunmus
+
     # İçeriksiz-kare kapısı: düz flaş/boş kart (std≈0) sayfa olamaz — beyaz
     # flaş DÜŞÜK Laplacian verir (kenarsız), P95-üstü varsayımı YANLIŞTI
     # (Task 5 ölçümü; GLM'in P95 önerisi bu ölçümle yanlışlandı).
-    sayfalar = [s for s in sayfalar if float(griler[s].std()) >= 3.0]
+    sayfalar = []
+    for g in gruplar:
+        aday = _temsilci(g, keskinlikler)
+        if float(griler[aday].std()) < 3.0:
+            aday = max(g, key=lambda i: float(griler[i].std()))   # loş-kart kurtarma
+        if float(griler[aday].std()) >= 3.0:
+            sayfalar.append(aday)
     f = np.array(ardisik, dtype=np.float64)
     fark_medyani = float(np.median(f))
     # 90.0 ≈ 0.35×256; bağımsız-rastgele imza çiftleri Binom(256,0.5)→merkez
