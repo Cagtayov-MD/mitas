@@ -7,6 +7,121 @@
 
 ---
 
+## 2026-07-30 (akşam) — Tek-motor temizlik cerrahisi: text_layer + compose_hybrid söküldü, jenerik primitifleri taşındı
+
+**Çağatay kararları:** (1) panoramik deneme (uret_ex + panoramic_composer) sadece
+denendi — loş filmde eriyor, sunum-fazına ertelendi; (2) dynamic_credit_mosaic'in
+5 canlı primitifi "aktif projenin köşesine, görevi yazılı" taşınacak (İbrahimovic
+altına DEĞİL — bunlar dedektörün araçları); (3) text_layer_* ve compose_hybrid SİL.
+
+**Yapılan (3 commit):**
+- `03d4804` — `core/pipelines/ocr/jenerik_primitifleri.py` doğdu: _build_tophat_mask /
+  _phase_corr / _gdiff / _masked_gray / _hann2d + CC sabitleri, görev/soy/tüketici
+  docstring'de. jenerik_detector importu çevrildi; slitscan/ klasörü (mozaik
+  prototipi + panorama + runner'lar, 1955 satır) silindi.
+- `8cf7930a` — text_layer kümesi silindi (descroll, row_reconstruct, 2 CLI, 2 test,
+  Windows yol_runner). Canlı dosyalarda 3 dikiş: credit_experiment hook'u
+  status=removed; unified scroll-canvas dalı → A-fb emniyet ağı no_composite ile
+  track-fallback'e düşer (scroll metni kaybolmaz); selector'ın ölü önerisi çıktı.
+- `0fd31195` — pipeline100 görsel dalı söküldü (340→91 satır): compose_hybrid +
+  line-mozaik yardımcıları + slitscan2 gitti; main() metin-only (stx.runs_of +
+  stitch_kunye). _pipe_ocr e.1 bayrak bloğu + master_png çıktı anahtarları
+  kaldırıldı. outputs/ altındaki 3 alternatif master-üretici/probe silindi.
+
+**Doğrulama:** box_track+scene_router+police 17p/3s; messi+box+router 42p/1s;
+frame_dedup 9p; jenerik_detector import+mask smoke; pl modül-yükleme smoke
+(MITAS_PROJECT_ROOT ile cp/cl/stx zinciri). Yanlış-alarm dersi:
+_pipe_shadow_vl'deki `dcm` = db_compose_master (V2 dosyası), dynamic_credit_mosaic
+DEĞİL — VL hattı etkilenmedi.
+
+**Bekleyen:** kapanış paketi — konsey kapanış cevabı sentezi (Nemotron ilk turu
+dahil), 5 fh-kaybı filmi teşhisi (havaci, sihirli-flut, define-adasi, rhum-bulvari,
+tas-devri), branş-bütünü final inceleme. uret_ex + panoramic_composer'ın kaderi
+Çağatay'da (commitlenmemiş satırları duruyor, dokunulmadı).
+
+---
+
+## 2026-07-30 (öğle) — 3090'da YEREL ÖZET motoru: ölçüm yatağı + ilk tur (PARÇALAMA kazandı, TOPLAMA kaldı)
+
+**İş (Çağatay siparişi):** Tam film transkriptinden 3-4 cümlelik spoiler'lı künye özetini
+buluttan (DeepSeek/Gemini/Sonnet) 3090'a taşımak. Gerekçe: kota/maliyet + dış bağımlılık;
+bulut hakem ve yedek olarak masada kalıyor.
+
+**Kurulan — `harness/ozet_motor/`** (eval-harness-first):
+- `eval/goldens.jsonl` — **136 film**, transkript + AYNI transkriptten üretilmiş **Sonnet referansı**
+  (`_log.jsonl: ozet_completed`). Altın standart bedava geldi; ayrıca <800 kelime transkriptler
+  elendi (bir filmde 4 kelime çıkmıştı = ASR başarısız, motor sınavı değil).
+- `eval/graders.py` — 3 kova: B1 biçim (üretimin kendi `_ozet_kalite` kapısı), B2 dil
+  (garble/İngilizce/tekrar/think-sızıntısı), B3 olgu (Sonnet'e karşı ad-isabeti + içerik).
+- `motorlar.py` — arka uç soyut (Ollama|VLLM), şekil `tek_atis` | `cikar_ozetle`.
+- `sunucu.sh` (vLLM :8101, VRAM kapılı), `kos.py`, `nobetci.sh` (VRAM tabanlı bekleyici).
+
+**SONUÇ — Qwen3-8B FP16, 32k bağlam, 6 film (1.4k–13k kelime):**
+
+| kol | kapı | dil | **ad-isabet** | ort sn | ort kelime |
+|---|---|---|---|---|---|
+| tek_atis | 3/6 | 3/6 | **0.36** | 13.4 | 175 |
+| cikar_ozetle | 0/6 | 2/6 | **0.75** | 29.8 | 82 |
+
+- **Parçalama olgu sadakatini GERÇEKTEN düzeltiyor:** ad-isabeti ölçülebilen **5 filmin 5'inde**
+  de kazandı. En çarpıcısı KORKUNÇ GECE **0.00 → 0.75** (tek-atış ana karakteri komple ıskaladı).
+  Bu, bake-off'un "B: kim-kime tersine" kovası — ve parçalama onu kapatıyor.
+- **En uzun filmde (12.964 kelime) tek-atış ÇÖKTÜ: 744 kelime.** Parçalı 51 kelime verdi.
+  Uzun filmde tek-atış seçenek değil.
+- **Ama parçalı biçim kapısından 0/6 geçti** (71-125 kelime, sınır 65) ve çıktı "özet" değil
+  **olay listesinin düzyazısı** — promptun yasakladığı yöntem/prosedür anlatımı.
+- **TEŞHİS: darboğaz ÇIKARMA değil TOPLAMA.** 8B doğru olguları buluyor ama olay listesini
+  40-60 kelimelik bir yaya SIKIŞTIRAMIYOR. Sıkıştırma kavrama ister.
+
+**BAĞIMSIZ BULGU — üretim promptu altın-örneği SIZDIRIYOR (2/12 çıktı):** `ozet_film_v2.txt`'deki
+Jean Picard örneği kopyalanıyor. En net vaka **AYI YOGİ** (çizgi film, piknik sepeti çalan ayı) →
+*"Ancak Yogi, aslında bir sahte sabotajcı olarak kendini feda eder."* Model emin olamayınca örneği
+şablon gibi dolduruyor. ÇİÇEK TAKSİ VL kaydındaki sahte-künye halüsinasyonuyla **aynı hastalık**.
+Prompt şu an ÜRETİMDE CANLI — ayrı kalem olarak ele alınacak, henüz dokunulmadı.
+
+**KONSEY (kırmızı takım; GLM + Nemotron cevapladı, Kimi kotasız, MiniMax düştü):** sığ onay değil,
+gerçek hasar buldu — hepsi uygulandı:
+1. **GERÇEK BUG:** son parça hem olay-döngüsünde hem `_FINAL_SORU`'da işleniyordu → çelişkili girdi.
+2. Karakterden bölme repliği ortadan kesiyordu → **satır sınırından** bölme.
+3. Parçalar arası coreference kopuğu (parçalamanın tek-atıştan DAHA KÖTÜ olabileceği tek yer) →
+   transkriptten deterministik **kanonik kişi listesi** her parçaya taşınıyor. Bu düzeltme kendini
+   ödedi: çıkarılan adlar Sonnet referanslarıyla birebir örtüşüyor (Waldo/Tornicraft/Beverly,
+   Letizia/Laroş, Marc/Camille/Odile). Ad-isabetindeki 0.36→0.75 sıçraması büyük ölçüde bundan.
+4. Final son 1/6 değil **son 1/3**'ten + "çelişirse bu doğrudur" etiketi (çerçeve-hikâyeli filmler).
+5. Madde/token bütçesi parça uzunluğuna göre ölçekleniyor.
+- REDDEDİLDİ: Nemotron'un "8B tek-atışa dön + LoRA eğit" önerisi — ölçmeden hüküm veriyor.
+
+**BAŞARISIZ DENEMELER / ÖĞRENİLENLER (tekrarlanmasın):**
+- **32B-AWQ 3090'da bıçak sırtı, 3 kez OOM.** Ölçülmüş reçete: `--gpu-memory-utilization 0.93
+  --max-model-len 10240 --kv-cache-dtype fp8 --enforce-eager`. Sırasıyla çarpılan duvarlar:
+  (a) 0.92 util + 16k → KV'ye 1.39 GiB kalıyor, 2.0 GiB gerekiyor; (b) 0.95 → masaüstü 1.3 GB
+  tuttuğu için toplam bütçe aşılıyor (22.24 boş < 22.38 istek); (c) graph yakalama OOM →
+  **`--enforce-eager` ZORUNLU** (vlm_sunucu.sh de aynı sebeple eager). Ağırlık yükü 19.42 GiB.
+- **ollama sabit 4096 bağlam KULLANMIYOR** (0.32.0): modele göre 8192/32768 seçiyor. Ama üretim
+  `_ozet_gemma_local` `num_ctx` HİÇ vermiyor → uzun filmde ollama'nın insafında. Harness açıkça veriyor.
+- **Grader körlüğü:** Sonnet referansları künyede TAMAMI BÜYÜK HARF; Title-Case regex referansta
+  hiç ad bulamıyordu → `ad_isabet` hep None. Düzeltildi: kanonik ad kümesi TRANSKRİPTTEN çıkarılıp
+  iki tarafta da ASCII-katlanmış aranıyor.
+- **İsim çıkarıcı cümle-başı tuzağı:** "Ben/Sen/Bana/Çok" ad sanılıyordu. Çözüm: bir sözcük ancak
+  CÜMLE ORTASINDA ≥2 kez büyük harfle geçerse ad sayılır.
+- **ASR aynı ismi birden çok yazıyor** (Letizia/Leticia, Jules/Jül, Waldo/Valdo). Şimdilik ikisi de
+  modele veriliyor; ileride bulanık eşleştirmeyle birleştirme gerekebilir. NOT EDİLDİ, dokunulmadı.
+- **GPU ÇAKIŞMASI:** aynı kartta 3 paralel Claude oturumu iş koşturdu; tur 3 kez kesildi.
+  ⚠️ **`harness/kunye_kiyas/olc_pool.py` ARA KAYIT YAZMIYOR** (yalnız bitişte `olcum_son.json`),
+  önbelleği süreç-içi RAM. Çağatay talimatıyla durduruldu → ~50 dk iş sıfırdan. **TUZAK:**
+  `olcum_son.json` durdurulduktan sonra da 11:18'in dosyası kaldı → onu bekleyen oturum
+  BASELINE ile eski dosyayı kıyaslayıp **sahte YEŞİL** okuyabilir. 11:18 sonucu
+  `veri/olcum_son_11-18_YEDEK.json` olarak yedeklendi.
+
+**BEKLEYEN:**
+1. **32B-AWQ toplayıcı turu** — nöbetçi (`nobetci.sh`, VRAM≥22 GB, 4 saat sabır) kurulu, kart
+   boşalınca kendiliğinden koşacak. Karar sorusu: aynı olay listesinden 32B temiz 45 kelimelik yay
+   çıkarıyor mu? Çıkarıyorsa mimari doğru, sadece toplayıcı büyümeli; çıkaramıyorsa hat yanlış.
+2. Prompt altın-örneği sızıntısı — üretim `ozet_film_v2.txt` kalemi.
+3. Tasarım kararı (hat içi / gece geçişi) hâlâ AÇIK — ölçüm bitmeden verilmeyecek.
+
+---
+
 ## 2026-07-30 (gece 3b) — ÇİÇEK TAKSİ b001 (dizi): v5 çıkış tespiti + 30sn video-VL okuma
 
 **İş (Çağatay siparişi):** depo01 DİZİLER/ÇİÇEK TAKSİ bölüm 001 (2001-9011, 61:29)
