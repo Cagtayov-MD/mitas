@@ -103,6 +103,8 @@ def main() -> None:
 
     # SKOR (3 kolon)
     ref = referans_cikar(a.slug)
+    (out / "referans.json").write_text(
+        json.dumps(sorted(ref), ensure_ascii=False), encoding="utf-8")
     ronaldo_kunye = (out / "ronaldo_kunye.txt").read_text(encoding="utf-8").splitlines()
     skor = {"ibrahimovic": metrik.skorla(master_dokum, ref, kb_tok),
             "messi": metrik.skorla(messi_dokum, ref, kb_tok),

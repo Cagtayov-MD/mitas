@@ -63,6 +63,64 @@ def test_satir_esle_varyant():
     assert rn.satir_esle("Tamino - Neill Archer", "Papageno - Simon Keenlyside", kb) is False
 
 
+def test_halusinasyon_kb_isabetli_duzyazi_yakalanir():
+    # 2026-07-30 mutlu-gunler duman testi: 10M-isimlik KB'de sıradan İngilizce
+    # kelimeler (man, green, brooks) soyadı olarak var -> KB-isabetsizlik
+    # kuralı düzyazıda hiç ateşlemiyor. Düzyazı imzası (cümle fiili/zamiri)
+    # ayrıca aranmalı.
+    kb = {"douglas", "macarthur", "man", "green", "brooks"}
+    assert rn.halusinasyon_mu(
+        "A man in a suit and tie is walking towards the camera with a stern expression", kb) is True
+    assert rn.halusinasyon_mu(
+        "The man in the suit is General Douglas MacArthur who was the Supreme Commander", kb) is True
+    assert rn.halusinasyon_mu(
+        "It's not clear what caused the fire, but it looks like a cigarette butt", kb) is True
+
+
+def test_halusinasyon_uzun_kunye_satiri_yakalanmaz():
+    # Gerçek uzun künye satırları (sihirli-flut dökümünden) isim-öbeği yapısında,
+    # cümle fiili içermez -> düzyazı imzası bunlara dokunmamalı.
+    kb = {"seaman", "opus", "angle", "welsh"}
+    assert rn.halusinasyon_mu(
+        "With the Orchestra and Chorus of the Welsh National Opera", kb) is False
+    assert rn.halusinasyon_mu(
+        "Sound Recording by OPUS 30 Music Production by Right Angle", kb) is False
+
+
+def test_halusinasyon_katalog_modu_yakalanir():
+    # deepseek'in ikinci uydurma modu (mutlu-gunler): müze-kataloğu metadata'sı.
+    # Markdown-bold (**) ekranda asla olmaz; katalog fiilleri isim-öbeği
+    # imzasını deler.
+    kb = {"evans", "walker", "hagemeyer"}
+    assert rn.halusinasyon_mu("- **Dimensions:** 4 x 5 cm (1 9/16 x 2 in.)", kb) is True
+    assert rn.halusinasyon_mu(
+        '"Unidentified Individual, New York City" by Walker Evans, 1929-30. '
+        "A poignant snapshot capturing a moment of urban life", kb) is True
+    assert rn.halusinasyon_mu(
+        "A black and white photograph of an urban scene, likely taken in the 1960s or 1970s.",
+        kb) is True
+
+
+def test_halusinasyon_cjk_betimleme_yakalanir():
+    # deepseek'in Çince betimleme modu (mutlu-gunler master dökümünde görüldü);
+    # boşluksuz yazıldığı için kelime-sayısı kuralına hiç girmiyor.
+    assert rn.halusinasyon_mu("图片顶部是一片茂密的竹林，竹子排列整齐，叶片细长而密集。", set()) is True
+
+
+def test_satir_esle_kisa_satir_paragrafa_yutulmaz():
+    # Duman testi: 'CHARACTERS' (1 token) 40 kelimelik paragrafın içindeki tek
+    # kelimeyle %100 örtüşme sayılıp birleşti; paragraf birincil oldu, gerçek
+    # künye satırı variants'a düştü.
+    kb = {"smith"}
+    prosa = ("The image is in black and white, showing a close-up view of some "
+             "tangled wires or cables. There are no discernible texts or characters in the image.")
+    assert rn.satir_esle("CHARACTERS", prosa, kb) is False
+    filigran = "The image contains a watermark with the text 2012 J. M. Smith and a URL"
+    assert rn.satir_esle("SMITH", filigran, kb) is False
+    # Regresyon korkuluğu: kısa satırın KISA genişlemesi hâlâ eşleşir.
+    assert rn.satir_esle("KID", "KID HANK WOOD", kb) is True
+
+
 def test_birlestir_messi_omurga_sira_korunur():
     # GLM #3 + Nemotron #3: sıra = Messi kronolojisi; İbra sadece boşluk doldurur
     messi = ["SUNG BY", "Tamino - Neill Archer", "Pamina - Alwyn Mellor"]

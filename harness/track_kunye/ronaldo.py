@@ -89,14 +89,35 @@ def garble_mi(satir: str) -> bool:
     return False
 
 
+# Düzyazı imzası: künye satırları isim-öbeğidir, cümle fiili/zamiri içermez.
+# 10M-isimlik KB'de sıradan İngilizce kelimeler (man, green, brooks) soyadı
+# olarak kayıtlı olduğundan KB-isabetsizlik düzyazıda tek başına ateşlemiyor
+# (2026-07-30 mutlu-gunler duman testi bulgusu).
+_PROSA_FIIL = {
+    "is", "are", "was", "were", "has", "have", "had", "he", "she", "it",
+    "its", "there", "appears", "appear", "seems", "seem", "looks",
+    "showing", "shows", "suggests", "suggesting",
+    "captures", "capturing", "depicts", "depicting", "likely",
+    "gorunuyor", "goruluyor", "gosteriyor", "bulunuyor", "olabilir", "vardir",
+}
+
+
 def halusinasyon_mu(satir: str, kb_tok: set[str]) -> bool:
-    """deepseek sahne-betimleme/halüsinasyon adayı (konsey #6)."""
+    """deepseek sahne-betimleme/halüsinasyon adayı (konsey #6 + pilot yaması)."""
     s = satir.strip()
     if s.startswith("[") or s.startswith("("):
         return True
+    if "**" in s:
+        return True          # markdown-bold katalog artefaktı — ekranda asla yok
+    harfler = [c for c in s if c.isalpha()]
+    if harfler and sum(1 for c in harfler if "一" <= c <= "鿿") / len(harfler) > 0.3:
+        return True          # CJK betimleme modu: boşluksuz, kelime kuralına girmez
     kelimeler = fold_tr(s).split()
-    if len(kelimeler) > 8 and not any(k in kb_tok for k in kelimeler):
-        return True
+    if len(kelimeler) > 8:
+        if not any(k in kb_tok for k in kelimeler):
+            return True
+        if any(k in _PROSA_FIIL for k in kelimeler):
+            return True
     return False
 
 
@@ -109,6 +130,8 @@ def satir_esle(a: str, b: str, kb_tok: set[str]) -> bool:
     if not ta or not tb:
         return False
     kisa, uzun = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
+    if len(kisa) <= 2 and len(uzun) > 3 * len(kisa):
+        return False         # 1-2 token'lık künye satırı paragrafla "aynı satır" olamaz
     eslesen = sum(1 for x in kisa if any(token_esle(x, y, kb_tok) for y in uzun))
     return eslesen / len(kisa) >= 0.6
 
