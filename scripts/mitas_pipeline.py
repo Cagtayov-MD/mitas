@@ -4147,7 +4147,9 @@ def main(argv=None) -> int:
                           module="track-kunye", media_id=media_id, filename=_tk_ad,
                           duration_seconds=timings["track_kunye"],
                           detail={"clip_id": clip_id, "ozet": _jtk,
-                                  "stderr": (_errtk or "")[-300:] if _rctk else None})
+                                  # betik SÖZLEŞME gereği hep rc=0 döner — stderr'i
+                                  # rc'ye bakmadan logla (konsey bug-avı KIM-3)
+                                  "stderr": (_errtk or "")[-300:] or None})
                 if _tk_status == "done" and _tk_band in ("red", None):
                     log_event("ronaldo_band_red" if _tk_band == "red" else "ronaldo_band_null",
                               level="warn",

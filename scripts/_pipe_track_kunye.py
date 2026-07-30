@@ -19,13 +19,26 @@ from pathlib import Path
 PROJE = Path(os.environ.get("MITAS_PROJECT_ROOT", "/opt/mitas"))
 sys.path.insert(0, str(PROJE / "harness" / "track_kunye"))
 
-MAX_KARE = int(os.environ.get("MITAS_TRACK_KUNYE_MAX_FRAMES", "100") or 100)
-CAGRI_TIMEOUT = int(os.environ.get("MITAS_TRACK_KUNYE_CAGRI_TIMEOUT", "180") or 180)
+def _env_int(ad: str, varsayilan: int) -> int:
+    """Bozuk env değeri ('1k', ' 180 ', boş) betiği import aşamasında ÇÖKERTEMEZ
+    (konsey bug-avı GLM-1/KIM-2) — fail-safe sözleşmesi exit 0 + JSON ister."""
+    try:
+        return int((os.environ.get(ad) or "").strip() or varsayilan)
+    except (ValueError, TypeError):
+        return varsayilan
+
+
+MAX_KARE = _env_int("MITAS_TRACK_KUNYE_MAX_FRAMES", 100)
+CAGRI_TIMEOUT = _env_int("MITAS_TRACK_KUNYE_CAGRI_TIMEOUT", 180)
+
+
+def _ollama_kok() -> str:
+    return (os.environ.get("MITAS_OLLAMA_URL") or "http://127.0.0.1:11434").rstrip("/")
 
 
 def ollama_saglik(timeout: int = 3) -> bool:
     """Ollama ayakta mı? Uzun timeout'a hiç girmeden 3 sn'de karar (konsey S3)."""
-    url = os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/tags"
+    url = _ollama_kok() + "/api/tags"
     try:
         with urllib.request.urlopen(url, timeout=timeout):
             return True
@@ -69,7 +82,10 @@ def ornekle(sayfalar: list, ust_sinir: int = MAX_KARE) -> tuple[list, int]:
     if len(sayfalar) <= ust_sinir:
         return list(sayfalar), 0
     adim = len(sayfalar) / ust_sinir
-    indeksler = sorted({min(len(sayfalar) - 1, int(i * adim)) for i in range(ust_sinir)})
+    # SON kare zorla dahil (konsey bug-avı GLM-3): düzgün-adım son indeksi hiç
+    # seçmeyebiliyor, © / "SON" kartı tam orada — yapısal çapa kaybı olurdu.
+    indeksler = sorted({min(len(sayfalar) - 1, int(i * adim)) for i in range(ust_sinir)}
+                       | {len(sayfalar) - 1})
     secim = [sayfalar[i] for i in indeksler]
     return secim, len(sayfalar) - len(secim)
 
@@ -122,9 +138,17 @@ def main() -> int:
         print(json.dumps(ozet, ensure_ascii=False), flush=True)
         return 0
 
+    try:
+        return _govde(a, clip_dir, frames, out, ozet, bitir)
+    except Exception as e:  # noqa: BLE001 — üst duvar (konsey): sözleşme her koşulda exit 0 + JSON
+        ozet.update(status="failed", error_class=type(e).__name__,
+                    error=str(e)[:300], asama="beklenmedik")
+        return bitir()
+
+
+def _govde(a, clip_dir: Path, frames: Path, out: Path, ozet: dict, bitir) -> int:
     if not ollama_saglik():
-        ozet.update(status="skipped", reason="ollama_down",
-                    ollama_url=os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434"))
+        ozet.update(status="skipped", reason="ollama_down", ollama_url=_ollama_kok())
         return bitir()
     if not frames.is_dir() or not any(frames.glob("*.png")):
         ozet.update(status="skipped", reason="frames_bos")
@@ -144,7 +168,7 @@ def main() -> int:
         return bitir()
     secim, dusen = ornekle(secim)
     try:
-        messi_dokum = ph.oku_deepseek(secim, cagri_timeout=CAGRI_TIMEOUT)
+        messi_dokum = ph.oku_deepseek(secim, cagri_timeout=CAGRI_TIMEOUT) or []
     except Exception as e:  # noqa: BLE001
         ozet.update(status="failed", error_class=type(e).__name__,
                     error=str(e)[:300], asama="messi_okuma")
@@ -157,7 +181,7 @@ def main() -> int:
     master_dokum: list[str] = []
     if master_png is not None:
         try:
-            master_dokum = ph.oku_master(master_png, out, cagri_timeout=CAGRI_TIMEOUT)
+            master_dokum = ph.oku_master(master_png, out, cagri_timeout=CAGRI_TIMEOUT) or []
         except Exception as e:  # noqa: BLE001
             ibra_sebep = f"okuma_hatasi:{type(e).__name__}"
     (out / "master_dokum.txt").write_text("\n".join(master_dokum) + "\n", encoding="utf-8")
@@ -174,14 +198,15 @@ def main() -> int:
         manifest = ph.ronaldo_kos(clip_dir.name, out, messi_dokum, master_dokum,
                                   kb, kb_tok, kare_toplam=kare_toplam,
                                   messi_kare=len(secim),
-                                  ibra_kare=master_kare_sayisi(clip_dir))
+                                  ibra_kare=master_kare_sayisi(clip_dir)) or {}
     except Exception as e:  # noqa: BLE001
         ozet.update(status="failed", error_class=type(e).__name__,
                     error=str(e)[:300], asama="ronaldo")
         return bitir()
 
     base = a.base or clip_dir.name
-    ronaldo_kunye = (out / "ronaldo_kunye.txt").read_text(encoding="utf-8").splitlines()
+    rk = out / "ronaldo_kunye.txt"
+    ronaldo_kunye = rk.read_text(encoding="utf-8").splitlines() if rk.is_file() else []
     try:
         kunye3_yaz(clip_dir, base, messi_dokum, master_dokum, ronaldo_kunye,
                    manifest.get("confidence_band"))

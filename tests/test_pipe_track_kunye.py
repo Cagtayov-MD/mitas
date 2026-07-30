@@ -128,11 +128,29 @@ def test_ornekle_kronolojik_ve_raporlu():
     m = _modul_yukle()
     girdi = list(range(250))
     secim, dusen = m.ornekle(girdi, ust_sinir=100)
-    assert len(secim) == 100 and dusen == 150
+    assert 100 <= len(secim) <= 101 and dusen == 250 - len(secim)
     assert secim == sorted(secim)          # kronoloji korunur
     assert secim[0] == 0                   # baş düşmez
+    assert secim[-1] == 249                # SON kare zorla dahil (© / SON kartı)
     kisa, d2 = m.ornekle([1, 2, 3], ust_sinir=100)
     assert kisa == [1, 2, 3] and d2 == 0
+
+
+def test_ornekle_son_kare_sinir_vakasi():
+    # Konsey bug-avı GLM-3: n=101, sınır=100 → düzgün-adım son indeksi (100)
+    # hiç seçmiyordu; © kartı tam orada olur.
+    m = _modul_yukle()
+    secim, _ = m.ornekle(list(range(101)), ust_sinir=100)
+    assert secim[-1] == 100
+
+
+def test_env_int_bozuk_deger_cokertmez(monkeypatch):
+    # Konsey bug-avı GLM-1/KIM-2: bozuk env betiği import'ta çökertmemeli.
+    monkeypatch.setenv("MITAS_TRACK_KUNYE_MAX_FRAMES", "1k")
+    monkeypatch.setenv("MITAS_TRACK_KUNYE_CAGRI_TIMEOUT", " 240 ")
+    m = _modul_yukle()
+    assert m.MAX_KARE == 100        # bozuk → varsayılan
+    assert m.CAGRI_TIMEOUT == 240   # boşluklu → düzgün parse
 
 
 def test_deepseek_saglik():
