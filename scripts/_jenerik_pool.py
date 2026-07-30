@@ -251,6 +251,18 @@ def _v5_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_V5", "0").strip().lower() not in ("0", "false", "off", "no")
 
 
+def _suphe_genis_havuz_enabled() -> bool:
+    # ŞÜPHE KATMANI — GENİŞ-HAVUZ bayrağı (2026-07-30, konsey GLM+Nemotron kırmızı-
+    # takım gardlı; Çağatay: "tespit edemesek bile şüpheyi bilelim; gerekirse tüm
+    # havuzu alırız, isim kaçarsa PDF şaşar"). Açıkken VE v5 KAZANDIYSA (kredisizde
+    # ASLA — konsey kırmızı çizgisi: AMY sınıfında sahte havuz doldurma yasak) VE
+    # credit_onset.Sonuc.suphe içinde "gec_riski" varsa, havuzu elenen komşu
+    # adayın BAŞINA (suphe_geri_kare) çeker — tavan en fazla 120 kare (asimetri
+    # politikası, erken≤120). DEFAULT KAPALI — yalnız ÖLÇÜM/bilgi amaçlı; üretim
+    # davranışı Çağatay onayı olmadan değişmesin. Aç: =1.
+    return os.environ.get("MITAS_JENERIK_SUPHE_GENIS_HAVUZ", "0").strip().lower() not in ("0", "false", "off", "no")
+
+
 def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = False) -> dict:
     """tespit_v5 çağırır; TÜM teşhis bilgisini bir sözlükte döndürür — hem
     create_pool'un start_pos kararı (final_indeks) hem de manifest'in YENİ `v5`
@@ -285,6 +297,33 @@ def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = Fa
     if idx is None:
         return {"final_indeks": None, "raw_indeks": None, "sonuc": r, "pad": pad}
     son = max(0, idx - pad)
+
+    # ŞÜPHE KATMANI — GENİŞ-HAVUZ (2026-07-30, DEFAULT KAPALI, bkz.
+    # _suphe_genis_havuz_enabled). Buradayız = v5 KAZANDI (r.start_frame >= 0,
+    # yukarıdaki erken-return'ler AMY sınıfı kredisiz filmleri zaten eledi —
+    # konsey kırmızı çizgisi: sahte havuz doldurma yalnız v5 gerçekten
+    # kazandığında mümkün). gec_riski ateşlediyse havuzu elenen komşu adayın
+    # BAŞINA (suphe_geri_kare) çek — tavan `son`dan en fazla 120 kare geriye
+    # (asimetri politikası erken≤120).
+    if (_suphe_genis_havuz_enabled() and "gec_riski" in (r.suphe or [])
+            and r.suphe_geri_kare is not None and int(r.suphe_geri_kare) >= 0):
+        geri_kare = int(r.suphe_geri_kare)
+        geri_idx = None
+        for i, f in enumerate(images):
+            if _co._kare_no(str(f)) == geri_kare:
+                geri_idx = i
+                break
+        if geri_idx is None and images:
+            geri_idx = min(range(len(images)), key=lambda i: abs(_co._kare_no(str(images[i])) - geri_kare))
+        if geri_idx is not None and geri_idx < son:
+            tavan = max(0, son - 120)
+            yeni_son = max(geri_idx, tavan)
+            if yeni_son < son:
+                if not kuru:
+                    _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "suphe_genis_havuz",
+                                  "eski": son, "yeni": yeni_son})
+                son = yeni_son
+
     if not kuru:
         _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
                       "kare": hedef, "indeks": idx, "pad": pad, "final_indeks": son,
@@ -324,6 +363,7 @@ def _v5_manifest_alt_nesne(v5_start: int | None, v5_info: dict | None,
         "son_capa": r.son_capa,
         "aday_sayisi": r.aday_sayisi,
         "notlar": r.notlar,
+        "suphe": r.suphe,
     }
 
 
