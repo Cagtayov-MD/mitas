@@ -207,3 +207,24 @@ def test_pilot_hat_havuz_modulunu_kullanir():
     assert "import havuz" in kaynak or "from havuz" in kaynak
     assert "def film_esigi" not in kaynak      # kopya mantık kalmadı
     assert "DHASH_ESIK" not in kaynak
+
+
+def test_kde_bimodal_vadi():
+    farklar = [4, 5, 6, 5, 4] * 12 + [50, 55, 60, 52] * 4
+    esik = havuz.film_esigi_kde(farklar)
+    assert 6 < esik < 50
+
+
+def test_kde_tek_tepe_p90():
+    farklar = [10, 11, 12, 13, 12, 11, 10, 12] * 8
+    esik = havuz.film_esigi_kde(farklar)
+    assert esik >= 12              # tek küme → yalnız sert sıçrama yeni sayfa
+
+
+def test_derle_esik_yontemi_parametresi():
+    # "AA BB"/"CC DD" 16×16 imzada ÇAKIŞIYOR (Hamming=0, Task 9 ölçümü) —
+    # Task 1'de kanıtlı imza-ayrık uzun metinler kullanılır.
+    kareler = _kartlar("BIRINCI KART UZUN METIN", "XYZW BAMBASKA ICERIK QQ", kopya=8)
+    s1 = havuz.havuz_derle(kareler, esik_yontemi="otsu")
+    s2 = havuz.havuz_derle(kareler, esik_yontemi="kde")
+    assert s1.istatistik.grup_sayisi >= 2 and s2.istatistik.grup_sayisi >= 2

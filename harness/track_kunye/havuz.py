@@ -74,6 +74,36 @@ def film_esigi(farklar: list[int]) -> int:
     return int(en_iyi_esik)
 
 
+def film_esigi_kde(farklar: list[int]) -> int:
+    """KDE-vadisi (konsey adayı): histogram + Gauss yumuşatma, iki tepe
+    arasındaki ilk yerel minimum. Tek tepe → p90 (yalnız sert sıçrama sayfa
+    açar; gerisi drift). scipy'siz — numpy convolve."""
+    if len(farklar) < 8:
+        return ESIK_TABAN
+    f = np.array(farklar, dtype=np.float64)
+    # Binleme kök-sebep fix'i (Task 9 tur-2 ölçümü): dar tam-sayı desteğine
+    # sabit-8 kutu açmak değerleri boşluklu dağıtıp SAHTE çift-tepe üretiyordu
+    # (aralık=3 → kutu 0/2/5/7 dolu, aralar boş). Kutu sayısı desteğe uyar.
+    hist, kenarlar = np.histogram(f, bins=max(4, int(f.max() - f.min()) + 1))
+    cekirdek = np.exp(-0.5 * (np.linspace(-2, 2, 5) ** 2))
+    duz = np.convolve(hist.astype(np.float64), cekirdek / cekirdek.sum(), mode="same")
+    # Tepe-kütle filtresi (Task 9 ölçümü): 4-değerli ayrık küme histogram
+    # binlemesinde sahte mini-tepe üretip vadi dalını yanlış tetikliyordu —
+    # tepe, en yüksek tepenin en az %10'u kadar kütle taşımalı.
+    tepeler = [i for i in range(1, len(duz) - 1)
+               if duz[i] >= duz[i - 1] and duz[i] >= duz[i + 1]
+               and duz[i] > 0.1 * float(duz.max())]
+    if len(tepeler) < 2:
+        return int(np.percentile(f, 90))
+    a, b = tepeler[0], tepeler[-1]
+    vadi = a + int(np.argmin(duz[a:b + 1]))
+    # Sığ-vadi bekçisi (Otsu'nun ayrim<0.8 bekçisinin KDE simetriği): vadi,
+    # tepelerin yarısından sığ değilse gerçek bimodallik yok → p90 (tek-küme).
+    if duz[vadi] > 0.5 * min(duz[a], duz[b]):
+        return int(np.percentile(f, 90))
+    return int(kenarlar[vadi])
+
+
 def temporal_median(griler: list[np.ndarray], pencere: int = 3) -> list[np.ndarray]:
     """Zaman-medyanı: kar/grén/interlace gibi kare-bağımsız gürültüyü İMZADAN
     siler (konsey: 'bunu en başa alın — kirli veride eşik çöp üretir').
@@ -97,7 +127,7 @@ def _temsilci(grup: list[int], keskinlikler: list[float]) -> int:
 
 
 def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
-                birikim_k: float = 3.0) -> HavuzSonucu:
+                birikim_k: float = 3.0, esik_yontemi: str = "otsu") -> HavuzSonucu:
     """Çift-sinyal gruplama (spec §2):
     - ardışık-fark KAYAN çapayla → yavaş kayma/pan tek grup kalır (GLM bug fix'i)
     - grup-açılış imzasına BİRİKİM → fade yakalanır (Fable'ın konsey-itirazı)
@@ -113,7 +143,8 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
     keskinlikler = [float(cv2.Laplacian(g, cv2.CV_32F).var()) for g in griler]
     imzalar = [imza(g) for g in temiz]
     ardisik = [hamming(imzalar[i], imzalar[i + 1]) for i in range(n - 1)]
-    esik = film_esigi(ardisik)
+    esik = (film_esigi_kde(ardisik) if esik_yontemi == "kde"
+            else film_esigi(ardisik))
     birikim_esigi = min(90, max(esik + 4, int(birikim_k * esik)))
     # 90 = rastgelelik-merkezi sınırı (bkz. alarm sabiti): birikim bundan öteye
     # "içerik değişti"den başka anlam taşıyamaz; yüksek-eşikli filmde (Otsu 46)
