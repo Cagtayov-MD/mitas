@@ -97,3 +97,50 @@ def halusinasyon_mu(satir: str, kb_tok: set[str]) -> bool:
     if len(kelimeler) > 8 and not any(k in kb_tok for k in kelimeler):
         return True
     return False
+
+
+def satir_esle(a: str, b: str, kb_tok: set[str]) -> bool:
+    """İki künye satırı aynı içerik mi? Fold-eşitlik veya ≥0.6 token örtüşmesi."""
+    fa, fb = fold_tr(a), fold_tr(b)
+    if fa == fb:
+        return True
+    ta, tb = fa.split(), fb.split()
+    if not ta or not tb:
+        return False
+    kisa, uzun = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
+    eslesen = sum(1 for x in kisa if any(token_esle(x, y, kb_tok) for y in uzun))
+    return eslesen / len(kisa) >= 0.6
+
+
+def birlestir(messi: list[str], ibra: list[str], kb: set[str], kb_tok: set[str]) -> dict:
+    """Messi-omurgalı birleşim (konsey mutabakatı): sıra Messi'den, İbra boşluk doldurur."""
+    messi = ic_dedup(messi)
+    ibra = ic_dedup(ibra)
+    varyantlar: dict[str, list[str]] = {}
+    ibra_kalan: list[str] = []
+    eslesen_n = 0
+    for is_ in ibra:
+        es = next((ms for ms in messi if satir_esle(ms, is_, kb_tok)), None)
+        if es is not None:
+            eslesen_n += 1
+            if es != is_:
+                varyantlar.setdefault(es, []).append(is_)
+        else:
+            ibra_kalan.append(is_)
+    eklenen, reddedilen = [], []
+    for is_ in ibra_kalan:
+        if garble_mi(is_) or halusinasyon_mu(is_, kb_tok):
+            reddedilen.append(is_)
+            continue
+        toks = fold_tr(is_).split()
+        if fold_tr(is_) in kb or any(t in kb_tok for t in toks):
+            eklenen.append(is_)      # KB kanıtlı → birleşime
+        else:
+            reddedilen.append(is_)   # kanıtsız İbra-only → fark raporunda kalır
+    return {
+        "birlesik": messi + eklenen,   # İbra ekleri omurganın sonuna (kronoloji bilinmiyor)
+        "varyantlar": varyantlar,
+        "ibra_eklenen": eklenen,
+        "ibra_reddedilen": reddedilen,
+        "eslesen_n": eslesen_n,
+    }

@@ -55,3 +55,38 @@ def test_halusinasyon_parantez_ve_duzyazi():
     assert rn.halusinasyon_mu(
         "Neill Archer Alwyn Mellor John Connell Jennifer Davies Rebecca Evans", kb) is False
     assert rn.halusinasyon_mu("Tamino - Neill Archer", kb) is False
+
+
+def test_satir_esle_varyant():
+    kb = set()
+    assert rn.satir_esle("AYŞE YILMAZ - KARAKTER", "AYSE YILMAZ — KARAKTER", kb) is True
+    assert rn.satir_esle("Tamino - Neill Archer", "Papageno - Simon Keenlyside", kb) is False
+
+
+def test_birlestir_messi_omurga_sira_korunur():
+    # GLM #3 + Nemotron #3: sıra = Messi kronolojisi; İbra sadece boşluk doldurur
+    messi = ["SUNG BY", "Tamino - Neill Archer", "Pamina - Alwyn Mellor"]
+    ibra = ["Tamino - Neill Archer", "Sarastro - John Connell"]
+    kb_tok = {"neill", "archer", "alwyn", "mellor", "john", "connell", "tamino", "pamina", "sarastro"}
+    r = rn.birlestir(messi, ibra, set(), kb_tok)
+    assert r["birlesik"][:3] == messi            # omurga aynen
+    assert "Sarastro - John Connell" in r["birlesik"]   # boşluk dolduruldu
+    assert r["ibra_eklenen"] == ["Sarastro - John Connell"]
+
+
+def test_birlestir_kb_gecmeyen_ibra_satiri_reddedilir():
+    # garble sızma kilidi: İbra-only satır KB'siz ve çapraz-doğrulamasızsa girmez
+    messi = ["Tamino - Neill Archer"]
+    ibra = ["Tamino - Neill Archer", "xq zvw qqp"]
+    kb_tok = {"neill", "archer", "tamino"}
+    r = rn.birlestir(messi, ibra, set(), kb_tok)
+    assert "xq zvw qqp" not in r["birlesik"]
+    assert r["ibra_reddedilen"] == ["xq zvw qqp"]
+
+
+def test_birlestir_varyant_kaydi():
+    messi = ["AYSE YILMAZ"]
+    ibra = ["AYŞE YILMAZ"]
+    r = rn.birlestir(messi, ibra, set(), {"ayse", "yilmaz"})
+    assert r["birlesik"] == ["AYSE YILMAZ"]      # yazım bazı Messi
+    assert r["varyantlar"]["AYSE YILMAZ"] == ["AYŞE YILMAZ"]
