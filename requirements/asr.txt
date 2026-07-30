@@ -27,3 +27,9 @@ duckdb==1.5.4
 # koşuları "PDF render yok (md teslim)" ile Kontrol'e düşüyordu (2026-07-30).
 reportlab==5.0.0
 PyMuPDF==1.28.0
+
+# ctranslate2 4.7.x encode-anında libcublas.so.12/libcudnn.so.9 dlopen eder
+# (model-load'da DEĞİL — ilk encode'da patlar; 2026-07-30 YAĞMACILAR kanıtı).
+# ct2 pip nvidia dizinlerini kendisi keşfeder — LD_LIBRARY_PATH/preload GEREKMEZ.
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.24.0.43

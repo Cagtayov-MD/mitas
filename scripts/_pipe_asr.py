@@ -10,6 +10,10 @@ from __future__ import annotations
 import sys, os, json, time, argparse, subprocess
 os.environ["USE_TF"] = "0"        # MMS-LID ŞART: transformers TF'yi import etmesin (TF↔numpy2 çökmesi).
 os.environ["USE_FLAX"] = "0"      # EN TEPEDE olmalı — faster_whisper/_channel_lang'den ÖNCE (geç set = TF zaten yüklü, MMS ölür).
+# CUDA-12 notu (2026-07-30): ctranslate2 4.7.x encode anında libcublas.so.12 ister
+# (model-load'da DEĞİL, ilk encode'da patlar — YAĞMACILAR kanıtı). Çözüm KOD DEĞİL
+# ortam: venvs/asr'a nvidia-cublas-cu12 + nvidia-cudnn-cu12 kurulu olmalı
+# (requirements/asr.txt); ct2 pip nvidia dizinlerini kendisi keşfediyor.
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]

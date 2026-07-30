@@ -73,8 +73,14 @@ def test_pipeline_ile_ayni_mantik(tmp_path, monkeypatch):
         assert asr_server.asr_kapali_mi()[0] is beklenen, (flag_var, env_deger)
 
 
-def test_gercek_repo_kokunde_flag_duruyor():
-    """Çağatay'ın 2026-07-11 talimatı hâlâ yürürlükte — dosya silinmemiş olmalı."""
+def test_gercek_repo_kokunde_flag_YOK():
+    """Rejim değişikliği (Çağatay 2026-07-30): ASR'nin normal kontrolü artık webui
+    anahtarı (queue.json asrEnabled). ASR_KAPALI.flag yalnız ACİL global kill —
+    varsayılan durumda diskte DURMAMALI (dursa her film-koşusunu sessizce ezer).
+    Bilinçli bir kampanya kill'i sırasında bu test kırmızı olur — o dönem için
+    xfail'leyin, kampanya bitince dosyayı silin."""
     kok = Path(__file__).resolve().parents[1]
-    assert (kok / "ASR_KAPALI.flag").exists(), (
-        "ASR_KAPALI.flag silinmiş. Bilinçli bir karar ise bu testi de kaldırın.")
+    assert not (kok / "ASR_KAPALI.flag").exists(), (
+        "ASR_KAPALI.flag diskte duruyor — webui ASR anahtarını geçersiz kılar. "
+        "Acil kill bilinçli değilse dosyayı silin (2026-07-11 talimatı 2026-07-30'da "
+        "anahtar rejimiyle değiştirildi).")

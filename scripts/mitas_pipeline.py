@@ -3047,7 +3047,9 @@ def main(argv=None) -> int:
         # ozet: ASR transcript'inden Sonnet ile gercek olay-orgusu ozeti.
         # transcript_plain.txt = _pipe_asr.py'nin yazdigi tam temiz metin (asr_out/).
         # Key yok / transcript yok / istek coker → eski placeholder davranisi korunur.
-        ozet = "(Özet ayrı bir adımda üretilecektir.)"
+        # ASR anahtari KAPALI (no_asr) → ozet BOS: _make_pdf ozet-bos paneli hic cizmez,
+        # PDF placeholder'siz temiz cikar (Cagatay 2026-07-30: test klipleri ASR'siz).
+        ozet = "" if args.no_asr else "(Özet ayrı bir adımda üretilecektir.)"
         if asr_info.get("language") == "ku":
             # Kürtçe-ailesi: whisper ÇEVİREMEZ (ASR atlandı) → özeti İNTERNETTEN çek (bizim prompt). Çağatay direktifi.
             # NOT: başlık eşleşmesi belirsizse yanlış film gelebilir — kadro-tabanlı kimlik ileride bağlanacak.

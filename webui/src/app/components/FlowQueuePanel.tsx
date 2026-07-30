@@ -22,6 +22,7 @@ import {
 } from '../asr-api';
 import { searchTedial, type TedialSearchResult } from '../tedial-api';
 import { Select, SelectContent, SelectItem, SelectTrigger } from './ui/select';
+import { Switch } from './ui/switch';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -76,6 +77,9 @@ interface PersistedFlowQueueState {
   id: string;
   updatedAt: string;
   bulkProfile: AnalysisProfile;
+  // Global ASR + Özet anahtarı (Çağatay 2026-07-30): test kliplerinde kapatılır.
+  // Üst-düzey alan — sunucu put_flow_queue rebuild'i bunu AÇIKÇA taşır (asr_server.py).
+  asrEnabled?: boolean;
   items: FlowQueueItem[];
 }
 
@@ -101,11 +105,15 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   // bunlardan okur → 2 sn'lik poll tüm listeyi tazelemez, her satır yalnız KENDİ verisi değişince render olur.
   const selectedIdsRef = useRef<Set<string>>(new Set());
   const bulkProfileRef = useRef<AnalysisProfile>('film_dizi');
+  const asrEnabledRef = useRef<boolean>(true);
+  // Yerel anahtar değişimi PUT'a ulaşana kadar poll'un eski sunucu değerini geri basmasını önler.
+  const asrDirtyRef = useRef<boolean>(false);
   const onOpenMediaRef = useRef(onOpenMedia);
   const [items, setItems] = useState<FlowQueueItem[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});  // SADECE görsel — kalıcılaştırılmaz
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [bulkProfile, setBulkProfile] = useState<AnalysisProfile>('film_dizi');
+  const [asrEnabled, setAsrEnabled] = useState<boolean>(true);
   const [tedialQuery, setTedialQuery] = useState('');
   const [tedialCandidate, setTedialCandidate] = useState<TedialSearchResult | null>(null);
   const [lastTedialQuery, setLastTedialQuery] = useState('');
@@ -121,11 +129,12 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
   const [browseOpen, setBrowseOpen] = useState(false);
   const [browsePath, setBrowsePath] = useState('');
   const [browseLoading, setBrowseLoading] = useState(false);
-  const [browseData, setBrowseData] = useState<{ path: string; parent: string | null; dirs: string[]; films: string[]; film_count: number } | null>(null);
+  const [browseData, setBrowseData] = useState<{ path: string; parent: string | null; dirs: { name: string; path: string }[]; films: string[]; film_count: number } | null>(null);
 
   // Ayna ref'lerini her render güncel tut (event/async handler'lar .current'tan okur; render sırasında OKUNMAZ).
   selectedIdsRef.current = selectedIds;
   bulkProfileRef.current = bulkProfile;
+  asrEnabledRef.current = asrEnabled;
   onOpenMediaRef.current = onOpenMedia;
 
   useEffect(() => {
@@ -148,6 +157,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
         if (state?.bulkProfile) {
           setBulkProfile(restoredBulkProfile);
         }
+        setAsrEnabled(state?.asrEnabled ?? true);   // alan yok (eski state) → AÇIK
         // F5: SERVER = tek otorite — UI yükleme/yenilemede durumu GERİ-YAZMAZ (writeback desync'i biter).
         // Kuyruk yalnız enqueue/stop/retry/clear endpoint'leriyle değişir; UI okur + komut gönderir.
         setPersistenceStatus('saved');
@@ -176,10 +186,10 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       return;
     }
     if (isProcessingRef.current) return;  // SUNUCU worker koşarken queue.json'a YAZMA — worker sahibi; poll-PUT yarışı (worker 'done'unu geri-sarma) önlenir
-    saveFlowQueueState({ items, bulkProfile })
-      .then(() => setPersistenceStatus('saved'))
+    saveFlowQueueState({ items, bulkProfile, asrEnabled })
+      .then(() => { asrDirtyRef.current = false; setPersistenceStatus('saved'); })
       .catch(() => setPersistenceStatus('error'));
-  }, [items, bulkProfile]);
+  }, [items, bulkProfile, asrEnabled]);
 
   // itemsRef.current'i SENKRON güncelle (React state flush'ını bekleme). Başlat, yüklemeler
   // bittiği an itemsRef'ten storedMediaPath'i okuyup sunucuya yazıyor — flush gecikmesi yarış yaratmasın.
@@ -189,7 +199,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     itemsRef.current = next;
     setItems(next);
     if (hasLoadedPersistedQueueRef.current && !isProcessingRef.current) {
-      saveFlowQueueState({ items: next, bulkProfile: bulkProfileRef.current })
+      saveFlowQueueState({ items: next, bulkProfile: bulkProfileRef.current, asrEnabled: asrEnabledRef.current })
         .then(() => setPersistenceStatus('saved'))
         .catch(() => setPersistenceStatus('error'));
     }
@@ -209,6 +219,12 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
       }
       if (qr.ok) {
         const q = await qr.json();
+        // Anahtar sunucu-otorite: başka sekme/oturum değiştirdiyse buradan senkronlanır.
+        // Yerel değişim PUT'a ulaşmadıysa (dirty) sunucunun ESKİ değeri geri basılmaz.
+        if (!asrDirtyRef.current && typeof q?.asrEnabled === 'boolean' && q.asrEnabled !== asrEnabledRef.current) {
+          asrEnabledRef.current = q.asrEnabled;
+          setAsrEnabled(q.asrEnabled);
+        }
         const serverItems: Array<{ id: string; status?: FlowItemStatus; message?: string; clipId?: string }> = Array.isArray(q?.items) ? q.items : [];
         if (serverItems.length) {
           const byId = new Map(serverItems.map((s) => [s.id, s] as const));
@@ -503,6 +519,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
         id: FLOW_QUEUE_STATE_ID,
         updatedAt: new Date().toISOString(),
         bulkProfile,
+        asrEnabled: asrEnabledRef.current,   // worker bu alandan --no-asr kararı verir
         items: itemsRef.current.map(toFallbackFlowItem),
       });
       await fetch('/api/flow-queue/run', { method: 'POST' });
@@ -629,7 +646,7 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
     }
   };
   const openBrowser = () => { setBrowseOpen(true); void fsBrowse(browseData?.path ?? ''); };
-  const joinPath = (base: string, name: string) => (base ? base.replace(/[\\/]+$/, '') + '\\' : '') + name;
+  const joinPath = (base: string, name: string) => (base ? base.replace(/[\\/]+$/, '') + '/' : '') + name;
 
   // Header'daki tek "Gözat" butonu (browseSignal sayacı artar) → gözat tarayıcısını aç.
   useEffect(() => {
@@ -654,16 +671,15 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
                 value={browsePath}
                 onChange={(event) => setBrowsePath(event.target.value)}
                 onKeyDown={(event) => { if (event.key === 'Enter') void fsBrowse(browsePath); }}
-                placeholder="Örn: E:\filmler  veya  V:\klasör  (UNC için eşlenmiş sürücü harfi)"
+                placeholder="Örn: /mnt/e/filmler — veya aşağıdaki listeden klasöre tıklayın"
                 className="h-7 min-w-0 flex-1 rounded-sm border border-border-mitas bg-app-shell/80 px-2 text-[11px] text-foreground-default placeholder:text-foreground-muted"
               />
               <Button size="xs" variant="outline" className="px-2" onClick={() => void fsBrowse(browsePath)}>Git</Button>
             </div>
-            {/* UNC yolu için bilgi notu */}
-            {(browsePath.startsWith('\\') || browsePath.startsWith('/')) ? (
+            {browsePath.startsWith('\\') ? (
               <div className="mb-1 rounded-sm bg-warning-subtle/40 px-2 py-1 text-[10px] text-warning">
-                UNC yolu (\\sunucu\paylaşım) doğrudan erişilemiyor olabilir. Sürücü harfiyle eşlenmiş yolu kullanın —
-                örn. \\depo01cifs...\sas_h264 → V:\
+                Windows-stili yol (\\sunucu\paylaşım) burada desteklenmiyor — sunucu Linux'ta çalışıyor.
+                Aşağıdaki listeden ilgili ağ paylaşımına (örn. depo01) tıklayın.
               </div>
             ) : null}
             <ScrollArea className="max-h-52">
@@ -674,15 +690,15 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
                   </button>
                 ) : null}
                 {browseLoading ? <span className="px-1.5 py-1 text-[11px] text-foreground-muted">Yükleniyor…</span> : null}
-                {(browseData?.dirs ?? []).map((dirName) => (
+                {(browseData?.dirs ?? []).map((dir) => (
                   <button
                     type="button"
-                    key={dirName}
+                    key={dir.path}
                     className="flex items-center gap-1 rounded-sm px-1.5 py-1 text-left text-[11px] hover:bg-surface-elevated"
-                    onClick={() => void fsBrowse(joinPath(browseData?.path ?? '', dirName))}
+                    onClick={() => void fsBrowse(dir.path)}
                   >
                     <FolderOpen className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{dirName}</span>
+                    <span className="truncate">{dir.name}</span>
                   </button>
                 ))}
                 {(browseData?.films ?? []).length > 0 ? (
@@ -768,6 +784,19 @@ export function FlowQueuePanel({ onOpenMedia, browseSignal }: FlowQueuePanelProp
               Bitenleri sil
             </Button>
           ) : null}
+        </div>
+        <div className="mt-2 flex items-center justify-between rounded-sm border border-border-mitas bg-app-shell/60 px-2 py-1.5">
+          <div className="min-w-0">
+            <span className="text-xs font-semibold text-foreground-default">ASR + Özet</span>
+            <p className="truncate text-[10px] leading-tight text-foreground-muted">
+              {asrEnabled ? 'Açık — transkript + özet üretilir' : 'Kapalı — PDF özetsiz, hızlı (test klipleri)'}
+            </p>
+          </div>
+          <Switch
+            checked={asrEnabled}
+            onCheckedChange={(v) => { asrEnabledRef.current = v; asrDirtyRef.current = true; setAsrEnabled(v); }}
+            aria-label="ASR ve özet üretimini aç/kapa"
+          />
         </div>
         <div className="mt-2 grid grid-cols-[minmax(0,1.25fr)_minmax(140px,0.75fr)] gap-2">
           <Select value={bulkProfile} onValueChange={(value) => handleBulkProfileChange(value as AnalysisProfile)}>
@@ -1335,11 +1364,12 @@ function flowQueueTimestamp(state: PersistedFlowQueueState): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-async function saveFlowQueueState(state: { items: FlowQueueItem[]; bulkProfile: AnalysisProfile }): Promise<void> {
+async function saveFlowQueueState(state: { items: FlowQueueItem[]; bulkProfile: AnalysisProfile; asrEnabled?: boolean }): Promise<void> {
   const payload: PersistedFlowQueueState = {
     id: FLOW_QUEUE_STATE_ID,
     updatedAt: new Date().toISOString(),
     bulkProfile: state.bulkProfile,
+    asrEnabled: state.asrEnabled ?? true,
     items: state.items,
   };
   const metadataPayload = {
