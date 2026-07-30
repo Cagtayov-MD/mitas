@@ -81,6 +81,14 @@ def temporal_median(griler: list[np.ndarray], pencere: int = 3) -> list[np.ndarr
     return out
 
 
+def _temsilci(grup: list[int], keskinlikler: list[float]) -> int:
+    """Grubun MEDYAN keskinliğine en yakın üyesi — iki ucu da (flaş=düşük
+    Laplacian, aşırı-gren=yüksek) doğal dışlar; ayrı P95 kesmesi GEREKMEZ
+    (katı `< p95` özdeş-kare gruplarında filtreyi tersine çeviriyordu)."""
+    med = float(np.median([keskinlikler[i] for i in grup]))
+    return min(grup, key=lambda i: abs(keskinlikler[i] - med))
+
+
 def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
                 birikim_k: float = 3.0) -> HavuzSonucu:
     """Çift-sinyal gruplama (spec §2):
@@ -94,6 +102,7 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
         return HavuzSonucu([0], HavuzIstatistik(1, 0.0, 0.0, ESIK_TABAN, 0, 1, False))
 
     temiz = temporal_median(griler, medyan_pencere)
+    keskinlikler = [float(cv2.Laplacian(g, cv2.CV_32F).var()) for g in griler]
     imzalar = [imza(g) for g in temiz]
     ardisik = [hamming(imzalar[i], imzalar[i + 1]) for i in range(n - 1)]
     esik = film_esigi(ardisik)
@@ -110,7 +119,11 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
         else:
             gruplar[-1].append(i)
 
-    sayfalar = [g[len(g) // 2] for g in gruplar]       # orta kare (Task 5 yükseltir)
+    sayfalar = [_temsilci(g, keskinlikler) for g in gruplar]
+    # İçeriksiz-kare kapısı: düz flaş/boş kart (std≈0) sayfa olamaz — beyaz
+    # flaş DÜŞÜK Laplacian verir (kenarsız), P95-üstü varsayımı YANLIŞTI
+    # (Task 5 ölçümü; GLM'in P95 önerisi bu ölçümle yanlışlandı).
+    sayfalar = [s for s in sayfalar if float(griler[s].std()) >= 3.0]
     f = np.array(ardisik, dtype=np.float64)
     ist = HavuzIstatistik(
         kare_sayisi=n, fark_medyani=float(np.median(f)),

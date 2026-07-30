@@ -1,6 +1,7 @@
 """Havuz v2 birim testleri — konsey senaryoları sentetik dizilerle.
 Koşum: /opt/mitas/venvs/ocr/bin/python -m pytest harness/track_kunye/test_havuz.py -v
 """
+import cv2
 import numpy as np
 import pytest
 
@@ -88,9 +89,13 @@ def test_derle_fade_iki_kart_yakalanir():
     b = senaryo.kart("SON KART FARKLI", 12)
     kareler = a + senaryo.fade(a[0], b[0], 15) + b
     s = havuz.havuz_derle(kareler)
-    ilk = set(range(0, 12)); son = set(range(len(kareler) - 12, len(kareler)))
-    secilen = set(s.sayfalar)
-    assert secilen & ilk and secilen & son   # iki kartın da temsilcisi var
+    assert set(s.sayfalar) & set(range(0, 12))        # ilk kartın temsilcisi var
+    # DAVRANIŞSAL iddia (Task 4 kuyruk-emsali): son seçilen sayfa İÇERİK olarak
+    # kart-B'dir — fade'in t=1.0 ucu b[0] ile piksel-özdeş olabildiğinden indeks
+    # penceresi yanıltır; imza-eşdeğerliği yanıltmaz.
+    temiz = havuz.temporal_median(kareler)
+    hedef = havuz.imza(temiz[len(kareler) - 6])       # kart-B bölgesi referansı
+    assert havuz.hamming(havuz.imza(temiz[max(s.sayfalar)]), hedef) <= 2
 
 
 def test_derle_pan_tek_grup():
@@ -111,3 +116,18 @@ def test_derle_scroll_coklu_sayfa_ve_kuyruk():
     temiz = havuz.temporal_median(kareler)
     assert havuz.hamming(havuz.imza(temiz[max(s.sayfalar)]),
                          havuz.imza(temiz[-1])) <= s.istatistik.esik
+
+
+def test_flas_temsilci_olamaz():
+    kareler = senaryo.kart("NORMAL KART ICERIK", 10)
+    kareler[5] = senaryo.flas()               # tek-kare flaş grubun içinde
+    s = havuz.havuz_derle(kareler)
+    assert 5 not in s.sayfalar                # konsey: 'en keskin' flaşı seçiyordu
+
+
+def test_temsilci_medyan_keskinlige_yakin():
+    kareler = senaryo.kart("KART", 9)
+    bulanik = cv2.GaussianBlur(kareler[0], (9, 9), 4)
+    kareler[0] = bulanik                       # grubun ilk karesi bulanık
+    s = havuz.havuz_derle(kareler)
+    assert s.sayfalar[0] != 0                  # bulanık uç temsilci olmamalı
