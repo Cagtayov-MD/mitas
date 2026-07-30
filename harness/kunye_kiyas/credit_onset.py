@@ -133,6 +133,16 @@ class Sonuc:
     ardisik_scroll: int = 0
     son_capa: float = 0.0
     aday_sayisi: int = 0
+    # Şüphe katmanı (2026-07-30, davranış-NÖTR — GÖRÜNÜRLÜK katmanı, konsey
+    # GLM+Nemotron kırmızı-takım gardlı, Çağatay: "tespit edemesek bile şüpheyi
+    # bilelim; gerekirse tüm havuzu alırız, isim kaçarsa PDF şaşar"). Kazanan
+    # onset SEÇİLDİKTEN SONRA (yukarıda) üç bağımsız imza değerlendirilir —
+    # HİÇBİRİ onset/karar dallarını etkilemez, yalnız burada raporlanır (bkz.
+    # v5_izleme.py ŞÜPHE KUYRUĞU). kredi_yok/kare_yok erken-dönüşlerinde
+    # DEFAULT'ta ([] / -1) kalır — yalnız BAŞARILI (kredi bulunan) dönüş bloğu
+    # doldurur.
+    suphe: list = field(default_factory=list)
+    suphe_geri_kare: int = -1
 
 
 def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
@@ -515,6 +525,18 @@ def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: i
     return onset, ""
 
 
+def _kare_okunabilir_mi(satirlar: list[str]) -> bool:
+    """Şüphe katmanı yardımcısı (2026-07-30) — tespit_v5 içindeki yerel
+    `_anlamli_kare`'nin (Kırıntı-kare fix, Arapça/Farsça ikinci-şans bloğu)
+    BİREBİR AYNI ölçütünün modül-seviyesi kopyası. Bilinçli KOPYA: orijinal
+    yerel fonksiyona (tespit_v5 içinde, onset/karar mantığının bir parçası)
+    DOKUNULMADI — davranış-nötr gard, iki yerde aynı mantık tekrarı kabul
+    edilebilir bir maliyet. 'Okunabilir' = en az bir satırda alpha≥4-harf
+    bir token var (aksi halde OCR çöpü/kırıntı sayılır)."""
+    return any(len("".join(c for c in tok if c.isalpha())) >= 4
+               for s in satirlar for tok in s.split())
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -829,6 +851,10 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         w = -1
     onset_z = a
     birlesenler = []
+    # Şüphe katmanı (parcalanma_riski) için bookkeeping: hangi `adaylar` indeksleri
+    # bu döngü tarafından GERÇEKTEN birleştirildi — salt EKLEME, `k`/`onset_z`/`butce`
+    # karar akışına DOKUNMUYOR.
+    birlesen_idxler: set = set()
     if w > 0:
         butce = TOPLAM_BUTCE
         k = w
@@ -844,6 +870,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             onset_z = a_prev
             butce -= bosluk
             k -= 1
+            birlesen_idxler.add(k)
             birlesenler.append(f"[{_kare_no(g[idx[a_prev]])}-{_kare_no(g[idx[b_prev]])}]")
 
     # alt-adım3 (köprü kapısında producer+isim çifti — Çağatay politika
@@ -879,11 +906,80 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             break
         fi -= 1
 
+    # ── Şüphe katmanı (2026-07-30, davranış-NÖTR — konsey GLM+Nemotron kırmızı-
+    # takım gardlı). Kazanan onset yukarıda seçildi/birleştirildi (merge + ham-
+    # tarama tamamlandı) — ŞİMDİ, `onset_z < a` kararından ÖNCE, üç bağımsız
+    # imza değerlendirilir. HİÇBİRİ aşağıdaki onset/karar dallarını etkilemez
+    # (yalnız Sonuc.suphe/suphe_geri_kare'ye yazılır, notlar'a kısa eklenir).
+    suphe: list[str] = []
+    suphe_geri_kare = -1
+
+    # a) gec_riski (İNİŞLİ imzası): kazanan koşunun HEMEN ÖNCESİNDE, KISA
+    # boşlukta duran ama birleştirme zincirinin BİRLEŞTİRMEDİĞİ bir komşu aday
+    # var mı — VE o komşunun örnek karelerinin (≤6, np.linspace) ≥%70'i
+    # OKUNAMAZ mı (İNİŞLİ'nin kaligrafi bloğu gibi; KNUTE'nin İngilizce-
+    # okunabilir mini-adayları bu eşiğin dışında kalır — konsey kalibrasyonu).
+    # `onset_z >= a`: birleşme zaten OLDUYSA (onset_z < a) bu komşu zaten
+    # yakalanmış demektir — şüphe YAZILMAZ (plan notu).
+    if onset_z >= a and w > 0:
+        a_prev_s, b_prev_s = adaylar[w - 1]
+        bosluk_s = a - b_prev_s - 1
+        if 0 <= bosluk_s <= KISA_BOSLUK:
+            ornek_s = sorted(set(int(x) for x in np.linspace(
+                a_prev_s, b_prev_s, min(6, b_prev_s - a_prev_s + 1))))
+            if ornek_s:
+                okunamaz = 0
+                for fi_s in ornek_s:
+                    try:
+                        sl_s = cc.satirlar(g[idx[fi_s]])
+                    except Exception:
+                        sl_s = []
+                    if not _kare_okunabilir_mi(sl_s):
+                        okunamaz += 1
+                if okunamaz / len(ornek_s) >= 0.70:
+                    suphe.append("gec_riski")
+                    suphe_geri_kare = _kare_no(g[idx[a_prev_s]])
+
+    # b) erken_riski (HARİKA imzası) — NOT burada değil, `onset` KESİNLEŞTİKTEN
+    # SONRA hesaplanır (bkz. aşağıda, statik/scroll dallarından sonra): ham
+    # `a` (kutu-koşusu başı) ERKEN_METIN kalıbında (KNUTE/TESS gibi) SIK SIK
+    # kredi-dışı metinle başlar — _statik_icerik_onset TAM DA bunu ileri-
+    # budayıp gerçek karta çeker. `a`'da test etmek KNUTE'yi YANLIŞLIKLA
+    # yakardı (ölçüldü, ilk turda regresyon bulundu) — asıl soru "algoritmanın
+    # SEÇTİĞİ nihai başlangıç izole/tesadüfi mi", bu yüzden nihai `onset`
+    # kullanılır (HARİKA'da zaten onset==a — budama ilk karede durur, davranış
+    # aynı kalır).
+
+    # c) parcalanma_riski (seyrek-kart bilgi imzası): kazanan ÖNCESİ,
+    # TOPLAM_MESAFE bütçesi içinde ≥3 birleşememiş mini-aday (uzunluk <
+    # min_kosu×2) varsa. Yalnız etiket — triyajda "seyrek-kart şüphesi".
+    if w > 0:
+        mini_esik = min_kosu * 2
+        parcalanma_sayim = 0
+        for j_p in range(0, w):
+            ca_p, cb_p = adaylar[j_p]
+            if j_p in birlesen_idxler:
+                continue
+            if (cb_p - ca_p + 1) < mini_esik and (a - ca_p) <= TOPLAM_MESAFE:
+                parcalanma_sayim += 1
+        if parcalanma_sayim >= 3:
+            suphe.append("parcalanma_riski")
+
     if onset_z < a:
         onset_birlesik = onset_z
         birlesme_notu = f"geri-birlesme={','.join(birlesenler)}"
 
     ek_not = ""
+    # Şüphe katmanı b) erken_riski GARD bayrağı: kart-dizisi geri-genişletme
+    # (aşağıda, ROBOCOP/GELECEK_GÜNLER sınıfı) devreye girerse `onset`
+    # kredi_karti_mi'nin (tek karede isim≥3 ister) HİÇ tutmayacağı "kart-
+    # başına-tek-isim" bir noktaya çekilir — bu BİLİNEN, ZATEN İYİ-DAVRANIŞLI
+    # bir içerik türü (fonksiyonun kendi docstring'i: "_statik_icerik_onset'in
+    # kredi_karti_mi'si ... kart-başına-tek-aktör dizilerinde ... hiç
+    # tutmuyor"), erken-anchor RİSKİ değil. GELECEK_GÜNLER ölçümü (kart-dizisi
+    # genişledi, erken_riski YANLIŞLIKLA ateşledi) bunu doğruladı — bu yüzden
+    # bu durumda erken_riski HİÇ değerlendirilmez.
+    kart_dizisi_genisledi = False
     if onset_birlesik is not None:
         onset = onset_birlesik
         ek_not = birlesme_notu
@@ -919,6 +1015,31 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         if kart_onset < onset:
             onset = kart_onset
             ek_not = (ek_not + " " if ek_not else "") + kart_not
+            kart_dizisi_genisledi = True
+
+    # Şüphe katmanı b) erken_riski (HARİKA imzası, devamı — bkz. yukarıdaki
+    # not): `onset` artık KESİNLEŞTİ (statik/scroll dallarının tümü, kart-
+    # dizisi geri-genişletme dahil, uygulandı). Kazanan Latin mi (yabanci_yol
+    # DEĞİL — Kiril/Arapça/scroll_kurtarma kazananları MUAF, yoksa EN-çöp
+    # yüzünden hep yanar) VE nihai onsetten İLERİYE 5 örneğin ≥%80'i
+    # kredi_karti_mi DEĞİLSE (izole tek kart + çoğunluk-değil deseni,
+    # HARİKA_KÖPEK atlas kanıtı) tetiklenir. `kart_dizisi_genisledi` GARDI:
+    # yukarıda açıklandığı gibi bu içerik türünde kredi_karti_mi zaten hep
+    # False döner — yanlış-pozitif olur, bu yüzden ATLANIR.
+    if not yabanci_yol and not kart_dizisi_genisledi:
+        bas_n = min(5, n - onset)
+        bas_idx = list(range(onset, onset + bas_n)) if bas_n > 0 else []
+        if bas_idx:
+            kartsiz = 0
+            for fi_e in bas_idx:
+                try:
+                    sl_e = cc.satirlar(g[idx[fi_e]])
+                except Exception:
+                    sl_e = []
+                if not cc.kredi_karti_mi(sl_e):
+                    kartsiz += 1
+            if kartsiz / len(bas_idx) >= 0.80:
+                suphe.append("erken_riski")
 
     # Görev 1b (Seçenek B, 2026-07-29): _scroll_kurtarma son-çare yoluyla kazanılan
     # adayın kb/joint'i GERÇEK ÖLÇÜM DEĞİL (bkz. KURTARMA_GUVEN tanımı ve yukarıdaki
@@ -954,6 +1075,10 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     # devam eder.
     tip = "scroll" if scroll_orani >= 0.50 else "statik"
 
+    # Şüphe katmanı — notlar'a kısa özet (davranış-nötr, salt raporlama).
+    if suphe:
+        notlar = notlar + f" suphe={','.join(suphe)}"
+
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
         yontem=yontem,
@@ -966,6 +1091,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         ardisik_scroll=ardisik_scroll,
         son_capa=son_capa_kazanan,
         aday_sayisi=len(adaylar),
+        suphe=suphe,
+        suphe_geri_kare=suphe_geri_kare,
     )
 
 

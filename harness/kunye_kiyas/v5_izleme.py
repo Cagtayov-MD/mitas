@@ -107,6 +107,19 @@ def main() -> int:
     # ── 1) kredi_yok kuyruğu (Dalga 3'ün etkileyeceği filmler) ──────────────
     kredi_yok_kuyrugu = [k for k in kayitlar if (k.get("v5") or {}).get("karar") == "kredi_yok"]
 
+    # ── 0) ŞÜPHE KUYRUĞU (2026-07-30, şüphe katmanı: gec/erken/parcalanma
+    # imzaları, bkz. credit_onset.Sonuc.suphe). v5.suphe dolu (herhangi bir
+    # imza tetiklenmiş) manifestleri AYRI listele — Çağatay: "tespit edemesek
+    # bile şüpheyi bilelim". Hiçbir imza onset kararını DEĞİŞTİRMEDİ, yalnız
+    # görünürlük/triyaj için işaretlendi (kredi_yok kuyruğuyla ÇAKIŞABİLİR —
+    # ayrık kümeler değil, ikisi de bağımsız birer sinyal).
+    suphe_kuyrugu = []
+    for k in kayitlar:
+        v5d = k.get("v5") or {}
+        suphe_liste = v5d.get("suphe") or []
+        if suphe_liste:
+            suphe_kuyrugu.append({**k, "sebep": f"suphe={','.join(suphe_liste)} (kare={v5d.get('kare')})"})
+
     # ── 2-4) ölçüye dayalı triyaj (yalnız kredi_yok kuyruğu DIŞINDakiler) ───
     triyaj = []
     for k in kayitlar:
@@ -159,16 +172,18 @@ def main() -> int:
     kredi_yok_kuyrugu_liste = [
         {**k, "sebep": f"v5 kredi_yok dedi (engine={k['engine']}, yontem={(k.get('v5') or {}).get('yontem')})"}
         for k in kredi_yok_kuyrugu]
+    _yazdir("ŞÜPHE KUYRUĞU (gec_riski/erken_riski/parcalanma_riski imzaları)", suphe_kuyrugu)
     _yazdir("KREDİ_YOK KUYRUĞU (Dalga 3 kararının etkileyeceği filmler)", kredi_yok_kuyrugu_liste)
     _yazdir("ÖLÇÜYE-DAYALI TRİYAJ ADAYLARI", triyaj)
     _yazdir("KOŞULAR-ARASI KAYMA ADAYLARI", kayma_adaylari)
     _yazdir("ESKİ-MOTOR ADAYLARI (v5 aktivasyonu sonrası CV'ye düştü)", eski_aday)
 
-    if not (kredi_yok_kuyrugu or triyaj or kayma_adaylari or eski_aday):
+    if not (suphe_kuyrugu or kredi_yok_kuyrugu or triyaj or kayma_adaylari or eski_aday):
         print("\nİnceleme adayı yok.")
 
     if a.json:
         json.dump({"toplam": len(kayitlar), "v5": len(v5li), "eski": len(eski),
+                   "suphe_kuyrugu": suphe_kuyrugu,
                    "kredi_yok_kuyrugu": kredi_yok_kuyrugu_liste, "triyaj": triyaj,
                    "kayma_adaylari": kayma_adaylari, "eski_aday": eski_aday},
                   open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
