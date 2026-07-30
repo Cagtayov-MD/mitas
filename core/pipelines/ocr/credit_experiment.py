@@ -1419,26 +1419,13 @@ def _run_row_reconstruct_hook(item_dir: Path, frames: list[Path], scene_profile:
             "reason": f"recommended_temporal:{temporal or 'unknown'}",
             "strategy": "text_layer_row_reconstruct_v1",
         }
-    try:
-        from core.pipelines.ocr.text_layer_row_reconstruct import run_text_layer_row_reconstruct
-
-        result = run_text_layer_row_reconstruct(
-            frame_paths=frames,
-            output_dir=item_dir / "text_layer_row_reconstruct",
-            max_frames=None,
-            scale_for_rows=2,
-        )
-        summary = json.loads(result.summary_path.read_text(encoding="utf-8"))
-        summary["status"] = "done"
-        summary["summary_path"] = str(result.summary_path)
-        summary["report_path"] = str(result.report_path)
-        return summary
-    except Exception as exc:
-        return {
-            "status": "failed",
-            "error": str(exc),
-            "strategy": "text_layer_row_reconstruct_v1",
-        }
+    # text_layer_row_reconstruct 2026-07-30 tek-motor temizliğinde silindi
+    # (Çağatay: görsel master = yalnız İbrahimovic). Hook arayüzü korunuyor.
+    return {
+        "status": "removed",
+        "reason": "text_layer_row_reconstruct_silindi_2026-07-30",
+        "strategy": "text_layer_row_reconstruct_v1",
+    }
 
 
 def _run_temporal_fusion_hook(item_dir: Path, frames: list[Path], scene_profile: dict[str, Any]) -> dict[str, Any]:

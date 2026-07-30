@@ -140,24 +140,10 @@ def run_unified_credit_pipeline(
     d_split_source: str | None = None
     paired_lines: list[dict[str, Any]] = []
     if scroll_tracks:
-        try:
-            from core.pipelines.ocr.text_layer_row_reconstruct import run_text_layer_row_reconstruct
-
-            scroll_frame_indices: set[int] = set()
-            for t in scroll_tracks:
-                for obs in t.observations:
-                    scroll_frame_indices.add(obs.frame_index)
-
-            scroll_frame_paths = [frames[i] for i in sorted(scroll_frame_indices) if i < len(frames)]
-            if scroll_frame_paths:
-                scroll_dir = output_dir / "scroll"
-                rr_result = run_text_layer_row_reconstruct(
-                    frame_paths=scroll_frame_paths,
-                    output_dir=scroll_dir,
-                )
-                scroll_canvas_path = rr_result.composite_path
-        except Exception as exc:
-            ocr_errors.append(f"scroll_reconstruct:{type(exc).__name__}:{exc}")
+        # text_layer_row_reconstruct 2026-07-30 tek-motor temizliğinde silindi
+        # (Çağatay: görsel master = yalnız İbrahimovic). Canvas üretilmez;
+        # aşağıdaki A-fb emniyet ağı "no_composite" ile track-tabanlı fallback
+        # satırlarını devreye sokar — scroll metni kaybolmaz.
 
         # OCR the scroll canvas — eski tools full_pipeline_test.py path
         if scroll_canvas_path and scroll_canvas_path.exists() and paddle_engine is not None:
