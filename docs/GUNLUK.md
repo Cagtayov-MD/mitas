@@ -47,9 +47,30 @@ uygulama Sonnet'le. Sabaha çalışır sistem.
 - deepseek "müze-kataloğu" uydurma modu (markdown-bold/katalog fiilleri)
   filtreye eklendi; kısa katalog-kırıntıları (<8 kelime) hâlâ sızabiliyor.
 
+**SONUÇ (gece yarısı):** 15-film testi **15/15 PASSED** (track_kunye_batch_dogrula).
+Test iki GERÇEK üretim bug'ı yakalatıp düzelttirdi:
+1. **PDF Linux bug'ı (d816fd68):** _pipe_pdf --ozet'i önce dosya-yolu sanıyor;
+   Linux'ta 255+ baytlık düz metinde Path.exists() OSError(ENAMETOOLONG)
+   fırlatıyor (Windows False dönerdi). Özet dün geri açıldığından (5652f6ea)
+   dolu-özetli ilk koşular bu geceydi → 14 filmin PDF'i düştü, pipeline
+   fail-safe'i md-teslim+KONTROL'e yönlendirdi (kapı sağlam). Fix + regresyon
+   testi; yeniden koşuda 14/14 PDF üretildi.
+2. **Doğrulayıcı varsayımları (64c072cd):** event media_id'si dosya-adı türevi;
+   credit_qc1_* yalnız RED'de yazılıyor (temiz-yol kanıtı karar.pipeline.json).
+Konsey kod-inceleme turu (GLM+Nemotron): 7 bulgu kabul+uygulandı (14627ebb) —
+en kritiği kare-örneklemenin SON kareyi (©/SON kartı) düşürebilmesi.
+15-film dağılımı: karar 9 Hazır / 6 Kontrol; Ronaldo bandı 2 green / 1 yellow /
+8 red / 4 None. İbra kolu 7 filmde master_yok — üretim zinciri taze filmlerin
+~yarısında runaware çıkış master'ı üretmiyor (havuz-boş "kötü yerine hiç");
+Messi kolu o filmlerde tek okuyucu. Film başına track_kunye ~2-3.5 dk.
+NOT: yeniden koşu, PDF'siz ilk-tur klasörlerinin yanına " 2" son-ekli kardeş
+klasörler açtı (pipeline çarpışma koruması) — ilk-tur kalıntılarının temizliği
+Çağatay kararı (silme = geri dönüşsüz).
+
 **Bekleyen (sabah Çağatay kararları — spec'in son bölümü):** PDF'e çapraz-denetim
 bölümü (V2 seçenekleri); Ronaldo terfi değerlendirmesi; Kimi bakiye + MiniMax;
-exit_kesim denetimi; --no-asr+V4 "—" ÖZET lekesi.
+exit_kesim denetimi; --no-asr+V4 "—" ÖZET lekesi; " 2" klasör temizliği;
+taze filmlerde runaware-master üretilmeme oranı (7/15) incelemesi.
 
 **Çağatay kararı:** film-bazlı seçenek yerine "bir tane bir şey ekle, ben açıp
 kapatayım — test kliplerinde kapatayım, normal süreçte açayım." Spec:
