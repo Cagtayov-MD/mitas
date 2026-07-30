@@ -60,8 +60,15 @@ def _sure(video: Path) -> float:
     return float(out.strip())
 
 
-def _baslangic_saniyesi(clip_dir: Path, video: Path) -> float | None:
-    """jenerik_detection.json start_pos → kaynak-video saniyesi (yoksa None)."""
+def _baslangic_saniyesi(clip_dir: Path, video: Path,
+                        win_start: float | None = None,
+                        fps: float | None = None) -> float | None:
+    """jenerik_detection.json start_pos → kaynak-video saniyesi (yoksa None).
+
+    `win_start`/`fps` pipeline'dan gelir (bkz. _jenerik_dense deseni): kareler HANGİ
+    saniyeden HANGİ fps ile çıkarıldıysa kesim de ondan hesaplanmalı. Verilmezse eski
+    varsayım (dur - CIKIS_TAIL_S @ FPS) korunur — elle CLI çağrısı için geriye uyum.
+    """
     j = clip_dir / "frames" / "jenerik_detection.json"
     if not j.is_file():
         return None
@@ -72,9 +79,8 @@ def _baslangic_saniyesi(clip_dir: Path, video: Path) -> float | None:
     sp = m.get("start_pos")
     if sp is None:
         return None
-    dur = _sure(video)
-    cstart = max(0.0, dur - CIKIS_TAIL_S)
-    return cstart + float(int(sp)) / FPS
+    cstart = float(win_start) if win_start is not None else max(0.0, _sure(video) - CIKIS_TAIL_S)
+    return cstart + float(int(sp)) / float(fps or FPS)
 
 
 def _parcala(video: Path, bas: float, outdir: Path) -> list[Path]:
@@ -156,6 +162,11 @@ def main() -> int:
     ap.add_argument("--video", required=True, help="kaynak video")
     ap.add_argument("--start-sec", type=float, default=None,
                     help="jenerik başlangıcı (verilirse detection.json atlanır — test için)")
+    ap.add_argument("--win-start", type=float, default=None,
+                    help="havuz karelerinin çıkarıldığı pencere başlangıcı (sn, mutlak). "
+                         "Verilmezse dur-CIKIS_TAIL_S varsayılır.")
+    ap.add_argument("--src-fps", type=float, default=None,
+                    help="havuz kare çıkarım fps'i (default 1.5)")
     ap.add_argument("--out", default=None, help="çıkış dizini (default: <clip>/video_vl)")
     a = ap.parse_args()
 
@@ -170,7 +181,7 @@ def main() -> int:
         if clip_dir is None:
             print("UYARI[video_vl]: --clip ya da --start-sec gerekli")
             return 2
-        bas = _baslangic_saniyesi(clip_dir, video)
+        bas = _baslangic_saniyesi(clip_dir, video, win_start=a.win_start, fps=a.src_fps)
         if bas is None:
             print("UYARI[video_vl]: jenerik_detection.json/start_pos yok — atlanıyor (fail-safe)")
             return 3

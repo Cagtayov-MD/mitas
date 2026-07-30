@@ -3955,8 +3955,12 @@ def main(argv=None) -> int:
             and not args.no_ocr):
         _vv_t = time.perf_counter()
         try:
+            # Pencere/fps İLETİLİR (_jenerik_dense ile aynı desen): kareler HANGİ
+            # saniyeden HANGİ fps ile çıkarıldıysa video kesimi de ondan hesaplanmalı.
+            # İletilmezse script dur-600 varsayardı → üretim tail'i 480 iken 120 sn kayma.
             _vv_cmd = [str(PY_OCR), str(HERE / "_pipe_video_vl.py"),
-                       "--clip", str(clip_dir), "--video", str(video)]
+                       "--clip", str(clip_dir), "--video", str(video),
+                       "--win-start", f"{float(_cik_start):.3f}", "--src-fps", str(args.fps)]
             _rcvv, _outvv, _errvv = run(
                 _vv_cmd,
                 timeout=int(os.environ.get("MITAS_VIDEO_VL_TIMEOUT", "1800") or 1800),
