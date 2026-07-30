@@ -10,7 +10,7 @@ def test_oku_master_bantlara_boler(tmp_path, monkeypatch):
     p = tmp_path / "reading_master.png"
     cv2.imwrite(str(p), img)
     gorulen = []
-    monkeypatch.setattr(ph, "oku_deepseek", lambda sayfalar: gorulen.extend(sayfalar) or ["SATIR"])
+    monkeypatch.setattr(ph, "oku_deepseek", lambda sayfalar, cagri_timeout=900: gorulen.extend(sayfalar) or ["SATIR"])
     satirlar = ph.oku_master(p, tmp_path)
     assert len(gorulen) == 3
     assert satirlar == ["SATIR"]
