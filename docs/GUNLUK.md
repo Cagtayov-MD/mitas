@@ -7,6 +7,42 @@
 
 ---
 
+## 2026-07-30 (gece) — Messi'nin 5 kayıp filmi teşhis edildi: 2 sahte kayıp, 3 gerçek (ortak desen: kayan kuyruk)
+
+**Soru (Çağatay):** "Messi net olarak 'ben kaybettim' der mi? O 5 filmi bulabilir miyiz?"
+**Cevap:** Motor kendisi DEMİYOR (alarm 5/5 sessiz — alarm yalnız kar-fırtınası
+patolojisi için; içerik kaçırma referanssız bilinemez). Ama dış hakemle bulundu:
+ham-kare Paddle taraması (kare→token haritası) + Messi yeniden-koşum (alarm/istatistik)
++ 5 paralel görsel-doğrulama ajanı (her kayıp token gerçek karede gözle kontrol).
+
+**Hükümler (gözle doğrulanmış):**
+- havaci 0.14 → SAHTE kayıp: kaybın ~%91'i Paddle garble (soamdmiser=Sound Mixer).
+  Deepseek TEMİZ okuduğu için exact-token eşleşmiyor — iyi okuduğuna ceza. İçerik tam.
+- sihirli-flut 0.643 → SAHTE: var_n=14, kayıp 5 = etiket/garble; seçim kusursuz;
+  Messi Paddle'ın hiç göremediği krediyi bile okumuş (Resim Kayıt / HAYRI KOÇ).
+- define-adasi 0.292 → GERÇEK SEÇİM KAYBI: kayan kuyruk 563-597 komple atlandı
+  (Aaron Crippen, Barbara Lee, Christy Buskirk…). Otsu eşiği 41'e fırlamış →
+  yavaş-kayan roll'da fark hep eşik-altı → dev grup, tek temsilci.
+- tas-devri 0.229 → GERÇEK SEÇİM KAYBI: aynı desen (eşik 34), 186-198 orta bant
+  atlandı (Arthur Pierson, Hoyt Curtin, Charles Nichols, Howard Hanson).
+- rhum-bulvari 0.277 → KARIŞIK: çoğu Fransızca-garble artefaktı; 1 somut gerçek
+  kayıp: AZZI/MORAND sayfası (562/564) — grup açıldı ama temsilcisiz kaldı.
+
+**İki yapısal çıkarım (karar Çağatay'da):**
+1. ÖLÇÜM: exact-token recall Messi'yi sistematik DÜŞÜK gösteriyor (deepseek temiz
+   okur → Paddle-garble var-setiyle eşleşmez); adaptif kolu Paddle-Paddle şişkin.
+   Fix adayı: edit-distance≤1 fuzzy veya KB-isim-tabanlı recall. 40-film tablosu
+   bu düzeltmeyle yeniden okunmalı — fh muhtemelen gerçekte önde/başabaş.
+2. MOTOR: tek gerçek zaaf deseni = kayan (rolling) kuyrukta yüksek Otsu eşiği +
+   birikim kuralının yetmemesi. OCR'sız fix adayı: birikimli-kayma her kare-boyu
+   katında zorunlu sayfa + "grup açıldıysa temsilcisiz kapanamaz" kuralı.
+   İkinci-geçiş sigortası ateşlemiş (3-4 ek sayfa) ama rulo için yetersiz kalmış.
+
+**Araçlar:** scratchpad/teshis_topla.py (sıralı GPU-güvenli toplayıcı),
+teshis/OZET.json + film JSON'ları, workflow wf_36f2e539 (5 ajan, görsel kanıtlı).
+
+---
+
 ## 2026-07-30 (akşam) — Tek-motor temizlik cerrahisi: text_layer + compose_hybrid söküldü, jenerik primitifleri taşındı
 
 **Çağatay kararları:** (1) panoramik deneme (uret_ex + panoramic_composer) sadece
@@ -113,12 +149,54 @@ gerçek hasar buldu — hepsi uygulandı:
   BASELINE ile eski dosyayı kıyaslayıp **sahte YEŞİL** okuyabilir. 11:18 sonucu
   `veri/olcum_son_11-18_YEDEK.json` olarak yedeklendi.
 
-**BEKLEYEN:**
-1. **32B-AWQ toplayıcı turu** — nöbetçi (`nobetci.sh`, VRAM≥22 GB, 4 saat sabır) kurulu, kart
-   boşalınca kendiliğinden koşacak. Karar sorusu: aynı olay listesinden 32B temiz 45 kelimelik yay
-   çıkarıyor mu? Çıkarıyorsa mimari doğru, sadece toplayıcı büyümeli; çıkaramıyorsa hat yanlış.
-2. Prompt altın-örneği sızıntısı — üretim `ozet_film_v2.txt` kalemi.
-3. Tasarım kararı (hat içi / gece geçişi) hâlâ AÇIK — ölçüm bitmeden verilmeyecek.
+### EK TUR (öğleden sonra) — TOPLAYICI ekseni: biçim ÇÖZÜLDÜ, sadakat ÇÖZÜLMEDİ
+
+Çağatay "hepsini dene, diğer akışları kesebilirsin" dedi. `toplayici_turu.py` yazıldı: kayıtlı olay
+listelerinden (runs/*/results.json → `ara_urun`) YALNIZ son adım koşuluyor, çıkarma tekrarlanmıyor
+→ kıyas adil (herkes aynı listeyi görür), ucuz (film başına tek çağrı, ~2.6k token), VRAM'i az.
+
+| toplayıcı | kapı | dil | ad-isabet | ort kelime |
+|---|---|---|---|---|
+| qwen36-35b-test | **6/6** | 5/6 | 0.65 | 46 |
+| qwen36-27b-test | 5/6 | 4/6 | 0.68 | 43 |
+| gemma4:26b | 4/6 | **6/6** | 0.58 | 44 |
+| mistral-small3.2 | 3/6 | 4/6 | 0.64 | 62 |
+| 8B (kendi toplaması) | 0/6 | 2/6 | 0.75 | 82 |
+
+**ÇÖZÜLEN:** toplama adımının BİÇİM tarafı yerelde bitti — 39-53 kelime, akıcı Türkçe, ~2 sn.
+8B'nin 0/6'sına karşı 26-35B sınıfı 4-6/6. Notlardan özet yazmak, ham transkripti kavramaktan
+KOLAY bir görev; bake-off'ta bu modellerin çuvalladığı iş bu değildi.
+
+**ÇÖZÜLMEYEN — ve darboğaz YER DEĞİŞTİRDİ:** olgu sadakati. Gözle okuma vekil ölçütü yalanlıyor:
+- HAYAT BİR ŞARKIDIR: 8B'nin FİNAL bloğu YANLIŞ (Camille'in depresyondan hastaneye kaldırılmasını
+  final sanmış); iki toplayıcı da bunu sadakatle cilaladı.
+- AYI YOGİ: final bloğunda ASR çöpü ("Korucu Simit Celis Don'un başkorucusu oldu") → cümleye çevrildi.
+- KANDAHAR: iki toplayıcı da "Sonunda Ami ile kavuşur" dedi. "Ami" ASR gürültüsü.
+→ **CİLALI ÇÖP, DAĞINIK ÇÖPTEN TEHLİKELİ.** 8B'nin 82 kelimelik dağınık çıktısı bozuk olduğunu belli
+  ediyordu; 42 kelimelik akıcı künye özeti etmiyor. Kalite kapısı BİÇİME bakıyor, OLGUYA değil —
+  B1/B2 kapısı bu hata sınıfını göremez. GLM'in "cascade hallucination" uyarısı çıktı düzeyinde teyitli.
+
+**⚠ BENİM METODOLOJİ HATAM (kayda geçsin):** Konsey brifinginde olay listelerini ELLE ÖZETLEDİM ve
+listede OLMAYAN olgular enjekte ettim — HAYAT BİR ŞARKIDIR için "Marc beyin tümöründen ölür" yazdım,
+oysa 8B'nin notlarında "tümör"/"beyin" HİÇ GEÇMİYOR (filmin gerçek konusunu bildiğim için farkında
+olmadan uydurdum). Dolayısıyla **"GLM 3/3 geçti → mimari doğrulandı" sonucu GEÇERSİZDİR**; GLM
+temizlenmiş+kısmen uydurulmuş notlardan, yerel modeller ham notlardan çalıştı. CLAUDE.md'nin
+"brifing özet değil GERÇEK içerik" kuralı tam da bunun için var — ihlal edildi, sonuç yanıltıcı oldu.
+Bundan sonra konseye giden her veri parçası ham dosyadan KOPYALANACAK, elle yeniden yazılmayacak.
+
+**32B-AWQ — VRAM DEĞİL, YAZILIM:** `RuntimeError: torch_call_dispatcher("aten::empty", ...)` —
+vLLM 0.25.1 / torch AWQ çekirdeği uyuşmazlığı. Bellek reçetesi doğruydu (0.93 util + 10240 +
+fp8 KV + enforce-eager ile ağırlık 19.42 GiB yüklendi), engel sürüm. **Beklemekle düzelmez.**
+
+**BEKLEYEN (güncel):**
+1. **Kaldıraç artık ÇIKARMA tarafında** — toplayıcıyı büyütmek işe yaramaz, o taraf çalışıyor.
+   Adaylar: final turunu 8B yerine 26B'ye vermek (tek çağrı, ucuz), ASR gürültü süzgeci,
+   "net değil" demeyi gerçekten öğretmek.
+2. **B3 grader yetersiz** — ad-isabeti yanlış finali/uydurma olguyu görmüyor. Sadakat için
+   gerçek hakem (farklı aile LLM-jüri, kalibreli) gerekiyor; şimdiki vekil YANILTIYOR.
+3. Prompt altın-örneği sızıntısı — üretim `ozet_film_v2.txt` kalemi (2/12 çıktı; AYI YOGİ vakası).
+4. 32B için vLLM/torch sürüm işi — ayrı kalem.
+5. Tasarım kararı (hat içi / gece geçişi) hâlâ AÇIK.
 
 ---
 
