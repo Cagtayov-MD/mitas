@@ -7,6 +7,31 @@
 
 ---
 
+## 2026-07-30 (akşamüstü) — ASR + ÖZET GERİ DÖNDÜ: global aç/kapa anahtarı (5652f6ea)
+
+**Çağatay kararı:** film-bazlı seçenek yerine "bir tane bir şey ekle, ben açıp
+kapatayım — test kliplerinde kapatayım, normal süreçte açayım." Spec:
+`docs/superpowers/specs/2026-07-30-asr-ac-kapa-design.md`.
+
+**Yapılan:** (1) queue.json üst-düzey `asrEnabled` + put_flow_queue rebuild'ine
+açık taşıma (top-level alan düşme tuzağı); worker + tek-dosya spawn'ı kapalıysa
+`--no-asr` ekliyor. (2) WebUI FlowQueuePanel'e Switch (ilk kullanım) + poll
+sunucu-otorite senkron + dirty-flag yarış koruması. (3) no_asr → özet BOŞ →
+placeholder ÖZET paneli PDF'e girmiyor (fitz ile sayfa-metni testi; tracked()
+harf-aralıklı başlık normalize tuzağı). (4) ASR_KAPALI.flag git rm — mekanizma
+acil-kill olarak kodda; killswitch testi simetrik ters çevrildi (yokluğu savunur).
+
+**KRİTİK ÖĞRENME — ct2 tembel dlopen:** "CUDA model YÜKLENDİ" testi YANILTIR;
+ctranslate2 4.7.x libcublas.so.12'yi İLK ENCODE'da ister. Fix ortam:
+nvidia-cublas-cu12==12.9.2.10 + nvidia-cudnn-cu12==9.24.0.43 (requirements/
+asr.txt) — ct2 pip nvidia dizinlerini KENDİSİ keşfediyor, preload/LD_LIBRARY_PATH
+gerekmez (preload denendi, nvidia namespace-paket `__file__`süz → no-op, söküldü).
+Kanıt: YAĞMACILAR audio16k 240sn → "Yağmacılar. Eğiz buraya gel." (6.7sn CUDA).
+
+**Durum:** mitas-asr restart edildi; tsc temiz, konsol hatasız; asr-venv 25/25 +
+ocr-venv 24/24. Switch'in görsel kontrolü Çağatay'da (login gerekli — parola
+alanına giremem). Varsayılan AÇIK; ilk kapatma webui'den.
+
 ## 2026-07-30 (öğleden sonra) — TOPARLAMA: 17 Tem'den beri İLK uçtan uca Linux teslimi (YAĞMACILAR) + 5 kök fix
 
 **Bağlam (Çağatay):** "Projeyi toparlayalım" — jenerik-başlangıç akışı finalde; 3-havuz
@@ -233,7 +258,71 @@ Bundan sonra konseye giden her veri parçası ham dosyadan KOPYALANACAK, elle ye
 vLLM 0.25.1 / torch AWQ çekirdeği uyuşmazlığı. Bellek reçetesi doğruydu (0.93 util + 10240 +
 fp8 KV + enforce-eager ile ağırlık 19.42 GiB yüklendi), engel sürüm. **Beklemekle düzelmez.**
 
-**BEKLEYEN (güncel):**
+### KAPANIŞ (Çağatay: "özet işini durdur") — iş DURDURULDU, kademe turu TAMAMLANMADI
+
+Kademe turu (B: 8B çıkar+26B final+26B topla / C: tam 26B) **hiç sonuç vermeden kapatıldı**.
+Sebep MODEL DEĞİL, benim araç hatalarım — kayda geçsin ki tekrarlanmasın:
+1. **`nohup … & disown` ile arka plana atma ÖLDÜ** — sarmalayıcı kabuk çıkınca çocuk süreç
+   gidiyor. Harness'in kendi `run_in_background`'ı kullanılmalı, elle nohup DEĞİL.
+2. **`pgrep -f kademe_turu` KENDİ komutumu eşleştirdi** (komut satırında o metin geçtiği için)
+   → "koşuyor" sanıp iki tur boş bekledim. Desen: `pgrep -f '[k]ademe_turu'` veya PID doğrula.
+3. **Python stdout tamponu** — dosyaya yönlendirince log boş kaldı, takıldı mı çalışıyor mu
+   görünmedi. `python3 -u` şart.
+4. **ollama kuyruk kilidi** (paralel oturum) — bir istek 16 dk yanıtsız asılı kaldı; GPU %2,
+   yüklü model yok. timeout 600→180 yapıldı ama kök sebep paralel oturum çakışması.
+Doğrudan koşturulunca script SORUNSUZ başlıyor (başlık + B kolu satırı basıldı) — yani kod
+çalışır durumda, `harness/ozet_motor/kademe_turu.py` hazır, sadece koşturulmadı.
+
+**DURDURMA ANINDA BİLİNEN/BİLİNMEYEN AYRIMI (önemli — "olmuyor" ile "ölçemedik" karıştırılmasın):**
+- BİLİNEN ✔ Toplama adımının BİÇİM tarafı 3090'da çözüldü (qwen36-35b 6/6, gemma4:26b 6/6 dil).
+- BİLİNEN ✔ Parçalama olgu sadakatini düzeltiyor (ad-isabet 0.36→0.75, 5/5 filmde).
+- BİLİNEN ✔ Uzun filmde tek-atış çöküyor (744 kelime).
+- BİLİNEN ✘ 8B'nin FİNAL bloğu güvenilmez; toplayıcı onu cilalıyor → "cilalı çöp".
+- BİLİNEN ✘ 32B-AWQ: vLLM 0.25.1/torch AWQ sürüm hatası (VRAM değil).
+- **BİLİNMEYEN ?** Final turunu 26B'ye vermek sadakati düzeltir mi (B kolu) — ÖLÇÜLMEDİ.
+- **BİLİNMEYEN ?** Tüm çıkarmayı 26B yapmak yeter mi (C kolu) — ÖLÇÜLMEDİ.
+Yani "yerel çözemedi" hükmü HÂLÂ VERİLEMEZ; deneme tamamlanmadı.
+
+**Bırakılan durum:** GPU 22.7 GB boş, ollama boş, hiçbir arka plan işi yok, nöbetçiler kapalı.
+Ölçüm yatağı `harness/ozet_motor/` altında çalışır halde duruyor (goldens 136 film, 4 grader,
+kademe/toplayıcı/kos koşucuları). Tekrar başlatmak tek komut.
+
+### NİHAİ HÜKÜM — kademe turu KOŞTU: **OLMUYOR** (3090 tek başına sağlıklı özet vermiyor)
+
+Çağatay "son şansın, koştur" dedi; koştu. 4 film (2'si ilk kez: DÖNÜŞÜ OLMAYAN NEHİR, KANDIRMACA).
+
+| kol | biçim | dil | **SADAKAT** | ort toprak | ort sn |
+|---|---|---|---|---|---|
+| B — 8B çıkar · 26B final · 26B topla | 3/4 | 4/4 | **1/4** | 0.32 | 36 |
+| C — tam 26B | 4/4 | 4/4 | **1/4** | 0.29 | 43 |
+| temel — 8B çıkar/final · 26B topla | 4/6 | — | 2/6 | 0.45 | — |
+
+**Final turunu büyütmek de (B), tüm çıkarmayı büyütmek de (C) sadakati DÜZELTMEDİ** — topraklama
+temel kola göre DÜŞTÜ bile. Model boyu bu sorunun kaldıracı değil.
+
+Gözle okuma ölçütten de kötü (B4 topraklama YANLIŞ OLUMLU verebiliyor):
+- CENNETE GELDİK Mİ (C): "mucit George yeni bir mikroteleskop icat eder… Ruslar tarafından çalınan"
+  → mucit WALDO'dur; "Ruslar" diye bir taraf YOK, uydurma. (rol tersine + uydurma taraf)
+- HAYAT BİR ŞARKIDIR (C): tamamen dağınık, kim kimdir belirsiz.
+- DÖNÜŞÜ OLMAYAN NEHİR (C): kapıdan GEÇTİ ama finali "Mark ve Kolder bar içerisinde kahve
+  içmektedir" → **B4 yanlış olumlu**. Gerçek sadakat 1/4 değil, 0/4'e yakın.
+
+**KÖK SEBEP:** Yerel modeller BİÇİMİ tutturuyor (akıcı Türkçe, doğru uzunluk, spoiler'lı final,
+~2 sn) ama konuşmacı etiketi olmayan gürültülü ASR transkriptinden KİMİN KİM olduğunu ve GERÇEKTE
+NE olduğunu kuramıyorlar. Kavrama tavanı. **2026-06-27 bake-off'unun teşhisi bu eksende DOĞRUYMUŞ**;
+"elemeler ollama koşum artefaktıydı" itirazım bu eksende DÜŞTÜ.
+
+**İtirazdan AYAKTA KALANLAR (gerçek, kayıtlı, ileride kullanılabilir):**
+- Parçalama karakter yakalamayı gerçekten düzeltiyor: ad-isabet 0.36→0.75, 5/5 filmde.
+- Uzun filmde tek-atış çöküyor (744 kelime); parçalı çökmüyor.
+- Toplama adımının BİÇİM tarafı yerelde tamamen çözülüyor (qwen36-35b 6/6, gemma4:26b 6/6 dil).
+- Ama hiçbiri "doğru özet" etmiyor. **Doğru biçimde yanlış özet, yanlış özettir.**
+
+**SONUÇ:** Özet buluttan alınamıyor. Hibrit de Çağatay'ın hedefine hizmet etmiyor ("bulut geri
+geliyorsa zaten çözülmüş demektir"). Bu iş DURDURULDU.
+
+**BEKLEYEN (özet işi dondurulduğunda açık kalanlar):**
+0. ~~Kademe turu (B/C)~~ — KOŞTU, cevap: olmuyor.
 1. **Kaldıraç artık ÇIKARMA tarafında** — toplayıcıyı büyütmek işe yaramaz, o taraf çalışıyor.
    Adaylar: final turunu 8B yerine 26B'ye vermek (tek çağrı, ucuz), ASR gürültü süzgeci,
    "net değil" demeyi gerçekten öğretmek.
