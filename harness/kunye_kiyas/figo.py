@@ -1,4 +1,11 @@
-"""Jenerik başlangıç tespiti — TEK MOTOR: tespit_v5.
+"""FIGO — MITAS jenerik başlangıç tespit motoru (resmi ad: Çağatay, 2026-07-30).
+
+TEK MOTOR: tespit_v5. Bileşenler: figo.py (bu dosya, karar motoru) +
+credit_box.py (Paddle det kutu sinyali) + credit_content.py (içerik analizi).
+Pipeline bağlantısı: scripts/_jenerik_pool.py (MITAS_JENERIK_V5=1).
+Ölçüm: olc_pool.py --paralel 8 (110-film GT). Güncel skor: %94.5 / üretim %97.3
+/ kredisiz-red 29/29. Kimlik kartı: docs/FIGO.md.
+(Eski adı credit_onset.py — 2026-07-30'da FIGO olarak yeniden adlandırıldı.)
 
 Tasarım (v5): aday kutu-koşuları (credit_box.kutu_serisi, PaddleOCR det) → her
 adayı OCR-içerikle (credit_content) 'gerçekten isim-listesi mi' doğrula →
@@ -27,7 +34,7 @@ Kafa karışıklığı için önemli ayrım: bu dosyadaki "kutu" sinyali salt-CV
 kart-varlığı tespiti (credit_box, ısıl OCR-det) — jeneriğin GERÇEK içeriğinin
 CV-KARŞILAŞTIRMA motoru (frame-pool arasında görsel benzerlik/eşleştirme) bu
 dosyada DEĞİL, `core/pipelines/ocr/jenerik_frame_pool_detector.detect_frame_dir`
-içinde yaşıyor ve `scripts/jenerik_start_eval.py` onu kullanıyor — o motor bu
+içinde yaşıyor (giriş-jeneriği havuzunun bağımlılığı, FIGO DEĞİL) — o motor bu
 söküm turunda DOKUNULMADI.
 """
 from __future__ import annotations
@@ -1114,7 +1121,7 @@ if __name__ == "__main__":
             "tek-motor kararıyla söküldü (söküm öncesi commit 7b0a46f). Tek "
             "yaşayan yol tespit_v5 (bayraksız veya --v5). CV karşılaştırma "
             "motoru hâlâ core/pipelines/ocr/jenerik_frame_pool_detector."
-            "detect_frame_dir içinde yaşıyor — scripts/jenerik_start_eval.py "
+            "detect_frame_dir içinde yaşıyor (giriş-jeneriği havuzu kullanıyor, FIGO DEĞİL) "
             "onu kullanıyor.",
             file=sys.stderr,
         )

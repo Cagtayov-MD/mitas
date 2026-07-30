@@ -1083,6 +1083,7 @@ def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
 # asr_server'i komple import ETMEYIZ (FastAPI app + agir yan etki); buraya hafif
 # bir kopya konur. Prompt/parametreler core/api/asr_server.py ile SENKRON tutulur.
 OZET_PROMPT_PATH = PROJECT_ROOT / "core" / "api" / "prompts" / "ozet_film.txt"
+OZET_PROMPT_V2_PATH = PROJECT_ROOT / "core" / "api" / "prompts" / "ozet_film_v2.txt"  # testas-yalın (MITAS_OZET_V2)
 OZET_MAX_SOURCE_CHARS = 60000     # asr_server SUMMARY_MAX_SOURCE_CHARS
 OZET_MAX_TOKENS = 1500            # asr_server SUMMARY_MAX_TOKENS
 OZET_TIMEOUT_SECONDS = 90         # asr_server SUMMARY_TIMEOUT_SECONDS
@@ -1107,6 +1108,7 @@ def _load_sibling(_name):
 # Özet sağlayıcı istemcileri (yoksa None → o sağlayıcı atlanır, zincir sıradakine düşer).
 _gemini = _load_sibling("_gemini")
 _deepseek = _load_sibling("_deepseek")
+_ozet_kalite = _load_sibling("_ozet_kalite")   # testas kapalı-döngü: kalite kapısı + onarım (v2 yolu)
 
 
 # ASR zaman damgasi deseni: "[00:33:26] ". Ozete SIFIR katki, ama LLM tokenizer'inda ~2x sisirir
@@ -1399,12 +1401,77 @@ def _ozet_chain():
     gemini → sonnet → gemma-local (fallback). Herhangi biri None/kota → otomatik sıradakine düşer."""
     _on = ("1", "true", "on", "yes")
     chain = []
+    # DeepSeek = testas'ın BİRİNCİL özet motoru (Çağatay 2026-07-23: "testas hangi API'yi
+    # kullanıyorsa MITAS da onu kullansın"). Flag açıksa zincirin BAŞINA → birincil olur.
+    if os.environ.get("MITAS_OZET_DEEPSEEK", "0").strip().lower() in _on:
+        chain.append(("deepseek", _ozet_deepseek))
     if os.environ.get("MITAS_OZET_GEMINI", "0").strip().lower() in _on:
         chain.append(("gemini", _ozet_gemini))
     if os.environ.get("MITAS_OZET_CLOUD", "0").strip().lower() in _on:
         chain.append(("sonnet", _ozet_anthropic))
     chain.extend(_OZET_SAGLAYICILAR)   # gemma-local DAİMA fallback (en sonda)
     return tuple(chain)
+
+
+def _generate_ozet_v2(system_content: str, user_msg: str, chain, turlar: int) -> str | None:
+    """testas kapalı-döngü özet: her sağlayıcıda K-deneme öz-düzeltme + kalite kapısı + onarım.
+
+    Akış (sağlayıcı başına, MITAS_OZET_V2_ATTEMPTS=3 deneme):
+      üret → _ozet_kalite.repair_generated_summary → summary_errors
+        • kapı GEÇER + spoiler-final  → HEMEN dön (tercih edilen).
+        • kapı GEÇER ama finalsiz      → 'best' yedeğe al, sıradaki sağlayıcıyı dene.
+        • kapı GEÇMEZ                  → hata + kelime sayısını BİRİKİMLİ ekle, aynı sağlayıcıyı tekrar dene.
+    Hiçbir sağlayıcı spoiler-final vermezse 'best' (finalsiz ama geçerli) döner. Hiçbir sağlayıcı
+    çıktı veremezse (boş/kota/503) eski transient-retry (backoff) devreye girer; çıktı gelip
+    hiçbiri kapıdan geçmezse beklemeden None döner (bozuk özet yerine placeholder — testas felsefesi).
+    Çıktıya eski yolla AYNI _latin_only kemeri uygulanır.
+    """
+    qa = _ozet_kalite
+    try:
+        _att = max(1, int(os.environ.get("MITAS_OZET_V2_ATTEMPTS", "3") or "3"))
+    except Exception:  # noqa: BLE001
+        _att = 3
+    best = None
+    for _tur in range(turlar):
+        produced_any = False
+        for _ad, _fn in chain:
+            cur_user = user_msg
+            for _k in range(_att):
+                try:
+                    out = _fn(system_content, cur_user)
+                except Exception:  # noqa: BLE001 — sağlayıcı çökerse sıradakine düş
+                    out = None
+                if not (isinstance(out, str) and out.strip()):
+                    break   # bu sağlayıcı bir şey veremedi → sıradaki sağlayıcı
+                produced_any = True
+                cand = qa.repair_generated_summary(out.strip())
+                errs = qa.summary_errors(cand)
+                if not errs:
+                    if qa.has_spoiler_final(cand):
+                        return _latin_only(cand)          # tercih: geçerli + spoiler final
+                    if best is None:
+                        best = cand                        # geçerli ama finalsiz → yedek
+                    break   # bu sağlayıcı geçerli-finalsiz verdi; başka sağlayıcı dene
+                # geçersiz → geri bildirimi BİRİKTİREREK ekle (testas gibi; birikimsiz feedback
+                # 'final ekle↔kısalt' osilasyonuna yol açabilir — konsey bug-avı bulgusu 2026-07-23).
+                cur_user = (
+                    cur_user
+                    + "\n\nÖnceki çıktı uygun değildi: " + "; ".join(errs)
+                    + f". Kelime sayısı: {qa.summary_word_count(cand)}."
+                    + " 35-60 kelime, 3-4 cümle, tek paragraf, noktalı virgül yok, TAM cümleyle biten,"
+                    + " SADECE özeti yeniden yaz."
+                )
+        if best is not None:
+            return _latin_only(best)      # elimizdekinin en iyisi (finalsiz ama geçerli)
+        if produced_any:
+            break   # çıktı geldi ama kapıdan geçen yok → transient değil, beklemenin anlamı yok
+        if _tur < turlar - 1:             # hiçbir sağlayıcı çıktı vermedi → geçici hata olabilir
+            try:
+                _bo = float(os.environ.get("MITAS_OZET_RETRY_BACKOFF", "6") or "6")
+            except Exception:  # noqa: BLE001
+                _bo = 6.0
+            time.sleep(_bo * (_tur + 1))
+    return _latin_only(best) if best else None
 
 
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
@@ -1421,8 +1488,13 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     text = (transcript_text or "").strip()
     if not text:
         return None
+    # v2 (testas kapalı-döngü) yolu: MITAS_OZET_V2=1 VE _ozet_kalite modülü yüklüyse devrede.
+    _v2 = (
+        os.environ.get("MITAS_OZET_V2", "0").strip().lower() in ("1", "true", "on", "yes")
+        and _ozet_kalite is not None
+    )
     try:
-        system_content = OZET_PROMPT_PATH.read_text(encoding="utf-8")
+        system_content = (OZET_PROMPT_V2_PATH if _v2 else OZET_PROMPT_PATH).read_text(encoding="utf-8")
     except Exception:  # noqa: BLE001
         return None
     if not system_content.strip():
@@ -1438,6 +1510,8 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     except Exception:  # noqa: BLE001
         _turlar = 3
     _chain = _ozet_chain()
+    if _v2:
+        return _generate_ozet_v2(system_content, user_msg, _chain, _turlar)
     for _tur in range(_turlar):
         for _ad, _fn in _chain:
             try:
@@ -3668,7 +3742,10 @@ def main(argv=None) -> int:
     ext = ".pdf" if (pdf_src and pdf_src.exists()) else (".md" if (md_src and md_src.exists()) else "")
     dest = (dest_root / f"{base_name}{ext}") if not _ext_tf else None
     if src_file and dest is not None:
-        shutil.copy2(src_file, dest)
+        try:
+            shutil.copy2(src_file, dest)
+        except Exception as e:
+            print(f"WARN: shutil.copy2 failed: {e}")
     dbg.emit("routing", "qc_decision",
              status="ok" if karar == "Hazır" else "warn",
              subject={"field": "karar", "after": karar,

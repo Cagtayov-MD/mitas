@@ -18,7 +18,7 @@ KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
 def isit(dizin: str) -> str:
     sys.path.insert(0, BURASI)
     import credit_box as cb
-    import credit_onset as co
+    import figo as co
     g = co.kareler(dizin)
     if len(g) < 50:
         return f"[atla] {os.path.basename(dizin.rstrip('/'))}"

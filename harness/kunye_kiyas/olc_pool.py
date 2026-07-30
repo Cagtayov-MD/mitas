@@ -14,7 +14,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "4")   # paralel işçilerde çekirdek 
 
 BURASI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BURASI)
-import credit_onset as co
+import figo as co
 
 V = os.path.join(BURASI, "veri")
 KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
@@ -29,7 +29,7 @@ def _isci(gorev: tuple) -> dict:
     """Paralel işçi: (film_adi, klasor, gercek_onset) → ölçüm kaydı.
     spawn ile taze süreçte koşar; paddle her işçide bir kez init olur."""
     ad, p, go = gorev
-    import credit_onset as co_w
+    import figo as co_w
     r = co_w.tespit_v5(p)
     return {"film": ad, "gt": go, "tahmin": r.start_frame,
             "yontem": r.yontem, "notlar": r.notlar}

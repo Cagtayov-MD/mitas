@@ -279,7 +279,7 @@ def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = Fa
     except ValueError:
         pad = 10
     sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
-    import credit_onset as _co
+    import figo as _co
     r = _co.tespit_v5(str(frames_dir))
     if r.start_frame is None or int(r.start_frame) < 0:
         if not kuru:

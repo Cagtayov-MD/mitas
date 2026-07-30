@@ -44,6 +44,9 @@ MODEL = os.environ.get("MITAS_VIDEO_VL_MODEL", "qwen3-vl-8b")
 PENCERE = float(os.environ.get("MITAS_VIDEO_VL_PENCERE", "60"))
 BINDIRME = float(os.environ.get("MITAS_VIDEO_VL_BINDIRME", "5"))
 PAY = float(os.environ.get("MITAS_VIDEO_VL_PAY", "5"))
+# Çıktı tavanı (2026-07-24 sweep bulgusu: 2500 yoğun jenerikte MEŞRU metni kırpıyor;
+# bağlam payı müsait 12.5k+3.5k≤16384). Varsayılan DEĞİŞMEDİ — R2 koşuları 3500 verir.
+MAXTOK = int(os.environ.get("MITAS_VIDEO_VL_MAX_TOKENS", "2500") or "2500")
 
 SORU = ("Bu bir film kapanış jeneriği (end credits) videosu. Her kareyi AYRI AYRI oku: "
         "'--- Kare N ---' başlığı altında o karede görünen metni AYNEN satır satır yaz. "
@@ -131,7 +134,7 @@ def _dejenerasyon_filtresi(metin: str) -> str:
 
 
 def _oku(mp4: Path) -> dict:
-    payload = {"model": MODEL, "temperature": 0, "max_tokens": 2500,
+    payload = {"model": MODEL, "temperature": 0, "max_tokens": MAXTOK,
                "repetition_penalty": 1.05,   # tekrar-döngüsü freni (McGaughy sınıfı)
                "messages": [{"role": "user", "content": [
                    {"type": "video_url", "video_url": {"url": f"file://{mp4}"}},
