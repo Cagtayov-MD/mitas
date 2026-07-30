@@ -372,7 +372,14 @@ def _farkli_metin_sayisi(metinler: list[str], esik: float = 0.8) -> int:
 
 def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
                                 onset: int, azami_geri: int = 80,
-                                bosluk_tol: int = 4, min_metin: int = 4) -> tuple[int, str]:
+                                bosluk_tol: int = 6, min_metin: int = 4) -> tuple[int, str]:
+    # bosluk_tol 4→6 (2026-07-30, GELECEK_GÜNLER teşhisi): kart-dizisinde kartlar
+    # arası geçiş boşlukları (dissolve/n=3 çok-kutulu ara kareler) 5-6 örnek-indeks
+    # sürebiliyor — GELECEK'te zincir 743-733 arasındaki 6'lık boşlukta kopup
+    # 2 farklı metinde kalıyordu (<min_metin=4 → genislet=0, onset +91 GEÇ).
+    # 6 ile zincir ISABELLE HUPPERT'a (kare 673, GT 672'ye +1) iniyor; ölçüldü.
+    # Kredisiz-güvence DEĞİŞMEZ: bağımsız tetikleme yok (yalnız kazanan koşuya
+    # bitişik) + ≥min_metin FARKLI kart şartı aynen duruyor.
     """Kart-dizisi geri-genişletme (T6 2.tur, alt-adım3 — konsey kırmızı-takım,
     ROBOCOP sınıfı). Kart-başına-tek-aktör düzeninde (her karede yalnız 1 kutu/
     1 isim) credit_box.kutu_serisi jbayrak'ı hiç kaldırmıyor (jenerik_benzeri
