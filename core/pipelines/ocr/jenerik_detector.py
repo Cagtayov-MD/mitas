@@ -16,8 +16,8 @@ Pencere değil KARE-bazlı credit_present (medyan-smooth) → koşular (runs) �
 Hem KARE-KLASÖRÜ (Database/<film>/frames/giris|cikis) hem VİDEO girdisini AYNI çekirdekle işler.
 
 cv2 Türkçe-İ tuzağı: imread/imwrite YOK → _cv2_imread (fromfile+imdecode).
-Yeniden kullanılan primitifler: dynamic_credit_mosaic (_build_tophat_mask/_phase_corr/_gdiff/_masked_gray/_hann2d),
-credit_detector (_row_structure_score/_cv2_imread).
+Yeniden kullanılan primitifler: jenerik_primitifleri (_build_tophat_mask/_phase_corr/_gdiff/_masked_gray/_hann2d;
+2026-07-30'a dek dynamic_credit_mosaic içindeydi), credit_detector (_row_structure_score/_cv2_imread).
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ import numpy as np
 
 # E:\MITAS'ı path'e ekle (standalone import için) → core paketi
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from core.pipelines.ocr.slitscan.dynamic_credit_mosaic import (  # noqa: E402
+from core.pipelines.ocr.jenerik_primitifleri import (  # noqa: E402
     _build_tophat_mask, _phase_corr, _gdiff, _masked_gray, _hann2d,
 )
 from core.pipelines.ocr.credit_detector import _row_structure_score, _cv2_imread  # noqa: E402
@@ -62,7 +62,7 @@ SCENE_PROMPTS = [
 
 # --------------------------------------------------------------------------- #
 # Eşikler (H = kare yüksekliği; kareler NATİF çözünürlük, film-başına 600/854×480 değişir)
-# DİKKAT: dynamic_credit_mosaic S_HI=0.8 ~6fps/natif içindir; burası fps≈2 + değişken H.
+# DİKKAT: eski dynamic_credit_mosaic S_HI=0.8 ~6fps/natif içindi; burası fps≈2 + değişken H.
 #         px'i H'e göre ifade et, H/480 ile ölçekle (Plan-ajanı düzeltmesi).
 # --------------------------------------------------------------------------- #
 ANALYZE_H = 480                 # video karelerini bu yüksekliğe indir (tophat KSIZE=25 ~480p'ye göre kalibre)
