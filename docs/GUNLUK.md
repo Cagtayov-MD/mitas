@@ -7,7 +7,49 @@
 
 ---
 
-## 2026-07-30 (akşamüstü) — ASR + ÖZET GERİ DÖNDÜ: global aç/kapa anahtarı (5652f6ea)
+## 2026-07-30 (gece) — HAYATA GEÇİRME: track_kunye üretim pipeline'ına bağlandı
+
+**Çağatay direktifi (gece, kendisi yok):** runaware master üretimi dokunulmaz;
+geri kalan zincir (Messi+İbra-okuma+Ronaldo) pipeline'a EKSİKSİZ bağlanacak,
+3 çıktı/film, 15-film gerçek test, QC1-QC2+PDF doğrulamalı, plan konseyle,
+uygulama Sonnet'le. Sabaha çalışır sistem.
+
+**Yapılan:**
+- 10-film taze pilot bitti (İbra/Messi/Ronaldo F1 tablosu SKOR.json'larda;
+  outputs/taze_pilot/). Ronaldo 3 filmde önde/başabaş, 2 dejenere vaka.
+  rodeo-tutkusu: deepseek iki kolda da çöktü, Ronaldo RED bandı tek dürüst alarm.
+- Ronaldo duman-testi fix'leri (e5f45623): halüsinasyon filtresi düzyazı-imzası
+  (KB-isabetsizlik 10M KB'de İngilizce'de hiç ateşlemiyordu — man/green/brooks
+  soyadı olarak kayıtlı) + kısa-satır paragraf-yutulma korkuluğu.
+- Üretim keşfi (5 paralel ajan) + konsey kırmızı-takımı (GLM+Nemotron; kabul/
+  red listesi spec'te) → spec 1887e29d + plan 8c42de72.
+- Sonnet ordusu 4 task: pilot_hat env-aware/dizin-parametreli (b1417bc7),
+  _pipe_track_kunye.py gölge betiği (e1d4de79), mitas_pipeline gölge bloğu —
+  MASTER-PNG sonrası, +56 satır salt-ek (80b8bd7b), batch doğrulayıcı (d8a84c59).
+- Smoke'lar: betik tek başına AĞAÇ'ta 138 sn "done/yellow"; FAKİR ÖĞRENCİ tam
+  pipeline'da uçtan uca "Hazır" + timings.track_kunye=138 + PDF + kunye3.
+  Doğrulayıcı smoke bulgularıyla düzeltildi (64c072cd): event media_id'si
+  dosya-adı türevi → alt-dizgi eşleşme; credit_qc1_* yalnız RED'de yazılıyor →
+  temiz-yol kanıtı karar.pipeline.json.
+- 15-film testi: FAKİR + kalan 14 sıralı koşuda (gece bitecek; sabah raporunda
+  doğrulayıcı tablosu).
+
+**Öğrenilen / başarısız denemeler:**
+- ffmpeg stdin tuzağı: while-read döngüsünde tsv'yi yedi, 3 slug bozuldu
+  (odeo/si-afrika/la-boheme) — fix stdin=DEVNULL (8f768290) + fd-3 döngü;
+  XML kimlikler kurtardı (slug-kimlik dersi bir kez daha).
+- ÖZGÜRLÜK_SAVAŞI + ELMA_AĞAÇLARI share'den kalkmış — pilot yedekleri:
+  ala-kopek (metinsiz kapanış, referans 0) + hank-williams.
+- vahsi-afrika "Ronaldo iki koldan kötü" verisi METRİK TUZAĞI çıktı: referans
+  8 token, biri fold'da "and"; betimleme satırları Messi kolunda "doğru satır"
+  sayılıyordu. Ronaldo recall aynı (.875), künye daha temiz. Skor metriği
+  dejenere-referans (≤10 token) filmde anlamsız — stopword eleme V2 adayı.
+- deepseek "müze-kataloğu" uydurma modu (markdown-bold/katalog fiilleri)
+  filtreye eklendi; kısa katalog-kırıntıları (<8 kelime) hâlâ sızabiliyor.
+
+**Bekleyen (sabah Çağatay kararları — spec'in son bölümü):** PDF'e çapraz-denetim
+bölümü (V2 seçenekleri); Ronaldo terfi değerlendirmesi; Kimi bakiye + MiniMax;
+exit_kesim denetimi; --no-asr+V4 "—" ÖZET lekesi.
 
 **Çağatay kararı:** film-bazlı seçenek yerine "bir tane bir şey ekle, ben açıp
 kapatayım — test kliplerinde kapatayım, normal süreçte açayım." Spec:
