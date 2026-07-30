@@ -26,3 +26,32 @@ def test_token_esle_kb_cakisma_birlestirmez():
     # Nemotron #7: iki varyant da KB'de AYRI kayitliysa birlesme YOK
     kb_tok = {"emine", "emire"}
     assert rn.token_esle("emine", "emire", kb_tok) is False
+
+
+def test_ic_dedup_ayni_kolda_tekrari_indirger():
+    # Nemotron #1: kol içi tekrar diff'e girmeden teke inmeli (sıra korunur)
+    s = ["AHMET YILMAZ", "Kamera", "ahmet yilmaz", "Kamera"]
+    assert rn.ic_dedup(s) == ["AHMET YILMAZ", "Kamera"]
+
+
+def test_garble_cift_basim_yakalanir():
+    # slit çift-basımı: ardışık kelime-blok tekrarı
+    assert rn.garble_mi("YONETMEN YARDIMCISI YONETMEN YARDIMCISI") is True
+    assert rn.garble_mi("YONETMEN YARDIMCISI") is False
+
+
+def test_garble_uzun_tekrarli_3gram():
+    assert rn.garble_mi("ababababababababababababababababababababab") is True
+    assert rn.garble_mi("With the Orchestra and Chorus of the Welsh National Opera") is False
+
+
+def test_halusinasyon_parantez_ve_duzyazi():
+    # Nemotron #6 + bugünkü 'dinozor paragrafı' sınıfı
+    assert rn.halusinasyon_mu("[Müzik çalıyor]", set()) is True
+    assert rn.halusinasyon_mu(
+        "The image displays a stylized illustration with a central theme of a large dinosaur", set()) is True
+    # 8+ kelime ama KB isabetli -> künye satırı olabilir, dokunma
+    kb = {"archer", "mellor", "connell", "davies", "evans", "keenlyside", "clarke", "williams", "pope"}
+    assert rn.halusinasyon_mu(
+        "Neill Archer Alwyn Mellor John Connell Jennifer Davies Rebecca Evans", kb) is False
+    assert rn.halusinasyon_mu("Tamino - Neill Archer", kb) is False

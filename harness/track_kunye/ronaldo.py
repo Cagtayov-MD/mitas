@@ -52,3 +52,48 @@ def token_esle(a: str, b: str, kb_tok: set[str]) -> bool:
     if sinir == 0:
         return False
     return duzenle_mesafe(fa, fb, sinir) <= sinir
+
+
+def ic_dedup(satirlar: list[str]) -> list[str]:
+    """Kol içi fold-bazlı tekilleştirme; ilk görülen sıra korunur."""
+    gorulen: set[str] = set()
+    cikti = []
+    for s in satirlar:
+        f = fold_tr(s)
+        if not f or f in gorulen:
+            continue
+        gorulen.add(f)
+        cikti.append(s)
+    return cikti
+
+
+def garble_mi(satir: str) -> bool:
+    """Slit çift-basımı / tekrar-desenli çöp satır tespiti (Nemotron #1)."""
+    f = fold_tr(satir)
+    kelimeler = f.split()
+    # ardışık kelime-blok tekrarı: ilk yarı == ikinci yarı
+    if len(kelimeler) >= 2 and len(kelimeler) % 2 == 0:
+        yarim = len(kelimeler) // 2
+        if kelimeler[:yarim] == kelimeler[yarim:]:
+            return True
+    # 40+ karakter ve baskın 3-gram tekrarı
+    duz = f.replace(" ", "")
+    if len(duz) > 40:
+        gramlar: dict[str, int] = {}
+        for i in range(len(duz) - 2):
+            g = duz[i:i + 3]
+            gramlar[g] = gramlar.get(g, 0) + 1
+        if max(gramlar.values()) >= len(duz) // 6:
+            return True
+    return False
+
+
+def halusinasyon_mu(satir: str, kb_tok: set[str]) -> bool:
+    """deepseek sahne-betimleme/halüsinasyon adayı (konsey #6)."""
+    s = satir.strip()
+    if s.startswith("[") or s.startswith("("):
+        return True
+    kelimeler = fold_tr(s).split()
+    if len(kelimeler) > 8 and not any(k in kb_tok for k in kelimeler):
+        return True
+    return False
