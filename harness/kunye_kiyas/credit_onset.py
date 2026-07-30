@@ -936,7 +936,11 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                         sl_s = []
                     if not _kare_okunabilir_mi(sl_s):
                         okunamaz += 1
-                if okunamaz / len(ornek_s) >= 0.70:
+                # Eşik %70→%65 (2026-07-30 kalibrasyon ölçümü): İNİŞLİ'nin elenen
+                # kaligrafi bloğu 4/6=%67 okunamaz çıkıyor — %70 hedef filmi dar
+                # kaçırıyordu. KNUTE'nin İngilizce mini-adayları %33'te → %65'te
+                # 2x güvenlik payı korunuyor (konseyin %60-%70 aralığının içi).
+                if okunamaz / len(ornek_s) >= 0.65:
                     suphe.append("gec_riski")
                     suphe_geri_kare = _kare_no(g[idx[a_prev_s]])
 
