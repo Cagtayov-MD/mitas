@@ -1,71 +1,34 @@
 #!/usr/bin/env python3
 """PILOT HAT — 5 film, 4 katman: havuz → deepseek-ocr → qwen-yapılandır → KB-doğrula.
 
-Katman 1 HAVUZ (OCR'sız, det-kör'de de çalışır):
-  dhash ardışık-dedup (statik kartın kopyaları düşer) → 40 tavanına linspace
-  inceltme (TÜM aralık kapsanır — dünkü [:n] kuyruk-kesme bug'ı burada yok).
+Katman 1 HAVUZ (OCR'sız, det-kör'de de çalışır): kareleri griye çevirip
+  havuz.py'nin çift-sinyal gruplamasına (havuz_derle + ikinci_gecis) devreder
+  — kopya-mantık Task 8'de söküldü, tavan YOK (bkz. havuz.py docstring'i).
 Katman 2 OKU: deepseek-ocr "Free OCR." sayfa sayfa; sayfalar arası fold-dedup.
 Katman 3 YAPILANDIR: qwen3-vl'e GÖRÜNTÜSÜZ, dökümü metin olarak ver.
 Katman 4 DOĞRULA: KB (mitas_people_index) fold-eşleşme + Paddle-track kesişimi
   → satır işaretleri: [KB] [2K] (iki kaynak) [!] (tek kaynak, insan baksın).
 """
 from __future__ import annotations
-import base64, difflib, json, sys, time, unicodedata, urllib.request
+import base64, difflib, json, time, unicodedata, urllib.request
 from pathlib import Path
 
 import cv2
 import numpy as np
+
+import havuz as havuz_mod
 
 OLLAMA = "http://127.0.0.1:11434/api/generate"
 S = Path(__file__).resolve().parent
 EX = Path("/home/cagatay/Ex_Frame")
 OUT = S / "pilot"
 FILMLER = ["gercek-yalanlar", "karadeniz", "20-bulusma", "mufreze", "hayat-agaci"]
-HAVUZ_TAVAN = 40
-DHASH_ESIK_TABAN = 24   # yalnız GERI-DUSUS: film-bazlı eşik türetilemezse
-
-def film_esigi(farklar: list[int]) -> int:
-    """Film-bazlı otomatik eşik (2026-07-30 kök-sebep ölçümü: sabit eşik yapısal
-    yanlış — hayat-agaci fark-dili 6-25, gercek-yalanlar 0-112). 1D Otsu ile
-    statik/değişim kümelerini ayır; ayrım zayıfsa p25+2'ye düş (agresif-ALMA:
-    kart kaçırmaktansa fazla sayfa oku)."""
-    if len(farklar) < 8:
-        return DHASH_ESIK_TABAN
-    f = np.array(sorted(farklar), dtype=np.float64)
-    en_iyi_esik, en_iyi_var = None, -1.0
-    for t in range(int(f.min()) + 1, int(f.max())):
-        sol, sag = f[f <= t], f[f > t]
-        if len(sol) < 3 or len(sag) < 3:
-            continue
-        arasi = len(sol) * len(sag) * (sol.mean() - sag.mean()) ** 2
-        if arasi > en_iyi_var:
-            en_iyi_var, en_iyi_esik = arasi, t
-    if en_iyi_esik is None:
-        return max(2, int(np.percentile(f, 25)) + 2)
-    sol, sag = f[f <= en_iyi_esik], f[f > en_iyi_esik]
-    ayrim = (sag.mean() - sol.mean()) / (f.std() + 1e-6)
-    if ayrim < 0.8:                        # bimodallik zayıf → güvenli taraf
-        return max(2, int(np.percentile(f, 25)) + 2)
-    return int(en_iyi_esik)
+SON_HAVUZ_ISTATISTIK: dict = {}
 
 
 def fold(s: str) -> str:
     s = unicodedata.normalize("NFKD", (s or "").lower())
     return "".join(c for c in s if not unicodedata.combining(c) and (c.isalnum() or c.isspace())).strip()
-
-
-def dhash(im: np.ndarray, boyut: int = 16) -> int:
-    g = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) if im.ndim == 3 else im
-    k = cv2.resize(g, (boyut + 1, boyut), interpolation=cv2.INTER_AREA)
-    h = 0
-    for satir in (k[:, 1:] > k[:, :-1]).astype(np.uint8):
-        for b in satir:
-            h = (h << 1) | int(b)
-    return h
-
-
-def hamming(a: int, b: int) -> int:
-    return bin(a ^ b).count("1")
 
 
 def ollama_iste(model: str, prompt: str, imgs: list[str] | None = None,
@@ -82,62 +45,23 @@ def ollama_iste(model: str, prompt: str, imgs: list[str] | None = None,
 
 # ── Katman 1: havuz ─────────────────────────────────────────────────────────
 
-def _yazi_var(gray: np.ndarray) -> bool:
-    """Morfolojik metin-varlığı (OCR YOK — betikten bağımsız, Farsça dahil)."""
-    try:
-        import sys as _s
-        if "/opt/mitas/OCR-worktree" not in _s.path:
-            _s.path.insert(0, "/opt/mitas/OCR-worktree")
-        import db_compose_master as _dc
-        import types as _t
-        a = _t.SimpleNamespace(tht=22, min_hold=5, polarity="auto")
-        p = _dc.derive_params(gray.shape[0], gray.shape[1], a)
-        return bool(_dc.has_text(_dc.text_mask(gray, p, a.polarity), p))
-    except Exception:
-        return True   # kapı çökerse KORU — "okunamadı > yanlış ele"
-
-
-def _keskinlik(gray: np.ndarray) -> float:
-    return float(cv2.Laplacian(gray, cv2.CV_32F).var())
-
-
 def havuz_derle(slug: str) -> list[Path]:
     yollar = sorted((EX / f"{slug}-exit_frames").glob("exit_*.png"))
-    # ÖN GEÇİŞ: tüm imzalar + ardışık farklar → film-bazlı eşik
-    onbellek: list[tuple[Path, np.ndarray, int]] = []
+    griler, gecerli = [], []
     for p in yollar:
         im = cv2.imread(str(p))
-        if im is not None:
-            onbellek.append((p, cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), dhash(im)))
-    farklar = [hamming(onbellek[i][2], onbellek[i+1][2]) for i in range(len(onbellek)-1)]
-    esik = film_esigi(farklar)
-    kalan: list[Path] = []
-    grup: list[tuple[Path, float]] = []    # aynı-içerik grubu: (yol, keskinlik)
-    onceki_h: int | None = None
-
-    def grubu_kapat():
-        if grup:
-            kalan.append(max(grup, key=lambda x: x[1])[0])   # en keskin temsilci
-            grup.clear()
-
-    for p, gray, h in onbellek:
-        # Kapı kuralı (2026-07-30, hayat-agaci dersi 4→1): morfolojik maske de
-        # düşük-kontrast betikte kör olabilir. TEK sinyalle eleme YOK:
-        # "yazı gördüm" VEYA "içerik güçlü değişti" → kare aday olur.
-        buyuk_degisim = onceki_h is not None and hamming(h, onceki_h) > 2 * esik
-        if not _yazi_var(gray) and not buyuk_degisim and onceki_h is not None:
-            continue                       # yazısız VE durağan → footage, ele
-        if onceki_h is not None and hamming(h, onceki_h) <= esik:
-            grup.append((p, _keskinlik(gray)))   # aynı kart — adayı biriktir
+        if im is None:
             continue
-        grubu_kapat()
-        onceki_h = h
-        grup.append((p, _keskinlik(gray)))
-    grubu_kapat()
-    if len(kalan) > HAVUZ_TAVAN:          # linspace: BAŞ ve SON dahil tüm aralık
-        idx = np.linspace(0, len(kalan) - 1, HAVUZ_TAVAN).round().astype(int)
-        kalan = [kalan[i] for i in sorted(set(idx.tolist()))]
-    return kalan
+        griler.append(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY))
+        gecerli.append(p)
+    sonuc = havuz_mod.havuz_derle(griler)
+    ekler = havuz_mod.ikinci_gecis(griler, sonuc)
+    global SON_HAVUZ_ISTATISTIK
+    SON_HAVUZ_ISTATISTIK = {
+        "esik": sonuc.istatistik.esik, "grup": sonuc.istatistik.grup_sayisi,
+        "alarm": sonuc.istatistik.alarm, "sayfa": len(sonuc.sayfalar),
+        "ikinci_gecis_ek": len(ekler)}
+    return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))]
 
 
 # ── Katman 2: deepseek-ocr sayfa sayfa ──────────────────────────────────────
@@ -233,7 +157,9 @@ def main() -> int:
         sayfalar = havuz_derle(slug)
         d = OUT / slug
         d.mkdir(exist_ok=True)
-        (d / "havuz.json").write_text(json.dumps([p.name for p in sayfalar]), encoding="utf-8")
+        (d / "havuz.json").write_text(json.dumps(
+            {"sayfalar": [p.name for p in sayfalar],
+             "istatistik": SON_HAVUZ_ISTATISTIK}, ensure_ascii=False), encoding="utf-8")
         satirlar = oku_deepseek(sayfalar)
         (d / "deepseek_dokum.txt").write_text("\n".join(satirlar) + "\n", encoding="utf-8")
         dokumlar[slug] = satirlar

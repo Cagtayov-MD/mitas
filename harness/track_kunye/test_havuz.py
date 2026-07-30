@@ -164,3 +164,13 @@ def test_ikinci_gecis_statik_filmde_bos():
     kareler = _kartlar("SABIT A", "SABIT B", kopya=20)
     s = havuz.havuz_derle(kareler)
     assert havuz.ikinci_gecis(kareler, s) == []
+
+
+def test_pilot_hat_havuz_modulunu_kullanir():
+    import importlib, pilot_hat
+    importlib.reload(pilot_hat)
+    import inspect
+    kaynak = inspect.getsource(pilot_hat)
+    assert "import havuz" in kaynak or "from havuz" in kaynak
+    assert "def film_esigi" not in kaynak      # kopya mantık kalmadı
+    assert "DHASH_ESIK" not in kaynak
