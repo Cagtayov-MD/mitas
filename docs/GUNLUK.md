@@ -7,6 +7,51 @@
 
 ---
 
+## 2026-07-30 (öğleden sonra) — TOPARLAMA: 17 Tem'den beri İLK uçtan uca Linux teslimi (YAĞMACILAR) + 5 kök fix
+
+**Bağlam (Çağatay):** "Projeyi toparlayalım" — jenerik-başlangıç akışı finalde; 3-havuz
+mimarisi + ASR aç/kapa öncesi pipeline denetimi istendi. 4 paralel keşif ajanı + kanıt
+scriptleriyle denetlendi; FIGO'nun `_jenerik_pool.py:282`'ye bağlı olduğu canlı importla
+teyit edildi. Sonra "önce 3 bug'ı temizle" → temizlik kazıdıkça derinleşti.
+
+**ANA BULGU — Database'e 17 Tem'den beri üretim koşusu yazılmamıştı.** Kırık değil:
+tüm çalışma kampanyaya (harness/, candidate_runs/) kaymış; 20 Tem'deki 100+
+`flow_item_failed` = depo01 erişilemiyordu ("video bulunamadı"), pipeline suçsuz.
+Kanıt koşusu: depo01/Film Kapanış'tan YAĞMACILAR (1970-0021-1-0000-90-1) 2 kez
+uçtan uca koşuldu → hub + FIGO(found) + giriş havuzu(kept=65) + OCR cast=16 +
+VL yönetmen=NATHAN JURAN (gerçekten doğru) + 341KB kunye.pdf + önizleme +
+**qwen FINAL-QC Linux'ta İLK KEZ gerçek girdiyle koştu** (oyuncu=12, yön/yapımcı VAR).
+Karar: Kontrol, tek neden "yönetmen VL-dolumu insan onayı" (meşru kapı).
+
+**FIX'ler (hepsi TDD, commit'li):**
+- b6960c4 video-VL 120sn kayması: `_pipe_video_vl` 600s sabitini kendisi varsayıyordu;
+  pipeline artık `--win-start/--src-fps` iletiyor (dense deseni). Latent'ti (VIDEO_VL=0).
+- c320ccdf **Path('') tuzağı**: `pdf_path=None` → `Path('')`=`Path('.')` DİZİN "var" →
+  (1) surface: yedek arama atlanıp copy2('.') Errno 21; (2) export: md teslimi İPTAL +
+  sahte .pdf yolu raporu. Fix: `.exists()` → `.is_file()` iki noktada.
+- c320ccdf **fitz eksiği = "PDF render yok (md teslim)" kökü**: `_pipe_pdf` render bloğu
+  `mp.build`'den ÖNCE `import fitz` yapıyor; venvs/asr'da PyMuPDF yoktu → TÜM Linux
+  koşuları PDF'siz Kontrol'e düşüyordu (pdf_error kanıtı hub'da). PyMuPDF 1.28.0 kuruldu
+  + requirements/asr.txt'e reportlab+PyMuPDF yazıldı.
+- 936a12b `_make_pdf` özet-boşsa-panel-yok fix'i commit'lendi (ASR aç/kapa etkinleştirecek).
+- a0268bd GUNLUK düzeltme: "giriş havuzu v5'ten beri üretilmemiş" YANILTICIYDI (sayım
+  Database'e bakıyordu, koşular candidate_runs'taydı) + FIGO eski-ad artıkları temizlendi.
+
+**Çevre kararları:** `Mitas Output/export/{KONTROL,ONAYLI}` 555 kilitliydi (13 Tem göç
+artığı, Çağatay onayıyla 755) → Errno 13 çözüldü, YAĞMACILAR PDF'i KONTROL'e teslim
+edildi. GPU çakışmadı (ollama TTL beklendi, Prensip 2).
+
+**Bekleyen/bilinen:** (1) from-hub candidate re-OCR `No module named 'core'` ile
+MOTOR_YOK üretip İYİ hub verisini gölgeliyor — ayrı iş çipi açıldı (EK_TAKS 29 Tem
+MOTOR_YOK'u muhtemelen aynı kök). (2) İkinci koşu `YAĞMACILAR … 2` kardeş hub'ı
+açtı (CLI'da reused-skip yok) — hangisi kalacak Çağatay kararı; PDF'li sağlam olan " 2".
+(3) `export/KONTROL,ONAYLI`'da 0-bayt `.yazma_testi` dosyalarım kaldı (hook silmeme
+izin vermiyor — elle silinebilir). (4) Test takımı baseline'ı 72 fail/11 error (benden
+önce de; çoğu env-raporu + `fastapi`sız ocr-venv toplama hatası). (5) 4 test dosyası
+commit'siz: test_kunye_cikar/test_ozet_kalite/test_ozet_v2_loop/test_deepseek_nvidia.
+(6) SIRADA: ASR+özet aç/kapa (webui toggle; cu12 + killswitch testi önkoşul),
+framehavuz'un hatta bağlanması (tasarım bekliyor).
+
 ## 2026-07-30 (gece) — Messi'nin 5 kayıp filmi teşhis edildi: 2 sahte kayıp, 3 gerçek (ortak desen: kayan kuyruk)
 
 **Soru (Çağatay):** "Messi net olarak 'ben kaybettim' der mi? O 5 filmi bulabilir miyiz?"
