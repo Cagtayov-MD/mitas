@@ -445,7 +445,15 @@ def main(argv=None) -> int:
         bolum = b or ""
 
     ozet = args.ozet
-    if Path(args.ozet).exists():
+    # --ozet ya DOSYA YOLU ya DÜZ METİN olabilir. Linux'ta 255 baytı aşan düz
+    # metinde Path().exists() OSError(ENAMETOOLONG) fırlatır (Windows sessizce
+    # False dönerdi) — 2026-07-30 gecesi 14 filmin PDF'ini düşüren bug.
+    try:
+        _ozet_dosya = bool(args.ozet) and len(args.ozet.encode("utf-8", "ignore")) < 250 \
+            and Path(args.ozet).exists()
+    except OSError:
+        _ozet_dosya = False
+    if _ozet_dosya:
         try:
             ozet = Path(args.ozet).read_text(encoding="utf-8")[:4000]
         except Exception:  # noqa: BLE001
