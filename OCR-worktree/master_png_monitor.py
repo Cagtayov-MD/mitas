@@ -136,7 +136,7 @@ def _adaptif_modul():
     if _ADAPTIF_MOD is None:
         if str(ADAPTIF_KOK) not in sys.path:
             sys.path.insert(0, str(ADAPTIF_KOK))
-        import adaptif_slit
+        import ibrahimovic as adaptif_slit
         _ADAPTIF_MOD = adaptif_slit
     return _ADAPTIF_MOD
 
@@ -459,15 +459,14 @@ def gen_reading_master(
     if seg == "giris":
         master, info = _compose_giris_reading_seg(film, frames, args)
     else:
-        # ÇIKIŞ: adaptif birincil, V2 yedek. Yedeğe düşüldüyse SEBEBİ manifest'e
-        # yazılır -- 40-film kıyasında "kaç filmde çöktü, neden" ölçülebilsin.
+        # ÇIKIŞ: İBRAHİMOVİC tek motor (Çağatay 2026-07-30: "V2 artık gereksiz").
+        # 40-film üçlü kıyas kanıtı: V2 ort. 0.469 (sonuncu, 2 filmde ~boş master).
+        # Üretemezse YEDEK YOK — sebep manifest'e yazılır, eski dosya korunur
+        # ("kötü master yerine hiç"). Not: GİRİŞ akışı bu karardan bağımsız.
         master, info = _compose_reading_seg_adaptif(frames)
         if master is None:
-            sebep = info
-            master, info = _compose_reading_seg(frames, args)
-            info["adaptif_yedek"] = sebep
-            if isinstance(info.get("manifest"), dict):
-                info["manifest"]["adaptif_yedek"] = sebep
+            info = {"status": "ibrahimovic_uretemedi", "mode": "ibrahimovic",
+                    "frames": len(frames), "sebep": info}
     manifest = info.pop("manifest", None)
     info["source"] = src
     info["segment"] = seg
@@ -475,6 +474,8 @@ def gen_reading_master(
     if master is not None:
         dc.wr(out, master)
         info["path"] = str(out)
+    elif seg == "cikis" and info.get("status") == "ibrahimovic_uretemedi":
+        pass   # V2-emeklilik: üretilemeyen turda ESKİ çıkış master'ı korunur
     elif out.exists():
         try:
             out.unlink()

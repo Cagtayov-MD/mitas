@@ -16,7 +16,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-import havuz as havuz_mod
+import messi as havuz_mod
 
 OLLAMA = "http://127.0.0.1:11434/api/generate"
 S = Path(__file__).resolve().parent
@@ -157,7 +157,7 @@ def main() -> int:
         sayfalar = havuz_derle(slug)
         d = OUT / slug
         d.mkdir(exist_ok=True)
-        (d / "framehavuz.json").write_text(json.dumps(
+        (d / "messi.json").write_text(json.dumps(
             {"sayfalar": [p.name for p in sayfalar],
              "istatistik": SON_HAVUZ_ISTATISTIK}, ensure_ascii=False), encoding="utf-8")
         satirlar = oku_deepseek(sayfalar)

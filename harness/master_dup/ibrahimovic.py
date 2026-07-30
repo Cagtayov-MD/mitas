@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Footage-üstü / değişken-hızlı kayan jenerik için ADAPTİF SLIT master üretimi.
+"""İBRAHİMOVİC — MITAS tek master-PNG motoru (eski adı: adaptif_slit).
+
+İsim (Çağatay, 2026-07-30): tek master PNG var, adı İbrahimovic. Eşi: MESSİ
+(harness/track_kunye/messi.py — framehavuz metin hattı). V2 emekli.
+Footage-üstü / değişken-hızlı kayan jenerik için ADAPTİF SLIT master üretimi.
 
 NEDEN VAR: Üretim kompozitörü (db_compose_master.compose_reading_runaware)
 scroll/statik kararını ve slit ofsetlerini TÜM-KARE faz-korelasyonuyla verir;
@@ -679,7 +683,7 @@ def compose_adaptif(slug: str, kare_dizini: str | None = None,
     for c in ciftler:
         sinif_sayimi[c["sinif"]] = sinif_sayimi.get(c["sinif"], 0) + 1
     manifest = {
-        "slug": slug, "durum": "OK", "mode": "adaptif_slit",
+        "slug": slug, "durum": "OK", "mode": "ibrahimovic",
         "kare": len(ims), "size": [int(kanvas.shape[1]), int(kanvas.shape[0])],
         "segment": len(parcalar), "dissolve_kesme": dissolve_kesme,
         "olcum_yolu": olcum_yolu, "maske_kapsama": round(kapsama, 3),

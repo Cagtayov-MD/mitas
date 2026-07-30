@@ -1,4 +1,7 @@
-"""FRAMEHAVUZ (Havuz v2) — maks-verim kare seçicisi.
+"""MESSİ (framehavuz / Havuz v2) — maks-verim kare seçicisi.
+
+İsim (Çağatay, 2026-07-30): metin hattının motoru MESSİ; görsel master motoru
+İBRAHİMOVİC (harness/master_dup/ibrahimovic.py). V2 emekli.
 
 Terminoloji (Çağatay, 2026-07-30): pipeline üç havuz katmanı taşır —
   1. dk-havuzu      : frames/cikis (son N dakika, ham 1.5fps)
