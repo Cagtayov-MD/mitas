@@ -38,3 +38,30 @@ class HavuzIstatistik:
 class HavuzSonucu:
     sayfalar: list[int] = field(default_factory=list)
     istatistik: HavuzIstatistik | None = None
+
+
+ESIK_TABAN = 24   # yalnız geri-düşüş: fark verisi yetersizse
+
+
+def film_esigi(farklar: list[int]) -> int:
+    """Film-bazlı eşik: 1D-Otsu; bimodallik zayıfsa p25+2 (kaçırmamak önceliği).
+    Kanıt: sabit eşik hayat-agaci'da (fark dili 6-25) havuzu 4 sayfaya düşürdü;
+    Otsu'ya geçiş 40 sayfa / Farsça 19→227 satır getirdi (2026-07-30)."""
+    if len(farklar) < 8:
+        return ESIK_TABAN
+    f = np.array(sorted(farklar), dtype=np.float64)
+    en_iyi_esik, en_iyi_var = None, -1.0
+    for t in range(int(f.min()) + 1, int(f.max())):
+        sol, sag = f[f <= t], f[f > t]
+        if len(sol) < 3 or len(sag) < 3:
+            continue
+        arasi = len(sol) * len(sag) * (sol.mean() - sag.mean()) ** 2
+        if arasi > en_iyi_var:
+            en_iyi_var, en_iyi_esik = arasi, t
+    if en_iyi_esik is None:
+        return max(2, int(np.percentile(f, 25)) + 2)
+    sol, sag = f[f <= en_iyi_esik], f[f > en_iyi_esik]
+    ayrim = (sag.mean() - sol.mean()) / (f.std() + 1e-6)
+    if ayrim < 0.8:
+        return max(2, int(np.percentile(f, 25)) + 2)
+    return int(en_iyi_esik)
