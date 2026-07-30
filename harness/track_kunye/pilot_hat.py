@@ -157,7 +157,7 @@ def main() -> int:
         sayfalar = havuz_derle(slug)
         d = OUT / slug
         d.mkdir(exist_ok=True)
-        (d / "havuz.json").write_text(json.dumps(
+        (d / "framehavuz.json").write_text(json.dumps(
             {"sayfalar": [p.name for p in sayfalar],
              "istatistik": SON_HAVUZ_ISTATISTIK}, ensure_ascii=False), encoding="utf-8")
         satirlar = oku_deepseek(sayfalar)

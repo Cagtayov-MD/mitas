@@ -1,4 +1,11 @@
-"""Havuz v2 — maks-verim kare seçicisi (spec: docs/superpowers/specs/2026-07-30-havuz-v2-design.md).
+"""FRAMEHAVUZ (Havuz v2) — maks-verim kare seçicisi.
+
+Terminoloji (Çağatay, 2026-07-30): pipeline üç havuz katmanı taşır —
+  1. dk-havuzu      : frames/cikis (son N dakika, ham 1.5fps)
+  2. jenerik-havuzu : frames/cikis_jenerik (onset sonrası, _jenerik_pool v5)
+  3. FRAMEHAVUZ     : bu modülün çıktısı — jenerik-havuzundan derlenen
+     sadeleştirilmiş okuma havuzu (dedup + temsilci + sigorta).
+Spec: docs/superpowers/specs/2026-07-30-havuz-v2-design.md.
 
 Saf görüntü-işleme: OCR yok, ağ yok. Gri kare listesi girer, seçilen kare
 indeksleri + istatistik çıkar. Kaçırmamak > az sayfa."""
@@ -94,7 +101,8 @@ def havuz_derle(griler: list[np.ndarray], *, medyan_pencere: int = 3,
     """Çift-sinyal gruplama (spec §2):
     - ardışık-fark KAYAN çapayla → yavaş kayma/pan tek grup kalır (GLM bug fix'i)
     - grup-açılış imzasına BİRİKİM → fade yakalanır (Fable'ın konsey-itirazı)
-    Kapanış: ardisik > esik VEYA birikim > birikim_k*esik. Tavan YOK."""
+    Kapanış: ardisik > esik VEYA birikim > birikim-eşiği (90 tavanlı — bkz. satır-içi
+    yorum). SAYFA SAYISINA tavan yok; dev sessiz gruplar 20-kare dilimlere bölünür."""
     n = len(griler)
     if n == 0:
         return HavuzSonucu([], HavuzIstatistik(0, 0.0, 0.0, ESIK_TABAN, 0, 0, False))

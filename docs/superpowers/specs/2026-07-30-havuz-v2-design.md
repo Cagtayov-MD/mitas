@@ -1,4 +1,8 @@
-# Havuz v2 — "Maks Verim" Kare Seçicisi (Tasarım)
+# Havuz v2 / FRAMEHAVUZ — "Maks Verim" Kare Seçicisi (Tasarım)
+
+> Terminoloji (Çağatay, 2026-07-30): dk-havuzu (frames/cikis) → jenerik-havuzu
+> (frames/cikis_jenerik) → **framehavuz** (bu modülün çıktısı). Manifest:
+> `framehavuz.json`.
 
 > Onay: Çağatay, 2026-07-30 ("EVET. Plan sende, uygulaması Sonnet'te, kontrolü
 > yine sende.") İş bölümü: plan+kontrol Fable, uygulama Sonnet subagent'ları.
