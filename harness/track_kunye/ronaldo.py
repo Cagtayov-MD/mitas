@@ -144,3 +144,36 @@ def birlestir(messi: list[str], ibra: list[str], kb: set[str], kb_tok: set[str])
         "ibra_reddedilen": reddedilen,
         "eslesen_n": eslesen_n,
     }
+
+
+YAPISAL_CAPALAR = ("directed by", "yonetmen", "copyright", "the end", "son", "©")
+
+
+def guven_bandi(messi_n: int, ibra_n: int, eslesen_n: int) -> str | None:
+    """2 boyutlu bant (Nemotron #5): overlap × denge. Tek sayı diff_ratio YOK."""
+    if messi_n == 0 and ibra_n == 0:
+        return None
+    kucuk, buyuk = min(messi_n, ibra_n), max(messi_n, ibra_n)
+    if kucuk == 0:
+        return "red"
+    overlap = eslesen_n / kucuk
+    denge = kucuk / buyuk
+    if overlap >= 0.6 and denge >= 0.7:
+        return "green"
+    if overlap >= 0.2 and denge >= 0.5:
+        return "yellow"
+    return "red"
+
+
+def bayraklar(birlesik: list[str], kare_toplam: int | None,
+              messi_kare: int | None, ibra_kare: int | None) -> dict:
+    """Ortak-körlük + yapısal-çapa bayrakları (konsey #2)."""
+    coverage = None
+    common_blind = False
+    if kare_toplam and messi_kare is not None and ibra_kare is not None:
+        coverage = (messi_kare + ibra_kare) / max(1, kare_toplam)
+        common_blind = coverage < 0.15
+    metin = fold_tr(" ".join(birlesik)) + " " + " ".join(birlesik).lower()
+    anchor_var = any(c in metin for c in YAPISAL_CAPALAR)
+    return {"common_blind": common_blind, "coverage_ratio": coverage,
+            "structural_anchor_missing": not anchor_var}

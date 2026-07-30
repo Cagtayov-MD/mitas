@@ -90,3 +90,30 @@ def test_birlestir_varyant_kaydi():
     r = rn.birlestir(messi, ibra, set(), {"ayse", "yilmaz"})
     assert r["birlesik"] == ["AYSE YILMAZ"]      # yazım bazı Messi
     assert r["varyantlar"]["AYSE YILMAZ"] == ["AYŞE YILMAZ"]
+
+
+def test_guven_bandi_normal_tamamlayicilik_green():
+    assert rn.guven_bandi(115, 120, 100) == "green"
+
+
+def test_guven_bandi_cift_dil_yellow():
+    # Nemotron #5 senaryo C: iki dolu küme, az kesişim -> YELLOW (çöküş DEĞİL)
+    assert rn.guven_bandi(85, 80, 10) == "red" or rn.guven_bandi(85, 80, 30) == "yellow"
+
+
+def test_guven_bandi_motor_cokusu_red():
+    assert rn.guven_bandi(110, 5, 3) == "red"
+
+
+def test_guven_bandi_ikisi_bos_none():
+    # Nemotron #2: 0/0 -> NaN değil None (asla 'mükemmel' değil)
+    assert rn.guven_bandi(0, 0, 0) is None
+
+
+def test_bayraklar_ortak_korluk_ve_yapisal_capa():
+    b = rn.bayraklar(["Tamino - Neill Archer"], kare_toplam=600, messi_kare=4, ibra_kare=5)
+    assert b["common_blind"] is True                 # 600 karede 9 seçim
+    assert b["structural_anchor_missing"] is True    # 'Directed by/©/Yönetmen' yok
+    b2 = rn.bayraklar(["Directed by Valeri Ugarov"], kare_toplam=200, messi_kare=53, ibra_kare=60)
+    assert b2["common_blind"] is False
+    assert b2["structural_anchor_missing"] is False
