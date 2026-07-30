@@ -7,6 +7,270 @@
 
 ---
 
+## 2026-07-30 (gece 3b) — ÇİÇEK TAKSİ b001 (dizi): v5 çıkış tespiti + 30sn video-VL okuma
+
+**İş (Çağatay siparişi):** depo01 DİZİLER/ÇİÇEK TAKSİ bölüm 001 (2001-9011, 61:29)
+→ standart pipeline ile çıkış jeneriği başlangıcı → segmenti 30sn+5sn bindirmeli
+parçalara kesip video olarak VL'e okutma ("okuduğun her şeyi yaz").
+
+**Tespit:** havuz sözleşmesi kareler (son 600s@1.5fps, 900 kare) → `_jenerik_pool`
+v5: **found, start_pos=716 → 59:26.4**, tip=statik, güven 1.00, motorun kendisi
+(rescue yok), aday=2 seçilen=[721-811] kb=1.00 joint=1.77. Görsel teyit: c_0722
+"TOFAŞ FIAT teşekkür" (gerçek ilk kart ~59:29; 716 pad'li üretim değeri). Dizi
+profili diye özel bir şey GEREKMEDİ — Çağatay'ın dediği gibi normal prensip yetti.
+
+**VL okuma:** `vlm_sunucu.sh` (Qwen3-VL-8B) + `_pipe_video_vl` PENCERE=30/BINDIRME=5
++ "her şeyi yaz" SORU'su — üretim koduna dokunulmadı, monkeypatch koşucu:
+`filmtest/dizi_cikis_vl/CICEK_TAKSI_b001/vl_okuma_kosucu.py`. 6/6 parça okundu.
+- Parça 0+2 TEMİZ kart-kart okuma: "1. bölümün sonu", TOFAŞ, yapım ULUSAL RADYO,
+  konuk oyuncular(9), teknik ekip kartları; sponsor LOGO kartları dahil (Euro Flora,
+  ÇAMLICA ÖMÜR HASTANESİ, Red WALKER...). Türkçe diakritik hataları az (EKSIOLGU).
+- Parça 1 TEKRAR-DEJENERASYONU: kalan tüm ekip kartlarını tek blokta birleştirip
+  aynı bloğu 7 "kare" diye 7 kez bastı (68s, 5.5KB) — içerik doğru, kare-ayrımı çöktü.
+  Mevcut _dejenerasyon_filtresi satır-düzeyi olduğundan blok tekrarını YAKALAMIYOR.
+- Parça 3/4 (siyah kuyruk): dürüst "[Ekran tamamen siyah.]".
+- Parça 5 (2.7s siyah artık): **TAM SAHTE KÜNYE halüsinasyonu** — "KARAKTER FILM
+  STUDIO - 2024", "YÖNETMEN ALİ KARABULUT"... SORU'daki etiket listesini şablon
+  gibi doldurdu ("Sponsor", "Logo Üstü Yazı" başlıklarını aynen kullandı!). Siyah
+  girdide davranış STOKASTİK (3/4 dürüst, 5 uydurdu) — kunye_cikar uydurma-süzgeci
+  ihtiyacının kare-kanıtı. Kısa/boş kuyruk parçası VL'e HİÇ verilmemeli (ör. son
+  parça <10s ve siyahsa atla) — ileride değerlendirilecek.
+
+**Başarısız/öğrenilen:** (1) v5 CPU'da KOŞAMAZ — paddle oneDNN/PIR
+`NotImplementedError` (PP-OCRv5_server_det); GPU şart. (2) CPU denemesi CV→
+vlm_rescue'ya düşüp ollama kuyruğunda ASILI kaldı (paralel oturumun 19.4GB modeli
+ollama'yı tutuyordu) — süreç öldürüldü. (3) GPU'yu paralel oturumla paylaşırken
+monitörle beklemek işe yaradı (Prensip 2: kimsenin işi bozulmadı). (4) Dizi
+ÇIKIŞINDA yönetmen/başrol kartı YOK (crew+konuk+sponsor) — ana künye muhtemelen
+giriş jeneriğinde; dizi künyesi için giriş okuması gerekecek.
+
+**Durum:** vLLM 8100'de AÇIK bırakıldı (kapat: `kurulum/vlm_sunucu.sh stop`).
+Çıktılar: `filmtest/dizi_cikis_vl/CICEK_TAKSI_b001/` (jenerik_detection.json,
+video_vl/video_vl_okuma.txt, parçalar).
+
+**EK (aynı gece, r2/r3 + MODEL TURU):** Çağatay ayar+model karşılaştırması istedi.
+- **r2** (20sn/5sn, maxtok 3500, rep 1.1, siyah-atlama): siyah parçalar 0 token'la
+  elendi ✓ ama kare-kare istem YENİ dejenerasyon üretti (TOFAŞ kartına kilitlenip
+  21 "kare" bastı, 123sn). **Kök sebep istem şekli**: statik kartta "her kareyi ayrı
+  yaz" tekrarı GÖREV gereği zorluyor.
+- **r3 = kart-tekil istem** ("her FARKLI kartı bir kez"): dejenerasyon SIFIR, 5 gerçek
+  parça toplam ~35sn, temiz kart-kart çıktı. Koşucu: `vl_okuma_kosucu.py`
+  (VL_SORU_MOD=kart varsayılan; üretim _pipe_video_vl'ye dokunulmadı).
+- **MODEL TURU** (`model_turu.sh` v3; kart-istem, aynı 9 parça, GT=kareden gözle
+  doğrulanmış 11 zor isim): **MiniCPM-V-4.5 8/11 TAM** (~37sn, 2.1k tok/parça) >
+  30B-A3B-AWQ 5/11 (~74sn, yavaş) > InternVL3.5-8B 4/11 (hızlı ama ÖTAŞ/YAVID sınıfı
+  ağır bozulma + markdown disiplinsizliği) > **mevcut 8B 3/11**. SÜLÜN/ŞENYUVA/NİHAN
+  gibi Türkçe yazımları tek doğru yakalayan MiniCPM.
+- **Donanım elemeleri (kesin):** Nemotron-Nano-12B-v2-VL-FP8 → modelopt SM89+ ister,
+  3090=SM86, ÇALIŞMAZ. Kimi-VL-A3B bf16 31G sığmaz. Qwen3-VL-32B-AWQ ağırlık sığıyor
+  ama KV'ye 0.16G kalıyor (video için ~2G lazım) → video işinde kullanılamaz.
+- **Ops dersleri:** (1) vLLM turlarında stop sonrası VRAM salımı BEKLENMELİ (v1 turu
+  ardışık OOM yedi). (2) Paralel oturumun ollama işi (qwen_toplu.py) model düşürüp geri
+  yükleyerek ping-pong yapıyor — anlık boş VRAM görüp başlamak YETMEZ; süreç-yokluğu
+  debounce'lu kapı gerekti (v3). Çağatay onayıyla paralel iş durdurulup tur araya girdi.
+- **SIRADA:** MiniCPM-V-4.5 tek dizi/tek bölümde öne çıktı — motor kararı İÇİN DEĞİL
+  (eval-harness-first: film yatağı + daha çok bölümle benchmark + konsey turu gerekir).
+
+## 2026-07-30 (gece 4) — jenerik OKUMA motoru: Tesseract araştırması → 110-filmde DÜŞTÜ (%87.3<%93.6), hibrit yol
+
+**Tetikleyen:** Çağatay "dil sorunu = Paddle rec yabancı-alfabede çöp okuyor; başka
+OCR dene". Amaç: onset tespiti için okuma motorunu Paddle→? değiştirmek.
+
+**OCR MOTOR KIYASI (yabancı-alfabe jenerik kareleri, izole test ortamı
+`scratchpad/ocr_bench/`):** Tesseract (CPU, 100+ dil, kutu-crop'ta Kiril+Farsça
+TUTARLI, rol-anahtar کارگردان yakalıyor, dürüst boş-dönüş), EasyOCR (gürültülü),
+deepseek-ocr (ollama, iyi ama BOŞ karede halüsinasyon `Figura São Paulo`),
+GLM-OCR (2.2GB ollama, Kiril mükemmel ama Farsça ÇÖP+döngü, 60s/kare → RED),
+Surya (yeni sürüm docker-bağımlı, atlandı), Paddle (Kiril iyi, Farsça TUTARSIZ).
+TÜM-KARE Tesseract footage-üstü jenerikte çöp; KUTU-CROP (Paddle det kutu→crop
+3x→psm7) düzeltiyor. Kutu-maskeleme+tek-çağrı hız için denendi ama Kiril/Farsça
+satır düzenini BOZDU (VANYA/YAKIN kayıp).
+
+**KRİTİK SONUÇ — 15-film yanılttı, 110-film gerçeği gösterdi:**
+- proto3 (tespit_v5 mimarisi + Tesseract kutu-crop, mimari korunur, sadece
+  credit_content.satirlar* monkeypatch): 15-film ön koşu İYİMSER (yabancı-alfabe
+  VANYA/MELEKLERİ/KANDAHAR düzeldi, Latin=Paddle eşit). AMA o 15 film YANLI
+  örneklemdi (yabancı-alfabe + tespit_v5'in zaten yanlışları seçilmiş).
+- **110-FİLM TAM: Tesseract %87.3 genel / %91.8 üretim — Paddle %93.6/%96.4'ten
+  6 PUAN DÜŞÜK.** kredi-yok 29/29 KORUNDU (konseyin FP korkusu boş çıktı) ama
+  kredi-VAR düştü (67/81 vs 74/81): ARKADAŞIMIN/ÖLDÜRME_ZAMANI(İt)/DOĞUM_GÜNÜN
+  (Mac)/GENÇ_BILLY/KÜÇÜK_SİMBA "bulamadı" — Tesseract kutu-crop bu filmlerde
+  Paddle'dan AZ okuyup jeneriği kaçırdı. Harness: `harness/kunye_kiyas/olc_tess.py`.
+
+**DIŞ KONSEY (GLM/Nemotron/MiniMax; Kimi 429-bakiye):** mimari DOĞRU ama 3
+bloklayıcı — (1) kredi-yok FP (Tesseract sahne-yazısı/altyazı→isim; gürültü filtresi
+şart: confidence eşiği+tüm-büyük-harf ele+rakam-ağırlık ele), (2) onset erken kayma
+(erken tabela), (3) dil-kapsamı (eng+tur Latin-Avrupa'yı bozar, çok-dil PSM'i bozar
+→ dil-TESPİTİ statik, film başında). 110-film tek başına yetmez: kredisiz-çeşitlilik
+(10-15) + Latin-Avrupa (5-8) seti şart. monkeypatch değil credit_content_v2 clean modül.
+
+**İÇ KONSEY BAŞARISIZ:** `konsey_kod` skill'i HARD-CODED `dynamic_credit_mosaic.py`
+(master-PNG) sorusu içeriyor, args göz ardı edildi → jenerik-onset için ALAKASIZ
+çıktı (585k token boşa). Skill başka iş için yazılmış; jenerik-onset'e uymuyor.
+
+**KARAR:** Tek-motor Tesseract HAYIR (110'da düştü). Doğru yol HİBRİT: Paddle KAL
+(Latin gücü %93.6), yabancı-alfabede Tesseract FALLBACK (Paddle çöp okuyunca —
+credit_content.cop_desenli_mi zaten tetikliyor, satirlar_ru/ar yolunu Tesseract yap).
+Latin'de Paddle kaybı önlenir, yabancı-alfabede Tesseract kazanılır.
+
+**BAŞARISIZ/ÖĞRENİLEN:** (1) 15-film YANLI örneklem yanılttı — küçük+seçili set
+iyimser, tam GT gerçek ([[eval-harness-first]] dersi: örneklem çeşitli+rastgele
+olmalı). (2) Tesseract tüm-kare footage-üstünde çöp, kutu-crop şart. (3) Kutu-
+maskeleme hız için doğruluğu bozar. (4) `konsey_kod` skill'i jenerik-onset'e uymuyor.
+
+**SIRADA:** Hibrit (Paddle + yabancı-alfabe Tesseract fallback) prototiple + 110-film
+ölç — Paddle'ın kredi-var düşüşü olmadan yabancı-alfabe kazanılıyor mu. Tutarsa
+gürültü filtresi + dil-tespiti + genişletilmiş kredisiz/Latin-Avrupa test (konsey
+checklist), SONRA entegrasyon. Test ortamı `scratchpad/ocr_bench/` + Surya venv
+duruyor (tekrar için). Paddle-baseline (tespit_v5) DEĞİŞMEDİ — jenerik-tek-motor
+branch'i (Dalga 0-3 + ⑤⑥⑦) güvende.
+
+## 2026-07-30 (gece 3) — jenerik: ⑤⑥⑦ + Dalga 3 (metin-kapı, bayraklı) + OneOCR Linux'ta ölü çıktı
+
+**Devam:** Aynı tek-motor işi. Konsey turu (GLM/Kimi/Nemotron) Dalga 3'ü koşulsuz
+boş havuzdan METİN-KAPILI karara çevirdi (kayıt: `docs/MITAS_Jenerik_Tek_Motor_Temizlik.md`).
+
+**⑤⑥⑦ KEŞİF (4 paralel agent) — beklentimi çürüttü:**
+- **⑥ HATA DEĞİL:** Kiril/Arap örneklem uyuşmazlığı ULAŞILAMAZ — `not core_roller`
+  kapısı tetikleyici ile genişletmeyi mutual-exclusive yapıyor. "Sorun gibi görüneni
+  çözme" tuzağı. Sadece savunmacı yorum (commit 60c666a, davranış değişmez).
+- **⑤ Macarca:** gerçek ama tek film (DOĞUM_GÜNÜN) + kök kanıtsız (ana yol zaten
+  toleranslı, yine yanlış-neg) + Yol A RİSKLİ (`_ROL_MACAR_ONEK` kapanış-\b yok →
+  operation/render'a çarpar, GT'de görünmez FP). Yol A REDDEDİLDİ, sadece 2 yalan
+  docstring düzeltildi (3b07b92).
+- **⑦ İtalyanca baglam:** tek gerçek fix (ÖLDÜRME_ZAMANI), güvenli yön (onset'i
+  erkene = asimetri güvenli). 6 çağrıya baglam eklendi (3501482). AMA 110-film
+  ölçümünde SIFIR hareket — İtalyanca statik-kart senaryosu GT'de yok, etki yalnız
+  üretimde teorik. Tuttum (regresyon yok + tutarlılık) ama GT-kanıtsız.
+
+**DALGA 3 (305cfac + 1397d71) — metin-kapılı kredi_yok, BAYRAK ARKASINDA:**
+`MITAS_JENERIK_METIN_KAPI` default KAPALI. Açıkken v5 kredi_yok → CV devralmaz,
+`credit_box.kutu_serisi` det-only son %15'te jbayrak (credit-benzeri, altyazı/başlık
+filtreli) arar. Metin yok→kredi_yok, metin var→review_kredi_yok+review_required
+(insan kuyruğu). Doğrulandı: KANDAHAR (Farsça) bayrak açık → review (v5 kaçırdı ama
+det buldu, SESSİZCE KAYBETMEDİ). Kritik guard'lar: result-None çökmesi önlendi,
+VLM/trim'e `not metin_kapi_karari`, v5 HATA≠kredi_yok. kunye_stages'e review şubesi
+(overall="review", pass/fail bozmayan 3. durum).
+
+**ONEOCR LİNUX'TA ÖLÜ (Çağatay tespiti "oneocr ne alaka, Linux'tayız"):** `oneocr`
+paketi (MS Windows OCR) Linux'ta YOK → `make_oneocr_engine()` ModuleNotFoundError.
+Fallback her v5-kredi_yok filminde ateşleyip except'e düşüyor, errors.jsonl kirletiyordu;
+v5 aktivasyonundan beri engine=oneocr TEK manifest üretmemiş. create_pool'dan söküldü
+(davranış-nötr — zaten çöküyordu). Sökülen yol `make_oneocr_engine()` → `import oneocr`
+DOĞRUDAN (Paddle wrapper YOK) → gerçekten ölü.
+**DÜZELTME (Çağatay uyardı):** giriş havuzu alarmım YANLIŞTI. `giris_jenerik_havuzu.py`
+`oneocr_line_boxes` ismini taşısa da `_get_engine()`→`build_engine()` (`_pipe_ocr.py:348
+_PaddleReadEngine`) kullanıyor — Linux'ta PADDLE döner (kind=paddle, recognize_pil taklit,
+2026-07-17'de Çağatay geçirmiş). Giriş havuzu Linux'ta ÇALIŞIYOR, çökmüyor. İki yol
+FARKLI: create_pool make_oneocr_engine (ölü) vs giris build_engine (Paddle). Ayrı not:
+v5-sonrası giris_jenerik_manifest = 0 (giriş havuzu v5'ten beri hiç üretilmemiş — ayrı konu).
+
+**DATABASE:** ~103 film (07-28 yedeği 300, restore 197) Çağatay "geri alma" dedi — bırakıldı.
+
+**BAŞARISIZ/ÖĞRENİLEN:**
+- OneOCR gibi Windows-özel araçlar Linux geçişinde SESSİZCE ölü olabilir (try/except
+  yutuyor) — VLM (ollama qwen3-vl) ve giris_jenerik OneOCR'ı da denetle.
+- ⑦ dersi: "kağıt üstünde doğru + regresyon yok" ≠ "GT'de kazanç". Test seti bir
+  senaryoyu içermiyorsa fix ölçülemez; tutmak yargı kararı.
+- GPU: asılı bırakılan _jenerik_pool süreci (VLM'de 20 dk) GPU tutuyor — timeout
+  sonrası pgrep+kill ile temizle.
+
+**SIRADA (Çağatay kararı bekliyor):** Dalga 3 bayrak açma (`MITAS_JENERIK_METIN_KAPI=1`) —
+konsey şartları: return-3 tüketici denetimi + kredi_yok filmlerin insan FN=0 doğrulaması.
+30-film kuru koşu (METIN_KAPI_ESIK kalibrasyonu) YALNIZ bayrak açılırken anlamlı — bayrak
+kapalıyken gereksiz (Çağatay uyardı: "amaçsız deney yok"), o ana ertelendi. Branch merge
+(finishing-a-development-branch) Dalga 3 devreye alma kararından sonra.
+
+## 2026-07-29 (gece 2) — jenerik TEK MOTOR: Dalga 0-1-2 indi (kapılar birebir), ARADA DATABASE BOŞALDI
+
+**Tetikleyen:** Çağatay'ın kod incelemesi siparişi → 8 bulgu → tek-motor
+sadeleştirme planı (Opus tasarım, Sonnet uygula). Plan `~/.claude/plans/
+adaptive-leaping-globe.md`.
+
+**İNEN İŞ (branch `jenerik-tek-motor`, 6 commit):**
+- **Dalga 0** (7b0a46f): %93.6 baseline sabitlendi (commit'siz duruyordu, HEAD eski
+  T4=88/110). Kapı: 110/103/%93.6/%96.4/kredi-yok 29/29.
+- **Dalga 1** (4d1798b + 4503d15): `tespit()`(v3)/`tespit_v4()`/`credit_vlm.py`/
+  `olc_gt.py`/`experiments/closing_credit_onset_vlm/`(+4 test) SÖKÜLDÜ — 19.698
+  satır. ④ `tespit()` çökmesi yamayla değil SİLİNEREK çözüldü. ② `_scroll_kurtarma`
+  güveni 1.0→`KURTARMA_GUVEN=0.35` (en zayıf kanıt en yüksek güveni raporluyordu).
+  Kanarya ÖLDÜRME_ZAMANI (kb=0.67) bozulmadı, kurtarma-yolu tek film ARKADAŞIMIN.
+- **Dalga 2** (01f66b5+8f57090+fc6bac3): CV artık TEMBEL (v5 kazanınca hiç koşmaz)
+  → v5-kazanan 7 filmde süre 49s→14-18s (~%70). Manifest v5'in gerçek değerlerini
+  taşıyor; yanıltıcı `confidence`/`detector`/`cv_start_pos` kaldırıldı (B1: v5 güveni
+  78/78 sabit 1.0). `v5` alt-nesnesi HER koşuda yazılıyor → v5'in kredi_yok kararı
+  artık görünür (⑧: bugüne dek CV sessizce eziyordu). `--segment giris` gardı.
+
+**KAPI KANITLARI (hepsi kendim koşturdum, subagent raporuna güvenmedim):**
+- Parite 12 film: v5-kazanan 7'de start_pos BİREBİR. v5-kredi_yok 5'te VLM açıkken
+  fark VAR ama VLM(qwen3-vl) STOKASTİK — VLM/OneOCR kapatınca 5/5 çekirdek birebir.
+- 110-film ana kapı Dalga 1 sonu + Dalga 2 sonu: BİREBİR 103/110, aynı 7 hata.
+- credit_type enum ✓ (static_credit→60sn), AST ✓, v5_izleme ✓, --v4 reddi ✓.
+
+**⚠️ DATABASE OLAYI (ben yapmadım, kanıtlı):** İş sırasında `/opt/mitas/Database`
+BOŞALDI (300→197→0 film). Zaman çizgisi: 07-28 yedek 300, 07-29 06:30 yedek 197,
+21:43 parite betiğim 12 klasörü VAR gördü, 21:53 Database mtime=boşalma anı. Benim
+o penceredeki tek işim parite'ydi ve HEPSİ `ModuleNotFoundError: No module named
+'core'` ile öldü (kabukta MITAS_PROJECT_ROOT yoktu → E:\MITAS'a düşüyor) — hiçbir
+dosya işlemine ulaşamadan. İşaret eşzamanlı "dizin sadeleştirme" oturumunun
+`git clean -fdx` riskine (Database .gitignore'lu) gidiyor ama KESİN sebep
+doğrulanmadı. RESTORE: `/opt/yedek/mitas_db/son` (07-29 06:30, 197 film, hardlink)
+→ rsync, 124G, çıkış=0, 197 klasör birebir, AEON FLUX cikis 720 kare tam. Çağatay
+disk için Kademe-1 (~66G: QwenOmni/nemo/tts/locateanything) sildi.
+**BEKLEYEN:** 07-28→07-29 arası ~103 film hiçbir yedekte YOK gibi — kurtarılabilir
+olan `/opt/yedek/mitas_db/20260728_123617` (300 film). Çağatay kararına bırakıldı.
+
+**BAŞARISIZ/ÇÜRÜTÜLEN (aynı çıkmaza iki kez girilmesin):**
+- `olc_pool.py --film X` → `olcum_son.json`'u tek-film raporuyla EZER. Kullanma.
+- Kurtarma-yolu imzası `joint=1.00` TEK BAŞINA yetmez — ÖLDÜRME_ZAMANI kb=0.67 ile
+  tesadüfen 1.00 üretiyor. Gerçek imza `kb=1.00 ∧ joint=1.00` (normal `joint≥kb×1.245`).
+- `Sonuc.guven` eşik kurmak için KULLANILAMAZ — 81 pozitiften 80'i 1.0.
+- `scripts/*.py` kabuktan koşarken `source mitas.env` ŞART (yoksa import ölür +
+  status:error manifesti → sessiz boş → SAHTE parite "aynı"). İlk parite bu yüzden
+  1 saat kaybettirdi (subagent 335k token).
+- v5_izleme küçük pürüz: pool_frames=0 "geç-çapa" diye işaretliyor (kredi_yok olmalı)
+  — v5 manifestleri birikince kredi_yok kuyruğu düzeltir, Dalga 3'e bırakıldı.
+
+**SIRADA:** Konsey kırmızı-takım (Dalga 3'ün "v5 kredi_yok'ta son söz = görünür
+boşluk" kararı için — nerede patlar?) → Dalga 3 (OneOCR/VLM/trim sökümü, ölçüm
+kapısı: 30 film kuru koşu, kredi_yok oranı %45'i aşarsa DUR). Kapsam dışı: ⑤ Macarca
+diyakritik, ⑥ Kiril/Arapça örneklem kayması, ⑦ İtalyanca baglam — konsey sonrası
+ayrı doğruluk dalgası (bunlar %93.6'yı gerçekten oynatabilecek tek kalem).
+
+## 2026-07-30 (sabah) — PILOT HAT: dhash-havuz + deepseek-ocr + qwen-yapılandır + KB — Farsça İLK KEZ okundu
+
+**Gecenin ikinci yarısı üç büyük bulguya çıktı:**
+1. **pipeline100 Linux'ta HİÇ çalışmamıştı** (son başarı 06-Tem = Windows;
+   Linux geçişi 16-Tem). 5 yol köprüsü + oneocr eksiği + DuckDB X:\ yolu —
+   hepsi düzeltildi (`ea05d9c`, `8a55210`). Zincir dirildi: gercek-yalanlar
+   232 satır GUVENILIR. KB (38 tablo) 14 gün sonra geri bağlandı.
+2. **Tek-istek toplu-VLM deneyi (Çağatay sorusu):** 40 kare → qwen3-vl tek
+   istekte KAPSAMDA kaybediyor (95 satır / 0.401), ama YAPIDA rakipsiz
+   ("Harry — ARNOLD SCHWARZENEGGER"). Thinking tuzağı: num_predict 4096'nın
+   tamamı düşünmeye gitti, response boş — 16384 şart. Ders: görüntüyü toplu
+   verme; OKUMAYI sayfa-sayfa yap, YAPILANDIRMAYI metin-üzerinden toplu yap.
+3. **VLM-OCR sayfa-sayfa kıyası:** deepseek-ocr ('Free OCR.' promptu) 14
+   sayfayı 16 SANİYEDE okudu, temiz (EMILY SCHWEBER doğru); glm-ocr 4× yavaş
+   + tekrar-şişmesi + prompt-eko hassasiyeti ("BOS yaz" ekleyince bozuldu).
+
+**PILOT HAT (4 katman, 5 film, uçtan uca ~6 dk) — `harness/track_kunye/pilot_hat.py`:**
+havuz(dhash ardışık-dedup + linspace-40; kuyruk-kesme bug'ı YOK) → deepseek-ocr
+sayfa-sayfa → qwen3-vl'e dökümü METİN olarak yapılandırt (rol—isim eşleşme,
+"GÖREV: İSİM,İSİM" kompaktlaması — satır sayısı yanıltıcı metrik çıktı, atlama
+değil birleştirme) → KB(10M isim)+Paddle-track işaretleri: [KB]/[2K]/[!].
+**hayat-agaci: FARSÇA İLK KEZ OKUNDU** — 2 aydır sıfır çıkaran filmden 19
+satır (عکاسی مجموعه، سیمای جمهوری اسلامی ایران...), hepsi [!] = "okudum ama
+doğrulayan yok, insan baksın" (tasarlandığı gibi). "Re-regording Mixers"
+OCR hatası [!] ile doğru yakalandı. Çıktılar: outputs/pilot_hat_5film/.
+
+**AÇIK KALEMLER:** (a) dhash-8 karlı/loş zeminde fazla agresif — hayat-agaci
+havuzu 4 sayfaya düştü, dhash-16'ya geç; (b) deepseek yazısız karede SAHNE
+BETİMLİYOR ("The image displays a ballroom...") — betimleme süzgeci gerek;
+(c) KB 10M isim → [KB] işareti enflasyona açık, eşleşme sıkılaştırılmalı;
+(d) GPU paylaşımı: qwen3-vl:30b 'Stopping'de takılıp GLM'i 5dk bekletti.
+
+---
+
 ## 2026-07-29 (gece) — track_kunye: frame-first künye çıkarma kuruldu, ilk ölçümde sentetik master adaptifi geçti
 
 **Tetikleyen:** Çağatay'ın tasarım sorusu ("çıkış jeneriğini en verimli nasıl

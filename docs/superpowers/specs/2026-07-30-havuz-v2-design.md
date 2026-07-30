@@ -55,9 +55,13 @@ filmde matematiksel olarak hiç açılamıyordu — GLM tespiti); dağılımdan
 türetilen marj: `eşik + IQR`.
 
 ### 5. Temsilci seçimi düzeltmesi
-Grubun temsilcisi **medyan Laplacian'a en yakın** kare. Mevcut "en keskin"
-kuralı BUG: flaş/parlama en yüksek keskinliği alıp temsilci oluyordu (GLM
-tespiti); Laplacian > film-P95 kareler temsilci olamaz.
+Grubun temsilcisi **medyan Laplacian'a en yakın** kare — iki ucu da (flaş VE
+bulanık) doğal dışlar. ~~Laplacian > film-P95 temsilci olamaz~~ **YANLIŞLANDI
+(Task 5 ölçümü, 2026-07-30):** düz-beyaz flaş kenarsızdır → DÜŞÜK Laplacian
+verir; P95 kesmesi ayrıca katı `<` ile özdeş-kare gruplarında tersine dönüp
+tam da uç değeri seçiyordu. Yerine içeriksiz-kare kapısı: `std < 3` olan
+sayfa (düz flaş/boş kart) havuza giremez. GLM'in P95 önerisi ölçümle
+çürütüldü — konsey geri-dönüş turuna işlendi.
 
 ### 6. Tavansız havuz + istatistiksel alarm + kümeleme kurtarması
 - Sabit %60 alarmı YIKILDI (örnekleme fps'ine göre anlamsız).
