@@ -70,7 +70,9 @@ klasörler açtı (pipeline çarpışma koruması) — ilk-tur kalıntılarını
 **Bekleyen (sabah Çağatay kararları — spec'in son bölümü):** PDF'e çapraz-denetim
 bölümü (V2 seçenekleri); Ronaldo terfi değerlendirmesi; Kimi bakiye + MiniMax;
 exit_kesim denetimi; --no-asr+V4 "—" ÖZET lekesi; " 2" klasör temizliği;
-taze filmlerde runaware-master üretilmeme oranı (7/15) incelemesi.
+taze filmlerde runaware-master üretilmeme oranı (7/15) incelemesi;
+DONDURMAM GAYMAK ana-dil "AR" (whisper dil tespiti Türkçe filmde şaşmış —
+PDF gözle incelemesinde bulundu, 2026-07-31 sabaha karşı).
 
 **Çağatay kararı:** film-bazlı seçenek yerine "bir tane bir şey ekle, ben açıp
 kapatayım — test kliplerinde kapatayım, normal süreçte açayım." Spec:
