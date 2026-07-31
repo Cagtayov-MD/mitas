@@ -7,6 +7,69 @@
 
 ---
 
+## 2026-07-31 (sabah) — Hub yedeği: 102 film FEDA EDİLDİ, budama + küçülme freni
+
+**Çağatay kararı:** `/opt/yedek` (= `/home/cagatay/Programlar/yedek`, Programlar→/opt
+symlink'i) 219G yiyordu. İki karar: (1) sadece yedekte kalan 102 film **feda edilsin**,
+(2) yedek sistemi **kalsın**, budama eklensin.
+
+**⚠️ KAPANAN AÇIK KALEM — 07-29 kaydındaki "BEKLEYEN" artık GEÇERSİZ:**
+`20260728_123617` (300 film) **SİLİNDİ**. O snapshot'ta olup canlıda olmayan
+**102 film kalıcı gitti** (bilinçli karar, aşağıdaki liste dışında iz yok).
+Bir daha "kurtarılabilir" diye o dizini arama — yok.
+
+**Yapılan:**
+- 13 eski snapshot silindi, yalnız en yenisi bırakıldı → **194G → 250G boş** (%89→%86).
+  En yeni tutuldu çünkü silmenin kazancı 1 günlük: timer yarın 164G'yi baştan çekerdi
+  (link-dest yok) + sabaha kadar sıfır-yedekli pencere doğardı.
+- [hub_yedek.sh](../scripts/hub_yedek.sh): `TUT=14` budama + `KUCULME_ESIK=70` **küçülme freni**
+  + başarısız koşu `.tmp` kalıntısı temizliği. Eski "SİLME YOK" başlığı güncellendi.
+- Sandbox testi (18 sahte snapshot): budama 14'e indiriyor ✓; kaynak %50'ye düşünce
+  İPTAL ✓; kaynak **tamamen boşalınca** İPTAL + 100 film korundu ✓ (07-29 regresyonu).
+- Gerçek koşu: fren geçti (231 vs 228 film), 16 sn, delta ~2G, `son` güncellendi.
+
+**Öğrenilen:**
+- **Budama tek başına tehlikeli.** Sınırsız birikim 07-29'da bizi kurtarmıştı; retention
+  eklemek "kaynak sessizce boşalırsa 14 gün sonra iyi snapshot'lar da gider" riskini
+  DOĞURUR. Bu yüzden budama ile küçülme freni **tek pakettir** — biri kaldırılırken
+  diğeri gözden geçirilmeli (betiğin başlığına da yazıldı).
+- Yedeği "akışa dahil mi" diye ölçmek yanıltıcı: üretim kodunda tek referansı yok,
+  ayrı inode ağacı — hiçbir zaman akışın parçası değil, ta ki olduğu güne kadar.
+
+**BEKLEYEN:**
+- Canlı `Database`'de **15 adet `" 2"` sonekli ikiz klasör, 22G** (dün geceki 15-film
+  testinin sayısıyla birebir). `DONDURMAM GAYMAK … 2` içinde `.pdf`+`.txt` var,
+  **orijinalinde yok** → dün geceki çıktılar gerçek hub'a değil ikize yazılmış olabilir.
+  Pipeline bug'ı olup olmadığı İNCELENMEDİ, klasörlere DOKUNULMADI.
+- `hub_yedek.sh` + bu kayıt commit edilmedi (branch `jenerik-tek-motor`).
+
+---
+
+## 2026-07-31 (öğleden sonra) — OKUYUCU TURNUVASI KAPANDI: deepseek tek göz kaldı
+
+**Süreç:** Çağatay onayıyla üretim ~2 saat duraklatıldı, GPU testlere verildi; bitince
+koşucu anında geri başlatıldı. Adaylar master+frame okumada yarıştı.
+
+**MASTER skoru (8 film, KB-doğrulamalı tam-ad):** deepseek 297 🥇 / vLLM-qwen8(tam
+ağırlık) 283 / glm 215 / gemma 206. **FRAME:** ŞEREFİM ekran-gerçeği 9/17 - 9/17
+berabere, KB-isim ve ÇILGIN'da deepseek önde. **Hız:** deepseek ve vLLM-qwen8 aynı
+sınıf (sn/kare); gemma 40-80 sn/bant (10-20 dk/film — üretime uygunsuz), glm döngü
+patolojili (ŞEHİRDE 85 dk) + Çağatay'ın eski benchmark'ı (yalnız Kiril) teyit.
+
+**KARARLAR:** (1) OCR gözü = deepseek (hem framehavuz hem master; değişiklik yok,
+kanıt tazelendi). (2) gemma = künye aklı (rol-eşleme/VL-fallback) — master okumaya
+girmez. (3) GLM tamamen dışarıda; Paddle üçüncü tanık + acil yedek. (4) ÖNEMLİ YAN
+BULGU: aynı qwen8, Ollama-sıkıştırılmışta POLİS 45 satır / vLLM-tam-ağırlıkta 82
+satır, ÖZEL 155→328 — **çalışma ortamı + kuantizasyon OCR kalitesini somut
+etkiliyor.** deepseek'i vLLM'e taşımak (DeepSeek-OCR vLLM desteği kontrolü) ayrı
+optimizasyon kalemi. (5) vlm_sunucu.sh'ta OCR için MITAS_VLLM_MAX_PIXELS=700000
+gerekir (video-varsayılanı 125k küçük yazıyı siler); 8100 portunu yabancı bir süreç
+tutuyor — sunucu 8101'de koştu, port çakışması ayrıca incelenmeli.
+Bekleyen büyük kalem: Ronaldo-ana-motor ameliyatı (mix → kunye.txt) Çağatay
+"başla" onayı bekliyor; tasarım hazır (aktif bağlama planı + turnuva kararlarıyla).
+
+---
+
 ## 2026-07-30 (gece) — HAYATA GEÇİRME: track_kunye üretim pipeline'ına bağlandı
 
 **Çağatay direktifi (gece, kendisi yok):** runaware master üretimi dokunulmaz;
