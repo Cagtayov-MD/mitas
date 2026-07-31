@@ -197,9 +197,12 @@ class _KB:
 
 # ───────────────────── FİLM-KİLİT (kaynak başına, içerikle) ─────────────────────
 def _orijinal_ad_acik():
-    """Kill-switch: MITAS_KIMLIK_ORIJINAL=0 → orijinal-ad ikinci-anahtar denemesi TAMAMEN kapanır
-    (eski davranış birebir: yalnız Türkçe başlık aranır)."""
-    return os.environ.get("MITAS_KIMLIK_ORIJINAL", "1").strip().lower() not in ("0", "false", "off", "no")
+    """Kill-switch: MITAS_KIMLIK_ORIJINAL=0 (veya boş/geçersiz) → orijinal-ad ikinci-anahtar
+    denemesi TAMAMEN kapanır (eski davranış birebir: yalnız Türkçe başlık aranır).
+    Boş string KAPALI sayılır (2026-07-31 konsey-incelemesi düzeltmesi — önceki hâlde ""
+    'not in (...)' testinden geçip AÇIK sayılıyordu, kasıt bu değildi)."""
+    val = os.environ.get("MITAS_KIMLIK_ORIJINAL", "1").strip().lower()
+    return bool(val) and val not in ("0", "false", "off", "no")
 
 
 def _resolve_source(kind, kb, title, ocr_dir, ocr_cast, original=None):
@@ -207,37 +210,52 @@ def _resolve_source(kind, kb, title, ocr_dir, ocr_cast, original=None):
     arama_anahtari}. GÜÇLÜ: yön+cast(≥1) veya cast≥2 (bağımsız doğrulama). ZAYIF: yalnız yön
     (totolojik). EN İYİ adayı seçer, EXACT eşleşme. Bulunmazsa strength=None (sessiz).
 
-    ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): Türkçe başlıkla DB'de HİÇ aday
-    bulunamazsa (yabancı film, TRT arşiv adı DB'de yok) ve XML sidecar'dan orijinal ad
-    verilmişse, o adla da denenir. ADDITIVE — Türkçe arama önce çalışır, DEĞİŞMEZ; yalnız
-    Türkçe arama SIFIR aday döndürdüğünde devreye girer (var-olan zayıf/başarısız EŞLEŞME
-    davranışı — _score'un eleyip strength=None döndürdüğü durumlar — DOKUNULMAZ, o kısım
-    zaten mevcut cast/yönetmen doğrulama mantığının işi). Kill-switch: MITAS_KIMLIK_ORIJINAL=0."""
+    ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay; genişletildi aynı gün konsey-incelemesi):
+    Türkçe başlıkla arama TAMAMLANDIKTAN SONRA best hâlâ YOK (None) VEYA ZAYIF ise (yalnız
+    yönetmen-totoloji, bağımsız cast-teyidi yok) ve XML sidecar'dan orijinal ad verilmişse,
+    o adla da aday çekilip AYNI best üzerinde skorlamaya devam edilir (_score en iyisini
+    kendisi seçer — GÜÇLÜ karşılaştırmada her zaman ZAYIF'ı yener). Türkçe arama zaten
+    GÜÇLÜ kilitlediyse orijinal ad HİÇ denenmez (gereksiz sorgu, mutlu yol değişmez).
+    ADDITIVE — Türkçe arama önce çalışır, DEĞİŞMEZ. Kill-switch: MITAS_KIMLIK_ORIJINAL=0
+    (bkz _orijinal_ad_acik).
+
+    arama_anahtari: DENENEN anahtarların birleşimi ("tr_baslik", "orijinal_ad" veya
+    "tr_baslik+orijinal_ad") — bir deneme aday-çekmede SONUÇ DÖNDÜRDÜYSE (skorlama
+    başarısız olsa/best kurulmasa bile) listeye girer. Hiçbir deneme aday döndürmediyse
+    None — bulunan/bulunamayan (best=None) dönüş dallarında TUTARLI (eskiden best=None
+    ise sabit None dönüyordu, denenen ne olursa olsun)."""
     best = None
-    arama_anahtari = "tr_baslik"
+    denenen = []
     original = (original or "").strip() or None
     _dene_orijinal = bool(original) and _orijinal_ad_acik() and _fold(original) != _fold(title)
-    if kind == "imdb":
-        cands = kb.imdb_candidates(title)
-        if not cands and _dene_orijinal:
-            cands = kb.imdb_candidates(original)
+
+    def _dene(t, etiket):
+        nonlocal best
+        if kind == "imdb":
+            cands = kb.imdb_candidates(t)
             if cands:
-                arama_anahtari = "orijinal_ad"
-        for tconst in cands:
-            dl, cl = kb.imdb_directors(tconst), kb.imdb_cast(tconst)
-            best = _score(best, dl, cl, ocr_dir, ocr_cast, key=tconst, country=None)
-    else:  # wiki
-        rows = kb.wiki_candidates(title)
-        if not rows and _dene_orijinal:
-            rows = kb.wiki_candidates(original)
+                denenen.append(etiket)
+            for tconst in cands:
+                dl, cl = kb.imdb_directors(tconst), kb.imdb_cast(tconst)
+                best = _score(best, dl, cl, ocr_dir, ocr_cast, key=tconst, country=None)
+        else:  # wiki
+            rows = kb.wiki_candidates(t)
             if rows:
-                arama_anahtari = "orijinal_ad"
-        for (qid, dq, cq, country, imdb_id) in rows:
-            dl, cl = kb._names_wiki(dq), kb._names_wiki(cq)
-            best = _score(best, dl, cl, ocr_dir, ocr_cast, key=qid, country=country)
+                denenen.append(etiket)
+            for (qid, dq, cq, country, imdb_id) in rows:
+                dl, cl = kb._names_wiki(dq), kb._names_wiki(cq)
+                best = _score(best, dl, cl, ocr_dir, ocr_cast, key=qid, country=country)
+
+    _dene(title, "tr_baslik")
+    # _score döner: (sc, dl, cl, key, country, strength) — strength SON eleman (bkz _score).
+    onceki_strength = best[5] if best else None
+    if _dene_orijinal and (best is None or onceki_strength == "ZAYIF"):
+        _dene(original, "orijinal_ad")
+
+    arama_anahtari = "+".join(denenen) or None
     if not best:
         return {"director": [], "cast": [], "strength": None, "key": None, "country": None,
-                "arama_anahtari": None}
+                "arama_anahtari": arama_anahtari}
     _, dl, cl, key, country, strength = best
     return {"director": dl, "cast": cl, "strength": strength, "key": key, "country": country,
             "arama_anahtari": arama_anahtari}

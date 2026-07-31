@@ -183,3 +183,94 @@ def test_wiki_resolve_source_orijinal_ad_ile_bulur(monkeypatch):
     # _names_wiki FakeKB'de [] döner → director/cast boş → _score dirm/ov=0 → best kabul edilmez
     assert res["strength"] is None
     assert kb.wiki_calls == [TR_TITLE, ORIGINAL_TITLE]
+
+
+# ═══════════════════ konsey-incelemesi düzeltmeleri (2026-07-31, commit 799f98cf sonrası) ═══════════════════
+# DÜZELTME 1: fallback artık yalnız "TR aday listesi BOŞ" değil, "best None VEYA ZAYIF" iken
+# de tetikleniyor (TR adaylar dolu ama hiçbiri skorlamıyor / yalnız zayıf-kilit veriyor olabilir).
+
+def test_a_tr_dolu_skorlamiyor_orijinal_devreye_girer_ve_kilitler(monkeypatch):
+    """(a) TR adaylar DOLU ama hiçbiri skorlamıyor (dirm=False, ov=0) → orijinal ad denenir
+    ve GÜÇLÜ kilitler. arama_anahtari her iki denemeyi de yansıtır (ikisi de dolu döndü)."""
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "1")
+    kb = FakeKB(
+        imdb_map={
+            cv._fold(TR_TITLE): ["tt_mismatch"],
+            cv._fold(ORIGINAL_TITLE): ["tt_black_beauty"],
+        },
+        directors={"tt_mismatch": ["Nobody Match"], "tt_black_beauty": ["John Smith"]},
+        cast={"tt_mismatch": ["Nobody X"], "tt_black_beauty": ["Alice A", "Bob B", "Carol C"]},
+    )
+    res = cv._resolve_source("imdb", kb, TR_TITLE, ["John Smith"], ["Alice A", "Bob B"],
+                              original=ORIGINAL_TITLE)
+    assert res["strength"] == "GUCLU"
+    assert res["key"] == "tt_black_beauty"
+    assert res["arama_anahtari"] == "tr_baslik+orijinal_ad"
+    assert kb.imdb_calls == [TR_TITLE, ORIGINAL_TITLE]
+
+
+def test_b_tr_zayif_kilit_orijinal_guclu_kazanir(monkeypatch):
+    """(b) TR araması ZAYIF kilit verir (yalnız yönetmen-totoloji, cast örtüşmüyor);
+    orijinal ad GÜÇLÜ (yön+cast) bulur → _score en iyisini seçer, GÜÇLÜ kazanır."""
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "1")
+    kb = FakeKB(
+        imdb_map={
+            cv._fold(TR_TITLE): ["tt_weak"],
+            cv._fold(ORIGINAL_TITLE): ["tt_strong"],
+        },
+        directors={"tt_weak": ["John Smith"], "tt_strong": ["John Smith"]},
+        cast={"tt_weak": [], "tt_strong": ["Alice A", "Bob B"]},
+    )
+    res = cv._resolve_source("imdb", kb, TR_TITLE, ["John Smith"], ["Alice A", "Bob B"],
+                              original=ORIGINAL_TITLE)
+    assert res["strength"] == "GUCLU"
+    assert res["key"] == "tt_strong"
+    assert res["arama_anahtari"] == "tr_baslik+orijinal_ad"
+    assert kb.imdb_calls == [TR_TITLE, ORIGINAL_TITLE]
+
+
+def test_c_tr_guclu_kilit_varken_orijinal_hic_denenmez(monkeypatch):
+    """(c) mutlu yol DEĞİŞMEDİ: TR araması zaten GÜÇLÜ kilitlerse orijinal ad hiç sorgulanmaz
+    (gereksiz DB çağrısı yok)."""
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "1")
+    kb = FakeKB(
+        imdb_map={cv._fold(TR_TITLE): ["tt_strong_tr"]},
+        directors={"tt_strong_tr": ["John Smith"]},
+        cast={"tt_strong_tr": ["Alice A", "Bob B"]},
+    )
+    res = cv._resolve_source("imdb", kb, TR_TITLE, ["John Smith"], ["Alice A", "Bob B"],
+                              original=ORIGINAL_TITLE)
+    assert res["strength"] == "GUCLU"
+    assert res["key"] == "tt_strong_tr"
+    assert res["arama_anahtari"] == "tr_baslik"
+    assert kb.imdb_calls == [TR_TITLE]   # orijinal ad HİÇ sorgulanmadı
+
+
+# DÜZELTME 3: MITAS_KIMLIK_ORIJINAL="" (boş string) KAPALI sayılmalı (eski hâlde "not in (...)"
+# testinden geçip yanlışlıkla AÇIK sayılıyordu).
+
+def test_d_env_bos_string_kapali_sayilir(monkeypatch):
+    """(d) env="" → kill-switch KAPALI (orijinal ad hiç denenmez, eski Türkçe-tek-anahtar
+    davranışı)."""
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "")
+    kb, _ = _kb_with_original_only()
+    res = cv._resolve_source("imdb", kb, TR_TITLE, ["John Smith"], ["Alice A", "Bob B"],
+                              original=ORIGINAL_TITLE)
+    assert res["strength"] is None
+    assert res["key"] is None
+    assert res["arama_anahtari"] is None
+    assert kb.imdb_calls == [TR_TITLE]
+
+
+def test_orijinal_ad_acik_dogrudan_bos_ve_whitespace_kapali(monkeypatch):
+    """_orijinal_ad_acik() doğrudan: boş / yalnız-boşluk → kapalı; "1" → açık; bilinen
+    kapalı-değerler ("0","false","off","no") → kapalı (eski davranış korunur)."""
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "")
+    assert cv._orijinal_ad_acik() is False
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "   ")
+    assert cv._orijinal_ad_acik() is False
+    monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", "1")
+    assert cv._orijinal_ad_acik() is True
+    for kapali_deger in ("0", "false", "off", "no", "FALSE", "OFF"):
+        monkeypatch.setenv("MITAS_KIMLIK_ORIJINAL", kapali_deger)
+        assert cv._orijinal_ad_acik() is False
