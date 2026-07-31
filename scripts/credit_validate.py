@@ -196,23 +196,51 @@ class _KB:
 
 
 # ───────────────────── FİLM-KİLİT (kaynak başına, içerikle) ─────────────────────
-def _resolve_source(kind, kb, title, ocr_dir, ocr_cast):
-    """Bir kaynakta (imdb|wiki) filmi İÇERİKLE bul → {director, cast, strength, key, country}.
-    GÜÇLÜ: yön+cast(≥1) veya cast≥2 (bağımsız doğrulama). ZAYIF: yalnız yön (totolojik).
-    EN İYİ adayı seçer, EXACT eşleşme. Bulunmazsa strength=None (sessiz)."""
+def _orijinal_ad_acik():
+    """Kill-switch: MITAS_KIMLIK_ORIJINAL=0 → orijinal-ad ikinci-anahtar denemesi TAMAMEN kapanır
+    (eski davranış birebir: yalnız Türkçe başlık aranır)."""
+    return os.environ.get("MITAS_KIMLIK_ORIJINAL", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _resolve_source(kind, kb, title, ocr_dir, ocr_cast, original=None):
+    """Bir kaynakta (imdb|wiki) filmi İÇERİKLE bul → {director, cast, strength, key, country,
+    arama_anahtari}. GÜÇLÜ: yön+cast(≥1) veya cast≥2 (bağımsız doğrulama). ZAYIF: yalnız yön
+    (totolojik). EN İYİ adayı seçer, EXACT eşleşme. Bulunmazsa strength=None (sessiz).
+
+    ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): Türkçe başlıkla DB'de HİÇ aday
+    bulunamazsa (yabancı film, TRT arşiv adı DB'de yok) ve XML sidecar'dan orijinal ad
+    verilmişse, o adla da denenir. ADDITIVE — Türkçe arama önce çalışır, DEĞİŞMEZ; yalnız
+    Türkçe arama SIFIR aday döndürdüğünde devreye girer (var-olan zayıf/başarısız EŞLEŞME
+    davranışı — _score'un eleyip strength=None döndürdüğü durumlar — DOKUNULMAZ, o kısım
+    zaten mevcut cast/yönetmen doğrulama mantığının işi). Kill-switch: MITAS_KIMLIK_ORIJINAL=0."""
     best = None
+    arama_anahtari = "tr_baslik"
+    original = (original or "").strip() or None
+    _dene_orijinal = bool(original) and _orijinal_ad_acik() and _fold(original) != _fold(title)
     if kind == "imdb":
-        for tconst in kb.imdb_candidates(title):
+        cands = kb.imdb_candidates(title)
+        if not cands and _dene_orijinal:
+            cands = kb.imdb_candidates(original)
+            if cands:
+                arama_anahtari = "orijinal_ad"
+        for tconst in cands:
             dl, cl = kb.imdb_directors(tconst), kb.imdb_cast(tconst)
             best = _score(best, dl, cl, ocr_dir, ocr_cast, key=tconst, country=None)
     else:  # wiki
-        for (qid, dq, cq, country, imdb_id) in kb.wiki_candidates(title):
+        rows = kb.wiki_candidates(title)
+        if not rows and _dene_orijinal:
+            rows = kb.wiki_candidates(original)
+            if rows:
+                arama_anahtari = "orijinal_ad"
+        for (qid, dq, cq, country, imdb_id) in rows:
             dl, cl = kb._names_wiki(dq), kb._names_wiki(cq)
             best = _score(best, dl, cl, ocr_dir, ocr_cast, key=qid, country=country)
     if not best:
-        return {"director": [], "cast": [], "strength": None, "key": None, "country": None}
+        return {"director": [], "cast": [], "strength": None, "key": None, "country": None,
+                "arama_anahtari": None}
     _, dl, cl, key, country, strength = best
-    return {"director": dl, "cast": cl, "strength": strength, "key": key, "country": country}
+    return {"director": dl, "cast": cl, "strength": strength, "key": key, "country": country,
+            "arama_anahtari": arama_anahtari}
 
 def _score(best, dl, cl, ocr_dir, ocr_cast, key, country):
     dirm = any(_exact_in(d, dl) for d in (ocr_dir or []))
@@ -414,7 +442,12 @@ def _recover_raw(title, ocr_raw, kb):
     return hits[0] if len(hits) == 1 else None
 
 
-def validate(extracted, *, xml_roles=None, title="", ocr_text=None, ocr_raw=None, kb=None):
+def validate(extracted, *, xml_roles=None, title="", ocr_text=None, ocr_raw=None, kb=None,
+             original=None):
+    """original: XML sidecar <TITLE> (orijinal ad) — opsiyonel İKİNCİ ARAMA ANAHTARI.
+    Türkçe başlık DB'de aday bulamazsa (yabancı film) bununla da denenir (bkz _resolve_source).
+    Kimlik yine cast/yönetmen-örtüşme testinden geçmek ZORUNDA — orijinal ad tek başına kanıt
+    değil, yalnız adayları genişletir (Kill-switch: MITAS_KIMLIK_ORIJINAL=0)."""
     kb = kb or _KB()
     xml_roles = xml_roles or {}
     ocr_dir = [d for d in (extracted.get("yonetmen") or []) if d and str(d).strip()]
@@ -430,8 +463,8 @@ def validate(extracted, *, xml_roles=None, title="", ocr_text=None, ocr_raw=None
         ocr_cast = extracted.get("oyuncular") or []
     ocr_cast = [c for c in ocr_cast if c and str(c).strip()]
 
-    imdb_res = _resolve_source("imdb", kb, title, ocr_dir, ocr_cast)
-    wiki_res = _resolve_source("wiki", kb, title, ocr_dir, ocr_cast)
+    imdb_res = _resolve_source("imdb", kb, title, ocr_dir, ocr_cast, original=original)
+    wiki_res = _resolve_source("wiki", kb, title, ocr_dir, ocr_cast, original=original)
 
     dirv = validate_director(ocr_dir, xml_roles.get("yonetmen"), imdb_res, wiki_res, kb)
 
@@ -450,8 +483,8 @@ def validate(extracted, *, xml_roles=None, title="", ocr_text=None, ocr_raw=None
     return {
         "yonetmen": dirv,
         "cast": castv,
-        "kaynaklar": {"imdb": {k: imdb_res[k] for k in ("director", "strength", "key")},
-                      "wiki": {k: wiki_res[k] for k in ("director", "strength", "key", "country")}},
+        "kaynaklar": {"imdb": {k: imdb_res[k] for k in ("director", "strength", "key", "arama_anahtari")},
+                      "wiki": {k: wiki_res[k] for k in ("director", "strength", "key", "country", "arama_anahtari")}},
         "qc1": {"needs_reread": needs_reread, "flag_level": flag_level, "reason": dirv["status"]},
     }
 
@@ -462,10 +495,12 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="credit_validate (standalone, mitas.duckdb)")
     ap.add_argument("--extracted", required=True)
     ap.add_argument("--title", default="")
+    ap.add_argument("--original", default="", help="XML <TITLE> orijinal ad (opsiyonel; ikinci arama anahtarı)")
     ap.add_argument("--xml-roles", default="")
     ap.add_argument("--ocr-text-file", default="")
     a = ap.parse_args()
     ext = json.loads(a.extracted)
     xr = json.loads(a.xml_roles) if a.xml_roles else {}
     ot = open(a.ocr_text_file, encoding="utf-8", errors="replace").read() if (a.ocr_text_file and os.path.exists(a.ocr_text_file)) else None
-    print(json.dumps(validate(ext, xml_roles=xr, title=a.title, ocr_text=ot), ensure_ascii=False, indent=2))
+    print(json.dumps(validate(ext, xml_roles=xr, title=a.title, ocr_text=ot, original=(a.original or None)),
+                      ensure_ascii=False, indent=2))

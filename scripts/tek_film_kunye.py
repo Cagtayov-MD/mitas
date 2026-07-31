@@ -730,8 +730,16 @@ def main():
         try:
             # NOT: run_ocr_json TEK-SATIR JSON arar; credit_crosscheck PRETTY-PRINT (çok-satır) basar →
             # run_ocr_json parse edemez. Kendi çok-satır regex parse'ımızla doğrudan çağır (PY_OCR=duckdb'li).
-            _r = subprocess.run([PY_OCR, os.path.join(HERE, "credit_crosscheck.py"),
-                                 "--baslik", title, "--yonetmen", "", "--yil", str(a.year or "")],
+            # ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): bu çağrı --orijinal GEÇMİYORDU (üstteki
+            # asıl credit_kb_lookup çağrısı a.original'ı zaten iletiyor; bu yalnız cast-BYPASS yedek-yolu).
+            # Türkçe başlık DB'de yoksa (yabancı film) bu yedek yol da açılamıyordu. Kill-switch
+            # MITAS_KIMLIK_ORIJINAL=0 eski davranışı (yalnız başlık) birebir korur.
+            _cc_bypass_cmd = [PY_OCR, os.path.join(HERE, "credit_crosscheck.py"),
+                               "--baslik", title, "--yonetmen", "", "--yil", str(a.year or "")]
+            if a.original and os.environ.get("MITAS_KIMLIK_ORIJINAL", "1").strip().lower() not in (
+                    "0", "false", "off", "no"):
+                _cc_bypass_cmd += ["--orijinal", a.original]
+            _r = subprocess.run(_cc_bypass_cmd,
                                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
             _m = re.search(r"\{.*\}", _r.stdout or "", re.S)
             if _m:

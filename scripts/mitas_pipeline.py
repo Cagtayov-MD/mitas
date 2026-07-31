@@ -2988,6 +2988,13 @@ def main(argv=None) -> int:
                       "--video-credits", json.dumps(video_credits, ensure_ascii=False),
                       "--video", str(video), "--title", title or "", "--ocr", str(kunye_path),
                       "--profile", profile]
+            # ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): bu çağrı --original HİÇ GEÇMİYORDU →
+            # credit_validate.py DB-arama SADECE Türkçe başlıkla çalışıyordu (yabancı filmde DB'de
+            # yalnız İngilizce ad varsa 0 aday → yönetmen doğrulama hep "kaynak veri yok" kalıyordu).
+            # XML <TITLE> zaten satır ~1806'da (original=) hesaplanmış; afiş aramasında kullanılıyor —
+            # burada da AYNI değeri iletmek additive (original boşsa davranış birebir aynı).
+            if original:
+                cv_cmd += ["--original", original]
             _rc_cv, _out_cv, _err_cv = run(cv_cmd, timeout=180)
             cv_result = last_json(_out_cv)
             dbg.emit("credit_validate", "external_lookup",
