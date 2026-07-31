@@ -26,7 +26,36 @@ try:
 except Exception:
     pass
 
-DB = Path(r"E:\MITAS\Database")
+# LINUX GEÇİŞ FIX (2026-07-31): sabit `E:\MITAS\Database` yolu bu aracı Linux'ta
+# tamamen çalışmaz kılıyordu (FileNotFoundError, --all dahil her çağrıda).
+#
+# Kanonik çözücü mitas_roots (MITAS_RUN_ROOT'a da saygı duyar — candidate koşu).
+# DİKKAT: mitas_roots.PROJECT_ROOT env-aware AMA env yoksa `E:\MITAS`'a düşüyor
+# (mitas_roots.py:28) ve HATA ATMIYOR — yani "başarılı" dönüp geçersiz yol verir.
+# Bu yüzden her adayı VARLIK kontrolünden geçiriyoruz; ilk gerçekten var olan kazanır.
+def _db_kokunu_bul() -> Path:
+    adaylar = []
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import mitas_roots  # type: ignore
+        adaylar.append(mitas_roots.resolve()["DB_ROOT"])
+    except Exception:  # noqa: BLE001 — salt-okur araç; import patlasa da çalışsın
+        pass
+    _env_db = (os.environ.get("MITAS_DB_ROOT") or "").strip()
+    if _env_db:
+        adaylar.append(Path(_env_db))
+    _env_pr = (os.environ.get("MITAS_PROJECT_ROOT") or "").strip()
+    if _env_pr:
+        adaylar.append(Path(_env_pr) / "Database")
+    # Son çare: bu betiğin kendi konumundan türet (scripts/ → repo kökü)
+    adaylar.append(Path(__file__).resolve().parent.parent / "Database")
+    for a in adaylar:
+        if a.is_dir():
+            return a
+    return adaylar[0] if adaylar else Path("Database")
+
+
+DB = _db_kokunu_bul()
 OUTPUT_FILE = "KARAR_GUNLUGU.md"
 
 
@@ -294,10 +323,14 @@ def build_gunluk(film: Path) -> str:
     imdb_data = val_kaynaklar.get("imdb") or {}
     wiki_data = val_kaynaklar.get("wiki") or {}
 
-    # QC1 olayları
+    # QC1 olayları (2026-07-31: kapsam tamamlandı — önce yalnız ilk üçü vardı ve
+    # "ilk denemede geçti" hiç olay basmadığı için başarı oranı ölçülemiyordu)
     qc1_red_ev = ev.get("credit_qc1_red")
     qc1_fail_ev = ev.get("credit_qc1_failed")
     qc1_pass_ev = ev.get("credit_qc1_passed")  # VL sonrası geçti olayı (varsa)
+    qc1_first_ev = ev.get("credit_qc1_passed_first_try")  # RED'e hiç girmedi
+    qc1_recov_ev = ev.get("credit_qc1_recovered_by_validate")  # RED → validate kurtardı
+    qc1_skip_ev = ev.get("credit_qc1_skipped")  # MITAS_NO_VL_FALLBACK → hiç değerlendirilmedi
 
     # routed_kontrol eventi (KONTROL kararı + qc_block gerekçeleri)
     routed_ev = ev.get("routed_kontrol")
@@ -483,8 +516,12 @@ def build_gunluk(film: Path) -> str:
     qc1_flag = val_qc1.get("flag_level") or "?"
     qc1_needs = val_qc1.get("needs_reread")
     qc1_reason = val_qc1.get("reason") or "?"
-    # Öncelik: VL-sonrası geçti > VL-sonrası da RED > ilk RED > validate.qc1 > yok
-    if qc1_pass_ev and qc1_red_ev:
+    # Öncelik: en SPESİFİK sonuç kazanır. validate-kurtarma, "VL sonrası da RED"
+    # olayından SONRA gelir (bayrağı o kaldırıyor) → fail'den önce sınanmalı.
+    if qc1_recov_ev:
+        qc1_summary_str = (f"İLK RED → VL-fallback → RED → **credit_validate KURTARDI** — "
+                           f"{(qc1_recov_ev.get('summary') or '')}")
+    elif qc1_pass_ev and qc1_red_ev:
         qc1_summary_str = f"İLK RED → VL-fallback → **GEÇTİ** — {(qc1_pass_ev.get('summary') or '')}"
     elif qc1_pass_ev:
         qc1_summary_str = f"GEÇTİ — {(qc1_pass_ev.get('summary') or '')}"
@@ -492,6 +529,11 @@ def build_gunluk(film: Path) -> str:
         qc1_summary_str = f"İLK RED → VL-fallback → **VL SONRASI DA RED** — {(qc1_fail_ev.get('summary') or '')}"
     elif qc1_red_ev:
         qc1_summary_str = f"RED — {(qc1_red_ev.get('summary') or '')}"
+    elif qc1_first_ev:
+        qc1_summary_str = f"**İLK DENEMEDE GEÇTİ** (VL koşmadı) — {(qc1_first_ev.get('summary') or '')}"
+    elif qc1_skip_ev:
+        qc1_summary_str = (f"⚠ **DEĞERLENDİRİLMEDİ** — MITAS_NO_VL_FALLBACK ile kapatıldı, "
+                           f"QC1 sinyali routing'e gitmedi — {(qc1_skip_ev.get('summary') or '')}")
     elif val_qc1:
         qc1_summary_str = f"flag={qc1_flag} needs_reread={qc1_needs} reason={qc1_reason}"
     else:
@@ -572,6 +614,15 @@ def build_gunluk(film: Path) -> str:
         add_row(ev["credit_qc1_red"].get("ts"), "qc1-RED",
                 (ev["credit_qc1_red"].get("summary") or "")[:100])
 
+    # 2026-07-31: temiz geçiş ve değerlendirilmeme de zaman çizgisinde görünür
+    if "credit_qc1_passed_first_try" in ev:
+        add_row(ev["credit_qc1_passed_first_try"].get("ts"), "qc1-PASS1",
+                (ev["credit_qc1_passed_first_try"].get("summary") or "")[:100])
+
+    if "credit_qc1_skipped" in ev:
+        add_row(ev["credit_qc1_skipped"].get("ts"), "qc1-ATLA",
+                (ev["credit_qc1_skipped"].get("summary") or "")[:100])
+
     if vl_kosuldu:
         add_row(ev["credit_vl_fallback"].get("ts"), "vl",
                 f"VL yedek: yön={_nl(vl_yon)}  cast_sup={len(vl_cast_sup) if vl_cast_sup else 0}",
@@ -580,6 +631,10 @@ def build_gunluk(film: Path) -> str:
     if "credit_qc1_failed" in ev:
         add_row(ev["credit_qc1_failed"].get("ts"), "qc1-FAIL",
                 (ev["credit_qc1_failed"].get("summary") or "")[:100])
+
+    if "credit_qc1_recovered_by_validate" in ev:
+        add_row(ev["credit_qc1_recovered_by_validate"].get("ts"), "qc1-KURTAR",
+                (ev["credit_qc1_recovered_by_validate"].get("summary") or "")[:100])
 
     if "credit_validate" in ev:
         xml_kisa = "ÇELİŞTİ" if xml_destekledi is False else ("DESTEKLEDİ" if xml_destekledi is True else "bilinmiyor")
@@ -754,13 +809,20 @@ def build_gunluk(film: Path) -> str:
     # --- QC1 ---
     A("**QC1 (künye okunabilirlik kapısı — OCR/VL):**")
     A(f"- Sonuç: {qc1_summary_str[:220]}")
-    if not (qc1_red_ev or qc1_fail_ev or qc1_pass_ev):
+    if not (qc1_red_ev or qc1_fail_ev or qc1_pass_ev or qc1_first_ev
+            or qc1_recov_ev or qc1_skip_ev):
         if val_qc1:
             A(f"- validate.qc1: flag={qc1_flag}  needs_reread={qc1_needs}  reason={qc1_reason}")
         if log_missing:
             A("- ⚠ _log yok → QC1 olay-izi mevcut değil (kör nokta)")
         else:
-            A("- ℹ️ Ayrı credit_qc1_* olayı yok → QC1 sessiz geçti (RED tetiklenmedi)")
+            # 2026-07-31 sonrası bu dal, QC1'in HİÇ koşmadığı anlamına gelir
+            # (profil film/dizi değil, --no-ocr, USE_VIDEO_CREDITS kapalı ya da
+            # video_credits boş). "Sessiz geçti" çıkarımı ARTIK YAPILMAZ —
+            # geçiş kendi olayını basıyor (credit_qc1_passed_first_try).
+            A("- ℹ️ Hiç QC1 olayı yok → QC1 bu filmde KOŞMADI "
+              "(profil/--no-ocr/USE_VIDEO_CREDITS veya video_credits boş). "
+              "Bu koşu 2026-07-31 öncesine aitse: geçiş loglanmıyordu, 'sessiz geçmiş' olabilir.")
     # --- QC2 ---
     A("")
     A("**QC2 (kimlik-kilidi / OCR-otorite / qc_block):**")
@@ -956,7 +1018,12 @@ def build_gunluk(film: Path) -> str:
     A("- **QC2-web kimlik** (adimlar.qc2_web: method/imdb_id/web_yonetmen): hiçbir artefakta yapısal persist edilmiyor — yalnız qc_block metin-gerekçesi kalıyor")
     A("- **Yapımcı isim-kaynağı**: yapımcı için dış-teyit/isim-kaynağı yapısal loglanmıyor (yalnız qwen_qc.yapimci_var bool'u var)")
     A("- **ocr_ham.txt**: stitch/ocr_ham.txt bazı filmlerde eksik — ham satır listesi kör nokta")
-    A("- (NOT: QC1 'geçti' artık credit_qc1_passed eventiyle loglanıyor — bu kör nokta KAPANDI)")
+    A("- (NOT: QC1 kör noktası 2026-07-31'de KAPANDI. Önceden `credit_qc1_passed` yalnız "
+      "RED→VL→kurtarıldı yolunu kapsıyordu; ilk denemede geçen film SIFIR olay üretiyordu "
+      "(ampirik: 33 filmden 17'si görünmez, başarı oranının paydası yoktu). Artık dört kind "
+      "birlikte tam kapsıyor: credit_qc1_passed_first_try / credit_qc1_red → "
+      "credit_qc1_passed | credit_qc1_failed / credit_qc1_recovered_by_validate / "
+      "credit_qc1_skipped. Ayrıca _DURUM.json'da yapısal `qc1` alanı var.)")
 
     # ── ÜRETİM BİLGİSİ ─────────────────────────────────────────────────
     A("")

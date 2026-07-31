@@ -1411,7 +1411,13 @@ def _ozet_chain():
         chain.append(("gemini", _ozet_gemini))
     if os.environ.get("MITAS_OZET_CLOUD", "0").strip().lower() in _on:
         chain.append(("sonnet", _ozet_anthropic))
-    chain.extend(_OZET_SAGLAYICILAR)   # gemma-local DAİMA fallback (en sonda)
+    # GEMMA-ÖZET AYRILDI (Çağatay 2026-07-31 akşam): "verimli özet alamadık,
+    # bir sürü özet boş geldi — özeti gemmadan ayır." MITAS_OZET_GEMMA=0 iken
+    # gemma zincire HİÇ girmez; başka sağlayıcı da açık değilse özet dürüstçe
+    # atlanır (ozet_atlandi log'u + PDF'te placeholder). Bozuk/boş özet basmak
+    # yerine hiç basmamak — testas felsefesiyle aynı. Geri: MITAS_OZET_GEMMA=1.
+    if os.environ.get("MITAS_OZET_GEMMA", "1").strip().lower() in _on:
+        chain.extend(_OZET_SAGLAYICILAR)   # gemma-local fallback (en sonda)
     return tuple(chain)
 
 
@@ -2387,7 +2393,14 @@ def main(argv=None) -> int:
         frame_dirs = [str(giris_frames)]
         if cikis_frames.exists() and any(cikis_frames.glob("*.png")):
             frame_dirs.append(str(cikis_frames))
-        ocr_cmd = [str(PY_OCR), str(HERE / "_pipe_ocr.py"), "--frames", *frame_dirs,
+        # HİBRİT OKUMA (Çağatay 2026-07-31 akşam): Paddle okuma kalitesi güvenilmez
+        # ('CO SUBBING' ×5 bozulma vakası) → ana yol Messi(frame)+İbra(master)+birleşim,
+        # okuyucu deepseek. _pipe_hibrit_okuma.py, _pipe_ocr ile AYNI CLI/çıktı/JSON
+        # sözleşmesini taşır; içinde Paddle FAIL-SAFE'i var (çökerse yüksek sesle düşer).
+        # Kill-switch: MITAS_OKUMA_MOTORU=paddle → eski yol birebir.
+        _okuma_motoru = os.environ.get("MITAS_OKUMA_MOTORU", "hibrit").strip().lower()
+        _okuma_betik = "_pipe_ocr.py" if _okuma_motoru == "paddle" else "_pipe_hibrit_okuma.py"
+        ocr_cmd = [str(PY_OCR), str(HERE / _okuma_betik), "--frames", *frame_dirs,
                    "--out", str(ocr_out), "--profile", profile]
         dbg.emit("ocr", "stage_started",
                  subject={"field": "ocr_job", "after": ocr_job, "reason": "OCR subprocess started"},
@@ -2968,6 +2981,19 @@ def main(argv=None) -> int:
                                "yonetmen_var": bool(video_credits.get("yonetmen")),
                                "cast_count": len(video_credits.get("cast") or [])},
                      source={"module": "scripts/mitas_pipeline.py"})
+            # ÖLÇÜM KANCASI: temiz geçiş de olay bassın. Yoksa QC1 başarı oranının
+            # PAYDASI log'da olmuyor — 'credit_qc1_passed' yalnız RED→VL→kurtarıldı
+            # yolunu kapsıyor, ilk denemede geçen film sıfır olay üretiyordu
+            # (ampirik: 33 filmden 17'si görünmez). dbg.emit per-film trace'e gider,
+            # system_events.jsonl'e DEĞİL → kohort ölçümü yapılamıyordu.
+            log_event("credit_qc1_passed_first_try",
+                      summary=f"{video.name}: QC1-PASS (ilk deneme, VL koşmadı) — "
+                              f"yön={video_credits.get('yonetmen')} cast={len(video_credits.get('cast') or [])}.",
+                      module="ocr", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id,
+                              "yonetmen": video_credits.get("yonetmen"),
+                              "cast_count": len(video_credits.get("cast") or []),
+                              "vl_fallback": False})
     elif USE_VIDEO_CREDITS and _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
         dbg.emit("qc1", "qc_decision", status="skipped",
                  subject={"field": "credit_quality",
@@ -2976,6 +3002,18 @@ def main(argv=None) -> int:
                           "reason": "VL fallback disabled by MITAS_NO_VL_FALLBACK"},
                  evidence={"vl_fallback": False, "disabled": True},
                  source={"module": "scripts/mitas_pipeline.py"})
+        # ÖLÇÜM KANCASI: bu dalda QC1 HİÇ değerlendirilmiyor — _qc1_failed set
+        # edilmiyor, yani routing'e (satır ~3367) QC1 sinyali gitmiyor. Kohortu
+        # 'geçti' sananın önüne geçmek için ayrı kind: paydaya girer, sayıya girmez.
+        log_event("credit_qc1_skipped", level="warn",
+                  summary=f"{video.name}: QC1 değerlendirilmedi — MITAS_NO_VL_FALLBACK ile "
+                          f"kapatıldı; yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, "
+                          f"cast={len(video_credits.get('cast') or [])}.",
+                  module="ocr", media_id=media_id, filename=video.name,
+                  detail={"clip_id": clip_id,
+                          "yonetmen": video_credits.get("yonetmen"),
+                          "cast_count": len(video_credits.get("cast") or []),
+                          "reason": "MITAS_NO_VL_FALLBACK"})
 
     # ===== BLOK YÖNETMEN-DOĞRULAMA (credit_validate; flag MITAS_CREDIT_VALIDATE, fail-safe) =====
     # 35B çıktısını mitas.duckdb (IMDb+Wikidata) + XML ile DOĞRULA → CELISKI/OKUNAMADI = KONTROL sinyali.
@@ -3042,6 +3080,17 @@ def main(argv=None) -> int:
                 if _credit_validate_strong_director(cv_result):
                     if video_credits.get("_qc1_failed"):
                         video_credits["_qc1_failed_overridden_by_credit_validate"] = True
+                        # ÖLÇÜM KANCASI: "QC1 RED → sonradan kurtarıldı" vakası
+                        # olay düzeyinde görünmüyordu; yalnız credit_validate_backfill
+                        # basılıyordu ve o QC1'den bağımsız da tetiklenebiliyor.
+                        # Kohort sayımında bu filmler 'failed' kalıyordu → sahte kötümser.
+                        log_event("credit_qc1_recovered_by_validate",
+                                  summary=f"{video.name}: QC1-RED, credit_validate güçlü yönetmen "
+                                          f"buldu → bayrak KALDIRILDI ({_new_dir}).",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "yonetmen": _new_dir,
+                                          "sources": _cvd_fix.get("sources_confirm"),
+                                          "confidence": _cvd_fix.get("confidence")})
                     video_credits["_qc1_failed"] = False
                     video_credits["_credit_validate_strong_director"] = True
                 dbg.emit("credit_validate", "candidate_changed",
@@ -3861,6 +3910,19 @@ def main(argv=None) -> int:
                                if isinstance(video_credits, dict) else None),
         "vl_yon_cast_dropped": (video_credits.get("vl_yon_cast_dropped")
                                 if isinstance(video_credits, dict) else None),
+        # ÖLÇÜM (2026-07-31): QC1 sonucu YAPISAL alan olarak _DURUM'da. Önceden yalnız
+        # serbest metin olarak 'neden'/'qwen_uyari' içinde sızıyordu → toplu analiz
+        # dizgi-eşleşmesine mahkûmdu. _qc1_failed bellekte doğup süreç bitince
+        # kayboluyordu (karara etki ediyor: satır ~3392). Additive, karar etkisiz.
+        "qc1": ({"failed": bool(video_credits.get("_qc1_failed")),
+                 "yonetmen_var": bool(video_credits.get("yonetmen")),
+                 "cast_n": len(video_credits.get("cast") or []),
+                 "vl_kostu": bool(video_credits.get("vl")),
+                 "validate_override": bool(
+                     video_credits.get("_qc1_failed_overridden_by_credit_validate")),
+                 "validate_strong_director": bool(
+                     video_credits.get("_credit_validate_strong_director"))}
+                if isinstance(video_credits, dict) else None),
         # İP-2 (2026-07-11): extraction sözleşmesi _DURUM'da görünür — "teknik-kaza mı, meşru-boş mu"
         # sorusunun kalıcı veri-tabanı (TECH_RETRY worklist'i ve İP-4 reason-code'ları buradan beslenir).
         "extraction_status": (video_credits.get("extraction_status")

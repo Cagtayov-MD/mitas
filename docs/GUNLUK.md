@@ -7,6 +7,84 @@
 
 ---
 
+## 2026-07-31 (akşam/gece) — HİBRİT OKUMA ÜRETİMDE: Paddle emekli, gece koşusu hibritle başladı
+
+**Çağatay kararı:** "Paddle'ı devre dışı bırak, üretimi messi/ronaldo/ibra sürecine
+çek, bu akşam sistemi açık bırakalım." Gerekçe bugün tek dosyada görünür oldu:
+BOZGUNCULAR kunye.txt'de Paddle çorbası ('CO SUBBING' ×5 farklı bozulma,
+'OAN MSIMTLRE') → gemma çorbadan rol tablosu kurmaya zorlanıyor → "olmayan şeyi
+olmayan yere yazma" sınıfı. Kalkan çöpü aklıyor çünkü çöp de OCR metni.
+
+**Yapılan (üretim ameliyatı):**
+- [scripts/_pipe_hibrit_okuma.py](../scripts/_pipe_hibrit_okuma.py) — YENİ üretim okuyucusu.
+  _pipe_ocr ile BİREBİR sözleşme (CLI/dosyalar/son-satır JSON). Zincir:
+  FIGO havuz (yoksa üretir) + master (yoksa üretir → DİLİM-TAZELE aynı koşuda
+  ateşlenir, "bir koşu geriden" bug'ı yan etkiyle kapandı) → Messi(frame)+deepseek
+  + İbra(master bantları)+deepseek → birleşim + YAPISAL VETO → kunye.txt.
+  İç FAIL-SAFE: çökerse/0 satırsa Paddle'a YÜKSEK SESLE düşer (HIBRIT_FALLBACK
+  stderr damgası). GİRİŞ havuzuna dokunmaz (pipeline'ınkiyle eşzamanlılık) —
+  ham giris karelerinden Messi seçimi.
+- mitas_pipeline.py:2390 → MITAS_OKUMA_MOTORU=hibrit (varsayılan) | paddle (kill-switch).
+- Yapısal veto (KB'siz): [ ( ** CJK, harf-siz satır ('- 1' listesi — ölçüldü: %32),
+  düzyazı-fiil, garble. ronaldo.halusinasyon_mu KULLANILMADI: >8-kelime kuralı boş
+  KB'de gerçek çok-isimli satırları yutuyor (denetim bulgusu; test_ronaldo.py:80-87 kanıt).
+- ÖZET GEMMADAN AYRILDI (Çağatay: "verimli özet alamadık, bir sürü boş geldi"):
+  MITAS_OZET_GEMMA=0 (mitas.env) → zincir boş → özet dürüstçe atlanır (placeholder).
+  Sonnet anahtarı hazır, MITAS_OZET_CLOUD=1 bilinçli maliyet kararı olarak açılır.
+- QC1 ÖLÇÜLEBİLİRLİK (sabah işi): credit_qc1_passed_first_try/skipped/recovered_by_validate
+  olayları + _DURUM.json yapısal qc1 alanı + scripts/qc1_olcum.py sayacı (kör-kohort
+  uyarılı). karar_gunlugu.py Linux'ta HİÇ çalışmıyordu (E:\ sabit yolu) → düzeltildi.
+- DUMAN TESTİ (FRANSIZ KIZARMASI, uçtan uca): engine=hibrit, 398 satır
+  (frame 1050 + master 180, 832 eşleşen, 88 veto — '|---|---|' tablo çöpü yakalandı),
+  QC1 ilk denemede GEÇTİ, karar=KONTROL (kimlik çaprazı — eleme kapısı çalışıyor).
+  Gece koşusu (toplu_kosu.sh) duman bitiminde zincirli başlatıldı.
+
+**Ölçüm yatağı (paralel iş):** depo01'den 15 film (tohum 20260731,
+outputs/olcum_yatagi/), Faz1 ham çıktılar 15/15 (~68 sn/film), Kol A deepseek
+okuma 15/15 (~20-110 sn/film — '8-13 dk' tahmini YANLIŞTI, 5× hızlı).
+Sınıflar: 12 karışık, 2-3 statik, 0 saf-kayan → film-seviyesi statik/scroll
+etiketi ANLAMSIZ (Çağatay haklıydı); İbra manifest'i çift-başına sınıf taşıyor.
+
+**Öğrenilen / başarısız denemeler (özellikle):**
+- 18px-tavan teorim ÇÜRÜDÜ: deepseek 18px kartı tek kareden temiz okudu
+  (ANNE BAXTER/JEFF CHANDLER tam). Füzyon deneyi (a/b/c/d): kazanç YOK, ortalama
+  'Miner'→'Miniter' bozdu. Darboğaz piksel değil.
+- v16 kıyası (3 film yeniden üretildi): askin-gucu DÜZELDİ (ekip bölümü tam),
+  babam-ve-ben şişkin-ama-tam (PATLAMA sınıfı), aslan-yurekli-cavus HÂLÂ KAYIP
+  (GARY COOPER kartı yok + THE END ×3) — "3 açık"tan biri. kiyas_427 görselleri
+  v16'dan 13 DAKİKA ÖNCE basılmış; kıyas bir daha basılmadı → eldeki kıyas eski kod.
+- LA SEGUA: maske_kapsama=0.000 iken 20773px master — ölçüm zeminsizken
+  kompozitör kendi içinde tutarlı çöp kurabiliyor. Qwen konsey bulgusuyla örtüştü:
+  ölçüm-yolu kararı FİLM seviyesinde değil SEGMENT seviyesinde olmalı (v17 adayı).
+- Linux-geçiş sabit-yol sınıfı 3. ve 4. kez vurdu: master_png_monitor
+  ('/opt/mitas/E:\MITAS/...'), karar_gunlugu (E:\MITAS\Database). mitas_roots
+  env yoksa Windows'a düşüp HATA ATMIYOR — desen tehlikeli.
+- FIGO v5 SESSİZCE atlanabiliyor: kod varsayılanı 0, yalnız mitas.env açıyor;
+  env'siz çağrı eski CV dedektörüne düşüyor ve tek izi JSON'daki
+  "v5": {"karar": "atlandi"}. Kalıcı fix ayrı kalem.
+- Konsey ALTYAPISI günün yarısında çökük (bakiye/404/504); Nemotron bir turda
+  UYDURMA veri sundu (sahte benchmark tablosu, olmayan satır) — çürütme
+  turu yakaladı. Qwen'in Part-1 incelemesi değerli çıktı (segment-seviyeli
+  ölçüm yolu + _segment_kanvas vektörleştirme + RESP_ESIK yol-özel).
+- 39KB tam-kod brifingi HİÇBİR üyeye ulaşmadı; ~20KB Part-1 yalnız Qwen'e ulaştı.
+
+**BEKLEYEN (sabah listesi):**
+- Gece karnesi: qc1_olcum.py + KONTROL/ONAYLI dağılımı + hibrit fallback sayısı
+  (HIBRIT_FALLBACK stderr → events detail).
+- Video-VL gölge backfill (Çağatay onaylı, VRAM çakışması yüzünden geceye alınmadı):
+  biten filmlere ayrı süreç, PDF'e etkisiz, 250-film VL-vs-master kıyas verisi.
+- Kol B (master×qwen8-vLLM) ölçümü: scripts/olcum_vllm.sh hazır (port 8110,
+  image desteği), 'sina' komutu görüntü kabul sınavı — koşulmadı.
+- aslan-yurekli-cavus sınıfı (statik-zemin kart yutulması) → v17: Qwen önerisi
+  segment-seviyeli ölçüm yolu + koşu_platolari sertleştirme.
+- bbox/tahkim katmanı (Çağatay: "devam ettirelim, dış bağımlılığı azaltalım").
+- Konsey Part-2 (compose_adaptif durum makinesi) — altyapı düzelince.
+- Bugünkü değişiklikler COMMIT EDİLMEDİ (branch jenerik-tek-motor):
+  mitas_pipeline.py (QC1 olayları + hibrit dal + özet bayrağı), karar_gunlugu.py,
+  _pipe_hibrit_okuma.py, qc1_olcum.py, olcum_* betikleri, spec dokümanı.
+
+---
+
 ## 2026-07-31 (sabah) — Hub yedeği: 102 film FEDA EDİLDİ, budama + küçülme freni
 
 **Çağatay kararı:** `/opt/yedek` (= `/home/cagatay/Programlar/yedek`, Programlar→/opt
