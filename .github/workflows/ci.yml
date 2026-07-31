@@ -26,8 +26,13 @@ jobs:
       - name: Install CI dependencies
         run: |
           python -m pip install --upgrade pip
-          # Yalnız lint + pure-logic test bağımlılıkları; ağır GPU/model paketleri YOK
-          pip install ruff pytest pydantic
+          # Yalnız lint + pure-logic test bağımlılıkları; ağır GPU/model paketleri YOK.
+          # pyyaml/fastapi/httpx (2026-07-31 eklendi): aşağıdaki test listesinde
+          # bunları import eden 7 dosya vardı ama kurulmuyorlardı → pytest
+          # TOPLAMA aşamasında düşüyor ve listenin TAMAMI koşmuyordu (exit 4).
+          # Üçü de saf-python, GPU/model yok — "hafif CI" ilkesi korunuyor.
+          # httpx yalnız fastapi.testclient (test_tedial_router_enqueue) için.
+          pip install ruff pytest pydantic pyyaml fastapi httpx
 
       # ------------------------------------------------------------------ #
       # 1. Ruff lint — UYARI modunda (fail etmez, sadece raporlar)          #

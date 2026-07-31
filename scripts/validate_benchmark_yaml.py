@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 
-ROOT = Path(r"E:\MITAS")
+# Linux geçişi (2026-07-31): sabit r"E:\MITAS" bu betiği Linux'ta ve CI'da
+# ÇALIŞMAZ hale getiriyordu (tests/test_benchmark_yaml_parse.py, PR #1 CI
+# hatası: FileNotFoundError 'E:\MITAS/benchmark_registry.yaml'). mitas_roots.py:28
+# ile aynı env-aware desen; env yoksa BETİĞİN KENDİ deposu (scripts/../) —
+# böylece Windows'ta E:\MITAS'ta durduğunda sonuç birebir aynı kalır.
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or Path(__file__).resolve().parent.parent)
 YAML_FILES = [
     ROOT / "benchmark_registry.yaml",
     ROOT / "benchmark_templates" / "ocr_kj_benchmark.yaml",
