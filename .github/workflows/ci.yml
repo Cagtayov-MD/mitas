@@ -47,6 +47,7 @@ jobs:
         run: |
           python -m py_compile scripts/_pipe_asr.py
           python -m py_compile scripts/_pipe_ocr.py
+          python -m py_compile scripts/_pipe_hibrit_okuma.py
           python -m py_compile scripts/_pipe_pdf.py
           python -m py_compile scripts/_pipe_credit_video.py
 
@@ -115,7 +116,7 @@ jobs:
             tests/test_ocr_confidence_thresholds.py \
             tests/test_ocr_simple_pipeline.py \
             tests/test_ocr_box_track_pipeline.py \
-            tests/test_ocr_text_layer_descroll.py \
+            tests/test_hibrit_okuma_veto.py \
             tests/test_tedial_import_queue.py \
             tests/test_tedial_session_broker.py \
             tests/test_tedial_router_lazy.py \
