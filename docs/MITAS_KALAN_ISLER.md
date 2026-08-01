@@ -9,11 +9,12 @@
 
 ## ŞU AN KOŞUYOR
 
-**Üretim** — `outputs/toplu_kosu/uretim_20260801_1902.log`
-1751 film · **ilk 21 = düzeltme adayları** (bugünkü 5 kritik fix onlara hiç
-uygulanmamıştı) · hakem VL KAPALI (Çağatay talimatı) · izleyici arızada uyanıyor.
-Yedek: `Database_kalan21_yedek_20260801_1901/` (taşındı, silinmedi).
-Bitince: `python3 scripts/kontrol_kiyas.py --yedek Database_kalan21_yedek_20260801_1901`
+**Üretim — ANA HAVUZ** · `outputs/toplu_kosu/anahavuz_fix_*.log`
+1751 film, düz sıra (21 düzeltme-adayı kovalaması Çağatay talimatıyla bırakıldı:
+*"21'i boşver"*). Database'de olan filmler ATLA'nır. Hakem VL KAPALI.
+Kod durumu: `1ebd63ad` (giriş-jeneriği kesme + kasa kapısı fix'leri DAHİL).
+21 filmin yedeği duruyor: `Database_kalan21_yedek_20260801_1901/` — 11'i hiç
+işlenmedi, Database'de olmadıkları için bu koşuda normal sırayla işlenecekler.
 
 ---
 
@@ -46,6 +47,15 @@ okuduk; gerçek çelişki %5; KB çelişkide en fazla yarı yarıya haklı.
 düşen "3902 oyuncu"nun içeriği: 8 gerçek isim + kurum-adı kayan pencere çiftleri
 + `Q LJDH`, `SOW CINAN` gibi saf çöp. Cap=999 yapılırsa bunlar PDF'e girer.
 **Sıra:** önce "bu satır gerçek oyuncu adı mı" kapısı, SONRA cap kalkar.
+
+### 2.1b Footage-üstü yazıda phash dedup metin varyasyonunu yutuyor (ALİE kanıtı)
+`ALİE 2010-9253` giriş jeneriğinde `yapımcı` (g_0205) ve `oktay kaynarca` (g_0208)
+kartları AYNI köprü planının üstüne biniyor; yalnız küçük yazı değişiyor.
+phash kümelemesi baskın GÖRÜNTÜye göre kümeleyip tek temsilci (g_0205) seçti —
+o da yalnız ETİKETİ taşıyordu, İSİM hiç okunmadı. `giris_jenerik` havuzunda
+g_0206/0208/0210 VAR; havuz doğru, okuyucu örneklemesi kaçırdı.
+**Bu 2.2 ile aynı çözümü ister:** det-kutulu/metin-değişen kare örneklemede
+önceliklendirilsin. İki ayrı sınıf değil, tek kök.
 
 ### 2.2 Frame kolu örnekleme adımı kart atlıyor (defter B3)
 `MAX_SAYFA_GIRIS=40`, ham 270 kare → adım ~6.75. KUTSAL HAZİNE'de

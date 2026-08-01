@@ -7,6 +7,51 @@
 
 ---
 
+## 2026-08-01 (gece) — ALİE tek-film incelemesi iki SİSTEMİK körlük çıkardı
+
+**Çağatay'ın isteği (film bazında spesifik):** ALİE'de giriş jeneriğindeki konuk
+oyuncuları kadroya ekle (4→8), yapımcı alanına OKTAY KAYNARCA yaz.
+
+**Ne bulundu — istekten büyük çıktı.** İkisi de "giriş jeneriği" sınıfı; yönetmen/
+yapımcı/başrol tipik olarak orada durur:
+1. **Öncelikli kesme pozisyona düşüyordu.** `ocr_ham.txt` önce ÇIKIŞ sonra GİRİŞ
+   jeneriğini yazar → giriş bloğu hep dosyanın SONUNDA. Öncelik penceresi 500
+   bütçeyi aşınca kod `sorted()[:500]` ile en düşük indekslere düşüyor ve giriş
+   jeneriğini KOMPLE siliyordu. ALİE: 56 ipucu → 964 satır pencere, kesim 947'de
+   bitti, `konuk oyuncular`(1288) ve `yapimci`(1315) modele HİÇ gitmedi.
+   **Kapsam: örneklenen 321 filmin 72'si (%22).** → yarıçap-daraltma ile düzeldi.
+2. **Cast kasa kapısı tek kasa geleneği varsayıyordu.** ALİE'de çıkış TÜMÜ-BÜYÜK,
+   giriş tümü küçük dizilmiş. Çıkıştaki ALL-CAPS kanıtı kapıyı açıyor, kapı da
+   girişteki GERÇEK konuk oyuncuları 'karakter adı' sanıp atıyordu. (1) düzelince
+   giriş metni ilk kez modele ulaşacağı için bu kapı 1751 filmde giriş kadrosunu
+   yemeye başlayacaktı — **iki fix birbirine bağlı, birlikte gitti.**
+   → yerellik kuralı (±60 satır) + kapının İLK regresyon testi (9 vaka, iki yönlü).
+
+**Öğrenilen / yanlış çıkan varsayımlarım:**
+- "kunye.txt'yi düzeltirsem model görür" **YANLIŞ** — modelin girdisi `ocr_ham.txt`.
+  Boşa bir tur harcadım.
+- "rerender PDF'i yeniden üretir" **YANLIŞ** — varsayılanda `debug_trace`'teki ESKİ
+  koşunun künyesini aynen kullanıyor; okuma kodu düzelse bile PDF aynı kalıyor.
+  İki tur "düzeltme işe yaramadı" sandım. → `--taze-oku` bayrağı eklendi.
+- `--taze-oku` ile yönetmen KAYBOLDU (KARL KASES eski koşunun VL kolundan
+  geliyormuş, rerender VL koşmuyor). Prensip 2: teslime almadım, birleştirdim.
+- KİŞİ-TEYİT kapısı piksel-teyitli iki ismi (EMİNE YAREN, ERDEM KARACAY) KB'de
+  yok diye sildi — Çağatay'ın "KB makyajdır, karar mercii değil" kararının canlı
+  vakası. Elle verilen künyede `MITAS_TEYITSIZ_DUS=0` ile kapatıldı.
+- Linux sabit-yol sınıfı **10-12. kez** vurdu (PDFMITAS/AFIS_CACHE/OUT_DEFAULT +
+  PY_PDF). Bu artık tek tek değil, taranarak temizlenmeli.
+
+**Ölçülemeyen / açık kalan:** ALİE'de yapımcı İSMİ hiç okunmamıştı — `yapımcı` ve
+`oktay kaynarca` aynı köprü planının üstünde, phash dedup baskın GÖRÜNTÜye göre
+kümeleyip tek temsilci seçmiş. Havuzda kare VAR, okuyucu örneklemesi kaçırdı.
+KALAN_ISLER 2.1b'ye yazıldı — 2.2 ile aynı kök.
+ALİE'nin `Ana dil: AR` alanı da yanlış (Türk filmi) — DONDURMAM sınıfı, dokunulmadı.
+
+**Üretim:** ana havuz koşusu 20:51'de başladı, 21:25'te fix'lerle yeniden başlatıldı
+(o ana kadar 2 film bitmişti — maliyet 2 film, kazanç ~385 filmin giriş jeneriği).
+
+---
+
 ## 2026-07-31 (akşam/gece) — HİBRİT OKUMA ÜRETİMDE: Paddle emekli, gece koşusu hibritle başladı
 
 **Çağatay kararı:** "Paddle'ı devre dışı bırak, üretimi messi/ronaldo/ibra sürecine
