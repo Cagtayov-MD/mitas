@@ -2863,6 +2863,57 @@ def main(argv=None) -> int:
 
     # ===== BLOK VL-FALLBACK — QC1 kapılı, çift-kontrollü (2026-06-14) =====
     # Akış: OneOCR → 35b Ayıklayıcı → QC1 → RED ise gemma4 VL → QC1 tekrar → hâlâ RED → _qc1_failed işareti
+    # ── YÖNETMEN KURTARMA (etiket-tabanlı, deterministik) — VL'DEN ÖNCE ─────────
+    # ÖLÇÜM (2026-08-01): yönetmen etiketi olan 145 filmin 35'inde (%24) etiket
+    # künyede VAR ama alan BOŞ. Kanıt KUTSAL HAZİNE 1998-0325: g_0244.png'de
+    # "Directed by / JOHN CONNICK" ekranda, okuma doğru, hakem onaylı (kutu_n=2),
+    # kunye.txt:252-253'e yazılmış — gemma 18 oyuncuyu buldu ama 264 satırın
+    # 252.'sindeki bu alanı atladı; VL yedeği de bulamadı. Prompt SUÇSUZ (kural 4
+    # tam bu kalıbı tarif ediyor) → model hatırlama hatası, uzun-kuyruk sınıfı.
+    # DURUŞ: LLM'i değiştirme (aynı metinden 18 oyuncuyu doğru çıkardı); bulanık
+    # işi LLM'e, ETİKETLİ kesin alanı KURAL'a bırak. Yalnız BOŞ alanı doldurur,
+    # dolu alanı ASLA ezmez → sıfır regresyon. Kill-switch: MITAS_YON_KURTAR=0.
+    if (video_credits and not video_credits.get("yonetmen")
+            and os.environ.get("MITAS_YON_KURTAR", "1").strip().lower() not in ("0", "false", "off")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import yonetmen_kurtar as _yk
+            _kunye_yolu = ocr_out / "kunye.txt"
+            _iz_yolu = ocr_out / "hibrit_iz.jsonl"
+            if _kunye_yolu.is_file():
+                _bulgu = _yk.kurtar(
+                    _kunye_yolu.read_text(encoding="utf-8", errors="ignore").splitlines(),
+                    iz_yolu=(str(_iz_yolu) if _iz_yolu.is_file() else None))
+                # KANIT KAPISI: otomatik doldurma YALNIZ adres teyitli olduğunda.
+                # Kuru koşu (125 film) yapısal süzgeç tek başına %75 isabet verdi —
+                # kritik alan için YETMEZ (HOTEL RWANDA: 'A FILM BY' + oyuncu adı
+                # tesadüfen komşu → Terry George yerine Fana Mokoena yazardı).
+                # Etiket ve isim AYNI KAREDE ise kart gerçekten yönetmen kartıdır.
+                # Teyitsiz aday SİLİNMEZ, aday olarak kaydedilir → KONTROL insanı görür.
+                _teyit = (_bulgu or {}).get("kare_teyidi")
+                _saglam = _teyit in ("etiketle_ayni_satir",) or (
+                    _teyit and _teyit.endswith(".png"))
+                if _bulgu and _saglam:
+                    video_credits["yonetmen"] = [_bulgu["yonetmen"]]
+                    video_credits["_yonetmen_kurtarildi"] = _bulgu
+                    log_event("credit_yonetmen_kurtarildi",
+                              summary=f"{video.name}: yönetmen alanı BOŞTU, künye etiketinden "
+                                      f"kurtarıldı → {_bulgu['yonetmen']} "
+                                      f"(etiket={_bulgu['etiket']!r}, satır={_bulgu['satir']}, "
+                                      f"teyit={_teyit}).",
+                              module="ocr", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, **_bulgu})
+                elif _bulgu:
+                    video_credits["_yonetmen_adayi"] = _bulgu     # doldurmaz, işaretler
+                    log_event("credit_yonetmen_adayi_teyitsiz", level="warn",
+                              summary=f"{video.name}: yönetmen adayı bulundu ama ADRES TEYİDİ YOK "
+                                      f"({_bulgu['yonetmen']}, teyit={_teyit}) — alan BOŞ bırakıldı, "
+                                      f"insan teyidine gidiyor.",
+                              module="ocr", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, **_bulgu})
+        except Exception as _e:          # noqa: BLE001 — kurtarma ASLA hattı düşürmez
+            dbg.emit("yonetmen_kurtar_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
     # QC1 kriteri: yönetmen BOŞSA veya cast < 3  →  RED.
     # gemma4 VL (tek model): kare oku → yönetmen doldur + cast<3 ise cast'i de doldur (--fill-cast).
     # Kill-switch: MITAS_NO_VL_FALLBACK=1. Her hata → video_credits AYNEN (FAIL-SAFE).
