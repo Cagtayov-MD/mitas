@@ -47,6 +47,15 @@ def _load(name, path):
 cp = _load("credit_parse", CREDIT_PARSE)
 nn = _load("name_normalize", PDFMITAS / "name_normalize.py")   # Türkçe koru / diğer ASCII (+Qwen)
 pf = _load("poster_fetch", PDFMITAS / "poster_fetch.py")       # güvenli IMDb afiş
+# JASON KIDD — harf kapısı (Çağatay 2026-08-01: "harf işi Jason Kidd kontrolünde
+# dediğimde güvenebilmeliyim"). TEK giriş noktası; kural yazmaz, name_normalize'i
+# çağırır. Yüklenemezse jk=None → aşağıdaki çağrılar doğrudan nn'e düşer
+# (davranış birebir aynı, yalnız isim/izlenebilirlik kaybolur).
+try:
+    sys.path.insert(0, str(HERE))
+    import jason_kidd as jk
+except Exception:  # noqa: BLE001
+    jk = None
 # rol aklı: OCR rollerini XML (birincil) + meslek-DB (ikincil) ile düzelt.
 # Yükleme cökerse reconcile tamamen atlanır (eski davranış korunur, asla boş PDF).
 try:
@@ -446,12 +455,14 @@ def main(argv=None) -> int:
     # kunye BUYUK harf: Turkce isim Turkce-upper (irfan->İRFAN, i->İ),
     # yabanci ASCII-upper (ivan->IVAN, i->I); koken Qwen ile (saf-ASCII).
     cast = nn.upper_names(cast)
-    crew = nn.upper_crew(crew)
+    crew = nn.upper_crew(crew)          # KIDD YÜZEY 1 (ekip) — motor aynı
     # afiş: güvenli IMDb eşleşmesi → out/afis.jpg.
     # yabancı film: orijinal ad (XML) birincil sorgu + kadro çapraz-kontrolü (TRT yılı güvenilmez).
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
     orig = (args.original or "").strip()   # XML <TITLE> = BİRİNCİL orijinal-ad (temizlenmiş)
-    orig = _altbaslik_harf_kapisi(orig, d_title=(args.title or "").strip())
+    # KIDD YÜZEY 4 — alt başlık. Kidd yoksa yerel kopyaya düşer (fail-safe).
+    orig = (jk.alt_baslik(orig, (args.title or "").strip()) if jk
+            else _altbaslik_harf_kapisi(orig, d_title=(args.title or "").strip()))
     poster_path = None
     poster_source = "not_found"
     try:
@@ -513,7 +524,9 @@ def main(argv=None) -> int:
     audio = audio_subtitle_block(args)
 
     # Title de büyük harfle gitsin (TR-İ, yabancı ASCII): args.title ham OCR/XML olabilir.
-    title_norm = nn.tr_upper((args.title or "—")[:60]) if (args.title or "").strip() else "—"
+    # KIDD YÜZEY 3 — başlık
+    title_norm = ((jk.baslik((args.title or "—")[:60]) if jk else nn.tr_upper((args.title or "—")[:60]))
+                  if (args.title or "").strip() else "—")
     # Özet: Türkçe prose büyük harf, fakat yabancı kişi/karakter adı kökü ASCII kalmalı
     # (FREDDİE/SOPHİE değil FREDDIE/SOPHIE).
     _ozet_names = [n for n in (cast or []) if n and str(n).strip() and str(n).strip() != "—"]
@@ -521,7 +534,9 @@ def main(argv=None) -> int:
         for _nm in (_names if isinstance(_names, list) else [_names]):
             if _nm and str(_nm).strip() and str(_nm).strip() != "—":
                 _ozet_names.append(str(_nm))
-    ozet_norm = nn.tr_upper_prose(ozet, names=_ozet_names) if ozet else ozet
+    # KIDD YÜZEY 2 — özet prozası
+    ozet_norm = ((jk.proza(ozet, _ozet_names) if jk else nn.tr_upper_prose(ozet, names=_ozet_names))
+                 if ozet else ozet)
     d = {
         "profile": profile_label, "trt": args.trt_id, "title": title_norm,
         "res": args.resolution, "tur": args.tur, "dur": args.duration, "bolum": bolum or None,
