@@ -167,6 +167,35 @@ _PROSA_FIIL = {
 }
 
 
+# Modelin "bu görüntüde metin yok" tipi RET/BETİMLEME cümleleri — OCR çıktısı değil.
+_RET_KALIP = (
+    "没有可识别", "无法识别", "图片中", "该图片", "未检测到",      # ZH ret cümleleri
+    "no recognizable", "no text", "cannot identify", "unable to read",
+    "the image shows", "this image",
+)
+
+
+def _model_gevezeligi(s: str) -> bool:
+    """ocr_ham.txt'ye YAZILMAMASI gereken satır mı? (ekranda olmayan model sözü)
+
+    MUHAFAZAKÂR: gerçek jenerik metnini asla atmaz. Yalnız
+      (a) köşeli parantezli blok  — '[图片中没有可识别的文字内容]'
+      (b) bilinen ret/betimleme kalıbı
+      (c) TEK karakterlik CJK gürültüsü ('福', '国' — jenerikte tek karakter kart olmaz)
+    düşer. Çok karakterli gerçek CJK jenerik ('客串演出', '导演') KORUNUR.
+    """
+    t = (s or "").strip()
+    if not t:
+        return False
+    if t.startswith("[") and t.endswith("]"):
+        return True
+    d = t.lower()
+    if any(k in d for k in _RET_KALIP):
+        return True
+    cjk = [c for c in t if "一" <= c <= "鿿"]
+    return bool(cjk) and len([c for c in t if c.isalnum()]) <= 1
+
+
 def yapisal_veto(s: str, fold, garble) -> bool:
     if s.startswith("[") or s.startswith("("):
         return True                    # model sahneyi ANLATIYOR
@@ -377,8 +406,31 @@ def main() -> int:
 
         # ── sözleşme dosyaları ──
         (out_dir / "kunye.txt").write_text("\n".join(satirlar) + "\n", encoding="utf-8")
-        ham = [k["text"] for k in frame_k] + [k["text"] for k in master_k]
-        (out_dir / "ocr_ham.txt").write_text("\n".join(ham) + "\n", encoding="utf-8")
+        # MODEL GEVEZELİĞİ ocr_ham'a GİRMEZ (Çağatay önceliği 2026-08-01).
+        # Ölçülen zarar: deepseek boş/gürültülü karede Çince konuşuyor —
+        # '[图片中没有可识别的文字内容]' ("görüntüde okunabilir metin yok") 100 kez,
+        # tek-karakter uydurmaları (福/国/心) yüzlerce kez. Bunlar künyeye zaten
+        # girmiyordu (yapısal veto) AMA ocr_ham.txt'de kalıyordu ve 'Latin-dışı
+        # kaynak' kapısı HAM metne bakıyor → 6 Türkçe/İngilizce film boşuna
+        # KONTROL'e düştü (ölçüldü: 15 damganın 6'sı sahte).
+        # ocr_ham "EKRANDAN OKUNAN" demektir; modelin ret cümlesi ekranda YOKTUR.
+        # Gerçek CJK jenerik metni (ŞEHİR AVCISI '客串演出') KORUNUR — yalnız
+        # ret/betimleme kalıpları ve tek-karakter gürültüsü düşer.
+        # Tam iz hibrit_iz.jsonl'de duruyor (hiçbir şey kaybolmaz).
+        # HAKEM ocr_ham'a DA uygulanır: kutu_n==0 = kaynak karede piksel yok =
+        # satır ekranda YOKTU. ocr_ham "ekrandan okunan" demek olduğuna göre
+        # uydurma satırın orada işi yok. KANIT (KÜÇÜK KARDEŞLER 1999-0355):
+        # 1042 Latin-dışı satırın 1038'i kutu_n=0 — deepseek gürültülü karede
+        # 'Судьба'ya takılıp 1027 kez basmış; aynı token alakasız Türk
+        # filmlerinde de çıkıyor (TUZSUZ DELİ, KORKUYU BİLMEYEN) → model
+        # saplantısı, ekran içeriği değil. Bu satırlar 'Latin-dışı kaynak'
+        # kapısını tetikleyip Türkçe filmleri boşuna KONTROL'e atıyordu.
+        # kutu_n None (det yok) ise HÜKÜM YOK → satır korunur.
+        ham = [k["text"] for k in frame_k + master_k if k.get("kutu_n") != 0]
+        ham_temiz = [t for t in ham if not _model_gevezeligi(t)]
+        (out_dir / "ocr_ham.txt").write_text("\n".join(ham_temiz) + "\n", encoding="utf-8")
+        _log(f"ocr_ham: {len(ham)} → {len(ham_temiz)} satır "
+             f"({len(ham) - len(ham_temiz)} model gevezeliği ayıklandı)")
         with (out_dir / "hibrit_iz.jsonl").open("w", encoding="utf-8") as h:
             for k in frame_k + master_k:
                 h.write(json.dumps(k, ensure_ascii=False) + "\n")
