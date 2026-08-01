@@ -807,6 +807,23 @@ def main():
             elif _yon_kb_hit:
                 yon_kaynak = "kareler (KB eşleşmedi ama OCR temiz + KB'de gerçek kişi → okunan korundu)"
             else:
+                # ÖLÇÜM KANCASI (Çağatay onayı 2026-08-01): burada KARELERDEN OKUNAN
+                # yönetmen, KB'de eşleşmediği için SİLİNİYOR. Bu, "KB varlık yargıcı
+                # değil, yalnız imlacı" kuralıyla çelişebilir (set amiri sınıfı: ekranda
+                # var, hiçbir veritabanında yok). Kararın izi bugüne dek yalnız
+                # dbg.emit'e gidiyordu → kohort düzeyinde ÖLÇÜLEMİYORDU, bu yüzden kaç
+                # filmi vurduğu BİLİNMİYOR. Önce ölç, sonra karar ver (kaldırma DEĞİL).
+                try:
+                    from core.observability.system_events import log_event as _le
+                    _le("credit_yonetmen_kb_kapisi_sildi", level="warn",
+                        summary=f"{clip}: karelerden OKUNAN yönetmen KB eşleşmediği için "
+                                f"SİLİNDİ → {yon}. (ekran-kanıtı={len(_screen_hits)}/{len(yon)}, "
+                                f"kb_kisi={_yon_kb_hit})",
+                        module="kunye",
+                        detail={"silinen": list(yon), "ekran_kaniti_n": len(_screen_hits),
+                                "kb_kisi": bool(_yon_kb_hit), "clip": str(clip)})
+                except Exception:  # noqa: BLE001 — ölçüm ASLA üretimi düşürmez
+                    pass
                 yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
     elif not yon:
         yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"

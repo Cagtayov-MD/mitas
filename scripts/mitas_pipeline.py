@@ -1717,7 +1717,13 @@ def main(argv=None) -> int:
                     help="kaynak video (ZORUNLU — yalnız --from-hub modunda otomatik türetilir)")
     ap.add_argument("--profile", default=None, help="film_dizi (tip TRT 3.parselden oto) | haber|belgesel|muzik|stt (yoksa TRT'den)")
     ap.add_argument("--fps", type=float, default=1.5, help="kare cikarim fps (native cozunurluk)")
-    ap.add_argument("--ocr-head", type=float, default=180.0, help="acilis penceresi sn")
+    # GİRİŞ PENCERESİ 180 → 240 sn (Çağatay talimatı 2026-08-01, "girişi 4 dk'ya çıkar").
+    # Gerekçe ALİE 2010-9253: yapımcı kartı 03:16'da, yani 180 sn penceresinin 16 sn
+    # DIŞINDA kalıyordu; uzun/sahne-serpiştirmeli açılış jeneriklerinde kartlar 3 dk'yı
+    # aşıyor. Env ile ayarlanabilir: MITAS_OCR_HEAD (sn).
+    ap.add_argument("--ocr-head", type=float,
+                    default=float(os.environ.get("MITAS_OCR_HEAD", "240") or 240),
+                    help="acilis penceresi sn (varsayilan 240; env MITAS_OCR_HEAD)")
     ap.add_argument("--ocr-tail", type=float, default=480.0, help="kapanis penceresi sn")
     ap.add_argument("--asr-max-seconds", type=float, default=0.0, help="ASR'i ilk N sn ile sinirla (test)")
     ap.add_argument("--no-asr", action="store_true")
