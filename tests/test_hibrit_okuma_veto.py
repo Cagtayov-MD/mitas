@@ -121,3 +121,30 @@ def test_satirlari_ayikla_bos_ve_bosluk():
 def test_satirlari_ayikla_kirpar_ve_sirayi_korur():
     ham = "  ANNE BAXTER  \n\nJEFF CHANDLER\n   \nyönetmen\n"
     assert h.satirlari_ayikla(ham) == ["ANNE BAXTER", "JEFF CHANDLER", "yönetmen"]
+
+
+# ───────── ROL ETİKETİ DEDUP MUAFİYETİ (YAZ TATİLİ kök sebebi) ─────────
+
+def test_rol_etiketi_taninir():
+    """satir_esle İSİM dedup'ı için yazıldı; rol etiketleri ondan MUAF olmalı.
+
+    KÖK SEBEP (YAZ TATİLİ 1963-0035, ölçüldü 2026-08-01): etiketler kısa ve
+    ortak kelime taşıyor →
+        'CHOREOGRAPHY AND MUSICAL NUMBERS' ~ 'SONGS AND MUSICAL NUMBERS' → biri DÜŞTÜ
+        'DIRECTED BY OVERHALL'             ~ 'DIRECTED BY'               → biri DÜŞTÜ
+    Kart "CHOREOGRAPHY ... DIRECTED BY / HERBERT ROSS" iken künyede yalnız
+    'HERBERT ROSS' kaldı → gemma ETİKETSİZ isim gördü ve komşu ismi yönetmen
+    sandı. Rol-eşleme hatalarının KÖKÜ buydu — model değil, prompt değil, DEDUP.
+    """
+    for etiket in ("CHOREOGRAPHY AND MUSICAL NUMBERS", "SONGS AND MUSICAL NUMBERS",
+                   "DIRECTED BY OVERHALL", "DIRECTED BY", "Production Designer",
+                   "2ème assistant réalisateur", "MISE EN SCENE", "Yönetmen",
+                   "Director of Photography", "PRODUCED BY", "Kurgu", "Müzik"):
+        assert h._ROL_ETIKET.search(etiket), f"etiket tanınmadı: {etiket!r}"
+
+
+def test_kisi_adi_etiket_sayilmaz():
+    """İsimler dedup'a TABİ kalmalı — muafiyet onlara sızmasın."""
+    for ad in ("HERBERT ROSS", "PETER YATES", "ANNE BAXTER", "JOHN HUNECK",
+               "NAZLI ÖZDEMİR", "ZEKİ DEMİRKUBUZ"):
+        assert not h._ROL_ETIKET.search(ad), f"isim etiket sayıldı: {ad!r}"

@@ -39,6 +39,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -223,6 +224,20 @@ def yapisal_veto(s: str, fold, garble) -> bool:
     return garble(s)                   # slit çift-basımı / tekrar deseni
 
 
+
+# ROL ETİKETİ deseni — bu satırlar bulanık dedup'tan MUAF tutulur (yukarıdaki
+# gerekçe). Kapsam GENİŞ tutuldu: etiket kaybetmek, fazla etiket tutmaktan
+# çok daha pahalı (etiket yoksa rol-eşleme kör kalıyor).
+_ROL_ETIKET = re.compile(
+    r"\b(direct|y[oö]netmen|y[oö]neten|produc|yap[iı]m|senaryo|screenplay|written|"
+    r"drehbuch|sc[eé]nario|photograph|camera|kamera|g[oö]r[uü]nt[uü]|edit|kurgu|"
+    r"montage|music|m[uü]zik|sound|ses|dublaj|seslendirme|cast|oyuncu|starring|"
+    r"choreograph|koreograf|design|dekor|kost[uü]m|costume|makyaj|make.?up|"
+    r"assistan|asist|supervis|mise\s+en\s+sc[eè]ne|regie|regia|realisation|"
+    r"r[eé]alis|by\b|taraf[iı]ndan)",
+    re.IGNORECASE,
+)
+
 # ── kollar ───────────────────────────────────────────────────────────────────
 
 def kol_frame(clip_dir: Path, frame_dirs: list[Path]) -> list[dict]:
@@ -383,10 +398,24 @@ def birlesim(frame_k: list[dict], master_k: list[dict]) -> dict:
         if fold in gorulen:
             eslesen_n += 1
             continue
-        es = next((b for b in birlesik if rn.satir_esle(k["text"], b["text"], kb)), None)
-        if es is not None:
-            eslesen_n += 1
-            continue
+        # ROL ETİKETİ BULANIK DEDUP'TAN MUAF (2026-08-01, YAZ TATİLİ kök sebebi).
+        # satir_esle İSİM tekilleştirmek için yazıldı (aynı kişinin yazım
+        # varyantları). Rol etiketleri KISA ve ORTAK KELİME taşıyor → farklı
+        # etiketler birbirine karışıp SİLİNİYORDU. Ölçülen zarar:
+        #   'CHOREOGRAPHY AND MUSICAL NUMBERS' ~ 'SONGS AND MUSICAL NUMBERS' → düştü
+        #   'DIRECTED BY OVERHALL'             ~ 'DIRECTED BY'               → düştü
+        # Sonuç: kart "CHOREOGRAPHY ... DIRECTED BY / HERBERT ROSS" iken künyede
+        # yalnız 'HERBERT ROSS' kaldı → gemma'ya ETİKETSİZ isim gitti ve komşu
+        # ismi yönetmen sandı. Rol-eşleme hatalarının KÖKÜ buydu; ne model, ne
+        # prompt. Etiketler artık YALNIZ birebir (fold) tekrarda düşer.
+        # Kill-switch: MITAS_ETIKET_DEDUP_MUAF=0
+        _etiket_satiri = bool(_ROL_ETIKET.search(k["text"])) and os.environ.get(
+            "MITAS_ETIKET_DEDUP_MUAF", "1").strip().lower() not in ("0", "false", "off")
+        if not _etiket_satiri:
+            es = next((b for b in birlesik if rn.satir_esle(k["text"], b["text"], kb)), None)
+            if es is not None:
+                eslesen_n += 1
+                continue
         gorulen.add(fold)
         birlesik.append(k)
     return {"birlesik": birlesik, "eslesen_n": eslesen_n,
