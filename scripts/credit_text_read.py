@@ -156,6 +156,33 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
         tail = max_lines - head
         return cleaned[:head] + cleaned[-tail:]
 
+    # ÖNCELİKLİ KESİM (2026-08-01, KUTSAL HAZİNE 1998-0325 kanıtı).
+    # ESKİ DAVRANIŞ: keep bütçeyi aşınca BELGE SIRASINA göre baştan kesiliyordu
+    # (`ordered[:max_lines]`). Yönetmen kartı jeneriğin SONUNDA durur → sistem
+    # ipucunu doğru bulup koruma listesine ekliyor, sonra pozisyon yüzünden atıyordu.
+    # KANIT: ocr_ham 1904 satır, "Directed by"/"JOHN CONNICK" satır 1504-1505'te,
+    # 500 sınırından sonra → MODEL YÖNETMENİ HİÇ GÖRMEDİ. "gemma atladı" sanılan
+    # vaka aslında girdi kesmesiydi (model A/B'de aynı gemma, kunye.txt verilince
+    # ismi BULDU). Ölçek: 500'ü aşan 76 filmin 2'si (KUTSAL HAZİNE, DONÖR).
+    # ÇÖZÜM: QC1'in sorduğu alanların (yönetmen + oyuncu) ipucu komşuluğu ÖNCE
+    # rezerve edilir, kalan bütçe diğer ipuçlarına belge sırasıyla dağıtılır.
+    # Sıra korunur (model satır komşuluğuna güveniyor). Geri dönüş: MITAS_COMPACT_ONCELIK=0.
+    if len(keep) > max_lines and os.environ.get(
+            "MITAS_COMPACT_ONCELIK", "1").strip().lower() not in ("0", "false", "off"):
+        _oncelikli = re.compile(
+            r"\b(DIRECTED BY|WRITTEN\s*&\s*DIRECTED|YONETMEN|YÖNETMEN|"
+            r"CAST|STARRING|OYUNCU|OYUNCULAR|IN ORDER OF APPEARANCE)\b", re.IGNORECASE)
+        birinci: set[int] = set()
+        for i, line in enumerate(cleaned):
+            if _oncelikli.search(line):
+                birinci.update(range(max(0, i - 40), min(len(cleaned), i + 80)))
+        birinci &= keep
+        if len(birinci) > max_lines:            # tek başına taşıyorsa yine kırp
+            birinci = set(sorted(birinci)[:max_lines])
+        kalan = max_lines - len(birinci)
+        ikinci = [i for i in sorted(keep - birinci)][:max(0, kalan)]
+        keep = birinci | set(ikinci)
+
     ordered = [cleaned[i] for i in sorted(keep)]
     if len(ordered) > max_lines:
         ordered = ordered[:max_lines]
