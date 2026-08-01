@@ -137,7 +137,7 @@ jobs:
             tests/test_yonetmen_kurtar.py \
             tests/test_altbaslik_harf_kapisi.py \
             tests/test_yonetmen_rol_denetimi.py \
-            tests/test_altbaslik_harf_kapisi.py \
+            tests/test_cast_kasa_kapisi.py \
             tests/test_tedial_import_queue.py \
             tests/test_tedial_session_broker.py \
             tests/test_tedial_router_lazy.py \

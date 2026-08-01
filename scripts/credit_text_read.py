@@ -175,13 +175,41 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
             r"---\s*KART\s*---|"
             r"\b(DIRECTED BY|WRITTEN\s*&\s*DIRECTED|YONETMEN|YÖNETMEN|"
             r"CAST|STARRING|OYUNCU|OYUNCULAR|IN ORDER OF APPEARANCE)\b", re.IGNORECASE)
-        birinci: set[int] = set()
-        for i, line in enumerate(cleaned):
-            if _oncelikli.search(line):
-                birinci.update(range(max(0, i - 40), min(len(cleaned), i + 80)))
-        birinci &= keep
-        if len(birinci) > max_lines:            # tek başına taşıyorsa yine kırp
-            birinci = set(sorted(birinci)[:max_lines])
+        _ipucu = [i for i, line in enumerate(cleaned) if _oncelikli.search(line)]
+
+        def _pencere(on: int) -> set[int]:
+            ark = max(1, on * 2)                # ipucu ETİKET, isimler ALTINDA → arka pay iki katı
+            s: set[int] = set()
+            for i in _ipucu:
+                s.update(range(max(0, i - on), min(len(cleaned), i + ark)))
+            return s & keep
+
+        birinci = _pencere(40)
+        if len(birinci) > max_lines:
+            # YARIÇAP DARALT — pozisyona göre kesme YAPMA.
+            # (2026-08-01, ALİE 2010-9253 kanıtı) Eski kod `sorted(birinci)[:max_lines]`
+            # ile EN DÜŞÜK indeksleri tutuyordu. ocr_ham.txt önce ÇIKIŞ sonra GİRİŞ
+            # jeneriğini yazar → giriş bloğu her zaman dosyanın SONUNDA. Bütçe aşılan
+            # her filmde giriş jeneriği KOMPLE siliniyordu; yönetmen/yapımcı/başrol
+            # orada durur. ALİE'de ölçüldü: 56 ipucu → 964 satır pencere, 500 bütçe,
+            # kesim indeks 947'de bitti; 'konuk oyuncular' (1288) ve 'yapimci' (1315)
+            # modele HİÇ gitmedi → PDF'te oyuncu 4/8, yapımcı boş.
+            # Yeni davranış: yarıçap daralır, her ipucunun yakın komşuluğu belge
+            # BOYUNCA korunur — hiçbir bölge topluca kör kalmaz.
+            _alt, _ust = 0, 40
+            while _alt < _ust:
+                _orta = (_alt + _ust + 1) // 2
+                if len(_pencere(_orta)) <= max_lines:
+                    _alt = _orta
+                else:
+                    _ust = _orta - 1
+            birinci = _pencere(_alt)
+            if len(birinci) > max_lines:
+                # Yarıçap 0'da bile taşıyor → ipucu satırlarının KENDİSİ bütçeden çok.
+                # Yine baştan kesme yok: belge boyunca eşit aralıkla örnekle.
+                _h = sorted(birinci)
+                _adim = len(_h) / max_lines
+                birinci = {_h[int(k * _adim)] for k in range(max_lines)}
         kalan = max_lines - len(birinci)
         ikinci = [i for i in sorted(keep - birinci)][:max(0, kalan)]
         keep = birinci | set(ikinci)
@@ -385,6 +413,24 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
     return out
 
 
+def _name_casing_yerler(name: str, raw_lines: list[str]) -> tuple[list[int], list[int]]:
+    """_name_casing_hits'in KONUMLU hâli: (ALL-CAPS görüldüğü satır indeksleri,
+    karışık-kasa görüldüğü satır indeksleri). Kasa-kapısının yerellik kontrolü için."""
+    toks = [t for t in _fold(name).split() if t]
+    if not toks:
+        return ([], [])
+    pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b", re.IGNORECASE)
+    caps_i: list[int] = []
+    mixed_i: list[int] = []
+    for i, ln in enumerate(raw_lines):
+        for m in pat.finditer(str(ln or "")):
+            harf = [c for c in m.group(0) if c.isalpha()]
+            if len(harf) < 2:
+                continue
+            (caps_i if all(c.isupper() for c in harf) else mixed_i).append(i)
+    return (caps_i, mixed_i)
+
+
 def _name_casing_hits(name: str, raw_lines: list[str]) -> tuple[int, int]:
     """İsmin ham (fold'suz) satırlarda kaç kez TÜMÜ-BÜYÜK-HARF, kaç kez EN-AZ-BİR-KÜÇÜK-HARF
     biçiminde geçtiğini sayar (word-boundary, fold-toleranslı arama, orijinal casing üzerinde ölçüm)."""
@@ -429,13 +475,36 @@ def filter_cast_by_dotleader_casing(cast: list[str], raw_lines: list[str] | None
     if not cast or len(cast) < 2 or not raw_lines:
         return cast or []
     raw = [str(l) for l in raw_lines if str(l).strip()]
-    profiles = {nm: _name_casing_hits(nm, raw) for nm in cast}
+    yerler = {nm: _name_casing_yerler(nm, raw) for nm in cast}
+    profiles = {nm: (len(c), len(m)) for nm, (c, m) in yerler.items()}
     if not any(caps > 0 for caps, _mixed in profiles.values()):
         return cast  # bu filmde casing ayırt edici değil — dokunma
+
+    # YERELLİK (2026-08-01, ALİE 2010-9253 kanıtı). Kapı "filmin TEK kasa geleneği
+    # var" varsayıyordu. MITAS İKİ jenerik okur: ALİE'de ÇIKIŞ tümü-BÜYÜK
+    # (NAZLI ÖZDEMİR…), GİRİŞ tümü küçük ('konuk oyuncular / meral okay /
+    # oktay kaynarca'). Çıkıştaki ALL-CAPS kanıtı kapıyı açıyor, sonra girişteki
+    # GERÇEK konuk oyuncuları 'karakter adı' sanıp atıyordu.
+    # Kasa ancak AYNI KARTTA ayırt edicidir ('Tommy White......JOHN SHELTON').
+    # Kural: bir ismi düşürmek için ALL-CAPS-kanıtlı bir kardeş ismin onun
+    # KOMŞULUĞUNDA (±YAKIN satır) geçmesi şart. Uzaktaki kanıt başka bir
+    # jeneriğin/kartın geleneğidir, bu isim için hüküm veremez.
+    # Kill-switch: MITAS_CAST_CASING_YEREL=0 (eski küresel davranış).
+    _YAKIN = 60
+    _yerel = os.environ.get("MITAS_CAST_CASING_YEREL", "1").strip().lower() not in (
+        "0", "false", "off", "no")
+    _caps_yerleri = sorted({i for nm, (c, _m) in yerler.items() if c for i in c})
+
     out, dropped = [], []
     for nm in cast:
         caps, mixed = profiles.get(nm, (0, 0))
         if caps == 0 and mixed > 0:
+            if _yerel:
+                _benim = yerler[nm][1]
+                _komsu = any(abs(ci - mi) <= _YAKIN for mi in _benim for ci in _caps_yerleri)
+                if not _komsu:
+                    out.append(nm)          # yakında ALL-CAPS kanıtı yok → hüküm verme
+                    continue
             dropped.append(nm)
         else:
             out.append(nm)

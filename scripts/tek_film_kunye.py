@@ -23,14 +23,18 @@ ROOT = os.environ.get("MITAS_PROJECT_ROOT") or os.path.dirname(HERE)
 # Linux geçişi 2026-07-16: venv/PDF/afiş yolları kökten türetilir (Windows'ta env yoksa eski davranış).
 PY_OCR = (os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe") if os.name == "nt"
           else os.path.join(ROOT, "venvs", "ocr", "bin", "python"))
+# Kök türetme kapısı: env VARSA ya da Windows DEĞİLSEK ROOT'tan türet.
+# Eskiden yalnız env'e bakıyordu → Linux'ta env'siz çağıran (rerender_pdf_only.py)
+# '/opt/mitas/E:\MITAS\...' üretip çöküyordu. Windows+env'siz davranış aynen korunur.
+_KOKTEN = bool(os.environ.get("MITAS_PROJECT_ROOT")) or os.name != "nt"
 PDFMITAS = os.environ.get("MITAS_PDFMITAS_DIR") or (
-    os.path.join(ROOT, "OCR-worktree", "pdf-mitas") if os.environ.get("MITAS_PROJECT_ROOT")
+    os.path.join(ROOT, "OCR-worktree", "pdf-mitas") if _KOKTEN
     else r"E:\MITAS\OCR-worktree\pdf-mitas")
 AFIS_CACHE = os.environ.get("MITAS_AFIS_CACHE_DIR") or (
-    os.path.join(ROOT, "_102_afis_cache") if os.environ.get("MITAS_PROJECT_ROOT")
+    os.path.join(ROOT, "_102_afis_cache") if _KOKTEN
     else r"E:\MITAS\_102_afis_cache")
 OUT_DEFAULT = (os.path.join(ROOT, "Mitas Output", "GUNCEL_ORNEK")
-               if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\Mitas Output\GUNCEL_ORNEK")
+               if _KOKTEN else r"E:\MITAS\Mitas Output\GUNCEL_ORNEK")
 # KB cast-ekleme kaldırıldı: KB yalnız OCR'da okunan ismin yazımını düzeltir, sıfırdan kişi eklemez.
 _ADD_ON = False
 # OCR-OTORİTE KANUNU: bu kapı IMDb/Wiki'de bulunmayan OCR-okunan gerçek ismi DÜŞÜRÜR/KIRPAR (kanun ihlali).
