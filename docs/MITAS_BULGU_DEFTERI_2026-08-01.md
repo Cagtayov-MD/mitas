@@ -96,6 +96,29 @@ Bot "usage limits" dedi, tek kelime geri bildirim yok. CLAUDE.md'nin
 "kritik fix → codex-review" kapısı **açık kaldı**. Alternatif: dış konseye
 gerçek diff ile bağımsız bug-avı turu.
 
+### B12. `Wiliam` — OCR yanlış okuması (kasa hatası DEĞİL)
+HANK WILLIAMS künyesinde `Wiliam Marshall` (tek L) var; yanında `Henr Van`,
+`Rolr Peter`, `Stephenson Assoclate` gibi kayan-pencere artefaktları. Bu okuma
+kalitesi sorunu; A5'teki kasa düzeltmesi bunu çözmez.
+
+### B13. Rol-model A/B yatağı kurulu ama tek tur koştu
+`scripts/rol_model_ab.py` — 6 film × 2 model. Sonuç: `gemma4:26b` (Q4_K_M)
+üç filmde cast=0, kontrol filminde farklı yönetmen → **31b Q4_0 kalıyor**.
+Denenmemiş adaylar: `qwen36-35b-test`, `qwen3-vl:32b`, `mistral-small3.2`.
+
+---
+
+## D. BU TESTİN KAPSAMI (dürüstlük notu)
+
+29 filmlik KONTROL kohortu **yalnız A bölümündeki kapanan fix'leri** sınar:
+500-satır kesmesi · giriş master körlüğü · sahte Latin-dışı damgası ·
+yönetmen kurtarma + adres teyidi · giriş penceresi 240 sn · kimlik etiketi ·
+özet yabancı-ad kasası · tek master ailesi.
+
+**Sınamadıkları:** B6 rol-eşleme (3 film kohortta bile yok), B2 mükerrerlik kökü,
+B3 örnekleme adımı, B5 hakem VL, B7 CAST_CAP, B9 alt başlık, B11 codex-review.
+Test yeşil çıksa bile bu kalemler AÇIK kalır.
+
 ---
 
 ## C. Oturumun dersi
