@@ -2961,6 +2961,46 @@ def main(argv=None) -> int:
         except Exception as _e:          # noqa: BLE001 — kurtarma ASLA hattı düşürmez
             dbg.emit("yonetmen_kurtar_hata", {"hata": f"{type(_e).__name__}: {_e}"})
 
+    # ── HAKEM VL: son çare, videoyu İKİNCİ BİR GÖZE okut (Çağatay'ın emniyet kemeri) ──
+    # "Bu hatalarda VL modele video olarak verip 'kardeş bir de sen bak' demek.
+    #  Kaza olsa da içinden canlı çıkmamızı sağlayan şey."
+    # SIRA (en pahalı en sonda): model → rol denetimi → etiket kurtarma → HAKEM.
+    # Buraya gelinmişse: model bir şey vermedi VEYA verdiği reddedildi VE künye
+    # etiketinden de kurtarılamadı. Yani hat kör; hakem bağımsız sensör olarak girer.
+    # NEDEN VİDEO: kare verirsek ikinci bir kare-okuyucu olur, bağımsız sensör olmaz
+    #   (Çağatay itirazı). Kayan jeneriğin bölünen satırı videoda SÜREKLİ.
+    # NEDEN VARSAYILAN KAPALI: ~20 GB VRAM ister, kartta başka hiçbir şeyle birlikte
+    #   duramaz (Ollama boşaltılır, iş bitince iner). Toplu koşuda GPU'yu kilitler →
+    #   MITAS_HAKEM_VL=1 ile bilinçli açılır. Ölçüm: gerekecek film oranı ~%2.5.
+    # ADRES ZORUNLU: hakem "kaçıncı saniyede" döner (saniye×1.5=kare). Adressiz VL,
+    #   KB'nin yerine geçen ikinci bir "bana inan" otoritesi olurdu.
+    # ÖZ-DENETİM: hakemin cevabı da modelin cevabıyla AYNI süzgeçten geçer
+    #   (_hakem_dogrula) — ilk sınavlarında 4 kez uydurdu, hepsi yakalandı.
+    if (video_credits and not video_credits.get("yonetmen")
+            and os.environ.get("MITAS_HAKEM_VL", "0").strip().lower() in ("1", "true", "on", "yes")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import hakem_vl as _hvl
+            _hk = _hvl.hakemlik(clip_dir, alan="yonetmen", pencere="giris")
+            if _hk.get("durum") == "bulundu":
+                video_credits["yonetmen"] = [_hk["deger"]]
+                video_credits["_yonetmen_hakem_vl"] = _hk
+                log_event("credit_yonetmen_hakem_vl",
+                          summary=f"{video.name}: HAKEM VL yönetmeni buldu → {_hk['deger']} "
+                                  f"(etiket={_hk.get('etiket')!r}, "
+                                  f"saniye={_hk.get('mutlak_saniye')}, kare≈{_hk.get('kare_indeksi')}, "
+                                  f"reddedilen_blok={_hk.get('reddedilen_n')}).",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, **_hk})
+            else:
+                log_event("credit_yonetmen_hakem_vl_bulamadi", level="warn",
+                          summary=f"{video.name}: HAKEM VL de bulamadı ({_hk.get('durum')}) — "
+                                  f"alan BOŞ, insan teyidine gidiyor.",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, **_hk})
+        except Exception as _e:  # noqa: BLE001 — hakem ASLA hattı düşürmez
+            dbg.emit("hakem_vl_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
     # QC1 kriteri: yönetmen BOŞSA veya cast < 3  →  RED.
     # gemma4 VL (tek model): kare oku → yönetmen doldur + cast<3 ise cast'i de doldur (--fill-cast).
     # Kill-switch: MITAS_NO_VL_FALLBACK=1. Her hata → video_credits AYNEN (FAIL-SAFE).

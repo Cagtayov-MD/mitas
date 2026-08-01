@@ -81,7 +81,12 @@ _ADAY_ICI_YASAK = re.compile(
 _PROSA = re.compile(
     r"\b(the|an|and|with|that|this|from|into|through|throughout|when|while|"
     r"his|her|their|its|you|they|was|were|has|have|had|been|being|"
-    r"cant|cannot|dont|wont|isnt|about|after|before|during|over|under)\b",
+    r"cant|cannot|dont|wont|isnt|about|after|before|during|over|under|"
+    # 2026-08-01 kuru koşu: _DEGIL genişletmesinden sonra iki çöp sızdı —
+    # '6. GÜN → DEDIE A' (Fr. ithaf) ve 'ANGOLA → ALL ANIMAL CATCHING SCENES'.
+    r"all|every|some|any|each|both|d[eé]di[eé]|dedicat|"
+    r"scene|scenes|sequence|footage|sahne|g[oö]r[uü]nt[uü]ler)\b|"
+    r"\w+ing\b",          # ulaç/-ing (CATCHING, SHOOTING) — isimde bulunmaz
     re.IGNORECASE,
 )
 
@@ -97,7 +102,12 @@ _DEGIL = re.compile(
     r"dublaj|seslendirme|sound|audio|ses\b|"
     r"m[uü]zik|music|"
     r"2nd\s+unit|second\s+unit|ikinci\s+birim|"
-    r"post|teknik|prod[uü]ksiyon|production\s+manager|"
+    # PRODUCTION/DESIGN aileleri (2026-08-01, hakem 3. tur bulgusu): hakem
+    # 'Production Designer'ı YÖNETMEN kabul etti. 'production manager' varken
+    # 'production designer' yoktu; design/dekor/kostüm/sanat da eksikti.
+    r"post|teknik|prod[uü]ksiyon|production\s+(manager|designer|supervis|coordinat)|"
+    r"designer|design[eé]?\b|dekor|kost[uü]m|costume|"
+    r"executive|line\s+produc|co.?produc|"
     r"stunt|d[oö]v[uü][sş]|"
     # SENARYO/HİKÂYE etiketleri (2026-08-01, KARA GÜNLER kanıtı): model
     # "NACH EINER GESCHICHTE VON" (= hikâyesinden) altındaki ismi yönetmen

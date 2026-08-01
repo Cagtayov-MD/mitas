@@ -108,11 +108,18 @@ def sunucu_baslat(bekle: int = 300) -> bool:
         subprocess.Popen(
             [str(PROJE / "venvs" / "vllm" / "bin" / "vllm"), "serve", str(snaps[-1]),
              "--served-model-name", MODEL_AD, "--port", str(PORT),
-             "--max-model-len", "16384", "--gpu-memory-utilization", "0.90",
+             # GPU PAYI 0.90 → 0.82 (2026-08-01, OOM ölçümü): 0.90 = 21.2 GB alıyor
+             # ama kartta masaüstü/tarayıcı süreçlerinin ~800 MB'ı DURUYOR. Video
+             # tokenleri gelince 262 MB daha isteyip EngineDeadError ile çöküyordu
+             # (ilk 4 blok okundu, 5.'de öldü — sinsi: kısmi sonuç veriyor).
+             # 0.82 ≈ 19.3 GB → MiniCPM ağırlıkları + KV sığar, ~2 GB pay kalır.
+             # Env ile ayarlanabilir: MITAS_HAKEM_VL_GPU_UTIL
+             "--max-model-len", "16384",
+             "--gpu-memory-utilization", os.environ.get("MITAS_HAKEM_VL_GPU_UTIL", "0.87"),
              "--enforce-eager", "--trust-remote-code",
              "--allowed-local-media-path", "/tmp",
              "--limit-mm-per-prompt", '{"video": 1}',
-             "--mm-processor-kwargs", '{"max_pixels": 125440}',
+             "--mm-processor-kwargs", os.environ.get("MITAS_HAKEM_VL_MMKW", chr(123)+chr(34)+"max_pixels"+chr(34)+": 100352"+chr(125)),
              "--max-num-batched-tokens", "16384"],
             stdout=h, stderr=subprocess.STDOUT, env=env)
     for _ in range(bekle // 5):
@@ -289,6 +296,11 @@ def hakemlik(hub: Path, alan: str = "yonetmen", pencere: str = "giris",
                 break
             r = blok_sor(blok, alan, b0)
             blok.unlink(missing_ok=True)
+            if r is None and not sunucu_durum():
+                # SUNUCU ÖLDÜ (OOM sınıfı) — kalan blokları boşa deneme, DÜRÜST dur.
+                _log("sunucu düştü → hakemlik yarıda kesildi (sessiz sıfır YOK)")
+                return {"durum": "sunucu_coktu", "alan": alan, "pencere": pencere,
+                        "islenen_blok": i, "reddedilen": reddedilen[:4]}
             if not r:
                 continue
             kusur = _hakem_dogrula(r, alan)
