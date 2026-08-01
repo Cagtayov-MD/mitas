@@ -187,6 +187,46 @@ def _turkish_name_set(names) -> tuple[bool, set]:
     return False, set()
 
 
+_TR_HARF = "çğıİöşüÇĞıİÖŞÜ"
+# Cumle BASI sayilan noktalama: bu isaretten sonraki ilk sozcuk buyuk harfle baslar
+# ve ozel ad OLMAYABILIR ("Film ... ." -> FİLM dogru), o yuzden aday sayilmaz.
+_CUMLE_BASI = re.compile(r"(?:^|[.!?:;]\s+|\n\s*)$")
+
+
+def _ozel_ad_repl(ham: str) -> dict:
+    """HAM (buyutulmemis) prose'da cumle ORTASINDAKI saf-ASCII ozel adlari bul.
+
+    Donen: {tr_upper(tok): ascii_upper(tok)} — yalniz ikisi FARKLI olanlar, yani
+    icinde 'i' bulunan yabanci adlar (Emily -> EMİLY/EMILY). 'Rudy' gibi i-siz
+    adlar iki yolda da ayni cikar, sozluge girmez.
+    Turkce harf tasiyan ozel ad (İstanbul, Şener) ATLANIR — Turkce buyutme dogrudur.
+    """
+    out: dict[str, str] = {}
+    if not ham or os.environ.get("MITAS_PROSE_OZEL_AD", "1").strip().lower() in ("0", "false", "off"):
+        return out
+    for m in re.finditer(r"[A-Za-zÇĞİıŞÖÜçğşöü]+", ham):
+        tok = m.group(0)
+        if len(tok) < 2 or not tok[0].isupper() or not tok[1:].islower():
+            continue                      # yalniz 'Emily' kalibi (BUYUK+kucuk)
+        if any(c in _TR_HARF for c in tok):
+            continue                      # Turkce ozel ad -> dokunma
+        if _CUMLE_BASI.search(ham[:m.start()]):
+            continue                      # cumle basi: buyuk harf ozel ad kaniti degil
+        bad, good = tr_upper(tok), ascii_fold(tok).upper()
+        if bad != good:
+            out[bad] = good
+    return out
+
+
+def _ozel_ad_geri_al(repl: dict, name: str) -> None:
+    """Kunye 'bu isim TURKCE' dediyse, _ozel_ad_repl'in o isim icin urettigi
+    ASCII donusumunu sozlukten CIKAR (kunye bilgisi sezgiden ustundur)."""
+    for tok in re.split(r"[\s'’/&,.]+", str(name or "")):
+        tok = tok.strip()
+        if len(tok) >= 2:
+            repl.pop(tr_upper(tok), None)
+
+
 def tr_upper_prose(text: str, names=(), tr_set=None) -> str:
     """Ozet PROZASI icin Turkce buyuk harf — isim-FARKINDA, DETERMINISTIK (LLM/uppercase-LLM YOK).
     Govde tr_upper (i->İ). ANCAK verilen cast/crew YABANCI isimleri ASCII buyuk harf kalir:
@@ -196,19 +236,36 @@ def tr_upper_prose(text: str, names=(), tr_set=None) -> str:
     KILITLENMESINI onler). None ise burada duckDB (Q43) sorgulanir; duckDB cokerse _is_tr_name'e duser
     (Turkce ismi ASLA bozmaz, yabanciyi guvenli tarafta İ birakir)."""
     up = tr_upper(text or "")
+    # OZEL-AD YAKALAMA (Cagatay kurali 2026-08-01: "hicbir aksan gecmeyecek, hangi dil
+    # oldugu onemli degil; Latin'de ne aksan var ne ÜĞİŞÇÖ").
+    # _repair_foreign_prose_i BELIRTEC ariyor (W/Q/X, -IE/-IO/-IA, sabit liste) ve
+    # belirtecsiz yabanci adlari kaciriyordu: EMİLY, DİANA, NİRO, HOPKİNS.
+    # Cozum: tr_upper KUCUK/BUYUK bilgisini yok etmeden ONCE HAM metne bak — cumle
+    # ORTASINDA buyuk harfle baslayan saf-ASCII sozcuk = ozel ad => ASCII buyut.
+    # Turkce prose sozcukleri (ile, film, geciyor) kucuk harfle gectigi icin ETKILENMEZ;
+    # Turkce ozel adlar (İstanbul, Şener) Turkce harf tasidigi icin ELENIR.
+    onceki = _ozel_ad_repl(text or "")
     names = [n for n in (names or ()) if n]
     if not names:
+        for bad, good in onceki.items():
+            up = re.sub(r"(?<![A-Za-zÇĞİıŞÖÜçğşöü])" + re.escape(bad)
+                        + r"(?![A-Za-zÇĞİıŞÖÜçğşöü])", good, up)
         return _repair_foreign_prose_i(up)
     if tr_set is not None:
         db_ok = True                       # cagiran otoriter kume verdi
     else:
         db_ok, tr_set = _turkish_name_set(names)
-    repl: dict[str, str] = {}
+    repl: dict[str, str] = dict(onceki)   # ham-metin ozel adlari (kunye listesinde olmayanlar)
     for name in names:
         if any(c in _TR_STRONG for c in name):
+            _ozel_ad_geri_al(repl, name)   # kunye 'KESIN Turk' dedi → sezgiyi iptal et
             continue  # ışğİı -> KESIN Turk (tr_upper dogru)
         is_tr = (name in tr_set) if db_ok else _is_tr_name(name)
         if is_tr:
+            # ONCELIK: kunye/DB bilgisi ham-metin sezgisini EZER. Saf-ASCII Turk adi
+            # ('Ali Kaya') prose'da buyuk harfle gectigi icin _ozel_ad_repl'e dusmus
+            # olabilir; oradan CIKAR, yoksa ALİ yerine ALI yazardik.
+            _ozel_ad_geri_al(repl, name)
             continue  # Turkce isim: İ korunur
         for tok in re.split(r"[\s'’/&,.]+", str(name)):
             tok = tok.strip()

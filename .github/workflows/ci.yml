@@ -133,6 +133,7 @@ jobs:
             tests/test_ocr_simple_pipeline.py \
             tests/test_ocr_box_track_pipeline.py \
             tests/test_hibrit_okuma_veto.py \
+            tests/test_ozet_ozel_ad_kasa.py \
             tests/test_tedial_import_queue.py \
             tests/test_tedial_session_broker.py \
             tests/test_tedial_router_lazy.py \
