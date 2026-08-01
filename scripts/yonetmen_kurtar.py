@@ -38,8 +38,13 @@ _ETIKET = re.compile(
     r"r[eé]alisation|r[eé]alis[eé]\s+par|mise\s+en\s+sc[eè]ne|un\s+film\s+de|"
     r"ein\s+film\s+von|a\s+film\s+by|"
     r"regia|regie|"
-    r"re[zj]iss[oö]r|режисс[её]р"
-    r")\b",
+    r"re[zj]iss[oö]r"
+    r")\b"
+    # KİRİL AYRI (ANNA KARENINA 1988-0520 bulgusu 2026-08-01): künyede 'РЕЖИССЕРЫ'
+    # (çoğul) vardı ama \b sonlandırması Rusça ÇEKİM EKİNİ kesiyordu (-ы/-а/-ом/-ов)
+    # → etiket hiç görülmedi. Kiril için ek serbest bırakılır; 'ПОСТАНОВЩИК' (sanat
+    # yönetmeni) BİLEREK yok — o _DEGIL sınıfı.
+    r"|режисс[ёе]р\w*|постановка\b",
     re.IGNORECASE,
 )
 
