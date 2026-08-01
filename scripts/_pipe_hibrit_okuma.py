@@ -150,7 +150,12 @@ def sayfalari_oku(sayfalar: list[Path], etiket: str) -> list[dict]:
             continue
         kutu_n = _det_kutu_n(p) if satirlar else None
         for sira, s in enumerate(satirlar):
-            kayitlar.append({"kol": etiket, "kaynak": p.name, "sira": sira,
+            # KAYNAK ETİKETLİ (2026-08-01 konsey turu, en kritik tek-satır bulgusu):
+            # master_cikis ve master_giris İKİSİ DE 'bant_000.png' adını kullanıyor.
+            # Yalnız p.name kaydedilince iki AYRI KOLUN bantları aynı "kart" sanılıyor
+            # → aralarına --- KART --- konmuyor ve önceki-kart dedup'ı yanlış tetikliyor.
+            # GLM 56 üretim örneği taradı: 8/56'sında master_giris tek bant.
+            kayitlar.append({"kol": etiket, "kaynak": f"{etiket}/{p.name}", "sira": sira,
                              "text": s, "kutu_n": kutu_n})
     if hata_n:
         _log(f"{etiket}: {hata_n}/{len(sayfalar)} sayfa okunamadı")

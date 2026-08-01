@@ -36,8 +36,20 @@ OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 QWEN_MODEL = "qwen3:8b"            # hızlı metin modeli (ollama list'te mevcut)
 
 
-def ascii_fold(s: str) -> str:
-    """Aksanları düşürerek ASCII'ye indir (Türkçe dahil tüm özel harfler)."""
+def ascii_fold(s: str, *, yok_etme_koru: bool = True) -> str:
+    """Aksanları düşürerek ASCII'ye indir (Türkçe dahil tüm özel harfler).
+
+    YOK-ETME KORUMASI (2026-08-01, konsey turu KANITLI bulgusu): Latin-dışı
+    yazılar (Kiril/Yunan/Arap/CJK) NFKD ile ASCII'ye ÇÖZÜLMEZ → tamamen SİLİNİR.
+    Ölçüldü: upper_names(['ФЁДОР БОНДАРЧУК']) → [' '] — PDF'te BOŞ satır, işaret
+    bile yok. Bu, Çağatay'ın "isim atlamayalım" kuralının en net ihlali; isim
+    sessizce yok oluyor ve kimse görmüyor.
+    ÇÖZÜM: fold sonucu anlamlı harf bırakmıyorsa ORİJİNALİ döndür. Latin-dışı
+    kaynak filmler ZATEN nonlatin_source ile KONTROL'e gidiyor → insan Kiril
+    ismi görür ve romanize eder. Görünen yabancı harf, görünmeyen boşluktan iyidir.
+    yok_etme_koru=False ile eski davranış (eşleştirme/fold-anahtarı çağrıları için).
+    """
+    ham = s
     out = []
     for ch in s:
         if ch in _SPECIAL:
@@ -45,7 +57,11 @@ def ascii_fold(s: str) -> str:
             continue
         dec = "".join(c for c in unicodedata.normalize("NFKD", ch) if not unicodedata.combining(c))
         out.append(dec if dec.isascii() else "")
-    return "".join(out)
+    sonuc = "".join(out)
+    if yok_etme_koru and (ham or "").strip():
+        if not any(c.isalnum() for c in sonuc) and any(c.isalpha() for c in ham):
+            return ham          # fold ismi YOK ETTİ → orijinali koru (insan görsün)
+    return sonuc
 
 
 # Türkçe harfleri ASCII karşılığına AÇIKÇA çevir (NFKD 'ı'yı SİLER → "Tarık"→"TARK"≠DB;

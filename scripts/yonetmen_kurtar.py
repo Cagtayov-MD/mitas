@@ -34,7 +34,8 @@ import unicodedata
 _ETIKET = re.compile(
     r"\b("
     r"y[oö]netmen|y[oö]neten|"
-    r"directed\s+by|"
+    # "Directed and Edited by" / "Directed, Produced and Written by" gibi\n    # BÖLÜNMÜŞ bileşik etiketler: directed ile by arasına rol sözcüğü girebilir.
+    r"directed(\s*[,&]?\s*(and|written|produced|edited|photographed))*\s+by|"
     r"r[eé]alisation|r[eé]alis[eé]\s+par|mise\s+en\s+sc[eè]ne|un\s+film\s+de|"
     r"ein\s+film\s+von|a\s+film\s+by|"
     r"regia|regie|regi|"
@@ -127,6 +128,14 @@ _SIRKET = {
     "AS", "A.S", "SANAYI", "TICARET", "REKLAM", "AJANS",
 }
 
+# Yönetmen etiketinin ÖNÜNE gelebilen MEŞRU bileşik önekler.
+# Önek YALNIZ izinli rol sözcükleri + ayraç + 'and' içeriyorsa bileşik etikettir.
+# 'Written, Produced and' / 'Written and' / 'Produced and' hepsini kapsar;
+# 'Bu film 1998 yılında' gibi serbest cümle KAPSAM DIŞI (izinsiz sözcük var).
+_BILESIK_ON = re.compile(
+    r"[\s,]*((written|produced|edited|photographed|conceived|created|adapted|and|&)[\s,]*)+",
+    re.IGNORECASE)
+
 _MAX_ILERI = 3            # etiketten sonra en fazla kaç satır ileri bakılır
 _MAX_ISIM_TOKEN = 5       # 'JOHN RONALD REUEL TOLKIEN JR' sınırı
 
@@ -189,29 +198,46 @@ def dogrula(isim: str, satirlar, bak_ustu: int = 3) -> dict | None:
         return None
     fold = isim.lower()
     sat = [str(s or "").strip() for s in (satirlar or [])]
+    # İKİ DÜZELTME (2026-08-01 konsey turu, 4 üye bağımsız buldu + kodla test edildi):
+    # (1) İSİM MASKELEME: _DEGIL, hedef ismin KENDİ İÇİNDEKİ alt-dizeyi yakalıyordu →
+    #     'AYŞE POSTACI' → 'POST' eşleşti → DOĞRU yönetmen reddedildi. Artık isim
+    #     satırdan ÇIKARILIP sonra rol etiketi aranıyor.
+    # (2) TÜM GEÇİŞLERİ TARA: eskiden İLK eşleşmede karar verip dönüyordu →
+    #     ['Written by','JANE DOE','Directed by','JANE DOE'] gibi çift-rol (auteur)
+    #     vakasında yanlış bağlam seçilip reddediliyordu. Artık ismin TÜM geçişleri
+    #     bakılır; BİRİ temiz yönetmen etiketiyle eşleşiyorsa KABUL.
+    def _maskele(satir: str) -> str:
+        import re as _re
+        return _re.sub(_re.escape(isim), " ", satir, flags=_re.IGNORECASE)
+
+    kusurlar = []
     for i, l in enumerate(sat):
         if fold not in l.lower():
             continue
         # (a) AYNI satırda yönetmen-dışı etiket varsa ('Seslendirme Yönetmen X')
-        if _DEGIL.search(l):
-            m = _DEGIL.search(l)
-            return {"sebep": "ayni_satirda_rol_etiketi", "etiket": m.group(0),
-                    "satir": i, "isim": isim}
+        m = _DEGIL.search(_maskele(l))
+        if m:
+            kusurlar.append({"sebep": "ayni_satirda_rol_etiketi", "etiket": m.group(0),
+                             "satir": i, "isim": isim})
+            continue
         # (b) ÜSTTEKİ satırlarda; arada başka İSİM yoksa etiket bu isme aittir
+        temiz = False
         for j in range(i - 1, max(-1, i - 1 - bak_ustu), -1):
-            ust = sat[j]
-            if not ust:
+            ust = _maskele(sat[j])
+            if not ust.strip():
                 continue
             if _ETIKET.search(ust) and not _DEGIL.search(ust):
-                return None                     # gerçek yönetmen etiketi → temiz
+                temiz = True; break             # gerçek yönetmen etiketi → bu geçiş TEMİZ
             m = _DEGIL.search(ust)
             if m:
-                return {"sebep": "ustunde_rol_etiketi", "etiket": m.group(0),
-                        "satir": j, "isim": isim}
-            if isim_mi(ust):
-                return None                     # araya başka isim girdi → bağ kopuk
-        return None
-    return None
+                kusurlar.append({"sebep": "ustunde_rol_etiketi", "etiket": m.group(0),
+                                 "satir": j, "isim": isim})
+                break
+            if isim_mi(sat[j]):
+                temiz = True; break             # araya başka isim girdi → bağ kopuk, hüküm yok
+        if temiz:
+            return None                         # EN AZ BİR geçiş temiz → KABUL
+    return kusurlar[0] if kusurlar else None
 
 
 def _ayni_kare(iz_yolu, etiket_metin: str, isim_metin: str) -> str | None:
@@ -264,8 +290,13 @@ def kurtar(satirlar, iz_yolu=None) -> dict | None:
             return {"yonetmen": kalan, "etiket": m.group(0), "satir": i,
                     "nasil": "ayni_satir", "kare_teyidi": "etiketle_ayni_satir"}
         # (b) ALT satır(lar): 'Directed by' \n 'JOHN CONNICK'
-        if ham[:m.start()].strip(" :.-–—\t"):
-            continue                       # etiketten ÖNCE metin var → serbest cümle, atla
+        # BİLEŞİK ETİKET İSTİSNASI (2026-08-01, çok-yönetmen testi yakaladı):
+        # 'Written and Directed by' MEŞRU yönetmen kartıdır — promptun kural 4'ü de
+        # öyle diyor ("WRITTEN AND DIRECTED BY … bu kartlardaki kişi(ler) YÖNETMENdir").
+        # Eski koruma etiketten önce metin görünce serbest cümle sanıp ATLIYORDU.
+        _on = ham[:m.start()].strip(" :.-–—\t")
+        if _on and not _BILESIK_ON.fullmatch(_on):
+            continue                       # gerçekten serbest cümle → atla
         for j in range(i + 1, min(i + 1 + _MAX_ILERI, len(satirlar))):
             aday = satirlar[j].strip()
             if not aday:
@@ -273,8 +304,49 @@ def kurtar(satirlar, iz_yolu=None) -> dict | None:
             if _ETIKET.search(aday) or _DEGIL.search(aday):
                 break                      # araya başka rol girdi → bu etiket sahipsiz
             if isim_mi(aday):
+                # ÇOK-YÖNETMENLİ FİLM (2026-08-01 konsey turu, P0 bulgusu):
+                # eskiden İLK isimde return ediliyordu → 'Directed by / JOEL COEN /
+                # ETHAN COEN' kartında ETHAN COEN SESSİZCE KAYBOLUYORDU. Bu,
+                # Çağatay'ın "isim atlamayalım" kuralının ihlali; eş-yönetmen
+                # normaldir (Coen/Taviani kardeşler, Scandar Copti–Yaron Shani).
+                # Promptun kural 4'ü de "HEPSİNİ yaz, TEKE İNDİRME" diyor —
+                # kurtarıcı o kuralla çelişiyordu.
+                # Artık etiketten sonra ARDIŞIK gelen TÜM geçerli isimler toplanır;
+                # araya etiket/rol girerse durulur (o başka role aittir).
+                # EŞ-YÖNETMEN AYRIMI: komşu her ismi toplamak YENİ hata üretiyor —
+                # KUTSAL HAZİNE'de 'Directed by / JOHN CONNICK' sonrası 'Erea Johnson'
+                # (karakter adı) eş-yönetmen sanıldı. İki BEDAVA sinyalle ayır:
+                #  (a) KASA DESENİ: gerçek kartta eş-yönetmenler AYNI biçimde yazılır
+                #      ('JOEL COEN'/'ETHAN COEN' ikisi de BÜYÜK). 'JOHN CONNICK' BÜYÜK
+                #      iken 'Erea Johnson' Baş-Harfi-Büyük → aynı kart değil.
+                #  (b) ADRES TEYİDİ: aynı kareden mi geldi (iz varsa).
+                # Sinyal yoksa MUHAFAZAKÂR davran — tek isim (eski davranış).
+                def _kasa(t: str) -> str:
+                    harf = [c for c in t if c.isalpha()]
+                    if not harf:
+                        return "?"
+                    if all(c.isupper() for c in harf):
+                        return "UST"
+                    return "BAS" if t[:1].isupper() else "KUCUK"
+
+                adaylar = [aday]
+                _ilk_kasa = _kasa(aday)
+                for k2 in range(j + 1, min(j + 1 + _MAX_ILERI, len(satirlar))):
+                    s2 = satirlar[k2].strip()
+                    if not s2:
+                        continue
+                    if _ETIKET.search(s2) or _DEGIL.search(s2):
+                        break              # yeni rol başladı
+                    if not isim_mi(s2):
+                        break
+                    if _kasa(s2) != _ilk_kasa:
+                        break              # farklı yazım biçimi → başka kart/rol
+                    if iz_yolu and not _ayni_kare(iz_yolu, m.group(0), s2):
+                        break              # adres teyidi tutmadı → eş-yönetmen değil
+                    adaylar.append(s2)
                 kare = _ayni_kare(iz_yolu, m.group(0), aday) if iz_yolu else None
-                return {"yonetmen": aday, "etiket": m.group(0), "satir": j,
+                return {"yonetmen": adaylar[0], "yonetmenler": adaylar,
+                        "etiket": m.group(0), "satir": j,
                         "nasil": "alt_satir",
                         "kare_teyidi": kare or ("iz_yok" if not iz_yolu else "AYRI_KARE")}
             break                          # ilk dolu satır isim değilse zorlama

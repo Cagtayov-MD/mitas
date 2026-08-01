@@ -2941,7 +2941,9 @@ def main(argv=None) -> int:
                 _saglam = _teyit in ("etiketle_ayni_satir",) or (
                     _teyit and _teyit.endswith(".png"))
                 if _bulgu and _saglam:
-                    video_credits["yonetmen"] = [_bulgu["yonetmen"]]
+                    # ÇOK-YÖNETMEN: kurtar() artık liste döndürüyor (konsey P0 bulgusu —
+                    # eş-yönetmen sessizce kayboluyordu). Geriye-uyum: yonetmenler yoksa tek.
+                    video_credits["yonetmen"] = _bulgu.get("yonetmenler") or [_bulgu["yonetmen"]]
                     video_credits["_yonetmen_kurtarildi"] = _bulgu
                     log_event("credit_yonetmen_kurtarildi",
                               summary=f"{video.name}: yönetmen alanı BOŞTU, künye etiketinden "

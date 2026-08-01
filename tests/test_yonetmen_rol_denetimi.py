@@ -107,3 +107,64 @@ def test_denetim_ve_kurtarma_ayni_kunyede():
     assert yk.dogrula("PHILIPPE DE BROCA", sat) is None          # doğru → temiz
     kurt = yk.kurtar(sat)
     assert kurt and kurt["yonetmen"] == "PHILIPPE DE BROCA"      # kurtarıcı doğruyu bulur
+
+
+# ───────── KONSEY TURU DÜZELTMELERİ (2026-08-01, 4 üye bağımsız buldu) ─────────
+
+def test_isim_kendi_soyadindan_reddedilmez():
+    """_DEGIL hedef ismin KENDİ İÇİNDEKİ alt-dizeyi yakalıyordu.
+    'AYŞE POSTACI' → 'POST' eşleşti → DOĞRU yönetmen reddedildi.
+    Artık isim satırdan MASKELENİP sonra rol etiketi aranıyor."""
+    for isim in ("AYŞE POSTACI", "SESLİ KAYA", "SANATKAR DEMİR", "EDITH PIAF"):
+        assert yk.dogrula(isim, ["Directed by", isim]) is None, f"{isim} yanlış reddedildi"
+
+
+def test_cift_rol_auteur_kabul():
+    """Aynı kişi hem yazar hem yönetmen olabilir (auteur). Eskiden İLK geçişte
+    karar verilip reddediliyordu; artık TÜM geçişler taranıyor, biri temizse kabul."""
+    sat = ["Written by", "JANE DOE", "Directed by", "JANE DOE"]
+    assert yk.dogrula("JANE DOE", sat) is None
+
+
+def test_gercek_tuzaklar_hala_reddediliyor():
+    """Maskeleme gevşetme DEĞİL — ölçülmüş üç vaka hâlâ reddedilmeli."""
+    assert yk.dogrula("FREDERIC PLANCHON",
+                      ["MISE EN SCENE", "2ème assistant réalisateur",
+                       "FREDERIC PLANCHON"]) is not None
+    assert yk.dogrula("DOMINIQUE ROULET",
+                      ["NACH EINER GESCHICHTE VON", "DOMINIQUE ROULET"]) is not None
+    assert yk.dogrula("Mehmet Nazlı", ["Seslendirme Yönetmen  Mehmet Nazlı"]) is not None
+
+
+# ───────── ÇOK-YÖNETMEN (P0: ikinci yönetmen sessizce kayboluyordu) ─────────
+
+def test_es_yonetmen_ikisi_de_alinir():
+    """'Directed by / JOEL COEN / ETHAN COEN' → ETHAN COEN kaybolmamalı.
+    Promptun kural 4'ü de 'HEPSİNİ yaz, TEKE İNDİRME' diyor."""
+    r = yk.kurtar(["Directed by", "JOEL COEN", "ETHAN COEN"])
+    assert r and r["yonetmenler"] == ["JOEL COEN", "ETHAN COEN"]
+
+
+def test_karakter_adi_es_yonetmen_sayilmaz():
+    """KUTSAL HAZİNE: 'Directed by / JOHN CONNICK' sonrası 'Erea Johnson'
+    (karakter adı) eş-yönetmen SANILMAMALI. Ayırıcı: KASA DESENİ."""
+    r = yk.kurtar(["Directed by", "JOHN CONNICK", "Erea Johnson", "Blakorow"])
+    assert r and r["yonetmenler"] == ["JOHN CONNICK"]
+
+
+@pytest.mark.parametrize("etiket", [
+    "Written and Directed by", "Written, Produced and Directed by",
+    "Produced and Directed by", "Written, Directed and Edited by",
+    "Directed and Produced by",
+])
+def test_bilesik_etiketler_kabul(etiket):
+    """Bileşik yönetmen kartları MEŞRU (promptun kural 4'ü açıkça söylüyor).
+    Eski 'etiketten önce metin varsa atla' koruması bunları reddediyordu."""
+    r = yk.kurtar([etiket, "ORSON WELLES"])
+    assert r and "ORSON WELLES" in (r.get("yonetmenler") or []), f"{etiket!r} reddedildi"
+
+
+def test_serbest_cumle_hala_reddediliyor():
+    """Bileşik-etiket istisnası, serbest cümleyi geçirmemeli."""
+    assert yk.kurtar(["Bu film 1998 yılında directed by", "AHMET YILMAZ"]) is None
+    assert yk.kurtar(["Set amiri tarafından directed by", "X Y"]) is None
