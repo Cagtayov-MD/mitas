@@ -3541,7 +3541,23 @@ def main(argv=None) -> int:
                 if _has_identity_contradiction(
                         _cc4, qc2_resolved=bool(_qc2_on and _qc2_resolved),
                         strong_director=bool(_cv_strong_director)):
-                    reasons.append("kimlik çelişkisi (KB cross-check)")
+                    # ETİKET DÜRÜSTLÜĞÜ (Çağatay 2026-08-01: "bu kadar fark olmaması
+                    # gerekiyor"). ÖLÇÜLDÜ — haklıydı, o kadar fark YOK:
+                    #   gecenin 17 "kimlik çelişkisi" filminin 14'ü KAYNAK_YOK,
+                    #   2'si OKUNAN_YOK, YALNIZ 1'i ÇELİŞKİ.
+                    #   Tüm DB: KB otoriter yönetmeni olan 164 filmin 109'unda (%66)
+                    #   AYNI ismi okuduk, 46'sında okuyamadık, 9'unda farklı isim —
+                    #   biri de yalnız aksan (AGUST~Ágúst, aynı kişi) → gerçek çelişki %5.
+                    # Kaynak YOKLUĞU çelişki DEĞİLDİR; "çelişki" etiketi veri-kalitesi
+                    # felaketi görüntüsü yaratıp taksonomiyi yanıltıyordu.
+                    # ROTA DEĞİŞMEZ (film yine KONTROL'e gider — kimlik kurulamadı
+                    # qc_block'u zaten ayrıca basılıyor); yalnız SEBEP metni dürüstleşir.
+                    _cc_verdict = str((_cc4 or {}).get("verdict") or "")
+                    if _cc_verdict in ("KAYNAK_YOK", "OKUNAN_YOK"):
+                        reasons.append(
+                            f"kimlik doğrulanamadı (kıyas kaynağı yok — {_cc_verdict})")
+                    else:
+                        reasons.append("kimlik çelişkisi (KB cross-check)")
                 # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
                 # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
                 _v4_yon = (((_v4j or {}).get("v4") or {}).get("yonetmen") or [])

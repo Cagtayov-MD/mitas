@@ -29,6 +29,8 @@ DB = PROJE / "Database"
 
 # imza (küçük-harf arama) → (sınıf, sorumlu adım, fix-notu)
 DESENLER: list[tuple[str, tuple[str, str, str]]] = [
+    ("kimlik doğrulanamadı", ("kimlik_kaynaksiz", "QC2/kimlik (kıyas kaynağı yok)",
+                              "KB/web referansı YOK — çelişki değil, doğrulanamama")),
     ("kimlik çelişkisi", ("kimlik", "QC2/kimlik (KB cross-check)",
                           "XML↔KB↔web kimliği uyuşmuyor — yabancı/az-bilinen film sınıfı")),
     ("kimlik kurulamadı", ("kimlik", "QC2/qc_block (web çapası)",
