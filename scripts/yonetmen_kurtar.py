@@ -37,9 +37,18 @@ _ETIKET = re.compile(
     r"directed\s+by|"
     r"r[eé]alisation|r[eé]alis[eé]\s+par|mise\s+en\s+sc[eè]ne|un\s+film\s+de|"
     r"ein\s+film\s+von|a\s+film\s+by|"
-    r"regia|regie|"
-    r"re[zj]iss[oö]r"
+    r"regia|regie|regi|"
+    r"re[zj]iss[oö]r|regisseur|"
+    # ÖLÇÜLEREK eklendi (2026-08-01, tüm künye korpusu tarandı — tahmin değil):
+    # regisseur 10 film · direccion 4 · regi 2 · rendezte 1 · کارگردان 1.
+    # KOŞUCU 2025-1047 (yönetmeni bulunamayanlardan) Farsça etiketi taşıyor.
+    r"direcci[oó]n|dirigida?\s+por|"
+    r"dire[cç][aã]o|realiza[cç][aã]o|"
+    r"re[zż]yseria|re[zž]ie|rendezte|"
+    r"σκηνοθεσ[ιί]α"
     r")\b"
+    # Latin-dışı yazılar: \b Unicode sözcük sınırı bu yazılarda güvenilmez, ayrı tutulur.
+    r"|کارگردان|إخراج|監督|감督|导演|導演|בימוי"
     # KİRİL AYRI (ANNA KARENINA 1988-0520 bulgusu 2026-08-01): künyede 'РЕЖИССЕРЫ'
     # (çoğul) vardı ama \b sonlandırması Rusça ÇEKİM EKİNİ kesiyordu (-ы/-а/-ом/-ов)
     # → etiket hiç görülmedi. Kiril için ek serbest bırakılır; 'ПОСТАНОВЩИК' (sanat
@@ -80,7 +89,8 @@ _PROSA = re.compile(
 # (KUTSAL HAZİNE'de '2nd Unit Director' ve 'DIRECTORS SOUND' bu yüzden elenir;
 #  CİNAYET'te 'Director of Photography', OKYANUSUN'da 'Seslendirme Yönetmen'.)
 _DEGIL = re.compile(
-    r"yard[iı]mc|asist|assistant|associate|"
+    r"yard[iı]mc|asist|assistan|assisten|ayudante|assistente|"   # NL/DE 'ASSISTENT', ES 'AYUDANTE'
+    r"associate|"
     r"photograph|d\.?o\.?p\.?|g[oö]r[uü]nt[uü]|"
     r"sanat|art\s+direct|"
     r"casting|cast\s+direct|"
