@@ -374,7 +374,9 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     if cs is not None:
         gsrc = film / "frames" / "giris_jenerik"
         ginfo = {"source": "giris_cropstack", "status": "no_frames"}
-        if gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
+        if not KANONIK:
+            ginfo = {"source": "giris_cropstack", "status": "kanonik_kapali"}
+        elif gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
             try:
                 r = cs.build(gsrc, giris_out)
                 ginfo = {"source": "giris_cropstack", "status": r.get("status"),
@@ -389,7 +391,7 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
         frames, src = _seg_source(film, "giris")
         canon, info = _compose_seg(frames, args)
         info["source"] = src
-        if canon is not None:
+        if canon is not None and KANONIK:
             dc.wr(giris_out, canon); info["path"] = str(giris_out); produced = True
         res["giris"] = info
 
@@ -397,7 +399,7 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     frames, src = _seg_source(film, "cikis")
     canon, info = _compose_seg(frames, args)
     info["source"] = src
-    if canon is not None:
+    if canon is not None and KANONIK:
         cout = film / f"{base} cikis.png"
         dc.wr(cout, canon)
         info["path"] = str(cout)
@@ -501,9 +503,18 @@ def _ready(film: Path) -> bool:
     return _has_frames(film) and ((film / "ocr").exists() or (film / "pdf").exists())
 
 
+# KANONİK MASTER ÜRETİMİ KAPALI (Çağatay talimatı 2026-08-01):
+# "runaware doğru olan; diğer iki master çöp, sil, bir daha üretilmesinler."
+# Okuma hattı YALNIZ *_reading_master_runaware.png okuyor (_pipe_hibrit_okuma.kol_master).
+# Kanonik '<ad> giris.png' (crop-stack) ve '<ad> cikis.png' (slit-scan) hiçbir tüketiciye
+# gitmiyordu; disk + karışıklık üretiyorlardı. Geri açmak: MITAS_KANONIK_MASTER=1
+KANONIK = os.environ.get("MITAS_KANONIK_MASTER", "0").strip().lower() in ("1", "true", "on", "yes")
+
+
 def _done(film: Path) -> bool:
-    # kökte herhangi bir '<base> giris.png' / '<base> cikis.png' üretilmiş mi
-    return bool(glob.glob(str(film / "* giris.png")) or glob.glob(str(film / "* cikis.png")))
+    # OKUNAN master üretilmiş mi (kanonik değil — runaware). Kanonik üretim
+    # kapatıldığı için eski kontrol her filmde "üretilmedi" derdi.
+    return bool(glob.glob(str(film / "*reading_master_runaware.png")))
 
 
 def monitor():

@@ -4233,7 +4233,13 @@ def main(argv=None) -> int:
                     [str(PY_OCR), str(_mp_runner), "--once", str(clip_dir), "--base", _mp_base],
                     capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=int(os.environ.get("MITAS_MASTER_PNG_TIMEOUT", "300") or 300))
-                _mp_ok = bool(list(clip_dir.glob("* giris.png")) or list(clip_dir.glob("* cikis.png")))
+                # SAĞLIK KONTROLÜ GERÇEK DOSYAYA BAĞLANDI (Çağatay 2026-08-01:
+                # "sadece runaware olanlar üretilsin, diğer iki master çöp").
+                # Eski hâli KANONİK master'lara (<ad> giris/cikis.png) bakıyordu —
+                # oysa okuma hattı YALNIZ *_reading_master_runaware.png dosyalarını
+                # okuyor (_pipe_hibrit_okuma.kol_master). Kanonik üretim kapatılınca
+                # bu kontrol her filmde sahte "master_png_empty" alarmı verirdi.
+                _mp_ok = bool(list(clip_dir.glob("*reading_master_runaware.png")))
                 log_event("master_png_completed" if _mp_ok else "master_png_empty",
                           level="info" if _mp_ok else "warn",
                           summary=f"{video.name}: master-PNG {'üretildi' if _mp_ok else 'üretilemedi'} "
