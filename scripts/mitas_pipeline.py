@@ -2879,6 +2879,47 @@ def main(argv=None) -> int:
     # DURUŞ: LLM'i değiştirme (aynı metinden 18 oyuncuyu doğru çıkardı); bulanık
     # işi LLM'e, ETİKETLİ kesin alanı KURAL'a bırak. Yalnız BOŞ alanı doldurur,
     # dolu alanı ASLA ezmez → sıfır regresyon. Kill-switch: MITAS_YON_KURTAR=0.
+    # ── ROL-EŞLEME DENETİMİ: modelin DOLDURDUĞU yönetmeni bağlama karşı sına ──
+    # ÖLÇÜLEN SORUN (2026-08-01): model, etiketin SAHİBİ OLMAYAN komşu ismi
+    # yönetmen yazıyor. Üç vaka:
+    #   ÇİNGENE 1998-0435   : '2ème assistant réalisateur' altındaki isim
+    #   KARA GÜNLER 1998-0312: 'NACH EINER GESCHICHTE VON' (hikâye yazarı) altındaki
+    #                          isim — DOĞRU yönetmen (NIKOLAUS LEYTNER) 3 satır YUKARIDA
+    #   YAZ TATİLİ 1963-0035: koreograf alınmış; üstünde etiket YOK → bu kural
+    #                          onu YAKALAYAMAZ (dürüst sınır, kayıtlı)
+    # ÇAĞATAY KISITI: "Bu işi modelden ALMAM, en fazla modeli değiştiririz."
+    # Bu yüzden burada ÇIKARIM YOK — model ana yol, bu katman yalnız HAKEM.
+    # (Ayrıca ölçüldü: gemma4:26b daha iyi nicelemeli ama DAHA KÖTÜ → model
+    #  değişimi çözüm değil; rol_model_ab.py kaydında.)
+    # SİLME DEĞİL İŞARETLEME: alan boşalır, _yonetmen_reddedildi olarak kaydedilir,
+    # olay basılır → insan görür, ayrıca aşağıdaki kurtarıcı yeniden deneyebilir.
+    # Kill-switch: MITAS_YON_DENETIM=0
+    if (video_credits and video_credits.get("yonetmen")
+            and os.environ.get("MITAS_YON_DENETIM", "1").strip().lower() not in ("0", "false", "off")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import yonetmen_kurtar as _yk_d
+            _ku_d = ocr_out / "kunye.txt"
+            if _ku_d.is_file():
+                _sat_d = _ku_d.read_text(encoding="utf-8", errors="ignore").splitlines()
+                _kalan, _red = [], []
+                for _yn in (video_credits.get("yonetmen") or []):
+                    _kusur = _yk_d.dogrula(str(_yn), _sat_d)
+                    (_red if _kusur else _kalan).append((_yn, _kusur))
+                if _red:
+                    video_credits["yonetmen"] = [y for y, _ in _kalan]
+                    video_credits["_yonetmen_reddedildi"] = [
+                        {"isim": y, **(k or {})} for y, k in _red]
+                    for _y, _k in _red:
+                        log_event("credit_yonetmen_rol_reddi", level="warn",
+                                  summary=f"{video.name}: modelin verdiği yönetmen '{_y}' REDDEDİLDİ — "
+                                          f"künyede üstünde/aynı satırında yönetmen-DIŞI rol etiketi var "
+                                          f"({_k.get('etiket')!r}, satır {_k.get('satir')}).",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "reddedilen": _y, **(_k or {})})
+        except Exception as _e:  # noqa: BLE001 — denetim ASLA hattı düşürmez
+            dbg.emit("yonetmen_denetim_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
     if (video_credits and not video_credits.get("yonetmen")
             and os.environ.get("MITAS_YON_KURTAR", "1").strip().lower() not in ("0", "false", "off")):
         try:

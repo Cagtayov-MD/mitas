@@ -172,6 +172,13 @@ _RET_KALIP = (
     "没有可识别", "无法识别", "图片中", "该图片", "未检测到",      # ZH ret cümleleri
     "no recognizable", "no text", "cannot identify", "unable to read",
     "the image shows", "this image",
+    # deepseek biçim-başlıkları (YAZ TATİLİ 1963-0035 kanıtı 2026-08-01): model
+    # cevabını markdown gibi biçimlendirip başlık satırları basıyor. Bunlar
+    # EKRANDA YOK ve künyeye sızınca rol-eşlemenin bağlamını BOZUYOR — o filmde
+    # yönetmen adının üstünde 'Caption:' / 'Markdown-style Summary:' duruyordu,
+    # dolayısıyla rol etiketi yerine gevezelik vardı.
+    "markdown-style", "markdown style", "caption:", "summary:", "ozet:",
+    "here is the", "here's the", "extracted text", "ocr result", "transcription:",
 )
 
 

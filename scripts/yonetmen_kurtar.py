@@ -98,7 +98,13 @@ _DEGIL = re.compile(
     r"m[uü]zik|music|"
     r"2nd\s+unit|second\s+unit|ikinci\s+birim|"
     r"post|teknik|prod[uü]ksiyon|production\s+manager|"
-    r"stunt|d[oö]v[uü][sş]",
+    r"stunt|d[oö]v[uü][sş]|"
+    # SENARYO/HİKÂYE etiketleri (2026-08-01, KARA GÜNLER kanıtı): model
+    # "NACH EINER GESCHICHTE VON" (= hikâyesinden) altındaki ismi yönetmen
+    # yazmıştı. Hikâye/senaryo yazarı yönetmen DEĞİL.
+    r"geschichte\s+von|based\s+on\s+a\s+story|d.?apr[eè]s|"
+    r"senaryo|screenplay|written\s+by|drehbuch|sc[eé]nario|soggetto|"
+    r"hik[aâ]ye|uyarlama|adaptation|adapt[eé]\s+par",
     re.IGNORECASE,
 )
 
@@ -147,6 +153,55 @@ def isim_mi(satir: str) -> bool:
     if len(harf) < len(s.replace(" ", "")) * 0.8:
         return False                       # noktalama ağırlıklı → çöp
     return True
+
+
+def dogrula(isim: str, satirlar, bak_ustu: int = 3) -> dict | None:
+    """MODELİN VERDİĞİ yönetmeni künye BAĞLAMINA karşı sına — kusur varsa döner.
+
+    Çağatay kısıtı: "Bu işi modelden ALMAM." Bu yüzden burada çıkarım YOK;
+    yalnız modelin cevabı DENETLENİR. Model ana yol kalır, bu katman hakemdir.
+
+    MEKANİZMA: ismin künyedeki yerini bul, HEMEN ÜSTÜNDEKİ satırlara bak.
+    Orada yönetmen-DIŞI bir rol etiketi varsa (koreograf, hikâye yazarı,
+    asistan, görüntü yön., ses...) o isim O ROLE aittir, yönetmene değil.
+
+    ÖLÇÜLMÜŞ VAKALAR:
+      ÇİNGENE 1998-0435 : satır 20 '2ème assistant réalisateur' → 21 FREDERIC PLANCHON
+      KARA GÜNLER 1998-0312: satır 12 'NACH EINER GESCHICHTE VON' → 13 DOMINIQUE ROULET
+                             (doğru yönetmen NIKOLAUS LEYTNER satır 10'da duruyordu)
+    KAPSAM DIŞI (dürüstlük): YAZ TATİLİ'nde ismin üstünde HİÇ etiket yok
+    (OCR yapıyı kaybetmiş) → bu kural onu yakalayamaz, yakalamış gibi de yapmaz.
+
+    Döner: kusur varsa {"sebep","etiket","satir","isim"}; temizse None.
+    """
+    isim = (isim or "").strip()
+    if not isim:
+        return None
+    fold = isim.lower()
+    sat = [str(s or "").strip() for s in (satirlar or [])]
+    for i, l in enumerate(sat):
+        if fold not in l.lower():
+            continue
+        # (a) AYNI satırda yönetmen-dışı etiket varsa ('Seslendirme Yönetmen X')
+        if _DEGIL.search(l):
+            m = _DEGIL.search(l)
+            return {"sebep": "ayni_satirda_rol_etiketi", "etiket": m.group(0),
+                    "satir": i, "isim": isim}
+        # (b) ÜSTTEKİ satırlarda; arada başka İSİM yoksa etiket bu isme aittir
+        for j in range(i - 1, max(-1, i - 1 - bak_ustu), -1):
+            ust = sat[j]
+            if not ust:
+                continue
+            if _ETIKET.search(ust) and not _DEGIL.search(ust):
+                return None                     # gerçek yönetmen etiketi → temiz
+            m = _DEGIL.search(ust)
+            if m:
+                return {"sebep": "ustunde_rol_etiketi", "etiket": m.group(0),
+                        "satir": j, "isim": isim}
+            if isim_mi(ust):
+                return None                     # araya başka isim girdi → bağ kopuk
+        return None
+    return None
 
 
 def _ayni_kare(iz_yolu, etiket_metin: str, isim_metin: str) -> str | None:
