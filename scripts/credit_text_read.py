@@ -169,7 +169,10 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
     # Sıra korunur (model satır komşuluğuna güveniyor). Geri dönüş: MITAS_COMPACT_ONCELIK=0.
     if len(keep) > max_lines and os.environ.get(
             "MITAS_COMPACT_ONCELIK", "1").strip().lower() not in ("0", "false", "off"):
+        # '--- KART ---' de öncelikli: sınır düşerse iki kart BİRLEŞİR ve
+        # etiket-isim bağı yeniden belirsizleşir — sınırı korumak şart.
         _oncelikli = re.compile(
+            r"---\s*KART\s*---|"
             r"\b(DIRECTED BY|WRITTEN\s*&\s*DIRECTED|YONETMEN|YÖNETMEN|"
             r"CAST|STARRING|OYUNCU|OYUNCULAR|IN ORDER OF APPEARANCE)\b", re.IGNORECASE)
         birinci: set[int] = set()
@@ -201,7 +204,17 @@ def load_llm_lines_for_ocr(ocr_path: str | os.PathLike | None) -> tuple[list[str
         return [], ""
     base = os.path.dirname(os.fspath(ocr_path))
 
-    for filename in ("ocr_ham.txt", "ocr_raw_all.txt"):
+    # KART SINIRLI METİN TERCİHLİ (2026-08-01): hibrit okuyucu kunye_kart.txt
+    # yazıyor — satırlar KAYNAK KAREYE göre gruplu, araya '--- KART ---' konmuş.
+    # Düz metinde kart yapısı kayboluyor ve etiket-isim bağı belirsizleşiyor
+    # (YAZ TATİLİ: 'CHOREOGRAPHY … DIRECTED BY / HERBERT ROSS' ile 'DIRECTED BY /
+    # PETER YATES' yan yana düşüp ayırt edilemedi). Kart sınırıyla belirsizlik yok.
+    # ADDITIVE: dosya yoksa eski sıra AYNEN (ocr_ham → ocr_raw_all).
+    # Kill-switch: MITAS_KART_METIN=0
+    _sira = ("ocr_ham.txt", "ocr_raw_all.txt")
+    if os.environ.get("MITAS_KART_METIN", "1").strip().lower() not in ("0", "false", "off"):
+        _sira = ("kunye_kart.txt",) + _sira
+    for filename in _sira:
         lines = _read_ocr_sidecar_lines(base, filename)
         if lines:
             lines = _compact_raw_lines_for_llm(lines, max_lines=500)  # 260→500: uzun/anahtar-kelimesiz jenerikte kadro-bloğu kaybını azalt (recall güvenliği)
@@ -638,6 +651,10 @@ PROMPT = """Aşağıda bir filmin jeneriğinden (künye) OCR ile okunan satırla
 GÖREVİN: bu satırlardan YÖNETMEN, YAPIMCI ve baş OYUNCULARI çıkarmak — YENİDEN OKUMAK ya da bilgiden EKLEMEK DEĞİL.
 
 KESİN KURALLAR:
+-1. KART YAPISI: Satırlar arasında "--- KART ---" işareti görürsen, bu bir JENERİK
+   KARTININ sınırıdır — o işaretten SONRAKİ satırlar EKRANDA AYNI ANDA görünmüştür.
+   Bir rol etiketi ile isim AYNI KART içindeyse o isim O ROLE aittir. Farklı
+   kartlardaki etiketle ismi BİRLEŞTİRME. Kart işaretini isim/rol olarak YAZMA.
 0. BİÇİM (EN ÖNEMLİ): her isim GERÇEK "Ad Soyad" olmalı — en az İKİ kelime, gerçek bir insan. TEK kelime (yalnız ad VEYA yalnız soyad) YAZMA. Marka/şirket/stüdyo/logo adı (ör. Warner Bros, Lucasfilm, Columbia Pictures), sıfat, rol/etiket sözcüğü İSİM DEĞİLDİR — YAZMA. Emin değilsen o ismi atla.
 1. SADECE aşağıdaki satırlarda GEÇEN isimleri kullan. Kendi bilginden/hafızandan İSİM EKLEME, TAHMİN ETME. Bir alan satırlarda yoksa boş liste [] ver.
 2. Bir satır "KARAKTER_ADI OYUNCU_ADI" biçimindeyse (ör. "CAL MORSE SAM WATERSTON", "FLETCHER REEDE JIM CARREY", "MARGARET THATCHER MERYL STREEP"), yalnız OYUNCU (gerçek kişi) adını al; KARAKTER adını KOYMA. Tek başına KARAKTER/ROL adı görünüyorsa (ör. yalnız "FLETCHER REEDE" veya "MARGARET THATCHER") onu LİSTEYE KOYMA — sadece gerçek oyuncu adlarını ver.

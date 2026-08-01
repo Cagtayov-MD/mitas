@@ -148,3 +148,34 @@ def test_kisi_adi_etiket_sayilmaz():
     for ad in ("HERBERT ROSS", "PETER YATES", "ANNE BAXTER", "JOHN HUNECK",
                "NAZLI ÖZDEMİR", "ZEKİ DEMİRKUBUZ"):
         assert not h._ROL_ETIKET.search(ad), f"isim etiket sayıldı: {ad!r}"
+
+
+# ───────── KART SINIRLI METİN (etiket-isim bağı) ─────────
+
+def test_kart_sinir_sabiti():
+    """KART_SINIR, credit_text_read'in aradığı desenle uyumlu olmalı."""
+    assert h.KART_SINIR == "--- KART ---"
+
+
+def test_kart_sinir_sikistirmada_korunur():
+    """Sınır düşerse iki kart BİRLEŞİR ve etiket-isim bağı yeniden belirsizleşir.
+
+    YAZ TATİLİ 1963-0035 kanıtı: 'CHOREOGRAPHY ... DIRECTED BY / HERBERT ROSS'
+    kartı ile 'DIRECTED BY / PETER YATES' kartı düz metinde yan yana düşünce
+    hangi etiketin hangi isme ait olduğu ayırt edilemiyordu.
+    """
+    import importlib.util as _ilu
+    _sp = _ilu.spec_from_file_location(
+        "ctr_test", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                 "scripts", "credit_text_read.py"))
+    try:
+        ctr = _ilu.module_from_spec(_sp)
+        _sp.loader.exec_module(ctr)
+    except Exception:  # noqa: BLE001 — ağır bağımlılık yoksa atla
+        return
+    ham = ["--- KART --- (g_0101.png)", "CHOREOGRAPHY AND MUSICAL NUMBERS",
+           "DIRECTED BY OVERHALL", "HERBERT ROSS",
+           "--- KART --- (g_0106.png)", "DIRECTED BY", "PETER YATES"] * 90
+    sik = ctr._compact_raw_lines_for_llm(ham, max_lines=100)
+    assert len(sik) <= 100
+    assert any("KART" in x for x in sik), "kart sınırı sıkıştırmada tamamen düştü"

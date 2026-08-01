@@ -57,6 +57,8 @@ CAGRI_TIMEOUT = int(os.environ.get("MITAS_HIBRIT_CAGRI_TIMEOUT", "300") or 300)
 MAX_SAYFA_CIKIS = int(os.environ.get("MITAS_HIBRIT_MAX_SAYFA", "100") or 100)
 MAX_SAYFA_GIRIS = int(os.environ.get("MITAS_HIBRIT_MAX_SAYFA_GIRIS", "40") or 40)
 BANT_H, BINDIRME = 1100, 120   # pilot_hat.oku_master ile aynı geometri
+# Kart sınırı işareti — kunye_kart.txt ve credit_text_read ORTAK sabiti.
+KART_SINIR = "--- KART ---"
 
 sys.path.insert(0, str(PROJE / "harness" / "track_kunye"))
 
@@ -487,6 +489,38 @@ def main() -> int:
         (out_dir / "ocr_ham.txt").write_text("\n".join(ham_temiz) + "\n", encoding="utf-8")
         _log(f"ocr_ham: {len(ham)} → {len(ham_temiz)} satır "
              f"({len(ham) - len(ham_temiz)} model gevezeliği ayıklandı)")
+        # ── KART SINIRLI METİN (2026-08-01, Çağatay'ın "adres verelim de bilsin" fikri)
+        # SORUN: düz metinde kart yapısı KAYBOLUYOR. YAZ TATİLİ'nde gemma şunu gördü:
+        #     CHOREOGRAPHY AND MUSICAL NUMBERS / DIRECTED BY OVERHALL / HERBERT ROSS
+        #     DIRECTED BY / PETER YATES
+        # → 5 satır, 2 etiket, 2 isim, GRUPLAMA YOK. Hangi etiket hangi isme ait
+        # belirsiz; model komşuluğa bakmak zorunda ve yanlış seçebiliyor.
+        # ÇÖZÜM: satırları KAYNAK KAREYE göre grupla, araya sınır koy. Aynı karede
+        # okunanlar AYNI KARTTADIR — bu bilgi izde ZATEN var, kullanmıyorduk.
+        #     --- KART ---
+        #     CHOREOGRAPHY AND MUSICAL NUMBERS
+        #     DIRECTED BY OVERHALL
+        #     HERBERT ROSS
+        #     --- KART ---
+        #     DIRECTED BY
+        #     PETER YATES
+        # Artık belirsizlik YOK. Model kalıp öğrenmiyor, YAPI görüyor —
+        # Çağatay'ın "sen bu talimatı vereceksen gemma'yı niye kullanıyoruz?"
+        # itirazının doğru cevabı bu: modele TALİMAT değil DAHA İYİ VERİ ver.
+        # Yan dosya (additive): tüketici yoksa hiçbir şey değişmez.
+        kart_sat: list[str] = []
+        _onceki = None
+        for k in frame_k + master_k:
+            if k.get("kutu_n") == 0 or _model_gevezeligi(k["text"]):
+                continue
+            if k.get("kaynak") != _onceki:
+                kart_sat.append(f"{KART_SINIR} ({k.get('kaynak')})")
+                _onceki = k.get("kaynak")
+            kart_sat.append(k["text"])
+        (out_dir / "kunye_kart.txt").write_text("\n".join(kart_sat) + "\n", encoding="utf-8")
+        _log(f"kunye_kart.txt: {len(kart_sat)} satır "
+             f"({sum(1 for x in kart_sat if x.startswith(KART_SINIR))} kart)")
+
         with (out_dir / "hibrit_iz.jsonl").open("w", encoding="utf-8") as h:
             for k in frame_k + master_k:
                 h.write(json.dumps(k, ensure_ascii=False) + "\n")
