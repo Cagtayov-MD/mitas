@@ -286,7 +286,14 @@ _TR_GIVEN: set = set()
 _TR_SUR: set = set()
 try:
     import importlib.util as _ilu
-    _spec = _ilu.spec_from_file_location("_kunye_classify_kb", r"E:\MITAS\scripts\_kunye_classify.py")
+    # Linux gecisi (2026-08-01, 8. sabit-yol vakasi): r"E:\MITAS\scripts\..." Linux'ta
+    # yok → import sessizce dusuyor → _TR_GIVEN/_TR_SUR BOS kaliyor → _is_tr_name HER
+    # saf-ASCII ismi "yabanci" sayiyor. Yani JASON KIDD'in Turkce/yabanci ayrimi
+    # DB'siz calisiyordu: 'Ali Kaya' → ALI (ALİ olmali). Env-aware + depo-goreli.
+    import os as _os
+    _kok = _os.environ.get("MITAS_PROJECT_ROOT") or str(Path(__file__).resolve().parents[2])
+    _kc_yol = _os.path.join(_kok, "scripts", "_kunye_classify.py")
+    _spec = _ilu.spec_from_file_location("_kunye_classify_kb", _kc_yol)
     _kc = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_kc)
     _TR_GIVEN, _TR_SUR = _kc.load_turkish()
 except Exception:  # noqa: BLE001 - DB/pandas yoksa qwen'e dus

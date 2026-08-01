@@ -8,12 +8,18 @@ icerik EKLEMEZ/DEGISTIRMEZ/UYDURMAZ. DB yoksa kural-only calisir (graceful).
 Cikti JSON: {oyuncular:[...], yapimci:[...], yonetmen:[...], needs_review, notes, db_used}
 """
 from __future__ import annotations
-import sys, re, json, argparse, unicodedata, time
+import sys, re, json, os, argparse, unicodedata, time
 from pathlib import Path
 
 IMDB_DB = r"Y:\DIGER\Mitas_Files\IMDB\db\imdb.duckdb"
-TR_GIVEN = r"Y:\DIGER\Mitas_Files\MitaData\06_name_databases\turkish\turkish_given_names.csv"
-TR_SUR = r"Y:\DIGER\Mitas_Files\MitaData\06_name_databases\turkish\turkish_surnames.csv"
+# Linux gecisi (2026-08-01, 9. sabit-yol vakasi): r"Y:\DIGER\..." Linux'ta yok →
+# load_turkish() sessizce BOS set donuyordu → JASON KIDD'in Turkce/yabanci ayrimi
+# CSV yedeginden YOKSUN kaliyordu (duckdb kapaliyken her saf-ASCII isim "yabanci").
+# Dosyalar depoda MEVCUT: Mitas_Files/MitaData/06_name_databases/turkish/
+_KOK_KC = os.environ.get("MITAS_PROJECT_ROOT") or str(Path(__file__).resolve().parent.parent)
+_TR_DIR = os.path.join(_KOK_KC, "Mitas_Files", "MitaData", "06_name_databases", "turkish")
+TR_GIVEN = os.path.join(_TR_DIR, "turkish_given_names.csv")
+TR_SUR = os.path.join(_TR_DIR, "turkish_surnames.csv")
 
 sys.stdout.reconfigure(encoding="utf-8")
 
