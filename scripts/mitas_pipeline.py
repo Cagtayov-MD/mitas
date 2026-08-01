@@ -3643,7 +3643,44 @@ def main(argv=None) -> int:
         if qwen_qc.get("turkce_karakter_bozuk_var"):
             reasons.append("qwen: Türkçe karakter bozuk")
         if qwen_qc.get("latin_disi_alfabe_var"):                # başka alfabe (Kiril/Yunan/Arap/CJK) PDF'e sızmamalı
-            reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
+            # AFİŞ BİZİM METNİMİZ DEĞİL (ölçüm 2026-08-01): bu görsel kapı PDF
+            # ÖNİZLEMESİNE bakıyor ve AFİŞ SANAT ESERİNDEKİ yabancı alfabeyi de
+            # sayıyor. Modelin kendi notları ele veriyor — 8 filmin hepsinde
+            # "Afiş üzerinde Kiril/Arapça..." yazıyor. Bunların 7'sinde künye
+            # METNİ tertemiz (%0.00 Latin-dışı); üstelik bazı iddialar UYDURMA
+            # (KUTSAL HAZİNE'nin afişi İTALYANCA, Kiril yok — gözle doğrulandı).
+            # Sovyet filminin afişinin Kiril olması NORMAL; kural bizim YAZDIĞIMIZ
+            # metin hakkında.
+            # ÇÜRÜTME KAPISI (adres-teyidi ilkesi): model iddiası, hesaplanabilir
+            # yer-doğrusuna karşı sınanır. Künye metni Latin-dışı eşiğinin ALTINDAysa
+            # iddia ÇÜRÜTÜLDÜ → bloklamaz, uyarı olarak kalır (kayıt kaybolmaz).
+            # Metin gerçekten Latin-dışıysa (İKİ SÜVARİ %98.8) blok AYNEN sürer.
+            # Geri dönüş: MITAS_QWEN_NONLATIN_CURUT=0
+            _nl_oran = None
+            try:
+                if os.environ.get("MITAS_QWEN_NONLATIN_CURUT", "1").strip().lower() not in ("0", "false", "off"):
+                    _ku = ocr_out / "kunye.txt"
+                    if _ku.is_file():
+                        _t = _ku.read_text(encoding="utf-8", errors="ignore")
+                        _harf = [c for c in _t if c.isalpha()]
+                        if _harf:
+                            _nl_oran = sum(
+                                1 for c in _harf
+                                if "LATIN" not in unicodedata.name(c, "")) / len(_harf)
+            except Exception:  # noqa: BLE001 — çürütme yapılamazsa ESKİ davranış (blokla)
+                _nl_oran = None
+            if _nl_oran is not None and _nl_oran < 0.02:
+                qwen_uyari.append(
+                    f"qwen 'Latin-dışı alfabe' dedi ama künye metni temiz (%{_nl_oran * 100:.2f}) — "
+                    f"iddia AFİŞ sanat eserinden; bloklamadı. not: {str(qwen_qc.get('notlar'))[:70]}")
+                log_event("qwen_nonlatin_curutuldu",
+                          summary=f"{video.name}: görsel QC 'Latin-dışı alfabe' dedi, künye metni "
+                                  f"%{_nl_oran * 100:.2f} → iddia çürütüldü (afiş kaynaklı).",
+                          module="qc", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "kunye_nonlatin_oran": round(_nl_oran, 4),
+                                  "qwen_notlar": qwen_qc.get("notlar")})
+            else:
+                reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
 
     # yönetmen doğrulama (credit_validate, flag-gated): kaynak-çelişkisi/okunamadı → KONTROL sinyali
     if cv_result:
