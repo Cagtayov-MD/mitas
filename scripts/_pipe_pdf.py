@@ -330,6 +330,55 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
     return cast, crew
 
 
+
+# ── ALT BAŞLIK HARF KAPISI (Çağatay kuralı 2026-08-01) ──────────────────────
+# "Hiçbir aksan geçmeyecek, hangi dil olduğu önemli değil. Türkçede Ü Ğ İ Ş Ç Ö
+#  büyüyebilir; Latin'de ne aksan var ne Ü Ğ İ Ş Ç Ö."
+#
+# BULGU: PDF'in kullanıcıya giden metin alanları içinde alt başlık (XML orijinal
+# ad) TEK normalize EDİLMEYEN alandı — cast/crew (upper_names), title (tr_upper),
+# özet (tr_upper_prose) hepsi geçerken subtitle HAM gidiyordu.
+# TESLİM EDİLMİŞ PDF'lerde bulundu: 'MADE İN ITALY', 'SERPİCO', 'RED KİT',
+# 'RIYA QEŞAYÊ'. Kaynak XML <TITLE> zaten kirli (mitas_pipeline._clean_xml_title
+# Türkçe harfleri KORUYOR, doğrusu da bu — kirlilik TRT katalogundan geliyor).
+#
+# KÖRLEMESİNE ascii_fold YAPILAMAZ: orijinal ad çoğu zaman TÜRKÇE BAŞLIĞIN
+# KENDİSİ ('AĞAÇ', 'MİRAS', 'BORÇ', 'İMPARATORUN YOLCULUĞU') — fold onları
+# 'AGAC'a çevirip SAĞLAM çıktıyı bozardı. Ölçüldü: 15 film bu sınıfta.
+#
+# AYIRICI (veriden çıkarıldı, tahmin değil):
+#   1) yabancı aksan (é ê å ø Ê…) → kesin yabancı → ASCII
+#   2) orijinal == Türkçe başlık  → TRT "orijinali de bu" diyor → DOKUNMA
+#   3) kesin-Türkçe harf (ı ş ğ)  → tr_upper bunları ÜRETEMEZ → gerçek Türkçe → DOKUNMA
+#   4) kalan (farklı + yalnız İ/ü/ö/ç) → yabancı orijinal → ASCII
+#      ör. YAĞMACILAR → 'LAND RAİDERS' → 'LAND RAIDERS'
+#          AYNADAKİ DÜŞMAN → 'EL ADÜVVÜ-L LEZİ FİL MİRA' → 'EL ADUVVU-L LEZI FIL MIRA'
+# Ölçek: mevcut DB'de 3 film düzelir, 15 film korunur.
+# BİLİNEN SINIR: XML hem başlığı hem orijinali aynı şekilde kirletmişse (2. kural)
+# dokunulmaz — sessiz hata değil, bilinçli kabul; insan QC'si görür.
+# Kill-switch: MITAS_ALTBASLIK_KAPISI=0
+_TR_KESIN = set("ışğŞĞ")
+_TR_TUM = set("çğıİöşüÇĞIÖŞÜ")
+
+
+def _altbaslik_harf_kapisi(orig: str, d_title: str = "") -> str:
+    import unicodedata as _ud
+    if not orig or os.environ.get("MITAS_ALTBASLIK_KAPISI", "1").strip().lower() in ("0", "false", "off"):
+        return orig
+    if not any(c.isalpha() and not c.isascii() for c in orig):
+        return orig                                   # zaten saf ASCII
+    yabanci_aksan = any((not c.isascii()) and _ud.category(c).startswith("L")
+                        and c not in _TR_TUM for c in orig)
+    if not yabanci_aksan:
+        if d_title and orig.upper() == d_title.upper():
+            return orig                               # (2) başlıkla aynı → Türkçe başlık
+        if any(c in _TR_KESIN for c in orig):
+            return orig                               # (3) ı/ş/ğ → kesin Türkçe
+    try:
+        return nn.ascii_fold(orig)                    # (1) ve (4) → ASCII
+    except Exception:                                 # noqa: BLE001 — kapı ASLA PDF'i düşürmez
+        return orig
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--kunye", required=True)
@@ -402,6 +451,7 @@ def main(argv=None) -> int:
     # yabancı film: orijinal ad (XML) birincil sorgu + kadro çapraz-kontrolü (TRT yılı güvenilmez).
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
     orig = (args.original or "").strip()   # XML <TITLE> = BİRİNCİL orijinal-ad (temizlenmiş)
+    orig = _altbaslik_harf_kapisi(orig, d_title=(args.title or "").strip())
     poster_path = None
     poster_source = "not_found"
     try:
