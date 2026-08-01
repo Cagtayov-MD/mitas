@@ -1330,6 +1330,33 @@ def main():
                 film_notu.append("KİŞİ-TEYİT — KB'de doğrulanamayan %d isim listeden çıkarıldı (raporda saklı)."
                                  % (len(_teyitsiz_cast) + len(_teyitsiz_yon)))
                 rapor["adimlar"]["teyitsiz_dusen"] = {"cast": _teyitsiz_cast[:12], "yon": _teyitsiz_yon}
+                # ÖLÇÜM KANCASI — DOĞRU YER (2026-08-01, ikinci deneme).
+                # SABAH YANLIŞ DALA TAKMIŞTIM (satır ~810: "KB eşleşmedi; zorlanmadı").
+                # Gerçek silme BURADA: kişi-teyit kapısı KB'de doğrulanamayan ismi
+                # listeden çıkarıyor ve yon_kaynak'ı GÜNCELLEMİYOR → iz hâlâ "kareler"
+                # diyor, kimse silindiğini anlamıyor. Kanca 0 gösterdiği için körüz sandım.
+                # CANLI KANIT (DEFİNE ADASININ SIRRI 1990-0524): QC1 yonetmen_var=True,
+                # ama PDF'te 'Yönetmen' kelimesi HİÇ YOK — teyitsiz_dusen.yon =
+                # ['NICKLE LAURITZEN SET'] (sondaki 'SET' OCR kırıntısı).
+                # Bu, Çağatay'ın B8 kalemi: KB'nin VARLIK YARGICI olarak davrandığı nokta.
+                # ÖLÇÜM ÖNCE, karar sonra — bu kanca davranışı DEĞİŞTİRMEZ.
+                try:
+                    from core.observability.system_events import log_event as _le2
+                    if _teyitsiz_yon:
+                        _le2("credit_yonetmen_kisi_teyit_sildi", level="warn",
+                             summary=("%s: KB kişi-teyidi YÖNETMENİ sildi → %s "
+                                      "(kalan=%s). PDF'te yönetmen satırı boş kalır."
+                                      % (clip, _teyitsiz_yon, yon)),
+                             module="kunye",
+                             detail={"silinen_yon": _teyitsiz_yon, "kalan_yon": list(yon),
+                                     "silinen_cast_n": len(_teyitsiz_cast), "clip": str(clip)})
+                    elif _teyitsiz_cast:
+                        _le2("credit_cast_kisi_teyit_dustu", level="info",
+                             summary="%s: KB kişi-teyidi %d oyuncu düşürdü." % (clip, len(_teyitsiz_cast)),
+                             module="kunye",
+                             detail={"dusen": _teyitsiz_cast[:12], "clip": str(clip)})
+                except Exception:  # noqa: BLE001 — ölçüm ASLA üretimi düşürmez
+                    pass
         except Exception:  # noqa: BLE001 — süzgeç hatası akışı ASLA bozmaz (cast AYNEN kalır)
             pass
 
