@@ -179,3 +179,9 @@ def test_kart_sinir_sikistirmada_korunur():
     sik = ctr._compact_raw_lines_for_llm(ham, max_lines=100)
     assert len(sik) <= 100
     assert any("KART" in x for x in sik), "kart sınırı sıkıştırmada tamamen düştü"
+
+
+def test_rn_fold_calisir():
+    """Kart dedup'ı fold'a bağlı — sarmalayıcı gerçekten ronaldo'yu çağırıyor mu."""
+    assert h._rn_fold("AHMET") == h._rn_fold("ahmet")
+    assert h._rn_fold("") == ""

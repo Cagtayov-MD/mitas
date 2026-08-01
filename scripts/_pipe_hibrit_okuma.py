@@ -369,6 +369,12 @@ def master_garanti(clip_dir: Path) -> None:
 
 # ── birleşim ─────────────────────────────────────────────────────────────────
 
+def _rn_fold(t: str) -> str:
+    """ronaldo.fold_tr sarmalayıcı — kart dedup'ında tek yerden kullanılsın."""
+    import ronaldo as _rn
+    return _rn.fold_tr(t or "")
+
+
 def birlesim(frame_k: list[dict], master_k: list[dict]) -> dict:
     """BİRLEŞİM (kesişim değil) + yapısal veto + fold-dedup.
     KB YOK: varlık kararı piksele/QC'ye ait; KB yalnız imlacı (aşağı katman)."""
@@ -508,15 +514,41 @@ def main() -> int:
         # Çağatay'ın "sen bu talimatı vereceksen gemma'yı niye kullanıyoruz?"
         # itirazının doğru cevabı bu: modele TALİMAT değil DAHA İYİ VERİ ver.
         # Yan dosya (additive): tüketici yoksa hiçbir şey değişmez.
+        # ÖNCEKİ-KART DEDUP (ölçüldü 2026-08-01): kayan jenerikte aynı satır ardışık
+        # karelerde tekrar tekrar okunuyor — 46 filmde ham 51.071 satırın %56'sı
+        # mükerrer. Denenen ve ÇÜRÜYEN iki hipotez kayda geçsin:
+        #   • model gevezeliği süzgeci    → yalnız %14 (mükerrerlik gevezelik DEĞİL)
+        #   • kart-düzeyi birebir dedup   → yalnız %1  (OCR her karede biraz farklı okuyor)
+        # İŞE YARAYAN: satırı ÖNCEKİ kartta geçtiyse atla → kayan pencere çöker.
+        # ÖLÇÜM: 51.071 → 32.861 satır (%36; ALİE %60, BAŞARI %57, BİR ANNENİN %52).
+        # Az tekrarlı filmlerde sınır maliyeti kazancı aşabiliyor (ANNA KARENINA
+        # 86→103) — kabul: yapı kazancı o maliyeti karşılar, ayrıca 500-satır
+        # bütçesinde etiketler artık öncelikli.
+        # Yalnız ÖNCEKİ kart bakılır (tüm geçmiş DEĞİL): kart gerçekten yeniden
+        # gösteriliyorsa (jenerik başa dönüyor) o bilgi KORUNMALI.
         kart_sat: list[str] = []
-        _onceki = None
+        _onceki_kare = None
+        _onceki_kume: set[str] = set()
+        _bu_kume: set[str] = set()
         for k in frame_k + master_k:
             if k.get("kutu_n") == 0 or _model_gevezeligi(k["text"]):
                 continue
-            if k.get("kaynak") != _onceki:
+            if k.get("kaynak") != _onceki_kare:
+                _onceki_kume, _bu_kume = _bu_kume, set()
+                _onceki_kare = k.get("kaynak")
                 kart_sat.append(f"{KART_SINIR} ({k.get('kaynak')})")
-                _onceki = k.get("kaynak")
+            _bu_kume.add(_rn_fold(k["text"]))
+            if _rn_fold(k["text"]) in _onceki_kume:
+                continue                       # kayan pencerenin tekrarı
             kart_sat.append(k["text"])
+        # içi boş kalan kart sınırlarını temizle (dedup hepsini yiyebilir)
+        _temiz: list[str] = []
+        for i, x in enumerate(kart_sat):
+            if x.startswith(KART_SINIR) and (i + 1 >= len(kart_sat)
+                                             or kart_sat[i + 1].startswith(KART_SINIR)):
+                continue
+            _temiz.append(x)
+        kart_sat = _temiz
         (out_dir / "kunye_kart.txt").write_text("\n".join(kart_sat) + "\n", encoding="utf-8")
         _log(f"kunye_kart.txt: {len(kart_sat)} satır "
              f"({sum(1 for x in kart_sat if x.startswith(KART_SINIR))} kart)")
