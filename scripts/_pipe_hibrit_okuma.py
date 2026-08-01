@@ -312,15 +312,35 @@ def havuz_garanti(clip_dir: Path, frame_dirs: list[Path]) -> None:
 def master_garanti(clip_dir: Path) -> None:
     """reading_master_runaware.png yoksa üret. YAN ETKİ: DİLİM-TAZELE (2783)
     aynı koşuda ateşlenir — dilim korpusu artık bir koşu geride kalmaz."""
-    if (clip_dir / "reading_master_runaware.png").is_file():
+    cikis_m = clip_dir / "reading_master_runaware.png"
+    giris_m = clip_dir / "giris_reading_master_runaware.png"
+    # GİRİŞ MASTER'I DA GARANTİ (2026-08-01, KUTSAL HAZİNE kanıtı).
+    # ESKİ HATA: yalnız ÇIKIŞ master'ına bakıp erken dönüyordu → giriş master'ı
+    # bu betikten SONRA (pipeline'ın kendi adımında) üretiliyor, dolayısıyla
+    # İBRAHİMOVİC KOLU GİRİŞE KÖR kalıyordu. Ölçüldü: 47 hibrit filmin 29'unda
+    # (%62) master_giris = 0 satır.
+    # CANLI ZARAR: KUTSAL HAZİNE'de "A JOHN HUNECK FILM" kartı giriş master'ında
+    # NET duruyor; frame kolu örnekleme adımıyla kartı atladı (g_0017→g_0027 arası),
+    # master kolu ise dosya henüz yokken koştu → İKİ KOL DA KÖR. Master kolu tam
+    # bu durumun emniyet ağıydı.
+    # master_png_monitor --once ZATEN iki master'ı da üretir (dosya başlığı satır 5-6).
+    # EŞZAMANLILIK KORUMASI: giriş master'ı frames/giris_jenerik havuzundan türüyor
+    # ve o havuzu pipeline EŞZAMANLI derliyor olabilir → havuz yoksa/boşsa giriş
+    # master'ı ZORLANMAZ (yarım havuzdan sakat master üretmek, hiç üretmemekten kötü).
+    giris_havuz = clip_dir / "frames" / "giris_jenerik"
+    havuz_hazir = giris_havuz.is_dir() and any(giris_havuz.glob("*.png"))
+    giris_gerek = (not giris_m.is_file()) and havuz_hazir
+    if cikis_m.is_file() and not giris_gerek:
+        if not giris_m.is_file():
+            _log("giriş master yok ve havuz hazır değil → master_giris kolu ATLANIYOR (raporlanır)")
         return
     runner = PROJE / "OCR-worktree" / "master_png_monitor.py"
     base = clip_dir.name
-    _log("master yok → master_png_monitor --once")
+    _log(f"master eksik (cikis={cikis_m.is_file()}, giris={giris_m.is_file()}) → master_png_monitor --once")
     r = subprocess.run([str(PY_OCR), str(runner), "--once", str(clip_dir), "--base", base],
                        capture_output=True, text=True, timeout=900)
-    _log(f"master: cikis={'VAR' if (clip_dir / 'reading_master_runaware.png').is_file() else 'YOK'} "
-         f"(rc={r.returncode})")
+    _log(f"master: cikis={'VAR' if cikis_m.is_file() else 'YOK'} "
+         f"giris={'VAR' if giris_m.is_file() else 'YOK'} (rc={r.returncode})")
 
 
 # ── birleşim ─────────────────────────────────────────────────────────────────
