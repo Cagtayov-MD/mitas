@@ -108,67 +108,52 @@ def _compose_reading_seg(frames, args):
     return master, info | {"manifest": manifest}
 
 
-# --- adaptif_slit entegrasyonu (2026-07-29, Çağatay kararı) ----------------- #
-# ÇIKIŞ okuma-master'ının BİRİNCİL kompozitörü artık harness/master_dup/adaptif_slit.
-# Gerekçe (25-film 3-kollu kıyas, aynı filmler + aynı metrik): metin-recall
-# adaptif 0.589 · V2 0.522 · V2-kapalı 0.457. Görsel QC'de adaptif, V2'nin
-# kaçırdığı künye KUYRUĞUNU taşıyor (gercek-yalanlar: mcfadden/simulator/
-# pennington token'ları adaptifte VAR, V2'de YOK) ve blokları tekrarlamıyor.
-# V2 (compose_reading_runaware) YEDEK olarak durur — adaptif ÇÖKERSE ona düşülür.
-# Çökme tanımı hayat-agaci vakasından: 113 kareden tek kart / 480px üretmişti.
-# Sebebi kompozitör DEĞİL, OCR kapsaması: Farsça karelerde det 0-3 kutu buluyor
-# (normal filmde 19-35), dolayısıyla kart-kimliği sinyalinin girdisi yok.
-ADAPTIF_KOK = Path(_PR) / "harness" / "master_dup"
-ADAPTIF_COKME_MIN_KARE = 20   # bu kadar KAREDEN tek kart çıkıyorsa çökmedir
-_ADAPTIF_MOD = None
+# --- lebron_james entegrasyonu (2026-08-04, Çağatay kararı) ----------------- #
+# ÇIKIŞ okuma-master'ının BİRİNCİL kompozitörü artık harness/master_dup/lebron_james.
+LEBRON_KOK = Path(_PR) / "harness" / "master_dup"
+LEBRON_COKME_MIN_KARE = 20
+_LEBRON_MOD = None
 
 
-def _adaptif_acik() -> bool:
-    return os.environ.get("MITAS_MASTER_ADAPTIF", "1").strip().lower() not in ("0", "false", "off", "no")
+def _lebron_acik() -> bool:
+    return os.environ.get("MITAS_MASTER_LEBRON", "1").strip().lower() not in ("0", "false", "off", "no")
 
 
-def _adaptif_modul():
-    """Tembel import — hata YUTULMAZ, çağırana yükselir.
-    (Yukarıdaki `cs` bloğunun çıplak `except: cs = None` deseni üretimde giriş
-    master'ını sessizce mod değiştirmişti: korpusta 189 manifest cropstack,
-    157 textset. Aynı hatayı burada tekrarlama — sebep log'a yazılır.)"""
-    global _ADAPTIF_MOD
-    if _ADAPTIF_MOD is None:
-        if str(ADAPTIF_KOK) not in sys.path:
-            sys.path.insert(0, str(ADAPTIF_KOK))
-        import ibrahimovic as adaptif_slit
-        _ADAPTIF_MOD = adaptif_slit
-    return _ADAPTIF_MOD
+def _lebron_modul():
+    global _LEBRON_MOD
+    if _LEBRON_MOD is None:
+        if str(LEBRON_KOK) not in sys.path:
+            sys.path.insert(0, str(LEBRON_KOK))
+        import lebron_james as lebron_motor
+        _LEBRON_MOD = lebron_motor
+    return _LEBRON_MOD
 
 
-def _adaptif_cokmus(manifest: dict, kare_sayisi: int, kare_h: int) -> bool:
-    """Kart-kimliği körlüğü yüzünden master'ın tek karta çökmesi.
-    KARE şartı, gerçekten kısa (az kareli) tek-kart jeneriklerini muaf tutar —
-    örn. supheli-zafer 480px üretir ama kare sayısı düşüktür, çökme değildir."""
-    if manifest.get("segment") != 1 or kare_sayisi < ADAPTIF_COKME_MIN_KARE:
+def _lebron_cokmus(manifest: dict, kare_sayisi: int, kare_h: int) -> bool:
+    if manifest.get("segment") != 1 or kare_sayisi < LEBRON_COKME_MIN_KARE:
         return False
     boy = (manifest.get("size") or [None, None])[1]
     return bool(boy) and kare_h > 0 and boy <= 2 * kare_h
 
 
-def _compose_reading_seg_adaptif(frames):
-    """Birincil kompozitör. Kapalı/başarısız/çökmüş → (None, sebep); çağıran V2'ye düşer."""
-    if not _adaptif_acik():
-        return None, {"adaptif": "kapali"}
+def _compose_reading_seg_lebron(frames):
+    """Birincil kompozitör: LeBron James (AI Trim). Kapalı/başarısız/çökmüş → (None, sebep)"""
+    if not _lebron_acik():
+        return None, {"lebron": "kapali"}
     try:
-        ad = _adaptif_modul()
+        lb = _lebron_modul()
         ims = [im for im in (dc.rd_cached(f) for f in frames) if im is not None]
         if len(ims) < 2:
-            return None, {"adaptif": "kare_yok", "yuklenen": len(ims)}
-        master, manifest = ad.compose_adaptif("uretim", ims=ims)
+            return None, {"lebron": "kare_yok", "yuklenen": len(ims)}
+        master, manifest = lb.compose_lebron("uretim", ims=ims)
         if master is None:
-            return None, {"adaptif": "cikti_yok", "durum": manifest.get("durum")}
-        if _adaptif_cokmus(manifest, len(ims), ims[0].shape[0]):
-            return None, {"adaptif": "cokme", "segment": manifest.get("segment"),
+            return None, {"lebron": "cikti_yok", "durum": manifest.get("durum")}
+        if _lebron_cokmus(manifest, len(ims), ims[0].shape[0]):
+            return None, {"lebron": "cokme", "segment": manifest.get("segment"),
                           "size": manifest.get("size"), "kare": len(ims)}
         info = {
             "frames": len(ims),
-            "mode": "adaptif_slit",
+            "mode": "lebron_james",
             "status": manifest.get("durum"),
             "size": manifest.get("size"),
             "kept_blocks": manifest.get("segment"),
@@ -176,9 +161,9 @@ def _compose_reading_seg_adaptif(frames):
         }
         return master, info | {"manifest": manifest}
     except Exception as exc:
-        print(f"[adaptif] HATA -> V2 yedegine dusuluyor: {type(exc).__name__}: {exc}",
+        print(f"[lebron] HATA: {type(exc).__name__}: {exc}",
               file=sys.stderr, flush=True)
-        return None, {"adaptif": "hata", "hata": f"{type(exc).__name__}: {exc}"}
+        return None, {"lebron": "hata", "hata": f"{type(exc).__name__}: {exc}"}
 
 
 def _semantic_giris_groups(film: Path, frames: list[str], *, min_frames: int = 2):
@@ -454,43 +439,66 @@ def gen_reading_master(
         # gruba yutup tek medoid karta indirebiliyor. Girişin tamamında yalnız
         # güçlü iç metin-yerleşimi sıçramalarında bölmeye izin ver.
         args.reading_early_split_frames = len(frames)
-    key = "giris_reading_master_runaware" if seg == "giris" else "reading_master_runaware"
-    stem = key
-    out = film / f"{stem}.png"
-    man_out = film / f"{stem}_manifest.json"
+    # Eski (legacy) anahtarlar - Pipeline 15 dosya bunlari okuyor
+    legacy_key = "giris_reading_master_runaware" if seg == "giris" else "reading_master_runaware"
+    legacy_stem = legacy_key
+    legacy_out = film / f"{legacy_stem}.png"
+    legacy_man_out = film / f"{legacy_stem}_manifest.json"
+    
+    # Yeni LeBron isimleri
+    lebron_stem = f"{film.name}-giris-lebron" if seg == "giris" else f"{film.name}-cikis-lebron"
+    out = film / f"{lebron_stem}.png"
+    man_out = film / f"{lebron_stem}_manifest.json"
+
     if seg == "giris":
         master, info = _compose_giris_reading_seg(film, frames, args)
     else:
-        # ÇIKIŞ: İBRAHİMOVİC tek motor (Çağatay 2026-07-30: "V2 artık gereksiz").
-        # 40-film üçlü kıyas kanıtı: V2 ort. 0.469 (sonuncu, 2 filmde ~boş master).
-        # Üretemezse YEDEK YOK — sebep manifest'e yazılır, eski dosya korunur
-        # ("kötü master yerine hiç"). Not: GİRİŞ akışı bu karardan bağımsız.
-        master, info = _compose_reading_seg_adaptif(frames)
+        # ÇIKIŞ: LEBRON JAMES motoru (Çağatay 2026-08-04)
+        master, info = _compose_reading_seg_lebron(frames)
         if master is None:
-            info = {"status": "ibrahimovic_uretemedi", "mode": "ibrahimovic",
+            info = {"status": "lebron_uretemedi", "mode": "lebron_james",
                     "frames": len(frames), "sebep": info}
+            
     manifest = info.pop("manifest", None)
     info["source"] = src
     info["segment"] = seg
     info["base"] = base
+    
+    def _create_symlink(target, link_name):
+        if link_name.exists() or link_name.is_symlink():
+            try:
+                link_name.unlink()
+            except Exception:
+                pass
+        try:
+            os.symlink(target.name, str(link_name))
+        except Exception as e:
+            print(f"Symlink olusturulamadi: {e}", file=sys.stderr)
+            
     if master is not None:
         dc.wr(out, master)
         info["path"] = str(out)
-    elif seg == "cikis" and info.get("status") == "ibrahimovic_uretemedi":
-        pass   # V2-emeklilik: üretilemeyen turda ESKİ çıkış master'ı korunur
+        # 15 farkli okuma scriptinin kirilmamasi icin symlink koprusu kur
+        _create_symlink(out, legacy_out)
+    elif seg == "cikis" and info.get("status") == "lebron_uretemedi":
+        pass   # üretilemeyen turda ESKİ çıkış master'ı korunur
     elif out.exists():
         try:
             out.unlink()
+            if legacy_out.exists() or legacy_out.is_symlink(): legacy_out.unlink()
         except Exception:
             pass
+            
     if write_manifest:
         payload = manifest if isinstance(manifest, dict) else info
         try:
-            man_out.write_text(json.dumps(payload | {"source": src, "base": base}, ensure_ascii=False, indent=1),
-                               encoding="utf-8")
+            man_out.write_text(json.dumps(payload | {"source": src, "base": base}, ensure_ascii=False, indent=1), encoding="utf-8")
+            _create_symlink(man_out, legacy_man_out)
         except Exception:
             pass
-    return {"film": film.name, "base": base, key: info}
+            
+    # Geriye donuk uyumluluk icin pipeline json raporuna hem eski anahtari hem yeni anahtari ekle
+    return {"film": film.name, "base": base, legacy_key: info, lebron_stem: info}
 
 
 def _has_frames(film: Path) -> bool:
