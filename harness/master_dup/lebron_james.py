@@ -45,32 +45,29 @@ def ai_flashlight_mask(img: np.ndarray) -> np.ndarray:
     h, w = gray.shape
     maske = np.zeros((h, w), dtype=np.uint8)
     
-    ocr = get_ocr_engine()
-    results = ocr.predict(img)
-    
-    # PaddleOCRv4 predict çıktısı liste içinde liste olabilir. 
-    # Bazen direkt liste döner. 
-    for res in results:
-        if res is None:
-            continue
-        if isinstance(res, dict) and 'dt_polys' in res:
-            for box in res['dt_polys']:
-                box_np = np.array(box, dtype=np.int32)
-                cv2.fillPoly(maske, [box_np], 255)
-        elif isinstance(res, list):
-            # Genelde det=True, rec=False durumunda dt_polys formatı yerine direkt kutu listesi gelebilir
-            # Normal predict kullandığımız için res = [box1, box2, ...] (Her box = [points, (text, score)])
-            # Veya [point1, point2, point3, point4] şeklinde olabilir.
-            for item in res:
-                if isinstance(item, list) and len(item) == 2 and isinstance(item[1], tuple):
-                    box_np = np.array(item[0], dtype=np.int32)
+    try:
+        ocr = get_ocr_engine()
+        results = ocr.predict(img)
+        
+        for res in results:
+            if res is None:
+                continue
+            if isinstance(res, dict) and 'dt_polys' in res:
+                for box in res['dt_polys']:
+                    box_np = np.array(box, dtype=np.int32)
                     cv2.fillPoly(maske, [box_np], 255)
-                elif isinstance(item, list) and len(item) == 4:
-                    box_np = np.array(item, dtype=np.int32)
-                    cv2.fillPoly(maske, [box_np], 255)
-
-    # Kutuları biraz genişlet ki harfin tamamı girsin
-    maske = cv2.dilate(maske, np.ones((7, 7), np.uint8))
+            elif isinstance(res, list):
+                for item in res:
+                    if isinstance(item, list) and len(item) == 2 and isinstance(item[1], tuple):
+                        box_np = np.array(item[0], dtype=np.int32)
+                        cv2.fillPoly(maske, [box_np], 255)
+                    elif isinstance(item, np.ndarray):
+                        box_np = item.astype(np.int32)
+                        cv2.fillPoly(maske, [box_np], 255)
+    except Exception:
+        _, maske = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+        
+    maske = cv2.dilate(maske, np.ones((5, 5), np.uint8), iterations=2)
     
     # FLAŞÖR MANTIGI: Sadece maske içindeki orijinal gri tonları al, geri kalanı 0 (siyah) yap
     masked_gray = cv2.bitwise_and(gray, gray, mask=maske)
