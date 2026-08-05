@@ -41,10 +41,36 @@ _GATE_BEFORE_CAP = os.environ.get("MITAS_EXTRACT_GATE_BEFORE_CAP", "1").strip().
 # gürültü <%2. Oranla ayır. MITAS_NONLATIN_MIN_RATIO=0 ile eski (oransız) davranış geri gelir.
 _NONLATIN_MIN_RATIO = float(os.environ.get("MITAS_NONLATIN_MIN_RATIO", "0.02"))
 
+# OCR model artifact filtresi (2026-08-02, konsey incelemesi 2026-08-03):
+# DeepSeek/Messi modeli metin olmayan karelerde Çince/İngilizce model marker'ları
+# üretir. Bunlar _nonlatin_ratio'yu şişirip tamamen Latin filmleri yanlışlıkla
+# KONTROL'e gönderiyordu (BUFFALO '66, NAZİK BİR GECE, ELVEDA OĞLUM).
+# Gerçek Kiril/Arap metni bu pattern'a UYMAZ — sadece [] içindeki model çıktısı
+# silinir. re.IGNORECASE: [No Text Found] / [no text found] varyantlarını kapsar.
+_OCR_MODEL_MARKERS = re.compile(
+    r'\[(?:'
+    r'图片[^\]]*'                    # [图片中没有可识别的文字内容]
+    r'|无[^\]]*文字[^\]]*'           # [无有效文字]
+    r'|无法识别[^\]]*'               # [无法识别图片内容]
+    r'|暂无[^\]]*'                   # [暂无文字内容]
+    r'|no[^\]]*text[^\]]*'           # [no text detected]
+    r'|image[^\]]*no[^\]]*text[^\]]*'  # [image contains no text]
+    r'|ocr[^\]]*none[^\]]*'          # [OCR result: none]
+    r')\]',
+    re.IGNORECASE
+)
+
 
 def _nonlatin_ratio(s: str) -> float:
     """Metindeki latin-dışı harflerin TÜM harflere oranı (0..1). Rakam/noktalama sayılmaz."""
-    alpha = [c for c in (s or "") if c.isalpha()]
+    # OCR model artifact'larını temizle — gerçek Kiril/Arap metnine dokunmaz
+    original = s or ""
+    s = _OCR_MODEL_MARKERS.sub('', original)
+    # GLM edge-case: metnin TAMAMI model çöpüydü → temizleme her şeyi sildi.
+    # 0.0 (Latin) dönmek yerine 1.0 (Latin-dışı) dön → film yanlışlıkla ONAYLI'ya düşmesin.
+    if s.strip() == "" and original.strip() != "":
+        return 1.0
+    alpha = [c for c in s if c.isalpha()]
     if not alpha:
         return 0.0
     nonlatin = 0
@@ -143,7 +169,7 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
 
     hints = re.compile(
         r"\b(CAST|STARRING|IN ORDER OF APPEARANCE|DIRECTED BY|WRITTEN\s*&\s*DIRECTED|"
-        r"PRODUCED BY|PRODUCER|YONETMEN|YÖNETMEN|YAPIMCI|OYUNCU|OYUNCULAR)\b",
+        r"PRODUCED BY|PRODUCER|YONETMEN|YÖNETMEN|YAPIMCI|OYUNCU|OYUNCULAR|frame_giris|master_giris)\b",
         re.IGNORECASE,
     )
     keep: set[int] = set()
@@ -214,9 +240,13 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
         ikinci = [i for i in sorted(keep - birinci)][:max(0, kalan)]
         keep = birinci | set(ikinci)
 
+    kalan_genel = max_lines - len(keep)
+    if kalan_genel > 0:
+        haric = [i for i in range(len(cleaned)) if i not in keep]
+        keep.update(haric[:kalan_genel])
+
     ordered = [cleaned[i] for i in sorted(keep)]
-    if len(ordered) > max_lines:
-        ordered = ordered[:max_lines]
+    ordered = ordered[:max_lines]
     return ordered
 
 
@@ -1006,7 +1036,7 @@ _JUNK_WORDS = {
 }
 
 
-def _guard(names, ocr_fold_tokens, title_f):
+def _guard(names, ocr_fold_tokens, title_f, original_f=""):
     """Anti-halüsinasyon + junk-filtre: her ismin anlamlı tokenlarının TÜMÜ OCR metninde geçmeli;
     1-4 kelime; disclaimer/bağlaç kelimesi içermemeli. Aksi halde uydurma/çöp → atılır."""
     out, seen = [], set()
@@ -1026,7 +1056,10 @@ def _guard(names, ocr_fold_tokens, title_f):
         # disclaimer/bağlaç/etiket kelimesi içeren "isim" = cümle parçası → düş
         if any(t in _JUNK_WORDS for t in tk):
             continue
-        if _fold(nm).strip() == title_f:  # film adının kendisi isim değil
+        nm_f = _fold(nm).strip()
+        if nm_f == title_f:  # film adının kendisi isim değil
+            continue
+        if original_f and nm_f == original_f:  # orijinal başlık da isim değil
             continue
         k = " ".join(tk)
         if k in seen:
@@ -2248,7 +2281,7 @@ def model_chain():
     return ["gemma-4-31b-it-qat-vision:latest"]
 
 
-def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
+def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None, original=""):
     """F1: TÜM modelleri koş, ilk-doluda DURMA.
     Yönetmen: fuse() ile mutabakat/KB-seçimi.
     Cast: tüm modellerin birleşimi, dedup + F2 KB filtresi + F3 garble kapısı.
@@ -2323,6 +2356,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         guard_lines.extend(str(l).strip() for l in raw_context_lines if str(l).strip())
     ocr_tokens = set(_toks("\n".join(guard_lines)))
     title_f = _fold(title).strip()
+    original_f = _fold(original).strip() if original else ""
 
     kb = _get_kb()
     # A-fix-canli 2026-06-29: _cap burada bir kez tanımlanır; aşağıdaki tüm hard-cut'lar buna referans verir.
@@ -2393,9 +2427,9 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
             per_model_cast[m] = []
             continue
 
-        yon_raw = _guard(raw.get("yonetmen"), ocr_tokens, title_f)
-        yap_raw = _guard(raw.get("yapimci"), ocr_tokens, title_f)
-        cast_raw = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f)  # fix3-B 2026-06-29
+        yon_raw = _guard(raw.get("yonetmen"), ocr_tokens, title_f, original_f)
+        yap_raw = _guard(raw.get("yapimci"), ocr_tokens, title_f, original_f)
+        cast_raw = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f, original_f)  # fix3-B 2026-06-29
 
         per_model_yon[m] = yon_raw
         per_model_cast[m] = cast_raw

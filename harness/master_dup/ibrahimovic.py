@@ -142,6 +142,7 @@ IYIL_OTSU = os.environ.get("MITAS_IYIL_OTSU", "0") == "1"
 IYIL_DY_SMOOTH = os.environ.get("MITAS_IYIL_DY_SMOOTH", "0") == "1"
 IYIL_FUZZY = os.environ.get("MITAS_IYIL_FUZZY", "0") == "1"
 IYIL_SUBPX = os.environ.get("MITAS_IYIL_SUBPX", "0") == "1"
+IYIL_STRIDE = int(os.environ.get("MITAS_IYIL_STRIDE", "1"))
 
 
 def _median_filtre(vals: list[float], pencere: int = 3) -> list[float]:
@@ -271,18 +272,27 @@ def cift_olc(olcum: list[np.ndarray], bosluk_px: list[int],
     maskesi; sobel yolu: maskeli gri değerler). `bosluk_px[i]`: o karenin
     metin-piksel sayısı (boşluk kararı)."""
     han = cv2.createHanningWindow((w, h), cv2.CV_32F)
+    han_1d = cv2.createHanningWindow((1, h), cv2.CV_32F)
     out: list[dict] = []
     for i in range(len(olcum) - 1):
-        m1, m2 = olcum[i], olcum[i + 1]
-        px1, px2 = bosluk_px[i], bosluk_px[i + 1]
+        idx2 = min(i + IYIL_STRIDE, len(olcum) - 1)
+        gercek_stride = idx2 - i
+        m1, m2 = olcum[i], olcum[idx2]
+        px1, px2 = bosluk_px[i], bosluk_px[idx2]
         if px1 < MIN_MASKE_PX or px2 < MIN_MASKE_PX:
             # metin yok(a yakın) → slit'e katacak içerik yok; duraksama say
             out.append({"dy": 0.0, "resp": 0.0, "sinif": "duraksama_bos"})
             continue
-        (_, dy), resp = cv2.phaseCorrelate(m1 * han, m2 * han)
-        kayit = {"dy": round(float(dy), 2), "resp": round(float(resp), 4)}
+            
+        # 1D Row Projection (Satır İzdüşümü)
+        p1 = m1.sum(axis=1).astype(np.float32).reshape(h, 1)
+        p2 = m2.sum(axis=1).astype(np.float32).reshape(h, 1)
+        (_, dy_raw), resp = cv2.phaseCorrelate(p1 * han_1d, p2 * han_1d)
+        
+        dy = float(dy_raw) / float(gercek_stride)
+        kayit = {"dy": round(dy, 2), "resp": round(float(resp), 4)}
         if resp >= RESP_ESIK and MIN_ADIM <= abs(dy) <= MAKS_ADIM_ORAN * h:
-            dogru = _dy_dogrula(griler[i], griler[i + 1], m1, dy)
+            dogru = _dy_dogrula(griler[i], griler[idx2], m1, dy * gercek_stride)
             kayit["dogrulama"] = None if dogru is None else round(dogru, 3)
             # NOT: dogrulama SINIFI DEĞİŞTİRMEZ — yalnız teşhis (tüm-gri ve
             # metin-piksel varyantları sağlıklı filmleri bozmuştu, geri alındı).
@@ -295,10 +305,10 @@ def cift_olc(olcum: list[np.ndarray], bosluk_px: list[int],
             # koruyamaz. Yalnız |dy|<=KUCUK_DY_ESIK çiftlerine uygulanır — büyük
             # dy'li gerçek akış scrollarına (benimle 34px, karadeniz 128px) dokunmaz.
             if abs(dy) <= KUCUK_DY_ESIK:
-                ncc = _icerik_ncc(griler[i], griler[i + 1], varliklar[i],
-                                  varliklar[i + 1])
+                ncc = _icerik_ncc(griler[i], griler[idx2], varliklar[i],
+                                  varliklar[idx2])
                 ayni = ncc >= AYNILIK_NCC or (
-                    _iou(varliklar[i], varliklar[i + 1]) >= AYNI_IOU_GUCLU
+                    _iou(varliklar[i], varliklar[idx2]) >= AYNI_IOU_GUCLU
                     and ncc >= AYNI_NCC_TABAN)
                 if not ayni:
                     kayit["sinif"] = "duraksama_belirsiz"

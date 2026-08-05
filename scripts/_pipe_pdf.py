@@ -17,7 +17,7 @@ import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
 # Linux geçişi 2026-07-16: kökler env'den (yoksa eski Windows davranışı birebir).
-_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 PDFMITAS = Path(os.environ.get("MITAS_PDFMITAS_DIR") or (_ROOT / "OCR-worktree" / "pdf-mitas"))
 MAKE_PDF = PDFMITAS / "_make_pdf.py"
 CREDIT_PARSE = PDFMITAS / "credit_parse.py"

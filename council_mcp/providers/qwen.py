@@ -16,6 +16,7 @@ from ._retry import check_response, with_retry
 
 API_KEY_ENV = "QWEN_API_KEY"
 BASE_URL_ENV = "QWEN_BASE_URL"
+MODEL_ENV = "QWEN_MODEL"  # .env'den model override (orn. qwen3.8-max) - kod degismeden
 DEFAULT_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 MODEL = "qwen3.7-max"
 TIMEOUT_SECONDS = 180.0  # 2026-07-09: 60sn uzun konsey sorularında yetmiyor (model reasoning'i uzun); 3-deneme hep timeout'tu
@@ -28,12 +29,13 @@ def is_configured() -> bool:
 async def ask(question: str, context: str = "") -> str:
     api_key = os.getenv(API_KEY_ENV)
     base_url = os.getenv(BASE_URL_ENV, DEFAULT_BASE_URL)
+    model = os.getenv(MODEL_ENV, MODEL)
     prompt = f"{context}\n\n{question}" if context else question
 
     async def _call() -> str:
         headers = {"Authorization": f"Bearer {api_key}"}
         payload = {
-            "model": MODEL,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -45,8 +47,17 @@ async def ask(question: str, context: str = "") -> str:
             data = response.json()
 
         try:
-            return data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
         except (KeyError, IndexError) as exc:
             raise RuntimeError(f"Beklenmeyen Qwen cevap formatı: {data}") from exc
+
+        # Thinking-modeli kemeri (minimax.py/nemotron.py ile ayni): content bos
+        # gelirse cevap reasoning_content'te kalmis olabilir.
+        content = message.get("content") or ""
+        if not content.strip():
+            content = message.get("reasoning_content") or ""
+        if not content.strip():
+            raise RuntimeError(f"Qwen boş cevap döndü: {data}")
+        return content
 
     return await with_retry(_call, provider_name="Qwen 3.7 Max")

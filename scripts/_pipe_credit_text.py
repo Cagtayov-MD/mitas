@@ -77,6 +77,7 @@ def main():
     ap.add_argument("--ocr", default=None, help="OneOCR+GLM kunye.txt yolu (birincil)")
     ap.add_argument("--clip", default=None, help="klip dizini (ocr/*/kunye.txt aranır)")
     ap.add_argument("--title", default="")
+    ap.add_argument("--original", default="", help="XML sidecar'dan orijinal başlık (yabancı film)")
     ap.add_argument("--profile", default="film")
     a = ap.parse_args()
 
@@ -109,7 +110,8 @@ def main():
             raw_context = list(raw_context or []) + _dl
             ocr_source = (ocr_source or "") + "+dilim"
         res = ctr.read_credits_auto(
-            lines, a.title, dizi=(a.profile == "dizi"), raw_context_lines=raw_context
+            lines, a.title, dizi=(a.profile == "dizi"), raw_context_lines=raw_context,
+            original=a.original or "",
         ) or {}
         out = {"yonetmen": res.get("yonetmen", []), "yapimci": res.get("yapimci", []),
                "cast": res.get("cast", []), "guven": res.get("guven", "OKUNAMADI"),

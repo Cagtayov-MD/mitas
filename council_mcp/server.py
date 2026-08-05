@@ -17,7 +17,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from providers import gemini, glm, gpt, qwen
+from providers import gemini, glm, gpt, kimi, minimax, nemotron, qwen
 
 load_dotenv()
 
@@ -30,6 +30,9 @@ COUNCIL_MEMBERS = {
     "qwen": qwen,
     "glm": glm,
     "gpt": gpt,
+    "kimi": kimi,
+    "nemotron": nemotron,
+    "minimax": minimax,
 }
 
 
@@ -40,8 +43,9 @@ async def list_tools() -> list[Tool]:
             name="ask_council",
             description=(
                 "VİTOS/MİTAS için önemli mimari veya teknik karar noktalarında, "
-                "aynı soruyu council'daki (Gemini, Qwen, GLM, GPT - hangileri "
-                "yapılandırılmışsa) birden fazla modele paralel sorar ve tüm "
+                "aynı soruyu council'daki (Gemini, Qwen, GLM, GPT, Kimi, "
+                "Nemotron, MiniMax - hangileri yapılandırılmışsa) birden fazla modele "
+                "paralel sorar ve tüm "
                 "cevapları karşılaştırmalı olarak döndürür. Rutin sorularda "
                 "DEĞİL, sadece bilinçli olarak ikinci bir görüş istendiğinde "
                 "kullanılmalı."

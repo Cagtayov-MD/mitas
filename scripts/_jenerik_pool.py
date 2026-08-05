@@ -31,7 +31,7 @@ except Exception:
     pass
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 sys.path.insert(0, str(PROJECT_ROOT))
 os.environ.setdefault("JENERIK_PADDLE_FAST_NO_DOC", "1")
 

@@ -10,8 +10,9 @@ ocr venv:
 """
 import sys, json, subprocess, tempfile, os
 from pathlib import Path
-# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan.
+# 2026-08-03: Windows kalıntısı E:\MITAS kaldırıldı.
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 sys.path.insert(0, str(ROOT))
 sys.stdout.reconfigure(encoding="utf-8")
 from core.pipelines.ocr.credit_experiment import PaddleOcrEngine

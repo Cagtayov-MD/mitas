@@ -7,6 +7,103 @@
 
 ---
 
+## 2026-08-03 — KONTROL Analizi + P0 Fix'ler + Altyapı Temizliği
+
+**Yapılan:**
+- 236 KONTROL filmin derin kök-neden analizi (5 film dedektifi + geniş sınıflandırma)
+- En büyük bulgu: %53 pipeline kökenli ("OCR okudu ama arada kaybetti")
+- 5 film detaylı inceleme: GÖLGE DANSI (meşru boş), JOE SHARP (bigram gürültü),
+  ÇÖL ASLANI (dedup bug), KUSURSUZ GÜN (eski-durum tuzağı), ÖNEMSİZ BİRİ (Linux crash)
+- **P0-1:** Çince model marker filtresi (IGNORECASE + 7 pattern + GLM edge-case)
+- **P0-2:** CAST_CAP dedup bug (kırık one-liner → düzgün for-loop)
+- **Altyapı temizliği (Windows kalıntıları):**
+  - `mitas_roots.py` fallback `E:\MITAS` → `/opt/mitas`
+  - `asr_server.py` `Path("E:\\")` → `os.name == "nt"` guard
+  - 5 bare `except:` → `except Exception:` (Ctrl+C düzeltmesi)
+  - `.bashrc`'ye `MITAS_PROJECT_ROOT=/opt/mitas`
+  - Swap 8→16 GB, `E:\MITAS` hayalet dizin silindi
+- Genel Sekreter denetimi: 7/10 — orkestra.py syntax hatası (kritik)
+- Sistem taraması: 307 Windows path, 2810 satır main(), pipeline test yok
+- Konsey: 4 tur tamamlandı (mimari, P0 kod, P0-3 plan, altyapı değerlendirmesi)
+- **TESLİMAT KURTARMA (gece keşif):** 57 ONAYLI + 12 KONTROL = 69 PDF hub'da
+  mevcut ama export/'a kopyalanmamış. Kök neden: mitas_roots.py Windows-path
+  fallback'inden yanlış HAZIR/KONTROL yolu. P0 fix sonrası 4 film doğru teslim
+  edildi, geriye kalan 69 manuel kopyalandı. ONAYLI: 4→61, KONTROL: 83→95.
+- `/etc/environment`'a `MITAS_PROJECT_ROOT=/opt/mitas` eklendi (cron koruması)
+- **Windows path temizliği (devam):** Pipeline-kritik 14 dosyada `r"E:\MITAS"`
+  fallback'i `/opt/mitas` ile değiştirildi. Kalan env-fallback pattern: 0.
+- **Konsey Tur 4 (genel değerlendirme):** 4/5 üye cevapladı (MiniMax 504).
+  Konsensus: 9 film/saat yeterli, main() sürdürülemez ama bu koşuda dokunma,
+  %61 KONTROL normal, except Exception kırmızı alarm, checkpoint/resume şart.
+  Nemotron agresif refactor istiyor, diğer 3 üye "bitir sonra refactor" diyor.
+
+**Dosyalar:**
+- Rapor: `docs/raporlar/KONTROL_DERIN_KOK_NEDEN_RAPORU_2026-08-03.md`
+- Sabah brifingi: `docs/raporlar/SABAH_BRIFINGI_2026-08-03.md`
+- 236 film listesi: `docs/raporlar/KONTROL_KOK_NEDEN_235_FILM_2026-08-02.txt`
+
+**Öğrenilen:**
+- `ocr_ham.txt` → `ocr/ocr-*/` altında (doğrudan film dizininde değil)
+- CAST_CAP_DUSEN "1168 oyuncu" → gerçekte 2 oyuncu (bigram şişirmesi)
+- 13 film eski-durum tuzağında (OCR iyi ama pipeline tekrarlanmadı)
+- `/opt/mitas/E:\MITAS/` gerçek bir dizin olarak oluşmuştu (!)
+- Swap %99.9 doluydu ama RAM sorunu değildi — geçmişten kalan sayfalar
+- **Teslimat hatası sessiz:** `shutil.copy2` başarısız olunca sadece `print(WARN)`
+  basıyor, log/event yok. JSONL `teslim` yolu doğru yazılıyor ama dosya diskte
+  olmayabiliyor. Teslimat doğrulama (file-exists check) pipeline'da YOK.
+
+**Bekleyen (konsey onaylı sıra):**
+- P0-3: Önce 15 PDF-crash film (Grup B), sonra 13 eski-durum (Grup A) — mevcut koşu bitince
+- P0-4/5: Eski-durum bekçisi + HAFIF_CASING auto-approve
+- P1: KB fuzzy matching, kurtarma locked gevşetme, audit_raw → ocr_ham
+- P2: Rol-eşleme (52 film), OCR halüsinasyon detektörü, FIGO v6
+- Genel Sekreter: orkestra.py fix, ONAYLI dizini kontrol
+
+---
+
+## 2026-08-02 — Genel Sekreter Raporu
+
+# MITAS System Review — 2026-08-02
+
+## Özet
+
+**345 film** işlendi: **142 ONAYLI**, **203 KONTROL**.
+
+## KONTROL Durumu
+
+1. **kunye_okuma** → 133 film (%16.5) — OCR/okuma — metin çıkarılamadı
+2. **kunye_kalite_qc1** → 108 film (%13.4) — QC1 — okuma→rol eşleme başarısız
+3. **cast_bos** → 88 film (%10.9) — Qwen QC — oyuncu bulunamadı
+4. **kimlik_zayif** → 82 film (%10.1) — QC2/qc_block — web çapası kilitlenemedi
+5. **yonetmen_yapimci** → 73 film (%9.0) — Qwen QC — yönetmen+yapımcı eksik
+
+### Sistemik Bulgular
+
+- **Yüksek KONTROL oranı:** %58.8 (203/345) — pipeline kalite eşiği gözden geçirilmeli.
+- **OCR HATA:** 12 filmde OCR kalitesi HATA seviyesinde — okuma motoru sorunu.
+- **Kümülatif kusur:** 136 film (%67) 3+ nedenden KONTROL'e düştü — zincirleme sorun.
+- **Tekrar eden hata:** `kunye_okuma` → 133 film aynı sorunu yaşıyor. Kod düzeltmesi ile toplu çözüm mümkün.
+- **Tekrar eden hata:** `kunye_kalite_qc1` → 108 film aynı sorunu yaşıyor. Kod düzeltmesi ile toplu çözüm mümkün.
+- **Tekrar eden hata:** `cast_bos` → 88 film aynı sorunu yaşıyor. Kod düzeltmesi ile toplu çözüm mümkün.
+
+## ONAYLI QC
+
+Spot-check: 0 film incelendi, **0 şüpheli** (false-positive).
+
+## Performans
+
+- **Film:** 345 | **Ort:** 9.4 dk | **Medyan:** 8.8 dk | **Toplam:** 54.0 saat
+- **GPU:** %43.9 VRAM, %88 util
+- **Disk:** 462.7 GB boş
+- **Koşu:** [74/1825] --- [74/1825] rc=1 evoArcadmin_03072026SAYFA32_198
+
+## Sonraki Adımlar
+
+1. **En kritik:** **Yüksek KONTROL oranı:** %58.8 (203/345) — pipeline kalite eşiği gözden geçirilmeli.
+
+
+---
+
 ## 2026-08-01 (gece) — ALİE tek-film incelemesi iki SİSTEMİK körlük çıkardı
 
 **Çağatay'ın isteği (film bazında spesifik):** ALİE'de giriş jeneriğindeki konuk

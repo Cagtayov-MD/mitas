@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import credit_role_lexicon as lex
 
 # Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS"
+_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas"
 SRC = os.path.join(_ROOT, "Database")
 DEST = os.path.join(_ROOT, "dagitim")
 OLLAMA_CHAT = "http://127.0.0.1:11434/api/chat"

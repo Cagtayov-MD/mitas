@@ -255,7 +255,7 @@ def main():
     out["afis"] = None
     if a.afis_out:
         try:
-            _pf_root = os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS"
+            _pf_root = os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas"
             spec = importlib.util.spec_from_file_location(
                 "pf", os.path.join(_pf_root, "OCR-worktree", "pdf-mitas", "poster_fetch.py"))
             pf = importlib.util.module_from_spec(spec)

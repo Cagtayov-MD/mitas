@@ -11,7 +11,7 @@ import numpy as np
 
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 _FF_ENV = os.environ.get("MITAS_FFMPEG")
 DEFAULT_FFMPEG_BIN = (Path(_FF_ENV).parent if _FF_ENV
                       else ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin")

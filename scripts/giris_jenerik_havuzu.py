@@ -370,11 +370,36 @@ def _classify_frame(path: Path, eng, params: dict, roi_y_min: int = 0, roi_y_max
 from difflib import SequenceMatcher
 
 
+def _word_set(sig: str) -> set[str]:
+    """sig format: 'word1|word2|word3' -> {"word1", "word2", "word3"}."""
+    if not sig:
+        return set()
+    words = set()
+    for part in sig.split("|"):
+        for w in part.split():
+            w_clean = w.strip(".,;:?!'\"-").lower()
+            if len(w_clean) >= 2:
+                words.add(w_clean)
+    return words
+
+
+def _text_overlap_match(sig1: str, sig2: str, thresh: float = 0.55) -> bool:
+    """İki imza arasındaki kelime kapsama/örtüşme oranını (Containment Overlap) hesaplar."""
+    ws1 = _word_set(sig1)
+    ws2 = _word_set(sig2)
+    if not ws1 or not ws2:
+        return False
+    intersection = len(ws1 & ws2)
+    min_len = min(len(ws1), len(ws2))
+    overlap = intersection / max(1, min_len)
+    return overlap >= thresh
+
+
 def _dedup_kept(kept: list[dict], src_paths: dict, params: dict) -> None:
     """kept (frame_index sırasında) üzerinde sıralı dedup; her satıra
     dedup_representative:bool + dedup_cluster_sig + dedup_cluster_id yaz."""
     ham_thr = params["DEDUP_HAM"]
-    fuzzy_thr = 0.82   # İsimler arası %82+ benzerlik aynı kart sayılır (OCR Jitter / boşluk / harf tolere)
+    fuzzy_thr = 0.80   # İsimler arası %80+ SequenceMatcher benzerlik
 
     for e in kept:
         e["dedup_representative"] = False
@@ -387,14 +412,14 @@ def _dedup_kept(kept: list[dict], src_paths: dict, params: dict) -> None:
         sig = e.get("sig") or ""
         joined = False
         if clusters:
-            # Son 3 kümeye kadar geriye bak (kadraj kaymaları veya anlık parazit tolere edilir)
-            for last in reversed(clusters[-3:]):
+            # Son 5 kümeye kadar geriye bak (kadraj kaymaları, insan geçişi veya anlık parazit tolere edilir)
+            for last in reversed(clusters[-5:]):
                 ah = last["anchor_hash"]
                 asig = last["anchor_sig"]
                 visual_match = (h is not None and ah is not None and _hamming(h, ah) <= ham_thr)
                 sig_match = False
                 if sig != "" and asig != "":
-                    if sig == asig or SequenceMatcher(None, sig, asig).ratio() >= fuzzy_thr:
+                    if sig == asig or _text_overlap_match(sig, asig, thresh=0.55) or SequenceMatcher(None, sig, asig).ratio() >= fuzzy_thr:
                         sig_match = True
                 if visual_match or sig_match:
                     last["members"].append(e)
@@ -404,10 +429,10 @@ def _dedup_kept(kept: list[dict], src_paths: dict, params: dict) -> None:
         if not joined:
             clusters.append({"anchor_hash": h, "anchor_sig": sig, "members": [e]})
 
-    # Küme başına TEK temsilci = en çok meşru satırı olan ve ortadaki oturmuş üye
+    # Küme başına TEK temsilci = en eksiksiz metin içeren ve en net kare
     for cid, cl in enumerate(clusters):
         members = cl["members"]
-        rep = max(members, key=lambda m: (len(m.get("credit_lines") or []), m.get("frame_index") or 0))
+        rep = max(members, key=lambda m: (len(m.get("credit_lines") or []), len(_word_set(m.get("sig") or "")), -(m.get("frame_index") or 0)))
         for e in members:
             e["dedup_representative"] = (e is rep)
             e["dedup_cluster_id"] = cid

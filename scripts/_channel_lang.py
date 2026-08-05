@@ -16,7 +16,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")  # pytest/redirect altında reconfigure olmayabilir
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 FF = Path(os.environ.get("MITAS_FFMPEG") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
 FP = Path(os.environ.get("MITAS_FFPROBE") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
 # İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR run-root'a işaret eder (pilot kanıtının

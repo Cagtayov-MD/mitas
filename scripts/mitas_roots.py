@@ -24,8 +24,9 @@ import os
 import stat
 from pathlib import Path
 
-# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan; fallback Linux kök dizini.
+# 2026-08-03: Windows kalıntısı E:\MITAS kaldırıldı — sistem tamamen Linux'ta.
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 CANDIDATE_ROOT = PROJECT_ROOT / "candidate_runs"
 
 
@@ -58,9 +59,9 @@ def _is_reparse_point(path: Path) -> bool:
 def validate_candidate_run_root(run_root: str | Path) -> Path:
     r"""Candidate kokunu production'dan fiziksel ve mantiksal olarak ayir.
 
-    Yalniz ``E:\MITAS\candidate_runs\<run-id>`` altina izin verilir. Kokun kendisi,
+    Yalniz ``/opt/mitas/candidate_runs/<run-id>`` altina izin verilir. Kokun kendisi,
     goreli yollar ve candidate altindaki junction/symlink'ler reddedilir; boylece
-    ``--run-root E:\MITAS`` veya production'a acilan bir junction izolasyonu delemez.
+    ``--run-root /opt/mitas`` veya production'a acilan bir junction izolasyonu delemez.
     """
     raw = Path(run_root).expanduser()
     if not raw.is_absolute():

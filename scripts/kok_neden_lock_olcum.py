@@ -95,7 +95,7 @@ films=[]
 for f in os.listdir(SRC):
     if not f.endswith(".json"): continue
     try: v=json.load(open(os.path.join(SRC,f),encoding="utf-8"))
-    except: continue
+    except Exception: continue
     if (v.get("director") or {}).get("root_cause") in BAD:
         films.append(v)
 

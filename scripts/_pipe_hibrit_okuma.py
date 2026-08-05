@@ -253,15 +253,6 @@ def kol_frame(clip_dir: Path, frame_dirs: list[Path]) -> list[dict]:
     import pilot_hat as ph
 
     kayitlar: list[dict] = []
-    cikis_havuz = clip_dir / "frames" / "cikis_jenerik"
-    if cikis_havuz.is_dir() and any(cikis_havuz.glob("*.png")):
-        secim, ist = ph.havuz_derle_dizin(cikis_havuz, "*.png")
-        if len(secim) > MAX_SAYFA_CIKIS:
-            adim = len(secim) / MAX_SAYFA_CIKIS
-            secim = [secim[int(i * adim)] for i in range(MAX_SAYFA_CIKIS)]
-        _log(f"frame/cikis: havuz={ist.get('kare')} → {len(secim)} sayfa")
-        kayitlar += sayfalari_oku(secim, "frame_cikis")
-
     giris_raw = next((d for d in frame_dirs if d.name == "giris"), None)
     if giris_raw and giris_raw.is_dir():
         secim, ist = ph.havuz_derle_dizin(giris_raw, "*.png")
@@ -279,6 +270,15 @@ def kol_frame(clip_dir: Path, frame_dirs: list[Path]) -> list[dict]:
         secim += [p for p in kuyruk if p.name not in mevcut]
         _log(f"frame/giris(ham): {ist.get('kare')} → {len(secim)} sayfa (kuyruk sigortalı)")
         kayitlar += sayfalari_oku(secim, "frame_giris")
+
+    cikis_havuz = clip_dir / "frames" / "cikis_jenerik"
+    if cikis_havuz.is_dir() and any(cikis_havuz.glob("*.png")):
+        secim, ist = ph.havuz_derle_dizin(cikis_havuz, "*.png")
+        if len(secim) > MAX_SAYFA_CIKIS:
+            adim = len(secim) / MAX_SAYFA_CIKIS
+            secim = [secim[int(i * adim)] for i in range(MAX_SAYFA_CIKIS)]
+        _log(f"frame/cikis: havuz={ist.get('kare')} → {len(secim)} sayfa")
+        kayitlar += sayfalari_oku(secim, "frame_cikis")
     return kayitlar
 
 
@@ -287,8 +287,8 @@ def kol_master(clip_dir: Path, out_dir: Path) -> list[dict]:
     import cv2
 
     kayitlar: list[dict] = []
-    for png_ad, etiket in (("reading_master_runaware.png", "master_cikis"),
-                           ("giris_reading_master_runaware.png", "master_giris")):
+    for png_ad, etiket in (("giris_reading_master_runaware.png", "master_giris"),
+                           ("reading_master_runaware.png", "master_cikis")):
         mp = clip_dir / png_ad
         if not mp.is_file():
             continue

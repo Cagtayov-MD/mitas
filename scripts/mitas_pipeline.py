@@ -2821,7 +2821,9 @@ def main(argv=None) -> int:
         t_vc = time.perf_counter()
         try:
             vc_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_text.py"),
-                      "--ocr", str(kunye_path), "--title", title or "", "--profile", profile]
+                      "--ocr", str(kunye_path), "--title", title or "",
+                      "--original", str(original or ""),
+                      "--profile", profile]
             rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
             # İP-2 (2026-07-11): 4. yutma-noktası kapandı — alt-süreç JSON basamadan öldüyse bu da

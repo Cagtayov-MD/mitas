@@ -15,7 +15,10 @@ OUT = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS", "OCR-wor
     if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\OCR-worktree\pdf-mitas"
 F = os.environ.get("MITAS_MSFONT_DIR") or r"C:\Windows\Fonts"
 
-pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
+if os.path.exists(os.path.join(F, "Arial.ttf")):
+    pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "Arial.ttf")))
+else:
+    pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
 pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
 
 
@@ -303,9 +306,121 @@ def build(path, d):
         c.drawString(X0 + 30, yy, ln)
         yy -= oz_lh
 
+    # Jenerik Master Okuma Kanıtı Sayfaları (Giriş & Çıkış)
+    clip_dir = d.get("clip_dir") or d.get("clip") or (os.path.dirname(d.get("poster")) if d.get("poster") else None)
+    if clip_dir:
+        try:
+            _ekle_kanit_sayfalari(c, clip_dir)
+        except Exception as _exc:
+            print(f"[pdf-kanit] HATA: {_exc}")
+
     c.showPage()
     c.save()
     print("yazildi:", path)
+
+
+def _slice_im_parts(img_path, num_parts=4, overlap=40):
+    from PIL import Image
+    if not os.path.isfile(img_path):
+        return []
+    im = Image.open(img_path)
+    w, h = im.size
+    part_h = h // num_parts
+    parts = []
+    for i in range(num_parts):
+        y0 = max(0, i * part_h - (overlap if i > 0 else 0))
+        y1 = min(h, (i + 1) * part_h + (overlap if i < num_parts - 1 else 0))
+        parts.append(im.crop((0, y0, w, y1)))
+    return parts
+
+
+def _combine_side_by_side(images, target_h=2000, spacing=15):
+    from PIL import Image
+    if not images:
+        return None, 100, 100
+    resized_imgs = []
+    total_w = 0
+    for im in images:
+        w = int(im.width * (target_h / im.height))
+        im_r = im.resize((w, target_h), Image.Resampling.LANCZOS)
+        resized_imgs.append(im_r)
+        total_w += w
+    total_w += spacing * (len(resized_imgs) - 1)
+    combined = Image.new("RGB", (total_w, target_h), (30, 30, 30))
+    curr_x = 0
+    for im_r in resized_imgs:
+        combined.paste(im_r, (curr_x, 0))
+        curr_x += im_r.width + spacing
+    return combined, total_w, target_h
+
+
+def _ekle_kanit_sayfalari(c, clip_dir):
+    import tempfile
+    from reportlab.lib.utils import ImageReader
+    
+    cd = str(clip_dir)
+    giris_png = os.path.join(cd, "giris_reading_master_runaware.png")
+    cikis_png = os.path.join(cd, "reading_master_runaware.png")
+    
+    margin = 36.0
+    page_w, page_h = A4
+    usable_w = page_w - (2 * margin)
+    
+    # 1. GİRİŞ JENERİĞİ KANITI
+    if os.path.isfile(giris_png):
+        g_parts = _slice_im_parts(giris_png, num_parts=2)
+        g_comb, gw, gh = _combine_side_by_side(g_parts, target_h=2000)
+        if g_comb:
+            c.showPage() # Yeni sayfa
+            # Başlık
+            c.setFont(SANS_SB, 11)
+            c.setFillColor(RAIL)
+            c.drawString(margin, page_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+            hair(c, page_h - margin - 16, margin, page_w - margin, color=ACCENT, w=1.5)
+            
+            img_w = usable_w
+            img_h = img_w * (gh / gw)
+            if img_h > (page_h - 2 * margin - 40):
+                img_h = page_h - 2 * margin - 40
+                img_w = img_h * (gw / gh)
+            x_pos = (page_w - img_w) / 2.0
+            
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp_g = tmp.name
+            g_comb.save(tmp_g, "PNG")
+            c.drawImage(tmp_g, x_pos, page_h - margin - 30 - img_h, width=img_w, height=img_h)
+            try:
+                os.remove(tmp_g)
+            except Exception:
+                pass
+
+    # 2. ÇIKIŞ JENERİĞİ KANITI
+    if os.path.isfile(cikis_png):
+        c_parts = _slice_im_parts(cikis_png, num_parts=4)
+        c_comb, cw, ch = _combine_side_by_side(c_parts, target_h=2000)
+        if c_comb:
+            c.showPage() # Yeni sayfa
+            c.setFont(SANS_SB, 11)
+            c.setFillColor(RAIL)
+            c.drawString(margin, page_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+            hair(c, page_h - margin - 16, margin, page_w - margin, color=ACCENT, w=1.5)
+            
+            img_w_c = usable_w
+            img_h_c = img_w_c * (ch / cw)
+            if img_h_c > (page_h - 2 * margin - 40):
+                img_h_c = page_h - 2 * margin - 40
+                img_w_c = img_h_c * (cw / ch)
+            x_pos_c = (page_w - img_w_c) / 2.0
+            
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp_c = tmp.name
+            c_comb.save(tmp_c, "PNG")
+            c.drawImage(tmp_c, x_pos_c, page_h - margin - 30 - img_h_c, width=img_w_c, height=img_h_c)
+            try:
+                os.remove(tmp_c)
+            except Exception:
+                pass
+
 
 
 FILM = dict(

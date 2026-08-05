@@ -1471,6 +1471,7 @@ def main():
              source={"module": "scripts/tek_film_kunye.py",
                      "input_paths": [clip], "output_paths": [a.out or ""]})
     d["bolum"] = a.bolum                                                       # Fix 3a: _make_pdf None ise basmaz
+    d["clip_dir"] = clip                                                       # Master jenerik görsel kanıt sayfaları için
 
     out_pdf = a.out or os.path.join(OUT_DEFAULT, f"{trt} {nn.tr_upper(title)} (v4).pdf")
     os.makedirs(os.path.dirname(os.path.abspath(out_pdf)), exist_ok=True)

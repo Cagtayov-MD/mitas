@@ -48,8 +48,9 @@ OV_DEFAULT = 150
 CAP_DEFAULT = 30
 MODEL_DEFAULT = "glm-ocr:latest"   # OCR-uzmani okuyucu (kiyasta kazanan); gemma4:26b ile de calisir
 
-# Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-_OCRWT = str(Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree")
+# Linux geçişi 2026-07-16: kök env'den (yoksa /opt/mitas).
+# 2026-08-03: Windows kalıntısı E:\MITAS kaldırıldı.
+_OCRWT = str(Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas") / "OCR-worktree")
 DCM_PATH = str(Path(_OCRWT) / "db_compose_master.py")
 VLM_PATH = str(Path(_OCRWT) / "_vlm_pipeline.py")
 

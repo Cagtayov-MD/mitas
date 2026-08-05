@@ -28,7 +28,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # pipeline100 zincirinin sabit mutlak yollari (DEGISMEZ kaynak dosyalar).
 # Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-PY_OCR_DIR = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py"
+PY_OCR_DIR = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas") / "OCR-worktree" / "py"
 CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"

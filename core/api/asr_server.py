@@ -783,7 +783,8 @@ def _flow_queue_worker_loop() -> None:
             _stage_dir.mkdir(parents=True, exist_ok=True)
             dst = _stage_path_for(src)
             size = Path(src).stat().st_size
-            if (_stage_dir.stat().st_dev == Path("E:\\").stat().st_dev
+            if (os.name == "nt"
+                    and _stage_dir.stat().st_dev == Path("E:\\").stat().st_dev
                     and shutil.disk_usage(str(_stage_dir)).free < size + 20 * 2**30):
                 return  # disk emniyet payı (<kopya+20GB) → prefetch atla
             def _copy() -> None:

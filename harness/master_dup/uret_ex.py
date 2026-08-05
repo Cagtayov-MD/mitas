@@ -202,8 +202,21 @@ def process_film_ex(slug: str, out_root: Path | None = None) -> dict:
 
         masters_dir.mkdir(parents=True, exist_ok=True)
         png_path = masters_dir / "reading_master.png"
+        pano_path = masters_dir / "panoramic_master.png"
         if master is not None:
             dc.wr(png_path, master)
+            
+            # --- YENI: Panoramik Üretim Hattı ---
+            try:
+                import sys
+                if "/home/cagatay/Programlar/mitas/OCR-worktree" not in sys.path:
+                    sys.path.append("/home/cagatay/Programlar/mitas/OCR-worktree")
+                from panoramic_composer import process_panorama
+                process_panorama(str(png_path), str(pano_path))
+            except Exception as e:
+                print(f"[!] Panoramik motor hatasi: {e}")
+            # ------------------------------------
+
             result["status"] = "OK"
         else:
             result["status"] = "NO_OUTPUT"
