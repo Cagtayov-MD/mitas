@@ -435,13 +435,12 @@ def _tum_kucuk_cok_kelime(s: str) -> bool:
 
 
 def _isim_gibi(satir: str, baglam: list[str] | None = None) -> bool:
-    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü.
-
-    `baglam` (T6): AYNI KAREDEKİ tüm satırlar. Küçük-harf çok-kelimeli bir satır
-    (İtalyanca/Fransızca kredi isimleri — 'sergio martinelli') tek başına
-    reddedilir (ara-yazı gardı); ama AYNI KAREDE rol-keyword'lü başka bir satır
-    varsa (örn. 'ispettore di produzione') bu satır da isim sayılır — atlas
-    kanıtı: ÖLDÜRME_ZAMANI'nda OCR kusursuz ama tüm satırlar küçük-harf."""
+    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü."""
+    global AKTIF_DIL
+    if AKTIF_DIL == "ar":
+        return _isim_gibi_arap(satir)
+    elif AKTIF_DIL == "ru":
+        return _isim_gibi_kiril(satir)
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:
         return False
