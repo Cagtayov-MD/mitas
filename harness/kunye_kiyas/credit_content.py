@@ -138,12 +138,16 @@ def cekirdek_rol_bul_genis(kare_satirlari: list[list[str]]) -> list[str]:
     return sorted(roller)
 
 
+AKTIF_DIL = "en"
+_OCR_CACHE = {}
+
 def _ocr():
-    global _OCR
-    if _OCR is None:
+    global _OCR_CACHE, AKTIF_DIL
+    target_lang = AKTIF_DIL
+    if target_lang not in _OCR_CACHE:
         from paddleocr import PaddleOCR
-        _OCR = PaddleOCR(use_textline_orientation=False, lang="en")
-    return _OCR
+        _OCR_CACHE[target_lang] = PaddleOCR(use_textline_orientation=False, lang=target_lang)
+    return _OCR_CACHE[target_lang]
 
 
 def satirlar(frame_path: str) -> list[str]:

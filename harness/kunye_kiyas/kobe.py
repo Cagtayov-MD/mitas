@@ -546,6 +546,40 @@ def _kare_okunabilir_mi(satirlar: list[str]) -> bool:
                for s in satirlar for tok in s.split())
 
 
+def detect_script_qwen(image_paths: list[str]) -> str:
+    """Pre-flight Qwen Vision Router: detects credit script (Arabic, Cyrillic, Chinese, Latin)."""
+    import base64, json, urllib.request
+    for path in image_paths:
+        try:
+            with open(path, 'rb') as f:
+                img_b64 = base64.b64encode(f.read()).decode('utf-8')
+            payload = {
+                'model': 'qwen2.5vl:7b',
+                'messages': [{
+                    'role': 'user',
+                    'content': 'Identify the alphabet script of the credit text in this image. Answer in exactly 1 word: Latin, Arabic, Cyrillic, Greek, or Chinese.',
+                    'images': [img_b64]
+                }],
+                'stream': False
+            }
+            req = urllib.request.Request(
+                'http://localhost:11434/api/chat',
+                data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}
+            )
+            resp = urllib.request.urlopen(req, timeout=10)
+            res_str = json.loads(resp.read())['message']['content'].strip().strip('.').lower()
+            if 'arabic' in res_str or 'persian' in res_str:
+                return 'ar'
+            elif 'cyrillic' in res_str or 'russian' in res_str:
+                return 'ru'
+            elif 'chinese' in res_str or 'japanese' in res_str:
+                return 'ch'
+        except Exception:
+            continue
+    return 'en'
+
+
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
     """v5: TAM FİLM için. Aday kutu-koşuları → OCR-içerik ile 'isim-listesi mi'
     doğrula → son-çapa+scroll ile seç → yoksa KREDİ YOK.
@@ -559,6 +593,14 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     g = kareler(dizin)
     if len(g) < 10:
         return Sonuc(-1, "kare_yok", 0.0, notlar=f"{len(g)} kare")
+
+    # ── ROUTER: Pre-flight Script Classification ──
+    try:
+        sample_idx = [len(g)//4, len(g)//2, 3*len(g)//4]
+        sample_paths = [g[i] for i in sample_idx if i < len(g)]
+        cc.AKTIF_DIL = detect_script_qwen(sample_paths)
+    except Exception:
+        cc.AKTIF_DIL = "en"
 
     idx = list(range(0, len(g), stride))
     gk = [_gri(g[i]) for i in idx]
