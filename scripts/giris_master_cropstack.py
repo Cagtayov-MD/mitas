@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """PROTOTİP (Çağatay fikri 2026-06-29): GİRİŞ master'ı CROP-STACK ile.
-Her kredi satırını (OneOCR kutusu) kırp, benzersizleri ALT ALTA diz → footage'sız temiz master.
-Girdi: frames/giris_jenerik (azaltılmış yazı-kareleri). Kayan jenerik (nadir) ayrı ele alınır.
-Koşum: venvs/ocr/Scripts/python.exe scripts/_giris_master_cropstack.py "<film adı>" [out.png]
+Optimize edildi: ROI 1 kere hesaplanıyor, Temsilci kare keskinliğe göre seçiliyor.
 """
 import sys, os
 from pathlib import Path
@@ -17,18 +15,16 @@ from _pipe_ocr import build_engine, fold
 
 DB = Path(r"E:\MITAS\Database")
 SUB_FRAC = float(os.environ.get("MITAS_GIRIS_SUB_FRAC", "0.82"))
-ROW_H = int(os.environ.get("PROTO_ROW_H", "48"))   # her satır yüksekliği (ölçek)
-CW = int(os.environ.get("PROTO_W", "780"))          # kanvas genişliği
+ROW_H = int(os.environ.get("PROTO_ROW_H", "48"))
+CW = int(os.environ.get("PROTO_W", "780"))
 GAP = 10
 PAD = 5
 
-
 from difflib import SequenceMatcher
 
-MIN_CONF = float(os.environ.get("PROTO_MIN_CONF", "0.55"))   # garble-fragment eşiği (ayarlandı: 0.55 temiz/eksiksiz denge)
-FUZZY = float(os.environ.get("PROTO_FUZZY", "0.82"))          # aynı-satır birleştirme benzerlik
-MAX_ROWS = int(os.environ.get("PROTO_MAX_ROWS", "0") or 0)    # 0 = kanıt master'ı eksiksiz; pozitif değer yalnız deneysel preview cap
-
+MIN_CONF = float(os.environ.get("PROTO_MIN_CONF", "0.55"))
+FUZZY = float(os.environ.get("PROTO_FUZZY", "0.82"))
+MAX_ROWS = int(os.environ.get("PROTO_MAX_ROWS", "0") or 0)
 
 def _is_credit_text(t: str) -> bool:
     if is_credit_text_line(t):
@@ -38,9 +34,7 @@ def _is_credit_text(t: str) -> bool:
         return is_credit_text_line(s.rstrip(". "))
     return False
 
-
 def _line_boxes_conf(eng, bgr):
-    """(box, text, conf) — OneOCR satır kutusu + ortalama kelime güveni."""
     from PIL import Image
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     try:
@@ -60,48 +54,68 @@ def _line_boxes_conf(eng, bgr):
         box = (int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys)))
         cs = [w.get("confidence") for w in (ln.get("words") or [])
               if isinstance(w, dict) and w.get("confidence") is not None]
+        if not cs:
+            line_conf = ln.get("confidence") or ln.get("score") or ln.get("conf") or 0.85
+            cs = [float(line_conf)]
         conf = (sum(cs) / len(cs)) if cs else 0.0
         out.append((box, t, conf))
     return out
 
+def detect_active_video_roi(bgr: np.ndarray, thresh: int = 15) -> tuple[int, int]:
+    H = bgr.shape[0]
+    max_p = np.max(bgr, axis=2)
+    row_max = np.max(max_p, axis=1)
+    non_black = np.where(row_max >= thresh)[0]
+    if len(non_black) < int(0.3 * H):
+        return 0, H
+    return int(non_black[0]), int(non_black[-1]) + 1
 
 def build(src_dir: Path, out_png: Path) -> dict:
     eng, kind, err = build_engine()
     if eng is None:
         return {"status": "engine_error", "error": err}
     paths = list_images(src_dir)
-    cands = []   # (order, crop, text, conf, key)
+    cands = []
     order = 0
+
+    # --- ROI (LETTERBOX) HESAPLAMASI: SADECE 1 KERE YAPILIR ---
+    roi_y_min, roi_y_max = 0, 0
+    for p in paths[:5]:
+        first_bgr = imread_unicode(str(p))
+        if first_bgr is not None and np.mean(first_bgr) > 5:
+            roi_y_min, roi_y_max = detect_active_video_roi(first_bgr)
+            break
+    if roi_y_max <= roi_y_min:
+        roi_y_min, roi_y_max = 0, 720
+    active_H = max(1, roi_y_max - roi_y_min)
+    # ---------------------------------------------------------
+
     for p in paths:
         bgr = imread_unicode(str(p))
-        if bgr is None:
-            continue
+        if bgr is None: continue
         H, Wd = bgr.shape[:2]
+        
+        y_min, y_max = roi_y_min, roi_y_max
+        
         for box, text, conf in _line_boxes_conf(eng, bgr):
             x0, y0, x1, y1 = box
-            yc = ((y0 + y1) / 2.0) / max(1, H)
-            if yc >= SUB_FRAC:
-                continue
-            if not _is_credit_text(text):
-                continue
-            if conf < MIN_CONF:                    # garble/soluk satır — at
-                continue
+            yc = (((y0 + y1) / 2.0) - y_min) / active_H
+            if yc >= SUB_FRAC: continue
+            if not _is_credit_text(text): continue
+            if conf < MIN_CONF: continue
+            
             key = fold(text)
-            if not key or len(key) < 2:
-                continue
+            if not key or len(key) < 2: continue
+            
             xa, ya = max(0, x0 - PAD), max(0, y0 - PAD)
             xb, yb = min(Wd, x1 + PAD), min(H, y1 + PAD)
-            if xb - xa < 8 or yb - ya < 8:
-                continue
+            if xb - xa < 8 or yb - ya < 8: continue
+            
             cands.append((order, bgr[ya:yb, xa:xb], text, conf, key))
             order += 1
 
-    # FUZZY dedup (UNION-FIND, geçişli): aynı satırın OCR-varyant ZİNCİRİNİ tek kümeye birleştir.
-    # (Eski greedy-rep yöntemi zinciri kaçırıp flood üretiyordu — OMAGGIO/UGETSU 256 satır.)
-    # Küme başına EN GÜVENLİ (conf) örnek temsilci. Uzunluk-önfiltresi hem hız hem yanlış-birleşme önler.
     n = len(cands)
     parent = list(range(n))
-
     def _find(x):
         while parent[x] != x:
             parent[x] = parent[parent[x]]
@@ -114,44 +128,49 @@ def build(src_dir: Path, out_png: Path) -> dict:
         ri = _find(i)
         for j in range(i + 1, n):
             lj = len(keys[j])
-            if min(li, lj) < 0.6 * max(li, lj):       # uzunluk çok farklı → atla
-                continue
-            if _find(j) == ri:
-                continue
+            if min(li, lj) < 0.6 * max(li, lj): continue
+            if _find(j) == ri: continue
             if SequenceMatcher(None, keys[i], keys[j]).ratio() >= FUZZY:
                 parent[_find(j)] = ri
+                
     from collections import defaultdict
     _members = defaultdict(list)
     for idx, c in enumerate(cands):
         _members[_find(idx)].append(c)
+        
     clusters = []
     for ms in _members.values():
-        best = max(ms, key=lambda c: c[3])            # en güvenli örnek temsilci
+        def _skor(c):
+            conf = c[3]
+            try:
+                gray = cv2.cvtColor(c[1], cv2.COLOR_BGR2GRAY)
+                lap_var = float(cv2.Laplacian(gray, cv2.CV_32F).var())
+            except Exception:
+                lap_var = 0.0
+            return conf * (lap_var + 1e-6)
+            
+        best = max(ms, key=_skor)
         clusters.append({"rep_key": best[4], "best": (best[0], best[1], best[2], best[3]),
                          "first": min(c[0] for c in ms)})
 
     clusters.sort(key=lambda cl: cl["first"])
-    # ALT-DİZGE PARÇA temizliği: bir kümenin anahtarı daha UZUN bir kümenin alt-dizgesiyse at —
-    # AMA yalnız ~tam-kısaltma (len(ki) >= 0.6*len(kj)). Aksi halde gerçek kısa isim/rol uzun bir
-    # kelimenin içinde geçip düşer ("LEE"⊂"LEELAND", "CAST"⊂"BROADCAST"). 0.6 eşiği union-find
-    # uzunluk-önfiltresiyle (satır ~117) tutarlı.
+    
     keys = [cl["rep_key"] for cl in clusters]
     drop = set()
     for i, ki in enumerate(keys):
-        if len(ki) < 3:
-            continue
+        if len(ki) < 3: continue
         for j, kj in enumerate(keys):
             if i != j and 0.6 * len(kj) <= len(ki) < len(kj) and ki in kj:
                 drop.add(i)
                 break
     clusters = [cl for i, cl in enumerate(clusters) if i not in drop]
-    # Kanıt master'ı eksiksiz olmalı: varsayılan akışta satır atma yok.
-    # PROTO_MAX_ROWS yalnız deneysel/preview amaçlı verilirse kırpar.
+    
     flood = False
     if MAX_ROWS > 0 and len(clusters) > MAX_ROWS:
         flood = True
         clusters = sorted(clusters, key=lambda cl: -cl["best"][3])[:MAX_ROWS]
         clusters.sort(key=lambda cl: cl["first"])
+        
     rows = [(cl["best"][1], cl["best"][2]) for cl in clusters]
     if not rows:
         return {"status": "empty", "lines": 0}
@@ -162,12 +181,14 @@ def build(src_dir: Path, out_png: Path) -> dict:
         nw = max(1, int(round(w * ROW_H / h)))
         nw = min(nw, CW - 20)
         scaled.append(cv2.resize(c, (nw, ROW_H), interpolation=cv2.INTER_AREA))
+        
     Hc = GAP + sum(ROW_H + GAP for _ in scaled)
     canvas = np.zeros((Hc, CW, 3), np.uint8)
     y = GAP
     for s in scaled:
         canvas[y:y + ROW_H, 12:12 + s.shape[1]] = s
         y += ROW_H + GAP
+        
     out_png.parent.mkdir(parents=True, exist_ok=True)
     ok, buf = cv2.imencode(".png", canvas)
     if ok:
@@ -175,12 +196,11 @@ def build(src_dir: Path, out_png: Path) -> dict:
     return {"status": "ok", "lines": len(rows), "flood": flood, "size": [CW, Hc], "out": str(out_png),
             "texts": [t for _, t in rows]}
 
-
 def main():
     name = sys.argv[1]
     src = (DB / name / "frames" / "giris_jenerik")
     if not src.is_dir() or not list_images(src):
-        src = DB / name / "frames" / "giris"   # havuz yoksa ham
+        src = DB / name / "frames" / "giris"
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else (DB / name / f"_PROTO_giris_cropstack.png")
     import json
     print(json.dumps(build(src, out), ensure_ascii=False))
