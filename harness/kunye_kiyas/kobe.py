@@ -534,16 +534,6 @@ def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: i
     return onset, ""
 
 
-def _kare_okunabilir_mi(satirlar: list[str]) -> bool:
-    """Şüphe katmanı yardımcısı (2026-07-30) — tespit_v5 içindeki yerel
-    `_anlamli_kare`'nin (Kırıntı-kare fix, Arapça/Farsça ikinci-şans bloğu)
-    BİREBİR AYNI ölçütünün modül-seviyesi kopyası. Bilinçli KOPYA: orijinal
-    yerel fonksiyona (tespit_v5 içinde, onset/karar mantığının bir parçası)
-    DOKUNULMADI — davranış-nötr gard, iki yerde aynı mantık tekrarı kabul
-    edilebilir bir maliyet. 'Okunabilir' = en az bir satırda alpha≥4-harf
-    bir token var (aksi halde OCR çöpü/kırıntı sayılır)."""
-    return any(len("".join(c for c in tok if c.isalpha())) >= 4
-               for s in satirlar for tok in s.split())
 
 
 def detect_script_qwen(image_paths: list[str]) -> str:
@@ -557,7 +547,7 @@ def detect_script_qwen(image_paths: list[str]) -> str:
                 'model': 'qwen2.5vl:7b',
                 'messages': [{
                     'role': 'user',
-                    'content': 'Identify the alphabet script of the credit text in this image. Answer in exactly 1 word: Latin, Arabic, Cyrillic, Greek, or Chinese.',
+                    'content': 'Identify the alphabet script of the credit text in this image. Answer in exactly 1 word: Latin, Arabic, Cyrillic, Greek, Chinese, Japanese, or Korean.',
                     'images': [img_b64]
                 }],
                 'stream': False
@@ -569,12 +559,18 @@ def detect_script_qwen(image_paths: list[str]) -> str:
             )
             resp = urllib.request.urlopen(req, timeout=10)
             res_str = json.loads(resp.read())['message']['content'].strip().strip('.').lower()
-            if 'arabic' in res_str or 'persian' in res_str:
+            if 'arabic' in res_str or 'persian' in res_str or 'farsi' in res_str or 'urdu' in res_str:
                 return 'ar'
-            elif 'cyrillic' in res_str or 'russian' in res_str:
+            elif 'cyrillic' in res_str or 'russian' in res_str or 'kazakh' in res_str or 'ukrainian' in res_str:
                 return 'ru'
-            elif 'chinese' in res_str or 'japanese' in res_str:
+            elif 'chinese' in res_str or 'hanzi' in res_str:
                 return 'ch'
+            elif 'japanese' in res_str or 'kanji' in res_str or 'hiragana' in res_str or 'katakana' in res_str:
+                return 'japan'
+            elif 'korean' in res_str or 'hangul' in res_str:
+                return 'korean'
+            elif 'greek' in res_str:
+                return 'gr'
         except Exception:
             continue
     return 'en'
