@@ -88,20 +88,21 @@ _ROL_MACAR_ONEK = re.compile(
 
 
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
-    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca diyakritik-toleranslı
-    önek eşleşmesinin BİRLEŞİMİ (T6 2.tur, alt-adım1a). Bu fonksiyon tespit_v5
-    ana yolunda (kredi_skoru koşu-seçimi) kullanılır. `_gecis_icerik_onayi` ve
-    `_scroll_kurtarma` kapıları BİLEREK ham `_ROL_CEKIRDEK` kullanır (Macarca
-    diyakritik toleransı HARİÇ) — bu kapılar sahte-pozitif üreticisi olduğu
-    için `_ROL_MACAR_ONEK`'in kapanış-`\\b`-taşımayan öneklerinin `operation`/
-    `render` gibi kelimelere çarpma riski oralarda kabul edilmiyor."""
+    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + Arapça/Kiril toleransı."""
     roller: set[str] = set()
+    lang = getattr(sys.modules[__name__], 'AKTIF_DIL', 'en')
     for sl in kare_satirlari:
         for s in sl:
             for m in _ROL_CEKIRDEK.findall(s):
                 roller.add(m.lower())
             for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
                 roller.add(m.lower())
+            if lang == 'ar':
+                for m in _ROL_ARAP.findall(_arapca_normalize(s)):
+                    roller.add(m.lower())
+            elif lang == 'ru':
+                for m in _ROL_KIRIL.findall(s):
+                    roller.add(m.lower())
     return sorted(roller)
 
 
