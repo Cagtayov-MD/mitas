@@ -151,12 +151,15 @@ def _ocr():
 
 
 def satirlar(frame_path: str) -> list[str]:
-    r = _ocr().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang=AKTIF_DIL)
 
 
 # ── İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b) ─────────────────────────
@@ -177,12 +180,15 @@ def _ocr_ru():
 
 
 def satirlar_ru(frame_path: str) -> list[str]:
-    r = _ocr_ru().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr_ru().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang="ru")
 
 
 # Rusça+Kazakça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Kiril yolunda
@@ -298,6 +304,27 @@ def kredi_skoru_kiril(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> t
 _OCR_AR = None
 
 
+def _qwen_vision_ocr(frame_path: str, lang: str = "ar") -> list[str]:
+    """Fallback OCR using local Qwen Vision model when PaddleOCR engine is unavailable."""
+    import base64, json, urllib.request
+    try:
+        with open(frame_path, 'rb') as f:
+            img_b64 = base64.b64encode(f.read()).decode('utf-8')
+        prompt = "Transcribe all credit text lines in this image. Return line by line, nothing else."
+        payload = {
+            'model': 'qwen2.5vl:7b',
+            'messages': [{'role': 'user', 'content': prompt, 'images': [img_b64]}],
+            'stream': False
+        }
+        req = urllib.request.Request('http://localhost:11434/api/chat', data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+        resp = urllib.request.urlopen(req, timeout=10)
+        content = json.loads(resp.read())['message']['content'].strip()
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        return lines
+    except Exception:
+        return []
+
+
 def _ocr_ar():
     global _OCR_AR
     if _OCR_AR is None:
@@ -307,12 +334,15 @@ def _ocr_ar():
 
 
 def satirlar_ar(frame_path: str) -> list[str]:
-    r = _ocr_ar().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr_ar().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang="ar")
 
 
 # Farsça/Arapça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Arapça yolunda
