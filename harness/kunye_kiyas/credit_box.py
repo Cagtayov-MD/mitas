@@ -65,9 +65,12 @@ def _det():
 
 
 def _polys(path: str):
-    r = _det().predict(path)
-    p = r[0].get("dt_polys") if r else None
-    return p if p is not None else []
+    try:
+        r = _det().predict(path)
+        p = r[0].get("dt_polys") if r else None
+        return p if p is not None else []
+    except Exception:
+        return []
 
 
 def kutu_analiz(path: str, H: int = 480, W: int = 600) -> dict:
