@@ -13,13 +13,21 @@ from reportlab.lib.colors import HexColor
 # Linux geçişi 2026-07-16: kök+font env'den (Windows'ta env yoksa eski davranış birebir).
 OUT = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS", "OCR-worktree", "pdf-mitas") \
     if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\OCR-worktree\pdf-mitas"
-F = os.environ.get("MITAS_MSFONT_DIR") or r"C:\Windows\Fonts"
+F = os.environ.get("MITAS_MSFONT_DIR") or ("/usr/share/fonts/truetype/msttcorefonts" if os.name != "nt" else r"C:\Windows\Fonts")
 
 if os.path.exists(os.path.join(F, "Arial.ttf")):
     pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "Arial.ttf")))
-else:
+elif os.path.exists(os.path.join(F, "arial.ttf")):
     pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
-pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
+else:
+    pdfmetrics.registerFont(TTFont("AR", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"))
+
+if os.path.exists(os.path.join(F, "arialbd.ttf")):
+    pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
+elif os.path.exists(os.path.join(F, "Arial_Bold.ttf")):
+    pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "Arial_Bold.ttf")))
+else:
+    pdfmetrics.registerFont(TTFont("ARB", "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"))
 
 
 def tryfont(name, path, fb):
@@ -122,13 +130,17 @@ def build(path, d):
     else:
         panel_bottom = ptop          # frame (anahtar-kare placeholder) KALDIRILDI → yerine ses/altyazı
 
-    # SES & ALTYAZI (sol ray — frame'in yerine; kanal-dil + altyazı tespiti)
-    if d.get("ses_kanallari") or d.get("altyazi"):
+    # SES & ALTYAZI (sol ray — frame'in yerine; kanal-dil + altyazı + jenerik dili tespiti)
+    if d.get("ses_kanallari") or d.get("altyazi") or d.get("jenerik_dili"):
         sb = panel_bottom - 22
         tracked(c, RM, sb, "SES & ALTYAZI", SANS_SB, 6.8, ACCENT, 1.4)
         sb -= 19
-        # SES KANAL LİSTESİ (1./2./3./4. KANAL) PDF'E YAZILMIYOR (Çağatay 2026-06-20): yalnız
-        # ANA DİL + ALTYAZI gösterilir; kanal-numarası dökümü kaldırıldı.
+        if d.get("jenerik_dili"):
+            tracked(c, RM, sb, "JENERİK DİLİ", SANS_SB, 6.2, CREAM_M, 1.1)
+            c.setFillColor(CREAM)
+            c.setFont(SANS_SB, 9.5)
+            c.drawString(RM + 60, sb - 1, str(d.get("jenerik_dili", "—")))
+            sb -= 16
         tracked(c, RM, sb, "ANA DİL", SANS_SB, 6.2, CREAM_M, 1.1)
         c.setFillColor(CREAM)
         c.setFont(SANS_SB, 9.5)

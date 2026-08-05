@@ -186,6 +186,36 @@ def audio_subtitle_block(args) -> dict:
                 block["ana_dil"] = _al
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
         # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
+        # Jenerik dili (Alfabe Tipi) tespiti (frames/jenerik_detection.json veya cc.AKTIF_DIL / kobe)
+        try:
+            jd_path = None
+            if getattr(args, "video", None):
+                jd_path = Path(args.video).parent / "frames" / "jenerik_detection.json"
+                if not jd_path.exists():
+                    jd_path = Path(args.video).parent / "frames" / "jenerik_detection_cikis.json"
+            elif getattr(args, "kunye", None):
+                jd_path = Path(args.kunye).parent / "frames" / "jenerik_detection.json"
+                if not jd_path.exists():
+                    jd_path = Path(args.kunye).parent / "frames" / "jenerik_detection_cikis.json"
+            
+            if jd_path and jd_path.exists():
+                jd_data = json.loads(jd_path.read_text(encoding="utf-8"))
+                script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+                if script_code:
+                    script_map = {
+                        "ar": "Arap Alfabesi",
+                        "ru": "Kiril Alfabesi",
+                        "ch": "Çin Alfabesi",
+                        "japan": "Japon Alfabesi",
+                        "korean": "Kore Alfabesi",
+                        "gr": "Yunan Alfabesi",
+                        "en": "Latin Alfabesi",
+                        "latin": "Latin Alfabesi",
+                    }
+                    block["jenerik_dili"] = script_map.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+        except Exception:
+            pass
+
         _ana = block.get("ana_dil", "—")
         _alt = block.get("altyazi")
         if _ana not in ("TR", "—", None) and _alt == "HAYIR":
@@ -212,10 +242,10 @@ def write_md(out: Path, d: dict) -> Path:
     for role, names in d["crew"]:
         nm = names if isinstance(names, list) else [names]
         lines.append(f"- {role}: " + ", ".join(nm))
-    if d.get("ses_kanallari") or d.get("altyazi"):
+    if d.get("ses_kanallari") or d.get("altyazi") or d.get("jenerik_dili"):
         lines += ["", "## Ses & Altyazı"]
-        # SES KANAL LİSTESİ (1./2./3./4. kanal) ARTIK YAZILMIYOR (Çağatay 2026-06-20):
-        # ne kunye_teslim.md'ye ne yüzey .txt'ye ne PDF'e — yalnız Ana dil + Altyazı kalır.
+        if d.get("jenerik_dili"):
+            lines.append(f"- Jenerik dili: {d['jenerik_dili']}")
         if d.get("ana_dil"):
             lines.append(f"- Ana dil: {d['ana_dil']}")
         if d.get("altyazi"):
@@ -593,6 +623,7 @@ def main(argv=None) -> int:
         "role_reconcile": reconcile_meta,   # {moved, unverified, xml_used, kb_used} | None
         "altyazi": audio.get("altyazi"),
         "ana_dil": audio.get("ana_dil"),
+        "jenerik_dili": audio.get("jenerik_dili"),
         "ses_kanallari": audio.get("ses_kanallari"),
         "sesler_ic_ice": audio.get("sesler_ic_ice"),
         "ses_uyari": audio.get("ses_uyari"),
