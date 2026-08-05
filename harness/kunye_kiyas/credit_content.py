@@ -89,8 +89,9 @@ _ROL_MACAR_ONEK = re.compile(
 
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
     """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + Arapça/Kiril toleransı."""
+    global AKTIF_DIL
     roller: set[str] = set()
-    lang = getattr(sys.modules[__name__], 'AKTIF_DIL', 'en')
+    lang = AKTIF_DIL
     for sl in kare_satirlari:
         for s in sl:
             for m in _ROL_CEKIRDEK.findall(s):
