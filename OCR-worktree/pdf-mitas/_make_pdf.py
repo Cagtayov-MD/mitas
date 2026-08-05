@@ -367,19 +367,22 @@ def _combine_side_by_side(images, target_h=2000, spacing=15):
 
 
 def _ekle_kanit_sayfalari(c, clip_dir):
-    import tempfile
+    import tempfile, glob
     from reportlab.lib.utils import ImageReader
     
     cd = str(clip_dir)
-    giris_png = os.path.join(cd, "giris_reading_master_runaware.png")
-    cikis_png = os.path.join(cd, "reading_master_runaware.png")
+    giris_candidates = [os.path.join(cd, "giris_reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*giris-lebron.png"))
+    giris_png = next((p for p in giris_candidates if os.path.isfile(p)), None)
+
+    cikis_candidates = [os.path.join(cd, "reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*cikis-lebron.png"))
+    cikis_png = next((p for p in cikis_candidates if os.path.isfile(p)), None)
     
     margin = 36.0
     page_w, page_h = A4
     usable_w = page_w - (2 * margin)
     
     # 1. GİRİŞ JENERİĞİ KANITI
-    if os.path.isfile(giris_png):
+    if giris_png and os.path.isfile(giris_png):
         g_parts = _slice_im_parts(giris_png, num_parts=2)
         g_comb, gw, gh = _combine_side_by_side(g_parts, target_h=2000)
         if g_comb:
@@ -407,7 +410,7 @@ def _ekle_kanit_sayfalari(c, clip_dir):
                 pass
 
     # 2. ÇIKIŞ JENERİĞİ KANITI
-    if os.path.isfile(cikis_png):
+    if cikis_png and os.path.isfile(cikis_png):
         c_parts = _slice_im_parts(cikis_png, num_parts=4)
         c_comb, cw, ch = _combine_side_by_side(c_parts, target_h=2000)
         if c_comb:
