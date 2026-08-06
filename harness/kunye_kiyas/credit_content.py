@@ -10,6 +10,15 @@ from __future__ import annotations
 
 import re
 import unicodedata
+import contextvars
+
+_AKTIF_DIL_VAR = contextvars.ContextVar("aktif_dil", default="en")
+
+def set_aktif_dil(dil: str):
+    _AKTIF_DIL_VAR.set(dil)
+
+def get_aktif_dil() -> str:
+    return _AKTIF_DIL_VAR.get()
 
 _OCR = None
 
@@ -89,9 +98,8 @@ _ROL_MACAR_ONEK = re.compile(
 
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
     """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + Arapça/Kiril toleransı."""
-    global AKTIF_DIL
     roller: set[str] = set()
-    lang = AKTIF_DIL
+    lang = get_aktif_dil()
     for sl in kare_satirlari:
         for s in sl:
             for m in _ROL_CEKIRDEK.findall(s):
@@ -140,12 +148,11 @@ def cekirdek_rol_bul_genis(kare_satirlari: list[list[str]]) -> list[str]:
     return sorted(roller)
 
 
-AKTIF_DIL = "en"
 _OCR_CACHE = {}
 
 def _ocr():
-    global _OCR_CACHE, AKTIF_DIL
-    target_lang = AKTIF_DIL
+    global _OCR_CACHE
+    target_lang = get_aktif_dil()
     if target_lang not in _OCR_CACHE:
         from paddleocr import PaddleOCR
         _OCR_CACHE[target_lang] = PaddleOCR(use_textline_orientation=False, lang=target_lang)
@@ -161,7 +168,7 @@ def satirlar(frame_path: str) -> list[str]:
         txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
         return [t.strip() for t in txt if t and t.strip()]
     except Exception:
-        return _qwen_vision_ocr(frame_path, lang=AKTIF_DIL)
+        return _qwen_vision_ocr(frame_path, lang=get_aktif_dil())
 
 
 # ── İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b) ─────────────────────────
@@ -436,10 +443,10 @@ def _tum_kucuk_cok_kelime(s: str) -> bool:
 
 def _isim_gibi(satir: str, baglam: list[str] | None = None) -> bool:
     """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü."""
-    global AKTIF_DIL
-    if AKTIF_DIL == "ar":
+    lang = get_aktif_dil()
+    if lang == "ar":
         return _isim_gibi_arap(satir)
-    elif AKTIF_DIL == "ru":
+    elif lang == "ru":
         return _isim_gibi_kiril(satir)
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:

@@ -109,8 +109,7 @@ def dy_cift(a: np.ndarray, b: np.ndarray, max_shift: int = 40) -> tuple[int, flo
     na = np.linalg.norm(pa)
     nb = np.linalg.norm(pb)
     if na < 1e-6 or nb < 1e-6:
-        return 0, 0.0
-    en = (0, -1.0)
+        en = (0, -1.0)
     for s in range(-max_shift, max_shift + 1):
         if s >= 0:
             x, y = pa[s:], pb[: len(pb) - s] if s else pb
@@ -594,9 +593,9 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     try:
         sample_idx = [len(g)//4, len(g)//2, 3*len(g)//4]
         sample_paths = [g[i] for i in sample_idx if i < len(g)]
-        cc.AKTIF_DIL = detect_script_qwen(sample_paths)
+        cc.set_aktif_dil(detect_script_qwen(sample_paths))
     except Exception:
-        cc.AKTIF_DIL = "en"
+        cc.set_aktif_dil("en")
 
     idx = list(range(0, len(g), stride))
     gk = [_gri(g[i]) for i in idx]
@@ -1142,6 +1141,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         ardisik_scroll=ardisik_scroll,
         son_capa=son_capa_kazanan,
         aday_sayisi=len(adaylar),
+        script=cc.get_aktif_dil(),
         suphe=suphe,
         suphe_geri_kare=suphe_geri_kare,
     )

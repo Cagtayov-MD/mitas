@@ -13,6 +13,7 @@ from __future__ import annotations
 import sys, json, os, re, argparse, importlib.util, datetime
 import urllib.error, urllib.request
 from pathlib import Path
+from scripts.jenerik_constants import SCRIPT_MAP
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -202,17 +203,7 @@ def audio_subtitle_block(args) -> dict:
                 jd_data = json.loads(jd_path.read_text(encoding="utf-8"))
                 script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
                 if script_code:
-                    script_map = {
-                        "ar": "Arap Alfabesi",
-                        "ru": "Kiril Alfabesi",
-                        "ch": "Çin Alfabesi",
-                        "japan": "Japon Alfabesi",
-                        "korean": "Kore Alfabesi",
-                        "gr": "Yunan Alfabesi",
-                        "en": "Latin Alfabesi",
-                        "latin": "Latin Alfabesi",
-                    }
-                    block["jenerik_dili"] = script_map.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+                    block["jenerik_dili"] = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
         except Exception:
             pass
 
