@@ -1451,13 +1451,40 @@ def main():
     if _sub and nn.ascii_fold(_sub).upper() == nn.ascii_fold(title).upper() \
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):
         _sub = None                                 # Türkçe/bilinmeyen içerikte başlıkla aynı orijinal = gereksiz altyazı
+
+    # Jenerik dili (Alfabe Tipi)
+    jenerik_dili = None
+    try:
+        jd_path = os.path.join(clip, "frames", "jenerik_detection.json")
+        if not os.path.exists(jd_path):
+            jd_path = os.path.join(clip, "frames", "jenerik_detection_cikis.json")
+        if os.path.exists(jd_path):
+            with open(jd_path, "r", encoding="utf-8") as fh:
+                jd_data = json.load(fh)
+            script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+            if script_code:
+                script_map = {
+                    "ar": "Arap Alfabesi",
+                    "ru": "Kiril Alfabesi",
+                    "ch": "Çin Alfabesi",
+                    "japan": "Japon Alfabesi",
+                    "korean": "Kore Alfabesi",
+                    "gr": "Yunan Alfabesi",
+                    "en": "Latin Alfabesi",
+                    "latin": "Latin Alfabesi",
+                }
+                jenerik_dili = script_map.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+    except Exception:
+        pass
+
     d = dict(profile=("DİZİ" if a.profile == "dizi" else "FİLM"), date=now,   # Fix 3a: profile hardcode → argparse
              title=nn.tr_upper(title), subtitle=_sub,  # Fix 2/3: foreign'da orijinal, Türkçe'de gereksizi gizle
              specs=[("ÇÖZÜNÜRLÜK", meta.get("res", "—")), ("TÜR", nn.tr_upper(tur)),
                     ("TOPLAM SÜRE", meta.get("dur", "—")), ("TRT KİMLİK", trt)],
              keywords=" ; ".join(castU) if castU else "—", cast=castU or ["—"], crew=crewU,
              ozet=ozet_v4(meta.get("ozet", ""), names=_ozet_names), ses_kanallari=sk,
-             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster,
+             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"),
+             jenerik_dili=jenerik_dili, poster=poster,
              film_notu=film_notu)
     dbg.emit("v4", "pdf_field_written",
              subject={"field": "v4_pdf_fields", "after": {

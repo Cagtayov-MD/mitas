@@ -184,12 +184,6 @@ def audio_subtitle_block(args) -> dict:
             _al = str(args.asr_lang).strip().upper()
             if _al and _al not in ("—", "EF", "NONE"):
                 block["ana_dil"] = _al
-        # ALTYAZILI YABANCI FİLM DİL DÜZELTME: Altyazı EVET ise ve kanal-dil net TR konuşma doğrulamadıysa,
-        # film ses ana dili TR kalmamalı (Türkçe altyazılı yabancı film → EN).
-        if block.get("altyazi") == "EVET":
-            cl_summary = (cl or {}).get("summary_language")
-            if not cl_summary or _lang_code(cl_summary) != "TR":
-                block["ana_dil"] = "EN"
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
         # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
         # Jenerik dili (Alfabe Tipi) tespiti (frames/jenerik_detection.json veya cc.AKTIF_DIL / kobe)

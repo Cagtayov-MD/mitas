@@ -230,11 +230,26 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
         cmd += ["-acodec", "pcm_s16le", str(wav)]
         subprocess.run(cmd, check=True)
 
-    segs, info = model.transcribe(
-        str(wav), language=tr_language, beam_size=beam,
-        vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
-        condition_on_previous_text=False, word_timestamps=False,
-    )
+    try:
+        segs, info = model.transcribe(
+            str(wav), language=tr_language, beam_size=beam,
+            vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
+            condition_on_previous_text=False, word_timestamps=False,
+        )
+    except Exception as exc_oom:
+        if "out of memory" in str(exc_oom).lower() or "cuda" in str(exc_oom).lower():
+            sys.stderr.write(f"[ASR][UYARI] CUDA OOM alındı ({exc_oom}) → CPU int8 fallback deneniyor...\n")
+            try:
+                cpu_model = WhisperModel(str(mp if mp and mp.exists() else "large-v3"), device="cpu", compute_type="int8")
+                segs, info = cpu_model.transcribe(
+                    str(wav), language=tr_language, beam_size=1,
+                    vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
+                    condition_on_previous_text=False, word_timestamps=False,
+                )
+            except Exception:
+                raise exc_oom
+        else:
+            raise exc_oom
     if not tr_language:                          # full-v3 oto-tespit ettiyse GERÇEK dili al (result/chlang için)
         language = getattr(info, "language", None) or language
     # --- canli log: transkripsiyon ilerlemesi (en uzun asama; UI'da "donuk" gorunmesin) ---
