@@ -13,7 +13,10 @@ from __future__ import annotations
 import sys, json, os, re, argparse, importlib.util, datetime
 import urllib.error, urllib.request
 from pathlib import Path
-from scripts.jenerik_constants import SCRIPT_MAP
+try:
+    from scripts.jenerik_constants import SCRIPT_MAP
+except ImportError:
+    from jenerik_constants import SCRIPT_MAP
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")

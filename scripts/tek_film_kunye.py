@@ -15,7 +15,10 @@ tek_film_kunye.py — TEK KOMUT: bir klip → TEMİZ v4 künye PDF (uçtan uca o
 Hiç çökmez; bir adım başarısızsa eldeki en iyi veriyle devam eder, neyin eksik olduğunu yazar.
 """
 import argparse, datetime, importlib.util, json, os, re, subprocess, sys, time
-from scripts.jenerik_constants import SCRIPT_MAP
+try:
+    from scripts.jenerik_constants import SCRIPT_MAP
+except ImportError:
+    from jenerik_constants import SCRIPT_MAP
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
