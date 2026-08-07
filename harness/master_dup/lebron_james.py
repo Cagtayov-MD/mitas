@@ -278,7 +278,13 @@ def compose_lebron(
             continue
             
         if kosu:
-            tem = max(kosu, key=lambda x: calculate_sharpness(griler[x]))
+            def _kare_kalite_puani(idx):
+                s = calculate_sharpness(griler[idx])
+                v = varliklar[idx] > 0
+                std_c = float(ai_griler[idx][v].std()) if int(v.sum()) > MIN_MASKE_PX else 1.0
+                return s * (1.0 + std_c / 50.0)
+
+            tem = max(kosu, key=_kare_kalite_puani)
             if not ayni_icerik(tem, ref_idx) and metin_gibi(ai_griler[tem], varliklar[tem]):
                 segmentler.append((seg_im, seg_ofs))
                 seg_im, seg_ofs, akum = [ims[tem]], [0.0], 0.0
@@ -286,7 +292,22 @@ def compose_lebron(
         i = j
         
     segmentler.append((seg_im, seg_ofs))
-    parcalar = [_segment_kanvas(si, so) for si, so in segmentler if si]
+    
+    def _gecerli_segment(si, so):
+        if not si:
+            return False
+        if len(si) > 1:
+            return True
+        g = cv2.cvtColor(si[0], cv2.COLOR_BGR2GRAY)
+        m = ai_flashlight_mask(si[0]).astype(np.float32)
+        v = (m > VARLIK_ESIK).astype(np.float32)
+        return metin_gibi(m, v)
+
+    parcalar = [_segment_kanvas(si, so) for si, so in segmentler if _gecerli_segment(si, so)]
+    if not parcalar:
+        parcalar = [_segment_kanvas(si, so) for si, so in segmentler if si]
+    if not parcalar:
+        return None, {"slug": slug, "durum": "kare_yok", "kare": len(ims), "sebep": "Gecerli segment kalmadi"}
     kanvas = np.vstack(parcalar) if len(parcalar) > 1 else parcalar[0]
     
     if kanvas.shape[0] > H_MAKS:

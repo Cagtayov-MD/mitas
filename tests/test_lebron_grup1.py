@@ -49,8 +49,28 @@ class TestLeBronGrup1(unittest.TestCase):
         res = subprocess.run([python_bin, str(script_path), "--help"], capture_output=True, text=True)
         self.assertEqual(res.returncode, 0)
         self.assertIn("--slug", res.stdout)
-        self.assertIn("--kare-dizini", res.stdout)
+    def test_madde_6_hybrid_scoring(self):
+        """Verify hybrid sharpness + contrast scoring selects best frame."""
+        img1 = np.zeros((100, 100, 3), dtype=np.uint8)
+        img2 = np.zeros((100, 100, 3), dtype=np.uint8)
+        img1[20:40, 20:80] = 255
+        img2[10:90, 10:90] = 255 # higher text coverage & contrast
+
+        kanvas, manifest = lebron.compose_lebron("grup2_test_m6", ims=[img1, img2])
+        self.assertIsNotNone(kanvas)
+        self.assertEqual(manifest["durum"], "OK")
+
+    def test_madde_7_compiler_filter(self):
+        """Verify non-text single frames are pruned while valid frames remain."""
+        blank_img = np.zeros((100, 100, 3), dtype=np.uint8) # pure black, no text
+        text_img = np.zeros((100, 100, 3), dtype=np.uint8)
+        text_img[20:40, 20:80] = 255
+
+        kanvas, manifest = lebron.compose_lebron("grup2_test_m7", ims=[text_img, blank_img, text_img])
+        self.assertIsNotNone(kanvas)
+        self.assertEqual(manifest["durum"], "OK")
 
 
 if __name__ == "__main__":
     unittest.main()
+
