@@ -64,7 +64,8 @@ def ai_flashlight_mask(img: np.ndarray) -> np.ndarray:
                     elif isinstance(item, np.ndarray):
                         box_np = item.astype(np.int32)
                         cv2.fillPoly(maske, [box_np], 255)
-    except Exception:
+    except Exception as exc:
+        print(f"[LeBron] OCR HATA: {type(exc).__name__}: {exc} -> threshold(180) fallback", flush=True)
         _, maske = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
         
     maske = cv2.dilate(maske, np.ones((5, 5), np.uint8), iterations=2)
@@ -291,6 +292,10 @@ def compose_lebron(
     if kanvas.shape[0] > H_MAKS:
         return None, {"slug": slug, "durum": "boy_asimi", "boy": int(kanvas.shape[0])}
         
+    sinif_sayimi = {s: sum(1 for c in ciftler if c.get("sinif") == s) for s in ("scroll", "duraksama", "kesme", "duraksama_bos", "duraksama_belirsiz")}
+    scroll_dyler = [abs(c["dy"]) for c in ciftler if c.get("sinif") == "scroll"]
+    scroll_dy_medyan = float(np.median(scroll_dyler)) if scroll_dyler else 0.0
+
     manifest = {
         "slug": slug,
         "durum": "OK",
@@ -298,9 +303,34 @@ def compose_lebron(
         "kare": len(ims),
         "size": [int(kanvas.shape[1]), int(kanvas.shape[0])],
         "segment": len(parcalar),
+        "segment_kareler": [len(si) for si, _ in segmentler if si],
+        "sinif_sayimi": sinif_sayimi,
+        "scroll_dy_medyan": round(scroll_dy_medyan, 2),
         "ciftler": ciftler,
         "olcum_yolu": "ai_flashlight",
         "sure_s": round(time.time() - t0, 2)
     }
     
     return kanvas, manifest
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="LeBron James Engine (Akıllı Trim + AI Flashlight + 2D Phase Correlate)")
+    parser.add_argument("--slug", type=str, default="test", help="Klip / film adı slug")
+    parser.add_argument("--kare-dizini", type=str, required=True, help="Jenerik PNG karelerinin bulunduğu klasör")
+    parser.add_argument("--out", type=str, default=None, help="Çıktı master PNG dosya yolu (isteğe bağlı)")
+    args = parser.parse_args()
+
+    print(f"[LeBron CLI] İşleniyor: {args.kare_dizini}...")
+    kanvas, manifest = compose_lebron(args.slug, kare_dizini=args.kare_dizini)
+    if kanvas is not None:
+        if args.out:
+            out_path = Path(args.out)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(out_path), kanvas)
+            print(f"[LeBron CLI] Master PNG yazıldı: {out_path}")
+        print(f"[LeBron CLI] Başarılı! Boyut: {manifest.get('size')}, Segment: {manifest.get('segment')}, Süre: {manifest.get('sure_s')}s")
+    else:
+        print(f"[LeBron CLI] Başarısız: {manifest.get('durum')}, Sebep: {manifest.get('sebep', 'Bilinmiyor')}")
+
