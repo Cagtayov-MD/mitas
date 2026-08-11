@@ -108,8 +108,14 @@ def dy_cift(a: np.ndarray, b: np.ndarray, max_shift: int = 40) -> tuple[int, flo
     pb = pb - pb.mean()
     na = np.linalg.norm(pa)
     nb = np.linalg.norm(pb)
+    # `en` DÖNGÜDEN ÖNCE kurulmalı: eskiden yalnız dejenere dalda (na/nb ~ 0)
+    # tanımlanıyordu, normal karelerde ilk `if r > en[1]` satırı UnboundLocalError
+    # atıyordu → tespit_v5 daha ilk adımda çöküyor, çağıran geniş `except` ile
+    # sessizce CV'ye düşüp script="en" varsayılanına kalıyordu (PDF'te "hep Latin").
+    # Üretim kanıtı: 841 kayıtlı UnboundLocalError (2026-08-11 denetimi).
+    en = (0, -1.0)
     if na < 1e-6 or nb < 1e-6:
-        en = (0, -1.0)
+        return en
     for s in range(-max_shift, max_shift + 1):
         if s >= 0:
             x, y = pa[s:], pb[: len(pb) - s] if s else pb
@@ -151,6 +157,13 @@ class Sonuc:
     # doldurur.
     suphe: list = field(default_factory=list)
     suphe_geri_kare: int = -1
+    # JENERİK DİLİ / alfabe (Qwen Vision ön-katmanı → cc.get_aktif_dil()).
+    # tespit_v5'in BAŞARILI dönüş bloğu `script=` ile doldurur; alan tanımlı
+    # olmadığı için o dönüş TypeError atıyordu ("unexpected keyword argument
+    # 'script'"). Bu hata dy_cift'in UnboundLocalError'ı tarafından maskeleniyordu
+    # — A düzelince ilk tetiklenecek katman buydu. Default "en": kredi_yok/
+    # kare_yok erken-dönüşlerinde alan doldurulmaz, davranış eskisiyle aynı kalır.
+    script: str = "en"
 
 
 def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
@@ -373,6 +386,23 @@ def _rakam_agirlikli_mi(s: str) -> bool:
         return False
     rakam = sum(1 for c in alnum if c.isdigit())
     return (rakam / len(alnum)) >= 0.5
+
+
+def _kare_okunabilir_mi(satirlar: list[str], min_harf: int = 3) -> bool:
+    """Karenin OCR çıktısı ANLAMLI metin mi (gec_riski şüphe katmanı için).
+
+    Çağrılıyordu ama HİÇ TANIMLI DEĞİLDİ → tetiklendiğinde NameError (üretimde
+    5 kayıt). Yorumdaki niyet: İNİŞLİ'nin kaligrafi bloğu gibi OCR'ın SÖKEMEDİĞİ
+    kareleri "okunamaz" saymak; KNUTE'nin İngilizce-okunabilir mini-adayları
+    "okunabilir" kalmalı.
+
+    Ölçüt (kasıtlı olarak gevşek — bu katman davranış-NÖTR, salt raporlama):
+    en az bir satırda ≥`min_harf` HARF varsa kare okunabilir. Harf yoksa
+    (boş OCR, salt noktalama/rakam gürültüsü) okunamaz sayılır."""
+    for s in satirlar or ():
+        if sum(1 for c in str(s) if c.isalpha()) >= min_harf:
+            return True
+    return False
 
 
 def _farkli_metin_sayisi(metinler: list[str], esik: float = 0.8) -> int:
