@@ -7,6 +7,69 @@
 
 ---
 
+## 2026-08-11 (2. oturum) — Dış İnceleme Turu: KOBE Yönlendirici + Görünürlük
+
+**Girdi:** Çağatay `kobe için.txt` ile üç bağımsız `figo.py` inceleme raporu
+getirdi. Görev: değerlendir, doğrula, uygula.
+
+**En önemli ders — raporların 1 numaralı maddeleri YANLIŞTI.** İki rapor da
+en kritik bulgu olarak `cc.set_aktif_dil` yarış koşulunu gösterdi ("2 saat,
+paralel pipeline'da veri bozulması"). Gerçek: `credit_content.py` zaten
+`contextvars` kullanıyor (commit `0852a158`) VE `olc_pool.py` **spawn-süreç**
+havuzu, thread değil. Aynı şekilde "jbayrak uzunluk uyumsuzluğu" (K5) da yok —
+`kutu_serisi` `len(frame_yollari)` uzunluğunda dizi döndürüyor. Üç rapor da
+YALNIZ `kobe.py`'yi okuyup bağımlılıklara hiç bakmamış. **Dış inceleme tek
+dosya görüyorsa "en kritik" dediği şey büyük ihtimalle çağrı yerinden yapılmış
+bir çıkarım — kaynağı açmadan hiçbir maddesini uygulama.**
+
+**Uygulanan 4 madde (commit `63c4d27b`, 19/19 yeni test):**
+1. `script` TÜM dönüş yollarında — `kredi_yok` dönüşleri `script=` vermiyordu,
+   default "en"de kalıp PDF'e "Latin" yazıyordu. 11 Ağustos'ta düzelttiğimizi
+   sandığımız "hep Latin" şikâyetinin **kapatılmamış yarısı buymuş.**
+2. Yönlendirici: örnekleme %25/%50/%75 → **son %20** (jenerik SONDA!), oylama
+   (ilk-eşleşmede-return kalktı), tam-kelime eşleşme ("Not Arabic, it is Latin"
+   → 'ar' oluyordu), `temperature=0` → **ölçüm artık tekrarlanabilir**.
+3. `except Exception: []` (9 yer) → `_ocr_satirlar`: yalnız OSError/ValueError/
+   RuntimeError yutulur+sayılır+loglanır; NameError/AttributeError **yukarı
+   kaçar**. 841/106/5 sessiz çöküşün kök sebebi bu ayrımın yokluğuydu.
+4. `_scroll_kurtarma` geri-yürümesine %50 tabanı (sınırsızdı).
+
+**Reddedilen öneriler (gerekçeli):** ① `DESTEKLENEN={en,ru,ar}` kısıtı — CJK/
+Yunan desteğini (483f48a2) öldürürdü. ② Kurtarma yoluna "bitiş çapası" —
+tarama %75'ten başladığı için `ke` zaten %75'in altına inemez, **ölü kod**
+olurdu (200 rastgele koşuluk test bu değişmezi kilitliyor). ③ `guven -=
+0.15*len(suphe)` cezası — şüphe katmanının davranış-nötr ilkesini bozar; ayrıca
+`suphe` zaten okunuyor (`MITAS_JENERIK_SUPHE_GENIS_HAVUZ`, bilinçli default
+kapalı). ④ 1. raporun tüm refactor planı (God-object bölme, sabitleri config'e).
+
+**Ölçüm — simetrik skor düştü ama gerileme DEĞİL:** %94.5→%93.6, üretim %97.3
+ve kredisiz-red 29/29 sabit. Tek sebep **ARKADAŞIMIN_EVİ_NEREDE** (Farsça):
+eski yönlendirici film ortasından örnekleyip "en" diyordu → o filmde OCR her
+karede `[]` dönüyordu, onset ise **şansa** ±20'de kalıyordu. Artık "ar" →
+gerçek cast okunuyor (kare 940: `بابك احمد بور`, `محمد رضا نعمت زاده`), onset
+28 kare erken (asimetri politikası erken≤120'nin içinde). Aynı turda
+İNİŞLİ_ÇIKIŞLI tehlikeli yönde iyileşti: **+89 GEÇ → +29 GEÇ**.
+
+**Keşif — `fps=25.0` bir kurgu, üç rapor da tam yakalayamadı.** `pool_frames`
+dizinleri film başına 1200 kare ve TÜM filmi kapsıyor → kare başına ~3.75 sn,
+gerçek örnekleme ~0.27 fps. Üretim `tespit_v5(dizin)` diye çağırıyor, fps hiç
+geçilmiyor. Sonuç: `_scroll_kurtarma`'nın "≥8 sn sürdürülen scroll" docstring'i
+gerçekte **~6 dakika** (min_kosu=100 örnek-kare). Sabitler gerçek veride
+kalibre olduğu için BUG değil, ama fps formülü dekoratif ve yorumlar yanıltıcı.
+**BEKLEYEN: kare çıkarımı 1200'den başka bir sayıya çekilirse hiçbir sabit
+değişmez ve tüm zaman anlamı sessizce kayar** — `meta.json` ile gerçek örnekleme
+oranını yanına yazmak gerekiyor.
+
+**Süreç notu:** test yazarken kendi testlerim "doğru sonucu yanlış sebeple"
+yeşil verdi — sahte yollar (`"a","b","c"`) `open()`'da FileNotFoundError atıp
+fonksiyonun kendi `except`ine düşüyordu. Gerçek dosya fixture'ıyla düzeltildi.
+**Mock'lu testte önce RED'in DOĞRU SEBEPLE geldiğini doğrula.**
+
+**Bekleyen (önceki oturumdan devam):** eski (05-06 Ağustos üretimi) kesik
+PDF'lerin yeniden üretilmesi.
+
+---
+
 ## 2026-08-11 — 4 Sessiz Arıza + Git Kurtarma + LeBron Geri-Alma Keşfi
 
 **Yapılan (8 commit, 56/56 test geçiyor):**
