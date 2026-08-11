@@ -50,15 +50,23 @@ gerçek cast okunuyor (kare 940: `بابك احمد بور`, `محمد رضا ن
 28 kare erken (asimetri politikası erken≤120'nin içinde). Aynı turda
 İNİŞLİ_ÇIKIŞLI tehlikeli yönde iyileşti: **+89 GEÇ → +29 GEÇ**.
 
-**Keşif — `fps=25.0` bir kurgu, üç rapor da tam yakalayamadı.** `pool_frames`
-dizinleri film başına 1200 kare ve TÜM filmi kapsıyor → kare başına ~3.75 sn,
-gerçek örnekleme ~0.27 fps. Üretim `tespit_v5(dizin)` diye çağırıyor, fps hiç
-geçilmiyor. Sonuç: `_scroll_kurtarma`'nın "≥8 sn sürdürülen scroll" docstring'i
-gerçekte **~6 dakika** (min_kosu=100 örnek-kare). Sabitler gerçek veride
-kalibre olduğu için BUG değil, ama fps formülü dekoratif ve yorumlar yanıltıcı.
-**BEKLEYEN: kare çıkarımı 1200'den başka bir sayıya çekilirse hiçbir sabit
-değişmez ve tüm zaman anlamı sessizce kayar** — `meta.json` ile gerçek örnekleme
-oranını yanına yazmak gerekiyor.
+**`fps=25.0` yorumları yanıltıyor (İLK RAPORUM YANLIŞTI — Çağatay itiraz etti,
+haklıydı).** Önce "kare başına ~3.75 sn, pool_frames tüm filmi kapsıyor" dedim;
+bu YANLIŞ. Gerçek: `scripts/_jenerik_detect.py:69` → kare çıkarımı **`--fps 2.0`**
+("NATİF fps DEĞİL"), ve `olc_pool.py:109` bunu teyit ediyor: "erken ≤120 kare
+(60 sn)" → **2 kare/saniye, 0.5 sn/kare**. 1200 kare = ~10 dakikalık KAPANIŞ
+PENCERESİ (tüm film değil — sınırı `_jenerik_detect` belirliyor).
+
+Kalan gerçek sorun daha küçük ve salt YORUM düzeyinde: `tespit_v5` fps=25
+varsayıyor, gerçek 2 → formüllerin *etiketleri* 12.5× şişik. `min_kosu` "1 sn"
+diyor, gerçekte 12 sn; `KISA_BOSLUK` "3.6 sn" diyor, gerçekte 45 sn;
+`_scroll_kurtarma` "≥8 sn sürdürülen scroll" diyor, gerçekte ~100 sn.
+**Değerlerin kendisi sağlıklı** (12 sn'lik asgari jenerik koşusu, 45 sn'lik
+köprü, 100 sn'lik scroll kurtarması — hepsi kapanış jeneriği için makul);
+yalnız yorumlar yanlış süre yazıyor. BUG DEĞİL, dokümantasyon hatası.
+**BEKLEYEN (düşük öncelik):** `_jenerik_detect --fps` 2.0'dan başka bir değere
+çekilirse bu sabitlerin hiçbiri takip etmez → kare klasörünün yanına gerçek
+çıkarım fps'ini yazan bir `meta.json` bunu kapatır.
 
 **Süreç notu:** test yazarken kendi testlerim "doğru sonucu yanlış sebeple"
 yeşil verdi — sahte yollar (`"a","b","c"`) `open()`'da FileNotFoundError atıp
