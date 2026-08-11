@@ -331,44 +331,30 @@ def build(path, d):
     print("yazildi:", path)
 
 
-def _slice_im_parts(img_path, num_parts=4, overlap=40):
-    from PIL import Image
-    if not os.path.isfile(img_path):
-        return []
-    im = Image.open(img_path)
-    w, h = im.size
-    part_h = h // num_parts
-    parts = []
-    for i in range(num_parts):
-        y0 = max(0, i * part_h - (overlap if i > 0 else 0))
-        y1 = min(h, (i + 1) * part_h + (overlap if i < num_parts - 1 else 0))
-        parts.append(im.crop((0, y0, w, y1)))
-    return parts
+# NOT (2026-08-11): _slice_im_parts + _combine_side_by_side BURADAN SİLİNDİ.
+# Master PNG'yi 4 parçaya bölüp sabit target_h=2000'e SIKIŞTIRAN eski yaklaşımdı;
+# uzun jeneriği A4'e zorladığı için PDF'te KESİK görüntüye yol açıyordu (kanıt:
+# 05-06 Ağustos'ta üretilen kunye.pdf'lerde kanıt sayfaları A4 + gömülü görseller
+# tam 2000px). 08 Ağustos'ta yerini aşağıdaki dinamik-yükseklik yaklaşımı aldı;
+# iki fonksiyon da o tarihten beri HİÇBİR yerden çağrılmıyordu (repo geneli
+# doğrulandı). Ölü bırakmak yerine siliniyor ki kesen yol yanlışlıkla dirilmesin.
 
 
-def _combine_side_by_side(images, target_h=2000, spacing=15):
-    from PIL import Image
-    if not images:
-        return None, 100, 100
-    resized_imgs = []
-    total_w = 0
-    for im in images:
-        w = int(im.width * (target_h / im.height))
-        im_r = im.resize((w, target_h), Image.Resampling.LANCZOS)
-        resized_imgs.append(im_r)
-        total_w += w
-    total_w += spacing * (len(resized_imgs) - 1)
-    combined = Image.new("RGB", (total_w, target_h), (30, 30, 30))
-    curr_x = 0
-    for im_r in resized_imgs:
-        combined.paste(im_r, (curr_x, 0))
-        curr_x += im_r.width + spacing
-    return combined, total_w, target_h
+# PDF sayfa kenarı üst sınırı (points). PDF spec/Acrobat 200 inch = 14400pt üstünü
+# güvenilir işlemez; aşan sayfa görüntüleyicide kırpılır. Normal jeneriklerde
+# ulaşılmaz (en uzun ölçülen master ~12000pt) — bu yalnızca emniyet kemeri.
+_PDF_MAX_PT = 14400.0
 
 
 def _ekle_kanit_sayfalari(c, clip_dir):
-    import tempfile, glob
+    """
+    Giriş ve Çıkış master PNG'lerini yan yana (sol/sağ) tek sayfada koyar.
+    Sayfa yüksekliği görüntülerin uzunluğuna göre dinamik ayarlanır.
+    Çözünürlük düşürülmez - PDF'de zoom yapıp okuyabilirler.
+    """
+    import glob
     from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas
     
     cd = str(clip_dir)
     giris_candidates = [os.path.join(cd, "giris_reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*giris-lebron.png"))
@@ -377,64 +363,88 @@ def _ekle_kanit_sayfalari(c, clip_dir):
     cikis_candidates = [os.path.join(cd, "reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*cikis-lebron.png"))
     cikis_png = next((p for p in cikis_candidates if os.path.isfile(p)), None)
     
+    if not giris_png and not cikis_png:
+        return
+    
     margin = 36.0
     page_w, page_h = A4
     usable_w = page_w - (2 * margin)
+    gap = 20  # iki görüntü arası boşluk
     
-    # 1. GİRİŞ JENERİĞİ KANITI
-    if giris_png and os.path.isfile(giris_png):
-        g_parts = _slice_im_parts(giris_png, num_parts=2)
-        g_comb, gw, gh = _combine_side_by_side(g_parts, target_h=2000)
-        if g_comb:
-            c.showPage() # Yeni sayfa
-            # Başlık
-            c.setFont(SANS_SB, 11)
-            c.setFillColor(RAIL)
-            c.drawString(margin, page_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
-            hair(c, page_h - margin - 16, margin, page_w - margin, color=ACCENT, w=1.5)
-            
-            img_w = usable_w
-            img_h = img_w * (gh / gw)
-            if img_h > (page_h - 2 * margin - 40):
-                img_h = page_h - 2 * margin - 40
-                img_w = img_h * (gw / gh)
-            x_pos = (page_w - img_w) / 2.0
-            
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-                tmp_g = tmp.name
-            g_comb.save(tmp_g, "PNG")
-            c.drawImage(tmp_g, x_pos, page_h - margin - 30 - img_h, width=img_w, height=img_h)
-            try:
-                os.remove(tmp_g)
-            except Exception:
-                pass
+    # Her iki görüntü de varsa yan yana, tek varsa tam genişlik
+    has_giris = giris_png and os.path.isfile(giris_png)
+    has_cikis = cikis_png and os.path.isfile(cikis_png)
+    
+    if has_giris and has_cikis:
+        img_w_each = (usable_w - gap) / 2.0
+    else:
+        img_w_each = usable_w
+    
+    # Görüntü boyutlarını oku ve ölçek hesapla (sadece genişliğe göre, yüksekliğe GÖRE DEĞİL)
+    target_h = 0
+    img_infos = []
+    
+    for label, png_path in [("GİRİŞ", giris_png), ("ÇIKIŞ", cikis_png)]:
+        if png_path and os.path.isfile(png_path):
+            img = ImageReader(png_path)
+            iw, ih = img.getSize()
+            scale = img_w_each / iw
+            draw_h = ih * scale
+            img_infos.append((label, png_path, iw, ih, draw_h, scale))
+            target_h = max(target_h, draw_h)
+    
+    # Başlık alanı + kenar boşlukları
+    title_h = 60
+    krom_h = title_h + 2 * margin + 40          # görüntü dışı sabit yükseklik
+    total_h = target_h + krom_h
 
-    # 2. ÇIKIŞ JENERİĞİ KANITI
-    if cikis_png and os.path.isfile(cikis_png):
-        c_parts = _slice_im_parts(cikis_png, num_parts=4)
-        c_comb, cw, ch = _combine_side_by_side(c_parts, target_h=2000)
-        if c_comb:
-            c.showPage() # Yeni sayfa
-            c.setFont(SANS_SB, 11)
-            c.setFillColor(RAIL)
-            c.drawString(margin, page_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
-            hair(c, page_h - margin - 16, margin, page_w - margin, color=ACCENT, w=1.5)
-            
-            img_w_c = usable_w
-            img_h_c = img_w_c * (ch / cw)
-            if img_h_c > (page_h - 2 * margin - 40):
-                img_h_c = page_h - 2 * margin - 40
-                img_w_c = img_h_c * (cw / ch)
-            x_pos_c = (page_w - img_w_c) / 2.0
-            
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-                tmp_c = tmp.name
-            c_comb.save(tmp_c, "PNG")
-            c.drawImage(tmp_c, x_pos_c, page_h - margin - 30 - img_h_c, width=img_w_c, height=img_h_c)
-            try:
-                os.remove(tmp_c)
-            except Exception:
-                pass
+    # EMNİYET KEMERİ: sayfa PDF üst sınırını aşarsa görüntüleyici KIRPAR (istenen
+    # davranış "kesme yok"). Kırpmak yerine her iki görüntüyü de AYNI oranda
+    # küçült — en/boy oranı ve sol=giriş/sağ=çıkış düzeni korunur, içerik tam kalır.
+    if total_h > _PDF_MAX_PT:
+        kucult = (_PDF_MAX_PT - krom_h) / target_h
+        img_infos = [(lb, p, iw, ih, dh * kucult, sc * kucult)
+                     for (lb, p, iw, ih, dh, sc) in img_infos]
+        img_w_each *= kucult
+        gap *= kucult
+        target_h *= kucult
+        total_h = _PDF_MAX_PT
+        print(f"[pdf-kanit] sayfa {_PDF_MAX_PT:.0f}pt sinirini asiyordu — "
+              f"tum gorseller x{kucult:.3f} kucultuldu (kirpma YOK)")
+    
+    # Yeni sayfa oluştur - çok uzun sayfa (ReportLab destekliyor)
+    c.showPage()
+    c.setPageSize((page_w, total_h))
+    
+    # Başlık çiz
+    c.setFont(SANS_SB, 11)
+    c.setFillColor(RAIL)
+    
+    if has_giris and has_cikis:
+        # İki başlık yan yana
+        left_x = margin
+        right_x = margin + img_w_each + gap
+        c.drawString(left_x, total_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        c.drawString(right_x, total_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, left_x, left_x + img_w_each, color=ACCENT, w=1.5)
+        hair(c, total_h - margin - 16, right_x, right_x + img_w_each, color=ACCENT, w=1.5)
+    elif has_giris:
+        c.drawString(margin, total_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, margin, margin + img_w_each, color=ACCENT, w=1.5)
+    else:
+        c.drawString(margin, total_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, margin, margin + img_w_each, color=ACCENT, w=1.5)
+    
+    # Görüntüleri çiz - orijinal çözünürlükte, sadece genişlik ölçekli
+    y_base = total_h - margin - title_h
+    for i, (label, png_path, iw, ih, draw_h, scale) in enumerate(img_infos):
+        if has_giris and has_cikis:
+            x = margin if i == 0 else margin + img_w_each + gap
+        else:
+            x = margin
+        
+        # Doğrudan PNG dosyasını çiz (geçici dosya yok, resize yok)
+        c.drawImage(png_path, x, y_base - draw_h, width=img_w_each, height=draw_h)
 
 
 
