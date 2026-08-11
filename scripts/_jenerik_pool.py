@@ -363,6 +363,7 @@ def _v5_manifest_alt_nesne(v5_start: int | None, v5_info: dict | None,
         "son_capa": r.son_capa,
         "aday_sayisi": r.aday_sayisi,
         "script": getattr(r, "script", "en"),
+        "ocr_hata": getattr(r, "ocr_hata", 0),
         "notlar": r.notlar,
         "suphe": r.suphe,
     }

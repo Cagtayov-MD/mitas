@@ -5,8 +5,20 @@ En kritik görev KOBE'dedir; LEBRON JAMES ve tüm pipeline doğrudan KOBE'den be
 TEK MOTOR: tespit_v5. Bileşenler: figo.py (bu dosya, karar motoru) +
 credit_box.py (Paddle det kutu sinyali) + credit_content.py (içerik analizi).
 Pipeline bağlantısı: scripts/_jenerik_pool.py (MITAS_JENERIK_V5=1).
-Ölçüm: olc_pool.py --paralel 8 (110-film GT). Güncel skor: %94.5 / üretim %97.3
+Ölçüm: olc_pool.py --paralel 8 (110-film GT). Güncel skor: %93.6 / üretim %97.3
 / kredisiz-red 29/29. Kimlik kartı: docs/FIGO.md.
+
+SKOR NOTU (2026-08-11, dış inceleme turu): simetrik skor %94.5→%93.6 DÜŞTÜ ama
+bu bir gerileme DEĞİL. Tek sebep ARKADAŞIMIN_EVİ_NEREDE (Farsça): eski
+yönlendirici filmin %25/%50/%75'inden örneklediği için dili "en" sanıyordu →
+o filmde OCR HİÇBİR ŞEY okumuyordu ([] her karede) ama onset şansa ±20
+içinde kalıyordu. Yeni yönlendirici (son %20) "ar" diyor → gerçek Farsça cast
+çıkıyor (kare 940: 'بابك احمد بور' / 'محمد رضا نعمت زاده'), onset 28 kare ERKEN
+kalıyor. 28 erken, asimetri politikasının (erken≤120) rahatça içinde; okunan
+cast ise teslimatın kendisi. Aynı turda İNİŞLİ_ÇIKIŞLI +89 GEÇ → +29 GEÇ
+iyileşti (tehlikeli yön). Üretim skoru ve kredisiz-red kırmızı çizgisi
+DEĞİŞMEDİ. Yönlendirici artık temperature=0 ile deterministik — bu skor
+tekrarlanabilir (eskisi değildi).
 (Eski adı credit_onset.py — 2026-07-30'da FIGO olarak yeniden adlandırıldı.)
 
 Tasarım (v5): aday kutu-koşuları (credit_box.kutu_serisi, PaddleOCR det) → her
@@ -43,12 +55,19 @@ from __future__ import annotations
 
 import difflib
 import glob
+import logging
 import os
 import re
 from dataclasses import dataclass, field
 
 import numpy as np
 from PIL import Image
+
+# Değişiklik 3 (2026-08-11 dış inceleme): 841 UnboundLocalError / 106 AttributeError
+# / 5 NameError aylarca üretimde kaldı çünkü `except Exception: cache[fi] = []`
+# deseni PROGRAM HATASINI "OCR başarısız" gibi yutuyordu. `log` bu görünürlüğün
+# taşıyıcısı — bkz. _ocr_satirlar.
+log = logging.getLogger("kobe")
 
 
 # ── kare yükleme ─────────────────────────────────────────────────────────
@@ -164,10 +183,50 @@ class Sonuc:
     # — A düzelince ilk tetiklenecek katman buydu. Default "en": kredi_yok/
     # kare_yok erken-dönüşlerinde alan doldurulmaz, davranış eskisiyle aynı kalır.
     script: str = "en"
+    # OCR ÇALIŞMA-hatası sayacı (Değişiklik 3, 2026-08-11 dış inceleme). Yalnız
+    # _ocr_satirlar'ın yakaladığı gerçek çalışma hatalarını (OSError/ValueError/
+    # RuntimeError) sayar — PROGRAM hataları (NameError/AttributeError/...) buraya
+    # HİÇ ULAŞMAZ, onlar bilerek yukarı kaçırılır (bkz. _ocr_satirlar docstring'i).
+    # Default 0: kredi_yok/kare_yok erken-dönüşlerinde ve hatasız akışta mevcut
+    # davranış birebir korunur.
+    ocr_hata: int = 0
+
+
+class _OcrSayac:
+    """Değişiklik 3 — tespit_v5 çağrısı başına bir örnek, tüm yardımcılara
+    (opsiyonel `sayac=` parametresiyle) geçirilir; toplam OCR ÇALIŞMA-hatası
+    sayısını tutar (bkz. _ocr_satirlar, Sonuc.ocr_hata)."""
+    __slots__ = ("hata",)
+
+    def __init__(self) -> None:
+        self.hata = 0
+
+
+def _ocr_satirlar(cc_mod, yol: str, sayac: "_OcrSayac | None" = None) -> list[str]:
+    """OCR çağrısını SARAR (`cc_mod.satirlar(yol)`) — yalnız gerçek ÇALIŞMA
+    hatasını yutar: OSError (dosya/IO), ValueError (decode/format), RuntimeError
+    (PaddleOCR motor hatası). Bu üçü yakalanınca `log.warning` ile yol+hata
+    tipi+mesaj yazılır, `sayac.hata` artırılır, `[]` döner — eski `except
+    Exception: []` deseninin davranışsal eşdeğeri, YALNIZ bu yolla.
+
+    Başka HİÇBİR istisna yakalanmaz: NameError/AttributeError/TypeError/
+    UnboundLocalError vb. bir BUG'dır, "OCR başarısız" değil — yukarı kaçmalı
+    ki scripts/_jenerik_pool.py:409'daki dış `except` onu errors.jsonl'e yazsın.
+    841 kayıtlı UnboundLocalError / 106 AttributeError / 5 NameError'ın aylarca
+    üretimde sessiz kalmasının kök sebebi tam olarak bu ayrımın YOKLUĞUYDU
+    (bkz. modül docstring'i, 2026-08-11 dış inceleme turu)."""
+    try:
+        return cc_mod.satirlar(yol)
+    except (OSError, ValueError, RuntimeError) as e:
+        log.warning("OCR hata: %s (%s: %s)", yol, type(e).__name__, e)
+        if sayac is not None:
+            sayac.hata += 1
+        return []
 
 
 def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
-                          adim: int = 2, azami_ileri: int = 30, azami_geri: int = 120
+                          adim: int = 2, azami_ileri: int = 30, azami_geri: int = 120,
+                          sayac: "_OcrSayac | None" = None
                           ) -> tuple[int, str]:
     """Statik-tip (scroll-dışı) kazanan koşuda içerik-çapalı onset (T5).
 
@@ -192,10 +251,7 @@ def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
 
     def satir(fi: int) -> list[str]:
         if fi not in cache:
-            try:
-                cache[fi] = cc.satirlar(g[idx[fi]])
-            except Exception:
-                cache[fi] = []
+            cache[fi] = _ocr_satirlar(cc, g[idx[fi]], sayac)
         return cache[fi]
 
     kosu_uzunluk = b - a
@@ -246,7 +302,7 @@ def _ardisik_maks(mask) -> int:
 
 
 def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
-                         ornek: int = 8) -> bool:
+                         ornek: int = 8, sayac: "_OcrSayac | None" = None) -> bool:
     """T4 geri-birleştirme kapısı: ÖNCEKİ aday [a,b] gerçekten kredi içeriği mi.
 
     Aday zaten bir kutu-koşusu (jbayrak-sürdürülen) — burada yalnız ÇEKİRDEK
@@ -282,10 +338,7 @@ def _gecis_icerik_onayi(g: list[str], idx: list[int], cc_mod, a: int, b: int,
         return False
     roller_tumu: set[str] = set()
     for fi in sorted(set(int(x) for x in np.linspace(a, b, n))):
-        try:
-            satirlar = cc_mod.satirlar(g[idx[fi]])
-        except Exception:
-            continue
+        satirlar = _ocr_satirlar(cc_mod, g[idx[fi]], sayac)
         roller_kare = {m.lower() for s in satirlar for m in cc_mod._ROL_CEKIRDEK.findall(s)}
         if not roller_kare:
             continue
@@ -318,7 +371,8 @@ KURTARMA_GUVEN = 0.35
 
 
 def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
-                      jbayrak: np.ndarray, n: int, fps: float, stride: int
+                      jbayrak: np.ndarray, n: int, fps: float, stride: int,
+                      sayac: "_OcrSayac | None" = None
                       ) -> tuple[int, int] | None:
     """Scroll-kurtarma (T6, plan Görev6/Adım2): HİÇBİR aday içerik-eşiğini
     geçemediyse son çare — filmin son %25'inde ≥8 sn SÜRDÜRÜLEN scroll+kutu
@@ -335,12 +389,23 @@ def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
     sayılıyordu (110-filmlik ölçüm setinde görünmez — bu filmlerin hiçbirinde
     gerçek koşu tam sınırda başlamıyor, ama üretimde risk). Şimdi taramadan
     ÖNCE sınırdan geriye yürüyüp `aktif` sürdüğü sürece gerçek koşu başını
-    buluyor."""
+    buluyor.
+
+    Değişiklik 4 (2026-08-11 dış inceleme): geri-yürüme SINIRSIZDI — `aktif`
+    filmin %30'undan sona kadar kesintisiz sürerse kurtarma yolu filmin %30'unu
+    'jenerik başlangıcı' ilan ediyordu (en kötü durum). Taban %50 ile
+    sınırlandı; bu yol zaten KURTARMA_GUVEN=0.35 döndürüyor — kes.py'deki
+    GUVEN_ESIK=0.60'ın altında, yani otomatik kesime değil insan incelemesine
+    düşüyor. BİTİŞ ÇAPASI EKLENMEDİ: tarama zaten %75 sınırından başladığı
+    için bulunan her koşu ya o indeksi içerir ya sonrasında başlar — `ke` hiçbir
+    zaman %75'in altına inemez (bkz. test_kurtarma_bitisi_her_zaman_son_ceyrekte);
+    bir bitiş-çapası burada ÖLÜ KOD olurdu."""
     baslangic = int(0.75 * (n - 1))
     min_kosu = max(16, int(fps * 8.0 / stride))
     aktif = scroll & jbayrak
+    alt_sinir = int(0.50 * (n - 1))
     if 0 <= baslangic < n and aktif[baslangic]:
-        while baslangic - 1 >= 0 and aktif[baslangic - 1]:
+        while baslangic - 1 >= alt_sinir and aktif[baslangic - 1]:
             baslangic -= 1
     en_uzun = (0, -1, -1)  # (uzunluk, start, end)
     i = baslangic
@@ -360,10 +425,7 @@ def _scroll_kurtarma(g: list[str], idx: list[int], cc_mod, scroll: np.ndarray,
         return None
     ornek = sorted(set(int(x) for x in np.linspace(ks, ke, min(8, ke - ks + 1))))
     for fi in ornek:
-        try:
-            satirlar = cc_mod.satirlar(g[idx[fi]])
-        except Exception:
-            continue
+        satirlar = _ocr_satirlar(cc_mod, g[idx[fi]], sayac)
         if any(cc_mod._ROL_CEKIRDEK.search(s) for s in satirlar):
             return ks, ke
     return None
@@ -420,7 +482,8 @@ def _farkli_metin_sayisi(metinler: list[str], esik: float = 0.8) -> int:
 
 def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
                                 onset: int, azami_geri: int = 80,
-                                bosluk_tol: int = 6, min_metin: int = 4) -> tuple[int, str]:
+                                bosluk_tol: int = 6, min_metin: int = 4,
+                                sayac: "_OcrSayac | None" = None) -> tuple[int, str]:
     # bosluk_tol 4→6 (2026-07-30, GELECEK_GÜNLER teşhisi): kart-dizisinde kartlar
     # arası geçiş boşlukları (dissolve/n=3 çok-kutulu ara kareler) 5-6 örnek-indeks
     # sürebiliyor — GELECEK'te zincir 743-733 arasındaki 6'lık boşlukta kopup
@@ -457,10 +520,7 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
 
     def satir(fi: int) -> list[str]:
         if fi not in onbellek:
-            try:
-                onbellek[fi] = cc_mod.satirlar(g[idx[fi]])
-            except Exception:
-                onbellek[fi] = []
+            onbellek[fi] = _ocr_satirlar(cc_mod, g[idx[fi]], sayac)
         return onbellek[fi]
 
     def kart_mi(fi: int) -> tuple[bool, str]:
@@ -497,7 +557,8 @@ def _kart_dizisi_geri_genislet(g: list[str], idx: list[int], cc_mod, cb_mod,
 
 
 def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: int,
-                           azami_ileri: int = 30) -> tuple[int, str]:
+                           azami_ileri: int = 30,
+                           sayac: "_OcrSayac | None" = None) -> tuple[int, str]:
     """Scroll-tip koşuda şirket/stüdyo-kartı ileri-budaması (alt-adım2, T8
     sonrası — Çağatay politikası 2026-07-23: GEÇ kalma artık en kötü hata
     sınıfı, İLERİ-çekme EN RİSKLİ işlem; şüphede İLERİ ÇEKME, erken kalmak
@@ -524,10 +585,7 @@ def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: i
 
     def satir(fi: int) -> list[str]:
         if fi not in onbellek:
-            try:
-                onbellek[fi] = cc_mod.satirlar(g[idx[fi]])
-            except Exception:
-                onbellek[fi] = []
+            onbellek[fi] = _ocr_satirlar(cc_mod, g[idx[fi]], sayac)
         return onbellek[fi]
 
     ileri_sinir = min(n - 1, onset + azami_ileri)
@@ -565,9 +623,64 @@ def _scroll_sirket_budama(g: list[str], idx: list[int], cc_mod, onset: int, n: i
 
 
 
-def detect_script_qwen(image_paths: list[str]) -> str:
-    """Pre-flight Qwen Vision Router: detects credit script (Arabic, Cyrillic, Chinese, Latin)."""
-    import base64, json, urllib.request
+# Değişiklik 2 (2026-08-11 dış inceleme) — script→PaddleOCR-lang kod haritası.
+# Mevcut dil kodları AYNEN korunur: credit_content._ocr() bunları PaddleOCR
+# lang parametresi olarak kullanıyor; CJK/Yunan desteği 483f48a2 ile bilinçli
+# eklendi, kaldırılmadı (bkz. test_router_cok_alfabe_destegi_korunur).
+_SCRIPT_HARITA = {
+    "latin": "en", "english": "en",
+    "arabic": "ar", "persian": "ar", "farsi": "ar", "urdu": "ar",
+    "cyrillic": "ru", "russian": "ru", "kazakh": "ru", "ukrainian": "ru",
+    "chinese": "ch", "hanzi": "ch",
+    "japanese": "japan", "kanji": "japan", "hiragana": "japan", "katakana": "japan",
+    "korean": "korean", "hangul": "korean",
+    "greek": "gr",
+}
+
+
+def _router_ornek_yollari(g: list[str]) -> list[str]:
+    """Yönlendirici için örnek kareler — filmin SON %20'si (Değişiklik 2).
+    Eski örnekleme %25/%50/%75 noktalarındaydı: jenerik SONDA olduğu için bu
+    noktalar sahne/tabela/ara-yazı görüyor, VLM onları halüsine ediyordu.
+    Oranlar (0.80, 0.88, 0.95): sınır-güvenli (`min(n-1, max(0, ...))`) ve
+    tekrarsız (küçük `g` listelerinde oranlar aynı indekse denk gelebilir —
+    tekrarlar elenir)."""
+    n = len(g)
+    if n == 0:
+        return []
+    idxler: list[int] = []
+    for oran in (0.80, 0.88, 0.95):
+        i = min(n - 1, max(0, int(n * oran)))
+        if i not in idxler:
+            idxler.append(i)
+    return [g[i] for i in idxler]
+
+
+def detect_script_qwen(image_paths: list[str], oy_esik: int = 2) -> str:
+    """Pre-flight Qwen Vision Router: jenerik metninin alfabesini (Arabic,
+    Cyrillic, Chinese, Latin, ...) tespit eder — OYLAMA ile (Değişiklik 2).
+
+    Dört düzeltilen kusur (2026-08-11 dış inceleme):
+    (a) örnekleme artık filmin SON %20'sinden (bkz. _router_ornek_yollari) —
+        jenerik SONDA, eski %25/%50/%75 örneklemesi sahne/tabela görüyordu.
+    (b) İLK eşleşmede `return` YOK — tek halüsinasyon kare artık tüm filmi
+        çeviremiyor; üç kare de oy kullanır, çoğunluk kazanır.
+    (c) 'arabic' in res_str gibi SUBSTRING eşleşmesi YOK — "Not Arabic, it is
+        Latin" gibi cevaplar cevabı KELİMELERE ayırıp _SCRIPT_HARITA'dan TAM
+        KELİME eşleştirir; kelimede BİRDEN FAZLA farklı dil eşleşirse
+        (negasyon/belirsizlik) o kare oy KULLANMAZ.
+    (d) payload'a temperature=0/seed=0 eklendi — 110-film ölçümü artık
+        tekrarlanabilir (eskiden aynı film iki koşuda farklı dil verebiliyordu).
+
+    oy_esik: en çok oyu alan dilin oy sayısı bunun altındaysa (ya da hiç oy
+    yoksa) güvenli varsayılan 'en' döner — yanlış dil çöp-OCR üretir, bu
+    varsayılan Latin'den daha kötüdür."""
+    import base64
+    import json
+    import urllib.request
+    from collections import Counter
+
+    oylar: Counter = Counter()
     for path in image_paths:
         try:
             with open(path, 'rb') as f:
@@ -579,30 +692,31 @@ def detect_script_qwen(image_paths: list[str]) -> str:
                     'content': 'Identify the alphabet script of the credit text in this image. Answer in exactly 1 word: Latin, Arabic, Cyrillic, Greek, Chinese, Japanese, or Korean.',
                     'images': [img_b64]
                 }],
-                'stream': False
+                'stream': False,
+                'options': {'temperature': 0, 'seed': 0, 'num_predict': 8},
             }
             req = urllib.request.Request(
                 'http://localhost:11434/api/chat',
                 data=json.dumps(payload).encode('utf-8'),
                 headers={'Content-Type': 'application/json'}
             )
-            resp = urllib.request.urlopen(req, timeout=10)
-            res_str = json.loads(resp.read())['message']['content'].strip().strip('.').lower()
-            if 'arabic' in res_str or 'persian' in res_str or 'farsi' in res_str or 'urdu' in res_str:
-                return 'ar'
-            elif 'cyrillic' in res_str or 'russian' in res_str or 'kazakh' in res_str or 'ukrainian' in res_str:
-                return 'ru'
-            elif 'chinese' in res_str or 'hanzi' in res_str:
-                return 'ch'
-            elif 'japanese' in res_str or 'kanji' in res_str or 'hiragana' in res_str or 'katakana' in res_str:
-                return 'japan'
-            elif 'korean' in res_str or 'hangul' in res_str:
-                return 'korean'
-            elif 'greek' in res_str:
-                return 'gr'
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                cevap = json.loads(resp.read())['message']['content']
+            kelimeler = re.findall(r"[a-z]+", cevap.lower())
+            eslesen = {_SCRIPT_HARITA[k] for k in kelimeler if k in _SCRIPT_HARITA}
+            if len(eslesen) == 1:
+                oylar[next(iter(eslesen))] += 1
+            # len(eslesen) == 0 (eşleşme yok) veya >= 2 (belirsiz/negasyon) —
+            # bu kare oy KULLANMAZ.
         except Exception:
             continue
-    return 'en'
+
+    if not oylar:
+        return 'en'
+    dil, oy = oylar.most_common(1)[0]
+    if oy < oy_esik:
+        return 'en'
+    return dil
 
 
 def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 2) -> Sonuc:
@@ -617,15 +731,24 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     import credit_content as cc
     g = kareler(dizin)
     if len(g) < 10:
+        # Değişiklik 1: script/ocr_hata BURADA doldurulmaz — bu noktada
+        # örneklenecek kare bile yok, yönlendirici hiç çağrılmadı; default
+        # "en"/0 dürüst (davranış eskisiyle birebir aynı kalır).
         return Sonuc(-1, "kare_yok", 0.0, notlar=f"{len(g)} kare")
 
-    # ── ROUTER: Pre-flight Script Classification ──
+    # Değişiklik 3: tespit_v5 çağrısı başına TEK sayaç — tüm OCR-sarmalayan
+    # yardımcılara (opsiyonel `sayac=`) geçirilir, nihai Sonuc.ocr_hata'yı besler.
+    sayac = _OcrSayac()
+
+    # ── ROUTER: Pre-flight Script Classification (Değişiklik 1 + 2) ──
+    # `dil` YEREL değişkende tutulur — kredi_yok dönüşleri de dahil TÜM dönüş
+    # yollarına aynı değer geçirilir (aşağıda `cc.get_aktif_dil()` okuması
+    # kalktı; başarılı dönüş de artık bu değişkeni kullanıyor).
     try:
-        sample_idx = [len(g)//4, len(g)//2, 3*len(g)//4]
-        sample_paths = [g[i] for i in sample_idx if i < len(g)]
-        cc.set_aktif_dil(detect_script_qwen(sample_paths))
+        dil = detect_script_qwen(_router_ornek_yollari(g))
     except Exception:
-        cc.set_aktif_dil("en")
+        dil = "en"
+    cc.set_aktif_dil(dil)
 
     idx = list(range(0, len(g), stride))
     gk = [_gri(g[i]) for i in idx]
@@ -682,7 +805,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     if not adaylar:
         return Sonuc(-1, "kredi_yok", 0.0,
                      notlar=f"kutu-koşusu yok; maxkutu={int(say.max())}",
-                     seri={"adaylar": []})
+                     seri={"adaylar": []}, script=dil, ocr_hata=sayac.hata)
 
     # ── her adayı OCR-içerikle değerlendir ──
     EŞIK = 0.6     # ≥2 sürdürülen-yoğun kare (gazete 1 karede kalır → elenir)
@@ -719,10 +842,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
 
         def _satir_al(fi: int) -> list[str]:
             if fi not in satir_onbellek:
-                try:
-                    satir_onbellek[fi] = cc.satirlar(g[idx[fi]])
-                except Exception:
-                    satir_onbellek[fi] = []
+                satir_onbellek[fi] = _ocr_satirlar(cc, g[idx[fi]], sayac)
             return satir_onbellek[fi]
 
         kare_satirlari = [_satir_al(fi) for fi in ornek]
@@ -841,7 +961,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
 
     kurtarma_yolu = False
     if en_iyi is None:
-        kurtarma = _scroll_kurtarma(g, idx, cc, scroll, jbayrak, n, fps, stride)
+        kurtarma = _scroll_kurtarma(g, idx, cc, scroll, jbayrak, n, fps, stride, sayac=sayac)
         if kurtarma is not None:
             ks, ke = kurtarma
             kare_ks, kare_ke = _kare_no(g[idx[ks]]), _kare_no(g[idx[ke]])
@@ -866,7 +986,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             else:
                 en_iyi_kb = max(k["kb"] for k in degerlendirilmis)
                 sebep = f"içerik-eşiği geçilemedi (en iyi kb={en_iyi_kb:.2f})"
-            return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar})
+            return Sonuc(-1, "kredi_yok", 0.0, notlar=sebep, seri={"adaylar": kayitlar},
+                         script=dil, ocr_hata=sayac.hata)
 
     joint, a, b, kb, scroll_var, roller_kazanan, son_capa_kazanan = en_iyi
     # alt-adım2 güvenlik gardı (KANDAHAR/ARKADAŞIMIN_EVİ_NEREDE regresyonu,
@@ -941,7 +1062,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
                 break
             if (a - a_prev) > TOPLAM_MESAFE:
                 break
-            if not _gecis_icerik_onayi(g, idx, cc, a_prev, b_prev):
+            if not _gecis_icerik_onayi(g, idx, cc, a_prev, b_prev, sayac=sayac):
                 break
             onset_z = a_prev
             butce -= bosluk
@@ -971,10 +1092,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     ham_sinir = max(0, b_bariyer + 1, onset_z - ham_butce)
     fi = onset_z - 1
     while fi >= ham_sinir:
-        try:
-            satirlar_fi = cc.satirlar(g[idx[fi]])
-        except Exception:
-            satirlar_fi = []
+        satirlar_fi = _ocr_satirlar(cc, g[idx[fi]], sayac)
         if satirlar_fi and cc._PRODUC_GENIS.search(" ".join(satirlar_fi)) \
                 and any(cc._isim_gibi(s, satirlar_fi) for s in satirlar_fi):
             onset_z = fi
@@ -1006,10 +1124,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
             if ornek_s:
                 okunamaz = 0
                 for fi_s in ornek_s:
-                    try:
-                        sl_s = cc.satirlar(g[idx[fi_s]])
-                    except Exception:
-                        sl_s = []
+                    sl_s = _ocr_satirlar(cc, g[idx[fi_s]], sayac)
                     if not _kare_okunabilir_mi(sl_s):
                         okunamaz += 1
                 # Eşik %70→%65 (2026-07-30 kalibrasyon ölçümü): İNİŞLİ'nin elenen
@@ -1076,12 +1191,12 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # yoluyla kazanılmış adaylarda bu bütünüyle atlanır, şüphede ileri
         # çekme yapılmaz).
         if not yabanci_yol:
-            onset, ek_not = _scroll_sirket_budama(g, idx, cc, onset, n)
+            onset, ek_not = _scroll_sirket_budama(g, idx, cc, onset, n, sayac=sayac)
     else:
         # STATİK-tip koşu (T5) — koşu sınırı değil İÇERİK çapası: ileri-budama
         # (koşu başı kredi-dışı metni atla) + geri-genişletme (kartın gerçek
         # başlangıcına geri çek). Atlas kanıtı: ERKEN_METIN (KNUTE/TESS/...).
-        onset, ek_not = _statik_icerik_onset(g, idx, a, b)
+        onset, ek_not = _statik_icerik_onset(g, idx, a, b, sayac=sayac)
         # Kart-dizisi geri-genişletme (T6 2.tur, alt-adım3 — konsey kırmızı-
         # takım, ROBOCOP sınıfı): _statik_icerik_onset'in kredi_karti_mi'si tek
         # karede isim>=3 ister; kart-başına-tek-aktör dizilerinde (her karede
@@ -1091,7 +1206,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         # gerçek çapa) referans alınmalı — yoksa budama zaten `a`dan ileri
         # taşımışken bu fonksiyon "değişmedi" (kart_onset==a) dönse bile
         # a<onset olduğundan yanlışlıkla "genişledi" sanılıp budama iptal olur.
-        kart_onset, kart_not = _kart_dizisi_geri_genislet(g, idx, cc, cb, onset)
+        kart_onset, kart_not = _kart_dizisi_geri_genislet(g, idx, cc, cb, onset, sayac=sayac)
         if kart_onset < onset:
             onset = kart_onset
             ek_not = (ek_not + " " if ek_not else "") + kart_not
@@ -1112,10 +1227,7 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         if bas_idx:
             kartsiz = 0
             for fi_e in bas_idx:
-                try:
-                    sl_e = cc.satirlar(g[idx[fi_e]])
-                except Exception:
-                    sl_e = []
+                sl_e = _ocr_satirlar(cc, g[idx[fi_e]], sayac)
                 if not cc.kredi_karti_mi(sl_e):
                     kartsiz += 1
             if kartsiz / len(bas_idx) >= 0.80:
@@ -1158,6 +1270,10 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     # Şüphe katmanı — notlar'a kısa özet (davranış-nötr, salt raporlama).
     if suphe:
         notlar = notlar + f" suphe={','.join(suphe)}"
+    # Değişiklik 3: OCR ÇALIŞMA-hatası görünürlüğü — YALNIZ sayac.hata > 0 iken
+    # eklenir, sıfırken mevcut çıktı birebir aynı kalır (regresyon riski yok).
+    if sayac.hata > 0:
+        notlar = notlar + f" ocr_hata={sayac.hata}"
 
     return Sonuc(
         start_frame=_kare_no(g[idx[onset]]),
@@ -1171,9 +1287,10 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
         ardisik_scroll=ardisik_scroll,
         son_capa=son_capa_kazanan,
         aday_sayisi=len(adaylar),
-        script=cc.get_aktif_dil(),
+        script=dil,
         suphe=suphe,
         suphe_geri_kare=suphe_geri_kare,
+        ocr_hata=sayac.hata,
     )
 
 
