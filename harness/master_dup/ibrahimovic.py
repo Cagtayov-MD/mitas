@@ -272,7 +272,7 @@ def cift_olc(olcum: list[np.ndarray], bosluk_px: list[int],
     maskesi; sobel yolu: maskeli gri değerler). `bosluk_px[i]`: o karenin
     metin-piksel sayısı (boşluk kararı)."""
     han = cv2.createHanningWindow((w, h), cv2.CV_32F)
-    han_1d = cv2.createHanningWindow((1, h), cv2.CV_32F)
+    han_1d = cv2.createHanningWindow((w, h), cv2.CV_32F)
     out: list[dict] = []
     for i in range(len(olcum) - 1):
         idx2 = min(i + IYIL_STRIDE, len(olcum) - 1)
