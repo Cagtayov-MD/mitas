@@ -7,6 +7,98 @@
 
 ---
 
+## 2026-08-11 — 4 Sessiz Arıza + Git Kurtarma + LeBron Geri-Alma Keşfi
+
+**Yapılan (8 commit, 56/56 test geçiyor):**
+
+1. **ÖZET (`82877f9b`)** — özet zincirinin DÖRDÜ de ölüymüş: DeepSeek 402,
+   NVIDIA yedeği **HTTP 410 (deepseek-v4-pro 07 Ağustos'ta EOL)**, Gemini 429,
+   Anthropic 400, gemma-local flag'i kapalı. En sinsisi NVIDIA'ydı: model
+   sağlayıcı tarafında ölünce fallback SESSİZCE gitti (özetlerin ~%78'i boş).
+   6 aday NVIDIA modeli 2 gerçek filmle kıyaslandı → `deepseek-v4-flash-0731`
+   (twist'i yakalayan tek model). 404/410 artık yüksek sesle bildiriliyor.
+   Çağatay DeepSeek'e yükleme yaptı; hem normal yol (2.7s) hem kredi-bitti
+   simülasyonu (→NVIDIA, 25.3s) canlı doğrulandı.
+
+2. **JENERİK DİLİ (`1df2043b`)** — "hep Latin" sorunu. KOBE'de birbirini
+   maskeleyen **4 bug**: (A) `dy_cift`'te `en` yalnız dejenere dalda tanımlı →
+   UnboundLocalError, üretimde **841 kayıt**; (B) `figo` shim'i `import *`
+   yüzünden `_kare_no` gibi private'ları aktarmıyor → 106 AttributeError;
+   (C) `_kare_okunabilir_mi` hiç tanımlı değil → NameError; (D) `Sonuc`'ta
+   `script` alanı yokken `script=` geçiliyor → TypeError (A tarafından
+   maskeleniyordu). Hepsi düzeltildi; DOLUNAY ZAMANI artık SCRIPT=ar veriyor.
+
+3. **MASTER PNG / PDF (`fff7b3e7`)** — kod 08 Ağustos'ta zaten düzeltilmişmiş;
+   şikâyet edilen kesik PDF'ler 05-06 Ağustos üretimi (eski `_combine_side_by_side`,
+   target_h=2000, A4'e sıkışma). Kesen ölü fonksiyonlar silindi + 14400pt sayfa
+   limiti için "kırpma yerine orantılı küçült" emniyeti eklendi.
+   → **BEKLEYEN: eski PDF'lerin yeniden üretilmesi gerekiyor.**
+
+4. **SES/DİL (`73422e39`)** — ANA DİL 1035 kaydın 777'sinde (%75) boştu.
+   Kök neden ses değil GPU: `_get_mms()` modeli GPU'ya alırken **CUDA OOM**
+   yiyor ("free 80MB / total 25GB"), model hiç yüklenemiyor, her kanal
+   samples=0 → "ses yok". Yani ALTYAPI ARIZASI, PDF'e "bu filmde ses yok" diye
+   İÇERİK GERÇEĞİ olarak yazılıyordu. CPU'ya düşme + `lid_arizali/lid_ok/lid_hata`
+   alanları eklendi. SAVAŞ ÇOCUKLARI: None → **tr**.
+   Altyazı tespiti ise zaten doğru çalışıyormuş (tüm kayıtlarda total=60).
+
+**Git kurtarma (oturum başında):** `.git/refs/heads/jenerik-tek-motor` bozuk
+SHA içeriyordu (`e0a4cf41`+sıfır dolgu) ve `.git/index` **tamamen yoktu** →
+`fatal: bad object HEAD`. Reflog sağlamdı; ref `86dd5db4`'e onarıldı, index
+`git reset` ile HEAD'den kuruldu. Muhtemel sebep: disk %96 dolu iken yarım yazma.
+
+**Öğrenilen / keşfedilen:**
+- **LeBron üretim dosyası kazara ezilmişti!** `harness/master_dup/lebron_james.py`
+  diskte 07 Ağustos'ta eski bir sürümle değiştirilmiş; Madde 2/6/7/9/10 kaybolmuş.
+  Kanıt: o hâlde `tests/test_lebron_grup1.py` 2 test kırıyordu, HEAD'de 5/5 geçiyor.
+  HEAD'e geri alındı. **Ders: üretim motoru harness/ içinde duruyor ve orası
+  `sys.path`'e ekleniyor — deneme dosyaları üretimi eziyor.**
+- `ibrahimovic.py`'deki tek satırlık değişiklik meşru bir ÇÖKME düzeltmesiymiş:
+  `createHanningWindow((1,h))` OpenCV assertion'ı ile patlıyor; `(w,h)` çalışıyor
+  ve kaymayı doğru buluyor (dy=5.04 ↔ gerçek 5). Doğrulanıp commit'lendi (`de6e7ce0`).
+- 4 başıboş deneme dosyası `_deneme_arsivi/`'ne alındı (`924c3fb0`), silinmedi.
+  `benchmark_iyilestirmeler.py` zaten sözdizimi hatalı (`import X as Y as Z`).
+- **Tekrar eden desen — SESSİZ BOZULMA:** bu oturumdaki 4 arızanın da ortak
+  yanı, geniş `except`/fail-safe'in gerçek hatayı içerik gerçeğine çevirmesi
+  (model EOL → "özet yok", CUDA OOM → "ses yok", crash → "Latin"). Fail-safe
+  pipeline'ı ayakta tutuyor ama **arızayı görünmez yapıyor**. Yeni fail-safe
+  yazarken "bu sessizce yanlış veri üretir mi?" diye sor.
+
+**AÇIK SORU — ibrahimovic vs lebron (kıyas YAPILMADI):**
+LeBron 2026-08-04'te birincil yapılmış ama **hiçbir kaydı yok** (docs/, GUNLUK,
+model_manifest hepsinde sıfır) — `no_engine_selection_before_benchmark` kuralı
+işletilmemiş. 388 film ibrahimovic'le, 610 film lebron'la üretilmiş, **örtüşme 0**
+→ kafa-kafaya kıyas hiç yapılmamış. Ölçülen (nedensel DEĞİL, farklı film kümeleri):
+
+| Ölçüt | lebron | ibrahimovic |
+|---|---|---|
+| Üretemedi | %12 (146/1220) | %42 (162/388) |
+| Master medyan boy | 7007 px | 9856 px |
+| Şüpheli kısa (<2000px) | %7.8 | %3.1 |
+
+Kod okuması: lebron = ibrahimovic'in ölçüm çekirdeği (`_iou`, `_icerik_ncc`,
+`_dy_dogrula`, `cift_olc`, `_segment_kanvas` aynen devralınmış) + OCR tabanlı
+`ai_flashlight_mask`. Ama 14 KB vs 39 KB; ibrahimovic'in **dissolve bekçisi**
+(Çağatay'ın fikri, IoU ile içerik kimliği) lebron'da görünmüyor ve OCR patlarsa
+`threshold(180)`'e düşüyor (ibrahimovic'in ayarlı 110+sobel'inden kaba).
+`master_png_monitor._lebron_cokmus()` diye özel bir çökme dedektörü olması,
+lebron'un bu arıza modunun bilindiğini gösteriyor.
+→ Çağatay kararı: kıyas ŞİMDİ değil, restart öncelikli. Lebron birincil kalıyor.
+
+**Bekleyen:**
+- ibrahimovic vs lebron kafa-kafaya kıyas (aynı filmler, sadakat text_recall +
+  dup_metrik dup_oran). Önerilen: 12 film, karışık zorluk, ~1.5-3 saat.
+- 05-06 Ağustos PDF'lerinin yeniden üretimi (kesik kanıt sayfaları).
+- **Adlandırma/yerleşim borcu:** üretim ÇIKIŞ motoru (lebron) `harness/` içinde;
+  ibrahimovic ölü ama aynı dizinde; GİRİŞ master'ının hiç adı yok (crop-stack +
+  `db_compose_master.compose_reading_runaware`). Taşıma/yeniden adlandırma refactor'ü.
+- **SİSTEM: NVIDIA sürücü/kütüphane sürüm uyuşmazlığı** (`nvidia-smi` →
+  "Failed to initialize NVML", NVML 595.84). GPU işlerini kararsız yapıyor.
+- **SİSTEM: disk %96 dolu** (72 GB boş) — git bozulmasının muhtemel sebebi.
+- BIÇAK 1972-0125 kaynak dosyası bozuk (`moov atom not found`, MP4 yarım).
+
+---
+
 ## 2026-08-03 — KONTROL Analizi + P0 Fix'ler + Altyapı Temizliği
 
 **Yapılan:**
