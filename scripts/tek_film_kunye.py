@@ -1456,18 +1456,21 @@ def main():
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):
         _sub = None                                 # Türkçe/bilinmeyen içerikte başlıkla aynı orijinal = gereksiz altyazı
 
-    # Jenerik dili (Alfabe Tipi)
+    # Jenerik dili (Alfabe Tipi) — SADECE PDF'e "Jenerik dili" yazmak için.
+    # Önce ÇIKIS jeneriği (jenerik_detection_cikis.json) → yoksa GİRİŞ jeneriği (jenerik_detection.json) fallback.
+    # Bu bilgi BAŞKA HİÇBİR YERDE KULLANILMAZ (ana_dil fallback, alfabe tespiti, vs. YOK).
     jenerik_dili = None
     try:
-        jd_path = os.path.join(clip, "frames", "jenerik_detection.json")
-        if not os.path.exists(jd_path):
-            jd_path = os.path.join(clip, "frames", "jenerik_detection_cikis.json")
-        if os.path.exists(jd_path):
-            with open(jd_path, "r", encoding="utf-8") as fh:
-                jd_data = json.load(fh)
-            script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
-            if script_code:
-                jenerik_dili = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+        # Sıra: 1) ÇIKIS, 2) GİRİŞ (fallback)
+        for jd_name in ("jenerik_detection_cikis.json", "jenerik_detection.json"):
+            jd_path = os.path.join(clip, "frames", jd_name)
+            if os.path.exists(jd_path):
+                with open(jd_path, "r", encoding="utf-8") as fh:
+                    jd_data = json.load(fh)
+                script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+                if script_code:
+                    jenerik_dili = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+                    break
     except Exception:
         pass
 

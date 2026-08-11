@@ -10,7 +10,7 @@ Profil: TEK 'Film/Dizi' — tip TRT 3. parselden OTOMATİK:
   0 → DİZİ (tüm oyuncular + tüm jenerik, kanonik sıra)
 """
 from __future__ import annotations
-import sys, json, os, re, argparse, importlib.util, datetime
+import sys, json, os, re, argparse, importlib, importlib.util, datetime
 import urllib.error, urllib.request
 from pathlib import Path
 try:
@@ -41,6 +41,14 @@ SUBTITLE_SCRIPT = HERE / "_subtitle_detect.py"
 
 
 def _load(name, path):
+    # Cache invalidation: modül zaten yüklüyse reload et, yoksa yeniden yükle
+    if name in sys.modules:
+        try:
+            importlib.reload(sys.modules[name])
+            return sys.modules[name]
+        except Exception:
+            pass  # Reload başarısazsa yeniden yükle
+    
     spec = importlib.util.spec_from_file_location(name, str(path))
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
@@ -190,23 +198,26 @@ def audio_subtitle_block(args) -> dict:
                 block["ana_dil"] = _al
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
         # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
-        # Jenerik dili (Alfabe Tipi) tespiti (frames/jenerik_detection.json veya cc.AKTIF_DIL / kobe)
+        # Jenerik dili (Alfabe Tipi) tespiti — SADECE PDF'e "Jenerik dili" yazmak için.
+        # Önce ÇIKIS jeneriği (jenerik_detection_cikis.json) → yoksa GİRİŞ jeneriği (jenerik_detection.json) fallback.
+        # Bu bilgi BAŞKA HİÇBİR YERDE KULLANILMAZ (ana_dil fallback, alfabe tespiti, vs. YOK).
         try:
-            jd_path = None
+            base = None
             if getattr(args, "video", None):
-                jd_path = Path(args.video).parent / "frames" / "jenerik_detection.json"
-                if not jd_path.exists():
-                    jd_path = Path(args.video).parent / "frames" / "jenerik_detection_cikis.json"
+                base = Path(args.video).parent
             elif getattr(args, "kunye", None):
-                jd_path = Path(args.kunye).parent / "frames" / "jenerik_detection.json"
-                if not jd_path.exists():
-                    jd_path = Path(args.kunye).parent / "frames" / "jenerik_detection_cikis.json"
+                base = Path(args.kunye).parent
             
-            if jd_path and jd_path.exists():
-                jd_data = json.loads(jd_path.read_text(encoding="utf-8"))
-                script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
-                if script_code:
-                    block["jenerik_dili"] = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+            if base:
+                # Sıra: 1) ÇIKIS, 2) GİRİŞ (fallback)
+                for jd_name in ("jenerik_detection_cikis.json", "jenerik_detection.json"):
+                    jd_path = base / "frames" / jd_name
+                    if jd_path.exists():
+                        jd_data = json.loads(jd_path.read_text(encoding="utf-8"))
+                        script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+                        if script_code:
+                            block["jenerik_dili"] = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+                            break
         except Exception:
             pass
 
