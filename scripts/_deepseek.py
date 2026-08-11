@@ -62,13 +62,17 @@ _CREDIT_SIGNALS = ("insufficient", "balance", "quota")
 # yapildi; resmi uc kota/kesinti yasarsa ozet dogrudan gemma-yerel'e dusuyordu
 # (bake-off: yerel modeller guvenilir Turkce ozet veremiyor). NVIDIA ayni model
 # ailesini ucretsiz uctan sunuyor -> ikinci erisim yolu.
-# Model secimi (anahtar_test /models teyidi 2026-07-23): katalogda v3.2 YOK;
-# deepseek-v4-pro (amiral) ve deepseek-v4-flash (hizli) var. Varsayilan: v4-pro
-# (birincil motora kalite paritesi). 90sn ozet timeout'unda pro gecikirse
-# MITAS_DEEPSEEK_NVIDIA_MODEL=deepseek-ai/deepseek-v4-flash ile dusur.
+# Model secimi (2026-08-11 benchmark): onceki varsayilan deepseek-v4-pro NVIDIA
+# katalogunda 2026-08-07'de EOL oldu (HTTP 410 Gone) -> yedek uc SESSIZCE olmustu ve
+# ozet zincirinin TAMAMI dusuyordu (deepseek 402 / gemini 429 / anthropic 400 / gemma
+# kapali). Yerine 6 aday NVIDIA modeli 2 gercek film transkriptiyle (gercek ozet
+# prompt'u) kiyaslandi: deepseek-v4-flash-0731 tek model olarak her iki filmde de
+# dogru olay orgusu + spoiler-final verdi ve ORUMCEGIN MASKESI'ndeki asil-suclu
+# twist'ini yakalayan TEK model oldu (nemotron-super kesik/garbled, gpt-oss-120b
+# timeout, llama-3.3-70b Ingilizce sizinti, nemotron-ultra/mistral-large 404).
 # Anahtar yoksa fallback sessizce devre disi - davranis eskisiyle AYNI kalir.
 _NVIDIA_DEFAULT_BASE = "https://integrate.api.nvidia.com/v1"
-_NVIDIA_DEFAULT_MODEL = "deepseek-ai/deepseek-v4-pro"
+_NVIDIA_DEFAULT_MODEL = "deepseek-ai/deepseek-v4-flash-0731"
 
 
 def _nvidia_key() -> str | None:
@@ -107,7 +111,17 @@ def _post_chat(url: str, key: str, payload: dict, timeout: int,
                 _log_warn(f"[{api_label}] {detail} — kalici hata (retry yok), durum: error")
                 _status_mark(api_label, False, detail)
                 return None
-            # 429 / 5xx gecici -> retry; diger 4xx (400/404...) -> kalici ama kredi-disi, mark YOK.
+            # MODEL YOK/EOL (404/410): 2026-08-11 dersi — deepseek-v4-pro saglayici tarafinda
+            # EOL olunca yedek uc SESSIZCE oldu ve kimse aylarca fark etmedi (ozet %78 bos).
+            # Bu sinifi AYRI ve YUKSEK SESLE bildir + durum kaydina yaz ki bir sonraki EOL
+            # ilk gunde gorulsun. Model adi mesajda: duzeltme = MITAS_DEEPSEEK_NVIDIA_MODEL.
+            if exc.code in (404, 410):
+                _log_warn(f"[{api_label}] {detail} — MODEL YOK/EOL: "
+                          f"'{payload.get('model')}' artik sunulmuyor. Katalogdan gecerli bir "
+                          f"model secip MITAS_DEEPSEEK_NVIDIA_MODEL ile guncelleyin.")
+                _status_mark(api_label, False, f"MODEL_EOL {payload.get('model')} {detail}")
+                return None
+            # 429 / 5xx gecici -> retry; diger 4xx (400...) -> kalici ama kredi-disi, mark YOK.
             if exc.code not in (429, 500, 502, 503, 504):
                 _log_warn(f"[{api_label}] {detail} — retry yok (kalici hata)")
                 return None
