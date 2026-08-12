@@ -1,7 +1,7 @@
 # Kule çalışma zamanları ve üretilen veri — git'te tutulmaz.
 # Desenler bu dosyanın bulunduğu dizine (Allstar/) GÖRELİDİR:
-# gerçek yol "kobe/.venv/" → tek seviye joker. "*/*/.venv/" YANLIŞTIR.
-*/.venv/
+# gerçek yol "kobe/venv/" → tek seviye joker. "*/*/venv/" YANLIŞTIR.
+*/venv/
 */logs/
 */scratch/
 */out/

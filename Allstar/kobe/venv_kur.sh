@@ -16,13 +16,13 @@ OPENCV_SURUM="5.0.0.93"
 IDX_1="https://www.paddlepaddle.org.cn/packages/stable/cu126/"
 IDX_2="https://www.paddlepaddle.org.cn/packages/stable/cu129/"
 
-[ "${1:-}" = "--temiz" ] && rm -rf "$K/.venv"
+[ "${1:-}" = "--temiz" ] && rm -rf "$K/venv"
 
-if [ ! -x "$K/.venv/bin/python" ]; then
+if [ ! -x "$K/venv/bin/python" ]; then
   echo "[1/4] venv olusturuluyor ($("$TEMEL" -V))"
-  "$TEMEL" -m venv "$K/.venv"
+  "$TEMEL" -m venv "$K/venv"
 fi
-P="$K/.venv/bin/python"
+P="$K/venv/bin/python"
 
 echo "[2/4] pip guncelleniyor"
 "$P" -m pip install --upgrade pip -q
