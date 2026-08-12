@@ -13,6 +13,18 @@
 ## Global Constraints
 
 - **Ölçüm sapması sıfır.** Referans (`veri/olcum_son.json`, 2026-08-12 12:43): kapsam **110**, doğru **104**, genel **%94.5**, üretim **107/110 = %97.3**, kredi-var **75/81**, kredi-yok **29/29**, eksik **5**, hata sayısı **6**. Herhangi bir sapmada **DUR ve rapor et** — kendi başına düzeltmeye çalışma.
+- **ORTAM SABİT: `ollama.service` bu iş boyunca DURDURULMUŞ kalır.** Şu an
+  `inactive` (2026-08-12 12:21:44'te durdu). Kobe'nin dil yönlendiricisi
+  Ollama'ya HTTP ile bağlanır (`src/motor.py` ~satır 699); erişilemezse
+  `except Exception: continue` ile hiç oy toplanmaz ve **her film için `'en'`
+  döner**. Yani yukarıdaki %94.5 **yönlendirici devre dışıyken** ölçülmüş bir
+  sayıdır — Kobe'nin mutlak skoru değil, bu ortamdaki skoru. Üç ölçüm kapısı
+  (ÖNCE / VENV / SONRA) ancak aynı ortamda anlamlıdır.
+  **`systemctl start ollama` ÇALIŞTIRMA.** Ollama iş ortasında açılırsa skor
+  ~%93.6'ya iner (GUNLUK 2026-08-11: Farsça film 'ar'a geçiyor, onset 28 kare
+  erkene kayıyor) ve kapı sahte alarm verir. Ollama'nın durumu değişmişse
+  **DUR ve rapor et.**
+- Kapı komutlarından önce `systemctl is-active ollama` → `inactive` doğrulanır.
 - **Üretim durmuş durumda.** Hiçbir toplu koşu başlatma.
 - **Dış konsey bu iş için kapalı.**
 - Kule içinde `figo` adı geçmez. Tek isim: **Kobe**.
@@ -111,6 +123,15 @@ mkdir -p /opt/mitas/Allstar/kobe/raporlar
 ```
 
 - [ ] **Adım 3: Ölçümü koş (~140 sn)**
+
+Önce ortamı doğrula — bu kapı sadece Ollama kapalıyken anlamlıdır:
+
+```bash
+systemctl is-active ollama
+```
+
+Beklenen: `inactive`. `active` çıkarsa **DUR ve rapor et** (referans %94.5
+Ollama kapalıyken ölçüldü; açıkken ~%93.6 olur, kapı sahte alarm verir).
 
 ```bash
 cd /opt/mitas/harness/kunye_kiyas && \
