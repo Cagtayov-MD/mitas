@@ -16,7 +16,18 @@ Not: tek profil 'Film/Dizi' — tip TRT 3. parselden otomatik (1→FİLM, 0→D�
 from __future__ import annotations
 import os
 import re
+import sys
 import unicodedata
+from pathlib import Path
+
+# ── Korumalı bootstrap (§4.0, betik-farkında rol tanıma tasarımı) — bu dosya
+# ayrı ağaçta (OCR-worktree/pdf-mitas/), _pipe_pdf.py importlib+path ile yüklüyor;
+# korumalı bootstrap ikisinde de çalışır (§4.0'daki desenin AYNISI, yeni yöntem
+# icat edilmedi).
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import TABLO, rol_esles   # noqa: E402
 
 # "&" veya " ve " (kelime-sınırlı, büyük/küçük duyarsız) ile birleşik kişi satırlarını böl
 _AMPERSAND_RE = re.compile(r"\s*&\s*|\s+ve\s+", re.IGNORECASE)
@@ -67,22 +78,44 @@ def is_dizi(profile: str, trt_or_stem: str = "") -> bool:
 # ---------- rol taksonomisi ----------
 # EŞLEŞME sırası ÖNEMLİ: özgül roller önce. "assistant director" → Yön.Yard.,
 # "director of photography" → Görüntü Yön.; bare "director/directed by" → Yönetmen.
+#
+# SIRA HATASI DÜZELTMESİ (2026-08-12, betik-farkında rol tanıma tasarımı §4.5):
+# 'Kameraman' önceden 'Yönetmen'den ÖNCE geliyordu — role_of() ilk-eşleşeni
+# döndürdüğü için "Director-Cameraman" (SENİ SEVİYORUM FRANK 1988-0480 gerçek OCR
+# satırı) 'Kameraman' sayılıyordu (yanlış). Düzeltilmiş öncelik sırası:
+#   Yönetmen Yardımcısı > Görüntü Yönetmeni > Sanat Yönetmeni > Yönetmen >
+#   Kameraman Yardımcısı > Kameraman
+# 'Yönetmen' kelime listesi core/lexicon/rol_tablosu.TABLO["LATIN"]["YONETMEN"]'e
+# delege edildi (credit_role_lexicon.DIRECTOR birebir kopyası) — eski hardcoded
+# liste SİLİNDİ; kapsam GENİŞLİYOR (ör. 'diretto da' eski listede yoktu, TABLO'da
+# var) ve iki ayrı translit-tahmin listesinin (bu dosyanınki + credit_role_lexicon
+# DIRECTOR'ınki) tutarsız yazımı (muharrij/muharrac vs mukhrij/ikhraj) TEK kaynağa
+# indirgeniyor.
+# EŞLEŞME + DIŞLAMA rol_tablosu.rol_esles'e TAM delege edilir (yalnız kelime
+# listesi DEĞİL — ALGORİTMA da): düz substring DEĞİL, kelime-sınırlı ("RENDEZO"
+# Macarca bileşik 'RENDEZOASSZISZTENS' — yönetmen ASİSTANI — içinde düz substring
+# olarak da geçer, credit_role_lexicon._match_head zaten kelime-sınırlı olduğu
+# için orada sorun yok). haric_uygula=True ŞART: TABLO["LATIN"]["YONETMEN"]
+# genişletilmiş kelime dağarcığı (ör. bare 'REALISATION'/'REGISTA') HARIC
+# uygulanmazsa Fransızca/İtalyanca ASİSTAN-yönetmen ifadelerini ("assistante
+# réalisation", "aiuto regista", "1er assistant réalisateur") YANLIŞLIKLA
+# 'Yönetmen' sayardı (2026-08-12, olc kanıtı: scripts/anlik_latin_taban.py §6.1
+# taban karşılaştırması bunu yakaladı — önce kelime-sınırsız 558 satır fark,
+# sınır eklenince 300 satır fark, rol_esles'in HARIC'i eklenince ~30 kaldı;
+# kalanlar _ROLE_DISQUALIFY'a taşındı, bkz. aşağıdaki 'auxiliaire'/'exposure
+# sheet' notu — TABLO["LATIN"]["HARIC"] credit_role_lexicon.EXCLUDE'un BİREBİR
+# kopyası olmak ZORUNDA (§4.1), bu yüzden buraya özel eklenti YAPILAMAZ; onun
+# yerine bu dosyanın KENDİ _ROLE_DISQUALIFY listesi kullanılır).
+_YONETMEN_KWS = tuple(kelime.lower() for kelime in TABLO["LATIN"]["YONETMEN"])
 _ROLE_MATCH = [
     ("Yönetmen Yardımcısı", ("yonetmen yard", "yard yonetmen", "yard. yonetmen", "asistan yonetmen",
                              "assistant director", "first assistant dir", "1st assistant dir",
                              "second assistant dir", "2nd assistant dir", "third assistant dir")),
     ("Görüntü Yönetmeni", ("goruntu yonet", "director of phot", "cinematograph", "d.o.p")),
     ("Sanat Yönetmeni", ("sanat yonet", "production design", "art director")),  # "yonetmeni" Yönetmen'e düşmesin
+    ("Yönetmen", _YONETMEN_KWS),
     ("Kameraman Yardımcısı", ("kameraman yard", "assistant camera", "focus puller", "asst camera")),
     ("Kameraman", ("kameraman", "cameraman", "camera operator")),
-    ("Yönetmen", ("yonetmen", "directed by", "yoneten", "director",
-                  "realise par", "mise en scene", "un film de", "film by",
-                  "regie", "ein film von", "regia", "un film di",
-                  "dirigida por", "dirigido por",
-                  "rejissor", "rejisor",  # RU/AZ/KU (режиссёр fold->rejissor)
-                  "skinothetis",  # GR (σκηνοθέτης fold)
-                  "muharrij", "muharrac",  # AR (مخرج / المخرج fold yaklaşımı)
-                  "daoyan")),  # ZH pinyin (导演)
     ("Yapımcı", ("yapimci", "produced by", "executive produc", "producer", "yapim ",
                  "produit par", "producteur", "produzent", "produziert von",
                  "prodotto da", "produttore", "productor",
@@ -136,6 +169,17 @@ _ROLE_DISQUALIFY = (
     "executive", "executif", "associate", "associe", "line produc", "co produc", "co-produc", "ortak yapim",
     "yurutucu", "delegate", "delege", "supervising produc", "field", "creative direct",
     "brand", "art direct",  # "art director/direction"; dar tutuldu ki "Art Malik" gibi adı elemesin
+    # 2026-08-12 (betik-farkında rol tanıma, adım 5): 'Yönetmen' artık
+    # rol_tablosu.TABLO["LATIN"]["YONETMEN"]'e delege (bkz. yukarıdaki not) —
+    # genişleyen kelime dağarcığı (bare 'REALISATION'/'REGISTA') haric_uygula=True
+    # ile korunuyor AMA TABLO["LATIN"]["HARIC"] (credit_role_lexicon.EXCLUDE'un
+    # birebir kopyası, §4.1 — buraya ÖZEL EKLENTİ YAPILAMAZ) Fransızca 'auxiliaire'
+    # (yardımcı) ve animasyon-departmanı 'exposure sheet' (zaman çizelgesi, film
+    # yönetmenliği DEĞİL) taşımıyor. Bu iki girdi credit_parse.py'ye ÖZEL (TABLO
+    # kapsamı dışı) — olcum kanıtı: scripts/anlik_latin_taban.py §6.1 taban
+    # karşılaştırması "Auxiliaire de réalisation" / "Exposure Sheet Direction &
+    # Storyboard Slugging" satırlarını yanlışlıkla 'Yönetmen' sayıyordu.
+    "auxiliaire", "exposure sheet",
 )
 _CAST_KW = ("oyuncular", "oyuncu", "cast", "starring", "oynayanlar", "rol dagilimi", "roller")
 # "cast" substring eşleşmesi "casting director" gibi satırları yanlış CAST başlığına dönüştürüyor.
@@ -168,6 +212,10 @@ def role_of(line: str):
     disq = any(d in f for d in _ROLE_DISQUALIFY)
     for label, kws in _ROLE_MATCH:
         if disq and label in ("Yönetmen", "Yapımcı"):
+            continue
+        if label == "Yönetmen":
+            if rol_esles(line, "YONETMEN", haric_uygula=True):    # betik-farkında + HARIC, bkz. yukarıdaki not
+                return label
             continue
         if any(k in f for k in kws):
             return label
