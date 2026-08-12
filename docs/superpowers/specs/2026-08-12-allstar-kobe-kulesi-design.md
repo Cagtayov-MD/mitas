@@ -183,18 +183,25 @@ verilirse `ARIZA(sinif="GIRDI_HATASI")` döner — sessizce bir tarafı seçmez.
 
 ### 4.4 CLI
 
+Giriş noktası `Allstar/kobe/kobe` — kendi venv'ini kendi bulan sarmalayıcı betik.
+Çağıran hangi python'la koşulacağını **bilmez** (karar 11'in doğrudan sonucu):
+
 ```bash
 # TOPLU — standart yol: girdi yolundaki her videoyu işle,
 # bitmiş olanı atla (idempotent, kaldığı yerden devam eder)
-python -m Allstar.kobe start --input /yol/videolar
+Allstar/kobe/kobe start --input /yol/videolar
 
 # TOPLU — alternatif: girdi yolu hazır kare dizinleri içeriyorsa
-python -m Allstar.kobe start --input /yol/kare_dizinleri --kareler
+Allstar/kobe/kobe start --input /yol/kare_dizinleri --kareler
 
 # TEK film
-python -m Allstar.kobe tek --video   /yol/film.mp4        --film-id 2025-1307-1-0000-50-0
-python -m Allstar.kobe tek --kareler /yol/frames/cikis    --film-id 2025-1307-1-0000-50-0
+Allstar/kobe/kobe tek --video   /yol/film.mp4     --film-id 2025-1307-1-0000-50-0
+Allstar/kobe/kobe tek --kareler /yol/frames/cikis --film-id 2025-1307-1-0000-50-0
 ```
+
+Sarmalayıcı üç satırdır: `exec "$(dirname "$0")/.venv/bin/python" "$(dirname "$0")/main.py" "$@"`.
+Paket (`python -m`) yapısı **kullanılmaz** — `Allstar` büyük harfli, `__init__.py`
+zinciri gereksiz, ve MITAS'ın mevcut deyimi zaten `<venv>/bin/python <betik>`.
 
 Çıktı daima `Allstar/kobe/out/<film_id>/`. Çağıran çıktı yolunu **seçmez** —
 kule kendi evine yazar (karar 4).
@@ -213,11 +220,24 @@ kule kendi evine yazar (karar 4).
 ### 4.5 Koşu akışı (tek film)
 
 1. **Kare kaynağı belirlenir:**
-   - `video` verildiyse (standart): `scratch/<film_id>/` açılır, ffmpeg ile
-     **kapanış penceresi** çıkarılır (`fps=2.0`, mevcut `_jenerik_detect`
-     davranışı). Bu dizin **Kobe'nindir**.
+   - `video` verildiyse (standart): `scratch/<film_id>/` açılır, kapanış
+     penceresi çıkarılır. Bu dizin **Kobe'nindir**.
    - `kareler` verildiyse: o dizin doğrudan kullanılır, `scratch` açılmaz.
      Bu dizin **Kobe'nin değildir**.
+
+   **Çıkarım tarifi — uydurulmaz, ölçüm yatağının tarifi birebir kullanılır**
+   (`veri/havuz_kur.sh:74-78`, `TAIL_S=600  FPS=2`). Kobe'nin %94.5'i bu kare
+   üretimiyle ölçüldü; başka bir tarif skoru geçersiz kılar:
+
+   ```bash
+   dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$VIDEO" | cut -d. -f1)
+   ss=$(( dur > 600 ? dur - 600 : 0 ))          # son 10 dakika
+   ffmpeg -y -v error -ss "$ss" -i "$VIDEO" -vf "fps=2" -q:v 3 "$SCRATCH/c_%05d.png"
+   ```
+
+   Dosya adı deseni `c_%05d.png` **sözleşmedir**: `motor._kare_no()` addaki son
+   sayıyı mutlak kare numarası olarak okur, `motor.kareler()` `*.png`'yi sıralı
+   glob'lar. `baslangic_sn` = `ss + baslangic_kare / 2.0`.
 2. `src/motor.tespit_v5(...)` ile kararı üret.
 3. `out/<film_id>/kobe.json.tmp` yaz → `os.replace()` ile `kobe.json` yap →
    `_TAMAM` işaret dosyası yaz.
