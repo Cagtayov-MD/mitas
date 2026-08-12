@@ -25,6 +25,13 @@ import sys
 import unicodedata
 import urllib.request
 
+# ── Korumalı bootstrap (§4.0) — betik-farkında rol tanıma tasarımı ──────────
+from pathlib import Path
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import rol_esles   # noqa: E402
+
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
 DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat-vision:latest")
 # FIX 3 (2026-06-22): cast garble-gate'i 8-cap'ten ÖNCE çalıştır — garble'lar 8-slot
@@ -578,11 +585,20 @@ _NONFILM_MARKERS = (
 # bu desenlerden biri varsa aday marker'la DÜŞÜRÜLMEZ (etiket-üstte klasik yerleşim korunur).
 # Word-boundary: 'yonetmen' ∌ 'goruntu yonetmeni' ('yonetmeni' eki boundary'yi bozar), 'regie' ∌
 # 'regieassistenz'. Liste bilinçli DAR: yalnız tek-anlamlı film-yönetmeni ifadeleri.
-_TRUE_DIR_RE = re.compile(
-    r"\b(directed by|a film by|film by|un film de|ein film von|film von|realise par|realisateur|"
-    r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie|"
-    r"mise en scene|realisation|"                                           # FR ana-etiketler (2026-07-06)
-    r"written and directed|directed and edited|produced and directed)\b")   # bileşik etiketler (AJAMİ 2026-07-03)
+#
+# BETİK-FARKINDA ROL TANIMA (2026-08-12, spec §4.4): eski özel regex (kendi dar Latin
+# listesi) SİLİNDİ, core/lexicon/rol_tablosu.TABLO["LATIN"]["YONETMEN"]'e delege edildi
+# (credit_role_lexicon.DIRECTOR'ın birebir kopyası — eski regex'in TÜM kelimeleri bunun
+# alt-kümesi, kapsam GENİŞLİYOR: ör. bare 'DIRECTOR', 'DIRETTO DA' eski listede YOKTU).
+# `haric_uygula=True` ŞART: genişleyen kelime dağarcığı bare 'DIRECTOR' içerdiği için
+# HARIC (LATIN.HARIC) uygulanmazsa 'ART DIRECTOR' / 'ASSISTANT DIRECTOR' gibi alt-roller
+# de yanlışlıkla bağışıklık tetikler — eski dar listenin ÖRTÜK niyeti (yalnız tek-anlamlı
+# film-yönetmeni ifadeleri) böyle korunuyor. `folded` satırları `_fold()`'dan geldiği için
+# (Latin-ASCII'ye indirger) bu çağrı yeri zaten Latin-only bağlamda çalışıyor — betik her
+# zaman LATIN dönecek, davranış bu yüzden değişmiyor (yalnız kelime dağarcığı genişliyor).
+def _gercek_yonetmen_satirlarda(satirlar) -> bool:
+    """`satirlar` (fold'lu satır LİSTESİ) içinde GERÇEK yönetmen etiketi var mı."""
+    return any(rol_esles(s, "YONETMEN", haric_uygula=True) for s in satirlar)
 
 
 def _name_line_hits(name, folded_lines):
@@ -672,26 +688,28 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                     _other_occ |= {i for i, lf in enumerate(folded) if re.search(r"\b" + re.escape(_of) + r"\b", lf)}
             # GLOBAL-BAĞIŞIKLIK (2026-07-06, KONTROL-MAHKEMESİ FIX-2c — CENNETE GELDİK Mİ kanıtı):
             # adayın HERHANGİ bir geçişinin kendi/2-üst penceresinde GERÇEK-yönetmen etiketi
-            # (_TRUE_DIR_RE, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM markerları onu
-            # DÜŞÜREMEZ — çok-şapkalı kişinin (yön+yapımcı+DoP aynı kişi) diğer kartlarının
-            # komşuluğu masum geçişi öldürüyordu. DUBLAJ kuralı DEĞİŞMEZ (geniş-pencere,
+            # (_gercek_yonetmen_satirlarda, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM
+            # markerları onu DÜŞÜREMEZ — çok-şapkalı kişinin (yön+yapımcı+DoP aynı kişi) diğer
+            # kartlarının komşuluğu masum geçişi öldürüyordu. DUBLAJ kuralı DEĞİŞMEZ (geniş-pencere,
             # bağışıklığı bastırır — TILSIMLI dersi aynen korunur).
-            _glob_imm = any(_TRUE_DIR_RE.search(" ".join(folded[max(0, _gi - 2):_gi + 1])) for _gi in _occ)
+            _glob_imm = any(_gercek_yonetmen_satirlarda(folded[max(0, _gi - 2):_gi + 1]) for _gi in _occ)
             for i in _occ:
                 if True:
                     # DoP-fix (2026-07-03): '±1' niyetli dilim fiilen [i-1, i] idi — SONRAKİ satır hiç
                     # görülmüyordu; "İSİM üstte / DIRECTOR OF PHOTOGRAPHY altta" yerleşimi sızıyordu.
                     # Pencere [i-1, i+1]'e genişletildi. REGRESYON KALKANI: adayın kendi/2-üst satırında
-                    # GERÇEK-yönetmen etiketi (_TRUE_DIR_RE) varsa DÜŞÜRME — "DIRECTED BY X" hemen ardından
-                    # DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte yerleşim).
+                    # GERÇEK-yönetmen etiketi (_gercek_yonetmen_satirlarda) varsa DÜŞÜRME — "DIRECTED BY X"
+                    # hemen ardından DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte
+                    # yerleşim).
                     ctx = " ".join(folded[max(0, i - 1):i + 2])
                     # DUBLAJ GENİŞ-PENCERE (2026-07-03, TILSIMLI DÜNYA): "Dialogue Written and Directed
                     # by GREG SNEGOFF" OCR'da 4 satıra bölünür → dublaj-marker isimden 2-4 satır yukarıda.
-                    # Dublaj markerlarına ÖZEL ±4 üst-pencere; bulunursa _TRUE_DIR_RE bağışıklığını BASTIRIR
-                    # (o "Directed by" zaten dialogue-directed-by'dır). NONFILM markerları eski dar pencerede.
-                    # SADECE ÜST-pencere (i-4..i): dublaj etiketi hep isimden ÖNCE gelir; isim-ALTINDAKİ
-                    # sonraki kartın "Dialogue" etiketini yakalayıp masum yönetmeni düşürmeyi önler
-                    # (TILSIMLI'de Macek'in ALTINDA Snegoff'un dialogue-kartı var → Macek düşmemeli).
+                    # Dublaj markerlarına ÖZEL ±4 üst-pencere; bulunursa _gercek_yonetmen_satirlarda
+                    # bağışıklığını BASTIRIR (o "Directed by" zaten dialogue-directed-by'dır). NONFILM
+                    # markerları eski dar pencerede. SADECE ÜST-pencere (i-4..i): dublaj etiketi hep
+                    # isimden ÖNCE gelir; isim-ALTINDAKİ sonraki kartın "Dialogue" etiketini yakalayıp
+                    # masum yönetmeni düşürmeyi önler (TILSIMLI'de Macek'in ALTINDA Snegoff'un
+                    # dialogue-kartı var → Macek düşmemeli).
                     _dub_lo = max(0, i - 4)
                     _blockers = [oi for oi in _other_occ if _dub_lo <= oi < i]
                     if _blockers:
@@ -701,8 +719,8 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                         is_nf = True
                         break
                     if any(m in ctx for m in markers):
-                        imm = " ".join(folded[max(0, i - 2):i + 1])
-                        if not _glob_imm and not _TRUE_DIR_RE.search(imm):
+                        imm_satirlari = folded[max(0, i - 2):i + 1]
+                        if not _glob_imm and not _gercek_yonetmen_satirlarda(imm_satirlari):
                             is_nf = True
                             break
         (dropped if is_nf else kept).append(d)
