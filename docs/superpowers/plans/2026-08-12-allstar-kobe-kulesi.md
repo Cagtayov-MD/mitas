@@ -196,21 +196,37 @@ mkdir -p /opt/mitas/Allstar/kobe/{src,olcum,tests,golden,raporlar,logs,scratch,o
 - [ ] **Adım 2: `Allstar/.gitignore` yaz**
 
 ```gitignore
-# Kule çalışma zamanları ve üretilen veri — git'te tutulmaz
-*/*/.venv/
-*/*/logs/
-*/*/scratch/
-*/*/out/
+# Kule çalışma zamanları ve üretilen veri — git'te tutulmaz.
+# Desenler bu dosyanın bulunduğu dizine (Allstar/) GÖRELİDİR:
+# gerçek yol "kobe/.venv/" → tek seviye joker. "*/*/.venv/" YANLIŞTIR.
+*/.venv/
+*/logs/
+*/scratch/
+*/out/
 __pycache__/
 *.pyc
 ```
+
+Deseni **çalıştığını görerek** doğrula — yanlış desen 1 GB'lık venv'in commit'e
+girmesi demektir:
+
+```bash
+cd /opt/mitas && git check-ignore -q Allstar/kobe/.venv/bin/python && echo "venv yok sayiliyor OK" || echo "SORUN"
+git status --porcelain Allstar/
+```
+
+Beklenen: `venv yok sayiliyor OK` ve `git status` çıktısında `.venv` **yok**.
 
 - [ ] **Adım 3: `Allstar/kobe/gereksinimler.txt` yaz**
 
 Pinler `venvs/ocr`'dan alınmıştır — taşıma AYNI sürümlerle ölçülmelidir.
 
+> **`paddlepaddle-gpu` bu dosyada YOK.** PyPI'de 3.x sürümü bulunmuyor (orada
+> yalnız 2.6.x var); Paddle 3.x'i kendi indeksinden dağıtıyor. Düz
+> `pip install -r gereksinimler.txt` bu yüzden **çalışmaz** — Adım 4'teki
+> `venv_kur.sh` kullanılır.
+
 ```
-paddlepaddle-gpu==3.3.1
 paddleocr==3.7.0
 paddlex==3.7.2
 numpy==2.3.5
@@ -229,48 +245,88 @@ tqdm==4.68.4
 pytest
 ```
 
-- [ ] **Adım 4: venv'i oluştur**
+- [ ] **Adım 4: `Allstar/kobe/venv_kur.sh` yaz — kulenin kendi kurulum tarifi**
+
+Tarif reponun kendi kurulum betiğinden alınır: `kurulum/02_build_venv.sh:88-89`.
 
 ```bash
-/home/cagatay/.pyenv/versions/3.12.13/bin/python3.12 -m venv /opt/mitas/Allstar/kobe/.venv && \
-/opt/mitas/Allstar/kobe/.venv/bin/python -V
-```
+#!/usr/bin/env bash
+# Kobe kulesinin calisma zamanini SIFIRDAN kurar (spec karar 11).
+#
+# Neden ayri betik: paddlepaddle-gpu 3.x PyPI'de YOK (orada yalniz 2.6.x var).
+# Paddle kendi indeksinden dagitiyor, bu yuzden duz `pip install -r` yetmiyor.
+# Tarif reponun kendi kurulum betiginden alindi: kurulum/02_build_venv.sh:88-89.
+#
+# Kullanim:  ./venv_kur.sh          (varsa dokunmaz)
+#            ./venv_kur.sh --temiz  (sifirdan kurar)
+set -euo pipefail
 
-Beklenen: `Python 3.12.13`
+K="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMEL="/home/cagatay/.pyenv/versions/3.12.13/bin/python3.12"   # venvs/ocr ile ayni
+PADDLE_SURUM="3.3.1"
+IDX_1="https://www.paddlepaddle.org.cn/packages/stable/cu126/"
+IDX_2="https://www.paddlepaddle.org.cn/packages/stable/cu129/"
 
-- [ ] **Adım 5: Bağımlılıkları kur (pip önbelleği 35 GB — çoğu yerelden gelir)**
+[ "${1:-}" = "--temiz" ] && rm -rf "$K/.venv"
 
-```bash
-/opt/mitas/Allstar/kobe/.venv/bin/pip install --upgrade pip -q && \
-/opt/mitas/Allstar/kobe/.venv/bin/pip install -r /opt/mitas/Allstar/kobe/gereksinimler.txt 2>&1 | tail -5
-```
+if [ ! -x "$K/.venv/bin/python" ]; then
+  echo "[1/4] venv olusturuluyor ($("$TEMEL" -V))"
+  "$TEMEL" -m venv "$K/.venv"
+fi
+P="$K/.venv/bin/python"
 
-Kurulum başarısız olursa (özellikle `paddlepaddle-gpu` tekerleği bulunamazsa) DUR ve tam hata çıktısıyla rapor et.
+echo "[2/4] pip guncelleniyor"
+"$P" -m pip install --upgrade pip -q
 
-- [ ] **Adım 6: Kurulumu doğrula**
+echo "[3/4] paddlepaddle-gpu==$PADDLE_SURUM (Paddle kendi indeksi)"
+"$P" -m pip install "paddlepaddle-gpu==$PADDLE_SURUM" -i "$IDX_1" \
+  || "$P" -m pip install "paddlepaddle-gpu==$PADDLE_SURUM" -i "$IDX_2"
 
-```bash
-/opt/mitas/Allstar/kobe/.venv/bin/python -c "
+echo "[4/4] PyPI bagimliliklari"
+"$P" -m pip install -r "$K/gereksinimler.txt"
+
+echo
+echo "=== DOGRULAMA ==="
+"$P" - <<'PY'
 import paddle, paddleocr, numpy, PIL
-print('paddle', paddle.__version__, 'cuda', paddle.is_compiled_with_cuda())
-print('paddleocr', paddleocr.__version__)
-print('numpy', numpy.__version__)
-" 2>&1 | grep -v Warning
+print("paddle    ", paddle.__version__, "| cuda:", paddle.is_compiled_with_cuda())
+print("paddleocr ", paddleocr.__version__)
+print("numpy     ", numpy.__version__)
+print("pillow    ", PIL.__version__)
+PY
 ```
 
-Beklenen:
-```
-paddle 3.3.1 cuda True
-paddleocr 3.7.0
-numpy 2.3.5
+- [ ] **Adım 5: Kurulumu koş**
+
+`paddlepaddle-gpu` CUDA yapısı ~1 GB'dır ve pip önbelleğinde **yoktur** —
+gerçek indirme olur, birkaç dakika sürebilir.
+
+```bash
+chmod +x /opt/mitas/Allstar/kobe/venv_kur.sh && \
+/opt/mitas/Allstar/kobe/venv_kur.sh
 ```
 
-Üç satırdan biri tutmuyorsa DUR.
+Komutu **boru hattından geçirme** (`| tail` gibi) — kabuk o zaman pip'in
+değil `tail`'in çıkış kodunu döndürür ve başarısız kurulum "başarılı" görünür.
+
+- [ ] **Adım 6: Doğrulama çıktısını denetle**
+
+Betiğin sonundaki `=== DOGRULAMA ===` bloğu şunu basmalı:
+
+```
+paddle     3.3.1 | cuda: True
+paddleocr  3.7.0
+numpy      2.3.5
+pillow     12.1.0
+```
+
+Dört satırdan biri tutmuyorsa DUR ve tam çıktıyı raporla.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-cd /opt/mitas && git add Allstar/.gitignore Allstar/kobe/gereksinimler.txt && \
+cd /opt/mitas && \
+git add Allstar/.gitignore Allstar/kobe/gereksinimler.txt Allstar/kobe/venv_kur.sh && \
 git commit -m "feat(kobe): kulenin kendi calisma zamani - .venv + surum pinleri
 
 paddlepaddle-gpu 3.3.1 / paddleocr 3.7.0, venvs/ocr ile birebir ayni pinler.
