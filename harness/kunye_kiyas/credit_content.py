@@ -12,6 +12,17 @@ import re
 import unicodedata
 import contextvars
 
+# ── Korumalı bootstrap (§4.0) — bu dosya iki AYRI path üzerinden yükleniyor
+# (bazen _jenerik_pool.py'nin eklediği PROJECT_ROOT üzerinden, bazen olc_pool.py'nin
+# yalnız harness/kunye_kiyas'ı ekleyen path'i üzerinden) — ikisinde de çalışır.
+import os
+import sys
+from pathlib import Path
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import betik_bul, rol_esles   # noqa: E402
+
 _AKTIF_DIL_VAR = contextvars.ContextVar("aktif_dil", default="en")
 
 def set_aktif_dil(dil: str):
@@ -118,22 +129,57 @@ _ROL_MACAR_ONEK = re.compile(
     r"\b(rendez|operat|fenykepez|szerepl|gyartasvezet)", re.I)
 
 
+# FAZ-2 kanonik yönetmen-imleri (§6.2 disiplini, betik-farkında rol tanıma tasarımı
+# §4.2/§6.2): rol_tablosu'nun bir betikte tanıdığı YÖNETMEN eş-anlamlıların hangisi
+# eşleşirse eşleşsin, roller kümesine HER ZAMAN aynı tek dize eklenir — aksi halde
+# '감독' ve '연출' (ikisi de "yönetmen") aynı filmde AYRI iki rol sayılıp
+# len(core_roller)>=2 eşiğini gerçek bir 2. rol OLMADAN yanlış açardı (kredi_yok
+# kırmızı-çizgisi — _PRODUC_GENIS'teki 'produc ailesi TEK kanonik rol' ilkesiyle
+# birebir aynı disiplin). ARAP/KIRIL için mevcut regex'in ZATEN kullandığı literal
+# ile aynı imza kullanılır ki tablo-eşleşmesi var-olan eşleşmeyle ÇAKIŞMASIN
+# (iki farklı dize = sahte +1).
+_TABLO_KANONIK_YONETMEN = {
+    "ARAP": "کارگردان",
+    "KIRIL": "режисс",
+    "IBRANI": "במאי",
+    "YUNAN": "σκηνοθετ",
+    "HANGUL": "감독",
+    "CJK": "导演",
+}
+
+
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
-    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + Arapça/Kiril toleransı."""
+    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + betik-farkında rol tablosu
+    (İbrani/Yunan/Hangul/CJK + Arapça/Kiril'in genişletilmiş eş-anlamlıları).
+
+    FAZ-2 İLKESİ (betik-farkında rol tanıma tasarımı §3.1): hangi dalın çalışacağı
+    `get_aktif_dil()`'in FAZ-1 LLM TAHMİNİNE değil, HER SATIRIN kendi unicodedata
+    betiğine (`betik_bul`, %100 kesin) bakar. DOVLATOV (Kiril metin, tahmin='en')
+    ve ARŞIN MAL ALAN (Kiril metin, tahmin='ar' — Arapça dalı Kiril'de hiç
+    eşleşmiyordu) arızalarının kökü buydu. `get_aktif_dil()` BU FONKSİYONDA
+    KULLANILMAZ (OCR model seçimi — Faz-1 — ayrı, dokunulmadı)."""
     roller: set[str] = set()
-    lang = get_aktif_dil()
     for sl in kare_satirlari:
         for s in sl:
-            for m in _ROL_CEKIRDEK.findall(s):
-                roller.add(m.lower())
-            for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
-                roller.add(m.lower())
-            if lang == 'ar':
+            b = betik_bul(s)
+            if b == "LATIN":
+                for m in _ROL_CEKIRDEK.findall(s):
+                    roller.add(m.lower())
+                for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
+                    roller.add(m.lower())
+            elif b == "ARAP":
                 for m in _ROL_ARAP.findall(_arapca_normalize(s)):
                     roller.add(m.lower())
-            elif lang == 'ru':
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN["ARAP"])
+            elif b == "KIRIL":
                 for m in _ROL_KIRIL.findall(s):
                     roller.add(m.lower())
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN["KIRIL"])
+            elif b in _TABLO_KANONIK_YONETMEN:   # IBRANI, YUNAN, HANGUL, CJK
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN[b])
     return sorted(roller)
 
 
