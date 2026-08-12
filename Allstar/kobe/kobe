@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Kobe kulesi girisi — kendi venv'ini kendi bulur. Cagiran python bilmez.
+K="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$K/venv/bin/python" "$K/main.py" "$@"
