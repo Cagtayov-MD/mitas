@@ -9,7 +9,8 @@ import sys
 import time
 
 os.environ.setdefault("OMP_NUM_THREADS", "4")
-BURASI = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BURASI = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "src")            # Allstar/kobe/src
 sys.path.insert(0, BURASI)
 
 KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
@@ -17,8 +18,8 @@ KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
 
 def isit(dizin: str) -> str:
     sys.path.insert(0, BURASI)
-    import credit_box as cb
-    import figo as co
+    import kutu as cb
+    import motor as co
     g = co.kareler(dizin)
     if len(g) < 50:
         return f"[atla] {os.path.basename(dizin.rstrip('/'))}"

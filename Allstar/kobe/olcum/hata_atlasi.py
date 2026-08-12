@@ -8,7 +8,7 @@ ilk 8 satırı; (d) gt±10 penceresinde scroll istatistiği (dy>3 & corr>=0.85
 oranı + dy medyanı, tespit_v5 ile AYNI stride=2 indekslemesiyle); (e) otomatik
 ön-teşhis etiketi.
 
-Salt-okunur: figo.py / credit_content.py / credit_box.py / olc_pool.py
+Salt-okunur: ../src/motor.py / icerik.py / kutu.py / olc_pool.py
 DEĞİŞTİRİLMEZ — yalnızca import edilip okunur. Kareleri henüz inmemiş filmler
 "BEKLIYOR" bölümüne yazılır (idempotent: yeniden koşunca inmiş olanlar işlenir).
 
@@ -26,10 +26,11 @@ import time
 
 import numpy as np
 
-BURASI = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BURASI)
-import credit_content as cc      # noqa: E402  (salt-okunur kullanım)
-import figo as co        # noqa: E402  (salt-okunur kullanım)
+BURASI = os.path.dirname(os.path.abspath(__file__))            # Allstar/kobe/olcum
+SRC = os.path.join(os.path.dirname(BURASI), "src")
+sys.path.insert(0, SRC)
+import icerik as cc      # noqa: E402  (salt-okunur kullanım)
+import motor as co        # noqa: E402  (salt-okunur kullanım)
 
 V = os.path.join(BURASI, "veri")
 KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
@@ -326,7 +327,7 @@ def main() -> int:
     baslik = ("# Hata Atlası — 31 hatanın kanıt-bazlı teşhisi (Görev 3 / T3)\n\n"
               f"Üretim: `hata_atlasi.py`  GT kaynağı: `veri/dogrulama_sonuc.json` "
               f"(karar != \"dogru\", {len(hatalar)} film)\n\n"
-              "Salt-okunur girdi: `tespit_v5` (figo.py) değiştirilmedi. "
+              "Salt-okunur girdi: `tespit_v5` (src/motor.py) değiştirilmedi. "
               "Bu atlas Görev 4/5/6'nın tasarım kararlarının kanıt tabanıdır.\n\n---\n\n")
 
     with open(f"{V}/hata_atlasi.md", "w", encoding="utf-8") as f:

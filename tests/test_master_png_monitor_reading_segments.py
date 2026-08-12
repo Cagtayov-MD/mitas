@@ -7,7 +7,10 @@ import numpy as np
 import pytest
 
 
-MODULE_PATH = Path(r"E:\MITAS\OCR-worktree\master_png_monitor.py")
+import os
+
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or Path(__file__).resolve().parents[1])
+MODULE_PATH = _KOK / "OCR-worktree" / "master_png_monitor.py"
 SPEC = importlib.util.spec_from_file_location("test_master_png_monitor", MODULE_PATH)
 monitor = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = monitor

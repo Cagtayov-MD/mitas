@@ -12,9 +12,10 @@ import glob, json, os, sys, time
 
 os.environ.setdefault("OMP_NUM_THREADS", "4")   # paralel işçilerde çekirdek taşmasını önle
 
-BURASI = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BURASI)
-import figo as co
+BURASI = os.path.dirname(os.path.abspath(__file__))            # Allstar/kobe/olcum
+SRC = os.path.join(os.path.dirname(BURASI), "src")             # Allstar/kobe/src
+sys.path.insert(0, SRC)
+import motor as co
 
 V = os.path.join(BURASI, "veri")
 KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
@@ -29,7 +30,7 @@ def _isci(gorev: tuple) -> dict:
     """Paralel işçi: (film_adi, klasor, gercek_onset) → ölçüm kaydı.
     spawn ile taze süreçte koşar; paddle her işçide bir kez init olur."""
     ad, p, go = gorev
-    import figo as co_w
+    import motor as co_w
     r = co_w.tespit_v5(p)
     return {"film": ad, "gt": go, "tahmin": r.start_frame,
             "yontem": r.yontem, "notlar": r.notlar}

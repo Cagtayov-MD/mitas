@@ -6,7 +6,10 @@ from pathlib import Path
 import numpy as np
 
 
-MODULE_PATH = Path(r"E:\MITAS\OCR-worktree\db_compose_master.py")
+import os
+
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or Path(__file__).resolve().parents[1])
+MODULE_PATH = _KOK / "OCR-worktree" / "db_compose_master.py"
 SPEC = importlib.util.spec_from_file_location("test_db_compose_master", MODULE_PATH)
 dc = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = dc

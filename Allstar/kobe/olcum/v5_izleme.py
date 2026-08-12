@@ -18,7 +18,7 @@ gözlenen dağılım, input_frames medyanı ~720) dört bağımsız triyaj sinya
      Dalga 3'ün ("kredi_yok" politika kararı) doğrudan etkileyeceği filmler.
   2) pool_frames < 45  → geç-çapa şüphesi (cast kaybı yönü, ~p5 altı).
   3) pool_frames / input_frames > 0.80  → erken-çapa şüphesi (footage şişmesi, ~p90).
-  4) v5.son_capa < 0.82  → SON_ERISIM gevşetme yolu ateşlemiş (bkz. figo.py
+  4) v5.son_capa < 0.82  → SON_ERISIM gevşetme yolu ateşlemiş (bkz. ../src/motor.py
      SON_ERISIM_GEVSEK) — kazanan aday filmin son %18'ine ulaşmadan kabul edilmiş.
 
 --esik ARTIK "v5 vs eski-CV" ayrışması DEĞİL — anlamı "KOŞULAR-ARASI start_pos

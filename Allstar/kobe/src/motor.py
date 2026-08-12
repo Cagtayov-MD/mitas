@@ -2,7 +2,7 @@
 Black Mamba KOBE BRYANT: Filmin jeneriğinin başladığı kareyi bulur, oyunu okur, zekidir ve stratejiyi belirler.
 En kritik görev KOBE'dedir; LEBRON JAMES ve tüm pipeline doğrudan KOBE'den beslenir.
 
-TEK MOTOR: tespit_v5. Bileşenler: figo.py (bu dosya, karar motoru) +
+TEK MOTOR: tespit_v5. Bileşenler: motor.py (bu dosya, karar motoru) +
 credit_box.py (Paddle det kutu sinyali) + credit_content.py (içerik analizi).
 Pipeline bağlantısı: scripts/_jenerik_pool.py (MITAS_JENERIK_V5=1).
 Ölçüm: olc_pool.py --paralel 8 (110-film GT). Güncel skor: %93.6 / üretim %97.3
@@ -246,7 +246,7 @@ def _statik_icerik_onset(g: list[str], idx: list[int], a: int, b: int,
 
     Önbellek: her örnek-kare EN ÇOK BİR KEZ OCR'lanır (PaddleOCR-rec pahalı —
     aynı kare iki kez OCR'lanmasın)."""
-    import credit_content as cc
+    import icerik as cc
     cache: dict[int, list[str]] = {}
 
     def satir(fi: int) -> list[str]:
@@ -727,8 +727,8 @@ def tespit_v5(dizin: str, fps: float = 25.0, stride: int = 2, ocr_stride: int = 
     (BILLY saloon), ara-yazı (MODERN Chaplin), gazete kutu üretir ama İSİM-LİSTESİ
     DEĞİL. Krediyi ayıran: metin içeriği (rec) + scroll + son-çapa. Eski filmlerin
     ~%40'ı kapanış-kredisiz → güvenle 'YOK' dönülmeli."""
-    import credit_box as cb
-    import credit_content as cc
+    import kutu as cb
+    import icerik as cc
     g = kareler(dizin)
     if len(g) < 10:
         # Değişiklik 1: script/ocr_hata BURADA doldurulmaz — bu noktada
@@ -1304,7 +1304,7 @@ if __name__ == "__main__":
     # yok saymak yerine AÇIKÇA reddediyoruz.
     if "--v3" in sys.argv or "--v4" in sys.argv:
         print(
-            "figo.py --v3/--v4: bu motorlar 2026-07-29'da Çağatay'ın "
+            "motor.py --v3/--v4: bu motorlar 2026-07-29'da Çağatay'ın "
             "tek-motor kararıyla söküldü (söküm öncesi commit 7b0a46f). Tek "
             "yaşayan yol tespit_v5 (bayraksız veya --v5). CV karşılaştırma "
             "motoru hâlâ core/pipelines/ocr/jenerik_frame_pool_detector."
@@ -1318,7 +1318,7 @@ if __name__ == "__main__":
     # tespit_v5, bayrak yalnız eski çağrı alışkanlığını kırmamak için tolere edilir.
     yollar = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not yollar:
-        print("kullanım: figo.py [--v5] <kare-klasörü>", file=sys.stderr)
+        print("kullanım: motor.py [--v5] <kare-klasörü>", file=sys.stderr)
         raise SystemExit(2)
 
     r = tespit_v5(yollar[0])

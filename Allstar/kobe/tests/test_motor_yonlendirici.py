@@ -1,4 +1,4 @@
-"""KOBE (figo) — dil-yönlendirici, script görünürlüğü, OCR hata görünürlüğü,
+"""KOBE — dil-yönlendirici, script görünürlüğü, OCR hata görünürlüğü,
 kurtarma-yolu sınırları.
 
 Bağlam (2026-08-11 dış inceleme turu): üç bağımsız gözden geçirmenin doğrulanan
@@ -23,16 +23,16 @@ import numpy as np
 import pytest
 from PIL import Image
 
-KUNYE = Path(__file__).resolve().parents[1] / "harness" / "kunye_kiyas"
-sys.path.insert(0, str(KUNYE))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 
 
 # ── sahte bağımlılıklar ──────────────────────────────────────────────────
 class _SahteCC(types.ModuleType):
-    """credit_content yerine geçen asgari sahte — tespit_v5'in dokunduğu yüzey."""
+    """icerik yerine geçen asgari sahte — tespit_v5'in dokunduğu yüzey."""
 
     def __init__(self, satirlar_fn=None):
-        super().__init__("credit_content")
+        super().__init__("icerik")
         import re
         self._dil = "en"
         self._satirlar_fn = satirlar_fn or (lambda yol: [])
@@ -84,10 +84,10 @@ class _SahteCC(types.ModuleType):
 
 
 class _SahteCB(types.ModuleType):
-    """credit_box yerine geçen asgari sahte."""
+    """kutu yerine geçen asgari sahte."""
 
     def __init__(self, jbayrak=None, say=None):
-        super().__init__("credit_box")
+        super().__init__("kutu")
         self._jb = jbayrak
         self._say = say
 
@@ -104,12 +104,12 @@ class _SahteCB(types.ModuleType):
 @pytest.fixture
 def kobe(monkeypatch):
     """kobe modülünü sahte cc/cb ile taze yükler."""
-    for ad in ("kobe", "figo", "credit_content", "credit_box"):
+    for ad in ("motor", "icerik", "kutu"):
         sys.modules.pop(ad, None)
     cc, cb = _SahteCC(), _SahteCB()
-    monkeypatch.setitem(sys.modules, "credit_content", cc)
-    monkeypatch.setitem(sys.modules, "credit_box", cb)
-    import kobe as _k
+    monkeypatch.setitem(sys.modules, "icerik", cc)
+    monkeypatch.setitem(sys.modules, "kutu", cb)
+    import motor as _k
     _k._sahte_cc, _k._sahte_cb = cc, cb
     return _k
 

@@ -243,7 +243,7 @@ def _metin_kapi_enabled() -> bool:
 
 def _v5_enabled() -> bool:
     # JENERİK-V5 (2026-07-23, %92 kampanyası — Çağatay kararı: "artık aktif jenerik başlangıç
-    # bulma stratejimiz bu"). FIGO = harness/kunye_kiyas/figo.tespit_v5: 110-film doğrulanmış
+    # bulma stratejimiz bu"). Kobe = Allstar/kobe/src/motor.tespit_v5: 110-film doğrulanmış
     # GT'de %93.6 simetrik / %96.4 üretim-ölçütü / kredisiz-red 29/29. Açıkken eski dedektörün
     # yama yığını (oneocr-fallback / vlm-rescue / footage-trim / backward-extend) ATLANIR —
     # v5 kendi rafinelerini içerir, üstüne eski yamalar bindirilirse onset bozulur.
@@ -278,8 +278,8 @@ def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = Fa
         pad = max(0, int(os.environ.get("MITAS_JENERIK_V5_PAD", "10") or "10"))
     except ValueError:
         pad = 10
-    sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
-    import figo as _co
+    sys.path.insert(0, str(PROJECT_ROOT / "Allstar" / "kobe" / "src"))
+    import motor as _co
     r = _co.tespit_v5(str(frames_dir))
     if r.start_frame is None or int(r.start_frame) < 0:
         if not kuru:
@@ -384,10 +384,10 @@ def create_pool(
     images = list_images(frames_dir)
     engine_used = "paddle"
 
-    # harness/kunye_kiyas sys.path'e ekli olsun garanti et (FIGO _v5_detect
+    # Allstar/kobe/src sys.path'e ekli olsun garanti et (Kobe _v5_detect
     # içinde zaten ekliyor ama metin-kapı dalı v5 hiç çağrılmadan da credit_box'a
     # ihtiyaç duyabilir — idempotent, yinelenen insert zararsız).
-    sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
+    sys.path.insert(0, str(PROJECT_ROOT / "Allstar" / "kobe" / "src"))
 
     # SEGMENT GARDI (Dalga 2, 2026-07-29): --segment giris → v5 HİÇ ÇAĞRILMAZ,
     # CV bugünkü gibi (birebir) koşar. Sebep: v5'in SON_ERISIM=0.82 kuralı "aday
