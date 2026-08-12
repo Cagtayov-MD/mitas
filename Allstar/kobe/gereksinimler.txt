@@ -1,0 +1,20 @@
+# Kobe kulesinin PyPI bagimliliklari — tam surum pinleri.
+# Pinler venvs/ocr'dan alindi: tasima AYNI surumlerle olculmelidir.
+#
+# paddlepaddle-gpu BURADA DEGIL — PyPI'de 3.x yok (yalniz 2.6.x), Paddle
+# kendi indeksinden dagitiyor. Kurulumun tamami icin: ./venv_kur.sh
+paddleocr==3.7.0
+paddlex==3.7.2
+numpy==2.3.5
+pillow==12.1.0
+shapely==2.1.2
+pyclipper==1.4.0
+scikit-image==0.26.0
+scipy==1.18.0
+pandas==3.0.3
+einops==0.8.2
+ftfy==6.3.1
+PyYAML==6.0.2
+requests==2.34.2
+tqdm==4.68.4
+pytest
