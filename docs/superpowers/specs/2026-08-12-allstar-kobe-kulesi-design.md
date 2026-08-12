@@ -41,6 +41,8 @@ cümleyle yerini bulur. Düzeltme ayrı iş.
 | 8 | **FIGO adı silinir.** Tek isim: **Kobe**. | Çağatay, 2026-08-12. `docs/FIGO.md` → `Allstar/kobe/README.md`. |
 | 9 | Kobe **iki girdiyi de** kabul eder: video **veya** hazır kare dizini. **Standart yol: video.** | Video verilirse Kobe kapanış penceresini kendi çıkarır, kararı verir, kareleri siler — kareyi tüketen değil **eleyen** kule. Hazır kare dizini verilirse Kobe ona **dokunmaz**: kendi yaratmadığını silmez (tek-yazar ilkesi). |
 | 10 | Dış konsey bu iş için **kapalı** | Çağatay, 2026-08-12. Hakemlik Claude'da. |
+| 11 | Kobe'nin **kendi Paddle'ı** olur: `Allstar/kobe/.venv` | Çağatay, 2026-08-12. Gerekçe paralellik DEĞİL (o süreçten gelir, §4.7) — **sürüm dondurma**. Kobe'nin %94.5'i paddleocr 3.7.0'a bağlı; ortak venv'de başkası yükseltirse skor sessizce kayar ve ölçüm kapısı anlamsızlaşır. MITAS zaten bu desende (`venvs/` altında 20 venv); sınır *iş*'ten *kule*'ye kayıyor. |
+| 12 | **Kule sınırı = kod + üretilen veri + sözleşme + çalışma zamanı.** Zemin (Python/CUDA/Paddle ikilileri, model ağırlıkları, `core/lexicon/` gibi paylaşılan salt-okunur sözlükler) sınırın dışındadır. | Zemini her kuleye kopyalamak sözlüğü çatallar: okuyucu için eklenen bir rol Kobe'ye ulaşmaz. Yasak olan şey **başka bir kulenin ÜRETTİĞİ veriyi doğrudan okumak**; statik ortak kaynak kullanmak değil. |
 
 ---
 
@@ -52,6 +54,8 @@ Allstar/
 └─ kobe/
    ├─ README.md               # ← docs/FIGO.md taşınır: ne alır, ne verir, sorumluluk sınırı
    ├─ CHANGELOG.md            # Kobe'nin kendi güncellemeleri
+   ├─ .venv/                  # Kobe'nin KENDİ Paddle'ı (karar 11, git'te değil)
+   ├─ gereksinimler.txt       # tam sürüm pinleri — .venv bundan yeniden kurulur (git'te)
    ├─ config.yaml             # eşikler/bayraklar (MITAS_JENERIK_V5, _PAD=10, METIN_KAPI=1 …)
    ├─ sozlesme.py             # Girdi / Cikti / Ariza tipleri
    ├─ main.py                 # CLI girişi
@@ -86,27 +90,44 @@ PDF yazmaz, Database'e künye yazmaz. Bunların hepsi başka kulelerin işi.
 
 ### 4.2 Ne girer, ne girmez
 
-**Kule içine taşınır:**
+**TAŞINIR** (`git mv` — eski yerde kalmaz):
 
 | Kaynak | Hedef |
 |---|---|
 | `harness/kunye_kiyas/kobe.py` | `Allstar/kobe/src/motor.py` |
-| `harness/kunye_kiyas/credit_box.py` | `Allstar/kobe/src/kutu.py` |
-| `harness/kunye_kiyas/credit_content.py` | `Allstar/kobe/src/icerik.py` |
 | `harness/kunye_kiyas/olc_pool.py` | `Allstar/kobe/olcum/olc_pool.py` |
 | `harness/kunye_kiyas/hata_atlasi.py` | `Allstar/kobe/olcum/hata_atlasi.py` |
-| `harness/kunye_kiyas/veri/det_isit.py` | `Allstar/kobe/olcum/veri/det_isit.py` |
+| `harness/kunye_kiyas/v5_izleme.py` | `Allstar/kobe/olcum/v5_izleme.py` |
+| `harness/kunye_kiyas/veri/` (tümü: GT, ölçüm, `det_isit.py`) | `Allstar/kobe/olcum/veri/` |
 | `tests/test_kobe_router_ve_gorunurluk.py` | `Allstar/kobe/tests/` |
 | `docs/FIGO.md` | `Allstar/kobe/README.md` (FIGO adı temizlenerek) |
 | `harness/kunye_kiyas/figo.py` | **SİLİNİR** (karar 8) |
+
+**KOPYALANIR** (`git mv` DEĞİL — aslı yerinde kalır):
+
+| Kaynak | Hedef | Neden kopya |
+|---|---|---|
+| `harness/kunye_kiyas/credit_box.py` | `Allstar/kobe/src/kutu.py` | Aslını **üretim okuyucusu** kullanıyor: `scripts/_pipe_hibrit_okuma.py:111` → `import credit_box`. Taşınırsa okuyucu kırılır; okuyucu yeni yolu gösterse bu kez okuyucu Kobe'nin klasörüne bağımlı olur — kaçtığımız şeyin ta kendisi. |
+| `harness/kunye_kiyas/credit_content.py` | `Allstar/kobe/src/icerik.py` | Aslını `tests/test_credit_content_betik_rol.py` ve `tests/test_rol_iskandinav.py` kullanıyor. |
+
+> **Kopyalama, Paddle kararının (karar 11) bir üst katmanda tekrarıdır:** ortak
+> kaynak = ortak kader. Okuyucu için `credit_box`'a yapılan bir düzeltme Kobe'nin
+> %94.5'ini sessizce oynatabilirdi. İki dosya zaten ayrışmak istiyor — Kobe'ye
+> det **onset için**, okuyucuya det **okuma için** lazım; tek dosya olmaları
+> tasarım değil, tarih.
+>
+> **Kayıtlı borç:** bu çift kopya kalıcı değil. Okuma kulesi kurulduğunda
+> kendi kopyasını alır ve `harness/kunye_kiyas/` tamamen silinir. Borç burada
+> yazılıdır — fark edilmemiş değil, ertelenmiş.
 
 **Kule dışında kalır:**
 
 | Ne | Neden |
 |---|---|
+| `core/lexicon/rol_tablosu.py` | **Zemin** (karar 12): saf-stdlib rol/betik sözlüğü, repoda 6+ tüketicisi var (`credit_text_read`, `credit_parse`, `credit_role_lexicon`, testler). Kopyalanırsa sözlük çatallanır — okuyucuya eklenen rol Kobe'ye ulaşmaz. Paylaşılan salt-okunur bilgi; üretilen veri değil. |
 | `core/pipelines/ocr/jenerik_detector.py`, `jenerik_frame_pool_detector.py`, `jenerik_oneocr_detector.py`, `jenerik_primitifleri.py` | Adları "jenerik" ama işleri jenerik-başlangıç tespiti **değil**: kare havuzu kurma, master kırpma, görüntü yardımcıları (`imread_unicode`, `list_images`, `is_credit_text_line`). Nash/LeBron toprağı. `docs/FIGO.md`: *"jenerik-başlangıç bulma işi SADECE FIGO'dur"*. |
 | `scripts/_jenerik_pool.py` | **Çağıran** taraf — hat orkestratörü. Kobe'yi sözleşmeden çağırır, kulenin içine girmez. |
-| `harness/kunye_kiyas/isim_normalize.py`, `kunye_cikar.py`, `v5_izleme.py` | Phil Jackson / künye çıkarma toprağı. Kobe değil. |
+| `harness/kunye_kiyas/isim_normalize.py`, `kunye_cikar.py`, `test_isim_normalize.py`, `exit_kesim/` | Künye çıkarma / kesim toprağı. Kobe hiçbirini import etmiyor. Okuma kulesi sırasında ele alınacak. |
 
 ### 4.3 Sözleşme
 
@@ -215,6 +236,66 @@ Tüketici kuralı: **`_TAMAM` yoksa dosya yok sayılır.**
 (karar 5). Film klasöründen her şeye erişim korunur, ek yer kaplamaz, gerçek
 bayttır.
 
+### 4.7 Çalışma zamanı ve kaynak bölüşümü
+
+**Makine (2026-08-12 ölçümü):** tek RTX 3090 24 GB · 64 çekirdek · 121 GB RAM ·
+35 GB pip önbelleği (Paddle tekerlekleri yerelde).
+
+**Kobe'nin çalışma zamanı** — `Allstar/kobe/.venv`, `gereksinimler.txt`'ten
+kurulur. Pinler `venvs/ocr`'dan alınır ki taşıma **aynı sürümlerle** ölçülsün:
+
+```
+paddlepaddle-gpu==3.3.1   paddleocr==3.7.0   paddlex==3.7.2
+numpy==2.3.5   pillow==12.1.0   opencv-contrib-python==5.0.0.93
+shapely==2.1.2   pyclipper==1.4.0   scikit-image==0.26.0   scipy==1.18.0
+```
+
+**Paralellik süreçten gelir, kurulumdan değil.** Bu ayrım kilitlidir: tek
+kurulum N süreç açabilir, N kurulum tek süreç açarsa hiçbir şey paralelleşmez.
+MITAS bunu bugün zaten yapıyor — `olc_pool.py:81` `mp.get_context("spawn").Pool(n)`,
+her işçide Paddle bir kez init olur. Kobe'nin kendi venv'i **sürüm dondurmak**
+içindir (karar 11), paralellik için değil.
+
+**Reddedilen: ortak "Paddle kulesi" (servis).** ① Kobe canlı bir dış servise
+bağımlı hale gelir — "sorun Kobe'de mi Paddle'da mı?" sorusu geri döner, kule
+mimarisinin tek kazancı ölür. ② Paralellik zaten vermez: tek süreç istekleri
+sıraya dizer, eşzamanlılık için yine N işçi = N model = aynı VRAM. ③ Tek nokta
+arızası: Paddle kulesi düşerse tüm kuleler durur.
+
+**Gerçek sınır disk değil, VRAM.** 24 GB paylaşımlı ve bu duvara bu proje zaten
+çarptı: `_get_mms()` CUDA OOM'u ("free 80MB / total 25GB") sessizce yutuldu,
+1035 kaydın 777'sinde ANA DİL boş kaldı. Kural: **OOM → `ARIZA`**, asla düşük
+kaliteli sonuç (§4.3 değişmezi).
+
+**Kaynak bölüşümü hedefi (ölçüme tabi, varsayım değil):** Kobe'nin Paddle yükü
+ağırlıklı **detection-only** (`src/kutu.py` → `TextDetection`, kare serisi
+boyunca); `rec` yalnız birkaç aday karede (`src/icerik.py` başlığı: *"rec sadece
+ADAY karelerde, maliyet düşük"*). Bu yük profili CPU'ya uygun. Hedef bölüşüm:
+
+| Kule | Cihaz | Paralellik |
+|---|---|---|
+| Kobe | **CPU** (64 çekirdek) | geniş süreç havuzu |
+| Okuma kulesi (LeBron/Nash) | **GPU** (24 GB'ın tamamı) | dar |
+
+Böylece iki kule farklı kaynakta koşar, birbirinin kuyruğunu beklemez —
+*"CPU GPU boş kalmaz"* isteği bundan çıkar.
+
+> **Bu bölüşüm bu taşımanın kapsamı DIŞINDA.** CPU ve GPU kayan-nokta farkı det
+> kutu koordinatını oynatabilir, bir eşik dönebilir. 110 filmlik yatakta
+> ölçülmeden kabul edilmez; Kobe kule olarak kurulduktan **sonra** ayrı bir iş
+> olarak, Çağatay'ın onayıyla ölçülür. Taşıma GPU'da, mevcut davranışla yapılır.
+
+**Toplu koşuda üç koruma** (Çağatay'ın *"1000 filmi işle bırak"* akışı için):
+
+1. **İlk-parti kapısı** — 1000 değil: önce 20 film → ölç → sonra salıver.
+   Yanlış config'le 1000 film = 1000 bozuk çıktı; bu, bu projeye bir ay
+   kaybettiren hata sınıfının ta kendisi.
+2. **`maxtasksperchild`** — `olc_pool.py` bugün ayarlamıyor. Uzun koşuda işçi
+   süreç bellek/VRAM biriktirir. `Pool(n, maxtasksperchild=25)` → işçi her 25
+   filmde tazelenir.
+3. **`_TAMAM` ile yeniden başlatılabilirlik** — 700. filmde çökme 700 filmi
+   kaybettirmez (§4.4). Toplu mod bunu opsiyonel olmaktan çıkarıp şart yapar.
+
 ---
 
 ## 5. Taşıma tarifi (Sonnet yürütür)
@@ -224,13 +305,24 @@ düzeltmeye çalışma.**
 
 | # | Adım | Komut / iş | Geçme ölçütü |
 |---|---|---|---|
-| 1 | **Ölçüm ÖNCE** | `cd harness/kunye_kiyas && python olc_pool.py --paralel 8` → `Allstar/kobe/raporlar/olcum_ONCE.json` | Dosya yazıldı; sayılar kaydedildi. Referans: simetrik **%93.6**, üretim **%97.3**, kredisiz-red **29/29** |
+| 1 | **Ölçüm ÖNCE** | `cd harness/kunye_kiyas && venvs/ocr/bin/python olc_pool.py --paralel 8` → `Allstar/kobe/raporlar/olcum_ONCE.json` | Dosya yazıldı. **Gerçek referans** (`veri/olcum_son.json`, 2026-08-12 12:43): kapsam **110**, genel **%94.5**, üretim **%97.3**, kredi-var **75/81**, kredi-yok **29/29**, eksik **5** |
 | 2 | **Geri-dönüş noktası** | Ağaç temiz olacak şekilde commit; SHA `raporlar/`'a yazılır | `git status` temiz, SHA kayıtlı |
-| 3 | **Taşıma** | §4.2 tablosundaki her satır için `git mv` | Tüm dosyalar hedefte; git geçmişi korunmuş (`git log --follow` çalışıyor) |
-| 4 | **Köprü** | Eski `figo`/`kobe` import adları geçici olarak yeni yola yönlendirilir | Mevcut 4 çağıran (`olc_pool`, `hata_atlasi`, `det_isit`, `scripts/_jenerik_pool`) import hatası vermiyor |
-| 5 | **Testler** | `pytest Allstar/kobe/tests -q` | Taşıma öncesiyle **aynı** sonuç (hepsi geçiyor) |
-| 6 | **Ölçüm SONRA** | 1. adımın aynısı → `olcum_SONRA.json` | **Sapma sıfır.** Herhangi bir sapmada DUR |
-| 7 | **Temizlik** | Çağıranlar sözleşmeye çevrilir, köprü silinir, `figo` adı repo genelinden temizlenir, boş `Players/` silinir | `grep -rn "figo" --include="*.py"` → sıfır sonuç; 5. ve 6. adım tekrar geçiyor |
+| 3 | **Kobe'nin venv'i** | `Allstar/kobe/.venv` kur + `gereksinimler.txt` yaz (§4.7 pinleri) | `.venv/bin/python -c "import paddle,paddleocr"` → 3.3.1 / 3.7.0 |
+| 4 | **Venv paritesi** | 1. adımın aynısı, **ama yeni venv ile**, dosyalar HÂLÂ eski yerinde → `olcum_VENV.json` | **Sapma sıfır.** Sapma varsa sorun venv'dedir, taşımada değil — burada yakalanır |
+| 5 | **Taşıma** | §4.2: TAŞINIR satırları `git mv`, KOPYALANIR satırları `cp` | Dosyalar hedefte; `git log --follow` taşınanlarda çalışıyor |
+| 6 | **Import yolları** | Taşınan dosyalarda `import figo` → `import motor`; `credit_box`/`credit_content` → `kutu`/`icerik`. `scripts/_jenerik_pool.py` doğrudan yeni yola çevrilir | Import hatası yok |
+| 7 | **Testler** | `pytest Allstar/kobe/tests -q` | Taşıma öncesiyle **aynı** sonuç (19/19 geçiyor) |
+| 8 | **Ölçüm SONRA** | 1. adımın aynısı, yeni yoldan → `olcum_SONRA.json` | **Sapma sıfır.** Herhangi bir sapmada DUR |
+| 9 | **Temizlik** | `figo` adı repo genelinden temizlenir, boş `Players/` silinir | `grep -rn "figo" --include="*.py"` → sıfır sonuç; 7. ve 8. adım tekrar geçiyor |
+
+**Neden 4. adım (venv paritesi) ayrı:** venv değişimi ile dosya taşıması aynı
+anda yapılırsa ve skor kayarsa hangisinin kaydırdığı bilinemez. Tek seferde tek
+değişken.
+
+**Köprü katmanı YOK — gerek olmadığı ölçüldü.** `figo`'yu import eden 4 dosyanın
+üçü (`olc_pool.py`, `hata_atlasi.py`, `veri/det_isit.py`) Kobe ile **birlikte
+taşınıyor**; dışarıda kalan tek çağıran `scripts/_jenerik_pool.py` ve üretim
+durmuş durumda, doğrudan güncellenebilir. Geçici köprü yazmak boş iş olurdu.
 
 ---
 
