@@ -48,7 +48,10 @@ _ROL = re.compile(
     r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
-    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető|"
+    r"regi|regissör|regissør|regissor|instruktør|instruktion|manus|manuskript|"
+    r"filmfoto|fotograf|klipp|klippning|klipning|redigering|ljud|medverkande|"
+    r"medvirkende|musikk|produsent|scenografi|kostym|skådespelare|skuespillere)\b",
     re.I)
 
 # ÇEKİRDEK-ROL beyaz listesi (T6, plan Görev6/Adım1) — SON_ERISIM gevşetmesi/
@@ -57,6 +60,22 @@ _ROL = re.compile(
 # (GLM tur-2 uyarısı: film-ortası şirket logosu/kredi-dışı insert yanlış tetikler).
 # Macarca eklendi (T6 2.tur, alt-adım1a — konsey kırmızı-takım): DOĞUM_GÜNÜN gibi
 # Macar yapımlarında kredi kartları yalnız Macarca rol adları taşıyor.
+#
+# İSKANDİNAV (sv/no/da) EKLENDİ (2026-08-12, KULÜBEDEKİ_YAŞLI_ADAM teşhisi —
+# Çağatay kapsam kararı: tek dil değil dil ailesi). Arıza: SVERIGES TELEVISION
+# belgeselinde kutu sinyali jeneriği DOĞRU buldu (kare 649-719, son_ok=True) ama
+# kare başına yalnız 1-3 isim düşüyordu (seyrek kart düzeni) → kredi_skoru_coklu'nun
+# varsayılan yogun_esik=4'ü geçilemedi, kb=0.00. Tam bu durum için var olan
+# seyrek-kredi yolu (eşiği 4→2 indirir) ≥2 ÇEKİRDEK-ROL istiyor; 'Filmfoto' /
+# 'Redigering' / 'En film av' hiçbiri 7 dilin (EN/TR/IT/FR/DE/ES/HU) regex'ine
+# uymadığı için hiç tetiklenmedi. ÖLÇÜLDÜ: yalnız bu kelimeler eklenince
+# kredi_yok → start=649, kb=1.00, guven=1.00.
+#
+# SEÇİM DİSİPLİNİ (yukarıdaki 'vágó' içtihadıyla aynı): kısa/çarpışma riskli
+# kelimeler BİLEREK ALINMADI — çıplak 'foto' (4 harf, kredi-dışı bağlamda da
+# geçer), 'lyd' (3 harf), 'roller' (İngilizce 'roller' ile çarpışır). Alınanların
+# hepsi ya ≥5 harf ya da İskandinav'a özgü glif taşıyor (ö/ø/å). KULÜBEDEKİ
+# bunlarsız da geçiyor (filmfoto + ljud + redigering = 3 farklı rol).
 #
 # PREFIX-GÜVENLİ DÜZELTME (mini-tur 3, alt-adım1): _ROL'deki aynı \b(...)\b
 # kapanış-sınırı bozukluğu burada da var — 'photograph'/'cinematograph'/
@@ -74,7 +93,10 @@ _ROL_CEKIRDEK = re.compile(
     r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
-    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető|"
+    r"regi|regissör|regissør|regissor|instruktør|instruktion|manus|manuskript|"
+    r"filmfoto|fotograf|klipp|klippning|klipning|redigering|ljud|medverkande|"
+    r"medvirkende|musikk|produsent|scenografi|kostym|skådespelare|skuespillere)\b",
     re.I)
 
 
