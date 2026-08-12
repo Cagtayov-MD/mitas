@@ -31,6 +31,15 @@ def _env_int(ad: str, varsayilan: int) -> int:
 MAX_KARE = _env_int("MITAS_TRACK_KUNYE_MAX_FRAMES", 100)
 CAGRI_TIMEOUT = _env_int("MITAS_TRACK_KUNYE_CAGRI_TIMEOUT", 180)
 
+# Spec: docs/superpowers/specs/2026-08-12-nash-giris-aktivasyon-design.md §3.1
+# Segmente bağlı 5 sabit kod tek yerde. Varsayılan "cikis" — bugünkü davranış (§5.1).
+_SEG = {
+    "cikis": {"out": "track_kunye", "png": "reading_master_runaware.png",
+              "man": "reading_master_runaware_manifest.json", "k3": "kunye3.txt"},
+    "giris": {"out": "track_kunye_giris", "png": "giris_reading_master_runaware.png",
+              "man": "giris_reading_master_runaware_manifest.json", "k3": "kunye3_giris.txt"},
+}
+
 
 def _ollama_kok() -> str:
     return (os.environ.get("MITAS_OLLAMA_URL") or "http://127.0.0.1:11434").rstrip("/")
@@ -46,14 +55,15 @@ def ollama_saglik(timeout: int = 3) -> bool:
         return False
 
 
-def master_secim(clip_dir: Path) -> tuple[Path | None, str | None]:
-    """Kök runaware çıkış master'ı + bayatlık kontrolü (konsey S1).
+def master_secim(clip_dir: Path, segment: str = "cikis") -> tuple[Path | None, str | None]:
+    """Kök runaware master'ı (segmente göre) + bayatlık kontrolü (konsey S1).
 
     'ibrahimovic_uretemedi' manifest'i = bu tur üretilemedi, diskteki PNG eski
     turdan korunmuş ("kötü yerine hiç") — bayat master okunmaz.
     """
-    png = clip_dir / "reading_master_runaware.png"
-    man = clip_dir / "reading_master_runaware_manifest.json"
+    seg = _SEG[segment]
+    png = clip_dir / seg["png"]
+    man = clip_dir / seg["man"]
     if not png.is_file():
         return None, "master_yok"
     if man.is_file():
@@ -66,8 +76,8 @@ def master_secim(clip_dir: Path) -> tuple[Path | None, str | None]:
     return png, None
 
 
-def master_kare_sayisi(clip_dir: Path) -> int | None:
-    man = clip_dir / "reading_master_runaware_manifest.json"
+def master_kare_sayisi(clip_dir: Path, segment: str = "cikis") -> int | None:
+    man = clip_dir / _SEG[segment]["man"]
     if not man.is_file():
         return None
     try:
@@ -104,9 +114,9 @@ def deepseek_saglik(metinler: list[str]) -> tuple[bool, str]:
 
 
 def kunye3_yaz(clip_dir: Path, base: str, messi_d: list[str], master_d: list[str],
-               ronaldo_d: list[str], band: str | None) -> Path:
+               ronaldo_d: list[str], band: str | None, segment: str = "cikis") -> Path:
     """3 çıktının hub-kök yüzeyi (teslim/export'a YAZILMAZ — gölge sözleşmesi)."""
-    p = clip_dir / f"{base} kunye3.txt"
+    p = clip_dir / f"{base} {_SEG[segment]['k3']}"
     icerik = [f"# 3-KOLLU KÜNYE (gölge) — güven bandı: {band or 'yok'}",
               "", "## 1) MESSİ (framehavuz + deepseek)", *messi_d,
               "", "## 2) İBRAHİMOVİC (runaware master + deepseek)", *master_d,
@@ -120,13 +130,14 @@ def main() -> int:
     ap.add_argument("--clip", required=True)
     ap.add_argument("--frames", required=True)
     ap.add_argument("--base", default="")
+    ap.add_argument("--segment", choices=("cikis", "giris"), default="cikis")
     a = ap.parse_args()
     clip_dir = Path(a.clip)
     frames = Path(a.frames)
-    out = clip_dir / "track_kunye"
+    out = clip_dir / _SEG[a.segment]["out"]
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
-    ozet: dict = {"status": "failed", "film": clip_dir.name}
+    ozet: dict = {"status": "failed", "film": clip_dir.name, "segment": a.segment}
 
     def bitir() -> int:
         ozet["sure_sn"] = round(time.time() - t0, 1)
@@ -177,7 +188,7 @@ def _govde(a, clip_dir: Path, frames: Path, out: Path, ozet: dict, bitir) -> int
     _m_ok, m_sebep = deepseek_saglik(messi_dokum)
 
     # KOL 2 — İbrahimovic runaware master'ının deepseek okuması (salt-okunur tüketim)
-    master_png, ibra_sebep = master_secim(clip_dir)
+    master_png, ibra_sebep = master_secim(clip_dir, a.segment)
     master_dokum: list[str] = []
     if master_png is not None:
         try:
@@ -198,7 +209,7 @@ def _govde(a, clip_dir: Path, frames: Path, out: Path, ozet: dict, bitir) -> int
         manifest = ph.ronaldo_kos(clip_dir.name, out, messi_dokum, master_dokum,
                                   kb, kb_tok, kare_toplam=kare_toplam,
                                   messi_kare=len(secim),
-                                  ibra_kare=master_kare_sayisi(clip_dir)) or {}
+                                  ibra_kare=master_kare_sayisi(clip_dir, a.segment)) or {}
     except Exception as e:  # noqa: BLE001
         ozet.update(status="failed", error_class=type(e).__name__,
                     error=str(e)[:300], asama="ronaldo")
@@ -209,7 +220,7 @@ def _govde(a, clip_dir: Path, frames: Path, out: Path, ozet: dict, bitir) -> int
     ronaldo_kunye = rk.read_text(encoding="utf-8").splitlines() if rk.is_file() else []
     try:
         kunye3_yaz(clip_dir, base, messi_dokum, master_dokum, ronaldo_kunye,
-                   manifest.get("confidence_band"))
+                   manifest.get("confidence_band"), a.segment)
     except Exception as e:  # noqa: BLE001
         ozet["kunye3_hata"] = f"{type(e).__name__}: {e}"[:200]
 

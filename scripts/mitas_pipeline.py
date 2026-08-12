@@ -4445,6 +4445,70 @@ def main(argv=None) -> int:
                       module="track-kunye", media_id=media_id, filename=_tk_ad,
                       error=str(_tke)[:300], detail={"clip_id": clip_id})
 
+    # ===== TRACK-KUNYE GÖLGE — GİRİŞ SEGMENTİ (2026-08-12) =====
+    # Spec: docs/superpowers/specs/2026-08-12-nash-giris-aktivasyon-design.md §3.2
+    # Yukarıdaki ÇIKIŞ bloğundan TAMAMEN BAĞIMSIZ ikinci kol: kendi try/except'i,
+    # kendi zaman anahtarı, kendi olay adları, kendi çıktı dizini (track_kunye_giris/).
+    # NASH havuzunu HAM frames/giris'ten kurar → giris_jenerik altyazı-filtresinden
+    # geçmez; ROI arızasına bağımsız ikinci okuma yolu (spec §1).
+    # ÜRETİME DOKUNMAZ (gölge sözleşmesi): karar/PDF/teslim DEĞİŞMEZ (spec §5.2).
+    # FAIL-SAFE: bu kolun hatası/timeout'u çıkış kolunu ve kararı ASLA etkilemez (§5.3).
+    # Kill-switch: MITAS_TRACK_KUNYE_GIRIS=0 (MITAS_TRACK_KUNYE=0 ikisini birden kapatır).
+    if (os.environ.get("MITAS_TRACK_KUNYE", "1").strip().lower() not in ("0", "false", "off", "no")
+            and os.environ.get("MITAS_TRACK_KUNYE_GIRIS", "1").strip().lower()
+                not in ("0", "false", "off", "no")
+            and not args.no_ocr):
+        _tkg_t = time.perf_counter()
+        _tkg_ad = video.name if video is not None else clip_dir.name
+        try:
+            if giris_frames.is_dir() and any(giris_frames.glob("*.png")):
+                _tkg_cmd = [str(PY_OCR), str(HERE / "_pipe_track_kunye.py"),
+                            "--clip", str(clip_dir), "--frames", str(giris_frames),
+                            "--base", file_base(trt, title), "--segment", "giris"]
+                _rctkg, _outtkg, _errtkg = run(
+                    _tkg_cmd,
+                    timeout=int(os.environ.get("MITAS_TRACK_KUNYE_TIMEOUT", "1200") or 1200))
+                _jtkg = last_json(_outtkg) or {}
+                timings["track_kunye_giris"] = round(time.perf_counter() - _tkg_t, 2)
+                _tkg_status = str(_jtkg.get("status") or ("done" if _rctkg == 0 else "failed"))
+                _tkg_band = _jtkg.get("band")
+                log_event("track_kunye_giris_completed" if _tkg_status == "done" else
+                          ("track_kunye_giris_skipped" if _tkg_status == "skipped"
+                           else "track_kunye_giris_failed"),
+                          level="info" if _tkg_status == "done" else "warn",
+                          summary=f"{_tkg_ad}: track-kunye GİRİŞ {_tkg_status} "
+                                  f"(band={_tkg_band}, {timings['track_kunye_giris']} sn).",
+                          module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                          duration_seconds=timings["track_kunye_giris"],
+                          detail={"clip_id": clip_id, "ozet": _jtkg,
+                                  # betik SÖZLEŞME gereği hep rc=0 döner — stderr'i
+                                  # rc'ye bakmadan logla (konsey bug-avı KIM-3)
+                                  "stderr": (_errtkg or "")[-300:] or None})
+                if _tkg_status == "done" and _tkg_band in ("red", None):
+                    log_event("ronaldo_giris_band_red" if _tkg_band == "red"
+                              else "ronaldo_giris_band_null", level="warn",
+                              summary=f"{_tkg_ad}: Ronaldo GİRİŞ güven bandı {_tkg_band or 'yok'} — göz-QC önerilir.",
+                              module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                              detail={"clip_id": clip_id, "common_blind": _jtkg.get("common_blind")})
+                if _tkg_status == "done" and _jtkg.get("common_blind"):
+                    log_event("ronaldo_giris_common_blind", level="warn",
+                              summary=f"{_tkg_ad}: GİRİŞ ortak-körlük bayrağı — kapsama düşük, içerik-tamlık garantisi YOK.",
+                              module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                              detail={"clip_id": clip_id, "coverage_ratio": _jtkg.get("coverage_ratio")})
+                summary_obj["track_kunye_giris"] = {"status": _tkg_status, "band": _tkg_band,
+                                                    "dir": str(clip_dir / "track_kunye_giris")}
+                write_json(clip_dir / "_DURUM.json", summary_obj)
+            else:
+                log_event("track_kunye_giris_skipped", level="info",
+                          summary=f"{_tkg_ad}: track-kunye GİRİŞ atlandı — frames/giris yok/boş.",
+                          module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                          detail={"clip_id": clip_id})
+        except Exception as _tkge:  # noqa: BLE001 — GİRİŞ kolu ASLA pipeline'ı/kararı/çıkış kolunu bozmaz
+            log_event("track_kunye_giris_failed", level="warn",
+                      summary=f"{_tkg_ad}: track-kunye GİRİŞ atlandı ({type(_tkge).__name__}).",
+                      module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                      error=str(_tkge)[:300], detail={"clip_id": clip_id})
+
     # ===== LEGACY GÖLGE VL — paralel debug kapalıysa eski davranışı koru =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.
     # Paralel debug açıkken VL artık frames/cikis_jenerik üzerinden jenerik_debug/vl altında çalışır.
