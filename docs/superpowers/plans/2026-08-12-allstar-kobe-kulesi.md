@@ -20,6 +20,13 @@
 - `ARIZA` asla `KREDI_YOK`'a dönüşmez.
 - Temel yorumlayıcı: `/home/cagatay/.pyenv/versions/3.12.13/bin/python3.12` (venvs/ocr ile aynı — pinler cp312 tekerleği).
 - Her görev sonunda commit. Commit mesajları Türkçe, ASCII gövdeli.
+- **`git add -A`, `git add .`, `git reset --hard`, `git stash` YASAK.** Çalışma
+  ağacında bu işe ait olmayan 9 değişik + 68 silinmiş dosya var (`mutfak/`,
+  `OCR-worktree/`, `core/pipelines/ocr/jenerik_*`, `scripts/giris_*`,
+  `scripts/toplu_kosu.sh`, iki `tests/test_master*`). Geniş komutlar bunları
+  ya commit'ine karıştırır ya da siler. **Yalnız adı geçen yolları sahnele**,
+  ve her commit'ten önce `git status --porcelain --cached` ile ne
+  sahnelendiğine bak.
 
 ---
 
@@ -70,13 +77,32 @@ Hiçbir şey değiştirilmez. Amaç: taşımadan önceki gerçeği dosyaya yazma
 - Oluştur: `Allstar/kobe/raporlar/olcum_ONCE.json`
 - Oluştur: `Allstar/kobe/raporlar/geri_donus.txt`
 
-- [ ] **Adım 1: Ağacın temiz olduğunu doğrula**
+- [ ] **Adım 1: Çakışma denetimi — taşınacak yollar temiz mi**
+
+> **Ağaç kirli, bu beklenen.** Bu plan yazılırken çalışma ağacında zaten
+> 9 değişik dosya (`OCR-worktree/`, `core/pipelines/ocr/jenerik_*`,
+> `scripts/giris_*`, `scripts/toplu_kosu.sh`, iki `tests/test_master*`) ve
+> `mutfak/` altında 68 silinmiş dosya vardı. Bunlar **bu işe ait değil**,
+> bu iş başlamadan önce oradaydılar. Onlara **dokunma**, commit etme,
+> geri alma. Taşımayı ilgilendiren tek soru: taşınacak yollarda yabancı
+> değişiklik var mı?
 
 ```bash
-cd /opt/mitas && git status --porcelain | head -20
+cd /opt/mitas && for p in harness/kunye_kiyas tests/test_kobe_router_ve_gorunurluk.py \
+    scripts/_jenerik_pool.py docs/FIGO.md Allstar Players; do
+  n=$(git status --porcelain -- "$p" 2>/dev/null | grep -v "^??" | wc -l)
+  echo "  $p : $n"
+done
 ```
 
-Beklenen: `docs/` dışında değişiklik yok. Takip edilmeyen dosya varsa sorun değil; **takip edilen** dosyada değişiklik varsa DUR ve rapor et.
+Beklenen: **her satır `0`**. Herhangi biri `0` değilse DUR ve rapor et — o
+dosyada bilinmeyen bir değişiklik var, üstüne taşıma yapılmaz.
+
+> **Geri dönüş bu yüzden SHA değil, yol-kapsamlı:** ağaç kirli olduğu için
+> `git reset --hard` yasaktır — yabancı WIP'i siler. Geri dönmek gerekirse
+> yalnız Kobe'nin yollarını geri al:
+> `git checkout <SHA> -- harness/kunye_kiyas tests/test_kobe_router_ve_gorunurluk.py scripts/_jenerik_pool.py docs/FIGO.md`
+> ve `rm -rf Allstar`.
 
 - [ ] **Adım 2: Rapor dizinini aç**
 
@@ -110,9 +136,14 @@ cp /opt/mitas/harness/kunye_kiyas/veri/olcum_son.json \
 
 ```bash
 cd /opt/mitas && \
-printf 'Kobe kulesi tasima oncesi geri-donus noktasi\ntarih: %s\nSHA: %s\ndal: %s\n' \
-  "$(date '+%F %T')" "$(git rev-parse HEAD)" "$(git rev-parse --abbrev-ref HEAD)" \
-  > Allstar/kobe/raporlar/geri_donus.txt && cat Allstar/kobe/raporlar/geri_donus.txt
+{ printf 'Kobe kulesi tasima oncesi geri-donus noktasi\ntarih: %s\nSHA: %s\ndal: %s\n\n' \
+    "$(date '+%F %T')" "$(git rev-parse HEAD)" "$(git rev-parse --abbrev-ref HEAD)"
+  printf 'GERI DONUS (agac kirli - reset --hard YASAK, yabanci WIP siler):\n'
+  printf '  git checkout %s -- harness/kunye_kiyas tests/test_kobe_router_ve_gorunurluk.py \\\n' "$(git rev-parse HEAD)"
+  printf '      scripts/_jenerik_pool.py docs/FIGO.md\n  rm -rf Allstar\n\n'
+  printf 'TASIMA DISI (dokunma) - bu is baslamadan once kirliydi:\n'
+  git status --porcelain | grep -v "^??" | sed 's/^/  /'
+} > Allstar/kobe/raporlar/geri_donus.txt && head -12 Allstar/kobe/raporlar/geri_donus.txt
 ```
 
 - [ ] **Adım 6: Commit**
@@ -449,7 +480,9 @@ Beklenen üç satır: `motor OK — tespit_v5: True | kareler: True`, `kutu OK, 
 - [ ] **Adım 11: Commit**
 
 ```bash
-cd /opt/mitas && git add -A Allstar harness scripts && \
+cd /opt/mitas && \
+git add Allstar harness/kunye_kiyas scripts/_jenerik_pool.py && \
+git status --porcelain --cached | head -20 && \
 git commit -m "refactor(kobe): motor Allstar/kobe kulesine tasindi, figo adi silindi
 
 - kobe.py -> src/motor.py, olc_pool/hata_atlasi/v5_izleme/veri -> olcum/
@@ -525,7 +558,8 @@ Beklenen: **Adım 1 ile aynı sayı** (`19 passed`). Az bir tane bile eksikse DU
 - [ ] **Adım 5: Commit**
 
 ```bash
-cd /opt/mitas && git add -A Allstar/kobe/tests tests && \
+cd /opt/mitas && git add Allstar/kobe/tests && \
+git status --porcelain --cached | head -10 && \
 git commit -m "test(kobe): yonlendirici testleri kule icine tasindi (19/19)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
@@ -1395,8 +1429,11 @@ Beklenen: `KAPSAM 110 ... GENEL 104/110 = %94.5 ... ÜRETİM 107/110 = %97.3`, `
 
 - [ ] **Adım 6: Commit**
 
+`Players/` git'te izlenmiyordu — silinmesi için sahnelenecek bir şey yok.
+
 ```bash
-cd /opt/mitas && git add -A Allstar docs Players && \
+cd /opt/mitas && git add Allstar && \
+git status --porcelain --cached | head -20 && \
 git commit -m "docs(allstar): Kobe README/CHANGELOG + MAP.md; bos Players iskeleti silindi
 
 FIGO adi repodan tamamen kalkti. Ilk kule ayakta: 39/39 test, olcum sapmasi sifir.
