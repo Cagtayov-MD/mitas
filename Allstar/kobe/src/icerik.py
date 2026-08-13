@@ -14,7 +14,7 @@ import contextvars
 
 # ── Korumalı bootstrap (§4.0) — bu dosya iki AYRI path üzerinden yükleniyor
 # (bazen _jenerik_pool.py'nin eklediği PROJECT_ROOT üzerinden, bazen olc_pool.py'nin
-# yalnız harness/kunye_kiyas'ı ekleyen path'i üzerinden) — ikisinde de çalışır.
+# yalnız Allstar/kobe/src ekleyen path üzerinden) — ikisinde de çalışır.
 import os
 import sys
 from pathlib import Path

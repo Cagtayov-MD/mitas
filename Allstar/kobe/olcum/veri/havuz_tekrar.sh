@@ -2,7 +2,7 @@
 # havuz_kur.sh tur-tekrarlayıcısı: GVFS aralıklı hatalarında eksikler bitene
 # veya iki tur üst üste ilerleme olmayana kadar yeniden dener.
 set -u
-V="/opt/mitas/harness/kunye_kiyas/veri"
+V="/opt/mitas/Allstar/kobe/olcum/veri"
 KOK="/opt/mitas/Allstar/kobe/havuz"
 LOG="$V/havuz_tekrar.log"
 exec >>"$LOG" 2>&1

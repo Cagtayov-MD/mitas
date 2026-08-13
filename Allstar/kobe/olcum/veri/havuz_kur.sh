@@ -4,7 +4,7 @@
 # Klasör adları GT (dogrulama_sonuc.json) film adlarıyla BİREBİR tutulur.
 # Parite kanıtı: OPERADAKİ_HAYALET yeni indirmede v5=1161 (kayıtla aynı).
 set -uo pipefail
-V="/opt/mitas/harness/kunye_kiyas/veri"
+V="/opt/mitas/Allstar/kobe/olcum/veri"
 KOK="/opt/mitas/Allstar/kobe/havuz"
 SMB="smb://depo01cifs.int.trt.net.tr/sas_h264/Film Kapanış"
 GV="/run/user/1000/gvfs/smb-share:server=depo01cifs.int.trt.net.tr,share=sas_h264/Film Kapanış"
@@ -24,9 +24,9 @@ done
 
 # 2) liste + eşleme (tam id; olmazsa YYYY-NNNN; hata filmleri öne)
 ls "$GV" > "$V/liste_kapanis.txt"
-/opt/mitas/venvs/ocr/bin/python - <<'EOF'
+/opt/mitas/Allstar/kobe/venv/bin/python - <<'EOF'
 import json, re
-V="/opt/mitas/harness/kunye_kiyas/veri"
+V="/opt/mitas/Allstar/kobe/olcum/veri"
 d=json.load(open(f"{V}/dogrulama_sonuc.json",encoding="utf-8"))["filmler"]
 liste=[l.strip() for l in open(f"{V}/liste_kapanis.txt",encoding="utf-8")
        if l.strip().endswith(".mp4")]
@@ -90,9 +90,9 @@ indir "$V/esl_b.tsv" & PB=$!
 wait $PA $PB
 
 # 4) parite raporu: kare sayısı GT 'kare' alanıyla uyuşuyor mu
-/opt/mitas/venvs/ocr/bin/python - <<'EOF'
+/opt/mitas/Allstar/kobe/venv/bin/python - <<'EOF'
 import json, glob, os
-V="/opt/mitas/harness/kunye_kiyas/veri"
+V="/opt/mitas/Allstar/kobe/olcum/veri"
 KOK="/opt/mitas/Allstar/kobe/havuz"
 t={x["film"]:x.get("kare") for x in json.load(open(f"{V}/v5_tahminler.json",encoding="utf-8"))["filmler"]}
 sat=[]
