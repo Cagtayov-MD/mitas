@@ -162,3 +162,25 @@ def test_kare_tavani_parca_suresini_kisar(tmp_path, monkeypatch):
            "video": {"fps": 2, "genislik": 720, "suzgec": "scale={genislik}:-2"}}
     parcala("f.mp4", tmp_path, cfg)
     assert max(cagri["t"]) == pytest.approx(15.0)   # 30 kare / 2 fps
+
+
+# ── uretim ayarlari config'ten generate'e GERCEKTEN geciyor mu ───────────
+def test_top_p_generate_e_gecer():
+    """config'te ayarlanan bir sey generate'e gitmiyorsa ayarlanmamis demektir."""
+    from model import Motor
+    m = Motor("/yok", uretim={"do_sample": True, "temperature": 0.01, "top_p": 0.10})
+    kw = m.uretim_kwargs()
+    assert kw["top_p"] == 0.10 and kw["temperature"] == 0.01
+
+
+def test_greedy_de_ornekleme_ayarlari_dusurulur():
+    from model import Motor
+    kw = Motor("/yok", uretim={"do_sample": False, "top_p": 0.1}).uretim_kwargs()
+    assert "top_p" not in kw and kw["do_sample"] is False
+
+
+def test_config_te_ne_varsa_generate_e_gider():
+    """Beyaz liste yok — ayar alanini kisitlamak motorun isi degil."""
+    from model import Motor
+    kw = Motor("/yok", uretim={"do_sample": True, "min_p": 0.05}).uretim_kwargs()
+    assert kw["min_p"] == 0.05

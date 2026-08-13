@@ -172,16 +172,19 @@ def main(argv=None) -> int:
     a = alt.add_parser("start", help="toplu: dizindeki her klibi isle")
     a.add_argument("--input", required=True)
     a.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
-    a.add_argument("--model", help="config.yaml'daki model yolunu ezer (w8a8|bf16)")
+    a.add_argument("--model", help="config.yaml'daki model yolunu ezer")
+    a.add_argument("--dtype", help="bfloat16 | float16 — config.yaml'i ezer")
 
     b = alt.add_parser("tek", help="tek klip")
     b.add_argument("--video", required=True)
     b.add_argument("--film-id", required=True)
     b.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
-    b.add_argument("--model", help="config.yaml'daki model yolunu ezer (w8a8|bf16)")
+    b.add_argument("--model", help="config.yaml'daki model yolunu ezer")
+    b.add_argument("--dtype", help="bfloat16 | float16 — config.yaml'i ezer")
 
     n = ap.parse_args(argv)
-    ezme = {"model": {"yol": n.model}} if n.model else {}
+    m = {k: v for k, v in (("yol", n.model), ("dtype", n.dtype)) if v}
+    ezme = {"model": m} if m else {}
 
     if n.komut == "start":
         toplu(Path(n.input), bolum=n.bolum, config=ezme)

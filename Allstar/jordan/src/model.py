@@ -115,13 +115,7 @@ class Motor:
         try:
             girdi = self._sablonla(mesajlar).to(self.model.device)
             with torch.inference_mode():
-                cikti = self.model.generate(
-                    **girdi,
-                    max_new_tokens=self.uretim.get("max_new_tokens", 1024),
-                    do_sample=self.uretim.get("do_sample", False),
-                    temperature=self.uretim.get("temperature", 0.0) or None,
-                    repetition_penalty=self.uretim.get("repetition_penalty", 1.05),
-                )
+                cikti = self.model.generate(**girdi, **self.uretim_kwargs())
             yeni = cikti[0][girdi["input_ids"].shape[-1]:]
             ham = self.islemci.decode(yeni, skip_special_tokens=True)
         except Exception as e:                      # noqa: BLE001
@@ -134,6 +128,21 @@ class Motor:
         if not metin:
             raise CiktiBozuk("model bos cevap dondu")
         return metin
+
+    def uretim_kwargs(self) -> dict:
+        """config.yaml `uretim:` → generate() argumanlari.
+
+        Config'te ne yazarsan generate'e o gider — burada beyaz liste ya da
+        dogrulama YOK. Ayar alanini kisitlamak bu dosyanin isi degil.
+        """
+        kw = {"max_new_tokens": 1024, "do_sample": False,
+              "repetition_penalty": 1.05, **self.uretim}
+        # do_sample=False iken temperature/top_p/top_k transformers'ta uyari
+        # uretir ve zaten etkisizdir — greedy'de orneklem yoktur.
+        if not kw.get("do_sample"):
+            for a in ("temperature", "top_p", "top_k", "min_p"):
+                kw.pop(a, None)
+        return kw
 
     def _sablonla(self, mesajlar):
         """Sohbet şablonu. `enable_thinking` her sürümde yok — varsa kullan."""
