@@ -12,7 +12,7 @@ Düzeltme ayrı iş.
 | **kobe** | Film sonu jeneriğinin başladığı kareyi bulur | **kuruldu** (2026-08-13) |
 | lebron_james | Master PNG üretim hattı | planlandı |
 | steve_nash | Kare ayıklayıp yeni havuz | planlandı |
-| jordan | MP4'ten doğrudan okutma | planlandı |
+| **jordan** | MP4'ten doğrudan okutma (Qwen3.5-9B) | **kuruldu** (2026-08-13) |
 | shaq | Farkları kıyaslar + kutu kontrol | planlandı |
 | phil_jackson | Shaq verisini fuzzy ile düzeltir (yazı→yazı) | planlandı |
 | qc1_lakers | Kalite kapısı 1 | planlandı |

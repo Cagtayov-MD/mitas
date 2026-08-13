@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Jordan kulesi girisi — kendi venv'ini kendi bulur. Cagiran python bilmez.
+J="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$J/venv/bin/python" "$J/main.py" "$@"

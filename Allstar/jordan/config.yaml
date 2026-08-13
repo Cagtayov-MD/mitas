@@ -1,0 +1,55 @@
+# Jordan — mp4'ten jenerik okuma. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+model:
+  # İki çalışma zamanı da kurulu. Geçiş TEK satır:
+  #   w8a8 = INT8 (14 GB, Ampere'de yerel çalışır) — VARSAYILAN
+  #   bf16 = orijinal (19.3 GB, kuantizasyon yok)
+  # FP8 BU KARTTA YOK: RTX 3090 = Ampere sm_86, FP8 çekirdeği sm_89+ ister.
+  yol: model/w8a8
+  dtype: bfloat16          # w8a8'de yalnız hesap tipi; ağırlıklar int8
+  dusunme: false           # Qwen3.5 varsayılan akıl yürütür — jenerikte YORUM İSTEMİYORUZ
+
+parca:
+  # 39/39 CUDA OOM ölçülmüş gerçeği: 36 kare/çağrı bf16'da patlıyor, 30 çalışıyor.
+  # Parçalama bir "ek katman" değil, modelin bu kartta koşabilmesinin tek yolu.
+  sure_sn: 15              # bir çağrıya giren video uzunluğu
+  bindirme_sn: 2           # parça sınırında kesilen ismi kurtarır
+  kare_tavani: 30          # emniyet freni — bu sayıdan çok kare tek çağrıya girmez
+
+video:
+  # Kanıtlanmış keskinleştirme reçetesi (sandbox, 2026-08-12).
+  # 512px ince punto jenerikte kör; 704-720px kurtarıyor.
+  fps: 2
+  genislik: 720
+  suzgec: "scale={genislik}:-2:flags=lanczos,hqdn3d=2:2:2,unsharp=5:5:1.0"
+
+uretim:
+  temperature: 0.0
+  do_sample: false
+  repetition_penalty: 1.05
+  max_new_tokens: 1024
+
+istem:
+  # Geçiş 1 — videodan ham metin. Düzeltme yok, yorum yok, etiket yok.
+  okuma: |
+    Transcribe the text visible in these film credit frames.
+    Rules:
+    - Output ONLY text that is literally visible on screen.
+    - Do not translate, correct, complete or invent anything.
+    - If a character is unclear, write what you see as closely as possible.
+    - The same credit may appear across several frames; use them together
+      to resolve partially visible text, but output it only once.
+    - One line of screen text per output line.
+    - Separate groups of lines that appear on screen together with a blank line.
+    - No commentary, no headings, no numbering, no explanation.
+  # Geçiş 2 — SADECE metin girer, görüntü GİRMEZ. Yeni metin üretmesi yasak.
+  ciftleme: |
+    Below are lines of text transcribed from film credits.
+    Pair each role/job label with the name(s) that belong to it on screen.
+    Rules:
+    - Use ONLY the exact strings given below. Never invent, translate or fix.
+    - Copy role and name character-for-character as they appear.
+    - One pair per line, formatted exactly as: ROLE<TAB>NAME
+    - If a line has no matching role or name, skip it.
+    - No commentary, no explanation.
