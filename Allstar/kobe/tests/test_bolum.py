@@ -1,8 +1,9 @@
 """Bölüm ayrımı — çıkış (kapanış) ve giriş jeneriği ayrı klasörlere yazılır.
 
-Giriş jeneriği HENÜZ DESTEKLENMİYOR ve bu bilerek GÖRÜNÜR bir arızadır:
-motorun temel ayracı (`SON_ERISIM=0.82` — "krediler pencerenin sonuna kadar
-akar") giriş jeneriğinde TERS çalışır. Tahmin etmek yerine arıza döner.
+İkisi de 2026-08-13'ten beri DESTEKLENİYOR ama karar mantıkları AYRI kalır:
+çıkış `src/motor.py`, giriş `src/giris/`. Motorun temel ayracı
+(`SON_ERISIM=0.82` — "krediler pencerenin sonuna kadar akar") girişte TERS
+çalışır, o yüzden paylaşılmaz. Ayrımı `test_izolasyon.py` kilitler.
 """
 import json
 import sys

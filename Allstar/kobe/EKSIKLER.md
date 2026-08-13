@@ -172,67 +172,25 @@ görünüyor, **ama ölçülmedi**. Kayan-nokta farkı det kutusunu oynatabilir.
 
 # GİRİŞ (giriş jeneriği)
 
-## Yapıldı ✅
+## Yapıldı ✅ — 2026-08-13, commit `41bc799f`
 
 | | Kanıt |
 |---|---|
 | Klasör ayrımı — `out/<film>/giris/` | `sozlesme.py`, `BOLUMLER` |
-| Sözleşmede `bolum` alanı, iki bölüm birbirini ezmiyor | `test_bolum.py` |
-| `--bolum giris` → **açık `ARIZA(BOLUM_HAZIR_DEGIL)`**, motor hiç çağrılmıyor | 10 test |
-| Beş tasarım kararı | `DURUM.md` "SIRADAKİ İŞ" |
+| Sözleşmede `bolum` + `bitis_kare`/`bitis_sn` (yalnız giriş doldurur) | `test_bolum.py` |
+| **G1** `src/giris/sinir.py` — (a) sınır, `detect_from_frames` ÇAĞRILIR | gerçek koşu, güven 0.754 / 0.761 |
+| **G1** `src/giris/havuz.py` — (b) havuz, `giris_jenerik_havuzu.py` stratejisi | 480 tarandı → 231 elendi → 75 temsilci |
+| **G2** Giriş kare çıkarımı — `ss=0`, `length=240` | `main.py:kare_cikar()` |
+| **G3** Giriş artefaktları — klip `bitis_sn`'de biter, kare = havuz seçimi | `klip.mp4` 21.000 sn (ffprobe), 75 PNG |
+| **G4** `main.py` yönlendiricisi giriş bloğuna gidiyor | eski `ARIZA(BOLUM_HAZIR_DEGIL)` kaldırıldı |
+| Çok-seçimli CLI — `--bolum giris,cikis --uret kare,klip` | `test_main_akis.py` |
+| **Çıkış-giriş izolasyonu kodda kilitli** | `test_izolasyon.py` — 7 test, ihlal enjekte edilip doğrulandı |
+| Güven kapısı **görünür** — sabit pencereye düşüş `kanit.sinir_kaynagi`'na yazılır | `sinir.py`, sessiz tahmin yok |
 
-> Yani **kabuk hazır, iç boş.** Giriş bugün hiçbir tespit yapmıyor — ve bunu
-> gizlemiyor, açıkça arıza diyor.
+> **Giriş artık iş yapıyor.** Uçtan uca doğrulandı: iki farklı gerçek film,
+> biri mp4 üretti biri kare havuzu. **Ama doğruluğu ölçülmedi** — aşağıya bak.
 
-## Eksik ❌ — burada neredeyse her şey eksik
-
-### G1 — `src/giris/` bloğu YOK 🔴
-
-Hiç kod yazılmadı. `DURUM.md` Karar 3-4: mevcut motor
-(`core/pipelines/ocr/jenerik_detector.py`, `prefer="first"`) **çağrılacak**,
-kopyalanmayacak (921 satır + 2 iç bağımlılık + 9 üretim tüketicisi).
-
-**Yapılacak:** `src/giris/sinir.py` — ince sarmalayıcı:
-`jenerik_detector.detect_from_frames(dizin, prefer="first")` →
-`{start_sec, end_sec, confidence}` → `Cikti`.
-
-**Riskli kısım:** doğru çağrı şeklini bulmak. Örnek çağıran:
-`scripts/_jenerik_detect.py` (ve `mitas_pipeline.py:1958`).
-
----
-
-### G2 — Giriş kare çıkarımı YOK 🔴
-
-`main.py:73` → `ss = max(0, sure - KUYRUK_SN)` — **yalnız kapanış penceresi**
-çıkarıyor (son 600 sn).
-
-**Yapılacak:** giriş için `ss = 0`, `length = 240` (üretimin kendi değeri:
-`MITAS_OCR_HEAD` varsayılanı). **600 DEĞİL** — o değer kapanış simetrisinden
-uydurulmuştu, yanlıştı.
-
-Mevcut üretim daha akıllısını yapıyor (`mitas_pipeline.py:1982-2002`):
-uyarlanır pencere — güven yeterliyse `start_sec−5` … `end_sec+5`, düşük
-güvende sabit 240. Bu mantık taşınmalı.
-
----
-
-### G3 — Giriş artefakt üretimi YOK 🟠
-
-`--uret klip` giriş için farklı çalışmalı: çıkışta klip **filmin sonuna**
-kadar gider; girişte **`end_sec`'te bitmeli** (jenerik biter, film başlar).
-`_artefakt_uret()` bugün yalnız kapanış varsayıyor.
-
-Kare havuzu tarafı: `DURUM.md` Karar 1 gereği **Nash'e devredilecek** —
-Kobe yalnız sınırı verir.
-
----
-
-### G4 — `main.py` yönlendiricisi giriş bloğuna gitmiyor 🔴
-
-Bugün `girdi.bolum == "giris"` → doğrudan `ARIZA`. G1 bitince buraya
-yönlendirme yazılacak.
-
----
+## Eksik ❌
 
 ### G5 — GT YOK 🔴
 
@@ -269,18 +227,47 @@ G5/G6'dan sonra kurulabilir.
 
 ---
 
-# Önerilen sıra
+### G8 — Uyarlanır pencere taşınmadı 🟡 *(uygulama sırasında ortaya çıktı)*
+
+Kobe giriş penceresini **sabit 240 sn** çıkarıyor. Üretim hattı daha akıllısını
+yapıyordu (`mitas_pipeline.py:1985-1990`): güven yeterliyse pencereyi
+`end_sec+5`'e kadar **genişletiyor** (tavan 720 sn).
+
+**Neden önemli:** gerçek koşuda SİLAHLAR_KONUŞUYOR'un kredi kareleri **476.
+kareye** (≈238 sn) kadar yayıldı — yani 240 sn penceresinin ucuna dayandı.
+Uzun jenerikli bir filmde pencere kesecek ve **kimse fark etmeyecek**.
+
+**Yapılacak:** iki geçiş — önce sınır, sınır geniş çıkarsa pencereyi büyütüp
+kareyi yeniden çıkar. G6 (ölçüm yatağı) kurulmadan bunun kazandırdığı
+ölçülemez, o yüzden sonra.
+
+---
+
+### G9 — Havuz/sınır birim testi YOK 🟢 *(bilinçli)*
+
+Doğrulama gerçek koşuya dayanıyor. Kapsam daraltması gereği ağır mock'lu test
+yazılmadı. `test_izolasyon.py` yapıyı koruyor ama **mantığı** korumuyor —
+havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
+
+---
+
+# Önerilen sıra — güncel
 
 | Sıra | İş | Neden bu sırada |
 |---|---|---|
-| 1 | **E2** — `src/cikis/` + `src/ortak/` ayrımı (ölçüm kapısıyla) | Giriş kodu yazılmadan yapılmalı, yoksa kural ilk günden bozulur |
-| 2 | **G1 + G2 + G4** — giriş bloğu + kare çıkarımı + yönlendirici | "Sistemi ayağa kaldır" hedefinin özü |
-| 3 | **E1** — üretim hattını sözleşmeye bağla | Kulenin değeri burada açığa çıkar |
-| 4 | **G3** — giriş artefaktı (klip `end_sec`'te biter) | 2 bitmeden anlamsız |
+| 1 | **E1** — üretim hattını sözleşmeye bağla (`_jenerik_pool.py` hâlâ `import motor` yapıyor) | Kulenin değeri burada açığa çıkar; yeni pipeline'ın girdisi |
+| 2 | **E2** — `src/cikis/` + `src/ortak/` ayrımı | Giriş `src/giris/`'te ama çıkış hâlâ `src/motor.py` — simetri yarım |
+| 3 | **G5 + G6** — giriş GT'si ve ölçüm yatağı | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
+| 4 | **G8** — uyarlanır pencere | G6 olmadan kazancı ölçülemez |
 | 5 | **E5** — Ollama açıkken referans ölçüm | Üretimdeki gerçek sayı |
-| 6 | **E4 + E6** — hardlink görünümü + `maxtasksperchild` | Ucuz, bağımsız |
-| 7 | **G5 + G6 + G7** — giriş GT'si, yatağı, kanaryası | Kalite fazı; ayağa kalkma sonrası |
-| 8 | **E7** — CPU/GPU bölüşümü | En son; optimizasyon |
+| 6 | **G7 + E4 + E6** — kanarya, hardlink, `maxtasksperchild` | Ucuz, bağımsız |
+| 7 | **E7** — CPU/GPU bölüşümü | En son; optimizasyon |
 
-**Değişmez:** her adımda `motor.py`'ye dokunulmaz ve `olc_pool.py --paralel 8`
-→ **%94.5 sapma sıfır** doğrulanır. Bu sayı düşerse iş geri alınır.
+## Değişmezler — her adımda geçerli
+
+1. **`src/motor.py`'ye dokunulmaz.** Çıkışın %94.5'i ona bağlı.
+2. **Çıkış girişin işine karışmaz.** Karar mantıkları birleşmez; ortak olan
+   yalnız aletlerdir (`kutu.py`, `icerik.py`). `test_izolasyon.py` kilitler.
+3. **Çıkışa dokunan iş** `olc_pool.py --paralel 8` → **%94.5 sapma sıfır**
+   ile doğrulanır. *Yalnız çıkışa dokunulduğunda* — giriş işi bu kapıya tabi
+   değil (Çağatay, 2026-08-13: *"ölçüm şu an yapılacak iş değil"*).

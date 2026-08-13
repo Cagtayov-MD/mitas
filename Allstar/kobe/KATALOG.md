@@ -270,9 +270,13 @@ Allstar/kobe/
 ├─ config.yaml             ← eşikler ve bayraklar
 │
 ├─ src/                    ← KARAR MOTORU (dış dünyayı bilmez)
-│  ├─ motor.py    1325 s.  ← tespit_v5 — karar mantığı
-│  ├─ kutu.py      145 s.  ← Paddle det, kutu sinyali (dilden bağımsız)
-│  └─ icerik.py    616 s.  ← isim/rol analizi, çok-dil OCR
+│  ├─ motor.py    1325 s.  ← ÇIKIŞ kararı — tespit_v5 (DONMUŞ)
+│  ├─ kutu.py      145 s.  ← ORTAK ALET: Paddle det, kutu sinyali
+│  ├─ icerik.py    616 s.  ← ORTAK ALET: isim/rol analizi, çok-dil OCR
+│  └─ giris/               ← GİRİŞ kararı — çıkıştan BAĞIMSIZ
+│     ├─ sinir.py          ← (a) sınır: jenerik_detector ÇAĞRILIR
+│     ├─ havuz.py          ← (b) havuz: kutu.py + icerik.py ile ayıklama
+│     └─ TASARIM.md        ← tasarım kararları ve gerekçeleri
 │
 ├─ venv/                   ← KENDİ PADDLE'I (11 GB, 167 pin)
 ├─ venv_kur.sh             ← sıfırdan kurulum tarifi
@@ -285,7 +289,7 @@ Allstar/kobe/
 │  └─ veri/                ← GT (dogrulama_sonuc.json), ölçüm kayıtları
 │
 ├─ havuz/                  ← 120 film × kapanış kareleri (28 GB, git'te değil)
-├─ tests/                  ← 51 test (motor + sözleşme + akış + üretim)
+├─ tests/                  ← 69 test (motor + sözleşme + akış + üretim + izolasyon)
 ├─ golden/                 ← tek-film karar demiri (hızlı kanarya)
 ├─ raporlar/               ← ölçüm kayıtları + geri-dönüş noktası
 │
@@ -299,13 +303,43 @@ Allstar/kobe/
 ```
 kobe → main.py → sozlesme.py
                       ↑
-         main.py → src/motor.py → src/kutu.py
-                                → src/icerik.py → core/lexicon/rol_tablosu
+         main.py → src/motor.py ──┐
+                                  ├→ src/kutu.py
+         main.py → src/giris/ ────┘  src/icerik.py → core/lexicon/rol_tablosu
 ```
 
 **`src/` sözleşmeyi BİLMEZ.** Motor kendi tiplerini (`Sonuc`) döndürür;
 `Cikti`'ya çeviri yalnız `main.py`'de yapılır. Böylece motorun iç tipleri
 dışarı sızmaz ve sözleşme motora dokunmadan değişebilir.
+
+### ÇIKIŞ GİRİŞİN İŞİNE KARIŞMAZ — mutlak kural
+
+> Çağatay, 2026-08-13: *"çıkış girişin işine karışmasın asla."*
+
+İki bölüm aynı kulede yaşar, **karar mantıkları asla birleşmez.**
+
+| | Çıkış | Giriş |
+|---|---|---|
+| Karar kodu | `src/motor.py` | `src/giris/sinir.py` + `havuz.py` |
+| Ayraç | `SON_ERISIM = 0.82` | **kullanılamaz** — girişte ters çalışır |
+| Pencere | son 600 sn | ilk 240 sn |
+| Aranan | başlangıç | başlangıç **+ bitiş** |
+
+**Neden kural, tercih değil.** `SON_ERISIM = 0.82` "krediler pencerenin sonuna
+kadar akar" demektir. Girişte krediler biter ve **film devam eder** — aynı eşik
+orada tersine çalışır. Bir bölümün eşiği diğerine sızarsa kod patlamaz,
+**sessizce yanlış cevap** üretir. En pahalı arıza türü budur.
+
+**İzin verilen tek paylaşım: ALETLER.** `kutu.py` (kutu var mı) ve `icerik.py`
+(bu satır kredi metni mi) ölçüm yapar, karar vermez — ikisi de kullanır.
+
+**Yönlendirme yalnız `main.py`'de.** Bölüm modülleri "ben giriş miyim çıkış
+mıyım" diye dallanmaz; dallanırsa iki mantık tek dosyada birleşmeye başlamıştır.
+
+**Kural kodda kilitli:** `tests/test_izolasyon.py` (7 test) — giriş `motor`'u
+import ederse veya `SON_ERISIM` adı giriş dosyalarında geçerse test kırmızıya
+döner. Birleştirmek isteyen önce o testi silmek zorunda kalsın; yanlışlıkla
+değil, bilerek yapsın.
 
 ### Kule sınırı
 
@@ -384,9 +418,13 @@ kuyruğuna düşer (`olcum/v5_izleme.py`).
 
 ## 7. GİRİŞ JENERİĞİ — Kobe'nin yetkisi var mı?
 
-**HAYIR. Ve bu bir eksiklik değil, yapısal bir sınırdır.**
+**EVET — 2026-08-13'ten beri. Ama ÇIKIŞ MOTORUYLA DEĞİL, ayrı bir blokla.**
 
-### Kanıt
+Görev tektir: *filmin giriş ve çıkış jeneriğini tespit etmek.* Tek kule ikisini
+de yapar. Ama **tek motor** ikisini de yapamaz — aşağıdaki kanıt bunun
+nedenidir ve `src/giris/`'in neden ayrı doğduğunu açıklar.
+
+### Kanıt — çıkış motoru girişte neden kullanılamaz
 
 **① Motorun temel ayracı kapanışa özgü.** `src/motor.py:814-816`:
 
@@ -412,43 +450,53 @@ film başı yok.
 `karar`, `gercek_onset`, `aciklama`. **Tek bir onset** — kapanış onset'i.
 Giriş için hiçbir insan doğrulaması yapılmamış.
 
-**⑤ Giriş bugün başka motorda.** `core/pipelines/ocr/jenerik_detector.py`
-(`prefer="first"`) + `scripts/giris_jenerik_havuzu.py`. Bunlar Kobe'nin
-"KOBE OLMAYANLAR" listesindedir.
+**⑤ Girişin kendi motoru zaten vardı.** `core/pipelines/ocr/jenerik_detector.py`
+(`prefer="first"`) — 921 satır, 9 üretim tüketicisi. Kobe bunu **çağırır**;
+kopyalamaz, düzenlemez.
 
-### Sonuç ve öneri
+### Çözüm — çıkışa dokunmadan, ayrı blok
 
-Kobe'ye `--bolum giris` eklemek **kolaydır ve yanlıştır.** Motoru giriş
-karelerine doğrultmak, bu kulenin var oluş sebebi olan sessiz-bozulmayı
-elleriyle geri getirmek olur: ölçülmemiş, doğrulanmamış, yapısal olarak ters
-bir kararı "başarı" gibi raporlamak.
+`src/giris/` doğdu. İki adım, ikisi de Kobe'nin içinde:
 
-**Doğru yol üç adımdır — ve ilki koddan önce gelir:**
-
-| Adım | İş | Neden önce bu |
+| | İş | Nasıl |
 |---|---|---|
-| 1 | **Giriş GT'si kur** — N film × insan-doğrulanmış giriş jeneriği sınırları | Ölçüm yatağı olmadan yazılan motor, doğru mu yanlış mı bilinmez (`eval-harness-first`) |
-| 2 | **Giriş penceresi çıkarımı** — `TAIL_S` yerine `HEAD_S`, film başından | Yatağın girdisi |
-| 3 | **Giriş karar mantığı** — "krediler nerede BİTER" sorusu; `SON_ERISIM` yerine "ilk sürdürülen kutu bloğu + film başlangıcı" | Kapanış mantığı kopyalanamaz, tersidir |
+| **(a)** | **Sınır** — jenerik nerede başlar, nerede **biter** | `sinir.py` → `detect_from_frames(prefer="first")` ÇAĞRILIR |
+| **(b)** | **Havuz** — hangi kareler kredi taşıyor | `havuz.py` → `giris_jenerik_havuzu.py`'nin *stratejisi*, Kobe'nin aletleriyle |
 
-### Ama çıktı yapısı ŞİMDİDEN ikiye ayrılmalı
+**Yaklaşım taşındı, kod taşınmadı.** Ne `jenerik_detector.py` ne de
+`giris_jenerik_havuzu.py` kopyalandı — ikisi de yerinde duruyor, üretimde
+çalışıyor. Kule sınırı burada bilerek ve kayıtlı olarak esnetildi
+(§5 "Kule dışında kalan bağ").
 
-Bu doğru ve ucuz. Tüketici kuleler (LeBron/Nash) daha kurulmadan yapıyı
-ayırmak, sonradan kırıcı değişiklik yapmaktan çok daha ucuz:
+**Bölünme:** sınır **klip** için, havuz **kare** için. Gerçek koşu bunu
+doğruladı — SİLAHLAR_KONUŞUYOR'da sınır 0-17.5 sn çıktı ama kredi kareleri
+kare 476'ya kadar yayılıydı. Havuz sınırla kısıtlanmaz, tüm pencereyi tarar.
+
+### Çıktı yapısı — bölüm başına ayrı klasör
 
 ```
 out/<film_id>/
-├─ cikis/                 ← BUGÜN çalışan (kapanış jeneriği)
-│  ├─ kobe.json
+├─ cikis/                 ← kapanış jeneriği (src/motor.py)
+│  ├─ kobe.json           ← baslangic_* dolu, bitis_* = null
 │  ├─ _TAMAM
-│  ├─ kareler/   veya
-│  └─ klip/klip.mp4
-└─ giris/                 ← YARIN (giriş jeneriği) — bugün ARIZA döner
-   └─ kobe.json           ← durum=ARIZA, sinif=BOLUM_HAZIR_DEGIL
+│  ├─ kareler/   veya     ← secim="aralik" (onset−10 → kaynağın sonu)
+│  └─ klip/klip.mp4       ← onset−10 → filmin sonu
+└─ giris/                 ← giriş jeneriği (src/giris/)
+   ├─ kobe.json           ← baslangic_* VE bitis_* dolu
+   ├─ _TAMAM
+   ├─ kareler/   veya     ← secim="havuz" (ayıklanmış, ardışık DEĞİL)
+   └─ klip/klip.mp4       ← baslangic−10 → bitis_sn
 ```
 
-`--bolum giris` istenirse Kobe **açıkça** `ARIZA(BOLUM_HAZIR_DEGIL)` döner —
-tahmin etmez, boş klasör bırakmaz, sessizce atlamaz. Eksik **görünür** olur.
+İki bölüm **bağımsız koşar**: biri `ARIZA` verse diğeri etkilenmez, her biri
+kendi `_TAMAM`'ını yazar, tüketici ikisine ayrı bakar.
+
+### Bilinen sınır — dürüstçe
+
+**Girişin doğruluğu ÖLÇÜLMEDİ.** GT yok, ölçüm yatağı yok, kanarya yok
+(`EKSIKLER.md` G5-G7). §6'daki **%94.5 YALNIZ ÇIKIŞ içindir** — giriş hakkında
+bu kulede hiçbir sayı yoktur. Giriş "çalışıyor" demek, "doğru okuyor" demek
+değildir.
 
 ---
 
