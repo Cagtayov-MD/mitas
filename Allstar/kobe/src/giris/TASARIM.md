@@ -159,6 +159,42 @@ karelerdir. Bu, `uretilen` künyesine yazılır:
 
 ---
 
+## CLI — her boyut ÇOK-SEÇİMLİ ve dinamik
+
+Çağatay (2026-08-13): *"hepsi seçilebilir, hepsi dinamik."*
+
+```bash
+# titanic'in HEM giriş HEM çıkış jeneriğini, mp4 olarak
+kobe tek --video titanic.mp4 --film-id TITANIC --bolum giris,cikis --uret klip
+
+# yalnız girişini, kare olarak
+kobe tek --kareler /yol/frames --film-id TITANIC --bolum giris --uret kare
+
+# toplu: her iki bölüm, her iki artefakt
+kobe start --input /yol/videolar --bolum giris,cikis --uret kare,klip
+```
+
+**Kural:** `--bolum` ve `--uret` virgülle ayrılmış liste alır. Varsayılanlar
+değişmez (`--bolum cikis`, `--uret yok`) — mevcut 61 test ve üretim çağrıları
+kırılmaz.
+
+**Bölümler bağımsız koşar.** Her bölüm kendi `out/<film>/<bolum>/kobe.json` +
+`_TAMAM` dosyasını yazar. Biri `ARIZA` verse diğeri etkilenmez — tüketici
+ikisine ayrı ayrı bakar. `tek()` bölüm başına bir `Cikti` üretir; CLI hepsini
+sırayla basar.
+
+**Çıkış kodu:** bölümlerden **herhangi biri** `ARIZA` ise `2`, değilse `0`.
+
+**Aynı bölümde iki artefakt** istenirse (`--uret kare,klip`) ikisi de aynı
+bölüm klasörüne yazılır; `uretilen` alanı **liste** olur:
+
+```json
+"uretilen": [{"tip": "kare", ...}, {"tip": "klip", ...}]
+```
+
+Tek artefaktta da liste kalır (tek elemanlı) — tüketici tek biçim görsün.
+`KREDI_YOK`/`ARIZA`'da `None` (boş liste değil) — sözleşme değişmezi korunur.
+
 ## Yerleşim
 
 ```

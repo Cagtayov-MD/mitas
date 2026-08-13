@@ -5,9 +5,12 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 — **ÇIKIŞ TAMAM, GİRİŞ TASARLANDI.**
-Üç ölçüm kapısı sapma sıfır geçti, testler 61/61. Giriş bloğu için karar
-alındı ama HENÜZ YAZILMADI — aşağıdaki 'SIRADAKİ İŞ' bölümü.
+**Son güncelleme:** 2026-08-13 — **ÇIKIŞ TAMAM, GİRİŞ TASARLANDI (kod yok).**
+Üç ölçüm kapısı sapma sıfır, testler 61/61.
+
+**Giriş bloğu:** tam tasarım `src/giris/TASARIM.md`'de — imzalar doğrulanmış,
+Sonnet'in uygulaması için hazır. Uygulama denendi ama alt-ajan oturum
+limitine takıldı; **tek satır kod yazılmadı.** Aşağıdaki 'SIRADAKİ İŞ'.
 
 ---
 
@@ -86,22 +89,28 @@ iki koşuda birebir aynı).
 
 > Bu bölüm yeni oturum için yazıldı. Kod yazılmadı, kararlar alındı.
 
-### Karar 1 — Kobe = SINIR, Nash = HAVUZ
+### Karar 1 — Giriş = (a) sınır + (b) havuz, İKİSİ DE Kobe'de
 
-Giriş+çıkış **aynı kulede** kalır (Çağatay: *"görev tek aslında — filmin giriş
-çıkış jenerik tespiti"*). Ama Kobe yalnız **sınır** bulur; kare havuzu kurmak
-**Nash'in** işidir.
+> ⚠️ **Bu karar 2026-08-13'te DÜZELTİLDİ.** İlk yazımda *"havuz filtreleme
+> Kobe'ye hiç girmez, o Nash'in işi"* deniyordu — **YANLIŞTI.** Çağatay'ın
+> dediği *"Nash'i aktar"* değil, ***"Nash'teki YAKLAŞIMI aktar"***tı.
 
-| Kule | İş |
-|---|---|
-| **Kobe** | Jenerik nerede **başlıyor/bitiyor** (giriş + çıkış) |
-| **Nash** | Kobe'nin sınırından **kare havuzu** ayıklar |
+Giriş+çıkış **aynı kulede** (Çağatay: *"görev tek aslında — filmin giriş çıkış
+jenerik tespiti"*). Ve giriş **iki adımdır, ikisi de Kobe'de**:
 
-Nash'in stratejisi zaten mevcut: `core/pipelines/ocr/jenerik_frame_pool_detector.py`
-(2200+ satır — kare skorlama, Paddle rafine, çok-dilli kredi-rol sözlüğü) +
-`scripts/giris_jenerik_havuzu.py` (33 KB, giriş havuzu kurucusu).
+| | İş | Nereden |
+|---|---|---|
+| **(a)** | Sınır — jenerik nerede başlıyor/**bitiyor** | mevcut `jenerik_detector(prefer="first")` **çağrılır** |
+| **(b)** | Havuz — hangi kareler jenerik | `giris_jenerik_havuzu.py`'nin **YAKLAŞIMI**, Kobe'nin kendi aletleriyle (`kutu.py` + `icerik.py`) |
 
-**Sonuç: havuz filtreleme Kobe'ye HİÇ girmez.** Kobe tek iş yapar.
+**Kod taşınmaz, yaklaşım taşınır.** `giris_jenerik_havuzu.py` eski yerinde
+kalır (üretimde çalışıyor, dokunulmaz).
+
+Gerekçe (Çağatay): *"ben Kobe'ye iş verirsem giriş jenerikleri boş kalacak şu
+anda... şu anda bir tavrı olsun. Geliştirme süreci ayrı."*
+
+**Nash ayrı bir kule olacak** — ham klasörden beslenip frame okuyan, kendi
+içinde yazan. Kobe'nin giriş havuzuyla karıştırılmamalı.
 
 ### Karar 2 — Kod ayrımı: giriş ve çıkış blokları karışmaz
 
