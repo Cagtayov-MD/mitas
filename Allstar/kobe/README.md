@@ -31,6 +31,43 @@ Allstar/kobe/kobe start --input /yol/kare_dizinleri --kareler
 Çıktı daima `Allstar/kobe/out/<film_id>/kobe.json` + `_TAMAM`. Çağıran çıktı
 yolunu seçmez — kule kendi evine yazar.
 
+### Talebe göre artefakt üretimi
+
+Kobe varsayılan olarak **yalnız kararı** üretir. İstenirse iki artefakttan
+birini de kendi klasörüne koyar:
+
+```bash
+kobe tek --kareler <dizin> --film-id <id> --uret kare   # kare havuzu
+kobe tek --video   <film>  --film-id <id> --uret klip   # SESSİZ mp4
+kobe start --input /yol/videolar --uret klip            # toplu
+```
+
+```
+out/<film_id>/
+├─ kobe.json          # karar + üretilen artefaktın künyesi
+├─ _TAMAM             # EN SON yazılır — varsa artefakt da hazırdır
+├─ kareler/           # --uret kare  → c_01113.png … c_01200.png
+└─ klip/klip.mp4      # --uret klip  → sessiz, filmin sonuna kadar
+```
+
+| | |
+|---|---|
+| **Başlangıç** | İkisi de onset'ten **10 sn ÖNCE** başlar (`config.yaml: geri_pay_sn`). Aynı jeneriğin iki temsili farklı yerden başlarsa kıyas bozulur |
+| **Bitiş** | Filmin sonu — jenerik sona kadar akar |
+| **Klip** | Ses akışı **yok** (`-an`). `-c:v copy` — yeniden kodlamaz; `-ss` girdi tarafında olduğu için en yakın keyframe'e **geri** yaslanır (kayma daima erken yönde, 10 sn payın içinde) |
+| **Kare havuzu** | Kaynak dizinden **kopyalanır**, taşınmaz — Kobe kendi yaratmadığına dokunmaz. Dosya adları korunur (`_kare_no` mutlak numarayı addan okur) |
+| **`--uret klip` + `--kareler`** | `ARIZA(GIRDI_HATASI)` — kare dizininden klip kesilemez, sessizce atlanmaz |
+| **`KREDI_YOK` / `ARIZA`** | Artefakt üretilmez; kesecek bir şey yoktur. Sözleşme bunu zorlar |
+
+`kobe.json` içindeki künye:
+
+```json
+"uretilen": {"tip": "klip", "yol": "klip/klip.mp4", "baslangic_sn": 5335.5,
+             "sessiz": true, "geri_pay_sn": 10, "boyut_bayt": 19535204}
+"uretilen": {"tip": "kare", "yol": "kareler", "adet": 88,
+             "ilk_kare": 1113, "geri_pay_sn": 10}
+```
+
 ## Sözleşme
 
 `durum` üç değer alır ve bu ayrım **değişmezdir**:

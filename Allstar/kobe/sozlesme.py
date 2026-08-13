@@ -49,6 +49,8 @@ class Cikti:
     motor_surumu: str = ""
     uretim_zamani: str = ""
     sure_sn: float = 0.0
+    # yalniz BULUNDU + --uret istendiyse: uretilen artefaktin kunyesi
+    uretilen: dict | None = None
     # yalniz ARIZA
     sinif: str | None = None
     mesaj: str | None = None
@@ -63,6 +65,10 @@ class Cikti:
             raise ValueError("ARIZA icin sinif ve mesaj zorunlu")
         if self.durum != "ARIZA" and (self.sinif or self.mesaj):
             raise ValueError(f"{self.durum} sinif/mesaj tasiyamaz")
+        # Artefakt YALNIZ jenerik bulunmusken uretilebilir: KREDI_YOK'ta kesecek
+        # bir sey, ARIZA'da guvenilecek bir onset yoktur.
+        if self.durum != "BULUNDU" and self.uretilen:
+            raise ValueError(f"{self.durum} uretilen tasiyamaz")
         if not self.uretim_zamani:
             self.uretim_zamani = datetime.now(timezone.utc).astimezone().isoformat(
                 timespec="seconds")
@@ -72,7 +78,8 @@ class Cikti:
         if self.durum == "BULUNDU":
             d |= {"baslangic_kare": self.baslangic_kare,
                   "baslangic_sn": self.baslangic_sn,
-                  "guven": self.guven, "script": self.script}
+                  "guven": self.guven, "script": self.script,
+                  "uretilen": self.uretilen}
         if self.durum == "ARIZA":
             d |= {"sinif": self.sinif, "mesaj": self.mesaj}
         d |= {"kanit": self.kanit, "motor_surumu": self.motor_surumu,

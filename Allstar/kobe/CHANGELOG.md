@@ -1,5 +1,29 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-13 (2) — talebe göre artefakt üretimi
+
+`--uret kare|klip` eklendi. Kobe artık kararının yanında, istenirse iki
+artefakttan birini kendi klasörüne koyar: **kare havuzu** (`out/<id>/kareler/`)
+veya **sessiz mp4 klip** (`out/<id>/klip/klip.mp4`). İkisi de onset'ten
+**10 sn önce** başlar (`config.yaml: geri_pay_sn`) ve filmin sonuna kadar
+sürer. Varsayılan `yok` — talep edilmedikçe üretilmez.
+
+Değişmezler: artefakt `kobe.json`'dan ÖNCE üretilir, `_TAMAM` en SON yazılır
+(tüketici `_TAMAM` görünce her şey hazırdır). `KREDI_YOK`/`ARIZA` artefakt
+taşıyamaz — sözleşme bunu `ValueError` ile zorlar. Kare havuzu kaynaktan
+**kopyalanır**, taşınmaz. `--uret klip` + `--kareler` → `ARIZA(GIRDI_HATASI)`,
+sessizce atlanmaz.
+
+Gerçek koşu doğrulaması: GÜL VE ÇAKAL (5421 sn) → onset 5345.5 sn, klip
+5335.5'ten başladı, **85.94 sn**, ses akışı **0**, geçici dosya kalmadı.
+
+**Yakalanan hata — birim testin göremediği:** ffmpeg geçici dosya `.mp4.tmp`
+ile bittiği için formatı uzantıdan çıkaramıyordu ("Unable to choose an output
+format"). Birim testler `klip_kes`'in tamamını sahtelediği için bunu kaçırdı;
+yalnız gerçek videoda görüldü. Kule doğru davrandı — sessizce başarısız olmak
+yerine `ARIZA(URETIM_KLIP)` döndü. `-f mp4` eklendi + komutun kendisini
+denetleyen regresyon testi yazıldı. Testler 51/51.
+
 ## 2026-08-13 — kule kuruldu
 
 **Taşıma.** `harness/kunye_kiyas/` içinden `Allstar/kobe/`'ye taşındı;

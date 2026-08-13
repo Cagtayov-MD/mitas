@@ -13,3 +13,10 @@ motor:
 
 paddle:
   omp_num_threads: 4   # paralel işçilerde çekirdek taşmasını önle
+
+uretim:
+  geri_pay_sn: 10      # artefakt onset'ten bu kadar ÖNCE başlar (kare ve klip)
+  klip_sessiz: true    # klipte ses akışı yok (-an)
+  # Klip daima filmin SONUNA kadar sürer — jenerik sona kadar akar.
+  # -c:v copy kullanılır: yeniden kodlamaz, ama -ss girdi tarafında olduğu için
+  # en yakın keyframe'e GERİ yaslanır. Kayma daima erken yönde, zararsız.
