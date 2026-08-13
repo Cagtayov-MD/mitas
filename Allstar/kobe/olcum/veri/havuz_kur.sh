@@ -5,7 +5,7 @@
 # Parite kanıtı: OPERADAKİ_HAYALET yeni indirmede v5=1161 (kayıtla aynı).
 set -uo pipefail
 V="/opt/mitas/harness/kunye_kiyas/veri"
-KOK="/opt/mitas/data/jenerik_havuz/pool_frames"
+KOK="/opt/mitas/Allstar/kobe/havuz"
 SMB="smb://depo01cifs.int.trt.net.tr/sas_h264/Film Kapanış"
 GV="/run/user/1000/gvfs/smb-share:server=depo01cifs.int.trt.net.tr,share=sas_h264/Film Kapanış"
 LOG="$V/havuz_kur.log"
@@ -65,7 +65,7 @@ indir() {
     local H="$KOK/$hedef"
     [ -d "$H" ] && [ "$(ls "$H"/*.png 2>/dev/null | wc -l)" -gt 50 ] && { echo "[atla] $hedef"; continue; }
     mkdir -p "$H"
-    local tmp="/opt/mitas/data/jenerik_havuz/_dl_$$.mp4" ok=0
+    local tmp="/opt/mitas/Allstar/kobe/_dl_$$.mp4" ok=0
     for try in 1 2 3; do
       if timeout 500 gio copy "$GV/$kaynak" "$tmp" 2>/dev/null && [ -s "$tmp" ]; then ok=1; break; fi
       rm -f "$tmp"; sleep 5
@@ -93,7 +93,7 @@ wait $PA $PB
 /opt/mitas/venvs/ocr/bin/python - <<'EOF'
 import json, glob, os
 V="/opt/mitas/harness/kunye_kiyas/veri"
-KOK="/opt/mitas/data/jenerik_havuz/pool_frames"
+KOK="/opt/mitas/Allstar/kobe/havuz"
 t={x["film"]:x.get("kare") for x in json.load(open(f"{V}/v5_tahminler.json",encoding="utf-8"))["filmler"]}
 sat=[]
 for d in sorted(glob.glob(f"{KOK}/*/")):

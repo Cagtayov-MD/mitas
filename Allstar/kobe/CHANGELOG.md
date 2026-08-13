@@ -30,6 +30,12 @@ idempotent toplu kuyruk (`_TAMAM` olanı atlar, kaldığı yerden devam eder);
 gerçek koşu: POTEMKİN ZIRHLISI → `BULUNDU`, kare 1133, 21.4 sn
 (`golden/tek_film.json`).
 
+**Ölçüm havuzu içeri alındı.** `data/jenerik_havuz/pool_frames/` (120 film,
+28 GB, +118 `_det_cache.json`) → `Allstar/kobe/havuz/`. Bu dizini kule dışında
+kullanan yoktu; yolu yalnız Kobe'nin kendi dosyaları biliyordu. Aynı diskte
+olduğu için taşıma anlık (kopyalama yok). Taşıma sonrası ölçüm birebir aynı:
+%94.5 / %97.3 / 29-29. `data/jenerik_havuz/` dizini tamamen kalktı.
+
 ### Pahalı ders — çalışma zamanı budanmaz
 
 İlk denemede `venvs/ocr`'dan **elle seçilmiş 16 paketlik** bir pin listesi

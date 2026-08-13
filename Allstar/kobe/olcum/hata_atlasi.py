@@ -33,7 +33,7 @@ import icerik as cc      # noqa: E402  (salt-okunur kullanım)
 import motor as co        # noqa: E402  (salt-okunur kullanım)
 
 V = os.path.join(BURASI, "veri")
-KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
+KOK = "/opt/mitas/Allstar/kobe/havuz"
 PENCERE = 10            # (d) gerçek-onset ± bu kadar mutlak kare
 SCROLL_ORAN_ESIK = 0.3  # Görev4 taslağıyla tutarlı "scroll-tip pencere" eşiği
 

@@ -18,7 +18,7 @@ sys.path.insert(0, SRC)
 import motor as co
 
 V = os.path.join(BURASI, "veri")
-KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
+KOK = "/opt/mitas/Allstar/kobe/havuz"
 TOL = 20
 
 

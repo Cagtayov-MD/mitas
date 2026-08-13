@@ -13,7 +13,7 @@ BURASI = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "src")            # Allstar/kobe/src
 sys.path.insert(0, BURASI)
 
-KOK = "/opt/mitas/data/jenerik_havuz/pool_frames"
+KOK = "/opt/mitas/Allstar/kobe/havuz"
 
 
 def isit(dizin: str) -> str:

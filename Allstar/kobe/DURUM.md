@@ -26,6 +26,7 @@
   kredi-var 75/81, kredi-yok 29/29, eksik 5**.
 - Ölçüm komutu (~140 sn):
   `cd /opt/mitas/Allstar/kobe/olcum && ../venv/bin/python olc_pool.py --paralel 8`
+- Kare havuzu artık kulenin içinde: `Allstar/kobe/havuz/` (git'te değil).
 
 ---
 
@@ -42,6 +43,7 @@
 | 8 | `main.py` + `kobe` + `config.yaml` — CLI, toplu kuyruk | 8/8 (toplam 39/39), `b733e85a` |
 | 3 | **KULE KAPISI** — kendi venv'iyle %94.5, sapma sıfır | `raporlar/olcum_SONRA.json`, `8bd5b4ad` |
 | 8b | Uçtan uca gerçek koşu + `golden/tek_film.json` demiri | POTEMKİN → kare 1133, 21.4 sn |
+| 10 | Ölçüm havuzu içeri alındı (`havuz/`, 120 film, 28 GB) | taşıma sonrası ölçüm %94.5, sapma sıfır |
 
 **Kule çalışıyor.** Uçtan uca doğrulandı:
 
