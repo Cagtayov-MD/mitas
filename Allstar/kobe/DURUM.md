@@ -5,7 +5,7 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 00:05
+**Son güncelleme:** 2026-08-13 00:10 — **kule ayakta, üç ölçüm kapısı da geçti**
 
 ---
 
@@ -18,10 +18,13 @@
   bu işe ait olmayan 9 değişik + 68 silinmiş (`mutfak/`) dosya var. Yalnız adı
   geçen yolları sahnele.
 - **Üretim durmuş.** Hiçbir toplu koşu başlatma.
+- **`gereksinimler.txt`'ten paket çıkarma.** Kobe'nin çıktısı, kodunun hiç
+  import etmediği paketlere bağlı (aşağıdaki ders). Çıkarmadan önce 110 filmlik
+  ölçümü koş ve sapma sıfır olduğunu gör.
 - Ölçüm referansı: **kapsam 110, doğru 104, genel %94.5, üretim %97.3,
   kredi-var 75/81, kredi-yok 29/29, eksik 5**.
 - Ölçüm komutu (~140 sn):
-  `cd /opt/mitas/Allstar/kobe/olcum && <python> olc_pool.py --paralel 8`
+  `cd /opt/mitas/Allstar/kobe/olcum && ../venv/bin/python olc_pool.py --paralel 8`
 
 ---
 
@@ -29,44 +32,61 @@
 
 | # | İş | Kanıt |
 |---|---|---|
-| 1 | Ölçüm ÖNCE + geri-dönüş noktası | `raporlar/olcum_ONCE.json`, commit `d497bdb0` |
-| 2 | Kendi çalışma zamanı (`venv/`, 7 GB, paddle 3.3.1+CUDA) | `venv_kur.sh`, commit `9f24a769` |
-| 4 | Dosya taşıma + import yolları + `figo` adının silinmesi | commit `3577c8b9` |
-| 5 | Testler kule içine taşındı | 19/19 geçiyor |
-| 6 | **TAŞIMA KAPISI GEÇTİ** — yeni yol + eski venv = %94.5, sapma sıfır | `raporlar/olcum_SONRA_tasima.json`, commit `a875b43d` |
+| 1 | Ölçüm ÖNCE + geri-dönüş noktası | `raporlar/olcum_ONCE.json`, `d497bdb0` |
+| 2 | Kendi çalışma zamanı (`venv/`, paddle 3.3.1+CUDA, 167 pin) | `venv_kur.sh`, `9f24a769` |
+| 4 | Dosya taşıma + import yolları + `figo` adının silinmesi | `3577c8b9` |
+| 5 | Testler kule içine taşındı | 19/19 |
+| 6 | **TAŞIMA KAPISI** — yeni yol + eski venv = %94.5 | `raporlar/olcum_SONRA_tasima.json`, `a875b43d` |
+| 7 | `sozlesme.py` — `Girdi`/`Cikti`/`ariza`, atomik yazım + `_TAMAM` | 12/12, `31f9abe7` |
+| 8 | `main.py` + `kobe` + `config.yaml` — CLI, toplu kuyruk | 8/8 (toplam 39/39), `b733e85a` |
+| 3 | **KULE KAPISI** — kendi venv'iyle %94.5, sapma sıfır | `raporlar/olcum_SONRA.json`, `8bd5b4ad` |
+| 8b | Uçtan uca gerçek koşu + `golden/tek_film.json` demiri | POTEMKİN → kare 1133, 21.4 sn |
 
-## Açık kusur — ÖNCELİK 1
+**Kule çalışıyor.** Uçtan uca doğrulandı:
 
-**Kobe kendi `venv/`'iyle %92.7 veriyor (%94.5 değil).** İki film doğru →
-`KREDI_YOK` oluyor: `MELEKLERİ_GÖRMEK_İSTEDİM` (Kiril), `ARKADAŞIMIN_EVİ_NEREDE`
-(Farsça). Üçüncü film 2 kare kayıyor (İNİŞLİ_ÇIKIŞLI 951→949).
+```bash
+./Allstar/kobe/kobe tek --kareler <kare-dizini> --film-id <id>
+# → out/<id>/kobe.json + _TAMAM, geçici dosya yok, dış dizine dokunulmaz
+```
 
-Elenen şüpheliler (tekrar deneme):
-- ❌ Farklı Paddle/CUDA yapısı — ikisi de 3.3.1 / CUDA 12.6 / cuDNN 9.5.1 / commit `7688495538f4`
-- ❌ Det önbelleği — 118 dosya, 23 Temmuz'dan beri değişmemiş
-- ❌ Model ağırlıkları — bugün hiç dokunulmamış
-- ❌ Ölçüm gürültüsü — `venvs/ocr` iki ayrı koşuda birebir aynı sonucu verdi
-- ❌ Kobe'nin kodu eksik pakete dokunuyor — `motor/kutu/icerik` hiçbirine dokunmuyor
+## Çözülen kusur — pahalı ders (kaydedildi)
 
-Bilinen ayrılma noktası (tek film, `ARKADAŞIMIN`):
+Kobe kendi venv'iyle önce **%92.7** verdi (%94.5 değil): iki film doğru →
+`KREDI_YOK` (`MELEKLERİ`/Kiril, `ARKADAŞIMIN`/Farsça), bir film 2 kare kaydı.
 
-| | venvs/ocr | Kobe venv |
-|---|---|---|
-| `start_frame` | 933 | -1 |
-| `yontem` | `kutu+scroll+kurtarma` | `kredi_yok` |
-| `aday_sayisi` | 1 | 0 |
-| `scroll_orani` | 1.0 | 0.0 |
+**Kök sebep: eksik paketler.** İlk denemede `venvs/ocr`'dan elle seçilmiş
+16 paketlik bir pin listesi kullanılmıştı. Altı kilit paket (paddle 3.3.1,
+paddleocr 3.7.0, paddlex 3.7.2, numpy 2.3.5, pillow 12.1.0, opencv 5.0.0.93)
+**ikisinde de birebir aynı** olduğu halde sonuç sapıyordu. Eksik 76 paket
+kurulunca skor **tam olarak** geri geldi.
 
-Kalan şüpheli: `venvs/ocr`'da olup Kobe'de olmayan **79 paket** — en güçlüsü
-torch + `nvidia-cudnn-cu13`/`cublas` (Paddle çalışma anında bunları yükleyebilir).
+> **Ders:** Kobe'nin çıktısı, kodunun **hiç import etmediği** paketlere bağlı.
+> `motor.py`/`kutu.py`/`icerik.py` hiçbiri torch, sklearn, easyocr, timm veya
+> transformers'a dokunmuyor. "Hangi paket önemli" TAHMİN EDİLMEZ — ortam bütün
+> olarak dondurulur.
+
+Elenen şüpheliler (tekrar deneme): Paddle/CUDA yapısı (ikisi de 3.3.1 / CUDA
+12.6 / cuDNN 9.5.1 / commit `7688495538f4`), det önbelleği (118 dosya,
+değişmemiş), model ağırlıkları (dokunulmamış), ölçüm gürültüsü (`venvs/ocr`
+iki koşuda birebir aynı).
 
 ## Kalan işler
 
-| # | İş | Plan bölümü |
+| # | İş | Durum |
 |---|---|---|
-| 7 | `sozlesme.py` — `Girdi`/`Cikti`/`ariza`, atomik yazım + `_TAMAM` | Görev 7 (tam kod planda) |
-| 8 | `main.py` + `kobe` sarmalayıcı + `config.yaml` — CLI ve toplu kuyruk | Görev 8 (tam kod planda) |
-| 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `golden/`, `Players/` silme | Görev 9 |
+| 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `Players/` silme | Sonnet yürütüyor |
+| — | `docs/GUNLUK.md` kaydı | son adım |
+
+## Sonraki kule (Çağatay söyleyecek)
+
+Bilinen borç: `src/kutu.py` ve `src/icerik.py`, `harness/kunye_kiyas/`
+altındaki asıllarının **kopyası**. Aslını üretim okuyucusu
+`scripts/_pipe_hibrit_okuma.py:111` kullanıyor. Okuma kulesi kurulunca o kule
+kendi kopyasını alacak ve `harness/kunye_kiyas/` tamamen silinecek.
+
+Ayrıca ertelenen: CPU/GPU kaynak bölüşümü ölçümü (spec §4.7) — Kobe'yi CPU'da
+geniş paralel, okuma kulesini GPU'da koşturma hedefi. 110 filmlik yatakta
+ölçülmeden kabul edilmez.
 
 ## Geri dönüş
 
