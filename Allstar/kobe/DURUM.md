@@ -5,7 +5,8 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 00:10 — **kule ayakta, üç ölçüm kapısı da geçti**
+**Son güncelleme:** 2026-08-13 00:25 — **KULE TAMAM.** Dokuz görevin hepsi bitti,
+üç ölçüm kapısı da sapma sıfır geçti, testler 39/39.
 
 ---
 
@@ -70,12 +71,13 @@ Elenen şüpheliler (tekrar deneme): Paddle/CUDA yapısı (ikisi de 3.3.1 / CUDA
 değişmemiş), model ağırlıkları (dokunulmamış), ölçüm gürültüsü (`venvs/ocr`
 iki koşuda birebir aynı).
 
-## Kalan işler
+## Kalan iş yok — kule teslim edildi
 
-| # | İş | Durum |
+| # | İş | Kanıt |
 |---|---|---|
-| 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `Players/` silme | Sonnet yürütüyor |
-| — | `docs/GUNLUK.md` kaydı | son adım |
+| 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `Players/` silindi | `b4c9e9a7` |
+| — | Canlı koddan `FIGO` adı temizlendi | `b357365b` |
+| — | `docs/GUNLUK.md` kaydı | `e7f6ebd6` |
 
 ## Sonraki kule (Çağatay söyleyecek)
 
