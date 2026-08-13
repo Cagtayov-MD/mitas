@@ -5,8 +5,9 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 00:25 — **KULE TAMAM.** Dokuz görevin hepsi bitti,
-üç ölçüm kapısı da sapma sıfır geçti, testler 39/39.
+**Son güncelleme:** 2026-08-13 — **ÇIKIŞ TAMAM, GİRİŞ TASARLANDI.**
+Üç ölçüm kapısı sapma sıfır geçti, testler 61/61. Giriş bloğu için karar
+alındı ama HENÜZ YAZILMADI — aşağıdaki 'SIRADAKİ İŞ' bölümü.
 
 ---
 
@@ -80,6 +81,112 @@ iki koşuda birebir aynı).
 | 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `Players/` silindi | `b4c9e9a7` |
 | — | Canlı koddan `FIGO` adı temizlendi | `b357365b` |
 | — | `docs/GUNLUK.md` kaydı | `e7f6ebd6` |
+
+## SIRADAKİ İŞ — Kobe giriş bloğu (2026-08-13 kararları)
+
+> Bu bölüm yeni oturum için yazıldı. Kod yazılmadı, kararlar alındı.
+
+### Karar 1 — Kobe = SINIR, Nash = HAVUZ
+
+Giriş+çıkış **aynı kulede** kalır (Çağatay: *"görev tek aslında — filmin giriş
+çıkış jenerik tespiti"*). Ama Kobe yalnız **sınır** bulur; kare havuzu kurmak
+**Nash'in** işidir.
+
+| Kule | İş |
+|---|---|
+| **Kobe** | Jenerik nerede **başlıyor/bitiyor** (giriş + çıkış) |
+| **Nash** | Kobe'nin sınırından **kare havuzu** ayıklar |
+
+Nash'in stratejisi zaten mevcut: `core/pipelines/ocr/jenerik_frame_pool_detector.py`
+(2200+ satır — kare skorlama, Paddle rafine, çok-dilli kredi-rol sözlüğü) +
+`scripts/giris_jenerik_havuzu.py` (33 KB, giriş havuzu kurucusu).
+
+**Sonuç: havuz filtreleme Kobe'ye HİÇ girmez.** Kobe tek iş yapar.
+
+### Karar 2 — Kod ayrımı: giriş ve çıkış blokları karışmaz
+
+Çağatay: *"kod olarak Kobe'ye karışmasını istemiyorum, herkesin kendi işi."*
+Bu sadece düzen değil **koruma**: giriş yazılırken `src/motor.py`'ye tek satır
+dokunulmazsa **%94.5 riske girmez.**
+
+```
+src/
+├─ cikis/   ← bugünkü motor.py — DONMUŞ, dokunulmaz
+├─ giris/   ← yeni blok
+└─ ortak/   ← kutu.py + icerik.py (ALET: karar vermez, soru sorar)
+```
+
+`main.py` yönlendirici olur: `--bolum`'a göre hangi bloğu çağıracağını bilir,
+işin nasıl yapıldığını bilmez.
+
+**Karar mantığı asla paylaşılmaz** — `SON_ERISIM=0.82` çıkış bloğunda kalır,
+giriş onu hiç görmez.
+
+### Karar 3 — Giriş (a) ZATEN VAR, yeniden yazılmayacak
+
+Mevcut tasarım (`scripts/mitas_pipeline.py:1982-2002`, Çağatay kuralı 2026-06-15):
+
+```
+head = 240 sn                                    ← MITAS_OCR_HEAD varsayılanı
+jenerik_detector(prefer="first") → {start_sec, end_sec, confidence}
+
+güven ≥ eşik  →  giris_start = start_sec − 5     ← "0'dan DEĞİL"
+                 head       = end_sec + 5        ← tavan 720 (emniyet)
+güven < eşik  →  head = 240, start = 0           ← sabit geri düşüş
+```
+
+Kod içi gerekçe: *"öncesi logo/cold-open footage → süpürme = gürültü."*
+Uyarlanır pencere, hem başlangıç hem bitiş, açık geri düşüş. **Kötü değil.**
+
+> **DİKKAT — düzeltilmiş hata:** Bu belgenin önceki taslağında giriş penceresi
+> için 600 sn öneriliyordu. YANLIŞ. Kapanıştaki `TAIL_S=600` ile simetri
+> kaygısından uydurulmuştu. Doğru değer **240 sn** — üretimin kendi varsayılanı
+> (`MITAS_OCR_HEAD`). Giriş jeneriği 4-5 dakikada biter.
+
+### Karar 4 — Kopyalama değil ÇAĞIRMA (seçenek B)
+
+`jenerik_detector.py` **921 satır** + iki iç bağımlılık (`jenerik_primitifleri`,
+`credit_detector`) ve **9 üretim tüketicisi** var:
+
+```
+_jenerik_detect · giris_jenerik_havuzu · giris_master_cropstack · jenerik_eval
+jenerik_boundary · jenerik_verify_bench · _jenerik_selftest · track_kunye
+jenerik_primitifleri
+```
+
+Taşınamaz. Kopyalanabilir ama bu **dördüncü kopya borcu** + bağımlılık ağacı
+demek. Karar: **Kobe'nin giriş bloğu motoru `_jenerik_detect.py` gibi ÇAĞIRIR**
+(repo kökü `sys.path`'te). Kule sınırı bilerek ve **kayıtlı** olarak esnetilir;
+okuma kulesi kurulurken `kutu.py`/`icerik.py` borcuyla birlikte kapatılır.
+
+Gerekçe (Çağatay): *"iyi kötü şu an çalışan bir sistem var. Sistemlerin
+kalitesi ayrı bir konu. Şu an sistemi ayağa kaldırıyoruz."*
+
+### Karar 5 — Ölçüm ertelendi, ama unutulmadı
+
+Giriş (a) için **GT yok, ölçüm yatağı yok.** Yani kuleye girdiğinde
+"Kobe %94.5" cümlesi yalnız ÇIKIŞ için geçerli olacak — giriş hakkında hiçbir
+şey söylemiyor. Bu **bilinçli** bir borç, gizli değil.
+
+Ölçüm yatağı kurulacaksa tarif: 15 film (`filmtest/depo_3006/` altındaki TAM
+filmler — `test_film_vl/` altındakiler VL deneylerinden kalma **parça**
+dosyalar, film değil), ilk **240 sn**, fps 2 → 480 kare/film. GT'yi Çağatay
+verir (motorun önerdiği sınırın etrafındaki kareler gösterilir, ~30 sn/film).
+
+### Yapılacaklar (sırayla)
+
+1. `src/cikis/` + `src/ortak/` yeniden düzenlemesi — **ölçüm kapısıyla**
+   (taşıma sonrası %94.5 sapma sıfır olmalı)
+2. `src/giris/sinir.py` — `jenerik_detector(prefer="first")` çağıran ince sarmalayıcı
+3. `main.py` yönlendiricisi: `--bolum giris` → `ARIZA(BOLUM_HAZIR_DEGIL)` yerine giriş bloğu
+4. `--uret kare|klip` giriş için: klip `start_sec−10` → `end_sec`, havuz Nash'e devredilir
+5. Testler + gerçek koşu doğrulaması
+
+## Diğer kuleler
+
+**Jordan** (`Allstar/jordan/`) — BAŞKA bir oturum tarafından, Çağatay'ın
+kontrolünde kuruluyor (MP4'ten doğrudan okuma, Qwen3.5-9B). **DOKUNMA.**
+Not: kaynak dosyaları git'te izlenmiyor (`git ls-files Allstar/jordan` → 0).
 
 ## Sonraki kule (Çağatay söyleyecek)
 
