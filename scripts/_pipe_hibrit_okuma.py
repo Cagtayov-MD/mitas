@@ -14,7 +14,7 @@ SÖZLEŞME — _pipe_ocr.py ile BİREBİR (pipeline'ın geri kalanı değişmesi
           paddle_line_count, bucket, engine}
   bucket: GUVENILIR | BOS   (MOTOR_YOK asla — find_usable_ocr onu dışlıyor)
 
-FAIL-SAFE (sessiz düşme YASAK — FIGO v5 dersi, 2026-07-31): zincir çökerse veya
+FAIL-SAFE (sessiz düşme YASAK — Kobe v5 dersi, 2026-07-31): zincir çökerse veya
 0 satır üretirse AYNI argümanlarla _pipe_ocr.py (Paddle) koşulur, onun çıktısı
 aynen akar; stderr'e HIBRIT_FALLBACK damgası basılır ve summary'ye yazılır.
 
@@ -321,21 +321,21 @@ def kol_master(clip_dir: Path, out_dir: Path) -> list[dict]:
 
 
 def havuz_garanti(clip_dir: Path, frame_dirs: list[Path]) -> None:
-    """cikis_jenerik yoksa FIGO ile üret (pipeline'ınki daha sonra; çakışmaz)."""
+    """cikis_jenerik yoksa Kobe ile üret (pipeline'ınki daha sonra; çakışmaz)."""
     havuz = clip_dir / "frames" / "cikis_jenerik"
     if havuz.is_dir() and any(havuz.glob("*.png")):
         return
     kaynak = next((d for d in frame_dirs if d.name == "cikis"), None)
     if kaynak is None:
         return
-    _log("cikis_jenerik yok → FIGO havuzu üretiliyor")
+    _log("cikis_jenerik yok → Kobe havuzu üretiliyor")
     r = subprocess.run(
         [str(PY_OCR), str(HERE / "_jenerik_pool.py"),
          "--frames", str(kaynak), "--pool", str(havuz),
          "--debug-root", str(clip_dir / "jenerik_debug"), "--segment", "cikis"],
         capture_output=True, text=True, timeout=1800)
     n = len(list(havuz.glob("*.png"))) if havuz.is_dir() else 0
-    _log(f"FIGO: {n} kare (rc={r.returncode})")
+    _log(f"Kobe: {n} kare (rc={r.returncode})")
 
 
 def master_garanti(clip_dir: Path) -> None:

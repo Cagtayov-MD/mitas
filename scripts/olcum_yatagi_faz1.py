@@ -8,8 +8,8 @@ QC1→QC2 ve QC2→çıkış ayrı konular, buraya girmiyor.
 ÜRETİLEN HAM ÇIKTILAR (film başına):
     frames/cikis/             720 kare  — üretim kare sözleşmesi (480 sn × 1.5 fps)
     frames/giris/             baş pencere kareleri
-    frames/cikis_jenerik/     FIGO jenerik havuzu          ← Kol A (MESSİ) girdisi
-    frames/jenerik_detection.json                          ← FIGO onset kanıtı
+    frames/cikis_jenerik/     Kobe jenerik havuzu          ← Kol A (MESSİ) girdisi
+    frames/jenerik_detection.json                          ← Kobe onset kanıtı
     reading_master_runaware.png + _manifest.json           ← Kol B (İBRAHİMOVİC) girdisi
     giris_reading_master_runaware.png + _manifest.json
 
@@ -109,8 +109,8 @@ def kareleri_cikar(video: Path, clip_dir: Path) -> dict:
             "cikis_start": round(c_start, 2), "cikis_bekl": c_bekl}
 
 
-def figo_havuzu(clip_dir: Path, segment: str = "cikis") -> dict:
-    """FIGO jenerik havuzu — üretimin kendi betiği, aynı bayraklarla."""
+def kobe_havuzu(clip_dir: Path, segment: str = "cikis") -> dict:
+    """Kobe jenerik havuzu — üretimin kendi betiği, aynı bayraklarla."""
     frames = clip_dir / "frames"
     kaynak = frames / segment
     havuz = frames / f"{segment}_jenerik"
@@ -228,8 +228,8 @@ def bir_film(f: dict, kuru: bool) -> dict:
         print(f"      cikis={sonuc['kareler']['cikis_kare']} "
               f"giris={sonuc['kareler']['giris_kare']}", flush=True)
 
-        print("    FIGO havuzu…", flush=True)
-        sonuc["havuz"] = figo_havuzu(clip_dir, "cikis")
+        print("    Kobe havuzu…", flush=True)
+        sonuc["havuz"] = kobe_havuzu(clip_dir, "cikis")
         print(f"      cikis_jenerik={sonuc['havuz']['havuz_kare']} kare "
               f"({sonuc['havuz']['sure_sn']} sn)", flush=True)
 
