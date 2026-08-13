@@ -31,8 +31,8 @@ def test_varsayilan_artefakt_uretmez(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out")
     assert c.uretilen is None
-    assert not (tmp_path / "out" / "F1" / "kareler").exists()
-    assert not (tmp_path / "out" / "F1" / "klip").exists()
+    assert not (tmp_path / "out" / "F1" / "cikis" / "kareler").exists()
+    assert not (tmp_path / "out" / "F1" / "cikis" / "klip").exists()
 
 
 # ── kare havuzu ─────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ def test_kare_havuzu_10sn_geriden_baslar(tmp_path, monkeypatch):
     d = _kare_dizini(tmp_path / "kareler")
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
-    havuz = tmp_path / "out" / "F1" / "kareler"
+    havuz = tmp_path / "out" / "F1" / "cikis" / "kareler"
     kareler = sorted(havuz.glob("*.png"))
     assert c.uretilen["tip"] == "kare"
     assert c.uretilen["ilk_kare"] == 80
@@ -84,7 +84,7 @@ def test_klip_10sn_geriden_kesilir_ve_sessiz(tmp_path, monkeypatch):
     # pencere 400 sn + onset 100/2 = 450 sn; 10 sn geri → 440
     assert cagrilar == [("/y/F1.mp4", 440.0)]
     assert c.uretilen["tip"] == "klip"
-    assert (tmp_path / "out" / "F1" / "klip" / "klip.mp4").exists()
+    assert (tmp_path / "out" / "F1" / "cikis" / "klip" / "klip.mp4").exists()
 
 
 def test_klip_ffmpeg_komutu_format_ve_sessizlik_tasir(tmp_path, monkeypatch):
@@ -128,7 +128,7 @@ def test_kredi_yokta_artefakt_uretilmez(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(-1))
     c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
     assert c.durum == "KREDI_YOK" and c.uretilen is None
-    assert not (tmp_path / "out" / "F1" / "kareler").exists()
+    assert not (tmp_path / "out" / "F1" / "cikis" / "kareler").exists()
 
 
 # ── kuyruk değişmezi: _TAMAM en SON ─────────────────────────────────────
@@ -137,7 +137,7 @@ def test_TAMAM_artefakttan_SONRA_yazilir(tmp_path, monkeypatch):
     d = _kare_dizini(tmp_path / "kareler")
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
-    o = tmp_path / "out" / "F1"
+    o = tmp_path / "out" / "F1" / "cikis"
     son_kare = max((p.stat().st_mtime for p in (o / "kareler").glob("*.png")))
     assert (o / "_TAMAM").stat().st_mtime >= son_kare
 
@@ -146,7 +146,7 @@ def test_uretilen_kobe_jsona_yazilir(tmp_path, monkeypatch):
     d = _kare_dizini(tmp_path / "kareler")
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
-    j = json.loads((tmp_path / "out" / "F1" / "kobe.json").read_text(encoding="utf-8"))
+    j = json.loads((tmp_path / "out" / "F1" / "cikis" / "kobe.json").read_text(encoding="utf-8"))
     assert j["uretilen"]["tip"] == "kare" and j["uretilen"]["yol"] == "kareler"
     assert j["uretilen"]["adet"] == 121
 

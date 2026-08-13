@@ -74,8 +74,8 @@ def test_toplu_tamam_olani_atlar(tmp_path, monkeypatch):
     for ad in ("A", "B"):
         (girdi / ad).mkdir()
         (girdi / ad / "c_00001.png").write_bytes(b"x")
-    (kok / "A").mkdir(parents=True)
-    (kok / "A" / "_TAMAM").write_text("")
+    (kok / "A" / "cikis").mkdir(parents=True)
+    (kok / "A" / "cikis" / "_TAMAM").write_text("")
     islenen = []
     def _izle(d, c):
         islenen.append(Path(d).name)

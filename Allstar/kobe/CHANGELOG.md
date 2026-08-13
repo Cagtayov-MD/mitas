@@ -1,5 +1,27 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-13 (3) — bölüm ayrımı + KATALOG
+
+`KATALOG.md` yazıldı: kulenin kimlik kartı — neden var, nasıl hizmet verir,
+nasıl çalışır (akış taslağı), girdi/çıktı sözleşmeleri, iç yapı, doğrulama ve
+bilinen sınırlar.
+
+**Çıktı `out/<film_id>/<bolum>/` oldu.** `--bolum cikis|giris` (varsayılan
+`cikis`). İki jenerik ayrı klasörlere yazılır, birbirini ezmez. Sözleşmeye
+`bolum` alanı eklendi; `toplu` modda `_TAMAM` denetimi bölüm bazında yapılır.
+
+**Giriş jeneriği: açık ARIZA, sessiz tahmin YOK.** `--bolum giris` verilirse
+motor **hiç çağrılmadan** `ARIZA(BOLUM_HAZIR_DEGIL)` döner ve diske yazılır.
+Gerekçe: motorun temel ayracı `SON_ERISIM=0.82` (*"aday pencerenin son %18'ine
+ulaşmalı"*) girişte ters çalışır — giriş jeneriğinden sonra film HER ZAMAN
+devam eder. Motoru giriş karelerine doğrultmak neredeyse her filme `KREDI_YOK`
+dedirtirdi: emin, sessiz ve sistematik olarak yanlış. Ayrıca giriş için ne
+ölçüm yatağı (`havuz_kur.sh TAIL_S=600` → yalnız son 10 dk) ne de doğrulanmış
+GT var. Yol haritası `KATALOG.md` §7: önce GT, sonra pencere çıkarımı, sonra
+karar mantığı.
+
+Testler 61/61 (yeni: 10 bölüm testi).
+
 ## 2026-08-13 (2) — talebe göre artefakt üretimi
 
 `--uret kare|klip` eklendi. Kobe artık kararının yanında, istenirse iki

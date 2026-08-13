@@ -44,11 +44,22 @@ kobe start --input /yol/videolar --uret klip            # toplu
 
 ```
 out/<film_id>/
-├─ kobe.json          # karar + üretilen artefaktın künyesi
-├─ _TAMAM             # EN SON yazılır — varsa artefakt da hazırdır
-├─ kareler/           # --uret kare  → c_01113.png … c_01200.png
-└─ klip/klip.mp4      # --uret klip  → sessiz, filmin sonuna kadar
+├─ cikis/                 ← kapanış jeneriği (STANDART, çalışır)
+│  ├─ kobe.json           # karar + üretilen artefaktın künyesi
+│  ├─ _TAMAM              # EN SON yazılır — varsa artefakt da hazırdır
+│  ├─ kareler/            # --uret kare  → c_01113.png … c_01200.png
+│  └─ klip/klip.mp4       # --uret klip  → sessiz, filmin sonuna kadar
+└─ giris/                 ← giriş jeneriği — HENÜZ YOK, açık ARIZA döner
+   └─ kobe.json           # durum=ARIZA, sinif=BOLUM_HAZIR_DEGIL
 ```
+
+**Bölüm ayrımı** (`--bolum cikis|giris`, varsayılan `cikis`): iki jenerik ayrı
+klasörlere yazılır, birbirini ezmez. **Giriş jeneriği henüz desteklenmiyor** —
+motorun temel ayracı (`SON_ERISIM=0.82`: *"aday pencerenin son %18'ine ulaşmalı,
+yoksa kredi değildir"*) girişte **ters** çalışır, çünkü giriş jeneriğinden sonra
+film her zaman devam eder. Kobe tahmin etmez: `--bolum giris` verilirse motor
+**hiç çağrılmadan** `ARIZA(BOLUM_HAZIR_DEGIL)` döner ve bu diske yazılır — eksik
+görünür olur. Gerekçe ve yol haritası: `KATALOG.md` §7.
 
 | | |
 |---|---|

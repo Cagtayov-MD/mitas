@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DURUMLAR = ("BULUNDU", "KREDI_YOK", "ARIZA")
+BOLUMLER = ("cikis", "giris")   # kapanis jenerigi / giris jenerigi
 
 
 class GirdiHatasi(ValueError):
@@ -24,11 +25,14 @@ class Girdi:
     film_id: str
     video: str | None = None
     kareler: str | None = None
+    bolum: str = "cikis"          # "cikis" = kapanis jenerigi (STANDART)
     config: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.film_id:
             raise GirdiHatasi("film_id bos olamaz")
+        if self.bolum not in BOLUMLER:
+            raise GirdiHatasi(f"bolum {self.bolum!r} gecersiz — {BOLUMLER}")
         if bool(self.video) == bool(self.kareler):
             raise GirdiHatasi(
                 "video ve kareler'den TAM OLARAK biri verilmeli — "
@@ -41,6 +45,7 @@ class Cikti:
     """out/<film_id>/kobe.json'un birebir karsiligi."""
     film_id: str
     durum: str
+    bolum: str = "cikis"
     baslangic_kare: int | None = None
     baslangic_sn: float | None = None
     guven: float | None = None
@@ -56,6 +61,8 @@ class Cikti:
     mesaj: str | None = None
 
     def __post_init__(self) -> None:
+        if self.bolum not in BOLUMLER:
+            raise ValueError(f"bolum {self.bolum!r} gecersiz — {BOLUMLER}")
         if self.durum not in DURUMLAR:
             raise ValueError(f"durum {self.durum!r} gecersiz — {DURUMLAR}")
         # DEGISMEZ: ARIZA kanitsiz olamaz, KREDI_YOK ariza alani tasiyamaz.
@@ -74,7 +81,7 @@ class Cikti:
                 timespec="seconds")
 
     def sozluk(self) -> dict:
-        d = {"film_id": self.film_id, "durum": self.durum}
+        d = {"film_id": self.film_id, "bolum": self.bolum, "durum": self.durum}
         if self.durum == "BULUNDU":
             d |= {"baslangic_kare": self.baslangic_kare,
                   "baslangic_sn": self.baslangic_sn,
@@ -87,13 +94,13 @@ class Cikti:
         return d
 
     def yaz(self, kok: str | Path) -> Path:
-        """out/<film_id>/kobe.json — atomik yaz, sonra _TAMAM.
+        """out/<film_id>/<bolum>/kobe.json — atomik yaz, sonra _TAMAM.
 
         Kuyruk klasorun kendisi oldugu icin tuketici biz yazarken okuyabilir.
         os.replace yarim dosya okunmasini, _TAMAM ise "yaziliyor mu bitti mi"
         belirsizligini kapatir. Tuketici kurali: _TAMAM yoksa dosya yok sayilir.
         """
-        d = Path(kok) / self.film_id
+        d = Path(kok) / self.film_id / self.bolum
         d.mkdir(parents=True, exist_ok=True)
         hedef, gecici = d / "kobe.json", d / "kobe.json.tmp"
         gecici.write_text(json.dumps(self.sozluk(), ensure_ascii=False, indent=1),
@@ -103,7 +110,8 @@ class Cikti:
         return hedef
 
 
-def ariza(film_id: str, sinif: str, mesaj: str, kanit: dict | None = None) -> Cikti:
+def ariza(film_id: str, sinif: str, mesaj: str, kanit: dict | None = None,
+          bolum: str = "cikis") -> Cikti:
     """Tek ariza uretim noktasi — sinif/mesaj atlanamasin diye."""
-    return Cikti(film_id=film_id, durum="ARIZA", sinif=sinif, mesaj=mesaj,
+    return Cikti(film_id=film_id, bolum=bolum, durum="ARIZA", sinif=sinif, mesaj=mesaj,
                  kanit=kanit or {})

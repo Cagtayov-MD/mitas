@@ -65,20 +65,20 @@ def test_yaz_kobe_json_ve_tamam_uretir(tmp_path):
     c = Cikti(film_id="F1", durum="BULUNDU", baslangic_kare=940,
               baslangic_sn=470.0, guven=0.87, script="ar")
     yol = c.yaz(tmp_path)
-    assert yol == tmp_path / "F1" / "kobe.json"
-    assert (tmp_path / "F1" / "_TAMAM").exists()
+    assert yol == tmp_path / "F1" / "cikis" / "kobe.json"
+    assert (tmp_path / "F1" / "cikis" / "_TAMAM").exists()
     d = json.loads(yol.read_text(encoding="utf-8"))
     assert d["durum"] == "BULUNDU" and d["baslangic_kare"] == 940
 
 
 def test_yaz_gecici_dosya_birakmaz(tmp_path):
     Cikti(film_id="F1", durum="KREDI_YOK").yaz(tmp_path)
-    assert list((tmp_path / "F1").glob("*.tmp")) == []
+    assert list((tmp_path / "F1" / "cikis").glob("*.tmp")) == []
 
 
 def test_tamam_kobe_jsondan_SONRA_yazilir(tmp_path):
     """Tüketici kuralı: _TAMAM varsa kobe.json kesin tamdır."""
     c = Cikti(film_id="F1", durum="BULUNDU", baslangic_kare=1)
     c.yaz(tmp_path)
-    d = tmp_path / "F1"
+    d = tmp_path / "F1" / "cikis"
     assert (d / "_TAMAM").stat().st_mtime >= (d / "kobe.json").stat().st_mtime
