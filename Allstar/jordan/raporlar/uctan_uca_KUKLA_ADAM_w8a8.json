@@ -1,0 +1,199 @@
+{
+ "film_id": "1989-0352_KUKLA_ADAM_TAM",
+ "bolum": "cikis",
+ "durum": "OKUNDU",
+ "bloklar": [
+  {
+   "no": 1,
+   "parca": 0,
+   "sn": 0.0,
+   "satirlar": [
+    "CORI",
+    "FILMS"
+   ]
+  },
+  {
+   "no": 2,
+   "parca": 1,
+   "sn": 13.0,
+   "satirlar": [
+    "Quantum Films",
+    "in association with",
+    "Capital Productions Limited",
+    "presents"
+   ]
+  },
+  {
+   "no": 3,
+   "parca": 1,
+   "sn": 13.0,
+   "satirlar": [
+    "HUMPTY DUMPTY MAN"
+   ]
+  },
+  {
+   "no": 4,
+   "parca": 4,
+   "sn": 52.0,
+   "satirlar": [
+    "PRODUCTION DESIGNER",
+    "NEIL ANGWIN"
+   ]
+  },
+  {
+   "no": 5,
+   "parca": 5,
+   "sn": 65.0,
+   "satirlar": [
+    "EDITOR",
+    "MURRAY FERGUSON"
+   ]
+  },
+  {
+   "no": 6,
+   "parca": 5,
+   "sn": 65.0,
+   "satirlar": [
+    "CASTING",
+    "SUSIE MAIZELS",
+    "MAIZELS & ASSOCIATES"
+   ]
+  },
+  {
+   "no": 7,
+   "parca": 6,
+   "sn": 78.0,
+   "satirlar": [
+    "SCREENPLAY BY",
+    "KARL ZWICKY AND PAUL HOGAN"
+   ]
+  },
+  {
+   "no": 8,
+   "parca": 6,
+   "sn": 78.0,
+   "satirlar": [
+    "ORIGINAL MUSIC",
+    "PETER SULLIVAN"
+   ]
+  },
+  {
+   "no": 9,
+   "parca": 6,
+   "sn": 78.0,
+   "satirlar": [
+    "EXECUTIVE PRODUCER",
+    "ROBERT MERCIECA"
+   ]
+  },
+  {
+   "no": 10,
+   "parca": 7,
+   "sn": 91.0,
+   "satirlar": [
+    "PRODUCER",
+    "MIRANDA BAIN"
+   ]
+  },
+  {
+   "no": 11,
+   "parca": 7,
+   "sn": 91.0,
+   "satirlar": [
+    "DIRECTOR",
+    "PAUL HOGAN"
+   ]
+  },
+  {
+   "no": 12,
+   "parca": 12,
+   "sn": 156.0,
+   "satirlar": [
+    "The manor of the sea"
+   ]
+  },
+  {
+   "no": 13,
+   "parca": 13,
+   "sn": 169.0,
+   "satirlar": [
+    "2"
+   ]
+  },
+  {
+   "no": 14,
+   "parca": 16,
+   "sn": 208.0,
+   "satirlar": [
+    "H.N."
+   ]
+  },
+  {
+   "no": 15,
+   "parca": 17,
+   "sn": 221.0,
+   "satirlar": [
+    "30"
+   ]
+  }
+ ],
+ "ciftler": [
+  {
+   "rol": "PRODUCTION DESIGNER",
+   "isim": "NEIL ANGWIN",
+   "blok": 4
+  },
+  {
+   "rol": "EDITOR",
+   "isim": "MURRAY FERGUSON",
+   "blok": 5
+  },
+  {
+   "rol": "CASTING",
+   "isim": "SUSIE MAIZELS",
+   "blok": 6
+  },
+  {
+   "rol": "SCREENPLAY BY",
+   "isim": "KARL ZWICKY AND PAUL HOGAN",
+   "blok": 7
+  },
+  {
+   "rol": "ORIGINAL MUSIC",
+   "isim": "PETER SULLIVAN",
+   "blok": 8
+  },
+  {
+   "rol": "EXECUTIVE PRODUCER",
+   "isim": "ROBERT MERCIECA",
+   "blok": 9
+  },
+  {
+   "rol": "PRODUCER",
+   "isim": "MIRANDA BAIN",
+   "blok": 10
+  },
+  {
+   "rol": "DIRECTOR",
+   "isim": "PAUL HOGAN",
+   "blok": 7
+  }
+ ],
+ "kanit": {
+  "parca_sayisi": 19,
+  "bozuk_parca": 0,
+  "dusunme_sizinti": 0,
+  "blok_sayisi": 15,
+  "satir_sayisi": 28,
+  "cift_sayisi": 8,
+  "cift_eleme": 0,
+  "model": "model/w8a8",
+  "parca_sn": 15,
+  "bindirme_sn": 2,
+  "video_fps": 2,
+  "video_genislik": 720
+ },
+ "motor_surumu": "jordan@55721d3a",
+ "uretim_zamani": "2026-08-13T16:18:00+03:00",
+ "sure_sn": 120.0
+}

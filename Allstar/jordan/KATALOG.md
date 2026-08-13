@@ -6,6 +6,22 @@
 >
 > Sürüm: 2026-08-13 · Kule: `Allstar/jordan/`
 
+## Beş soru — doğrudan cevaplar
+
+| # | Soru | Bölüm |
+|---|---|---|
+| 1 | Jordan kulesi **neden var?** | [§1](#1-jordan-neden-var) |
+| 2 | Jordan kulesi **nasıl hizmet verir?** | [§2](#2-jordan-nasıl-hizmet-verir) |
+| 3 | Jordan kulesi **nasıl çalışır** (taslak)? | [§3](#3-jordan-nasıl-çalışır) |
+| 4 | **Girdi ve çıktı sözleşmeleri** nedir? | [§4](#4-girdi-ve-çıktı-sözleşmeleri) |
+| 5 | Jordan kulesinin **iç yapısı** | [§5](#5-iç-yapı) |
+| + | Model seçimi ve donanım sınırı | [§6](#6-model-seçimi-ve-donanım) |
+| + | Doğrulama durumu ve bilinen sınırlar | [§7](#7-doğrulama-durumu) |
+
+**Jordan'a dair her şey bu klasörde yaşar.** Kod, sözleşme, çalışma zamanı,
+model ağırlıkları, testler, koşu sonuçları, raporlar, günlük — hepsi
+`Allstar/jordan/` içinde. Kulenin dışında Jordan'a ait hiçbir şey yoktur.
+
 ---
 
 ## 1. Jordan neden var?
