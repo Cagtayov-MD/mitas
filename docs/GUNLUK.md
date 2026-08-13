@@ -7,6 +7,56 @@
 
 ---
 
+## 2026-08-13 — Allstar/Kobe: ilk kule kuruldu
+
+**Yapılan.** MITAS kule mimarisine geçti. İlk kule **Kobe** (jenerik başlangıç
+tespiti) `Allstar/kobe/` altında ayakta: kendi kodu, kendi ölçüm yatağı, kendi
+sözleşmesi, kendi CLI'ı ve **kendi Paddle'ı** (`venv/`, 167 pin). `figo` adı
+canlı koddan tamamen silindi — tek isim Kobe. Boş `Players/` iskeleti (160 boş
+dosya) kaldırıldı.
+
+Üç ölçüm kapısı da **sapma sıfır** geçti: (1) taşıma öncesi referans,
+(2) yeni yol + eski venv, (3) yeni yol + kendi venv'i → hepsi kapsam 110,
+genel 104/110 = %94.5, üretim %97.3, kredi-yok 29/29. Testler 39/39. Uçtan uca
+gerçek koşu: POTEMKİN ZIRHLISI → `BULUNDU`, kare 1133, 21.4 sn.
+
+**En pahalı ders — çalışma zamanı budanmaz.** Kobe'ye kendi venv'ini kurarken
+`venvs/ocr`'dan **elle seçilmiş 16 paketlik** bir pin listesi kullandım. Ölçüm
+**%94.5 → %92.7** düştü: iki film doğru → `KREDI_YOK` oldu (MELEKLERİ/Kiril,
+ARKADAŞIMIN/Farsça), bir film 2 kare kaydı. Bu olurken altı kilit paket ikisinde
+de birebir aynıydı (paddle 3.3.1 / CUDA 12.6 / cuDNN 9.5.1 / aynı commit,
+paddleocr 3.7.0, paddlex 3.7.2, numpy 2.3.5, pillow 12.1.0, opencv 5.0.0.93).
+Det önbelleği, model ağırlıkları ve ölçümün tekrarlanabilirliği de tek tek
+elendi. Eksik 76 paket kurulunca skor **tam olarak** geri geldi.
+→ **Kobe'nin çıktısı, kodunun HİÇ import etmediği paketlere bağlı**
+(torch/sklearn/easyocr/timm/transformers'a hiçbiri dokunmuyor). "Hangi paket
+önemli" tahmin edilmez; ortam bütün olarak dondurulur.
+
+**Ölçüm ortamı sabiti.** `ollama.service` 12:21'de durmuştu; Kobe'nin dil
+yönlendiricisi ona HTTP ile bağlanıyor ve erişilemezse her film için `'en'`
+dönüyor (`motor.py` ~699). Yani %94.5 **yönlendirici devre dışıyken** ölçülmüş
+bir sayı. Ollama açılırsa skor ~%93.6'ya iner (11 Ağustos kaydı) — kapılar
+ancak aynı ortamda anlamlı. Kural `DURUM.md`'ye yazıldı.
+
+**Planda çıkan dört gerçek kusur** (hepsi uygulama sırasında yakalandı):
+① `paddlepaddle-gpu` 3.x PyPI'de yok, Paddle kendi indeksinden geliyor
+(`kurulum/02_build_venv.sh:88`) → kuleye `venv_kur.sh` eklendi.
+② `Allstar/.gitignore` deseni `*/*/venv/` idi; desenler `Allstar/`'a göreli
+olduğu için eşleşmiyordu → `git add Allstar` 7 GB'lık venv'i commit'e alırdı.
+③ Kurulum komutu `| tail`'den geçiyordu → kabuk pip'in değil tail'in çıkış
+kodunu döndürüp **başarısız kurulumu "exit code 0" gösterdi**.
+④ Spec `credit_box.py`'yi Kobe'ye taşıyordu; oysa aslını üretim okuyucusu
+(`_pipe_hibrit_okuma.py:111`) kullanıyor → taşınsaydı okuyucu kırılırdı.
+Karar: kopya + kayıtlı borç.
+
+**Bekleyen.** ① Okuma kulesi (adı konmadı) — kurulunca `src/kutu.py` ve
+`src/icerik.py` kopya borcu kapanır, `harness/kunye_kiyas/` tamamen silinir.
+② CPU/GPU kaynak bölüşümü ölçümü (spec §4.7): Kobe CPU'da geniş paralel,
+okuyucu GPU'da — 110 filmlik yatakta ölçülmeden kabul edilmez.
+③ Sıradaki kuleyi Çağatay söyleyecek. ④ Üretim hattı hâlâ durmuş.
+
+---
+
 ## 2026-08-11 (2. oturum) — Dış İnceleme Turu: KOBE Yönlendirici + Görünürlük
 
 **Girdi:** Çağatay `kobe için.txt` ile üç bağımsız `figo.py` inceleme raporu
