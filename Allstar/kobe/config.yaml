@@ -20,3 +20,9 @@ uretim:
   # Klip daima filmin SONUNA kadar sürer — jenerik sona kadar akar.
   # -c:v copy kullanılır: yeniden kodlamaz, ama -ss girdi tarafında olduğu için
   # en yakın keyframe'e GERİ yaslanır. Kayma daima erken yönde, zararsız.
+
+giris:
+  pencere_sn: 240      # MITAS_OCR_HEAD değeri — kare_cikarim penceresi VE
+                       # (a) SINIR'ın düşük-güvende düştüğü sabit pencere genişliği
+  guven_esik: 0.60     # detect_from_frames confidence >= bu -> tespit sinirina
+                       # güven; altındaysa sabit pencereye düşülür (bkz. src/giris/sinir.py)

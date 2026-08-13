@@ -5,12 +5,31 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 — **ÇIKIŞ TAMAM, GİRİŞ TASARLANDI (kod yok).**
-Üç ölçüm kapısı sapma sıfır, testler 61/61.
+**Son güncelleme:** 2026-08-13 — **GİRİŞ BLOĞU UYGULANDI, UÇTAN UCA ÇALIŞIYOR.**
+Kapsam Çağatay tarafından daraltıldı: kalite/GT/ölçüm yatağı (G5-G7) SONRAKİ
+FAZ — bu turda hedef yalnız "çalışsın". `src/motor.py`'ye dokunulmadı
+(`git diff --stat` boş). Testler 62/62 (61 mevcut + net 1 yeni — 3 eski
+"giriş hep ARIZA" testi silindi, 4 yeni test geldi).
 
-**Giriş bloğu:** tam tasarım `src/giris/TASARIM.md`'de — imzalar doğrulanmış,
-Sonnet'in uygulaması için hazır. Uygulama denendi ama alt-ajan oturum
-limitine takıldı; **tek satır kod yazılmadı.** Aşağıdaki 'SIRADAKİ İŞ'.
+**Giriş bloğu:** `src/giris/sinir.py` ((a) SINIR — `jenerik_detector.
+detect_from_frames` çağrılır, güven kapısı) + `src/giris/havuz.py` ((b)
+HAVUZ — `giris_jenerik_havuzu.py`'nin stratejisi, `kutu.py`+`icerik.py`
+aletleriyle). `main.py` yönlendiricisi `bolum=="giris"` için artık gerçek
+karar üretiyor (eski `ARIZA(BOLUM_HAZIR_DEGIL)` kaldırıldı). CLI `--bolum` ve
+`--uret` virgüllü çok-seçimli oldu; `uretilen` artık HER ZAMAN liste.
+Gerçek koşu kanıtı (2 farklı film, `filmtest/depo_3006/`):
+KOBRA → `--bolum giris --uret klip`: BULUNDU, güven 0.754, sınır 0.0-21.0 sn,
+klip gerçekten **21.000000 sn** (ffprobe doğrulandı, h264, ses akışı yok),
+10.9 sn'de bitti. SİLAHLAR_KONUŞUYOR → `--bolum giris --uret kare`: BULUNDU,
+güven 0.761, sınır 0.0-17.5 sn, havuz 480 karenin 75'ini seçti (231 footage
+elendi) — seçilen kareler kare 11'den 476'ya KADAR YAYILDI (yalnız 0-34
+sınırı içinde DEĞİL): havuz kasıtlı olarak tüm 240 sn'lik pencereyi tarar,
+(a) sınırın kaçırdığı geç köşe-kredisini de yakalar (`giris_jenerik_havuzu.
+py`'nin tasarımıyla aynı). 51.5 sn'de bitti (tam OCR nedeniyle daha yavaş).
+
+**Ertelenen (bilinçli borç, G5-G7 aynen geçerli):** giriş için GT yok, ölçüm
+yatağı yok, `olc_pool.py` benzeri kapı yok. "Kobe %94.5" YALNIZ çıkış için
+geçerli. Kalite fazı ayrı bir iş.
 
 ---
 

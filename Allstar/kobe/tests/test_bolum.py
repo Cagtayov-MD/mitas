@@ -73,32 +73,63 @@ def test_artefakt_bolum_altina_yazilir(tmp_path, monkeypatch):
     assert (tmp_path / "out" / "F1" / "cikis" / "kareler").is_dir()
 
 
-# ── giriş: açık arıza, sessiz atlama YOK ────────────────────────────────
-def test_giris_bolumu_ariza_dondurur(tmp_path, monkeypatch):
-    d = _kare_dizini(tmp_path / "kareler")
-    monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
-    c = main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
-    assert c.durum == "ARIZA" and c.sinif == "BOLUM_HAZIR_DEGIL"
-    assert "SON_ERISIM" in c.mesaj or "giris" in c.mesaj.lower()
+# ── giriş: (a) sinir + (b) havuz çağrılır, çıkışın motoru DEĞİL ─────────
+from giris import sinir as giris_sinir  # noqa: E402  (main importu SRC'yi path'e ekledi)
+
+
+def _sahte_sinir_bulundu(**over):
+    d = {"bulundu": True, "baslangic_kare": 10, "baslangic_sn": 5.0,
+         "bitis_kare": 200, "bitis_sn": 100.0, "guven": 0.9,
+         "kanit": {"sinir_kaynagi": "tespit"}}
+    d.update(over)
+    return d
 
 
 def test_giris_motoru_hic_cagirmaz(tmp_path, monkeypatch):
-    """Yanlış cevap üretmemek için motor HİÇ koşmamalı."""
+    """Çıkışın motoru (SON_ERISIM=0.82, jenerik sona ulaşmalı) girişte TERS
+    çalışır — bu yüzden giriş kendi (a) sinir + (b) havuz yolunu kullanır,
+    çıkışın _tespit'i HİÇ koşmamalı."""
     d = _kare_dizini(tmp_path / "kareler")
     cagrildi = []
     monkeypatch.setattr(main, "_tespit",
                         lambda x, c: cagrildi.append(1) or _SahteSonuc(100))
+    monkeypatch.setattr(giris_sinir, "bul", lambda dizin, config: _sahte_sinir_bulundu())
     main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
     assert cagrildi == []
 
 
-def test_giris_arizasi_diske_yazilir(tmp_path, monkeypatch):
-    """Eksik GÖRÜNÜR olmalı — boş klasör bırakmak yasak."""
+def test_giris_sinir_bulundu_bitis_alanlarini_doldurur(tmp_path, monkeypatch):
+    """Girişin sözleşme farkı: bitis_kare/bitis_sn de dolar (çıkışta hep None)."""
     d = _kare_dizini(tmp_path / "kareler")
-    main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
+    monkeypatch.setattr(giris_sinir, "bul", lambda dizin, config: _sahte_sinir_bulundu())
+    c = main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
+    assert c.durum == "BULUNDU"
+    assert c.baslangic_kare == 10 and c.bitis_kare == 200
+    assert c.baslangic_sn == 5.0 and c.bitis_sn == 100.0
+
+
+def test_giris_sinir_bulunamazsa_kredi_yok(tmp_path, monkeypatch):
+    d = _kare_dizini(tmp_path / "kareler")
+    monkeypatch.setattr(giris_sinir, "bul", lambda dizin, config: {
+        "bulundu": False, "baslangic_kare": None, "baslangic_sn": None,
+        "bitis_kare": None, "bitis_sn": None, "guven": 0.0, "kanit": {}})
+    c = main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
+    assert c.durum == "KREDI_YOK"
+
+
+def test_giris_sinir_patlarsa_ariza_GIRIS_SINIR(tmp_path, monkeypatch):
+    """Motor patlarsa sessizce sabit pencereye düşmek YASAK — açık ARIZA."""
+    d = _kare_dizini(tmp_path / "kareler")
+
+    def _patla(dizin, config):
+        raise RuntimeError("jenerik_detector coktu")
+
+    monkeypatch.setattr(giris_sinir, "bul", _patla)
+    c = main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
+    assert c.durum == "ARIZA" and c.sinif == "GIRIS_SINIR"
     j = json.loads((tmp_path / "out" / "F1" / "giris" / "kobe.json").read_text(
         encoding="utf-8"))
-    assert j["durum"] == "ARIZA" and j["sinif"] == "BOLUM_HAZIR_DEGIL"
+    assert j["durum"] == "ARIZA" and j["sinif"] == "GIRIS_SINIR"
 
 
 # ── toplu mod: _TAMAM bölüm bazında ─────────────────────────────────────

@@ -27,8 +27,17 @@ sys.path.insert(0, str(SRC))
 from sozlesme import BOLUMLER, Cikti, Girdi, GirdiHatasi, ariza  # noqa: E402
 
 KUYRUK_SN, KARE_FPS, KALITE = 600, 2, 3      # config.yaml varsayılanları
+GIRIS_PENCERE_SN = 240    # MITAS_OCR_HEAD değeri — 600 DEĞİL (kapanış simetrisinden uydurulmuştu)
 GERI_PAY_SN = 10          # artefakt onset'ten bu kadar ÖNCE başlar
 URET_TIPLERI = ("yok", "kare", "klip")
+
+
+class _ArizaSinyali(Exception):
+    """tek()'in iç adımlarından ARIZA'ya çevrilmek üzere yukarı atılır."""
+
+    def __init__(self, sinif: str, mesaj: str) -> None:
+        super().__init__(mesaj)
+        self.sinif, self.mesaj = sinif, mesaj
 
 
 def _config() -> dict:
@@ -56,11 +65,12 @@ def film_id_uret(yol: Path, kareler_modu: bool) -> str:
     return yol.name if kareler_modu else yol.stem
 
 
-def kare_cikar(video: str, hedef: Path) -> tuple[Path, int]:
-    """Kapanış penceresini çıkar → (dizin, pencere_baslangic_sn).
+def kare_cikar(video: str, hedef: Path, bolum: str = "cikis") -> tuple[Path, int]:
+    """Bölüme duyarlı pencere çıkarımı → (dizin, pencere_baslangic_sn).
 
-    Tarif havuz_kur.sh:74-78'den birebir alınmıştır — %94.5 bu kare üretimiyle
-    ölçüldü, başka tarif skoru geçersiz kılar.
+    cikis: ss = sure-KUYRUK_SN(600), sonuna kadar. Tarif havuz_kur.sh:74-78'den
+    BİREBİR alınmıştır — %94.5 bu kare üretimiyle ölçüldü, DEĞİŞTİRİLMEDİ.
+    giris: ss = 0, uzunluk = GIRIS_PENCERE_SN(240) — MITAS_OCR_HEAD değeri.
     """
     hedef.mkdir(parents=True, exist_ok=True)
     p = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
@@ -70,11 +80,17 @@ def kare_cikar(video: str, hedef: Path) -> tuple[Path, int]:
         sure = int(float(p.stdout.strip()))
     except (ValueError, AttributeError):
         raise RuntimeError(f"ffprobe sure okuyamadi: {p.stderr.strip()[:200]}")
-    ss = max(0, sure - KUYRUK_SN)
-    k = subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", str(ss), "-i", video,
-                        "-vf", f"fps={KARE_FPS}", "-q:v", str(KALITE),
-                        str(hedef / "c_%05d.png")],
-                       capture_output=True, text=True, timeout=900)
+    if bolum == "giris":
+        ss = 0
+        cmd = ["ffmpeg", "-y", "-v", "error", "-ss", str(ss), "-i", video,
+               "-t", str(GIRIS_PENCERE_SN), "-vf", f"fps={KARE_FPS}",
+               "-q:v", str(KALITE), str(hedef / "c_%05d.png")]
+    else:
+        ss = max(0, sure - KUYRUK_SN)
+        cmd = ["ffmpeg", "-y", "-v", "error", "-ss", str(ss), "-i", video,
+               "-vf", f"fps={KARE_FPS}", "-q:v", str(KALITE),
+               str(hedef / "c_%05d.png")]
+    k = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     n = len(list(hedef.glob("*.png")))
     if n == 0:
         raise RuntimeError(f"kare cikmadi (rc={k.returncode}): {k.stderr.strip()[:200]}")
@@ -95,6 +111,19 @@ def kare_havuzu_yaz(kaynak: Path, hedef: Path, ilk_kare: int) -> int:
         if motor._kare_no(p) >= ilk_kare:
             shutil.copy2(p, hedef / Path(p).name)
             n += 1
+    return n
+
+
+def kare_havuzu_yaz_secili(kaynak_yollari: list[str], hedef: Path) -> int:
+    """GİRİŞ kare havuzu: `giris.havuz.sec()`'in seçtiği (ARDIŞIK OLMAYAN) tek
+    tek yolları hedefe KOPYALA. `kare_havuzu_yaz`'ın aksine bir ARALIK değil,
+    önceden seçilmiş bir liste alır."""
+    hedef.mkdir(parents=True, exist_ok=True)
+    n = 0
+    for yol in kaynak_yollari:
+        p = Path(yol)
+        shutil.copy2(p, hedef / p.name)
+        n += 1
     return n
 
 
@@ -123,6 +152,28 @@ def klip_kes(video: str, hedef: Path, bas_sn: float) -> Path:
     return hedef
 
 
+def klip_kes_araligi(video: str, hedef: Path, bas_sn: float, bit_sn: float) -> Path:
+    """GİRİŞ klibi: bas_sn'den bit_sn'e kadar SESSİZ klip — çıkıştaki gibi
+    filmin SONUNA gitmez, jenerik bitince (bit_sn = sinir.bul()'un bitis_sn'i)
+    durur. `-t` süre (bit_sn-bas_sn) OUTPUT tarafında verilir; `-ss` INPUT
+    tarafında (hızlı seek). Testler burayı değiştirir."""
+    hedef.parent.mkdir(parents=True, exist_ok=True)
+    gecici = hedef.with_suffix(".mp4.tmp")
+    sure = max(0.0, bit_sn - bas_sn)
+    # -f mp4 ZORUNLU: gecici dosya ".mp4.tmp" ile bitiyor, ffmpeg uzantidan
+    # format cikaramiyor (bkz. klip_kes docstring — ayni regresyon burada da var).
+    r = subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{bas_sn:.3f}",
+                        "-i", video, "-t", f"{sure:.3f}", "-c:v", "copy", "-an",
+                        "-movflags", "+faststart", "-f", "mp4", str(gecici)],
+                       capture_output=True, text=True, timeout=1800)
+    if not gecici.exists() or gecici.stat().st_size == 0:
+        gecici.unlink(missing_ok=True)
+        raise RuntimeError(f"klip kesilemedi (rc={r.returncode}): "
+                           f"{r.stderr.strip()[:200]}")
+    os.replace(gecici, hedef)
+    return hedef
+
+
 def _tespit(dizin: str, config: dict):
     """Motoru çağıran TEK yer — testler burayı değiştirir."""
     import motor
@@ -132,9 +183,9 @@ def _tespit(dizin: str, config: dict):
                            ocr_stride=m.get("ocr_stride", 2))
 
 
-def _artefakt_uret(uret: str, girdi: Girdi, dizin: Path, kok: Path,
-                   onset_kare: int, pencere_ss: float) -> dict:
-    """İstenen artefaktı üret → `uretilen` künyesi.
+def _artefakt_uret_cikis(uret: str, girdi: Girdi, dizin: Path, kok: Path,
+                         onset_kare: int, pencere_ss: float) -> dict:
+    """ÇIKIŞ artefaktı üret → `uretilen` künyesinin bir elemanı.
 
     İkisi de onset'ten GERI_PAY_SN önce başlar; aynı jeneriğin iki temsili
     farklı yerden başlarsa kıyas bozulur.
@@ -145,7 +196,7 @@ def _artefakt_uret(uret: str, girdi: Girdi, dizin: Path, kok: Path,
         ilk = max(1, onset_kare - geri_kare)
         havuz = hedef_kok / "kareler"
         adet = kare_havuzu_yaz(Path(dizin), havuz, ilk)
-        return {"tip": "kare", "yol": "kareler", "adet": adet,
+        return {"tip": "kare", "yol": "kareler", "adet": adet, "secim": "aralik",
                 "ilk_kare": ilk, "geri_pay_sn": GERI_PAY_SN}
     bas_sn = max(0.0, pencere_ss + onset_kare / KARE_FPS - GERI_PAY_SN)
     p = klip_kes(girdi.video, hedef_kok / "klip" / "klip.mp4", bas_sn)
@@ -154,12 +205,118 @@ def _artefakt_uret(uret: str, girdi: Girdi, dizin: Path, kok: Path,
             "boyut_bayt": p.stat().st_size if p.exists() else 0}
 
 
-def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
-    """Bir film → bir Cikti (+ istenirse artefakt). İstisna sızdırmaz.
+def _artefakt_uret_giris(uret: str, girdi: Girdi, dizin: Path, kok: Path,
+                         sinir_sonuc: dict) -> dict:
+    """GİRİŞ artefaktı üret → `uretilen` künyesinin bir elemanı.
 
-    `uret`: "yok" (varsayılan, yalnız karar) | "kare" (kare havuzu) |
-    "klip" (sessiz mp4). Artefakt DAİMA onset'ten GERI_PAY_SN önce başlar ve
-    filmin sonuna kadar sürer. Yalnız `BULUNDU` durumunda üretilir.
+    `sinir_sonuc`: sinir.bul()'un BULUNDU çıktısı (baslangic_*/bitis_* dolu).
+    kare: (b) HAVUZ'un seçtiği kareler — ARDIŞIK ARALIK DEĞİL. klip:
+    baslangic_sn-GERI_PAY_SN → bitis_sn (çıkıştaki gibi filmin sonuna GİTMEZ).
+    """
+    hedef_kok = Path(kok) / girdi.film_id / girdi.bolum
+    if uret == "kare":
+        from giris import havuz
+        h = havuz.sec(str(dizin), sinir_sonuc, girdi.config)
+        adet = kare_havuzu_yaz_secili(h["kareler"], hedef_kok / "kareler")
+        return {"tip": "kare", "yol": "kareler", "adet": adet, "secim": "havuz",
+                "taranan": h["taranan"], "elenen_footage": h["elenen_footage"],
+                "dedup_temsilci": h["dedup_temsilci"]}
+    bas_sn = max(0.0, sinir_sonuc["baslangic_sn"] - GERI_PAY_SN)
+    bit_sn = sinir_sonuc["bitis_sn"]
+    p = klip_kes_araligi(girdi.video, hedef_kok / "klip" / "klip.mp4", bas_sn, bit_sn)
+    return {"tip": "klip", "yol": "klip/klip.mp4", "baslangic_sn": round(bas_sn, 2),
+            "bitis_sn": round(bit_sn, 2), "sessiz": True, "geri_pay_sn": GERI_PAY_SN,
+            "boyut_bayt": p.stat().st_size if p.exists() else 0}
+
+
+def _uret_ayristir(uret: str) -> list[str]:
+    """'kare,klip' → ['kare','klip']; sırayı korur, tekilleştirir."""
+    parcalar = [p.strip() for p in (uret or "").split(",") if p.strip()]
+    if not parcalar:
+        parcalar = ["yok"]
+    return list(dict.fromkeys(parcalar))
+
+
+def _cikis_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
+                  gercek_uretler: list[str], kok: Path) -> Cikti:
+    """ÇIKIŞ bölümü karar + artefakt(lar). Hata → _ArizaSinyali (tek() yakalar)."""
+    try:
+        r = _tespit(str(dizin), girdi.config)
+    except Exception as e:
+        raise _ArizaSinyali("MOTOR", f"{type(e).__name__}: {e}") from e
+
+    n = len(list(Path(dizin).glob("*.png"))) or len(list(Path(dizin).glob("*.jpg")))
+    kanit = {"kare_sayisi": n, "kare_fps": float(KARE_FPS),
+             "pencere_baslangic_sn": float(pencere_ss),
+             "yontem": getattr(r, "yontem", ""),
+             "ocr_hata": getattr(r, "ocr_hata", 0)}
+    if r.start_frame == -1:
+        return Cikti(film_id=girdi.film_id, bolum=girdi.bolum,
+                     durum="KREDI_YOK", kanit=kanit)
+    c = Cikti(film_id=girdi.film_id, bolum=girdi.bolum, durum="BULUNDU",
+              baslangic_kare=int(r.start_frame),
+              baslangic_sn=round(pencere_ss + r.start_frame / KARE_FPS, 2),
+              guven=round(float(getattr(r, "guven", 0.0)), 3),
+              script=getattr(r, "script", "en"), kanit=kanit)
+    if gercek_uretler:
+        uretilen = []
+        for u in gercek_uretler:
+            try:
+                uretilen.append(_artefakt_uret_cikis(u, girdi, dizin, kok,
+                                                      int(r.start_frame), pencere_ss))
+            except Exception as e:
+                raise _ArizaSinyali(f"URETIM_{u.upper()}", f"{type(e).__name__}: {e}") from e
+        c.uretilen = uretilen
+    return c
+
+
+def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
+                  gercek_uretler: list[str], kok: Path) -> Cikti:
+    """GİRİŞ bölümü karar + artefakt(lar). Hata → _ArizaSinyali (tek() yakalar).
+
+    (a) SINIR (`giris.sinir.bul`) çağrılır — motor patlarsa ARIZA(GIRIS_SINIR),
+    sessizce sabit pencereye düşmek YASAK. Bulunamazsa (found=False) KREDI_YOK.
+    Bulunduysa (b) HAVUZ yalnız `--uret kare` istenince çalışır (pahalı OCR).
+    """
+    from giris import sinir
+    try:
+        b = sinir.bul(str(dizin), girdi.config)
+    except Exception as e:
+        raise _ArizaSinyali("GIRIS_SINIR", f"{type(e).__name__}: {e}") from e
+
+    n = len(list(Path(dizin).glob("*.png"))) or len(list(Path(dizin).glob("*.jpg")))
+    kanit = dict(b.get("kanit") or {})
+    kanit.update({"kare_sayisi": n, "kare_fps": float(KARE_FPS),
+                  "pencere_baslangic_sn": float(pencere_ss)})
+    if not b.get("bulundu"):
+        return Cikti(film_id=girdi.film_id, bolum=girdi.bolum,
+                     durum="KREDI_YOK", kanit=kanit)
+    c = Cikti(film_id=girdi.film_id, bolum=girdi.bolum, durum="BULUNDU",
+              baslangic_kare=b["baslangic_kare"], baslangic_sn=b["baslangic_sn"],
+              bitis_kare=b["bitis_kare"], bitis_sn=b["bitis_sn"],
+              guven=b["guven"], kanit=kanit)
+    if gercek_uretler:
+        uretilen = []
+        for u in gercek_uretler:
+            try:
+                uretilen.append(_artefakt_uret_giris(u, girdi, dizin, kok, b))
+            except Exception as e:
+                raise _ArizaSinyali(f"URETIM_{u.upper()}", f"{type(e).__name__}: {e}") from e
+        c.uretilen = uretilen
+    return c
+
+
+def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
+    """Bir film → bir Cikti (+ istenirse artefakt(lar)). İstisna sızdırmaz.
+
+    `uret`: "yok" (varsayılan, yalnız karar) | tek tür ("kare"/"klip") |
+    virgüllü çoklu ("kare,klip"). `uretilen` HER ZAMAN liste (tek elemanlı
+    olsa bile). Yalnız `BULUNDU` durumunda üretilir.
+
+    `girdi.bolum`: "cikis" (STANDART) motoru (`src/motor.py`) çağırır;
+    "giris" `giris/sinir.py` + `giris/havuz.py`'yi çağırır (bkz.
+    src/giris/TASARIM.md). İkisi bağımsız çalışır, birinin ARIZA'sı diğerini
+    etkilemez (ayrı ayrı `tek()` çağrılır, CLI bunu yönetir).
     """
     kok = Path(kok) if kok else OUT
     t0 = time.time()
@@ -173,23 +330,14 @@ def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
         c.yaz(kok)
         return c
 
-    if girdi.bolum == "giris":
-        # GIRIS JENERIGI HENUZ DESTEKLENMIYOR — ve bu bilerek GORUNUR bir
-        # arizadir. Motorun temel ayraci (motor.py SON_ERISIM=0.82: "aday
-        # pencerenin son %18'ine ULASMALI, yoksa kredi degildir") giris
-        # jenerigi icin TERS calisir: giristen sonra film HER ZAMAN devam eder.
-        # Motoru giris karelerine dogrultmak neredeyse her filme KREDI_YOK
-        # dedirtir - emin, sessiz ve sistematik olarak yanlis. Ayrica giris
-        # icin ne olcum yatagi (havuz_kur.sh TAIL_S=600 -> yalniz son 10 dk)
-        # ne de dogrulanmis GT var. Tahmin etmektense ariza demek dogrudur.
-        return _ariza("BOLUM_HAZIR_DEGIL",
-                      "giris jenerigi tespiti henuz yok. Motorun ayraci "
-                      "SON_ERISIM=0.82 kapanisa ozgudur ve giriste ters calisir; "
-                      "giris icin ayri GT + ayri karar mantigi gerekir "
-                      "(bkz. KATALOG.md 7). Kobe tahmin etmez.")
-    if uret not in URET_TIPLERI:
-        return _ariza("GIRDI_HATASI", f"uret={uret!r} gecersiz — {URET_TIPLERI}")
-    if uret == "klip" and not girdi.video:
+    parcalar = _uret_ayristir(uret)
+    for u in parcalar:
+        if u not in URET_TIPLERI:
+            return _ariza("GIRDI_HATASI", f"uret={u!r} gecersiz — {URET_TIPLERI}")
+    if "yok" in parcalar and len(parcalar) > 1:
+        return _ariza("GIRDI_HATASI", "'yok' baska uret turuyle birlikte kullanilamaz")
+    gercek_uretler = [u for u in parcalar if u != "yok"]
+    if "klip" in gercek_uretler and not girdi.video:
         # Kare dizininden klip kesilemez. Sessizce atlamak YASAK — istenen
         # cikti uretilemiyorsa bu gizlenmez.
         return _ariza("GIRDI_HATASI",
@@ -198,40 +346,20 @@ def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
         if girdi.video:
             benim_scratch = Path(SCRATCH) / girdi.film_id
             try:
-                dizin, pencere_ss = kare_cikar(girdi.video, benim_scratch)
+                dizin, pencere_ss = kare_cikar(girdi.video, benim_scratch, girdi.bolum)
             except Exception as e:
                 return _ariza("KARE_CIKARIM", str(e))
         else:
             dizin = Path(girdi.kareler)
 
         try:
-            r = _tespit(str(dizin), girdi.config)
-        except Exception as e:
-            return _ariza("MOTOR", f"{type(e).__name__}: {e}")
+            if girdi.bolum == "giris":
+                c = _giris_sonucu(girdi, dizin, pencere_ss, gercek_uretler, kok)
+            else:
+                c = _cikis_sonucu(girdi, dizin, pencere_ss, gercek_uretler, kok)
+        except _ArizaSinyali as e:
+            return _ariza(e.sinif, e.mesaj)
 
-        n = len(list(Path(dizin).glob("*.png"))) or len(list(Path(dizin).glob("*.jpg")))
-        kanit = {"kare_sayisi": n, "kare_fps": float(KARE_FPS),
-                 "pencere_baslangic_sn": float(pencere_ss),
-                 "yontem": getattr(r, "yontem", ""),
-                 "ocr_hata": getattr(r, "ocr_hata", 0)}
-        if r.start_frame == -1:
-            c = Cikti(film_id=girdi.film_id, bolum=girdi.bolum,
-                      durum="KREDI_YOK", kanit=kanit)
-        else:
-            c = Cikti(film_id=girdi.film_id, bolum=girdi.bolum, durum="BULUNDU",
-                      baslangic_kare=int(r.start_frame),
-                      baslangic_sn=round(pencere_ss + r.start_frame / KARE_FPS, 2),
-                      guven=round(float(getattr(r, "guven", 0.0)), 3),
-                      script=getattr(r, "script", "en"), kanit=kanit)
-            # Artefakt — kobe.json'dan ONCE uretilir, cunku `yaz()` _TAMAM'i
-            # basar ve tuketici kurali "_TAMAM varsa her sey hazir"dir.
-            if uret != "yok":
-                try:
-                    c.uretilen = _artefakt_uret(uret, girdi, dizin, kok,
-                                                int(r.start_frame), pencere_ss)
-                except Exception as e:
-                    return _ariza(f"URETIM_{uret.upper()}",
-                                  f"{type(e).__name__}: {e}")
         c.sure_sn = round(time.time() - t0, 1)
         c.motor_surumu = _surum()
         c.yaz(kok)
@@ -244,67 +372,97 @@ def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
 
 
 def toplu(girdi_dizini: Path, kareler_modu: bool, kok: Path | None = None,
-          uret: str = "yok", bolum: str = "cikis") -> list[Cikti]:
-    """Girdi yolundaki her öğeyi işle; _TAMAM olanı atla (kaldığı yerden devam)."""
+          uret: str = "yok", bolum: str | list[str] = "cikis") -> list[Cikti]:
+    """Girdi yolundaki her öğeyi HER bölüm için işle; _TAMAM'ı bölüm bazında
+    atla (kaldığı yerden devam). `bolum` tek string veya liste olabilir."""
     kok = Path(kok) if kok else OUT
     girdi_dizini = Path(girdi_dizini)
+    bolumler = [bolum] if isinstance(bolum, str) else list(bolum)
     ogeler = sorted(p for p in girdi_dizini.iterdir()
                     if (p.is_dir() if kareler_modu else p.suffix.lower()
                         in (".mp4", ".mkv", ".avi", ".mov", ".ts")))
     sonuc = []
     for p in ogeler:
         fid = film_id_uret(p, kareler_modu)
-        if (kok / fid / bolum / "_TAMAM").exists():
-            print(f"[atla] {fid}")
-            continue
-        g = Girdi(film_id=fid, bolum=bolum,
-                  **({"kareler": str(p)} if kareler_modu else {"video": str(p)}))
-        c = tek(g, kok, uret)
-        sonuc.append(c)
-        ek = f" {c.uretilen['tip']}={c.uretilen['yol']}" if c.uretilen else ""
-        print(f"[{c.durum}] {fid} kare={c.baslangic_kare} sure={c.sure_sn}s{ek}")
+        for b in bolumler:
+            if (kok / fid / b / "_TAMAM").exists():
+                print(f"[atla] {fid}/{b}")
+                continue
+            g = Girdi(film_id=fid, bolum=b,
+                      **({"kareler": str(p)} if kareler_modu else {"video": str(p)}))
+            c = tek(g, kok, uret)
+            sonuc.append(c)
+            ek = f" uretilen={','.join(u['tip'] for u in c.uretilen)}" if c.uretilen else ""
+            print(f"[{c.durum}] {fid}/{b} kare={c.baslangic_kare} sure={c.sure_sn}s{ek}")
     return sonuc
+
+
+def _virgullu_liste(gecerliler: tuple[str, ...], ad: str):
+    """argparse `type=`: 'a,b' → ['a','b'] + geçerlilik denetimi. `choices=`
+    virgüllü girdiyi anlamadığı için kendi ayrıştırıcımız gerekiyor."""
+    def _ayristir(deger: str) -> list[str]:
+        parcalar = [p.strip() for p in deger.split(",") if p.strip()]
+        if not parcalar:
+            raise argparse.ArgumentTypeError(f"--{ad} bos olamaz")
+        gecersiz = [p for p in parcalar if p not in gecerliler]
+        if gecersiz:
+            raise argparse.ArgumentTypeError(
+                f"--{ad} gecersiz deger(ler) {gecersiz} — gecerli: {list(gecerliler)}")
+        return list(dict.fromkeys(parcalar))
+    return _ayristir
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="kobe", description="jenerik baslangic tespiti")
     alt = ap.add_subparsers(dest="komut", required=True)
 
-    BOLUM_YRD = ("cikis = kapanis jenerigi (STANDART, calisir) | "
-                 "giris = giris jenerigi — HENUZ YOK, acik ARIZA doner")
+    BOLUM_YRD = ("cikis = kapanis jenerigi | giris = giris jenerigi. Virgullu "
+                 "coklu secim olur: 'giris,cikis'. Varsayilan: cikis.")
     URET_YRD = ("istege bagli artefakt: 'kare' = kare havuzu, 'klip' = SESSIZ "
-                f"mp4. Ikisi de onset'ten {GERI_PAY_SN} sn ONCE baslar ve "
-                "filmin sonuna kadar surer. 'klip' video girdisi ister.")
+                f"mp4. Virgullu coklu secim olur: 'kare,klip'. Ikisi de "
+                f"onset'ten {GERI_PAY_SN} sn ONCE baslar. 'klip' video girdisi "
+                "ister. Varsayilan: yok.")
 
     a = alt.add_parser("start", help="toplu: girdi yolundaki her ogeyi isle")
     a.add_argument("--input", required=True)
     a.add_argument("--kareler", action="store_true",
                    help="girdi yolu hazir kare dizinleri iceriyor")
-    a.add_argument("--uret", choices=URET_TIPLERI, default="yok", help=URET_YRD)
-    a.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
+    a.add_argument("--uret", type=_virgullu_liste(URET_TIPLERI, "uret"),
+                   default=["yok"], help=URET_YRD)
+    a.add_argument("--bolum", type=_virgullu_liste(BOLUMLER, "bolum"),
+                   default=["cikis"], help=BOLUM_YRD)
 
     b = alt.add_parser("tek", help="tek film")
     b.add_argument("--video")
     b.add_argument("--kareler")
     b.add_argument("--film-id", required=True)
-    b.add_argument("--uret", choices=URET_TIPLERI, default="yok", help=URET_YRD)
-    b.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
+    b.add_argument("--uret", type=_virgullu_liste(URET_TIPLERI, "uret"),
+                   default=["yok"], help=URET_YRD)
+    b.add_argument("--bolum", type=_virgullu_liste(BOLUMLER, "bolum"),
+                   default=["cikis"], help=BOLUM_YRD)
 
     n = ap.parse_args(argv)
+    uret_str = ",".join(n.uret)
     if n.komut == "start":
-        toplu(Path(n.input), n.kareler, uret=n.uret, bolum=n.bolum)
+        toplu(Path(n.input), n.kareler, uret=uret_str, bolum=n.bolum)
         return 0
-    try:
-        g = Girdi(film_id=n.film_id, video=n.video, kareler=n.kareler,
-                  bolum=n.bolum)
-    except GirdiHatasi as e:
-        c = ariza(n.film_id, "GIRDI_HATASI", str(e), bolum=n.bolum)
-        c.yaz(OUT)
+
+    # tek: her istenen bolum icin BAGIMSIZ calisir — biri ARIZA olsa digeri
+    # etkilenmez, her biri kendi out/<film>/<bolum>/kobe.json'unu yazar.
+    hata_var = False
+    for b_deger in n.bolum:
+        try:
+            g = Girdi(film_id=n.film_id, video=n.video, kareler=n.kareler,
+                      bolum=b_deger)
+        except GirdiHatasi as e:
+            c = ariza(n.film_id, "GIRDI_HATASI", str(e), bolum=b_deger)
+            c.yaz(OUT)
+        else:
+            c = tek(g, uret=uret_str)
         print(json.dumps(c.sozluk(), ensure_ascii=False))
-        return 2
-    c = tek(g, uret=n.uret)
-    print(json.dumps(c.sozluk(), ensure_ascii=False))
-    return 2 if c.durum == "ARIZA" else 0
+        if c.durum == "ARIZA":
+            hata_var = True
+    return 2 if hata_var else 0
 
 
 if __name__ == "__main__":

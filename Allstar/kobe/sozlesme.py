@@ -48,14 +48,21 @@ class Cikti:
     bolum: str = "cikis"
     baslangic_kare: int | None = None
     baslangic_sn: float | None = None
+    # yalniz GIRIS doldurur (jenerigin bittigi/filmin basladigi sinir). CIKIS
+    # icin None kalir — bitis film sonu demektir, ayrica tasinmaz.
+    bitis_kare: int | None = None
+    bitis_sn: float | None = None
     guven: float | None = None
     script: str | None = None
     kanit: dict = field(default_factory=dict)
     motor_surumu: str = ""
     uretim_zamani: str = ""
     sure_sn: float = 0.0
-    # yalniz BULUNDU + --uret istendiyse: uretilen artefaktin kunyesi
-    uretilen: dict | None = None
+    # yalniz BULUNDU + --uret istendiyse: uretilen artefakt(lar)in kunyesi.
+    # HER ZAMAN liste (tek artefaktta bile tek elemanli) — tuketici tek bicim
+    # gorsun. --uret coklu ise (ornek "kare,klip") liste birden fazla eleman
+    # tasir; ayni bolum klasorune yazilirlar.
+    uretilen: list[dict] | None = None
     # yalniz ARIZA
     sinif: str | None = None
     mesaj: str | None = None
@@ -85,6 +92,8 @@ class Cikti:
         if self.durum == "BULUNDU":
             d |= {"baslangic_kare": self.baslangic_kare,
                   "baslangic_sn": self.baslangic_sn,
+                  "bitis_kare": self.bitis_kare,
+                  "bitis_sn": self.bitis_sn,
                   "guven": self.guven, "script": self.script,
                   "uretilen": self.uretilen}
         if self.durum == "ARIZA":

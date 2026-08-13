@@ -92,7 +92,7 @@ class _SahteSonuc:
         self.script, self.notlar, self.ocr_hata = "en", "", 0
 
 
-def _sahte_kare_cikar(video, hedef):
+def _sahte_kare_cikar(video, hedef, bolum="cikis"):
     hedef.mkdir(parents=True, exist_ok=True)
     (hedef / "c_00001.png").write_bytes(b"x")
     return hedef, 0

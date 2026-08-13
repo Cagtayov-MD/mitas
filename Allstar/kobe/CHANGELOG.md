@@ -1,5 +1,63 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-13 (4) — giriş bloğu uygulandı, uçtan uca çalışıyor
+
+Kapsam Çağatay tarafından daraltıldı ("çalışsın, mükemmel olmasına gerek
+yok") — GT/ölçüm yatağı (G5-G7) sonraki faz, bu turda hedef yalnız işlevsel
+uçtan uca akış. `src/motor.py`'ye dokunulmadı.
+
+**Sözleşme:** `Cikti`'ya `bitis_kare`/`bitis_sn` eklendi (yalnız giriş
+doldurur, çıkış `None` bırakır — giriş iki sınır taşır, çıkış tek). `uretilen`
+artık HER ZAMAN liste (tek artefaktta bile tek elemanlı) — `--uret kare,klip`
+gibi çoklu istek aynı bölüm klasörüne ikisini de yazabilsin diye.
+
+**`src/giris/sinir.py`** — (a) SINIR. Mevcut `core/pipelines/ocr/
+jenerik_detector.detect_from_frames` ÇAĞRILIR (kopyalanmadı). Güven kapısı:
+güven ≥ 0.60 → tespit edilen sınır; altındaysa sabit pencereye (0-240 sn)
+düşer ve bunu `kanit.sinir_kaynagi` ile açıkça işaretler (`"tespit"|"sabit"`)
+— sessiz tahmin yok. Motor çökerse `ARIZA(GIRIS_SINIR)`.
+
+**`src/giris/havuz.py`** — (b) HAVUZ. `scripts/giris_jenerik_havuzu.py`'nin
+stratejisi (dosya kopyalanmadı), aletler Kobe'nin kendisi (`kutu.py` +
+`icerik.py`): kutu yoksa footage/elenir, altyazı-bandı elenir, kredi-benzeri
+≥1 satır varsa alınır, OCR patlarsa/boş dönerse RECALL ile koşulsuz alınır
+("okunamadı > yanlış oku"), aynı metin-imzalı kareler teke iner. Havuz,
+sınırın dar aralığıyla KISITLANMAZ — tüm giriş penceresini tarar (aynen
+`giris_jenerik_havuzu.py` gibi), çünkü gerçek koşuda geç köşe-kredileri
+sınırın dışında kaldı (aşağıya bkz).
+
+**`main.py`** — `bolum=="giris"` artık gerçek karar üretiyor (eski açık
+`ARIZA(BOLUM_HAZIR_DEGIL)` kaldırıldı). `kare_cikar()` bölüme duyarlı: giriş
+`ss=0, uzunluk=240` (600 DEĞİL — kapanış simetrisinden uydurulmuştu).
+`--bolum` ve `--uret` virgüllü çok-seçimli oldu (`choices=` yerine kendi
+ayrıştırıcı, geçersiz değerde net hata); varsayılanlar değişmedi
+(`cikis`, `yok`). Giriş klibi çıkıştan farklı: `baslangic_sn-10 → bitis_sn`
+(filmin sonuna GİTMEZ).
+
+**Gerçek koşu** (`filmtest/depo_3006/`, 2 farklı film):
+
+```
+KOBRA --bolum giris --uret klip
+  → BULUNDU, güven 0.754, sınır 0.0-21.0 sn, kanit.sinir_kaynagi=tespit
+  → klip.mp4: ffprobe 21.000000 sn, h264, ses akışı yok, 10.9 sn'de bitti
+
+SİLAHLAR_KONUŞUYOR --bolum giris --uret kare
+  → BULUNDU, güven 0.761, sınır 0.0-17.5 sn
+  → havuz: taranan=480, elenen_footage=231, dedup_temsilci=75 (75 PNG diskte,
+    kare 11'den 476'ya yayılı — havuzun sınırla kısıtlanmama kararı burada
+    kanıtlandı: sınır 0-34'te bitiyor ama gerçek kredi kareleri çok ötede)
+  → 51.5 sn'de bitti
+```
+
+Testler 62/62 (3 eski "giriş hep ARIZA" testi silindi — artık doğru değil,
+4 yeni test geldi: sinir.bul çağrılır/çağrılmaz, bitis_* dolar, bulunamazsa
+KREDI_YOK, çökerse ARIZA). Havuz/sınır iç mantığı için ağır mock'lu test
+yazılmadı — gerçek koşu asıl doğrulama.
+
+**SON KAPI DEĞİŞTİ:** `olc_pool.py --paralel 8` (110 filmlik ölçüm) bu turda
+ÇALIŞTIRILMADI — kapsam dışı bırakıldı (kalite fazı, sonraki iş). Kapı
+yalnız: `pytest tests/ -q` yeşil + `git diff --stat src/motor.py` boş.
+
 ## 2026-08-13 (3) — bölüm ayrımı + KATALOG
 
 `KATALOG.md` yazıldı: kulenin kimlik kartı — neden var, nasıl hizmet verir,

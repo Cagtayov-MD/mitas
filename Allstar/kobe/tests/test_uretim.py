@@ -43,8 +43,8 @@ def test_kare_havuzu_10sn_geriden_baslar(tmp_path, monkeypatch):
     c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
     havuz = tmp_path / "out" / "F1" / "cikis" / "kareler"
     kareler = sorted(havuz.glob("*.png"))
-    assert c.uretilen["tip"] == "kare"
-    assert c.uretilen["ilk_kare"] == 80
+    assert c.uretilen[0]["tip"] == "kare"
+    assert c.uretilen[0]["ilk_kare"] == 80
     assert kareler[0].name == "c_00080.png"
     assert kareler[-1].name == "c_00200.png"
     assert len(kareler) == 121
@@ -63,7 +63,7 @@ def test_kare_havuzu_sifirin_altina_inmez(tmp_path, monkeypatch):
     d = _kare_dizini(tmp_path / "kareler", adet=50)
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(5))
     c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
-    assert c.uretilen["ilk_kare"] == 1
+    assert c.uretilen[0]["ilk_kare"] == 1
 
 
 # ── sessiz klip ─────────────────────────────────────────────────────────
@@ -77,13 +77,13 @@ def test_klip_10sn_geriden_kesilir_ve_sessiz(tmp_path, monkeypatch):
         return hedef
 
     monkeypatch.setattr(main, "SCRATCH", tmp_path / "scratch")
-    monkeypatch.setattr(main, "kare_cikar", lambda v, h: (_kare_dizini(h), 400))
+    monkeypatch.setattr(main, "kare_cikar", lambda v, h, b="cikis": (_kare_dizini(h), 400))
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     monkeypatch.setattr(main, "klip_kes", _sahte_ffmpeg)
     c = main.tek(Girdi(film_id="F1", video="/y/F1.mp4"), tmp_path / "out", uret="klip")
     # pencere 400 sn + onset 100/2 = 450 sn; 10 sn geri → 440
     assert cagrilar == [("/y/F1.mp4", 440.0)]
-    assert c.uretilen["tip"] == "klip"
+    assert c.uretilen[0]["tip"] == "klip"
     assert (tmp_path / "out" / "F1" / "cikis" / "klip" / "klip.mp4").exists()
 
 
@@ -147,8 +147,8 @@ def test_uretilen_kobe_jsona_yazilir(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "_tespit", lambda x, c: _SahteSonuc(100))
     main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", uret="kare")
     j = json.loads((tmp_path / "out" / "F1" / "cikis" / "kobe.json").read_text(encoding="utf-8"))
-    assert j["uretilen"]["tip"] == "kare" and j["uretilen"]["yol"] == "kareler"
-    assert j["uretilen"]["adet"] == 121
+    assert j["uretilen"][0]["tip"] == "kare" and j["uretilen"][0]["yol"] == "kareler"
+    assert j["uretilen"][0]["adet"] == 121
 
 
 # ── sözleşme: uretilen alanı ────────────────────────────────────────────
