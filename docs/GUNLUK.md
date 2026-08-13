@@ -7,6 +7,61 @@
 
 ---
 
+## 2026-08-13 (2) — Allstar/Jordan: ikinci kule kuruldu
+
+**Yapılan.** `Allstar/jordan/` ayakta: **mp4 girer, yazı çıkar.** Native video
+okuma, Qwen3.5-9B. Kobe'nin sözleşme deseni devralındı (`OKUNDU`/`METIN_YOK`/
+`ARIZA`, `ARIZA` asla içerik gerçeğine dönüşmez, atomik yazım + `_TAMAM`).
+Testler 60/60. Uçtan uca: KUKLA ADAM 245 sn → 19 parça, 0 bozuk, 15 blok /
+28 satır, 8 çift, 0 eleme, 120 sn. Commit `95c50959`.
+
+**İki geçiş kararı.** Çağatay "hem blok hem rol→isim çifti üretilsin" dedi.
+Bunu tek istekte değil iki geçişte yaptım: geçiş 2'ye **görüntü verilmiyor**,
+yalnız geçiş 1'in metni giriyor. Sebep: tek istekte model rolü tutturmak için
+metni düzeltmeye başlıyor ve okuma hatasıyla eşleme hatası ayrılamaz hale
+geliyor. Üstüne **sızdırmazlık kapısı**: geçiş 2'nin ürettiği her rol/isim
+geçiş 1'de geçmek zorunda, geçmiyorsa `kanit.cift_eleme`'ye yazılıp atılıyor.
+
+**Sandbox'tan kurtarılan kanıtlar** (`scratch/model_sandbox`, 2026-08-12'de
+kurulmuş, bu oturumda kapatıldı — silinmedi). Orada Qwen3.5-9B bu işte zaten
+denenmiş: `results_39_films_9b_ffmpeg` → 36 kare/çağrı @720p ile **39 filmin
+39'u CUDA OOM**; `user_9b_chunk_pipeline_results` → 15 sn parça + 2 sn bindirme
++ 30 kare ile ÇALIŞTI. Jordan'ın parçalama zorunluluğu ve `config.yaml`
+varsayılanları buradan geldi — tahminle değil, ölçümle.
+
+**Düşünme sızıntısı.** Aynı sandbox çıktısında Qwen3.5'in muhakemesi
+transkripte sızıyordu (*"Wait, looking closely at the first frame…"*, kaçak
+`</think>`, cevap iki kez). `dusunme: false` + ayıklayıcı + sayaç eklendi.
+`grade_claude.py`'de zaten `<think>` temizleyen kod varmış — bilinen kirlilik.
+
+**8-bit kararı.** Çağatay "INT8/FP8 kur" dedi. **FP8 bu kartta yok**:
+RTX 3090 = Ampere `sm_86`, FP8 çekirdeği `sm_89`+ ister. INT8 kuruldu
+(`RedHatAI/Qwen3.5-9B-quantized.w8a8`, 14 GB) — üstelik **görüntü kulesi
+kuantize değil**, yalnız dil tarafı. bf16 de kuruldu, kıyasın kontrol kolu.
+
+**Yakalanan iki gerçek kusur.** ① `Allstar/.gitignore`'a `*/model/` eklendi —
+33 GB ağırlık git'e girecekti (Kobe'de aynı sınıf hata `*/*/venv/` deseniyle
+yaşanmıştı). ② `torchvision` 0.26 `read_video`'yu kaldırmış; transformers ona
+düşüp `AttributeError` veriyordu → `torchcodec` kuruldu. **Kule bunu sessizce
+yutmadı**, ilk gerçek koşu `ARIZA(MODEL)` yazdı — sözleşme işini yaptı.
+
+**Gerçek koşuda çıkan üçüncü kusur.** Jenerik bitince model "yazı yok"u
+**cümleyle** söylüyor (*"There is no text in the provided video frames."*) ve
+kısa-işaret süzgeci bunu kaçırıp transkripte 5 yorum satırı sokuyordu. Süzgeç
+cümle desenini de kapsayacak şekilde düzeltildi; yeniden koşuldu, 33 → 28
+satır, sıfır yorum. **İstemde "no commentary" yazması yetmiyor — süzgeç kodda
+olmak zorunda.**
+
+**Bekleyen.** ① **Doğruluk ölçümü YAPILMADI** — kule çalışıyor ama ne kadar
+doğru okuduğu bilinmiyor. Malzeme hazır: `candidate_runs/vllm_bench_20260718/`
+içinde 24 film × 3482 satır insan-okuması GT + `grade_claude.py`. Eksik: o 24
+filmin kaynak mp4'leri (`/home/cagatay/test_film/` boşalmış). ② INT8 vs bf16
+kıyası — beklenen ayrışma **garble**'da. ③ Hız: `flash-linear-attention` +
+`causal-conv1d` kurulu değil, Gated DeltaNet saf torch'a düşüyor (doğruluğu
+değil hızı etkiler). ④ Jordan için **codex-review + konsey kod turu yapılmadı**.
+
+---
+
 ## 2026-08-13 — Allstar/Kobe: ilk kule kuruldu
 
 **Yapılan.** MITAS kule mimarisine geçti. İlk kule **Kobe** (jenerik başlangıç
