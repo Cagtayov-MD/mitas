@@ -7,6 +7,48 @@
 
 ---
 
+## 2026-08-13 (3) — Kobe: giriş jeneriği çalışıyor
+
+**Yapılan.** Kobe artık **hem giriş hem çıkış** jeneriği tespit ediyor. Commit
+`41bc799f`. İki yeni blok: `src/giris/sinir.py` (a — sınır) ve
+`src/giris/havuz.py` (b — havuz). Sözleşmeye `bitis_kare`/`bitis_sn` eklendi
+(yalnız giriş doldurur); `uretilen` her zaman liste oldu. CLI çok-seçimli:
+`--bolum giris,cikis --uret kare,klip`. Giriş penceresi **240 sn**
+(`MITAS_OCR_HEAD` değeri) — bir ara 600 önerilmişti, Çağatay düzeltti.
+
+**Yaklaşım taşındı, kod taşınmadı.** `jenerik_detector.py` (921 satır, 9 üretim
+tüketicisi) **çağrılıyor**, kopyalanmadı — dördüncü kopya borcu olurdu.
+`giris_jenerik_havuzu.py`'nin *stratejisi* alındı, dosyası değil; havuz
+Kobe'nin kendi aletleriyle (`kutu.py` + `icerik.py`) çalışıyor. Kule sınırı
+bilerek ve kayıtlı olarak esnetildi.
+
+**Hazır çıkan iki şey — uydurulmadı, koddan bulundu.** ① `prefer="first"`
+verilince motor `_apply_ocr_refine_end`'i kendiliğinden çağırıyor, yani
+giriş için **bitiş sınırı bedava** geliyor. ② `kutu_analiz()` zaten `alt_only`
+döndürüyor (tüm kutular alt %20'de = altyazı bandı) — tasarımdaki `ALT_BANT`
+sabitini yazmaya gerek kalmadı, üstelik det-önbellekli.
+
+**Gerçek koşuda çıkan tasarım doğrulaması.** SİLAHLAR_KONUŞUYOR'da sınır
+0-17.5 sn çıktı ama havuz kare 11'den **476'ya** yayıldı. Yani giriş kredileri
+sınırın çok ötesine serpiliyor — havuzun sınırla kısıtlanmaması doğru karardı,
+`giris_jenerik_havuzu.py` ile aynı davranış. Sınır **klip** için, havuz
+**kare** için.
+
+**Kapsam iki kez daraltıldı, ikisi de Çağatay'dan.** ① 600 sn → 240 sn.
+② `olc_pool.py` ölçüm kapısı iptal: *"ölçüm şu an yapılacak iş değil, iş uçtan
+uca çalışsın yeterli."* Sistem durmuş durumda, kalite ayrı faz. Ben çıkışı
+korumak için koyduğum kapıyı girişin önüne de koymuştum — `motor.py`'ye
+dokunulmadığı için o ölçümün orada işi yoktu. Yerine ucuz kapı:
+testler yeşil + `git diff src/motor.py` boş.
+
+**Bekleyen.** ① **Girişin doğruluğu ölçülmedi** — GT ve ölçüm yatağı yok
+(`EKSIKLER.md` G5-G7). "Kobe %94.5" hâlâ YALNIZ çıkış içindir; giriş hakkında
+hiçbir sayı yoktur. ② Çıkışın %94.5'i bu turda yeniden ölçülmedi (`motor.py`
+değişmedi, risk düşük ama **ölçülmedi** — iddia edilmiyor). ③ Havuz/sınır iç
+mantığının birim testi yok; doğrulama gerçek koşuya dayanıyor.
+
+---
+
 ## 2026-08-13 (2) — Allstar/Jordan: ikinci kule kuruldu
 
 **Yapılan.** `Allstar/jordan/` ayakta: **mp4 girer, yazı çıkar.** Native video
