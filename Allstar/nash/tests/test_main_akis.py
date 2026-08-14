@@ -123,8 +123,15 @@ def test_oom_ariza_bellek(tmp_path):
     assert c.durum == "ARIZA" and c.sinif == "BELLEK"
 
 
-def test_okuyucu_kurulmadiysa_ariza_model(tmp_path):
-    """Faz 1'de src/model.py YOK — kule tahmin etmez, açık ARIZA döner."""
+def test_okuyucu_kurulmadiysa_ariza_model(tmp_path, monkeypatch):
+    """Model yüklenemiyorsa kule tahmin etmez, açık ARIZA döner.
+
+    Hata AÇIKÇA zorlanır. 'model kurulu değil' varsayımına yaslanmak yasak:
+    model kurulunca (2026-08-14) o testler sessizce GERÇEK GPU koşusuna
+    dönüştü — takım 1.5 sn'den 26 sn'ye çıktı ve neyi ölçtüğü belirsizleşti.
+    """
+    monkeypatch.setattr(main, "okuyucu_kur",
+                        lambda cfg: (_ for _ in ()).throw(ImportError("model yok")))
     c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path))),
                  tmp_path / "out", None)
     assert c.durum == "ARIZA" and c.sinif == "MODEL"
@@ -166,10 +173,24 @@ def test_toplu_tamam_olani_atlar(tmp_path, monkeypatch):
     assert main.toplu(girdi, kok) == []
 
 
-def test_toplu_okuyucu_kurulamazsa_her_filme_ariza_yazar(tmp_path):
+def test_toplu_okuyucu_kurulamazsa_her_filme_ariza_yazar(tmp_path, monkeypatch):
+    monkeypatch.setattr(main, "okuyucu_kur",
+                        lambda cfg: (_ for _ in ()).throw(ImportError("model yok")))
     girdi = tmp_path / "girdi"
     girdi.mkdir()
     _iyi(girdi, "A")
     sonuc = main.toplu(girdi, tmp_path / "out")
     assert len(sonuc) == 1
     assert sonuc[0].durum == "ARIZA" and sonuc[0].sinif == "MODEL"
+
+
+def test_model_yuklerken_oom_BELLEK_olur_MODEL_degil(tmp_path, monkeypatch):
+    """Gerçek koşuda yakalandı (LA SEGUA/giris, 2026-08-14): kart başka bir
+    süreç tarafından doluyken kule 'model bozuk' diye rapor ediyordu. OOM'un
+    çaresi parça küçültmektir; MODEL'e düşerse o bilgi kaybolur."""
+    def patla(cfg):
+        raise okuyucu.Bellek("CUDA out of memory")
+    monkeypatch.setattr(main, "okuyucu_kur", patla)
+    c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path))),
+                 tmp_path / "out", None)
+    assert c.durum == "ARIZA" and c.sinif == "BELLEK"

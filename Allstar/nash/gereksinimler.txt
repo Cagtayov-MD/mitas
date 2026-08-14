@@ -10,11 +10,56 @@
 # olarak dondurulur. Kobe'de elle secilmis 16 paketlik liste skoru %94.5 →
 # %92.7 dusurmustu, alti kilit paket birebir ayni oldugu halde.
 numpy==2.3.5
-opencv-contrib-python==5.0.0.93
-PyYAML==6.0.2
-pytest==9.1.1
 
-# Faz 2 (okuyucu kule icinde) buraya EKLENECEK: torch, transformers, tokenizers,
-# safetensors, accelerate. Yigin muhru zorunlu — Ollama gguf+manifest ile
-# torch/transformers surumunu muhurluyordu; transformers'da bunu bu dosya yapar.
-# Ayni agirlik + farkli torch = farkli logits.
+# ── FAZ 1: havuz (numpy/opencv referans ortamla BIREBIR) ──
+iniconfig==2.3.0
+numpy==2.3.5
+packaging==26.3
+pluggy==1.6.0
+pytest==9.1.1
+PyYAML==6.0.2
+
+# ── FAZ 2: okuma yigini ──
+# transformers 5.x KULLANILAMAZ: DeepSeek-OCR'in uzak kodu
+# LlamaFlashAttention2 import ediyor, 5.x onu kaldirmis (olculdu 2026-08-14).
+# Model kartinin dedigi surum: transformers==4.46.3. Jordan'in pini (5.14.1)
+# Nash'e UYMAZ — her kulenin kendi venv'i tam da bunun icin var.
+# sdpa da kullanilamaz: DeepseekOCRForCausalLM reddediyor -> eager.
+accelerate==1.14.0
+addict==2.4.0
+easydict==1.13
+einops==0.8.2
+filelock==3.32.3
+fsspec==2026.7.0
+hf-xet==1.6.0
+huggingface_hub==0.36.2
+Jinja2==3.1.6
+matplotlib==3.11.1
+networkx==3.6.1
+nvidia-cublas==13.1.0.3
+nvidia-cuda-cupti==13.0.85
+nvidia-cuda-nvrtc==13.0.88
+nvidia-cuda-runtime==13.0.96
+nvidia-cudnn-cu13==9.19.0.56
+nvidia-cufft==12.0.0.61
+nvidia-cufile==1.15.1.6
+nvidia-curand==10.4.0.35
+nvidia-cusolver==12.0.4.66
+nvidia-cusparse==12.6.3.3
+nvidia-cusparselt-cu13==0.8.0
+nvidia-nccl-cu13==2.28.9
+nvidia-nvjitlink==13.0.88
+nvidia-nvshmem-cu13==3.4.5
+nvidia-nvtx==13.0.85
+pillow==12.1.0
+psutil==7.2.2
+regex==2026.7.19
+requests==2.34.2
+safetensors==0.8.0
+sympy==1.14.0
+tokenizers==0.20.3
+torch==2.11.0
+torchvision==0.26.0
+tqdm==4.70.0
+transformers==4.46.3
+triton==3.6.0

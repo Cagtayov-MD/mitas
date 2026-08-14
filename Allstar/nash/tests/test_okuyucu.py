@@ -67,7 +67,47 @@ def test_gevezelik_sayilir_ve_atilir():
     k, kanit = okuyucu.oku(_s("a.png"),
                            lambda p: "Caption: x\nYONETMEN AHMET\nsummary: y")
     assert [x["text"] for x in k] == ["YONETMEN AHMET"]
-    assert kanit["gevezelik_elenen"] == 2
+    assert kanit["elenen_n"] == 2
+
+
+def test_duzyazi_betimleme_elenir_ama_kanitta_kalir():
+    """Gercek kosuda cikti (CIGERPAREM, 2026-08-14): model Ozbekce jenerigin
+    ortasina 500 karakterlik Ingilizce sahne betimlemesi yazdi ve ilk surum
+    sizdirdi. Duzyazi fiil imzasi yakalar; satir YOK EDILMEZ, kanita duser."""
+    betim = ("A man and a woman are standing close to each other, with the "
+             "woman's hand around the man's arm. The image is a photograph.")
+    k, kanit = okuyucu.oku(_s("a.png"), lambda p: betim + "\nYODGOR SA DIYEV")
+    assert [x["text"] for x in k] == ["YODGOR SA DIYEV"]
+    assert kanit["elenme_sebepleri"] == {"duzyazi_fiil": 1}
+    assert kanit["elenen"][0]["text"].startswith("A man and a woman")
+
+
+def test_madde_imli_gercek_isimler_KORUNUR():
+    """KERMİT BATAKLIKTA / cikis_0384 (sadakat sondaji, 2026-08-14): Muppet
+    Workshop kunyesi ekranda GERCEKTEN madde imli. Uretimden alinan
+    'jenerikte madde imi olmaz' kurali o karede 14 GERCEK ismi eliyordu."""
+    ham = "- **Heather Asch\n- ROLLIE KREWSON\n• Polly Smith"
+    k, kanit = okuyucu.oku(_s("a.png"), lambda p: ham)
+    assert [x["text"] for x in k] == ["Heather Asch", "ROLLIE KREWSON", "Polly Smith"]
+    assert kanit["elenen_n"] == 0
+
+
+def test_madde_imi_soyulur_kalan_icerik_kurallardan_gecer():
+    """Im soyulur ama satir muaf DEGIL: kalan icerik duzyazi ise yine elenir."""
+    k, kanit = okuyucu.oku(
+        _s("a.png"), lambda p: "- The image shows a river\n- AHMET VELI")
+    assert [x["text"] for x in k] == ["AHMET VELI"]
+    assert kanit["elenen_n"] == 1
+
+
+def test_harfsiz_liste_numarasi_elenir():
+    k, kanit = okuyucu.oku(_s("a.png"), lambda p: "- 12\n- 34\nMUZIK VELI")
+    assert [x["text"] for x in k] == ["MUZIK VELI"]
+
+
+def test_garble_deseni_elenir():
+    k, kanit = okuyucu.oku(_s("a.png"), lambda p: "AHMET VELI AHMET VELI\nKURGU")
+    assert kanit["elenme_sebepleri"].get("garble_desen") == 1
 
 
 def test_sayfa_hatasi_sayilir_sessiz_degil():

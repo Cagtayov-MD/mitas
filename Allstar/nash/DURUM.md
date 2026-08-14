@@ -4,9 +4,10 @@
 > eder. Her iş biriminden sonra güncellenir ve commit'lenir.
 > Spec: `docs/superpowers/specs/2026-08-14-allstar-nash-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-14 — **FAZ 1 TAMAM.** Havuz yarısı çalışıyor,
-KAPI 1 geçildi (29/29 birebir, sapma sıfır), testler 99/99.
-**SIRADAKİ: Faz 0′ sadakat sondajı — Çağatay onayı bekliyor** (aşağıda).
+**Son güncelleme:** 2026-08-14 — **FAZ 0′ + FAZ 2 TAMAM. KULE UÇTAN UCA ÇALIŞIYOR.**
+Ham kare dizini girer, **yazı çıkar**. KAPI 1 29/29 sapma sıfır · KAPI 0′
+veto sonrası %92.8 birebir / %97.6 bulanık · testler 104/104.
+**SIRADAKİ: Faz 3 — üretim geçişi + sökme (ayrı tasarım gerekir).**
 
 ---
 
@@ -82,40 +83,70 @@ okuyacak — model çağrısı ~6.7×.
 (kule bugünkü davranışı sadık taşıdı), ama açık borç olarak burada duruyor.
 Ölçmek için malzeme hazır: `olcum/referans_uret.py` iki sürümle koşturulabilir.
 
-## SIRADAKİ İŞ — Faz 0′ sadakat sondajı (ÇAĞATAY ONAYI GEREKİYOR)
+## TAMAMLANAN — Faz 0′ sadakat sondajı + Faz 2 okuyucu
 
-Faz 2'ye (modeli kule içine almak) geçmeden önce ucuz bir ölçüm:
-**aynı N kare, iki motor** — Ollama/llama.cpp vs transformers — çıktılar
-diff'lenir.
+**Sonuç: TAŞIMA GÜVENLİ.** 4 farklı dönemden film (1955/1985/2002/2018) ×
+4 kare = 16 kare, iki motorda okundu ve kıyaslandı.
 
-**Neden:** DeepSeek-OCR patch-tabanlı. llama.cpp'nin `deepseekocr` handler'ı ile
-transformers `AutoProcessor` farklı normalize eder → patch sınırları farklı
-düşer → satır düzeyinde kayma (`YÖNETMEN` → `YÖNETME N`). `dedup_esigi=0.92`
-bunu **yeni satır** sayar ve künyeye sızar. (MiniMax, 2026-08-13 konsey turu.)
+| | birebir | bulanık (≥0.92) |
+|---|---|---|
+| Ham model çıktısı | %89.2 | %93.5 |
+| **Veto sonrası (kulenin gerçek çıktısı)** | **%92.8** | **%97.6** |
 
-**Maliyeti (Prensip 2 uzantısı — bu yüzden onay isteniyor):**
-- HF ağırlık indirme `deepseek-ai/DeepSeek-OCR` — **~6.7 GB**
-- `ollama.service` geçici başlatma (Kobe ölçümü aynı anda koşmamalı)
-- torch + transformers kurulumu kulenin venv'ine (~2-3 GB)
+Kalan 6+4 satırlık fark **içerik kaybı değil**, aynı künyenin harf düzeyinde
+varyantları: `Abduumannob`/`Abdumannob`, `Ra'no Qasimova`/`Qosimova`,
+`Judge Sullivan`/`Stillman`, `Vivamus at nunc`/`Vivus and music by`.
+Kaybolan veya uydurulan isim YOK.
 
-**Kapı:** sapma bandı ölçülür ve kayda geçer. Beklenmedik ölçüde büyükse
-**Karar 2 (model kule içine) Çağatay'a yeniden açılır** — sessizce devam edilmez.
+Sapma **metin içermeyen** karelerde toplanıyor; orada iki motor da uyduruyor
+ve birbirine çok yakın uyduruyor (`cikis_0576`: "woman's arm" / "woman's hand").
+O satırlar zaten veto katmanında eleniyor.
 
-Not: Ollama'daki model `file_type: F16`, 3.3B, 6.687 GB; HF'deki 3336.1M param.
-Birebir aynı ağırlık, kuantizasyon yok. Fark çıkarsa çıkarım yığınından gelir.
+### Yığın gerçekleri (ölçüldü, tahmin değil)
 
-## Sonraki fazlar
+- **transformers 5.x KULLANILAMAZ.** DeepSeek-OCR'ın uzak kodu
+  `LlamaFlashAttention2` import ediyor; 5.x onu kaldırmış. Model kartının
+  dediği sürüm: **4.46.3**. Jordan'ın pini (5.14.1) Nash'e UYMAZ — her kulenin
+  kendi venv'i tam da bunun için var.
+- **`sdpa` kullanılamaz:** `DeepseekOCRForCausalLM` reddediyor → **eager**.
+  Sondaj için doğru seçim: füzyonlu çekirdek sayısal fark katmaz.
+- **`infer(..., eval_mode=True)` ZORUNLU** — aksi halde metni stdout'a akıtıp
+  `None` döner.
+- Uzak kodun ek bağımlılıkları: `addict`, `matplotlib`, `requests`, `easydict`.
+- numpy 2.3.5'te **tutuldu**; KAPI 1 kurulum sonrası yeniden koşuldu, geçti.
+- Hız: kule-içi eager ~2-4 sn/kare · Ollama ~0.5-1.2 sn/kare (Ollama daha hızlı).
 
-**Faz 2 — okuyucu kule içine.** `src/model.py` (transformers'a dokunan TEK yer)
-+ `model_kur.sh` + pinli torch/transformers. KAPI 2: 15 filmde satır kıyası,
-Faz 0′'ın bandı içinde; `kanit.havuz` hâlâ birebir aynı.
+### Ölçümün yakaladığı KENDİ kusurum — madde imi kuralı
 
-**Faz 3 — üretim geçişi + sökme.** `_pipe_hibrit_okuma.py` ve
-`_pipe_track_kunye.py` kuleyi kullanır; sonra `steve_nash.py`, `messi.py`,
-`test_messi.py`, `test_steve_nash.py` ve `pilot_hat`'ın havuz/okuma katmanları
-**silinir.** Ayrı tasarım gerekir — entegrasyonun şekli (senkron/asenkron) Faz
-1-2'nin gerçek süre/bellek verisiyle kararlaştırılacak. Konseyin uyarıları
-spec §6'da.
+Üretimden birebir taşıdığım `madde_imi` vetosu (*"jenerikte madde imi olmaz"*,
+ALİE vakasından genellenmiş) **14 GERÇEK İSMİ eliyordu**: KERMİT BATAKLIKTA /
+`cikis_0384`, Muppet Workshop künyesi ekranda **gerçekten** madde imli bir isim
+listesi (Heather Asch, Rollie Krewson, Polly Smith…). İki motor da doğru
+okumuştu; kural ikisinde de kesiyordu.
+
+Düzeltme: **im elenmez, SOYULUR** (`_kirp`); kalan içerik öteki kurallardan
+geçer. Veto sonrası birebir %87.2 → **%92.8**.
+
+> **AÇIK BORÇ:** ALİE sınıfı (`- ` + düzyazı ama fiilsiz, örn.
+> *"- A river flowing..."*) artık yakalanmıyor. Daha iyi bir ayraç gerekiyor
+> ve **ölçülmeden eklenmeyecek.** Kulenin "yok etme, düşür" tasarımı sayesinde
+> elenen satırlar `kanit.elenen`'de durur — yanlış eleme görünür kalır.
+
+## SIRADAKİ — Faz 3: üretim geçişi + sökme
+
+**Ayrı tasarım gerekir.** Entegrasyonun şekli (senkron mu asenkron mu) bu
+oturumda çözülmedi ve çözülmemeliydi; artık elde gerçek veri var:
+
+- Kule-içi okuma **~2-4 sn/kare** (eager), Ollama ~0.5-1.2 sn/kare.
+- Toplu modda model BİR KEZ yükleniyor — "film başına yükleme" korkusu
+  gerçek değil (`start` deseni zaten çözüyor).
+- VRAM: Kobe(~4 GB) + Nash(6.7 GB) sığar; **Jordan(~18 GB) eklenince
+  28.7 GB > 24 GB — üçü aynı anda koşamaz.**
+
+Konseyin bu faza dair uyarıları spec §6'da (asenkronda sessiz bozulma
+sınıfları, kuyruk sigortasının kırılması, `frames/` yarış durumu).
+
+Sökülecekler aşağıda.
 
 ## Nash'in dışarıda kalan erleri (Faz 3'te sökülecek)
 

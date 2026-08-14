@@ -68,9 +68,115 @@ def gevezelik_mi(s: str) -> bool:
     return bool(cjk) and len([c for c in t if c.isalnum()]) <= 1
 
 
+_TR = str.maketrans("ıİIğĞüÜşŞöÖçÇ", "iiigguussoocc")
+
+
+def fold_tr(s: str) -> str:
+    """Türkçe-güvenli normalizasyon (ronaldo.fold_tr ile birebir).
+
+    `fold`'dan AYRI tutuluyor: üretimde de iki ayrı katlama var — dedup
+    `pilot_hat.fold` kullanıyor, yapısal veto `ronaldo.fold_tr`. Birleştirmek
+    ölçülmemiş bir davranış değişikliği olurdu.
+    """
+    s = s.translate(_TR).lower()
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return " ".join("".join(c if (c.isalnum() or c.isspace()) else " "
+                            for c in s).split())
+
+
+def garble_mi(satir: str) -> bool:
+    """Slit çift-basımı / tekrar-desenli çöp (ronaldo.garble_mi ile birebir)."""
+    f = fold_tr(satir)
+    kelimeler = f.split()
+    if len(kelimeler) >= 2 and len(kelimeler) % 2 == 0:
+        yarim = len(kelimeler) // 2
+        if kelimeler[:yarim] == kelimeler[yarim:]:
+            return True
+    duz = f.replace(" ", "")
+    if len(duz) > 40:
+        gramlar: dict[str, int] = {}
+        for i in range(len(duz) - 2):
+            g = duz[i:i + 3]
+            gramlar[g] = gramlar.get(g, 0) + 1
+        if max(gramlar.values()) >= len(duz) // 6:
+            return True
+    return False
+
+
+# Duzyazi fiil imzasi — model EKRANI OKUMAK yerine SAHNEYI ANLATIYORSA bu
+# kelimeler gecer. Jenerik satirlarinda gecmez. (_pipe_hibrit_okuma ile birebir.)
+_PROSA_FIIL = {
+    "is", "are", "was", "were", "has", "have", "had", "he", "she", "it",
+    "its", "there", "appears", "appear", "seems", "seem", "looks",
+    "showing", "shows", "suggests", "suggesting",
+    "captures", "capturing", "depicts", "depicting", "likely",
+    "gorunuyor", "goruluyor", "gosteriyor", "bulunuyor", "olabilir", "vardir",
+}
+
+
+def yapisal_veto(s: str) -> str | None:
+    """Ekranda OLMAYAN satır mı? Sebep döner, temizse None.
+
+    `_pipe_hibrit_okuma.yapisal_veto`'nun birebir taşınmışı. Orada kanonik
+    çıktıya (kunye.txt) uygulanıyor, ham çıktıya değil. Nash ham katmandır —
+    ama ekranda olmayan bir paragrafı "okundu" diye raporlamak kulenin kendi
+    sözleşmesine aykırıdır. Bu yüzden burada uygulanır, AMA satır yok
+    edilmez: `elenen`e düşürülür (track_kunye'nin dusuk_guven.txt deseni).
+    Yanlış eleme yapıyorsak GÖRÜNÜR olsun.
+    """
+    if s.startswith("[") or s.startswith("("):
+        return "anlatim_parantez"       # model sahneyi ANLATIYOR
+    # MADDE İMİ KURALI ÜRETİMDEN ALINDI, SONRA ÖLÇÜMLE KALDIRILDI (2026-08-14).
+    #
+    # Üretimde (_pipe_hibrit_okuma.yapisal_veto) '- ' ile başlayan satır komple
+    # eleniyor; gerekçe ALİE vakası: '- A river flowing...'. Genelleme
+    # "jenerikte madde imi olmaz" idi ve YANLIŞ çıktı.
+    #
+    # Sadakat sondajı ölçtü: KERMİT BATAKLIKTA / cikis_0384 — Muppet Workshop
+    # künyesi ekranda GERÇEKTEN madde imli bir isim listesi. Kural o karede
+    # İKİ motorda da 14 GERÇEK İSMİ eledi (Heather Asch, Rollie Krewson,
+    # Polly Smith…). Ölçülen zarar somut; ALİE'nin varsayılan zararı ise
+    # düzyazı/garble kurallarıyla zaten büyük ölçüde örtülü.
+    #
+    # Yeni davranış: madde imi `_kirp`'te SOYULUR, satır kalır; kalan içerik
+    # öteki kurallardan geçer. AÇIK BORÇ: ALİE sınıfı ('- ' + düzyazı ama
+    # fiilsiz) için daha iyi bir ayraç gerekiyor — bu ölçülmeden eklenmez.
+    if "**" in s:
+        return "markdown"
+    # HTML/tablo artefakti — modelin "belgeyi markdown'a cevir" refleksi.
+    # Sadakat sondajinda gorulldu (BOZGUNCULAR cikis_0647, 2026-08-14): bos
+    # karede model '<table><tr><td>Category</td><td>Value</td>...' uydurdu.
+    # Ust satirdaki markdown kuralinin ayni sinifi; jenerik satiri '<' ile
+    # baslamaz, '<td>' icermez.
+    if s.startswith("<") or any(t in s.lower() for t in ("<td>", "<tr>", "<table")):
+        return "html_artefakt"
+    harfler = [c for c in s if c.isalpha()]
+    if not harfler:
+        return "harfsiz"                # '- 1' liste-numarasi copu (olculdu: %32)
+    if sum(1 for c in harfler if "一" <= c <= "鿿") / len(harfler) > 0.3:
+        return "cjk_betimleme"
+    if any(k in _PROSA_FIIL for k in fold_tr(s).split()):
+        return "duzyazi_fiil"
+    if garble_mi(s):
+        return "garble_desen"
+    return None
+
+
 def _kirp(ln: str) -> str:
-    """Model çıktısındaki markdown süslerini soy (pilot_hat ile birebir)."""
-    return ln.strip().strip("`").lstrip("#").strip().strip("*").strip()
+    """Model çıktısındaki markdown süslerini soy.
+
+    pilot_hat.oku_deepseek ile aynı, ARTI madde imi soyma (2026-08-14 ölçümü,
+    `yapisal_veto` içindeki gerekçe): '- **Heather Asch' → 'Heather Asch'.
+    İmi elemek yerine soymak, ekranda gerçekten madde imli olan künye
+    listelerini korur. Sıra önemli: önce im, sonra kalan yıldızlar.
+    """
+    s = ln.strip().strip("`").lstrip("#").strip().strip("*").strip()
+    for im in ("- ", "* ", "• ", "-", "•"):
+        if s.startswith(im):
+            s = s[len(im):].strip()
+            break
+    return s.strip("*").strip()
 
 
 def oku(sayfalar: list[Path], sor: Callable[[Path], str],
@@ -86,9 +192,9 @@ def oku(sayfalar: list[Path], sor: Callable[[Path], str],
     geçebilir, uzak tekrar korunmalı.
     """
     kayitlar: list[dict] = []
+    elenen: list[dict] = []
     onceki: set[str] = set()
     sayfa_hata_n = 0
-    gevezelik_elenen = 0
 
     for sayfa_sira, p in enumerate(sayfalar, start=1):
         try:
@@ -111,16 +217,22 @@ def oku(sayfalar: list[Path], sor: Callable[[Path], str],
             if any(difflib.SequenceMatcher(None, f, o).ratio() >= dedup_esigi
                    for o in onceki):
                 continue
-            if gevezelik_mi(ln):
-                gevezelik_elenen += 1
+            sebep = "gevezelik" if gevezelik_mi(ln) else yapisal_veto(ln)
+            if sebep:
+                # YOK EDILMEZ, DUSURULUR — yanlis eleme gorunur olsun.
+                elenen.append({"kaynak": p.name, "text": ln, "sebep": sebep})
                 continue
             kayitlar.append({"kaynak": p.name, "sayfa_sira": sayfa_sira,
                              "satir_sira": satir_sira, "text": ln})
             satir_sira += 1
         onceki = yeni or onceki
 
+    sebepler: dict[str, int] = {}
+    for e in elenen:
+        sebepler[e["sebep"]] = sebepler.get(e["sebep"], 0) + 1
     return kayitlar, {"sayfa_hata_n": sayfa_hata_n,
-                      "gevezelik_elenen": gevezelik_elenen}
+                      "elenen_n": len(elenen), "elenme_sebepleri": sebepler,
+                      "elenen": elenen[:50]}
 
 
 def saglik(metinler: list[str], ayar: dict | None = None) -> tuple[bool, str]:

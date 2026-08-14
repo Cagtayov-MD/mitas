@@ -109,6 +109,12 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
     if sor is None:
         try:
             sor = okuyucu_kur(cfg)
+        except ok_mod.Bellek as e:
+            # OOM MODEL HATASI DEGIL. Genel except'in altinda kalirsa
+            # ARIZA(MODEL) olur ve "caresi parca kucultmek" bilgisi kaybolur.
+            # Gercek kosuda yakalandi (LA SEGUA/giris, 2026-08-14): kart baska
+            # bir surec tarafindan doluydu, kule "model bozuk" diye rapor etti.
+            return _ariza("BELLEK", f"model yuklenirken OOM: {e}", s.kanit)
         except ok_mod.ModelYok as e:
             return _ariza("MODEL", str(e), s.kanit)
         except ImportError as e:
