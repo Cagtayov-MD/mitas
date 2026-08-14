@@ -57,10 +57,36 @@ transformers `AutoProcessor` farklı normalize eder, satır düzeyinde kayma
 (`YÖNETMEN`→`YÖNETME N`) `dedup_esigi=0.92`'yi aşıp künyeye sızabilir. Faz 0′
 sadakat sondajı bu yüzden var. İki koltuk Çağatay müdahalesi bekliyor.
 
-**Bekleyen.** ① **Faz 0′ — sadakat sondajı, ONAY BEKLİYOR**: ~6.7 GB HF ağırlığı
-indirme + ollama geçici başlatma. ② Faz 2 — okuyucu kule içine. ③ Faz 3 —
-üretim geçişi + `harness/track_kunye` sökümü (ayrı tasarım; `_pipe_hibrit_okuma.py`
-canlı üretim yolu). ④ **e1a201d5 ölçülmedi** — açık borç.
+**Faz 0′ + Faz 2 aynı oturumda bitti (commit `b3a66e3d`).** Kule uçtan uca
+çalışıyor: **ham kare dizini girer, yazı çıkar.** Sadakat sondajı 4 farklı
+dönemden film (1955/1985/2002/2018) × 4 kare, iki motor: **veto sonrası %92.8
+birebir / %97.6 bulanık.** Kalan 6+4 satır fark içerik kaybı DEĞİL, aynı
+künyenin harf varyantları (`Abduumannob`/`Abdumannob`). Sapma **metin
+içermeyen** karelerde topluyor — orada iki motor da uyduruyor, üstelik
+birbirine çok yakın. **Taşıma güvenli.**
+
+**Yığın gerçeği: Nash'in pini Jordan'ınkiyle AYNI OLAMAZ.** DeepSeek-OCR uzak
+kodu `LlamaFlashAttention2` import ediyor, transformers 5.x kaldırmış →
+**4.46.3 zorunlu** (Jordan 5.14.1). `sdpa` de reddediliyor → `eager`.
+`infer(..., eval_mode=True)` olmadan metin dönmüyor. Her kulenin kendi venv'i
+tam da bunun için var.
+
+**Ölçümün yakaladığı üç kusur — üçü de GERÇEK koşuda çıktı, testte değil.**
+① Üretimden birebir taşıdığım `madde_imi` vetosu **14 gerçek ismi eliyordu**:
+KERMİT BATAKLIKTA/`cikis_0384`'te Muppet Workshop künyesi ekranda **gerçekten**
+madde imli. Kural ALİE vakasından genellenmişti ve o filmde yanlış. Artık im
+elenmiyor, **soyuluyor**. ② Model yüklerken OOM `ARIZA(MODEL)` oluyordu,
+`BELLEK` değil — "çaresi parça küçültmek" bilgisi kayboluyordu. ③ Düzyazı
+betimlemesi ve sahte HTML tablosu sızıyordu → yapısal veto taşındı.
+
+> **Ders: "yok etme, düşür."** Elenen satırlar `kanit.elenen`'e yazılıyor.
+> Madde imi kusuru **tam da bu sayede** görünür oldu — silseydim 14 isim
+> sessizce kaybolurdu ve kimse fark etmezdi.
+
+**Bekleyen.** ① Faz 3 — üretim geçişi + `harness/track_kunye` sökümü (ayrı
+tasarım; `_pipe_hibrit_okuma.py` canlı yol). ② **ALİE sınıfı açık borç**:
+`- ` + fiilsiz düzyazı artık yakalanmıyor; ayraç ölçülmeden eklenmeyecek.
+③ e1a201d5 ölçümü (ayrı oturuma çıkarıldı). ④ Konseyde iki koltuk ölü.
 
 ---
 
