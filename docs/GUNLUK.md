@@ -7,6 +7,63 @@
 
 ---
 
+## 2026-08-14 — Allstar/Nash: üçüncü kule, Faz 1 (havuz yarısı)
+
+**Yapılan.** `Allstar/nash/` ayakta: **ham kare dizini girer, karar çıkar.**
+Commit `33e0149d`. Testler 99/99, GPU gerektirmez. Okuyucu (Faz 2) kurulmadığı
+için gerçek koşu `ARIZA(MODEL)` dönüyor — bilerek görünür eksik, Kobe'nin
+`--bolum giris` deseni. `src/havuz.py`, `steve_nash.py`'nin **birebir** kopyası.
+
+**Nash neydi, kim okuyordu (Çağatay'ın sorusu).** Nash = saf kare-havuzu
+seçici (`steve_nash.py`, 245 satır; `messi.py` onun 6 satırlık takma adı — yani
+pipeline'daki "MESSİ" = Nash). Seçtiği kareleri **deepseek-ocr** okuyor
+(Ollama, istem birebir `"Free OCR."`). **Qwen okumuyor**: `pilot_hat.yapilandir`
+`qwen3-vl:30b`'yi görüntüsüz metin→metin yapılandırıcı olarak kullanıyor ama
+üretim betiği o katmanı **hiç çağırmıyor** — 5 filmlik pilotta kalmış ölü kod.
+
+**KAPI 1 — ve kapının kendisinin hatalı olması.** İlk kurduğum kapı kuleyi
+2026-07-31 tarihli `olcum_kol_frame.json`'lara karşı ölçüyordu: 13/14 aynı,
+MOBY DICK sapıyordu. Eski kodu **bugün** aynı karelerde koşturunca eski kod da
+kulenin sayısını verdi → sapan taşıma değil, **referansın kendisi bayat**.
+Kök sebep: **`e1a201d5` (2026-08-05) `film_esigi`'nin Otsu aramasını yeniden
+yazmış** — *"Optimize edilmiş O(n) Otsu"* diye, ama hız değil **cevap**
+değişmiş: eski arama her iki yanda ≥3 eleman şartıyla KISITLIYDI, yenisi
+şartsız arayıp ≥3'ü SONRADAN reddediyor. MOBY DICK'te eşik 28→13, sayfa
+**15→165 (11×)**. Hangisinin doğru olduğu **ölçülmedi**. Kapı yeniden kuruldu:
+taze üretilen referansa karşı (`olcum/referans_uret.py`) → **29/29 birebir,
+sapma sıfır**; tarihî fark ayrı satırda raporlanıyor.
+
+> **Ders: kapı eşyayı eşyayla kıyaslamalı.** Tarihî bir çıktıya karşı ölçmek
+> taşımayı değil, aradaki her commit'i ölçer.
+
+**Testlerin yakaladığı kendi kusurum.** `deepseek_saglik`'i ARIZA'ya
+çevirmiştim; 150 karakterlik **gerçek** bir kısa jenerik `ARIZA(CIKTI_BOZUK)`
+olup içeriği çöpe gidiyordu — sözleşmenin yasakladığı şeyin aynası. Sağlık
+üretimde de bayrak, hüküm değil. Artık yalnız `garble_yuksek` arıza üretir.
+Ayrıca gerçek koşuda görüldü: ARIZA'da da boş `nash.txt` yazılıyordu, `_TAMAM`
+ile birleşince "yazı yok" gibi görünüyordu → yalnız `OKUNDU`'da yazılıyor.
+
+**Üretimden devralınan üç kusur düzeltildi.** "Havuz boş" ikiye ayrıldı
+(içeriksiz → `METIN_YOK`, açılamayan → `ARIZA(KARE_OKUNAMADI)`; üretimde ikisi
+aynı kutuda ve yatakta hangisi olduğu bilinmeyen bir film var) · `sayfa_hata_n`
+sayılıyor (patlayan sayfa sessizce atlanıyordu) · `dusurulen_n` doğru
+hesaplanıyor (referans atamadan sonra çıkarıyor → daima 0).
+
+**Konsey turu büyük ölçüde başarısız.** 5 üyeden Qwen (hesap borcu), **Kimi
+(koltuk `deepseek-v4-pro`, 2026-08-07'de EOL)**, Nemotron (timeout) hata verdi;
+GLM'in cevabı ortasında bozuldu. Yalnız MiniMax sağlam cevap verdi — ve en
+değerli katkı ondan geldi: DeepSeek-OCR patch-tabanlı, llama.cpp handler'ı ile
+transformers `AutoProcessor` farklı normalize eder, satır düzeyinde kayma
+(`YÖNETMEN`→`YÖNETME N`) `dedup_esigi=0.92`'yi aşıp künyeye sızabilir. Faz 0′
+sadakat sondajı bu yüzden var. İki koltuk Çağatay müdahalesi bekliyor.
+
+**Bekleyen.** ① **Faz 0′ — sadakat sondajı, ONAY BEKLİYOR**: ~6.7 GB HF ağırlığı
+indirme + ollama geçici başlatma. ② Faz 2 — okuyucu kule içine. ③ Faz 3 —
+üretim geçişi + `harness/track_kunye` sökümü (ayrı tasarım; `_pipe_hibrit_okuma.py`
+canlı üretim yolu). ④ **e1a201d5 ölçülmedi** — açık borç.
+
+---
+
 ## 2026-08-13 (3) — Kobe: giriş jeneriği çalışıyor
 
 **Yapılan.** Kobe artık **hem giriş hem çıkış** jeneriği tespit ediyor. Commit
