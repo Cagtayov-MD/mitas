@@ -1,0 +1,30 @@
+{
+ "zaman": "2026-08-14T06:34:13",
+ "referans_uretildi": "2026-08-14T06:22:58",
+ "kiyaslanan": 29,
+ "sapan": 0,
+ "sapmalar": [],
+ "tarihi_sapma": [
+  {
+   "film": "2011-2205-1-0000-50-1 MOBY DICK 1",
+   "fark": {
+    "esik": [
+     28,
+     13
+    ],
+    "grup": [
+     15,
+     165
+    ],
+    "sayfa": [
+     15,
+     165
+    ],
+    "ikinci_gecis_ek": [
+     11,
+     6
+    ]
+   }
+  }
+ ]
+}

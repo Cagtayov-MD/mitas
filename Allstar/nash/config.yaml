@@ -1,0 +1,37 @@
+# Nash — ham kare havuzundan jenerik metni. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+secim:
+  desen: "*.png"
+
+  # Sayfa tavanı ve sigortalar BÖLÜME ÖZELDİR. İkisinin de arkasında kayıtlı
+  # bir üretim kazası var — tek rejime indirmek birini kaybetmek olurdu.
+  cikis:
+    tavan: 100            # _pipe_track_kunye + _pipe_hibrit_okuma varsayılanı
+    son_kare_zorla: true  # düzgün-adım son indeksi hiç seçmeyebiliyor ve
+                          # © / "SON" kartı TAM orada. Yapısal çapa kaybı.
+                          # (konsey bug-avı GLM-3, _pipe_track_kunye.py:95)
+    ham_kuyruk: 0
+
+  giris:
+    tavan: 40             # _pipe_hibrit_okuma MAX_SAYFA_GIRIS
+    son_kare_zorla: false # gerek yok — ham_kuyruk zaten daha güçlüsünü yapıyor
+    ham_kuyruk: 12        # ALİE, 2026-07-31 gece: TRT geleneğinde YÖNETMEN kartı
+                          # giriş jeneriğinin SON kartıdır (senaryo→yönetmen).
+                          # ALİE'de giriş master'ı 'senaryo'da kesildi, yönetmen
+                          # 1632 satırın HİÇBİRİNE girmedi → QC1 RED. Ham girişin
+                          # son kareleri örnekleme aralığına düşmese bile okunur.
+
+okuma:
+  # Faz 2 — model kule içinde. Faz 1'de bu blok kullanılmaz.
+  model_yol: model/deepseek-ocr
+  istem: "Free OCR."      # DEĞİŞTİRME: bugünkü üretim çıktısı bu istemle ölçüldü.
+                          # İstem değişirse kıyas referansı geçersizleşir.
+  max_new_tokens: 2048    # Ollama num_predict karşılığı
+  temperature: 0.0
+  dedup_esigi: 0.92       # sayfalar arası fold-dedup (difflib SequenceMatcher)
+
+  # Ucuz çöküş dedektörü (rodeo sınıfı boş/garble döküm) — _pipe_track_kunye'den
+  saglik:
+    min_uzunluk: 200      # birleşik döküm bundan kısaysa "cok_kisa"
+    min_alnum_oran: 0.30  # alfanümerik oranı bunun altındaysa "garble_yuksek"

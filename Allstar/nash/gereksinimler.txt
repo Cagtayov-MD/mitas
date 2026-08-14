@@ -1,0 +1,20 @@
+# Nash kulesi — Faz 1 (havuz + secim). SURUMLER PINLI VE SEBEPLI.
+#
+# Bu dort pin, referans olcum verisini ureten ortamin (venvs/ocr, python
+# 3.12.13) BIREBIR aynisidir. Havuz cikitisi numpy/opencv surumune duyarli:
+# imza (dHash), Laplacian varyansi ve Otsu esigi kayan noktali hesaplar.
+# Surum degisince havuz istatistigi kayabilir ve TASIMA KAPISI (olcum/kapi1.py)
+# sahte alarm verir — ya da daha kotusu, gercek kaymayi kacirir.
+#
+# Kobe dersi (2026-08-13): "Hangi paket onemli" TAHMIN EDILMEZ; ortam butun
+# olarak dondurulur. Kobe'de elle secilmis 16 paketlik liste skoru %94.5 →
+# %92.7 dusurmustu, alti kilit paket birebir ayni oldugu halde.
+numpy==2.3.5
+opencv-contrib-python==5.0.0.93
+PyYAML==6.0.2
+pytest==9.1.1
+
+# Faz 2 (okuyucu kule icinde) buraya EKLENECEK: torch, transformers, tokenizers,
+# safetensors, accelerate. Yigin muhru zorunlu — Ollama gguf+manifest ile
+# torch/transformers surumunu muhurluyordu; transformers'da bunu bu dosya yapar.
+# Ayni agirlik + farkli torch = farkli logits.

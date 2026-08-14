@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Nash kulesi girisi — kendi venv'ini kendi bulur. Cagiran python bilmez.
+N="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$N/venv/bin/python" "$N/main.py" "$@"

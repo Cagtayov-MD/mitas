@@ -1,0 +1,388 @@
+{
+ "uretildi": "2026-08-14T06:22:58",
+ "yorumlayici": "3.12.13",
+ "kaynak": "harness/track_kunye/pilot_hat.havuz_derle_dizin",
+ "filmler": {
+  "1955-0007-1-0000-00-1 BOZGUNCULAR": {
+   "cikis": {
+    "havuz": {
+     "kare": 74,
+     "esik": 20,
+     "grup": 21,
+     "alarm": false,
+     "sayfa": 21,
+     "ikinci_gecis_ek": 3
+    },
+    "secim_n": 24,
+    "sure_sn": 1.2
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 37,
+     "grup": 103,
+     "alarm": false,
+     "sayfa": 103,
+     "ikinci_gecis_ek": 10
+    },
+    "secim_n": 113,
+    "sure_sn": 4.6
+   }
+  },
+  "1959-0032-1-0000-00-1 İNEK VE BEN": {
+   "cikis": {
+    "yok": true
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 34,
+     "grup": 121,
+     "alarm": false,
+     "sayfa": 121,
+     "ikinci_gecis_ek": 15
+    },
+    "secim_n": 136,
+    "sure_sn": 3.6
+   }
+  },
+  "1985-0173-1-0000-00-1 LA SEGUA": {
+   "cikis": {
+    "havuz": {
+     "kare": 160,
+     "esik": 38,
+     "grup": 20,
+     "alarm": false,
+     "sayfa": 16,
+     "ikinci_gecis_ek": 8
+    },
+    "secim_n": 24,
+    "sure_sn": 2.3
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 34,
+     "grup": 81,
+     "alarm": false,
+     "sayfa": 79,
+     "ikinci_gecis_ek": 21
+    },
+    "secim_n": 100,
+    "sure_sn": 3.8
+   }
+  },
+  "1989-0568-1-0000-00-1 SABUN KÖPÜĞÜ HIRSIZLARI": {
+   "cikis": {
+    "havuz": {
+     "kare": 54,
+     "esik": 28,
+     "grup": 21,
+     "alarm": false,
+     "sayfa": 21,
+     "ikinci_gecis_ek": 2
+    },
+    "secim_n": 23,
+    "sure_sn": 0.7
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 46,
+     "grup": 129,
+     "alarm": false,
+     "sayfa": 129,
+     "ikinci_gecis_ek": 17
+    },
+    "secim_n": 146,
+    "sure_sn": 3.9
+   }
+  },
+  "1991-0346-1-0000-00-1 KARNAVAL GÜNÜ": {
+   "cikis": {
+    "havuz": {
+     "kare": 268,
+     "esik": 31,
+     "grup": 42,
+     "alarm": false,
+     "sayfa": 42,
+     "ikinci_gecis_ek": 13
+    },
+    "secim_n": 55,
+    "sure_sn": 4.0
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 44,
+     "grup": 80,
+     "alarm": false,
+     "sayfa": 80,
+     "ikinci_gecis_ek": 22
+    },
+    "secim_n": 102,
+    "sure_sn": 3.9
+   }
+  },
+  "1994-0444-1-0000-00-1 YABANCI": {
+   "cikis": {
+    "havuz": {
+     "kare": 426,
+     "esik": 19,
+     "grup": 244,
+     "alarm": false,
+     "sayfa": 243,
+     "ikinci_gecis_ek": 20
+    },
+    "secim_n": 263,
+    "sure_sn": 5.9
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 38,
+     "grup": 49,
+     "alarm": false,
+     "sayfa": 49,
+     "ikinci_gecis_ek": 20
+    },
+    "secim_n": 69,
+    "sure_sn": 3.8
+   }
+  },
+  "1995-0358-1-0000-00-1 DONÖR": {
+   "cikis": {
+    "havuz": {
+     "kare": 182,
+     "esik": 14,
+     "grup": 137,
+     "alarm": false,
+     "sayfa": 136,
+     "ikinci_gecis_ek": 3
+    },
+    "secim_n": 139,
+    "sure_sn": 2.4
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 46,
+     "grup": 94,
+     "alarm": false,
+     "sayfa": 93,
+     "ikinci_gecis_ek": 20
+    },
+    "secim_n": 113,
+    "sure_sn": 3.7
+   }
+  },
+  "1995-0401-1-0000-00-1 SİHİRLİ FLÜT": {
+   "cikis": {
+    "havuz": {
+     "kare": 88,
+     "esik": 44,
+     "grup": 24,
+     "alarm": false,
+     "sayfa": 24,
+     "ikinci_gecis_ek": 7
+    },
+    "secim_n": 31,
+    "sure_sn": 1.4
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 47,
+     "grup": 69,
+     "alarm": false,
+     "sayfa": 69,
+     "ikinci_gecis_ek": 28
+    },
+    "secim_n": 97,
+    "sure_sn": 4.2
+   }
+  },
+  "1997-0277-1-0000-00-1 ŞU YARAMAZ KEDİ": {
+   "cikis": {
+    "havuz": {
+     "kare": 288,
+     "esik": 25,
+     "grup": 144,
+     "alarm": false,
+     "sayfa": 140,
+     "ikinci_gecis_ek": 12
+    },
+    "secim_n": 152,
+    "sure_sn": 4.1
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 48,
+     "grup": 112,
+     "alarm": false,
+     "sayfa": 111,
+     "ikinci_gecis_ek": 23
+    },
+    "secim_n": 134,
+    "sure_sn": 4.2
+   }
+  },
+  "2000-0492-1-0000-00-1 PANDA TAO TAO": {
+   "cikis": {
+    "havuz": {
+     "kare": 96,
+     "esik": 40,
+     "grup": 12,
+     "alarm": false,
+     "sayfa": 12,
+     "ikinci_gecis_ek": 5
+    },
+    "secim_n": 17,
+    "sure_sn": 1.4
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 42,
+     "grup": 71,
+     "alarm": false,
+     "sayfa": 71,
+     "ikinci_gecis_ek": 21
+    },
+    "secim_n": 92,
+    "sure_sn": 4.5
+   }
+  },
+  "2002-9044-1-0000-00-1 KERMİT BATAKLIKTA": {
+   "cikis": {
+    "havuz": {
+     "kare": 442,
+     "esik": 21,
+     "grup": 374,
+     "alarm": false,
+     "sayfa": 371,
+     "ikinci_gecis_ek": 3
+    },
+    "secim_n": 374,
+    "sure_sn": 6.2
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 40,
+     "grup": 201,
+     "alarm": false,
+     "sayfa": 198,
+     "ikinci_gecis_ek": 6
+    },
+    "secim_n": 204,
+    "sure_sn": 4.3
+   }
+  },
+  "2011-2205-1-0000-50-1 MOBY DICK 1": {
+   "cikis": {
+    "havuz": {
+     "kare": 242,
+     "esik": 13,
+     "grup": 165,
+     "alarm": false,
+     "sayfa": 165,
+     "ikinci_gecis_ek": 6
+    },
+    "secim_n": 171,
+    "sure_sn": 4.5
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 54,
+     "grup": 170,
+     "alarm": false,
+     "sayfa": 170,
+     "ikinci_gecis_ek": 17
+    },
+    "secim_n": 187,
+    "sure_sn": 5.9
+   }
+  },
+  "2017-2152-1-0000-77-1 NAZİK BİR GECE": {
+   "cikis": {
+    "havuz": {
+     "kare": 46,
+     "esik": 6,
+     "grup": 7,
+     "alarm": false,
+     "sayfa": 4,
+     "ikinci_gecis_ek": 3
+    },
+    "secim_n": 7,
+    "sure_sn": 0.8
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 24,
+     "grup": 18,
+     "alarm": false,
+     "sayfa": 17,
+     "ikinci_gecis_ek": 4
+    },
+    "secim_n": 21,
+    "sure_sn": 5.1
+   }
+  },
+  "2018-1077-1-0000-90-1 ÇİĞERPAREM": {
+   "cikis": {
+    "havuz": {
+     "kare": 146,
+     "esik": 18,
+     "grup": 21,
+     "alarm": false,
+     "sayfa": 21,
+     "ikinci_gecis_ek": 7
+    },
+    "secim_n": 28,
+    "sure_sn": 0.9
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 44,
+     "grup": 47,
+     "alarm": false,
+     "sayfa": 47,
+     "ikinci_gecis_ek": 19
+    },
+    "secim_n": 66,
+    "sure_sn": 2.0
+   }
+  },
+  "2021-2141-1-0000-78-0 ARJANTİN TANGOSU": {
+   "cikis": {
+    "havuz": {
+     "kare": 168,
+     "esik": 14,
+     "grup": 119,
+     "alarm": false,
+     "sayfa": 118,
+     "ikinci_gecis_ek": 3
+    },
+    "secim_n": 121,
+    "sure_sn": 3.1
+   },
+   "giris": {
+    "havuz": {
+     "kare": 270,
+     "esik": 47,
+     "grup": 76,
+     "alarm": false,
+     "sayfa": 76,
+     "ikinci_gecis_ek": 31
+    },
+    "secim_n": 107,
+    "sure_sn": 5.2
+   }
+  }
+ }
+}

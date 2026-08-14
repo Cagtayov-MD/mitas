@@ -11,7 +11,7 @@ Düzeltme ayrı iş.
 |---|---|---|
 | **kobe** | Film sonu jeneriğinin başladığı kareyi bulur | **kuruldu** (2026-08-13) |
 | lebron_james | Master PNG üretim hattı | planlandı |
-| steve_nash | Kare ayıklayıp yeni havuz | planlandı |
+| **nash** | Ham kare havuzundan jenerik okur (kare seçimi + DeepSeek-OCR) | **Faz 1 kuruldu** (2026-08-14) — okuyucu Faz 2'de |
 | **jordan** | MP4'ten doğrudan okutma (Qwen3.5-9B) | **kuruldu** (2026-08-13) |
 | shaq | Farkları kıyaslar + kutu kontrol | planlandı |
 | phil_jackson | Shaq verisini fuzzy ile düzeltir (yazı→yazı) | planlandı |
@@ -19,8 +19,15 @@ Düzeltme ayrı iş.
 | qc2_sixers | Kalite kapısı 2 | planlandı |
 | iverson | ASR tam transkript + API destekli özet | planlandı |
 
-LeBron / Nash / Jordan aynı okuyucuya **üç ayrı besleme**dir; okuyucu kendi
-kulesi olacak, böylece "master PNG gerekli mi" sorusu adil ölçülebilir.
+LeBron / Nash / Jordan aynı işe **üç ayrı besleme**dir: sırasıyla master PNG,
+ham kare havuzu, doğrudan mp4. "Master PNG gerekli mi" sorusu ancak üçü de
+karşılaştırılabilir **metin** ürettiğinde adil ölçülebilir.
+
+> **Ortak okuyucu kulesi fikri terk edildi (2026-08-14, Çağatay).** Jordan
+> okuyucusunu (Qwen3.5-9B) kendi içinde taşıyor; Nash de kendi okuyucusunu
+> (DeepSeek-OCR) içine alıyor. Gerekçe: dışarıdaki bir servise bağlı kule
+> kendi kendine yeten bir kule değildir — başkasının modeli değiştirmesi
+> kuleyi sessizce değiştirir. Bedeli: besleme başına bir okuyucu kopyası.
 
 Sonraki kule sırasını Çağatay söyler. Adım adım ilerlenir.
 
