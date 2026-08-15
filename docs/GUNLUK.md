@@ -7,6 +7,68 @@
 
 ---
 
+## 2026-08-14 — `film_esigi` ayrışması ÖLÇÜLDÜ: ikilem değil, kusur
+
+**Soru.** `e1a201d5` (2026-08-05) `film_esigi`'nin Otsu aramasını *"Optimize
+edilmiş O(n) Otsu"* diye yeniden yazdı ama cevabı da değiştirdi (MOBY DICK
+eşik 28→13, sayfa 15→165). **Hangisi daha doğru okuyor?** — kimse ölçmemişti.
+
+**Cevap: soru yanlış kurulmuş.** Ölçüm, "eski mi yeni mi" ikileminin var
+olmadığını gösterdi. Araçlar: `Allstar/nash/olcum/otsu_ayrisma.py` (29 yüzey,
+iki sürüm + iç teşhis), `olcum/onarim_adayi.py` (üçüncü şık), `olcum/
+moby_kapsama.py` (kapsama sondajı). Hiçbiri `steve_nash.py`'ye dokunmaz —
+üretim modülü ithal edilir, `film_esigi` yalnız süreç-içi maymun-yamalanır.
+
+**① Mekanizma.** Ayrışan tek yüzeyde iki sürüm **aynı yapıyı buluyor**: eski
+argmax 28 (bölme 238/3), yeni argmax **29** (bölme 239/**2**) — bir kutu yan
+yana. Yeni sürüm cevabı buluyor, sonra `≥3` son-denetimiyle **reddedip** yerine
+`p25+2 = 13` koyuyor. 13 bimodallikten türetilmiş bir eşik değil; medyanın (16)
+altında, yani ardışık farkların ~%25'i "yeni grup" → gruplama çöküyor
+(242 kare → 165 grup), `birikim_esigi` de 84→39.
+**Kök sebep:** `≥3` eski kodda bir *arama kısıtı*ydı ("dejenere bölme aday
+olamaz"); yeni kodda *ret şartı*na dönüştü ("en iyi bölme dejenereyse Otsu'dan
+vazgeç"). Kısıtı aramadan çıkarıp redde taşımak, nazik geri-çekilmeyi uçuruma
+çevirir.
+
+**② Hız ikilemi yok — asıl bulgu bu.** `≥3` O(n) histogram döngüsünün *içine*
+kısıt olarak konunca (`film_esigi_onarilmis`): **29/29 yüzeyde eski cevabın
+birebir aynısı** (MOBY DICK dahil: 28) ve **eskiden 5.5× hızlı**, üretimdeki
+sürümden de hızlı (49.2 → 8.9 ms; üretim 12.0 ms). Commit'in vaat ettiği hız,
+cevabı bozmadan zaten alınabiliyormuş.
+
+**③ Yaygınlık — tek seferlik tuhaflık değil.** Kusur, kısıtsız argmax'ın küçük
+yanı <3 olunca tetikleniyor. Yatakta: `<3 → 1` · `3–6 → 3` · `>6 → 25`.
+4/29 yüzey sınıra yakın; 1825 filmlik koşuda tekrar eden bir mod. Ve **sessiz**:
+hata vermiyor, yalnız o filmde ~4× fazla sayfa okuyor (26 → 100).
+
+**③′ Yön öngörülemez — çürütme turunun bulgusu.** İlk okumada bu bir *maliyet*
+kusuru gibi duruyor (eşik düşer, sayfa artar). Kendi iddiamı çürütmeye
+çalışınca çıktı: geri-düşüş `p25+2`, doğru eşiğin **üstüne** de çıkabiliyor —
+yatakta 3/29 yüzeyde öyle (KERMİT/çıkış `21 → 31`, DONÖR/çıkış `14 → 17`,
+KERMİT/giriş `40 → 41`). Oralarda kusur tetiklenseydi **daha AZ** sayfa
+okunurdu: sessiz **içerik kaybı**. Yani kusur "pahalı ama güvenli" değil,
+**yönü veriye bağlı** (25/29 fazla-okuma, 3/29 az-okuma).
+
+**④ Kapsama (yeni ⊇ eski DEĞİL, ama abartmayalım).** Tarihî koşuda okunan 26
+karenin 13'ü — 100 tavanı stride ile kırpıldıktan sonra — yeni seçimde yok;
+233 satır taşıyorlardı. Fakat bunların yalnız **1'i** gerçekten farklı bir kart
+(imza mesafesi 86); kalan 12'nin mesafesi 6–23, kayan jenerikte kısmi örtüşme.
+Yani "yeni sürüm içerik kaybediyor" **kanıtlanmadı**; kanıtlanan şey seçimin
+üst-küme olmadığı.
+
+**Öğrenilen.** *Docstring niyeti söyler, davranışı değil.* "O(n) optimizasyonu"
+etiketi bir cevap değişikliğini beş ay taşıdı. Ve: bir kıyas "A mı B mi" diye
+kurulduğunda C şıkkı görünmez olur — burada asıl cevap üçüncü şıktı.
+
+**ÖLÇÜLMEDİ / bekleyen.** 26 seyrek sayfa mı 100 sıkı sayfa mı jeneriği daha iyi
+okuyor? Onarım kararı için kritik yolda değil (onarım hem eski cevabı hem hızı
+veriyor) ama cevapsız; ollama + ~100 deepseek sayfası ister → **Çağatay onayı**.
+Onarımın kendisi de **Çağatay'ın kararı**: `steve_nash.py` değiştirilmedi, aday
+ölçüm modülünde duruyor. (Değiştirilirse `Allstar/nash/src/havuz.py` birebir
+kopyası ve Nash KAPI 1 referansı da birlikte yenilenmeli.)
+
+---
+
 ## 2026-08-14 — Allstar/Nash: üçüncü kule, Faz 1 (havuz yarısı)
 
 **Yapılan.** `Allstar/nash/` ayakta: **ham kare dizini girer, karar çıkar.**

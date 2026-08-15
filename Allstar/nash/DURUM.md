@@ -79,9 +79,57 @@ bir davranış değişikliği:
 sayfa **15→165 (11×)**. Tavan 100 olduğu için o film artık 15 yerine 100 sayfa
 okuyacak — model çağrısı ~6.7×.
 
-**Hangisinin doğru olduğu bilinmiyor; ölçüm yok.** Bu Nash kulesinin işi değil
-(kule bugünkü davranışı sadık taşıdı), ama açık borç olarak burada duruyor.
-Ölçmek için malzeme hazır: `olcum/referans_uret.py` iki sürümle koşturulabilir.
+### ÖLÇÜLDÜ (2026-08-14) — `olcum/otsu_ayrisma.py`, `olcum/onarim_adayi.py`
+
+**Kusur, ikilem değil.** Ayrışan tek yüzeyde (MOBY DICK/çıkış, 241 fark)
+mekanizma şu:
+
+| | aday argmax | bölme | ayrım | sonuç |
+|---|---|---|---|---|
+| Eski | **28** | 238 / 3 | 6.05 | `28` (Otsu) |
+| Yeni | **29** | 239 / **2** | 8.39 | ≥3 kapısı → **`p25+2 = 13`** |
+
+İki sürüm **verideki aynı yapıyı buluyor** — 28 ile 29 bir kutu yan yana.
+Yeni sürüm cevabı buluyor, sonra kendi son-denetimiyle **çöpe atıp** yerine
+bimodalliğe hiç bakmayan bir geri-düşüş koyuyor. 13, medyanın (16) *altında*:
+ardışık farkların ~%25'i "yeni grup" sayılıyor → gruplama çöküyor
+(242 kare → 165 grup). `birikim_esigi` de 84→39 düşüp etkiyi katlıyor.
+
+**Hız ikilemi yok.** `≥3` kuralı O(n) histogram döngüsünün *içine* arama
+kısıtı olarak konursa (`onarim_adayi.film_esigi_onarilmis`):
+
+* **29/29 yüzeyde eski cevabın birebir aynısı** (MOBY DICK dahil: 28)
+* eskiden **5.5× hızlı**, bugünkü üretim sürümünden de hızlı
+  (49.2 ms → 8.9 ms; üretim 12.0 ms)
+
+Yani commit'in vaat ettiği hız, cevabı bozmadan zaten alınabiliyordu.
+
+**Yaygınlık.** Kusur, kısıtsız argmax'ın küçük yanı <3 olunca tetikleniyor.
+Yatakta dağılım: `<3 → 1` · `3–6 → 3` · `>6 → 25`. Yani 29 yüzeyin 4'ü
+sınıra yakın — 1825 filmlik koşuda bu tekrar eden bir mod, tek seferlik
+tuhaflık değil. Üstelik **sessiz**: hata vermiyor, yalnız 4× fazla sayfa okuyor.
+
+**Yön: her zaman "fazla okuma" değil — çürütme turunun bulgusu.** İlk okumada
+kusur bir *maliyet* kusuru gibi görünüyor (eşik düşer, sayfa artar). Ama
+geri-düşüş `p25+2` doğru eşiğin **üstüne** de çıkabiliyor: yatakta 3/29 yüzeyde
+öyle (KERMİT/çıkış `21 → 31`, DONÖR/çıkış `14 → 17`, KERMİT/giriş `40 → 41`).
+O yüzeylerde kusur tetiklense **daha AZ sayfa** okunurdu — yani sessiz **içerik
+kaybı**. Kusurun işareti veriye bağlı: 25/29 fazla-okuma, 3/29 az-okuma.
+Bu, kusuru "pahalı ama güvenli"den çıkarıp "yönü öngörülemez"e taşıyor.
+
+**Kapsama (ölçüldü, ama sonucu belirleyici DEĞİL).** Yeni seçim eskinin
+üst-kümesi değil: tarihî koşuda okunan 26 karenin 13'ü, 100 tavanı stride ile
+kırpıldıktan sonra yeni seçimde yok (233 satır taşıyorlardı). Ama bunların
+yalnız **1'i** gerçekten farklı bir kart (imza mesafesi 86); kalan 12'sinin
+mesafesi 6–23 — kayan jenerikte "kısmi örtüşme", temiz kayıp değil.
+
+**Hâlâ ÖLÇÜLMEDİ:** 26 seyrek sayfa mı, 100 sıkı sayfa mı jeneriği daha iyi
+okuyor? Bu soru onarım kararı için artık kritik yolda değil (onarım hem eski
+cevabı hem hızı veriyor), ama cevapsız. Cevaplamak ollama + ~100 deepseek
+sayfası ister; **Çağatay'ın onayına bağlı**.
+
+**Karar Çağatay'ın.** `steve_nash.py`'ye dokunulmadı; onarım adayı ölçüm
+modülünde duruyor.
 
 ## TAMAMLANAN — Faz 0′ sadakat sondajı + Faz 2 okuyucu
 
