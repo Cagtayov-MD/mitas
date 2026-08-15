@@ -33,12 +33,29 @@ Sonraki kule sırasını Çağatay söyler. Adım adım ilerlenir.
 
 ## Kule sınırı
 
-**İçeri:** kulenin kodu, ürettiği veri, sözleşmesi, kendi çalışma zamanı (venv).
+Ayırt edici soru: **"bu şey değişirse kulenin CEVABI değişir mi?"**
+Evet ise içeri, hayır ise dışarı.
 
-**Dışarı (zemin):** Python/CUDA/Paddle ikilileri, model ağırlıkları,
-`core/lexicon/` gibi paylaşılan salt-okunur sözlükler. Bunlar her kuleye
-kopyalanmaz — sözlüğü çatallamak, okuyucuya eklenen bir rolün Kobe'ye
-ulaşmaması demektir.
+**İçeri:** kulenin kodu, ürettiği veri, sözleşmesi ve **kendi çalışma zamanı —
+venv'in içindeki her şey dahil: Paddle / torch / CUDA python paketleri.**
+
+Bu kural pahalı bir dersle yazıldı: Kobe'ye kendi venv'i kurulunca skor
+%94.5 → %92.7 düştü. Paddle sürümü, model ağırlıkları ve önbellek aynıydı;
+sebep **76 eksik paketti**. Kulenin çıktısı, kodunun hiç `import` etmediği
+paketlere bağlı — çalışma zamanını dondurmak skoru dondurmaktır. Ayrı venv'in
+aldığı şey budur; paralellik DEĞİL (paralellik süreçten gelir, kurulumdan
+değil).
+
+**Dışarı (zemin):** sistem sürücüsü/CUDA sürücüsü, **model ağırlıkları**
+(`~/.paddlex` gibi) ve `core/lexicon/` gibi paylaşılan salt-okunur sözlükler.
+
+> Ağırlıklar bilinçli bir istisnadır: onlar da cevabı değiştirir, ama
+> **kasten** paylaşılırlar — kopyalanırsa güncellenen bir model kuleye hiç
+> ulaşmaz. Sözlüğü çatallamak da okuyucuya eklenen bir rolün Kobe'ye
+> ulaşmaması demektir.
+
+**Bedeli, ölçülmüş:** `kobe/venv` 11 GB · `jordan/venv` 5 GB · `nash/venv`
+306 MB. Ağır kule ~5–11 GB çalışma zamanı taşır. Bilinen ve kabul edilen fiyat.
 
 **Yasak:** başka bir kulenin **ÜRETTİĞİ** veriyi doğrudan okumak. İletişim
 yalnız sözleşme üzerinden, ve yalnız `_TAMAM` işareti yazılmış dosyalardan.
