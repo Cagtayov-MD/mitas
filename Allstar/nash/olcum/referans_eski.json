@@ -1,5 +1,5 @@
 {
- "uretildi": "2026-08-14T06:22:58",
+ "uretildi": "2026-08-15T11:03:24",
  "yorumlayici": "3.12.13",
  "kaynak": "harness/track_kunye/pilot_hat.havuz_derle_dizin",
  "filmler": {
@@ -26,7 +26,7 @@
      "ikinci_gecis_ek": 10
     },
     "secim_n": 113,
-    "sure_sn": 4.6
+    "sure_sn": 4.7
    }
   },
   "1959-0032-1-0000-00-1 İNEK VE BEN": {
@@ -57,7 +57,7 @@
      "ikinci_gecis_ek": 8
     },
     "secim_n": 24,
-    "sure_sn": 2.3
+    "sure_sn": 2.4
    },
    "giris": {
     "havuz": {
@@ -69,7 +69,7 @@
      "ikinci_gecis_ek": 21
     },
     "secim_n": 100,
-    "sure_sn": 3.8
+    "sure_sn": 4.0
    }
   },
   "1989-0568-1-0000-00-1 SABUN KÖPÜĞÜ HIRSIZLARI": {
@@ -95,7 +95,7 @@
      "ikinci_gecis_ek": 17
     },
     "secim_n": 146,
-    "sure_sn": 3.9
+    "sure_sn": 4.0
    }
   },
   "1991-0346-1-0000-00-1 KARNAVAL GÜNÜ": {
@@ -121,7 +121,7 @@
      "ikinci_gecis_ek": 22
     },
     "secim_n": 102,
-    "sure_sn": 3.9
+    "sure_sn": 4.0
    }
   },
   "1994-0444-1-0000-00-1 YABANCI": {
@@ -161,7 +161,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 139,
-    "sure_sn": 2.4
+    "sure_sn": 2.5
    },
    "giris": {
     "havuz": {
@@ -213,7 +213,7 @@
      "ikinci_gecis_ek": 12
     },
     "secim_n": 152,
-    "sure_sn": 4.1
+    "sure_sn": 4.2
    },
    "giris": {
     "havuz": {
@@ -251,7 +251,7 @@
      "ikinci_gecis_ek": 21
     },
     "secim_n": 92,
-    "sure_sn": 4.5
+    "sure_sn": 4.4
    }
   },
   "2002-9044-1-0000-00-1 KERMİT BATAKLIKTA": {
@@ -265,7 +265,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 374,
-    "sure_sn": 6.2
+    "sure_sn": 6.3
    },
    "giris": {
     "havuz": {
@@ -284,14 +284,14 @@
    "cikis": {
     "havuz": {
      "kare": 242,
-     "esik": 13,
-     "grup": 165,
+     "esik": 28,
+     "grup": 15,
      "alarm": false,
-     "sayfa": 165,
-     "ikinci_gecis_ek": 6
+     "sayfa": 15,
+     "ikinci_gecis_ek": 11
     },
-    "secim_n": 171,
-    "sure_sn": 4.5
+    "secim_n": 26,
+    "sure_sn": 4.4
    },
    "giris": {
     "havuz": {
@@ -343,7 +343,7 @@
      "ikinci_gecis_ek": 7
     },
     "secim_n": 28,
-    "sure_sn": 0.9
+    "sure_sn": 1.0
    },
    "giris": {
     "havuz": {
@@ -369,7 +369,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 121,
-    "sure_sn": 3.1
+    "sure_sn": 3.2
    },
    "giris": {
     "havuz": {

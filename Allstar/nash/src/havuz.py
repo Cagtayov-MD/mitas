@@ -71,33 +71,51 @@ def temporal_median(griler: list[np.ndarray], pencere: int = 3) -> list[np.ndarr
     return out
 
 def film_esigi(farklar: list[int], config: HavuzConfig = HavuzConfig()) -> int:
-    """Optimize edilmiş O(n) Otsu Eşikleme."""
+    """O(n) histogram-Otsu — ≥3 kuralı ARAMA KISITI olarak (döngünün İÇİNDE).
+
+    ⚠ Bu kısıtı döngüden çıkarıp sona taşımayın. `e1a201d5` (2026-08-05) tam
+    bunu yaptı ("Optimize edilmiş O(n) Otsu" notuyla) ve HIZ değil CEVAP
+    değiştirdi: ≥3, dejenere adayı elemek yerine KAZANANI reddeder oldu;
+    reddedince de Otsu'dan büsbütün vazgeçip `p25+2`'ye düşüyordu — bimodallikle
+    ilgisi olmayan bir sayıya. MOBY DICK'te eşik 28→13, grup 15→165, okunan
+    sayfa 26→100. Yönü veriye bağlıydı: ölçüm yatağında 25/29 yüzeyde
+    fazla-okuma (maliyet), 3/29'da AZ-okuma (sessiz içerik kaybı). Beş ay
+    sessiz kaldı; hata vermiyor.
+
+    Kısıt döngüde iken hem eski/doğru cevap korunur hem O(n) hız alınır:
+    29/29 yüzeyde naif aramanın birebir cevabı, ondan 5.5× hızlı.
+    Ölçüm: `Allstar/nash/olcum/{otsu_ayrisma,onarim_adayi}.py`,
+    gerekçe: `docs/GUNLUK.md` 2026-08-14.
+    """
     if len(farklar) < 8:
         return config.esik_taban
     f = np.array(sorted(farklar), dtype=np.float64)
     hist, _ = np.histogram(f, bins=range(0, 257))
     total = len(f)
-    sum_total = np.sum(np.arange(256) * hist)
-    
+    sum_total = float(np.sum(np.arange(256) * hist))
+    tmin = int(f.min())
+
     sumB = 0.0
     wB = 0
     max_var = -1.0
-    en_iyi_esik = config.esik_taban
+    en_iyi_esik = None
     for t in range(256):
-        wB += hist[t]
+        wB += int(hist[t])
         if wB == 0: continue
         wF = total - wB
         if wF == 0: break
-        sumB += t * hist[t]
+        sumB += t * int(hist[t])
+        if t <= tmin: continue          # arama aralığı [min+1, max-1]
+        if wB < 3 or wF < 3: continue   # ← KISIT: dejenere bölme ADAY OLAMAZ
         mB = sumB / wB
         mF = (sum_total - sumB) / wF
         var = wB * wF * (mB - mF) ** 2
         if var > max_var:
             max_var, en_iyi_esik = var, t
-            
-    sol, sag = f[f <= en_iyi_esik], f[f > en_iyi_esik]
-    if len(sol) < 3 or len(sag) < 3:
+
+    if en_iyi_esik is None:
         return max(2, int(np.percentile(f, 25)) + 2)
+    sol, sag = f[f <= en_iyi_esik], f[f > en_iyi_esik]
     ayrim = (sag.mean() - sol.mean()) / (f.std() + 1e-6)
     if ayrim < config.otsu_ayirim_esigi:
         return max(2, int(np.percentile(f, 25)) + 2)

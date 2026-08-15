@@ -63,7 +63,7 @@ da boş `nash.txt` yazılıyordu; `_TAMAM` var + dosya boş = yalnız metni okuy
 tüketiciye "yazı bulunamadı" gibi görünür ve ARIZA/METIN_YOK ayrımını yutar.
 Dosya yoksa tüketici `nash.json`'a bakmak zorunda kalır.
 
-## BULGU — ölçülmemiş algoritma değişikliği (Nash'in dışında, ama Nash'in kalbi)
+## BULGU → ONARILDI (2026-08-15) — `film_esigi` Otsu araması
 
 `e1a201d5` (2026-08-05, *"intro-pipeline: … frame pool enhancements"*)
 `film_esigi`'nin Otsu aramasını yeniden yazdı. Docstring'i **"Optimize edilmiş
@@ -123,13 +123,36 @@ kırpıldıktan sonra yeni seçimde yok (233 satır taşıyorlardı). Ama bunlar
 yalnız **1'i** gerçekten farklı bir kart (imza mesafesi 86); kalan 12'sinin
 mesafesi 6–23 — kayan jenerikte "kısmi örtüşme", temiz kayıp değil.
 
-**Hâlâ ÖLÇÜLMEDİ:** 26 seyrek sayfa mı, 100 sıkı sayfa mı jeneriği daha iyi
-okuyor? Bu soru onarım kararı için artık kritik yolda değil (onarım hem eski
-cevabı hem hızı veriyor), ama cevapsız. Cevaplamak ollama + ~100 deepseek
-sayfası ister; **Çağatay'ın onayına bağlı**.
+### ONARILDI (2026-08-15) — Çağatay kararı: "önce veri kalitesi, hız sonra"
 
-**Karar Çağatay'ın.** `steve_nash.py`'ye dokunulmadı; onarım adayı ölçüm
-modülünde duruyor.
+`≥3` kuralı O(n) döngüsünün içine arama kısıtı olarak geri kondu.
+Dokunulan: `harness/track_kunye/steve_nash.py` + birebir kopyası
+`Allstar/nash/src/havuz.py` (ikisi hâlâ yalnız docstring başlığında ayrılıyor).
+
+Doğrulama zinciri:
+
+| denetim | sonuç |
+|---|---|
+| `harness/track_kunye` havuz testleri | 50 geçti, 2 atlandı |
+| Nash kule testleri | 105 geçti, 1 atlandı |
+| 29 yüzeyde onarım == naif arama | **29/29 birebir** |
+| **KAPI 1** (taze referansa karşı) | **29 kıyas, 0 sapma — GEÇTİ** |
+| Onarım sonrası üretim vs **2026-07-31 doğrulanmış** çıktı | **14/14 aynı, 0 sapma** |
+| Eşik hesabı hızı | naif 35.8 ms → **6.4 ms (5.6×)** |
+
+Son satır kapanışın kanıtı: üretim, beş ay önce ölçülmüş ve QC'den geçmiş
+davranışa **bit düzeyinde** döndü — üstelik naif aramadan hızlı. MOBY DICK/çıkış
+yeniden `esik=28, grup=15, sayfa=15 (+11) = 26 sayfa`.
+
+`olcum/*_onarim_oncesi.json` kusurun kanıtı olarak saklandı (onarımdan sonra
+yeniden üretilemez).
+
+**Hâlâ ÖLÇÜLMEDİ (açık borç):** 26 seyrek sayfa mı, 100 sıkı sayfa mı jeneriği
+daha iyi okuyor? Onarım bunu *cevaplamıyor* — doğrulanmış hale döndürüyor.
+Eğer daha sıkı okuma kaliteyi artırıyorsa bu **kasıtlı ve tek biçimli** bir
+politika olarak ölçülüp konmalı (eşik/tavan ayarı), 15 filmde 1'inde rastgele
+tetiklenen bir kusur olarak değil. Cevaplamak ollama + ~100 deepseek sayfası
+ister (~15–30 dk).
 
 ## TAMAMLANAN — Faz 0′ sadakat sondajı + Faz 2 okuyucu
 

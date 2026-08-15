@@ -7,6 +7,44 @@
 
 ---
 
+## 2026-08-15 — `film_esigi` ONARILDI (Çağatay: "önce veri kalitesi, hız sonra")
+
+Bir önceki kayıttaki kusur kapatıldı. **Karar kuralı Çağatay'dan:** *maksimum
+kalite; hız ancak kalite eşitse karar verir.* Bu kurala göre seçim netti —
+onarım ile eski davranış **29/29 aynı cevabı** veriyor (kalite eşit) → hız
+karar veriyor → onarım. Ve bozuk hal zaten *doğrulanmamış* taraftı: 427'lik
+test yatağı, QC ve 2026-07-31 ölçümü eski davranışın üstüne kurulu.
+**Kalite-önce = doğrulanmış olana dönmek.**
+
+**Yapılan.** `≥3` kuralı O(n) histogram döngüsünün İÇİNE arama kısıtı olarak
+geri kondu (`harness/track_kunye/steve_nash.py` + birebir kopyası
+`Allstar/nash/src/havuz.py`). Docstring'e neden-yazısı gömüldü ki bir daha
+"optimize" edilmesin.
+
+| denetim | sonuç |
+|---|---|
+| harness havuz testleri | 50 geçti, 2 atlandı |
+| Nash kule testleri | 105 geçti, 1 atlandı |
+| 29 yüzeyde onarım == naif arama | **29/29 birebir** |
+| **KAPI 1** (taze referans) | **29 kıyas, 0 sapma — GEÇTİ** |
+| üretim vs **2026-07-31 doğrulanmış** çıktı | **14/14 aynı, 0 sapma** |
+| eşik hesabı | naif 35.8 ms → **6.4 ms (5.6×)** |
+
+Son satır kapanışın kanıtı: üretim, beş ay önce ölçülmüş ve QC'den geçmiş
+davranışa **bit düzeyinde** döndü, üstelik naif aramadan hızlı. MOBY DICK/çıkış
+yeniden `esik=28, sayfa=15 (+11) = 26 sayfa` — 100 değil.
+
+**Yan not.** `Allstar/nash/raporlar/kapi1.json` benim koşumla yenilendi; içindeki
+25 satırlık "tarihî sapma" bloğu artık BOŞ — çünkü tarihle fark kalmadı.
+
+**Açık borç (onarım bunu cevaplamıyor).** 26 seyrek sayfa mı 100 sıkı sayfa mı
+jeneriği daha iyi okur? Onarım doğrulanmış hale döndürüyor, bu soruyu
+çözmüyor. Daha sıkı okuma kaliteyi artırıyorsa **kasıtlı ve tek biçimli** bir
+politika olmalı (eşik/tavan ayarı), 15 filmde 1'inde rastgele tetiklenen bir
+kusur değil. Ölçmek: ollama + ~100 deepseek sayfası, ~15–30 dk.
+
+---
+
 ## 2026-08-14 — `film_esigi` ayrışması ÖLÇÜLDÜ: ikilem değil, kusur
 
 **Soru.** `e1a201d5` (2026-08-05) `film_esigi`'nin Otsu aramasını *"Optimize
