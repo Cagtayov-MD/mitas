@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""KAPI 1 — taşıma kapısı. Kule, BUGÜNKÜ üretim koduyla aynı sayıları veriyor mu?
+"""KAPI 1 — taşıma kapısı (Faz 1) → entegrasyon kapısı (Faz 3 sonrası).
+
+⚠ ANLAMI DEĞİŞTİ. Faz 3 sökümünden (2026-08-14) sonra üretim
+(`pilot_hat.havuz_derle_dizin`) kulenin kendi `secim.havuz_derle_dizin`'ine
+DEVREDİYOR — yani kıyasın iki tarafı artık AYNI KOD. Bu kapı bundan böyle
+"iki bağımsız uygulama aynı cevabı veriyor mu"yu ölçmez; **üretimin
+yorumlayıcısından (venvs/ocr) kuleye giden zincirin ayakta olduğunu** ölçer.
+Görevini Faz 1'de yaptı: taşımanın sadık olduğunu 29/29 sapma sıfır ile
+kanıtladı, e1a201d5 kusurunu o kanıt açığa çıkardı.
+
+Kule, BUGÜNKÜ üretim koduyla aynı sayıları veriyor mu?
 
 Nash'in havuz yarısı saf numpy/cv2: model yok, ağ yok, rastgelelik yok. Doğru
 taşındıysa aynı karelerde aynı sayıları vermek ZORUNDA.

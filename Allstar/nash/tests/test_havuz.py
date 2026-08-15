@@ -203,15 +203,26 @@ def test_ikinci_gecis_statik_filmde_bos():
 
 
 def test_secim_havuz_modulunu_kullanir_kopya_mantik_yok():
-    """secim.py havuzu CAGIRIR; algoritmayi kopyalamaz (spec 7.1)."""
+    """secim.py havuzu CAGIRIR; algoritmayi kopyalamaz (spec 7.1).
+
+    `havuz_derle_dizin` bir KOPYA degil, uretim-bicimli yuzeydir (Faz 3
+    sokumu): govdesi havuz_mod.havuz_derle'yi cagirir. O yuzden test
+    "def havuz_derle" gibi kaba bir desen yerine ALGORITMA fonksiyonlarinin
+    yeniden tanimlanmadigini olcer.
+    """
     import inspect
 
     import secim
     kaynak = inspect.getsource(secim)
     assert "import havuz" in kaynak
-    assert "def film_esigi" not in kaynak       # kopya mantik yok
-    assert "def imza" not in kaynak
-    assert "def havuz_derle" not in kaynak
+    for algo in ("def film_esigi", "def imza(", "def hamming(",
+                 "def temporal_median", "def ikinci_gecis", "def _temsilci"):
+        assert algo not in kaynak, f"algoritma kopyalanmis: {algo}"
+    # ve gercekten cagiriyor
+    assert "havuz_mod.havuz_derle(" in kaynak
+    assert "havuz_mod.ikinci_gecis(" in kaynak
+
+
 
 
 def test_kde_bimodal_vadi():

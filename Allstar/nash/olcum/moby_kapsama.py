@@ -20,11 +20,14 @@ import sys
 from pathlib import Path
 
 PROJE = Path(os.environ.get("MITAS_PROJECT_ROOT", "/opt/mitas"))
-sys.path.insert(0, str(PROJE / "harness" / "track_kunye"))
+# Faz 3 sokumu (2026-08-14): harness/track_kunye/steve_nash.py SILINDI.
+# Havuz algoritmasinin tek kopyasi artik kulenin icinde; uretim de
+# (pilot_hat.havuz_derle_dizin) buraya devrediyor.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cv2  # noqa: E402
-import steve_nash as sn  # noqa: E402
+import havuz as sn  # noqa: E402  (eski adi: steve_nash)
 from otsu_ayrisma import havuz_sabit_esikle, tavan_uygula  # noqa: E402
 
 FILM = "2011-2205-1-0000-50-1 MOBY DICK 1"

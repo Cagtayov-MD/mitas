@@ -1,5 +1,5 @@
 {
- "uretildi": "2026-08-15T11:03:24",
+ "uretildi": "2026-08-15T11:13:22",
  "yorumlayici": "3.12.13",
  "kaynak": "harness/track_kunye/pilot_hat.havuz_derle_dizin",
  "filmler": {
@@ -26,7 +26,7 @@
      "ikinci_gecis_ek": 10
     },
     "secim_n": 113,
-    "sure_sn": 4.7
+    "sure_sn": 4.6
    }
   },
   "1959-0032-1-0000-00-1 İNEK VE BEN": {
@@ -43,7 +43,7 @@
      "ikinci_gecis_ek": 15
     },
     "secim_n": 136,
-    "sure_sn": 3.6
+    "sure_sn": 3.5
    }
   },
   "1985-0173-1-0000-00-1 LA SEGUA": {
@@ -57,7 +57,7 @@
      "ikinci_gecis_ek": 8
     },
     "secim_n": 24,
-    "sure_sn": 2.4
+    "sure_sn": 2.3
    },
    "giris": {
     "havuz": {
@@ -69,7 +69,7 @@
      "ikinci_gecis_ek": 21
     },
     "secim_n": 100,
-    "sure_sn": 4.0
+    "sure_sn": 3.9
    }
   },
   "1989-0568-1-0000-00-1 SABUN KÖPÜĞÜ HIRSIZLARI": {
@@ -121,7 +121,7 @@
      "ikinci_gecis_ek": 22
     },
     "secim_n": 102,
-    "sure_sn": 4.0
+    "sure_sn": 3.9
    }
   },
   "1994-0444-1-0000-00-1 YABANCI": {
@@ -135,7 +135,7 @@
      "ikinci_gecis_ek": 20
     },
     "secim_n": 263,
-    "sure_sn": 5.9
+    "sure_sn": 6.0
    },
    "giris": {
     "havuz": {
@@ -147,7 +147,7 @@
      "ikinci_gecis_ek": 20
     },
     "secim_n": 69,
-    "sure_sn": 3.8
+    "sure_sn": 3.9
    }
   },
   "1995-0358-1-0000-00-1 DONÖR": {
@@ -161,7 +161,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 139,
-    "sure_sn": 2.5
+    "sure_sn": 2.4
    },
    "giris": {
     "havuz": {
@@ -265,7 +265,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 374,
-    "sure_sn": 6.3
+    "sure_sn": 6.2
    },
    "giris": {
     "havuz": {
@@ -303,7 +303,7 @@
      "ikinci_gecis_ek": 17
     },
     "secim_n": 187,
-    "sure_sn": 5.9
+    "sure_sn": 5.8
    }
   },
   "2017-2152-1-0000-77-1 NAZİK BİR GECE": {
@@ -343,7 +343,7 @@
      "ikinci_gecis_ek": 7
     },
     "secim_n": 28,
-    "sure_sn": 1.0
+    "sure_sn": 0.9
    },
    "giris": {
     "havuz": {
@@ -369,7 +369,7 @@
      "ikinci_gecis_ek": 3
     },
     "secim_n": 121,
-    "sure_sn": 3.2
+    "sure_sn": 3.1
    },
    "giris": {
     "havuz": {
@@ -381,7 +381,7 @@
      "ikinci_gecis_ek": 31
     },
     "secim_n": 107,
-    "sure_sn": 5.2
+    "sure_sn": 5.3
    }
   }
  }

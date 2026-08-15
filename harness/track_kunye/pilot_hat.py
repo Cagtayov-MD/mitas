@@ -10,13 +10,23 @@ Katman 4 DOĞRULA: KB (mitas_people_index) fold-eşleşme + Paddle-track kesişi
   → satır işaretleri: [KB] [2K] (iki kaynak) [!] (tek kaynak, insan baksın).
 """
 from __future__ import annotations
-import base64, difflib, json, os, time, unicodedata, urllib.request
+import base64, difflib, json, os, sys, time, unicodedata, urllib.request
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-import messi as havuz_mod
+# NASH KULESI — havuz algoritmasinin TEK kopyasi orada (Faz 3 sokumu,
+# 2026-08-14). Eskiden burada `import messi as havuz_mod` vardi; messi.py ve
+# steve_nash.py kulenin src/havuz.py'sinin kopyasiydi. Kopya kalkti: kulede
+# duzelen bir sey uretimde de duzelir, uretimde cikan bir kusur kulede de
+# gorunur. Kule DISARIDAN calisir gibi degil, dogrudan modul olarak ithal
+# edilir — venvs/ocr ile kule venv'i ayni numpy/opencv surumunde (2.3.5/5.0.0).
+_NASH_SRC = str(Path(os.environ.get("MITAS_PROJECT_ROOT", "/opt/mitas"))
+                / "Allstar" / "nash" / "src")
+if _NASH_SRC not in sys.path:
+    sys.path.insert(0, _NASH_SRC)
+import secim as nash_secim
 
 OLLAMA = os.environ.get("MITAS_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/generate"
 KB_DUCKDB = os.environ.get("MITAS_KB_DUCKDB", "/opt/mitas/Mitas_Files/MitaData/mitas.duckdb")
@@ -47,23 +57,13 @@ def ollama_iste(model: str, prompt: str, imgs: list[str] | None = None,
 # ── Katman 1: havuz ─────────────────────────────────────────────────────────
 
 def havuz_derle_dizin(kare_dizin: Path, desen: str = "*.png") -> tuple[list[Path], dict]:
-    """Dizin-parametreli havuz derleme (üretim yüzeyi) — istatistik DÖNÜŞTE, global yok."""
-    yollar = sorted(Path(kare_dizin).glob(desen))
-    griler, gecerli = [], []
-    for p in yollar:
-        im = cv2.imread(str(p))
-        if im is None:
-            continue
-        griler.append(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY))
-        gecerli.append(p)
-    if not griler:
-        return [], {"kare": 0, "sayfa": 0}
-    sonuc = havuz_mod.havuz_derle(griler)
-    ekler = havuz_mod.ikinci_gecis(griler, sonuc)
-    ist = {"kare": len(griler), "esik": sonuc.istatistik.esik,
-           "grup": sonuc.istatistik.grup_sayisi, "alarm": sonuc.istatistik.alarm,
-           "sayfa": len(sonuc.sayfalar), "ikinci_gecis_ek": len(ekler)}
-    return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))], ist
+    """Uretim yuzeyi — govde NASH KULESINE devredildi (Faz 3, 2026-08-14).
+
+    Imza ve donus bicimi DEGISMEDI: (secilen yollar, istatistik sozlugu).
+    Cagiranlar (_pipe_hibrit_okuma, _pipe_track_kunye, olcum_yatagi_faz2)
+    tek satir bile degistirmedi.
+    """
+    return nash_secim.havuz_derle_dizin(kare_dizin, desen)
 
 
 def havuz_derle(slug: str) -> list[Path]:

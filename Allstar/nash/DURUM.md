@@ -4,21 +4,22 @@
 > eder. Her iş biriminden sonra güncellenir ve commit'lenir.
 > Spec: `docs/superpowers/specs/2026-08-14-allstar-nash-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-14 — **FAZ 0′ + FAZ 2 TAMAM. KULE UÇTAN UCA ÇALIŞIYOR.**
-Ham kare dizini girer, **yazı çıkar**. KAPI 1 29/29 sapma sıfır · KAPI 0′
-veto sonrası %92.8 birebir / %97.6 bulanık · testler 104/104.
-**SIRADAKİ: Faz 3 — üretim geçişi + sökme (ayrı tasarım gerekir).**
+**Son güncelleme:** 2026-08-14 — **FAZ 3 TAMAM. SÖKME BİTTİ.**
+Nash'in havuz algoritmasının **tek kopyası** artık kulede. `messi.py`,
+`steve_nash.py` ve iki test kopyası **silindi**; üretim
+(`pilot_hat.havuz_derle_dizin`) kuleye devrediyor. Sökme kapısı 29/29 sapma
+sıfır · kule 105 test · harness 36 · pipeline 31, hepsi yeşil.
 
 ---
 
 ## Değişmez kurallar (her oturumda geçerli)
 
-- **`src/havuz.py` DEĞİŞTİRİLMEZ.** `harness/track_kunye/steve_nash.py`'nin
-  birebir kopyası (yalnız docstring başlığı farklı). Sadeleştirme,
-  "iyileştirme", yeniden yazım YASAK — KAPI 1 bunu ölçer.
-- **Üretime dokunulmaz.** Faz 1-2 boyunca `_pipe_hibrit_okuma.py`,
-  `_pipe_track_kunye.py`, `olcum_yatagi_faz2.py`, `pilot_hat.py`,
-  `steve_nash.py`, `messi.py` **salt-okunur**. Sökme yalnız Faz 3'te.
+- **`src/havuz.py` ARTIK TEK KOPYA.** `steve_nash.py`/`messi.py` silindi
+  (Faz 3). Buraya dokunmak ÜRETİMİ doğrudan değiştirir — `_pipe_hibrit_okuma`,
+  `_pipe_track_kunye` ve `olcum_yatagi_faz2` bu dosyayı çalıştırıyor.
+  Değişiklik = ölçüm zorunlu.
+- **Üretimin çağrı yerleri değişmedi.** `ph.havuz_derle_dizin(...)` imzası ve
+  dönüş biçimi aynı; `pilot_hat` ince bir sarmalayıcıya indi.
 - **`git add -A`, `git add .`, `git reset --hard`, `git stash` YASAK.** Ağaçta
   bu işe ait olmayan çok sayıda değişik + silinmiş dosya var. Yalnız adı geçen
   yolları sahnele.

@@ -73,6 +73,33 @@ def ham_kuyruk_ekle(secim: list[Path], tum: list[Path],
     return secim + ek, len(ek)
 
 
+def havuz_derle_dizin(kare_dizin: Path,
+                      desen: str = "*.png") -> tuple[list[Path], dict]:
+    """Dizin → (seçilen yollar, istatistik). ÜRETİM YÜZEYİ — imza sabittir.
+
+    `harness/track_kunye/pilot_hat.havuz_derle_dizin`'in birebir karşılığıdır
+    ve onun yerini alır (Faz 3 sökümü). Üretim betikleri bunu çağırır; böylece
+    havuz algoritmasının TEK kopyası kulenin içinde kalır.
+
+    Örnekleme/sigorta UYGULANMAZ — üretimin kendi tavanları var ve bu yüzey
+    onlardan önce gelir. Kule kendi akışında `sec()` kullanır.
+
+    Boş dönüş de üretimdeki gibi ayrım YAPMAZ (`([], {"kare":0,"sayfa":0})`):
+    `dizin_bos` / `kare_okunamadi` / `havuz_bos` ayrımı kulenin sözleşmesine
+    özgüdür; üretime sızdırmak onun davranışını değiştirirdi.
+    """
+    yollar = sorted(Path(kare_dizin).glob(desen))
+    griler, gecerli = _griler(yollar)
+    if not griler:
+        return [], {"kare": 0, "sayfa": 0}
+    sonuc = havuz_mod.havuz_derle(griler)
+    ekler = havuz_mod.ikinci_gecis(griler, sonuc)
+    ist = {"kare": len(griler), "esik": sonuc.istatistik.esik,
+           "grup": sonuc.istatistik.grup_sayisi, "alarm": sonuc.istatistik.alarm,
+           "sayfa": len(sonuc.sayfalar), "ikinci_gecis_ek": len(ekler)}
+    return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))], ist
+
+
 def sec(kare_dizin: Path, ayar: dict, desen: str = "*.png") -> SecimSonucu:
     """Ham kare dizini → okunacak kareler + kanıt.
 
