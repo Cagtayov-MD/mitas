@@ -45,6 +45,52 @@ kusur değil. Ölçmek: ollama + ~100 deepseek sayfası, ~15–30 dk.
 
 ---
 
+## 2026-08-14 (2) — Nash Faz 3: sökme bitti, algoritmanın tek kopyası kulede
+
+**Yapılan.** Çağatay'ın kuralı karşılandı: *"bu kule haricinde Nash'e dair
+hiçbir eri dışarda kalamaz."* `harness/track_kunye/`'den **silindi**:
+`messi.py` (steve_nash'in 6 satırlık takma adı), `steve_nash.py` (kulenin
+`src/havuz.py`'siyle aynı dosya), `test_messi.py` + `test_steve_nash.py`
+(kulenin `tests/test_havuz.py`'sinin kopyası). Commit `e5545fa3`.
+
+**Kapsam netleşti — `pilot_hat`'taki her şey Nash değil.** Sökmeye başlamadan
+önce haritayı çıkardım ve iş sandığımdan küçük çıktı:
+
+| Fonksiyon | Kimin | Sonuç |
+|---|---|---|
+| `havuz_derle_dizin`, `havuz_derle` | **NASH** | söküldü |
+| `oku_master` | İbrahimovic | duruyor |
+| `ronaldo_kos`, `kb_yukle` | Ronaldo | duruyor |
+| `oku_deepseek` | **paylaşılan okuyucu** | duruyor — sökülseydi master kolu kırılırdı |
+
+**Yöntem: süreç değil MODÜL.** Kule `sys.path` üzerinden doğrudan ithal
+ediliyor; `pilot_hat.havuz_derle_dizin` ince bir sarmalayıcıya indi. Böylece
+üretimin **senkron akışı ve `kunye.txt` üretim anı değişmedi** — konseyin
+uyardığı asenkron bozulma sınıflarının hiçbiri devreye girmedi. Çağrı yerleri
+(`_pipe_hibrit_okuma` canlı ana yol, `_pipe_track_kunye`, `olcum_yatagi_faz2`)
+**tek satır bile değişmedi**; imza ve dönüş biçimi korundu.
+
+**Sökme kapısı:** üretim, kule üzerinden **aynı** cevabı veriyor — 29 yüzey
+(15 film × çıkış+giriş), **SAPAN 0**. Silme sonrası tekrar koşuldu, yine 0.
+Testler: kule 105 · harness 36 · pipeline 31.
+
+**Çakışma yönetildi.** Sökmeye başladığımda `steve_nash.py` başka bir oturum
+tarafından düzenleniyordu (Otsu onarımı). Silmek onların işini yok ederdi;
+çakışmayan kısmı yapıp bekledim, `906376b5` commit'lenince sildim.
+
+**Öğrenilen — bir kapının anlamı zamanla değişebilir.** KAPI 1 artık totolojik:
+kıyasın iki tarafı aynı kod. "İki bağımsız uygulama uyuşuyor mu"yu değil,
+"üretim yorumlayıcısından kuleye giden zincir ayakta mı"yı ölçüyor. Görevini
+Faz 1'de yaptı — taşımanın sadık olduğunu kanıtladı ve **e1a201d5 kusuru tam
+da o kanıtla açığa çıktı.** Kapıyı silmedim ama ne ölçtüğünü dosyanın başına
+yazdım; yoksa bir sonraki oturum ona hâlâ bir sadakat kanıtı sanır.
+
+**Bekleyen.** ① ALİE açık borcu: madde imi kuralı kalktı (14 gerçek isim
+kurtardı), ama `- ` + fiilsiz düzyazı artık yakalanmıyor — ayraç ölçülmeden
+eklenmeyecek. ② Nash'in okuma **doğruluğu** hiç ölçülmedi (Jordan'da da aynı
+boşluk). ③ 26 seyrek sayfa mı 100 sıkı sayfa mı — cevapsız, onay ister.
+④ Konseyde iki koltuk ölü (Qwen hesap, Kimi EOL model).
+
 ## 2026-08-14 — `film_esigi` ayrışması ÖLÇÜLDÜ: ikilem değil, kusur
 
 **Soru.** `e1a201d5` (2026-08-05) `film_esigi`'nin Otsu aramasını *"Optimize
