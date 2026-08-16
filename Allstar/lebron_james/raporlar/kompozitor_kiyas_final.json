@@ -1,0 +1,898 @@
+{
+ "olusturma": "2026-08-17T01:25:01",
+ "motorlar": [
+  "lebron",
+  "ibrahimovic",
+  "magic"
+ ],
+ "eksik_filmler": [],
+ "filmler": [
+  {
+   "film": "benimle-dans-et",
+   "sinif": "sadakat-doğrulama (recall 0.829)",
+   "kare": 55,
+   "dosya": 55,
+   "var_token": 187,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 9.1,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 51,
+      "duraksama": 0,
+      "kesme": 2,
+      "duraksama_bos": 0,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 2686,
+     "segment": 2,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.713,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.7861,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 0.3,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "scroll": 54
+     },
+     "boy": 2367,
+     "segment": 1,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7766,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.7273,
+     "okunabilirlik": 1.0,
+     "cokme": true
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 7.3,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 51,
+      "duraksama": 0,
+      "kesme": 2,
+      "duraksama_bos": 0,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 2206,
+     "segment": 1,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7978,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.7433,
+     "okunabilirlik": 1.0,
+     "cokme": true
+    }
+   }
+  },
+  {
+   "film": "olum-emri",
+   "sinif": "sadakat-doğrulama (recall 0.189)",
+   "kare": 272,
+   "dosya": 272,
+   "var_token": 1429,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 58.7,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 265,
+      "duraksama": 0,
+      "kesme": 3,
+      "duraksama_bos": 2,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 10377,
+     "segment": 2,
+     "dup_oran": 0.0181,
+     "doku_kapsami": 0.7192,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.2351,
+     "okunabilirlik": 0.9815,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.2,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "scroll": 268,
+      "duraksama_bos": 3
+     },
+     "boy": 9915,
+     "segment": 1,
+     "dup_oran": 0.0083,
+     "doku_kapsami": 0.7273,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.2421,
+     "okunabilirlik": 0.9797,
+     "cokme": true
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 53.1,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 265,
+      "duraksama": 0,
+      "kesme": 3,
+      "duraksama_bos": 2,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 9897,
+     "segment": 1,
+     "dup_oran": 0.0062,
+     "doku_kapsami": 0.7314,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.2372,
+     "okunabilirlik": 0.9881,
+     "cokme": true
+    }
+   }
+  },
+  {
+   "film": "solaris",
+   "sinif": "sadakat-doğrulama (17 kare, az kare)",
+   "kare": 17,
+   "dosya": 17,
+   "var_token": 6,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 0.6,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 4,
+      "duraksama": 1,
+      "kesme": 0,
+      "duraksama_bos": 9,
+      "duraksama_belirsiz": 1
+     },
+     "boy": 530,
+     "segment": 1,
+     "dup_oran": 0.0,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.3333,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 0.1,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama": 6,
+      "duraksama_bos": 10
+     },
+     "boy": 480,
+     "segment": 1,
+     "dup_oran": 0.0,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.3333,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 0.8,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 5,
+      "duraksama": 1,
+      "kesme": 0,
+      "duraksama_bos": 9,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 529,
+     "segment": 1,
+     "dup_oran": 0.0,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.3333,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "baba-2",
+   "sinif": "sadakat-doğrulama (295 kare, uzun)",
+   "kare": 295,
+   "dosya": 295,
+   "var_token": 516,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 20.8,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 265,
+      "duraksama": 12,
+      "kesme": 0,
+      "duraksama_bos": 16,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 12204,
+     "segment": 4,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.5735,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8256,
+     "okunabilirlik": 0.9987,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.1,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama_bos": 15,
+      "scroll": 265,
+      "duraksama_belirsiz": 1,
+      "duraksama": 12,
+      "kesme": 1
+     },
+     "boy": 11654,
+     "segment": 4,
+     "dup_oran": 0.0031,
+     "doku_kapsami": 0.5685,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.7791,
+     "okunabilirlik": 0.9961,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 20.6,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 265,
+      "duraksama": 12,
+      "kesme": 0,
+      "duraksama_bos": 16,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 12492,
+     "segment": 5,
+     "dup_oran": 0.0044,
+     "doku_kapsami": 0.5587,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8198,
+     "okunabilirlik": 0.9987,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "hizli-silah",
+   "sinif": "sadakat-doğrulama (okunabilirlik 0.25)",
+   "kare": 67,
+   "dosya": 67,
+   "var_token": 48,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 3.4,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 12,
+      "duraksama": 0,
+      "kesme": 2,
+      "duraksama_bos": 43,
+      "duraksama_belirsiz": 8
+     },
+     "boy": 1851,
+     "segment": 3,
+     "dup_oran": 0.026,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.0208,
+     "okunabilirlik": 0.3,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 0.4,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama_bos": 46,
+      "duraksama": 3,
+      "scroll": 17
+     },
+     "boy": 1513,
+     "segment": 2,
+     "dup_oran": 0.0417,
+     "doku_kapsami": 0.7619,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.0417,
+     "okunabilirlik": 0.3125,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 5.1,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 12,
+      "duraksama": 0,
+      "kesme": 2,
+      "duraksama_bos": 43,
+      "duraksama_belirsiz": 8
+     },
+     "boy": 1851,
+     "segment": 3,
+     "dup_oran": 0.026,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.0208,
+     "okunabilirlik": 0.3,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "acemiler-cetesi",
+   "sinif": "sadakat-doğrulama (kule ilk koşusu)",
+   "kare": 35,
+   "dosya": 35,
+   "var_token": 77,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 3.2,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 25,
+      "duraksama": 4,
+      "kesme": 0,
+      "duraksama_bos": 4,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 2321,
+     "segment": 2,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7812,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8571,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 0.5,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama_bos": 5,
+      "scroll": 25,
+      "duraksama": 4
+     },
+     "boy": 2322,
+     "segment": 2,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7812,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8571,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 3.3,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 25,
+      "duraksama": 4,
+      "kesme": 0,
+      "duraksama_bos": 4,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 2321,
+     "segment": 2,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7812,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8571,
+     "okunabilirlik": 1.0,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "kucuk-dev-adam",
+   "sinif": "dissolve zinciri (plato/fake-scroll kalibrasyonu)",
+   "kare": 73,
+   "dosya": 73,
+   "var_token": 168,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 4.5,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 25,
+      "duraksama": 6,
+      "kesme": 0,
+      "duraksama_bos": 37,
+      "duraksama_belirsiz": 3
+     },
+     "boy": 3913,
+     "segment": 8,
+     "dup_oran": 0.2462,
+     "doku_kapsami": 0.6019,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.1964,
+     "okunabilirlik": 0.8974,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.0,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama_bos": 42,
+      "duraksama_belirsiz": 1,
+      "scroll": 5,
+      "duraksama": 24
+     },
+     "boy": 4349,
+     "segment": 9,
+     "dup_oran": 0.3247,
+     "doku_kapsami": 0.6417,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.1845,
+     "okunabilirlik": 0.8857,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 5.9,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 26,
+      "duraksama": 6,
+      "kesme": 0,
+      "duraksama_bos": 37,
+      "duraksama_belirsiz": 2
+     },
+     "boy": 1984,
+     "segment": 4,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.6316,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.1071,
+     "okunabilirlik": 0.8816,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "karadeniz",
+   "sinif": "fade zinciri + soluk kartlar (110'da görünmez)",
+   "kare": 233,
+   "dosya": 233,
+   "var_token": 1090,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 28.3,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 157,
+      "duraksama": 20,
+      "kesme": 0,
+      "duraksama_bos": 31,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 4180,
+     "segment": 3,
+     "dup_oran": 0.0066,
+     "doku_kapsami": 0.7402,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.255,
+     "okunabilirlik": 0.9396,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.2,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "duraksama_bos": 78,
+      "scroll": 154
+     },
+     "boy": 7341,
+     "segment": 14,
+     "dup_oran": 0.0062,
+     "doku_kapsami": 0.4497,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.2807,
+     "okunabilirlik": 0.9558,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 28.0,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 157,
+      "duraksama": 20,
+      "kesme": 0,
+      "duraksama_bos": 31,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 4468,
+     "segment": 4,
+     "dup_oran": 0.0065,
+     "doku_kapsami": 0.7018,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.2697,
+     "okunabilirlik": 0.9467,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "hayat-agaci",
+   "sinif": "çöküş + kar-tulumu gren (fark-tabanı sınıfı)",
+   "kare": 113,
+   "dosya": 113,
+   "var_token": 24,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 6.1,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 74,
+      "duraksama": 0,
+      "kesme": 36,
+      "duraksama_bos": 0,
+      "duraksama_belirsiz": 1
+     },
+     "boy": 6341,
+     "segment": 1,
+     "dup_oran": 0.0676,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.0,
+     "okunabilirlik": 0.0,
+     "cokme": true
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.7,
+     "olcum_yolu": "sobel",
+     "sinif_sayimi": {
+      "duraksama": 101,
+      "scroll": 11
+     },
+     "boy": 1234,
+     "segment": 1,
+     "dup_oran": 0.1176,
+     "doku_kapsami": 1.0,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.0,
+     "okunabilirlik": 0.0,
+     "cokme": true
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 9.2,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 75,
+      "duraksama": 0,
+      "kesme": 36,
+      "duraksama_bos": 0,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 6340,
+     "segment": 1,
+     "dup_oran": 0.0676,
+     "doku_kapsami": 1.0,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.0,
+     "okunabilirlik": null,
+     "cokme": true
+    }
+   }
+  },
+  {
+   "film": "demir-maskeli-adam",
+   "sinif": "pozitif kontrol (üretimde recall 0.005)",
+   "kare": 89,
+   "dosya": 89,
+   "var_token": 417,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 8.8,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 61,
+      "duraksama": 1,
+      "kesme": 4,
+      "duraksama_bos": 18,
+      "duraksama_belirsiz": 3
+     },
+     "boy": 14613,
+     "segment": 9,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7155,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8177,
+     "okunabilirlik": 0.9981,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 1.2,
+     "olcum_yolu": "parlaklik",
+     "sinif_sayimi": {
+      "scroll": 62,
+      "duraksama_bos": 21,
+      "duraksama": 3,
+      "duraksama_belirsiz": 1,
+      "kesme": 1
+     },
+     "boy": 5191,
+     "segment": 5,
+     "dup_oran": 0.0142,
+     "doku_kapsami": 0.6528,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.3046,
+     "okunabilirlik": 0.9825,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 9.3,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 61,
+      "duraksama": 1,
+      "kesme": 4,
+      "duraksama_bos": 18,
+      "duraksama_belirsiz": 3
+     },
+     "boy": 14133,
+     "segment": 8,
+     "dup_oran": 0.0,
+     "doku_kapsami": 0.7266,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.8273,
+     "okunabilirlik": 0.9991,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "jetgiller-ve-cakmaktaslar",
+   "sinif": "statik zemin (fark yalnız fallback)",
+   "kare": 49,
+   "dosya": 49,
+   "var_token": 211,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 3.9,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 3,
+      "duraksama": 24,
+      "kesme": 9,
+      "duraksama_bos": 11,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 4952,
+     "segment": 10,
+     "dup_oran": 0.2181,
+     "doku_kapsami": 0.7233,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.5213,
+     "okunabilirlik": 0.9894,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 2.0,
+     "olcum_yolu": "sobel",
+     "sinif_sayimi": {
+      "duraksama": 28,
+      "scroll": 11,
+      "duraksama_bos": 9
+     },
+     "boy": 1340,
+     "segment": 2,
+     "dup_oran": 0.0337,
+     "doku_kapsami": 0.8018,
+     "saglikli": true,
+     "ihlaller": [],
+     "text_recall": 0.1611,
+     "okunabilirlik": 0.9667,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 5.9,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 3,
+      "duraksama": 24,
+      "kesme": 9,
+      "duraksama_bos": 11,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 3512,
+     "segment": 7,
+     "dup_oran": 0.128,
+     "doku_kapsami": 0.7226,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.4265,
+     "okunabilirlik": 0.9837,
+     "cokme": false
+    }
+   }
+  },
+  {
+   "film": "komsum-totoro",
+   "sinif": "statik zemin (NCC dominasyon sınıfı)",
+   "kare": 116,
+   "dosya": 116,
+   "var_token": 174,
+   "motorlar": {
+    "lebron": {
+     "durum": "OK",
+     "sure_s": 10.4,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 7,
+      "duraksama": 86,
+      "kesme": 18,
+      "duraksama_bos": 2,
+      "duraksama_belirsiz": 1
+     },
+     "boy": 7624,
+     "segment": 15,
+     "dup_oran": 0.4853,
+     "doku_kapsami": 0.9927,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.2414,
+     "okunabilirlik": 0.7647,
+     "cokme": false
+    },
+    "ibrahimovic": {
+     "durum": "OK",
+     "sure_s": 3.6,
+     "olcum_yolu": "sobel",
+     "sinif_sayimi": {
+      "duraksama": 114,
+      "scroll": 1
+     },
+     "boy": 11171,
+     "segment": 23,
+     "dup_oran": 0.148,
+     "doku_kapsami": 0.9751,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.431,
+     "okunabilirlik": 0.7976,
+     "cokme": false
+    },
+    "magic": {
+     "durum": "OK",
+     "sure_s": 15.8,
+     "olcum_yolu": "ai_flashlight",
+     "sinif_sayimi": {
+      "scroll": 8,
+      "duraksama": 86,
+      "kesme": 18,
+      "duraksama_bos": 2,
+      "duraksama_belirsiz": 0
+     },
+     "boy": 7143,
+     "segment": 14,
+     "dup_oran": 0.4603,
+     "doku_kapsami": 0.9844,
+     "saglikli": false,
+     "ihlaller": [
+      "dup_oran_yuksek"
+     ],
+     "text_recall": 0.2184,
+     "okunabilirlik": 0.719,
+     "cokme": false
+    }
+   }
+  }
+ ],
+ "motor_ozeti": {
+  "lebron": {
+   "film": 12,
+   "uretti": 12,
+   "ariza": 0,
+   "saglikli": 9,
+   "cokme": 1,
+   "recall_medyan": 0.2942,
+   "dup_medyan": 0.0123,
+   "boy_medyan": 4566
+  },
+  "ibrahimovic": {
+   "film": 12,
+   "uretti": 12,
+   "ariza": 0,
+   "saglikli": 9,
+   "cokme": 3,
+   "recall_medyan": 0.2926,
+   "dup_medyan": 0.0112,
+   "boy_medyan": 3358
+  },
+  "magic": {
+   "film": 12,
+   "uretti": 12,
+   "ariza": 0,
+   "saglikli": 10,
+   "cokme": 3,
+   "recall_medyan": 0.3015,
+   "dup_medyan": 0.0053,
+   "boy_medyan": 3990
+  }
+ },
+ "sure_s": 486.2
+}

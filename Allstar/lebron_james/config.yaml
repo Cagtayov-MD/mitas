@@ -1,0 +1,26 @@
+# Lebron — kareler → master PNG → metin. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+derleyici:
+  # Bu eşikler harness/master_dup/lebron_james.py'den BİREBİR taşındı.
+  # DEĞİŞTİRME: üretim davranışı bunlarla ölçüldü (2026-08-04 kararı).
+  h_maks: 45000          # bunun üstü → ARIZA(BOY_ASIMI). saglik.py ile aynı tavan
+  cokme_min_kare: 20     # çöküş dedektörü: bundan az karede hüküm verilmez
+
+okuyucu:
+  # Geometri _pipe_hibrit_okuma.py:59'dan gelir ("pilot_hat.oku_master ile aynı
+  # geometri") — uydurma DEĞİL, üretimde ölçülmüş değer. DEĞİŞTİRME.
+  bant_h: 1100
+  bindirme: 120
+  min_bant_h: 40         # bundan kısa son bant atılır
+
+  # Model kulenin İÇİNDE yaşar (Çağatay 2026-08-15). Üretimdeki okuyucu
+  # Ollama'ya HTTP atıyordu; dış servise bağlı kule kendi kendine yetmez.
+  # Model, istem ve geometri AYNI — yalnız taşıyıcı değişti.
+  model_yol: model/deepseek-ocr
+  istem: "Free OCR."     # üretimdeki ISTEM ile birebir. src/model.py başına
+                         # "<image>\n" ekler — Ollama'da bunu llama.cpp
+                         # handler'ı kendi yapıyordu.
+  base_size: 1024
+  image_size: 640
+  crop_mode: true

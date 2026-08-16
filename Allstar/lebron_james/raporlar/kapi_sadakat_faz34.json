@@ -1,0 +1,108 @@
+{
+ "ozet": {
+  "film": 8,
+  "birebir": 8,
+  "ikisi_de_uretemedi": 0,
+  "sapma": 0,
+  "GECTI": true,
+  "sapanlar": []
+ },
+ "filmler": [
+  {
+   "film": "20-bulusma-exit_frames",
+   "uretim_sha": "6fba33bfa18b29daecd53fc35c24ed3fd6bc97e176543776278f4e165584ffdc",
+   "kule_sha": "6fba33bfa18b29daecd53fc35c24ed3fd6bc97e176543776278f4e165584ffdc",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 2696,
+   "kule_boy": 2696,
+   "sure_sn": 74.5
+  },
+  {
+   "film": "acemiler-cetesi-exit_frames",
+   "uretim_sha": "06871b40f04623b119c2d6a28168825675980496f2463f66e5f22ed2656e25b8",
+   "kule_sha": "06871b40f04623b119c2d6a28168825675980496f2463f66e5f22ed2656e25b8",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 2321,
+   "kule_boy": 2321,
+   "sure_sn": 7.1
+  },
+  {
+   "film": "aci-cikolata-exit_frames",
+   "uretim_sha": "fde00ae58f1157a2e7c068b85bbc4583d5fcedf0812972732bf2d6499890bf0c",
+   "kule_sha": "fde00ae58f1157a2e7c068b85bbc4583d5fcedf0812972732bf2d6499890bf0c",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 7508,
+   "kule_boy": 7508,
+   "sure_sn": 45.5
+  },
+  {
+   "film": "affedilmeyen-exit_frames",
+   "uretim_sha": "c3ee63858bbc94645ec1354e46f7926cd731f0e4ef19665434d4d3272a18b4d3",
+   "kule_sha": "c3ee63858bbc94645ec1354e46f7926cd731f0e4ef19665434d4d3272a18b4d3",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 7276,
+   "kule_boy": 7276,
+   "sure_sn": 46.0
+  },
+  {
+   "film": "affedilmeyenler-exit_frames",
+   "uretim_sha": "9695e50f4bc1f520e54a8b6c15269a627aac74a123302e12196cf7e90226df9d",
+   "kule_sha": "9695e50f4bc1f520e54a8b6c15269a627aac74a123302e12196cf7e90226df9d",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 574,
+   "kule_boy": 574,
+   "sure_sn": 2.3
+  },
+  {
+   "film": "aile-babasi-exit_frames",
+   "uretim_sha": "4ecae0646d9e0768d38f5e9ad4bb57e31cec339335cbe1267cfc6a1ab6cc65e3",
+   "kule_sha": "4ecae0646d9e0768d38f5e9ad4bb57e31cec339335cbe1267cfc6a1ab6cc65e3",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 7027,
+   "kule_boy": 7027,
+   "sure_sn": 63.9
+  },
+  {
+   "film": "ajans-exit_frames",
+   "uretim_sha": "f979107f633e30b187131eba1c4af145fc7922ae0453531089127e8cc2aae9dd",
+   "kule_sha": "f979107f633e30b187131eba1c4af145fc7922ae0453531089127e8cc2aae9dd",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 10961,
+   "kule_boy": 10961,
+   "sure_sn": 36.9
+  },
+  {
+   "film": "al-jolson-un-hayati-exit_frames",
+   "uretim_sha": "0b5f3ab2df4d9a06b54bf3797a9ca1fd5e68d501ee4d37cadd3353249723c944",
+   "kule_sha": "0b5f3ab2df4d9a06b54bf3797a9ca1fd5e68d501ee4d37cadd3353249723c944",
+   "ayni": true,
+   "ikisi_de_uretemedi": false,
+   "uretim_durum": "OK",
+   "kule_durum": "ARIZA",
+   "uretim_boy": 1924,
+   "kule_boy": 1924,
+   "sure_sn": 3.9
+  }
+ ]
+}
