@@ -19,10 +19,15 @@ os.environ.setdefault("OMP_NUM_THREADS", "4")
 
 KULE = Path(__file__).resolve().parent
 SRC = KULE / "src"
+CIKIS = SRC / "cikis"     # E2: karar motoru — DONMUŞ, dosyaya sıfır diff
+ORTAK = SRC / "ortak"     # E2: aletler — motor'un tembel importları (kutu, icerik)
 SCRATCH = KULE / "scratch"
 OUT = KULE / "out"
 sys.path.insert(0, str(KULE))
-sys.path.insert(0, str(SRC))
+sys.path.insert(0, str(SRC))      # giris paketi (from giris import ...)
+sys.path.insert(0, str(CIKIS))    # import motor
+sys.path.insert(0, str(ORTAK))    # import kutu / import icerik (motor.py içindeki
+                                  # tembel importlar — dosyaya dokunmadan çözülür)
 
 from sozlesme import BOLUMLER, Cikti, Girdi, GirdiHatasi, ariza  # noqa: E402
 

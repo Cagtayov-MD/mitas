@@ -108,10 +108,10 @@ okunmasını, `_TAMAM` "yazılıyor mu bitti mi" belirsizliğini kapatır.
 
 | Ne | Yol |
 |---|---|
-| **Karar motoru — ÇIKIŞ** (`tespit_v5`) | `src/motor.py` |
+| **Karar motoru — ÇIKIŞ** (`tespit_v5`) | `src/cikis/motor.py` |
 | **Karar bloğu — GİRİŞ** (sınır + havuz) | `src/giris/sinir.py`, `src/giris/havuz.py` |
-| Kutu sinyali (Paddle det, dilden bağımsız) | `src/kutu.py` |
-| İçerik analizi (isim/rol, çok-dil) | `src/icerik.py` |
+| Kutu sinyali (Paddle det, dilden bağımsız) | `src/ortak/kutu.py` |
+| İçerik analizi (isim/rol, çok-dil) | `src/ortak/icerik.py` |
 | Sözleşme (`Girdi`/`Cikti`/`ariza`) | `sozlesme.py` |
 | CLI + koşu akışı | `main.py`, `kobe` |
 | Ölçüm yatağı + GT | `olcum/` |

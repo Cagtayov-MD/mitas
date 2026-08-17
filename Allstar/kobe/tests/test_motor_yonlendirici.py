@@ -24,7 +24,9 @@ import pytest
 from PIL import Image
 
 SRC = Path(__file__).resolve().parents[1] / "src"
-sys.path.insert(0, str(SRC))
+# E2: motor -> src/cikis, aletler -> src/ortak
+sys.path.insert(0, str(SRC / "ortak"))
+sys.path.insert(0, str(SRC / "cikis"))
 
 
 # ── sahte bağımlılıklar ──────────────────────────────────────────────────

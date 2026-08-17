@@ -28,7 +28,9 @@ import numpy as np
 
 BURASI = os.path.dirname(os.path.abspath(__file__))            # Allstar/kobe/olcum
 SRC = os.path.join(os.path.dirname(BURASI), "src")
-sys.path.insert(0, SRC)
+# E2: motor -> src/cikis, aletler -> src/ortak (olc_pool.py ile ayni desen)
+sys.path.insert(0, os.path.join(SRC, "ortak"))
+sys.path.insert(0, os.path.join(SRC, "cikis"))
 import icerik as cc      # noqa: E402  (salt-okunur kullanım)
 import motor as co        # noqa: E402  (salt-okunur kullanım)
 

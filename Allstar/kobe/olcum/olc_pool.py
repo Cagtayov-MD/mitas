@@ -14,7 +14,10 @@ os.environ.setdefault("OMP_NUM_THREADS", "4")   # paralel işçilerde çekirdek 
 
 BURASI = os.path.dirname(os.path.abspath(__file__))            # Allstar/kobe/olcum
 SRC = os.path.join(os.path.dirname(BURASI), "src")             # Allstar/kobe/src
-sys.path.insert(0, SRC)
+# E2: motor → src/cikis, aletler → src/ortak. İkisi de path'te olmalı —
+# motor'un tembel importları (kutu/icerik) spawn işçilerinde de çözülmeli.
+sys.path.insert(0, os.path.join(SRC, "ortak"))
+sys.path.insert(0, os.path.join(SRC, "cikis"))
 import motor as co
 
 V = os.path.join(BURASI, "veri")

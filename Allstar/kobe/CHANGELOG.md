@@ -1,5 +1,29 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (3) — E2: `src/cikis/` + `src/ortak/` — kapı sapma sıfır
+
+DURUM.md Karar 2'de kurulan ama uygulanmayan yapı gerçekleşti: karar motoru
+`src/cikis/motor.py`'ye, aletler (`kutu.py`, `icerik.py`) `src/ortak/`'ta,
+giriş bloğu `src/giris/`'te. Simetri tamam: her bölümün kendi klasörü var,
+ortak yalnız aletler.
+
+**Donmuş dosyaya sıfır diff.** `motor.py`'nin `kutu`/`icerik` importları
+fonksiyon içinde (satır 249, 730-731); `src/cikis` + `src/ortak` sys.path'e
+konunca düz `import kutu`/`import icerik` yeni yerden çözülür — dosyanın
+kendisi `git mv` dışında değişmedi (EKSİKLER E2 metni import satırlarına
+dokunulabileceğini söylüyordu; gerekmedi, dokunulmadı).
+
+Yol ayarı değişenler: `main.py` (cikis+ortak+src), `src/giris/havuz.py`
+(ortak), `olcum/olc_pool.py` + `olcum/hata_atlasi.py` (cikis+ortak — spawn
+işçilerinde de çözülür), `tests/test_motor_yonlendirici.py`. `test_izolasyon.py`
+yeni yollara bağlandı; `test_yapi_kilitli` bekçisi eklendi (motor tekrar src/
+düzlemine dönerse kırmızı).
+
+**Kapı:** `olc_pool.py --paralel 8` → kapsam 110, **104/110 = %94.5**,
+**107/110 = %97.3**, kredi-yok **29/29**, eksik 5; hata listesi bilinen
+6 filmle birebir. Kayıt: `raporlar/olcum_E2.json`. Kanarya: BULUNDU 1133.
+Testler 71/71.
+
 ## 2026-08-17 (2) — E1: üretim kuleyi sözleşmeden çağırıyor
 
 Kulenin değeri sözleşmedeydi; üretim ona `import motor` ile kütüphane gibi

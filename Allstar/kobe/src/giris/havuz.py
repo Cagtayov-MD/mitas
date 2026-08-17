@@ -23,9 +23,10 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_SRC = Path(__file__).resolve().parents[1]
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
+# E2: aletler (kutu/icerik) src/ortak/'ta — karar kodu değil, ölçüm yaparlar.
+_ORTAK = Path(__file__).resolve().parents[1] / "ortak"
+if str(_ORTAK) not in sys.path:
+    sys.path.insert(0, str(_ORTAK))
 
 import kutu    # noqa: E402
 import icerik  # noqa: E402

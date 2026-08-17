@@ -21,9 +21,12 @@ import pytest
 KULE = Path(__file__).resolve().parents[1]
 SRC = KULE / "src"
 GIRIS = SRC / "giris"
+CIKIS = SRC / "cikis"          # E2: karar motoru burada yaşar
+ORTAK = SRC / "ortak"          # E2: aletler (kutu/icerik) burada yaşar
 
 # Karar veren, bölüme özgü modüller. Alet DEĞİLler.
 CIKIS_MODULU = "motor"
+CIKIS_YOLU = CIKIS / f"{CIKIS_MODULU}.py"
 GIRIS_MODULLERI = ("sinir", "havuz")
 
 # Yalnız çıkışa ait, girişe sızarsa sessizce yanlış cevap üreten eşikler.
@@ -75,9 +78,21 @@ def test_cikis_esikleri_girise_sizmaz(yol):
         )
 
 
+def test_yapi_kilitli():
+    """E2 düzeni: karar motoru `cikis/`'ta, aletler `ortak/`'ta, giriş `giris/`'te.
+    Yerleri değişirse test kırmızıya döner — motor tekrar src/ düzlemine
+    dönerse 'çıkış girişin yanına düşer' ve izolasyon görünmez şekilde zayıflar."""
+    assert (CIKIS / "motor.py").is_file(), "cikis/motor.py yok"
+    assert (ORTAK / "kutu.py").is_file(), "ortak/kutu.py yok"
+    assert (ORTAK / "icerik.py").is_file(), "ortak/icerik.py yok"
+    assert not (SRC / "motor.py").exists(), "motor.py hâlâ src/ düzleminde — E2 geri dönmüş"
+    assert not (SRC / "kutu.py").exists() and not (SRC / "icerik.py").exists(), \
+        "aletler hâlâ src/ düzleminde — E2 geri dönmüş"
+
+
 def test_motor_giris_blogunu_import_etmez():
     """Çıkış da girişi tanımaz — bağımlılık iki yönde de yok."""
-    adlar = _import_adlari(SRC / f"{CIKIS_MODULU}.py")
+    adlar = _import_adlari(CIKIS_YOLU)
     yasak = set(GIRIS_MODULLERI) | {"giris"}
     assert not (adlar & yasak), (
         f"motor.py {adlar & yasak} import ediyor — çıkış girişe bağlandı"

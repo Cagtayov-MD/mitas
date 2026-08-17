@@ -42,26 +42,20 @@ yönlendirme sorumluluğu orkestratörde, bilinçli.
 
 ---
 
-### E2 — `src/` yeniden düzenlemesi yapılmadı 🟡
+### E2 — ✅ YAPILDI (2026-08-17) — `src/cikis/` + `src/ortak/` ayrımı
 
-Şu an düz: `src/motor.py`, `src/kutu.py`, `src/icerik.py`.
-`DURUM.md` Karar 2'de kararlaştırılan yapı:
+Kararlaştırılan yapı kuruldu: `src/cikis/motor.py` (DONMUŞ — **dosyaya sıfır
+diff**, `git mv` ile yalnız taşındı), `src/ortak/kutu.py` + `src/ortak/
+icerik.py` (aletler), `src/giris/` yerinde. `motor.py`'nin `kutu`/`icerik`
+importları fonksiyon-içi tembel olduğu için yol ayarları ÇAĞIRAN tarafta
+çözüldü (`main.py`, `olcum/*.py`, `tests/`) — donmuş dosyaya tek satır
+girmedi. `test_izolasyon.py` yeni yapıya bağlandı + yapıyı kilitleyen
+bekçi (`test_yapi_kilitli`) eklendi — 71/71.
 
-```
-src/
-├─ cikis/   ← motor.py (DONMUŞ)
-├─ giris/   ← yeni blok
-└─ ortak/   ← kutu.py + icerik.py (alet)
-```
-
-**Neden önemli:** Giriş bloğu yazılmadan bu ayrım yapılmazsa, giriş kodu
-çıkışın yanına düşer ve Çağatay'ın "karışmasın" kuralı ilk günden bozulur.
-
-**Nereye:** `src/`, import satırları (`motor.py` içinde `import kutu as cb`,
-`import icerik as cc`; `olcum/*.py`; `tests/`).
-
-**Maliyet:** düşük — ama **ölçüm kapısı şart**: taşıma sonrası
-`olc_pool.py --paralel 8` → %94.5 sapma sıfır olmalı.
+**Kapı:** `olc_pool.py --paralel 8` → kapsam 110, genel **104/110 = %94.5**,
+üretim **107/110 = %97.3**, kredi-yok **29/29**, eksik 5 — **sapma sıfır**,
+hata listesi bilinen 6 filmle birebir (`raporlar/olcum_E2.json`).
+Golden kanarya: BULUNDU, kare 1133, en.
 
 ---
 
@@ -98,7 +92,7 @@ sessiz arıza üretti: `models/lid/…` → `C:/Users/TRT03/…`).
 
 ### E5 — `%94.5` Ollama KAPALIYKEN ölçüldü 🟠
 
-Kobe'nin dil yönlendiricisi Ollama'ya HTTP ile bağlanıyor (`src/motor.py`
+Kobe'nin dil yönlendiricisi Ollama'ya HTTP ile bağlanıyor (`src/cikis/motor.py`
 ~699). Erişilemezse `except Exception: continue` → hiç oy toplanmaz → **her
 film için `'en'`**. Ölçüm 12:43'te yapıldı, Ollama 12:21'de durmuştu.
 
@@ -268,7 +262,7 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 | Sıra | İş | Neden bu sırada |
 |---|---|---|
 | 1 | ~~**E1** — üretim hattını sözleşmeye bağla~~ ✅ 2026-08-17 | Yapıldı — A/B birebir, kanarya tuttu |
-| 2 | **E2** — `src/cikis/` + `src/ortak/` ayrımı | E1'den SONRA olmalıydı: library importu kalkmadan motor'u taşımak üretimi kırardı. Şimdi serbest |
+| 2 | ~~**E2** — `src/cikis/` + `src/ortak/` ayrımı~~ ✅ 2026-08-17 | Yapıldı — motor.py'ye sıfır diff, kapı %94.5 sapma sıfır |
 | 3 | **G5 + G6** — giriş GT'si ve ölçüm yatağı | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
 | 4 | **G8** — uyarlanır pencere | G6 olmadan kazancı ölçülemez |
 | 5 | **E5** — Ollama açıkken referans ölçüm | Üretimdeki gerçek sayı |
@@ -278,7 +272,7 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 
 ## Değişmezler — her adımda geçerli
 
-1. **`src/motor.py`'ye dokunulmaz.** Çıkışın %94.5'i ona bağlı.
+1. **`src/cikis/motor.py`'ye dokunulmaz.** Çıkışın %94.5'i ona bağlı.
 2. **Çıkış girişin işine karışmaz.** Karar mantıkları birleşmez; ortak olan
    yalnız aletlerdir (`kutu.py`, `icerik.py`). `test_izolasyon.py` kilitler.
 3. **Çıkışa dokunan iş** `olc_pool.py --paralel 8` → **%94.5 sapma sıfır**

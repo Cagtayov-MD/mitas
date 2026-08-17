@@ -111,18 +111,18 @@ GİRDİ (video VEYA hazır kare dizini)
    │    (bu dizin KOBE'NİN DEĞİLDİR — asla silinmez, asla değiştirilmez)
    │
    ▼
-KARAR MOTORU  src/motor.py :: tespit_v5
+KARAR MOTORU  src/cikis/motor.py :: tespit_v5
    │
    │  ① DİL YÖNLENDİRİCİ — son %20'den örnek kareler → Qwen Vision (Ollama)
    │     "hangi alfabe?" → en/ru/ar/... → OCR modeli seçilir
    │     (Ollama kapalıysa 'en'e düşer — skor bundan etkilenir, bkz. DURUM.md)
    │
-   │  ② KUTU SİNYALİ  src/kutu.py — PaddleOCR *detection-only*
+   │  ② KUTU SİNYALİ  src/ortak/kutu.py — PaddleOCR *detection-only*
    │     Her karede metin kutusu var mı? Dilden bağımsız, ucuz.
    │     Sahne = 0-1 kutu · jenerik = sürdürülen ≥2 kutu
    │     → aday "kutu koşuları" (ardışık kutu-dolu pencereler)
    │
-   │  ③ İÇERİK DOĞRULAMA  src/icerik.py — PaddleOCR *recognition*
+   │  ③ İÇERİK DOĞRULAMA  src/ortak/icerik.py — PaddleOCR *recognition*
    │     Aday karelerde GERÇEKTEN isim listesi mi var?
    │     Rol sözlüğü (core/lexicon/rol_tablosu) ile eşleşme.
    │     PAHALI — yalnız birkaç aday karede koşar, önbelleklenir.
@@ -271,9 +271,11 @@ Allstar/kobe/
 ├─ config.yaml             ← eşikler ve bayraklar
 │
 ├─ src/                    ← KARAR MOTORU (dış dünyayı bilmez)
-│  ├─ motor.py    1325 s.  ← ÇIKIŞ kararı — tespit_v5 (DONMUŞ)
-│  ├─ kutu.py      145 s.  ← ORTAK ALET: Paddle det, kutu sinyali
-│  ├─ icerik.py    616 s.  ← ORTAK ALET: isim/rol analizi, çok-dil OCR
+│  ├─ cikis/               ← ÇIKIŞ kararı — tespit_v5 (DONMUŞ)
+│  │  └─ motor.py  1325 s.
+│  ├─ ortak/               ← ORTAK ALETLER (karar vermez, ölçer)
+│  │  ├─ kutu.py    145 s. ← Paddle det, kutu sinyali
+│  │  └─ icerik.py  616 s. ← isim/rol analizi, çok-dil OCR
 │  └─ giris/               ← GİRİŞ kararı — çıkıştan BAĞIMSIZ
 │     ├─ sinir.py          ← (a) sınır: jenerik_detector ÇAĞRILIR
 │     ├─ havuz.py          ← (b) havuz: kutu.py + icerik.py ile ayıklama
@@ -304,9 +306,9 @@ Allstar/kobe/
 ```
 kobe → main.py → sozlesme.py
                       ↑
-         main.py → src/motor.py ──┐
-                                  ├→ src/kutu.py
-         main.py → src/giris/ ────┘  src/icerik.py → core/lexicon/rol_tablosu
+         main.py → src/cikis/motor.py ──┐
+                                        ├→ src/ortak/kutu.py
+         main.py → src/giris/ ──────────┘  src/ortak/icerik.py → core/lexicon/rol_tablosu
 ```
 
 **`src/` sözleşmeyi BİLMEZ.** Motor kendi tiplerini (`Sonuc`) döndürür;
@@ -321,7 +323,7 @@ dışarı sızmaz ve sözleşme motora dokunmadan değişebilir.
 
 | | Çıkış | Giriş |
 |---|---|---|
-| Karar kodu | `src/motor.py` | `src/giris/sinir.py` + `havuz.py` |
+| Karar kodu | `src/cikis/motor.py` | `src/giris/sinir.py` + `havuz.py` |
 | Ayraç | `SON_ERISIM = 0.82` | **kullanılamaz** — girişte ters çalışır |
 | Pencere | son 600 sn | ilk 240 sn |
 | Aranan | başlangıç | başlangıç **+ bitiş** |
@@ -428,7 +430,7 @@ nedenidir ve `src/giris/`'in neden ayrı doğduğunu açıklar.
 
 ### Kanıt — çıkış motoru girişte neden kullanılamaz
 
-**① Motorun temel ayracı kapanışa özgü.** `src/motor.py:814-816`:
+**① Motorun temel ayracı kapanışa özgü.** `src/cikis/motor.py:814-816`:
 
 ```
 # ardından FİLM DEVAM EDER. Aday sonu son %18'e ulaşmıyorsa kredi değildir.
@@ -441,7 +443,7 @@ giriş jeneriğinden sonra film HER ZAMAN devam eder. `tespit_v5` giriş
 karelerine doğrultulursa neredeyse her filme `KREDI_YOK` der: emin, sessiz ve
 sistematik olarak yanlış.
 
-**② Kurtarma yolu da sona çapalı.** `motor.py:378` — *"filmin son %25'inde
+**② Kurtarma yolu da sona çapalı.** `src/cikis/motor.py:378` — *"filmin son %25'inde
 ≥8 sn sürdürülen scroll+kutu"*.
 
 **③ Ölçüm yatağında giriş verisi YOK.** `olcum/veri/havuz_kur.sh` →
@@ -478,7 +480,7 @@ kare 476'ya kadar yayılıydı. Havuz sınırla kısıtlanmaz, tüm pencereyi ta
 
 ```
 out/<film_id>/
-├─ cikis/                 ← kapanış jeneriği (src/motor.py)
+├─ cikis/                 ← kapanış jeneriği (src/cikis/motor.py)
 │  ├─ kobe.json           ← baslangic_* dolu, bitis_* = null
 │  ├─ _TAMAM
 │  ├─ kareler/   veya     ← secim="aralik" (onset−10 → kaynağın sonu)

@@ -5,7 +5,18 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 — **E1 YAPILDI: üretim kuleyi sözleşmeden
+**Son güncelleme:** 2026-08-17 (2) — **E2 YAPILDI: `src/cikis/` + `src/ortak/`
+kuruldu, kapı %94.5 SAPMA SIFIR.** `git mv` ile `motor.py → src/cikis/`,
+`kutu.py`/`icerik.py → src/ortak/` — **donmuş dosyalara sıfır diff** (motor'un
+alet importları fonksiyon-içi tembel; yol ayarları main.py/olcum/tests
+tarafında). `test_izolasyon.py` yeni yapıya bağlandı + `test_yapi_kilitli`
+bekçisi geldi (71/71). Kapı: kapsam 110, %94.5 / %97.3 / 29-29, hata listesi
+bilinen 6 filmle birebir (`raporlar/olcum_E2.json`); kanarya kare 1133.
+Sıradaki: **G6** — giriş ölçüm yatağı altyapısı (G5 GT'si Çağatay'dan bekler).
+
+---
+
+**2026-08-17 — E1 YAPILDI: üretim kuleyi sözleşmeden
 çağırıyor.** `scripts/_jenerik_pool.py`'de `import motor` KALKTI; yerine
 `_kobe_karari_al()` — `kobe tek --kareler ... --film-id ...` alt-süreci koşar,
 kararı `out/<id>/cikis/kobe.json`'dan okur (kendi 167-pin venv'iyle koşar —
