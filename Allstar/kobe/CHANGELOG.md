@@ -1,5 +1,21 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (6) — ilk giriş ölçümü, başlangıç politikası, yatak 50 film
+
+- **İlk GT'li ölçüm** (8 film): jenerik-var 8/8 bulundu; bitiş 8/8 erken
+  (−2..−327) — kayıt `olcum_giris_son.json`. GT biçim onarımları şeffaf
+  kayıtlı (dosya-adı→int, karar türetme).
+- **Başlangıç politikası** (Çağatay: "3 kareyse 1 olur, 6 olmaz; geriye dönük
+  kabul — hatta hep 1'den başla, çalışma yapma"): sinir karar başlangıcı daima
+  1; motorun ham start'ı `kanit.tespit_bas_kare`'de. olc_giris yalnız
+  `gec_baslangıç`ı hata sayar. Golden giris demiri güncellendi.
+- **Bitiş kalibrasyonu** (`bitis_kalibrasyonu.md`): 7 havuz-tabanlı tahminci
+  GT'ye karşı denendi — kazanamadı (965 vs en iyi 833, gürültü); overfit
+  riskiyle uygulanmadı. G10: GT ≥20 film olunca yeniden.
+- **Yatak 10→50 film**: test_film_vl'deki `giris_240.mp4` kesitleri ikinci
+  kaynak oldu (giriş için tam pencere); teklifler üretildi, gt.json'a boş
+  girişler eklendi — Çağatay doldurdukça kapsam büyür.
+
 ## 2026-08-17 (5) — G7 + E4 + E6(yarısı): kanarya, görünüm, işçi tazeleme
 
 - **G7** — `golden/giris_tek_film.json`: KOBRA giriş kararı demirlendi

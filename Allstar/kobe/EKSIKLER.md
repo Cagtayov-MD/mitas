@@ -191,13 +191,14 @@ borcu) kapanırken `credit_box` da okuma kulesine giderse kökten çözülür.
 
 ## Eksik ❌
 
-### G5 — GT YOK 🔴
+### G5 — 🟡 İLK GT GELDİ (2026-08-17): 8/10 film doğrulandı
 
-Giriş için tek bir insan-doğrulanmış kayıt yok. Çıkışta `dogrulama_sonuc.json`
-110 film içeriyor (`gercek_onset` + gerekçe); girişin karşılığı **hiç yok**.
-
-**Sonuç:** giriş kuleye girdiğinde **"Kobe %94.5" cümlesi yalnız çıkış için
-geçerli olacak.** Giriş hakkında hiçbir sayı olmayacak. Bilinçli borç.
+Çağatay `veri/gt.json`'ı doldurdu (depo_3006 yatağının 10 filminden 8'i;
+BELALI_SEVGİLİ + KAPANMAMIŞ boş bekliyor). İlk ölçüm kayıtlı:
+`veri/olcum_giris_son.json` — jenerik-var 8/8 bulundu; başlangıç politikası
+gereği yalnız geç-başlangıç hatası sayılır (0 adet); bitiş 8/8 erken
+(bkz. G10). Örnek büyütme sürüyor: test_film_vl'den 40 film daha yatağa
+alınıyor — GT dolduruldukça ölçüm büyür.
 
 **Yatak tarifi (kararlaştırıldı):** 15 film — `filmtest/depo_3006/` altındaki
 **tam** filmlerden (`filmtest/test_film_vl/` altındakiler VL deneylerinden
@@ -259,6 +260,16 @@ kareyi yeniden çıkar. G6 (ölçüm yatağı) kurulmadan bunun kazandırdığı
 Doğrulama gerçek koşuya dayanıyor. Kapsam daraltması gereği ağır mock'lu test
 yazılmadı. `test_izolasyon.py` yapıyı koruyor ama **mantığı** korumuyor —
 havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
+
+---
+
+### G10 — giriş bitişi sistematik ERKEN (8/8) 🟢 *(bilinçli ertelendi)*
+
+İlk GT'li ölçümde sinirün bitişi 8/8 filmde erken (−2..−327 kare): footage-üstü
+jeneriklerde dedektör ilk sessizlikte kesiyor. Havuz-sinyalinden bitiş türetme
+denendi (7 tahminci, `bitis_kalibrasyonu.md`) — güvenilir kazanamadı ve 8 filmde
+eşik ayarı overfit olur. Zararsız yön (credit kuyruğu, cast başı değil) + havuz
+ana artefakt zaten tam pencereyi tarıyor. **GT ≥20 film olunca yeniden.**
 
 ---
 

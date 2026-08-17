@@ -5,7 +5,20 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 (4) — **G7 + E4 + E6(yarısı) YAPILDI; E5/G8/E7
+**Son güncelleme:** 2026-08-17 (5) — **İLK GİRİŞ ÖLÇÜMÜ + BAŞLANGIÇ POLİTİKASI +
+ÖRNEK BÜYÜTME (10→50 film).** Çağatay GT'yi doldurdu (8/10; BELALI_SEVGİLİ +
+KAPANMAMIŞ boş): jenerik-var 8/8 bulundu, geç-başlangıç 0. Politika (Çağatay):
+başlangıç kararı DAİMA 1 ("geriye dönük kabul; hatta hep 1; çalışma yapma") —
+sinir.py'ye işlendi (ham start kanıtta), olc_giris yalnız geç-başlangıcı hata
+sayar, golden giris demiri bas=1. Bitiş 8/8 ERKEN çıktı; 7 havuz-tabanlı
+tahminci denendi, güvenilir kazanamadı (`bitis_kalibrasyonu.md`) — G10 olarak
+ertelendi (GT ≥20 film olunca yeniden). Yatak test_film_vl'den 40 filmle
+50'ye çıktı; teklifler üretildi — Çağatay yeni girişleri doldurdukça ölçüm
+büyür. Commit'ler: f7faf33c (GT+ölçüm), 5e370847 (politika).
+
+---
+
+**2026-08-17 (4) — G7 + E4 + E6(yarısı) YAPILDI; E5/G8/E7
 bilinçli ertelendi.** G7: `golden/giris_tek_film.json` (KOBRA giriş kararı —
 2026-08-13 koşusuyla uyumlu, karar demiri). E4: `Database/<Film>/
 kobe_<bolum>.json` hardlink görünümü (aynı-inode testli, best-effort,
