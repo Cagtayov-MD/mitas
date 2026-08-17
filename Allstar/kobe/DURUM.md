@@ -5,7 +5,17 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 (3) — **G6 ALTYAPI KURULDU, GT (G5) Çağatay'yı
+**Son güncelleme:** 2026-08-17 (4) — **G7 + E4 + E6(yarısı) YAPILDI; E5/G8/E7
+bilinçli ertelendi.** G7: `golden/giris_tek_film.json` (KOBRA giriş kararı —
+2026-08-13 koşusuyla uyumlu, karar demiri). E4: `Database/<Film>/
+kobe_<bolum>.json` hardlink görünümü (aynı-inode testli, best-effort,
+Database-dışında sessiz). E6: `olc_pool` `maxtasksperchild=25` — kapı yeniden
+koşuldu, SAPMA SIFIR. Ertelenenler: G8 (GT'siz ölçülemez), E5 (ollama servis
+durumu — Çağatay zamanlaması), E7 (saatler, optimizasyon). Testler 74/74.
+
+---
+
+**2026-08-17 (3) — G6 ALTYAPI KURULDU, GT (G5) Çağatay'yı
 bekliyor.** `olcum/giris/`: `yatak_kur.sh` (10 TAM film × 240 sn × fps2 →
 `havuz/giris/`), `gt_topla.py` (teklif üretici — `veri/gt_taslak.json` yazdı,
 10 film 95 sn), `olc_giris.py` (GT'siz KOŞMAZ; iki uçlu sapma raporlar,

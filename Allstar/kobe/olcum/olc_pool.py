@@ -82,7 +82,9 @@ def main() -> int:
 
     if paralel > 1 and not tekil:
         import multiprocessing as mp
-        havuz = mp.get_context("spawn").Pool(paralel)
+        # E6: maxtasksperchild — 1000-filmlik koşularda işçi bellek/VRAM birikimi
+        # tazelenir; görev başına davranış DEĞİŞMEZ (spawn zaten izole).
+        havuz = mp.get_context("spawn").Pool(paralel, maxtasksperchild=25)
         try:
             kayitlar = list(havuz.imap_unordered(_isci, isler))
         finally:

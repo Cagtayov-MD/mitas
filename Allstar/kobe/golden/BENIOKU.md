@@ -25,3 +25,22 @@ cd /opt/mitas/Allstar/kobe/olcum && ../venv/bin/python olc_pool.py --paralel 8
 ```
 
 Beklenen: kapsam 110, genel 104/110 = %94.5, üretim %97.3, kredi-yok 29/29.
+
+## Giriş kanaryası — `giris_tek_film.json` (G7, 2026-08-17)
+
+`havuz/giris/1986-0257-1-0000-00-1-KOBRA` filminin GİRİŞ kararıdır (CLI ile
+üretildi, zamana/SHA'ya bağlı alanlar bilerek dışarıda). Yeniden doğrulamak:
+
+```bash
+cd /opt/mitas
+./Allstar/kobe/kobe tek --kareler Allstar/kobe/havuz/giris/1986-0257-1-0000-00-1-KOBRA \
+   --film-id 1986-0257-1-0000-00-1-KOBRA --bolum giris
+```
+
+`durum` / `baslangic_kare` / `bitis_kare` / `guven` aynı olmalıdır.
+2026-08-13'ün gerçek-koşu kaydıyla da uyumlu (güven 0.754, sınır 0.0-21.0 sn).
+
+**DİKKAT — bu kanarya KARAR DEMİRİDİR, doğruluk DEMİRİ DEĞİL.** Girişin
+doğruluğu hâlâ ölçülmedi (G5/G6, EKSIKLER): kanarya yalnız "davranış
+değişmedi"yi saniyeler içinde söyler — "doğru okuyor"u söylemez. Doğruluk
+`olcum/giris/olc_giris.py` + GT ile ölçülür.

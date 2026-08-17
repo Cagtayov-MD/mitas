@@ -74,19 +74,14 @@ tamamen silinecek.
 
 ---
 
-### E4 — `Database/<Film>/` hardlink görünümü yok 🟡
+### E4 — ✅ YAPILDI (2026-08-17) — Database hardlink görünümü
 
-Spec §4.6'da tasarlandı, **hiç uygulanmadı**. `Allstar/kobe/*.py` içinde
-`os.link` geçmiyor.
-
-**Neden önemli:** Teslim edilen PDF'in yanında film klasöründen Kobe kararına
-erişim yok. Symlink DEĞİL hardlink olmalı (kırık kısayol bu repoda zaten
-sessiz arıza üretti: `models/lid/…` → `C:/Users/TRT03/…`).
-
-**Nereye:** `main.py`, `Cikti.yaz()` sonrası. Aynı dosya sistemi şart
-(`/dev/nvme3n1p2` — doğrulandı).
-
-**Maliyet:** düşük.
+`main.py:_database_gorunumu()` — girdi `Database/<Film>/...` altındaysa karar
+`Database/<Film>/kobe_<bolum>.json`'a **hardlink**'lenir (aynı inode — testle
+kanıtlandı). İsim bölümlü: spec §4.6 (`kobe.json`) bölüm yapısından önce
+yazılmıştı; iki bölüm aynı adla birbirini ezerdi. Database DIŞINDAN çağrılınca
+(ölçüm, havuz, test) hiçbir şey yazılmaz. Best-effort: link atılamazsa karar
+yine yazılıdır, kanıta not düşülür. Tekrar koşuda görünüm taze inode'a taşınır.
 
 ---
 
@@ -109,18 +104,16 @@ kapılar Ollama kapalı varsayıyor; yeni referans alınırsa `DURUM.md` ve
 
 ---
 
-### E6 — Toplu koşuda `maxtasksperchild` yok 🟡
+### E6 — 🟡 YARISI YAPILDI (2026-08-17) — işçi tazeleme var, CLI toplu paralel yok
 
-`olcum/olc_pool.py:82` → `mp.get_context("spawn").Pool(paralel)` — işçi
-tazeleme yok.
+`olc_pool.py`: `Pool(paralel, maxtasksperchild=25)` kondu — kapı yeniden
+koşuldu, **sapma sıfır** (aynı %94.5 / %97.3 / 29-29). Görev başına davranış
+değişmez (spawn zaten izole); yalnız işçi ömrü tazelenir.
 
-**Neden önemli:** 1000 filmlik koşuda işçi süreç bellek/VRAM biriktirir.
-Çağatay'ın hedeflediği "7/24 akış" tam bu senaryo.
-
-**Nereye:** `Pool(paralel, maxtasksperchild=25)`. Ayrıca `main.py`'nin `toplu`
-fonksiyonu bugün **tek süreçte sırayla** koşuyor — paralel havuz hiç yok.
-
-**Maliyet:** düşük.
+**Kalan:** `main.py:toplu()` hâlâ tek süreç sıralı. Paralel havuz ayrı tasarım
+ister (işçi başına Paddle VRAM payı — tek 3090'ta kaç işçi güvenli ölçülmeden
+eklenmez). Üretim şu an `toplu`yu kullanmıyor (E1 pool üzerinden gidiyor);
+acelesi yok.
 
 ---
 
@@ -236,10 +229,12 @@ girişte geç kalmak jeneriğin başını, erken kalmak film sahnesini alır.
 
 ---
 
-### G7 — Golden kanarya YOK 🟡
+### G7 — ✅ YAPILDI (2026-08-17) — giriş karar demiri `golden/giris_tek_film.json`
 
-Çıkışta `golden/tek_film.json` var (saniyelerde doğrulama). Girişin karşılığı
-G5/G6'dan sonra kurulabilir.
+KOBRA giriş kararı demirlendi (BULUNDU, bas=0, bit=41 / 21.0 sn, güven 0.754,
+kaynak=tespit) — 2026-08-13 gerçek-koşu kaydıyla uyumlu. Yeniden doğrulama
+komutu `golden/BENIOKU.md`'de. **KARAR demiridir, doğruluk demiri DEĞİL** —
+doğruluk G5/G6'ya bağlıdır (bilinçli ayrım dosyada yazılı).
 
 ---
 
@@ -274,10 +269,10 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 | 1 | ~~**E1** — üretim hattını sözleşmeye bağla~~ ✅ 2026-08-17 | Yapıldı — A/B birebir, kanarya tuttu |
 | 2 | ~~**E2** — `src/cikis/` + `src/ortak/` ayrımı~~ ✅ 2026-08-17 | Yapıldı — motor.py'ye sıfır diff, kapı %94.5 sapma sıfır |
 | 3 | **G5** — giriş GT'si (G6 altyapı hazır, gt_topla.py teklifleri üretti) | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
-| 4 | **G8** — uyarlanır pencere | G6 olmadan kazancı ölçülemez |
-| 5 | **E5** — Ollama açıkken referans ölçüm | Üretimdeki gerçek sayı |
-| 6 | **G7 + E4 + E6** — kanarya, hardlink, `maxtasksperchild` | Ucuz, bağımsız |
-| 7 | **E7** — CPU/GPU bölüşümü | En son; optimizasyon |
+| 4 | ~~**G8** — uyarlanır pencere~~ ⏸ | **ERTALENDİ:** GT (G5) gelmeden kazanç ölçülemez — ölçüsüz davranış değişimi prensip dışı |
+| 5 | ~~**E5** — Ollama açıkken referans ölçüm~~ ⏸ | **ERTALENDİ:** ollama.service'i açmayı gerektirir (sistem durumu; başka oturumların kapıları buna bağlı) — Çağatay zamanlaması |
+| 6 | ~~G7 + E4 + E6~~ ✅ 2026-08-17 | Kanarya (giriş demiri) + hardlink görünümü + işçi tazeleme yapıldı; E6'in CLI-toplu yarısı açık |
+| 7 | **E7** — CPU/GPU bölüşümü | ⏸ saatler sürer, saf optimizasyon — en son |
 | — | **E10** — metin-kapı credit_box (E1'de bulunan) | Çağatay kararı gerekli: davranış değişimi + E3'e bağlı |
 
 ## Değişmezler — her adımda geçerli

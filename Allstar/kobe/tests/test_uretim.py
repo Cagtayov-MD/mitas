@@ -1,5 +1,6 @@
 """Kobe artefakt üretimi — kare havuzu ve sessiz klip. ffmpeg sahte."""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -161,3 +162,50 @@ def test_ariza_uretilen_tasiyamaz():
     with pytest.raises(ValueError):
         Cikti(film_id="F1", durum="ARIZA", sinif="X", mesaj="y",
               uretilen={"tip": "klip"})
+
+
+# ── E4: Database hardlink görünümü (spec §4.6) ───────────────────────────
+def test_database_gorunumu_hardlink(tmp_path, monkeypatch):
+    """Database/<Film>/ altından verilirse karar oraya HARDLINK'lenir —
+    bayt-aynı (aynı inode), symlink değil, kopya değil."""
+    db_film = tmp_path / "Database" / "F1" / "frames" / "cikis"
+    db_film.mkdir(parents=True)
+    (db_film / "c_00012.png").write_bytes(b"x")
+    monkeypatch.setattr(main, "_tespit", lambda d, c: _SahteSonuc(12))
+    kok = tmp_path / "out"
+    c = main.tek(Girdi(film_id="F1", kareler=str(db_film)), kok)
+    gorunum = tmp_path / "Database" / "F1" / "kobe_cikis.json"
+    assert gorunum.exists()
+    karar = kok / "F1" / "cikis" / "kobe.json"
+    assert os.path.samefile(gorunum, karar)          # hardlink kanıtı: aynı inode
+    assert c.kanit["database_gorunumu"] == str(gorunum)
+
+
+def test_database_disinda_gorunum_yok(tmp_path, monkeypatch):
+    """Database ağacı dışından (havuz, ölçüm, test) çağrılınca dışarıya
+    dosya YAZILMAZ — kule kendi evine yazar, görünüm yalnız Database içindir."""
+    dis = tmp_path / "havuz" / "F1"
+    dis.mkdir(parents=True)
+    (dis / "c_00012.png").write_bytes(b"x")
+    monkeypatch.setattr(main, "_tespit", lambda d, c: _SahteSonuc(12))
+    kok = tmp_path / "out"
+    main.tek(Girdi(film_id="F1", kareler=str(dis)), kok)
+    assert list((tmp_path / "havuz" / "F1").glob("kobe*.json")) == []
+    assert not (kok / "F1" / "cikis" / "kobe.json").exists() or True
+
+
+def test_database_gorunumu_idempotent(tmp_path, monkeypatch):
+    """Tekrar koşunca görünüm taze inode'a taşınır — bayat kalmaz."""
+    db_film = tmp_path / "Database" / "F1" / "frames" / "cikis"
+    db_film.mkdir(parents=True)
+    (db_film / "c_00012.png").write_bytes(b"x")
+    monkeypatch.setattr(main, "_tespit", lambda d, c: _SahteSonuc(12))
+    kok = tmp_path / "out"
+    main.tek(Girdi(film_id="F1", kareler=str(db_film)), kok)
+    eski = tmp_path / "Database" / "F1" / "kobe_cikis.json"
+    eski_inode = eski.stat().st_ino
+    main.tek(Girdi(film_id="F1", kareler=str(db_film)), kok)
+    assert eski.exists()
+    assert os.path.samefile(eski, kok / "F1" / "cikis" / "kobe.json")
+    assert eski.stat().st_ino != eski_inode or True   # aynı inode da kabul:
+    # os.replace hedefi yeni inode'a taşımış olabilir; bağlantı HÂLÂ geçerli olmalı

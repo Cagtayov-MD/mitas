@@ -31,8 +31,11 @@ Allstar/kobe/kobe start --input /yol/videolar
 Allstar/kobe/kobe start --input /yol/kare_dizinleri --kareler
 ```
 
-Çıktı daima `Allstar/kobe/out/<film_id>/kobe.json` + `_TAMAM`. Çağıran çıktı
-yolunu seçmez — kule kendi evine yazar.
+Çıktı daima `Allstar/kobe/out/<film_id>/<bolum>/kobe.json` + `_TAMAM`. Çağıran
+çıktı yolunu seçmez — kule kendi evine yazar. Girdi `Database/<Film>/…`
+altındaysa karar ayrıca `Database/<Film>/kobe_<bolum>.json`'a **hardlink**'lenir
+(spec §4.6 — bayt-aynı görünüm, ek yer kaplamaz; Database dışından çağrılınca
+hiçbir şey yazılmaz).
 
 ### Talebe göre artefakt üretimi
 

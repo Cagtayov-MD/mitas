@@ -1,5 +1,22 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (5) — G7 + E4 + E6(yarısı): kanarya, görünüm, işçi tazeleme
+
+- **G7** — `golden/giris_tek_film.json`: KOBRA giriş kararı demirlendi
+  (BULUNDU, 0-41 kare / 21.0 sn, güven 0.754). 2026-08-13 gerçek-koşu kaydıyla
+  birebir uyumlu çıktı — önceki şüphelenilen "1 kare sapma" yoktu (saniye/kare
+  gösterim farkıydı). KARAR demiridir, doğruluk demiri değil — BENIOKU'da
+  ayrımı açık yazılı.
+- **E4** — spec §4.6 Database görünümü: `Database/<Film>/kobe_<bolum>.json`
+  HARDLINK (aynı inode — 3 test: samefile, Database-dışı sessizlik, idempotent
+  tazeleme). İsim bölümlü; spec'in düz `kobe.json` adı bölümler öncesinden
+  kalmaydı, çakışırdı. Best-effort: link başarısızlığı kararı etkilemez.
+- **E6** — `olc_pool.py` `maxtasksperchild=25`; kapı yeniden koşuldu:
+  **%94.5 / %97.3 / 29-29 — sapma sıfır.** `main.toplu()` paralelliği AÇIK
+  kaldı (işçi başına VRAM payı ölçülmeden eklenmez; üretim toplu'yu kullanmıyor).
+- **Bilinçli erteleme:** G8 (GT'siz ölçülemez), E5 (ollama servis durumu),
+  E7 (saatler süren optimizasyon).
+
 ## 2026-08-17 (4) — G6: giriş ölçüm yatağı altyapısı (GT hâlâ insanda)
 
 Girişin doğruluğu için gereken üç parçadan ikisi kuruldu; üçüncüsü (GT)

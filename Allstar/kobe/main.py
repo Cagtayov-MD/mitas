@@ -325,6 +325,42 @@ def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
     return c
 
 
+def _database_hedef(girdi: Girdi, bolum: str) -> Path | None:
+    """Spec §4.6 Database görünümü: girdi Database/<Film>/... altındaysa
+    `Database/<Film>/kobe_<bolum>.json` hedefini döndür, değilse None.
+
+    İsim `kobe_<bolum>.json` — spec §4.6 (`kobe.json`) bölüm yapısından ÖNCE
+    yazılmıştı; iki bölüm aynı klasöre yazılınca birbirini ezerdi."""
+    kaynak = Path(girdi.kareler or girdi.video or "")
+    parca = kaynak.resolve().parts
+    if "Database" not in parca:
+        return None
+    i = parca.index("Database")
+    if i + 2 > len(parca):        # en az Database/<Film> olmalı
+        return None
+    return Path(*parca[:i + 2]) / f"kobe_{bolum}.json"
+
+
+def _database_gorunumu(karar_yolu: Path, hedef: Path | None, c: Cikti, kok: Path) -> None:
+    """Karar dosyasını Database/<Film>/'e HARDLINK'le — bayt-aynı görünüm.
+
+    Symlink DEĞİL (kısayol kırılınca sessiz arıza — models/lid dersi), kopya
+    DEĞİL (iki gerçek kopya ayrışır). Best-effort: link atılamazsa (farklı
+    dosya sistemi, izin) karar zaten yazılmıştır — görünüm kısıtlaması kararı
+    etkilemez, kanıta not düşülüp kobe.json bir daha (atomik) yazılır."""
+    if hedef is None:
+        return
+    c.kanit["database_gorunumu"] = str(hedef)
+    c.yaz(kok)                    # intent önce dosyaya — sonra deneyip gerektiğinde düzelt
+    try:
+        if hedef.exists():
+            hedef.unlink()        # önceki koşunun görünümü — taze inode
+        os.link(karar_yolu, hedef)
+    except OSError as e:
+        c.kanit["database_gorunumu"] = f"basarisiz: {type(e).__name__}"
+        c.yaz(kok)
+
+
 def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
     """Bir film → bir Cikti (+ istenirse artefakt(lar)). İstisna sızdırmaz.
 
@@ -341,12 +377,13 @@ def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
     t0 = time.time()
     benim_scratch: Path | None = None
     pencere_ss = 0
+    db_hedef = _database_hedef(girdi, girdi.bolum)   # spec §4.6 görünümü (None = dışarıda)
     def _ariza(sinif: str, mesaj: str) -> Cikti:
         """Tek arıza çıkış noktası — sure/surum atlanmasın, yazım unutulmasın."""
         c = ariza(girdi.film_id, sinif, mesaj[:300], bolum=girdi.bolum)
         c.sure_sn = round(time.time() - t0, 1)
         c.motor_surumu = _surum()
-        c.yaz(kok)
+        _database_gorunumu(c.yaz(kok), db_hedef, c, kok)
         return c
 
     parcalar = _uret_ayristir(uret)
@@ -381,7 +418,7 @@ def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
 
         c.sure_sn = round(time.time() - t0, 1)
         c.motor_surumu = _surum()
-        c.yaz(kok)
+        _database_gorunumu(c.yaz(kok), db_hedef, c, kok)
         return c
     finally:
         # YALNIZ Kobe'nin actigi dizin silinir. Disaridan verilen kare
