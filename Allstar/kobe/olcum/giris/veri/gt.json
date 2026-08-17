@@ -617,9 +617,9 @@
      "c_00052.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 304,
    "aciklama": ""
   },
   {
@@ -668,9 +668,9 @@
      "c_00209.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 202,
    "aciklama": ""
   },
   {
@@ -719,9 +719,9 @@
      "c_00052.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 236,
    "aciklama": ""
   },
   {
@@ -770,10 +770,10 @@
      "c_00041.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
-   "aciklama": ""
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 10,
+   "aciklama": "sadece işrketin ismi var. jenerik yok da kabul edilir var 10. karede bitiyorda kabul edilir."
   },
   {
    "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
@@ -1120,10 +1120,10 @@
      "c_00021.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
-   "aciklama": ""
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 244,
+   "aciklama": "filmde türkçe altyazı jenerikle karışıyor. zor bir durum. örnek dışı bırakılabilir."
   },
   {
    "film": "1989-0352_KUKLA_ADAM",
@@ -1171,9 +1171,9 @@
      "c_00144.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 222,
    "aciklama": ""
   },
   {
@@ -1222,9 +1222,9 @@
      "c_00037.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 30,
    "aciklama": ""
   },
   {
@@ -1384,9 +1384,9 @@
      "c_00058.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 170,
    "aciklama": ""
   },
   {
@@ -1557,9 +1557,9 @@
      "c_00106.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 132,
    "aciklama": ""
   },
   {
@@ -1608,9 +1608,9 @@
      "c_00219.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 229,
    "aciklama": ""
   },
   {
@@ -1659,9 +1659,9 @@
      "c_00063.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 86,
    "aciklama": ""
   },
   {
@@ -1710,9 +1710,9 @@
      "c_00091.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 232,
    "aciklama": ""
   },
   {
@@ -1761,9 +1761,9 @@
      "c_00025.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 74,
    "aciklama": ""
   },
   {
@@ -1812,9 +1812,9 @@
      "c_00362.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 51,
    "aciklama": ""
   },
   {
@@ -1863,9 +1863,9 @@
      "c_00025.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 445,
    "aciklama": ""
   },
   {
@@ -1914,9 +1914,9 @@
      "c_00061.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 158,
    "aciklama": ""
   },
   {
@@ -1965,9 +1965,9 @@
      "c_00120.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 282,
    "aciklama": ""
   },
   {
@@ -2016,9 +2016,9 @@
      "c_00301.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 169,
    "aciklama": ""
   },
   {
@@ -2067,9 +2067,9 @@
      "c_00029.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 136,
    "aciklama": ""
   },
   {
@@ -2118,9 +2118,9 @@
      "c_00063.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 84,
    "aciklama": ""
   },
   {
@@ -2169,9 +2169,9 @@
      "c_00034.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 434,
    "aciklama": ""
   },
   {
@@ -2220,9 +2220,9 @@
      "c_00083.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 65,
    "aciklama": ""
   },
   {
@@ -2271,9 +2271,9 @@
      "c_00026.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 189,
    "aciklama": ""
   },
   {
@@ -2322,10 +2322,10 @@
      "c_00077.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
-   "aciklama": ""
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 43,
+   "aciklama": "jenerik yok boş geçilir"
   },
   {
    "film": "2024-1266_KAZANANLAR_KULUBU",
@@ -2373,10 +2373,10 @@
      "c_00065.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
-   "aciklama": ""
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 480,
+   "aciklama": "480 kare yetmemiş.. jenerik devam ediyordu"
   },
   {
    "film": "2024-1313_SANSIMI_SEVEYIM",
@@ -2424,9 +2424,9 @@
      "c_00128.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 196,
    "aciklama": ""
   },
   {
@@ -2475,10 +2475,10 @@
      "c_00272.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
-   "aciklama": ""
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 416,
+   "aciklama": "hem yana akan hem dik akan hem statik var bu jenerikte. zor. özel takip et"
   },
   {
    "film": "2025-1011_ROBINSON_CRUSOE",
@@ -2526,9 +2526,9 @@
      "c_00113.png"
     ]
    },
-   "karar": null,
-   "gercek_bas_kare": null,
-   "gercek_bit_kare": null,
+   "karar": "jenerik_var",
+   "gercek_bas_kare": 1,
+   "gercek_bit_kare": 101,
    "aciklama": ""
   },
   {

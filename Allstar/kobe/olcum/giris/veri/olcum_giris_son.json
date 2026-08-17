@@ -1,153 +1,573 @@
 {
- "kapsam": 8,
- "sure_sn": 24,
+ "kapsam": 36,
+ "sure_sn": 103,
  "jenerik_var": {
-  "n": 8,
-  "bulundu": 8
+  "n": 36,
+  "bulundu": 36
  },
  "jenerik_yok_red": {
   "n": 0,
   "dogru": 0
  },
  "baslangic_sapma_kare": {
-  "n": 8,
-  "ort_mutlak": 27.8,
-  "min": -4,
-  "maks": 118
+  "n": 36,
+  "ort_mutlak": 1.5,
+  "min": -54,
+  "maks": 0
  },
  "bitis_sapma_kare": {
-  "n": 8,
-  "ort_mutlak": 120.6,
-  "min": -327,
-  "maks": -2
+  "n": 36,
+  "ort_mutlak": 131.8,
+  "min": -430,
+  "maks": 301
  },
  "kaynak_dagilimi": {
-  "tespit": 8,
+  "tespit": 36,
   "sabit": 0
  },
- "not": "kırmızı çizgi YOK — dağılım görülünce Çağatay ile konur (G6)",
+ "not": "başlangıç: geriye dönük sapma KABUL (Çağatay 2026-08-17) — yalnız 'gec_baslangic' hata sayılır. bitiş: kırmızı çizgi YOK — dağılım görülünce konur",
  "filmler": [
   {
-   "film": "1986-0257-1-0000-00-1-KOBRA",
+   "film": "1977-0198_BEYAZ_BIZON",
    "bulundu": true,
-   "bas": 0,
-   "bit": 41,
-   "guven": 0.754,
+   "bas": 1,
+   "bit": 42,
+   "guven": 0.755,
    "kaynak": "tespit"
   },
   {
-   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+   "film": "1980-0186_SON_METRO",
    "bulundu": true,
-   "bas": 0,
-   "bit": 7,
-   "guven": 0.73,
+   "bas": 1,
+   "bit": 199,
+   "guven": 0.929,
    "kaynak": "tespit"
   },
   {
    "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
    "bulundu": true,
-   "bas": 51,
+   "bas": 1,
    "bit": 116,
    "guven": 0.761,
    "kaynak": "tespit"
   },
   {
+   "film": "1980-0190_DAG_ADAMLARI",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 42,
+   "guven": 0.763,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1986-0257-1-0000-00-1-KOBRA",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 41,
+   "guven": 0.754,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1980-0218_DUNYANIN_EN_MUTHIS_ADAMI",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 31,
+   "guven": 0.903,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 7,
+   "guven": 0.73,
+   "kaynak": "tespit"
+  },
+  {
    "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
    "bulundu": true,
-   "bas": 0,
+   "bas": 1,
    "bit": 93,
    "guven": 0.734,
    "kaynak": "tespit"
   },
   {
-   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+   "film": "1988-0444_CENNETTE_BULUSALIM",
    "bulundu": true,
-   "bas": 19,
-   "bit": 125,
-   "guven": 0.778,
+   "bas": 1,
+   "bit": 11,
+   "guven": 0.829,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1989-0352_KUKLA_ADAM",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 134,
+   "guven": 0.758,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1991-0342_CIPLAK_AGACLAR",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 27,
+   "guven": 0.922,
    "kaynak": "tespit"
   },
   {
    "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
    "bulundu": true,
-   "bas": 0,
+   "bas": 1,
    "bit": 34,
    "guven": 0.761,
    "kaynak": "tespit"
   },
   {
+   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 125,
+   "guven": 0.778,
+   "kaynak": "tespit"
+  },
+  {
    "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
    "bulundu": true,
-   "bas": 79,
+   "bas": 1,
    "bit": 238,
    "guven": 0.717,
    "kaynak": "tespit"
   },
   {
+   "film": "1993-0475_MAKSIM_IN_KAPICISI",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 48,
+   "guven": 0.697,
+   "kaynak": "tespit"
+  },
+  {
    "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
    "bulundu": true,
-   "bas": 119,
+   "bas": 1,
    "bit": 180,
    "guven": 0.962,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2001-9073_ALTIN_YUMRUK_ISTANBULDA",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 53,
+   "guven": 0.761,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2013-1015_ATTILA_MARCEL",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 81,
+   "guven": 0.756,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1999-0363_CENNETIN_RENGI",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 209,
+   "guven": 0.71,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2015-1052_OZGURLUK_YURUYUSU",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 352,
+   "guven": 0.849,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1997-0265_JURASSIC_PARK_2_KAYIP_DUNYA",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 96,
+   "guven": 0.892,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2015-1132_MONTE_KRISTO_KONTU",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 15,
+   "guven": 0.809,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2016-1055_MARIE_CURRIE",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 110,
+   "guven": 0.739,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2017-2124_POROROCA",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 291,
+   "guven": 0.759,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2018-1054_DON_KISOT_U_OLDUREN_ADAM",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 53,
+   "guven": 0.974,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2014-9073_YABANDAN_GELEN_ADAM",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 15,
+   "guven": 0.901,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2019-1203_BARBARLARI_BEKLERKEN",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 24,
+   "guven": 0.733,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2015-2248_BABAM",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 51,
+   "guven": 0.797,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2018-0047_MAVZER",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 19,
+   "guven": 0.97,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-0017_BEN_VE_BABAM_VATAN_O_GECE_BERABER_BUYUDUK",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 73,
+   "guven": 0.88,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-1032_ESKI_SEHIR",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 16,
+   "guven": 0.899,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-1196_MUMYA_GERI_DONUYOR",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 67,
+   "guven": 0.885,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-1266_KAZANANLAR_KULUBU",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 55,
+   "guven": 0.848,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-1315_SENIN_HIKAYEN",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 262,
+   "guven": 0.893,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2024-1313_SANSIMI_SEVEYIM",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 118,
+   "guven": 0.798,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "2025-1011_ROBINSON_CRUSOE",
+   "bulundu": true,
+   "bas": 1,
+   "bit": 103,
+   "guven": 0.789,
    "kaynak": "tespit"
   }
  ],
  "sapmalar": [
   {
-   "film": "1986-0257-1-0000-00-1-KOBRA",
-   "bas_sapma": -1,
-   "bit_sapma": -201,
+   "film": "1977-0198_BEYAZ_BIZON",
+   "bas_sapma": 0,
+   "bit_sapma": -262,
    "kaynak": "tespit",
-   "guven": 0.754
+   "guven": 0.755
   },
   {
-   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
-   "bas_sapma": -1,
-   "bit_sapma": -190,
+   "film": "1980-0186_SON_METRO",
+   "bas_sapma": 0,
+   "bit_sapma": -3,
    "kaynak": "tespit",
-   "guven": 0.73
+   "guven": 0.929
   },
   {
    "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
-   "bas_sapma": -4,
+   "bas_sapma": -54,
    "bit_sapma": -2,
    "kaynak": "tespit",
    "guven": 0.761
   },
   {
+   "film": "1980-0190_DAG_ADAMLARI",
+   "bas_sapma": 0,
+   "bit_sapma": -194,
+   "kaynak": "tespit",
+   "guven": 0.763
+  },
+  {
+   "film": "1986-0257-1-0000-00-1-KOBRA",
+   "bas_sapma": 0,
+   "bit_sapma": -201,
+   "kaynak": "tespit",
+   "guven": 0.754
+  },
+  {
+   "film": "1980-0218_DUNYANIN_EN_MUTHIS_ADAMI",
+   "bas_sapma": 0,
+   "bit_sapma": 21,
+   "kaynak": "tespit",
+   "guven": 0.903
+  },
+  {
+   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+   "bas_sapma": 0,
+   "bit_sapma": -190,
+   "kaynak": "tespit",
+   "guven": 0.73
+  },
+  {
    "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
-   "bas_sapma": -1,
+   "bas_sapma": 0,
    "bit_sapma": -103,
    "kaynak": "tespit",
    "guven": 0.734
   },
   {
-   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
-   "bas_sapma": 18,
-   "bit_sapma": -28,
+   "film": "1988-0444_CENNETTE_BULUSALIM",
+   "bas_sapma": 0,
+   "bit_sapma": -233,
    "kaynak": "tespit",
-   "guven": 0.778
+   "guven": 0.829
+  },
+  {
+   "film": "1989-0352_KUKLA_ADAM",
+   "bas_sapma": 0,
+   "bit_sapma": -88,
+   "kaynak": "tespit",
+   "guven": 0.758
+  },
+  {
+   "film": "1991-0342_CIPLAK_AGACLAR",
+   "bas_sapma": 0,
+   "bit_sapma": -3,
+   "kaynak": "tespit",
+   "guven": 0.922
   },
   {
    "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
-   "bas_sapma": -1,
+   "bas_sapma": 0,
    "bit_sapma": -327,
    "kaynak": "tespit",
    "guven": 0.761
   },
   {
+   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+   "bas_sapma": 0,
+   "bit_sapma": -28,
+   "kaynak": "tespit",
+   "guven": 0.778
+  },
+  {
    "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
-   "bas_sapma": 78,
+   "bas_sapma": 0,
    "bit_sapma": -12,
    "kaynak": "tespit",
    "guven": 0.717
   },
   {
+   "film": "1993-0475_MAKSIM_IN_KAPICISI",
+   "bas_sapma": 0,
+   "bit_sapma": -122,
+   "kaynak": "tespit",
+   "guven": 0.697
+  },
+  {
    "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
-   "bas_sapma": 118,
+   "bas_sapma": 0,
    "bit_sapma": -102,
    "kaynak": "tespit",
    "guven": 0.962
+  },
+  {
+   "film": "2001-9073_ALTIN_YUMRUK_ISTANBULDA",
+   "bas_sapma": 0,
+   "bit_sapma": -33,
+   "kaynak": "tespit",
+   "guven": 0.761
+  },
+  {
+   "film": "2013-1015_ATTILA_MARCEL",
+   "bas_sapma": 0,
+   "bit_sapma": -151,
+   "kaynak": "tespit",
+   "guven": 0.756
+  },
+  {
+   "film": "1999-0363_CENNETIN_RENGI",
+   "bas_sapma": 0,
+   "bit_sapma": -20,
+   "kaynak": "tespit",
+   "guven": 0.71
+  },
+  {
+   "film": "2015-1052_OZGURLUK_YURUYUSU",
+   "bas_sapma": 0,
+   "bit_sapma": 301,
+   "kaynak": "tespit",
+   "guven": 0.849
+  },
+  {
+   "film": "1997-0265_JURASSIC_PARK_2_KAYIP_DUNYA",
+   "bas_sapma": 0,
+   "bit_sapma": -36,
+   "kaynak": "tespit",
+   "guven": 0.892
+  },
+  {
+   "film": "2015-1132_MONTE_KRISTO_KONTU",
+   "bas_sapma": 0,
+   "bit_sapma": -430,
+   "kaynak": "tespit",
+   "guven": 0.809
+  },
+  {
+   "film": "2016-1055_MARIE_CURRIE",
+   "bas_sapma": 0,
+   "bit_sapma": -172,
+   "kaynak": "tespit",
+   "guven": 0.739
+  },
+  {
+   "film": "2017-2124_POROROCA",
+   "bas_sapma": 0,
+   "bit_sapma": 122,
+   "kaynak": "tespit",
+   "guven": 0.759
+  },
+  {
+   "film": "2018-1054_DON_KISOT_U_OLDUREN_ADAM",
+   "bas_sapma": 0,
+   "bit_sapma": -31,
+   "kaynak": "tespit",
+   "guven": 0.974
+  },
+  {
+   "film": "2014-9073_YABANDAN_GELEN_ADAM",
+   "bas_sapma": 0,
+   "bit_sapma": -59,
+   "kaynak": "tespit",
+   "guven": 0.901
+  },
+  {
+   "film": "2019-1203_BARBARLARI_BEKLERKEN",
+   "bas_sapma": 0,
+   "bit_sapma": -410,
+   "kaynak": "tespit",
+   "guven": 0.733
+  },
+  {
+   "film": "2015-2248_BABAM",
+   "bas_sapma": 0,
+   "bit_sapma": -107,
+   "kaynak": "tespit",
+   "guven": 0.797
+  },
+  {
+   "film": "2018-0047_MAVZER",
+   "bas_sapma": 0,
+   "bit_sapma": -117,
+   "kaynak": "tespit",
+   "guven": 0.97
+  },
+  {
+   "film": "2024-0017_BEN_VE_BABAM_VATAN_O_GECE_BERABER_BUYUDUK",
+   "bas_sapma": 0,
+   "bit_sapma": 8,
+   "kaynak": "tespit",
+   "guven": 0.88
+  },
+  {
+   "film": "2024-1032_ESKI_SEHIR",
+   "bas_sapma": 0,
+   "bit_sapma": -173,
+   "kaynak": "tespit",
+   "guven": 0.899
+  },
+  {
+   "film": "2024-1196_MUMYA_GERI_DONUYOR",
+   "bas_sapma": 0,
+   "bit_sapma": 24,
+   "kaynak": "tespit",
+   "guven": 0.885
+  },
+  {
+   "film": "2024-1266_KAZANANLAR_KULUBU",
+   "bas_sapma": 0,
+   "bit_sapma": -425,
+   "kaynak": "tespit",
+   "guven": 0.848
+  },
+  {
+   "film": "2024-1315_SENIN_HIKAYEN",
+   "bas_sapma": 0,
+   "bit_sapma": -154,
+   "kaynak": "tespit",
+   "guven": 0.893
+  },
+  {
+   "film": "2024-1313_SANSIMI_SEVEYIM",
+   "bas_sapma": 0,
+   "bit_sapma": -78,
+   "kaynak": "tespit",
+   "guven": 0.798
+  },
+  {
+   "film": "2025-1011_ROBINSON_CRUSOE",
+   "bas_sapma": 0,
+   "bit_sapma": 2,
+   "kaynak": "tespit",
+   "guven": 0.789
   }
  ]
 }
