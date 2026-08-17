@@ -142,10 +142,13 @@ taşınmadı). `flashlight`/`token_saglayici` geri-çağrıları enjekte edilebi
 motor; saglik + sadakat + dup + çöküş. İlk kafa-kafaya lebron↔ibrahimovic
 (GUNLUK 2026-08-11'in açık boşluğu kapandı) + ablasyon (token-kapalı).
 
-**Sonuç:** magic 10/12 sağlıklı (lebron 9, ibrahimovic 9) · recall medyan
-0.3015 (L 0.294, I 0.293) · dup medyan 0.005 (L 0.012, I 0.011). Hiçbir
-sağlıklı filmde lebron'dan geri yok. (Çöküş bayrakları: M 3 / L 1 / I 3 —
-magic'inkiler tek-segmentli-sağlıklı masterlardan, ayrıntı karar raporunda.)
+**Sonuç (437 film gece koşusu, 2026-08-17/18):** magic **370 sağlıklı (%84.7)**
+· recall medyan **0.5858** · dup medyan **0.0000** — lebron: 356 / 0.5775 /
+0.0069 · ibrahimovic: 340 / 0.5402 / 0.0105. Kafa-kafaya: magic önde 89 ·
+lebron önde 84 · eşit 260. Sıfır arıza. **Sıralama: magic > lebron >
+ibrahimovic** (12'li set + tam korpus aynı yönde). Magic'in kayıp sınıfı:
+statik-zemin kesme-çöküşü (84 film, ör. tas-devri 20 kesme→1 segment) —
+açık borç, karar raporunda.
 
 **Taşımayı öğreten dört kusur** (hepsi gözle+ölçümle bulundu, testle kilitlendi;
 ayrıntı karar raporunda): acemiler (sobel kararı fener maskesinden ölçülmez),

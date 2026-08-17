@@ -44,6 +44,18 @@ def test_token_ayni_kapsama_oranı_dayanıklı():
     assert token_ayni(a, b) is True
 
 
+def test_token_ayni_yeni_icerik_tasiyan_kart_farklidir():
+    """BENİMLE DERSİ: gelen kart referansın adlarını TAŞIYOR ama kendi
+    bloğunu da ekliyor (kapsama ≥0.6, yeni-oran > eşik) → sayfa AÇILIR.
+    Tekrar-baskısından ayıran budur."""
+    ref = {"JOHN", "MARY", "STEVE", "ANNA", "PAUL", "LISA"}
+    gelen_tekrar = {"JOHN", "MARY", "STEVE", "ANNA", "PAUL", "LISA"}   # yenisi 0
+    gelen_yeni = {"JOHN", "MARY", "STEVE", "ANNA", "PAUL", "LISA",
+                  "UNIT", "PRODUCTION", "MANAGER", "WER THEIM"}        # yenisi 0.4
+    assert token_ayni(gelen_tekrar, ref) is True
+    assert token_ayni(gelen_yeni, ref) is False
+
+
 def test_token_ayni_yetersiz_kanit_none():
     """<TOKEN_MIN_GUVEN token → hüküm YOK; çağıran geometrik fallback'e düşer.
     'Yazı yok' ile 'okuyamadık' karışmasın."""
@@ -159,19 +171,17 @@ def test_halusinasyon_token_sayfa_acmaz():
     assert man["segment"] == 1, man["segment_kareler"]
 
 
-def test_fark_tabani_duraksama_yoksa_kesmeden_alinir():
-    """HAYAT-AGACI dersi: hiç duraksama çifti yokken taban 500'e düşerse
-    kar/gren filminde her kesme 'farklı' sanılır → sayfa fırtınası.
-    Taban kesme çiftlerinden gelir; duraksama varsa yalnız oradan."""
+def test_fark_tabani_kesme_cifti_tabana_girmez():
+    """BENİMLE DERSİ (gece, 2026-08-17): kesme çiftlerinden taban fallback'i
+    denenip REDDEDİLDİ — 51 scroll + 2 kesme'lik filmde kesme farkları gerçek
+    içerik değişimiydi (39-57k px), taban 45k'ye şişti, kimlik öldü, son kart
+    yutuldu. Duraksama yoksa taban 500 varsayılanında kalır (lebron gibi)."""
     rng = np.random.default_rng(5)
     griler = [rng.integers(0, 255, (60, 80)).astype(np.uint8) for _ in range(6)]
     hep_kesme = [{"sinif": "kesme"} for _ in range(5)]
-    t = fark_tabani(hep_kesme, griler)
-    assert t > 1000, t  # gren-farklarından beslendi, 500 varsayılanı değil
-    karisik = [{"sinif": "kesme"}, {"sinif": "duraksama"}, {"sinif": "scroll"},
-               {"sinif": "duraksama"}]
-    t2 = fark_tabani(karisik, griler)
-    assert t2 > 0  # duraksama çiftleri varken onlardan (kesme hariç)
+    assert fark_tabani(hep_kesme, griler) == 500.0
+    karisik = [{"sinif": "duraksama"}, {"sinif": "duraksama"}]
+    assert fark_tabani(karisik, griler) > 0  # duraksama çiftlerinden
 
 
 def test_kisaltma_yalniz_son_cifti_dusurur():

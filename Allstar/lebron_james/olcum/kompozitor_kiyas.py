@@ -232,6 +232,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="kompozitor_kiyas")
     ap.add_argument("--motorlar", default="lebron,ibrahimovic")
     ap.add_argument("--filmler", help="virgülle slug listesi (varsayılan: 12'li küme)")
+    ap.add_argument("--hepsi", action="store_true",
+                    help="kökteki TÜM film dizinleri (440) — gece koşusu")
+    ap.add_argument("--devam", action="store_true",
+                    help="çıktı dosyasında zaten ölçülmüş filmları atla "
+                         "(yarıda kalan koşuyu kaldığı yerden sürdürür)")
     ap.add_argument("--n", type=int, default=None, help="kümeden ilk N film")
     ap.add_argument("--kok", default=str(EX_KARE_ROOT))
     ap.add_argument("--cikti", default=str(KULE / "raporlar" / f"kompozitor_kiyas_{TARİH}.json"))
@@ -248,7 +253,11 @@ def main(argv=None) -> int:
         motorlar[etiket] = fn
     dc = saglik_mod._uret_mod()._dc()
 
-    if a.filmler:
+    if a.hepsi:
+        kok = Path(a.kok)
+        secim = [(d.name.removesuffix("-exit_frames"), "")
+                 for d in sorted(kok.iterdir()) if d.is_dir()]
+    elif a.filmler:
         secim = [(s.strip(), "") for s in a.filmler.split(",") if s.strip()]
     else:
         secim = FILMLER
@@ -264,6 +273,17 @@ def main(argv=None) -> int:
     cikti = Path(a.cikti)
     cikti.parent.mkdir(parents=True, exist_ok=True)
     filmler: list[dict] = []
+    if a.devam and cikti.is_file():
+        try:
+            eski = json.loads(cikti.read_text(encoding="utf-8"))
+            filmler = [f for f in eski.get("filmler", [])
+                       if all(e in f.get("motorlar", {}) for e in motorlar)]
+            print(f"[devam] {len(filmler)} film zaten ölçülmüş — atlanıyor",
+                  flush=True)
+        except Exception:
+            filmler = []
+    tamam = {f["film"] for f in filmler}
+    secim = [(s, c) for s, c in secim if s not in tamam]
     t_bas = time.time()
     for i, (slug, sinif) in enumerate(secim, 1):
         kayit = film_kos(slug, sinif, motorlar, dc, sadakat_mod, dup_metrik,

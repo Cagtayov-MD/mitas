@@ -86,6 +86,20 @@ PLATO_IOU = 0.75           # ardışık varlık-IoU bunun üstü = istikrarlı k
 TOKEN_CONF_ESIK = 0.40     # kimlik tokenına girecek rec kutusunun asgari güveni
 TOKEN_MIN_GUVEN = 3        # iki tarafta da en az bu token yoksa token hükmü
 TOKEN_KAPSAMA = 0.60       # |kesişim|/min(|a|,|b|) bunun üstü → AYNI kart
+TOKEN_YENI_ESIK = 0.25     # BENİMLE DERSİ (2026-08-17): gelen karenin
+                           # referansta OLMAYAN token oranı bunun altındaysa
+                           # tekrar-baskısıdır (jetgiller: yenisi ≈ 0, yalnız
+                           # OCR greni); üstündeyse KART YENİ İÇERİK TAŞIYOR
+                           # (benimle: "UNIT PRODUCTION MANAGER" kartı önceki
+                           # kartın adlarını + kendi bloğunu taşıyordu —
+                           # kapsama 0.6+ çıkıp sayfa yutuldu, recall
+                           # 0.786→0.738)
+TOKEN_YENI_KESKI_ESIK = 0.05  # AYNI hükmün KESME/SÜREKLİLİK bağlamındaki
+                           # keskin eşiği (gece dersi: benimle'nin son kartı
+                           # scroll-kuyruğuyla 0.92 kapsama + 0.14 yeni
+                           # taşıyordu — KESME bağlamında bu YENİ SAYFADIR;
+                           # token vetosu orada yalnız neredeyse-birebir
+                           # tekrara (≤0.05) tanınır)
 IZGARA_ADIM = 3            # uzun duraksama koşusunda token sondaj adımı
 IZGARA_MIN_KOSU = 6        # sondaj bunun altındaki koşularda gerekmez
 
@@ -213,15 +227,27 @@ def sobel_metin_maskesi(gray):
     return cv2.dilate(m, np.ones((7, 7), np.uint8))
 
 
-def token_ayni(ta: set, tb: set) -> bool | None:
-    """Token-kimlik hükmü: kapsama-oranı kararı. None = token kanıtı
-    yetersiz (TOKEN_MIN_GUVEN altı) → çağıran geometrik fallback'e düşer.
+def token_ayni(ta: set, tb: set, kesin: bool = False) -> bool | None:
+    """Token-kimlik hükmü: kapsama-oranı + yeni-içerik ayrımcısı.
+    None = token kanıtı yetersiz (TOKEN_MIN_GUVEN altı) → çağıran geometrik
+    fallback'e düşer.
 
-    Farklı kartlarda kapsama ~0; soluk↔parlak fade'de OCR bazı tokenları
-    düşürse de ORAN dayanıklı kalır (ibrahimovic v16 kalibrasyonu)."""
+    `ta` GELEN kare, `tb` referans — ayni_icerik'in bütün çağrı biçimlerinde
+    (kesme/candidate/süreklilik) ilk argüman gelen karedir.
+
+    `kesin=False` (aday döngüsü): tekrar-baskısı eşiği gevşek — kapsama
+    yüksek + yeni ≤ TOKEN_YENI_ESIK → aynı kart (jetgiller: aynı kartın
+    yeniden çevrimi, yeni token ≈ 0).
+    `kesin=True` (kesme/süreklilik): 'aynı' için neredeyse-birebir tekrar
+    gerekir (yeni ≤ TOKEN_YENI_KESKI_ESIK) — KESME zaten ölçümün 'içerik
+    değişti' demesi; benimle'nin son kartı scroll-kuyruğuyla 0.92 kapsama
+    + 0.14 yeni taşıyordu ve YENİ SAYFAYDI (gece dersi)."""
     if min(len(ta), len(tb)) < TOKEN_MIN_GUVEN:
         return None
-    return len(ta & tb) / min(len(ta), len(tb)) >= TOKEN_KAPSAMA
+    if len(ta & tb) / min(len(ta), len(tb)) < TOKEN_KAPSAMA:
+        return False
+    esik = TOKEN_YENI_KESKI_ESIK if kesin else TOKEN_YENI_ESIK
+    return len(ta - tb) / len(ta) <= esik
 
 
 def kosu_platolari(kareler, varliklar, keskinlikler=None) -> list[int]:
@@ -390,19 +416,19 @@ def _varsayilan_token_saglayici():
 
 def fark_tabani(ciftler: list[dict], griler: list[np.ndarray]) -> float:
     """Filmin gren-tabanı: HAREKETSİZ çiftlerin piksel-farkı = saf gürültü
-    (lebron/ibrahimovic ortak yolu). HAYAT-AGACI DERSİ (2026-08-17): hiç
-    duraksama çifti yokken taban 500 varsayılanına düşüyor → kar/gren
-    filminde (komşu-çift 7-11k px, belgeli) her kesme 'farklı' sanılıp 36
-    sayfa fırtınası açılıyor (dup 0.81). Film hiç dinlenmiyorsa tabanı
-    KESME çiftlerinden al — kart-değişimini şişirme riski var ama okunamayan
-    filmde fırtına daha kötü. (Lebron aynı filmde tek bir sınırda-belirsiz
-    çiftin şansla beslediği tabanla ayakta kalıyordu — ölçüme değil şansa
-    dayanmasın.)"""
+    (lebron/ibrahimovic ortak yolu).
+
+    İKİ REDDEDİLEN yol (ölçümle, 2026-08-17 gece):
+      * kesme-çiftlerinden fallback (hayat-agaci fırtınası için denenmişti):
+        benimle-dans-et'te 51 scroll + 2 kesme var, kesme farkları GERÇEK
+        içerik değişimi (39-57k px) → taban 45k'ye şişti → kimlik öldü,
+        son kart yutuldu (recall 0.786→0.738). Kesme çifti gren DEĞİL,
+        değişimdir — tabana girmez.
+      * hayat-agaci fırtınasının gerçek ilacı metin kapısındaydı: halüsinasyon
+        token'ları (≥2) profilden geçemeyen gren karelerini 'metin' sanıyordu;
+        metin_gibi artık yalnız profile karar verir (aşağıda)."""
     ornek = [_fark_px(griler[i], griler[i + 1]) for i, c in enumerate(ciftler)
              if c["sinif"] in ("duraksama", "duraksama_bos", "duraksama_belirsiz")][:40]
-    if not ornek:
-        ornek = [_fark_px(griler[i], griler[i + 1]) for i, c in enumerate(ciftler)
-                 if c["sinif"] == "kesme"][:40]
     return float(np.median(ornek)) if ornek else 500.0
 
 
@@ -536,29 +562,32 @@ def derle(
     # filmin gren-tabanı (fark_tabani: hayat-agaci dersi yukarıda)
     fark_taban = fark_tabani(ciftler, griler)
 
-    def ayni_icerik(a: int, b: int) -> bool:
-        """Kart kimliği — token 'AYNI' hükmü KESİNDİR, 'FARKLI' hükmü tek
-        başına YETMEZ (hayat-agaci dersi, 2026-08-17: okunmaz karelerde
-        halüsinasyon token'ları her kareyi 'farklı' sanıp 36 sayfa açtı,
-        dup 0.81). Yani token DEDUP güçlendirir, sayfa AÇMAZ:
+    def ayni_icerik(a: int, b: int, kesin: bool = False) -> bool:
+        """Kart kimliği — token 'AYNI' hükmü kesindir ama KESKİNLİĞİ bağlama
+        göre değişir; 'FARKLI' hükmü tek başına YETMEZ (hayat-agaci dersi:
+        halüsinasyon token'ları 36 sayfa açtı). Yani token DEDUP
+        güçlendirir, sayfa AÇMAZ:
 
-          token AYNI    → aynı (jetgiller: statik zeminde piksel-farkı aynı
-                          kartı 'farklı' sanıp tekrar basıyordu)
-          token FARKLI  → piksel-farkı karar verir (fark da 'farklı'ysa
-                          sayfa açılır — gerçek yeni içerik)
-          token YOK     → piksel-farkı (lebron'un yolu)
-        """
-        if oz["token_kimlik"] and token_ayni(_tokenlar(a), _tokenlar(b)) is True:
+          token AYNI (bağlama göre eşikle) → aynı (jetgiller: statik zeminde
+            piksel-farkı aynı kartı 'farklı' sanıp tekrar basıyordu)
+          token FARKLI veya yetersiz → piksel-farkı karar verir
+
+        `kesin=True` (kesme/süreklilik bağlamı): 'aynı' için neredeyse-birebir
+        tekrar gerekir (yeni ≤ TOKEN_YENI_KESKI_ESIK) — KESME zaten ölçümün
+        'içerik değişti' demesi; benimle'nin son kartı scroll-kuyruğuyla 0.14
+        yeni token taşıyordu ve YENİ SAYFAYDI (gece dersi).
+        `kesin=False` (aday döngüsü): tekrar-baskısı eşiği gevşek (0.25)."""
+        if oz["token_kimlik"] and token_ayni(_tokenlar(a), _tokenlar(b),
+                                           kesin=kesin) is True:
             return True
         return _fark_px(griler[a], griler[b]) <= max(FARK_TABAN_KATSAYI * fark_taban,
                                                      FARK_MUTLAK_MIN)
 
     def metin_gibi(i: int) -> bool:
-        """Sayfa-açılış kapısı. Token varsa (≥2) kesin; yoksa satır profili.
-        (ibrahimovic motor-varken KATI-token'du; magic VEYA-birleştirir —
-        stilize/okunamayan logo kartları kaybolmasın. Ölçüm söyler.)"""
-        if oz["token_kimlik"] and len(_tokenlar(i)) >= 2:
-            return True
+        """Sayfa-açılış kapısı — YALNIZ satır profili (lebron'unki; gece dersi
+        2026-08-17: token kısayolu halüsinasyona açıktı — hayat-agaci'nin
+        gren kareleri 2+ sahte token üretip fırtınanın 36 sayfasını 'metinli'
+        sanmıştı. Profil greni yayılır, yazıyı satırlara toplanır.)"""
         return metin_profili(griler[i], metin_maskeleri[i])
 
     keskinlikler = [calculate_sharpness(g) for g in griler]
@@ -575,7 +604,7 @@ def derle(
         if c["sinif"] == "kesme":
             # kesme de kimlik+metin kapılarından geçer (affedilmeyenler
             # "THE END ×5": fade sıçramaları sorgusuz sayfa açıyordu)
-            if ayni_icerik(i + 1, ref_idx) or not metin_gibi(i + 1):
+            if ayni_icerik(i + 1, ref_idx, kesin=True) or not metin_gibi(i + 1):
                 i += 1
                 continue
             segmentler.append((seg_im, seg_ofs))
@@ -589,7 +618,7 @@ def derle(
             # sessizce değişmişse scroll son kareyle DİKİLEMEZ — önce sayfayı
             # kapat, çiftin İLK karesiyle yeni segment aç. Kesintisiz scroll'da
             # ref_idx == i olduğundan bu dal hiç tetiklenmez.
-            if ref_idx != i and not ayni_icerik(i, ref_idx):
+            if ref_idx != i and not ayni_icerik(i, ref_idx, kesin=True):
                 segmentler.append((seg_im, seg_ofs))
                 seg_im, seg_ofs, akum = [ims[i]], [0.0], 0.0
                 ref_idx = i

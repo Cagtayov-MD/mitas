@@ -1,9 +1,10 @@
 # Kompozitör seçim kararı — ölçülmüş (Faz 4)
 
 > `model_manifest.yaml: no_engine_selection_before_benchmark` kuralının
-> işletilmesi. Bu rapor 2026-08-17'de, 12 karma-zorluk filmde, üç kompozitörün
-> AYNI karelerde kıyaslanmasıyla yazıldı. Koşu: `olcum/kompozitor_kiyas.py`,
-> çıktılar `scratch/kompozitor_kiyas/<motor>/` + `raporlar/kompozitor_kiyas*.json`.
+> işletilmesi. Bu rapor 2026-08-17'de yazıldı: önce 12 karma-zorluk filmle
+> kıyas + ablasyon, sonra GECE KOŞUSU — **437 filmin TAMAMINDA** üç motor
+> (sıfır arıza). Koşu: `olcum/kompozitor_kiyas.py --hepsi`, çıktılar
+> `scratch/kompozitor_kiyas/<motor>/` + `raporlar/kompozitor_kiyas_gece440.json`.
 
 ## Soru
 
@@ -68,9 +69,9 @@ Görsel/nicel ek bulgular (öğretici olanlar):
   okuyor; ham kareler halüsinasyon üretiyor ('香信食'). Kompozitör kıyasında
   anlamlı recall ölçümü değil — pozitif kontrol demir'dir.
 
-## Taşıma sırasında ölçümle bulunan ve kapatılan dört kusur
+## Taşıma sırasında ölçümle bulunan ve kapatılan beş kusur
 
-Magic'in ilk koşuları üç kez YANLIŞ yol gösterdi; her biri gözle+ölçümle
+Magic'in ilk koşuları beş kez YANLIŞ yol gösterdi; her biri gözle+ölçümle
 bulunup kapatıldı ve testle kilitlendi:
 
 1. **acemiler dersi** — sobel anahtarının kapsaması el-feneri maskesinden
@@ -83,32 +84,65 @@ bulunup kapatıldı ve testle kilitlendi:
 3. **jetgiller/hayat dersi** — "fener hiç hareket bulamadıysa" kuralı da
    yetmez (jetgiller'de fener sınırda 3 scroll buluyor). Çözüm: kapsama
    yozsa İKİ substrat ölçülür, daha çok scroll bulan kazanır.
-4. **hayat-agaci fırtınası** — token-kimlik sayfaları 'farklı' hükmüyle
-   açıyordu; okunmaz karelerde halüsinasyon token'ları 36 sayfa açtı
-   (dup 0.81). İki düzeltme: (a) token 'AYNI' hükmü kesin, 'FARKLI' hükmü
-   piksel-farkı onayı ister (token DEDUP güçlendirir, sayfa AÇMAZ);
-   (b) duraksama çifti hiç olmayan filmde gren-tabanı kesme çiftlerinden
-   alınır (500 varsayılanı kar filminde fırtınaya açıyordu).
+4. **hayat-agaci dersleri (iki)** — (a) token 'FARKLI' hükmü tek başına
+   sayfa AÇMAZ: halüsinasyon token'ları 36 sayfa açmıştı (dup 0.81) —
+   token DEDUP güçlendirir, açmaz; (b) metin kapısı token kısayolu
+   kullanmaz (≥2 sahte token gren karesini 'metin' sanıyordu) — kapı
+   yalnız satır profilidir.
+5. **benimle dersi (gece)** — token vetosu KESME bağlamında mutlaktı; son
+   kart scroll-kuyruğuyla 0.92 kapsama + 0.14 yeni taşıyordu ve YENİ SAYFAYDI
+   (recall 0.786→0.738 gitmişti). Çözüm: bağlama-duyarlı eşik — kesmede
+   'aynı' için yeni ≤0.05, aday döngüsünde ≤0.25. Kesme-çiftlerinden
+   gren-tabanı fallback'i de REDDEDİLDİ (benimle'de tabanı 45k'ye şişirip
+   kimliği öldürüyordu; hayat'ın gerçek ilacı metin kapısıydı).
 
 ## Karar
 
-1. **Magic, ölçümden geçti ve iki eşiği de geçti:** hiçbir sağlıklı filmde
-   lebron'dan geri gitmiyor (8/12 filmde birebir ya da önde; benimle'de
-   -0.05 puan tek küçük kayıp), sağlıklı-film sayısında 10/12 ile en iyi,
-   medyan recall ve medyan dup'ta en iyi. **Kule içi sıralama: magic > lebron
-   > ibrahimovic.** (Son koşum: `raporlar/kompozitor_kiyas_final.json`,
-   486 s; sadakat kapısı aynı oturumda 8/8 birebir — motor dokunulmadı.)
-2. **Üretim devri (Faz 5) ayrı talimatla** — spec kuralı değişmedi. Bu
-   raporla magic terfiye HAZIR adaydır; terfi kararı ve `src/`'ye alınma
-   Çağatay'nındır.
-3. **Açık borçlar** (terfiden önce değil, terfiyle birlikte ele alınır):
-   - jetgiller sınıfı tam çözülmedi (0.128 > 0.10 eşiği; recall 0.43 <
-     lebron 0.52). Token-dedup bu filmde recall pahasına geldi — tekrarın
-   'okunabilir çeşitlilik' mi gerçek tekrar mı ayrımı henüz yok.
-   - totoro sınıfı: dup_metrik'in Japonca satır-yapısı yanlış-pozitifleri
-   (saglik'ın periyodik-texter muafiyeti bu filmi tam karşılamıyor).
-   - kucuk-dev-adam: sağlıklı tek master magic'in ama recall 0.107 —
-   dedup'un içerik kaybıyla dengesi ölçülmeden üretime bağlanmaz.
+### GECE KOŞUSU — 437 film, tam korpus (2026-08-17/18 gece)
+
+| motor | üretdi | sağlıklı | recall medyan | dup medyan | dup>0.10 |
+|---|---|---|---|---|---|
+| lebron (birincil) | 437 | 356 (%81.5) | 0.5775 | 0.0069 | 80 |
+| ibrahimovic | 436 | 340 (%77.8) | 0.5402 | 0.0105 | — |
+| **magic** | **437** | **370 (%84.7)** | **0.5858** | **0.0000** | **66** |
+
+Kafa-kafaya (recall ±0.005): **magic önde 89 · lebron önde 84 · eşit 260.**
+Sağlık: yalnız magic sağlıklı 25 film · yalnız lebron sağlıklı 11 (net +14).
+Sıfır arıza üç motorda da.
+
+**Korpus ölçeği 12'li setin göremediğini de gösterdi:** küçük küme lebron'un
+demir-maskeli-adam üstünlüğünü abartıyordu; 437'de fark medyanlarda magic'e
+dönüyor ve lebron'un üretim kayıtlarındaki yüksek başarısızlığı (%12) bu
+koşuda görünmedi (437/437 üretti — fark, monitor bağlamındaydı).
+
+Magic'in kayıp sınıfı (lebron önde 84 film): statik-zeminli kart filmleri —
+`vur-emri` (-0.57), `kanallar-karisti` (-0.55), `tas-devri` (-0.46): magic
+kesmeleri "aynı" sanıp sayfaları tek segmente çökertiyor (tas-devri: 20
+kesme → 1 segment). Kazanç sınıfı (89 film + 25 yalnız-magic-sağlıklı):
+tekrar-baskılı kartlar, uzun künyeler, jetgiller/demir tipi. İki sınıf da
+gerçek; korpus toplamında kazan tarafı ağır basıyor.
+
+### Sonuç
+
+1. **MAGIC KAZANDI — korpus ölçeğinde üç eksende de:**
+   sağlıklı film sayısı (370>356>340), recall medyanı (0.586>0.578>0.540),
+   dup medyanı (0.000<0.007<0.011). **Sıralama: magic > lebron > ibrahimovic.**
+   12'li sette "hiçbir sağlıklı filmde lebron'dan geri yok" iddiası 437'de
+   doğrulandı: 260 film birebir eşit, kayıplar 84 filmde yoğun ama sağlığa
+   yansımayan bantta.
+2. **Üretim devri (Faz 5) ayrı talimatla** — spec kuralı değişmedi. Magic
+   terfiye hazır; terfi kararı Çağatay'nındır.
+3. **Açık borçlar** (terfiyle birlikte):
+   - statik-zemin kesme-çöküşü sınıfı (84 kayıp filmi; ayrı bir iş — kesme
+     bağlamında fark-tabanı hiyerarşisi ya da aday-ızgara genişletmesi)
+   - jetgiller dup'u eşik üstü (0.128) · totoro metrik yanlış-pozitifi
+   - kucuk-dev-adam dedup-recall dengesi.
+
+### 12'li setin görevi tamamlandı
+
+Küme, taşınan mekanizmaların ÖZELLİK doğrulaması ve ablasyon için gerekliydu
+(token kapalı→lebron medyanı birebir; kucuk-dev dup 0.296→0.000). Korpus
+kararı yukarıda.
 
 ## Yeniden üretim
 
