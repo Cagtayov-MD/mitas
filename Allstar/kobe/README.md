@@ -1,15 +1,18 @@
 # Kobe — jenerik başlangıç tespit kulesi
 
-> Film **SONU** jeneriğinin başladığı kareyi bulur. Projede jenerik-başlangıç
-> bulma işi SADECE Kobe'dir. (Eski adı FIGO'ydu; 2026-08-13'te tek isme indi.)
+> Film **SONU** jeneriğinin başladığı kareyi ve **GİRİŞ** jeneriğinin
+> başlangıç/bitiş sınırını bulur. Projede jenerik-tespit işi SADECE Kobe'dir.
+> (Eski adı FIGO'ydu; 2026-08-13'te tek isme indi.)
 
 ## Sorumluluk sınırı
 
-**Yapar:** bir filmin kapanış jeneriğinin başladığı kareyi bulur, kararını
-kendi `out/`'una yazar.
+**Yapar:** bir filmin kapanış jeneriğinin başladığı kareyi, giriş jeneriğinin
+başlangıç/bitiş sınırını bulur; kararını (istenirse artefaktını) kendi `out/`'una
+yazar.
 
-**Yapmaz:** kare havuzu kurmaz, master PNG üretmez, künye okumaz, isim
-düzeltmez, PDF yazmaz, Database'e künye yazmaz. Hepsi başka kulelerin işi.
+**Yapmaz:** üretimin Database kare havuzunu kurmaz (kendi `out/`'una artefakt
+üretir), master PNG üretmez, künye okumaz, isim düzeltmez, PDF yazmaz,
+Database'e künye yazmaz. Hepsi başka kulelerin işi.
 
 ## Çalıştırma
 
@@ -49,17 +52,22 @@ out/<film_id>/
 │  ├─ _TAMAM              # EN SON yazılır — varsa artefakt da hazırdır
 │  ├─ kareler/            # --uret kare  → c_01113.png … c_01200.png
 │  └─ klip/klip.mp4       # --uret klip  → sessiz, filmin sonuna kadar
-└─ giris/                 ← giriş jeneriği — HENÜZ YOK, açık ARIZA döner
-   └─ kobe.json           # durum=ARIZA, sinif=BOLUM_HAZIR_DEGIL
+└─ giris/                 ← giriş jeneriği (src/giris/ — ayrı blok, çalışır)
+   ├─ kobe.json           # baslangic_* VE bitis_* dolu
+   ├─ _TAMAM
+   ├─ kareler/            # --uret kare  → havuzun seçtiği kareler (ardışık DEĞİL)
+   └─ klip/klip.mp4       # --uret klip  → baslangic−10 sn → bitis_sn
 ```
 
-**Bölüm ayrımı** (`--bolum cikis|giris`, varsayılan `cikis`): iki jenerik ayrı
-klasörlere yazılır, birbirini ezmez. **Giriş jeneriği henüz desteklenmiyor** —
-motorun temel ayracı (`SON_ERISIM=0.82`: *"aday pencerenin son %18'ine ulaşmalı,
-yoksa kredi değildir"*) girişte **ters** çalışır, çünkü giriş jeneriğinden sonra
-film her zaman devam eder. Kobe tahmin etmez: `--bolum giris` verilirse motor
-**hiç çağrılmadan** `ARIZA(BOLUM_HAZIR_DEGIL)` döner ve bu diske yazılır — eksik
-görünür olur. Gerekçe ve yol haritası: `KATALOG.md` §7.
+**Bölüm ayrımı** (`--bolum cikis,giris`, varsayılan `cikis`): iki jenerik ayrı
+klasörlere yazılır, birbirini ezmez, bağımsız koşar — biri ARIZA verse diğeri
+etkilenmez. Çıkış motoru (`tespit_v5`) girişte **kullanılamaz**: temel ayracı
+(`SON_ERISIM=0.82`: *"aday pencerenin son %18'ine ulaşmalı, yoksa kredi
+değildir"*) girişte **ters** çalışır, çünkü giriş jeneriğinden sonra film her
+zaman devam eder. Girişin kendi bloğu vardır (`src/giris/`: (a) sınır +
+(b) havuz) ve iki bloğun karar mantığı asla birleşmez — `tests/test_izolasyon.py`
+koda kilitler. **Girişin doğruluğu henüz ölçülmedi** ("%94.5" yalnız çıkış
+içindir). Ayrıntı: `KATALOG.md` §7, eksik envanteri: `EKSIKLER.md` G5-G9.
 
 | | |
 |---|---|
@@ -100,7 +108,8 @@ okunmasını, `_TAMAM` "yazılıyor mu bitti mi" belirsizliğini kapatır.
 
 | Ne | Yol |
 |---|---|
-| **Karar motoru** (`tespit_v5`) | `src/motor.py` |
+| **Karar motoru — ÇIKIŞ** (`tespit_v5`) | `src/motor.py` |
+| **Karar bloğu — GİRİŞ** (sınır + havuz) | `src/giris/sinir.py`, `src/giris/havuz.py` |
 | Kutu sinyali (Paddle det, dilden bağımsız) | `src/kutu.py` |
 | İçerik analizi (isim/rol, çok-dil) | `src/icerik.py` |
 | Sözleşme (`Girdi`/`Cikti`/`ariza`) | `sozlesme.py` |

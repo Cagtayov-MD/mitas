@@ -21,7 +21,7 @@
 | Ölçüm yatağı — 120 film + GT, kule içinde | `olcum/`, `havuz/` (28 GB) |
 | **Üç ölçüm kapısı, sapma sıfır** — %94.5 / %97.3 / 29-29 | `raporlar/olcum_*.json` |
 | Golden kanarya (tek film, saniyeler) | `golden/tek_film.json` |
-| 61 test | `tests/` |
+| 69 test | `tests/` |
 | Belgeler | `KATALOG.md`, `README.md`, `CHANGELOG.md`, `DURUM.md` |
 
 ## Eksik ❌

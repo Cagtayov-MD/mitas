@@ -1,5 +1,22 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (1) — belge senkronu: giriş bloğu belgelere işlendi
+
+Kod değişikliği YOK. `41bc799f`'te giriş bloğu uygulandığında belgelerin
+bir kısmı güncellenmedi — kule "giriş yapıyor" iken üç belge "yapmıyor"
+diyordu. Bu kayıt o uçları kapattı:
+
+- `README.md` — ağaç şemasındaki `giris/ ← HENÜZ YOK, ARIZA(BOLUM_HAZIR_DEGIL)`
+  satırı ve "giriş jeneriği henüz desteklenmiyor" paragrafı gerçekle
+  değiştirildi (giriş çalışır; ölçülmemişliği açıkça yazılı). Sorumluluk
+  sınırı ve Yerleşim tablosu giriş bloğunu görecek şekilde düzeltildi.
+- `KATALOG.md` §1 "Ne YAPMAZ" — "giriş jeneriği tespit etmez" maddesi
+  kaldırıldı (§7'nin "yetkisi VAR" hükmüyle çelişiyordu).
+- `EKSIKLER.md` — test sayısı 61 → 69 olarak düzeltildi.
+
+Ders (3. soru): davranış değiştiren commit, belgeleri de aynı commit'te
+taşımış olmalıydı; "kod yazar, belge sonra" uçları açık bırakıyor.
+
 ## 2026-08-13 (4) — giriş bloğu uygulandı, uçtan uca çalışıyor
 
 Kapsam Çağatay tarafından daraltıldı ("çalışsın, mükemmel olmasına gerek

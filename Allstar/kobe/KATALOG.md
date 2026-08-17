@@ -48,7 +48,8 @@ CPU/GPU boş kalmaz.
 ### Ne YAPMAZ
 
 Master PNG üretmez · künye okumaz · isim düzeltmez · PDF yazmaz ·
-Database'e yazmaz · **giriş jeneriği tespit etmez** (bkz. §7).
+Database'e yazmaz. Giriş jeneriğini de tespit **eder** — ama çıkış motoruyla
+değil, ayrı blokla (bkz. §7).
 
 ---
 
