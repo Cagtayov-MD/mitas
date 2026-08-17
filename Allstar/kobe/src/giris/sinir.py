@@ -41,6 +41,12 @@ def bul(dizin: str | Path, config: dict | None = None) -> dict:
          "bitis_kare": int|None, "bitis_sn": float|None,
          "guven": float, "kanit": {"sinir_kaynagi": "tespit"|"sabit", ...}}
 
+    BAŞLANGIÇ POLİTİKASI (Çağatay 2026-08-17): karar başlangıcı DAİMA 1'dir —
+    "geriye dönük sapma kabul, hatta her zaman 1'den başla; başlangıç tespitine
+    yatırım yok". Erken başlangıç zararsızdır (havuz içeriğe göre seçer, klip
+    yalnız uzun olur). Motorun bulduğu ham start kanıtta `tespit_bas_kare`
+    olarak yaşar (provenans), kararı etkilemez.
+
     İstisna fırlatırsa (motor çöktü) çağıran ARIZA yapar — burada yutulmaz.
     """
     g = (config or {}).get("giris", {})
@@ -60,7 +66,6 @@ def bul(dizin: str | Path, config: dict | None = None) -> dict:
     guven = float(bolge.get("confidence") or 0.0)
     if guven >= guven_esik:
         kaynak = "tespit"
-        bas_kare = int(bolge["start_frame"])
         bas_sn = float(bolge["start_sec"])
         ef = bolge.get("end_frame")
         es = bolge.get("end_sec")
@@ -68,13 +73,17 @@ def bul(dizin: str | Path, config: dict | None = None) -> dict:
         bit_sn = float(es) if es is not None else None
     else:
         kaynak = "sabit"
-        bas_kare, bas_sn = 0, 0.0
+        bas_sn = 0.0
         bit_sn = pencere_sn
         bit_kare = int(round(pencere_sn * _DETECT_FPS))
 
-    return {"bulundu": True, "baslangic_kare": bas_kare,
-            "baslangic_sn": round(bas_sn, 2),
+    return {"bulundu": True,
+            "baslangic_kare": 1,                       # politika: daima 1
+            "baslangic_sn": 0.0,
             "bitis_kare": bit_kare,
             "bitis_sn": round(bit_sn, 2) if bit_sn is not None else None,
             "guven": round(guven, 3),
-            "kanit": {"sinir_kaynagi": kaynak, "tespit_ham": bolge}}
+            "kanit": {"sinir_kaynagi": kaynak, "tespit_ham": bolge,
+                      "tespit_bas_kare": int(round(bas_sn * _DETECT_FPS)),
+                      "baslangic_politika": "daima-1 (Çağatay 2026-08-17: "
+                                            "geriye dönük kabul, yatırımsız)"}}

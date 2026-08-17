@@ -106,6 +106,12 @@ def main() -> int:
             var_dogru += 1
             db = k["bas"] - g["gercek_bas_kare"]   # + = geç başlangıç (cast başı kaybı)
             dk = k["bit"] - g["gercek_bit_kare"]   # + = geç bitiş (sahne sızar)
+            # BAŞLANGIÇ POLİTİKASI (Çağatay 2026-08-17): geriye dönük sapma KABUL
+            # ("3 kareyse 1 olur, 6 olmaz; hatta başlangıç hep 1 olabilir") —
+            # yalnız POZİTIF (geç) sapma hata sayılır.
+            if db > 0:
+                sapmalar.append({"film": k["film"], "kusur": "gec_baslangic",
+                                 "bas_sapma": db})
             sapmalar.append({"film": k["film"], "bas_sapma": db, "bit_sapma": dk,
                              "kaynak": k["kaynak"], "guven": k["guven"]})
 
@@ -125,7 +131,9 @@ def main() -> int:
              "kaynak_dagilimi": {k: sum(1 for r in kayitlar
                                         if r.get("kaynak") == k and r["bulundu"])
                                  for k in ("tespit", "sabit")},
-             "not": "kırmızı çizgi YOK — dağılım görülünce Çağatay ile konur (G6)",
+             "not": "başlangıç: geriye dönük sapma KABUL (Çağatay 2026-08-17) — "
+                    "yalnız 'gec_baslangic' hata sayılır. bitiş: kırmızı çizgi "
+                    "YOK — dağılım görülünce konur",
              "filmler": kayitlar, "sapmalar": sapmalar}
     cikti = os.path.join(VERI, "olcum_giris_son.json")
     json.dump(rapor, open(cikti, "w", encoding="utf-8"), ensure_ascii=False, indent=1)

@@ -38,7 +38,10 @@ cd /opt/mitas
 ```
 
 `durum` / `baslangic_kare` / `bitis_kare` / `guven` aynı olmalıdır.
-2026-08-13'ün gerçek-koşu kaydıyla da uyumlu (güven 0.754, sınır 0.0-21.0 sn).
+`baslangic_kare` 2026-08-17'den beri DAİMA 1'dir (Çağatay politikası: "geriye
+dönük sapma kabul, hatta her zaman 1'den başla" — motorun ham start'ı
+`kanit.tespit_bas_kare`'de yaşar). Güven 0.754, bitiş 21.0 sn — 2026-08-13'ün
+gerçek-koşu kaydıyla uyumlu.
 
 **DİKKAT — bu kanarya KARAR DEMİRİDİR, doğruluk DEMİRİ DEĞİL.** Girişin
 doğruluğu hâlâ ölçülmedi (G5/G6, EKSIKLER): kanarya yalnız "davranış
