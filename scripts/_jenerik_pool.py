@@ -14,11 +14,12 @@ filtered pool.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -243,7 +244,8 @@ def _metin_kapi_enabled() -> bool:
 
 def _v5_enabled() -> bool:
     # JENERİK-V5 (2026-07-23, %92 kampanyası — Çağatay kararı: "artık aktif jenerik başlangıç
-    # bulma stratejimiz bu"). Kobe = Allstar/kobe/src/motor.tespit_v5: 110-film doğrulanmış
+    # bulma stratejimiz bu"). Kobe = Allstar/kobe KULESİ, E1'den beri sözleşmeyle çağrılır
+    # (kobe tek alt-süreç → out/<film>/cikis/kobe.json): 110-film doğrulanmış
     # GT'de %93.6 simetrik / %96.4 üretim-ölçütü / kredisiz-red 29/29. Açıkken eski dedektörün
     # yama yığını (oneocr-fallback / vlm-rescue / footage-trim / backward-extend) ATLANIR —
     # v5 kendi rafinelerini içerir, üstüne eski yamalar bindirilirse onset bozulur.
@@ -263,24 +265,107 @@ def _suphe_genis_havuz_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_SUPHE_GENIS_HAVUZ", "0").strip().lower() not in ("0", "false", "off", "no")
 
 
+def _kare_no(yol: str) -> int:
+    """Dosya adından mutlak kare numarası (c_0027.png → 27) — motor._kare_no'nun
+    birebir aynası (Allstar/kobe/src/motor.py:74). E1'den beri kobe CLI'dan yalnız
+    KARAR gelir; kare-no ← indeks eşlemesi yerelde kalır."""
+    import re as _re
+    m = _re.search(r"(\d+)(?=\.[a-zA-Z]+$)", yol)
+    return int(m.group(1)) if m else 1
+
+
+@dataclass
+class _V5Karar:
+    """Kobe sözleşme JSON'unun (out/<film>/cikis/kobe.json) motor.Sonuc aynası.
+
+    E1 (2026-08-17): üretim kobe'yi KÜTÜPHANE olarak import ETMEZ — `kobe tek`
+    alt-süreci + kobe.json okur (sözleşme + _TAMAM kuyruğu). Aşağı akış (manifest
+    `v5` alt-nesnesi, create_pool credit_type/reason) ATTRIBUTE erişimi bekler;
+    bu sınıf o sözü korur. Yalnız okunan alanlar aynalanır (dy_medyan/seri gibi
+    hiçbir tüketici okumayanlar DEĞİL — ayna yüzeyi küçük kalsın)."""
+    start_frame: int = -1
+    yontem: str = ""
+    guven: float = 0.0
+    notlar: str = ""
+    tip: str = ""
+    scroll_orani: float = 0.0
+    ardisik_scroll: int = 0
+    son_capa: float = 0.0
+    aday_sayisi: int = 0
+    suphe: list = field(default_factory=list)
+    suphe_geri_kare: int = -1
+    script: str = "en"
+    ocr_hata: int = 0
+
+
+def _kobe_karari_al(frames_dir: Path, timeout: int = 1800) -> dict:
+    """`kobe tek --kareler` alt-sürecini koş → out/<film_id>/cikis/kobe.json oku.
+
+    Kobe KENDİ venv'iyle (167 pin, dondurulmuş) koşar — sürüm dondurma kuleyle
+    gelir; bu süreç (venvs/ocr) kobe'nin içine ASLA giremez. Kare dizini kobe
+    sözleşmesi gereği DOKUNULMAZ kalır (yalnız kendi yaratmadığı _det_cache.json
+    yazar — bugünkü süreç-içi çağrıdan farkı yok).
+
+    ARIZA / okunamayan JSON → RuntimeError: çağıran (create_pool) bunu
+    v5_hata_bilgi yapıp CV fail-safe'e düşer — kobe arızası pipeline'ı bozmaz."""
+    frames_dir = Path(frames_dir)
+    film_id = (frames_dir.parent.parent.name
+               if frames_dir.parent.name.lower() == "frames" else frames_dir.name)
+    cmd = [str(PROJECT_ROOT / "Allstar" / "kobe" / "kobe"), "tek",
+           "--kareler", str(frames_dir), "--film-id", film_id]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=timeout)
+    except Exception as exc:  # noqa: BLE001 — timeout/koşu hatası → CV fail-safe
+        raise RuntimeError(f"kobe alt-sureci koşulamadi: {type(exc).__name__}: {exc}") from exc
+    karar_yolu = PROJECT_ROOT / "Allstar" / "kobe" / "out" / film_id / "cikis" / "kobe.json"
+    try:
+        k = json.loads(karar_yolu.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RuntimeError(f"kobe karari okunamadi ({karar_yolu.name}, rc={r.returncode}): "
+                           f"{(r.stderr or '')[-300:]}") from exc
+    if k.get("durum") == "ARIZA":
+        raise RuntimeError(f"kobe ARIZA({k.get('sinif')}): {k.get('mesaj')}")
+    return k
+
+
 def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = False) -> dict:
-    """tespit_v5 çağırır; TÜM teşhis bilgisini bir sözlükte döndürür — hem
+    """Kobe CLI'yi (kobe tek) çağırır; TÜM teşhis bilgisini bir sözlükte döndürür — hem
     create_pool'un start_pos kararı (final_indeks) hem de manifest'in YENİ `v5`
     alt-nesnesi (Dalga 2) BURADAN besleniyor. `final_indeks` None ise (kredi_yok
     ya da dosya-eşleşme başarısız) → eski akışa (CV) düşülür.
+
+    E1 (2026-08-17): `import motor` KALKTI — kulenin değeri sözleşmedeydi
+    (kobe.json + _TAMAM + kendi venv'i); kütüphane importu bunların hiçbirini
+    devreye sokmuyordu. Davranış sözü korunur: BULUNDU → final_indeks (pad'li),
+    KREDI_YOK → final_indeks None, ARIZA/istisna → yukarı fırlar (CV fail-safe).
 
     Güvenlik payı (MITAS_JENERIK_V5_PAD, varsayılan 10 kare): asimetri politikası
     (Çağatay 2026-07-23) — erken başlamak zararsız, geç kalmak cast'i kaybettirir.
 
     `kuru=True` (--kuru dry-run): events.jsonl'e HİÇBİR ŞEY yazılmaz — dönüş
-    değeri (dolayısıyla manifest) değişmez, yalnız yan-etki (dosya yazımı) atlanır."""
+    değeri (dolayısıyla manifest) değişmez, yalnız yan-etki (dosya yazımı) atlanır.
+    Kobe kendi evine (out/) yazar — kuru modda bile, o kobe'nin evidir."""
     try:
         pad = max(0, int(os.environ.get("MITAS_JENERIK_V5_PAD", "10") or "10"))
     except ValueError:
         pad = 10
-    sys.path.insert(0, str(PROJECT_ROOT / "Allstar" / "kobe" / "src"))
-    import motor as _co
-    r = _co.tespit_v5(str(frames_dir))
+    k = _kobe_karari_al(frames_dir)
+    ka = k.get("kanit") or {}
+    r = _V5Karar(
+        start_frame=(int(k["baslangic_kare"]) if k.get("durum") == "BULUNDU" else -1),
+        yontem=str(ka.get("yontem", "")),
+        guven=float(k.get("guven") or 0.0),
+        notlar=str(ka.get("notlar", "")),
+        tip=str(ka.get("tip", "")),
+        scroll_orani=float(ka.get("scroll_orani") or 0.0),
+        ardisik_scroll=int(ka.get("ardisik_scroll") or 0),
+        son_capa=float(ka.get("son_capa") or 0.0),
+        aday_sayisi=int(ka.get("aday_sayisi") or 0),
+        suphe=list(ka.get("suphe") or []),
+        suphe_geri_kare=int(ka.get("suphe_geri_kare", -1)),
+        script=str(k.get("script") or "en"),
+        ocr_hata=int(ka.get("ocr_hata") or 0))
     if r.start_frame is None or int(r.start_frame) < 0:
         if not kuru:
             _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
@@ -289,11 +374,11 @@ def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = Fa
     hedef = int(r.start_frame)
     idx = None
     for i, f in enumerate(images):
-        if _co._kare_no(str(f)) == hedef:
+        if _kare_no(str(f)) == hedef:
             idx = i
             break
     if idx is None and images:  # dosya-adı eşleşmedi (beklenmez) → en yakın kare
-        idx = min(range(len(images)), key=lambda i: abs(_co._kare_no(str(images[i])) - hedef))
+        idx = min(range(len(images)), key=lambda i: abs(_kare_no(str(images[i])) - hedef))
     if idx is None:
         return {"final_indeks": None, "raw_indeks": None, "sonuc": r, "pad": pad}
     son = max(0, idx - pad)
@@ -310,11 +395,11 @@ def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = Fa
         geri_kare = int(r.suphe_geri_kare)
         geri_idx = None
         for i, f in enumerate(images):
-            if _co._kare_no(str(f)) == geri_kare:
+            if _kare_no(str(f)) == geri_kare:
                 geri_idx = i
                 break
         if geri_idx is None and images:
-            geri_idx = min(range(len(images)), key=lambda i: abs(_co._kare_no(str(images[i])) - geri_kare))
+            geri_idx = min(range(len(images)), key=lambda i: abs(_kare_no(str(images[i])) - geri_kare))
         if geri_idx is not None and geri_idx < son:
             tavan = max(0, son - 120)
             yeni_son = max(geri_idx, tavan)
@@ -384,10 +469,11 @@ def create_pool(
     images = list_images(frames_dir)
     engine_used = "paddle"
 
-    # Allstar/kobe/src sys.path'e ekli olsun garanti et (Kobe _v5_detect
-    # içinde zaten ekliyor ama metin-kapı dalı v5 hiç çağrılmadan da credit_box'a
-    # ihtiyaç duyabilir — idempotent, yinelenen insert zararsız).
-    sys.path.insert(0, str(PROJECT_ROOT / "Allstar" / "kobe" / "src"))
+    # E1 (2026-08-17): kobe/src'yi sys.path'e ekleyen satır KALDI — v5 artık alt-süreç
+    # CLI ile çağrılıyor (bkz. _kobe_karari_al), kobe iç modülü burada import EDİLMEZ.
+    # (Eski yorum "metin-kapı credit_box'a ihtiyaç duyar" diyordu — credit_box
+    # harness/kunye_kiyas/'ta ve bu bağlamda zaten ÇÖZÜLMÜYORDU; bkz. metin-kapı
+    # notu — ayrı konu, bilinçli olarak bu işte dokunulmadı.)
 
     # SEGMENT GARDI (Dalga 2, 2026-07-29): --segment giris → v5 HİÇ ÇAĞRILMAZ,
     # CV bugünkü gibi (birebir) koşar. Sebep: v5'in SON_ERISIM=0.82 kuralı "aday

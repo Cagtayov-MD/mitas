@@ -19,6 +19,7 @@
 | Artefakt — kare havuzu + sessiz klip, onset−10 sn | `--uret kare\|klip` |
 | Bölüm ayrımı — `out/<film>/cikis/` | `--bolum` |
 | Ölçüm yatağı — 120 film + GT, kule içinde | `olcum/`, `havuz/` (28 GB) |
+| **E1 — üretim sözleşmeye bağlı** (kobe CLI alt-süreç, A/B birebir) | `scripts/_jenerik_pool.py:_kobe_karari_al` |
 | **Üç ölçüm kapısı, sapma sıfır** — %94.5 / %97.3 / 29-29 | `raporlar/olcum_*.json` |
 | Golden kanarya (tek film, saniyeler) | `golden/tek_film.json` |
 | 69 test | `tests/` |
@@ -26,32 +27,18 @@
 
 ## Eksik ❌
 
-### E1 — Üretim hattı kuleyi KULE olarak kullanmıyor 🔴 EN ÖNEMLİ
+### E1 — ✅ YAPILDI (2026-08-17) — üretim hattı kuleyi KULE olarak kullanıyor
 
-`scripts/_jenerik_pool.py:282-283`:
-
-```python
-sys.path.insert(0, str(PROJECT_ROOT / "Allstar" / "kobe" / "src"))
-import motor as _co
-r = _co.tespit_v5(str(frames_dir))
-```
-
-Üretim, Kobe'yi **kütüphane** gibi import edip motoru doğrudan çağırıyor.
-Sözleşme (`Girdi`/`Cikti`), `kobe.json`, `_TAMAM`, `out/` kuyruğu — **hiçbiri
-devrede değil.** Yani kule kuruldu ama üretim ondan faydalanmıyor; kuyruk
-mimarisinin ("Kobe binlerce filmi işleyip klasörüne bıraksın, LeBron oradan
-alsın") hiçbir parçası çalışmıyor.
-
-**Neden önemli:** Kulenin tüm değeri sözleşmede. Bu bağlanmazsa Kobe sadece
-"yeri değişmiş bir .py dosyası" olarak kalır.
-
-**Nereye:** `scripts/_jenerik_pool.py` → `kobe tek --kareler ... --film-id ...`
-alt-süreç çağrısına çevrilmeli, çıktı `out/<id>/cikis/kobe.json`'dan okunmalı.
-Desen mevcut: `scripts/tek_film_kunye.py:83` zaten "alt-süreç koş, stdout'tan
-JSON çöz" yapıyor.
-
-**Maliyet:** orta. Üretim durmuş olduğu için güvenli; ama pipeline'ın
-`start_pos`/`PAD`/`METIN_KAPI` mantığı korunmalı.
+`scripts/_jenerik_pool.py` artık `import motor` YAPMAZ: `_kobe_karari_al()`
+`kobe tek --kareler ... --film-id ...` alt-sürecini koşar ve kararı kulenin
+sözleşmesinden (`out/<id>/cikis/kobe.json`) okur. Sözleşme, `_TAMAM` kuyruğu ve
+sürüm dondurma (kendi 167-pin venv'i) üretimde devrede. ARIZA → CV fail-safe
+korundu. Doğrulama: 3 gerçek filmde (1 BULUNDU + 2 KREDI_YOK→CV) eski/yeni
+manifest **birebir aynı**; golden kanarya aynı karar (kare 1133). Kobe tarafında
+`main.py` kanıt telemetrisi genişledi (tip/scroll/suphe/... — manifest'in `v5`
+alt-nesnesi bunlardan beslenir; karar alanları değişmedi) + 1 yeni test
+(70/70). Kalan bağ: `MITAS_JENERIK_V5` env bayrağı hâlâ pool tarafında —
+yönlendirme sorumluluğu orkestratörde, bilinçli.
 
 ---
 
@@ -158,7 +145,32 @@ görünüyor, **ama ölçülmedi**. Kayan-nokta farkı det kutusunu oynatabilir.
 ### E8 — `--uret` üretim hattına bağlı değil 🟡
 
 `--uret kare|klip` çalışıyor ama `scripts/_jenerik_pool.py` bunu kullanmıyor;
-üretim kendi havuzunu kendi kuruyor. E1 çözülünce bu da çözülür.
+üretim kendi havuzunu kendi kuruyor (kareleri `frames/cikis`'ten
+`cikis_jenerik`'e kendisi kopyalıyor). E1 bağlandı ama `--uret` çağrılmıyor —
+iki yol paralel yaşıyor. Üretimin Kobe artefaktını (`--uret kare`) kullanmaya
+geçmesi ayrı bir karar: davranış eşdeğerliği (kopyalama =
+`kare_havuzu_yaz`) ölçülmeden/onaysız yapılmaz.
+
+---
+
+### E10 — metin-kapı `credit_box` import'u çözülmüyor 🔴 *(E1 sırasında bulundu)*
+
+`scripts/_jenerik_pool.py` metin-kapı dalı `import credit_box` yapıyor; modül
+`harness/kunye_kiyas/credit_box.py`'ta ve pool'un koştuğu bağlamda
+sys.path'e HİÇ eklenmiyor → ModuleNotFoundError → `except` yutuyor →
+`oran=0.0` → hep `kredi_yok`. Yani `MITAS_JENERIK_METIN_KAPI=1` açık olsa da
+**son-%15 kutu taraması fiilen hiç koşmuyor**, `review_kredi_yok` insan
+kuyruğu hiç tetiklenmiyor (doğrulandı: 2026-08-17, venvs/ocr bağlamında
+import denendi → ModuleNotFoundError).
+
+**Neden önemli:** sessiz arıza sınıfı — bayrak açık görünüyor, etkisi yok.
+README'nin "insan kuyruğu" vaadi bugün boş.
+
+**Nereye:** import öncesi `sys.path.insert(0, PROJECT_ROOT/"harness"/"kunye_kiyas")`
+(desen: `_pipe_hibrit_okuma.py:110-111`). Ama dikkat: bu, kredi_yok filmlerde
+davranışı DEĞİŞTİRİR (bazıları review kuyruğuna düşer) — pool'daki kural
+gereği Çağatay onayı + ölçüm olmadan açılmamalı. E3 (kutu/icerik kopya
+borcu) kapanırken `credit_box` da okuma kulesine giderse kökten çözülür.
 
 ---
 
@@ -255,13 +267,14 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 
 | Sıra | İş | Neden bu sırada |
 |---|---|---|
-| 1 | **E1** — üretim hattını sözleşmeye bağla (`_jenerik_pool.py` hâlâ `import motor` yapıyor) | Kulenin değeri burada açığa çıkar; yeni pipeline'ın girdisi |
-| 2 | **E2** — `src/cikis/` + `src/ortak/` ayrımı | Giriş `src/giris/`'te ama çıkış hâlâ `src/motor.py` — simetri yarım |
+| 1 | ~~**E1** — üretim hattını sözleşmeye bağla~~ ✅ 2026-08-17 | Yapıldı — A/B birebir, kanarya tuttu |
+| 2 | **E2** — `src/cikis/` + `src/ortak/` ayrımı | E1'den SONRA olmalıydı: library importu kalkmadan motor'u taşımak üretimi kırardı. Şimdi serbest |
 | 3 | **G5 + G6** — giriş GT'si ve ölçüm yatağı | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
 | 4 | **G8** — uyarlanır pencere | G6 olmadan kazancı ölçülemez |
 | 5 | **E5** — Ollama açıkken referans ölçüm | Üretimdeki gerçek sayı |
 | 6 | **G7 + E4 + E6** — kanarya, hardlink, `maxtasksperchild` | Ucuz, bağımsız |
 | 7 | **E7** — CPU/GPU bölüşümü | En son; optimizasyon |
+| — | **E10** — metin-kapı credit_box (E1'de bulunan) | Çağatay kararı gerekli: davranış değişimi + E3'e bağlı |
 
 ## Değişmezler — her adımda geçerli
 

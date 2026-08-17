@@ -5,7 +5,23 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-13 — **GİRİŞ BLOĞU UYGULANDI, UÇTAN UCA ÇALIŞIYOR.**
+**Son güncelleme:** 2026-08-17 — **E1 YAPILDI: üretim kuleyi sözleşmeden
+çağırıyor.** `scripts/_jenerik_pool.py`'de `import motor` KALKTI; yerine
+`_kobe_karari_al()` — `kobe tek --kareler ... --film-id ...` alt-süreci koşar,
+kararı `out/<id>/cikis/kobe.json`'dan okur (kendi 167-pin venv'iyle koşar —
+sürüm dondurma artık üretimde gerçek). Doğrulama: 3 gerçek filmde eski/yeni
+manifest birebir aynı (1 BULUNDU + 2 KREDI_YOK→CV fail-safe yolu da sınandı);
+golden kanarya aynı karar. `main.py`'de kanıt telemetrisi genişledi
+(manifest `v5` alt-nesnesinin beslendiği alanlar — karar alanları DEĞİŞMEDİ);
+testler 70/70. Ayrıca bulunan önceden-var kusur: **E10** — metin-kapının
+`credit_box` import'u pool bağlamında çözülmüyor, tarama fiilen koşmuyor
+(davranış değişimi gerektirdiğinden bilinçli olarak dokunulmadı, Çağatay
+kararı bekliyor). Aynı gün: belge senkronu (README/KATALOG giriş
+çelişkileri). Sıradaki: **E2** (`src/cikis/` + `src/ortak/` — ölçüm kapısıyla).
+
+---
+
+**2026-08-13 — GİRİŞ BLOĞU UYGULANDI, UÇTAN UCA ÇALIŞIYOR.**
 Kapsam Çağatay tarafından daraltıldı: kalite/GT/ölçüm yatağı (G5-G7) SONRAKİ
 FAZ — bu turda hedef yalnız "çalışsın". `src/motor.py`'ye dokunulmadı
 (`git diff --stat` boş). Testler 62/62 (61 mevcut + net 1 yeni — 3 eski

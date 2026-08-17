@@ -250,6 +250,20 @@ def _cikis_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
              "pencere_baslangic_sn": float(pencere_ss),
              "yontem": getattr(r, "yontem", ""),
              "ocr_hata": getattr(r, "ocr_hata", 0)}
+    # E1 (2026-08-17): kanıt telemetrisi — üretim (scripts/_jenerik_pool.py) manifest'in
+    # `v5` alt-nesnesini bugün motor.Sonuc'tan attribute erişimiyle dolduruyordu; kule
+    # CLI'dan çağrılınca bu alanlar JSON'da taşınmak zorunda. KARAR alanlarını
+    # (durum/baslangic_*/guven/script) değiştirmez — yalnız kanıt genişler. Sonuc'un
+    # default'larıyla aynı varsayılanlar (kredi_yok erken-dönüşünde alanlar defaultta
+    # kalır — motor.py Sonuc docstring'i).
+    kanit |= {"tip": getattr(r, "tip", ""),
+              "scroll_orani": getattr(r, "scroll_orani", 0.0),
+              "ardisik_scroll": getattr(r, "ardisik_scroll", 0),
+              "son_capa": getattr(r, "son_capa", 0.0),
+              "aday_sayisi": getattr(r, "aday_sayisi", 0),
+              "notlar": getattr(r, "notlar", ""),
+              "suphe": list(getattr(r, "suphe", []) or []),
+              "suphe_geri_kare": getattr(r, "suphe_geri_kare", -1)}
     if r.start_frame == -1:
         return Cikti(film_id=girdi.film_id, bolum=girdi.bolum,
                      durum="KREDI_YOK", kanit=kanit)

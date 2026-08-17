@@ -1,5 +1,36 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (2) — E1: üretim kuleyi sözleşmeden çağırıyor
+
+Kulenin değeri sözleşmedeydi; üretim ona `import motor` ile kütüphane gibi
+dokunuyordu — `kobe.json`, `_TAMAM`, `out/` kuyruğu, sürüm dondurma hiçbiri
+devrede değildi. Bu kayıt o boşluğu kapattı (EKSIKLER E1, en önemli madde).
+
+**`scripts/_jenerik_pool.py`** — `_v5_detect` artık `_kobe_karari_al()`
+çağırır: `kobe tek --kareler <dizin> --film-id <id>` ALT-SÜREÇ (kobe bash
+girişi kendi venv'ini bulur) → karar `out/<id>/cikis/kobe.json`'dan okunur.
+ARIZA/okunamayan JSON → RuntimeError → create_pool'un mevcut CV fail-safe'i.
+`import motor`, `sys.path.insert(kobe/src)` ve `_co._kare_no` bağımlılığı
+kalktı; kare-no eşlemesi yerel `_kare_no` aynasıyla (motor.py:74) yapıldı.
+`_V5Karar` — JSON'dan kurulan Sonuc aynası; aşağı akış (manifest `v5`
+alt-nesnesi) attribute erişim sözünü korur.
+
+**`main.py`** — `_cikis_sonucu` kanıt telemetrisi genişledi: `tip`,
+`scroll_orani`, `ardisik_scroll`, `son_capa`, `aday_sayisi`, `notlar`,
+`suphe`, `suphe_geri_kare` (KREDI_YOK'ta da; Sonuc default'larıyla). Karar
+alanları (durum/baslangic_*/guven/script) DEĞİŞMEDİ — golden kanarya aynı.
+
+**Doğrulama:** 3 gerçek film (POTEMKİN BULUNDU; NAPOLYON_1, YÜZYILIN_CİNAYETİ
+KREDI_YOK→CV), eski/yeni manifest BİREBİR AYNI (engine/status/start_pos/v5
+alt-nesnesi). Kanarya: BULUNDU, kare 1133, en. Testler 70/70 (+1: kanıt
+telemetrisi Sonuc'u birebir taşır — `ardisic/ardisik` typo'su A/B'de
+yakalanınca sınıfı kapatmak için).
+
+**E10 bulundu (önceden var, dokunulmadı):** metin-kapının `import credit_box`'ı
+pool bağlamında ModuleNotFoundError veriyor → yakalanıyor → tarama hep
+atlanıyor; `MITAS_JENERIK_METIN_KAPI=1` fiilen etkisiz. Davranış değişimi
+gerektirdiğinden (kredi_yok→review kuyruğu) Çağatay onayı bekliyor.
+
 ## 2026-08-17 (1) — belge senkronu: giriş bloğu belgelere işlendi
 
 Kod değişikliği YOK. `41bc799f`'te giriş bloğu uygulandığında belgelerin

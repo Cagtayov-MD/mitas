@@ -354,8 +354,9 @@ ve okuyucuya eklenen bir rol Kobe'ye ulaşmaz.
 ### Kule dışında kalan tek bağ
 
 `scripts/_jenerik_pool.py` — **çağıran/orkestratör.** Kobe'yi sözleşmeden
-çağırır. Kulenin içine alınamaz: kule kendi tüketicisini içine alırsa
-bağımsızlık biter.
+çağırır (E1'den beri gerçek: `kobe tek` alt-süreç + `out/<id>/cikis/kobe.json`
+okuma — `import motor` kalktı). Kulenin içine alınamaz: kule kendi
+tüketicisini içine alırsa bağımsızlık biter.
 
 ---
 

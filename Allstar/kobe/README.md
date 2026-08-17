@@ -146,14 +146,22 @@ Yeniden kurmak: `./venv_kur.sh` (veya sıfırdan: `./venv_kur.sh --temiz`).
 
 ```
 systemd mitas-asr → scripts/mitas_pipeline.py → scripts/_jenerik_pool.py
-  → motor.tespit_v5(frames/cikis)  [MITAS_JENERIK_V5=1]
+  → kobe tek --kareler frames/cikis --film-id <id>   [ALT-SÜREÇ, MITAS_JENERIK_V5=1]
+  → out/<film_id>/cikis/kobe.json okunur (sözleşme: _TAMAM kuyruğu)
   → start_pos (güvenlik payı MITAS_JENERIK_V5_PAD=10 kare erken)
   → Database/<film>/frames/cikis_jenerik havuzu + jenerik_detection.json
 ```
 
+E1 (2026-08-17): üretim Kobe'yi KÜTÜPHANE olarak import ETMEZ — `kobe` CLI
+alt-sürecini koşar, kararı kulenin kendi `out/`'undan okur. Böylece sözleşme
+(`kobe.json` + `_TAMAM`), sürüm dondurma (kendi 167-pin venv'i) ve kuyruk
+mimarisinin tamamı devrede. ARIZA'da üretim eski CV akışına düşer (fail-safe).
+
 Kobe `kredi_yok` derse havuz BOŞ kalır (`MITAS_JENERIK_METIN_KAPI=1` —
 kredisizde eski CV devralmaz, sahte cast biter); son %15'te det-metin varsa
-`review_kredi_yok` → insan kuyruğu (`olcum/v5_izleme.py`).
+`review_kredi_yok` → insan kuyruğu (`olcum/v5_izleme.py`). **Bilinen kusur:**
+metin-kapının `credit_box` import'u pool bağlamında çözülmüyor (ModuleNotFoundError
+yakalanıyor → tarama fiilen hiç koşmuyor) — bkz. `EKSIKLER.md` E10.
 
 ## Bayraklar (mitas.env)
 
@@ -161,7 +169,7 @@ kredisizde eski CV devralmaz, sahte cast biter); son %15'te det-metin varsa
 |---|---|---|
 | `MITAS_JENERIK_V5` | 1 | Kobe birincil motor |
 | `MITAS_JENERIK_V5_PAD` | 10 | güvenlik payı (kare, erken tarafa) |
-| `MITAS_JENERIK_METIN_KAPI` | 1 | kredisizde Kobe son söz (CV devralmaz) |
+| `MITAS_JENERIK_METIN_KAPI` | 1 | kredisizde Kobe son söz (CV devralmaz) — **ama E10: credit_box yüklenemiyor, tarama fiilen koşmuyor** |
 | `MITAS_JENERIK_SUPHE_GENIS_HAVUZ` | kapalı | `gec_riski` şüphesinde havuzu elenen-aday başından doldur (aç: =1) |
 
 ## Şüphe katmanı (görünürlük)

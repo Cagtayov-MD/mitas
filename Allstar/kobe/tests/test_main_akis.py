@@ -85,6 +85,36 @@ def test_toplu_tamam_olani_atlar(tmp_path, monkeypatch):
     assert islenen == ["B"]
 
 
+# ── E1: kanıt telemetrisi motor.Sonuc'u BİREBİR taşır ────────────────────
+def test_kanit_telemetrisi_sonucu_birebir_tasir(tmp_path, monkeypatch):
+    """E1 (2026-08-17): üretim (scripts/_jenerik_pool.py) manifest'in `v5`
+    alt-nesnesini kanıt'taki bu alanlardan besler. Yanlış attribute adı
+    getattr'in varsayılanıyla SESSİZCE maskelenirdi (ardisic/ardisik typo'su
+    A/B'de yakalandı) — bu test sınıfı kapatır: alan farklı-değerli doldurulur,
+    kanıtta AYNI değer görülmeli."""
+    import motor
+    monkeypatch.setattr(main, "_tespit", lambda d, c: motor.Sonuc(
+        start_frame=44, yontem="kutu+scroll", guven=0.77, notlar="not-X",
+        tip="scroll", scroll_orani=0.42, ardisik_scroll=7, son_capa=0.81,
+        aday_sayisi=3, suphe=["gec_riski"], suphe_geri_kare=123,
+        script="ru", ocr_hata=2))
+    dis = tmp_path / "kareler"
+    dis.mkdir()
+    (dis / "c_00044.png").write_bytes(b"x")
+    c = main.tek(Girdi(film_id="F1", kareler=str(dis)), tmp_path / "out")
+    k = c.kanit
+    assert c.durum == "BULUNDU"
+    assert k["tip"] == "scroll"
+    assert k["scroll_orani"] == 0.42
+    assert k["ardisik_scroll"] == 7      # ad yanlışsa getattr varsayılanı (0) gelir
+    assert k["son_capa"] == 0.81
+    assert k["aday_sayisi"] == 3
+    assert k["notlar"] == "not-X"
+    assert k["suphe"] == ["gec_riski"]
+    assert k["suphe_geri_kare"] == 123
+    assert k["ocr_hata"] == 2
+
+
 # ── yardımcılar ─────────────────────────────────────────────────────────
 class _SahteSonuc:
     def __init__(self, kare):
