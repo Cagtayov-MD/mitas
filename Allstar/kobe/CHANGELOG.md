@@ -1,5 +1,25 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (4) — G6: giriş ölçüm yatağı altyapısı (GT hâlâ insanda)
+
+Girişin doğruluğu için gereken üç parçadan ikisi kuruldu; üçüncüsü (GT)
+bilinçli olarak insana bırakıldı — motor kendi ölçütünü üretirse ölçüm
+döngüsel olur.
+
+- `olcum/giris/yatak_kur.sh` — `filmtest/depo_3006/` TAM filmlerinden ilk
+  240 sn × fps 2 çıkarır (tarif `main.py:kare_cikar(giris)` ile birebir).
+  10 film kuruldu (tarif 15 diyordu; depoda 10 TAM film var — fark kayıtlı,
+  script idempotent).
+- `olcum/giris/gt_topla.py` — her film için `sinir.bul()` teklifi + önerilen
+  sınırın ±10 karesinde bakılacak dosya listesi → `veri/gt_taslak.json`.
+  `gercek_*` alanları BOŞ kalır. İlk koşu: 10/10 film teklif aldı, hepsi
+  `sinir_kaynagi=tespit`, güven 0.68-0.96, 95 sn.
+- `olcum/giris/olc_giris.py` — `veri/gt.json` yoksa koşmaz (açık red).
+  Metrik şekli çıkıştan farklı: İKİ uçlu sapma (başlangıç+bitiş, ayrı ayrı)
+  + kredisiz-red doğruluğu. Çıkışın asimetrik toleransı kopyalanmadı —
+  girişte her iki yön farklı zarar verir; kırmızı çizgi GT dağılımı
+  görülünce Çağatay ile konur. Script raporlar, hüküm vermez.
+
 ## 2026-08-17 (3) — E2: `src/cikis/` + `src/ortak/` — kapı sapma sıfır
 
 DURUM.md Karar 2'de kurulan ama uygulanmayan yapı gerçekleşti: karar motoru

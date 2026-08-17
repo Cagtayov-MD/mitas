@@ -5,7 +5,17 @@
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 (2) — **E2 YAPILDI: `src/cikis/` + `src/ortak/`
+**Son güncelleme:** 2026-08-17 (3) — **G6 ALTYAPI KURULDU, GT (G5) Çağatay'yı
+bekliyor.** `olcum/giris/`: `yatak_kur.sh` (10 TAM film × 240 sn × fps2 →
+`havuz/giris/`), `gt_topla.py` (teklif üretici — `veri/gt_taslak.json` yazdı,
+10 film 95 sn), `olc_giris.py` (GT'siz KOŞMAZ; iki uçlu sapma raporlar,
+kırmızı çizgi bilinçli yok). **Ölçülebilir sonraki adım G5'te:** taslak
+kopyalanıp `gt.json` doldurulunca `olc_giris.py` koşar. G8 (uyarlanır pencere)
+G5'ten sonra. E5 (Ollama açıkken referans) ve E7 sistem durumu izni bekler.
+
+---
+
+**2026-08-17 (2) — E2 YAPILDI: `src/cikis/` + `src/ortak/`
 kuruldu, kapı %94.5 SAPMA SIFIR.** `git mv` ile `motor.py → src/cikis/`,
 `kutu.py`/`icerik.py → src/ortak/` — **donmuş dosyalara sıfır diff** (motor'un
 alet importları fonksiyon-içi tembel; yol ayarları main.py/olcum/tests

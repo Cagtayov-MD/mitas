@@ -214,10 +214,20 @@ GT'yi Çağatay verir: motorun önerdiği sınırın etrafındaki kareler göste
 
 ---
 
-### G6 — Ölçüm yatağı ve ölçüm scripti YOK 🔴
+### G6 — 🟡 YATAK + SCRIPT KURULDU (2026-08-17), GT bekliyor — ölçüm KOŞMADI
 
-`olcum/giris/` klasörü açıldı ama **boş**. Çıkıştaki `olc_pool.py`'nin
-karşılığı yok.
+`olcum/giris/` artık boş değil:
+- `yatak_kur.sh` — 10 TAM film × ilk 240 sn × fps 2 → `havuz/giris/`
+  (tarif 15 filmdi; `depo_3006/`'da 10 TAM film var — fark kayıtlı, yatak
+  idempotent, film eklendikçe büyür)
+- `gt_topla.py` — motor TEKLİF eder (sinir.bul + bakılacak kare listeleri),
+  `veri/gt_taslak.json` yazar; GT ÜRETMEZ (döngüsel olur)
+- `olc_giris.py` — `veri/gt.json` YOKSA KOŞMAZ; iki uçlu sapma (başlangıç
+  VE bitiş) + red doğruluğu raporlar; **kırmızı çizgi bilinçli YOK** —
+  dağılım görülünce Çağatay ile konur
+- `veri/gt_taslak.json` — 10 filmlik teklif seti ÜRETİLDİ (95 sn)
+
+**Kalan:** `gt.json` insan doğrulaması (= G5) gelmeden hiçbir sayı yok.
 
 **Dikkat — metrik şekli farklı:** çıkışta "onset sapması ±N kare"; girişte
 sınır iki uçlu (`start` + `end`), yani iki sapma ölçülür. Çıkışın asimetrik
@@ -263,7 +273,7 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 |---|---|---|
 | 1 | ~~**E1** — üretim hattını sözleşmeye bağla~~ ✅ 2026-08-17 | Yapıldı — A/B birebir, kanarya tuttu |
 | 2 | ~~**E2** — `src/cikis/` + `src/ortak/` ayrımı~~ ✅ 2026-08-17 | Yapıldı — motor.py'ye sıfır diff, kapı %94.5 sapma sıfır |
-| 3 | **G5 + G6** — giriş GT'si ve ölçüm yatağı | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
+| 3 | **G5** — giriş GT'si (G6 altyapı hazır, gt_topla.py teklifleri üretti) | **Girişin doğruluğu bilinmiyor.** Bundan sonrası ölçüsüz gider |
 | 4 | **G8** — uyarlanır pencere | G6 olmadan kazancı ölçülemez |
 | 5 | **E5** — Ollama açıkken referans ölçüm | Üretimdeki gerçek sayı |
 | 6 | **G7 + E4 + E6** — kanarya, hardlink, `maxtasksperchild` | Ucuz, bağımsız |
