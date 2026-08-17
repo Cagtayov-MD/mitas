@@ -1,0 +1,153 @@
+{
+ "kapsam": 8,
+ "sure_sn": 24,
+ "jenerik_var": {
+  "n": 8,
+  "bulundu": 8
+ },
+ "jenerik_yok_red": {
+  "n": 0,
+  "dogru": 0
+ },
+ "baslangic_sapma_kare": {
+  "n": 8,
+  "ort_mutlak": 27.8,
+  "min": -4,
+  "maks": 118
+ },
+ "bitis_sapma_kare": {
+  "n": 8,
+  "ort_mutlak": 120.6,
+  "min": -327,
+  "maks": -2
+ },
+ "kaynak_dagilimi": {
+  "tespit": 8,
+  "sabit": 0
+ },
+ "not": "kırmızı çizgi YOK — dağılım görülünce Çağatay ile konur (G6)",
+ "filmler": [
+  {
+   "film": "1986-0257-1-0000-00-1-KOBRA",
+   "bulundu": true,
+   "bas": 0,
+   "bit": 41,
+   "guven": 0.754,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+   "bulundu": true,
+   "bas": 0,
+   "bit": 7,
+   "guven": 0.73,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
+   "bulundu": true,
+   "bas": 51,
+   "bit": 116,
+   "guven": 0.761,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
+   "bulundu": true,
+   "bas": 0,
+   "bit": 93,
+   "guven": 0.734,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+   "bulundu": true,
+   "bas": 19,
+   "bit": 125,
+   "guven": 0.778,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
+   "bulundu": true,
+   "bas": 0,
+   "bit": 34,
+   "guven": 0.761,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
+   "bulundu": true,
+   "bas": 79,
+   "bit": 238,
+   "guven": 0.717,
+   "kaynak": "tespit"
+  },
+  {
+   "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
+   "bulundu": true,
+   "bas": 119,
+   "bit": 180,
+   "guven": 0.962,
+   "kaynak": "tespit"
+  }
+ ],
+ "sapmalar": [
+  {
+   "film": "1986-0257-1-0000-00-1-KOBRA",
+   "bas_sapma": -1,
+   "bit_sapma": -201,
+   "kaynak": "tespit",
+   "guven": 0.754
+  },
+  {
+   "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+   "bas_sapma": -1,
+   "bit_sapma": -190,
+   "kaynak": "tespit",
+   "guven": 0.73
+  },
+  {
+   "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
+   "bas_sapma": -4,
+   "bit_sapma": -2,
+   "kaynak": "tespit",
+   "guven": 0.761
+  },
+  {
+   "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
+   "bas_sapma": -1,
+   "bit_sapma": -103,
+   "kaynak": "tespit",
+   "guven": 0.734
+  },
+  {
+   "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+   "bas_sapma": 18,
+   "bit_sapma": -28,
+   "kaynak": "tespit",
+   "guven": 0.778
+  },
+  {
+   "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
+   "bas_sapma": -1,
+   "bit_sapma": -327,
+   "kaynak": "tespit",
+   "guven": 0.761
+  },
+  {
+   "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
+   "bas_sapma": 78,
+   "bit_sapma": -12,
+   "kaynak": "tespit",
+   "guven": 0.717
+  },
+  {
+   "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
+   "bas_sapma": 118,
+   "bit_sapma": -102,
+   "kaynak": "tespit",
+   "guven": 0.962
+  }
+ ]
+}
