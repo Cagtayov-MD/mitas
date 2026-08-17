@@ -1,6 +1,7 @@
 # Lebron — master PNG üretim kulesi
 
 > **Klasör girer, master PNG çıkar; master okunur, metin çıkar.**
+> Kompozitör: **magic** (terfi 2026-08-18 — derleyici/lebron ve ibrahimovic emekli).
 > Lebron'a bir kare klasörü gösterirsin, içindekileri bağlar. Girdinin nereden
 > geldiğini sormaz.
 
@@ -212,10 +213,10 @@ Yeniden kurmak: `./venv_kur.sh` (sıfırdan: `./venv_kur.sh --temiz`).
   taşındı. Üretim henüz o dosyayı çağırıyor (Faz 5'e kadar).
 - `harness/master_dup/ibrahimovic.py` — eski kompozitör, Lebron onun yerine
   geçti (2026-08-04). Kör kopyası `aday/ibrahimovic.py`.
-- `aday/magic.py` — **birleşik aday** (lebron ∪ ibrahimovic, 2026-08-17):
-  plato+dissolve bekçisi, token-kimlik, Sobel yedek yolu, ızgara sondajı.
-  Ölçüldü: **10/12 sağlıklı, medyanlarda en iyi** — karar:
-  `raporlar/kompozitor_secim_karari_2026-08-17.md`. Terfi ayrı talimatla.
+- `src/magic.py` — **kulemaster'ı** (terfi 2026-08-18, Çağatay): 437 filmde
+  üç eksende kazandı (370 sağlıklı / recall 0.586 / dup 0.000). Karar:
+  `raporlar/kompozitor_secim_karari_2026-08-17.md`. `src/derleyici.py`
+  (lebron motoru) emekli — kapı ve yardımcılar için dokunulmadan kalır.
 - `olcum/kompozitor_kiyas.py` — kompozitör kıyas koşusu (lebron ↔
   ibrahimovic ↔ magic + ablasyon; saglik+sadakat+dup+çöküş).
 - `OCR-worktree/master_png_monitor.py` — orkestratör: havuz seçer, Database'e

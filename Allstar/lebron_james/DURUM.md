@@ -4,7 +4,10 @@
 > eder. Her iş biriminden sonra güncellenir.
 > Spec: `docs/superpowers/specs/2026-08-15-allstar-lebron-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 — **FAZ 0 + 1 + 2 + 3 + 4 TAMAM.**
+**Son güncelleme:** 2026-08-18 — **MAGIC TERFİ ETTİ: kulemaster'ı artık
+magic'tir** (Çağatay kararı; derleyici/lebron motoru ve ibrahimovic emekli).
+Faz 0-4 tamam + Sınıf A/B düzeltmeleri; ayrıntı aşağıda ve
+`raporlar/kompozitor_secim_karari_2026-08-17.md`.
 İskelet kuruldu, derleyici taşındı (sadakat kapısı 8/8 bit-birebir), okuyucu
 kuleye alındı, **ölçüm yatağı kulede koşuyor (Faz 3) ve kompozitör seçimi
 ÖLÇÜMLE yapıldı (Faz 4): magic > lebron > ibrahimovic —
@@ -172,3 +175,34 @@ monitor→F1b/F1c zinciri kulede ilk kez bu sayede koştu — Faz 3'ün kapısı
 4. **Giriş bölümünde kompozitör kalitesi** — kule giriş/çıkışta aynı
    derleyiciyi koşar; üretimin bugünkü giriş yolu farklı
    (`compose_reading_runaware`). Ölçülmeden üretime bağlanmaz.
+
+
+---
+
+## TERFİ + Sınıf A/B (2026-08-18, Çağatay: "magic'i master yap, diğerleri emekli")
+
+**Sınıf A — segment fold-dedup:** segment kapanırken token kapsamasına
+bakılır; içeriği önceki segmentlerde zaten varsa segment düşürülür, kanıtı
+manifest'e `segment_dusuren` olarak yazılır ("aslında sorun yok ama tekrar da
+istenmez" — beyaz-kugu gözlemi). Devam listeleri (yeni isim taşıyanlar)
+düşmez; az-tokenli segmentler kanıt yetersizliğinden düşmez.
+
+**Sınıf B — substrat yarışması dy-tutarlılığıyla kırıldı:** sobel ancak
+KENDİ dağınık değilse (sapma ≤ 0.35) ve fenerinkinin 1.5 katını aşmıyorsa
+seçilir. altin-adam düzeldi: recall 0.01→0.30 (lebron'la birebir 982px/2seg).
+
+**TERFİ:** `src/magic.py` (aday/'dan taşındı) — main._derle/_oku magic'i
+çağırır; `src/derleyici.py` EMEKLİ, dokunulmadı (kapının kıyas tarafı +
+kutu_sayisi/get_ocr_engine yardımcıları); ibrahimovic aday/ korumasında.
+`kapi_sadakat.py` emekli motoru DOĞRUDAN çağırır (kapının iddiası lebron
+motorunun paritesidir; terfiden bağımsız) — terfi sonrası koşu: **8/8
+birebir, sapma 0.** Uçtan uca duman (acemiler): OKUNDU, 24 satır.
+
+**Bilinen, kapanmayan borçlar (kilit kararlı, bilinçli):**
+- panorama-İÇİ tekrar (dr-doolithl/cumartesi/babam: dy hesafı içerik
+  yeniden kaplatıyor) — segment-düzeyi dedup bunlara dokunmaz
+- hayat-agaci fırtınası kararsızlığı (Paddle det determinizmsizliği;
+  koşudan koşuya 1↔36 segment)
+- beyaz-kugu sınıfı (12 film): açık-zeminli kartlarda profil metin kapısı
+  kartları düşürüyor
+- ivanhoe sınıfı (4 film): 2D çekirdek kesme körlüğü — dokunulmaz karar

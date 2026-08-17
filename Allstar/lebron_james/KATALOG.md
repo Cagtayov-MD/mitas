@@ -23,7 +23,8 @@
 
 | Dosya | Ne yapar |
 |---|---|
-| `derleyici.py` | **BİRİNCİL kompozitör.** Kareleri master PNG'ye bağlar (AI flashlight + phase correlate). `harness/master_dup/lebron_james.py`'den birebir taşındı |
+| `magic.py` | **KULEMASTER'I (terfi 2026-08-18, Çağatay).** Lebron iskeleti + ibrahimovic'in dört mekanizması + Sınıf A/B düzeltmeleri: fold-dedup, dy-tutarlı substrat yarışması | 
+| `derleyici.py` | **EMEKLİ** lebron motoru — dokunulmadan kalır: sadakat kapısının kıyas tarafı + kutu_sayisi/get_ocr_engine yardımcıları |
 | `yukleyici.py` | Kare listeleme / doğal sıralama / unicode-güvenli okuma-yazma |
 | `kural.py` | Kulenin kendi çıktısı hakkındaki hükümleri: boy tavanı, çöküş dedektörü |
 | `okuyucu.py` | Master → satırlar. Bantlama + süzgeçler + piksel kalkanı. **Modeli bilmez** |
@@ -33,8 +34,7 @@
 
 | Dosya | Ne | Durum |
 |---|---|---|
-| `ibrahimovic.py` | Eski birincil kompozitör (740 satır). Lebron 2026-08-04'te yerine geçti | **Kör taşındı — tek satır dokunulmadı.** Hiçbir yerden çağrılmıyor |
-| `magic.py` | **Birleşik aday:** lebron iskeleti + ibrahimovic'in dört mekanizması (plato v4 + dissolve bekçisi, token-kimlik, Sobel yedek yolu, token ızgara sondajı) | **Ölçüldü (2026-08-17), kararı bekliyor** — `raporlar/kompozitor_secim_karari_2026-08-17.md` |
+| `ibrahimovic.py` | Eski birincil kompozitör (740 satır). Lebron 2026-08-04'te yerine geçti | **Kör taşındı — tek satır dokunulmadı.** Hiçbir yerden çağrılmıyor. 437-film koşusunda üçüncü (340 sağlıklı) — emekli |
 
 **Neden `src/` değil:** `src/` yalnız koşan kodu tutar. İbrahimovic bağlanmadan
 önce iki borcu var (ikisi de `tests/test_izolasyon.py`'de yazılı):

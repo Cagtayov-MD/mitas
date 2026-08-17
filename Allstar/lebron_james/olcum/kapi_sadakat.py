@@ -67,14 +67,22 @@ def _uretim_yolu(kare_dizini: Path, gecici: Path) -> tuple[str | None, dict]:
 
 
 def _kule_yolu(kare_dizini: Path, film_id: str, kok: Path) -> tuple[str | None, dict]:
-    """Kuleyi koştur → (sha256, cikti sozlugu)."""
-    sys.path.insert(0, str(KULE))
+    """Kulenin EMEKLİ lebron motorunu koştur → (sha256, manifest).
+
+    TERFİ SONRASI (2026-08-18): kulenin kompozitörü magic'tir; kapının
+    iddiası "lebron motoru TAŞINIRKEN bozulmadı" olduğundan kapı artık
+    main akışını değil src/derleyici.derle'yi DOĞRUDAN koşturur — magic'in
+    birincilliği bu pariteyi ilgilendirmez.
+    """
     sys.path.insert(0, str(KULE / "src"))
-    import main
-    from sozlesme import Girdi
-    c = main.tek(Girdi(film_id=film_id, kareler=str(kare_dizini)), kok)
-    p = kok / film_id / "cikis" / "master.png"
-    return (_sha(p.read_bytes()) if p.is_file() else None), c.sozluk()
+    import derleyici
+    master, manifest = derleyici.derle(film_id, kare_dizini=str(kare_dizini))
+    if master is None:
+        return None, manifest
+    hedef = kok / "kule" / f"{kare_dizini.name}.png"
+    hedef.parent.mkdir(parents=True, exist_ok=True)
+    derleyici.yaz(hedef, master)
+    return _sha(hedef.read_bytes()), manifest
 
 
 def kiyasla(kare_dizini: Path, calisma: Path) -> dict:
@@ -89,7 +97,7 @@ def kiyasla(kare_dizini: Path, calisma: Path) -> dict:
         "ikisi_de_uretemedi": u_sha is None and k_sha is None,
         "uretim_durum": u_man.get("durum"), "kule_durum": k_cikti.get("durum"),
         "uretim_boy": (u_man.get("size") or [None, None])[1],
-        "kule_boy": (k_cikti.get("uretilen") or [{}])[0].get("boy"),
+        "kule_boy": (k_cikti.get("size") or [None, None])[1],
         "sure_sn": round(time.time() - t0, 1),
     }
 

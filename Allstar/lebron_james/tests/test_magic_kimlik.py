@@ -152,7 +152,8 @@ def test_fade_kartini_token_dedup_etmez():
                         token_saglayici=lambda img, idx: set(tok))
     _, man_kapali = derle("fade", ims=ims, flashlight=_sahte_el_fenerisi,
                           token_saglayici=lambda img, idx: set(tok),
-                          ozellikler={"token_kimlik": False})
+                          ozellikler={"token_kimlik": False,
+                                      "fold_dedup": False})
     assert man_kapali["segment"] > man_acik["segment"], (
         man_kapali["segment_kareler"], man_acik["segment_kareler"])
     assert man_acik["segment"] == 1, man_acik["segment_kareler"]

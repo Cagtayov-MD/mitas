@@ -62,9 +62,15 @@ def _surum() -> str:
 
 
 def _derle(dizin: Path, film_id: str):
-    """Derleyiciyi çağıran TEK yer — testler burayı değiştirir."""
-    import derleyici
-    return derleyici, derleyici.derle(film_id, kare_dizini=str(dizin))
+    """Kompozitörü çağıran TEK yer — testler burayı değiştirir.
+
+    TERFİ (2026-08-18, Çağatay): kulemaster'ı magic'tir — 437 filmde üç
+    eksende de lebron'ı geçti (raporlar/kompozitor_secim_karari_2026-08-17.md).
+    derleyici.py (lebron motoru) EMEKLİ: motor arayüzünü (kareler/kutu_sayisi)
+    magic re-export ettiği için bu satır aşağıdaki akış değişmez.
+    """
+    import magic
+    return magic, magic.derle(film_id, kare_dizini=str(dizin))
 
 
 _MODEL_SOR = None      # toplu koşuda model BİR KEZ yüklenir
@@ -86,7 +92,7 @@ def _oku(master_yolu: Path, bolum: str, film_id: str, ayar: dict) -> dict:
     süzgeçlerden geçer. Bantlar kulenin scratch'ine yazılır ve iş bitince silinir
     — kule kendi açtığını kapatır.
     """
-    import derleyici
+    import magic as derleyici
     import okuyucu
     from okuyucu import Bellek, ModelYok, OkumaCoktu
 

@@ -148,24 +148,40 @@ def test_kosmayan_dizinler_calisma_zamanina_sizmaz(yol):
 
 
 def test_aday_motor_kulede_ama_BAGLI_DEGIL():
-    """Aday motorlar kulede durur, ama hiçbir yerden çağrılmaz.
+    """İbrahimovic kör taşındı: kulede durur, ama hiçbir yerden çağrılmaz.
 
-    ibrahimovic kör taşındı (Çağatay 2026-08-15: "ilerde onu lebron ile
-    destekleyeceğiz"); magic lebron+ibrahimovic birleşik ADAYI (2026-08-15).
-    Bugünkü birincil derleyici lebron'dur (2026-08-04 kararı); aday motor
-    ölçülmeden devreye alınmaz (model_manifest: no_engine_selection_before_benchmark).
-
-    Bu test iki şeyi birden korur: dosyalar SİLİNMESİN, ve sessizce
-    DEVREYE GİRMESİN.
+    Çağatay 2026-08-15: "ilerde onu lebron ile destekleyeceğim." Magic o
+    birleşmenin adıydı; 2026-08-18'de ÖLÇÜMLE terfi etti (aşağıdaki test).
+    İbrahimovic 437 filmlik koşuda üçüncü kaldı (340/356/370 sağlıklı) —
+    bekleme odasında korumalı durur: silinmez, sessizce bağlanmaz.
     """
-    for ad in ("ibrahimovic", "magic"):
-        aday = KULE / "aday" / f"{ad}.py"
-        assert aday.is_file(), f"aday motor kaybolmus: {aday.name}"
-        for yol in _kule_dosyalari():
-            assert ad not in _import_adlari(yol), (
-                f"{yol.name} aday motoru ({ad}) import ediyor — "
-                "olculmeden devreye alinamaz"
-            )
+    aday = KULE / "aday" / "ibrahimovic.py"
+    assert aday.is_file(), "aday motor kaybolmus"
+    for yol in _kule_dosyalari():
+        assert "ibrahimovic" not in _import_adlari(yol), (
+            f"{yol.name} aday motoru import ediyor — olculmeden devreye alinamaz"
+        )
+
+
+def test_magic_terfi_edildi_kulemasteri():
+    """TERFİ KİLİDİ (Çağatay 2026-08-18): kulemaster'ı magic'tir.
+
+    main._derle magic'i çağırır; derleyici.py (lebron motoru) EMEKLİ —
+    main.py'nin kendi akışı onu import ETMEZ (sadakat kapısı doğrudan
+    çağırır, magic ise yalnız yardımcılar için dokunur)."""
+    import ast
+    assert (KULE / "src" / "magic.py").is_file()
+    assert not (KULE / "aday" / "magic.py").exists(), "magic aday/'da kopya kaldi"
+    kaynak = (KULE / "main.py").read_text(encoding="utf-8")
+    agac = ast.parse(kaynak)
+    magic_import = any(
+        (isinstance(d, ast.Import) and any(a.name == "magic" for a in d.names))
+        or (isinstance(d, ast.ImportFrom) and d.module == "magic")
+        for d in ast.walk(agac))
+    assert magic_import, "main magic'i import etmiyor — kulemasteri kim?"
+    for d in ast.walk(agac):
+        if isinstance(d, ast.Import) and any(a.name == "derleyici" for a in d.names):
+            raise AssertionError("main derleyici'yi import ediyor — emekli motor bagli")
 
 
 def test_aday_motorun_bilinen_borclari():

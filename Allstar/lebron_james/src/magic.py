@@ -35,28 +35,28 @@ Paddle'a dokunan tek yol `_varsayilan_*` sarmalayıcılarıdır.
 ABLASYON: derle(..., ozellikler={"plato": False, ...}) — kıyas koşusu
 (kompozitor_kiyas.py) özellik kapalı varyantları ayrı motor olarak ölçer.
 
-BU DOSYA ADAYDIR: hiçbir çalışma-zamanı dosyası onu import etmez
-(test_izolasyon kilidi). Ölçüm kazanırsa src/'ye terfi eder; terfi edene
-kadar config.yaml'a girmez. derleyici.py'ye DOKUNULMAZ — sadakat kapısının
-parite iddiası bozulamaz.
+TERFİ (2026-08-18, Çağatay): 437 filmlik gece koşusunda üç eksende de
+kazandı (370 sağlıklı / recall medyan 0.586 / dup medyan 0.000; lebron
+356 / 0.578 / 0.007) — kulemaster'ı magic'tir. derleyici.py (lebron
+motoru) EMEKLİ: src/'de dokunulmadan kalır (sadakat kapısının kıyas
+tarafı + kutu_sayisi/get_ocr_engine yardımcıları); ibrahimovic aday/
+korumasında beklemede. derleyici.py'ye tek satır dokunulmaz.
 """
 from __future__ import annotations
 
 import os
-import sys
 import time
-from pathlib import Path
 
 import cv2
 import numpy as np
 
-# aday → src yönü serbesttir (yasak olan tersi). src/ yolu burada garanti
-# edilir ki magic hem testlerden hem ölçüm yatağından aynı şekilde açılsın.
-_SRC = Path(__file__).resolve().parents[1] / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
+from kural import H_MAKS, cokmus  # noqa: F401
 
-from kural import H_MAKS
+# Motor arayüzü (main._derle/_oku magic'i `derleyici` gibi kullanır): kare
+# yardımcıları yukleyici'den, kutu_sayisi emekli derleyici'den re-export.
+# derleyici.get_ocr_engine zaten paylaşılan TEK Paddle örneğidir.
+from derleyici import kutu_sayisi  # noqa: F401  (emekli motordan re-export)
+from yukleyici import kare_oku, kareler, kareleri_yukle, yaz  # noqa: F401
 
 # ---- LEBRON sabitleri (derleyici.py'den — birebir) ------------------------ #
 RESP_ESIK = 0.05
@@ -103,8 +103,31 @@ TOKEN_YENI_KESKI_ESIK = 0.05  # AYNI hükmün KESME/SÜREKLİLİK bağlamındaki
 IZGARA_ADIM = 3            # uzun duraksama koşusunda token sondaj adımı
 IZGARA_MIN_KOSU = 6        # sondaj bunun altındaki koşularda gerekmez
 
+SEG_KAPSAMA_DUSUR = 0.80   # SINIF-A (2026-08-18, Çağatay onayı): segmentin
+                           # token'larının bu oranı ÖNCEKİ segmentlerde zaten
+                           # varsa segment sayfalanmaz — okuma masterında
+                           # tekrar gürültüdür (dr-doolithl: REX HARRISON 2×,
+                           # beyaz-kugu-İ: cast 4×; "aslında sorun yok ama
+                           # tekrar da istenmez" — Çağatay)
+SEG_MIN_TOKEN = 3          # bundan az tokenlu segment düşürülemez (kanıt yetersiz)
+SEG_ORNEKLEM = 6           # çok kareli segmentte en çok bu kadar kare örneklenir
+SUBSTRAT_SAPMA_KATSAYI = 1.5  # SINIF-B: sobel'in dy-sapması fenerin bu katını
+                           # geçerse scroll sayısı fazla olsa da YANLIŞ
+                           # ölçüyordur (altin-adam: sobel seçildi, recall
+                           # 0.30→0.01; ask-sarkisi 0.51→0.27)
+SUBSTRAT_SAPMA_TABAN = 0.10   # göreli sapmada mutlak taban — fenerin sapması
+                           # tam 0 çıkınca (kusursuz akış) çarpım sıfıra
+                           # düşüp sobeli hep kaybettirmesin; gerçek akışların
+                           # doğal dy titreşimi ~0.05-0.15 bandındadır
+SUBSTRAT_SAPMA_TAVAN = 0.35   # sobel'in KENDİ tutarlılık tavanı — bunun
+                           # üstündeki dy-sapması dağınıklığıyla "scroll"
+                           # bulmak ölçüm değil uydurmadır (altin-adam:
+                           # sobel 11 'scroll', jitter 0.77, dys -117..+19 —
+                           # kesmeleri scroll sanıyordu, recall 0.30→0.01)
+
 # ---- ablasyon bayrakları (varsayılan: hepsi AÇIK) ------------------------- #
-OZELLIKLER = {"plato": True, "token_kimlik": True, "sobel": True, "izgara": True}
+OZELLIKLER = {"plato": True, "token_kimlik": True, "sobel": True, "izgara": True,
+              "fold_dedup": True}
 
 
 # --------------------------------------------------------------------------- #
@@ -331,6 +354,77 @@ def adaylar_hesapla(kosu, varliklar, keskinlikler=None, *,
     return sorted(set(adaylar))
 
 
+def scroll_duzlugu(ciftler: list[dict]) -> float | None:
+    """Scroll sınıflı dy'lerin medyana göre göreli medyan-sapması.
+    Düşük = tutarlı akış (gerçek jenerik kayması dy'leri birbirine yakın);
+    yüksek = dağınık ölçüm (kesmelerin yanlış-scroll'ı, zemin kilitlenmesi).
+    <3 scroll → None (kanıt yetersiz)."""
+    dys = [abs(c["dy"]) for c in ciftler if c["sinif"] == "scroll"]
+    if len(dys) < 3:
+        return None
+    med = float(np.median(dys))
+    if med < 1e-6:
+        return None
+    return float(np.median([abs(d - med) for d in dys])) / med
+
+
+def substrat_karari(fener_ciftler: list[dict], sob_ciftler: list[dict]) -> str:
+    """SINIF-B yarışma kriteri (altin-adam/ask-sarkisi dersi, 2026-08-18):
+    'çok scroll bulan kazanır' tek başına YANLIŞ — sobel bazen DAHA FAZLA ama
+    dağınık/uydurma scroll buluyor. Yeni kural:
+      * sobel daha çok scroll bulmadıysa fener (dokunma);
+      * fener hiç scroll bulamadıysa sobel (orijinal kurtarma, parti sınıfı);
+      * ikisi de bulduysa: sobel'in dy-sapması fenerin SAPMA_KATSAYI katını
+        geçiyorsa ölçüm dağınıktır → fener; geçmiyorsa sobel (jetgiller'de
+        sobel 12 tutarlı scroll buldu, fener 3).
+    """
+    fs = sum(1 for c in fener_ciftler if c["sinif"] == "scroll")
+    ss = sum(1 for c in sob_ciftler if c["sinif"] == "scroll")
+    if ss <= fs:
+        return "fener"
+    if fs == 0:
+        return "sob"
+    fj, sj = scroll_duzlugu(fener_ciftler), scroll_duzlugu(sob_ciftler)
+    if sj is not None and sj > SUBSTRAT_SAPMA_TAVAN:
+        return "fener"  # dağınık sobel: ölçüm değil uydurma (altin-adam)
+    if fj is None or sj is None:
+        return "sob"  # tutarlılık kanıtı yoksa scroll sayısına kalır
+    return "sob" if sj <= max(fj * SUBSTRAT_SAPMA_KATSAYI, SUBSTRAT_SAPMA_TABAN) else "fener"
+
+
+def segment_dusur(segmentler, token_fonk, *, esik: float = SEG_KAPSAMA_DUSUR,
+                  orneklem: int = SEG_ORNEKLEM):
+    """SINIF-A post-pass: içerik-kapsaması segment fold-dedup.
+
+    Segmentler SIRAYLA dolaşulur; her segmentin temsili token kümesi
+    (≤ orneklem kare) hesaplanır. Token'larının `esik` oranı önceki
+    KORUNAN segmentlerin birikiminde zaten varsa segment DÜŞÜRÜLÜR — okuma
+    masterında tekrar gürültüdür. Az-tokenlu segmentler (logo/çizim) kanıt
+    yetersizliğinden DÜŞÜRÜLEMEZ; her şey düşerse ilk segment korunur.
+
+    Dönen: (kalan_segmentler, dusurulen_kayitlari) — kayıtlar manifeste
+    'segment_dusuren' olarak yazılır (kanıt kültürü: elesen görünür kalır).
+    """
+    kalan, dusurulen = [], []
+    birikim: set = set()
+    for si, so in segmentler:
+        adim = max(1, len(si) // orneklem)
+        ornek = si[::adim][:orneklem]
+        toks: set = set()
+        for im in ornek:
+            toks |= set(token_fonk(im) or ())
+        if (len(toks) >= SEG_MIN_TOKEN and birikim
+                and len(toks & birikim) / len(toks) >= esik):
+            dusurulen.append({"kare": len(si), "token": len(toks),
+                              "kapsama": round(len(toks & birikim) / len(toks), 3)})
+            continue
+        kalan.append((si, so))
+        birikim |= toks
+    if not kalan and segmentler:
+        kalan = [segmentler[0]]
+    return kalan, dusurulen
+
+
 # --------------------------------------------------------------------------- #
 # varsayılan sağlayıcılar — Paddle'a DOKUNAN tek yerler (tembel import).
 # Testler bu sarmalayıcıları hiç çağırmaz; kendi sahte sağlayıcılarını verir.
@@ -517,9 +611,9 @@ def derle(
         sob_bosluk = [int(sb.sum()) for sb in sobeller]
         sob_varlik = [(g > VARLIK_ESIK).astype(np.float32) for g in griler]
         sob_ciftler = cift_olc(sob_olcum, sob_bosluk, griler, sob_varlik, h, w)
-        fener_scroll = sum(1 for c in ciftler if c["sinif"] == "scroll")
-        sob_scroll = sum(1 for c in sob_ciftler if c["sinif"] == "scroll")
-        if sob_scroll > fener_scroll:
+        # SINIF-B: yarışma dy-tutarlılığıyla kırılır (altin-adam/ask-sarkisi
+        # dersi — "çok scroll" tek başına yanlış seçiyordu)
+        if substrat_karari(ciftler, sob_ciftler) == "sob":
             olcum, bosluk = sob_olcum, sob_bosluk
             varliklar, metin_maskeleri = sob_varlik, [sb.astype(np.float32) for sb in sobeller]
             ciftler = sob_ciftler
@@ -686,6 +780,19 @@ def derle(
 
     segmentler.append((seg_im, seg_ofs))
 
+    # === SINIF-A: segment fold-dedup (2026-08-18) ===
+    # İçerik-kapsaması: bir segmentin token'ları öncekilerde zaten varsa
+    # saygı duyulan tekrar DEĞİLDİR, okuma gürültüsüdür — düşürülür, kanıtı
+    # manifest'e yazılır. (dr-doolithl: aynı kadro iki segment; beyaz-kugu'da
+    # ibrahimovic'in cast'i 4× basmasının magic'teki karşılığı bu kapıdır.)
+    segment_dusuren = []
+    if oz.get("fold_dedup", True) and len(segmentler) > 1:
+        idx_harita = {id(im): i for i, im in enumerate(ims)}
+        kalan, segment_dusuren = segment_dusur(
+            segmentler,
+            lambda im: _tokenlar(idx_harita[id(im)]) if id(im) in idx_harita else set())
+        segmentler = kalan
+
     def _gecerli_segment(si, so):
         if not si:
             return False
@@ -724,6 +831,7 @@ def derle(
         "size": [int(kanvas.shape[1]), int(kanvas.shape[0])],
         "segment": len(parcalar),
         "segment_kareler": [len(si) for si, _ in segmentler if si],
+        "segment_dusuren": segment_dusuren,
         "dissolve_kesme": dissolve_kesme,
         "sinif_sayimi": sinif_sayimi,
         "scroll_dy_medyan": round(scroll_dy_medyan, 2),
