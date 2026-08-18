@@ -26,3 +26,8 @@ giris:
                        # (a) SINIR'ın düşük-güvende düştüğü sabit pencere genişliği
   guven_esik: 0.60     # detect_from_frames confidence >= bu -> tespit sinirina
                        # güven; altındaysa sabit pencereye düşülür (bkz. src/giris/sinir.py)
+  # BİTİŞ ŞELALESİ (2026-08-17, 36-film GT kalibrasyonu — bitis_kalibrasyonu.md):
+  # ters-motor adayı → sağdan-sola kuralı → sinir. false: sinir'in ham bitişi.
+  bitis_selale: true
+  bitis_kural_w: 30    # kural pencere genişliği (kare) — kalibre, değiştirme
+  bitis_kural_k: 12    # pencerede gereken içerik karesi — kalibre, değiştirme

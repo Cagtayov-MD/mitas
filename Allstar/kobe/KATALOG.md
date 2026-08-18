@@ -124,7 +124,7 @@ KARAR MOTORU  src/cikis/motor.py :: tespit_v5
    │
    │  ③ İÇERİK DOĞRULAMA  src/ortak/icerik.py — PaddleOCR *recognition*
    │     Aday karelerde GERÇEKTEN isim listesi mi var?
-   │     Rol sözlüğü (core/lexicon/rol_tablosu) ile eşleşme.
+   │     Yerel rol sözlüğü (src/ortak/rol_tablosu.py) ile eşleşme.
    │     PAHALI — yalnız birkaç aday karede koşar, önbelleklenir.
    │     Ayraç budur: sahne tabelası kutu üretir ama İSİM LİSTESİ DEĞİLDİR.
    │
@@ -308,7 +308,7 @@ kobe → main.py → sozlesme.py
                       ↑
          main.py → src/cikis/motor.py ──┐
                                         ├→ src/ortak/kutu.py
-         main.py → src/giris/ ──────────┘  src/ortak/icerik.py → core/lexicon/rol_tablosu
+         main.py → src/giris/ ──────────┘  src/ortak/icerik.py → src/ortak/rol_tablosu.py
 ```
 
 **`src/` sözleşmeyi BİLMEZ.** Motor kendi tiplerini (`Sonuc`) döndürür;
@@ -348,17 +348,18 @@ değil, bilerek yapsın.
 
 | İÇERİ | DIŞARI (zemin) | YASAK |
 |---|---|---|
-| Kod, üretilen veri, sözleşme, **kendi venv'i** | Python/CUDA ikilileri, model ağırlıkları, `core/lexicon/` gibi paylaşılan salt-okunur sözlükler | Başka bir kulenin **ÜRETTİĞİ** veriyi doğrudan okumak |
+| Kod, üretilen veri, sözleşme, rol sözlüğü ve **kendi venv'i** | Yalnız işletim sistemi Python/CUDA/FFmpeg zemini | Başka bir kulenin **ÜRETTİĞİ** veriyi doğrudan okumak |
 
-`core/lexicon/rol_tablosu` bilerek dışarıdadır: kopyalanırsa sözlük çatallanır
-ve okuyucuya eklenen bir rol Kobe'ye ulaşmaz.
+Yeni Allstar hattında rol sözlüğünün kanonik Kobe kopyası
+`src/ortak/rol_tablosu.py` içindedir. Aktif Kobe kodu `core/` veya `scripts/`
+import etmez; eski dış dosyalar silinse de kule çalışabilir.
 
 ### Kule dışında kalan tek bağ
 
-`scripts/_jenerik_pool.py` — **çağıran/orkestratör.** Kobe'yi sözleşmeden
-çağırır (E1'den beri gerçek: `kobe tek` alt-süreç + `out/<id>/cikis/kobe.json`
-okuma — `import motor` kalktı). Kulenin içine alınamaz: kule kendi
-tüketicisini içine alırsa bağımsızlık biter.
+Yeni hatta `Allstar/sheriff` — **çağıran/orkestratör.** Kobe'yi yalnız kamu
+CLI'si üzerinden, attempt-scoped `--out` köküyle çağırır. Eski
+`scripts/_jenerik_pool.py` bağlantısı yalnız emekli hat için tarihsel kayıttır;
+Allstar Sheriff akışının bağımlılığı değildir.
 
 ---
 
@@ -454,9 +455,9 @@ film başı yok.
 `karar`, `gercek_onset`, `aciklama`. **Tek bir onset** — kapanış onset'i.
 Giriş için hiçbir insan doğrulaması yapılmamış.
 
-**⑤ Girişin kendi motoru zaten vardı.** `core/pipelines/ocr/jenerik_detector.py`
-(`prefer="first"`) — 921 satır, 9 üretim tüketicisi. Kobe bunu **çağırır**;
-kopyalamaz, düzenlemez.
+**⑤ Girişin temel motoru eski hatta vardı.** Allstar-only geçişinde bu motor
+`src/giris/jenerik_detector.py` ve yerel primitifleriyle Kobe içine alınmıştır;
+aktif Kobe artık dış `core/` modülünü çağırmaz.
 
 ### Çözüm — çıkışa dokunmadan, ayrı blok
 

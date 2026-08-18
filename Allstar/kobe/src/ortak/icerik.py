@@ -12,16 +12,9 @@ import re
 import unicodedata
 import contextvars
 
-# ── Korumalı bootstrap (§4.0) — bu dosya iki AYRI path üzerinden yükleniyor
-# (bazen _jenerik_pool.py'nin eklediği PROJECT_ROOT üzerinden, bazen olc_pool.py'nin
-# yalnız Allstar/kobe/src ekleyen path üzerinden) — ikisinde de çalışır.
-import os
-import sys
-from pathlib import Path
-_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
-if str(_KOK) not in sys.path:
-    sys.path.insert(0, str(_KOK))
-from core.lexicon.rol_tablosu import betik_bul, rol_esles   # noqa: E402
+# Rol tablosu Kobe'nin kendi bağımsız sözleşme kodudur. Eski `core` ağacına
+# çalışma zamanı bağımlılığı kurulmaz; main.py ORTAK dizinini sys.path'e ekler.
+from rol_tablosu import betik_bul, rol_esles
 
 _AKTIF_DIL_VAR = contextvars.ContextVar("aktif_dil", default="en")
 

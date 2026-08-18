@@ -1,5 +1,54 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-17 (9) — GİRİŞ BİTİŞİ REVİZE: şelale (ters-motor → kural → sinir)
+
+36-film GT teşhisi: sinirün bitişi 20 filmde çok erken kesiyordu (aralıklı
+jenerikte ilk sessizlikte durma). Çözüm, Çağatay'nın iki fikrinin birleşimi:
+
+- **Ters-motor** (`main.py:_ters_bitis`) — kareler ZAMAN TERSİNE symlink
+  görünümde çıkış motoruna verilir; ters-zamanda jenerik pencere sonuna
+  yaslanır, motorun başlangıcı gerçek zamanda BİTİŞ olur. Ateşlenmezse
+  (16/36) kurala düşer; her türlü hatada None (karar ölmez). Bu bilinçli
+  izolasyon istisnasıdır: motor ÇAĞRISI main.py'de (yönlendirici), src/giris
+  motor import ETMEZ — test_izolasyon geçer; yeni sözleşme testi
+  (`test_giris_motoru_sadece_ters_gorunumde_cagirilir`) ileri-yönlü dizinin
+  asla motora gitmediğini kilitler.
+- **Sağdan-sola kuralı** (`src/giris/bitis.py`) — pencere sonundan geriye ilk
+  kalın blok: W=30 karede ≥K=12 GERÇEK içerik karesi. `havuz.icerik_kareleri`
+  recall karelerini (okunamadı→garanti) ayıklar — kanıt taraması GT sonrası
+  karelerin çoğunun recall/izci olduğunu gösterdi. Kalibrasyon 18/18
+  eğitim-sınav (değerler teyit: 58/60 — ezber yok).
+- **Şelale** kanıta yazar: `bitis_kaynagi` (ters-motor|kural|sinir) +
+  `bitis_sinir_ham`. `main.giris_karar` TEK NOKTA — üretim ve ölçüm aynı yolu
+  koşar (ölçülen=koşulan).
+
+**Sonuç (üretim yolu, 36 film):** ort|Δ| 131.8→**57.0**, medyan ~**19**,
+çok-erken 20→**0**, ±60 **29/36**, kaynak ters-motor 17/kural 19. Kalan: 7
+izci-film >60 geç (kredi-TARZI ayıracı = gelecek iş, G10 kaydında).
+Testler 93/93 (+19). Golden giris: KOBRA bit 41→449/kural.
+`config.yaml: giris.bitis_selale` ile kapatılabilir.
+
+## 2026-08-17 (8) — Sheriff için Allstar-only çalışma zamanı
+
+- Giriş sınır motoru `src/giris/jenerik_detector.py` ve iki küçük primitifiyle
+  Kobe içine alındı; `src/giris/sinir.py` artık `core/` import etmiyor.
+- Rol sözlüğü `src/ortak/rol_tablosu.py` içine alındı; aktif içerik süzgeci
+  dış `core/lexicon` bağımlılığı taşımıyor.
+- `--out` ile Sheriff'in run/attempt'e özel çıktı kökü kullanılabiliyor.
+- Sheriff ortamında sonuç `mitas.boundary/v1` ve run/task/attempt kimliği taşıyor.
+- Aktif Allstar kodunda eski `scripts/core/mitas_pipeline` import'u olmadığını
+  doğrulayan AST izolasyon kapısı Sheriff testlerine eklendi.
+
+## 2026-08-17 (7) — giriş ölçümü 36 filme çıktı
+
+Çağatay GT'yi 36'ya tamamladı (28 yeni + önceki 8; karar alanları değerlerden
+türetilip kayda geçti, biçim onarımları 72 alan). Sonuç:
+**jenerik-var 36/36 bulundu** — giriş jeneriği olan hiçbir film kaçmıyor.
+Başlangıçta geç hata 0 (politika tamam). Bitiş: 20/36 çok erken, 10 hafif
+erken, 4 hafif geç, 2 geç (en kötüler −430..−327; geç uçlar +301, +122).
+Kredisiz-red 0/0 — GT'de jenerik_yok örneği yok, red yolu ölçülemiyor (açık
+delik, EKSIKLER G5). Kayıt: `veri/olcum_giris_son.json`.
+
 ## 2026-08-17 (6) — ilk giriş ölçümü, başlangıç politikası, yatak 50 film
 
 - **İlk GT'li ölçüm** (8 film): jenerik-var 8/8 bulundu; bitiş 8/8 erken

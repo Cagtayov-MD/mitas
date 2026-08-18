@@ -1,0 +1,74 @@
+[
+ {
+  "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
+  "sinir_bas": 51,
+  "sinir_bit": 116,
+  "havuz_ilk": 8,
+  "havuz_son": 425,
+  "gt_bas": 55,
+  "gt_bit": 118
+ },
+ {
+  "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+  "sinir_bas": 0,
+  "sinir_bit": 7,
+  "havuz_ilk": 1,
+  "havuz_son": 421,
+  "gt_bas": 1,
+  "gt_bit": 197
+ },
+ {
+  "film": "1986-0257-1-0000-00-1-KOBRA",
+  "sinir_bas": 0,
+  "sinir_bit": 41,
+  "havuz_ilk": 1,
+  "havuz_son": 456,
+  "gt_bas": 1,
+  "gt_bit": 242
+ },
+ {
+  "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
+  "sinir_bas": 0,
+  "sinir_bit": 93,
+  "havuz_ilk": 1,
+  "havuz_son": 445,
+  "gt_bas": 1,
+  "gt_bit": 196
+ },
+ {
+  "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
+  "sinir_bas": 0,
+  "sinir_bit": 34,
+  "havuz_ilk": 11,
+  "havuz_son": 476,
+  "gt_bas": 1,
+  "gt_bit": 361
+ },
+ {
+  "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+  "sinir_bas": 19,
+  "sinir_bit": 125,
+  "havuz_ilk": 15,
+  "havuz_son": 469,
+  "gt_bas": 1,
+  "gt_bit": 153
+ },
+ {
+  "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
+  "sinir_bas": 79,
+  "sinir_bit": 238,
+  "havuz_ilk": 8,
+  "havuz_son": 436,
+  "gt_bas": 1,
+  "gt_bit": 250
+ },
+ {
+  "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
+  "sinir_bas": 119,
+  "sinir_bit": 180,
+  "havuz_ilk": 26,
+  "havuz_son": 479,
+  "gt_bas": 1,
+  "gt_bit": 282
+ }
+]

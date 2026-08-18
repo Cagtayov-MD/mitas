@@ -86,17 +86,28 @@ def _sahte_sinir_bulundu(**over):
     return d
 
 
-def test_giris_motoru_hic_cagirmaz(tmp_path, monkeypatch):
-    """Çıkışın motoru (SON_ERISIM=0.82, jenerik sona ulaşmalı) girişte TERS
-    çalışır — bu yüzden giriş kendi (a) sinir + (b) havuz yolunu kullanır,
-    çıkışın _tespit'i HİÇ koşmamalı."""
+def test_giris_motoru_sadece_ters_gorunumde_cagirilir(tmp_path, monkeypatch):
+    """Çıkışın motoru (SON_ERISIM=0.82) İLERİ yönlü girişte TERS çalışır —
+    girişin ileri-yönlü dizini ASLA motora gitmez. 2026-08-17'den beri motor
+    girişte YALNIZ zaman-tersi görünümde koşar (bitiş şelalesi adayı, Çağatay
+    fikri; izolasyon: src/giris/ yine motor import etmez — bkz. test_izolasyon).
+    Bu test o sınırı kilitler: motora giden dizin 'ters' görünümü olmalı."""
     d = _kare_dizini(tmp_path / "kareler")
-    cagrildi = []
-    monkeypatch.setattr(main, "_tespit",
-                        lambda x, c: cagrildi.append(1) or _SahteSonuc(100))
+    gidenler = []
+
+    def _sahte_tespit(x, c):
+        gidenler.append(str(x))
+        return _SahteSonuc(-1)          # ters-motor ateşlenmez → şelale kurala düşer
+
+    monkeypatch.setattr(main, "_tespit", _sahte_tespit)
+    monkeypatch.setattr(main, "SCRATCH", tmp_path / "scratch")
     monkeypatch.setattr(giris_sinir, "bul", lambda dizin, config: _sahte_sinir_bulundu())
-    main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
-    assert cagrildi == []
+    c = main.tek(Girdi(film_id="F1", kareler=str(d), bolum="giris"), tmp_path / "out")
+    assert c.durum == "BULUNDU"
+    assert gidenler, "ters-motor adayı hiç koşmadı — şelale kopuk olabilir"
+    for g in gidenler:
+        assert "ters" in g and str(d) not in g, (
+            f"ileri-yönlü dizin motora gitmiş: {g}")
 
 
 def test_giris_sinir_bulundu_bitis_alanlarini_doldurur(tmp_path, monkeypatch):

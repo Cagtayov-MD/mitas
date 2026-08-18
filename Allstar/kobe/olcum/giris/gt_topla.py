@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
 
 BURASI = os.path.dirname(os.path.abspath(__file__))            # Allstar/kobe/olcum/giris
 SRC = os.path.join(os.path.dirname(os.path.dirname(BURASI)), "src")  # Allstar/kobe/src
@@ -49,12 +50,21 @@ def _cevre(yollar: list[str], kare: int | None) -> list[str]:
     return adlar
 
 
+def _ad_filtresi(deger: str) -> str:
+    """--film değeri yalnız AD PARÇASIDIR (dizin adı içinde aranır); yol
+    bileşeni içermesi path-traversal girişimidir — reddedilir."""
+    if (not deger or "/" in deger or "\\" in deger or ".." in deger
+            or os.path.isabs(deger)):
+        raise SystemExit(f"[hata] --film ad parçası olmalı, yol değil: {deger!r}")
+    return deger
+
+
 def main() -> int:
     os.makedirs(VERI, exist_ok=True)
     tekil = None
     for i, a in enumerate(sys.argv):
         if a == "--film":
-            tekil = sys.argv[i + 1] if i + 1 < len(sys.argv) else ""
+            tekil = _ad_filtresi(sys.argv[i + 1] if i + 1 < len(sys.argv) else "")
     filmler = []
     for d in sorted(glob.glob(os.path.join(YATAK, "*/") )):
         if not tekil or tekil in os.path.basename(d.rstrip("/")):
@@ -99,9 +109,9 @@ def main() -> int:
               f"bas={b.get('baslangic_kare')} bit={b.get('bitis_kare')} "
               f"guven={b.get('guven')} kaynak={kaynak} ({time.time()-t1:.1f}s)")
 
-    cikti = os.path.join(VERI, "gt_taslak.json")
-    with open(cikti, "w", encoding="utf-8") as f:
-        json.dump(taslak, f, ensure_ascii=False, indent=1)
+    cikti = Path(VERI) / "gt_taslak.json"
+    cikti.write_text(json.dumps(taslak, ensure_ascii=False, indent=1) + "\n",
+                     encoding="utf-8")
     print(f"\n{len(filmler)} film, {time.time()-t0:.0f} sn → {cikti}")
     print("SONRA: taslaği veri/gt.json olarak kopyala, gercek_* alanlari doldur, "
           "olc_giris.py koş.")

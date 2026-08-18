@@ -289,6 +289,28 @@ def _cikis_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
     return c
 
 
+def giris_karar(dizin: Path | str, config: dict | None = None) -> dict:
+    """GİRİŞ kararı TEK NOKTADAN: sinir.bul + bitiş şelalesi.
+
+    _giris_sonucu (üretim) ve ölçüm (olcum/giris/olc_giris.py) aynı yolu
+    kullanır — ÖLÇÜLEN ŞEY KOŞULAN ŞEYDİR; iki ayrı kopya drift yapamaz.
+
+    BİTİŞ ŞELALESİ (2026-08-17): ters-motor adayı (main'de hesaplanır —
+    izolasyon: src/giris motor import etmez) → sağdan-sola kuralı → sinir'in
+    ham bitişi. Şelale çökerse karar ÖLMEZ: sinir'in bitişi kalır, hata
+    kanıta yazılır (görünürlük)."""
+    from giris import sinir
+    from giris import bitis as giris_bitis
+    b = sinir.bul(str(dizin), config)
+    try:
+        b = giris_bitis.duzelt(b, str(dizin), config,
+                               ters_aday=_ters_bitis(dizin, config))
+    except Exception as e:
+        (b.get("kanit") or {}).setdefault("bitis_selale_hata",
+                                          f"{type(e).__name__}: {e}")
+    return b
+
+
 def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
                   gercek_uretler: list[str], kok: Path) -> Cikti:
     """GİRİŞ bölümü karar + artefakt(lar). Hata → _ArizaSinyali (tek() yakalar).
@@ -297,9 +319,8 @@ def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
     sessizce sabit pencereye düşmek YASAK. Bulunamazsa (found=False) KREDI_YOK.
     Bulunduysa (b) HAVUZ yalnız `--uret kare` istenince çalışır (pahalı OCR).
     """
-    from giris import sinir
     try:
-        b = sinir.bul(str(dizin), girdi.config)
+        b = giris_karar(dizin, girdi.config)
     except Exception as e:
         raise _ArizaSinyali("GIRIS_SINIR", f"{type(e).__name__}: {e}") from e
 
@@ -359,6 +380,43 @@ def _database_gorunumu(karar_yolu: Path, hedef: Path | None, c: Cikti, kok: Path
     except OSError as e:
         c.kanit["database_gorunumu"] = f"basarisiz: {type(e).__name__}"
         c.yaz(kok)
+
+
+def _ters_bitis(dizin: Path | str, config: dict | None = None) -> int | None:
+    """TERS-MOTOR bitiş adayı (Çağatay fikri, 2026-08-17) — kare dizinini
+    ZAMAN TERSİNE çevrilmiş görünümde ÇIKIŞ motoruna verir: ters-zamanda
+    giriş jeneriği pencerenin sonuna yaslanır, motorun başlangıç kararı
+    gerçek zamanda jeneriğin BİTİŞİ olur (koordinat: n − start + 1).
+
+    Bu fonksiyon main.py'de yaşar — YÖNLENDİRİCİNİN evi. Giriş bloğu
+    (src/giris/) çıkış motorunu import ETMEZ; aday sayı olarak enjekte
+    edilir (test_izolasyon geçerliği korunur — bilinçli tasarım, CHANGELOG'da).
+
+    Motor ateşlenmezse (kredi_yok) veya bir şey patlarsa None döner → şelale
+    kurala düşer. Görünüm scratch altında kurulur, iş bitince silinir —
+    kare dizinine yalnız SİMLİNK konur, tek-yazar ilkesi bozulmaz."""
+    kok = None
+    try:
+        import motor
+        yollar = motor.kareler(str(dizin))
+        n = len(yollar)
+        if n == 0:
+            return None
+        kok = Path(SCRATCH) / "ters" / Path(dizin).name
+        if kok.exists():
+            shutil.rmtree(kok, ignore_errors=True)
+        kok.mkdir(parents=True)
+        for i, kaynak in enumerate(yollar, start=1):
+            os.symlink(os.path.abspath(kaynak), str(kok / f"c_{n - i + 1:05d}.png"))
+        r = _tespit(str(kok), config or {})
+        if r.start_frame is None or int(r.start_frame) < 0:
+            return None
+        return n - int(r.start_frame) + 1
+    except Exception:
+        return None
+    finally:
+        if kok is not None:
+            shutil.rmtree(kok, ignore_errors=True)
 
 
 def tek(girdi: Girdi, kok: Path | None = None, uret: str = "yok") -> Cikti:
@@ -487,6 +545,7 @@ def main(argv=None) -> int:
                    default=["yok"], help=URET_YRD)
     a.add_argument("--bolum", type=_virgullu_liste(BOLUMLER, "bolum"),
                    default=["cikis"], help=BOLUM_YRD)
+    a.add_argument("--out", help="cikti kok dizinini ezer (varsayilan: out/)")
 
     b = alt.add_parser("tek", help="tek film")
     b.add_argument("--video")
@@ -496,11 +555,13 @@ def main(argv=None) -> int:
                    default=["yok"], help=URET_YRD)
     b.add_argument("--bolum", type=_virgullu_liste(BOLUMLER, "bolum"),
                    default=["cikis"], help=BOLUM_YRD)
+    b.add_argument("--out", help="cikti kok dizinini ezer (varsayilan: out/)")
 
     n = ap.parse_args(argv)
+    kok = Path(n.out) if n.out else None
     uret_str = ",".join(n.uret)
     if n.komut == "start":
-        toplu(Path(n.input), n.kareler, uret=uret_str, bolum=n.bolum)
+        toplu(Path(n.input), n.kareler, kok=kok, uret=uret_str, bolum=n.bolum)
         return 0
 
     # tek: her istenen bolum icin BAGIMSIZ calisir — biri ARIZA olsa digeri
@@ -512,9 +573,9 @@ def main(argv=None) -> int:
                       bolum=b_deger)
         except GirdiHatasi as e:
             c = ariza(n.film_id, "GIRDI_HATASI", str(e), bolum=b_deger)
-            c.yaz(OUT)
+            c.yaz(kok or OUT)
         else:
-            c = tek(g, uret=uret_str)
+            c = tek(g, kok=kok, uret=uret_str)
         print(json.dumps(c.sozluk(), ensure_ascii=False))
         if c.durum == "ARIZA":
             hata_var = True

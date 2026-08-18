@@ -89,6 +89,15 @@ class Cikti:
 
     def sozluk(self) -> dict:
         d = {"film_id": self.film_id, "bolum": self.bolum, "durum": self.durum}
+        sheriff_keys = ("MITAS_SHERIFF_RUN_ID", "MITAS_SHERIFF_TASK_ID",
+                        "MITAS_SHERIFF_ATTEMPT_ID")
+        if all(os.environ.get(key) for key in sheriff_keys):
+            d["schema_version"] = "mitas.boundary/v1"
+            d["identity"] = {
+                "run_id": os.environ[sheriff_keys[0]],
+                "task_id": os.environ[sheriff_keys[1]],
+                "attempt_id": os.environ[sheriff_keys[2]],
+            }
         if self.durum == "BULUNDU":
             d |= {"baslangic_kare": self.baslangic_kare,
                   "baslangic_sn": self.baslangic_sn,

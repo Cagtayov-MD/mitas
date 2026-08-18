@@ -1,0 +1,290 @@
+[
+ {
+  "film": "1974-0218-1-0000-00-1-KUZEN_ANGELINA",
+  "gt_bit": 118,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "kutu-koşusu yok; maxkutu=2"
+ },
+ {
+  "film": "1977-0198_BEYAZ_BIZON",
+  "gt_bit": 304,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1980-0186_SON_METRO",
+  "gt_bit": 202,
+  "ters_bitis": 220,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[253-479] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 guven=1.00 budama=4 genislet=0"
+ },
+ {
+  "film": "1980-0190_DAG_ADAMLARI",
+  "gt_bit": 236,
+  "ters_bitis": 234,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[249-479] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 guven=1.00 budama=0 genislet=1"
+ },
+ {
+  "film": "1980-0218_DUNYANIN_EN_MUTHIS_ADAMI",
+  "gt_bit": 10,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "tüm adaylar SON_ERISIM'e takıldı"
+ },
+ {
+  "film": "1981-0235-1-0000-00-1-AŞK_TUTKUSU",
+  "gt_bit": 197,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1986-0257-1-0000-00-1-KOBRA",
+  "gt_bit": 242,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1988-0362-1-0000-00-1-DİLEK_AĞACI",
+  "gt_bit": 196,
+  "ters_bitis": 190,
+  "yontem": "kutu+scroll+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[289-479] kb=1.00 joint=1.80 scroll_oran=0.01 ardisik=1 guven=1.00 budama=1 genislet=0"
+ },
+ {
+  "film": "1988-0444_CENNETTE_BULUSALIM",
+  "gt_bit": 244,
+  "ters_bitis": 292,
+  "yontem": "kutu+scroll+içerik",
+  "guven": 1.0,
+  "notlar": "aday=2 seçilen=[189-479] kb=1.00 joint=1.80 scroll_oran=0.01 ardisik=1 guven=1.00 budama=0 genislet=0"
+ },
+ {
+  "film": "1989-0352_KUKLA_ADAM",
+  "gt_bit": 222,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1991-0342_CIPLAK_AGACLAR",
+  "gt_bit": 30,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "kutu-koşusu yok; maxkutu=9"
+ },
+ {
+  "film": "1992-0232-1-0000-00-1-SİLAHLAR_KONUŞUYOR",
+  "gt_bit": 361,
+  "ters_bitis": 368,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=2 seçilen=[405-479] kb=1.00 joint=1.43 scroll_oran=0.00 ardisik=0 guven=1.00 geri-birlesme=[113-343] suphe=erken_ri"
+ },
+ {
+  "film": "1992-0466-1-0000-00-1-GÜL_VE_ÇAKAL",
+  "gt_bit": 153,
+  "ters_bitis": 152,
+  "yontem": "kutu+scroll+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[329-463] kb=1.00 joint=1.75 scroll_oran=0.07 ardisik=1 guven=1.00 budama=0 genislet=0"
+ },
+ {
+  "film": "1993-0475_MAKSIM_IN_KAPICISI",
+  "gt_bit": 170,
+  "ters_bitis": 168,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[313-463] kb=1.00 joint=1.45 scroll_oran=0.00 ardisik=0 guven=1.00 budama=0 genislet=0"
+ },
+ {
+  "film": "1995-0266-1-0000-00-1-ARA_VE_YOK_ET",
+  "gt_bit": 250,
+  "ters_bitis": 280,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=2 seçilen=[417-455] kb=1.00 joint=1.39 scroll_oran=0.00 ardisik=0 guven=1.00 geri-birlesme=[201-339]"
+ },
+ {
+  "film": "1996-0176-1-0000-00-1-SÜT_VE_PARA",
+  "gt_bit": 282,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1997-0265_JURASSIC_PARK_2_KAYIP_DUNYA",
+  "gt_bit": 132,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "1999-0363_CENNETIN_RENGI",
+  "gt_bit": 229,
+  "ters_bitis": 256,
+  "yontem": "kutu+scroll+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[225-427] kb=1.00 joint=1.71 scroll_oran=0.01 ardisik=1 guven=1.00 budama-yok(guard/bulunamadı)"
+ },
+ {
+  "film": "2001-9073_ALTIN_YUMRUK_ISTANBULDA",
+  "gt_bit": 86,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2013-1015_ATTILA_MARCEL",
+  "gt_bit": 232,
+  "ters_bitis": 230,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[237-455] kb=1.00 joint=1.48 scroll_oran=0.00 ardisik=0 guven=1.00 budama=7 genislet=0"
+ },
+ {
+  "film": "2014-9073_YABANDAN_GELEN_ADAM",
+  "gt_bit": 74,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2015-1052_OZGURLUK_YURUYUSU",
+  "gt_bit": 51,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2015-1132_MONTE_KRISTO_KONTU",
+  "gt_bit": 445,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.33)"
+ },
+ {
+  "film": "2015-2248_BABAM",
+  "gt_bit": 158,
+  "ters_bitis": 156,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=3 seçilen=[385-467] kb=1.00 joint=1.49 scroll_oran=0.00 ardisik=0 guven=1.00 geri-birlesme=[325-355] suphe=erken_ri"
+ },
+ {
+  "film": "2016-1055_MARIE_CURRIE",
+  "gt_bit": 282,
+  "ters_bitis": 246,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=3 seçilen=[309-439] kb=1.00 joint=1.41 scroll_oran=0.00 ardisik=0 guven=1.00 budama=6 genislet=0 kart-dizisi_genisl"
+ },
+ {
+  "film": "2017-2124_POROROCA",
+  "gt_bit": 169,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "tüm adaylar SON_ERISIM'e takıldı"
+ },
+ {
+  "film": "2018-0047_MAVZER",
+  "gt_bit": 136,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2018-1054_DON_KISOT_U_OLDUREN_ADAM",
+  "gt_bit": 84,
+  "ters_bitis": 106,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=2 seçilen=[345-479] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 guven=1.00 budama=15 genislet=0"
+ },
+ {
+  "film": "2019-1203_BARBARLARI_BEKLERKEN",
+  "gt_bit": 434,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2024-0017_BEN_VE_BABAM_VATAN_O_GECE_BERABER_BUYUDUK",
+  "gt_bit": 65,
+  "ters_bitis": 64,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=4 seçilen=[417-479] kb=1.00 joint=1.43 scroll_oran=0.00 ardisik=0 guven=1.00 budama=0 genislet=0 suphe=gec_riski,pa"
+ },
+ {
+  "film": "2024-1032_ESKI_SEHIR",
+  "gt_bit": 189,
+  "ters_bitis": 158,
+  "yontem": "kutu+içerik",
+  "guven": 0.67,
+  "notlar": "aday=1 seçilen=[325-415] kb=0.67 joint=0.92 scroll_oran=0.00 ardisik=0 guven=0.67 budama=0 genislet=1"
+ },
+ {
+  "film": "2024-1196_MUMYA_GERI_DONUYOR",
+  "gt_bit": 43,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2024-1266_KAZANANLAR_KULUBU",
+  "gt_bit": 480,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ },
+ {
+  "film": "2024-1313_SANSIMI_SEVEYIM",
+  "gt_bit": 196,
+  "ters_bitis": 344,
+  "yontem": "kutu+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[113-471] kb=1.00 joint=1.49 scroll_oran=0.00 ardisik=0 guven=1.00 budama=12 genislet=0"
+ },
+ {
+  "film": "2024-1315_SENIN_HIKAYEN",
+  "gt_bit": 416,
+  "ters_bitis": 414,
+  "yontem": "kutu+scroll+içerik",
+  "guven": 1.0,
+  "notlar": "aday=1 seçilen=[69-347] kb=1.00 joint=1.67 scroll_oran=0.01 ardisik=1 guven=1.00 budama=0 genislet=1"
+ },
+ {
+  "film": "2025-1011_ROBINSON_CRUSOE",
+  "gt_bit": 101,
+  "ters_bitis": null,
+  "yontem": "kredi_yok",
+  "guven": 0.0,
+  "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)"
+ }
+]

@@ -1,5 +1,9 @@
 # Kobe — eksikler listesi
 
+> **Yeni hat notu (2026-08-17):** `Allstar/sheriff` yolu için aktif Kobe kodu
+> Allstar dışı Python modülü kullanmaz. Aşağıdaki `scripts/` maddeleri emekli
+> hattın tarihsel geçiş kayıtlarıdır; Sheriff bağımlılığı değildir.
+
 > 2026-08-13 itibarıyla, koddan doğrulanmış durum. Her madde: **ne eksik ·
 > neden önemli · nereye bakılacak · kaba maliyet**.
 > Kararların gerekçesi `DURUM.md`, mimarî `KATALOG.md`.
@@ -191,7 +195,7 @@ borcu) kapanırken `credit_box` da okuma kulesine giderse kökten çözülür.
 
 ## Eksik ❌
 
-### G5 — 🟡 İLK GT GELDİ (2026-08-17): 8/10 film doğrulandı
+### G5 — 🟡 GT 36/50 Filme ULAŞTI (2026-08-17, ikinci tur)
 
 Çağatay `veri/gt.json`'ı doldurdu (depo_3006 yatağının 10 filminden 8'i;
 BELALI_SEVGİLİ + KAPANMAMIŞ boş bekliyor). İlk ölçüm kayıtlı:
@@ -263,13 +267,19 @@ havuz eşiği yanlış değişirse test yakalamaz, ancak G6 yakalar.
 
 ---
 
-### G10 — giriş bitişi sistematik ERKEN (8/8) 🟢 *(bilinçli ertelendi)*
+### G10 — ✅ ÇOĞUNLUKLA ÇÖZÜLDÜ (2026-08-17 akşam) — BİTİŞ ŞELALESİ
 
-İlk GT'li ölçümde sinirün bitişi 8/8 filmde erken (−2..−327 kare): footage-üstü
-jeneriklerde dedektör ilk sessizlikte kesiyor. Havuz-sinyalinden bitiş türetme
-denendi (7 tahminci, `bitis_kalibrasyonu.md`) — güvenilir kazanamadı ve 8 filmde
-eşik ayarı overfit olur. Zararsız yön (credit kuyruğu, cast başı değil) + havuz
-ana artefakt zaten tam pencereyi tarıyor. **GT ≥20 film olunca yeniden.**
+GT 36'ya çıkınca iki Çağatay fikri sınandı (18/18 eğitim-sınav): sağdan-sola
+yoğun-blok kuralı (W30/K12) + çıkış motorunun TERS dizinde koşması. İkisi
+birleşti (ŞELALE: ters-motor → kural → sinir) ve `src/giris/bitis.py` +
+`main.py:_ters_bitis` olarak uygulandı (izolasyon korunur: giriş bloğu motor
+import etmez, aday main'den enjekte). Üretim yoluyla 36 film: ort|Δ| 131.8→
+**57.0**, medyan →**~19**, çok-erken 20→**0**, ±60 →**29/36**; kaynak:
+ters-motor 17 / kural 19. Ayrıntı: `olcum/giris/bitis_kalibrasyonu.md`.
+
+**Kalan borç:** 7 film >60 GEÇ (izci-sınıfı — jenerik sonrası yoğun isimli
+metin). Çözüm yolu içerik-sınıf ayıracı (kredi-TARZI vs diyalog-üstü yazı);
+GT büyüdükçe yeniden değerlendirilir.
 
 ---
 

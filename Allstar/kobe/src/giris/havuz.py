@@ -40,27 +40,46 @@ def _kare_yollari(dizin: str | Path) -> list[str]:
     return yollar
 
 
-def _kare_karari(yol: str) -> tuple[bool, list[str]]:
-    """Tek kare → (al_mi, satirlar). Recall önceliği: okunamadı > yanlış oku."""
+def icerik_kareleri(dizin: str | Path) -> list[str]:
+    """Yalnız İÇERİK karelerinin yolları (kredi-benzeri ≥1 satır OKUNMUŞ).
+
+    `_kare_karari`'nın recall karelerini (okunamadı→garanti) AYIKLAR —
+    bitiş kuralı (bkz. bitis.py) yalnız gerçek sinyalle çalışır: kanıt
+    taraması (2026-08-17, 36 film) GT bitişinden sonraki karelerin büyük
+    bölümünün recall/izci olduğunu gösterdi."""
+    secilen = []
+    for yol in _kare_yollari(dizin):
+        _, _, neden = _kare_karari(yol)
+        if neden == "icerik":
+            secilen.append(yol)
+    return secilen
+
+
+def _kare_karari(yol: str) -> tuple[bool, list[str], str]:
+    """Tek kare → (al_mi, satirlar, neden). Recall önceliği: okunamadı > yanlış oku.
+
+    neden: footage | recall_ocr | recall_bos | recall_cop | icerik | icerik_yok
+    — icerik_kareleri/bitis kuralı yalnız 'icerik' sınıfıyla çalışır (kalibrasyon
+    buna göre yapıldı, 2026-08-17)."""
     a = kutu.kutu_analiz(yol)
     if a.get("n", 0) == 0:
-        return False, []
+        return False, [], "footage"
     if a.get("alt_only"):
-        return False, []
+        return False, [], "footage"
     try:
         satirlar = icerik.satirlar(yol)
     except Exception:
-        return True, []                       # recall — OCR patladı
+        return True, [], "recall_ocr"           # recall — OCR patladı
     if not satirlar:
-        return True, []                       # recall — bos OCR
+        return True, [], "recall_bos"           # recall — bos OCR
     try:
         if icerik.cop_desenli_mi([satirlar]):
-            return True, satirlar              # recall — güvenilmez (yanlış-dil) OCR
+            return True, satirlar, "recall_cop"  # recall — güvenilmez (yanlış-dil) OCR
     except Exception:
         pass
     if icerik.kredi_benzeri(satirlar) > 0:
-        return True, satirlar
-    return False, []
+        return True, satirlar, "icerik"
+    return False, [], "icerik_yok"
 
 
 def _imza(satirlar: list[str]) -> str | None:
@@ -86,7 +105,7 @@ def sec(dizin: str | Path, sinir: dict | None, config: dict | None = None) -> di
     gorulen: set[str] = set()
     secilen: list[str] = []
     for yol in yollar:
-        al, satirlar = _kare_karari(yol)
+        al, satirlar, _ = _kare_karari(yol)
         if not al:
             elenen += 1
             continue

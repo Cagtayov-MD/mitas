@@ -1,7 +1,7 @@
 """(a) SINIR — giriş jeneriğinin başlangıç/bitiş sınırı.
 
-Mevcut motor ÇAĞRILIR, kopyalanmaz: `core/pipelines/ocr/jenerik_detector.py`
-(921 satır, 9 üretim tüketicisi). Bkz. src/giris/TASARIM.md.
+Motor Kobe kulesinin içinde yaşar: `giris/jenerik_detector.py`. Bu dosya,
+ölçülmüş üretim motorunun Allstar'a taşınmış bağımsız kopyasıdır.
 
 Güven kapısı, üretimin kuralıyla AYNI ŞEKİLDE (mitas_pipeline.py:1985-1990,
 sadeleştirilmiş — uzun-scroll istisnası burada YOK, bkz. TASARIM.md):
@@ -15,8 +15,6 @@ ARIZA(GIRIS_SINIR) yapar. Sessizce sabit pencereye düşmek YASAK.
 """
 from __future__ import annotations
 
-import os
-import sys
 from pathlib import Path
 
 GUVEN_ESIK_VARSAYILAN = 0.60      # mitas_pipeline._DETECT_MINCONF ile aynı
@@ -25,11 +23,8 @@ _DETECT_FPS = 2.0                 # main.KARE_FPS ile aynı; kare numaraları b�
 
 
 def _detect_from_frames():
-    """Lazy import — repo kökü sys.path'e eklenir (TASARIM.md §a, doğrulanmış çağrı)."""
-    kok = os.environ.get("MITAS_PROJECT_ROOT", "/opt/mitas")
-    if kok not in sys.path:
-        sys.path.insert(0, kok)
-    from core.pipelines.ocr.jenerik_detector import detect_from_frames
+    """Kule içindeki bağımsız giriş motorunu tembel yükle."""
+    from .jenerik_detector import detect_from_frames
     return detect_from_frames
 
 

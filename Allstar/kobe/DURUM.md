@@ -1,11 +1,28 @@
 # Kobe kulesi — canlı durum
 
+> **Yeni hat notu (2026-08-17):** Kobe artık `Allstar/sheriff` tarafından
+> attempt-scoped `--out` ile çağrılabilir. Aktif giriş motoru ve rol sözlüğü
+> Kobe içindedir; `core/`/`scripts/` çalışma zamanı import'u yoktur. Aşağıdaki
+> eski üretim bağları tarihsel ölçüm ve geçiş kaydı olarak korunur.
+
 > **Bu dosya bağlam sigortasıdır.** Oturum kesilirse yeni oturum BURADAN devam
 > eder. Her iş biriminden sonra güncellenir ve commit'lenir.
 > Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
 > Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
 
-**Son güncelleme:** 2026-08-17 (5) — **İLK GİRİŞ ÖLÇÜMÜ + BAŞLANGIÇ POLİTİKASI +
+**Son güncelleme:** 2026-08-17 (7) — **BİTİŞ ŞELALESİ UYGULANDI (iki Çağatay
+fikri): ort|Δ| 131.8→57.0, medyan ~19, çok-erken 20→0, ±60 29/36.** Kural:
+pencere sonundan geriye ilk kalın içerik bloğu (W30/K12, 18/18 eğitim-sıvar).
+Ters-motor: çıkış motoru TERS dizide koşar, onset=bitiş (ateşlendiğinde en
+isabetli). Uygulama: `src/giris/bitis.py` + `main._ters_bitis` + `giris_karar`
+tek nokta (üretim=ölçüm aynı yol) + `havuz.icerik_kareleri` (recall ayıklar).
+İzolasyon korunur — giriş motor import etmez, aday main'den enjekte;
+`test_giris_motoru_sadece_ters_gorunumde_cagirilir` yeni sözleşmeyi kilitler.
+93/93 test. Golden giris güncellendi (KOBRA bit 41→449, kaynak=kural).
+Kalan: 7 izci-film >60 geç (kredi-TARZI ayıracı — gelecek iş). Önceki: jenerik-var
+36/36 bulundu, 0 geç-başlangıç.** Bitiş erken eğilimi ölçekle doğrulandı
+(20/36 çok erken — G10). Kredisiz-red hâlâ 0/0 ölçülemiyor: GT'de jenerik_yok
+YOK; boş 14 filmden işaretlenmesi bekleniyor. Önceki: + BAŞLANGIÇ POLİTİKASI +
 ÖRNEK BÜYÜTME (10→50 film).** Çağatay GT'yi doldurdu (8/10; BELALI_SEVGİLİ +
 KAPANMAMIŞ boş): jenerik-var 8/8 bulundu, geç-başlangıç 0. Politika (Çağatay):
 başlangıç kararı DAİMA 1 ("geriye dönük kabul; hatta hep 1; çalışma yapma") —

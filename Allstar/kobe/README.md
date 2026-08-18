@@ -119,7 +119,7 @@ okunmasını, `_TAMAM` "yazılıyor mu bitti mi" belirsizliğini kapatır.
 | CLI + koşu akışı | `main.py`, `kobe` |
 | Ölçüm yatağı + GT | `olcum/` |
 | Çalışma zamanı (kendi Paddle'ı) | `venv/`, `venv_kur.sh`, `gereksinimler.txt` |
-| **Pipeline bağlantısı** (orkestratör, kule DIŞI) | `/opt/mitas/scripts/_jenerik_pool.py` |
+| **Yeni pipeline bağlantısı** (orkestratör, kule DIŞI) | `/opt/mitas/Allstar/sheriff` |
 
 ## Skor (110 film, insan-doğrulanmış GT)
 
@@ -145,7 +145,7 @@ birebir aynı olduğu halde. Paket çıkarmadan önce 110 filmlik ölçümü ko�
 
 Yeniden kurmak: `./venv_kur.sh` (veya sıfırdan: `./venv_kur.sh --temiz`).
 
-## Üretim zinciri
+## Eski üretim zinciri (tarihsel, Sheriff bağımlılığı değildir)
 
 ```
 systemd mitas-asr → scripts/mitas_pipeline.py → scripts/_jenerik_pool.py
@@ -155,7 +155,7 @@ systemd mitas-asr → scripts/mitas_pipeline.py → scripts/_jenerik_pool.py
   → Database/<film>/frames/cikis_jenerik havuzu + jenerik_detection.json
 ```
 
-E1 (2026-08-17): üretim Kobe'yi KÜTÜPHANE olarak import ETMEZ — `kobe` CLI
+E1 (2026-08-17): eski üretim Kobe'yi KÜTÜPHANE olarak import ETMEZ — `kobe` CLI
 alt-sürecini koşar, kararı kulenin kendi `out/`'undan okur. Böylece sözleşme
 (`kobe.json` + `_TAMAM`), sürüm dondurma (kendi 167-pin venv'i) ve kuyruk
 mimarisinin tamamı devrede. ARIZA'da üretim eski CV akışına düşer (fail-safe).
@@ -184,11 +184,10 @@ cast başı kayıp olabilir), `erken_riski` (koşu başı footage olabilir),
 markaları `erken_riski`'yle yakalanamıyor; KNUTE `gec_riski`'nde bilinen
 yanlış-pozitif (zararsız — davranış değişmez, sadece insan bakar).
 
-## KOBE OLMAYANLAR (karışıklık olmasın)
+## KOBE OLMAYANLAR (eski hat referansı)
 
 - `core/pipelines/ocr/jenerik_frame_pool_detector.py` — eski CV motoru;
-  GİRİŞ-jeneriği havuzunun (`giris_jenerik_havuzu.py`) ve Kobe-HATA
-  fail-safe'inin bağımlılığı olarak yaşıyor. Kapanış-onset işi YAPMAZ.
+  yeni Allstar/Sheriff hattının bağımlılığı değildir.
 - `jenerik_oneocr_detector.py` — giriş-havuzu primitifleri. Onset işi yapmaz.
 - `_jenerik_detect.py` / `_credit_detect.py` — jenerik SINIR tespiti (hangi
   saniyelerden kare çıkarılacağı); Kobe'nin GİRDİSİNİ hazırlar, onset bulmaz.

@@ -24,25 +24,39 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
 
 BURASI = os.path.dirname(os.path.abspath(__file__))                  # olcum/giris
 SRC = os.path.join(os.path.dirname(os.path.dirname(BURASI)), "src")  # Allstar/kobe/src
+KULE = os.path.dirname(os.path.dirname(BURASI))                      # Allstar/kobe
 sys.path.insert(0, SRC)
+sys.path.insert(0, KULE)   # main.giris_karar — üretimle AYNI yol ölçülür
 
 VERI = os.path.join(BURASI, "veri")
 YATAK = "/opt/mitas/Allstar/kobe/havuz/giris"
 
 
 def _isci(gorev: tuple) -> dict:
-    """Paralel işçi (spawn): sinir.bul koşar. GT'yi ASLA görmesin — yalnız ölçüm."""
+    """Paralel işçi (spawn): main.giris_karar koşar — üretimle AYNI yol
+    (sinir + bitiş şelalesi). GT'yi ASLA görmesin — yalnız ölçüm."""
     ad, d = gorev
-    from giris import sinir
-    b = sinir.bul(d)
+    import main
+    b = main.giris_karar(d)
     return {"film": ad,
             "bulundu": b.get("bulundu"),
             "bas": b.get("baslangic_kare"), "bit": b.get("bitis_kare"),
             "guven": b.get("guven"),
-            "kaynak": (b.get("kanit") or {}).get("sinir_kaynagi")}
+            "kaynak": (b.get("kanit") or {}).get("sinir_kaynagi"),
+            "bitis_kaynagi": (b.get("kanit") or {}).get("bitis_kaynagi", "sinir")}
+
+
+def _ad_filtresi(deger: str) -> str:
+    """--film değeri yalnız AD PARÇASIDIR (dizin adı içinde aranır); yol
+    bileşeni içermesi path-traversal girişimidir — reddedilir."""
+    if (not deger or "/" in deger or "\\" in deger or ".." in deger
+            or os.path.isabs(deger)):
+        raise SystemExit(f"[hata] --film ad parçası olmalı, yol değil: {deger!r}")
+    return deger
 
 
 def main() -> int:
@@ -57,7 +71,7 @@ def main() -> int:
     tekil, paralel = None, 1
     for i, a in enumerate(sys.argv):
         if a == "--film" and i + 1 < len(sys.argv):
-            tekil = sys.argv[i + 1]
+            tekil = _ad_filtresi(sys.argv[i + 1])
         if a == "--paralel" and i + 1 < len(sys.argv):
             paralel = max(1, int(sys.argv[i + 1]))
 
@@ -135,8 +149,9 @@ def main() -> int:
                     "yalnız 'gec_baslangic' hata sayılır. bitiş: kırmızı çizgi "
                     "YOK — dağılım görülünce konur",
              "filmler": kayitlar, "sapmalar": sapmalar}
-    cikti = os.path.join(VERI, "olcum_giris_son.json")
-    json.dump(rapor, open(cikti, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    cikti = Path(VERI) / "olcum_giris_son.json"
+    cikti.write_text(json.dumps(rapor, ensure_ascii=False, indent=1) + "\n",
+                     encoding="utf-8")
     print(f"KAPSAM {n}  jenerik-var: {var_dogru}/{var_toplam} bulundu  "
           f"kredisiz-red: {red_dogru}/{red_toplam}")
     for alan, etiket in (("baslangic_sapma_kare", "başlangıç"),
