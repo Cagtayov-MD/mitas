@@ -1,0 +1,51 @@
+Sana bir Türkçe film transkripti (ASR/konuşma çıktısı) verilecek. Bundan SADE ve DÜZGÜN
+TÜRKÇE, SPOILER İÇEREN bir özet yaz. Sadece transkriptteki bilgiyi kullan; dış bilgi,
+tahmin, yorum EKLEME. ASR gürültüsünü/tekrarları yok say; yalnızca ana olay örgüsünü al.
+Olay örgüsünü değiştiren kilit dönüm noktaları (sahte ölüm, gizli kimlik, ihanet, hastalık,
+asıl suçlu) çoğu zaman tek bir replikte gömülü geçer — bunları kaçırma. Transkriptin çoğu
+tekrar/gürültü olsa bile bu dönüm SADECE 1-2 replikte geçebilir; kelime yerini betimlemeyle
+DOLDURMA, o dönümü bul ve özetin merkezine koy. Twist yoksa uydurma.
+
+═══════════════════════════════════════════════════════════
+BİÇİM
+═══════════════════════════════════════════════════════════
+• 2-3 kısa cümlede konuyu DOĞRUDAN anlat: ana karakter kim (ADIYLA), ne yaşıyor, neyle uğraşıyor.
+• 1 cümlede filmin SONUNU AÇIKÇA söyle (spoiler): kim ne yapar / ne olur / kim kazanır / kim ölür.
+• Toplam 3-4 cümle, ~35-60 kelime. Tek paragraf, satır sonu yok, noktalı virgül yok.
+
+═══════════════════════════════════════════════════════════
+DİL
+═══════════════════════════════════════════════════════════
+• Akıcı, doğal, anlaşılır Türkçe. Birebir-çeviri kokan ifade YOK
+  (örn. "yüksek riskli görev", "ölümcül bir yüzleşme" gibi sırıtan kalıplar).
+• Yabancı özel adlar orijinal Latin yazımıyla ve SADE: Will, Elizabeth, Jack, Gideon.
+  Yabancı adda Türkçe harf (İ ı Ş ğ Ç Ö Ü) ve köşeli parantez YASAK.
+• TÜM KELİMELER TÜRKÇE OLACAK. Özel ad DIŞINDA yabancı dilde kelime YASAK — İngilizce sözcük
+  varsa TÜRKÇESİNİ yaz.
+• Olayı neden-sonuç ile bağla: okuyan "niye böyle oldu?" diye sormasın.
+
+═══════════════════════════════════════════════════════════
+KESİN YASAKLAR — bunları ASLA yazma
+═══════════════════════════════════════════════════════════
+✗ META-ÇERÇEVE: "Bu filmde", "filmin konusu şöyle", "filmde anlatılan" gibi GİRİŞ YOK.
+   Doğrudan olayla başla.
+✗ DEĞER YARGISI / ETİKET: "başyapıt", "unutulmaz", "etkileyici dram", "klasikleşmiş" YOK.
+✗ MUĞLAK / BOŞ KAPANIŞ: "hayatı değişir", "kendini bulur", "zorlu bir yolculuğa çıkar",
+   "hiçbir şey eskisi gibi olmaz" — somut sonucu söyle, böyle bitirme.
+✗ KARAKTER LİSTESİ / sıfat dizme ("huysuz Leo, unutkan Sarah") YOK. En fazla 4 karakter adı.
+✗ "Bir adam / bir kadın / bir genç" jenerik açılış YOK — ana karakteri ADIYLA tanıt.
+✗ YÖNTEM/PROSEDÜR ANLATMA: sonuca NASIL ulaşıldığının adımları (takip, arama, plan, mekân
+   mekân gezme) özet dışı — SONUCU yaz, yolu değil.
+✗ Yumuşatma YOK: ölüm→"ayrılış", hastalık→"sağlık sorunu" OLMAZ. Gerçek sonucu somut yaz.
+✗ Soru, ünlem, tırnak, köşeli parantez, başlık, madde işareti YASAK.
+
+═══════════════════════════════════════════════════════════
+ÖRNEK (sadece BİÇİM örneği)
+═══════════════════════════════════════════════════════════
+İşgal altındaki Fransa'da idama mahkum suçlu Jean Picard, bombardımanda kaçar ama müfettiş
+Bonet tarafından yakalanır. Almanlar, sabotajcı teslim olmazsa yüz rehineyi öldüreceğini
+duyurunca Jean bunu önce kaçmak için kullanmak ister. Kasabada tanıştığı Marianne'e aşık
+olması ve rehinelerin kaderi Jean'in kararını değiştirir. Finalde sahte sabotajcı olarak
+kendini feda eder.
+
+Çıktıda YALNIZ özeti ver, başka hiçbir şey yazma.

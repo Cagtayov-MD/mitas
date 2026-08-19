@@ -1,0 +1,900 @@
+{
+  "kosu_id": "20260730-144531-toplayici",
+  "tip": "toplayici",
+  "uc": "ollama",
+  "modeller": [
+    "gemma4:26b",
+    "mistral-small3.2:latest",
+    "qwen36-27b-test:latest",
+    "qwen36-35b-test:latest"
+  ],
+  "zaman": "2026-07-30T14:48:17",
+  "sonuc": [
+    {
+      "model": "gemma4:26b",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "George, Liza'dan kendisinin nişanlısı rolünü oynamasını isterken bir yandan da kaybettiği mikroteleskop icadını geri almaya çalışır. Waldo ise George'u icadını geri vermesi için tehdit ederek üzerine gider. Yaşanan bu gerginliklerin sonunda Waldo hayatın değerini anlayarak içsel mutluluğa ve ruhsal güce ulaşmaya karar verir.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 10.3,
+      "onceki_8b_ozet": "Waldo, Beverly ile buluşmak için para isteyip Washington Square Park'ta buluşmalarını önerir. Beverly, Waldo'ya mesaj getirmiş olmasından dolayı teşekkür eder. Waldo, Tornicraft adında bir profesörün 287 numaralı odaya gelmesini söyler ama ismini yanlış söyler. Liza, George'un nişanlısı olacağını oynayacağını söyler ve onun mikroteleskop icadı olduğunu düşünür. George, icadını kaybetmiş ve annesine satmak istediğini söyler. Valdo, George'dan icadını geri almak için tehdit eder ama bir dolar verip onu bağışlar. Valdo, hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 43,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.333,
+          "ozette_olmayan_ad": [
+            "Beverly",
+            "Tornicraft"
+          ],
+          "uydurma_ad_adayi": [
+            "George"
+          ],
+          "icerik_jaccard": 0.082
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "gemma4:26b",
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "ozet": "Afganistan'da eğitim ve özgürlük kısıtlamalarıyla mücadele eden bir kadın, sınır geçişi için zorlu bir yolculuğa hazırlanır. Bu süreçte babasını kaybeden ve yaralanan Chie, bir doktorun yardımıyla kendi yolunu çizmeye çalışırken çeşitli sağlık sorunları ve gıda eksikliği yaşayan gruplarla karşılaşır. Kaosun ortasındaki tüm bu zorluklara rağmen Ami sonunda kavuşur.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 2.0,
+      "onceki_8b_ozet": "Kandahar'da yaşayan bir kadın, Afghanya'da yaşamakta zorlanan biriyle iletişime geçer ve onun yaşadığı zorlukları anlatır. Bir kızın babası, oğlunun okula gitmediğini söylüyor ve 200 dolar karşılığında qandar'a gideceklerini belirtir. چيه, babasının ölmüş olduğunu düşünür ve bir doktorla tanışır. Doktor, چيه'ye 50 dolar verir ve kendi başına yolculuk yapmaya karar vermesini ister. Doktor, iki hastayı kurtarmak için birlikte yolculuk yapmaya karar verir. Yolculuk sırasında sağlık sorunları ve ekonomik zorluklarla karşılaşırlar. Sonunda Ami, kavuştu.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 48,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.038
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "gemma4:26b",
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "ozet": "Letizia Laroş, yüzü maskeli bir adam tarafından cinsel saldırıya uğradıktan sonra yaşadığı travmayla mücadele eder. Müfettiş Valeski ile birlikte suçluyu yakalamak için çalışırken aynı zamanda psikolojik destek almak zorunda kalır. Letizia, sperm analizinin diğer kurbanlarla eşleştiğini öğrenince tecavüzle ilgili raporunu hazırlayıp dava açar.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 2.0,
+      "onceki_8b_ozet": "Letizia Laroş, bir gece yemeğine gitmek isteyen kişiden kaçınırken bir silahın varlığını ve birinin onu ateş edebileceğini söylüyor. Test sonucu pozitif çıkınca Paul, AIDS'e yakalanmadığını ama ırzıma geçtiğini söylüyor ve Roma'da bir iş imkanı sunuyor. Leticia, tecavüz iddiasında bulunurken bir kabus olduğunu savunur ve sperm analiziyle diğer kurbanlarla aynı sonuç ortaya çıkar. Müfettiş Valeski onun raporunu inceleyip suçluyu yakalamaya karar verir. Leticia, tecavüzle ilgili dava açar ve psikolojik destek almak için psikiyatriste gider. Film, dava sürecine başlamasının ardından kapanır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [],
+          "spoiler_final": false,
+          "kelime": 43,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.75,
+          "ozette_olmayan_ad": [
+            "Eva"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.109
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "gemma4:26b",
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "ozet": "Ayı Yogi, Cindy'yi bulmak ve ona yardım etmek amacıyla parktan dışarı çıkarak zorlu bir yolculuğa atılır. Bu süreçte Bobo ile birlikte çeşitli maceralar yaşarken ayıların gizli anlaşması açığa çıkar. Sonunda ayılar Celiston Parkı'na geri gönderilirken Korucu Simit başkorucu olur.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 2.0,
+      "onceki_8b_ozet": "Yogi, baharın gelmesiyle uyanmak istiyor ve kendini bir ayı olarak tanıtmaya çalışıyor. Cindy, onunla piknik alanlarına girmeye izin verilmediğini söylüyor ve onu inanamıyor. Yogi, Cindy'yi bulmak için parktan dışarı çıkmak istiyor. Kamyonla otostop yapmaya karar verirken bir ayıya rastlar ve Cindy'ye veda eder. Ayılar saklanmak için bir mağaraya gider ama fırtınada korku içinde yardım çağrısı yapar. Korucular polis ve itfaiye ekiplerini çağırır ve ayıları Celisdon Parkı'na geri gönderir. Yogi ve Bobo kavuşurken Şerif kaybolur ve ayıların gizli bir anlaşması ortaya çıkar. Korucu Simit Celis Don'un başkorucusu olur.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 39,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.429,
+          "ozette_olmayan_ad": [
+            "Diego",
+            "Hayvanat",
+            "Luis",
+            "San"
+          ],
+          "uydurma_ad_adayi": [
+            "Celiston",
+            "Parkı",
+            "Simit"
+          ],
+          "icerik_jaccard": 0.059
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "gemma4:26b",
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "ozet": "On yaşındaki Jules'un gerçek babasının kim olduğunu öğrenme süreci Olivia, Piero ve Mayne arasındaki geçmişe dayalı gizli ilişkileri gün yüzüne çıkarır. Geçmişte yaşanan tek gecelik birlikteliklerin yarattığı belirsizlikler sürerken Jules'un babasının Pablo olduğu anlaşılır. Olivia tüm bu karmaşanın ardından kendi yolunu çizerek Afrika'ya dönme kararı alır.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 2.1,
+      "onceki_8b_ozet": "Jül, on yıl önce Piero ile evlenmeliydi ve bir çocuk doğurmuştu. Iris, Jül'ün evine gelip onu öpmek istedi ama Jül kıyafetinde bir şey yoktu. Jül, babasının kim olduğunu bilmesi gerektiğini söylendiğinde bu bilgiyi öğrenmek için hepinin bir araya gelmesi gerekiyordu. Jül, babasının kim olduğunu bilmediğini söylüyordu. Olivia, Mayne ile yatakta geçirdiği bir gece hakkında konuşuyordu. Jules, Olivia'nın babası olmadığını belirtti. Olivia, kendi kısır olduğunu ve in vitro denemelerinin başarısız olduğunu öğrendi. Jules, Olivia'nın oğlu olmadığını kabul etti. Piero, Jules'in Olivia'nın oğlu olmadığını söylendi. Jules, babasının adının Pablo olduğunu öğrendi ve Olivia'ya anlattı. Jules, Olivia ve Sesil'in evi satın alacaklarını söylendi. Olivia, Jules ile birlikte yaşamaya karar verdi. Jül, annesinin yolculuğuna gitmesine izin verdi. Fil, kendi kararını vererek Afrika'ya dönecek. Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 46,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.8,
+          "ozette_olmayan_ad": [
+            "Iris"
+          ],
+          "uydurma_ad_adayi": [
+            "Mayne"
+          ],
+          "icerik_jaccard": 0.086
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "gemma4:26b",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Paris'e dönen Camille, kardeşi Simon'un işe alım sürecine yardım eden Nicolas ile karmaşık duygular içinde yaşamaktadır. Nicolas'ın eşiyle olan gizli ilişkisi ve Simon ile aralarındaki saklı bağ, karakterlerin hayatını altüst eder. Yaşadığı depresyon ve anksiyete nedeniyle hastaneye kaldırılan Camille'e Odile destek olmaya çalışır.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 1.9,
+      "onceki_8b_ozet": "Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu ortaya çıkar. Camille depresyon ve anksiyete nedeniyle hastaneye kaldırılırken, Odile ona destek olmaya karar verir. Nicolas ise eşiyle olan gizli ilişkisini saklamakta ve bu durum iş hayatında sorun yaratmaktadır. Film, karakterlerin içsel çatışmaları ve gizli ilişkileriyle sona erer; net bir sonuç verilmez.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [],
+          "spoiler_final": false,
+          "kelime": 43,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.571,
+          "ozette_olmayan_ad": [
+            "Claude",
+            "Duverrier",
+            "Marc"
+          ],
+          "uydurma_ad_adayi": [
+            "Paris"
+          ],
+          "icerik_jaccard": 0.109
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "Waldo, Beverly'den aldığı telefon numarasıyla Bay Thorne ile iletişime geçer ve para karşılığında buluşur. Waldo, kendisini profesör olarak tanıtır ama kimliği belirsizliğini korur. George, Liza'ya nişanlısı rolünü oynar ancak icadı kaybedince Beverly'den tehlike altına girer. Valdo, George'dan icadını geri almak için tehdit eder ama sonunda hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 15.5,
+      "onceki_8b_ozet": "Waldo, Beverly ile buluşmak için para isteyip Washington Square Park'ta buluşmalarını önerir. Beverly, Waldo'ya mesaj getirmiş olmasından dolayı teşekkür eder. Waldo, Tornicraft adında bir profesörün 287 numaralı odaya gelmesini söyler ama ismini yanlış söyler. Liza, George'un nişanlısı olacağını oynayacağını söyler ve onun mikroteleskop icadı olduğunu düşünür. George, icadını kaybetmiş ve annesine satmak istediğini söyler. Valdo, George'dan icadını geri almak için tehdit eder ama bir dolar verip onu bağışlar. Valdo, hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 52,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.667,
+          "ozette_olmayan_ad": [
+            "Tornicraft"
+          ],
+          "uydurma_ad_adayi": [
+            "George",
+            "Valdo"
+          ],
+          "icerik_jaccard": 0.087
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "ozet": "Afghanistan'da zorluklar yaşayan bir kadın, sınır geçişi ve kimlik belgesi almaya çalışırken, eğitim verilen okulun son gününü geçirir. Çeyh adlı bir çocuk, babasının ölümünden sonra doktor tarafından yardım alır ve kendini kurtarmak için yola çıkar. Doktor, iki hastayı (Nefas ve Kak) kurtarmak için ekibe katılırlar. Ekip, gıda eksikliği, ateş ve susuzluk gibi zorluklarla karşılaşırken, bir kadın ailesiyle ilgili sorun yüzünden destek veremez. Finalde Ami adlı bir kişi sonunda kavuşur.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 3.8,
+      "onceki_8b_ozet": "Kandahar'da yaşayan bir kadın, Afghanya'da yaşamakta zorlanan biriyle iletişime geçer ve onun yaşadığı zorlukları anlatır. Bir kızın babası, oğlunun okula gitmediğini söylüyor ve 200 dolar karşılığında qandar'a gideceklerini belirtir. چيه, babasının ölmüş olduğunu düşünür ve bir doktorla tanışır. Doktor, چيه'ye 50 dolar verir ve kendi başına yolculuk yapmaya karar vermesini ister. Doktor, iki hastayı kurtarmak için birlikte yolculuk yapmaya karar verir. Yolculuk sırasında sağlık sorunları ve ekonomik zorluklarla karşılaşırlar. Sonunda Ami, kavuştu.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 69"
+          ],
+          "spoiler_final": true,
+          "kelime": 69,
+          "cumle": 5
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.047
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "ozet": "Leticia, pozitif test sonucu aldıktan sonra Paul'un tecavüz iddiasıyla karşılaşır ancak bu bir kabus olduğunu iddia eder. Sperm analizi diğer kurbanlarla aynı olduğu ortaya çıkınca Leticia, yüzü kar maskeli bir adam tarafından saldırıya uğradığını anlatır. Müfettiş Valeski'nin desteğiyle suçluyu yakalamaya karar verirler ve Leticia dava açar. Film, Leticia'nın psikolojik destek almaya ihtiyacı duyduğu sırada kapanır.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 3.9,
+      "onceki_8b_ozet": "Letizia Laroş, bir gece yemeğine gitmek isteyen kişiden kaçınırken bir silahın varlığını ve birinin onu ateş edebileceğini söylüyor. Test sonucu pozitif çıkınca Paul, AIDS'e yakalanmadığını ama ırzıma geçtiğini söylüyor ve Roma'da bir iş imkanı sunuyor. Leticia, tecavüz iddiasında bulunurken bir kabus olduğunu savunur ve sperm analiziyle diğer kurbanlarla aynı sonuç ortaya çıkar. Müfettiş Valeski onun raporunu inceleyip suçluyu yakalamaya karar verir. Leticia, tecavüzle ilgili dava açar ve psikolojik destek almak için psikiyatriste gider. Film, dava sürecine başlamasının ardından kapanır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 55,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.25,
+          "ozette_olmayan_ad": [
+            "Eva",
+            "Laroş",
+            "Letizia"
+          ],
+          "uydurma_ad_adayi": [
+            "Leticia",
+            "Paul"
+          ],
+          "icerik_jaccard": 0.101
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "ozet": "Yogi, baharın geldiğini duyurup uyanırken Bobo ve Cindy ile karşılaşır. Şerif'in sahte müfettiş olduğunu öğrenir ve gizli silahı kullanmaya zorlandığını anlar. Yogi, Charlie tarafından San Luis'e gönderilen Cindy'ye yardım etmek için yola çıkar. Ayılar Celiston Parkı'na geri gönderilirken Şerif kaybolur ve Korucu Simit başkorucu olur.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 3.7,
+      "onceki_8b_ozet": "Yogi, baharın gelmesiyle uyanmak istiyor ve kendini bir ayı olarak tanıtmaya çalışıyor. Cindy, onunla piknik alanlarına girmeye izin verilmediğini söylüyor ve onu inanamıyor. Yogi, Cindy'yi bulmak için parktan dışarı çıkmak istiyor. Kamyonla otostop yapmaya karar verirken bir ayıya rastlar ve Cindy'ye veda eder. Ayılar saklanmak için bir mağaraya gider ama fırtınada korku içinde yardım çağrısı yapar. Korucular polis ve itfaiye ekiplerini çağırır ve ayıları Celisdon Parkı'na geri gönderir. Yogi ve Bobo kavuşurken Şerif kaybolur ve ayıların gizli bir anlaşması ortaya çıkar. Korucu Simit Celis Don'un başkorucusu olur.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 45,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.714,
+          "ozette_olmayan_ad": [
+            "Diego",
+            "Hayvanat"
+          ],
+          "uydurma_ad_adayi": [
+            "Celiston",
+            "Charlie",
+            "Parkı",
+            "Simit",
+            "Şerif"
+          ],
+          "icerik_jaccard": 0.034
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "ozet": "Jül, on yaşında olan bir çocuğu olan ve Iris adında bir kadınla evlenmek üzere olan biridir. Jül'ün babasının kimliği belirsizdir ve bu konuda bir araya gelenler arasında tartışmalar yaşanır. Olivia'nın kısırlığı ve in vitro denemelerinin başarısız olması, Jules'in babası olmadığını ortaya çıkarır. Piero, Olivia'ya yeni bir hayat kurmasını önerir ancak Olivia sonunda Jules ile birlikte yaşamayı tercih eder. Jül'ün annesi yolculuğuna giderken, Fil Afrika'ya dönecektir. Jül'ün babasının adı Pablo olduğu açığa çıkar ve Piyero Piero ile birlikte yaşamayı ister.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 4.2,
+      "onceki_8b_ozet": "Jül, on yıl önce Piero ile evlenmeliydi ve bir çocuk doğurmuştu. Iris, Jül'ün evine gelip onu öpmek istedi ama Jül kıyafetinde bir şey yoktu. Jül, babasının kim olduğunu bilmesi gerektiğini söylendiğinde bu bilgiyi öğrenmek için hepinin bir araya gelmesi gerekiyordu. Jül, babasının kim olduğunu bilmediğini söylüyordu. Olivia, Mayne ile yatakta geçirdiği bir gece hakkında konuşuyordu. Jules, Olivia'nın babası olmadığını belirtti. Olivia, kendi kısır olduğunu ve in vitro denemelerinin başarısız olduğunu öğrendi. Jules, Olivia'nın oğlu olmadığını kabul etti. Piero, Jules'in Olivia'nın oğlu olmadığını söylendi. Jules, babasının adının Pablo olduğunu öğrendi ve Olivia'ya anlattı. Jules, Olivia ve Sesil'in evi satın alacaklarını söylendi. Olivia, Jules ile birlikte yaşamaya karar verdi. Jül, annesinin yolculuğuna gitmesine izin verdi. Fil, kendi kararını vererek Afrika'ya dönecek. Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 79"
+          ],
+          "spoiler_final": false,
+          "kelime": 79,
+          "cumle": 6
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 1.0,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Fil",
+            "Piyero"
+          ],
+          "icerik_jaccard": 0.073
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "mistral-small3.2:latest",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Camille, Odile, Nicolas ve Lalande adlı kişiler Paris'te toplanırlar. Nicolas kardeşi Simon'un işe alım sürecinde yardım ettiğini ve bunun için suçlu hissettiğini anlatır. Camille, tezini yanlış anlaşılan bir konu üzerine yazdığını öğrenirken, Nicolas ile evine dönmeyi düşünür. Sonunda Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu açığa çıkar. Depresyon geçiren Camille hastaneye kaldırılırken, Odile ona destek olur. Nicolas eşiyle olan ilişkisini gizler ve bu iş hayatında sorun yaratır. Film karakterlerin içsel çatışmalarıyla sona erer.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 4.9,
+      "onceki_8b_ozet": "Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu ortaya çıkar. Camille depresyon ve anksiyete nedeniyle hastaneye kaldırılırken, Odile ona destek olmaya karar verir. Nicolas ise eşiyle olan gizli ilişkisini saklamakta ve bu durum iş hayatında sorun yaratmaktadır. Film, karakterlerin içsel çatışmaları ve gizli ilişkileriyle sona erer; net bir sonuç verilmez.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 75"
+          ],
+          "spoiler_final": true,
+          "kelime": 75,
+          "cumle": 7
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.571,
+          "ozette_olmayan_ad": [
+            "Claude",
+            "Duverrier",
+            "Marc"
+          ],
+          "uydurma_ad_adayi": [
+            "Lalande",
+            "Paris"
+          ],
+          "icerik_jaccard": 0.087
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "Waldo Tornicraft, Beverly ile para anlaşması yapar ve George'un mikroteleskop icadını geri almak için onu tehdit eder. George bu baskıya karşılık sadece bir dolar vererek Waldo'yu bağışlar. Bu cömertlik Waldo'nun tutumunu değiştirir ve o an hayatın gerçek değerini kavrar. Waldo dışsal kazançlardan vazgeçip içsel mutluluğa ulaşarak ruhsal bir dönüşüm geçirir.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 22.4,
+      "onceki_8b_ozet": "Waldo, Beverly ile buluşmak için para isteyip Washington Square Park'ta buluşmalarını önerir. Beverly, Waldo'ya mesaj getirmiş olmasından dolayı teşekkür eder. Waldo, Tornicraft adında bir profesörün 287 numaralı odaya gelmesini söyler ama ismini yanlış söyler. Liza, George'un nişanlısı olacağını oynayacağını söyler ve onun mikroteleskop icadı olduğunu düşünür. George, icadını kaybetmiş ve annesine satmak istediğini söyler. Valdo, George'dan icadını geri almak için tehdit eder ama bir dolar verip onu bağışlar. Valdo, hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [],
+          "spoiler_final": false,
+          "kelime": 50,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 1.0,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "George"
+          ],
+          "icerik_jaccard": 0.066
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "ozet": "Kandahar'da eğitim veren bir okulun son günlerini yaşayan Chiye, babasının ölümü ve patlama sonucu yaralanmasıyla zorlu bir kaçış yolculuğuna çıkar. Doktorun yardımıyla sınır geçişine çalışan Chiye, yolda birçok engelle karşılaşır ancak umudunu kaybetmez. Filmin sonunda Chiye, aradığı kişiyle buluşarak güvenli bir geleceğe adım atar.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 4.8,
+      "onceki_8b_ozet": "Kandahar'da yaşayan bir kadın, Afghanya'da yaşamakta zorlanan biriyle iletişime geçer ve onun yaşadığı zorlukları anlatır. Bir kızın babası, oğlunun okula gitmediğini söylüyor ve 200 dolar karşılığında qandar'a gideceklerini belirtir. چيه, babasının ölmüş olduğunu düşünür ve bir doktorla tanışır. Doktor, چيه'ye 50 dolar verir ve kendi başına yolculuk yapmaya karar vermesini ister. Doktor, iki hastayı kurtarmak için birlikte yolculuk yapmaya karar verir. Yolculuk sırasında sağlık sorunları ve ekonomik zorluklarla karşılaşırlar. Sonunda Ami, kavuştu.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 44,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.051
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "ozet": "Letizia Laroş, maskeli bir saldırgan tarafından araba üstüne itilerek cinsel saldırıya uğrar ancak fiziksel temas yaşanmadığını belirtir. Müfettiş Valeski'nin desteğiyle sperm kanıtının diğer kurbanlarla eşleştiğini öğrenen Letizia, travma sonrası psikolojik destek alır. Film, Letizia'nın tecavüz suçlamasıyla resmi dava sürecini başlatmasıyla sona erer.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 5.2,
+      "onceki_8b_ozet": "Letizia Laroş, bir gece yemeğine gitmek isteyen kişiden kaçınırken bir silahın varlığını ve birinin onu ateş edebileceğini söylüyor. Test sonucu pozitif çıkınca Paul, AIDS'e yakalanmadığını ama ırzıma geçtiğini söylüyor ve Roma'da bir iş imkanı sunuyor. Leticia, tecavüz iddiasında bulunurken bir kabus olduğunu savunur ve sperm analiziyle diğer kurbanlarla aynı sonuç ortaya çıkar. Müfettiş Valeski onun raporunu inceleyip suçluyu yakalamaya karar verir. Leticia, tecavüzle ilgili dava açar ve psikolojik destek almak için psikiyatriste gider. Film, dava sürecine başlamasının ardından kapanır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 42,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.75,
+          "ozette_olmayan_ad": [
+            "Eva"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.108
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "ozet": "Yogi ve Bobo, kaçtıkları Celiston Parkı'na geri dönmek zorunda kalır. Şerif'in kaybolması ve ayıların gizli anlaşmasının ortaya çıkmasıyla durum değişir. Korucu Simit yeni başkorucu olurken Yogi ile Bobo yeniden kavuşur.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 3.9,
+      "onceki_8b_ozet": "Yogi, baharın gelmesiyle uyanmak istiyor ve kendini bir ayı olarak tanıtmaya çalışıyor. Cindy, onunla piknik alanlarına girmeye izin verilmediğini söylüyor ve onu inanamıyor. Yogi, Cindy'yi bulmak için parktan dışarı çıkmak istiyor. Kamyonla otostop yapmaya karar verirken bir ayıya rastlar ve Cindy'ye veda eder. Ayılar saklanmak için bir mağaraya gider ama fırtınada korku içinde yardım çağrısı yapar. Korucular polis ve itfaiye ekiplerini çağırır ve ayıları Celisdon Parkı'na geri gönderir. Yogi ve Bobo kavuşurken Şerif kaybolur ve ayıların gizli bir anlaşması ortaya çıkar. Korucu Simit Celis Don'un başkorucusu olur.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 30,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.286,
+          "ozette_olmayan_ad": [
+            "Cindy",
+            "Diego",
+            "Hayvanat",
+            "Luis",
+            "San"
+          ],
+          "uydurma_ad_adayi": [
+            "Celiston",
+            "Parkı",
+            "Simit",
+            "Şerif"
+          ],
+          "icerik_jaccard": 0.012
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "ozet": "Jules, on yaşındaki Jül'ün biyolojik babasının aslında Pablo olduğunu öğrenir ve bu gerçeği Olivia ile paylaşır. Olivia'nın kısır olduğu ve Jül'ün kendisinin oğlu olmadığı ortaya çıkınca aile dinamikleri değişir. Jules, Piero ile birlikte yaşamaya karar verirken Olivia da yeni bir işe başlar. Finalde Jül annesinin Afrika'ya dönmesine izin verir ve herkes kendi yoluna gider.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 4.9,
+      "onceki_8b_ozet": "Jül, on yıl önce Piero ile evlenmeliydi ve bir çocuk doğurmuştu. Iris, Jül'ün evine gelip onu öpmek istedi ama Jül kıyafetinde bir şey yoktu. Jül, babasının kim olduğunu bilmesi gerektiğini söylendiğinde bu bilgiyi öğrenmek için hepinin bir araya gelmesi gerekiyordu. Jül, babasının kim olduğunu bilmediğini söylüyordu. Olivia, Mayne ile yatakta geçirdiği bir gece hakkında konuşuyordu. Jules, Olivia'nın babası olmadığını belirtti. Olivia, kendi kısır olduğunu ve in vitro denemelerinin başarısız olduğunu öğrendi. Jules, Olivia'nın oğlu olmadığını kabul etti. Piero, Jules'in Olivia'nın oğlu olmadığını söylendi. Jules, babasının adının Pablo olduğunu öğrendi ve Olivia'ya anlattı. Jules, Olivia ve Sesil'in evi satın alacaklarını söylendi. Olivia, Jules ile birlikte yaşamaya karar verdi. Jül, annesinin yolculuğuna gitmesine izin verdi. Fil, kendi kararını vererek Afrika'ya dönecek. Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 54,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.8,
+          "ozette_olmayan_ad": [
+            "Iris"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.136
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-27b-test:latest",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Camille Paris'te Nicolas ile yeniden buluşurken kardeşi Simon'un işe alımı nedeniyle gerilim yaşar. Nicolas'ın gizli eşine dair itirafları ve Camille'nin depresyonu ilişkileri çökertir. Odile destek verirken Nicolas evliliğini gizlemeye devam eder. Film karakterlerin çözülmemiş içsel çatışmalarıyla sona erer.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 5.2,
+      "onceki_8b_ozet": "Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu ortaya çıkar. Camille depresyon ve anksiyete nedeniyle hastaneye kaldırılırken, Odile ona destek olmaya karar verir. Nicolas ise eşiyle olan gizli ilişkisini saklamakta ve bu durum iş hayatında sorun yaratmaktadır. Film, karakterlerin içsel çatışmaları ve gizli ilişkileriyle sona erer; net bir sonuç verilmez.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 38,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.571,
+          "ozette_olmayan_ad": [
+            "Claude",
+            "Duverrier",
+            "Marc"
+          ],
+          "uydurma_ad_adayi": [
+            "Paris"
+          ],
+          "icerik_jaccard": 0.097
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "Mucit George'un icadını ele geçirmek isteyen Waldo, sahte kimlikler ve manipülasyonlarla Liza'yı da içine çekerek hileli yollar izler. Ancak George'un ona sadece bir dolar vermesiyle maddi başarısızlığını kabul eden Waldo, dışarıdaki kavgalardan vazgeçip kendi iç dünyasına yönelir. Filmde Waldo, ruhsal güç kazanarak gerçek mutluluğu içinde bulur ve hayatı olduğu gibi kabullenerek huzura kavuşur.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 28.2,
+      "onceki_8b_ozet": "Waldo, Beverly ile buluşmak için para isteyip Washington Square Park'ta buluşmalarını önerir. Beverly, Waldo'ya mesaj getirmiş olmasından dolayı teşekkür eder. Waldo, Tornicraft adında bir profesörün 287 numaralı odaya gelmesini söyler ama ismini yanlış söyler. Liza, George'un nişanlısı olacağını oynayacağını söyler ve onun mikroteleskop icadı olduğunu düşünür. George, icadını kaybetmiş ve annesine satmak istediğini söyler. Valdo, George'dan icadını geri almak için tehdit eder ama bir dolar verip onu bağışlar. Valdo, hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 53,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.333,
+          "ozette_olmayan_ad": [
+            "Beverly",
+            "Tornicraft"
+          ],
+          "uydurma_ad_adayi": [
+            "George"
+          ],
+          "icerik_jaccard": 0.035
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "ozet": "Afghanistan'da eğitim veren ve kaçmaya çalışan kadınlar arasında geçen olaylarda doktor, yaralıları kurtarmak için yolculuğa çıkar. Zorlu koşullar altında gıda eksikliği ve sağlık sorunlarıyla mücadele eden ekip, patlama sonucu bacağı kaybeden birini de yanına alır. Sonunda Ami ile kavuşur.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 2.0,
+      "onceki_8b_ozet": "Kandahar'da yaşayan bir kadın, Afghanya'da yaşamakta zorlanan biriyle iletişime geçer ve onun yaşadığı zorlukları anlatır. Bir kızın babası, oğlunun okula gitmediğini söylüyor ve 200 dolar karşılığında qandar'a gideceklerini belirtir. چيه, babasının ölmüş olduğunu düşünür ve bir doktorla tanışır. Doktor, چيه'ye 50 dolar verir ve kendi başına yolculuk yapmaya karar vermesini ister. Doktor, iki hastayı kurtarmak için birlikte yolculuk yapmaya karar verir. Yolculuk sırasında sağlık sorunları ve ekonomik zorluklarla karşılaşırlar. Sonunda Ami, kavuştu.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 39,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.013
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "ozet": "Letizia Laroş, kendisine tecavüz eden maskeli saldırganı bulmak için müfettiş Valeski ile iş birliği yapar ve delilleri toplar. Saldırganın kimliğini öğrenmek için çaba sarf ederken psikolojik olarak çöker ve tedavi görmek zorunda kalır. Film, Letizia'nın hazırladığı raporla resmi davayı açmasıyla sona erer.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 2.0,
+      "onceki_8b_ozet": "Letizia Laroş, bir gece yemeğine gitmek isteyen kişiden kaçınırken bir silahın varlığını ve birinin onu ateş edebileceğini söylüyor. Test sonucu pozitif çıkınca Paul, AIDS'e yakalanmadığını ama ırzıma geçtiğini söylüyor ve Roma'da bir iş imkanı sunuyor. Leticia, tecavüz iddiasında bulunurken bir kabus olduğunu savunur ve sperm analiziyle diğer kurbanlarla aynı sonuç ortaya çıkar. Müfettiş Valeski onun raporunu inceleyip suçluyu yakalamaya karar verir. Leticia, tecavüzle ilgili dava açar ve psikolojik destek almak için psikiyatriste gider. Film, dava sürecine başlamasının ardından kapanır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 42,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.75,
+          "ozette_olmayan_ad": [
+            "Eva"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.136
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "ozet": "Yogi, sahte müfettiş kimliğiyle Cindy'yi San Luis'e göndermek için parktan kaçar ve yolculuk sırasında Bobo ile tanışır. Ancak ayıların gizli anlaşması ortaya çıkınca Şerif kaybolur ve Yogi ile Bobo Celiston Parkı'na geri götürülür. Korucu Simit, bu olaylar sonrası Celis Don'un başkorucusu olur.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 2.1,
+      "onceki_8b_ozet": "Yogi, baharın gelmesiyle uyanmak istiyor ve kendini bir ayı olarak tanıtmaya çalışıyor. Cindy, onunla piknik alanlarına girmeye izin verilmediğini söylüyor ve onu inanamıyor. Yogi, Cindy'yi bulmak için parktan dışarı çıkmak istiyor. Kamyonla otostop yapmaya karar verirken bir ayıya rastlar ve Cindy'ye veda eder. Ayılar saklanmak için bir mağaraya gider ama fırtınada korku içinde yardım çağrısı yapar. Korucular polis ve itfaiye ekiplerini çağırır ve ayıları Celisdon Parkı'na geri gönderir. Yogi ve Bobo kavuşurken Şerif kaybolur ve ayıların gizli bir anlaşması ortaya çıkar. Korucu Simit Celis Don'un başkorucusu olur.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 42,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.714,
+          "ozette_olmayan_ad": [
+            "Diego",
+            "Hayvanat"
+          ],
+          "uydurma_ad_adayi": [
+            "Celiston",
+            "Parkı",
+            "Simit",
+            "Şerif"
+          ],
+          "icerik_jaccard": 0.073
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "ozet": "Jül on yaşındadır ve biyolojik babasının kim olduğunu bilmek için ailesini toplar. Olivia'nın kısırlığı ve in vitro süreçlerinin başarısızlığı nedeniyle Jül'ün babasının Pablo olduğu ortaya çıkar. Olivia, Jules'in hamile kaldığını öğrenir ve bu gelişme üzerine kendi hayatını yeniden düzenlemeye karar verir. Finalde Jules Pablo ile yaşamayı seçerken Olivia Afrika'ya dönmek üzere yola çıkar.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 2.2,
+      "onceki_8b_ozet": "Jül, on yıl önce Piero ile evlenmeliydi ve bir çocuk doğurmuştu. Iris, Jül'ün evine gelip onu öpmek istedi ama Jül kıyafetinde bir şey yoktu. Jül, babasının kim olduğunu bilmesi gerektiğini söylendiğinde bu bilgiyi öğrenmek için hepinin bir araya gelmesi gerekiyordu. Jül, babasının kim olduğunu bilmediğini söylüyordu. Olivia, Mayne ile yatakta geçirdiği bir gece hakkında konuşuyordu. Jules, Olivia'nın babası olmadığını belirtti. Olivia, kendi kısır olduğunu ve in vitro denemelerinin başarısız olduğunu öğrendi. Jules, Olivia'nın oğlu olmadığını kabul etti. Piero, Jules'in Olivia'nın oğlu olmadığını söylendi. Jules, babasının adının Pablo olduğunu öğrendi ve Olivia'ya anlattı. Jules, Olivia ve Sesil'in evi satın alacaklarını söylendi. Olivia, Jules ile birlikte yaşamaya karar verdi. Jül, annesinin yolculuğuna gitmesine izin verdi. Fil, kendi kararını vererek Afrika'ya dönecek. Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 53,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.6,
+          "ozette_olmayan_ad": [
+            "Iris",
+            "Piero"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.101
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "model": "qwen36-35b-test:latest",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Camille, Nicolas'ın kardeşi Simon'a yardım etmek için Paris'e dönerken Marc Duverrier ile evlilik teklifi alır. Ancak Camille'nin Nicolas ile gizli bir ilişkisi olduğu ve bu durumun onu depresyona sürüklediği ortaya çıkar. Sonuçta Camille hastaneye kaldırılır, Nicolas ise eşiyle olan ilişkisini gizlemeye devam ederken Odile Camille'ye destek olur.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 2.2,
+      "onceki_8b_ozet": "Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu ortaya çıkar. Camille depresyon ve anksiyete nedeniyle hastaneye kaldırılırken, Odile ona destek olmaya karar verir. Nicolas ise eşiyle olan gizli ilişkisini saklamakta ve bu durum iş hayatında sorun yaratmaktadır. Film, karakterlerin içsel çatışmaları ve gizli ilişkileriyle sona erer; net bir sonuç verilmez.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 47,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.857,
+          "ozette_olmayan_ad": [
+            "Claude"
+          ],
+          "uydurma_ad_adayi": [
+            "Paris"
+          ],
+          "icerik_jaccard": 0.092
+        },
+        "deterministik_gecti": true
+      }
+    }
+  ]
+}

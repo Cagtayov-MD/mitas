@@ -1,0 +1,46 @@
+# Genel Sekreter — MITAS AI Organizasyon Sistemi
+# Zamanlama, eşik değerleri ve model routing konfigürasyonu
+
+schedule:
+  # Her gün saat kaçta koşulur (HH:MM, Türkiye saati UTC+3)
+  performans: "06:00"          # Performans metrikleri (GPU kullanmaz)
+  kontrol_analiz: "08:00"      # KONTROL film analizi (sistem kalbi)
+  onayli_qc: "12:00"           # ONAYLI false-positive avı
+  hafiza_guncelle: "14:00"     # Hafıza DB güncelleme
+  arastirma: "16:00"           # Araştırma + Vision Quality
+  gunluk_rapor: "23:00"        # Secretary günlük rapor (tüm ajanlar)
+
+thresholds:
+  onayli_sample_pct: 10        # ONAYLI filmlerin %kaçı QC denetimi
+  performans_slow_min: 15      # bu dk'dan uzun = yavaş film
+  event_stale_hours: 2         # bu saatten uzun eventsizlik = uyarı
+  disk_warn_gb: 100            # bu GB altı = disk uyarısı
+  gpu_vram_warn_pct: 85        # VRAM % kullanım uyarısı
+
+rapor:
+  dil: tr                      # rapor dili
+  gunluk_append: true          # GUNLUK.md'ye ekle
+  xml_kontrol: true            # KONTROL filmler için XML rapor üret
+
+model_routing:
+  # Ajan → Model eşlemesi (detay: model_router.py)
+  kontrol_analiz:
+    parse: { tier: none, model: null }
+    classify: { tier: light, model: "qwen3:8b" }
+    root_cause: { tier: heavy, model: "qwen3-vl:32b" }
+  kod_denetci: { tier: api, model: "claude" }
+  performans: { tier: none, model: null }
+  bug_hunter: { tier: api, model: "glm" }
+  qc_dogrulama: { tier: none, model: null }
+  vision_quality: { tier: medium, model: "gemma4:26b" }
+  hafiza: { tier: light, model: "qwen3:8b" }
+  arastirma: { tier: none, model: null }
+  secretary: { tier: api, model: "qwen", model_override: "qwen-plus" }
+
+anayasa:
+  # Tüm ajanların uyması gereken 4 ilke
+  ilkeler:
+    - "Gerçek bağlama hizmet ediyor mu?"
+    - "Çalışan bir şeyi bozuyor mu?"
+    - "Daha kolay bir yol var mıydı?"
+    - "Tahmin yapılmaz — kanıt gösterilir."

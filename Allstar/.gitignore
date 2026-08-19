@@ -33,3 +33,9 @@ __pycache__/
 */runs/
 */state/
 */out_hakeem/
+
+# LeBron test klasorundeki ornek master PNG'ler — 19 dosya / 77,4 MB.
+# HICBIR test veya kod bunlara referans vermiyor (2026-08-19 tarandi) ve 181
+# test onlarsiz geciyor; uretilmis ikili veri olduklari icin */out/ ve
+# */olcum/gt/ ile ayni muameleyi goruyorlar. Diskte duruyorlar, silinmediler.
+*/tests/master png örnekleri/

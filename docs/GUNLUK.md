@@ -7,6 +7,93 @@
 
 ---
 
+## 2026-08-19 — Jordan: MiniCPM geri alındı, 8B sabitlendi, kule uçtan uca doğrulandı
+
+**Bağlam.** Bu kayıt 15 Ağustos'tan beri ilk — aradaki iş (Kobe girişi, LeBron
+magic terfisi, Sheriff/McGrady/Iverson kulelerinin kurulması, Nash'in dizi kolu)
+commit'lerde var ama günlüğe yazılmamıştı. Bugün Çağatay'ın açtığı konu Jordan'dı.
+
+**Yapılan — ① MiniCPM varsayılanlığı geri alındı.** Jordan'ın `config.yaml`'ı
+`openbmb/MiniCPM-V-4.6`'yı *"103 benzersiz satır ve %100 noktalı Türkçe İ/ı
+başarımıyla yarışın kazananı"* diye üretim varsayılanı yapmıştı. Çağatay
+"heyecanla yaptım ama uzun testte mini kaybetti" dedi; `/tmp/mtas_yaris`
+incelendi ve iddianın **çürük** olduğu görüldü:
+
+| | bulgu |
+|---|---|
+| "103 benzersiz satır" | yarıştan **30 dk ÖNCEKİ** bir JSON'un **ham** satır sayısı |
+| o çıktının içeriği | `TÜRKIYE YAYINLARI`, `İstanbul`, `İ. İ. İ.` + modelin kendi yorum cümleleri — halüsinasyon |
+| "%100 İ/ı" | veride böyle bir alan **yok**, hiç hesaplanmamış |
+| config'in andığı ayar (`kare=1`) | yarışta **hiç test edilmedi** (tüm MiniCPM kolları chunk=8/overlap=1) |
+
+13-klip dizi GT'sinde gerçek sıralama, 6 klibin 6'sında da aynı:
+**8B %91 (470/519) > 27B %80 > 7B > MiniCPM %35.** MiniCPM sonuncu.
+
+**② Varsayılan Qwen3-VL-8B'ye sabitlendi** (commit `55b35edd3`). Ölçülen reçete
+birebir: grup 8 kare / bindirme 1 (adım 7), 512 token, greedy, 2 fps, 720 px
+Lanczos+unsharp. MiniCPM'le gelen 2× büyütme kaldırıldı — 8B onunla hiç ölçülmedi.
+
+**③ Uçtan uca doğrulama (Çiçek Taksi girişi, 204 kare).** `OKUNDU`, 66,9 sn,
+29 grup, 0 bozuk, **BİREBİR 32/43, hiç-yok 0**. Kritik kapı: *yarışın KODU +
+kulenin KARELERİ* de aynı **32/43, yakın-yanlış 11** verdi — yani kulenin
+borusu temiz, referans harness'la arasındaki 3 satırlık fark koddan değil.
+
+---
+
+### Öğrenilen — üçü de pahalı
+
+**① Ham satır sayısı kalite ölçüsü değildir.** MiniCPM'i "kazanan" yapan sayı
+buydu; GT'ye vurulduğunda 43 satırın 16'sını tutturuyordu. Yarışın kendi
+puanlayıcıları (`skorla.py`, `skorla_gt.py`) zaten ham sayıyı kullanmıyordu —
+config yorumunu yazan taraf onlara bakmamıştı.
+
+**② Ölçülen reçete, izlenmeyen bir deney script'inde yaşıyordu.** `out/`'taki
+45 koşunun tamamı `istem_sha256=3d24e9f9` kullanmış; bu istem ne config'te ne
+commit'te vardı — yalnız **untracked** `deneyler/orijinal_27b_sifat_isim.py`
+içinde. Kanıt kaydı (`kanit.istem_sha256`) olmasa bu bulunamazdı. Ders: kazanan
+reçete izlenen config'e yazılmalı, ve hash'i kanıta düşmeli. Bugün İ/ı cümlesi
+ile `Never split a name or title across multiple lines` cümlesi **teste
+kilitlendi** — sessizce düşerlerse test kırılır.
+
+**③ YENİ BULGU — kesim reçetesi de reçetenin parçası.** Aynı pencere, aynı
+`fps`, aynı `suzgec`; ama klip **stream-copy** ile mi yoksa **yeniden
+kodlanarak** mı kesildi — bu 43 satırın 3'ünü değiştiriyor (%7). Kare 0 birebir
+aynı, sonraki kareler ortalama ~2/255 ayrışıyor. `fps` + `suzgec` sabitlemek
+yeniden üretilebilirlik için **yetmiyor**. Jordan DURUM.md açık kalem 6.
+
+**Başarısız deneme (benim hatam).** `.gitignore`'a satır-içi `#` yorumlu desen
+yazdım (`/iverson/test/    # ASR alani`). Git satır-içi yorumu desteklemez —
+`#` ve sonrası desenin literal parçası olur, desen hiçbir şeyle eşleşmez.
+Sonuç: 43.602 dosya ignore edilmiş sanılırken edilmemişti. Eşik kapısı
+(">5000 çıkarsa DUR") yakaladı. **Ders: gitignore yorumu daima kendi satırında.**
+
+---
+
+### Ayrıca yapılan
+
+- **`mutfak/` kazara silinmesi geri alındı** — 63 dosya, çalışma ağacında sıfır sapma.
+- **Untracked yığını çözüldü:** 123.314 → 353 dosya. Hiçbir şey **silinmedi**;
+  CagatayBox (~95 GB ağırlık/derleme, kökündeki 7 ölçüm raporu bilinçli
+  korundu), `outputs/`, `data/master_*`, `.mimosa/`, `.zcode/`,
+  `iverson/test/` (43.113 dosyalık ASR alanı) yalnızca git görünümünden çıktı.
+
+### Bekleyen
+
+1. **Kobe'den başlayan gerçek uçtan uca** — Çağatay'ın asıl kastettiği zincir;
+   bugünkü test yalnız Jordan'ı tek başına doğruladı.
+2. **İki yatak, iki kazanan — çözülmedi.** 28-klip FİLM yatağında Qwen2.5-VL-7B
+   kazanmıştı (0,9301); 13-klip DİZİ yatağında 8B kazandı, 7B üçüncü. Varsayılan
+   şu an 8B. Film tarafı için bu ayrışma ölçülmedi; bölüme/türe göre model
+   ayrımı gerekip gerekmediği açık soru.
+3. **Dizi GT'sinin 14 bölümünün 8'i hâlâ boş şablon** — %91 rakamı 6 bölüme
+   (519 satır) dayanıyor.
+4. `processor_kwargs` uyarısı her grup çağrısında basılıyor; bu koşuda
+   doğruluğa mal olmadı ama sessizce yok sayılan bir ayar olabilir.
+5. `skorla_tavan.py` bozuk (tanımsız `skorla()` → `NameError`); MiniCPM tavan
+   taramasının 10 hücresi hiç puanlanmadı.
+
+---
+
 ## 2026-08-15 — `film_esigi` ONARILDI (Çağatay: "önce veri kalitesi, hız sonra")
 
 Bir önceki kayıttaki kusur kapatıldı. **Karar kuralı Çağatay'dan:** *maksimum
