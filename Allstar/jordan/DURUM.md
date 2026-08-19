@@ -1,71 +1,69 @@
 # Jordan kulesi — canlı durum
 
-> **Bu dosya bağlam sigortasıdır.** Oturum kesilirse yeni oturum BURADAN devam
-> eder. Kimlik kartı için `README.md`, tarihçe için `CHANGELOG.md`.
+**Son güncelleme:** 2026-08-19
 
-**Son güncelleme:** 2026-08-13 — **KULE AYAKTA.** Sözleşme, iki geçiş, iki
-checkpoint, CLI ve testler hazır; uçtan uca gerçek koşu yapıldı.
+## Şu anki durum
 
----
+- Native-video model beslemesi devre dışı; `Motor.sor()` yalnız ayrı resim
+  listesi veya metin-only çağrı kabul eder.
+- Varsayılan üretim modeli Qwen3-VL-8B FP16 `transformers`.
+- Qwen2.5-VL-7B ve Qwen3.6-27B (`llama_mtmd`) silinmedi; ikisi de yalnız açık
+  CLI seçimiyle çalışan deney kolu.
+- Kare reçetesi: 2 fps, 720 px, Lanczos + unsharp, JPEG q=2.
+- Üretim grup reçetesi: 8 ayrı kare, bindirme 1.
+- Üretim uzunluğu: max_new_tokens 512.
+- Fuzzy eleme yok; yalnız kesin yakın-dönem tekrar düşer ve kaydı kalır.
+- Metin-only çiftleyici varsayılan kapalı.
+- BBox henüz yok; proof durumu `NONE`.
 
-## Değişmez kurallar (her oturumda geçerli)
+## Doğrulama
 
-- **`git add -A`, `git add .`, `git reset --hard`, `git stash` YASAK.** Ağaçta
-  bu işe ait olmayan onlarca değişik/silinmiş dosya var. Yalnız adı geçen
-  yolları sahnele.
-- **`model/` git'e girmez** (`Allstar/.gitignore: */model/`). 33 GB.
-- **`model/bf16` SİLİNMEZ.** INT8'in ne kaybettirdiği ölçülene kadar kıyasın
-  kontrol koludur.
-- **`gereksinimler.txt`'ten paket çıkarma.** Kobe dersi: çıktı, kodun hiç
-  import etmediği paketlere bağlı olabilir.
-- Üretim durmuş — hiçbir toplu koşu başlatma.
-
-## Kurulum durumu
-
-| Parça | Durum |
+| Kontrol | Sonuç |
 |---|---|
-| `venv/` (torch 2.11.0+cu130, transformers 5.14.1, compressed-tensors 0.17.0, torchcodec 0.16.0) | 5.0 GB, kurulu |
-| `model/w8a8` — INT8, VARSAYILAN | 14 GB, kurulu |
-| `model/bf16` — orijinal, kontrol kolu | 19 GB, kurulu |
-| Testler | **52/52**, GPU gerektirmez |
-| Uçtan uca | KUKLA ADAM 30 sn → `OKUNDU`, 23.3 sn |
+| Jordan CPU testleri | 81/81 |
+| Sheriff CPU testleri | 67/67 |
+| 2.5-VL 28-klip yarışı | 28/28 dolu sonuç, doğrulanmış alt küme skoru 0,9301 |
+| Qwen2.5-VL Sheriff VRAM | 17284 MiB tepe |
+| Qwen2.5-VL Sheriff RSS | 15244 MiB tepe |
+| 13-klip dizi GT yarışı | 8B 470/519 (%91) · 27B %80 · MiniCPM %35 |
+| **8B uçtan uca canlı koşu** (2026-08-19) | Çiçek Taksi girişi: `OKUNDU`, 66,9 sn, 29 grup, 0 bozuk, 50 satır |
+| **↳ GT skoru** | **BİREBİR 32/43 · hiç-yok 0** (yarış harness'ı 35/43) |
+| **↳ kule vs harness kapısı** | yarış KODU + kule KARELERİ = **32/43, yakın-yanlış 11** — kulenin sonucuyla birebir |
+| 8B VRAM (8 kare × 720 px) | 19,1 GB tepe / 24,5 GB |
 
-## Bilinen açık kalemler
+**Uçtan uca koşunun okuduğu:** bindirme=1 örtüşmesi 34 kesin tekrarı eledi ve
+**tek bir gerçek satırı bile yemedi** — 43 GT satırının hepsi çıktıda (`hiç-yok 0`).
+Kulenin harness'tan 3 satır geride kalmasının sebebi kule DEĞİL: aynı yarış kodu
+kulenin kareleriyle beslendiğinde birebir aynı 32/43'ü verdi. Fark tamamen kare
+kaynağından geliyor (yarışın klibi yeniden kodlanmış 13 MB, buradaki klip
+stream-copy 9,6 MB; kare 0 birebir aynı, sonraki kareler ortalama ~2/255 ayrışıyor).
 
-**① Hız — hızlı yol kapalı.** Yükleme uyarısı:
-*"The fast path is not available… fla-org/flash-linear-attention,
-Dao-AILab/causal-conv1d"*. Qwen3.5'in Gated DeltaNet katmanları saf torch
-uygulamasına düşüyor. Doğruluğu etkilemez, **hızı etkiler**. İki paket kurulup
-ölçülmeli — ama önce doğruluk taban çizgisi alınmalı, sonra hız.
+Jordan CPU testleri güncel olarak **80/80** geçmektedir. Özgün 27B reçetesine
+yalnız ham JSON schema eklenen canlı kabul koşusunda bütün gruplar ilk denemede
+tamamlandı. Geçici CUDA kaynak hatası için bir retry ve 2 sn cooldown vardır;
+retry kullanımı model çağrısı kanıtında görünür.
 
-**② INT8 vs bf16 ölçülmedi.** `model/w8a8` varsayılan; hangisinin daha iyi
-okuduğu bilinmiyor. Beklenen ayrışma noktası **garble** (özel isimde karakter
-bozulması): daha çok kare garble'ı düşürür, INT8 yükseltebilir — ikisi de aynı
-metriğe iner, tek ölçüm çözer.
+KSK referansı ile yeniden üretilen JPEG'lerin hash'leri birebirdir. Ham grup
+cevaplarının orta 7/9'u aynıdır. Jordan ilk grupta `executive producer /
+Glen A. Larson` satırlarını kaçırdı; son grupta referansın kesildiği yerde
+`DANIEL B. RABINOVITCH` satırını ekledi. İki ortamın transformers/torch
+sürümleri farklıdır; birebir tensor/runtime eşlemesi ayrı bir dondurma işidir.
 
-**③ Ölçüm yatağı henüz kule içinde değil.** Hazır malzeme:
-`candidate_runs/vllm_bench_20260718/claude_gt/` — 24 film × 3482 satır
-insan-okuması GT (190 giriş + 123 çıkış dilimi), puanlayıcı `grade_claude.py`
-(recall_full / recall_core / uydurma / garble / kapsam-dışı). Önceki nesil
-referansı: Qwen3-VL-8B → recall_full 0.769, recall_core 0.854, uydurma %2.1.
-**Eksik:** o 24 filmin kaynak mp4'leri (`/home/cagatay/test_film/` boşalmış,
-`/mnt/trt_depo`'dan tazelenmeli).
+## Açık kalemler
 
-**④ Eşikleri Çağatay koyacak.** Kule sözleşme + mekanizma olarak teslim edildi;
-kırmızı çizgi ve bağlantı kararı onun.
+1. 3-VL aynı-reçeteli 28-klip koşusu kullanıcı tarafından 6/28'de
+   durduruldu; model kararı için tamamlanmış sayılamaz.
+2. Sheriff yalnız görev girdisini iletmeli; model/backend reçetesini ezmemelidir.
+3. Satır→kare→bbox grounding ayrı proof çalışmasıdır.
+4. Jordan venv'i ile KSK venv'inin tam sürüm dondurması istenirse yeniden
+   üretilebilirlik testi yapılmalıdır.
+5. ~~8B varsayılanı uçtan-uca doğrulanmadı~~ — **KAPANDI 2026-08-19**: canlı
+   koşu yapıldı, kule harness ile birebir aynı sonucu üretti (yukarıya bakınız).
+6. **Kare kaynağı reçeteye dahil değil, ama sonucu değiştiriyor.** Aynı klip
+   penceresinden stream-copy ile kesilmiş kareler, yeniden kodlanmış kareler
+   yerine kullanıldığında 43 satırın 3'ünde diakritik kaybı oldu (%7). `fps` ve
+   `suzgec` sabitlemek yetmiyor; yeniden üretilebilirlik klibin nasıl kesildiğine
+   de bağlı. Kesim reçetesi henüz hiçbir yerde sabitlenmiş değil.
 
-## Kule sınırı notu
-
-`Allstar/MAP.md` "model ağırlıkları zemindedir" der. Jordan bunu **bilerek**
-esnetiyor: o kural PAYLAŞILAN kaynağın çatallanmaması içindir (`core/lexicon`
-örneği); bu iki checkpoint'i başka kule kullanmıyor, çatallanacak bir şey yok.
-Buna karşılık Kobe'nin sürüm-dondurma gerekçesi (`KATALOG §2②`) tam tersini
-söylüyor: ortak `hf_cache`'te biri modeli güncellerse Jordan'ın çıktısı
-sessizce kayar.
-
-## Sandbox
-
-`scratch/model_sandbox/` **kapatıldı** (2026-08-13). Qwen3.5-9B bf16 ağırlıkları
-oradan Jordan'a taşındı. Sandbox'ın kalan içeriği (deney script'leri, 39-film
-OOM sonuçları, showdown çıktıları) **silinmedi** — Jordan'ın parça/keskinleştirme
-ayarlarının kanıt kaynağı orası.
+Eski `w8a8` ve `bf16` ağırlıkları silinmedi; fakat varsayılan değiller ve
+native-video stratejisi geri açık değildir.

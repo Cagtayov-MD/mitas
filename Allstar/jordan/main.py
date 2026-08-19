@@ -7,6 +7,7 @@ Kule girişi. Motor (src/) burayı bilmez; çeviri tek yönlüdür.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -37,6 +38,14 @@ def _config(ezme: dict | None = None) -> dict:
             cfg = {}
     for k, v in (ezme or {}).items():                # çağıran tek tek ezebilir
         cfg[k] = {**cfg.get(k, {}), **v} if isinstance(v, dict) else v
+    # 27B'nin ihtiyatlı pilot grup boyu backend'e özeldir. Bu değer tek başına
+    # VRAM garantisi değildir; Sheriff ayrıca exclusive rezervasyon yapmalıdır.
+    # Çağıran açıkça --grup-kare verdiyse bu varsayılanı doğal olarak ezer.
+    grup_ezildi = "kare_sayisi" in ((ezme or {}).get("grup", {}) or {})
+    if (str(cfg.get("model", {}).get("backend", "transformers")).lower() == "llama_mtmd"
+            and not grup_ezildi):
+        cfg.setdefault("grup", {})["kare_sayisi"] = int(
+            cfg.get("llama_mtmd", {}).get("grup_kare", 6))
     return cfg
 
 
@@ -56,14 +65,36 @@ def film_id_uret(yol: Path) -> str:
 
 def motor_kur(cfg: dict):
     """Modeli YÜKLEYEN tek yer — testler burayı değiştirir."""
-    from model import Motor
     m = cfg.get("model", {})
-    yol = Path(m.get("yol", "model/w8a8"))
+    backend = str(m.get("backend", "transformers")).strip().lower()
+    if backend == "llama_mtmd":
+        from model_27b import LlamaMtmdMotor
+        l = cfg.get("llama_mtmd", {})
+        return LlamaMtmdMotor(
+            l.get("model", ""), mmproj=l.get("mmproj", ""),
+            llama_cli=l.get("binary", ""),
+            timeout_s=int(l.get("timeout_s", 600)),
+            max_new_tokens=int(l.get("max_new_tokens", 1024)),
+            image_min_tokens=l.get("image_min_tokens"),
+            image_max_tokens=l.get("image_max_tokens"),
+            gpu_layers=int(l.get("gpu_layers", 99)),
+            oom_retry=int(l.get("oom_retry", 1)),
+            retry_cooldown_s=float(l.get("retry_cooldown_s", 2.0)),
+        ).yukle()
+    if backend != "transformers":
+        from model import ModelHatasi
+        raise ModelHatasi(f"bilinmeyen model.backend: {backend}")
+
+    from model import Motor
+    yol = Path(m.get("yol", "model/qwen2.5-vl-7b"))
     if not yol.is_absolute():
         yol = KULE / yol
-    return Motor(yol, dtype=m.get("dtype", "bfloat16"),
+    # `gorsel` islemci butcesidir (min_pixels/max_pixels). Gecirilmezse model
+    # varsayilani yurur — olculen kazanan kurulumdan 12 kat genis bir tavan.
+    return Motor(yol, dtype=m.get("dtype", "float16"),
                  dusunme=bool(m.get("dusunme", False)),
-                 uretim=cfg.get("uretim", {})).yukle()
+                 uretim=cfg.get("uretim", {}),
+                 gorsel=cfg.get("gorsel", {})).yukle()
 
 
 def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
@@ -91,30 +122,38 @@ def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
         if not Path(girdi.video).exists():
             return _ariza("GIRDI_HATASI", f"video yok: {girdi.video}")
         try:
-            parcalar = parcala(girdi.video, benim_scratch, cfg)
+            gruplar = parcala(girdi.video, benim_scratch, cfg)
         except VideoHatasi as e:
             return _ariza("VIDEO_OKUNAMADI", e)
 
         try:
             if motor is None:
                 motor = motor_kur(cfg)
-            bloklar, kanit = oku(motor, parcalar, cfg)
-            ciftler, kanit_c = ciftle(motor, bloklar, cfg)
+            bloklar, kanit = oku(motor, gruplar, cfg)
+            if cfg.get("ciftleme_atla"):
+                ciftler, kanit_c = [], {"cift_sayisi": 0, "cift_eleme": 0, "cift_atlandi": 1}
+            else:
+                ciftler, kanit_c = ciftle(motor, bloklar, cfg)
         except BellekHatasi as e:
-            return _ariza("BELLEK", e, {"parca_sayisi": len(parcalar)})
+            return _ariza("BELLEK", e, {"grup_sayisi": len(gruplar)})
         except CiktiBozuk as e:
-            return _ariza("CIKTI_BOZUK", e, {"parca_sayisi": len(parcalar)})
+            return _ariza("CIKTI_BOZUK", e, {"grup_sayisi": len(gruplar)})
         except ModelHatasi as e:
             return _ariza("MODEL", e)
         except Exception as e:                       # noqa: BLE001
             return _ariza("MODEL", f"{type(e).__name__}: {e}")
 
         kanit |= kanit_c
-        kanit |= {"model": str(cfg.get("model", {}).get("yol", "")),
-                  "parca_sn": cfg.get("parca", {}).get("sure_sn"),
-                  "bindirme_sn": cfg.get("parca", {}).get("bindirme_sn"),
+        istem_anahtari = str(getattr(motor, "istem_anahtari", "okuma"))
+        istem = str(cfg.get("istem", {}).get(istem_anahtari)
+                    or cfg.get("istem", {}).get("okuma", ""))
+        kanit |= {"model": str(getattr(motor, "yol", cfg.get("model", {}).get("yol", ""))),
+                  "model_backend": str(cfg.get("model", {}).get("backend", "transformers")),
+                  "grup_kare": cfg.get("grup", {}).get("kare_sayisi"),
+                  "bindirme_kare": cfg.get("grup", {}).get("bindirme_kare"),
                   "video_fps": cfg.get("video", {}).get("fps"),
-                  "video_genislik": cfg.get("video", {}).get("genislik")}
+                  "video_genislik": cfg.get("video", {}).get("genislik"),
+                  "istem_sha256": hashlib.sha256(istem.encode("utf-8")).hexdigest()}
         # Blok yoksa bu bir ARIZA DEĞİL: klipte gerçekten okunacak yazı yok.
         # (İçerik gerçeği ile arıza gerçeği burada ayrılır.)
         if not bloklar:
@@ -174,6 +213,7 @@ def main(argv=None) -> int:
     a.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
     a.add_argument("--model", help="config.yaml'daki model yolunu ezer")
     a.add_argument("--dtype", help="bfloat16 | float16 — config.yaml'i ezer")
+    a.add_argument("--out", help="cikti kok dizinini ezer (varsayilan: out/)")
 
     b = alt.add_parser("tek", help="tek klip")
     b.add_argument("--video", required=True)
@@ -181,13 +221,56 @@ def main(argv=None) -> int:
     b.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
     b.add_argument("--model", help="config.yaml'daki model yolunu ezer")
     b.add_argument("--dtype", help="bfloat16 | float16 — config.yaml'i ezer")
+    b.add_argument("--out", help="cikti kok dizinini ezer (varsayilan: out/)")
+    for alt_ap in (a, b):        # config supurmesi icin ezme bayraklari
+        alt_ap.add_argument("--backend", choices=("transformers", "llama_mtmd"),
+                            help="model calisma zamani; varsayilan config.yaml")
+        alt_ap.add_argument("--suzgec", help="video.suzgec'i ezer (ffmpeg -vf)")
+        alt_ap.add_argument("--fps", type=float, help="video.fps'i ezer")
+        alt_ap.add_argument("--grup-kare", type=int,
+                            help="tek model cagrisindaki ayri resim sayisi")
+        alt_ap.add_argument("--bindirme-kare", type=int,
+                            help="komsu resim gruplarinin ortak kare sayisi")
+        alt_ap.add_argument("--greedy", action="store_true",
+                            help="ornekleme kapali: do_sample=False, temperature=0")
+        alt_ap.add_argument("--ciftlemesiz", action="store_true",
+                            help="gecis 2'yi (rol/isim eslestirme) atla")
+        alt_ap.add_argument("--ciftle", action="store_true",
+                            help="varsayilan kapali metin-only rol/isim gecisini ac")
+        alt_ap.add_argument("--mmproj", help="llama_mtmd mmproj yolunu ezer")
+        alt_ap.add_argument("--llama-cli", help="llama-mtmd-cli yolunu ezer")
+        alt_ap.add_argument("--image-min-tokens", type=int,
+                            help="llama_mtmd resim basina alt token butcesi")
+        alt_ap.add_argument("--image-max-tokens", type=int,
+                            help="llama_mtmd resim basina ust token butcesi")
 
     n = ap.parse_args(argv)
-    m = {k: v for k, v in (("yol", n.model), ("dtype", n.dtype)) if v}
-    ezme = {"model": m} if m else {}
+    m = {k: v for k, v in (("backend", n.backend), ("dtype", n.dtype)) if v}
+    llama = {k: v for k, v in (
+        ("mmproj", n.mmproj), ("binary", n.llama_cli),
+        ("image_min_tokens", n.image_min_tokens),
+        ("image_max_tokens", n.image_max_tokens),
+    ) if v is not None}
+    if n.model:
+        if n.backend == "llama_mtmd":
+            llama["model"] = n.model
+        else:
+            m["yol"] = n.model
+    v = {k: val for k, val in (("suzgec", n.suzgec), ("fps", n.fps)) if val is not None}
+    gr = {k: val for k, val in (("kare_sayisi", n.grup_kare),
+                                ("bindirme_kare", n.bindirme_kare)) if val is not None}
+    ur = {"do_sample": False, "temperature": 0.0} if n.greedy else {}
+    ezme = {k: val for k, val in (("model", m), ("llama_mtmd", llama),
+                                  ("video", v), ("grup", gr),
+                                  ("uretim", ur)) if val}
+    if n.ciftlemesiz:
+        ezme["ciftleme_atla"] = True
+    if n.ciftle:
+        ezme["ciftleme_atla"] = False
+    kok = Path(n.out) if n.out else None
 
     if n.komut == "start":
-        toplu(Path(n.input), bolum=n.bolum, config=ezme)
+        toplu(Path(n.input), kok=kok, bolum=n.bolum, config=ezme)
         return 0
     try:
         g = Girdi(film_id=n.film_id, video=n.video, bolum=n.bolum, config=ezme)
@@ -196,7 +279,7 @@ def main(argv=None) -> int:
         c.yaz(OUT)
         print(json.dumps(c.sozluk(), ensure_ascii=False))
         return 2
-    c = tek(g)
+    c = tek(g, kok)
     print(json.dumps(c.sozluk(), ensure_ascii=False))
     return 2 if c.durum == "ARIZA" else 0
 

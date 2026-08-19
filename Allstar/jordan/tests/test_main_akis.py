@@ -52,8 +52,15 @@ def test_okundu_json_txt_ve_tamam_yazar(klip, tmp_path):
     assert (d / "jordan.txt").read_text(encoding="utf-8").splitlines() == [
         "YONETMEN", "ALI OZGENTURK"]
     j = json.loads((d / "jordan.json").read_text(encoding="utf-8"))
-    assert j["ciftler"][0]["isim"] == "ALI OZGENTURK"
-    assert j["kanit"]["cift_eleme"] == 0 and j["motor_surumu"].startswith("jordan@")
+    assert j["ciftler"] == []
+    assert j["kanit"]["cift_atlandi"] == 1
+    assert j["motor_surumu"].startswith("jordan@")
+
+
+def test_ciftleme_acikca_istenirse_calisir(klip, tmp_path):
+    c = main.tek(Girdi(film_id="F2", video=str(klip),
+                       config={"ciftleme_atla": False}), kok=tmp_path / "out")
+    assert c.ciftler[0]["isim"] == "ALI OZGENTURK"
 
 
 def test_metin_yok_ariza_degildir(klip, tmp_path, monkeypatch):
@@ -132,3 +139,28 @@ def test_toplu_film_id_dosya_adindan(tmp_path):
     (giris / "2025-1307-1-0000-50-0.mp4").write_bytes(b"x")
     sonuc = main.toplu(giris, kok=tmp_path / "out")
     assert sonuc[0].film_id == "2025-1307-1-0000-50-0"
+
+
+def test_27b_backend_olculmus_24_kare_grubunu_alir():
+    cfg = main._config({"model": {"backend": "llama_mtmd"}})
+    assert cfg["grup"]["kare_sayisi"] == cfg["llama_mtmd"]["grup_kare"] == 24
+
+
+def test_varsayilan_8b_ve_8_kare_1_bindirmedir():
+    """Varsayılan (Çağatay kararı 2026-08-19): Qwen3-VL-8B, kare=8, bindirme=1 — 13-klip dizi GT yarışının ölçülmüş kazananı (470/519)."""
+    cfg = main._config()
+    assert cfg["model"]["backend"] == "transformers"
+    assert cfg["model"]["yol"] == "model/qwen3-vl-8b"
+    assert cfg["grup"]["kare_sayisi"] == 8
+    assert cfg["grup"]["bindirme_kare"] == 1
+    assert cfg["uretim"]["max_new_tokens"] == 512
+    # Ölçülmüş kaldıraç: bu iki cümle sessizce düşerse okuma kalitesi sessizce düşer.
+    istem = cfg["istem"]["okuma"].strip()
+    assert istem.endswith("Never split a name or title across multiple lines.")
+    assert "dotless ı" in istem
+
+
+def test_27b_acik_grup_ezmesini_korur():
+    cfg = main._config({"model": {"backend": "llama_mtmd"},
+                        "grup": {"kare_sayisi": 4}})
+    assert cfg["grup"]["kare_sayisi"] == 4

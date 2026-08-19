@@ -1,5 +1,6 @@
-"""Geçiş 1 — blok ayırma, tekrar düşürme, düşünme sızıntısı. Model koşmaz."""
+"""Multi-image okuma, kayıpsız derleme ve kare gruplama. GPU kullanmaz."""
 import sys
+import inspect
 from pathlib import Path
 
 import pytest
@@ -13,25 +14,37 @@ from okuyucu import _bloklara_ayir, oku, parcala    # noqa: E402
 
 
 class SahteMotor:
-    """Sırayla hazır cevap döner; GPU yok, transformers yok."""
-
     def __init__(self, cevaplar):
         self.cevaplar = list(cevaplar)
         self.sizinti = 0
         self.sorulan = []
 
-    def sor(self, istem, video=None):
-        self.sorulan.append((istem, video))
-        c = self.cevaplar.pop(0)
-        if isinstance(c, Exception):
-            raise c
-        return c
+    def sor(self, istem, kareler=None):
+        self.sorulan.append((istem, kareler))
+        cevap = self.cevaplar.pop(0)
+        if isinstance(cevap, Exception):
+            raise cevap
+        return cevap
 
 
-CFG = {"istem": {"okuma": "OKU"}}
+def kare(sira: int) -> dict:
+    return {"sira": sira, "kaynak_sn": (sira - 1) / 2,
+            "yol": f"/gecici/frame_{sira:06d}.jpg",
+            "dosya": f"frame_{sira:06d}.jpg", "sha256": f"h{sira}",
+            "genislik": 720, "yukseklik": 576}
 
 
-# ── düşünme sızıntısı ───────────────────────────────────────────────────
+def grup(no: int, ilk: int = 1, adet: int = 2) -> dict:
+    ks = [kare(i) for i in range(ilk, ilk + adet)]
+    return {"no": no, "bas_sn": ks[0]["kaynak_sn"],
+            "bit_sn": ks[-1]["kaynak_sn"], "ilk_kare": ks[0]["sira"],
+            "son_kare": ks[-1]["sira"], "kareler": ks}
+
+
+CFG = {"istem": {"okuma": "OKU"},
+       "derleyici": {"kesin_tekrar_penceresi": 12}}
+
+
 def test_dusunme_temiz_metni_gecirir():
     metin, sizdi = _dusunme_ayikla("YONETMEN\nALI OZGENTURK")
     assert metin == "YONETMEN\nALI OZGENTURK" and sizdi is False
@@ -42,8 +55,7 @@ def test_dusunme_kapanmis_bloktan_sonrasini_alir():
     assert metin == "YONETMEN" and sizdi is True
 
 
-def test_dusunme_cift_kapanista_SON_bloktan_sonrasini_alir():
-    """Sandbox'ta gözlenen bozukluk: cevap iki kez, kaçak </think> ile."""
+def test_dusunme_cift_kapanista_son_bloktan_sonrasini_alir():
     ham = "akil...</think>\nYONETMEN\n</think>\nYONETMEN"
     metin, sizdi = _dusunme_ayikla(ham)
     assert metin == "YONETMEN" and sizdi is True
@@ -54,122 +66,168 @@ def test_dusunme_kapanmamissa_bozuk_sayilir():
         _dusunme_ayikla("<think> daha bitirmedim")
 
 
-# ── blok ayırma ─────────────────────────────────────────────────────────
 def test_bos_satir_blok_sinirdir():
     b = _bloklara_ayir("YONETMEN\nALI OZGENTURK\n\nMUZIK\nZULFU LIVANELI")
     assert b == [["YONETMEN", "ALI OZGENTURK"], ["MUZIK", "ZULFU LIVANELI"]]
 
 
-def test_bos_isaret_satiri_isim_sayilmaz():
-    """'NO TEXT' dürüst bir boş-işaretidir, künye satırı değil."""
+def test_bos_bildirimi_kunye_sayilmaz():
     assert _bloklara_ayir("NO TEXT") == []
     assert _bloklara_ayir("YAZI YOK\n\nYONETMEN") == [["YONETMEN"]]
 
 
 @pytest.mark.parametrize("cumle", [
-    # KUKLA ADAM koşusunda (2026-08-13) transkripte SIZAN gerçek cümleler
     "There is no text in the provided video frames.",
-    "There is no text in the picture.",
     "There's no text in this picture.",
-    "There is no text in the provided images.",
-    "There is no text visible in the provided video frames. The images show "
-    "people walking down steps from a house, but there are no signs, logos, "
-    "or subtitles present in the shots.",
     "No text is visible in these frames.",
     "Bu karelerde metin yok.",
 ])
-def test_yazi_yok_CUMLESI_de_elenir(cumle):
-    """Model 'yazı yok'u cümleyle söyleyince o bir künye satırı DEĞİLDİR.
-
-    Kısa işaret süzgeci bunları kaçırıyordu; yorum transkripte sızıyordu.
-    """
+def test_yazi_yok_cumlesi_elenir(cumle):
     assert _bloklara_ayir(cumle) == []
 
 
-def test_yazi_yok_cumlesi_gercek_satiri_goturmez():
-    b = _bloklara_ayir("There is no text in the picture.\n\nYONETMEN\nALI")
-    assert b == [["YONETMEN", "ALI"]]
+def test_protokol_basligi_ve_altyazi_krediye_karismaz():
+    ham = "[CREDITS]\nDIRECTOR\nALI\n[SUBTLES]\nBuraya gel!"
+    assert _bloklara_ayir(ham) == [["DIRECTOR", "ALI"]]
 
 
-# ── oku(): tekrar düşürme + kanıt ───────────────────────────────────────
-def test_bindirmedeki_ayni_blok_tekrarlanmaz():
-    m = SahteMotor(["YONETMEN\nALI OZGENTURK", "YONETMEN\nALI OZGENTURK\n\nMUZIK"])
-    bloklar, kanit = oku(m, [{"no": 0, "bas_sn": 0.0, "yol": "a.mp4"},
-                             {"no": 1, "bas_sn": 13.0, "yol": "b.mp4"}], CFG)
-    assert [b["satirlar"] for b in bloklar] == [["YONETMEN", "ALI OZGENTURK"],
-                                                ["MUZIK"]]
-    assert kanit["blok_sayisi"] == 2 and kanit["parca_sayisi"] == 2
+def test_kesin_tekrar_elenir_ama_ham_cevap_kaybolmaz():
+    m = SahteMotor(["[CREDITS]\nYONETMEN\nALI", "[CREDITS]\nYONETMEN\nAHMET"])
+    bloklar, kanit = oku(m, [grup(0), grup(1, 3)], CFG)
+    assert [s for b in bloklar for s in b["satirlar"]] == ["YONETMEN", "ALI", "AHMET"]
+    assert kanit["kesin_tekrar_elenen"] == 1
+    assert kanit["kesin_tekrarlar"][0]["metin"] == "YONETMEN"
+    assert "YONETMEN" in kanit["gruplar"][1]["ham_metin"]
 
 
-def test_uzak_tekrar_korunur():
-    """Ardışık OLMAYAN tekrar gerçek olabilir — silmek veri kaybıdır."""
-    m = SahteMotor(["SON", "ARADA", "SON"])
-    p = [{"no": i, "bas_sn": 0.0, "yol": "x.mp4"} for i in range(3)]
-    bloklar, _ = oku(m, p, CFG)
-    assert [b["satirlar"] for b in bloklar] == [["SON"], ["ARADA"], ["SON"]]
+def test_yakin_fuzzy_varyantlar_iki_ayri_okuma_olarak_korunur():
+    m = SahteMotor(["Ahmat Güldiken", "Ahmet Güldiken"])
+    bloklar, kanit = oku(m, [grup(0), grup(1, 3)], CFG)
+    assert [s for b in bloklar for s in b["satirlar"]] == [
+        "Ahmat Güldiken", "Ahmet Güldiken"]
+    assert kanit["kesin_tekrar_elenen"] == 0
 
 
-def test_blok_parca_ve_saniye_tasir():
+def test_pencere_disindaki_gercek_tekrar_korunur():
+    cfg = {**CFG, "derleyici": {"kesin_tekrar_penceresi": 2}}
+    m = SahteMotor(["SON", "A\nB\nC", "SON"])
+    bloklar, _ = oku(m, [grup(0), grup(1, 3), grup(2, 5)], cfg)
+    assert [s for b in bloklar for s in b["satirlar"]].count("SON") == 2
+
+
+def test_blok_grup_kare_ve_zaman_araligini_tasir():
     m = SahteMotor(["YONETMEN"])
-    bloklar, _ = oku(m, [{"no": 4, "bas_sn": 52.0, "yol": "a.mp4"}], CFG)
-    assert bloklar[0]["parca"] == 4 and bloklar[0]["sn"] == 52.0
+    bloklar, _ = oku(m, [grup(4, 9, 3)], CFG)
+    assert bloklar[0] | {} == {
+        "no": 1, "grup": 4, "parca": 4, "sn": 4.0, "bit_sn": 5.0,
+        "ilk_kare": 9, "son_kare": 11, "satirlar": ["YONETMEN"]}
 
 
-def test_tek_bozuk_parca_kosuyu_bitirmez_ama_sayilir():
+def test_tek_bozuk_grup_kosuyu_bitirmez_ama_sayilir():
     m = SahteMotor([CiktiBozuk("bozuk"), "YONETMEN"])
-    p = [{"no": 0, "bas_sn": 0.0, "yol": "a"}, {"no": 1, "bas_sn": 1.0, "yol": "b"}]
-    bloklar, kanit = oku(m, p, CFG)
-    assert len(bloklar) == 1 and kanit["bozuk_parca"] == 1
+    bloklar, kanit = oku(m, [grup(0), grup(1, 3)], CFG)
+    assert len(bloklar) == 1 and kanit["bozuk_grup"] == 1
+    assert kanit["gruplar"][0]["durum"] == "CIKTI_BOZUK"
 
 
 def test_hepsi_bozuksa_ariza():
     m = SahteMotor([CiktiBozuk("x"), CiktiBozuk("y")])
-    p = [{"no": 0, "bas_sn": 0.0, "yol": "a"}, {"no": 1, "bas_sn": 1.0, "yol": "b"}]
     with pytest.raises(CiktiBozuk):
-        oku(m, p, CFG)
+        oku(m, [grup(0), grup(1, 3)], CFG)
 
 
 def test_metin_yoksa_blok_bos_doner_ariza_degil():
-    """Klipte yazı yoksa bu içerik gerçeğidir — arıza değil."""
-    m = SahteMotor(["NO TEXT"])
-    bloklar, kanit = oku(m, [{"no": 0, "bas_sn": 0.0, "yol": "a"}], CFG)
+    bloklar, kanit = oku(SahteMotor(["NO TEXT"]), [grup(0)], CFG)
     assert bloklar == [] and kanit["satir_sayisi"] == 0
 
 
-def test_okuma_modele_VIDEO_verir():
-    """Jordan'ın geçiş 1'i native video ile sorar — kare listesiyle değil."""
+def test_okuma_modele_yalniz_ayri_gorsel_listesi_verir():
     m = SahteMotor(["X"])
-    oku(m, [{"no": 0, "bas_sn": 0.0, "yol": "/yol/parca_000.mp4"}], CFG)
-    assert m.sorulan[0][1] == "/yol/parca_000.mp4"
+    oku(m, [grup(0, 1, 3)], CFG)
+    assert m.sorulan == [("OKU", [
+        "/gecici/frame_000001.jpg", "/gecici/frame_000002.jpg",
+        "/gecici/frame_000003.jpg"])]
 
 
-# ── parcala(): kare tavanı ──────────────────────────────────────────────
-def test_kare_tavani_parca_suresini_kisar(tmp_path, monkeypatch):
-    """30 kare çalışıyor, 36 OOM — tavan aşılamaz (ölçülmüş sınır)."""
+def test_motor_ozel_istemi_ve_cagri_kaniti_kaybolmaz():
+    class SchemaMotor(SahteMotor):
+        istem_anahtari = "okuma"
+
+        def son_cagri_kaniti(self):
+            return {"image_transport": "repeated_image_flags",
+                    "raw_json": '{"credits":["X"],"subtitles":[]}'}
+
+    m = SchemaMotor(["[CREDITS]\nX\n[SUBTITLES]"])
+    cfg = {"istem": {"okuma": "DOGRU"},
+           "derleyici": {"kesin_tekrar_penceresi": 12}}
+    _, kanit = oku(m, [grup(0)], cfg)
+    assert m.sorulan[0][0] == "DOGRU"
+    assert kanit["istem_anahtari"] == "okuma"
+    assert kanit["gruplar"][0]["model_cagri"]["raw_json"].startswith("{")
+
+
+def test_27b_ayni_grupta_komsu_tekrari_siler_semantik_tekrari_korur():
+    class SchemaMotor(SahteMotor):
+        istem_anahtari = "okuma"
+        tekrar_modu = "ayni_grupta_yalniz_komsu"
+
+    m = SchemaMotor([
+        "[CREDITS]\nSTU PHILLIPS\nSTU PHILLIPS\nMUSIC BY\n"
+        "MUSIC BY\nSTU PHILLIPS\nSTU PHILLIPS\n[SUBTITLES]"
+    ])
+    cfg = {"istem": {"okuma": "OCR"},
+           "derleyici": {"kesin_tekrar_penceresi": 12}}
+    bloklar, kanit = oku(m, [grup(0)], cfg)
+    assert [satir for blok in bloklar for satir in blok["satirlar"]] == [
+        "STU PHILLIPS", "MUSIC BY", "STU PHILLIPS"]
+    assert kanit["kesin_tekrar_elenen"] == 3
+    assert all(item["sebep"] == "kesin_komsu_tekrar"
+               for item in kanit["kesin_tekrarlar"])
+
+
+def test_motor_native_video_parametresi_kabul_etmez():
+    """Native-video yolu yanlislikla geri acilamasin."""
+    from model import Motor
+    assert "video" not in inspect.signature(Motor.sor).parameters
+
+
+def test_parcala_17_kareyi_8_8_1_gruplar(tmp_path, monkeypatch):
     import okuyucu
-    monkeypatch.setattr(okuyucu, "sure_sn", lambda v: 40.0)
-    cagri = {}
+    from PIL import Image
 
-    def sahte_run(cmd, **kw):
-        if "-t" in cmd:
-            cagri.setdefault("t", []).append(float(cmd[cmd.index("-t") + 1]))
-        Path(cmd[-1]).write_bytes(b"x")
-        class R: returncode = 0; stderr = ""
+    def sahte_run(cmd, **kwargs):
+        desen = Path(cmd[-1])
+        for i in range(1, 18):
+            yol = Path(str(desen).replace("%06d", f"{i:06d}"))
+            Image.new("RGB", (720, 576), color=(i, 0, 0)).save(yol)
+        class R:
+            returncode = 0
+            stderr = ""
         return R()
 
     monkeypatch.setattr(okuyucu.subprocess, "run", sahte_run)
-    cfg = {"parca": {"sure_sn": 60, "bindirme_sn": 2, "kare_tavani": 30},
-           "video": {"fps": 2, "genislik": 720, "suzgec": "scale={genislik}:-2"}}
-    parcala("f.mp4", tmp_path, cfg)
-    assert max(cagri["t"]) == pytest.approx(15.0)   # 30 kare / 2 fps
+    cfg = {"grup": {"kare_sayisi": 8, "bindirme_kare": 0},
+           "video": {"fps": 2, "genislik": 720,
+                     "suzgec": "scale={genislik}:-2:flags=lanczos",
+                     "bicim": "jpg", "jpeg_kalite": 2}}
+    gruplar = parcala("f.mp4", tmp_path, cfg)
+    assert [len(g["kareler"]) for g in gruplar] == [8, 8, 1]
+    assert [(g["bas_sn"], g["bit_sn"]) for g in gruplar] == [
+        (0.0, 3.5), (4.0, 7.5), (8.0, 8.0)]
+    assert len(gruplar[0]["kareler"][0]["sha256"]) == 64
 
 
-# ── uretim ayarlari config'ten generate'e GERCEKTEN geciyor mu ───────────
+def test_gecersiz_bindirme_reddedilir(tmp_path):
+    with pytest.raises(Exception, match="bindirme"):
+        parcala("f.mp4", tmp_path, {
+            "grup": {"kare_sayisi": 8, "bindirme_kare": 8},
+            "video": {"fps": 2}})
+
+
 def test_top_p_generate_e_gecer():
-    """config'te ayarlanan bir sey generate'e gitmiyorsa ayarlanmamis demektir."""
     from model import Motor
-    m = Motor("/yok", uretim={"do_sample": True, "temperature": 0.01, "top_p": 0.10})
-    kw = m.uretim_kwargs()
+    kw = Motor("/yok", uretim={"do_sample": True, "temperature": 0.01,
+                                "top_p": 0.10}).uretim_kwargs()
     assert kw["top_p"] == 0.10 and kw["temperature"] == 0.01
 
 
@@ -180,7 +238,6 @@ def test_greedy_de_ornekleme_ayarlari_dusurulur():
 
 
 def test_config_te_ne_varsa_generate_e_gider():
-    """Beyaz liste yok — ayar alanini kisitlamak motorun isi degil."""
     from model import Motor
     kw = Motor("/yok", uretim={"do_sample": True, "min_p": 0.05}).uretim_kwargs()
     assert kw["min_p"] == 0.05

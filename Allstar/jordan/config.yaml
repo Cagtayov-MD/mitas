@@ -1,48 +1,54 @@
-# Jordan — mp4'ten jenerik okuma. Eşikler ve bayraklar.
+# Jordan — mp4 girer; içeride ölçülmüş multi-image frame OCR yapar.
 # Çağıran Girdi.config ile tek tek ezebilir.
 
 model:
-  # İki çalışma zamanı da kurulu. Geçiş TEK satır:
-  #   w8a8 = INT8 (14 GB, Ampere'de yerel çalışır) — VARSAYILAN
-  #   bf16 = orijinal (19.3 GB, kuantizasyon yok)
-  # FP8 BU KARTTA YOK: RTX 3090 = Ampere sm_86, FP8 çekirdeği sm_89+ ister.
-  yol: model/w8a8
-  dtype: bfloat16          # w8a8'de yalnız hesap tipi; ağırlıklar int8
-  dusunme: false           # Qwen3.5 varsayılan akıl yürütür — jenerikte YORUM İSTEMİYORUZ
+  # ANA OKUYUCU (Çağatay kararı 2026-08-19): Qwen3-VL-8B.
+  # 13-klip dizi GT yarışının kazananı: 470/519 birebir (%91). 2. 27B %80, MiniCPM %35.
+  backend: transformers
+  yol: model/qwen3-vl-8b
+  dtype: bfloat16         # bfloat16 ağırlıklar — ölçülen kurulumla birebir
+  dusunme: false
 
-parca:
-  # 39/39 CUDA OOM ölçülmüş gerçeği: 36 kare/çağrı bf16'da patlıyor, 30 çalışıyor.
-  # Parçalama bir "ek katman" değil, modelin bu kartta koşabilmesinin tek yolu.
-  sure_sn: 15              # bir çağrıya giren video uzunluğu
-  bindirme_sn: 2           # parça sınırında kesilen ismi kurtarır
-  kare_tavani: 30          # emniyet freni — bu sayıdan çok kare tek çağrıya girmez
+# Varsayılan 27B kolu. `--backend llama_mtmd` ile çağrıda da açıkça
+# sabitlenebilir. Yollar tek yerde tutulur ve model taşındığında yalnız burası değişir.
+llama_mtmd:
+  binary: /home/cagatay/Programlar/mitas/CagatayBox/llama.cpp/build/bin/llama-mtmd-cli
+  model: /home/cagatay/Programlar/mitas/CagatayBox/models/Qwen3.6-27B-GGUF/Qwen3.6-27B-Q4_K_M.gguf
+  mmproj: /home/cagatay/Programlar/mitas/CagatayBox/models/Qwen3.6-27B-GGUF/mmproj-F16.gguf
+  timeout_s: 600
+  max_new_tokens: 1024
+  gpu_layers: 99
+  grup_kare: 24
+  oom_retry: 1
+  retry_cooldown_s: 2.0
+  image_min_tokens: null
+  image_max_tokens: null
+
+grup:
+  kare_sayisi: 8
+  bindirme_kare: 1
+
+derleyici:
+  kesin_tekrar_penceresi: 12
 
 video:
-  # Kanıtlanmış keskinleştirme reçetesi (sandbox, 2026-08-12).
-  # 512px ince punto jenerikte kör; 704-720px kurtarıyor.
   fps: 2
   genislik: 720
-  suzgec: "scale={genislik}:-2:flags=lanczos,hqdn3d=2:2:2,unsharp=5:5:1.0"
+  suzgec: "scale={genislik}:-2:flags=lanczos,unsharp=5:5:1.0"
+  bicim: jpg
+  jpeg_kalite: 2
+
+gorsel:
+  min_pixels: 200704
+  max_pixels: 3211264      # 720px reçetede atıl (720x405 = 291.600 px, iki sınırın da içinde)
 
 uretim:
-  temperature: 0.0
   do_sample: false
-  repetition_penalty: 1.05
-  max_new_tokens: 1024
+  max_new_tokens: 512
 
 istem:
-  # Geçiş 1 — videodan ham metin. Düzeltme yok, yorum yok, etiket yok.
   okuma: |
-    Transcribe the text visible in these film credit frames.
-    Rules:
-    - Output ONLY text that is literally visible on screen.
-    - Do not translate, correct, complete or invent anything.
-    - If a character is unclear, write what you see as closely as possible.
-    - The same credit may appear across several frames; use them together
-      to resolve partially visible text, but output it only once.
-    - One line of screen text per output line.
-    - Separate groups of lines that appear on screen together with a blank line.
-    - No commentary, no headings, no numbering, no explanation.
+    Transcribe ONLY literally visible credit text from pixels verbatim from top to bottom. Pay extreme attention to Turkish dotted i (i, İ) versus dotless ı (ı, I). Output one credit per line. Never split a name or title across multiple lines.
   # Geçiş 2 — SADECE metin girer, görüntü GİRMEZ. Yeni metin üretmesi yasak.
   ciftleme: |
     Below are lines of text transcribed from film credits.
@@ -53,3 +59,7 @@ istem:
     - One pair per line, formatted exactly as: ROLE<TAB>NAME
     - If a line has no matching role or name, skip it.
     - No commentary, no explanation.
+
+# KSK yarışında olmayan, görüntü görmeyen eski türev geçiş varsayılan
+# olarak kapalıdır. Ham okuma kaybolmaz; istenirse CLI --ciftle ile açılır.
+ciftleme_atla: true

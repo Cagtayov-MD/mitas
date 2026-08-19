@@ -2,10 +2,21 @@
 # Desenler bu dosyanın bulunduğu dizine (Allstar/) GÖRELİDİR:
 # gerçek yol "kobe/venv/" → tek seviye joker. "*/*/venv/" YANLIŞTIR.
 */venv/
+*/detector_venv/
 */logs/
 */scratch/
 */out/
+/shaq/in/
 */havuz/
 */model/
 __pycache__/
 *.pyc
+
+# Araç durumu (hook defteri / oturum raporlari) — kod degil, kulenin cevabini
+# degistirmez. Her kulede ve Allstar kokunde olusuyor.
+.mimosa/
+
+# Olcum YATAGI kod+metin olarak tutulur, VERISI tutulmaz:
+# olcum/gt tek basina 657 MB (kare/ham cikti). Scriptler ve raporlar girer.
+*/olcum/gt/
+*/olcum/gt_kareler/

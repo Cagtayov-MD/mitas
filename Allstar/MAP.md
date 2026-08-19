@@ -10,14 +10,14 @@ Düzeltme ayrı iş.
 | Kod adı | Gerçek görev | Durum |
 |---|---|---|
 | **kobe** | Film sonu jeneriğinin başladığı kareyi bulur | **kuruldu** (2026-08-13) |
-| lebron_james | Master PNG üretim hattı | planlandı |
+| **lebron_james** | Kare klasörünü master PNG'ye bağlar, master'ı okur | **kuruldu** (2026-08-15) — Faz 1: derleyici taşındı, sadakat kapısı 8/8 birebir. Okuyucu (Faz 2) bekliyor |
 | **nash** | Ham kare havuzundan jenerik okur (kare seçimi + DeepSeek-OCR) | **kuruldu** (2026-08-14) — sökme tamam, algoritmanın tek kopyası kulede |
-| **jordan** | MP4'ten doğrudan okutma (Qwen3.5-9B) | **kuruldu** (2026-08-13) |
-| shaq | Farkları kıyaslar + kutu kontrol | planlandı |
+| **jordan** | MP4'ten doğrudan okutma (Qwen3-VL-8B) | **kuruldu** (2026-08-13) |
+| **shaq** | Kanıtlı iki-kanal uzlaştırma; Shaq referans + HAKEEM paralel challenger | **kuruldu — ikisi de gölge, QC1'e bağlı değil** |
 | phil_jackson | Shaq verisini fuzzy ile düzeltir (yazı→yazı) | planlandı |
 | qc1_lakers | Kalite kapısı 1 | planlandı |
-| qc2_sixers | Kalite kapısı 2 | planlandı |
-| iverson | ASR tam transkript + API destekli özet | planlandı |
+| **mcgrady** | Künye kimlik/doğrulama (eski QC2'nin bağımsız kulesi; `qc2_sixers` satırının gerçekleşmesi) | **kuruldu — gölge, tamamlandı** (2026-08-18): 36/36 test + gerçek-zemin kanarya DOGRULANDI (kimlik+afiş); sheriff kaydı bekliyor |
+| **iverson** | ASR transkript (ffmpeg ses çıktısı → transcript); özet Faz 2 | **kuruldu — gölge, Faz 1 tamam** (2026-08-18): 24/24 test + gerçek-haber kanarya TRANSKRIPT (turbo@cuda); venv+modeller kule içinde (258 pin / 9.6G) |
 
 LeBron / Nash / Jordan aynı işe **üç ayrı besleme**dir: sırasıyla master PNG,
 ham kare havuzu, doğrudan mp4. "Master PNG gerekli mi" sorusu ancak üçü de

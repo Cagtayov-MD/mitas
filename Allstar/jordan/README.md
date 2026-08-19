@@ -1,143 +1,98 @@
-# Jordan — mp4'ten jenerik okuma kulesi
+# Jordan — multi-image jenerik okuma kulesi
 
-> **mp4 girer, yazı çıkar.** Native video okuma. Düzeltme yok, yorum yok,
-> ek katman yok. Model: Qwen3.5-9B.
+Jordan'ın dış girdisi jeneriğin kendisi olan bir video klibidir. Kule klibi
+2 fps/720 px JPEG karelere dönüştürür ve modele yalnız ayrı resim listeleri
+verir. Native-video model yolu yoktur.
 
-## Sorumluluk sınırı
+Varsayılan üretim kolu Qwen2.5-VL-7B FP16 transformers'dır. Ölçülmüş reçete:
+2 fps, 720 px düz Lanczos, 8 ayrı kare/çağrı, bindirme 0, greedy üretim ve
+1024 token tavanı. Qwen3.6-27B GGUF yalnız açıkça `--backend llama_mtmd`
+verilen deney kolu olarak korunur; Sheriff model/backend seçmez.
 
-**Yapar:** verilen klipte ekranda YAZAN metni okur, kendi `out/`'una yazar.
+## Sınır
 
-**Yapmaz:** jeneriğin nerede başladığını aramaz (Kobe'nin işi) · isim
-düzeltmez · eksik tamamlamaz · Database'e yazmaz · PDF üretmez · hangi filmin
-hangi yoldan okunacağına karar vermez (router değildir).
+Jordan verilen klipteki yazıyı okur. Jenerik sınırını bulmaz, isim
+düzeltmez, IMDb/Wikipedia sorgulamaz ve Shaq kararını vermez. BBox/proof
+henüz üretmez; Sheriff paketinde `proof_status=NONE` kalır.
 
 ## Çalıştırma
 
-Kule kendi çalışma zamanını kendi bulur — çağıran hangi python'la koşulacağını
-bilmez:
-
 ```bash
-# TEK klip
-Allstar/jordan/jordan tek --video /yol/klip.mp4 --film-id 2025-1307-1-0000-50-0
+# Tek klip
+Allstar/jordan/jordan tek \
+  --video /yol/jenerik.mp4 \
+  --film-id film_001 \
+  --bolum cikis
 
-# TOPLU — kaldığı yerden devam eder, _TAMAM olanı atlar, model BİR KEZ yüklenir
-Allstar/jordan/jordan start --input /yol/klipler
+# Toplu; _TAMAM bulunan filmi atlar, modeli bir kez yükler
+Allstar/jordan/jordan start --input /yol/klipler --bolum cikis
 
-# Model değiştir (config.yaml'ı ezer)
-Allstar/jordan/jordan start --input /yol/klipler --model model/bf16
+# Aynı multi-image motorunda model/grup deneyi
+Allstar/jordan/jordan tek --video /yol/jenerik.mp4 --film-id deney \
+  --model model/qwen3-vl-8b --dtype float16 --grup-kare 12
+
+# İsteğe bağlı 27B deney kolu; üretim varsayılanı değildir
+Allstar/jordan/jordan tek --video /yol/jenerik.mp4 --film-id deney_27b \
+  --backend llama_mtmd
 ```
 
-Çıktı daima `Allstar/jordan/out/<film_id>/<bolum>/`. Çağıran çıktı yolunu
-seçmez — kule kendi evine yazar.
+Geçici CUDA resource-allocation/OOM hatası yalnız bir kontrollü retry alır;
+ikinci hata terminal `ARIZA(BELLEK)` olur. Her deneme grup kanıtında saklanır.
+KSK kabul koşusu tek Jordan çıktısında 71 kare/3 grup/0 bozuk grup olarak
+50,4 saniyede tamamlandı; üç grup da ilk denemede geçti. Kanıt:
+`out/jordan_27b_buyuk_kosu_hazirlik_20260817/cikis/jordan.json`.
 
-```
-out/<film_id>/cikis/
-├─ jordan.json     # bloklar + çiftler + kanıt
-├─ jordan.txt      # düz metin, satırlar göründüğü sırayla
-└─ _TAMAM          # EN SON yazılır
-```
+Varsayılan çıktı:
 
-## Girdi
-
-Jordan'ın tek girdisi **video**'dur; ve verilen klibin **jeneriğin kendisi
-olduğunu varsayar**. Kare dizini, PNG havuzu almaz. Standart besleme Kobe'nin
-`--uret klip` çıktısıdır:
-
-```bash
-Allstar/kobe/kobe tek --video film.mp4 --film-id ID --uret klip
-Allstar/jordan/jordan tek --video Allstar/kobe/out/ID/cikis/klip/klip.mp4 --film-id ID
+```text
+out/<film_id>/<bolum>/
+├─ jordan.json
+├─ jordan.txt
+└─ _TAMAM
 ```
 
-## İki geçiş — neden ayrı
+`_TAMAM` en son yazılır. Tüketici `_TAMAM` yoksa sonucu yok sayar.
 
-| | Geçiş 1 — **okuyucu** | Geçiş 2 — **çiftleyici** |
-|---|---|---|
-| Girdi | native video (mp4) | *yalnız* geçiş 1'in metni |
-| Çıktı | `bloklar` — ekranda birlikte duran satırlar | `ciftler` — rol → isim |
-| Görüntü görür mü | evet | **hayır** |
+## Akış
 
-Tek istekte model rolü tutturmak için metni "düzeltmeye" başlar; o an okuma
-hatasıyla eşleme hatası ayrılamaz. Ayrı geçiş bunu imkânsız kılar.
+```text
+video klip
+  → ffmpeg: fps=2, scale=720:-2:lanczos, JPEG q=2
+  → 8'li ayrı image grupları (son grup kısa olabilir)
+  → Qwen2.5-VL-7B FP16 ham credits/subtitles cevapları
+  → protokol başlığı/altyazı ayrımı
+  → yalnız kesin yakın-dönem tekrarların düşürüldüğü kredi görünümü
+  → jordan.json + jordan.txt + _TAMAM
+```
 
-**Sızdırmazlık kapısı:** çıkan her rol ve her isim, geçiş 1'in satırlarında
-gerçekten geçmek zorundadır. Geçmiyorsa çıktıya girmez, `kanit.cift_eleme`
-sayacına yazılır. Model geçiş 2'de yeni metin uyduramaz.
+Fuzzy birleştirme yapılmaz. `Ahmat Güldiken` ve `Ahmet Güldiken` iki ayrı
+okuma olarak korunur. Düşürülen kesin tekrarlar da dahil her ham grup cevabı
+`kanit.gruplar` içinde saklanır.
 
-**Geçiş 2 çökerse geçiş 1 atılmaz.** Bloklar gerçek okumadır, çiftler türev
-veridir; türev çökünce asıl korunur (`kanit.cift_ariza`).
+Her kare için sıra, kaynak saniyesi, JPEG SHA-256 ve boyut taşınır. Kareler
+scratch'te geçicidir; bu künye aynı ffmpeg reçetesiyle yeniden üretimi
+doğrulamaya yarar. BBox uydurulmaz.
 
-## Sözleşme
+Metin-only rol/isim çiftleyici KSK reçetesinin parçası olmadığı için
+varsayılan kapalıdır. Yalnız `--ciftle` ile açılır; ham okuma bundan
+bağımsız korunur.
 
-`durum` üç değer alır ve bu ayrım **değişmezdir**:
+## Durum sözleşmesi
 
-| durum | Anlamı | Zorunlu |
-|---|---|---|
-| `OKUNDU` | Metin okundu | `bloklar` (boş olamaz) |
-| `METIN_YOK` | Klipte gerçekten okunacak yazı yok — **içerik gerçeği** | — |
-| `ARIZA` | Okuyamadık: video bozuk, model çöktü, OOM — **arıza gerçeği** | `sinif` + `mesaj` |
-
-> **`ARIZA` asla `METIN_YOK`'a dönüşmez.** Geniş bir `except` arızayı içerik
-> gerçeğine çevirdiği an aşağı akış kirlenir ve kimse fark etmez. Sözleşme
-> bunu kodla zorlar; `METIN_YOK` ve `ARIZA` blok/çift **taşıyamaz**.
-
-| sinif | Ne oldu |
+| Durum | Anlam |
 |---|---|
-| `GIRDI_HATASI` | video yok / sözleşme ihlali |
-| `VIDEO_OKUNAMADI` | ffprobe/ffmpeg patladı, parça üretilemedi |
-| `BELLEK` | CUDA OOM — çaresi parça küçültmek |
-| `CIKTI_BOZUK` | Model konuştu ama çıktısı kullanılamaz (bitmemiş düşünme, boş) |
-| `MODEL` | Model yüklenemedi / beklenmedik istisna |
+| `OKUNDU` | En az bir kredi satırı okundu |
+| `METIN_YOK` | Okunacak kredi metni yok |
+| `ARIZA` | Video/model/çıktı hatası; `sinif` ve `mesaj` zorunlu |
 
-Tüketici kuralı: **`_TAMAM` yoksa dosya yok sayılır.**
+`ARIZA` hiçbir zaman `METIN_YOK`'a çevrilmez. Tek grup bozulursa tanıda
+görünür ve diğer gruplar korunur; bütün gruplar bozuksa sonuç arızadır.
 
-## Neden parçalanıyor — ölçülmüş sınır
-
-24 GB'lık RTX 3090'da tek çağrıya giren kare sayısı fiziksel bir tavana çarpar.
-Sandbox ölçümü (2026-08-12): **36 kare/çağrı → 39 filmin 39'unda CUDA OOM.
-30 kare → çalıştı.** Marj jilet gibi.
-
-Bu yüzden klip `parca.sure_sn` saniyelik, `parca.bindirme_sn` bindirmeli
-parçalara kesilir ve her parça ayrı çağrıda okunur. Bindirme, parça sınırında
-kesilen ismi kurtarır; ardışık parçadaki **birebir aynı** blok düşer, uzak
-tekrarlar korunur (jenerikte aynı isim gerçekten iki kez geçebilir).
-
-Parçalama bir yorum katmanı değil — modelin bu kartta koşabilmesinin tek yolu.
-
-## Model — iki checkpoint kurulu
-
-| | `model/w8a8` (VARSAYILAN) | `model/bf16` |
-|---|---|---|
-| Ne | INT8 W8A8 (`RedHatAI/Qwen3.5-9B-quantized.w8a8`) | Orijinal (`Qwen/Qwen3.5-9B`) |
-| Boyut | 14 GB | 19.3 GB |
-| Görüntü kulesi | **kuantize DEĞİL** — `model.visual.*` bf16 | bf16 |
-| Serbest VRAM | ~9.5 GiB | ~4.5 GiB |
-
-**FP8 bu kartta yok.** RTX 3090 = Ampere `sm_86`; FP8 çekirdeği `sm_89`+ ister.
-8-bit istendiğinde doğru cevap INT8'dir.
-
-> **Hangisinin daha iyi okuduğu ÖLÇÜLMEDİ.** INT8 varsayılan çünkü bellek
-> kısıtı ölçülmüş (39/39 OOM), kuantizasyon kaybı ise henüz varsayım. bf16
-> kıyasın kontrol koludur — ölçüm yapılmadan silinmez.
-
-Kurulum: `./venv_kur.sh` sonra `./model_kur.sh`.
-
-## Yerleşim
-
-| Ne | Yol |
-|---|---|
-| Sözleşme (`Girdi`/`Cikti`/`ariza`) | `sozlesme.py` |
-| CLI + koşu akışı | `main.py`, `jordan` |
-| Model yükleme/sorma (transformers'a dokunan TEK yer) | `src/model.py` |
-| Geçiş 1 — video → bloklar | `src/okuyucu.py` |
-| Geçiş 2 — bloklar → çiftler | `src/ciftleyici.py` |
-| Eşikler, istemler | `config.yaml` |
-| Çalışma zamanı | `venv/`, `venv_kur.sh`, `gereksinimler.txt` |
-| Model ağırlıkları (git'te değil) | `model/w8a8`, `model/bf16`, `model_kur.sh` |
-
-`src/` sözleşmeyi **bilmez** — çeviri yalnız `main.py`'de.
-
-## Testler
+## Doğrulama
 
 ```bash
-venv/bin/python -m pytest tests -q      # 52 test, GPU gerektirmez
+Allstar/jordan/venv/bin/python -m pytest -q Allstar/jordan/tests
 ```
+
+KARA ŞİMŞEK Qwen2.5-VL Sheriff ölçümünde giriş/çıkış tepe VRAM'i 17284 MiB;
+tepe RSS 15244 MiB ölçüldü. 27B tarihî deney sonucu ayrıca korunur.
