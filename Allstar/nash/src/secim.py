@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 import cv2
 
@@ -25,6 +26,7 @@ class SecimSonucu:
     yollar: list[Path] = field(default_factory=list)
     kanit: dict = field(default_factory=dict)
     hata: str | None = None
+    analizler: dict = field(default_factory=dict, repr=False)
 
 
 def _griler(yollar: list[Path]) -> tuple[list, list[Path]]:
@@ -100,7 +102,8 @@ def havuz_derle_dizin(kare_dizin: Path,
     return [gecerli[i] for i in sorted(set(sonuc.sayfalar) | set(ekler))], ist
 
 
-def sec(kare_dizin: Path, ayar: dict, desen: str = "*.png") -> SecimSonucu:
+def sec(kare_dizin: Path, ayar: dict, desen: str = "*.png",
+        detector: Callable | None = None) -> SecimSonucu:
     """Ham kare dizini → okunacak kareler + kanıt.
 
     `ayar`: {"tavan": int, "son_kare_zorla": bool, "ham_kuyruk": int}
@@ -111,6 +114,73 @@ def sec(kare_dizin: Path, ayar: dict, desen: str = "*.png") -> SecimSonucu:
     tum = sorted(kare_dizin.glob(desen))
     if not tum:
         return SecimSonucu(hata="dizin_bos")
+
+    if str(ayar.get("strateji", "legacy")).lower() == "text_run":
+        import metin_secici
+        try:
+            if detector is None:
+                analizler, detector_kanit = metin_secici.tara(
+                    tum, ayar.get("detector") or {})
+            else:
+                detector_sonucu = detector(tum, ayar.get("detector") or {})
+                if (isinstance(detector_sonucu, tuple)
+                        and len(detector_sonucu) == 2):
+                    analizler, detector_kanit = detector_sonucu
+                else:
+                    analizler, detector_kanit = detector_sonucu, {}
+            if not isinstance(analizler, dict):
+                raise metin_secici.DetectorArizasi(
+                    "detector sonucu kare sozlugu degil")
+            if not isinstance(detector_kanit, dict):
+                detector_kanit = {}
+
+            # Decode arizasi ile model/predict arizasini ayir. Worker'in dHash
+            # verdigi normal yolda ana surec kareleri bir daha acmaz. Eski test
+            # detectorleri/harici callback'ler dHash vermiyorsa uyumluluk icin
+            # yalniz o yolda gri kareler uretilir.
+            for p in tum:
+                if p.name not in analizler:
+                    analizler[p.name] = {
+                        "boxes": [], "error_stage": "predict",
+                        "error": "detector sonucu yok",
+                    }
+            okunabilir = [
+                p for p in tum
+                if (analizler.get(p.name) or {}).get("error_stage") != "decode"
+            ]
+            if not okunabilir:
+                return SecimSonucu(
+                    kanit={"kare": 0, "acilamayan": len(tum),
+                           "strateji": "text_run", **detector_kanit},
+                    hata="kare_okunamadi")
+            gri_gerekli = any(
+                not isinstance((analizler.get(p.name) or {}).get("dhash"), int)
+                for p in okunabilir
+                if not (analizler.get(p.name) or {}).get("error")
+            )
+            griler = None
+            if gri_gerekli:
+                griler, gercek_okunabilir = _griler(okunabilir)
+                if len(gercek_okunabilir) != len(okunabilir):
+                    okunabilir = gercek_okunabilir
+            secim, text_kanit = metin_secici.sec(
+                yollar=okunabilir, griler=griler, analizler=analizler,
+                ayar=ayar)
+        except metin_secici.DetectorArizasi as exc:
+            return SecimSonucu(
+                kanit={"kare": len(locals().get("okunabilir", [])),
+                       "acilamayan": len(tum) - len(locals().get("okunabilir", [])),
+                       "strateji": "text_run", "detector_hata": str(exc)[:500]},
+                hata="detector_ariza")
+        kanit = {"havuz": {"kare": len(okunabilir), "sayfa": len(secim),
+                            "strateji": "text_run"},
+                 "acilamayan": len(tum) - len(okunabilir),
+                 **detector_kanit, **text_kanit}
+        if not secim:
+            if int(text_kanit.get("detector_hata_n", 0)):
+                return SecimSonucu(kanit=kanit, hata="detector_ariza")
+            return SecimSonucu(kanit=kanit, hata="havuz_bos")
+        return SecimSonucu(yollar=secim, kanit=kanit, analizler=analizler)
 
     griler, gecerli = _griler(tum)
     if not griler:

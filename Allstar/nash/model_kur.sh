@@ -6,9 +6,9 @@
 # Ollama kutuphanesinde baskasi modeli guncellerse Nash'in ciktisi SESSIZCE
 # kayar. Kule kendi agirligini tasir.
 #
-# YIGIN: Jordan'in ayni kartta kanitlanmis pinleri (torch 2.11.0 /
-# transformers 5.14.1). TEK FARK: numpy 2.3.5'te TUTULUR — Nash'in havuz
-# yarisi numpy surumune duyarli ve KAPI 1 referansi 2.3.5 ile uretildi.
+# YIGIN: DeepSeek-OCR uzak kodunun destekledigi transformers 4.46.3.
+# transformers 5.x LlamaFlashAttention2 importunu kaldirdigi icin kullanilmaz.
+# numpy 2.3.5'te TUTULUR — Nash'in havuz yarisi bu surume duyarli.
 # Kurulumdan SONRA `venv/bin/python olcum/kapi1.py` MUTLAKA yeniden kosulur.
 #
 # Kullanim: ./model_kur.sh
@@ -22,8 +22,8 @@ echo "== 1/3 okuma yigini =="
 "$N/venv/bin/pip" install --quiet \
   "numpy==2.3.5" \
   "torch==2.11.0" "torchvision==0.26.0" \
-  "transformers==5.14.1" "tokenizers==0.22.2" "safetensors==0.8.0" \
-  "accelerate==1.14.0" "huggingface_hub==1.27.0" "hf-xet==1.6.0" \
+  "transformers==4.46.3" "tokenizers==0.20.3" "safetensors==0.8.0" \
+  "accelerate==1.14.0" "huggingface_hub==0.36.2" "hf-xet==1.6.0" \
   "pillow==12.1.0" "einops" \
   addict matplotlib requests   # modeling_deepseekocr.py (uzak kod) bunlari import ediyor
 
@@ -40,11 +40,11 @@ echo "== 3/3 agirlik: deepseek-ai/DeepSeek-OCR -> model/deepseek-ocr =="
 if [ -f "$N/model/deepseek-ocr/config.json" ]; then
   echo "  [atla] zaten var"
 else
-  "$P" - <<'PY'
+  NASH_KULE="$N" "$P" - <<'PY'
+import os
 from huggingface_hub import snapshot_download
 from pathlib import Path
-hedef = Path(__file__).resolve().parent / "model" / "deepseek-ocr" \
-    if False else "model/deepseek-ocr"
+hedef = Path(os.environ["NASH_KULE"]) / "model" / "deepseek-ocr"
 print("BITTI:", snapshot_download("deepseek-ai/DeepSeek-OCR",
                                   local_dir=hedef, max_workers=8))
 PY

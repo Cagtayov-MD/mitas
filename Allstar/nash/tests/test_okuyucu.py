@@ -118,7 +118,15 @@ def test_sayfa_hatasi_sayilir_sessiz_degil():
         return "SATIR " + p.stem
     k, kanit = okuyucu.oku(_s("a.png", "b.png", "c.png"), sor)
     assert kanit["sayfa_hata_n"] == 1
+    assert kanit["sayfa_basarili_n"] == 2
+    assert kanit["sayfa_hatalari"][0]["kaynak"] == "b.png"
     assert len(k) == 2
+
+
+def test_model_yok_istisnasi_yutulmaz():
+    with pytest.raises(okuyucu.ModelYok):
+        okuyucu.oku(_s("a.png"), lambda _p: (_ for _ in ()).throw(
+            okuyucu.ModelYok("model yok")))
 
 
 def test_bellek_istisnasi_yutulmaz():

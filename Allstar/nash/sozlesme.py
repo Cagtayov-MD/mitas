@@ -21,6 +21,7 @@ SINIFLAR = (
     "BELLEK",           # CUDA OOM
     "CIKTI_BOZUK",      # model konustu, cikti garble
     "MODEL",            # model yuklenemedi / beklenmedik istisna
+    "YAPILANDIRMA",     # eksik/bozuk/bilinmeyen config
 )
 
 
@@ -102,7 +103,7 @@ class Cikti:
               "uretim_zamani": self.uretim_zamani, "sure_sn": self.sure_sn}
         return d
 
-    def yaz(self, kok: str | Path) -> Path:
+    def yaz(self, kok: str | Path, ek_dosyalar: dict[str, dict] | None = None) -> Path:
         """out/<film_id>/<bolum>/ — atomik yaz, _TAMAM EN SON.
 
         Kuyruk klasorun kendisi oldugu icin tuketici biz yazarken okuyabilir.
@@ -117,6 +118,18 @@ class Cikti:
         """
         d = Path(kok) / self.film_id / self.bolum
         d.mkdir(parents=True, exist_ok=True)
+        # Yeniden kosu basladi: eski tamam isareti ve bu kosuda uretilmeyecek
+        # onceki urunler tuketiciye yeni sonucmus gibi gorunemez.
+        (d / "_TAMAM").unlink(missing_ok=True)
+        ek_dosyalar = ek_dosyalar or {}
+        for ad in ek_dosyalar:
+            if Path(ad).name != ad or ad in {"_TAMAM", "nash.json", "nash.txt"}:
+                raise ValueError(f"gecersiz ek dosya adi: {ad!r}")
+        istenen = {"nash.json", *( ["nash.txt"] if self.durum == "OKUNDU" else []),
+                   *ek_dosyalar.keys()}
+        for eski in ("nash.txt", "nash.okuma.json"):
+            if eski not in istenen:
+                (d / eski).unlink(missing_ok=True)
         yazilacak = [("nash.json", json.dumps(self.sozluk(), ensure_ascii=False,
                                               indent=1))]
         if self.durum == "OKUNDU":
@@ -125,7 +138,14 @@ class Cikti:
             gecici = d / f"{ad}.tmp"
             gecici.write_text(icerik, encoding="utf-8")
             os.replace(gecici, d / ad)
-        (d / "_TAMAM").write_text("", encoding="utf-8")
+        for ad, belge in ek_dosyalar.items():
+            gecici = d / f"{ad}.tmp"
+            gecici.write_text(json.dumps(belge, ensure_ascii=False, indent=1),
+                               encoding="utf-8")
+            os.replace(gecici, d / ad)
+        tamam_gecici = d / "_TAMAM.tmp"
+        tamam_gecici.write_text("", encoding="utf-8")
+        os.replace(tamam_gecici, d / "_TAMAM")
         return d / "nash.json"
 
 

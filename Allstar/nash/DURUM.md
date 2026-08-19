@@ -1,5 +1,33 @@
 # Nash kulesi — canlı durum
 
+> **2026-08-19 güncel not — Çiçek Taksi GT dersi (dizi girişi):** Dizi
+> açılış jeneriğinde kredi satırları tek satır alt bantta, görüntü üstünde
+> akar. İki ayrı altyazı-ayıklama kuralı (seçim katmanı `metin_secici.py`
+> kare-atması + okuma katmanı `hibrit.py` satır-atması) bu stili altyazı
+> sanıp öldürüyordu: k33 tek-kare deneyinde Paddle "EROL GÜNAYDIN"'ı 0.97
+> skorla OKUMUŞ, satır yine elenmişti. Düzeltme: `altyazi_y` her iki katmanda
+> bölme-özel sözlük desteği kazandı; `giris` bölmesinde kural kapalı
+> (`secim.giris.alt yazi_y: 2.0` + `okuma.alt yazi_y.giris: 2.0`), `cikis`
+> film davranışı korunur (0.80). GT sonucu (Allstar/gt_dizi, Çağatay elle):
+> kişi 17→24/29. Ayrıca `kirpim_keskinlestir` iskeleti eklendi (worker CLI
+> bayrağı + dönüşüm + testler; davranış değişikliği yok, kule koşusu bekler).
+> Kare-seviyesi ölçekleme iki kulüde de zarar veriyor (LeBron derleyicisi
+> 40→23 segmente düşüyor) — yalnız KIRPIM seviyesi geçerli. 163 test geçti.
+
+> **2026-08-18 güncel not:** Aşağıdaki Faz 1–3 tarihçesinin ardından Nash
+> çok-alfabeli Paddle ana-havuz okuyucusuna geçirildi. Tüm kareleri
+> PP-OCRv6-medium detector + Türkçe/Latin tanıyıcı okur; satır sayısı <8 veya
+> Latin medyan güveni <0,80 ise önce Arabic, kabul edilmezse ESlav tanıyıcı
+> açılır. ESlav devralmasında Latin satırlar ikinci tanıyıcıyla çapraz
+> doğrulanır; Arabic devralmasında kanıtlı yüksek-güvenli ayrı Latin kutular
+> korunur.
+> DeepSeek fallback config'te kapalıdır ve yüklenmez. Final test 29 video /
+> 7.414 kare: 29/29 OKUNDU, 2.583 satır, 372,64 sn, sıfır DeepSeek; canlı GPU
+> süreci 556–622 MiB. Gerçek kapılar: output20=71 Kiril/sıfır sahte Latin,
+> output23=294 Arabic/Farsi + gerçek CPR. Nash 158 test (1 atlandı), Sheriff
+> 68 test geçti.
+> Güncel çalışma biçimi ve dosya haritası için `README.md` esas alınır.
+
 > **Bu dosya bağlam sigortasıdır.** Oturum kesilirse yeni oturum BURADAN devam
 > eder. Her iş biriminden sonra güncellenir ve commit'lenir.
 > Spec: `docs/superpowers/specs/2026-08-14-allstar-nash-kulesi-design.md`

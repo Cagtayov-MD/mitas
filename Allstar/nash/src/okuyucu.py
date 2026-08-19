@@ -195,14 +195,19 @@ def oku(sayfalar: list[Path], sor: Callable[[Path], str],
     elenen: list[dict] = []
     onceki: set[str] = set()
     sayfa_hata_n = 0
+    sayfa_basarili_n = 0
+    sayfa_hatalari: list[dict] = []
 
     for sayfa_sira, p in enumerate(sayfalar, start=1):
         try:
             cevap = sor(p)
-        except Bellek:
+            sayfa_basarili_n += 1
+        except (Bellek, ModelYok):
             raise
-        except Exception:
+        except Exception as exc:
             sayfa_hata_n += 1
+            sayfa_hatalari.append({"kaynak": p.name,
+                                   "hata": f"{type(exc).__name__}: {exc}"[:300]})
             continue
         yeni: set[str] = set()
         satir_sira = 0
@@ -231,6 +236,8 @@ def oku(sayfalar: list[Path], sor: Callable[[Path], str],
     for e in elenen:
         sebepler[e["sebep"]] = sebepler.get(e["sebep"], 0) + 1
     return kayitlar, {"sayfa_hata_n": sayfa_hata_n,
+                      "sayfa_basarili_n": sayfa_basarili_n,
+                      "sayfa_hatalari": sayfa_hatalari[:50],
                       "elenen_n": len(elenen), "elenme_sebepleri": sebepler,
                       "elenen": elenen[:50]}
 

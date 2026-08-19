@@ -9,11 +9,10 @@
 # Kobe dersi (2026-08-13): "Hangi paket onemli" TAHMIN EDILMEZ; ortam butun
 # olarak dondurulur. Kobe'de elle secilmis 16 paketlik liste skoru %94.5 →
 # %92.7 dusurmustu, alti kilit paket birebir ayni oldugu halde.
-numpy==2.3.5
-
 # ── FAZ 1: havuz (numpy/opencv referans ortamla BIREBIR) ──
 iniconfig==2.3.0
 numpy==2.3.5
+opencv-contrib-python==5.0.0.93
 packaging==26.3
 pluggy==1.6.0
 pytest==9.1.1

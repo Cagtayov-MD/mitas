@@ -1,15 +1,19 @@
 # Nash — ham kare havuzundan jenerik okuma kulesi
 
-> **Ham kare dizini girer, yazı çıkar.** Kareleri sadeleştirir (havuz), kalanları
-> okur. Düzeltme yok, yorum yok. Model: DeepSeek-OCR.
+> **Ana kare havuzu girer, kanıtlı yazı çıkar.** Paddle tüm kareleri GPU'da
+> tarar ve okur. Türkçe/Latin model zayıf kalırsa yalnız o filmde önce
+> Arapça/Farsça, kabul kapısını geçmezse ESlav/Kiril Paddle tanıyıcı çalışır.
+> Kobe sınırı veya sonucu kullanılmaz.
 
-**DURUM: Faz 1 tamam — havuz yarısı çalışıyor, okuyucu (Faz 2) bekliyor.**
-Model kurulmadan çağrılırsa açık `ARIZA(MODEL)` döner. Ayrıntı: `DURUM.md`.
+**DURUM: çok-alfabeli Paddle okuyucu çalışıyor.** DeepSeek fallback kodu
+korunuyor fakat üretim config'inde kapalıdır; Nash şu anda ağır modeli hiç
+yüklemez. Ayrıntı: `DURUM.md`.
 
 ## Sorumluluk sınırı
 
-**Yapar:** verilen ham kare dizininden temsilci kareleri seçer, onlarda YAZAN
-metni okur, kendi `out/`'una yazar.
+**Yapar:** verilen ana havuzun tamamında metin kutularını ve metni tarar;
+altyazı/logo gürültüsünü, geçiş birleşiklerini ve zamansal tekrarları eler;
+kanıt bbox'larıyla kendi `out/`una yazar.
 
 **Yapmaz:** jeneriğin nerede başladığını aramaz (Kobe'nin işi) · master PNG
 üretmez (İbrahimovic) · isim düzeltmez · rol eşlemez (Ronaldo/Phil Jackson) ·
@@ -23,18 +27,20 @@ bilmez:
 
 ```bash
 # TEK film
-Allstar/nash/nash tek --kareler /yol/frames/cikis_jenerik --film-id <id>
+Allstar/nash/nash tek --kareler /yol/ana_havuz/cikis --film-id <id>
 Allstar/nash/nash tek --kareler /yol/frames/giris --film-id <id> --bolum giris
 
-# TOPLU — kaldığı yerden devam eder, _TAMAM olanı atlar, model BİR KEZ yüklenir
+# TOPLU — kaldığı yerden devam eder; filmler tek Paddle worker ile sırayla gider
 Allstar/nash/nash start --input /yol/kare_dizinleri
 ```
 
-Çıktı daima `Allstar/nash/out/<film_id>/<bolum>/`. Çağıran çıktı yolunu seçmez.
+Çıktı varsayılan olarak `Allstar/nash/out/<film_id>/<bolum>/`; testte `--out`
+ile güvenli biçimde başka kök seçilebilir.
 
 ```
 out/<film_id>/cikis/
 ├─ nash.json     # durum + satırlar + kanıt
+├─ nash.okuma.json # Sheriff/MITAS_OKUMA_V2 altında bbox kanıt paketi
 ├─ nash.txt      # YALNIZ durum=OKUNDU ise
 └─ _TAMAM        # EN SON yazılır
 ```
@@ -76,7 +82,7 @@ Tüketici kuralı: **`_TAMAM` yoksa dosya yok sayılır.**
 
 | | `cikis` | `giris` |
 |---|---|---|
-| Sayfa tavanı | 100 | 40 |
+| Text-run temsilci tavanı | 100 | 60 |
 | Sigorta | **son kare zorla** | **son 12 HAM kare zorla** |
 | Neden | © / "SON" kartı düzgün-adımda hiç seçilmiyordu (konsey bug-avı GLM-3) | ALİE, 2026-07-31: TRT geleneğinde YÖNETMEN kartı girişin SON kartıdır; ALİE'de giriş master'ı 'senaryo'da kesildi ve yönetmen 1632 satırın hiçbirine girmedi → QC1 RED |
 
@@ -119,7 +125,7 @@ venv/bin/python olcum/kapi1.py
 ## Testler
 
 ```bash
-venv/bin/python -m pytest tests -q      # 99 test, GPU gerektirmez
+venv/bin/python -m pytest tests -q      # 152 test; 1 GPU testi uygun kart yoksa atlanır
 ```
 
 ## Yerleşim
@@ -127,9 +133,12 @@ venv/bin/python -m pytest tests -q      # 99 test, GPU gerektirmez
 | Ne | Yol |
 |---|---|
 | Havuz çekirdeği (SAF — algoritma değişmez) | `src/havuz.py` |
-| Dizin → seçim + örnekleme + sigortalar | `src/secim.py` |
+| Ana havuz full OCR worker'ı | `src/metin_worker.py` (ayrı Paddle venv'i) |
+| Metin bloğu/temsilci seçimi | `src/metin_secici.py`, `src/secim.py` |
+| Paddle temporal uzlaşma + alfabe/fallback birleştirme | `src/hibrit.py` |
 | Kareler → satırlar (dedup + gevezelik süzgeci) | `src/okuyucu.py` |
-| Modele dokunan TEK yer | `src/model.py` — **Faz 2** |
+| DeepSeek adaptörü ve sert üretim sınırları | `src/model.py` |
+| `mitas.okuma/v2` bbox kanıtı | `src/proof.py` |
 | Sözleşme (`Girdi`/`Cikti`/`ariza`) | `sozlesme.py` |
 | CLI + koşu akışı | `main.py`, `nash` |
 | Eşikler, sigortalar, istem | `config.yaml` |
@@ -144,6 +153,43 @@ venv/bin/python -m pytest tests -q      # 99 test, GPU gerektirmez
 Sistem python'u 3.14; referans ölçüm verisini üreten ortam 3.12.13 idi ve
 havuz çıktısının sürümden bağımsız olduğu **ölçülmedi**. Kobe dersi: ortam
 bütün olarak dondurulur, "hangi paket önemli" tahmin edilmez.
+
+Paddle ayrı `detector_venv/` içindedir: **Paddle 3.3.1, PaddleOCR 3.7.0,
+PaddleX 3.7.2, CUDA 12.6**. Detection `PP-OCRv6_medium_det`; Türkçe/Latin
+tanıma `latin_PP-OCRv5_mobile_rec`; koşullu ikinci tanımalar sırasıyla
+`arabic_PP-OCRv5_mobile_rec` ve `eslav_PP-OCRv5_mobile_rec` kullanır.
+Orientation/unwarp/HPI kapalı, FP32 ve `gpu:0` sabittir. Dört model de Nash'in
+yerel model dizininden açılır; ağdan model indirilmez.
+
+Script yönlendirmesi birincil satır sayısı 8'in altında veya Latin medyan
+güveni 0,80'in altındaysa tetiklenir. Hedef alfabe oranı en az %35 olmalıdır.
+ESlav devralmasında Latin satır ayrıca ikinci tanıyıcı tarafından yakın
+kare/örtüşen kutuda doğrulanır; böylece Kiril homoglifleri Latin isim diye
+kalmaz. Arabic devralmasında yüksek güven (≥0,90), zamansal destek (≥2) ve ayrı
+kutu (IoU<0,30) kapısı korunur; `cag_output23`teki gerçek `CPR` kredisi bu
+sayede kaybolmaz.
+
+## Gerçek ölçüm — `/home/cagatay/Belgeler/test`
+
+29 video, 7.414 adet 2-fps kare son sürümle baştan sona işlendi: **29/29
+`OKUNDU`**, 2.583 kabul edilmiş satır, sıfır DeepSeek çağrısı, 372,64 sn duvar
+süresi. İç Paddle peak en çok 333,9 MB; canlı `nvidia-smi` süreci 556–622 MiB.
+Sheriff Nash için 2.048 MB ayırır. 114-karelik gerçek örnek 9,84 sn; en ağır
+Latin kayan jenerik 239 kare/280 satırda 26,71 sn; 490-kare Arapça/Farsça çift
+Paddle geçişi 26,12 sn. Aday seçimi hiçbir filmde çıkış tavanı 100'ü aşmadı.
+
+65-kare `cag_output14` 18 temiz satırı 5,9 sn'de verdi. Genel v6 tanıyıcının
+bozduğu `MÜZİK`, `İRSEL ÇİVİT`, `UĞUR UZUNOK`, `BERAT ÖZDOĞAN` resmî Latin
+modelinde doğru çıktı. Arapça/Farsça iki zayıf film koşullu ikinci Paddle
+geçişiyle 51 ve 74 satıra çıktı. Yeni alfabe kapıları ayrıca
+`cag_output20`de 71 Kiril satır ve sıfır sahte korunmuş Latin;
+`cag_output23`te 294 Arabic/Farsi satır + görüntüdeki gerçek `CPR` satırını
+verdi.
+
+Yoğun `cag_output26` karşılaştırmasında 2 fps: **280 satır / 26,6 sn**;
+3 fps: **279 satır / 36,9 sn**. 3 fps %39 daha uzun sürdü, toplam satır
+kazandırmadı ve `BURAK KARAKULLUKCU`yu `MURAT...` okudu. Bu nedenle varsayılan
+2 fps olarak bırakıldı.
 
 ## Tasarım
 

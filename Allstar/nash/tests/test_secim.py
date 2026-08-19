@@ -67,6 +67,15 @@ def test_bozuk_kare_karisikta_sayilir_ama_durdurmaz(tmp_path):
     assert s.kanit["havuz"]["kare"] == 4
 
 
+def test_text_run_detector_bozuk_tip_dondururse_gorunur_ariza(tmp_path):
+    d = _yaz(tmp_path / "detector-bozuk", senaryo.kart("GERCEK KART", 2))
+    s = secim.sec(
+        d, {"strateji": "text_run", "tavan": 100},
+        detector=lambda _yollar, _ayar: ["sozluk degil"])
+    assert s.hata == "detector_ariza"
+    assert "sozlugu degil" in s.kanit["detector_hata"]
+
+
 # ── örnekleme ────────────────────────────────────────────────────────────────
 
 def _p(n):

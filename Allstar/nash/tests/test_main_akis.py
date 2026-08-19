@@ -11,6 +11,15 @@ import senaryo
 from sozlesme import Girdi
 
 
+@pytest.fixture(autouse=True)
+def _birim_testinde_legacy_secim(monkeypatch):
+    """Eski akış senaryoları Paddle/model istemeden yalnız sözleşmeyi sınar."""
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "legacy"
+    cfg["okuma"]["mod"] = "free_ocr"
+    monkeypatch.setattr(main, "_config", lambda: cfg)
+
+
 def _kareler(dizin, kareler):
     dizin.mkdir(parents=True, exist_ok=True)
     for i, k in enumerate(kareler):
@@ -91,6 +100,121 @@ def test_model_bos_dondu_metin_yok(tmp_path):
     c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path))),
                  tmp_path / "out", lambda p: "")
     assert c.durum == "METIN_YOK"
+
+
+def test_tum_model_cagrilari_patlayinca_metin_yok_degil_ariza(tmp_path):
+    def patla(_p):
+        raise TimeoutError("cevap yok")
+    c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path))),
+                 tmp_path / "out", patla)
+    assert c.durum == "ARIZA" and c.sinif == "MODEL"
+    assert c.kanit["sayfa_basarili_n"] == 0
+
+
+def test_grounded_tek_gecis_ayni_cevaptan_metin_ve_bbox_uretir(
+        tmp_path, monkeypatch):
+    d = _iyi(tmp_path)
+    cagrilar = []
+
+    def sor(p, prompt=None):
+        cagrilar.append((p.name, prompt))
+        return ("<|ref|>YONETMEN AHMET MEHMET VELI OZTURK " + p.stem
+                + "<|/ref|><|det|>[[10,20,900,100]]<|/det|>")
+
+    cfg = main._config()
+    cfg["okuma"]["mod"] = "grounded"
+    monkeypatch.setenv("MITAS_OKUMA_V2", "1")
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out", sor,
+                 cfg=cfg)
+    assert c.durum == "OKUNDU"
+    assert len(cagrilar) == c.kanit["secilen_kare"]
+    assert all("<|grounding|>" in prompt for _, prompt in cagrilar)
+    paket = json.loads((tmp_path / "out" / "F1" / "cikis" /
+                        "nash.okuma.json").read_text("utf-8"))
+    assert paket["producer"]["strategy"] == "text-run-grounded-ocr"
+    assert paket["lines"][0]["evidence"]
+
+
+def test_auto_okuma_rapor_yoksa_free_ocr_fallback(tmp_path):
+    cfg, tani = main._okuma_karari({"mod": "auto", "kalite_raporu": str(
+        tmp_path / "yok.json")})
+    assert cfg["mod"] == "free_ocr" and cfg["max_new_tokens"] == 2048
+    assert tani["sebep"] == "rapor_yok_veya_bozuk"
+
+
+def test_auto_okuma_rapor_onerisini_uygular(tmp_path):
+    rapor = tmp_path / "kapi.json"
+    rapor.write_text(json.dumps({"recommendation": {
+        "mode": "grounded", "max_new_tokens": 512}}), encoding="utf-8")
+    cfg, tani = main._okuma_karari({"mod": "auto", "kalite_raporu": str(rapor)})
+    assert cfg["mod"] == "grounded" and cfg["max_new_tokens"] == 512
+    assert tani["sebep"] == "kalite_raporu"
+
+
+def test_tembel_okuyucu_ilk_cagriya_kadar_modeli_kurmaz_ve_bir_kez_kurar():
+    sayac = {"kur": 0, "cagri": 0}
+
+    class Sor:
+        def __call__(self, deger):
+            sayac["cagri"] += 1
+            return deger.upper()
+
+        def metrics(self):
+            return {"model_cagri_n": sayac["cagri"]}
+
+    def kur():
+        sayac["kur"] += 1
+        return Sor()
+
+    tembel = main._TembelOkuyucu(kur)
+    assert sayac["kur"] == 0 and tembel.metrics() == {}
+    assert tembel("a") == "A" and tembel("b") == "B"
+    assert sayac["kur"] == 1
+    assert tembel.metrics() == {"model_cagri_n": 2}
+
+
+def test_hybrid_paddle_yeterliyse_deepseek_yuklenmez(tmp_path, monkeypatch):
+    d = _iyi(tmp_path)
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "text_run"
+    cfg["okuma"]["mod"] = "hybrid"
+
+    def detector(yollar, _ayar):
+        return ({p.name: {"boxes": [[0.2, 0.2, 0.8, 0.5]],
+                 "lines": [{"text": "YONETMEN AHMET MEHMET VELI " + p.stem,
+                            "score": 0.99, "box": [0.2, 0.2, 0.8, 0.5]}]}
+                for p in yollar}, {"paddle_peak_vram_mb": 350})
+
+    monkeypatch.setattr(main, "okuyucu_kur", lambda _cfg: pytest.fail(
+        "guvenilir Paddle sonucu DeepSeek yuklememeli"))
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out",
+                 cfg=cfg, detector=detector)
+    assert c.durum == "OKUNDU"
+    assert c.kanit["deepseek_fallback_n"] == 0
+    assert c.kanit["paddle_satir_n"] == len(c.satirlar)
+
+
+def test_hybrid_deepseek_oom_olsa_da_paddle_sonucu_korunur(tmp_path, monkeypatch):
+    d = _iyi(tmp_path)
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "text_run"
+    cfg["okuma"]["mod"] = "hybrid"
+    cfg["okuma"]["paddle_uzlasma_penceresi"] = 0
+    cfg["okuma"]["paddle_film_kabul_min_satir"] = 99
+    cfg["okuma"]["deepseek_fallback_enabled"] = True
+
+    def detector(yollar, _ayar):
+        return ({p.name: {"boxes": [[0.2, 0.2, 0.8, 0.5]],
+                 "lines": [{"text": "YONETMEN AHMET MEHMET VELI " + p.stem,
+                            "score": 0.80, "box": [0.2, 0.2, 0.8, 0.5]}]}
+                for p in yollar}, {})
+
+    monkeypatch.setattr(main, "okuyucu_kur", lambda _cfg: (_ for _ in ()).throw(
+        okuyucu.Bellek("OOM")))
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out",
+                 cfg=cfg, detector=detector)
+    assert c.durum == "OKUNDU"
+    assert "OOM" in c.kanit["deepseek_fallback_hatasi"]
 
 
 # ── arıza sınıfları ──────────────────────────────────────────────────────────

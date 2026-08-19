@@ -107,6 +107,16 @@ def test_okundu_disinda_nash_txt_YAZILMAZ(tmp_path):
         assert not (d / "nash.txt").exists()
 
 
+def test_yeniden_kosuda_eski_metin_ve_kanit_paketi_kalmaz(tmp_path):
+    d = tmp_path / "F1" / "cikis"
+    _ornek().yaz(tmp_path, {"nash.okuma.json": {"eski": True}})
+    assert (d / "nash.txt").exists() and (d / "nash.okuma.json").exists()
+    ariza("F1", "MODEL", "model yok").yaz(tmp_path)
+    assert (d / "_TAMAM").exists() and (d / "nash.json").exists()
+    assert not (d / "nash.txt").exists()
+    assert not (d / "nash.okuma.json").exists()
+
+
 def test_yaz_bolum_ayri_klasor(tmp_path):
     _ornek().yaz(tmp_path)
     Cikti(film_id="F1", bolum="giris", durum="METIN_YOK").yaz(tmp_path)
