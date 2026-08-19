@@ -386,8 +386,7 @@ def refine_scores_with_paddle(paths: list[Path], scores: list[FrameScore], cfg: 
         model_root = Path(
             os.environ.get("JENERIK_PADDLE_MODEL_ROOT")
             or os.environ.get("MITAS_JENERIK_PADDLE_MODEL_ROOT")
-            or (Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
-                / "models" / "ocr" / "paddle" / "official_models"))
+            or r"E:\MITAS\models\ocr\paddle\official_models")
         rec_name = "latin_PP-OCRv5_mobile_rec" if cfg.ocr_lang.lower() == "latin" else "en_PP-OCRv5_mobile_rec"
         kwargs = {
             "lang": cfg.ocr_lang,

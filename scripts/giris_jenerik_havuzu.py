@@ -77,6 +77,7 @@ from core.pipelines.ocr.jenerik_frame_pool_detector import (  # noqa: E402
 )
 from core.pipelines.ocr.jenerik_oneocr_detector import oneocr_line_boxes  # noqa: E402  (4-köşe→eksen-hizalı box)
 from _pipe_ocr import build_engine, fold  # noqa: E402
+from _letterbox_roi import letterbox_roi_from_paths  # noqa: E402  (film-geneli letterbox ROI)
 
 import cv2  # noqa: E402  (jenerik_oneocr_detector zaten getiriyor; dhash için)
 
@@ -261,20 +262,10 @@ def _is_credit_text(t: str) -> bool:
     return False
 
 
-def detect_active_video_roi(bgr: np.ndarray, thresh: int = 15) -> tuple[int, int]:
-    """Siyah letterbox bantlarını üst/alt %5 kenar taramasıyla tespit eder ve (y_min, y_max) aktif aralığı döner."""
-    H = bgr.shape[0]
-    max_p = np.max(bgr, axis=2)
-    row_max = np.max(max_p, axis=1)
-    top_margin = max(1, int(0.05 * H))
-    bot_margin = min(H - 1, int(0.95 * H))
-    
-    # Sadece üst %5 ve alt %5 kenarlarda siyah bant var mı kontrol et
-    if np.all(row_max[:top_margin] < thresh) or np.all(row_max[bot_margin:] < thresh):
-        non_black = np.where(row_max >= thresh)[0]
-        if len(non_black) > 0:
-            return int(non_black[0]), int(non_black[-1]) + 1
-    return 0, H
+# NOT (2026-08-11): TEK-KARE'den ROI tahmin eden detect_active_video_roi KALDIRILDI.
+# Giriş jeneriği siyahtan açılır → ilk kare mümkün olan en kötü örnektir; o kareden
+# "aktif alan 8px" çıkınca 360 karenin tamamı altyazı sayıldı (YANLIŞ SUÇLU kök vakası,
+# 102 film etkilendi). Yerine scripts/_letterbox_roi.py: film genelinden 10 kare örnekler.
 
 
 # ── tek kare kararı ────────────────────────────────────────────────────────────
@@ -312,10 +303,13 @@ def _classify_frame(path: Path, eng, params: dict, roi_y_min: int = 0, roi_y_max
             "lines_bbox": [], "sig": "", "_hash": fhash,
         }
 
+    # ROI film-geneli örneklemeyle ÜST katmanda bir kez hesaplanır. Geçersizse TAM KARE —
+    # kare-bazlı ROI tahmini YASAK (karanlık kareyi "küçük resim" sanar; kök vaka notuna bak).
+    H_kare = bgr.shape[0]
     if roi_y_max > roi_y_min:
-        y_min, y_max = roi_y_min, roi_y_max
+        y_min, y_max = roi_y_min, min(roi_y_max, H_kare)
     else:
-        y_min, y_max = detect_active_video_roi(bgr)
+        y_min, y_max = 0, H_kare
     active_H = max(1, y_max - y_min)
     sub_frac = params["SUB_FRAC"]
     credit_lines: list[str] = []
@@ -504,13 +498,10 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
         return _base_manifest("engine_error", {"engine": "yok", "engine_error": err,
                                                "total_input_frames": len(paths)})
 
-    # ── ROI (LETTERBOX) HESAPLAMASI: SADECE 1 KERE YAPILIR ──
-    roi_y_min, roi_y_max = 0, 0
-    for p in paths[:5]:
-        first_bgr = imread_unicode(str(p))
-        if first_bgr is not None:
-            roi_y_min, roi_y_max = detect_active_video_roi(first_bgr)
-            break
+    # ── ROI (LETTERBOX): FİLM GENELİNDEN 10 KARE ÖRNEKLENEREK 1 KEZ HESAPLANIR ──
+    # İlk kareden hesaplamak felaketti (kök vaka notu: _letterbox_roi.py). Bant, ancak
+    # örneklenen karelerin HEPSİNDE siyah olan satırdır; şüphede tam kareye düşülür.
+    roi_y_min, roi_y_max, roi_kaynak = letterbox_roi_from_paths(paths, imread_unicode)
 
     # ── her kareyi sınıflandır ──
     rows: list[dict] = []
@@ -579,9 +570,25 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
     for r in rows:
         r.pop("_hash", None)
 
+    # ── SESSİZ-SIFIR ALARMI (2026-08-11) ──────────────────────────────────────
+    # Kredi metni OKUNDUĞU HALDE havuz boş kaldıysa bu "jenerik yok" DEĞİL, arıza
+    # sinyalidir: ROI/eşik bir kuralı yanlış işletiyor demektir. Kök vakada boru
+    # hattı tam da bu durumda "ok" deyip 360/360 kareyi elemişti — sessiz arıza.
+    uyari = None
+    if n_kept == 0 and paths:
+        kredi_gorulen = sum(1 for r in rows
+                            for lb in (r.get("lines_bbox") or []) if lb.get("is_credit"))
+        if kredi_gorulen:
+            uyari = f"bos_havuz_ama_{kredi_gorulen}_kredi_satiri_okundu"
+            print(f"[giris_yazi] UYARI: havuz boş ama {kredi_gorulen} kredi satırı okundu "
+                  f"(roi={roi_kaynak}) — ARIZA ŞÜPHESİ, 'jenerik yok' diye yorumlama.",
+                  file=sys.stderr, flush=True)
+
     manifest = _base_manifest("ok", {
         "engine": kind,   # 2026-07-17: sabit 'oneocr' etiketi yalan söylüyordu (Linux'ta paddle koşar)
         "vl_dekor": vl_dekor_stats,   # semantik dekor-kapısı özeti (bayrak kapalıysa {"enabled": False})
+        "roi": {"y_min": roi_y_min, "y_max": roi_y_max, "kaynak": roi_kaynak},
+        "uyari": uyari,
         "total_input_frames": len(paths),
         "total_kept": n_kept,
         "total_dropped_footage": n_drop,

@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-_PR = os.environ.get("MITAS_PROJECT_ROOT", r"E:\MITAS")
+_PR = os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas"
 sys.path.insert(0, str(Path(_PR) / "OCR-worktree"))
 _spec = importlib.util.spec_from_file_location("dcmaster", str(Path(_PR) / "OCR-worktree" / "db_compose_master.py"))
 dc = importlib.util.module_from_spec(_spec); sys.modules["dcmaster"] = dc; _spec.loader.exec_module(dc)

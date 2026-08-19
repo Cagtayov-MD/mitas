@@ -4,7 +4,8 @@ Optimize edildi: ROI 1 kere hesaplanıyor, Temsilci kare keskinliğe göre seçi
 """
 import sys, os
 from pathlib import Path
-sys.path.insert(0, r"E:\MITAS"); sys.path.insert(0, r"E:\MITAS\scripts")
+_PROJE_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+sys.path.insert(0, str(_PROJE_KOK)); sys.path.insert(0, str(_PROJE_KOK / "scripts"))
 os.environ.setdefault("JENERIK_PADDLE_FAST_NO_DOC", "1")
 sys.stdout.reconfigure(encoding="utf-8")
 import cv2, numpy as np
@@ -13,7 +14,7 @@ from core.pipelines.ocr.jenerik_frame_pool_detector import imread_unicode, list_
 from core.pipelines.ocr.jenerik_oneocr_detector import oneocr_line_boxes
 from _pipe_ocr import build_engine, fold
 
-DB = Path(r"E:\MITAS\Database")
+DB = _PROJE_KOK / "Database"
 SUB_FRAC = float(os.environ.get("MITAS_GIRIS_SUB_FRAC", "0.82"))
 ROW_H = int(os.environ.get("PROTO_ROW_H", "48"))
 CW = int(os.environ.get("PROTO_W", "780"))
@@ -61,14 +62,7 @@ def _line_boxes_conf(eng, bgr):
         out.append((box, t, conf))
     return out
 
-def detect_active_video_roi(bgr: np.ndarray, thresh: int = 15) -> tuple[int, int]:
-    H = bgr.shape[0]
-    max_p = np.max(bgr, axis=2)
-    row_max = np.max(max_p, axis=1)
-    non_black = np.where(row_max >= thresh)[0]
-    if len(non_black) < int(0.3 * H):
-        return 0, H
-    return int(non_black[0]), int(non_black[-1]) + 1
+from _letterbox_roi import letterbox_roi_from_paths
 
 def build(src_dir: Path, out_png: Path) -> dict:
     eng, kind, err = build_engine()
@@ -78,13 +72,10 @@ def build(src_dir: Path, out_png: Path) -> dict:
     cands = []
     order = 0
 
-    # --- ROI (LETTERBOX) HESAPLAMASI: SADECE 1 KERE YAPILIR ---
-    roi_y_min, roi_y_max = 0, 0
-    for p in paths[:5]:
-        first_bgr = imread_unicode(str(p))
-        if first_bgr is not None and np.mean(first_bgr) > 5:
-            roi_y_min, roi_y_max = detect_active_video_roi(first_bgr)
-            break
+    # --- ROI (LETTERBOX): FİLM GENELİNDEN 10 KARE ÖRNEKLENEREK 1 KEZ ---
+    # Eskiden ilk kareden hesaplanıyordu; havuz scriptindeki ikizi 102 filmi bozdu
+    # (kök vaka notu: scripts/_letterbox_roi.py). Şüphede tam kareye düşer.
+    roi_y_min, roi_y_max, _roi_kaynak = letterbox_roi_from_paths(paths, imread_unicode)
     if roi_y_max <= roi_y_min:
         roi_y_min, roi_y_max = 0, 720
     active_H = max(1, roi_y_max - roi_y_min)

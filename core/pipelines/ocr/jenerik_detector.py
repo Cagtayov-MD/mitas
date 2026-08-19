@@ -32,7 +32,7 @@ from typing import Any, Optional
 import cv2
 import numpy as np
 
-# E:\MITAS'ı path'e ekle (standalone import için) → core paketi
+# proje kökünü path'e ekle (standalone import için) → core paketi
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from core.pipelines.ocr.jenerik_primitifleri import (  # noqa: E402
     _build_tophat_mask, _phase_corr, _gdiff, _masked_gray, _hann2d,

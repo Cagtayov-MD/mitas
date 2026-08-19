@@ -41,6 +41,10 @@ while IFS= read -r f; do
   fi
   bekleme=0
   while [ ! -f "$G/$f" ]; do
+    if ls "$G" >/dev/null 2>&1; then
+      echo "ATLA(kaynak dosya yok): $f"
+      continue 2
+    fi
     bekleme=$((bekleme+1))
     [ "$bekleme" -gt 60 ] && { echo "ATLA(60dk kaynak yok): $f"; continue 2; }
     [ -f "$KOK/DURDUR" ] && break 2

@@ -48,8 +48,12 @@ import cv2
 import numpy as np
 
 
-DB = Path(r"F:\REPO_GitHub\DATABASE")
-OUT = Path(r"E:\MITAS\OCR-worktree\db_masters")
+# CLI argparse defaultları. Linux geçişi: env varsa onu kullan (eski Windows sabitleri
+# F:\REPO_GitHub\DATABASE / E:\MITAS\... bu makinede mevcut değildi → --db-root/--out
+# verilmeden koşulunca ölü yola çıkıyordu).
+_PROJE_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+DB = Path(os.environ.get("MITAS_DB_ROOT") or (_PROJE_KOK / "Database"))
+OUT = Path(os.environ.get("MITAS_DB_MASTERS_DIR") or (_PROJE_KOK / "OCR-worktree" / "db_masters"))
 SEGS = [("giris", "entry_frames"), ("cikis", "exit_frames")]
 
 SLIT_FRAC = 0.55      # slit position as fraction of frame height
