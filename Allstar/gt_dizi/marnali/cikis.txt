@@ -1,0 +1,5 @@
+# marnali CİKİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/marnalı_son_02m11s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/marnali_cikis/
+# Motor referansı: cikis_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.

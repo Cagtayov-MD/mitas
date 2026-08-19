@@ -1,0 +1,5 @@
+# kara_simsek CİKİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/kara_şimşek_son_35s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/kara_simsek_cikis/
+# Motor referansı: cikis_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.

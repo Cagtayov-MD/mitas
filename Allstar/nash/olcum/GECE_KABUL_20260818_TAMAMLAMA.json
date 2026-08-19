@@ -1,0 +1,274 @@
+{
+  "schema": "mitas.gece-kabul-completion/v1",
+  "completed_at": "2026-08-18T23:17:09+03:00",
+  "cohort": "sheriff/0.2.0@467a05d3dbae9d50",
+  "outcome": "GATE_FAILED",
+  "automatic_retry_or_db_mutation": false,
+  "cohort_snapshot": {
+    "cohort": "sheriff/0.2.0@467a05d3dbae9d50",
+    "at": "2026-08-18T23:15:04+03:00",
+    "shape": {
+      "run_count": 29,
+      "distinct_film_count": 29,
+      "task_count": 377,
+      "reader_section_count": 58,
+      "expected_films": 29,
+      "expected_tasks": 377,
+      "expected_sections": 58,
+      "ok": true
+    },
+    "run_status_counts": {
+      "FAILED": 3,
+      "SUCCEEDED": 26
+    },
+    "task_status_counts": {
+      "FAILED": 5,
+      "NO_CONTENT": 36,
+      "SUCCEEDED": 336
+    },
+    "all_runs_terminal": true,
+    "all_tasks_terminal": true,
+    "terminal": true,
+    "failed_or_blocked_tasks": [
+      {
+        "film_id": "cag_output02",
+        "run_id": "run-095a0f929a4f433e8d266dbf38ec2922",
+        "task_id": "task-c9c40c927f584e16813b259683db5a67",
+        "kind": "tower.reader_master",
+        "logical_role": "reader_master",
+        "section": "cikis",
+        "status": "FAILED",
+        "attempt_count": 2,
+        "max_attempts": 2,
+        "retry_reason": null,
+        "reason": null
+      },
+      {
+        "film_id": "cag_output02",
+        "run_id": "run-095a0f929a4f433e8d266dbf38ec2922",
+        "task_id": "task-e60147dbdab1417a91c5ce282eb43b77",
+        "kind": "tower.reader_master",
+        "logical_role": "reader_master",
+        "section": "giris",
+        "status": "FAILED",
+        "attempt_count": 2,
+        "max_attempts": 2,
+        "retry_reason": null,
+        "reason": null
+      },
+      {
+        "film_id": "cag_output18",
+        "run_id": "run-cc68f1917d9f41799b14c260fe35b9e1",
+        "task_id": "task-da9596e825734cad947b4a7694ccbc69",
+        "kind": "tower.reader_master",
+        "logical_role": "reader_master",
+        "section": "cikis",
+        "status": "FAILED",
+        "attempt_count": 2,
+        "max_attempts": 2,
+        "retry_reason": null,
+        "reason": null
+      },
+      {
+        "film_id": "cag_output17",
+        "run_id": "run-aa634a8a5b4749439e6667637bd5803e",
+        "task_id": "task-48c87bc74a794fb7912d57911b0e781f",
+        "kind": "tower.reader_master",
+        "logical_role": "reader_master",
+        "section": "giris",
+        "status": "FAILED",
+        "attempt_count": 2,
+        "max_attempts": 2,
+        "retry_reason": null,
+        "reason": null
+      },
+      {
+        "film_id": "cag_output17",
+        "run_id": "run-aa634a8a5b4749439e6667637bd5803e",
+        "task_id": "task-746b2eb07da1468c84c4b7ad1d85a08f",
+        "kind": "tower.reader_master",
+        "logical_role": "reader_master",
+        "section": "cikis",
+        "status": "FAILED",
+        "attempt_count": 2,
+        "max_attempts": 2,
+        "retry_reason": null,
+        "reason": null
+      }
+    ]
+  },
+  "external_gates": {
+    "paths": {
+      "lebron_parity": "/opt/mitas/Allstar/lebron_james/out/lebron_kalici_kabul_20260818/ozet.json",
+      "lebron_probe": "/tmp/lebron-private-ollama-kabul/cag_output07_private_ollama_kabul/cikis/lebron.json",
+      "nash_cyrillic": "/tmp/nash-multiscript-kabul-v2/cag_output20_multiscript_kabul_v2/cikis/nash.json",
+      "nash_arabic": "/tmp/nash-multiscript-kabul-v3/cag_output23_multiscript_kabul_v3/cikis/nash.json"
+    },
+    "lebron_parity": {
+      "ok": true,
+      "film_count": 29,
+      "pixel_identical_count": 29,
+      "failed_films": []
+    },
+    "lebron_probe": {
+      "ok": true,
+      "durum": "OKUNDU",
+      "backend": "private-ollama"
+    },
+    "nash_cyrillic": {
+      "ok": true,
+      "durum": "OKUNDU"
+    },
+    "nash_arabic": {
+      "ok": true,
+      "durum": "OKUNDU"
+    },
+    "ok": true
+  },
+  "report": {
+    "command": [
+      "/opt/mitas/Allstar/sheriff/venv/bin/python",
+      "/opt/mitas/Allstar/nash/olcum/sheriff_kabul_raporu.py",
+      "--db",
+      "/opt/mitas/Allstar/sheriff/state/sheriff.sqlite3",
+      "--pipeline",
+      "sheriff/0.2.0@467a05d3dbae9d50",
+      "--out-json",
+      "/opt/mitas/Allstar/nash/olcum/LEBRON_NASH_JORDAN_SHERIFF_KABUL_20260818.json",
+      "--out-md",
+      "/opt/mitas/Allstar/nash/olcum/LEBRON_NASH_JORDAN_SHERIFF_KABUL_20260818.md",
+      "--lebron-parity",
+      "/opt/mitas/Allstar/lebron_james/out/lebron_kalici_kabul_20260818/ozet.json",
+      "--lebron-probe",
+      "/tmp/lebron-private-ollama-kabul/cag_output07_private_ollama_kabul/cikis/lebron.json",
+      "--nash-gate",
+      "/tmp/nash-multiscript-kabul-v2/cag_output20_multiscript_kabul_v2/cikis/nash.json",
+      "--nash-gate",
+      "/tmp/nash-multiscript-kabul-v3/cag_output23_multiscript_kabul_v3/cikis/nash.json"
+    ],
+    "cwd": "/opt/mitas",
+    "returncode": 3,
+    "duration_s": 59.664,
+    "stdout_tail": "",
+    "stderr_tail": "",
+    "json_exists": true,
+    "markdown_exists": true
+  },
+  "report_acceptance": {
+    "all_runs_terminal": true,
+    "failed_run_count": 3,
+    "failed_task_count": 5,
+    "nash_all_sections_terminal": true,
+    "promotion_pass": false
+  },
+  "production_hash_before_tests": {
+    "command": [
+      "/opt/mitas/Allstar/sheriff/venv/bin/python",
+      "-c",
+      "import sys; sys.path.insert(0, '.'); from src.config import load_config; print(load_config().pipeline_version)"
+    ],
+    "cwd": "/opt/mitas/Allstar/sheriff",
+    "returncode": 0,
+    "duration_s": 0.114,
+    "stdout_tail": "sheriff/0.2.0@467a05d3dbae9d50\n",
+    "stderr_tail": "",
+    "pipeline_version": "sheriff/0.2.0@467a05d3dbae9d50"
+  },
+  "production_hash_after_tests": {
+    "command": [
+      "/opt/mitas/Allstar/sheriff/venv/bin/python",
+      "-c",
+      "import sys; sys.path.insert(0, '.'); from src.config import load_config; print(load_config().pipeline_version)"
+    ],
+    "cwd": "/opt/mitas/Allstar/sheriff",
+    "returncode": 0,
+    "duration_s": 0.111,
+    "stdout_tail": "sheriff/0.2.0@467a05d3dbae9d50\n",
+    "stderr_tail": "",
+    "pipeline_version": "sheriff/0.2.0@467a05d3dbae9d50"
+  },
+  "production_hash_unchanged": true,
+  "tests": {
+    "lebron": {
+      "command": [
+        "/opt/mitas/Allstar/lebron_james/venv/bin/python",
+        "-m",
+        "pytest"
+      ],
+      "cwd": "/opt/mitas/Allstar/lebron_james",
+      "returncode": 0,
+      "duration_s": 17.929,
+      "stdout_tail": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0\nrootdir: /opt/mitas/Allstar/lebron_james\nconfigfile: pytest.ini\ntestpaths: tests\nplugins: anyio-4.12.1\ncollected 163 items\n\ntests/test_ariza_sinif.py .........                                      [  5%]\ntests/test_cokme.py .......                                              [  9%]\ntests/test_derleyici_fold.py .............                               [ 17%]\ntests/test_derleyici_kimlik.py ..........                                [ 23%]\ntests/test_derleyici_plato.py ..........                                 [ 30%]\ntests/test_derleyici_sobel.py ..........                                 [ 36%]\ntests/test_izolasyon.py ...............................                  [ 55%]\ntests/test_main_akis.py .......                                          [ 59%]\ntests/test_model.py ......                                               [ 63%]\ntests/test_okuyucu.py ..................................                 [ 84%]\ntests/test_proof.py ...                                                  [ 85%]\ntests/test_siralama.py .......                                           [ 90%]\ntests/test_sozlesme.py ................                                  [100%]\n\n============================= 163 passed in 16.70s =============================\n",
+      "stderr_tail": ""
+    },
+    "nash": {
+      "command": [
+        "/opt/mitas/Allstar/nash/venv/bin/python",
+        "-m",
+        "pytest"
+      ],
+      "cwd": "/opt/mitas/Allstar/nash",
+      "returncode": 0,
+      "duration_s": 9.563,
+      "stdout_tail": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0\nrootdir: /opt/mitas/Allstar/nash\ncollected 159 items\n\ntests/test_havuz.py ....................s.....                           [ 16%]\ntests/test_hibrit.py .......................                             [ 30%]\ntests/test_main_akis.py ......................                           [ 44%]\ntests/test_metin_secici.py .......                                       [ 49%]\ntests/test_model.py ..                                                   [ 50%]\ntests/test_okuyucu.py ..................................                 [ 71%]\ntests/test_proof.py .........                                            [ 77%]\ntests/test_secim.py ...............                                      [ 86%]\ntests/test_sheriff_kabul_raporu.py ..                                    [ 88%]\ntests/test_sozlesme.py ...................                               [100%]\n\n======================== 158 passed, 1 skipped in 9.33s ========================\n",
+      "stderr_tail": ""
+    },
+    "sheriff": {
+      "command": [
+        "/opt/mitas/Allstar/sheriff/venv/bin/python",
+        "-m",
+        "pytest"
+      ],
+      "cwd": "/opt/mitas/Allstar/sheriff",
+      "returncode": 0,
+      "duration_s": 37.003,
+      "stdout_tail": "============================= test session starts ==============================\nplatform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0\nrootdir: /opt/mitas/Allstar/sheriff\ncollected 70 items\n\ntests/test_adapters.py ........                                          [ 11%]\ntests/test_contracts.py .........                                        [ 24%]\ntests/test_engine_integration.py ....                                    [ 30%]\ntests/test_handoff.py .....                                              [ 37%]\ntests/test_input_integrity.py ..                                         [ 40%]\ntests/test_isolation.py ...                                              [ 44%]\ntests/test_materialize.py .                                              [ 45%]\ntests/test_media.py .........                                            [ 58%]\ntests/test_recovery.py ....                                              [ 64%]\ntests/test_resources.py ..........                                       [ 78%]\ntests/test_runner.py ...                                                 [ 82%]\ntests/test_schemas.py ..                                                 [ 85%]\ntests/test_store_dag.py ..........                                       [100%]\n\n============================= 70 passed in 36.70s ==============================\n",
+      "stderr_tail": ""
+    }
+  },
+  "private_lebron_cleanup": {
+    "private_before": [],
+    "global_ollama_protected": [
+      {
+        "pid": 8282,
+        "ppid": 1,
+        "argv": [
+          "/usr/local/bin/ollama",
+          "serve"
+        ]
+      }
+    ],
+    "signals": [],
+    "private_after": [],
+    "ok": true
+  },
+  "ollama_home_audit_before_monitor": {
+    "path": "/home/cagatay/.ollama",
+    "exists": true,
+    "entries": [
+      {
+        "path": "cache/model-recommendations.json",
+        "bytes": 682,
+        "sha256": "06e52f6c4e5d1cd371c5fc1b3d8fb36fca83c13b3183b13b282aac5b3a921146"
+      }
+    ]
+  },
+  "ollama_home_audit_after": {
+    "path": "/home/cagatay/.ollama",
+    "exists": true,
+    "entries": [
+      {
+        "path": "cache/model-recommendations.json",
+        "bytes": 682,
+        "sha256": "06e52f6c4e5d1cd371c5fc1b3d8fb36fca83c13b3183b13b282aac5b3a921146"
+      }
+    ]
+  },
+  "ollama_home_changed_during_monitor": false,
+  "outputs": {
+    "report_json": "/opt/mitas/Allstar/nash/olcum/LEBRON_NASH_JORDAN_SHERIFF_KABUL_20260818.json",
+    "report_markdown": "/opt/mitas/Allstar/nash/olcum/LEBRON_NASH_JORDAN_SHERIFF_KABUL_20260818.md",
+    "status_jsonl": "/opt/mitas/Allstar/nash/olcum/GECE_KABUL_20260818_DURUM.jsonl",
+    "completion_json": "/opt/mitas/Allstar/nash/olcum/GECE_KABUL_20260818_TAMAMLAMA.json"
+  }
+}

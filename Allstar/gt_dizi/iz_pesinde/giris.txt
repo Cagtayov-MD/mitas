@@ -1,0 +1,5 @@
+# iz_pesinde GİRİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/iz_peşinde_ilk_02m00s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/iz_pesinde_giris/
+# Motor referansı: giris_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.

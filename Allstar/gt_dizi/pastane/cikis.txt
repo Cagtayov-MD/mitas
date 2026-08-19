@@ -1,0 +1,67 @@
+# pastane CİKİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/pastane_son_01m30s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/pastane_cikis/
+# Motor referansı: cikis_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.
+
+İstasyondaki
+Pastane
+Oynayanlar
+Sevinç Hanım—AYŞE SELEN
+Haluk Bey—AHMET YİĞİT
+Oya—NAZAN EKİNCİ AY
+Hacer—SERPİL TEZCAN
+Kadayıf Erdal—ERHAN TUNA
+Yetiş—ŞEHŞUVAR AKTAS
+Müsteriler
+SELİM ÜNEL
+NUR ÇELİK
+AYBİGE YAVUZ
+KAAN KARAMETE
+ERKAN SAYLIK
+BERİL AZİZOĞLU
+ŞÜKRAN BİLGİÇ
+MÜGE AZİZOĞLU
+TEKNİK YÖNETMEN  AKİF ALBAYRAK 
+Kamera Kontrol / TAHSİN YAZICI
+FEYZULLAH AYDOĞAN
+Işık / ÖZER MOTAN
+HASAN EFE
+ERTUĞRUL HARMANCI
+Ses / SÜHA DEHNELİ   (?) BENDE OKUYAMADIM
+SEDAT SAĞIRKAYA
+SEMİH TÜRKMEN
+Resim Serçici / ZEKİYE ERGÜN
+video kayıt /ŞEFİK BAL
+Video Kurgu / ORKAN EKİCİ
+SİNAN ÖZER
+Kamera / RÜSTÜ ALTAY
+MEHMET ŞİŞMAN
+ŞAHİN DEMİRAL
+CİHANGİR BAŞARAN
+Stüdyo Şefi / MEHMET DEĞER
+Kostüm / RAŞİT YILMAZ
+NİHAL ÖZCAN
+Aksesuar / MURAT METE
+HANDAN KÜMBETLİ
+Butofor / ULUHAN HASDAL
+Ufuk KILIÇARSLAN
+IşIk Efekt / İBRAHİM İNCE
+GÖKHAN ÜLKÜTAŞI
+MaKYAJ / SİBEL ALTAY
+Dekor Montaj / HÜSEYİN HIZARCI
+İSMAIL ŞENER
+HALİL ÇAĞLAR
+AHMET GÜÇLÜ
+Dekoratör Yard. / UFUK ZAYİM
+Dekor / DENİZ URAS
+Müzik Yapım / GÜNERİ MUNZUR
+METE ARTUN
+Müzik Beste / TEOMAN TARHAN
+Yapım / TEOMAN TARHAN
+CÜNEYT TEZCAN
+SERPİL TEZCAN
+
+Yönetmen / TEOMAN TARHAN
+TRT Ankara Televizyonu 1990.
+

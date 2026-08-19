@@ -1,0 +1,625 @@
+<think>
+</think>
+YÖNETMEN
+DOĞAN ÜMİT KARACA
+YAPIMCI
+MEHMET CANPOLAT
+SADİ CANPOLAT
+SADI CANPOLAT
+Yönetmen DOĞAN ÜMIT KARACA
+Yapımcı MEHMET CANPOLAT
+Yapımcı SADI CANPOLAT
+Senaryo YUSUF REHA ALP
+Yapımcı MEHMET ÇANPOLAT
+Yapımcı SADI ÇANPOLAT
+MEHMET ÇANPOLAT
+Senaryo SADI ÇANPOLAT
+YUSUF REHA ALP
+Genel Koordinatör HANDE ÇANPOLAT
+İdari Yapımcı CESUR TAŞ
+Görüntü Yönetmeni VEYSEL TEKŞAHİN
+Finans Koordinatörü SEDA ÇANPOLAT
+Uygulayıcı Yapımcı EMRULLAH YETİM
+Yapımcı BEHMET CANPOLAT
+Senaryo SADI CANPOLAT
+Genel Koordinatör HANDE CANPOLAT
+Finans Koordinatörü SEDA CANPOLAT
+Sanat Yönetmeni ŞÜLE BAŞAK ÇAVDAR
+Müzikçen ŞEÇİL AKIN
+Kurgu Yönetmeni TANER DEMİROVIKİ OSMANLI
+KEMALETİN OSMANLI
+VFX W&D DIGITAL
+Post Prodüksiyon Süpervizörü CEMAL AKSOY
+Yönetmen DOĞAN EMİT KARACA
+Sanat Yönetmeni SÜLE BAKAÇ ÇAVDAR
+Müzikler ŞEÇİL ARİN
+Kurgu Yönetmeni TANKER DEMİROVIÇ OSMANLI
+VFX KEMALETTİN OSMANLI
+VFX W&G DIGITAL
+Mix Final Mix DURAT YEKEN
+Hukuk Danışmanı AYÇA YAPAR ÇANPOLAT
+Kurumsal İletişim Direktörü DENİZ GÖK
+TRT Proje Sorumlusu EKREM AK
+OYUNCULAR
+Yapımcı
+İdari Yapımcı
+Görüntü Yönetmeni
+Finans Koordinatörü
+Uygulayıcı Yapımcı
+Sanat Yönetmeni
+Müzik
+Kurgu Yönetmeni
+VFX
+Post Prodüksiyon Süpervizörü
+Müzik Final Mix
+Hukuk Danışmanı
+Kurumsal İletişim Direktörü
+TRT Proje Sorumlusu
+Ali Reşat
+Berfin
+Faruk Bedir
+Mehmet Pirişçi
+Tarkan
+Baha
+Nesim
+Cihan
+Mehmet
+Gökhan
+Serkan
+Cesur Taş
+Veyşel Tekşahin
+Seda Canpolat
+Emrullah Yetim
+Şule Başak Candaş
+Şeçil Akın
+Taner Demiröviçli Osmanlı
+Kemalettin Osmanlı
+W&G Digital
+Cemal Aksoy
+Murat Yelken
+Ayça Yapar Canpolat
+Deniz Gök
+Ekrem Ak
+Gurkan Uygur
+Melike İpek Yalova
+Emir Uğurlu
+Delia İpek Yalova
+Osman Alyanak
+Büşra Develi
+Berkay Akyıldız
+Cemre Çiçek
+Mehmet Özgür
+Mehmet Özg
+SEÇİL AKIN
+TANER DEMİROVİÇ OSMANLI
+KEMALETTİN OSMANLI
+W&G DIGITAL
+CEMAL AKSOY
+MURAT YELKEN
+AYÇA YAPAR CANPOLAT
+DENİZ GÖK
+EKREM AK
+GÜRKAN UYGUN
+Derin
+MELİKE İPEK YALOVA
+ENGİN BENGİ
+OSMAN ALEAYRAK
+Mahdi Peyami
+DERİN GÖKALP
+Turan
+KANGOLAT GÖRKEM ARSLAN
+Baba Dağdan
+MERT DOĞAN
+KEP UĞUR
+Meşem
+ELİF UYSUOĞLU
+MURAT GÖZÜEZ
+Sevgi
+DEGER SOYAL ALP
+Se
+Müzik Final Mix MURAT YELKEN
+Hakem Danışman AYÇA YAPAR ÇANPOLAT
+Ali Kaya GÜRKAN UYGUN
+Berin MELİKE İŞERKALOVA
+Faruk Bedir EREN ÖZDEMİR
+Mehdi Poyraz DENİZ GÖK
+Mahdi Poyraz DENİZ GÖK
+Baba Daşan KANSOLTAY
+İlhan DENİZ GÖK, EKREM ARSLAN
+Mehmet EUP OĞUZOĞLU
+Gökhan BEKER SOYLUZ
+Pınar BEBER ARVEN
+Yasemin MURAT AYDIN
+Fatma DİLEK HASMURAT
+Civan Bahri LAHİF AKARBAK
+Süha Kılıç LAHİF AKARBAK
+Emil Şirin ÖMÜRDÜZEL
+Ali Kılıç ÖMÜRDÜZEL
+Mehmet Kılıç ÖMÜRDÜZEL
+Taş Kafa Fethi YİĞİT YALKIN
+BÖLÜM OYUNCULARI
+Emniyet Müdürü
+Kerem
+MELİKE İLKNUR
+Ali Kerem
+BURAK UYGUN
+CAN DÜNDAR
+MELİH UYGUN
+Mehdi Peyami
+OSMAN ALAYRAN
+CÜNEYT ŞEN
+MEHMET ÖZCAN
+CANAN ALAYRAN
+KANDİL GÖRKEM ARSLAN
+MURAT ÖĞÜT
+Niyazi
+ELİF ÜNLÜ
+Perihan
+BERİN ARSOY
+Seçgi
+DEĞER SOYALP
+Fatma
+DİLEX HASRİŞOĞLU
+Mustafa
+MUSTAFA VURAN
+Civan Bahri
+LATİF AKÇEBİ
+Süleyman
+Pınar Semih
+ALADDİN KIRADIBAK
+Türk Beyir
+İBRAHİM DİZEL
+Tas Kafa Fethi
+YİĞİT YALKIN
+Limandaki Adam
+HAKAN EKŞEN
+Küçük Turan
+ATLAS ERAYDIN
+Küçük Gökhan
+YAGIZ SELİM TÜRKYILMAZ
+MÜJDE
+Civan Kızıltı
+Fırat
+Süha Kızıltı
+Civan Şahin
+Emir Şahin
+Tuna Şahin
+Pelin Şahin
+Taş Kafa Fırtı
+Taş Kafa Fırtılı
+Emre Yetiş
+DİLEK YÜKSEL
+DAVUT AKSOY
+AYŞE AYDIN
+UMUT AKABABA
+CATİ YILDIZ
+ÖMER DOĞAN
+Emreyl Mıdano
+DÜNYA ŞEN
+Kıvılcım Taran
+Elmurodov Adam
+HASAN KÖKEN
+Kıvılcım Gökhan
+Ahmetcan Adam
+CETIN KAZMAN
+Oğuz Burcu
+ASYA FILIZ
+Faruk Bedir Şekerciler
+DİDEM ATALAY
+Faruk Bedir Muhasebeci
+MUSTAFA GÖRGÜN BULUT
+YAPIM EKİBİ
+Yapım Koordinatörü
+OMUR TAŞ
+Yapım Amiri
+BATIKAN BÖL
+Yapım Şef Asistanı
+MEHMET TOKUZ
+GÖKHAN GÜVENÇ
+Mekan Sorumlusu
+Yapım Ekibi Asistanı
+BATUHAN KASAP
+EMRAH FIRICCI
+BURHAN ÇERİT
+BURHAN TOKGOZ
+GÜRKAN TOKGOZ
+REJİ EKİBİ
+Yardımcı Yönetmen
+ŞİVE ERDOĞAN
+Reji Koordinasyon
+DUYGU YILDIRIM
+Reji Asistanı
+Yapım Koordinatörü OMUR TAŞ
+Yapım Asisti BATIKAN BOL
+Yapım Şef Asistani MEHMET TOKUZ
+Mekan Sorumlusu GOKHAN GUVENÇ
+Yapım Ekibi Asistani BATHAN KASAP
+Yapım Ekibi Asistani EVRAH BIRICI
+BATIHAN KASAP
+BURHAN SERİN
+BURHAN ZORLUOĞLU
+BURKAN TOKGOZ
+Yardımcı Yönetmen SİVE ERDOĞAN
+Reji Koordinasyon DUYGU YILDIRIM
+Reji Asistanı UFUK FIDAN
+Reji Asistanı ILKAY MERAL GÖKÇEOĞLU
+ECAL VERİP GÖKÇEOĞLU
+EŞİF ŞENİL
+SARP BAŞKAN
+ALTİKEŞAN
+KAMERA EKİBİ
+Kamera Operatörleri MURAT KARAKULLUKÇU
+TUNCAY OCAK
+BERKAN BALCIOĞLU
+A Focus Puller BERKAN BALCIOĞLU
+B Focus Puller BURAK KARAKULLUKÇU
+Kamera Asistanları YASİN KONTAŞ
+YASİN TOK
+ONURALİ BALCI
+KURDİŞ GÜL
+EMİRALE BALCI
+HÜDAYI ÇAKIR
+EMRAN ERDOĞAN
+BURHAN ERDOĞAN
+BURHAN ÇERİ
+SİVE ERDOĞAN
+UFUK FIDAN
+ULAS MERT GÖKÇEOĞLU
+EĞİT DEMİR
+ALİ KEŞİN
+Kamera Operatörleri
+MURAT KARAKULLUKÇU
+A Focus Puller
+B Focus Puller
+BURAK KARAKULLUKÇU
+Kamera Asistanları
+YAŞİN KONTAŞ
+YUSUF TOK
+ÖNURALP BALCI
+EMRAH PARLAK
+D.I.T.
+HAYDAR TÜRKMEN
+Set Fotoğraf
+UFUK TEKTAŞ
+SAÇ & MAKYAJ EKİBİ
+Makyöz
+MEDİNE İNCEGÜL
+Kuafor
+ORHAN ÖZİŞTANBİLLİ
+İLKER YILMAZ
+İLKER YIL
+BULKAN BALCIOGLU
+BERKAN BALCIOGLU
+BURAK KARAKULLUKCU
+YASIN KONTAS
+ONURAY BALCI
+HAYDAR TURKMEN
+Set Fotograf
+UFUK TEKTAS
+SAC & MAKYAJ EKIBI
+Makyaj
+MEDINE INCEGUL
+ORHAN OZISTANBULLU
+Makyaj Asistani
+GUNCE AKGUN
+IREM ISLER
+Kuafor Asistani
+SANAT EKIBI
+Sanat Asistanlari
+VURAL KARATEPE
+MURAT ISSI
+GULIN USTA
+TUNCAY ELEVI
+SALIH USTA
+OMER SEMIH SESLI
+KOSTUM EKIBI
+Kostum Sefi
+FERAY BEKTAS
+SILA SEVIMSER
+Kostum Ekibi
+AKIN ASLAN
+YAGMUR ALPER
+KUZGUN BAYTAS
+D.I.T. HAYDAR TÜRKMEN
+Set Fotoğraf UFUK TEKTAŞ
+Makyöz MEDİNE İNCEGÜL
+Kuafor ORHAN ÖZİSTANBULLU
+Makyöz Asistanı GÜNCER ARGÜN
+Kuafor Asistanı İREM İŞLER
+SANAT EKİBİ
+Sanat Asistanları VURAL KARATEPE
+VURAL İŞÇİ
+BÜNYAMİN
+SİNAN ÇELİK
+ÖMER SEMİN SEĞLİ
+KOSTÜM EKİBİ
+Kostüm Şefi FERAY BEKTAŞ
+Kostüm Ekibi SİLA SEVİMŞER
+SİLA SEVİMŞER
+AYŞE AYVADER
+YASMIN ALPER
+MÜNEVVER TAŞTEKİN
+IŞIK EKİBİ
+Işık Şefi OKAN ŞAHİN
+Bestboy FATIH YILDIRIM
+Işık Asistanları ABDURRAHMAN ŞAHİN
+OKAN ŞAHİN
+UGUR MUHAMMED ARİKLAR
+Makyöz Asistanı GÜNEÇ AKGÜN
+Karıfe Asistanı İREM İŞLER
+Sanat Asistanları MURAT İŞÇİ
+SALİN USTA
+TUNCAY ELEVİ
+ÖMER SEMİH SEŞLİ
+BİLA SEVİMŞER
+Kostüm Ekibi AKIN ASLAN
+YAĞMUR ALPER
+Bestboy FATİH YILDIRIM
+Işık Asistanları FATİH YILDIRIM
+ABDURRAHMAN ŞAHİN
+Işık Asistanları UĞUR MUHAMMED ARIKLAR
+HARÜN ŞAHİN
+UĞUR MUHAMMED ARIKLAR
+HÜSEYİN AYDIN
+SES EKİBİ
+Ses İBRAHİM GÖK
+Boom Operatörü AYSU ALPTEKİN
+Ses Asistanı ÖMER FARUK KEPENİK
+OMUK GÖRÜŞ SÖZLÜ
+Kostüm Ekibi SÜK AŞKIN
+Kostüm Ekibi YASİN ALPER
+YASİN ALPER
+MUNEVVER TAŞTEKİN
+Işık Asistanları KÖŞER İSHAKMED ARİKLAR
+KÖŞER İSHAKMED ARİKLAR
+ÖMER FARUK KEPENİK
+SET EKİBİ
+Set Amiri AYTEKİN YALÇIN
+Set Bestboy NECAT KARUL
+Set Asistanları İBRAHİM GİRGİN
+İBRAHİM GİRGİN
+MÜCAHİT KESKİN
+NECAT KARUL
+HARUN ŞAHİN
+LOUTİ EMİR
+İBRAHİM GİRŞİN
+Set Asistanları YİĞİTCAN KARAMAN
+ERCAN SAĞLIK
+YİĞİTCAN KARAMAN
+NECDET GÜLBENZER
+PANTER EKİBİ
+Panter Operatörü HAKKİ KONTAŞ
+Panter Asistanı YUNUS EMRE KONTAŞ
+Panter Asistanı UMUT CAN SÖZÜER
+YUNUS EMRE KONTAŞ
+UMUT CAN SÖZÜER
+Paramedik MİHRİBAN BAKAÇ
+Paramedik EDHAMİYE AYDIN
+MİHRİBAN BAKAÇ
+Ses
+IBRAHIM GÖK
+Boom Operatörü
+AYŞU ALPTEKİN
+Ses Asistanı
+Set Amiri
+AYTEKİN YALÇIN
+Set Bestboy
+Set Asistanları
+IBRAHİM GİRGİN
+YILDIRAY KESMAN
+ERCAN SÖZER
+Panter Operatörü
+HAKKI KONTAŞ
+Panter Asistanı
+Paramedik
+MIHRİBAN BACAÇ
+İş Güvenliği Uzmanı
+MUHAMMET AYDIN
+CEYHUN KAPLAN
+Post Prodüksiyon
+FONO FİLM
+Genel Koordinatör
+SADIK EREN
+Stüdyo Süpervizörü
+Re-Recording Mix
+ILYAS UYGUR
+KEREM AKTAŞ
+Set Reşitoy
+NECAT KARLI
+IBRAHİM GÜRÜN
+HAKKİ KONTAŞ
+MIHRİBAN BACAŞ
+İLYAS UYGUR
+Re Recording Mix
+Atmosfer Tasarım
+SİNEM AKTAŞ
+Dialog Edit
+ŞAKİR ÖZTÜRK
+SFX
+ÖMER YILDIR
+Stüdyo Teknik Sorumlusu
+TOLGA ÇEBER
+Ses Senkron
+YAŞAR
+Panter Operatörü HAKKI KONTAŞ
+Paramedik UMUT CAN SÖZÜER
+Paramedik MIHRİBAN BAKAÇ
+İç Güvenliği Uzmanı MUHAMMET AYDIN
+İç Güvenliği Uzmanı CEYHUN KAPLAN
+Post Prodüksiyon FONO FİLM
+Genel Koordinatör SADIK EREN
+Genel Koordinatör BAŞAR EREN
+Stüdyo Süpervizörü İLYAS UYGUR
+Re Recording Mix KEREM AKTAŞ
+Atmosfer Tasarımı BİREM AKTAŞ
+Dialog Edit BAKIR ÖZTÜRK
+SFX ÖMER YILDIZ
+Stüdyo Teknik Sorumlusu TOLGA ÇEBER
+YAGMUR FAHROĞLU
+Ses Senkron YAGMUR FAHROĞLU
+Data Aktarımı ŞAFAK TEZGEL
+Data Aktarımı YAGMUR FAHROĞLU
+HAKKI UYSAL
+Afiş C ONE CREATIVE
+Sosyal Medya GÜNEÇ NAZ ALIŞIROĞLU
+Müzik Scoring ŞEÇİL ARİN
+Müzik Kayıt MERT YÜKSEL
+İş Güvenliği Uzmanı CEYHAN KAPLAN
+Atmosfer Tasarım SİNEM AKTAŞ
+Dialog Edit ŞAKİR ÖZTÜRK
+Sev Senkron YAĞMUR FARİROĞLU
+Şafak Tezgel
+Data Aktarımı YAĞMUR FARİROĞLU
+YAĞMUR FARİROĞLU
+Soyut Medya GÜNEŞ NAZ ALŞIROĞLU
+Müzik Scoring ŞEÇİL ARIN
+Klarnet ŞÜKRU TİRKİŞ
+Ud, Viola, Keman ALTUĞ ÖNÇÜ
+CNP FİLM
+Muhasebe Müdürü RACI AVCI
+Muhasebe Müdür Yardımcısı İSA GÜNDÖR
+YAGMUR FAKIROGLU
+ŞAFAK TEZGEL
+Data Aktarımı
+Ahş
+C ONE CREATIVE
+Sosyal Medya
+GÜNCENAZ ALIŞIROĞLU
+Müzik Scoring
+Müzik Kayıt
+MERT YÜKSEL
+Klarnet
+ŞÜKRÜ TIRKIŞ
+Ud, Viola, Keman
+ALTUĞ ÖNÇÜ
+Muhasabe Müdürü
+RACI AVCI
+Muhasabe Müdür Yardımcısı
+İSA GÜNDOR
+Ofis Sorumlusu
+AYTEN YÖRÜK
+Cast Ajansı
+CAST MERKEZİ
+Genel Müdür
+SERHAT USAK
+ŞÜKRÜ TİRKİŞ
+Muhasbe Müdürü
+RACİ AVCİ
+Muhasbe Müdür Yardımcısı
+AYTEN YORUK
+Oyuncu Sorumluları
+MERAL ASLAN
+FİLİZ OKUYUCU
+Yardımcı Oyuncu Sorumluları
+YUSUF SEYMEN
+ORHAN DERE
+Proje Sorumlusu
+CENGİZ KAAN ÇETİN
+Ekip Sorumlusu
+BERKAY BEKTAS
+SERHAT UŞAK
+DERAÇAYLU
+YUSUF SEYHAN
+BERKAY BEKTAŞ
+Ulaşım Ekibi
+HÜSEYİN ÇULCU
+SERKAN DEMİRAĞ
+YÜKSEL ÇELİK
+YÜKSEL DEMİRAL
+YOKAN ÇEŞMEALİ
+AHİ YAVUZ
+Ols Sorumlusu
+CAST BERKEZİ
+FILIZ OKUYUCU
+SERKAN DEMİRBAG
+KEMAN BİLGİN
+YÜKSEL ZEMBAL
+DOĞU GÜMÜŞ
+MAKAN AŞKİOĞLU
+ALİ YILMAZ
+MERT KORKMAZ
+DOĞU YILMAZ
+ALİ YIL
+DERA ASLAN
+ORHAN BERE
+SERKAN DEMİROĞ
+YUSUF ÖZDURAL
+MAÇİN YILDIZOĞLU
+ALİ AKAR
+MERYEM ÖZKÖK
+GÖKÇE ÖZDEMİR
+ALATAY ERDEM
+KURŞAT ÖZKARAR
+TÜRKAY ŞAHİN
+İSTİFAK ÖZKIRCI
+YASİYAYA ŞAHİNOĞLU
+BARIŞ PEŞAŞKİNOĞLU
+CEVDET KIVANÇÖZK
+Catering Ekibi
+SAMET BEKTAŞ
+Set Yemekleri
+AŞKADAR CATERING
+DEZELVE GIDA
+HÜSEYİN ÇOLCU
+UĞUR GÜMÜŞ
+MAKAN AŞOĞLU
+ALİ YAVAN
+FATİH ÇELİBİ
+DOĞAN ÖZER
+ALAAATTİN ERKAN
+SEÇKİN ÖZDEN
+TURGAY AKPINAR
+MUSTAFA BİRİNCİ
+EYVAN ÇAKIR
+TAŞKIN KAYGUSUZ
+BAŞİR FEDEKARTÜRK
+ÇAĞLAR SOYLUK
+CEVDET KIVANÇÇEK
+YAVUZ KALKAN
+AŞKADAR CATERİNG
+BEZELYE GIDA
+Ulaşım&Nakliye
+ÇARŞAMBAI NAKLİYAT
+Kamera
+FİLMARKA
+Işık
+ART SİNEMA
+"FAAD BEKEN"
+"AYDIN ÖZKAZ"
+"ÇAĞATAY ÖZDEMİR"
+"ALİ YILMAZ"
+"İSKENDER ÖZDEMİR"
+"TURGAY ŞAHİN"
+"İSTANBUL"
+"YASİN KAYA"
+"BAŞAK İPEK"
+"BAŞ
+ÇANLAR ŞOVALK
+CEVDET KIVANÇÖZEC
+Catering Ekibi SAMET BEKTAŞ
+Set Yemekleri ASKADAR CATERİNG
+Set Yemekleri BEZELYE GIDA
+Ulaşım&Nakliye ÇARŞAMBAI NAKLİYAT
+Kamera FILMARKA
+Işık ART SİNEMA
+Ses CITY VOICE SES HİZMETLERİ
+Set SHADOW SET GRIP
+Drone ÖOĞUZ ALBAYRAK
+İç Güvenliği ve Ambulans ADOK ORTAK SAĞLIK GÜVENLİK
+Aksesuar Araçlar DORUK DUVAR SONMEZ
+Sarf Malzeme BLUEPARK MEDYA TURİZM
+© 2024
+Ulaşım&Nakliye ÇARŞAMBAĞI NAKLİYAT
+Kamera FİLMARKA
+Drone ÖĞÜZ ALBAYRAK
+İş Güvenliği ve Ambulans ADOK ORTAK SAĞLIK GÜVENLİK
+Aksesuar Araçlar DORUK DUVAR SÖNMEZ
+Bronz
+OĞUZ ALBAYRAK
+İç Güvenliği ve Ambulans
+ADOK DİTAK SAĞLIK GÜVENLİK
+Aksesuar Araçlar
+DORUK BUVAR SÖNMEZ
+Sarf Malzeme
+BLUEPARK MEDYA TURİZM
+CNPFILM
