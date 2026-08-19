@@ -25,7 +25,10 @@ kanal A + kanal B
 
 ## Girdi sözleşmesi: `mitas.okuma/v1`
 
-Film klasöründe bölüm başına **tam iki** `*.okuma.json` gerekir:
+Film klasöründe bölüm başına **1–3** `*.okuma.json` bulunur. `nash` paketi
+ZORUNLUDUR — bbox yalnız onda vardır (ölçüldü 2026-08-19: nash %100,
+lebron %1, jordan %0) ve kör kontrol kuyruğu onun koordinatlarına bağlıdır.
+Diğer kanallar varsa katılır, yoksa güven düşürülür.
 
 ```text
 <film>/
@@ -33,7 +36,7 @@ Film klasöründe bölüm başına **tam iki** `*.okuma.json` gerekir:
 └─ cikis/ kanal-a.okuma.json, kanal-b.okuma.json
 ```
 
-Her paket `film`, `bolum`, `producer`, `assets`, `lines`, `durum` taşır.
+Her paket `film`, `section`, `producer`, `assets`, `lines`, `status` taşır.
 `producer.id` iki pakette farklıdır ama ismi serbesttir. `OKUNDU` satırında
 asset referansı ve kaynak koordinat uzayında geçerli `x0,y0,x1,y1` bbox zorunlu;
 asset yolu, boyutu ve SHA-256'sı da zorunludur. Piksel JSON içine konmaz.
@@ -42,11 +45,11 @@ asset yolu, boyutu ve SHA-256'sı da zorunludur. Piksel JSON içine konmaz.
 {
   "schema_version": "mitas.okuma/v1",
   "film": {"id": "F1", "external_ids": {"imdb": "tt123"}},
-  "bolum": "cikis",
+  "section": "cikis",
   "producer": {"id": "okuyucu-a", "engine_family": "ocr", "model_digest": "sha256:..."},
-  "durum": "OKUNDU",
+  "status": {"execution": "SUCCEEDED", "content": "READ", "proof": "COMPLETE"},
   "assets": [{"asset_id": "frame-1", "path": "/readonly/frame.png", "sha256": "64-hex", "width": 1920, "height": 1080}],
-  "lines": [{"line_id": "l1", "order": 1, "text": "AHMET GÜLDİKEN", "evidence": [{"asset_id": "frame-1", "bbox": {"x0": 410, "y0": 220, "x1": 760, "y1": 275}}]}]
+  "lines": [{"line_id": "l1", "order": 1, "raw_text": "AHMET GÜLDİKEN", "normalized_text": "ahmet güldi̇ken", "evidence": [{"asset_id": "frame-1", "bbox": [410, 220, 760, 275]}]}]
 }
 ```
 

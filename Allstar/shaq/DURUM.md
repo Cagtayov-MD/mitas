@@ -22,6 +22,10 @@ kanıta bağlı kontrol cevapları ve dört-paket film manifesti kullanır.
 `out_hakeem/` izoledir ve QC1'e bağlı değildir.
 
 100-film ölçüm aracı hazırdır; ancak 2026-08-17 itibarıyla çalışma ağacında
-`*.okuma.json` sayısı **0** olduğu için gerçek karşılaştırma henüz koşulamaz.
+`*.okuma.json` üretimi başladı: 2026-08-19 itibarıyla ağaçta **883** paket var
+(sheriff: nash 347 · lebron 125 · jordan 72; ayrıca `shaq/in/` altında 30 film
+× 76 bölüm üç kanallı). Gerçek karşılaştırmanın önündeki engel artık paket
+yokluğu DEĞİL, **birim uyuşmazlığıdır**: Nash kutu parçası, LeBron/Jordan
+birleştirilmiş satır üretiyordu. Faz B bunu Nash içinde kapatır.
 Okuyucu adaptörleri dört bbox'lı paketi ürettikten ve insan GT'si hazırlandıktan
 sonra kazanan `karsilastir` raporuyla belirlenecektir. Ayrıntı: `HAKEEM.md`.
