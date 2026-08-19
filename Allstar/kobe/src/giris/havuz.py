@@ -114,8 +114,16 @@ def sec(dizin: str | Path, sinir: dict | None, config: dict | None = None) -> di
     elenen = 0
     gorulen: set[str] = set()
     secilen: list[str] = []
+    # Seçilen karenin HANGİ sınıfla girdiği tüketiciye taşınır. Gerekçe:
+    # LeBron kayma birleştiricisidir; alt-bant kareleri aynı duran kartın
+    # neredeyse aynı kopyalarıdır ve kayma ölçümünü sulandırır (ölçüldü
+    # 2026-08-20: havuz 93→127 olunca master 6087 px / 21 segment yerine
+    # 449 px / 1 segment'e çöktü). Nash ve Jordan kareyi TEK TEK okur,
+    # onlara zararı yok. Sınıfı yazıyoruz ki her tüketici kendi kararını
+    # versin — havuzdan atmak yerine.
+    siniflar: dict[str, str] = {}
     for yol in yollar:
-        al, satirlar, _ = _kare_karari(yol)
+        al, satirlar, neden = _kare_karari(yol)
         if not al:
             elenen += 1
             continue
@@ -125,5 +133,7 @@ def sec(dizin: str | Path, sinir: dict | None, config: dict | None = None) -> di
                 continue
             gorulen.add(imza)
         secilen.append(yol)
+        siniflar[Path(yol).name] = neden
     return {"kareler": secilen, "taranan": taranan,
-            "elenen_footage": elenen, "dedup_temsilci": len(secilen)}
+            "elenen_footage": elenen, "dedup_temsilci": len(secilen),
+            "siniflar": siniflar}

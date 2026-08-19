@@ -27,14 +27,51 @@ def nat_sort_key(yol: str | Path):
     return (int(sayilar[-1]) if sayilar else -1, ad)
 
 
+ALT_BANT_SINIFI = "recall_altbant"
+
+
+def _alt_bant_adlari(d: Path) -> set[str]:
+    """Kobe'nin `_sinif.json` manifestosundan alt-bant kurtarmalarını oku.
+
+    NEDEN AYIKLIYORUZ: LeBron bir KAYMA birleştiricisidir. Alt-bant
+    kurtarmaları aynı DURAN kartın neredeyse aynı kopyalarıdır; havuza
+    girdiklerinde kayma ölçümünü sulandırırlar. Ölçüldü (2026-08-20,
+    Çiçek Taksi b2 girişi): havuz 93→127 kareye çıkınca master
+    6087 px / 21 segment yerine 449 px / 1 segment'e ÇÖKTÜ.
+
+    Bu kareler ATILMIYOR — Kobe'nin havuzunda duruyorlar ve Nash ile
+    Jordan onları okuyor (ikisi de kareyi TEK TEK okur, kaymaya ihtiyaç
+    duymaz). Yalnız LeBron'un birleştirmesinden çıkarılıyorlar.
+    Manifesto yoksa hiçbir şey ayıklanmaz — eski davranış aynen sürer.
+    """
+    m = d / "_sinif.json"
+    if not m.is_file():
+        return set()
+    try:
+        import json
+        veri = json.loads(m.read_text(encoding="utf-8"))
+    except Exception:                                     # noqa: BLE001
+        return set()
+    if not isinstance(veri, dict):
+        return set()
+    return {ad for ad, sinif in veri.items() if sinif == ALT_BANT_SINIFI}
+
+
 def kareler(dizin: str | Path) -> list[Path]:
-    """Dizindeki kare dosyaları — DOĞAL sırada. Okumaz, yalnız listeler."""
+    """Dizindeki kare dosyaları — DOĞAL sırada. Okumaz, yalnız listeler.
+
+    Kobe manifestosu varsa alt-bant kurtarmaları ELENİR (bkz.
+    `_alt_bant_adlari` gerekçesi).
+    """
     d = Path(dizin)
     if not d.is_dir():
         return []
     bulunan: list[Path] = []
     for desen in DESEN:
         bulunan.extend(d.glob(desen))
+    alt_bant = _alt_bant_adlari(d)
+    if alt_bant:
+        bulunan = [p for p in bulunan if p.name not in alt_bant]
     return sorted(bulunan, key=nat_sort_key)
 
 

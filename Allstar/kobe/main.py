@@ -223,9 +223,16 @@ def _artefakt_uret_giris(uret: str, girdi: Girdi, dizin: Path, kok: Path,
         from giris import havuz
         h = havuz.sec(str(dizin), sinir_sonuc, girdi.config)
         adet = kare_havuzu_yaz_secili(h["kareler"], hedef_kok / "kareler")
+        # Sınıf manifestosu: tüketici (LeBron) hangi karenin alt-bant
+        # kurtarması olduğunu bilsin. Havuzdan atmak yerine etiketliyoruz.
+        sinif_yolu = hedef_kok / "kareler" / "_sinif.json"
+        sinif_yolu.write_text(
+            json.dumps(h.get("siniflar") or {}, ensure_ascii=False, indent=1),
+            encoding="utf-8")
         return {"tip": "kare", "yol": "kareler", "adet": adet, "secim": "havuz",
                 "taranan": h["taranan"], "elenen_footage": h["elenen_footage"],
-                "dedup_temsilci": h["dedup_temsilci"]}
+                "dedup_temsilci": h["dedup_temsilci"],
+                "sinif_manifesto": sinif_yolu.name}
     bas_sn = max(0.0, sinir_sonuc["baslangic_sn"] - GERI_PAY_SN)
     bit_sn = sinir_sonuc["bitis_sn"]
     p = klip_kes_araligi(girdi.video, hedef_kok / "klip" / "klip.mp4", bas_sn, bit_sn)
