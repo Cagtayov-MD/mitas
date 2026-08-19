@@ -58,14 +58,20 @@ def icerik_kareleri(dizin: str | Path) -> list[str]:
 def _kare_karari(yol: str) -> tuple[bool, list[str], str]:
     """Tek kare → (al_mi, satirlar, neden). Recall önceliği: okunamadı > yanlış oku.
 
-    neden: footage | recall_ocr | recall_bos | recall_cop | icerik | icerik_yok
+    neden: footage | recall_ocr | recall_bos | recall_cop | recall_altbant
+           | icerik | icerik_yok
     — icerik_kareleri/bitis kuralı yalnız 'icerik' sınıfıyla çalışır (kalibrasyon
     buna göre yapıldı, 2026-08-17)."""
     a = kutu.kutu_analiz(yol)
     if a.get("n", 0) == 0:
         return False, [], "footage"
-    if a.get("alt_only"):
-        return False, [], "footage"
+    # ALT BANT: eskiden burada KOŞULSUZ elenirdi — kare OCR'a hiç girmezdi.
+    # Film jeneriğinde doğru (alt bantta tek satır = gömülü altyazı), DİZİ
+    # açılışında yanlış: oyuncu ismi tam orada yazıyor. Ölçülen kayıp —
+    # Çiçek Taksi b2 girişi, g_0030..g_0034: EROL GÜNAYDIN havuzdan tamamen
+    # düştü. Aynı kusur Nash'te 2026-08-19'da düzeltilmişti (197b1f33e).
+    # Artık karar konuma değil İÇERİĞE bakıyor; aşağıda sınıflanır.
+    alt_bant = bool(a.get("alt_only"))
     try:
         satirlar = icerik.satirlar(yol)
     except Exception:
@@ -78,7 +84,11 @@ def _kare_karari(yol: str) -> tuple[bool, list[str], str]:
     except Exception:
         pass
     if icerik.kredi_benzeri(satirlar) > 0:
-        return True, satirlar, "icerik"
+        # Alt bant karesi havuza GİRER (isim kaybolmasın) ama "icerik"
+        # SAYILMAZ: icerik_kareleri() yalnız "icerik" döndürür, dolayısıyla
+        # 36 filmde kalibre edilmiş bitiş şelalesi bu değişiklikten etkilenmez.
+        return True, satirlar, "recall_altbant" if alt_bant else "icerik"
+    # Kredi gibi görünmeyen alt bant metni (gerçek gömülü altyazı) yine elenir.
     return False, [], "icerik_yok"
 
 
