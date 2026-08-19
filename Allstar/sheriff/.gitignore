@@ -1,0 +1,8 @@
+/venv/
+/state/
+/runs/
+/logs/
+/scratch/
+__pycache__/
+.pytest_cache/
+*.pyc

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mitas.local/schemas/bundle-v1.schema.json",
+  "type": "object",
+  "required": ["schema_version", "film_id", "run_id", "section", "handoff_task_id", "input_fingerprint", "channels", "proof_ready_channels", "decision_policy", "auto_started_shaq", "complete"],
+  "properties": {
+    "schema_version": {"const": "mitas.shaq.bundle/v1"},
+    "film_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "section": {"enum": ["giris", "cikis"]},
+    "handoff_task_id": {"type": "string", "minLength": 1},
+    "input_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decision_policy": {"const": "UNASSIGNED"},
+    "auto_started_shaq": {"const": false},
+    "complete": {"const": true},
+    "proof_ready_channels": {"type": "array", "items": {"type": "string"}},
+    "channels": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["producer", "logical_role", "task_id", "task_status", "execution_status", "content_status", "proof_status", "packet", "packet_sha256", "asset_transfers"],
+        "properties": {
+          "producer": {"type": "string", "minLength": 1},
+          "logical_role": {"type": "string", "minLength": 1},
+          "task_id": {"type": "string", "minLength": 1},
+          "task_status": {"enum": ["SUCCEEDED", "NO_CONTENT", "FAILED", "BLOCKED_CONTRACT", "CANCELLED"]},
+          "execution_status": {"enum": ["SUCCEEDED", "FAILED", "NO_CONTENT"]},
+          "content_status": {"enum": ["READ", "NO_TEXT", "PARTIAL", "UNKNOWN"]},
+          "proof_status": {"enum": ["COMPLETE", "PARTIAL", "NONE"]},
+          "packet": {"type": "string", "pattern": "^[^/\\\\]+\\.okuma\\.json$"},
+          "packet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "asset_transfers": {"type": "array"}
+        }
+      }
+    }
+  }
+}

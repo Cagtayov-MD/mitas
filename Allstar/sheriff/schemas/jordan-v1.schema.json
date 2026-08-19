@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mitas.local/schemas/jordan-v1.schema.json",
+  "title": "MITAS Jordan video okuma sonucu v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "identity", "film_id", "bolum", "durum", "bloklar", "ciftler", "kanit"],
+  "properties": {
+    "schema_version": {"const": "mitas.jordan/v1"},
+    "identity": {
+      "type": "object",
+      "required": ["run_id", "task_id", "attempt_id"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "film_id": {"type": "string", "minLength": 1},
+    "bolum": {"enum": ["giris", "cikis"]},
+    "durum": {"enum": ["OKUNDU", "METIN_YOK", "ARIZA"]},
+    "bloklar": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["satirlar"],
+        "properties": {"satirlar": {"type": "array", "items": {"type": "string", "minLength": 1}}}
+      }
+    },
+    "ciftler": {"type": "array"},
+    "kanit": {"type": "object"}
+  }
+}

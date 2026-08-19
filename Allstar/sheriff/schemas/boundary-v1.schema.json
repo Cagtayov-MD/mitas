@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mitas.local/schemas/boundary-v1.schema.json",
+  "title": "MITAS jenerik siniri v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "identity", "film_id", "bolum", "durum", "uretilen"],
+  "properties": {
+    "schema_version": {"const": "mitas.boundary/v1"},
+    "identity": {
+      "type": "object",
+      "required": ["run_id", "task_id", "attempt_id"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "film_id": {"type": "string", "minLength": 1},
+    "bolum": {"enum": ["giris", "cikis"]},
+    "durum": {"enum": ["BULUNDU", "KREDI_YOK", "ARIZA"]},
+    "baslangic_kare": {"type": ["integer", "null"], "minimum": 1},
+    "baslangic_sn": {"type": ["number", "null"], "minimum": 0},
+    "bitis_kare": {"type": ["integer", "null"], "minimum": 1},
+    "bitis_sn": {"type": ["number", "null"], "minimum": 0},
+    "guven": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "uretilen": {"type": "array"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"durum": {"const": "BULUNDU"}}},
+      "then": {
+        "required": ["baslangic_kare", "baslangic_sn"],
+        "properties": {
+          "baslangic_kare": {"type": "integer", "minimum": 1},
+          "baslangic_sn": {"type": "number", "minimum": 0},
+          "uretilen": {
+            "type": "array",
+            "minItems": 1,
+            "contains": {
+              "type": "object",
+              "required": ["tip", "yol"],
+              "properties": {
+                "tip": {"const": "kare"},
+                "yol": {"type": "string", "minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

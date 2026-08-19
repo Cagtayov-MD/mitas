@@ -1,0 +1,16 @@
+# Iverson — ASR transkript kulesi yapılandırması.
+# Motor ayarları (profil.film) scripts/_pipe_asr lean üretim yoluyla SENKRON:
+# large-v3-turbo, beam=1, VAD on, dil auto, TR-mensei veto açık.
+
+profil:
+  film:
+    model: large-v3-turbo   # TR/belirsiz ses; desteklenen yabancı otomatik large-v3 olur
+    beam: 1
+    vad: on
+    dil: auto               # auto: LID kapalıysa whisper kendi tespit eder
+    lid: false              # MMS-LID kanal-dil tespiti — çok-stream girdide --lid ile açılır
+    tr_mensei: true         # menşei TR + 'ku' tespiti → TR-veto (üretim C6 FIX)
+    llm_valve: false        # ollama VRAM sübabı — kulede kapalı (bağımsızlık), env MITAS_ASR_LLM_VALVE=1 ile de açılır
+
+zemin:
+  ffmpeg: ffmpeg            # sistem ffmpeg (env MITAS_FFMPEG ile de verilebilir)

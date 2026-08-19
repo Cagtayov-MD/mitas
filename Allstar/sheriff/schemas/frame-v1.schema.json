@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mitas.local/schemas/frame-v1.schema.json",
+  "type": "object",
+  "required": ["schema_version", "section", "filename", "sequence", "source_time_s", "section_time_s", "width", "height", "sha256", "sampling"],
+  "properties": {
+    "schema_version": {"const": "mitas.frame/v1"},
+    "section": {"enum": ["giris", "cikis"]},
+    "filename": {"type": "string", "pattern": "^frame_[0-9]{6}\\.png$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "source_time_s": {"type": "number", "minimum": 0},
+    "section_time_s": {"type": "number", "minimum": 0},
+    "width": {"type": "integer", "minimum": 1},
+    "height": {"type": "integer", "minimum": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sampling": {
+      "type": "object",
+      "required": ["method", "fps", "timestamp_kind", "ffmpeg_output_pts", "output_pts_seconds_per_tick"],
+      "properties": {
+        "method": {"const": "ffmpeg_fps"},
+        "fps": {"type": "number", "exclusiveMinimum": 0},
+        "timestamp_kind": {"const": "ffmpeg_output_pts"},
+        "ffmpeg_output_pts": {"type": "integer"},
+        "output_pts_seconds_per_tick": {"type": "number", "exclusiveMinimum": 0}
+      }
+    }
+  }
+}

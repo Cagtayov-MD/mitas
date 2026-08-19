@@ -1,0 +1,177 @@
+pipeline:
+  version: sheriff/0.2.0
+  lease_seconds: 120
+  heartbeat_seconds: 10
+  poll_seconds: 1.0
+  max_attempts: 2
+  retry_backoff_seconds: 10
+  admission_log_seconds: 60
+  exclusive_starvation_seconds: 60
+
+paths:
+  state: state
+  runs: runs
+  logs: logs
+  shaq_inbox: ../shaq/in
+
+media:
+  ffmpeg: ffmpeg
+  ffprobe: ffprobe
+  fps: 2.0
+  opening_seconds: 240
+  closing_seconds: 480
+  audio_sample_rate: 16000
+  ffmpeg_timeout_seconds: 3600
+
+resources:
+  total_vram_mb: 24576
+  safety_vram_mb: 2048
+  safety_ram_mb: 16384
+  safety_cpu_threads: 8
+  max_cpu_percent: 95
+  safety_disk_gb: 50
+  # LeBron gibi DeepSeek okuyucular seri calisir. Nash'in DeepSeek fallback'i
+  # su anda config'ten kapali ve Paddle profiliyle hafif calisir.
+  max_deepseek_jobs: 1
+  oom_retry_vram_mb: 22000
+  profiles:
+    cpu_light:
+      gpu: false
+      vram_mb: 0
+      ram_mb: 1024
+      cpu_threads: 1
+      exclusive_gpu: false
+      family: control
+    cpu_media:
+      gpu: false
+      vram_mb: 0
+      ram_mb: 4096
+      cpu_threads: 8
+      exclusive_gpu: false
+      family: ffmpeg
+    boundary_default:
+      gpu: true
+      vram_mb: 5120
+      ram_mb: 8192
+      cpu_threads: 4
+      exclusive_gpu: false
+      family: kobe
+    reader_master_default:
+      gpu: true
+      # 2026-08-18 gerçek LeBron koşusu: private-Ollama process-tree peak
+      # 8660 MiB. +1024 MiB = 9684; 512 MiB yukarı yuvarlama = 9728 MiB.
+      vram_mb: 9728
+      ram_mb: 12288
+      cpu_threads: 4
+      exclusive_gpu: false
+      family: deepseek
+    reader_frame_default:
+      gpu: true
+      # Saf Paddle canli nvidia-smi peak~622 MiB. +1 GiB ve 512 MiB yukari
+      # yuvarlama = 2048 MiB. DeepSeek yeniden acilirsa profil de geri buyutulur.
+      vram_mb: 2048
+      # Final 7.414-kare stres testinde MAXRSS 2,09 GiB. ~1 GiB pay ve 512 MiB
+      # yukari yuvarlama sonrasi 4 GiB yeterli; eski 8 GiB rezervasyon gereksizdi.
+      ram_mb: 4096
+      cpu_threads: 4
+      exclusive_gpu: false
+      family: paddle
+    reader_video_default:
+      gpu: true
+      # Qwen2.5-VL-7B FP16 gercek Sheriff olcumu: peak VRAM 17284 MiB,
+      # peak RSS 15244 MiB. Her birine +1 GiB ekleyip 512 MiB yukari yuvarla.
+      vram_mb: 18432
+      ram_mb: 16384
+      cpu_threads: 8
+      exclusive_gpu: true
+      family: jordan25vl
+    verifier_27b:
+      gpu: true
+      vram_mb: 22000
+      ram_mb: 32768
+      cpu_threads: 8
+      exclusive_gpu: true
+      family: verifier27b
+
+# Keys are logical roles. Replacing a tower means editing only this registry.
+towers:
+  boundary:
+    producer_id: kobe
+    revision: kobe-local-v1
+    executable: ../kobe/kobe
+    version_paths: [../kobe/main.py, ../kobe/sozlesme.py, ../kobe/config.yaml, ../kobe/gereksinimler.txt, ../kobe/venv_kur.sh, ../kobe/src]
+    command: [tek, --kareler, "{input}", --film-id, "{film_id}", --uret, kare, --bolum, "{section}"]
+    isolated_output: false
+    result: ../kobe/out/{film_id}/{section}/kobe.json
+    marker: ../kobe/out/{film_id}/{section}/_TAMAM
+    resource_profile: boundary_default
+    timeout_seconds: 3600
+  reader_master:
+    producer_id: lebron
+    revision: lebron-private-ollama-v3
+    executable: ../lebron_james/lebron
+    version_paths:
+      - ../lebron_james/main.py
+      - ../lebron_james/sozlesme.py
+      - ../lebron_james/config.yaml
+      - ../lebron_james/gereksinimler.txt
+      - ../lebron_james/venv_kur.sh
+      - ../lebron_james/model_kur.sh
+      - ../lebron_james/src
+      - ../lebron_james/model.lock.json
+    command: [tek, --kareler, "{input}", --film-id, "{film_id}", --bolum, "{section}"]
+    isolated_output: false
+    result: ../lebron_james/out/{film_id}/{section}/lebron.okuma.json
+    legacy_result: ../lebron_james/out/{film_id}/{section}/lebron.json
+    marker: ../lebron_james/out/{film_id}/{section}/_TAMAM
+    resource_profile: reader_master_default
+    timeout_seconds: 7200
+  reader_frame:
+    producer_id: nash
+    revision: nash-paddle-multiscript-v7
+    executable: ../nash/nash
+    version_paths:
+      - ../nash/main.py
+      - ../nash/sozlesme.py
+      - ../nash/config.yaml
+      - ../nash/gereksinimler.txt
+      - ../nash/venv_kur.sh
+      - ../nash/model_kur.sh
+      - ../nash/src
+      - ../nash/model/paddle/PP-OCRv6_medium_det
+      - ../nash/model/paddle/latin_PP-OCRv5_mobile_rec
+      - ../nash/model/paddle/arabic_PP-OCRv5_mobile_rec
+      - ../nash/model/paddle/eslav_PP-OCRv5_mobile_rec
+    command: [tek, --kareler, "{input}", --film-id, "{film_id}", --bolum, "{section}"]
+    isolated_output: false
+    result: ../nash/out/{film_id}/{section}/nash.okuma.json
+    legacy_result: ../nash/out/{film_id}/{section}/nash.json
+    marker: ../nash/out/{film_id}/{section}/_TAMAM
+    resource_profile: reader_frame_default
+    timeout_seconds: 7200
+  reader_video:
+    producer_id: jordan
+    revision: jordan-tower-owned-config-v1
+    executable: ../jordan/jordan
+    version_paths:
+      - ../jordan/main.py
+      - ../jordan/sozlesme.py
+      - ../jordan/config.yaml
+      - ../jordan/gereksinimler.txt
+      - ../jordan/venv_kur.sh
+      - ../jordan/src
+    # Model, backend ve OCR recetesi Jordan'in kendi config.yaml'ina aittir.
+    # Sheriff yalniz gorev kimligini ve girdiyi iletir.
+    command: [tek, --video, "{input}", --film-id, "{film_id}", --bolum, "{section}"]
+    isolated_output: false
+    result: ../jordan/out/{film_id}/{section}/jordan.json
+    marker: ../jordan/out/{film_id}/{section}/_TAMAM
+    resource_profile: reader_video_default
+    timeout_seconds: 10800
+
+dag:
+  boundary_role: boundary
+  independent_reader_role: reader_frame
+  boundary_frame_reader_role: reader_master
+  boundary_video_reader_role: reader_video
+  sections: [giris, cikis]

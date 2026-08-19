@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Iverson kulesi girişi — kendi venv'ini kendi bulur. Çağıran python bilmez.
+K="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$K/venv/bin/python" "$K/main.py" "$@"
