@@ -1,15 +1,18 @@
 # Lebron — master PNG üretim kulesi
 
 > **Klasör girer, master PNG çıkar; master okunur, metin çıkar.**
-> Kompozitör: **magic** (terfi 2026-08-18 — derleyici/lebron ve ibrahimovic emekli).
+> Kompozitör: **LeBron** (`src/derleyici.py`). 2026-08-18'de `magic` deney
+> adıyla seçilen birleşik motor kalıcı LeBron adına terfi ettirildi.
 > Lebron'a bir kare klasörü gösterirsin, içindekileri bağlar. Girdinin nereden
 > geldiğini sormaz.
 
-**DURUM: Faz 0-1-2 tamam.** Derleyici ve okuyucu kulede; DeepSeek-OCR kule
-içinde yaşıyor, Ollama'ya gidilmiyor. Ayrıntı: `DURUM.md`.
+**DURUM:** Derleyici ve okuyucu kulede. Okuyucu ortak 11434 servisini değil,
+kuleye kilitli GGUF ve Ollama 0.32.0 ile rastgele loopback portunda açılan özel
+LeBron sürecini kullanır. Ayrıntı: `DURUM.md`.
 
-**İlk kurulum:** `./venv_kur.sh` (11 GB) sonra `./model_kur.sh` (~3 GB torch +
-6.3 GB ağırlık).
+**İlk kurulum:** `./venv_kur.sh`, sonra `./model_kur.sh`. İkinci komut ağdan
+indirme yapmaz; mevcut yerel GGUF, manifest ve çalışma zamanını SHA-256
+kilitleriyle kuleye kopyalar. Eski HF ağırlığı kabul tamamlanana kadar korunur.
 
 ## Sorumluluk sınırı
 
@@ -86,15 +89,18 @@ kalsın. Bu Kobe'den bilinçli bir ayrışmadır.
 
 Tüketici kuralı: **`_TAMAM` yoksa dosya yok sayılır.**
 
-## Okuyucu — model kulenin içinde
+## Okuyucu — kuleye ait özel GGUF süreci
 
-Üretimdeki okuyucu (`_pipe_hibrit_okuma.kol_master`) Ollama'ya HTTP atıyordu.
-Kule modeli kendi taşır: *dışarıdaki bir servise bağlı kule kendi kendine yeten
-bir kule değildir* (Çağatay). Ölçülmüş yan etkisi de var — Ollama açıkken Kobe
-skoru %94.5 → %93.6 düşüyor.
+LeBron sistemdeki ortak 11434 servisine bağlanmaz. Her CLI toplu koşusunda
+kendi kilitli Ollama 0.32.0 sürecini rastgele loopback portunda açar; tek model,
+tek paralel istek ve `OLLAMA_NO_CLOUD=1` uygular. Süreç `bubblewrap` ile özel
+bir `.ollama` durum dizinine bağlanır; kullanıcının `~/.ollama` içeriği değişmez.
+Normal bitiş, hata, Ctrl-C ve Sheriff iptalinde model indirilir ve doğrulanmış
+alt süreç ağacı kapatılır.
 
-**Okuma mantığı DEĞİŞMEDİ, yalnız taşıyıcı değişti:** aynı model
-(DeepSeek-OCR), aynı istem (`Free OCR.`), aynı bant geometrisi.
+Okuma davranışı korunur: aynı DeepSeek-OCR GGUF, `Free OCR.`, 1100/120 bant
+geometrisi, `temperature=0`, `num_predict=2048`, `num_ctx=8192`. Isıtma tavanı
+90 sn, sıcak bant tavanı 30 sn'dir.
 
 ```
 master.png
@@ -179,24 +185,14 @@ havuzda 1318 disk okuması.
 
 Bunlar dışında motora tek satır dokunulmadı; sadakat kapısı bunu kanıtlıyor.
 
-## Çalışma zamanı — iki CUDA nesli yan yana
+## Paddle → GGUF bellek sırası
 
-Kulede Paddle (`cu12`, derleyici) ve torch 2.11 (`cu13`, okuyucu) aynı venv'de.
-torch'un JIT'i `libnvrtc-builtins.so.13.0`'ı **düz adla** arıyor ve yükleyici
-önce cu12 dizinindeki 12.6 sürümünü buluyor:
-
-```
-nvrtc: error: failed to open libnvrtc-builtins.so.13.0
-```
-
-Bu hata her bandı sessizce düşürüyordu. `model_kur.sh` düzeltmeyi kuruyor:
-`venv/nvrtc13/` içinde **yalnız o tek dosyanın** sembolik bağlantısı, `lebron`
-betiği onu `LD_LIBRARY_PATH`'e ekliyor.
-
-> **`cu13/lib`'i komple yola EKLEME.** Orada `libcufft.so.12`,
-> `libcurand.so.10`, `libcusolver.so.12` gibi Paddle'ın cu12 zinciriyle **aynı
-> soname**'e sahip dosyalar var — derleyici sessizce başka kütüphanelere
-> bağlanır. Sadakat kapısı bunu yakalar ama hiç olmamalı.
+LeBron önce kompozisyonu ve tüm master bantlarının Paddle kutu sayılarını
+tamamlar. Sonra Paddle referanslarını/cache'ini bırakır; özel GGUF süreci ancak
+bunun ardından yüklenir. Gerçek `cag_output07` ölçümü: Paddle kalıntısı 338
+MiB, Ollama süreç-ağacı tepesi 8660 MiB, en uzun sıcak bant 18.36 sn. Sheriff
+rezervasyonu `(8660 + 1024)` değerinin 512 MiB yukarı yuvarlanmasıyla 9728
+MiB'dir.
 
 ## Çalışma zamanı — paket çıkarma
 
@@ -213,12 +209,10 @@ Yeniden kurmak: `./venv_kur.sh` (sıfırdan: `./venv_kur.sh --temiz`).
   taşındı. Üretim henüz o dosyayı çağırıyor (Faz 5'e kadar).
 - `harness/master_dup/ibrahimovic.py` — eski kompozitör, Lebron onun yerine
   geçti (2026-08-04). Kör kopyası `aday/ibrahimovic.py`.
-- `src/magic.py` — **kulemaster'ı** (terfi 2026-08-18, Çağatay): 437 filmde
-  üç eksende kazandı (370 sağlıklı / recall 0.586 / dup 0.000). Karar:
-  `raporlar/kompozitor_secim_karari_2026-08-17.md`. `src/derleyici.py`
-  (lebron motoru) emekli — kapı ve yardımcılar için dokunulmadan kalır.
-- `olcum/kompozitor_kiyas.py` — kompozitör kıyas koşusu (lebron ↔
-  ibrahimovic ↔ magic + ablasyon; saglik+sadakat+dup+çöküş).
+- `arsiv/legacy_derleyici.py` — terfi öncesi LeBron motoru; yalnız tarihî
+  karşılaştırma içindir.
+- `olcum/kompozitor_kiyas.py` — kanonik LeBron ↔ legacy LeBron ↔
+  ibrahimovic kıyası ve LeBron ablasyonları.
 - `OCR-worktree/master_png_monitor.py` — orkestratör: havuz seçer, Database'e
   yazar, symlink köprüsü kurar. Hiçbiri kule işi değil.
 - `scripts/master_dilim_oku.py` — master'ı OneOCR ile okuyup VL korpusuna

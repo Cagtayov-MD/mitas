@@ -1,0 +1,30 @@
+{
+  "schema": "mitas.lebron-model-lock/v1",
+  "model": "deepseek-ocr:latest",
+  "ollama_version": "0.32.0",
+  "ollama_binary_sha256": "e010ce570cfa04334b30867c228a45781857b2ff5071630f3f59ef7cc2513d1f",
+  "ollama_library_tree_sha256": "602106bdc93ecc81cf09e5898dc9433a5a196598c1febe7e6ad328f7bb7e26fe",
+  "manifest_sha256": "0e7b018b8a22373167ee79c9a852821235488cbd2a2a5a93495558627423278c",
+  "blobs": [
+    {
+      "sha256": "c8efaf6dac5aab4dc1030895032f0f028d7835348bdb21d4aebb89cda5788fe5",
+      "size": 422,
+      "kind": "config"
+    },
+    {
+      "sha256": "3a18673ff291a1d8de94d490877127899356d33a18028d5f3945bf245c11b02c",
+      "size": 6687238848,
+      "kind": "model"
+    },
+    {
+      "sha256": "a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+      "size": 1068,
+      "kind": "license"
+    },
+    {
+      "sha256": "ae40a217c1c4002e9358f0f6597a349acaace0cfb95dc53db7ce646d57a56271",
+      "size": 18,
+      "kind": "params"
+    }
+  ]
+}

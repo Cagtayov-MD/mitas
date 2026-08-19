@@ -91,7 +91,7 @@ class Cikti:
               "uretim_zamani": self.uretim_zamani, "sure_sn": self.sure_sn}
         return d
 
-    def yaz(self, kok: str | Path) -> Path:
+    def yaz(self, kok: str | Path, ek_dosyalar: dict[str, dict] | None = None) -> Path:
         """out/<film_id>/<bolum>/lebron.json — atomik yaz, sonra _TAMAM.
 
         Kuyruk klasorun kendisi oldugu icin tuketici biz yazarken okuyabilir.
@@ -104,6 +104,7 @@ class Cikti:
         """
         d = Path(kok) / self.film_id / self.bolum
         d.mkdir(parents=True, exist_ok=True)
+        (d / "_TAMAM").unlink(missing_ok=True)
         hedef, gecici = d / "lebron.json", d / "lebron.json.tmp"
         gecici.write_text(json.dumps(self.sozluk(), ensure_ascii=False, indent=1),
                           encoding="utf-8")
@@ -113,6 +114,14 @@ class Cikti:
             txt.write_text("\n".join(self.satirlar) + "\n", encoding="utf-8")
         else:
             txt.unlink(missing_ok=True)
+        ek_dosyalar = ek_dosyalar or {}
+        if "lebron.okuma.json" not in ek_dosyalar:
+            (d / "lebron.okuma.json").unlink(missing_ok=True)
+        for ad, belge in ek_dosyalar.items():
+            gecici = d / f"{ad}.tmp"
+            gecici.write_text(json.dumps(belge, ensure_ascii=False, indent=1),
+                               encoding="utf-8")
+            os.replace(gecici, d / ad)
         (d / "_TAMAM").write_text("", encoding="utf-8")
         return hedef
 

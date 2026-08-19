@@ -2,20 +2,7 @@
 # Lebron kulesi girisi — kendi calisma zamanini kendi bulur. Cagiran python bilmez.
 L="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# CUDA NESIL CARPISMASI (2026-08-15, ilk uctan uca kosuda bulundu).
-#
-# Kulenin venv'inde IKI CUDA nesli yan yana yasiyor: Paddle cu12 zinciri
-# (derleyici), torch 2.11 cu13 zinciri (okuyucu). torch'un JIT'i libnvrtc.so.13
-# yukluyor ama yardimci dosyasini (libnvrtc-builtins.so.13.0) dlopen ile DUZ
-# ADLA ariyor; yukleyici once cu12 dizinini bulup 12.6 surumunu goruyor ve
-#   "nvrtc: error: failed to open libnvrtc-builtins.so.13.0"
-# ile patliyor. HER BANT bu yuzden okunamiyordu.
-#
-# COZUM CERRAHI OLMALI: venv/nvrtc13/ icinde YALNIZ o tek dosyanin sembolik
-# baglantisi var. cu13/lib'i komple yola eklemek YANLIS olurdu — orada
-# libcufft.so.12 / libcurand.so.10 / libcusolver.so.12 gibi Paddle'in cu12
-# zinciriyle AYNI soname'e sahip dosyalar duruyor ve derleyiciyi sessizce
-# baska kutuphanelere baglardi (sadakat kapisi bunu yakalar ama hic olmamali).
-[ -d "$L/venv/nvrtc13" ] && export LD_LIBRARY_PATH="$L/venv/nvrtc13${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# Okuyucu artık venv içindeki Torch'u yüklemez. GGUF, LeBron'un özel Ollama
+# sürecindedir; Paddle'ın CUDA 12 zincirine CUDA 13 shim'i karıştırılmaz.
 
 exec "$L/venv/bin/python" "$L/main.py" "$@"

@@ -1,4 +1,4 @@
-"""MAGIC token-kimlik + uçtan-uca sentetik film (GPU'suz).
+"""LEBRON token-kimlik + uçtan-uca sentetik film (GPU'suz).
 
 Kimlik hükmü: iki kare de yeterli token veriyorsa kapsama-oranı karar verir
 (jetgiller/totoro sınıfı: NCC/IoU statik zemine domine oluyordu); token
@@ -18,7 +18,7 @@ for p in (KULE / "aday", KULE / "src"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from magic import derle, token_ayni, fark_tabani, TOKEN_KAPSAMA
+from derleyici import derle, token_ayni, fark_tabani, TOKEN_KAPSAMA
 
 H, W = 480, 640
 
@@ -122,7 +122,7 @@ def test_sentetik_film_uçtan_uca():
     # birlikte açar) · scroll bandı
     assert man["segment"] == 3, man["segment_kareler"]
     assert man["durum"] == "OK"
-    assert man["mode"] == "magic"
+    assert man["mode"] == "lebron"
     assert man["olcum_yolu"] == "ai_flashlight"
     assert man["dissolve_kesme"] == 2
     assert man["scroll_dy_medyan"] == 20.0

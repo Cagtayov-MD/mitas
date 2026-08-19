@@ -1,8 +1,8 @@
-"""MAGIC plato mimarisi — istikrar eğrisi temsilci seçimi (GPU'suz).
+"""LEBRON plato mimarisi — istikrar eğrisi temsilci seçimi (GPU'suz).
 
-ibrahimovic'in plato v4'ünün magic'e taşımasının kapısı: dissolve zincirlerinde
+ibrahimovic'in plato v4'ünün LeBron'a taşımasının kapısı: dissolve zincirlerinde
 sayfa TEMSİLCİSİ geçiş karesi olmamalı; temsilci istikrar eğrisinin yerel
-tepesindeki platonun İÇİNDEN seçilir (magic'de: plato içinde en keskin kare).
+tepesindeki platonun İÇİNDEN seçilir (LeBron'da: plato içinde en keskin kare).
 
 Senaryolar sentetik satır-maskeleriyle kurulur — IoU dizisi elle hesaplanabilir
 olduğu için davranış kapalı biçimde doğrulanır.
@@ -17,7 +17,7 @@ for p in (KULE / "aday", KULE / "src"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from magic import kosu_platolari, adaylar_hesapla, IZGARA_MIN_KOSU
+from derleyici import kosu_platolari, adaylar_hesapla, IZGARA_MIN_KOSU
 
 H, W = 50, 80
 
@@ -56,7 +56,7 @@ def test_iki_plato_dissolve_vadisi_iki_temsilci_verir():
 
 
 def test_plato_icinde_en_keskin_kare_secilir():
-    """Magic farkı: ibrahimovic plato-ORTASINI alır; magic plato içinde en
+    """LeBron farkı: ibrahimovic plato-ORTASINI alır; LeBron plato içinde en
     keskin kareyi — lebron'un kalite ölçütü plato sınırları içinde kalır."""
     varliklar = [_maske(A), _maske(A), _maske(A), _maske(B),
                  _maske(C), _maske(C), _maske(C)]

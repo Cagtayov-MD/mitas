@@ -14,13 +14,12 @@ okuyucu:
   bindirme: 120
   min_bant_h: 40         # bundan kısa son bant atılır
 
-  # Model kulenin İÇİNDE yaşar (Çağatay 2026-08-15). Üretimdeki okuyucu
-  # Ollama'ya HTTP atıyordu; dış servise bağlı kule kendi kendine yetmez.
-  # Model, istem ve geometri AYNI — yalnız taşıyıcı değişti.
-  model_yol: model/deepseek-ocr
-  istem: "Free OCR."     # üretimdeki ISTEM ile birebir. src/model.py başına
-                         # "<image>\n" ekler — Ollama'da bunu llama.cpp
-                         # handler'ı kendi yapıyordu.
-  base_size: 1024
-  image_size: 640
-  crop_mode: true
+  # Ölçülmüş hızlı GGUF, LeBron'un başlatıp kapattığı özel Ollama sürecinde
+  # yaşar. Makinenin ortak 11434 servisine hiçbir çağrı yapılmaz.
+  ollama_runtime: model/ollama-runtime
+  ollama_store: model/ollama
+  istem: "Free OCR."
+  max_new_tokens: 2048
+  num_ctx: 8192
+  warmup_seconds: 90
+  request_seconds: 30

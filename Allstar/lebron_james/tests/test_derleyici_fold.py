@@ -1,4 +1,4 @@
-"""MAGIC Sınıf-A fold-dedup + Sınıf-B substrat yarışması — GPU'suz testler.
+"""LEBRON Sınıf-A fold-dedup + Sınıf-B substrat yarışması — GPU'suz testler.
 
 SINIF-A (2026-08-18, Çağatay onayı "tekrar da istenmez"): segment kapanırken
 içerik-kapsamasına bakılır — token'ları önceki segmentlerde zaten varsa
@@ -18,7 +18,7 @@ for p in (KULE / "aday", KULE / "src"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from magic import (scroll_duzlugu, substrat_karari, segment_dusur,
+from derleyici import (scroll_duzlugu, substrat_karari, segment_dusur,
                    SEG_KAPSAMA_DUSUR, SEG_ORNEKLEM)
 
 

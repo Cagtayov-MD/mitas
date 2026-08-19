@@ -1,102 +1,92 @@
 #!/usr/bin/env bash
-# Lebron'un OKUMA yiginini ve model agirligini kule ICINE kurar
-# (~3 GB torch + ~6.3 GB agirlik). Git'te degil (Allstar/.gitignore: */model/).
-#
-# NEDEN KULE ICINDE (Cagatay, 2026-08-15): "icine deepseek kur, kule icinde
-# yasasin." Uretimdeki okuyucu (_pipe_hibrit_okuma.kol_master) Ollama'ya HTTP
-# atiyor — disaridaki bir servise bagli kule kendi kendine yeten bir kule
-# degildir. Ayrica olculmus yan etkisi var: Ollama acikken Kobe skoru
-# %94.5 -> %93.6 dusuyor. Nash ayni gecisi yapti; bu betik onun izinde.
-#
-# OKUMA MANTIGI DEGISMIYOR, YALNIZ TASIYICI DEGISIYOR:
-#   ayni model (DeepSeek-OCR) · ayni istem ("Free OCR.") · ayni bant geometrisi
-#   (1100 px / 120 bindirme). Ollama'da llama.cpp handler'i "<image>" on-ekini
-#   kendi ekliyordu; transformers'ta ACIKCA verilir (bkz. src/model.py).
-#
-# SURUMLER: Nash'in venv'inde GERCEKTEN calisan pinler alindi (model_kur.sh'inde
-# yazan 5.14.1 DEGIL — orada cozumleyici 4.46.3'e dusmus). DeepSeek-OCR'in uzak
-# kodu transformers 5.x ile calismiyor.
-#
-# !! KURULUMDAN SONRA ZORUNLU: olcum/kapi_sadakat.py YENIDEN kosulur.
-#    Gerekce Kobe'nin pahali dersi: kulenin CIKTISI, kodunun hic import
-#    etmedigi paketlere bagli olabiliyor. torch/transformers ayni venv'e
-#    girince Paddle'in davranisi kayabilir. Sapma 0 GORULMEDEN bu kurulum
-#    "tamam" sayilmaz.
-#
-# Kullanim: ./model_kur.sh
+# LeBron'un ölçülmüş hızlı DeepSeek-OCR GGUF/Ollama yığınını kule içine alır.
+# Ağ/Hugging Face kullanılmaz; mevcut HF ağırlığı geri dönüş için korunur.
 set -euo pipefail
 
 L="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-P="$L/venv/bin/python"
-[ -x "$P" ] || { echo "once ./venv_kur.sh"; exit 1; }
+SRC_STORE=/opt/mitas/models/ollama
+SRC_BIN=/usr/local/bin/ollama
+SRC_LIB=/usr/local/lib/ollama
+DEST_RUNTIME="$L/model/ollama-runtime"
+DEST_STORE="$L/model/ollama"
+MANIFEST_REL=manifests/registry.ollama.ai/library/deepseek-ocr/latest
 
-NASH_MODEL="$L/../nash/model/deepseek-ocr"
+EXPECTED_BIN=e010ce570cfa04334b30867c228a45781857b2ff5071630f3f59ef7cc2513d1f
+EXPECTED_MANIFEST=0e7b018b8a22373167ee79c9a852821235488cbd2a2a5a93495558627423278c
+BLOBS=(
+  c8efaf6dac5aab4dc1030895032f0f028d7835348bdb21d4aebb89cda5788fe5
+  3a18673ff291a1d8de94d490877127899356d33a18028d5f3945bf245c11b02c
+  a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde
+  ae40a217c1c4002e9358f0f6597a349acaace0cfb95dc53db7ce646d57a56271
+)
 
-echo "== 1/4 numpy suruimu (kurulum ONCESI) =="
-"$P" -c "import numpy; print('  numpy', numpy.__version__)"
+[ -x "$SRC_BIN" ] || { echo "kaynak Ollama yok: $SRC_BIN" >&2; exit 2; }
+[ -d "$SRC_LIB" ] || { echo "kaynak Ollama kutuphanesi yok: $SRC_LIB" >&2; exit 2; }
+[ -x /usr/bin/bwrap ] || {
+  echo "bubblewrap yok: özel Ollama HOME izolasyonu kurulamaz" >&2; exit 2;
+}
+[ -f "$SRC_STORE/$MANIFEST_REL" ] || {
+  echo "kaynak deepseek-ocr manifesti yok: $SRC_STORE/$MANIFEST_REL" >&2; exit 2;
+}
 
-echo "== 2/4 okuma yigini =="
-"$L/venv/bin/pip" install --quiet \
-  "numpy==2.3.5" \
-  "torch==2.11.0" "torchvision==0.26.0" \
-  "transformers==4.46.3" "tokenizers==0.20.3" "safetensors==0.8.0" \
-  "accelerate==1.14.0" "einops==0.8.2" \
-  "addict==2.4.0" "easydict==1.13" \
-  matplotlib requests   # modeling_deepseekocr.py (uzak kod) bunlari import ediyor
+echo "== kaynak kilidi =="
+printf '%s  %s\n' "$EXPECTED_BIN" "$SRC_BIN" | sha256sum --check --status || {
+  echo "Ollama binary beklenen 0.32.0 kilidiyle uyusmuyor" >&2; exit 2;
+}
+printf '%s  %s\n' "$EXPECTED_MANIFEST" "$SRC_STORE/$MANIFEST_REL" \
+  | sha256sum --check --status || {
+  echo "DeepSeek-OCR manifest kilidi uyusmuyor" >&2; exit 2;
+}
+for digest in "${BLOBS[@]}"; do
+  source_blob="$SRC_STORE/blobs/sha256-$digest"
+  [ -f "$source_blob" ] || { echo "kaynak blob yok: $source_blob" >&2; exit 2; }
+  printf '%s  %s\n' "$digest" "$source_blob" | sha256sum --check --status || {
+    echo "kaynak blob kilidi uyusmuyor: $digest" >&2; exit 2;
+  }
+done
 
-echo "== 3/4 numpy hala 2.3.5 mi (sadakat kapisi sigortasi) =="
-"$P" -c "
-import numpy, sys
-print('  numpy', numpy.__version__)
-if numpy.__version__ != '2.3.5':
-    print('  !! numpy DEGISTI — sadakat kapisi YENIDEN kosulmali', file=sys.stderr)
-"
-
-echo "== 4/4 agirlik: DeepSeek-OCR -> model/deepseek-ocr =="
-if [ -f "$L/model/deepseek-ocr/config.json" ]; then
-  echo "  [atla] zaten var"
-elif [ -f "$NASH_MODEL/config.json" ]; then
-  # Nash'in yanindaki kopyadan al: ayni agirlik, 6.3 GB indirme yok.
-  # Bu bir CALISMA ZAMANI baglantisi DEGIL, tek seferlik kurulum kopyasi —
-  # kopyalandiktan sonra Lebron Nash'i hic tanimaz.
-  echo "  Nash'in kopyasindan aliniyor (indirme yok)"
-  mkdir -p "$L/model"
-  cp -r "$NASH_MODEL" "$L/model/deepseek-ocr"
+mkdir -p "$L/model"
+if [ ! -x "$DEST_RUNTIME/bin/ollama" ]; then
+  echo "== kule-owned Ollama runtime (yerel kopya) =="
+  tmp_runtime="$(mktemp -d "$L/model/.ollama-runtime.XXXXXX")"
+  trap 'rm -rf -- "$tmp_runtime"' EXIT
+  mkdir -p "$tmp_runtime/bin" "$tmp_runtime/lib"
+  cp -a -- "$SRC_BIN" "$tmp_runtime/bin/ollama"
+  cp -a -- "$SRC_LIB" "$tmp_runtime/lib/ollama"
+  mv -- "$tmp_runtime" "$DEST_RUNTIME"
+  trap - EXIT
 else
-  echo "  Hugging Face'ten indiriliyor"
-  cd "$L" && "$P" - <<'PY'
-from huggingface_hub import snapshot_download
-print("BITTI:", snapshot_download("deepseek-ai/DeepSeek-OCR",
-                                  local_dir="model/deepseek-ocr", max_workers=8))
-PY
+  echo "[atla] yerel Ollama runtime zaten var"
 fi
 
-echo "== 5/5 nvrtc kopruisu (CUDA nesil carpismasi) =="
-# Paddle cu12, torch cu13 — ayni venv'de. torch'un JIT'i
-# libnvrtc-builtins.so.13.0'i duz adla ariyor ve cu12 dizinindeki 12.6
-# surumunu bulup patliyor ("failed to open libnvrtc-builtins.so.13.0").
-# YALNIZ o tek dosyayi ayri bir dizinde gorunur kiliyoruz; cu13/lib'i komple
-# yola eklemek Paddle'in cu12 kutuphanelerini golgelerdi (ayni soname'ler var).
-CU13="$L/venv/lib/python3.12/site-packages/nvidia/cu13/lib/libnvrtc-builtins.so.13.0"
-if [ -f "$CU13" ]; then
-  mkdir -p "$L/venv/nvrtc13"
-  ln -sf "$CU13" "$L/venv/nvrtc13/libnvrtc-builtins.so.13.0"
-  echo "  kuruldu: venv/nvrtc13/"
+if [ ! -f "$DEST_STORE/$MANIFEST_REL" ]; then
+  echo "== kule-owned DeepSeek-OCR store (yalniz kilitli 4 blob) =="
+  tmp_store="$(mktemp -d "$L/model/.ollama-store.XXXXXX")"
+  trap 'rm -rf -- "$tmp_store"' EXIT
+  mkdir -p "$tmp_store/blobs" "$(dirname "$tmp_store/$MANIFEST_REL")"
+  cp -a -- "$SRC_STORE/$MANIFEST_REL" "$tmp_store/$MANIFEST_REL"
+  for digest in "${BLOBS[@]}"; do
+    cp -a -- "$SRC_STORE/blobs/sha256-$digest" "$tmp_store/blobs/sha256-$digest"
+  done
+  mv -- "$tmp_store" "$DEST_STORE"
+  trap - EXIT
 else
-  echo "  [atla] cu13 nvrtc bulunamadi — torch surumu degismis olabilir"
+  echo "[atla] yerel DeepSeek-OCR store zaten var"
 fi
 
-echo
-echo "=== DOGRULAMA ==="
-"$P" - <<'PY'
-import torch, transformers, tokenizers, numpy, paddle
-print("torch       ", torch.__version__, "| cuda:", torch.cuda.is_available())
-print("transformers", transformers.__version__)
-print("tokenizers  ", tokenizers.__version__)
-print("numpy       ", numpy.__version__)
-print("paddle      ", paddle.__version__, "| cuda:", paddle.is_compiled_with_cuda())
+echo "== çalışma-zamanı doğrulaması =="
+LEBRON_KULE="$L" PYTHONPATH="$L/src" "$L/venv/bin/python" - <<'PY'
+import os
+from pathlib import Path
+from model import _verify_install
+
+root = Path(os.environ["LEBRON_KULE"])
+binary, library, store, model = _verify_install(root, {})
+print("runtime:", binary)
+print("library:", library)
+print("store:", store)
+print("model:", model)
 PY
-du -sh "$L"/model/* 2>/dev/null || true
-echo
-echo "SIMDI ZORUNLU:  cd olcum && ../venv/bin/python kapi_sadakat.py --n 8"
-echo "                (sapma 0 gormeden bu kurulum TAMAM sayilmaz)"
+
+du -sh "$DEST_RUNTIME" "$DEST_STORE" "$L/model/deepseek-ocr" 2>/dev/null || true
+echo "BITTI: ag kullanilmadi; mevcut HF kopyasi silinmedi."

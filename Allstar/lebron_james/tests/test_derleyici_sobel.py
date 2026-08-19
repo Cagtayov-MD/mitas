@@ -1,10 +1,10 @@
-"""MAGIC Sobel yedek yolu — iki tetik (GPU'suz).
+"""LEBRON Sobel yedek yolu — iki tetik (GPU'suz).
 
 1. FILM düzeyi: el-feneri maskesi kareyi dolduruyorsa (kapsama > 0.25 —
    parlak zemin sınıfı, parti) ölçüm Sobel kenar-maskeli griye geçer;
    korelasyon statik parlak zemine kilitlenmekten kurtulur.
 2. KARE düzeyi: OCR istisnası anında lebron kaba threshold(180)'e düşüyordu;
-   magic Sobel'e düşer. (Kapalıysa lebron davranışı aynen korunur.)
+   LeBron Sobel'e düşer. (Kapalıysa taban davranış aynen korunur.)
 """
 import sys
 from pathlib import Path
@@ -16,7 +16,7 @@ for p in (KULE / "aday", KULE / "src"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from magic import (derle, el_feneri_govde, sobel_metin_maskesi,
+from derleyici import (derle, el_feneri_govde, sobel_metin_maskesi,
                    MASKE_KAPSAMA_ESIK)
 
 

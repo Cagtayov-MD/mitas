@@ -67,13 +67,7 @@ def _uretim_yolu(kare_dizini: Path, gecici: Path) -> tuple[str | None, dict]:
 
 
 def _kule_yolu(kare_dizini: Path, film_id: str, kok: Path) -> tuple[str | None, dict]:
-    """Kulenin EMEKLİ lebron motorunu koştur → (sha256, manifest).
-
-    TERFİ SONRASI (2026-08-18): kulenin kompozitörü magic'tir; kapının
-    iddiası "lebron motoru TAŞINIRKEN bozulmadı" olduğundan kapı artık
-    main akışını değil src/derleyici.derle'yi DOĞRUDAN koşturur — magic'in
-    birincilliği bu pariteyi ilgilendirmez.
-    """
+    """Kulenin kanonik LeBron motorunu koştur → (sha256, manifest)."""
     sys.path.insert(0, str(KULE / "src"))
     import derleyici
     master, manifest = derleyici.derle(film_id, kare_dizini=str(kare_dizini))

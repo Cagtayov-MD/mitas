@@ -205,13 +205,14 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
     Tek bandın hatası okumayı durdurmaz; hata SAYILIR ve künyeye yazılır.
     """
     satirlar: list[str] = []
+    satir_kaynaklari: list[dict] = []
     elenen: list[dict] = []
     gorulen: set[str] = set()
     hata_n = 0
     kutu_bilinmeyen = 0
     ilk_hata = ""
 
-    for p in bant_yollari:
+    for bant_index, p in enumerate(bant_yollari):
         try:
             ham = satirlari_ayikla(sor(p))
         except (ModelYok, Bellek):
@@ -248,6 +249,8 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
                 continue
             gorulen.add(f)
             satirlar.append(s)
+            satir_kaynaklari.append({"text": s, "bant": p.name,
+                                     "bant_index": bant_index})
 
     # HER BANT PATLADIYSA BU "YAZI YOK" DEĞİLDİR — okuyamadık.
     # Bu satır gerçek bir kazadan yazıldı (2026-08-15, ilk uçtan uca koşu):
@@ -258,7 +261,8 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
         raise OkumaCoktu(f"{hata_n}/{len(bant_yollari)} bandin hepsi okunamadi"
                          + (f" — ornek: {ilk_hata}" if ilk_hata else ""))
 
-    return {"satirlar": satirlar, "elenen": elenen,
+    return {"satirlar": satirlar, "satir_kaynaklari": satir_kaynaklari,
+            "elenen": elenen,
             "bant_n": len(bant_yollari), "hata_n": hata_n,
             "kutu_durum": ("yok" if kutu_say is None else
                            ("kismi" if kutu_bilinmeyen else "tam")),

@@ -7,9 +7,8 @@ klasörü bilir. Yasak olanlar:
   * başka bir kulenin / pipeline'ın dosyasını import etmek
     (master_png_monitor, db_compose_master, giris_master_cropstack…)
   * Database'e veya sabit bir üretim yoluna uzanmak
-  * Ollama gibi DIŞ BİR SERVİSE bağlanmak — "dışarıdaki bir servise bağlı
-    kule kendi kendine yeten bir kule değildir" (Çağatay, 2026-08-14).
-    Ayrıca ölçülmüş yan etkisi var: Ollama açıkken Kobe skoru %94.5 → %93.6.
+  * Makinenin ORTAK Ollama servisine bağlanmak. LeBron yalnız kendi yerel
+    runtime/store sürecini rastgele loopback portunda açabilir.
 
 Bu test kuralı KODDA kilitler. Bağlanmak isteyen önce burayı silmek zorunda
 kalsın — yanlışlıkla değil, bilerek yapsın.
@@ -25,13 +24,13 @@ YASAK_MODUL = {
     "master_png_monitor", "db_compose_master", "dcmaster",
     "giris_master_cropstack", "giris_cropstack",
     "lebron_james",          # kaynak dosya TAŞINDI, çağrılmaz
-    "ollama", "requests", "httpx", "urllib",
+    "ollama", "httpx", "urllib",
 }
 
 # Kulenin içinde geçmemesi gereken metinler (import olmasa bile).
 YASAK_METIN = (
     "/opt/mitas/Database", "OCR-worktree", "harness/master_dup",
-    "localhost:11434", "127.0.0.1:11434", "api/generate",
+    "localhost:11434", "127.0.0.1:11434",
 )
 
 
@@ -163,25 +162,21 @@ def test_aday_motor_kulede_ama_BAGLI_DEGIL():
         )
 
 
-def test_magic_terfi_edildi_kulemasteri():
-    """TERFİ KİLİDİ (Çağatay 2026-08-18): kulemaster'ı magic'tir.
-
-    main._derle magic'i çağırır; derleyici.py (lebron motoru) EMEKLİ —
-    main.py'nin kendi akışı onu import ETMEZ (sadakat kapısı doğrudan
-    çağırır, magic ise yalnız yardımcılar için dokunur)."""
-    import ast
-    assert (KULE / "src" / "magic.py").is_file()
-    assert not (KULE / "aday" / "magic.py").exists(), "magic aday/'da kopya kaldi"
+def test_secilen_motor_kalici_lebron_kulemasteri():
+    """Seçilen birleşik motor artık doğrudan ``derleyici`` adını taşır."""
+    assert (KULE / "src" / "derleyici.py").is_file()
+    assert not (KULE / "src" / "magic.py").exists()
     kaynak = (KULE / "main.py").read_text(encoding="utf-8")
-    agac = ast.parse(kaynak)
-    magic_import = any(
-        (isinstance(d, ast.Import) and any(a.name == "magic" for a in d.names))
-        or (isinstance(d, ast.ImportFrom) and d.module == "magic")
-        for d in ast.walk(agac))
-    assert magic_import, "main magic'i import etmiyor — kulemasteri kim?"
-    for d in ast.walk(agac):
-        if isinstance(d, ast.Import) and any(a.name == "derleyici" for a in d.names):
-            raise AssertionError("main derleyici'yi import ediyor — emekli motor bagli")
+    assert "import derleyici" in kaynak
+    assert "import magic" not in kaynak
+
+
+def test_ollama_yalniz_kule_owned_private_surec():
+    kaynak = (KULE / "src" / "model.py").read_text(encoding="utf-8")
+    assert '"OLLAMA_NO_CLOUD": "1"' in kaynak
+    assert '"OLLAMA_MODELS": str(self.store)' in kaynak
+    assert "11434" not in kaynak
+    assert "start_new_session=False" in kaynak
 
 
 def test_aday_motorun_bilinen_borclari():

@@ -1,208 +1,87 @@
-# Lebron kulesi — canlı durum
+# LeBron kulesi — canlı durum
 
-> **Bu dosya bağlam sigortasıdır.** Oturum kesilirse yeni oturum BURADAN devam
-> eder. Her iş biriminden sonra güncellenir.
-> Spec: `docs/superpowers/specs/2026-08-15-allstar-lebron-kulesi-design.md`
+**Son güncelleme:** 2026-08-19
 
-**Son güncelleme:** 2026-08-18 — **MAGIC TERFİ ETTİ: kulemaster'ı artık
-magic'tir** (Çağatay kararı; derleyici/lebron motoru ve ibrahimovic emekli).
-Faz 0-4 tamam + Sınıf A/B düzeltmeleri; ayrıntı aşağıda ve
-`raporlar/kompozitor_secim_karari_2026-08-17.md`.
-İskelet kuruldu, derleyici taşındı (sadakat kapısı 8/8 bit-birebir), okuyucu
-kuleye alındı, **ölçüm yatağı kulede koşuyor (Faz 3) ve kompozitör seçimi
-ÖLÇÜMLE yapıldı (Faz 4): magic > lebron > ibrahimovic —
-`raporlar/kompozitor_secim_karari_2026-08-17.md`.** Terfi ve üretim devri
-(Faz 5) ayrı talimatla.
+LeBron artık tek kanonik master kompozitörüdür. 437 filmlik ölçümde `magic`
+deney adıyla seçilen birleşik algoritma `src/derleyici.py` içine kalıcı olarak
+taşındı; çalışma zamanında alias yoktur. Terfi öncesi motor yalnız
+`arsiv/legacy_derleyici.py` altında karşılaştırma amacıyla saklanır.
 
----
+## Çöküş kurtarma düzeltmesi (2026-08-19)
 
-## Değişmez kurallar (her oturumda geçerli)
+Çöküş kuralına giren masterlar (çok kare + tek kısa segment) artık
+`temporal_chunk_stack` ile 12'lik zaman parçalarına bölünerek kurtarılır;
+normal yol piksel olarak değişmez. Private Ollama satır-grounding
+desteklemediğini beyan eder; kanıt zinciri `paddle_exact` ile bant başına
+TEK model çağrısı üzerinden yürür, `image[[...]]` asla satır kanıtı olmaz.
+Doğrulama: 17 yeni testle suite 180 passed; beş gerçek COKME girdisi izole
+koşuda OKUNDU (VRAM/kalıntı kapıları içinde); 29-film parite yatağında
+26/29 piksel-birebir, yalnız 3 çöküş filmi bilinçli farklı. Ölçüm kaydı:
+`olcum/COKME_KURTARMA_DOGRULAMA_20260819.md`. Sheriff kabul yatağı yeni
+pipeline hash'iyle henüz koşulmadı — sistem terfisi açık.
 
-- **Kule dışarı uzanmaz.** `master_png_monitor`, `db_compose_master`,
-  `Database`, Ollama — hiçbiri import edilmez. `tests/test_izolasyon.py`
-  bunu kodda kilitler.
-- **`gereksinimler.txt` elle budanmaz.** Kobe'de ölçülmüş ders: 16 paketlik
-  seçilmiş liste skoru %94.5 → %92.7 düşürdü.
-- **Motora dokunan her değişiklik sadakat kapısını koşmayı gerektirir.**
-  `olcum/kapi_sadakat.py`, eşik sapma 0.
-- **`git add -A`, `git add .`, `git reset --hard`, `git stash` YASAK.** Ağaçta
-  bu işe ait olmayan çok sayıda değişik + silinmiş dosya var. Yalnız adı geçen
-  yolları sahnele.
-- **Üretim durmuş** (2026-07-31, Çağatay talimatı). Hiçbir fazda toplu koşu
-  başlatma.
-- **Üretim hattı henüz kuleyi çağırmıyor** — `master_png_monitor.py` hâlâ
-  `harness/master_dup/lebron_james.py`'yi kullanıyor. Devir Faz 5, ayrı
-  talimatla.
+## Doğrulanmış durum
 
----
+- CLI ve çıktı sözleşmesi değişmedi: `lebron tek/start`, `master.png`,
+  `lebron.json`, `lebron.okuma.json`, `_TAMAM`.
+- 29 gerçek kare havuzunda seçilmiş referansla **29/29 piksel-birebir master**,
+  **29/29 `mode=lebron`** ve **29/29 manifest özeti paritesi** ölçüldü.
+- Kompozitör, Paddle motoru ve `kutu_sayisi` artık aynı kanonik modülde;
+  çalışma kodu deney modülüne veya emekli derleyiciye import yapmaz.
+- Bozuk YAML `ARIZA(YAPILANDIRMA)` olur. Yeniden koşu eski `_TAMAM`, metin ve
+  proof paketini geçerli bırakmaz. Toplu komut denenen bütün işler ARIZA ise
+  sıfırdan farklı çıkar.
+- Proof şeması `mitas.okuma/v2` olarak geriye uyumludur; master satırları RLE
+  layout haritasıyla kaynak karelere bağlanır.
 
-## Bitenler
+## Okuyucu ve süreç sahipliği
 
-| Faz | İş | Kanıt |
-|---|---|---|
-| **0** | İskelet: `sozlesme.py` · `main.py` · `lebron` · `config.yaml` · testler | 58 test yeşil |
-| **1** | Derleyici taşındı (`src/derleyici.py`) + iki kusur kapatıldı | **kapı 8/8 bit-birebir, sapma 0** |
-| **2** | Okuyucu taşındı: `src/okuyucu.py` + `src/model.py` + ağırlık | **95 test yeşil** |
-| **3** | Ölçüm yatağı kulede koşuyor: `uret.py` kök-çözümlemesi + `kompozitor_kiyas.py` (lebron↔ibrahimovic ilk kafa-kafaya) | `raporlar/kompozitor_kiyas_*.json` |
-| **4** | `aday/magic.py` (lebron ∪ ibrahimovic) + ölçülmüş seçim + ablasyon | **`raporlar/kompozitor_secim_karari_2026-08-17.md` · 135 test yeşil** |
+LeBron ortak 11434 servisine bağlanmaz. `model_kur.sh`, ağ kullanmadan yerel
+Ollama 0.32.0 çalışma zamanını ve DeepSeek-OCR GGUF bloblarını SHA-256
+kilitleriyle kuleye kopyalar. Ana blob:
 
-**Faz 2 ne getirdi.** DeepSeek-OCR kule içinde (6.3 GB, `model/deepseek-ocr`),
-torch 2.11.0 + transformers 4.46.3 kulenin venv'inde. Ollama'ya HTTP YOK.
-Okuma mantığı üretimden birebir taşındı: bantlama 1100/120 · istem
-`"<image>\nFree OCR."` · `kutu_n` piksel kalkanı (0 kutu + satır = uydurma) ·
-gevezelik süzgeci · yapısal veto · fold-dedup. Elenen satırlar yok edilmez,
-`kanit.elenen`e yazılır — yanlış eleme yapıyorsak görünür olsun.
+`sha256:3a18673ff291a1d8de94d490877127899356d33a18028d5f3945bf245c11b02c`
 
-**Uçtan uca ilk koşu** (2026-08-15): `acemiler-cetesi-exit_frames`, 35 kare →
-master 854×2321, 2 segment, 18.3 s. Görsel denetim: tam oyuncu listesi + MGM
-logosu, kayan jenerik doğru birleşmiş.
+Her CLI toplu koşusunda rastgele loopback portunda tek özel süreç açılır:
 
-**Sadakat kapısı** (Ex_Frame ilk 8 film): 20-bulusma 2696 · acemiler-cetesi
-2321 · aci-cikolata 7508 · affedilmeyen 7276 · affedilmeyenler 574 ·
-aile-babasi 7027 · ajans 10961 · al-jolson 1924 — **hepsi birebir.**
+- `OLLAMA_NO_CLOUD=1`, tek yüklü model, tek paralel istek;
+- `bubblewrap` ile özel `.ollama` durumu; kullanıcı `~/.ollama` değişmez;
+- 90 sn ısıtma ve 30 sn sıcak bant tavanı;
+- `temperature=0`, `num_predict=2048`, `num_ctx=8192`;
+- loglar scratch dosyasına, stdout/stderr PIPE'a değil;
+- normal bitiş, hata, Ctrl-C ve Sheriff iptalinde create-time doğrulamalı alt
+  süreç temizliği.
 
----
+Eski HF/Transformers ağırlığı kabul süreci bitene kadar geri dönüş malzemesi
+olarak korunur, fakat aktif okuyucu onu yüklemez.
 
-**Çalışma zamanı doğrulandı** (2026-08-15): `venv_kur.sh` koşuldu → **11 GB**,
-`paddle 3.3.1 (CUDA açık)` · `paddleocr 3.7.0` · `numpy 2.3.5` ·
-`pillow 12.1.0` · `opencv 5.0.0`. Kulenin KENDİ venv'iyle tekrar koşuldu:
-58 test yeşil · `./lebron tek --bolum giris,cikis` iki rafa da yazdı (model
-bir kez yüklendi: 12.7 s → 3.8 s) · sadakat kapısı yine **8/8 birebir**.
+## Bellek sırası ve gerçek ölçüm
 
----
+Kompozisyon ve bütün bantların Paddle kutu sayımı önce tamamlanır. Paddle
+referansları/cache'i bırakıldıktan sonra özel GGUF süreci yüklenir.
+`cag_output07` gerçek uçtan uca ölçümü:
 
----
+- Paddle sonrası kalıntı: **338 MiB** (kapı ≤512 MiB);
+- Ollama süreç-ağacı tepe VRAM: **8660 MiB** (kapı ≤9216 MiB);
+- ısıtma: **22.50 sn**;
+- en uzun sıcak bant: **18.36 sn** (kapı ≤30 sn);
+- 18 bant, iki geçişli proof ile 36 çağrı, toplam **112.6 sn**;
+- bitişte LeBron/Ollama/llama alt süreci kalmadı.
 
-## Toplama (2026-08-15, Çağatay: "master png'ye ait her şey bu klasör altında")
+Sheriff rezervasyonu ölçülen tepe +1 GiB değerinin 512 MiB yukarı
+yuvarlanmasıyla **9728 MiB** olarak ayarlandı. `max_deepseek_jobs=1` ve OOM
+exclusive retry korunur.
 
-`harness/master_dup/` kümesi + dağınık master-PNG malzemesi kuleye toplandı:
-**aday motor · 20 ölçüm dosyası · 8 ölçüm testi · 9 rapor · 4 arşiv denemesi ·
-4 yan araç.** Harita: `KATALOG.md`.
+## Değişmez kurallar
 
-**KOPYALANDI, TAŞINMADI — bilerek.** Orijinaller iki sebeple yerinde duruyor:
-1. Üretim (`master_png_monitor.py:127`) hâlâ `harness/master_dup/lebron_james`'i
-   import ediyor. Silmek üretimi bozar (Prensip 2).
-2. Sadakat kapısı orijinali **kıyas tarafı** olarak okuyor — silinirse kapı
-   ölçemez hale gelir.
+- Aktif kod `src/derleyici.py` dışındaki kompozitörü çağırmaz.
+- Tarihî `magic` adı yalnız eski ölçüm/karar raporlarında referans olabilir.
+- Yeni Hugging Face indirmesi veya ağ erişimi yapılmaz.
+- Paddle ayarları ve sürümü master piksel sadakati ölçülmeden değiştirilmez.
+- Motora dokunan değişiklik 29-havuz terfi paritesini yeniden koşmalıdır.
 
-Silme **Faz 5**'te (üretim devri) yapılır. Nash'in izlediği sıra budur: önce
-çağrı yerleri kuleye döndü, sonra kopyalar silindi.
+## Açık kabul işi
 
-**İbrahimovic `aday/` altında, `src/` altında DEĞİL.** `src/` yalnız koşan kodu
-tutar; ibrahimovic bağlı değil ve iki borcu var (gömülü `/home/cagatay/Ex_Frame`
-yolu, `olcum/saglik`'e bağımlılık). İki test bunu korur: dosya **silinmesin**
-(`test_aday_motor_kulede_ama_BAGLI_DEGIL`) ve borçlar **görünür kalsın**
-(`test_aday_motorun_bilinen_borclari`).
-
----
-
-## Faz 2'de çıkan iki kaza (ikisi de kapatıldı)
-
-**1. CUDA nesil çarpışması — kule kurulumunun gerçek tuzağı.**
-Kulenin venv'inde iki CUDA nesli yan yana yaşıyor: Paddle `cu12` (derleyici),
-torch 2.11 `cu13` (okuyucu). torch'un JIT'i `libnvrtc-builtins.so.13.0`'ı düz
-adla arıyor, yükleyici önce cu12 dizinini bulup 12.6 sürümünü görüyor ve
-`nvrtc: error: failed to open libnvrtc-builtins.so.13.0` ile patlıyor.
-**Her bant bu yüzden okunamıyordu.**
-
-Çözüm cerrahi: `venv/nvrtc13/` içinde YALNIZ o tek dosyanın sembolik bağlantısı,
-`lebron` betiği onu `LD_LIBRARY_PATH`'e ekliyor. `cu13/lib`'i komple yola
-eklemek YANLIŞ olurdu — orada `libcufft.so.12` / `libcurand.so.10` /
-`libcusolver.so.12` gibi Paddle'ın cu12 zinciriyle **aynı soname**'e sahip
-dosyalar var; derleyici sessizce başka kütüphanelere bağlanırdı.
-
-**2. Kendi sözleşmemizi çiğneyen sessiz yalan.**
-Üç bandın üçü de patlayınca hatalar tek tek sayılıp yutuldu, satır listesi boş
-kaldı ve kule **`METIN_YOK`** dedi — yani "bu jenerikte yazı yok". Yazı vardı,
-biz okuyamadık. ARIZA sessizce içerik gerçeğine dönüşmüştü.
-
-Artık `okuyucu.OkumaCoktu` → `ARIZA(OKUMA_COKTU)`, ilk hatanın sebebi mesaja
-taşınıyor. `tests/test_okuyucu.py::test_HEPSI_patlarsa_metin_yok_DEGIL` kilitler.
-
----
-
-## Sıradaki iş
-
-1. ~~Okuyucu kapısı~~ — kuyrukta; satır-düzeyi kıyas ölçütü spec'te tanımlı.
-2. ~~Kapıyı genişlet~~ — 440 film koşusu hâlâ Çağatay onayı ister.
-3. ~~Faz 3+4~~ — **tamam** (2026-08-17): kıyas koşusu + magic adayı + ölçülmüş
-   karar. **Sıradaki:** magic'in terfisi (src/'ye alınması + varsayılan yapılması)
-   ve üretim devri (Faz 5) — ikisi de AYRI TALİMATLA. Açık borçlar karar
-   raporunda: jetgiller eşik-üstü dup, totoro metrik yanlış-pozitifi,
-   kucuk-dev recall-dengesi.
-
----
-
-## Faz 4 ne getirdi (2026-08-17)
-
-**`aday/magic.py`** — lebron iskeleti + ibrahimovic'in dört mekanizması
-(plato v4 + dissolve bekçisi, token-kimlik, Sobel yedek yolu, token ızgara
-sondajı). Token'lar kulenin İÇİNDEKİ Paddle'dan (saglik yan-kapısı
-taşınmadı). `flashlight`/`token_saglayici` geri-çağrıları enjekte edilebilir
-— karar mantığının tamamı GPU'suz test ediliyor (135 test).
-
-**Kıyas koşusu** (`olcum/kompozitor_kiyas.py`): 12 karma-zorluk film ×
-motor; saglik + sadakat + dup + çöküş. İlk kafa-kafaya lebron↔ibrahimovic
-(GUNLUK 2026-08-11'in açık boşluğu kapandı) + ablasyon (token-kapalı).
-
-**Sonuç (437 film gece koşusu, 2026-08-17/18):** magic **370 sağlıklı (%84.7)**
-· recall medyan **0.5858** · dup medyan **0.0000** — lebron: 356 / 0.5775 /
-0.0069 · ibrahimovic: 340 / 0.5402 / 0.0105. Kafa-kafaya: magic önde 89 ·
-lebron önde 84 · eşit 260. Sıfır arıza. **Sıralama: magic > lebron >
-ibrahimovic** (12'li set + tam korpus aynı yönde). Magic'in kayıp sınıfı:
-statik-zemin kesme-çöküşü (84 film, ör. tas-devri 20 kesme→1 segment) —
-açık borç, karar raporunda.
-
-**Taşımayı öğreten dört kusur** (hepsi gözle+ölçümle bulundu, testle kilitlendi;
-ayrıntı karar raporunda): acemiler (sobel kararı fener maskesinden ölçülmez),
-totoro (sobel zemine kilitlenir — substrat YARIŞMASI: çok scroll bulan kazanır),
-hayat-agaci ×2 (token 'farklı' hükmü sayfa açmaz; duraksamasız filmde gren-tabanı
-kesmeden).
-
-**Ölçüm yatağı düzeltmesi:** `olcum/uret.py` kule kopyasında PROJECT_ROOT
-çözümlemesi eklendi (parents[2] kulede Allstar'a düşüyordu; saglik→uret→
-monitor→F1b/F1c zinciri kulede ilk kez bu sayede koştu — Faz 3'ün kapısı buydu).
-
----
-
-## Açık borçlar (spec §11)
-
-1. **Model ağırlıkları: kopya mı paylaşım mı** — Nash emsali (kule içinde,
-   6.3 GB) ile MAP.md metni ("dışarı, kasten paylaşılır") çelişiyor. Çağatay
-   kararı, Faz 2'den önce.
-2. **mp4 girdisi** — Faz 1'de kapalı; açılırsa fps kalibrasyonu gerekir.
-3. **Tek kare davranışı** — `ARIZA(GIRDI_HATASI)` seçildi, ölçülmedi.
-4. **Giriş bölümünde kompozitör kalitesi** — kule giriş/çıkışta aynı
-   derleyiciyi koşar; üretimin bugünkü giriş yolu farklı
-   (`compose_reading_runaware`). Ölçülmeden üretime bağlanmaz.
-
-
----
-
-## TERFİ + Sınıf A/B (2026-08-18, Çağatay: "magic'i master yap, diğerleri emekli")
-
-**Sınıf A — segment fold-dedup:** segment kapanırken token kapsamasına
-bakılır; içeriği önceki segmentlerde zaten varsa segment düşürülür, kanıtı
-manifest'e `segment_dusuren` olarak yazılır ("aslında sorun yok ama tekrar da
-istenmez" — beyaz-kugu gözlemi). Devam listeleri (yeni isim taşıyanlar)
-düşmez; az-tokenli segmentler kanıt yetersizliğinden düşmez.
-
-**Sınıf B — substrat yarışması dy-tutarlılığıyla kırıldı:** sobel ancak
-KENDİ dağınık değilse (sapma ≤ 0.35) ve fenerinkinin 1.5 katını aşmıyorsa
-seçilir. altin-adam düzeldi: recall 0.01→0.30 (lebron'la birebir 982px/2seg).
-
-**TERFİ:** `src/magic.py` (aday/'dan taşındı) — main._derle/_oku magic'i
-çağırır; `src/derleyici.py` EMEKLİ, dokunulmadı (kapının kıyas tarafı +
-kutu_sayisi/get_ocr_engine yardımcıları); ibrahimovic aday/ korumasında.
-`kapi_sadakat.py` emekli motoru DOĞRUDAN çağırır (kapının iddiası lebron
-motorunun paritesidir; terfiden bağımsız) — terfi sonrası koşu: **8/8
-birebir, sapma 0.** Uçtan uca duman (acemiler): OKUNDU, 24 satır.
-
-**Bilinen, kapanmayan borçlar (kilit kararlı, bilinçli):**
-- panorama-İÇİ tekrar (dr-doolithl/cumartesi/babam: dy hesafı içerik
-  yeniden kaplatıyor) — segment-düzeyi dedup bunlara dokunmaz
-- hayat-agaci fırtınası kararsızlığı (Paddle det determinizmsizliği;
-  koşudan koşuya 1↔36 segment)
-- beyaz-kugu sınıfı (12 film): açık-zeminli kartlarda profil metin kapısı
-  kartları düşürüyor
-- ivanhoe sınıfı (4 film): 2D çekirdek kesme körlüğü — dokunulmaz karar
+LeBron birim/regresyon ve gerçek GPU kapıları geçti. Bütün sistem terfisi,
+Sheriff üzerinden 29 videonun giriş/çıkış koşusu ve LeBron–Nash–Jordan ayrıntılı
+kabul raporu tamamlandığında kapanacaktır.

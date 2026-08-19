@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KOMPOZİTÖR KIYASI — lebron ↔ ibrahimovic ↔ magic, AYNI karelerde, ölçümle.
+"""KOMPOZİTÖR KIYASI — LeBron ve arşiv motorları, AYNI karelerde, ölçümle.
 
 Faz 3+4 kapısı (spec §7-§10, model_manifest: no_engine_selection_before_benchmark):
 kompozitör seçimi bu koşunun sayılarıyla yapılır, tahminle değil. 2026-08-11
@@ -7,10 +7,10 @@ GUNLUK denetiminin bulduğu boşluk — "388 film ibrahimovic'le, 610 film
 lebron'la üretilmiş, örtüşme 0 → kafa-kafaya kıyas hiç yapılmamış" — burada
 kapanır.
 
-Motorlar (hiçbirine dokunulmaz):
-  lebron      : src/derleyici.derle            — kulenin hizmet motoru
-  ibrahimovic : aday/ibrahimovic.compose_adaptif — kör kopya aday
-  magic       : aday/magic.derle                — birleşik aday (Faz 4)
+Motorlar:
+  lebron        : src/derleyici.derle              — kulenin hizmet motoru
+  legacy_lebron : arsiv/legacy_derleyici.derle     — terfi öncesi motor
+  ibrahimovic   : aday/ibrahimovic.compose_adaptif — kör kopya aday
 
 İbrahimovic'in iki bilinen borcu (gömülü /home/cagatay/Ex_Frame yolu, olcum/
 saglik bağımlılığı) KOŞUCU düzeyinde çözülür; dosya kör kopya kalır ve
@@ -36,8 +36,8 @@ token-kimlik motoru, onun topal hali değil.
 
 Kullanım:
   ../venv/bin/python kompozitor_kiyas.py                          # taban: lebron+ibrahimovic
-  ../venv/bin/python kompozitor_kiyas.py --motorlar lebron,ibrahimovic,magic
-  ../venv/bin/python kompozitor_kiyas.py --motorlar 'magic:plato=0'   # ablasyon
+  ../venv/bin/python kompozitor_kiyas.py --motorlar lebron,legacy_lebron
+  ../venv/bin/python kompozitor_kiyas.py --motorlar 'lebron:plato=0'  # ablasyon
   ../venv/bin/python kompozitor_kiyas.py --filmler acemiler-cetesi   # tek film
 """
 from __future__ import annotations
@@ -63,7 +63,8 @@ os.environ.setdefault("MITAS_PROJECT_ROOT", str(KOK))
 
 # SIRA ÖNEMLİ: ibrahimovic'in `import saglik`'i kuledeki ölçüm kopyasını
 # bulmalı (aday/ içinde saglik yok — yalnız olcum/ içinde var).
-for _p in (str(KULE / "olcum"), str(KULE / "aday"), str(KULE / "src"), str(KULE)):
+for _p in (str(KULE / "olcum"), str(KULE / "aday"), str(KULE / "arsiv"),
+           str(KULE / "src"), str(KULE)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
@@ -91,7 +92,7 @@ TARİH = _dt.date.today().isoformat()
 # --------------------------------------------------------------------------- #
 # motor kaydı
 # --------------------------------------------------------------------------- #
-def _magic_ozellikler(anahtar: str) -> dict:
+def _lebron_ozellikler(anahtar: str) -> dict:
     """'plato=0,token=0' → {'plato': False, 'token': False} — ablasyon koşusu."""
     oz = {}
     for parca in anahtar.split(","):
@@ -104,10 +105,19 @@ def _magic_ozellikler(anahtar: str) -> dict:
 
 
 def motor_getir(ad: str):
-    """'lebron' | 'ibrahimovic' | 'magic[:anahtar=deger,...]' → (etiket, çağrılan)."""
-    if ad == "lebron":
+    """Motor adını kıyas etiketi ve çağrılabilir işleve çevir."""
+    if ad.startswith("lebron"):
         import derleyici
-        return "lebron", derleyici.derle
+        anahtar = ad.split(":", 1)[1] if ":" in ad else ""
+        oz = _lebron_ozellikler(anahtar) if anahtar else None
+        etiket = "lebron" if not anahtar else f"lebron[{anahtar}]"
+
+        def _cagri(slug, ims=None, _oz=oz):
+            return derleyici.derle(slug, ims=ims, ozellikler=_oz)
+        return etiket, _cagri
+    if ad == "legacy_lebron":
+        import legacy_derleyici
+        return "legacy_lebron", legacy_derleyici.derle
     if ad == "ibrahimovic":
         import ibrahimovic
         dc = ibrahimovic._dc_al()
@@ -118,15 +128,6 @@ def motor_getir(ad: str):
                   "onarmadan koşu başlamaz.", file=sys.stderr)
             raise SystemExit(3)
         return "ibrahimovic", ibrahimovic.compose_adaptif
-    if ad.startswith("magic"):
-        import magic
-        anahtar = ad.split(":", 1)[1] if ":" in ad else ""
-        oz = _magic_ozellikler(anahtar) if anahtar else None
-        etiket = "magic" if not anahtar else f"magic[{anahtar}]"
-
-        def _cagri(slug, ims=None, _oz=oz):
-            return magic.derle(slug, ims=ims, ozellikler=_oz)
-        return etiket, _cagri
     raise SystemExit(f"bilinmeyen motor: {ad}")
 
 

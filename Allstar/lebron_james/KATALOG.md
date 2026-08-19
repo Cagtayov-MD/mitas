@@ -23,12 +23,11 @@
 
 | Dosya | Ne yapar |
 |---|---|
-| `magic.py` | **KULEMASTER'I (terfi 2026-08-18, Çağatay).** Lebron iskeleti + ibrahimovic'in dört mekanizması + Sınıf A/B düzeltmeleri: fold-dedup, dy-tutarlı substrat yarışması | 
-| `derleyici.py` | **EMEKLİ** lebron motoru — dokunulmadan kalır: sadakat kapısının kıyas tarafı + kutu_sayisi/get_ocr_engine yardımcıları |
+| `derleyici.py` | **KANONİK LEBRON.** Ölçümde seçilmiş birleşik kompozitör + Paddle motoru/kutu sayımı + Sınıf A/B düzeltmeleri |
 | `yukleyici.py` | Kare listeleme / doğal sıralama / unicode-güvenli okuma-yazma |
 | `kural.py` | Kulenin kendi çıktısı hakkındaki hükümleri: boy tavanı, çöküş dedektörü |
 | `okuyucu.py` | Master → satırlar. Bantlama + süzgeçler + piksel kalkanı. **Modeli bilmez** |
-| `model.py` | DeepSeek-OCR. transformers'a dokunan TEK yer |
+| `model.py` | Kilitli yerel GGUF için özel Ollama süreç yöneticisi; port, timeout, süreç-ağacı ve HOME izolasyonu |
 
 ## `aday/` — bekleme odası
 
@@ -42,9 +41,10 @@ gömülü mutlak yol (`/home/cagatay/Ex_Frame`) ve `olcum/saglik`'e bağımlıl�
 Ölçüm kazanınca `src/`'nin tam vatandaşı olur.
 
 > Çağatay: *"ilerde onu lebron ile destekleyeceğim, ikisini birleştireceğim."*
-> Magic o birleşmenin adıdır: derleyici.py'ye DOKUNMADAN, aday olarak kuruldu.
+> `magic` o birleşmenin tarihî deney adıdır; seçimden sonra içeriği kanonik
+> `derleyici.py` olmuştur ve çalışma zamanında alias bırakılmamıştır.
 > Token'ları kulenin İÇindeki Paddle'dan alır — ibrahimovic'in `saglik` yan
-> kapısı (bilinen borç) magic'e GEÇMEDİ. İki test korur: dosyalar
+> kapısı (bilinen borç) LeBron'a GEÇMEDİ. İki test korur: dosyalar
 > **silinmesin**, ve **sessizce devreye girmesin**.
 
 ## `olcum/` — ölçüm yatağı
@@ -52,7 +52,8 @@ gömülü mutlak yol (`/home/cagatay/Ex_Frame`) ve `olcum/saglik`'e bağımlıl�
 | Dosya | Ne ölçer |
 |---|---|
 | **`kapi_sadakat.py`** | **Kule çıktısı ↔ üretim çıktısı, SHA-256.** Taşımanın doğruluğu bununla kanıtlandı |
-| **`kompozitor_kiyas.py`** | **Kompozitör kıyası:** lebron ↔ ibrahimovic ↔ magic (+ablasyon) aynı karelerde; saglik+sadakat+dup+çöküş tablosu → `raporlar/kompozitor_kiyas_*.json/.md` |
+| **`kompozitor_kiyas.py`** | **Kompozitör kıyası:** LeBron ↔ legacy LeBron ↔ ibrahimovic (+LeBron ablasyon) aynı karelerde |
+| **`lebron_terfi_parite.py`** | 2026-08-18 seçilmiş referansa karşı 29 havuzda piksel ve manifest özeti paritesi |
 | `saglik.py` | Üretim OK · dup_oran ≤ 0.10 · boy 300–45000 · doku kapsamı ≥ 0.05 |
 | `sadakat.py` | **Metin-recall:** ham karelerdeki metnin master'da ne kadarı hayatta kaldı |
 | `dup_metrik.py` | Master'ın kendi içindeki tekrar oranı |
