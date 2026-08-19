@@ -25,6 +25,34 @@ kanal A + kanal B
 
 ## Girdi sözleşmesi: `mitas.okuma/v1`
 
+> ### ⚠ AÇIK KUSUR — Shaq bugün Nash'in paketlerini OKUYAMIYOR (2026-08-20)
+>
+> Bu bölüm Shaq'ın **kabul ettiği** sözleşmeyi anlatır ve doğrudur:
+> `sozlesme.py` `mitas.okuma/v1` ister. Ama Nash artık **`mitas.okuma/v2`**
+> üretiyor (`nash/src/proof.py:203`). Gerçek bir paketle denendi:
+>
+> ```
+> SozlesmeHatasi: schema_version 'mitas.okuma/v1' olmali
+> ```
+>
+> Fark yalnız sürüm dizgisi DEĞİL, yapısal:
+>
+> | alan | Shaq bekliyor (v1) | Nash üretiyor (v2) |
+> |---|---|---|
+> | bölüm | `bolum` | `section` |
+> | durum | `durum` — dizgi (`"OKUNDU"`) | `status` — sözlük |
+> | bbox | `{"x0":…,"y0":…,"x1":…,"y1":…}` | liste `[x0,y0,x1,y1]` |
+> | satır metni | `text` | `raw_text` + `normalized_text` |
+>
+> Sürüm etiketi bilerek `v1` bırakıldı: `v2` yazmak kodun yapmadığı bir şeyi
+> vaat eder ve kusuru görünmez kılardı. **Uyumsuzluk kapanana kadar Shaq'ın
+> üretim hattına bağlanması yasaktır.** Kule zaten gölgede olduğu için bu
+> kusur bugüne kadar fark edilmedi.
+>
+> Not: `src/coklu.py` (N-kanal uzlaştırma) paketleri `sozlesme.py`'den
+> GEÇİRMEDEN doğrudan okur; bu yüzden Faz B ölçümü koşabildi. Doğrulamasız
+> okuma geçici bir ölçüm kolaylığıdır, sözleşmenin yerine geçmez.
+
 Film klasöründe bölüm başına **1–3** `*.okuma.json` bulunur. `nash` paketi
 ZORUNLUDUR — bbox yalnız onda vardır (ölçüldü 2026-08-19: nash %100,
 lebron %1, jordan %0) ve kör kontrol kuyruğu onun koordinatlarına bağlıdır.

@@ -2,6 +2,14 @@
 
 Shaq kuruldu ve gölge modundadır; QC1'e veya canlı hatta bağlı değildir.
 
+**AÇIK KUSUR (2026-08-20): Shaq, Nash'in bugünkü paketlerini okuyamıyor.**
+`sozlesme.py` `mitas.okuma/v1` istiyor, Nash `mitas.okuma/v2` üretiyor; fark
+yapısal (`bolum`→`section`, `durum` dizgi→`status` sözlük, bbox sözlük→liste,
+`text`→`raw_text`). Gerçek paketle denendi, `SozlesmeHatasi` ile reddedildi.
+Kule gölgede olduğu için bugüne kadar fark edilmedi. Ayrıntı ve sürüm
+etiketinin neden `v1` bırakıldığı: `README.md` girdi sözleşmesi bölümündeki
+uyarı kutusu. **Uyumsuzluk kapanmadan Shaq üretim hattına bağlanamaz.**
+
 Kontrol modeli **bilerek bağlı değildir**. Kule, kör bbox crop'ları ve
 `mitas.kontrol/v1` istek/cevap dosyalarını hazırlar; ileride seçilecek 27B veya
 başka bir sağlayıcı bu sözleşmeye bağlanır. Gerçek insan etiketli ölçüm henüz
