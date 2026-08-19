@@ -122,12 +122,29 @@ def test_okuma_ve_dedup(tmp_path):
 
 
 def test_piksel_kalkani_sifir_kutu(tmp_path):
-    """Kutu 0 iken satır üretilmişse UYDURMA — deepseek boş karede '- 1' basıyor."""
+    """Kutu 0 iken satır ŞÜPHELİDİR — damgalanır, ama SİLİNMEZ.
+
+    2026-07-31'de bu satırlar atılıyordu (deepseek boş bantta '- 1' listesi
+    uyduruyor — gerçek ve ölçülmüş bulgu). 2026-08-20'de kalkanın GERÇEK
+    içeriği de yediği ölçüldü: İZ PEŞİNDE girişinde derleyici 88 kareyi
+    595 px'e çökertti, model o masterdan GÜLER KARAMAN'ı okudu, kalkan onu
+    uydurma sayıp sildi ve kule METIN_YOK yazdı — bir DERLEME ARIZASI
+    "bu jenerikte yazı yoktu" cevabına dönüştü.
+
+    Yeni sözleşme (Çağatay 2026-08-20): kaybetmek uydurmaktan kötüdür.
+    Satır çıktıda kalır, `piksel_kanitsiz` damgası taşır, aşağı akıştaki
+    güven katmanı düşük tartar. Kalkanın ASIL işi — şüpheyi görünür kılmak —
+    korunuyor; değişen tek şey şüphelinin idam yerine işaretlenmesi.
+
+    Not: 31 Temmuz'un asıl şikâyeti olan '- 1' / '- 2' listesi zaten
+    `yapisal_veto` tarafından eleniyor — piksel kalkanı o desen için
+    GEREKSİZDİ. Geriye yalnız isim-benzeri satır kalıyor ve o damgalanıyor.
+    """
     y = _yollar(tmp_path, 1)
     r = oku(y, lambda p: "- 1\n- 2\nHAYALET İSİM", lambda p: 0)
-    assert r["satirlar"] == []
-    assert all(e["sebep"] == "piksel0" for e in r["elenen"])
-    assert r["elenen_n"] == 3
+    assert r["satirlar"] == ["HAYALET İSİM"]          # '- 1'/'- 2' yapisal veto
+    assert r["piksel_kanitsiz_n"] == 1
+    assert all(k["piksel_kanitsiz"] for k in r["satir_kaynaklari"])
 
 
 def test_kutu_none_ise_hukum_verilmez(tmp_path):

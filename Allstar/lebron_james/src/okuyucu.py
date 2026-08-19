@@ -226,13 +226,22 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
             continue
 
         n_kutu = kutu_say(p) if kutu_say else None
+        piksel_kanitsiz = False
         if n_kutu is None:
             kutu_bilinmeyen += 1
         elif n_kutu == 0:
-            # Piksel kanıtı: ekranda yazı YOK, model uydurmuş.
-            elenen.extend({"bant": p.name, "satir": s, "sebep": "piksel0"}
-                          for s in ham)
-            continue
+            # PİKSEL KANITI YOK — ama satır SİLİNMEZ (Çağatay 2026-08-20).
+            # 2026-07-31'de bu satırlar uydurma sayılıp atılıyordu; ölçüm o
+            # kalkanın GERÇEK içeriği de yediğini gösterdi: İZ PEŞİNDE girişi,
+            # derleyici 88 kareyi 595 px'e çökertti, model 'GULF KARAT'
+            # (= GÜLER KARAMAN) okudu, kalkan sildi, kule METIN_YOK yazdı.
+            # Bir DERLEME ARIZASI "yazı yoktu" cevabına dönüştü.
+            # Kayıp geri gelmez, işaret geri alınabilir — satır damgalanır ve
+            # aşağı akıştaki güven katmanı onu düşük güvenle tartar.
+            # Aynı ders aşağıda zaten yazılı: ARIZA sessizce içerik gerçeğine
+            # dönüşemez. O delik "tüm bantlar patladı" yolunda kapatılmıştı,
+            # bu yolda açık kalmıştı.
+            piksel_kanitsiz = True
 
         for s in ham:
             if gevezelik_mi(s):
@@ -250,7 +259,8 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
             gorulen.add(f)
             satirlar.append(s)
             satir_kaynaklari.append({"text": s, "bant": p.name,
-                                     "bant_index": bant_index})
+                                     "bant_index": bant_index,
+                                     "piksel_kanitsiz": piksel_kanitsiz})
 
     # HER BANT PATLADIYSA BU "YAZI YOK" DEĞİLDİR — okuyamadık.
     # Bu satır gerçek bir kazadan yazıldı (2026-08-15, ilk uçtan uca koşu):
@@ -266,4 +276,9 @@ def oku(bant_yollari: list[Path], sor: Callable[[Path], str],
             "bant_n": len(bant_yollari), "hata_n": hata_n,
             "kutu_durum": ("yok" if kutu_say is None else
                            ("kismi" if kutu_bilinmeyen else "tam")),
-            "elenen_n": len(elenen)}
+            "elenen_n": len(elenen),
+            # Piksel kanıtı olmadan geçen satır sayısı. 0 değilse çıktı
+            # şüphelidir — ya model uydurmuştur ya derleyici bozuk master
+            # üretmiştir. İkisi de görünür olmalı, ikisi de sessiz olmamalı.
+            "piksel_kanitsiz_n": sum(1 for k in satir_kaynaklari
+                                     if k.get("piksel_kanitsiz"))}
