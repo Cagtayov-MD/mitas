@@ -279,3 +279,26 @@ outputs/TARAMA_117_FILM_2026-07-03/*
 !outputs/TARAMA_117_FILM_2026-07-03/*.md
 outputs/gemma26_role_eval/
 outputs/per_model_yon.json
+
+# ── Untracked yigin temizligi (2026-08-19) ──────────────────────────────
+# HICBIRI SILINMEDI — yalnizca git'in gormesi durduruldu; hepsi diskte duruyor.
+
+# Model/arac calisma alani (~95 GB: llama.cpp derlemeleri, GGUF agirliklari).
+# Kule siniri doktrini geregi agirliklar "zemin"dir (Allstar/MAP.md).
+# Kokteki olcum raporlari BILINCLI korunur — model kararlarinin kanit tabani.
+CagatayBox/*
+!CagatayBox/*.md
+
+# Ucuncu taraf checkout'lari
+/litellm/
+/crawl4ai/
+
+# Uretilen veri ve olcum ciktilari (halen takipli olanlar takipli kalir)
+/outputs/
+/data/master_ex*/
+/data/master_dup/
+/scratch/
+
+# Arac durumu (oturum + hook defterleri) — kod degil
+.mimosa/
+.zcode/

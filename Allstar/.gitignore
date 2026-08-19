@@ -20,3 +20,16 @@ __pycache__/
 # olcum/gt tek basina 657 MB (kare/ham cikti). Scriptler ve raporlar girer.
 */olcum/gt/
 */olcum/gt_kareler/
+
+# Kule ici calisma alanlari — kod degil, uretilen/indirilen veri.
+# DIKKAT: gitignore'da satir-ici "#" yorum DEGILDIR, desenin parcasi olur.
+# Yorum daima kendi satirinda durur.
+#   /iverson/test/ = ASR model scratch alani (43.113 dosya)
+#   /curry_out/    = curry deney kolunun ciktisi (128 dosya)
+/iverson/test/
+/curry_out/
+*/in/
+*/cache/
+*/runs/
+*/state/
+*/out_hakeem/
