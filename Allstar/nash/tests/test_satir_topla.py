@@ -77,3 +77,32 @@ def test_order_yeniden_numaralanir():
              _satir(2, "Scott BRADY", "a1", [100, 200, 400, 230])]
     cikan = topla(gelen)
     assert [c["order"] for c in cikan] == [0, 1]
+
+
+def test_paket_satir_birimli_cikar(tmp_path, monkeypatch):
+    """build_packet artik kutu degil satir birimi yazmali."""
+    import proof
+
+    monkeypatch.setattr(proof, "_identity", lambda: {"tool": "test"})
+    monkeypatch.setattr(proof, "_frame_manifest", lambda: {})
+    monkeypatch.setattr(proof, "_png_size", lambda p: (1000, 1000))
+    monkeypatch.setattr(proof, "_asset", lambda aid, p, w, h, m: {
+        "asset_id": aid, "path": str(p), "width": w, "height": h,
+        "frame_sequence": 1, "source_time_s": 0.5})
+    monkeypatch.setattr(proof, "_sha", lambda p: "0" * 64)
+
+    kare = tmp_path / "f.png"
+    kare.write_bytes(b"x")
+    grounding = {"f.png": [
+        {"label": "Audie", "boxes_999": [[100, 102, 280, 132]], "engine": "t", "score": 1.0},
+        {"label": "MURPHY", "boxes_999": [[300, 100, 400, 130]], "engine": "t", "score": 1.0}]}
+    paket = proof.build_packet(
+        film_id="F", section="cikis", legacy={"durum": "OKUNDU"},
+        selected_paths=[kare],
+        accepted=[{"text": "Audie", "kaynak": "f.png"},
+                  {"text": "MURPHY", "kaynak": "f.png"}],
+        rejected=[], grounding=grounding, grounding_failures=[])
+
+    assert len(paket["lines"]) == 1
+    assert paket["lines"][0]["raw_text"] == "Audie MURPHY"
+    assert len(paket["lines"][0]["bilesenler"]) == 2

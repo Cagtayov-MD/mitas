@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from satir_topla import topla as _satir_topla
+
 GROUNDING_PROMPT = "<image>\n<|grounding|>Convert the document to markdown."
 _PATTERN = re.compile(r"<\|ref\|>(.*?)<\|/ref\|>\s*<\|det\|>(.*?)<\|/det\|>", re.S)
 _BOLGE_ETIKETLERI = {
@@ -146,6 +148,9 @@ def build_packet(*, film_id: str, section: str, legacy: dict[str, Any],
         lines.append({"line_id": f"line-{order:06d}", "order": order,
                       "raw_text": raw, "normalized_text": fold_exact(raw),
                       "source_label": filename, "evidence": evidence})
+    # Kutu parcalari gorsel satira toplanir; parca bbox'lari 'bilesenler'de
+    # korunur. Bkz. satir_topla.py — uc okuyucunun birimini esitler.
+    lines = _satir_topla(lines)
     execution = "FAILED" if legacy.get("durum") == "ARIZA" else "SUCCEEDED"
     content = {"OKUNDU": "READ", "METIN_YOK": "NO_TEXT"}.get(
         legacy.get("durum"), "UNKNOWN")
