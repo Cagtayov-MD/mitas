@@ -46,6 +46,8 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import numpy as np
 
 # ── stdout/stderr UTF-8 ───────────────────────────────────────────────────────
 try:
@@ -56,7 +58,7 @@ except Exception:
 
 # ── proje kökü sys.path ────────────────────────────────────────────────────────
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))  # _pipe_ocr importu için
 
@@ -75,6 +77,7 @@ from core.pipelines.ocr.jenerik_frame_pool_detector import (  # noqa: E402
 )
 from core.pipelines.ocr.jenerik_oneocr_detector import oneocr_line_boxes  # noqa: E402  (4-köşe→eksen-hizalı box)
 from _pipe_ocr import build_engine, fold  # noqa: E402
+from _letterbox_roi import letterbox_roi_from_paths  # noqa: E402  (film-geneli letterbox ROI)
 
 import cv2  # noqa: E402  (jenerik_oneocr_detector zaten getiriyor; dhash için)
 
@@ -180,30 +183,50 @@ def _vl_dekor_sor(image_path: Path, model: str, timeout: float) -> bool | None:
 
 
 def _vl_dekor_gate(kept: list[dict], src_paths: dict) -> dict:
-    """Dedup TEMSİLCİLERİNDEN şüphelileri (credit_lines <= eşik) VL'e sorar; 'sahne-içi dekor'
-    hükmü alanı decision=dropped_vl_dekor yapar. Her belirsizlikte TUT. Özet-istatistik döner."""
+    """Dedup TEMSİLCİLERİNDEN şüphelileri PARALEL (ThreadPoolExecutor) olarak VL'e sorar."""
     if not _vl_dekor_enabled():
         return {"enabled": False}
     model = os.environ.get("MITAS_GIRIS_VL_DEKOR_MODEL", "qwen3-vl:8b")
     esik = int(os.environ.get("MITAS_GIRIS_VL_DEKOR_MAXLINES", "2") or 2)
     timeout = float(os.environ.get("MITAS_GIRIS_VL_DEKOR_TIMEOUT", "30") or 30)
-    soruldu = dusen = karar_yok = 0
+    max_workers = int(os.environ.get("MITAS_GIRIS_VL_DEKOR_WORKERS", "4") or 4)
+
+    sorulacaklar: list[tuple[dict, Path]] = []
     for r in kept:
         if not r.get("dedup_representative"):
             continue
-        if len(r.get("credit_lines") or []) > esik:      # çok-satırlı kart → jenerik, sorma
+        if len(r.get("credit_lines") or []) > esik:
             continue
         src = src_paths.get(r["file"])
         if src is None:
             continue
-        hukum = _vl_dekor_sor(src, model, timeout)
-        soruldu += 1
-        if hukum is False:
-            r["decision"] = "dropped_vl_dekor"
-            r["reason"] = "vl_dekor_scene_text"
-            dusen += 1
-        elif hukum is None:
-            karar_yok += 1
+        sorulacaklar.append((r, src))
+
+    soruldu = len(sorulacaklar)
+    dusen = 0
+    karar_yok = 0
+
+    if not sorulacaklar:
+        return {"enabled": True, "model": model, "maxlines": esik, "asked": 0, "dropped": 0, "undecided": 0}
+
+    def _gorev_calistir(item: tuple[dict, Path]):
+        rep, src = item
+        return rep, _vl_dekor_sor(src, model, timeout)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_gorev_calistir, item) for item in sorulacaklar]
+        for future in as_completed(futures):
+            try:
+                rep, hukum = future.result()
+                if hukum is False:
+                    rep["decision"] = "dropped_vl_dekor"
+                    rep["reason"] = "vl_dekor_scene_text"
+                    dusen += 1
+                elif hukum is None:
+                    karar_yok += 1
+            except Exception:
+                karar_yok += 1
+
     return {"enabled": True, "model": model, "maxlines": esik,
             "asked": soruldu, "dropped": dusen, "undecided": karar_yok}
 
@@ -239,8 +262,14 @@ def _is_credit_text(t: str) -> bool:
     return False
 
 
+# NOT (2026-08-11): TEK-KARE'den ROI tahmin eden detect_active_video_roi KALDIRILDI.
+# Giriş jeneriği siyahtan açılır → ilk kare mümkün olan en kötü örnektir; o kareden
+# "aktif alan 8px" çıkınca 360 karenin tamamı altyazı sayıldı (YANLIŞ SUÇLU kök vakası,
+# 102 film etkilendi). Yerine scripts/_letterbox_roi.py: film genelinden 10 kare örnekler.
+
+
 # ── tek kare kararı ────────────────────────────────────────────────────────────
-def _classify_frame(path: Path, eng, params: dict) -> dict:
+def _classify_frame(path: Path, eng, params: dict, roi_y_min: int = 0, roi_y_max: int = 0) -> dict:
     """Bir kareyi sınıflandır → manifest satırı (kopyalama/dedup ÜST katmanda).
 
     decision: 'kept' | 'dropped_footage' | 'kept_error'
@@ -274,7 +303,14 @@ def _classify_frame(path: Path, eng, params: dict) -> dict:
             "lines_bbox": [], "sig": "", "_hash": fhash,
         }
 
-    H = bgr.shape[0]
+    # ROI film-geneli örneklemeyle ÜST katmanda bir kez hesaplanır. Geçersizse TAM KARE —
+    # kare-bazlı ROI tahmini YASAK (karanlık kareyi "küçük resim" sanar; kök vaka notuna bak).
+    H_kare = bgr.shape[0]
+    if roi_y_max > roi_y_min:
+        y_min, y_max = roi_y_min, min(roi_y_max, H_kare)
+    else:
+        y_min, y_max = 0, H_kare
+    active_H = max(1, y_max - y_min)
     sub_frac = params["SUB_FRAC"]
     credit_lines: list[str] = []
     subtitle_lines: list[str] = []
@@ -282,7 +318,8 @@ def _classify_frame(path: Path, eng, params: dict) -> dict:
 
     for box, text in items:
         y0, y1 = box[1], box[3]
-        y_center_frac = ((y0 + y1) / 2.0) / max(1, H)
+        y_center = (y0 + y1) / 2.0
+        y_center_frac = (y_center - y_min) / active_H
         in_sub_band = y_center_frac >= sub_frac
         is_cred = _is_credit_text(text)
         legit = bool(is_cred and not in_sub_band)   # meşru = kredi-metni VE alt-bant DIŞI
@@ -324,38 +361,72 @@ def _classify_frame(path: Path, eng, params: dict) -> dict:
 # TAM-İMZA birleştirir. Kayan jenerik (metin hareketli) → ikisi de değişir → hepsi TUTULUR.
 # Gerçek farklı isimleri kaybetmemek için FUZZY eşleşme YOK (recall > mükemmel dedup).
 # Anchor-relatif (küme ilk karesine kıyas): yavaş kayma farklı kartları zincirlemesin.
+from difflib import SequenceMatcher
+
+
+def _word_set(sig: str) -> set[str]:
+    """sig format: 'word1|word2|word3' -> {"word1", "word2", "word3"}."""
+    if not sig:
+        return set()
+    words = set()
+    for part in sig.split("|"):
+        for w in part.split():
+            w_clean = w.strip(".,;:?!'\"-").lower()
+            if len(w_clean) >= 2:
+                words.add(w_clean)
+    return words
+
+
+def _text_overlap_match(sig1: str, sig2: str, thresh: float = 0.55) -> bool:
+    """İki imza arasındaki kelime kapsama/örtüşme oranını (Containment Overlap) hesaplar."""
+    ws1 = _word_set(sig1)
+    ws2 = _word_set(sig2)
+    if not ws1 or not ws2:
+        return False
+    intersection = len(ws1 & ws2)
+    min_len = min(len(ws1), len(ws2))
+    overlap = intersection / max(1, min_len)
+    return overlap >= thresh
+
+
 def _dedup_kept(kept: list[dict], src_paths: dict, params: dict) -> None:
     """kept (frame_index sırasında) üzerinde sıralı dedup; her satıra
     dedup_representative:bool + dedup_cluster_sig + dedup_cluster_id yaz."""
     ham_thr = params["DEDUP_HAM"]
+    fuzzy_thr = 0.80   # İsimler arası %80+ SequenceMatcher benzerlik
 
     for e in kept:
         e["dedup_representative"] = False
 
-    # frame_index None olabilir (dosya adında rakam yok) → None'ları sona koy, çökmeden (TypeError guard).
     ordered = sorted(kept, key=lambda e: (e.get("frame_index") is None, e.get("frame_index") or 0))
 
-    clusters: list[dict] = []   # {anchor_hash, anchor_sig, members:[entry,...]}
+    clusters: list[dict] = []
     for e in ordered:
         h = e.get("_hash")
         sig = e.get("sig") or ""
         joined = False
         if clusters:
-            last = clusters[-1]
-            ah = last["anchor_hash"]
-            asig = last["anchor_sig"]
-            visual_match = (h is not None and ah is not None and _hamming(h, ah) <= ham_thr)
-            sig_match = (sig != "" and sig == asig)
-            if visual_match or sig_match:
-                last["members"].append(e)
-                joined = True
+            # Son 5 kümeye kadar geriye bak (kadraj kaymaları, insan geçişi veya anlık parazit tolere edilir)
+            for last in reversed(clusters[-5:]):
+                ah = last["anchor_hash"]
+                asig = last["anchor_sig"]
+                visual_match = (h is not None and ah is not None and _hamming(h, ah) <= ham_thr)
+                sig_match = False
+                if sig != "" and asig != "":
+                    if sig == asig or _text_overlap_match(sig, asig, thresh=0.55) or SequenceMatcher(None, sig, asig).ratio() >= fuzzy_thr:
+                        sig_match = True
+                if visual_match or sig_match:
+                    last["members"].append(e)
+                    joined = True
+                    break
+
         if not joined:
             clusters.append({"anchor_hash": h, "anchor_sig": sig, "members": [e]})
 
-    # küme başına TEK temsilci = ortadaki üye (fade-in/out kenar karelerini değil, oturmuş kartı seç).
+    # Küme başına TEK temsilci = en eksiksiz metin içeren ve en net kare
     for cid, cl in enumerate(clusters):
         members = cl["members"]
-        rep = members[len(members) // 2]
+        rep = max(members, key=lambda m: (len(m.get("credit_lines") or []), len(_word_set(m.get("sig") or "")), -(m.get("frame_index") or 0)))
         for e in members:
             e["dedup_representative"] = (e is rep)
             e["dedup_cluster_id"] = cid
@@ -427,11 +498,16 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
         return _base_manifest("engine_error", {"engine": "yok", "engine_error": err,
                                                "total_input_frames": len(paths)})
 
+    # ── ROI (LETTERBOX): FİLM GENELİNDEN 10 KARE ÖRNEKLENEREK 1 KEZ HESAPLANIR ──
+    # İlk kareden hesaplamak felaketti (kök vaka notu: _letterbox_roi.py). Bant, ancak
+    # örneklenen karelerin HEPSİNDE siyah olan satırdır; şüphede tam kareye düşülür.
+    roi_y_min, roi_y_max, roi_kaynak = letterbox_roi_from_paths(paths, imread_unicode)
+
     # ── her kareyi sınıflandır ──
     rows: list[dict] = []
     for path in paths:
         try:
-            rows.append(_classify_frame(path, eng, params))
+            rows.append(_classify_frame(path, eng, params, roi_y_min, roi_y_max))
         except Exception as exc:  # noqa: BLE001 — kare-bazlı hata asla çökme; RECALL
             rows.append({
                 "file": path.name, "frame_index": natural_frame_no(path),
@@ -494,9 +570,25 @@ def process_giris(frames_dir: Path, dump_dir: Path | None = None) -> dict:
     for r in rows:
         r.pop("_hash", None)
 
+    # ── SESSİZ-SIFIR ALARMI (2026-08-11) ──────────────────────────────────────
+    # Kredi metni OKUNDUĞU HALDE havuz boş kaldıysa bu "jenerik yok" DEĞİL, arıza
+    # sinyalidir: ROI/eşik bir kuralı yanlış işletiyor demektir. Kök vakada boru
+    # hattı tam da bu durumda "ok" deyip 360/360 kareyi elemişti — sessiz arıza.
+    uyari = None
+    if n_kept == 0 and paths:
+        kredi_gorulen = sum(1 for r in rows
+                            for lb in (r.get("lines_bbox") or []) if lb.get("is_credit"))
+        if kredi_gorulen:
+            uyari = f"bos_havuz_ama_{kredi_gorulen}_kredi_satiri_okundu"
+            print(f"[giris_yazi] UYARI: havuz boş ama {kredi_gorulen} kredi satırı okundu "
+                  f"(roi={roi_kaynak}) — ARIZA ŞÜPHESİ, 'jenerik yok' diye yorumlama.",
+                  file=sys.stderr, flush=True)
+
     manifest = _base_manifest("ok", {
         "engine": kind,   # 2026-07-17: sabit 'oneocr' etiketi yalan söylüyordu (Linux'ta paddle koşar)
         "vl_dekor": vl_dekor_stats,   # semantik dekor-kapısı özeti (bayrak kapalıysa {"enabled": False})
+        "roi": {"y_min": roi_y_min, "y_max": roi_y_max, "kaynak": roi_kaynak},
+        "uyari": uyari,
         "total_input_frames": len(paths),
         "total_kept": n_kept,
         "total_dropped_footage": n_drop,

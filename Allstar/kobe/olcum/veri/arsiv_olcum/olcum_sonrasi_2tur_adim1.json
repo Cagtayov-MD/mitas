@@ -1,0 +1,137 @@
+{
+ "kapsam": 110,
+ "dogru": 95,
+ "genel": 86.4,
+ "kredi_var": {
+  "n": 81,
+  "dogru": 67
+ },
+ "kredi_yok": {
+  "n": 29,
+  "dogru": 28
+ },
+ "eksik": 5,
+ "sure_sn": 104,
+ "hatalar": [
+  {
+   "film": "1978-0227-1-0000-00-1_TAKKELİ_MELEK",
+   "gt": 588,
+   "tahmin": 905,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[905-1199] kb=1.00 joint=1.80 scroll_oran=0.86 ardisik=128",
+   "sapma": 317
+  },
+  {
+   "film": "2004-9131-1-0000-00-1_YALNIZ_SAVAŞÇI",
+   "gt": 1097,
+   "tahmin": 907,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=1 seçilen=[909-1199] kb=1.00 joint=1.80 scroll_oran=0.01 ardisik=1 budama=0 genislet=1",
+   "sapma": -190
+  },
+  {
+   "film": "2003-9136-1-0000-00-1_HARİKA_KÖPEK_5",
+   "gt": 737,
+   "tahmin": 613,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=5 seçilen=[613-1195] kb=1.00 joint=1.80 scroll_oran=0.82 ardisik=229",
+   "sapma": -124
+  },
+  {
+   "film": "2023-1047-1-0000-90-1_GELECEK_GÜNLER",
+   "gt": 672,
+   "tahmin": 763,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=2 seçilen=[741-1199] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 budama=11 genislet=0",
+   "sapma": 91
+  },
+  {
+   "film": "2025-1112-1-0000-56-1_İNİŞLİ_ÇIKIŞLI_BİR_ÖYK",
+   "gt": 862,
+   "tahmin": 951,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=5 seçilen=[945-1201] kb=1.00 joint=1.80 scroll_oran=0.25 ardisik=3 budama=3 genislet=0",
+   "sapma": 89
+  },
+  {
+   "film": "1988-0780-1-0000-00-1_İKİ_KAFADAR",
+   "gt": 1036,
+   "tahmin": 969,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=2 seçilen=[969-1195] kb=1.00 joint=1.80 scroll_oran=0.56 ardisik=64",
+   "sapma": -67
+  },
+  {
+   "film": "1996-0325-1-0000-00-1_KIZIL_HAYAT",
+   "gt": 964,
+   "tahmin": 901,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[901-1183] kb=1.00 joint=1.80 scroll_oran=0.10 ardisik=2 budama=0 genislet=0",
+   "sapma": -63
+  },
+  {
+   "film": "2000-0491-1-0000-00-1_PARDAYYAN",
+   "gt": 1034,
+   "tahmin": 1089,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=1 seçilen=[1089-1159] kb=1.00 joint=1.49 scroll_oran=0.00 ardisik=0 budama=0 genislet=0",
+   "sapma": 55
+  },
+  {
+   "film": "2002-9173-1-0000-00-1_ROBOCOP_KARA_ADALET",
+   "gt": 1088,
+   "tahmin": 1129,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=4 seçilen=[1129-1175] kb=1.00 joint=1.42 scroll_oran=0.00 ardisik=0 budama-yok(guard/bulunamadı)",
+   "sapma": 41
+  },
+  {
+   "film": "1979-0208-1-0000-00-1_TESS",
+   "gt": 1074,
+   "tahmin": 1037,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=1 seçilen=[1037-1199] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 budama=0 genislet=0",
+   "sapma": -37
+  },
+  {
+   "film": "1999-0403-1-0000-00-1_PRENSESİN_AŞKI",
+   "gt": 1046,
+   "tahmin": 1083,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=3 seçilen=[1085-1179] kb=1.00 joint=1.49 scroll_oran=0.00 ardisik=0 budama=0 genislet=1",
+   "sapma": 37
+  },
+  {
+   "film": "1981-0253-1-0000-00-1_YÜREKTEN_SEVMEK",
+   "gt": 722,
+   "tahmin": 697,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=1 seçilen=[697-1179] kb=1.00 joint=1.79 scroll_oran=0.70 ardisik=19",
+   "sapma": -25
+  },
+  {
+   "film": "1989-0624-1-0000-00-1_DÖNÜŞÜ_OLMAYAN_NEHİR",
+   "gt": -1,
+   "tahmin": 1125,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[1125-1191] kb=1.00 joint=1.76 scroll_oran=0.12 ardisik=1 budama=0 genislet=0",
+   "sapma": null
+  },
+  {
+   "film": "1995-0363-1-0000-00-1_KÜÇÜK_SİMBA_DÜNYA_KUPASIN",
+   "gt": 1035,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)",
+   "sapma": null
+  },
+  {
+   "film": "2011-9224-1-0000-88-1_KANDAHAR",
+   "gt": 964,
+   "tahmin": -1,
+   "yontem": "kredi_yok",
+   "notlar": "içerik-eşiği geçilemedi (en iyi kb=0.00)",
+   "sapma": null
+  }
+ ]
+}

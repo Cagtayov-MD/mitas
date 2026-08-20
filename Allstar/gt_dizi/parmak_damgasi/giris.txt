@@ -1,0 +1,5 @@
+# parmak_damgasi GİRİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/parmak_damgası_ilk_02m26s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/parmak_damgasi_giris/
+# Motor referansı: giris_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.

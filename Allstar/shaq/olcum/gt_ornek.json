@@ -1,0 +1,17 @@
+{
+  "schema_version": "mitas.shaq.gt/v1",
+  "items": [
+    {
+      "film_id": "FILM_ID",
+      "bolum": "giris",
+      "durum": "GECTI",
+      "lines": ["EKRANDAKI DOGRU SATIR"]
+    },
+    {
+      "film_id": "FILM_ID",
+      "bolum": "cikis",
+      "durum": "METIN_YOK",
+      "lines": []
+    }
+  ]
+}

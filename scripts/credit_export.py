@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import credit_qc
 
 # Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS"
+_ROOT = os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas"
 SRC = os.path.join(_ROOT, "Database")
 TESLIMAT = os.path.join(_ROOT, "teslimat")
 

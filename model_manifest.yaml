@@ -5,6 +5,54 @@ policy:
   all_candidates_selected_as_engine_false: true
 candidates:
   - module_area: OCR
+    candidate_name: nvidia/nemotron-ocr-v2
+    priority: 9
+    status: placeholder_candidate
+    venv: nemo
+    install_state: installed_unverified
+    smoke_test_command: "python scripts/nemotron_smoke.py"
+    expected_outputs:
+      - import_ok
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Kullanici talebi ile hazirlandi, 3090 uzerinde bfloat16 testi yapiliyor."
+  - module_area: OCR
+    candidate_name: Llama-3.2-Vision
+    priority: 10
+    status: placeholder_candidate
+    venv: none
+    install_state: not_installed_or_unverified
+    smoke_test_command: "TBD: verify Llama-3.2-Vision for OCR"
+    expected_outputs:
+      - import_ok
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Kullanici talebi ile listeye eklendi. Denenecek."
+  - module_area: OCR
+    candidate_name: DeepSeek-OCR-2
+    priority: 11
+    status: placeholder_candidate
+    venv: none
+    install_state: not_installed_or_unverified
+    smoke_test_command: "TBD: verify DeepSeek-OCR-2"
+    expected_outputs:
+      - import_ok
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Kullanici talebi ile listeye eklendi. Denenecek."
+  - module_area: OCR
+    candidate_name: baidu/Unlimited-OCR
+    priority: 12
+    status: placeholder_candidate
+    venv: none
+    install_state: not_installed_or_unverified
+    smoke_test_command: "TBD: verify baidu/Unlimited-OCR"
+    expected_outputs:
+      - import_ok
+    benchmark_required: true
+    selected_as_engine: false
+    notes: "Kullanici talebi ile listeye eklendi. Denenecek."
+  - module_area: OCR
     candidate_name: OneOCR
     priority: 1
     status: candidate
@@ -67,6 +115,34 @@ candidates:
     benchmark_required: true
     selected_as_engine: false
     notes: "Classical OCR fallback candidate."
+  - module_area: OCR
+    candidate_name: Claude-Vision-OCR
+    priority: 6
+    status: candidate
+    venv: none
+    install_state: no_install_required_builtin_agent_vision
+    smoke_test_command: "Claude Code Agent tool ile visual-analysis-ocr agent'ini bir PNG uzerinde calistir; ayrica bkz. docs/GUNLUK.md 2026-07-20 kaydi"
+    expected_outputs:
+      - transcribed_text_with_turkish_diacritics
+      - role_name_pairing_when_present
+    benchmark_required: true
+    selected_as_engine: false
+    notes: >
+      2026-07-20 canli test: AHLAT_AGACI_2018 panorama gorseli
+      (_PANORAMA_ahlat_cikis.png) uzerinde visual-analysis-ocr agent'i
+      calistirildi. Mevcut OneOCR/PaddleOCR cikisindaki bircok hatayi
+      (orn. "SANAT YONETİTTENİ" -> "Sanat Yönetmeni") duzeltti ve rol-isim
+      eslesmesini cikti (mevcut cikista yok). MALIYET: tek gorsel icin
+      ~108K token, ~6 dakika (29 tool-use) - toptan 400 dosyaya
+      uygulamak icin COK PAHALI, uretim motoru DEGIL. RISK: test filmi
+      uluslararasi taninmis (Nuri Bilge Ceylan) - dogruluk kismen
+      egitim-verisi hatirlama olabilir, az taninan filmlerde/teknik ekip
+      isimlerinde ayni isabet garanti degil. Onerilen kullanim: toptan
+      degil, HEDEFLI ikinci-gorus (supheli/dusuk-fidelity dosyalarda
+      spot-check). Ayrica bkz: yerel VLM fine-tune yol haritasi
+      (docs/MITAS_VLM_Finetuning_Kunye_OCR_Plan_v1.md) - bu adayin
+      cikislari damitma (distillation) icin altin-standart veri kaynagi
+      olarak da degerlendiriliyor.
   - module_area: ASR
     candidate_name: faster-whisper large-v3
     priority: 1

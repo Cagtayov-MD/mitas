@@ -10,14 +10,18 @@ Profil: TEK 'Film/Dizi' — tip TRT 3. parselden OTOMATİK:
   0 → DİZİ (tüm oyuncular + tüm jenerik, kanonik sıra)
 """
 from __future__ import annotations
-import sys, json, os, re, argparse, importlib.util, datetime
+import sys, json, os, re, argparse, importlib, importlib.util, datetime
 import urllib.error, urllib.request
 from pathlib import Path
+try:
+    from scripts.jenerik_constants import SCRIPT_MAP
+except ImportError:
+    from jenerik_constants import SCRIPT_MAP
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
 # Linux geçişi 2026-07-16: kökler env'den (yoksa eski Windows davranışı birebir).
-_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 PDFMITAS = Path(os.environ.get("MITAS_PDFMITAS_DIR") or (_ROOT / "OCR-worktree" / "pdf-mitas"))
 MAKE_PDF = PDFMITAS / "_make_pdf.py"
 CREDIT_PARSE = PDFMITAS / "credit_parse.py"
@@ -37,6 +41,14 @@ SUBTITLE_SCRIPT = HERE / "_subtitle_detect.py"
 
 
 def _load(name, path):
+    # Cache invalidation: modül zaten yüklüyse reload et, yoksa yeniden yükle
+    if name in sys.modules:
+        try:
+            importlib.reload(sys.modules[name])
+            return sys.modules[name]
+        except Exception:
+            pass  # Reload başarısazsa yeniden yükle
+    
     spec = importlib.util.spec_from_file_location(name, str(path))
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
@@ -47,6 +59,15 @@ def _load(name, path):
 cp = _load("credit_parse", CREDIT_PARSE)
 nn = _load("name_normalize", PDFMITAS / "name_normalize.py")   # Türkçe koru / diğer ASCII (+Qwen)
 pf = _load("poster_fetch", PDFMITAS / "poster_fetch.py")       # güvenli IMDb afiş
+# JASON KIDD — harf kapısı (Çağatay 2026-08-01: "harf işi Jason Kidd kontrolünde
+# dediğimde güvenebilmeliyim"). TEK giriş noktası; kural yazmaz, name_normalize'i
+# çağırır. Yüklenemezse jk=None → aşağıdaki çağrılar doğrudan nn'e düşer
+# (davranış birebir aynı, yalnız isim/izlenebilirlik kaybolur).
+try:
+    sys.path.insert(0, str(HERE))
+    import jason_kidd as jk
+except Exception:  # noqa: BLE001
+    jk = None
 # rol aklı: OCR rollerini XML (birincil) + meslek-DB (ikincil) ile düzelt.
 # Yükleme cökerse reconcile tamamen atlanır (eski davranış korunur, asla boş PDF).
 try:
@@ -177,6 +198,29 @@ def audio_subtitle_block(args) -> dict:
                 block["ana_dil"] = _al
         # Tutarlılık denetimi: ana_dil TR ve "—" dışında bir değerse VE altyazı HAYIR ise → uyarı
         # (TRT yayıncısı TR'dir; başka dil + altyazısız mantıksız → KONTROL'e yönlendir)
+        # Jenerik dili (Alfabe Tipi) tespiti — SADECE PDF'e "Jenerik dili" yazmak için.
+        # Önce ÇIKIS jeneriği (jenerik_detection_cikis.json) → yoksa GİRİŞ jeneriği (jenerik_detection.json) fallback.
+        # Bu bilgi BAŞKA HİÇBİR YERDE KULLANILMAZ (ana_dil fallback, alfabe tespiti, vs. YOK).
+        try:
+            base = None
+            if getattr(args, "video", None):
+                base = Path(args.video).parent
+            elif getattr(args, "kunye", None):
+                base = Path(args.kunye).parent
+            
+            if base:
+                # Sıra: 1) ÇIKIS, 2) GİRİŞ (fallback)
+                for jd_name in ("jenerik_detection_cikis.json", "jenerik_detection.json"):
+                    jd_path = base / "frames" / jd_name
+                    if jd_path.exists():
+                        jd_data = json.loads(jd_path.read_text(encoding="utf-8"))
+                        script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+                        if script_code:
+                            block["jenerik_dili"] = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+                            break
+        except Exception:
+            pass
+
         _ana = block.get("ana_dil", "—")
         _alt = block.get("altyazi")
         if _ana not in ("TR", "—", None) and _alt == "HAYIR":
@@ -203,10 +247,10 @@ def write_md(out: Path, d: dict) -> Path:
     for role, names in d["crew"]:
         nm = names if isinstance(names, list) else [names]
         lines.append(f"- {role}: " + ", ".join(nm))
-    if d.get("ses_kanallari") or d.get("altyazi"):
+    if d.get("ses_kanallari") or d.get("altyazi") or d.get("jenerik_dili"):
         lines += ["", "## Ses & Altyazı"]
-        # SES KANAL LİSTESİ (1./2./3./4. kanal) ARTIK YAZILMIYOR (Çağatay 2026-06-20):
-        # ne kunye_teslim.md'ye ne yüzey .txt'ye ne PDF'e — yalnız Ana dil + Altyazı kalır.
+        if d.get("jenerik_dili"):
+            lines.append(f"- Jenerik dili: {d['jenerik_dili']}")
         if d.get("ana_dil"):
             lines.append(f"- Ana dil: {d['ana_dil']}")
         if d.get("altyazi"):
@@ -330,6 +374,55 @@ def _apply_video_credits_authoritative(cast, crew, video_credits, *, dizi: bool)
     return cast, crew
 
 
+
+# ── ALT BAŞLIK HARF KAPISI (Çağatay kuralı 2026-08-01) ──────────────────────
+# "Hiçbir aksan geçmeyecek, hangi dil olduğu önemli değil. Türkçede Ü Ğ İ Ş Ç Ö
+#  büyüyebilir; Latin'de ne aksan var ne Ü Ğ İ Ş Ç Ö."
+#
+# BULGU: PDF'in kullanıcıya giden metin alanları içinde alt başlık (XML orijinal
+# ad) TEK normalize EDİLMEYEN alandı — cast/crew (upper_names), title (tr_upper),
+# özet (tr_upper_prose) hepsi geçerken subtitle HAM gidiyordu.
+# TESLİM EDİLMİŞ PDF'lerde bulundu: 'MADE İN ITALY', 'SERPİCO', 'RED KİT',
+# 'RIYA QEŞAYÊ'. Kaynak XML <TITLE> zaten kirli (mitas_pipeline._clean_xml_title
+# Türkçe harfleri KORUYOR, doğrusu da bu — kirlilik TRT katalogundan geliyor).
+#
+# KÖRLEMESİNE ascii_fold YAPILAMAZ: orijinal ad çoğu zaman TÜRKÇE BAŞLIĞIN
+# KENDİSİ ('AĞAÇ', 'MİRAS', 'BORÇ', 'İMPARATORUN YOLCULUĞU') — fold onları
+# 'AGAC'a çevirip SAĞLAM çıktıyı bozardı. Ölçüldü: 15 film bu sınıfta.
+#
+# AYIRICI (veriden çıkarıldı, tahmin değil):
+#   1) yabancı aksan (é ê å ø Ê…) → kesin yabancı → ASCII
+#   2) orijinal == Türkçe başlık  → TRT "orijinali de bu" diyor → DOKUNMA
+#   3) kesin-Türkçe harf (ı ş ğ)  → tr_upper bunları ÜRETEMEZ → gerçek Türkçe → DOKUNMA
+#   4) kalan (farklı + yalnız İ/ü/ö/ç) → yabancı orijinal → ASCII
+#      ör. YAĞMACILAR → 'LAND RAİDERS' → 'LAND RAIDERS'
+#          AYNADAKİ DÜŞMAN → 'EL ADÜVVÜ-L LEZİ FİL MİRA' → 'EL ADUVVU-L LEZI FIL MIRA'
+# Ölçek: mevcut DB'de 3 film düzelir, 15 film korunur.
+# BİLİNEN SINIR: XML hem başlığı hem orijinali aynı şekilde kirletmişse (2. kural)
+# dokunulmaz — sessiz hata değil, bilinçli kabul; insan QC'si görür.
+# Kill-switch: MITAS_ALTBASLIK_KAPISI=0
+_TR_KESIN = set("ışğŞĞ")
+_TR_TUM = set("çğıİöşüÇĞIÖŞÜ")
+
+
+def _altbaslik_harf_kapisi(orig: str, d_title: str = "") -> str:
+    import unicodedata as _ud
+    if not orig or os.environ.get("MITAS_ALTBASLIK_KAPISI", "1").strip().lower() in ("0", "false", "off"):
+        return orig
+    if not any(c.isalpha() and not c.isascii() for c in orig):
+        return orig                                   # zaten saf ASCII
+    yabanci_aksan = any((not c.isascii()) and _ud.category(c).startswith("L")
+                        and c not in _TR_TUM for c in orig)
+    if not yabanci_aksan:
+        if d_title and orig.upper() == d_title.upper():
+            return orig                               # (2) başlıkla aynı → Türkçe başlık
+        if any(c in _TR_KESIN for c in orig):
+            return orig                               # (3) ı/ş/ğ → kesin Türkçe
+    try:
+        return nn.ascii_fold(orig)                    # (1) ve (4) → ASCII
+    except Exception:                                 # noqa: BLE001 — kapı ASLA PDF'i düşürmez
+        return orig
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--kunye", required=True)
@@ -397,11 +490,14 @@ def main(argv=None) -> int:
     # kunye BUYUK harf: Turkce isim Turkce-upper (irfan->İRFAN, i->İ),
     # yabanci ASCII-upper (ivan->IVAN, i->I); koken Qwen ile (saf-ASCII).
     cast = nn.upper_names(cast)
-    crew = nn.upper_crew(crew)
+    crew = nn.upper_crew(crew)          # KIDD YÜZEY 1 (ekip) — motor aynı
     # afiş: güvenli IMDb eşleşmesi → out/afis.jpg.
     # yabancı film: orijinal ad (XML) birincil sorgu + kadro çapraz-kontrolü (TRT yılı güvenilmez).
     # bulunamazsa None → afiş yok, sol ray ses/altyazı bloğu kalır (frame YOK).
     orig = (args.original or "").strip()   # XML <TITLE> = BİRİNCİL orijinal-ad (temizlenmiş)
+    # KIDD YÜZEY 4 — alt başlık. Kidd yoksa yerel kopyaya düşer (fail-safe).
+    orig = (jk.alt_baslik(orig, (args.title or "").strip()) if jk
+            else _altbaslik_harf_kapisi(orig, d_title=(args.title or "").strip()))
     poster_path = None
     poster_source = "not_found"
     try:
@@ -445,7 +541,15 @@ def main(argv=None) -> int:
         bolum = b or ""
 
     ozet = args.ozet
-    if Path(args.ozet).exists():
+    # --ozet ya DOSYA YOLU ya DÜZ METİN olabilir. Linux'ta 255 baytı aşan düz
+    # metinde Path().exists() OSError(ENAMETOOLONG) fırlatır (Windows sessizce
+    # False dönerdi) — 2026-07-30 gecesi 14 filmin PDF'ini düşüren bug.
+    try:
+        _ozet_dosya = bool(args.ozet) and len(args.ozet.encode("utf-8", "ignore")) < 250 \
+            and Path(args.ozet).exists()
+    except OSError:
+        _ozet_dosya = False
+    if _ozet_dosya:
         try:
             ozet = Path(args.ozet).read_text(encoding="utf-8")[:4000]
         except Exception:  # noqa: BLE001
@@ -455,7 +559,9 @@ def main(argv=None) -> int:
     audio = audio_subtitle_block(args)
 
     # Title de büyük harfle gitsin (TR-İ, yabancı ASCII): args.title ham OCR/XML olabilir.
-    title_norm = nn.tr_upper((args.title or "—")[:60]) if (args.title or "").strip() else "—"
+    # KIDD YÜZEY 3 — başlık
+    title_norm = ((jk.baslik((args.title or "—")[:60]) if jk else nn.tr_upper((args.title or "—")[:60]))
+                  if (args.title or "").strip() else "—")
     # Özet: Türkçe prose büyük harf, fakat yabancı kişi/karakter adı kökü ASCII kalmalı
     # (FREDDİE/SOPHİE değil FREDDIE/SOPHIE).
     _ozet_names = [n for n in (cast or []) if n and str(n).strip() and str(n).strip() != "—"]
@@ -463,7 +569,9 @@ def main(argv=None) -> int:
         for _nm in (_names if isinstance(_names, list) else [_names]):
             if _nm and str(_nm).strip() and str(_nm).strip() != "—":
                 _ozet_names.append(str(_nm))
-    ozet_norm = nn.tr_upper_prose(ozet, names=_ozet_names) if ozet else ozet
+    # KIDD YÜZEY 2 — özet prozası
+    ozet_norm = ((jk.proza(ozet, _ozet_names) if jk else nn.tr_upper_prose(ozet, names=_ozet_names))
+                 if ozet else ozet)
     d = {
         "profile": profile_label, "trt": args.trt_id, "title": title_norm,
         "res": args.resolution, "tur": args.tur, "dur": args.duration, "bolum": bolum or None,
@@ -493,6 +601,7 @@ def main(argv=None) -> int:
         pdf_dict = dict(
             profile=profile_label, date=d["date"], title=d["title"],
             subtitle=orig or None, bolum=d["bolum"], poster=poster_path,
+            clip_dir=out.parent,
             specs=[("ÇÖZÜNÜRLÜK", args.resolution), ("TÜR", args.tur),
                    ("TOPLAM SÜRE", args.duration), ("TRT KİMLİK", args.trt_id or "—")],
             keywords=" ; ".join(cast) if cast else "—", cast=cast or ["—"],
@@ -520,6 +629,7 @@ def main(argv=None) -> int:
         "role_reconcile": reconcile_meta,   # {moved, unverified, xml_used, kb_used} | None
         "altyazi": audio.get("altyazi"),
         "ana_dil": audio.get("ana_dil"),
+        "jenerik_dili": audio.get("jenerik_dili"),
         "ses_kanallari": audio.get("ses_kanallari"),
         "sesler_ic_ice": audio.get("sesler_ic_ice"),
         "ses_uyari": audio.get("ses_uyari"),

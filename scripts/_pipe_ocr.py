@@ -28,7 +28,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # pipeline100 zincirinin sabit mutlak yollari (DEGISMEZ kaynak dosyalar).
 # Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-PY_OCR_DIR = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py"
+PY_OCR_DIR = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas") / "OCR-worktree" / "py"
 CLIP_PROBE = PY_OCR_DIR / "20260601_clip_probe.py"
 PIPELINE100 = PY_OCR_DIR / "20260601_pipeline100.py"
 STITCH = PY_OCR_DIR / "20260601_stitch.py"
@@ -344,6 +344,18 @@ def _glm_only_keep(line: str, classify_fn=None) -> bool:
     return True
 
 
+def _ensure_project_root_on_path() -> None:
+    """core.* importu icin PROJECT_ROOT'u sys.path'e ekle (idempotent).
+
+    KÖK-SEBEP FIX (2026-07-30): _PaddleReadEngine `from core...` yapar; ama fallback yolunda core'u
+    sys.path'e ekleyen HİÇBİR ŞEY yoktu — core yalnız pipeline100 zincirinin (read_3way shim)
+    YAN-ETKİSİYLE path'e giriyordu. Zincir atlanınca (0-kare) / hızlı-patlayınca (EK_TAKS webui,
+    2026-07-29) core bulunamayıp fallback MOTOR_YOK'a düşüyordu. Bunu deterministik yaparız."""
+    _pr = os.environ.get("MITAS_PROJECT_ROOT")
+    if _pr and _pr not in sys.path:
+        sys.path.insert(0, _pr)
+
+
 class _PaddleReadEngine:
     """OneOCR recognize_pil arayuzunu PaddleOCR ile karsilar (Linux'ta oneocr yok).
     Jenerik OCR-refine icin (Cagatay 2026-07-12: jenerik=Paddle, ham-OCR-oku=GLM)."""
@@ -353,6 +365,7 @@ class _PaddleReadEngine:
 
     def __init__(self):
         if _PaddleReadEngine._shared is None:
+            _ensure_project_root_on_path()   # core.* fallback yolunda da import edilebilsin
             from core.pipelines.ocr.credit_experiment import PaddleOcrEngine
             _PaddleReadEngine._shared = PaddleOcrEngine()
         self._eng = _PaddleReadEngine._shared
@@ -638,8 +651,7 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         cr = pl.cr          # credit_read_v1 (DB / kb_exact_batch)
         fp = pl.fp          # full_pipeline (rd: Turkce-yol guvenli imread)
         read_pos = pl.read_pos
-        # runs_of pipeline100'de TOP-LEVEL degil (compose_hybrid icinde inline);
-        # dogru kaynak stitch (stx.runs_of) -> idx listesini dogrudan run'lara boler.
+        # runs_of kaynagi stitch (stx.runs_of) -> idx listesini run'lara boler.
         runs_of = stx.runs_of
         tr_upper = pl.tr_upper
     except Exception as exc:  # noqa: BLE001 - import zinciri cokerse fallback
@@ -820,56 +832,8 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
     #    clean Turkce-BUYUK yazimi tr_upper ile verir (pipeline100 ile ayni cikti).
     lines = [tr_upper(t) for t, _how, _votes in merged]
 
-    # ── e.1) MASTER-PNG blogu: compose_hybrid -> master.png + additive OCR ────
-    # Hedef mimari: lines hazirlandiktan sonra, return'den once.
-    # TUM blok tek try/except: herhangi bir hata -> lines AYNEN korunur (REGRESYON YOK).
-    # Cikti dict'ine master_png + master_lines_count alanlari eklenir.
-    _master_png: str | None = None
-    _master_lines_count: int = 0
-    _master_error: str | None = None
-    # BAYRAK: MITAS_MASTER_PNG (default KAPALI). Tesisat hazir+fail-safe ama uctan-uca
-    # kunye kalitesi (LLM rol-eval + gercek-zemin) HENUZ olculmedi -> canliyi riske atma.
-    # GPU bosalip 10-film altin sette olculunce default-acik yapilir.
-    _master_on = os.environ.get("MITAS_MASTER_PNG", "").strip().lower() in ("1", "true", "on", "yes")
-    if _master_on and ocr_out is not None and idx:
-        try:
-            # compose_hybrid -> (master_arr, stitch_text) — pipeline100 kanonik
-            _compose = pl.compose_hybrid  # type: ignore[attr-defined]
-            _read_pos_fn = pl.read_pos    # type: ignore[attr-defined]
-            _master_arr, _stitch_text = _compose(frame_paths, idx, imgs, ocr_pos)
-            if _master_arr is not None:
-                _mpath = Path(ocr_out) / "master.png"
-                fp.wr(_mpath, _master_arr)           # Turkce-path guvenli yazmak icin fp.wr
-                _master_png = str(_mpath)
-                # master PNG uzerinde OneOCR koş (dikey tile dongüsü)
-                _master_ocr_res = _read_pos_fn(_master_arr)
-                # additive: stitch fold-seti olustur; master-only satirlari ekle
-                _stitch_folds = {cl.fold(l) for l in lines}
-                _master_only: list[str] = []
-                _master_seen: set[str] = set()
-                for _mln in _master_ocr_res:
-                    _fk = _mln[0]  # fold edilmis metin (tuple[0])
-                    if not _fk:
-                        continue
-                    if _fk in _stitch_folds or _fk in _master_seen:
-                        continue
-                    _master_seen.add(_fk)
-                    _master_only.append(_mln[1])  # raw metin
-                # kalite filtresi: stitch ile ayni cl.classify esigi (GLM kalibina uygun)
-                _master_only_clean = [x for x in _master_only if _glm_only_keep(x, cl.classify)]
-                _master_only_upper = [tr_upper(x) for x in _master_only_clean]
-                lines = lines + _master_only_upper   # stitch satirlari oncelikli; additive
-                _master_lines_count = len(_master_only_upper)
-                print(
-                    f"[master-png] yazildi: {_mpath} | master-only eklendi: {_master_lines_count}",
-                    file=sys.stderr,
-                )
-            else:
-                print("[master-png] compose_hybrid None dondurdu (footage/bos?)", file=sys.stderr)
-        except Exception as _exc:  # noqa: BLE001
-            _master_error = f"{type(_exc).__name__}: {_exc}"
-            print(f"[master-png] ATLANDI (lines korunuyor): {_master_error}", file=sys.stderr)
-    # ── /MASTER-PNG blogu ─────────────────────────────────────────────────────
+    # e.1 MASTER-PNG blogu (pipeline100 hibrit-görsel dali) 2026-07-30 tek-motor
+    # temizliğinde söküldü (Çağatay: görsel master = yalnız İbrahimovic / master_png_monitor).
 
     # ── f) GLM-OCR consensus (2. motor, OPSIYONEL, ADDITIVE) ─────────────────
     # Sadece: lines bos degilse + env switch kapali degilse + idx var.
@@ -1030,9 +994,6 @@ def run_pipeline100(frames: list[Path], started: float, profile: str, ocr_out: "
         "glm_status": glm_status,
         "glm_skip_reason": glm_skip_reason,
         # master-PNG alanlari (e.1 blogu)
-        "master_png": _master_png,
-        "master_lines_count": _master_lines_count,
-        "master_error": _master_error,
         # HAM cikti (clean-oncesi): main bunlari diske doker -> kunye DEGIL ham yazi
         "placed_raw": list(placed_raw),                                  # stitch sonrasi, clean ONCESI
         "raw_reads": [tup[1] for i in sorted(idx) for tup in ocr_pos[i]],  # her karenin her okumasi (en ham)
@@ -1148,6 +1109,14 @@ def main(argv=None) -> int:
 
     # Once scroll-aware pipeline100 zincirini dene; coker/None -> eski OneOCR.
     res = None
+    if not frames:
+        # 0 kare = footage/boş pencere; motor kurmadan deterministik BOS (MOTOR_YOK sahte-kırmızısı DEĞİL).
+        # KÖK-SEBEP FIX (2026-07-30): eskiden 0-kare → run_oneocr_fallback([]) → build_engine → Linux'ta
+        # core yok → MOTOR_YOK (fitz_dogrulama/YAĞMACILAR). Kareler gerçekten boşsa BOS doğru sınıftır;
+        # from-hub dangling-symlink bug'ı ayrıca mitas_roots.link_hub_frames ile giderildi.
+        res = {"lines": [], "engine": "bos-kare-yok", "engine_error": None,
+               "frame_read_errors": 0, "raw_line_count": 0, "garble_frac": 0.0, "bucket": "BOS",
+               "glm_attempted": False, "glm_status": "skipped", "glm_skip_reason": "no_frames"}
     if frames:
         try:
             res = run_pipeline100(frames, started, args.profile, ocr_out=out)

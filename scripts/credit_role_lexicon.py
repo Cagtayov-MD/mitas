@@ -8,15 +8,29 @@ VLM jeneriği TRANSKRİPT etsin (güçlü olduğu iş), sonra bu sözlük metind
 TÜM DİLLERDEKİ karşılığını arayıp yanındaki ismi DETERMİNİSTİK alsın. Kelime yoksa -> "okunamadı"
 (uydurma YOK). _kunye_classify.py'deki TR+EN HEAD_DIR mantığının çok-dilli + alt-rol-dışlamalı hâli.
 
-KAPSAM: Latin-yazılı diller (TR/EN/FR/DE/IT/ES/PT + yaygın). norm() aksan soyar; Kiril/CJK
-(Режиссёр/監督) A-Z'ye inince kaybolur -> o filmler VLM-etiketi/KB'ye düşer (arşivde nadir).
+KAPSAM: Latin-yazılı diller (TR/EN/FR/DE/IT/ES/PT + yaygın) `norm()`/`DIRECTOR`/`EXCLUDE`
+üzerinden BİREBİR eskisi gibi çalışır (§6.1 sıfır-regresyon). Kiril/Arapça/İbranice/Yunanca/
+Korece/CJK artık ÖLÜ KOD DEĞİL — betik-farkında rol tanıma tasarımı (2026-08-12,
+docs/superpowers/specs/2026-08-12-betik-farkinda-rol-tanima-design.md) `betik_bul(text)`
+Latin DEĞİLSE `core/lexicon/rol_tablosu.py`'nin TABLO'suna delege eder (`norm()` DEĞİL —
+o Latin-dışı karakterleri siler).
 
 KRİTİK: Alt-roller DIŞLANIR — "yönetmen yardımcısı / seslendirme yönetmeni / görüntü yönetmeni /
-assistant director / director of photography / aiuto regista ..." film yönetmeni DEĞİLDİR.
+assistant director / director of photography / aiuto regista / 촬영감독 / 조감독 / АССИСТЕНТ
+РЕЖИССЕРА / ..." film yönetmeni DEĞİLDİR (bkz. TABLO'nun HARIC listeleri, betik-dışında).
 """
 import re
 import sys
 import unicodedata
+
+# ── Korumalı bootstrap (§4.0) — betik-farkında rol tanıma tasarımı ──────────
+import os
+from pathlib import Path
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import betik_bul, rol_esles, TABLO   # noqa: E402
+
 
 def norm(s):
     s = (s or "").replace("ı", "i").replace("İ", "i")
@@ -24,6 +38,16 @@ def norm(s):
     s = "".join(c for c in s if not unicodedata.combining(c)).upper()
     s = re.sub(r"[^A-Z ]+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
+
+
+def norm_betik(s):
+    """`norm()`'un Latin-dışı karşılığı (§4.3) — KARAKTERLERİ SİLMEZ (norm()'un
+    `[^A-Z ]+` süzgeci Kiril/Arapça/İbranice/Yunanca/Korece/CJK'yi boşluğa
+    düşürürdü, bu yüzden DIRECTOR listesindeki translit girdiler ölü kod kalmıştı).
+    Yalnız baştaki/sondaki ve tekrarlanan boşlukları temizler; betik-koruyan
+    yolun `rol_tablosu` ile eşleşmesi için satırı olduğu gibi bırakır."""
+    return re.sub(r"\s+", " ", (s or "").strip())
+
 
 # --- POZİTİF başlıklar (normalize edilmiş; uzun kalıplar önce eşleşsin diye uzunluk sıralı kullanılır) ---
 DIRECTOR = [
@@ -206,9 +230,65 @@ _STUDIO_BRANDS = {
 def _is_studio(name_norm):
     return any(t in _STUDIO_BRANDS for t in name_norm.split())
 
+def _is_name_betik_disi(s, betik):
+    """Latin-dışı isim kontrolü — `_is_name()`'in `[A-Z]` varsayımı burada
+    KULLANILAMAZ (§4.3). Sadeleştirilmiş: boş değil, rakam-ağırlıklı değil,
+    HARIC (o betiğin alt-rol listesi) içermiyor."""
+    if not s:
+        return False
+    harfler = sum(1 for c in s if c.isalpha())
+    rakamlar = sum(1 for c in s if c.isdigit())
+    if harfler == 0 or rakamlar > harfler:
+        return False
+    haric = TABLO.get(betik, {}).get("HARIC", [])
+    if any(h in s for h in haric):
+        return False
+    return True
+
+
+_KIRIL_ARA_KATLA = str.maketrans({"ё": "е", "Ё": "Е"})
+
+
+def _director_name_betik_disi(text, betik):
+    """`director_name_from_line`'ın Latin-dışı yolu (§4.3): rol kelimesi TABLO'dan
+    soyulur, kalan kısım `norm_betik` ile sadeleştirilip isim sayılır.
+
+    KIRIL/YUNAN büyük/küçük harf + Kiril ё/е katlaması TAŞIR (rol_tablosu.rol_esles
+    ile AYNI ilke, §3.3) — bu yüzden arama için harf-durumu KATLANMIŞ bir kopya
+    kullanılır (uzunluk-koruyan çeviri, orijinal `s` üzerindeki konum bozulmaz)."""
+    s = norm_betik(text)
+    if not s or not rol_esles(s, "YONETMEN", haric_uygula=True):
+        return ""
+    if betik == "KIRIL":
+        arama = s.translate(_KIRIL_ARA_KATLA).upper()
+    elif betik == "YUNAN":
+        arama = s.upper()
+    else:
+        arama = s
+    kelimeler = sorted(TABLO.get(betik, {}).get("YONETMEN", []), key=len, reverse=True)
+    for kelime in kelimeler:
+        hedef = kelime.upper() if betik in ("KIRIL", "YUNAN") else kelime
+        idx = arama.find(hedef)
+        if idx == -1:
+            continue
+        kalan = norm_betik((s[:idx] + " " + s[idx + len(hedef):]).strip(" :,.–—\t"))
+        if kalan and _is_name_betik_disi(kalan, betik):
+            return kalan
+        return ""
+    return ""
+
+
 def director_name_from_line(text):
-    """Yönetmen satırından ismi DETERMİNİSTİK çıkar (norm'lu); isim yoksa ''.
-    'A NIKI CARO FILM' -> 'NIKI CARO' | 'DIRECTED BY JOHN FORD' -> 'JOHN FORD'. Alt-rol + stüdyo DIŞLA."""
+    """Yönetmen satırından ismi DETERMİNİSTİK çıkar; isim yoksa ''.
+    'A NIKI CARO FILM' -> 'NIKI CARO' | 'DIRECTED BY JOHN FORD' -> 'JOHN FORD'. Alt-rol + stüdyo DIŞLA.
+
+    Betik-farkında rol tanıma (§4.3): satırın betiği (`betik_bul`) LATIN DEĞİLSE
+    bu fonksiyon `norm()`'a hiç uğramaz (o Latin-dışını silerdi) — `rol_tablosu`
+    TABLO'sundan betik-koruyan bir yolla isim çıkarılır. LATIN ise aşağıdaki kod
+    BİREBİR ESKİSİ GİBİ çalışır (§6.1 sıfır-regresyon)."""
+    betik = betik_bul(text)
+    if betik != "LATIN":
+        return _director_name_betik_disi(text, betik)
     nl = norm(text)
     if not nl or _has_excl(nl):
         return ""

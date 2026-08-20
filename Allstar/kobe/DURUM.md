@@ -1,0 +1,334 @@
+# Kobe kulesi — canlı durum
+
+> **2026-08-20 — GİRİŞTE YANLIŞ `KREDI_YOK` KURTARMASI.** Sezgisel
+> sınır motoru statik kartı az blob nedeniyle reddetse bile bitş şelalesi
+> 30 karede en az 12 gerçek kredi-içerik karesi bulursa girişi `BULUNDU`
+> yapar. Genel blob eşiği düşürülmedi; tabela/altyazı kalkanı korundu.
+> Gerçek koşu: Çiçek Taksi b1 `1..225`, b3 `1..229`; ikisi de artık
+> yeniden koşuda seri-ortak elle düzeltmeye muhtaç değil. Kobe `105 passed`,
+> Sheriff odak entegrasyonu `26 passed`.
+
+> **2026-08-20 — GİRİŞ KARE SÖZLEŞMESİ DÜZELTİLDİ.** Kobe girişte artık
+> OCR/dedup ile kare seçmez; bulduğu `baslangic_kare..bitis_kare` aralığını
+> boşluksuz kopyalar ve `mod=ardisik_aralik` manifestosu yazar. LeBron bu
+> sözleşmede statik oyuncu kartlarını kesen akıllı bıçağı kapatır. Gerçek kabul:
+> Çiçek Taksi b2 `1..228 = 228/228`, Erol/Gül/Ümit/Tuna tam kart; LeBron
+> `OKUNDU`, 40 segment, 44 satır. Suç Dosyası b6 `1..170 = 170/170`; eski
+> LeBron `ARIZA` sonucu yeni akışta `OKUNDU`. Sheriff manifestoyu byte-aynı
+> taşır ve frame+manifest birleşik hash'iyle korur. Aşağıdaki “(b) HAVUZ seçer”
+> kayıtları tarihsel kararlardır; aktif artefakt sözleşmesini artık tarif etmez.
+
+> **Yeni hat notu (2026-08-17):** Kobe artık `Allstar/sheriff` tarafından
+> attempt-scoped `--out` ile çağrılabilir. Aktif giriş motoru ve rol sözlüğü
+> Kobe içindedir; `core/`/`scripts/` çalışma zamanı import'u yoktur. Aşağıdaki
+> eski üretim bağları tarihsel ölçüm ve geçiş kaydı olarak korunur.
+
+> **Bu dosya bağlam sigortasıdır.** Oturum kesilirse yeni oturum BURADAN devam
+> eder. Her iş biriminden sonra güncellenir ve commit'lenir.
+> Plan: `docs/superpowers/plans/2026-08-12-allstar-kobe-kulesi.md`
+> Spec: `docs/superpowers/specs/2026-08-12-allstar-kobe-kulesi-design.md`
+
+**Son güncelleme:** 2026-08-17 (7) — **BİTİŞ ŞELALESİ UYGULANDI (iki Çağatay
+fikri): ort|Δ| 131.8→57.0, medyan ~19, çok-erken 20→0, ±60 29/36.** Kural:
+pencere sonundan geriye ilk kalın içerik bloğu (W30/K12, 18/18 eğitim-sıvar).
+Ters-motor: çıkış motoru TERS dizide koşar, onset=bitiş (ateşlendiğinde en
+isabetli). Uygulama: `src/giris/bitis.py` + `main._ters_bitis` + `giris_karar`
+tek nokta (üretim=ölçüm aynı yol) + `havuz.icerik_kareleri` (recall ayıklar).
+İzolasyon korunur — giriş motor import etmez, aday main'den enjekte;
+`test_giris_motoru_sadece_ters_gorunumde_cagirilir` yeni sözleşmeyi kilitler.
+93/93 test. Golden giris güncellendi (KOBRA bit 41→449, kaynak=kural).
+Kalan: 7 izci-film >60 geç (kredi-TARZI ayıracı — gelecek iş). Önceki: jenerik-var
+36/36 bulundu, 0 geç-başlangıç.** Bitiş erken eğilimi ölçekle doğrulandı
+(20/36 çok erken — G10). Kredisiz-red hâlâ 0/0 ölçülemiyor: GT'de jenerik_yok
+YOK; boş 14 filmden işaretlenmesi bekleniyor. Önceki: + BAŞLANGIÇ POLİTİKASI +
+ÖRNEK BÜYÜTME (10→50 film).** Çağatay GT'yi doldurdu (8/10; BELALI_SEVGİLİ +
+KAPANMAMIŞ boş): jenerik-var 8/8 bulundu, geç-başlangıç 0. Politika (Çağatay):
+başlangıç kararı DAİMA 1 ("geriye dönük kabul; hatta hep 1; çalışma yapma") —
+sinir.py'ye işlendi (ham start kanıtta), olc_giris yalnız geç-başlangıcı hata
+sayar, golden giris demiri bas=1. Bitiş 8/8 ERKEN çıktı; 7 havuz-tabanlı
+tahminci denendi, güvenilir kazanamadı (`bitis_kalibrasyonu.md`) — G10 olarak
+ertelendi (GT ≥20 film olunca yeniden). Yatak test_film_vl'den 40 filmle
+50'ye çıktı; teklifler üretildi — Çağatay yeni girişleri doldurdukça ölçüm
+büyür. Commit'ler: f7faf33c (GT+ölçüm), 5e370847 (politika).
+
+---
+
+**2026-08-17 (4) — G7 + E4 + E6(yarısı) YAPILDI; E5/G8/E7
+bilinçli ertelendi.** G7: `golden/giris_tek_film.json` (KOBRA giriş kararı —
+2026-08-13 koşusuyla uyumlu, karar demiri). E4: `Database/<Film>/
+kobe_<bolum>.json` hardlink görünümü (aynı-inode testli, best-effort,
+Database-dışında sessiz). E6: `olc_pool` `maxtasksperchild=25` — kapı yeniden
+koşuldu, SAPMA SIFIR. Ertelenenler: G8 (GT'siz ölçülemez), E5 (ollama servis
+durumu — Çağatay zamanlaması), E7 (saatler, optimizasyon). Testler 74/74.
+
+---
+
+**2026-08-17 (3) — G6 ALTYAPI KURULDU, GT (G5) Çağatay'yı
+bekliyor.** `olcum/giris/`: `yatak_kur.sh` (10 TAM film × 240 sn × fps2 →
+`havuz/giris/`), `gt_topla.py` (teklif üretici — `veri/gt_taslak.json` yazdı,
+10 film 95 sn), `olc_giris.py` (GT'siz KOŞMAZ; iki uçlu sapma raporlar,
+kırmızı çizgi bilinçli yok). **Ölçülebilir sonraki adım G5'te:** taslak
+kopyalanıp `gt.json` doldurulunca `olc_giris.py` koşar. G8 (uyarlanır pencere)
+G5'ten sonra. E5 (Ollama açıkken referans) ve E7 sistem durumu izni bekler.
+
+---
+
+**2026-08-17 (2) — E2 YAPILDI: `src/cikis/` + `src/ortak/`
+kuruldu, kapı %94.5 SAPMA SIFIR.** `git mv` ile `motor.py → src/cikis/`,
+`kutu.py`/`icerik.py → src/ortak/` — **donmuş dosyalara sıfır diff** (motor'un
+alet importları fonksiyon-içi tembel; yol ayarları main.py/olcum/tests
+tarafında). `test_izolasyon.py` yeni yapıya bağlandı + `test_yapi_kilitli`
+bekçisi geldi (71/71). Kapı: kapsam 110, %94.5 / %97.3 / 29-29, hata listesi
+bilinen 6 filmle birebir (`raporlar/olcum_E2.json`); kanarya kare 1133.
+Sıradaki: **G6** — giriş ölçüm yatağı altyapısı (G5 GT'si Çağatay'dan bekler).
+
+---
+
+**2026-08-17 — E1 YAPILDI: üretim kuleyi sözleşmeden
+çağırıyor.** `scripts/_jenerik_pool.py`'de `import motor` KALKTI; yerine
+`_kobe_karari_al()` — `kobe tek --kareler ... --film-id ...` alt-süreci koşar,
+kararı `out/<id>/cikis/kobe.json`'dan okur (kendi 167-pin venv'iyle koşar —
+sürüm dondurma artık üretimde gerçek). Doğrulama: 3 gerçek filmde eski/yeni
+manifest birebir aynı (1 BULUNDU + 2 KREDI_YOK→CV fail-safe yolu da sınandı);
+golden kanarya aynı karar. `main.py`'de kanıt telemetrisi genişledi
+(manifest `v5` alt-nesnesinin beslendiği alanlar — karar alanları DEĞİŞMEDİ);
+testler 70/70. Ayrıca bulunan önceden-var kusur: **E10** — metin-kapının
+`credit_box` import'u pool bağlamında çözülmüyor, tarama fiilen koşmuyor
+(davranış değişimi gerektirdiğinden bilinçli olarak dokunulmadı, Çağatay
+kararı bekliyor). Aynı gün: belge senkronu (README/KATALOG giriş
+çelişkileri). Sıradaki: **E2** (`src/cikis/` + `src/ortak/` — ölçüm kapısıyla).
+
+---
+
+**2026-08-13 — GİRİŞ BLOĞU UYGULANDI, UÇTAN UCA ÇALIŞIYOR.**
+Kapsam Çağatay tarafından daraltıldı: kalite/GT/ölçüm yatağı (G5-G7) SONRAKİ
+FAZ — bu turda hedef yalnız "çalışsın". `src/motor.py`'ye dokunulmadı
+(`git diff --stat` boş). Testler 62/62 (61 mevcut + net 1 yeni — 3 eski
+"giriş hep ARIZA" testi silindi, 4 yeni test geldi).
+
+**Giriş bloğu:** `src/giris/sinir.py` ((a) SINIR — `jenerik_detector.
+detect_from_frames` çağrılır, güven kapısı) + `src/giris/havuz.py` ((b)
+HAVUZ — `giris_jenerik_havuzu.py`'nin stratejisi, `kutu.py`+`icerik.py`
+aletleriyle). `main.py` yönlendiricisi `bolum=="giris"` için artık gerçek
+karar üretiyor (eski `ARIZA(BOLUM_HAZIR_DEGIL)` kaldırıldı). CLI `--bolum` ve
+`--uret` virgüllü çok-seçimli oldu; `uretilen` artık HER ZAMAN liste.
+Gerçek koşu kanıtı (2 farklı film, `filmtest/depo_3006/`):
+KOBRA → `--bolum giris --uret klip`: BULUNDU, güven 0.754, sınır 0.0-21.0 sn,
+klip gerçekten **21.000000 sn** (ffprobe doğrulandı, h264, ses akışı yok),
+10.9 sn'de bitti. SİLAHLAR_KONUŞUYOR → `--bolum giris --uret kare`: BULUNDU,
+güven 0.761, sınır 0.0-17.5 sn, havuz 480 karenin 75'ini seçti (231 footage
+elendi) — seçilen kareler kare 11'den 476'ya KADAR YAYILDI (yalnız 0-34
+sınırı içinde DEĞİL): havuz kasıtlı olarak tüm 240 sn'lik pencereyi tarar,
+(a) sınırın kaçırdığı geç köşe-kredisini de yakalar (`giris_jenerik_havuzu.
+py`'nin tasarımıyla aynı). 51.5 sn'de bitti (tam OCR nedeniyle daha yavaş).
+
+**Ertelenen (bilinçli borç, G5-G7 aynen geçerli):** giriş için GT yok, ölçüm
+yatağı yok, `olc_pool.py` benzeri kapı yok. "Kobe %94.5" YALNIZ çıkış için
+geçerli. Kalite fazı ayrı bir iş.
+
+---
+
+## Değişmez kurallar (her oturumda geçerli)
+
+- **`ollama.service` DURDURULMUŞ kalır.** Ölçüm kapıları buna bağlı; açılırsa
+  skor ~%93.6'ya iner ve kapı sahte alarm verir. Her ölçümden önce
+  `systemctl is-active ollama` → `inactive` doğrula.
+- **`git add -A`, `git add .`, `git reset --hard`, `git stash` YASAK.** Ağaçta
+  bu işe ait olmayan 9 değişik + 68 silinmiş (`mutfak/`) dosya var. Yalnız adı
+  geçen yolları sahnele.
+- **Üretim durmuş.** Hiçbir toplu koşu başlatma.
+- **`gereksinimler.txt`'ten paket çıkarma.** Kobe'nin çıktısı, kodunun hiç
+  import etmediği paketlere bağlı (aşağıdaki ders). Çıkarmadan önce 110 filmlik
+  ölçümü koş ve sapma sıfır olduğunu gör.
+- Ölçüm referansı: **kapsam 110, doğru 104, genel %94.5, üretim %97.3,
+  kredi-var 75/81, kredi-yok 29/29, eksik 5**.
+- Ölçüm komutu (~140 sn):
+  `cd /opt/mitas/Allstar/kobe/olcum && ../venv/bin/python olc_pool.py --paralel 8`
+- Kare havuzu artık kulenin içinde: `Allstar/kobe/havuz/` (git'te değil).
+
+---
+
+## Tamamlanan
+
+| # | İş | Kanıt |
+|---|---|---|
+| 1 | Ölçüm ÖNCE + geri-dönüş noktası | `raporlar/olcum_ONCE.json`, `d497bdb0` |
+| 2 | Kendi çalışma zamanı (`venv/`, paddle 3.3.1+CUDA, 167 pin) | `venv_kur.sh`, `9f24a769` |
+| 4 | Dosya taşıma + import yolları + `figo` adının silinmesi | `3577c8b9` |
+| 5 | Testler kule içine taşındı | 19/19 |
+| 6 | **TAŞIMA KAPISI** — yeni yol + eski venv = %94.5 | `raporlar/olcum_SONRA_tasima.json`, `a875b43d` |
+| 7 | `sozlesme.py` — `Girdi`/`Cikti`/`ariza`, atomik yazım + `_TAMAM` | 12/12, `31f9abe7` |
+| 8 | `main.py` + `kobe` + `config.yaml` — CLI, toplu kuyruk | 8/8 (toplam 39/39), `b733e85a` |
+| 3 | **KULE KAPISI** — kendi venv'iyle %94.5, sapma sıfır | `raporlar/olcum_SONRA.json`, `8bd5b4ad` |
+| 8b | Uçtan uca gerçek koşu + `golden/tek_film.json` demiri | POTEMKİN → kare 1133, 21.4 sn |
+| 10 | Ölçüm havuzu içeri alındı (`havuz/`, 120 film, 28 GB) | taşıma sonrası ölçüm %94.5, sapma sıfır |
+
+**Kule çalışıyor.** Uçtan uca doğrulandı:
+
+```bash
+./Allstar/kobe/kobe tek --kareler <kare-dizini> --film-id <id>
+# → out/<id>/kobe.json + _TAMAM, geçici dosya yok, dış dizine dokunulmaz
+```
+
+## Çözülen kusur — pahalı ders (kaydedildi)
+
+Kobe kendi venv'iyle önce **%92.7** verdi (%94.5 değil): iki film doğru →
+`KREDI_YOK` (`MELEKLERİ`/Kiril, `ARKADAŞIMIN`/Farsça), bir film 2 kare kaydı.
+
+**Kök sebep: eksik paketler.** İlk denemede `venvs/ocr`'dan elle seçilmiş
+16 paketlik bir pin listesi kullanılmıştı. Altı kilit paket (paddle 3.3.1,
+paddleocr 3.7.0, paddlex 3.7.2, numpy 2.3.5, pillow 12.1.0, opencv 5.0.0.93)
+**ikisinde de birebir aynı** olduğu halde sonuç sapıyordu. Eksik 76 paket
+kurulunca skor **tam olarak** geri geldi.
+
+> **Ders:** Kobe'nin çıktısı, kodunun **hiç import etmediği** paketlere bağlı.
+> `motor.py`/`kutu.py`/`icerik.py` hiçbiri torch, sklearn, easyocr, timm veya
+> transformers'a dokunmuyor. "Hangi paket önemli" TAHMİN EDİLMEZ — ortam bütün
+> olarak dondurulur.
+
+Elenen şüpheliler (tekrar deneme): Paddle/CUDA yapısı (ikisi de 3.3.1 / CUDA
+12.6 / cuDNN 9.5.1 / commit `7688495538f4`), det önbelleği (118 dosya,
+değişmemiş), model ağırlıkları (dokunulmamış), ölçüm gürültüsü (`venvs/ocr`
+iki koşuda birebir aynı).
+
+## Kalan iş yok — kule teslim edildi
+
+| # | İş | Kanıt |
+|---|---|---|
+| 9 | `README.md`, `CHANGELOG.md`, `Allstar/MAP.md`, `Players/` silindi | `b4c9e9a7` |
+| — | Canlı koddan `FIGO` adı temizlendi | `b357365b` |
+| — | `docs/GUNLUK.md` kaydı | `e7f6ebd6` |
+
+## SIRADAKİ İŞ — Kobe giriş bloğu (2026-08-13 kararları)
+
+> Bu bölüm yeni oturum için yazıldı. Kod yazılmadı, kararlar alındı.
+
+### Karar 1 — Giriş = (a) sınır + (b) havuz, İKİSİ DE Kobe'de
+
+> ⚠️ **Bu karar 2026-08-13'te DÜZELTİLDİ.** İlk yazımda *"havuz filtreleme
+> Kobe'ye hiç girmez, o Nash'in işi"* deniyordu — **YANLIŞTI.** Çağatay'ın
+> dediği *"Nash'i aktar"* değil, ***"Nash'teki YAKLAŞIMI aktar"***tı.
+
+Giriş+çıkış **aynı kulede** (Çağatay: *"görev tek aslında — filmin giriş çıkış
+jenerik tespiti"*). Ve giriş **iki adımdır, ikisi de Kobe'de**:
+
+| | İş | Nereden |
+|---|---|---|
+| **(a)** | Sınır — jenerik nerede başlıyor/**bitiyor** | mevcut `jenerik_detector(prefer="first")` **çağrılır** |
+| **(b)** | Havuz — hangi kareler jenerik | `giris_jenerik_havuzu.py`'nin **YAKLAŞIMI**, Kobe'nin kendi aletleriyle (`kutu.py` + `icerik.py`) |
+
+**Kod taşınmaz, yaklaşım taşınır.** `giris_jenerik_havuzu.py` eski yerinde
+kalır (üretimde çalışıyor, dokunulmaz).
+
+Gerekçe (Çağatay): *"ben Kobe'ye iş verirsem giriş jenerikleri boş kalacak şu
+anda... şu anda bir tavrı olsun. Geliştirme süreci ayrı."*
+
+**Nash ayrı bir kule olacak** — ham klasörden beslenip frame okuyan, kendi
+içinde yazan. Kobe'nin giriş havuzuyla karıştırılmamalı.
+
+### Karar 2 — Kod ayrımı: giriş ve çıkış blokları karışmaz
+
+Çağatay: *"kod olarak Kobe'ye karışmasını istemiyorum, herkesin kendi işi."*
+Bu sadece düzen değil **koruma**: giriş yazılırken `src/motor.py`'ye tek satır
+dokunulmazsa **%94.5 riske girmez.**
+
+```
+src/
+├─ cikis/   ← bugünkü motor.py — DONMUŞ, dokunulmaz
+├─ giris/   ← yeni blok
+└─ ortak/   ← kutu.py + icerik.py (ALET: karar vermez, soru sorar)
+```
+
+`main.py` yönlendirici olur: `--bolum`'a göre hangi bloğu çağıracağını bilir,
+işin nasıl yapıldığını bilmez.
+
+**Karar mantığı asla paylaşılmaz** — `SON_ERISIM=0.82` çıkış bloğunda kalır,
+giriş onu hiç görmez.
+
+### Karar 3 — Giriş (a) ZATEN VAR, yeniden yazılmayacak
+
+Mevcut tasarım (`scripts/mitas_pipeline.py:1982-2002`, Çağatay kuralı 2026-06-15):
+
+```
+head = 240 sn                                    ← MITAS_OCR_HEAD varsayılanı
+jenerik_detector(prefer="first") → {start_sec, end_sec, confidence}
+
+güven ≥ eşik  →  giris_start = start_sec − 5     ← "0'dan DEĞİL"
+                 head       = end_sec + 5        ← tavan 720 (emniyet)
+güven < eşik  →  head = 240, start = 0           ← sabit geri düşüş
+```
+
+Kod içi gerekçe: *"öncesi logo/cold-open footage → süpürme = gürültü."*
+Uyarlanır pencere, hem başlangıç hem bitiş, açık geri düşüş. **Kötü değil.**
+
+> **DİKKAT — düzeltilmiş hata:** Bu belgenin önceki taslağında giriş penceresi
+> için 600 sn öneriliyordu. YANLIŞ. Kapanıştaki `TAIL_S=600` ile simetri
+> kaygısından uydurulmuştu. Doğru değer **240 sn** — üretimin kendi varsayılanı
+> (`MITAS_OCR_HEAD`). Giriş jeneriği 4-5 dakikada biter.
+
+### Karar 4 — Kopyalama değil ÇAĞIRMA (seçenek B)
+
+`jenerik_detector.py` **921 satır** + iki iç bağımlılık (`jenerik_primitifleri`,
+`credit_detector`) ve **9 üretim tüketicisi** var:
+
+```
+_jenerik_detect · giris_jenerik_havuzu · giris_master_cropstack · jenerik_eval
+jenerik_boundary · jenerik_verify_bench · _jenerik_selftest · track_kunye
+jenerik_primitifleri
+```
+
+Taşınamaz. Kopyalanabilir ama bu **dördüncü kopya borcu** + bağımlılık ağacı
+demek. Karar: **Kobe'nin giriş bloğu motoru `_jenerik_detect.py` gibi ÇAĞIRIR**
+(repo kökü `sys.path`'te). Kule sınırı bilerek ve **kayıtlı** olarak esnetilir;
+okuma kulesi kurulurken `kutu.py`/`icerik.py` borcuyla birlikte kapatılır.
+
+Gerekçe (Çağatay): *"iyi kötü şu an çalışan bir sistem var. Sistemlerin
+kalitesi ayrı bir konu. Şu an sistemi ayağa kaldırıyoruz."*
+
+### Karar 5 — Ölçüm ertelendi, ama unutulmadı
+
+Giriş (a) için **GT yok, ölçüm yatağı yok.** Yani kuleye girdiğinde
+"Kobe %94.5" cümlesi yalnız ÇIKIŞ için geçerli olacak — giriş hakkında hiçbir
+şey söylemiyor. Bu **bilinçli** bir borç, gizli değil.
+
+Ölçüm yatağı kurulacaksa tarif: 15 film (`filmtest/depo_3006/` altındaki TAM
+filmler — `test_film_vl/` altındakiler VL deneylerinden kalma **parça**
+dosyalar, film değil), ilk **240 sn**, fps 2 → 480 kare/film. GT'yi Çağatay
+verir (motorun önerdiği sınırın etrafındaki kareler gösterilir, ~30 sn/film).
+
+### Yapılacaklar (sırayla)
+
+1. `src/cikis/` + `src/ortak/` yeniden düzenlemesi — **ölçüm kapısıyla**
+   (taşıma sonrası %94.5 sapma sıfır olmalı)
+2. `src/giris/sinir.py` — `jenerik_detector(prefer="first")` çağıran ince sarmalayıcı
+3. `main.py` yönlendiricisi: `--bolum giris` → `ARIZA(BOLUM_HAZIR_DEGIL)` yerine giriş bloğu
+4. `--uret kare|klip` giriş için: klip `start_sec−10` → `end_sec`, havuz Nash'e devredilir
+5. Testler + gerçek koşu doğrulaması
+
+## Diğer kuleler
+
+**Jordan** (`Allstar/jordan/`) — BAŞKA bir oturum tarafından, Çağatay'ın
+kontrolünde kuruluyor (MP4'ten doğrudan okuma, Qwen3.5-9B). **DOKUNMA.**
+Not: kaynak dosyaları git'te izlenmiyor (`git ls-files Allstar/jordan` → 0).
+
+## Sonraki kule (Çağatay söyleyecek)
+
+Bilinen borç: `src/kutu.py` ve `src/icerik.py`, `harness/kunye_kiyas/`
+altındaki asıllarının **kopyası**. Aslını üretim okuyucusu
+`scripts/_pipe_hibrit_okuma.py:111` kullanıyor. Okuma kulesi kurulunca o kule
+kendi kopyasını alacak ve `harness/kunye_kiyas/` tamamen silinecek.
+
+Ayrıca ertelenen: CPU/GPU kaynak bölüşümü ölçümü (spec §4.7) — Kobe'yi CPU'da
+geniş paralel, okuma kulesini GPU'da koşturma hedefi. 110 filmlik yatakta
+ölçülmeden kabul edilmez.
+
+## Geri dönüş
+
+Ağaç kirli — `git reset --hard` YASAK. Geri dönmek için:
+
+```
+git checkout <SHA> -- harness/kunye_kiyas tests scripts/_jenerik_pool.py
+rm -rf Allstar
+```
+
+SHA: `raporlar/geri_donus.txt` içinde.

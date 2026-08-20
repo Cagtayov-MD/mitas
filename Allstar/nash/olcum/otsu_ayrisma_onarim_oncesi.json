@@ -1,0 +1,1439 @@
+{
+ "uretildi": "2026-08-14T11:42:18",
+ "yorumlayici": "3.12.13",
+ "eski_kaynak": "e1a201d5^:harness/track_kunye/messi.py",
+ "yeni_kaynak": "harness/track_kunye/steve_nash.py (calisan)",
+ "filmler": {
+  "1955-0007-1-0000-00-1 BOZGUNCULAR": {
+   "cikis": {
+    "kare": 74,
+    "esik_yeni": 20,
+    "esik_eski": 20,
+    "ayristi": false,
+    "teshis": {
+     "n": 73,
+     "min": 0,
+     "max": 59,
+     "p25": 5.0,
+     "medyan": 8.0,
+     "p75": 23.0,
+     "std": 13.646091027754961,
+     "geri_dusus_p25_arti2": 7,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 20,
+      "sol_n": 54,
+      "sag_n": 19,
+      "ayrim": 2.07,
+      "yol": "otsu",
+      "sonuc": 20
+     },
+     "eski": {
+      "ham_argmax": 20,
+      "sol_n": 54,
+      "sag_n": 19,
+      "ayrim": 2.07,
+      "yol": "otsu",
+      "sonuc": 20
+     },
+     "sadik": true
+    },
+    "sure_sn": 1.4
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 37,
+    "esik_eski": 37,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 1,
+     "max": 110,
+     "p25": 11.0,
+     "medyan": 21.0,
+     "p75": 50.0,
+     "std": 24.85136145110331,
+     "geri_dusus_p25_arti2": 13,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 37,
+      "sol_n": 175,
+      "sag_n": 94,
+      "ayrim": 1.864,
+      "yol": "otsu",
+      "sonuc": 37
+     },
+     "eski": {
+      "ham_argmax": 37,
+      "sol_n": 175,
+      "sag_n": 94,
+      "ayrim": 1.864,
+      "yol": "otsu",
+      "sonuc": 37
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.6
+   }
+  },
+  "1959-0032-1-0000-00-1 İNEK VE BEN": {
+   "cikis": {
+    "yok": true
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 34,
+    "esik_eski": 34,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 106,
+     "p25": 11.0,
+     "medyan": 28.0,
+     "p75": 50.0,
+     "std": 23.286167015493007,
+     "geri_dusus_p25_arti2": 13,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 34,
+      "sol_n": 151,
+      "sag_n": 118,
+      "ayrim": 1.767,
+      "yol": "otsu",
+      "sonuc": 34
+     },
+     "eski": {
+      "ham_argmax": 34,
+      "sol_n": 151,
+      "sag_n": 118,
+      "ayrim": 1.767,
+      "yol": "otsu",
+      "sonuc": 34
+     },
+     "sadik": true
+    },
+    "sure_sn": 4.3
+   }
+  },
+  "1985-0173-1-0000-00-1 LA SEGUA": {
+   "cikis": {
+    "kare": 160,
+    "esik_yeni": 38,
+    "esik_eski": 38,
+    "ayristi": false,
+    "teshis": {
+     "n": 159,
+     "min": 0,
+     "max": 87,
+     "p25": 17.0,
+     "medyan": 22.0,
+     "p75": 25.5,
+     "std": 13.49164646536319,
+     "geri_dusus_p25_arti2": 19,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 38,
+      "sol_n": 146,
+      "sag_n": 13,
+      "ayrim": 3.018,
+      "yol": "otsu",
+      "sonuc": 38
+     },
+     "eski": {
+      "ham_argmax": 38,
+      "sol_n": 146,
+      "sag_n": 13,
+      "ayrim": 3.018,
+      "yol": "otsu",
+      "sonuc": 38
+     },
+     "sadik": true
+    },
+    "sure_sn": 3.2
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 34,
+    "esik_eski": 34,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 2,
+     "max": 113,
+     "p25": 11.0,
+     "medyan": 19.0,
+     "p75": 38.0,
+     "std": 20.15219382849457,
+     "geri_dusus_p25_arti2": 13,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 34,
+      "sol_n": 193,
+      "sag_n": 76,
+      "ayrim": 1.841,
+      "yol": "otsu",
+      "sonuc": 34
+     },
+     "eski": {
+      "ham_argmax": 34,
+      "sol_n": 193,
+      "sag_n": 76,
+      "ayrim": 1.841,
+      "yol": "otsu",
+      "sonuc": 34
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.0
+   }
+  },
+  "1989-0568-1-0000-00-1 SABUN KÖPÜĞÜ HIRSIZLARI": {
+   "cikis": {
+    "kare": 54,
+    "esik_yeni": 28,
+    "esik_eski": 28,
+    "ayristi": false,
+    "teshis": {
+     "n": 53,
+     "min": 0,
+     "max": 81,
+     "p25": 16.0,
+     "medyan": 23.0,
+     "p75": 35.0,
+     "std": 13.1027377777719,
+     "geri_dusus_p25_arti2": 18,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 28,
+      "sol_n": 34,
+      "sag_n": 19,
+      "ayrim": 1.582,
+      "yol": "otsu",
+      "sonuc": 28
+     },
+     "eski": {
+      "ham_argmax": 28,
+      "sol_n": 34,
+      "sag_n": 19,
+      "ayrim": 1.582,
+      "yol": "otsu",
+      "sonuc": 28
+     },
+     "sadik": true
+    },
+    "sure_sn": 1.0
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 46,
+    "esik_eski": 46,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 2,
+     "max": 93,
+     "p25": 25.0,
+     "medyan": 44.0,
+     "p75": 66.0,
+     "std": 23.777886834684757,
+     "geri_dusus_p25_arti2": 27,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 46,
+      "sol_n": 146,
+      "sag_n": 123,
+      "ayrim": 1.727,
+      "yol": "otsu",
+      "sonuc": 46
+     },
+     "eski": {
+      "ham_argmax": 46,
+      "sol_n": 146,
+      "sag_n": 123,
+      "ayrim": 1.727,
+      "yol": "otsu",
+      "sonuc": 46
+     },
+     "sadik": true
+    },
+    "sure_sn": 4.8
+   }
+  },
+  "1991-0346-1-0000-00-1 KARNAVAL GÜNÜ": {
+   "cikis": {
+    "kare": 268,
+    "esik_yeni": 31,
+    "esik_eski": 31,
+    "ayristi": false,
+    "teshis": {
+     "n": 267,
+     "min": 0,
+     "max": 95,
+     "p25": 13.0,
+     "medyan": 17.0,
+     "p75": 22.0,
+     "std": 12.671538408912994,
+     "geri_dusus_p25_arti2": 15,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 31,
+      "sol_n": 236,
+      "sag_n": 31,
+      "ayrim": 2.443,
+      "yol": "otsu",
+      "sonuc": 31
+     },
+     "eski": {
+      "ham_argmax": 31,
+      "sol_n": 236,
+      "sag_n": 31,
+      "ayrim": 2.443,
+      "yol": "otsu",
+      "sonuc": 31
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.1
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 44,
+    "esik_eski": 44,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 2,
+     "max": 118,
+     "p25": 14.0,
+     "medyan": 29.0,
+     "p75": 47.0,
+     "std": 24.573170639997635,
+     "geri_dusus_p25_arti2": 16,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 44,
+      "sol_n": 196,
+      "sag_n": 73,
+      "ayrim": 1.837,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "eski": {
+      "ham_argmax": 44,
+      "sol_n": 196,
+      "sag_n": 73,
+      "ayrim": 1.837,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "sadik": true
+    },
+    "sure_sn": 4.3
+   }
+  },
+  "1994-0444-1-0000-00-1 YABANCI": {
+   "cikis": {
+    "kare": 426,
+    "esik_yeni": 19,
+    "esik_eski": 19,
+    "ayristi": false,
+    "teshis": {
+     "n": 425,
+     "min": 2,
+     "max": 74,
+     "p25": 15.0,
+     "medyan": 21.0,
+     "p75": 26.0,
+     "std": 7.923326692895664,
+     "geri_dusus_p25_arti2": 17,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 19,
+      "sol_n": 185,
+      "sag_n": 240,
+      "ayrim": 1.606,
+      "yol": "otsu",
+      "sonuc": 19
+     },
+     "eski": {
+      "ham_argmax": 19,
+      "sol_n": 185,
+      "sag_n": 240,
+      "ayrim": 1.606,
+      "yol": "otsu",
+      "sonuc": 19
+     },
+     "sadik": true
+    },
+    "sure_sn": 7.3
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 38,
+    "esik_eski": 38,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 2,
+     "max": 102,
+     "p25": 15.0,
+     "medyan": 21.0,
+     "p75": 33.0,
+     "std": 16.651466007120458,
+     "geri_dusus_p25_arti2": 17,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 38,
+      "sol_n": 228,
+      "sag_n": 41,
+      "ayrim": 2.18,
+      "yol": "otsu",
+      "sonuc": 38
+     },
+     "eski": {
+      "ham_argmax": 38,
+      "sol_n": 228,
+      "sag_n": 41,
+      "ayrim": 2.18,
+      "yol": "otsu",
+      "sonuc": 38
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.2
+   }
+  },
+  "1995-0358-1-0000-00-1 DONÖR": {
+   "cikis": {
+    "kare": 182,
+    "esik_yeni": 14,
+    "esik_eski": 14,
+    "ayristi": false,
+    "teshis": {
+     "n": 181,
+     "min": 0,
+     "max": 49,
+     "p25": 15.0,
+     "medyan": 18.0,
+     "p75": 23.0,
+     "std": 8.046847053638768,
+     "geri_dusus_p25_arti2": 17,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 14,
+      "sol_n": 45,
+      "sag_n": 136,
+      "ayrim": 1.769,
+      "yol": "otsu",
+      "sonuc": 14
+     },
+     "eski": {
+      "ham_argmax": 14,
+      "sol_n": 45,
+      "sag_n": 136,
+      "ayrim": 1.769,
+      "yol": "otsu",
+      "sonuc": 14
+     },
+     "sadik": true
+    },
+    "sure_sn": 3.0
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 46,
+    "esik_eski": 46,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 181,
+     "p25": 2.0,
+     "medyan": 18.0,
+     "p75": 59.0,
+     "std": 38.818963150200965,
+     "geri_dusus_p25_arti2": 4,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 46,
+      "sol_n": 179,
+      "sag_n": 90,
+      "ayrim": 1.874,
+      "yol": "otsu",
+      "sonuc": 46
+     },
+     "eski": {
+      "ham_argmax": 46,
+      "sol_n": 179,
+      "sag_n": 90,
+      "ayrim": 1.874,
+      "yol": "otsu",
+      "sonuc": 46
+     },
+     "sadik": true
+    },
+    "sure_sn": 4.5
+   }
+  },
+  "1995-0401-1-0000-00-1 SİHİRLİ FLÜT": {
+   "cikis": {
+    "kare": 88,
+    "esik_yeni": 44,
+    "esik_eski": 44,
+    "ayristi": false,
+    "teshis": {
+     "n": 87,
+     "min": 16,
+     "max": 93,
+     "p25": 32.0,
+     "medyan": 38.0,
+     "p75": 44.0,
+     "std": 11.700076729730004,
+     "geri_dusus_p25_arti2": 34,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 44,
+      "sol_n": 66,
+      "sag_n": 21,
+      "ayrim": 1.741,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "eski": {
+      "ham_argmax": 44,
+      "sol_n": 66,
+      "sag_n": 21,
+      "ayrim": 1.741,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "sadik": true
+    },
+    "sure_sn": 1.8
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 47,
+    "esik_eski": 47,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 115,
+     "p25": 13.0,
+     "medyan": 23.0,
+     "p75": 47.0,
+     "std": 27.52094850066696,
+     "geri_dusus_p25_arti2": 15,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 47,
+      "sol_n": 203,
+      "sag_n": 66,
+      "ayrim": 2.051,
+      "yol": "otsu",
+      "sonuc": 47
+     },
+     "eski": {
+      "ham_argmax": 47,
+      "sol_n": 203,
+      "sag_n": 66,
+      "ayrim": 2.051,
+      "yol": "otsu",
+      "sonuc": 47
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.4
+   }
+  },
+  "1997-0277-1-0000-00-1 ŞU YARAMAZ KEDİ": {
+   "cikis": {
+    "kare": 288,
+    "esik_yeni": 25,
+    "esik_eski": 25,
+    "ayristi": false,
+    "teshis": {
+     "n": 287,
+     "min": 0,
+     "max": 92,
+     "p25": 16.0,
+     "medyan": 24.0,
+     "p75": 32.0,
+     "std": 13.310981965715285,
+     "geri_dusus_p25_arti2": 18,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 25,
+      "sol_n": 148,
+      "sag_n": 139,
+      "ayrim": 1.521,
+      "yol": "otsu",
+      "sonuc": 25
+     },
+     "eski": {
+      "ham_argmax": 25,
+      "sol_n": 148,
+      "sag_n": 139,
+      "ayrim": 1.521,
+      "yol": "otsu",
+      "sonuc": 25
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.5
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 48,
+    "esik_eski": 48,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 1,
+     "max": 134,
+     "p25": 21.0,
+     "medyan": 41.0,
+     "p75": 62.0,
+     "std": 27.43847057257844,
+     "geri_dusus_p25_arti2": 23,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 48,
+      "sol_n": 163,
+      "sag_n": 106,
+      "ayrim": 1.695,
+      "yol": "otsu",
+      "sonuc": 48
+     },
+     "eski": {
+      "ham_argmax": 48,
+      "sol_n": 163,
+      "sag_n": 106,
+      "ayrim": 1.695,
+      "yol": "otsu",
+      "sonuc": 48
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.4
+   }
+  },
+  "2000-0492-1-0000-00-1 PANDA TAO TAO": {
+   "cikis": {
+    "kare": 96,
+    "esik_yeni": 40,
+    "esik_eski": 40,
+    "ayristi": false,
+    "teshis": {
+     "n": 95,
+     "min": 0,
+     "max": 109,
+     "p25": 8.0,
+     "medyan": 15.0,
+     "p75": 23.5,
+     "std": 16.800857384796345,
+     "geri_dusus_p25_arti2": 10,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 40,
+      "sol_n": 90,
+      "sag_n": 5,
+      "ayrim": 3.44,
+      "yol": "otsu",
+      "sonuc": 40
+     },
+     "eski": {
+      "ham_argmax": 40,
+      "sol_n": 90,
+      "sag_n": 5,
+      "ayrim": 3.44,
+      "yol": "otsu",
+      "sonuc": 40
+     },
+     "sadik": true
+    },
+    "sure_sn": 1.8
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 42,
+    "esik_eski": 42,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 117,
+     "p25": 11.0,
+     "medyan": 24.0,
+     "p75": 39.0,
+     "std": 23.093075639248777,
+     "geri_dusus_p25_arti2": 13,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 42,
+      "sol_n": 216,
+      "sag_n": 53,
+      "ayrim": 2.01,
+      "yol": "otsu",
+      "sonuc": 42
+     },
+     "eski": {
+      "ham_argmax": 42,
+      "sol_n": 216,
+      "sag_n": 53,
+      "ayrim": 2.01,
+      "yol": "otsu",
+      "sonuc": 42
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.6
+   }
+  },
+  "2002-9044-1-0000-00-1 KERMİT BATAKLIKTA": {
+   "cikis": {
+    "kare": 442,
+    "esik_yeni": 21,
+    "esik_eski": 21,
+    "ayristi": false,
+    "teshis": {
+     "n": 441,
+     "min": 0,
+     "max": 66,
+     "p25": 29.0,
+     "medyan": 37.0,
+     "p75": 45.0,
+     "std": 16.175546512430653,
+     "geri_dusus_p25_arti2": 31,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 21,
+      "sol_n": 70,
+      "sag_n": 371,
+      "ayrim": 2.289,
+      "yol": "otsu",
+      "sonuc": 21
+     },
+     "eski": {
+      "ham_argmax": 21,
+      "sol_n": 70,
+      "sag_n": 371,
+      "ayrim": 2.289,
+      "yol": "otsu",
+      "sonuc": 21
+     },
+     "sadik": true
+    },
+    "sure_sn": 7.9
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 40,
+    "esik_eski": 40,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 112,
+     "p25": 39.0,
+     "medyan": 56.0,
+     "p75": 69.0,
+     "std": 25.034142879772254,
+     "geri_dusus_p25_arti2": 41,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 40,
+      "sol_n": 73,
+      "sag_n": 196,
+      "ayrim": 1.841,
+      "yol": "otsu",
+      "sonuc": 40
+     },
+     "eski": {
+      "ham_argmax": 40,
+      "sol_n": 73,
+      "sag_n": 196,
+      "ayrim": 1.841,
+      "yol": "otsu",
+      "sonuc": 40
+     },
+     "sadik": true
+    },
+    "sure_sn": 5.2
+   }
+  },
+  "2011-2205-1-0000-50-1 MOBY DICK 1": {
+   "cikis": {
+    "kare": 242,
+    "esik_yeni": 13,
+    "esik_eski": 28,
+    "ayristi": true,
+    "teshis": {
+     "n": 241,
+     "min": 0,
+     "max": 113,
+     "p25": 11.0,
+     "medyan": 16.0,
+     "p75": 20.0,
+     "std": 10.02570687278096,
+     "geri_dusus_p25_arti2": 13,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 29,
+      "sol_n": 239,
+      "sag_n": 2,
+      "ayrim": 8.392,
+      "yol": "geri_dusus(>=3 kapisi)",
+      "sonuc": 13
+     },
+     "eski": {
+      "ham_argmax": 28,
+      "sol_n": 238,
+      "sag_n": 3,
+      "ayrim": 6.054,
+      "yol": "otsu",
+      "sonuc": 28
+     },
+     "sadik": true
+    },
+    "kume": {
+     "yeni": {
+      "esik": 13,
+      "birikim_esigi": 39,
+      "grup": 165,
+      "sayfa": 165,
+      "ikinci_gecis_ek": 6,
+      "secim_n": 171,
+      "secim": [
+       "cikis_0479.png",
+       "cikis_0480.png",
+       "cikis_0481.png",
+       "cikis_0482.png",
+       "cikis_0491.png",
+       "cikis_0500.png",
+       "cikis_0501.png",
+       "cikis_0503.png",
+       "cikis_0504.png",
+       "cikis_0505.png",
+       "cikis_0506.png",
+       "cikis_0507.png",
+       "cikis_0508.png",
+       "cikis_0509.png",
+       "cikis_0510.png",
+       "cikis_0511.png",
+       "cikis_0512.png",
+       "cikis_0513.png",
+       "cikis_0514.png",
+       "cikis_0515.png",
+       "cikis_0516.png",
+       "cikis_0517.png",
+       "cikis_0518.png",
+       "cikis_0519.png",
+       "cikis_0520.png",
+       "cikis_0521.png",
+       "cikis_0522.png",
+       "cikis_0523.png",
+       "cikis_0524.png",
+       "cikis_0525.png",
+       "cikis_0526.png",
+       "cikis_0527.png",
+       "cikis_0528.png",
+       "cikis_0529.png",
+       "cikis_0530.png",
+       "cikis_0531.png",
+       "cikis_0532.png",
+       "cikis_0533.png",
+       "cikis_0534.png",
+       "cikis_0535.png",
+       "cikis_0536.png",
+       "cikis_0537.png",
+       "cikis_0539.png",
+       "cikis_0540.png",
+       "cikis_0541.png",
+       "cikis_0542.png",
+       "cikis_0544.png",
+       "cikis_0545.png",
+       "cikis_0547.png",
+       "cikis_0548.png",
+       "cikis_0549.png",
+       "cikis_0551.png",
+       "cikis_0553.png",
+       "cikis_0556.png",
+       "cikis_0557.png",
+       "cikis_0559.png",
+       "cikis_0560.png",
+       "cikis_0562.png",
+       "cikis_0563.png",
+       "cikis_0564.png",
+       "cikis_0565.png",
+       "cikis_0566.png",
+       "cikis_0567.png",
+       "cikis_0568.png",
+       "cikis_0569.png",
+       "cikis_0571.png",
+       "cikis_0572.png",
+       "cikis_0573.png",
+       "cikis_0574.png",
+       "cikis_0575.png",
+       "cikis_0576.png",
+       "cikis_0577.png",
+       "cikis_0578.png",
+       "cikis_0579.png",
+       "cikis_0580.png",
+       "cikis_0581.png",
+       "cikis_0582.png",
+       "cikis_0583.png",
+       "cikis_0584.png",
+       "cikis_0585.png",
+       "cikis_0586.png",
+       "cikis_0587.png",
+       "cikis_0588.png",
+       "cikis_0589.png",
+       "cikis_0590.png",
+       "cikis_0591.png",
+       "cikis_0592.png",
+       "cikis_0593.png",
+       "cikis_0594.png",
+       "cikis_0595.png",
+       "cikis_0596.png",
+       "cikis_0597.png",
+       "cikis_0598.png",
+       "cikis_0599.png",
+       "cikis_0600.png",
+       "cikis_0601.png",
+       "cikis_0602.png",
+       "cikis_0604.png",
+       "cikis_0605.png",
+       "cikis_0606.png",
+       "cikis_0607.png",
+       "cikis_0609.png",
+       "cikis_0610.png",
+       "cikis_0611.png",
+       "cikis_0613.png",
+       "cikis_0615.png",
+       "cikis_0616.png",
+       "cikis_0617.png",
+       "cikis_0618.png",
+       "cikis_0619.png",
+       "cikis_0620.png",
+       "cikis_0621.png",
+       "cikis_0622.png",
+       "cikis_0623.png",
+       "cikis_0624.png",
+       "cikis_0625.png",
+       "cikis_0626.png",
+       "cikis_0627.png",
+       "cikis_0629.png",
+       "cikis_0630.png",
+       "cikis_0631.png",
+       "cikis_0632.png",
+       "cikis_0633.png",
+       "cikis_0634.png",
+       "cikis_0635.png",
+       "cikis_0636.png",
+       "cikis_0637.png",
+       "cikis_0638.png",
+       "cikis_0639.png",
+       "cikis_0640.png",
+       "cikis_0641.png",
+       "cikis_0643.png",
+       "cikis_0644.png",
+       "cikis_0645.png",
+       "cikis_0646.png",
+       "cikis_0647.png",
+       "cikis_0648.png",
+       "cikis_0649.png",
+       "cikis_0650.png",
+       "cikis_0651.png",
+       "cikis_0652.png",
+       "cikis_0654.png",
+       "cikis_0655.png",
+       "cikis_0656.png",
+       "cikis_0657.png",
+       "cikis_0658.png",
+       "cikis_0659.png",
+       "cikis_0660.png",
+       "cikis_0661.png",
+       "cikis_0662.png",
+       "cikis_0663.png",
+       "cikis_0664.png",
+       "cikis_0665.png",
+       "cikis_0666.png",
+       "cikis_0667.png",
+       "cikis_0668.png",
+       "cikis_0669.png",
+       "cikis_0670.png",
+       "cikis_0671.png",
+       "cikis_0672.png",
+       "cikis_0673.png",
+       "cikis_0674.png",
+       "cikis_0676.png",
+       "cikis_0677.png",
+       "cikis_0678.png",
+       "cikis_0680.png",
+       "cikis_0682.png",
+       "cikis_0683.png",
+       "cikis_0692.png",
+       "cikis_0703.png",
+       "cikis_0711.png"
+      ],
+      "tavan_sonrasi": [
+       "cikis_0479.png",
+       "cikis_0480.png",
+       "cikis_0482.png",
+       "cikis_0500.png",
+       "cikis_0501.png",
+       "cikis_0504.png",
+       "cikis_0506.png",
+       "cikis_0507.png",
+       "cikis_0509.png",
+       "cikis_0511.png",
+       "cikis_0513.png",
+       "cikis_0514.png",
+       "cikis_0516.png",
+       "cikis_0518.png",
+       "cikis_0519.png",
+       "cikis_0521.png",
+       "cikis_0523.png",
+       "cikis_0525.png",
+       "cikis_0526.png",
+       "cikis_0528.png",
+       "cikis_0530.png",
+       "cikis_0531.png",
+       "cikis_0533.png",
+       "cikis_0535.png",
+       "cikis_0537.png",
+       "cikis_0539.png",
+       "cikis_0541.png",
+       "cikis_0544.png",
+       "cikis_0545.png",
+       "cikis_0548.png",
+       "cikis_0551.png",
+       "cikis_0556.png",
+       "cikis_0557.png",
+       "cikis_0560.png",
+       "cikis_0563.png",
+       "cikis_0564.png",
+       "cikis_0566.png",
+       "cikis_0568.png",
+       "cikis_0569.png",
+       "cikis_0572.png",
+       "cikis_0574.png",
+       "cikis_0576.png",
+       "cikis_0577.png",
+       "cikis_0579.png",
+       "cikis_0581.png",
+       "cikis_0582.png",
+       "cikis_0584.png",
+       "cikis_0586.png",
+       "cikis_0588.png",
+       "cikis_0589.png",
+       "cikis_0591.png",
+       "cikis_0593.png",
+       "cikis_0594.png",
+       "cikis_0596.png",
+       "cikis_0598.png",
+       "cikis_0600.png",
+       "cikis_0601.png",
+       "cikis_0604.png",
+       "cikis_0606.png",
+       "cikis_0607.png",
+       "cikis_0610.png",
+       "cikis_0613.png",
+       "cikis_0616.png",
+       "cikis_0617.png",
+       "cikis_0619.png",
+       "cikis_0621.png",
+       "cikis_0622.png",
+       "cikis_0624.png",
+       "cikis_0626.png",
+       "cikis_0627.png",
+       "cikis_0630.png",
+       "cikis_0632.png",
+       "cikis_0634.png",
+       "cikis_0635.png",
+       "cikis_0637.png",
+       "cikis_0639.png",
+       "cikis_0640.png",
+       "cikis_0643.png",
+       "cikis_0645.png",
+       "cikis_0647.png",
+       "cikis_0648.png",
+       "cikis_0650.png",
+       "cikis_0652.png",
+       "cikis_0654.png",
+       "cikis_0656.png",
+       "cikis_0658.png",
+       "cikis_0660.png",
+       "cikis_0661.png",
+       "cikis_0663.png",
+       "cikis_0665.png",
+       "cikis_0666.png",
+       "cikis_0668.png",
+       "cikis_0670.png",
+       "cikis_0672.png",
+       "cikis_0673.png",
+       "cikis_0676.png",
+       "cikis_0678.png",
+       "cikis_0680.png",
+       "cikis_0683.png",
+       "cikis_0703.png"
+      ]
+     },
+     "eski": {
+      "esik": 28,
+      "birikim_esigi": 84,
+      "grup": 15,
+      "sayfa": 15,
+      "ikinci_gecis_ek": 11,
+      "secim_n": 26,
+      "secim": [
+       "cikis_0479.png",
+       "cikis_0481.png",
+       "cikis_0482.png",
+       "cikis_0491.png",
+       "cikis_0509.png",
+       "cikis_0510.png",
+       "cikis_0520.png",
+       "cikis_0531.png",
+       "cikis_0542.png",
+       "cikis_0547.png",
+       "cikis_0560.png",
+       "cikis_0564.png",
+       "cikis_0587.png",
+       "cikis_0596.png",
+       "cikis_0601.png",
+       "cikis_0614.png",
+       "cikis_0621.png",
+       "cikis_0624.png",
+       "cikis_0635.png",
+       "cikis_0641.png",
+       "cikis_0665.png",
+       "cikis_0669.png",
+       "cikis_0673.png",
+       "cikis_0689.png",
+       "cikis_0709.png",
+       "cikis_0720.png"
+      ],
+      "tavan_sonrasi": [
+       "cikis_0479.png",
+       "cikis_0481.png",
+       "cikis_0482.png",
+       "cikis_0491.png",
+       "cikis_0509.png",
+       "cikis_0510.png",
+       "cikis_0520.png",
+       "cikis_0531.png",
+       "cikis_0542.png",
+       "cikis_0547.png",
+       "cikis_0560.png",
+       "cikis_0564.png",
+       "cikis_0587.png",
+       "cikis_0596.png",
+       "cikis_0601.png",
+       "cikis_0614.png",
+       "cikis_0621.png",
+       "cikis_0624.png",
+       "cikis_0635.png",
+       "cikis_0641.png",
+       "cikis_0665.png",
+       "cikis_0669.png",
+       "cikis_0673.png",
+       "cikis_0689.png",
+       "cikis_0709.png",
+       "cikis_0720.png"
+      ]
+     }
+    },
+    "kapsama": {
+     "yeni_ustkume_mu": false,
+     "eskide_olup_yenide_olmayan": [
+      "cikis_0614.png",
+      "cikis_0689.png",
+      "cikis_0709.png",
+      "cikis_0720.png"
+     ],
+     "tavan_sonrasi_yeni_ustkume_mu": false,
+     "tavan_sonrasi_kaybolan": [
+      "cikis_0481.png",
+      "cikis_0491.png",
+      "cikis_0510.png",
+      "cikis_0520.png",
+      "cikis_0542.png",
+      "cikis_0547.png",
+      "cikis_0587.png",
+      "cikis_0614.png",
+      "cikis_0641.png",
+      "cikis_0669.png",
+      "cikis_0689.png",
+      "cikis_0709.png",
+      "cikis_0720.png"
+     ]
+    },
+    "sure_sn": 13.5
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 54,
+    "esik_eski": 54,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 1,
+     "max": 150,
+     "p25": 45.0,
+     "medyan": 62.0,
+     "p75": 74.0,
+     "std": 24.245575454773117,
+     "geri_dusus_p25_arti2": 47,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 54,
+      "sol_n": 104,
+      "sag_n": 165,
+      "ayrim": 1.613,
+      "yol": "otsu",
+      "sonuc": 54
+     },
+     "eski": {
+      "ham_argmax": 54,
+      "sol_n": 104,
+      "sag_n": 165,
+      "ayrim": 1.613,
+      "yol": "otsu",
+      "sonuc": 54
+     },
+     "sadik": true
+    },
+    "sure_sn": 7.3
+   }
+  },
+  "2017-2152-1-0000-77-1 NAZİK BİR GECE": {
+   "cikis": {
+    "kare": 46,
+    "esik_yeni": 6,
+    "esik_eski": 6,
+    "ayristi": false,
+    "teshis": {
+     "n": 45,
+     "min": 0,
+     "max": 109,
+     "p25": 0.0,
+     "medyan": 0.0,
+     "p75": 1.0,
+     "std": 19.075082317832834,
+     "geri_dusus_p25_arti2": 2,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 6,
+      "sol_n": 39,
+      "sag_n": 6,
+      "ayrim": 2.485,
+      "yol": "otsu",
+      "sonuc": 6
+     },
+     "eski": {
+      "ham_argmax": 6,
+      "sol_n": 39,
+      "sag_n": 6,
+      "ayrim": 2.485,
+      "yol": "otsu",
+      "sonuc": 6
+     },
+     "sadik": true
+    },
+    "sure_sn": 0.9
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 24,
+    "esik_eski": 24,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 102,
+     "p25": 1.0,
+     "medyan": 3.0,
+     "p75": 6.0,
+     "std": 9.345748566362566,
+     "geri_dusus_p25_arti2": 3,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 24,
+      "sol_n": 263,
+      "sag_n": 6,
+      "ayrim": 5.314,
+      "yol": "otsu",
+      "sonuc": 24
+     },
+     "eski": {
+      "ham_argmax": 24,
+      "sol_n": 263,
+      "sag_n": 6,
+      "ayrim": 5.314,
+      "yol": "otsu",
+      "sonuc": 24
+     },
+     "sadik": true
+    },
+    "sure_sn": 6.6
+   }
+  },
+  "2018-1077-1-0000-90-1 ÇİĞERPAREM": {
+   "cikis": {
+    "kare": 146,
+    "esik_yeni": 18,
+    "esik_eski": 18,
+    "ayristi": false,
+    "teshis": {
+     "n": 145,
+     "min": 0,
+     "max": 72,
+     "p25": 8.0,
+     "medyan": 10.0,
+     "p75": 14.0,
+     "std": 8.101831093217152,
+     "geri_dusus_p25_arti2": 10,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 18,
+      "sol_n": 131,
+      "sag_n": 14,
+      "ayrim": 2.379,
+      "yol": "otsu",
+      "sonuc": 18
+     },
+     "eski": {
+      "ham_argmax": 18,
+      "sol_n": 131,
+      "sag_n": 14,
+      "ayrim": 2.379,
+      "yol": "otsu",
+      "sonuc": 18
+     },
+     "sadik": true
+    },
+    "sure_sn": 1.3
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 44,
+    "esik_eski": 44,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 120,
+     "p25": 8.0,
+     "medyan": 17.0,
+     "p75": 29.0,
+     "std": 23.331055818081506,
+     "geri_dusus_p25_arti2": 10,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 44,
+      "sol_n": 236,
+      "sag_n": 33,
+      "ayrim": 2.571,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "eski": {
+      "ham_argmax": 44,
+      "sol_n": 236,
+      "sag_n": 33,
+      "ayrim": 2.571,
+      "yol": "otsu",
+      "sonuc": 44
+     },
+     "sadik": true
+    },
+    "sure_sn": 2.8
+   }
+  },
+  "2021-2141-1-0000-78-0 ARJANTİN TANGOSU": {
+   "cikis": {
+    "kare": 168,
+    "esik_yeni": 14,
+    "esik_eski": 14,
+    "ayristi": false,
+    "teshis": {
+     "n": 167,
+     "min": 0,
+     "max": 41,
+     "p25": 12.5,
+     "medyan": 18.0,
+     "p75": 25.0,
+     "std": 10.199455881725545,
+     "geri_dusus_p25_arti2": 14,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 14,
+      "sol_n": 50,
+      "sag_n": 117,
+      "ayrim": 1.758,
+      "yol": "otsu",
+      "sonuc": 14
+     },
+     "eski": {
+      "ham_argmax": 14,
+      "sol_n": 50,
+      "sag_n": 117,
+      "ayrim": 1.758,
+      "yol": "otsu",
+      "sonuc": 14
+     },
+     "sadik": true
+    },
+    "sure_sn": 3.8
+   },
+   "giris": {
+    "kare": 270,
+    "esik_yeni": 47,
+    "esik_eski": 47,
+    "ayristi": false,
+    "teshis": {
+     "n": 269,
+     "min": 0,
+     "max": 116,
+     "p25": 8.0,
+     "medyan": 22.0,
+     "p75": 52.0,
+     "std": 30.786017260722733,
+     "geri_dusus_p25_arti2": 10,
+     "kutu_disi_256_ustu": 0,
+     "yeni": {
+      "ham_argmax": 47,
+      "sol_n": 198,
+      "sag_n": 71,
+      "ayrim": 2.01,
+      "yol": "otsu",
+      "sonuc": 47
+     },
+     "eski": {
+      "ham_argmax": 47,
+      "sol_n": 198,
+      "sag_n": 71,
+      "ayrim": 2.01,
+      "yol": "otsu",
+      "sonuc": 47
+     },
+     "sadik": true
+    },
+    "sure_sn": 6.5
+   }
+  }
+ },
+ "ayrisan": [
+  {
+   "film": "2011-2205-1-0000-50-1 MOBY DICK 1",
+   "yuzey": "cikis",
+   "eski": 28,
+   "yeni": 13
+  }
+ ],
+ "teshis_sadakatsiz": []
+}

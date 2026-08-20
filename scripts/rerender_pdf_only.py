@@ -40,9 +40,13 @@ EXPORT_ROOT = PROJECT_ROOT / "Mitas Output" / "export"
 EXPORT_ONAYLI = EXPORT_ROOT / "ONAYLI"
 EXPORT_KONTROL = EXPORT_ROOT / "KONTROL"
 # tek_film_kunye reportlab'ı global python'da → V4 render orada koşmalı (venv ocr DEĞİL).
-PY_PDF = Path(r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
+# Üretimle AYNI çözümleme: mitas.env → MITAS_PDF_PYTHON (Linux'ta venvs/asr, reportlab orada).
+# Eskiden Windows yolu sabitti → Linux'ta sys.executable'a düşüp 'No module named reportlab' veriyordu.
+PY_PDF = Path(os.environ.get("MITAS_PDF_PYTHON")
+              or r"C:\Users\TRT03\AppData\Local\Programs\Python\Python310\python.exe")
 if not PY_PDF.exists():
-    PY_PDF = Path(sys.executable)   # fail-safe: global yoksa mevcut yorumlayıcı (testte)
+    _aday = PROJECT_ROOT / "venvs" / "asr" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    PY_PDF = _aday if _aday.exists() else Path(sys.executable)
 V4_TIMEOUT = int(os.environ.get("MITAS_V4_TIMEOUT", "900"))
 
 # mitas_pipeline'ı MODÜL olarak içe al → file_base/surface_deliverables/surface_logs YENİDEN-KULLAN
@@ -271,7 +275,8 @@ def _current_person_teyit_warning(v4: dict) -> str | None:
     return None
 
 
-def rerender_one(folder: Path, dry_run: bool = True) -> dict:
+def rerender_one(folder: Path, dry_run: bool = True, taze_oku: bool = False,
+                 kunye_ver: dict | None = None) -> dict:
     """Tek film: tek_film_kunye'yi MEVCUT OCR + qc_block ile temp PDF'e bastır; başarılı+!dry ise yüzeyle.
     ASLA çökmez (her şey try/except); mevcut PDF'i yalnız atomik-replace ile değiştirir."""
     res = {"folder": str(folder), "ok": False, "wrote": False, "dry_run": dry_run}
@@ -298,7 +303,12 @@ def rerender_one(folder: Path, dry_run: bool = True) -> dict:
         cmd = [str(PY_PDF), str(HERE / "tek_film_kunye.py"),
                "--clip", str(folder), "--title", title, "--out", str(tmp_pdf),
                "--profile", profile]
-        trace_vc = _video_credits_from_trace(folder)
+        if kunye_ver:
+            trace_vc = dict(kunye_ver)
+            trace_vc.setdefault("guven", "ELLE-VERILDI (film-bazinda, piksel-teyitli)")
+            res["video_credits_source"] = "elle:--kunye-json"
+        else:
+            trace_vc = None if taze_oku else _video_credits_from_trace(folder)
         if trace_vc:
             cmd += ["--video-credits", json.dumps(trace_vc, ensure_ascii=False)]
             res["video_credits_source"] = "debug_trace/v4/candidate_read"
@@ -488,6 +498,19 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="PDF yazmadan kararı göster")
     ap.add_argument("--apply", action="store_true", help="--all ile GERÇEK yaz (yoksa --all DRY)")
     ap.add_argument("--limit", type=int, default=0, help="işlenecek film sayısı sınırı (0=hepsi)")
+    # TAZE OKUMA (2026-08-01): varsayılan yol debug_trace'teki ESKİ koşunun künyesini
+    # aynen yeniden kullanır — hızlı, ama OCR metni ya da okuma KODU değiştiyse
+    # değişiklik hiç görünmez (ALİE'de ölçüldü: kesme fix'i sonrası PDF aynı kaldı).
+    # Bu bayrak trace'i yok sayar → tek_film_kunye OCR metninden BAŞTAN okur.
+    ap.add_argument("--taze-oku", dest="taze_oku", action="store_true",
+                    help="debug_trace künyesini kullanma, OCR metninden yeniden oku")
+    # FİLM-BAZINDA KÜNYE (2026-08-01, ALİE talebi): tek bir filmde künyeyi AÇIKÇA ver.
+    # Kullanım yeri DAR: piksel-teyitli ama boru hattının kaçırdığı alan (ör. örnekleme
+    # körlüğü yüzünden hiç okunmamış yapımcı kartı). Elle PDF yamasının alternatifi —
+    # veri yine v4/QC/harf-kapısından geçer. Yanına gerekçe dosyası bırakmak ZORUNLU
+    # (ocr/<job>/ELLE_DUZELTME.md); kullanıldığında _DURUM.json'a damga basılır.
+    ap.add_argument("--kunye-json", dest="kunye_json", default="",
+                    help='film-bazında künye: {"yonetmen":[],"yapimci":[],"cast":[]} JSON dosyası')
     a = ap.parse_args()
 
     folders = _find_folders(a)
@@ -505,9 +528,18 @@ def main():
     else:
         dry = False   # tek film (--folder/--trt) → gerçek yaz (açıkça --dry-run demedikçe)
 
+    _kunye_ver = None
+    if getattr(a, "kunye_json", ""):
+        if len(folders) != 1:
+            print(json.dumps({"ok": False, "error": "--kunye-json YALNIZ tek filmle kullanılır"},
+                             ensure_ascii=False))
+            return 2
+        _kunye_ver = json.loads(Path(a.kunye_json).read_text(encoding="utf-8"))
+
     results = []
     for folder in folders:
-        r = rerender_one(folder, dry_run=dry)
+        r = rerender_one(folder, dry_run=dry, taze_oku=bool(getattr(a, "taze_oku", False)),
+                         kunye_ver=_kunye_ver)
         results.append(r)
         _wr = "DRY" if dry else ("YAZILDI" if r.get("wrote") else "YAZILMADI")
         _kb = r.get("qc_block", {})

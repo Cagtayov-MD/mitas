@@ -47,6 +47,21 @@ from core.pipelines.asr.profiles import ContentProfileName
 from core.pipelines.asr.version import get_code_version
 
 
+def asr_kapali_mi() -> tuple[bool, str]:
+    """ASR kalıcı kill-switch (Çağatay 2026-07-11) — API yolu için.
+
+    scripts/mitas_pipeline.py:2394-2396 ile BİREBİR aynı mantık. 2026-07-29'a
+    kadar bu kontrol yalnız pipeline'da vardı; API/webui yükleme yolu flag'e
+    hiç bakmıyordu ve 2026-07-29 11:24'te ASR'yi gerçekten başlattı
+    (outputs/system_events.jsonl: asr_queued -> asr_started -> asr_failed).
+    """
+    if (PROJECT_ROOT / "ASR_KAPALI.flag").exists():
+        return True, "ASR_KAPALI.flag"
+    if os.environ.get("MITAS_DISABLE_ASR", "").strip().lower() in ("1", "true", "on", "yes"):
+        return True, "MITAS_DISABLE_ASR"
+    return False, ""
+
+
 JobState = Literal["queued", "running", "done", "partial", "failed", "interrupted"]
 LiveSessionState = Literal["ready", "listening", "resolving", "paused", "error"]
 DiarizeMode = Literal["auto", "on", "off"]
@@ -419,46 +434,86 @@ async def put_flow_queue(request: Request) -> dict[str, Any]:
             "id": "main",
             "updatedAt": _now_iso(),
             "bulkProfile": payload.get("bulkProfile") or "stt",
+            # Global ASR+Özet anahtarı (Çağatay 2026-07-30): test kliplerinde kapatılır,
+            # normal süreçte açılır. Rebuild alanı AÇIKÇA taşımalı — yoksa sessizce düşer.
+            "asrEnabled": bool(payload.get("asrEnabled", True)),
             "items": merged,
         }
         _write_json(FLOW_QUEUE_STATE_PATH, state)
     return state
 
 
+def _flow_asr_enabled() -> bool:
+    """Kuyruk state'inden global ASR anahtarı. Alan yok / dosya yok / bozuk → AÇIK
+    (fail-safe: anahtar özellik kaybettirmez, en fazla gereksiz ASR koşturur).
+    ASR_KAPALI.flag hâlâ acil global kill'dir ve pipeline içinde bunu EZER."""
+    st = _read_json(FLOW_QUEUE_STATE_PATH)
+    if isinstance(st, dict):
+        return bool(st.get("asrEnabled", True))
+    return True
+
+
+_GVFS_SMB_RE = re.compile(r"^smb-share:server=([^,]+),share=(.+)$")
+
+
+def _browse_root_label(dirname: str) -> str:
+    """GVFS ağ-paylaşım dizin adını okunur etikete çevirir (smb-share:server=X,share=Y -> X / Y)."""
+    m = _GVFS_SMB_RE.match(dirname)
+    if not m:
+        return dirname
+    server, share = m.group(1), m.group(2)
+    return f"{server.split('.')[0]} / {share}"
+
+
+def _browse_roots() -> list[dict[str, str]]:
+    """Gözat kökleri: gerçek yerel mount noktaları (/mnt/*) + canlı ağ paylaşımları (GVFS —
+    Nautilus 'Sunucuya bağlan' ile açılan smb:// bağlantıları, örn. depo01cifs)."""
+    roots: list[dict[str, str]] = []
+    mnt = Path("/mnt")
+    if mnt.is_dir():
+        try:
+            for child in sorted(mnt.iterdir(), key=lambda c: c.name.lower()):
+                if child.is_dir() and os.path.ismount(child):
+                    roots.append({"name": child.name, "path": str(child)})
+        except (OSError, PermissionError):
+            pass
+    gvfs = Path(f"/run/user/{os.getuid()}/gvfs")
+    if gvfs.is_dir():
+        try:
+            for child in sorted(gvfs.iterdir(), key=lambda c: c.name.lower()):
+                if child.is_dir():
+                    roots.append({"name": _browse_root_label(child.name), "path": str(child)})
+        except (OSError, PermissionError):
+            pass
+    return roots
+
+
 @app.get("/api/fs/browse")
 def fs_browse(path: str = Query(default="")) -> dict[str, Any]:
-    """Yerel dosya sistemini gez (localhost = kullanıcının kendi makinesi) — UI klasör gezgini.
-    path boşsa sürücü köklerini döndürür; aksi halde alt-klasörler + film dosyalarını listeler.
-    UNC yolları (\\\\server\\share) desteklenir — eşlenmiş sürücüler kök listesine dahil edilir."""
+    """Sunucu dosya sistemini gez — UI klasör gezgini.
+    path boşsa gerçek kökleri (yerel mount'lar + canlı ağ paylaşımları) döndürür; aksi halde
+    alt-klasörler + film dosyalarını listeler."""
     exts = {"mp4", "mxf", "mkv", "avi", "mov"}
     if not path or not path.strip():
-        # Yerel sürücüler
-        drives = [f"{c}:\\" for c in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.isdir(f"{c}:\\")]
-        return {"path": "", "parent": None, "dirs": drives, "films": [], "film_count": 0}
-    # UNC yolu normalise: tek \ → çift \\ (URL decode sonrası kaybolabilir)
+        return {"path": "", "parent": None, "dirs": _browse_roots(), "films": [], "film_count": 0}
     raw = path.strip()
+    # Eski UNC-stili elle yapıştırılmış Windows yolu (\\sunucu\paylaşım) gelirse çökmesin.
     if raw.startswith("\\") and not raw.startswith("\\\\"):
-        raw = "\\" + raw  # \server\share → \\server\share
+        raw = "\\" + raw
     p = Path(raw)
     try:
         is_dir = p.is_dir()
     except (OSError, PermissionError) as exc:
         raise HTTPException(status_code=400, detail=f"dir_access_error: {exc}") from exc
     if not is_dir:
-        # UNC paylaşımı erişilemez olabilir — kullanıcıya net hata ver
-        detail = (
-            f"dir_not_found: {raw!r} — UNC paylaşımı erişilemiyor olabilir. "
-            "Sürücü harfiyle eşlenmiş paylaşımı kullanın (örn. V:\\) veya ağ kimlik bilgisini kontrol edin."
-            if raw.startswith("\\\\") else f"dir_not_found: {raw!r}"
-        )
-        raise HTTPException(status_code=400, detail=detail)
-    dirs: list[str] = []
+        raise HTTPException(status_code=400, detail=f"dir_not_found: {raw!r}")
+    dirs: list[dict[str, str]] = []
     films: list[str] = []
     try:
         for child in sorted(p.iterdir(), key=lambda c: c.name.lower()):
             try:
                 if child.is_dir():
-                    dirs.append(child.name)
+                    dirs.append({"name": child.name, "path": str(child)})
                 elif child.suffix.lower().lstrip(".") in exts:
                     films.append(child.name)
             except (OSError, PermissionError):
@@ -509,12 +564,7 @@ async def enqueue_local(request: Request) -> dict[str, Any]:
         except (OSError, PermissionError) as exc:
             raise HTTPException(status_code=400, detail=f"dir_access_error: {exc}") from exc
         if not is_dir:
-            detail = (
-                f"dir_not_found: {raw_dir!r} — UNC paylaşımı erişilemiyor. "
-                "Eşlenmiş sürücü harfi kullanın (örn. V:\\) veya ağ kimlik bilgisini kontrol edin."
-                if raw_dir.startswith("\\\\") else f"dir_not_found: {raw_dir!r}"
-            )
-            raise HTTPException(status_code=400, detail=detail)
+            raise HTTPException(status_code=400, detail=f"dir_not_found: {raw_dir!r}")
         try:
             for p in sorted(d.iterdir()):
                 try:
@@ -733,7 +783,8 @@ def _flow_queue_worker_loop() -> None:
             _stage_dir.mkdir(parents=True, exist_ok=True)
             dst = _stage_path_for(src)
             size = Path(src).stat().st_size
-            if (_stage_dir.stat().st_dev == Path("E:\\").stat().st_dev
+            if (os.name == "nt"
+                    and _stage_dir.stat().st_dev == Path("E:\\").stat().st_dev
                     and shutil.disk_usage(str(_stage_dir)).free < size + 20 * 2**30):
                 return  # disk emniyet payı (<kopya+20GB) → prefetch atla
             def _copy() -> None:
@@ -890,6 +941,8 @@ def _flow_queue_worker_loop() -> None:
                         # 500 filmde ~350GB gereksiz kopyayı önler. (Cagatay_22.02 gibi: path-tabanlı.)
                         "--no-copy-source",
                     ]
+                    if not _flow_asr_enabled():
+                        cmd.append("--no-asr")   # global anahtar KAPALI → özet/transkript atlanır, PDF temiz
                     # İP-7: force-retry ise candidate moduna geç — üretim köklerine YAZMAZ (SİLME YOK).
                     _run_env = None
                     if _candidate_run_root:
@@ -1423,6 +1476,12 @@ async def create_asr_job(
     is reused (no new clip, no new ASR run) unless ``force=full`` is set.
     ``force=full`` attaches a fresh ASR job under the existing clip.
     """
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     job_id = f"asr-{uuid4().hex[:12]}"
     safe_name = _safe_filename(filename)
     media_id = Path(safe_name).stem or "media"
@@ -1736,6 +1795,8 @@ def _run_pipeline_job(job_id: str) -> None:
             "--video", job["input_path"],
             "--profile", job["pipeline_profile"],
         ]
+        if not _flow_asr_enabled():
+            cmd.append("--no-asr")   # global anahtar KAPALI (tek-dosya yolu da aynı anahtara bağlı)
         global _pipeline_proc
         _pipeline_abort.clear()
         # GPU semaforu: aynı anda yalnız 1 GPU-ağır iş koşsun (RTX 3090 OOM önleme).
@@ -2133,6 +2194,12 @@ def reprocess_clip_asr(
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
 ) -> dict[str, Any]:
     """Start a fresh ASR job from a clip's preserved source media."""
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     safe_clip_id = _safe_artifact_id(clip_id)
     record = _load_clip_record(safe_clip_id)
     if record is None:
@@ -2228,6 +2295,12 @@ def process_clip_asr_range(
     word_alignment_mode: AlignmentMode = Query(default="whisperx"),
 ) -> dict[str, Any]:
     """Start a fresh ASR job from a bounded time range of a preserved clip."""
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     safe_clip_id = _safe_artifact_id(clip_id)
     record = _load_clip_record(safe_clip_id)
     if record is None:
@@ -2549,6 +2622,12 @@ async def stt_preview_socket(websocket: WebSocket) -> None:
 
 
 def _run_job(job_id: str) -> None:
+    _kapali, _sebep = asr_kapali_mi()
+    if _kapali:
+        raise HTTPException(
+            status_code=409,
+            detail=f"ASR kalıcı devre dışı ({_sebep}) — Çağatay 2026-07-11 talimatı. "
+                   f"Açmak için: {PROJECT_ROOT / 'ASR_KAPALI.flag'} dosyasını silin.")
     job = _load_job(job_id)
     if job is None:
         return

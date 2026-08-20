@@ -15,6 +15,10 @@ tek_film_kunye.py — TEK KOMUT: bir klip → TEMİZ v4 künye PDF (uçtan uca o
 Hiç çökmez; bir adım başarısızsa eldeki en iyi veriyle devam eder, neyin eksik olduğunu yazar.
 """
 import argparse, datetime, importlib.util, json, os, re, subprocess, sys, time
+try:
+    from scripts.jenerik_constants import SCRIPT_MAP
+except ImportError:
+    from jenerik_constants import SCRIPT_MAP
 import debug_trace as dbg
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -23,14 +27,18 @@ ROOT = os.environ.get("MITAS_PROJECT_ROOT") or os.path.dirname(HERE)
 # Linux geçişi 2026-07-16: venv/PDF/afiş yolları kökten türetilir (Windows'ta env yoksa eski davranış).
 PY_OCR = (os.path.join(ROOT, "venvs", "ocr", "Scripts", "python.exe") if os.name == "nt"
           else os.path.join(ROOT, "venvs", "ocr", "bin", "python"))
+# Kök türetme kapısı: env VARSA ya da Windows DEĞİLSEK ROOT'tan türet.
+# Eskiden yalnız env'e bakıyordu → Linux'ta env'siz çağıran (rerender_pdf_only.py)
+# '/opt/mitas/E:\MITAS\...' üretip çöküyordu. Windows+env'siz davranış aynen korunur.
+_KOKTEN = bool(os.environ.get("MITAS_PROJECT_ROOT")) or os.name != "nt"
 PDFMITAS = os.environ.get("MITAS_PDFMITAS_DIR") or (
-    os.path.join(ROOT, "OCR-worktree", "pdf-mitas") if os.environ.get("MITAS_PROJECT_ROOT")
+    os.path.join(ROOT, "OCR-worktree", "pdf-mitas") if _KOKTEN
     else r"E:\MITAS\OCR-worktree\pdf-mitas")
 AFIS_CACHE = os.environ.get("MITAS_AFIS_CACHE_DIR") or (
-    os.path.join(ROOT, "_102_afis_cache") if os.environ.get("MITAS_PROJECT_ROOT")
+    os.path.join(ROOT, "_102_afis_cache") if _KOKTEN
     else r"E:\MITAS\_102_afis_cache")
 OUT_DEFAULT = (os.path.join(ROOT, "Mitas Output", "GUNCEL_ORNEK")
-               if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\Mitas Output\GUNCEL_ORNEK")
+               if _KOKTEN else r"E:\MITAS\Mitas Output\GUNCEL_ORNEK")
 # KB cast-ekleme kaldırıldı: KB yalnız OCR'da okunan ismin yazımını düzeltir, sıfırdan kişi eklemez.
 _ADD_ON = False
 # OCR-OTORİTE KANUNU: bu kapı IMDb/Wiki'de bulunmayan OCR-okunan gerçek ismi DÜŞÜRÜR/KIRPAR (kanun ihlali).
@@ -730,8 +738,16 @@ def main():
         try:
             # NOT: run_ocr_json TEK-SATIR JSON arar; credit_crosscheck PRETTY-PRINT (çok-satır) basar →
             # run_ocr_json parse edemez. Kendi çok-satır regex parse'ımızla doğrudan çağır (PY_OCR=duckdb'li).
-            _r = subprocess.run([PY_OCR, os.path.join(HERE, "credit_crosscheck.py"),
-                                 "--baslik", title, "--yonetmen", "", "--yil", str(a.year or "")],
+            # ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): bu çağrı --orijinal GEÇMİYORDU (üstteki
+            # asıl credit_kb_lookup çağrısı a.original'ı zaten iletiyor; bu yalnız cast-BYPASS yedek-yolu).
+            # Türkçe başlık DB'de yoksa (yabancı film) bu yedek yol da açılamıyordu. Kill-switch
+            # MITAS_KIMLIK_ORIJINAL=0 eski davranışı (yalnız başlık) birebir korur.
+            _cc_bypass_cmd = [PY_OCR, os.path.join(HERE, "credit_crosscheck.py"),
+                               "--baslik", title, "--yonetmen", "", "--yil", str(a.year or "")]
+            if a.original and os.environ.get("MITAS_KIMLIK_ORIJINAL", "1").strip().lower() not in (
+                    "0", "false", "off", "no"):
+                _cc_bypass_cmd += ["--orijinal", a.original]
+            _r = subprocess.run(_cc_bypass_cmd,
                                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
             _m = re.search(r"\{.*\}", _r.stdout or "", re.S)
             if _m:
@@ -799,6 +815,23 @@ def main():
             elif _yon_kb_hit:
                 yon_kaynak = "kareler (KB eşleşmedi ama OCR temiz + KB'de gerçek kişi → okunan korundu)"
             else:
+                # ÖLÇÜM KANCASI (Çağatay onayı 2026-08-01): burada KARELERDEN OKUNAN
+                # yönetmen, KB'de eşleşmediği için SİLİNİYOR. Bu, "KB varlık yargıcı
+                # değil, yalnız imlacı" kuralıyla çelişebilir (set amiri sınıfı: ekranda
+                # var, hiçbir veritabanında yok). Kararın izi bugüne dek yalnız
+                # dbg.emit'e gidiyordu → kohort düzeyinde ÖLÇÜLEMİYORDU, bu yüzden kaç
+                # filmi vurduğu BİLİNMİYOR. Önce ölç, sonra karar ver (kaldırma DEĞİL).
+                try:
+                    from core.observability.system_events import log_event as _le
+                    _le("credit_yonetmen_kb_kapisi_sildi", level="warn",
+                        summary=f"{clip}: karelerden OKUNAN yönetmen KB eşleşmediği için "
+                                f"SİLİNDİ → {yon}. (ekran-kanıtı={len(_screen_hits)}/{len(yon)}, "
+                                f"kb_kisi={_yon_kb_hit})",
+                        module="kunye",
+                        detail={"silinen": list(yon), "ekran_kaniti_n": len(_screen_hits),
+                                "kb_kisi": bool(_yon_kb_hit), "clip": str(clip)})
+                except Exception:  # noqa: BLE001 — ölçüm ASLA üretimi düşürmez
+                    pass
                 yon = []; yon_kaynak = "okunamadı (OCR yönetmen KB ile eşleşmedi; zorlanmadı)"
     elif not yon:
         yon_kaynak = "okunamadı (kareden okunmadı; KB-fill YOK)"
@@ -1305,6 +1338,33 @@ def main():
                 film_notu.append("KİŞİ-TEYİT — KB'de doğrulanamayan %d isim listeden çıkarıldı (raporda saklı)."
                                  % (len(_teyitsiz_cast) + len(_teyitsiz_yon)))
                 rapor["adimlar"]["teyitsiz_dusen"] = {"cast": _teyitsiz_cast[:12], "yon": _teyitsiz_yon}
+                # ÖLÇÜM KANCASI — DOĞRU YER (2026-08-01, ikinci deneme).
+                # SABAH YANLIŞ DALA TAKMIŞTIM (satır ~810: "KB eşleşmedi; zorlanmadı").
+                # Gerçek silme BURADA: kişi-teyit kapısı KB'de doğrulanamayan ismi
+                # listeden çıkarıyor ve yon_kaynak'ı GÜNCELLEMİYOR → iz hâlâ "kareler"
+                # diyor, kimse silindiğini anlamıyor. Kanca 0 gösterdiği için körüz sandım.
+                # CANLI KANIT (DEFİNE ADASININ SIRRI 1990-0524): QC1 yonetmen_var=True,
+                # ama PDF'te 'Yönetmen' kelimesi HİÇ YOK — teyitsiz_dusen.yon =
+                # ['NICKLE LAURITZEN SET'] (sondaki 'SET' OCR kırıntısı).
+                # Bu, Çağatay'ın B8 kalemi: KB'nin VARLIK YARGICI olarak davrandığı nokta.
+                # ÖLÇÜM ÖNCE, karar sonra — bu kanca davranışı DEĞİŞTİRMEZ.
+                try:
+                    from core.observability.system_events import log_event as _le2
+                    if _teyitsiz_yon:
+                        _le2("credit_yonetmen_kisi_teyit_sildi", level="warn",
+                             summary=("%s: KB kişi-teyidi YÖNETMENİ sildi → %s "
+                                      "(kalan=%s). PDF'te yönetmen satırı boş kalır."
+                                      % (clip, _teyitsiz_yon, yon)),
+                             module="kunye",
+                             detail={"silinen_yon": _teyitsiz_yon, "kalan_yon": list(yon),
+                                     "silinen_cast_n": len(_teyitsiz_cast), "clip": str(clip)})
+                    elif _teyitsiz_cast:
+                        _le2("credit_cast_kisi_teyit_dustu", level="info",
+                             summary="%s: KB kişi-teyidi %d oyuncu düşürdü." % (clip, len(_teyitsiz_cast)),
+                             module="kunye",
+                             detail={"dusen": _teyitsiz_cast[:12], "clip": str(clip)})
+                except Exception:  # noqa: BLE001 — ölçüm ASLA üretimi düşürmez
+                    pass
         except Exception:  # noqa: BLE001 — süzgeç hatası akışı ASLA bozmaz (cast AYNEN kalır)
             pass
 
@@ -1395,13 +1455,33 @@ def main():
     if _sub and nn.ascii_fold(_sub).upper() == nn.ascii_fold(title).upper() \
             and meta.get("ana_dil", "—").upper() in ("TR", "—", ""):
         _sub = None                                 # Türkçe/bilinmeyen içerikte başlıkla aynı orijinal = gereksiz altyazı
+
+    # Jenerik dili (Alfabe Tipi) — SADECE PDF'e "Jenerik dili" yazmak için.
+    # Önce ÇIKIS jeneriği (jenerik_detection_cikis.json) → yoksa GİRİŞ jeneriği (jenerik_detection.json) fallback.
+    # Bu bilgi BAŞKA HİÇBİR YERDE KULLANILMAZ (ana_dil fallback, alfabe tespiti, vs. YOK).
+    jenerik_dili = None
+    try:
+        # Sıra: 1) ÇIKIS, 2) GİRİŞ (fallback)
+        for jd_name in ("jenerik_detection_cikis.json", "jenerik_detection.json"):
+            jd_path = os.path.join(clip, "frames", jd_name)
+            if os.path.exists(jd_path):
+                with open(jd_path, "r", encoding="utf-8") as fh:
+                    jd_data = json.load(fh)
+                script_code = jd_data.get("script") or (jd_data.get("v5") or {}).get("script") or jd_data.get("lang")
+                if script_code:
+                    jenerik_dili = SCRIPT_MAP.get(str(script_code).lower(), f"{str(script_code).upper()} Alfabesi")
+                    break
+    except Exception:
+        pass
+
     d = dict(profile=("DİZİ" if a.profile == "dizi" else "FİLM"), date=now,   # Fix 3a: profile hardcode → argparse
              title=nn.tr_upper(title), subtitle=_sub,  # Fix 2/3: foreign'da orijinal, Türkçe'de gereksizi gizle
              specs=[("ÇÖZÜNÜRLÜK", meta.get("res", "—")), ("TÜR", nn.tr_upper(tur)),
                     ("TOPLAM SÜRE", meta.get("dur", "—")), ("TRT KİMLİK", trt)],
              keywords=" ; ".join(castU) if castU else "—", cast=castU or ["—"], crew=crewU,
              ozet=ozet_v4(meta.get("ozet", ""), names=_ozet_names), ses_kanallari=sk,
-             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"), poster=poster,
+             ana_dil=meta.get("ana_dil", "—"), altyazi=meta.get("altyazi", "—"),
+             jenerik_dili=jenerik_dili, poster=poster,
              film_notu=film_notu)
     dbg.emit("v4", "pdf_field_written",
              subject={"field": "v4_pdf_fields", "after": {
@@ -1415,6 +1495,7 @@ def main():
              source={"module": "scripts/tek_film_kunye.py",
                      "input_paths": [clip], "output_paths": [a.out or ""]})
     d["bolum"] = a.bolum                                                       # Fix 3a: _make_pdf None ise basmaz
+    d["clip_dir"] = clip                                                       # Master jenerik görsel kanıt sayfaları için
 
     out_pdf = a.out or os.path.join(OUT_DEFAULT, f"{trt} {nn.tr_upper(title)} (v4).pdf")
     os.makedirs(os.path.dirname(os.path.abspath(out_pdf)), exist_ok=True)

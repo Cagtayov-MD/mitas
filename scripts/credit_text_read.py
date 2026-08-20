@@ -25,6 +25,13 @@ import sys
 import unicodedata
 import urllib.request
 
+# ── Korumalı bootstrap (§4.0) — betik-farkında rol tanıma tasarımı ──────────
+from pathlib import Path
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import rol_esles   # noqa: E402
+
 OLLAMA = os.environ.get("MITAS_OLLAMA", "http://127.0.0.1:11434")
 DEFAULT_MODEL = os.environ.get("MITAS_CREDIT_TEXT_MODEL", "gemma-4-31b-it-qat-vision:latest")
 # FIX 3 (2026-06-22): cast garble-gate'i 8-cap'ten ÖNCE çalıştır — garble'lar 8-slot
@@ -41,10 +48,36 @@ _GATE_BEFORE_CAP = os.environ.get("MITAS_EXTRACT_GATE_BEFORE_CAP", "1").strip().
 # gürültü <%2. Oranla ayır. MITAS_NONLATIN_MIN_RATIO=0 ile eski (oransız) davranış geri gelir.
 _NONLATIN_MIN_RATIO = float(os.environ.get("MITAS_NONLATIN_MIN_RATIO", "0.02"))
 
+# OCR model artifact filtresi (2026-08-02, konsey incelemesi 2026-08-03):
+# DeepSeek/Messi modeli metin olmayan karelerde Çince/İngilizce model marker'ları
+# üretir. Bunlar _nonlatin_ratio'yu şişirip tamamen Latin filmleri yanlışlıkla
+# KONTROL'e gönderiyordu (BUFFALO '66, NAZİK BİR GECE, ELVEDA OĞLUM).
+# Gerçek Kiril/Arap metni bu pattern'a UYMAZ — sadece [] içindeki model çıktısı
+# silinir. re.IGNORECASE: [No Text Found] / [no text found] varyantlarını kapsar.
+_OCR_MODEL_MARKERS = re.compile(
+    r'\[(?:'
+    r'图片[^\]]*'                    # [图片中没有可识别的文字内容]
+    r'|无[^\]]*文字[^\]]*'           # [无有效文字]
+    r'|无法识别[^\]]*'               # [无法识别图片内容]
+    r'|暂无[^\]]*'                   # [暂无文字内容]
+    r'|no[^\]]*text[^\]]*'           # [no text detected]
+    r'|image[^\]]*no[^\]]*text[^\]]*'  # [image contains no text]
+    r'|ocr[^\]]*none[^\]]*'          # [OCR result: none]
+    r')\]',
+    re.IGNORECASE
+)
+
 
 def _nonlatin_ratio(s: str) -> float:
     """Metindeki latin-dışı harflerin TÜM harflere oranı (0..1). Rakam/noktalama sayılmaz."""
-    alpha = [c for c in (s or "") if c.isalpha()]
+    # OCR model artifact'larını temizle — gerçek Kiril/Arap metnine dokunmaz
+    original = s or ""
+    s = _OCR_MODEL_MARKERS.sub('', original)
+    # GLM edge-case: metnin TAMAMI model çöpüydü → temizleme her şeyi sildi.
+    # 0.0 (Latin) dönmek yerine 1.0 (Latin-dışı) dön → film yanlışlıkla ONAYLI'ya düşmesin.
+    if s.strip() == "" and original.strip() != "":
+        return 1.0
+    alpha = [c for c in s if c.isalpha()]
     if not alpha:
         return 0.0
     nonlatin = 0
@@ -143,7 +176,7 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
 
     hints = re.compile(
         r"\b(CAST|STARRING|IN ORDER OF APPEARANCE|DIRECTED BY|WRITTEN\s*&\s*DIRECTED|"
-        r"PRODUCED BY|PRODUCER|YONETMEN|YÖNETMEN|YAPIMCI|OYUNCU|OYUNCULAR)\b",
+        r"PRODUCED BY|PRODUCER|YONETMEN|YÖNETMEN|YAPIMCI|OYUNCU|OYUNCULAR|frame_giris|master_giris)\b",
         re.IGNORECASE,
     )
     keep: set[int] = set()
@@ -156,9 +189,71 @@ def _compact_raw_lines_for_llm(lines: list[str], *, max_lines: int = 700) -> lis
         tail = max_lines - head
         return cleaned[:head] + cleaned[-tail:]
 
+    # ÖNCELİKLİ KESİM (2026-08-01, KUTSAL HAZİNE 1998-0325 kanıtı).
+    # ESKİ DAVRANIŞ: keep bütçeyi aşınca BELGE SIRASINA göre baştan kesiliyordu
+    # (`ordered[:max_lines]`). Yönetmen kartı jeneriğin SONUNDA durur → sistem
+    # ipucunu doğru bulup koruma listesine ekliyor, sonra pozisyon yüzünden atıyordu.
+    # KANIT: ocr_ham 1904 satır, "Directed by"/"JOHN CONNICK" satır 1504-1505'te,
+    # 500 sınırından sonra → MODEL YÖNETMENİ HİÇ GÖRMEDİ. "gemma atladı" sanılan
+    # vaka aslında girdi kesmesiydi (model A/B'de aynı gemma, kunye.txt verilince
+    # ismi BULDU). Ölçek: 500'ü aşan 76 filmin 2'si (KUTSAL HAZİNE, DONÖR).
+    # ÇÖZÜM: QC1'in sorduğu alanların (yönetmen + oyuncu) ipucu komşuluğu ÖNCE
+    # rezerve edilir, kalan bütçe diğer ipuçlarına belge sırasıyla dağıtılır.
+    # Sıra korunur (model satır komşuluğuna güveniyor). Geri dönüş: MITAS_COMPACT_ONCELIK=0.
+    if len(keep) > max_lines and os.environ.get(
+            "MITAS_COMPACT_ONCELIK", "1").strip().lower() not in ("0", "false", "off"):
+        # '--- KART ---' de öncelikli: sınır düşerse iki kart BİRLEŞİR ve
+        # etiket-isim bağı yeniden belirsizleşir — sınırı korumak şart.
+        _oncelikli = re.compile(
+            r"---\s*KART\s*---|"
+            r"\b(DIRECTED BY|WRITTEN\s*&\s*DIRECTED|YONETMEN|YÖNETMEN|"
+            r"CAST|STARRING|OYUNCU|OYUNCULAR|IN ORDER OF APPEARANCE)\b", re.IGNORECASE)
+        _ipucu = [i for i, line in enumerate(cleaned) if _oncelikli.search(line)]
+
+        def _pencere(on: int) -> set[int]:
+            ark = max(1, on * 2)                # ipucu ETİKET, isimler ALTINDA → arka pay iki katı
+            s: set[int] = set()
+            for i in _ipucu:
+                s.update(range(max(0, i - on), min(len(cleaned), i + ark)))
+            return s & keep
+
+        birinci = _pencere(40)
+        if len(birinci) > max_lines:
+            # YARIÇAP DARALT — pozisyona göre kesme YAPMA.
+            # (2026-08-01, ALİE 2010-9253 kanıtı) Eski kod `sorted(birinci)[:max_lines]`
+            # ile EN DÜŞÜK indeksleri tutuyordu. ocr_ham.txt önce ÇIKIŞ sonra GİRİŞ
+            # jeneriğini yazar → giriş bloğu her zaman dosyanın SONUNDA. Bütçe aşılan
+            # her filmde giriş jeneriği KOMPLE siliniyordu; yönetmen/yapımcı/başrol
+            # orada durur. ALİE'de ölçüldü: 56 ipucu → 964 satır pencere, 500 bütçe,
+            # kesim indeks 947'de bitti; 'konuk oyuncular' (1288) ve 'yapimci' (1315)
+            # modele HİÇ gitmedi → PDF'te oyuncu 4/8, yapımcı boş.
+            # Yeni davranış: yarıçap daralır, her ipucunun yakın komşuluğu belge
+            # BOYUNCA korunur — hiçbir bölge topluca kör kalmaz.
+            _alt, _ust = 0, 40
+            while _alt < _ust:
+                _orta = (_alt + _ust + 1) // 2
+                if len(_pencere(_orta)) <= max_lines:
+                    _alt = _orta
+                else:
+                    _ust = _orta - 1
+            birinci = _pencere(_alt)
+            if len(birinci) > max_lines:
+                # Yarıçap 0'da bile taşıyor → ipucu satırlarının KENDİSİ bütçeden çok.
+                # Yine baştan kesme yok: belge boyunca eşit aralıkla örnekle.
+                _h = sorted(birinci)
+                _adim = len(_h) / max_lines
+                birinci = {_h[int(k * _adim)] for k in range(max_lines)}
+        kalan = max_lines - len(birinci)
+        ikinci = [i for i in sorted(keep - birinci)][:max(0, kalan)]
+        keep = birinci | set(ikinci)
+
+    kalan_genel = max_lines - len(keep)
+    if kalan_genel > 0:
+        haric = [i for i in range(len(cleaned)) if i not in keep]
+        keep.update(haric[:kalan_genel])
+
     ordered = [cleaned[i] for i in sorted(keep)]
-    if len(ordered) > max_lines:
-        ordered = ordered[:max_lines]
+    ordered = ordered[:max_lines]
     return ordered
 
 
@@ -174,7 +269,17 @@ def load_llm_lines_for_ocr(ocr_path: str | os.PathLike | None) -> tuple[list[str
         return [], ""
     base = os.path.dirname(os.fspath(ocr_path))
 
-    for filename in ("ocr_ham.txt", "ocr_raw_all.txt"):
+    # KART SINIRLI METİN TERCİHLİ (2026-08-01): hibrit okuyucu kunye_kart.txt
+    # yazıyor — satırlar KAYNAK KAREYE göre gruplu, araya '--- KART ---' konmuş.
+    # Düz metinde kart yapısı kayboluyor ve etiket-isim bağı belirsizleşiyor
+    # (YAZ TATİLİ: 'CHOREOGRAPHY … DIRECTED BY / HERBERT ROSS' ile 'DIRECTED BY /
+    # PETER YATES' yan yana düşüp ayırt edilemedi). Kart sınırıyla belirsizlik yok.
+    # ADDITIVE: dosya yoksa eski sıra AYNEN (ocr_ham → ocr_raw_all).
+    # Kill-switch: MITAS_KART_METIN=0
+    _sira = ("ocr_ham.txt", "ocr_raw_all.txt")
+    if os.environ.get("MITAS_KART_METIN", "1").strip().lower() not in ("0", "false", "off"):
+        _sira = ("kunye_kart.txt",) + _sira
+    for filename in _sira:
         lines = _read_ocr_sidecar_lines(base, filename)
         if lines:
             lines = _compact_raw_lines_for_llm(lines, max_lines=500)  # 260→500: uzun/anahtar-kelimesiz jenerikte kadro-bloğu kaybını azalt (recall güvenliği)
@@ -345,6 +450,24 @@ def filter_cast_by_raw_context(cast: list[str], raw_context_lines: list[str] | N
     return out
 
 
+def _name_casing_yerler(name: str, raw_lines: list[str]) -> tuple[list[int], list[int]]:
+    """_name_casing_hits'in KONUMLU hâli: (ALL-CAPS görüldüğü satır indeksleri,
+    karışık-kasa görüldüğü satır indeksleri). Kasa-kapısının yerellik kontrolü için."""
+    toks = [t for t in _fold(name).split() if t]
+    if not toks:
+        return ([], [])
+    pat = re.compile(r"\b" + r"\s+".join(re.escape(t) for t in toks) + r"\b", re.IGNORECASE)
+    caps_i: list[int] = []
+    mixed_i: list[int] = []
+    for i, ln in enumerate(raw_lines):
+        for m in pat.finditer(str(ln or "")):
+            harf = [c for c in m.group(0) if c.isalpha()]
+            if len(harf) < 2:
+                continue
+            (caps_i if all(c.isupper() for c in harf) else mixed_i).append(i)
+    return (caps_i, mixed_i)
+
+
 def _name_casing_hits(name: str, raw_lines: list[str]) -> tuple[int, int]:
     """İsmin ham (fold'suz) satırlarda kaç kez TÜMÜ-BÜYÜK-HARF, kaç kez EN-AZ-BİR-KÜÇÜK-HARF
     biçiminde geçtiğini sayar (word-boundary, fold-toleranslı arama, orijinal casing üzerinde ölçüm)."""
@@ -389,13 +512,36 @@ def filter_cast_by_dotleader_casing(cast: list[str], raw_lines: list[str] | None
     if not cast or len(cast) < 2 or not raw_lines:
         return cast or []
     raw = [str(l) for l in raw_lines if str(l).strip()]
-    profiles = {nm: _name_casing_hits(nm, raw) for nm in cast}
+    yerler = {nm: _name_casing_yerler(nm, raw) for nm in cast}
+    profiles = {nm: (len(c), len(m)) for nm, (c, m) in yerler.items()}
     if not any(caps > 0 for caps, _mixed in profiles.values()):
         return cast  # bu filmde casing ayırt edici değil — dokunma
+
+    # YERELLİK (2026-08-01, ALİE 2010-9253 kanıtı). Kapı "filmin TEK kasa geleneği
+    # var" varsayıyordu. MITAS İKİ jenerik okur: ALİE'de ÇIKIŞ tümü-BÜYÜK
+    # (NAZLI ÖZDEMİR…), GİRİŞ tümü küçük ('konuk oyuncular / meral okay /
+    # oktay kaynarca'). Çıkıştaki ALL-CAPS kanıtı kapıyı açıyor, sonra girişteki
+    # GERÇEK konuk oyuncuları 'karakter adı' sanıp atıyordu.
+    # Kasa ancak AYNI KARTTA ayırt edicidir ('Tommy White......JOHN SHELTON').
+    # Kural: bir ismi düşürmek için ALL-CAPS-kanıtlı bir kardeş ismin onun
+    # KOMŞULUĞUNDA (±YAKIN satır) geçmesi şart. Uzaktaki kanıt başka bir
+    # jeneriğin/kartın geleneğidir, bu isim için hüküm veremez.
+    # Kill-switch: MITAS_CAST_CASING_YEREL=0 (eski küresel davranış).
+    _YAKIN = 60
+    _yerel = os.environ.get("MITAS_CAST_CASING_YEREL", "1").strip().lower() not in (
+        "0", "false", "off", "no")
+    _caps_yerleri = sorted({i for nm, (c, _m) in yerler.items() if c for i in c})
+
     out, dropped = [], []
     for nm in cast:
         caps, mixed = profiles.get(nm, (0, 0))
         if caps == 0 and mixed > 0:
+            if _yerel:
+                _benim = yerler[nm][1]
+                _komsu = any(abs(ci - mi) <= _YAKIN for mi in _benim for ci in _caps_yerleri)
+                if not _komsu:
+                    out.append(nm)          # yakında ALL-CAPS kanıtı yok → hüküm verme
+                    continue
             dropped.append(nm)
         else:
             out.append(nm)
@@ -439,11 +585,20 @@ _NONFILM_MARKERS = (
 # bu desenlerden biri varsa aday marker'la DÜŞÜRÜLMEZ (etiket-üstte klasik yerleşim korunur).
 # Word-boundary: 'yonetmen' ∌ 'goruntu yonetmeni' ('yonetmeni' eki boundary'yi bozar), 'regie' ∌
 # 'regieassistenz'. Liste bilinçli DAR: yalnız tek-anlamlı film-yönetmeni ifadeleri.
-_TRUE_DIR_RE = re.compile(
-    r"\b(directed by|a film by|film by|un film de|ein film von|film von|realise par|realisateur|"
-    r"regia di|dirigido por|yonetmen|yoneten|rejisor|regie|"
-    r"mise en scene|realisation|"                                           # FR ana-etiketler (2026-07-06)
-    r"written and directed|directed and edited|produced and directed)\b")   # bileşik etiketler (AJAMİ 2026-07-03)
+#
+# BETİK-FARKINDA ROL TANIMA (2026-08-12, spec §4.4): eski özel regex (kendi dar Latin
+# listesi) SİLİNDİ, core/lexicon/rol_tablosu.TABLO["LATIN"]["YONETMEN"]'e delege edildi
+# (credit_role_lexicon.DIRECTOR'ın birebir kopyası — eski regex'in TÜM kelimeleri bunun
+# alt-kümesi, kapsam GENİŞLİYOR: ör. bare 'DIRECTOR', 'DIRETTO DA' eski listede YOKTU).
+# `haric_uygula=True` ŞART: genişleyen kelime dağarcığı bare 'DIRECTOR' içerdiği için
+# HARIC (LATIN.HARIC) uygulanmazsa 'ART DIRECTOR' / 'ASSISTANT DIRECTOR' gibi alt-roller
+# de yanlışlıkla bağışıklık tetikler — eski dar listenin ÖRTÜK niyeti (yalnız tek-anlamlı
+# film-yönetmeni ifadeleri) böyle korunuyor. `folded` satırları `_fold()`'dan geldiği için
+# (Latin-ASCII'ye indirger) bu çağrı yeri zaten Latin-only bağlamda çalışıyor — betik her
+# zaman LATIN dönecek, davranış bu yüzden değişmiyor (yalnız kelime dağarcığı genişliyor).
+def _gercek_yonetmen_satirlarda(satirlar) -> bool:
+    """`satirlar` (fold'lu satır LİSTESİ) içinde GERÇEK yönetmen etiketi var mı."""
+    return any(rol_esles(s, "YONETMEN", haric_uygula=True) for s in satirlar)
 
 
 def _name_line_hits(name, folded_lines):
@@ -533,26 +688,28 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                     _other_occ |= {i for i, lf in enumerate(folded) if re.search(r"\b" + re.escape(_of) + r"\b", lf)}
             # GLOBAL-BAĞIŞIKLIK (2026-07-06, KONTROL-MAHKEMESİ FIX-2c — CENNETE GELDİK Mİ kanıtı):
             # adayın HERHANGİ bir geçişinin kendi/2-üst penceresinde GERÇEK-yönetmen etiketi
-            # (_TRUE_DIR_RE, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM markerları onu
-            # DÜŞÜREMEZ — çok-şapkalı kişinin (yön+yapımcı+DoP aynı kişi) diğer kartlarının
-            # komşuluğu masum geçişi öldürüyordu. DUBLAJ kuralı DEĞİŞMEZ (geniş-pencere,
+            # (_gercek_yonetmen_satirlarda, "PRODUCED WRITTEN DIRECTED BY" dahil) varsa NONFILM
+            # markerları onu DÜŞÜREMEZ — çok-şapkalı kişinin (yön+yapımcı+DoP aynı kişi) diğer
+            # kartlarının komşuluğu masum geçişi öldürüyordu. DUBLAJ kuralı DEĞİŞMEZ (geniş-pencere,
             # bağışıklığı bastırır — TILSIMLI dersi aynen korunur).
-            _glob_imm = any(_TRUE_DIR_RE.search(" ".join(folded[max(0, _gi - 2):_gi + 1])) for _gi in _occ)
+            _glob_imm = any(_gercek_yonetmen_satirlarda(folded[max(0, _gi - 2):_gi + 1]) for _gi in _occ)
             for i in _occ:
                 if True:
                     # DoP-fix (2026-07-03): '±1' niyetli dilim fiilen [i-1, i] idi — SONRAKİ satır hiç
                     # görülmüyordu; "İSİM üstte / DIRECTOR OF PHOTOGRAPHY altta" yerleşimi sızıyordu.
                     # Pencere [i-1, i+1]'e genişletildi. REGRESYON KALKANI: adayın kendi/2-üst satırında
-                    # GERÇEK-yönetmen etiketi (_TRUE_DIR_RE) varsa DÜŞÜRME — "DIRECTED BY X" hemen ardından
-                    # DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte yerleşim).
+                    # GERÇEK-yönetmen etiketi (_gercek_yonetmen_satirlarda) varsa DÜŞÜRME — "DIRECTED BY X"
+                    # hemen ardından DoP satırı gelen klasik dizilişte gerçek yönetmen ölmesin (etiket-üstte
+                    # yerleşim).
                     ctx = " ".join(folded[max(0, i - 1):i + 2])
                     # DUBLAJ GENİŞ-PENCERE (2026-07-03, TILSIMLI DÜNYA): "Dialogue Written and Directed
                     # by GREG SNEGOFF" OCR'da 4 satıra bölünür → dublaj-marker isimden 2-4 satır yukarıda.
-                    # Dublaj markerlarına ÖZEL ±4 üst-pencere; bulunursa _TRUE_DIR_RE bağışıklığını BASTIRIR
-                    # (o "Directed by" zaten dialogue-directed-by'dır). NONFILM markerları eski dar pencerede.
-                    # SADECE ÜST-pencere (i-4..i): dublaj etiketi hep isimden ÖNCE gelir; isim-ALTINDAKİ
-                    # sonraki kartın "Dialogue" etiketini yakalayıp masum yönetmeni düşürmeyi önler
-                    # (TILSIMLI'de Macek'in ALTINDA Snegoff'un dialogue-kartı var → Macek düşmemeli).
+                    # Dublaj markerlarına ÖZEL ±4 üst-pencere; bulunursa _gercek_yonetmen_satirlarda
+                    # bağışıklığını BASTIRIR (o "Directed by" zaten dialogue-directed-by'dır). NONFILM
+                    # markerları eski dar pencerede. SADECE ÜST-pencere (i-4..i): dublaj etiketi hep
+                    # isimden ÖNCE gelir; isim-ALTINDAKİ sonraki kartın "Dialogue" etiketini yakalayıp
+                    # masum yönetmeni düşürmeyi önler (TILSIMLI'de Macek'in ALTINDA Snegoff'un
+                    # dialogue-kartı var → Macek düşmemeli).
                     _dub_lo = max(0, i - 4)
                     _blockers = [oi for oi in _other_occ if _dub_lo <= oi < i]
                     if _blockers:
@@ -562,8 +719,8 @@ def _drop_dubbing_directors(directors, raw_lines, high_consensus=False):
                         is_nf = True
                         break
                     if any(m in ctx for m in markers):
-                        imm = " ".join(folded[max(0, i - 2):i + 1])
-                        if not _glob_imm and not _TRUE_DIR_RE.search(imm):
+                        imm_satirlari = folded[max(0, i - 2):i + 1]
+                        if not _glob_imm and not _gercek_yonetmen_satirlarda(imm_satirlari):
                             is_nf = True
                             break
         (dropped if is_nf else kept).append(d)
@@ -611,6 +768,10 @@ PROMPT = """Aşağıda bir filmin jeneriğinden (künye) OCR ile okunan satırla
 GÖREVİN: bu satırlardan YÖNETMEN, YAPIMCI ve baş OYUNCULARI çıkarmak — YENİDEN OKUMAK ya da bilgiden EKLEMEK DEĞİL.
 
 KESİN KURALLAR:
+-1. KART YAPISI: Satırlar arasında "--- KART ---" işareti görürsen, bu bir JENERİK
+   KARTININ sınırıdır — o işaretten SONRAKİ satırlar EKRANDA AYNI ANDA görünmüştür.
+   Bir rol etiketi ile isim AYNI KART içindeyse o isim O ROLE aittir. Farklı
+   kartlardaki etiketle ismi BİRLEŞTİRME. Kart işaretini isim/rol olarak YAZMA.
 0. BİÇİM (EN ÖNEMLİ): her isim GERÇEK "Ad Soyad" olmalı — en az İKİ kelime, gerçek bir insan. TEK kelime (yalnız ad VEYA yalnız soyad) YAZMA. Marka/şirket/stüdyo/logo adı (ör. Warner Bros, Lucasfilm, Columbia Pictures), sıfat, rol/etiket sözcüğü İSİM DEĞİLDİR — YAZMA. Emin değilsen o ismi atla.
 1. SADECE aşağıdaki satırlarda GEÇEN isimleri kullan. Kendi bilginden/hafızandan İSİM EKLEME, TAHMİN ETME. Bir alan satırlarda yoksa boş liste [] ver.
 2. Bir satır "KARAKTER_ADI OYUNCU_ADI" biçimindeyse (ör. "CAL MORSE SAM WATERSTON", "FLETCHER REEDE JIM CARREY", "MARGARET THATCHER MERYL STREEP"), yalnız OYUNCU (gerçek kişi) adını al; KARAKTER adını KOYMA. Tek başına KARAKTER/ROL adı görünüyorsa (ör. yalnız "FLETCHER REEDE" veya "MARGARET THATCHER") onu LİSTEYE KOYMA — sadece gerçek oyuncu adlarını ver.
@@ -626,7 +787,9 @@ KESİN KURALLAR:
    Etiketin yanında BİRDEN FAZLA isim varsa (ör. "Directed by A, B" / "Written, Directed and Edited by Scandar Copti, Yaron Shani") HEPSİNİ yaz — iki eş-yönetmen normaldir, TEKE İNDİRME.
    DİKKAT — DUBLAJ TUZAĞI: "DIALOGUE DIRECTED BY", "DIALOGUE WRITTEN AND DIRECTED BY", "ADR DIRECTOR", "VOICE DIRECTOR" YÖNETMEN DEĞİLDİR (dublaj/seslendirme yönetmeni). Ekranda hem "WRITTEN AND DIRECTED BY <A>" hem "DIALOGUE ... DIRECTED BY <B>" varsa YÖNETMEN <A>'dır, <B> DEĞİL.
    "A <İSİM> FILM" kalıbında "FILM" kelimesi ETİKETtir; içindeki KİŞİ adını AL (kural 3'e takılıp atlama).
-   YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
+   YÖNETMEN DEĞİLDİR — KOYMA: "ASSISTANT DIRECTOR / 1ST / 2ND / FIRST / SECOND ASSISTANT DIRECTOR", "2ème/1er ASSISTANT RÉALISATEUR", "DIRECTOR OF PHOTOGRAPHY", "ART DIRECTOR", "CASTING (BY)", "MUSIC DIRECTOR", yardımcı/görüntü/müzik/yapım yönetmeni.
+   HİKÂYE/SENARYO ETİKETİ DE YÖNETMEN DEĞİLDİR — KOYMA: "NACH EINER GESCHICHTE VON", "BASED ON A STORY BY", "D'APRÈS", "SCÉNARIO", "DREHBUCH", "SENARYO", "WRITTEN BY" (yalnız "WRITTEN AND DIRECTED BY" bileşik kartı yönetmendir).
+   ETİKETİN ÜSTÜNDEKİ İSİM O ETİKETE AİT DEĞİLDİR: jenerik kartında etiket ÜSTTE, isim ALTTA olur. Bir ismin hemen ALTINDA yönetmen etiketi görüyorsan o isim BAŞKA bir role aittir — yönetmen o etiketin ALTINDAKİ isimdir.
    Bu kalıplardan hiçbiri NET değilse [] ver — ASLA oyuncu adı koyma, ASLA tahmin etme.
 5. OYUNCULAR: jenerikte görünen GERÇEK oyuncu adları (gerçek insanlar; karakter/rol adları DEĞİL), en fazla __CAP__, görünme sırasıyla. Besteci/müzik, kurgu, senaryo, görüntü yönetmeni, yapımcı gibi EKİP üyeleri OYUNCU DEĞİLDİR — cast'e koyma.
 6. YAPIMCI: "PRODUCED BY / EXECUTIVE PRODUCER / EXEC. PRODUCER / YAPIMCI / PRODUCER / EXECUTIVE YAPIMCI / PRESENTE / PRESENTS / PRESENTED BY / UNA PRODUZIONE" yanındaki GERÇEK KİŞİ adı. Besteci/müzik (COMPOSER/MUSIC BY), kurgu, senaryo YAPIMCI DEĞİLDİR — koyma. "Executive Producer / Yürütücü Yapımcı" GERÇEK YAPIMCI SAYILIR. "Associate Producer / Line Producer / Co-producer / Ortak yapımcı / Yardımcı yapımcı / Uygulayıcı Yapımcı" GERÇEK yapımcı SAYILMAZ — KOYMA.  # fix2-etiket 2026-06-29; Uygulayıcı=AYNADAKİ DÜŞMAN 2026-07-04
@@ -891,7 +1054,7 @@ _JUNK_WORDS = {
 }
 
 
-def _guard(names, ocr_fold_tokens, title_f):
+def _guard(names, ocr_fold_tokens, title_f, original_f=""):
     """Anti-halüsinasyon + junk-filtre: her ismin anlamlı tokenlarının TÜMÜ OCR metninde geçmeli;
     1-4 kelime; disclaimer/bağlaç kelimesi içermemeli. Aksi halde uydurma/çöp → atılır."""
     out, seen = [], set()
@@ -911,7 +1074,10 @@ def _guard(names, ocr_fold_tokens, title_f):
         # disclaimer/bağlaç/etiket kelimesi içeren "isim" = cümle parçası → düş
         if any(t in _JUNK_WORDS for t in tk):
             continue
-        if _fold(nm).strip() == title_f:  # film adının kendisi isim değil
+        nm_f = _fold(nm).strip()
+        if nm_f == title_f:  # film adının kendisi isim değil
+            continue
+        if original_f and nm_f == original_f:  # orijinal başlık da isim değil
             continue
         k = " ".join(tk)
         if k in seen:
@@ -2133,7 +2299,7 @@ def model_chain():
     return ["gemma-4-31b-it-qat-vision:latest"]
 
 
-def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
+def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None, original=""):
     """F1: TÜM modelleri koş, ilk-doluda DURMA.
     Yönetmen: fuse() ile mutabakat/KB-seçimi.
     Cast: tüm modellerin birleşimi, dedup + F2 KB filtresi + F3 garble kapısı.
@@ -2208,6 +2374,7 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
         guard_lines.extend(str(l).strip() for l in raw_context_lines if str(l).strip())
     ocr_tokens = set(_toks("\n".join(guard_lines)))
     title_f = _fold(title).strip()
+    original_f = _fold(original).strip() if original else ""
 
     kb = _get_kb()
     # A-fix-canli 2026-06-29: _cap burada bir kez tanımlanır; aşağıdaki tüm hard-cut'lar buna referans verir.
@@ -2278,9 +2445,9 @@ def read_credits_auto(lines, title="", *, dizi=False, raw_context_lines=None):
             per_model_cast[m] = []
             continue
 
-        yon_raw = _guard(raw.get("yonetmen"), ocr_tokens, title_f)
-        yap_raw = _guard(raw.get("yapimci"), ocr_tokens, title_f)
-        cast_raw = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f)  # fix3-B 2026-06-29
+        yon_raw = _guard(raw.get("yonetmen"), ocr_tokens, title_f, original_f)
+        yap_raw = _guard(raw.get("yapimci"), ocr_tokens, title_f, original_f)
+        cast_raw = _guard(_merge_split_names(raw.get("oyuncular") or []), ocr_tokens, title_f, original_f)  # fix3-B 2026-06-29
 
         per_model_yon[m] = yon_raw
         per_model_cast[m] = cast_raw

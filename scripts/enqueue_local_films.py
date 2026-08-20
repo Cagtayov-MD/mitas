@@ -15,7 +15,7 @@ import argparse, glob, json, os, re, sys, urllib.request
 from uuid import uuid4
 
 # Linux geçişi 2026-07-16: kök env'den (yoksa eski Windows davranışı birebir).
-QUEUE = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS",
+QUEUE = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas",
                      "outputs", "flow_queue", "queue.json")
 API = "http://127.0.0.1:8787"
 EXTS = ("mp4", "mxf", "mkv", "avi", "mov", "MP4", "MXF", "MKV")

@@ -14,11 +14,12 @@ filtered pool.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -31,7 +32,7 @@ except Exception:
     pass
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 sys.path.insert(0, str(PROJECT_ROOT))
 os.environ.setdefault("JENERIK_PADDLE_FAST_NO_DOC", "1")
 
@@ -121,30 +122,6 @@ def _trim_footage_head_v2(pool_frames: list[Path], cfg: DetectorConfig,
     return max(0, anchor)
 
 
-def _trim_footage_head(pool_frames: list[Path], cfg: DetectorConfig, max_scan: int = 60) -> int:
-    """Baştaki footage karelerini OCR ile kırp; atılacak kare sayısını döndür (0 = kırpma yok).
-    Baştan max_scan kareyi kare-kare tarar; gerçek kredi bloğu (ardışık 2 kredi karesi) başlayınca
-    kredinin İLK karesine kırpar → YALAZA'da trim=1 (YÖNETMEN kartı KORUNUR). Küçük footage-baş
-    (~%80 vaka) çözülür. FAIL-SAFE: paddle yok / ilk 60'ta net kredi yok → 0 (temiz havuz zaten
-    ilk kareden kredi → 0; SON_METRO gibi diegetik-erken-anchor ekstremleri trim'le çözülmez → 0,
-    ayrı ele alınır — KKF)."""
-    if not _footage_trim_enabled():
-        return 0
-    ocr = _det._PADDLE_CACHE.get(cfg.ocr_lang)
-    if ocr is None or not pool_frames:
-        return 0
-    hits = 0
-    for i, f in enumerate(pool_frames[:max_scan]):
-        c = _is_credit_frame(ocr, f, cfg)
-        if c:
-            hits += 1
-            if hits >= 2:                    # ardışık 2 kredi karesi = gerçek kredi başladı
-                return max(0, i - 1)         # ikilinin İLK karesinden başlat (baş krediyi kaybetme)
-        elif c is False:
-            hits = 0
-    return 0
-
-
 def _blackish(f: Path, mean_thr: float = 20.0, max_thr: float = 70.0) -> bool:
     """GERÇEKTEN boş siyah kare (kart-arası BOŞLUK) mu?
 
@@ -207,6 +184,10 @@ def _backward_extend_credits(images: list[Path], start_pos: int, cfg: DetectorCo
 
 ACCEPT_STATUSES = {"already_in_credit"}
 
+# Dalga 3 metin-kapı eşiği: son %15 karede jbayrak (credit-benzeri kutu) oranı >= bu
+# → review_required (insan kuyruğu); altındaysa kredi_yok (bugünkü gibi red).
+METIN_KAPI_ESIK = 0.30
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -253,16 +234,18 @@ def _accepted(status: str) -> bool:
     return status == "review_boundary_ambiguous" and _accept_review_enabled()
 
 
-def _oneocr_fallback_enabled() -> bool:
-    # B kararı (Çağatay 2026-06-27): paddle başarısızsa (not_found/review-scene/low-conf) OneOCR-detektörü
-    # dene → non-Latin/FR'yi kurtarır. OneOCR ~80sn/film yavaş ama YALNIZ paddle-başarısızlarında koşar
-    # (paddle hızını korur, sadece gerekli ~%20'de OneOCR). DEFAULT ON; kapat =0.
-    return os.environ.get("MITAS_JENERIK_ONEOCR_FALLBACK", "1").strip().lower() not in ("0", "false", "off", "no")
+def _metin_kapi_enabled() -> bool:
+    # Dalga 3 (konsey kararı 2026-07-29): v5 kredi_yok derse CV DEVRALMAZ; credit_box
+    # det-only metin taraması son %15'te credit-benzeri kutu arar. DEFAULT KAPALI —
+    # üretim davranışı Çağatay onayı + return-3 denetimi + insan FN=0 doğrulaması
+    # olmadan değişmesin. Aç: MITAS_JENERIK_METIN_KAPI=1.
+    return os.environ.get("MITAS_JENERIK_METIN_KAPI", "0").strip().lower() not in ("0", "false", "off", "no")
 
 
 def _v5_enabled() -> bool:
     # JENERİK-V5 (2026-07-23, %92 kampanyası — Çağatay kararı: "artık aktif jenerik başlangıç
-    # bulma stratejimiz bu"). harness/kunye_kiyas/credit_onset.tespit_v5: 110-film doğrulanmış
+    # bulma stratejimiz bu"). Kobe = Allstar/kobe KULESİ, E1'den beri sözleşmeyle çağrılır
+    # (kobe tek alt-süreç → out/<film>/cikis/kobe.json): 110-film doğrulanmış
     # GT'de %93.6 simetrik / %96.4 üretim-ölçütü / kredisiz-red 29/29. Açıkken eski dedektörün
     # yama yığını (oneocr-fallback / vlm-rescue / footage-trim / backward-extend) ATLANIR —
     # v5 kendi rafinelerini içerir, üstüne eski yamalar bindirilirse onset bozulur.
@@ -270,37 +253,205 @@ def _v5_enabled() -> bool:
     return os.environ.get("MITAS_JENERIK_V5", "0").strip().lower() not in ("0", "false", "off", "no")
 
 
-def _v5_detect(frames_dir: Path, images: list, debug_root: Path) -> int | None:
-    """tespit_v5 → images-listesi İNDEKSİ (güvenlik payı düşülmüş) ya da None (→ eski akış).
+def _suphe_genis_havuz_enabled() -> bool:
+    # ŞÜPHE KATMANI — GENİŞ-HAVUZ bayrağı (2026-07-30, konsey GLM+Nemotron kırmızı-
+    # takım gardlı; Çağatay: "tespit edemesek bile şüpheyi bilelim; gerekirse tüm
+    # havuzu alırız, isim kaçarsa PDF şaşar"). Açıkken VE v5 KAZANDIYSA (kredisizde
+    # ASLA — konsey kırmızı çizgisi: AMY sınıfında sahte havuz doldurma yasak) VE
+    # credit_onset.Sonuc.suphe içinde "gec_riski" varsa, havuzu elenen komşu
+    # adayın BAŞINA (suphe_geri_kare) çeker — tavan en fazla 120 kare (asimetri
+    # politikası, erken≤120). DEFAULT KAPALI — yalnız ÖLÇÜM/bilgi amaçlı; üretim
+    # davranışı Çağatay onayı olmadan değişmesin. Aç: =1.
+    return os.environ.get("MITAS_JENERIK_SUPHE_GENIS_HAVUZ", "0").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _kare_no(yol: str) -> int:
+    """Dosya adından mutlak kare numarası (c_0027.png → 27) — motor._kare_no'nun
+    birebir aynası (Allstar/kobe/src/motor.py:74). E1'den beri kobe CLI'dan yalnız
+    KARAR gelir; kare-no ← indeks eşlemesi yerelde kalır."""
+    import re as _re
+    m = _re.search(r"(\d+)(?=\.[a-zA-Z]+$)", yol)
+    return int(m.group(1)) if m else 1
+
+
+@dataclass
+class _V5Karar:
+    """Kobe sözleşme JSON'unun (out/<film>/cikis/kobe.json) motor.Sonuc aynası.
+
+    E1 (2026-08-17): üretim kobe'yi KÜTÜPHANE olarak import ETMEZ — `kobe tek`
+    alt-süreci + kobe.json okur (sözleşme + _TAMAM kuyruğu). Aşağı akış (manifest
+    `v5` alt-nesnesi, create_pool credit_type/reason) ATTRIBUTE erişimi bekler;
+    bu sınıf o sözü korur. Yalnız okunan alanlar aynalanır (dy_medyan/seri gibi
+    hiçbir tüketici okumayanlar DEĞİL — ayna yüzeyi küçük kalsın)."""
+    start_frame: int = -1
+    yontem: str = ""
+    guven: float = 0.0
+    notlar: str = ""
+    tip: str = ""
+    scroll_orani: float = 0.0
+    ardisik_scroll: int = 0
+    son_capa: float = 0.0
+    aday_sayisi: int = 0
+    suphe: list = field(default_factory=list)
+    suphe_geri_kare: int = -1
+    script: str = "en"
+    ocr_hata: int = 0
+
+
+def _kobe_karari_al(frames_dir: Path, timeout: int = 1800) -> dict:
+    """`kobe tek --kareler` alt-sürecini koş → out/<film_id>/cikis/kobe.json oku.
+
+    Kobe KENDİ venv'iyle (167 pin, dondurulmuş) koşar — sürüm dondurma kuleyle
+    gelir; bu süreç (venvs/ocr) kobe'nin içine ASLA giremez. Kare dizini kobe
+    sözleşmesi gereği DOKUNULMAZ kalır (yalnız kendi yaratmadığı _det_cache.json
+    yazar — bugünkü süreç-içi çağrıdan farkı yok).
+
+    ARIZA / okunamayan JSON → RuntimeError: çağıran (create_pool) bunu
+    v5_hata_bilgi yapıp CV fail-safe'e düşer — kobe arızası pipeline'ı bozmaz."""
+    frames_dir = Path(frames_dir)
+    film_id = (frames_dir.parent.parent.name
+               if frames_dir.parent.name.lower() == "frames" else frames_dir.name)
+    cmd = [str(PROJECT_ROOT / "Allstar" / "kobe" / "kobe"), "tek",
+           "--kareler", str(frames_dir), "--film-id", film_id]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=timeout)
+    except Exception as exc:  # noqa: BLE001 — timeout/koşu hatası → CV fail-safe
+        raise RuntimeError(f"kobe alt-sureci koşulamadi: {type(exc).__name__}: {exc}") from exc
+    karar_yolu = PROJECT_ROOT / "Allstar" / "kobe" / "out" / film_id / "cikis" / "kobe.json"
+    try:
+        k = json.loads(karar_yolu.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RuntimeError(f"kobe karari okunamadi ({karar_yolu.name}, rc={r.returncode}): "
+                           f"{(r.stderr or '')[-300:]}") from exc
+    if k.get("durum") == "ARIZA":
+        raise RuntimeError(f"kobe ARIZA({k.get('sinif')}): {k.get('mesaj')}")
+    return k
+
+
+def _v5_detect(frames_dir: Path, images: list, debug_root: Path, kuru: bool = False) -> dict:
+    """Kobe CLI'yi (kobe tek) çağırır; TÜM teşhis bilgisini bir sözlükte döndürür — hem
+    create_pool'un start_pos kararı (final_indeks) hem de manifest'in YENİ `v5`
+    alt-nesnesi (Dalga 2) BURADAN besleniyor. `final_indeks` None ise (kredi_yok
+    ya da dosya-eşleşme başarısız) → eski akışa (CV) düşülür.
+
+    E1 (2026-08-17): `import motor` KALKTI — kulenin değeri sözleşmedeydi
+    (kobe.json + _TAMAM + kendi venv'i); kütüphane importu bunların hiçbirini
+    devreye sokmuyordu. Davranış sözü korunur: BULUNDU → final_indeks (pad'li),
+    KREDI_YOK → final_indeks None, ARIZA/istisna → yukarı fırlar (CV fail-safe).
 
     Güvenlik payı (MITAS_JENERIK_V5_PAD, varsayılan 10 kare): asimetri politikası
-    (Çağatay 2026-07-23) — erken başlamak zararsız, geç kalmak cast'i kaybettirir."""
-    sys.path.insert(0, str(PROJECT_ROOT / "harness" / "kunye_kiyas"))
-    import credit_onset as _co
-    r = _co.tespit_v5(str(frames_dir))
-    if r.start_frame is None or int(r.start_frame) < 0:
-        _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
-                      "sonuc": "kredi_yok", "yontem": r.yontem, "notlar": r.notlar})
-        return None
-    hedef = int(r.start_frame)
-    idx = None
-    for i, f in enumerate(images):
-        if _co._kare_no(str(f)) == hedef:
-            idx = i
-            break
-    if idx is None and images:  # dosya-adı eşleşmedi (beklenmez) → en yakın kare
-        idx = min(range(len(images)), key=lambda i: abs(_co._kare_no(str(images[i])) - hedef))
-    if idx is None:
-        return None
+    (Çağatay 2026-07-23) — erken başlamak zararsız, geç kalmak cast'i kaybettirir.
+
+    `kuru=True` (--kuru dry-run): events.jsonl'e HİÇBİR ŞEY yazılmaz — dönüş
+    değeri (dolayısıyla manifest) değişmez, yalnız yan-etki (dosya yazımı) atlanır.
+    Kobe kendi evine (out/) yazar — kuru modda bile, o kobe'nin evidir."""
     try:
         pad = max(0, int(os.environ.get("MITAS_JENERIK_V5_PAD", "10") or "10"))
     except ValueError:
         pad = 10
+    k = _kobe_karari_al(frames_dir)
+    ka = k.get("kanit") or {}
+    r = _V5Karar(
+        start_frame=(int(k["baslangic_kare"]) if k.get("durum") == "BULUNDU" else -1),
+        yontem=str(ka.get("yontem", "")),
+        guven=float(k.get("guven") or 0.0),
+        notlar=str(ka.get("notlar", "")),
+        tip=str(ka.get("tip", "")),
+        scroll_orani=float(ka.get("scroll_orani") or 0.0),
+        ardisik_scroll=int(ka.get("ardisik_scroll") or 0),
+        son_capa=float(ka.get("son_capa") or 0.0),
+        aday_sayisi=int(ka.get("aday_sayisi") or 0),
+        suphe=list(ka.get("suphe") or []),
+        suphe_geri_kare=int(ka.get("suphe_geri_kare", -1)),
+        script=str(k.get("script") or "en"),
+        ocr_hata=int(ka.get("ocr_hata") or 0))
+    if r.start_frame is None or int(r.start_frame) < 0:
+        if not kuru:
+            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
+                          "sonuc": "kredi_yok", "yontem": r.yontem, "notlar": r.notlar})
+        return {"final_indeks": None, "raw_indeks": None, "sonuc": r, "pad": pad}
+    hedef = int(r.start_frame)
+    idx = None
+    for i, f in enumerate(images):
+        if _kare_no(str(f)) == hedef:
+            idx = i
+            break
+    if idx is None and images:  # dosya-adı eşleşmedi (beklenmez) → en yakın kare
+        idx = min(range(len(images)), key=lambda i: abs(_kare_no(str(images[i])) - hedef))
+    if idx is None:
+        return {"final_indeks": None, "raw_indeks": None, "sonuc": r, "pad": pad}
     son = max(0, idx - pad)
-    _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
-                  "kare": hedef, "indeks": idx, "pad": pad, "final_indeks": son,
-                  "yontem": r.yontem, "guven": r.guven, "notlar": r.notlar})
-    return son
+
+    # ŞÜPHE KATMANI — GENİŞ-HAVUZ (2026-07-30, DEFAULT KAPALI, bkz.
+    # _suphe_genis_havuz_enabled). Buradayız = v5 KAZANDI (r.start_frame >= 0,
+    # yukarıdaki erken-return'ler AMY sınıfı kredisiz filmleri zaten eledi —
+    # konsey kırmızı çizgisi: sahte havuz doldurma yalnız v5 gerçekten
+    # kazandığında mümkün). gec_riski ateşlediyse havuzu elenen komşu adayın
+    # BAŞINA (suphe_geri_kare) çek — tavan `son`dan en fazla 120 kare geriye
+    # (asimetri politikası erken≤120).
+    if (_suphe_genis_havuz_enabled() and "gec_riski" in (r.suphe or [])
+            and r.suphe_geri_kare is not None and int(r.suphe_geri_kare) >= 0):
+        geri_kare = int(r.suphe_geri_kare)
+        geri_idx = None
+        for i, f in enumerate(images):
+            if _kare_no(str(f)) == geri_kare:
+                geri_idx = i
+                break
+        if geri_idx is None and images:
+            geri_idx = min(range(len(images)), key=lambda i: abs(_kare_no(str(images[i])) - geri_kare))
+        if geri_idx is not None and geri_idx < son:
+            tavan = max(0, son - 120)
+            yeni_son = max(geri_idx, tavan)
+            if yeni_son < son:
+                if not kuru:
+                    _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "suphe_genis_havuz",
+                                  "eski": son, "yeni": yeni_son})
+                son = yeni_son
+
+    if not kuru:
+        _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "v5_onset",
+                      "kare": hedef, "indeks": idx, "pad": pad, "final_indeks": son,
+                      "yontem": r.yontem, "guven": r.guven, "notlar": r.notlar})
+    return {"final_indeks": son, "raw_indeks": idx, "sonuc": r, "pad": pad}
+
+
+def _v5_manifest_alt_nesne(v5_start: int | None, v5_info: dict | None,
+                            v5_hata_bilgi: str | None, segment_v5_uygun: bool) -> dict:
+    """Manifest'in YENİ `v5` alt-nesnesi (Dalga 2, Adım5) — HER ZAMAN yazılır,
+    v5 BAŞARISIZ olduğunda (kredi_yok) da. Bugüne dek v5'in kredi_yok kararı CV
+    tarafından sessizce eziliyordu; bu alt-nesne onu artık görünür kılıyor.
+
+    `karar` dört değerden biri — şemanın (found/kredi_yok/hata) ÜSTÜNE bilinçli
+    bir 4. durum eklendi: "atlandi" (v5 hiç ÇAĞRILMADI — segment=giris ya da
+    MITAS_JENERIK_V5 kapalı). Bunu "kredi_yok" sayıp gizlemek dürüst olmazdı —
+    v5_izleme.py'nin Dalga-3 kuyruğu tam olarak "v5 denedi ve reddetti" filmlerini
+    hedefliyor, segment=giris rotalaması ise bir FİLM ÖZELLİĞİ değil, kasıtlı
+    motor seçimi (bkz. create_pool segment gardı)."""
+    if v5_hata_bilgi is not None:
+        return {"karar": "hata", "notlar": v5_hata_bilgi}
+    if v5_info is None:
+        sebep = ("segment=giris — v5 hiç çağrılmadı (SON_ERISIM açılış penceresinde anlamsız)"
+                 if not segment_v5_uygun else "MITAS_JENERIK_V5 kapalı (env)")
+        return {"karar": "atlandi", "notlar": sebep}
+    r = v5_info["sonuc"]
+    kare = int(r.start_frame) if (r.start_frame is not None and int(r.start_frame) >= 0) else None
+    return {
+        "karar": "found" if v5_start is not None else "kredi_yok",
+        "kare": kare,
+        "indeks": v5_info["raw_indeks"],
+        "pad": v5_info["pad"],
+        "yontem": r.yontem,
+        "tip": r.tip,
+        "scroll_orani": r.scroll_orani,
+        "ardisik_scroll": r.ardisik_scroll,
+        "son_capa": r.son_capa,
+        "aday_sayisi": r.aday_sayisi,
+        "script": getattr(r, "script", "en"),
+        "ocr_hata": getattr(r, "ocr_hata", 0),
+        "notlar": r.notlar,
+        "suphe": r.suphe,
+    }
 
 
 def create_pool(
@@ -310,45 +461,109 @@ def create_pool(
     debug_root: Path,
     cfg: DetectorConfig,
     debug_sheet: bool,
+    segment: str = "cikis",
+    kuru: bool = False,
 ) -> dict:
     started = time.perf_counter()
     detector_dir = debug_root / "detector"
-    result = detect_frame_dir(frames_dir, detector_dir, cfg, debug_sheet)
     images = list_images(frames_dir)
     engine_used = "paddle"
 
-    # JENERİK-V5 birincil yol (bayraklı): başarılıysa start_pos'u geçersiz kılar,
-    # eski yama yığını atlanır; None dönerse (kredi_yok/hata) eski akış birebir sürer.
-    v5_start = None
-    if _v5_enabled():
-        try:
-            v5_start = _v5_detect(frames_dir, images, debug_root)
-        except Exception as exc:  # noqa: BLE001 — v5 hatası pipeline'ı bozmaz, eski akışa düşer
-            _append_jsonl(debug_root / "errors.jsonl",
-                          {"ts": _now(), "stage": "v5_onset", "error": f"{type(exc).__name__}: {exc}"})
+    # E1 (2026-08-17): kobe/src'yi sys.path'e ekleyen satır KALDI — v5 artık alt-süreç
+    # CLI ile çağrılıyor (bkz. _kobe_karari_al), kobe iç modülü burada import EDİLMEZ.
+    # (Eski yorum "metin-kapı credit_box'a ihtiyaç duyar" diyordu — credit_box
+    # harness/kunye_kiyas/'ta ve bu bağlamda zaten ÇÖZÜLMÜYORDU; bkz. metin-kapı
+    # notu — ayrı konu, bilinçli olarak bu işte dokunulmadı.)
 
-    # OneOCR FALLBACK: paddle kredi-başlangıcı bulamadıysa OneOCR-detektörü dene (non-Latin/FR kurtarır).
-    if v5_start is None and not _accepted(result.status) and _oneocr_fallback_enabled():
-        os.environ.setdefault("MITAS_JENERIK_LATIN_LC_NAMES", "1")
-        os.environ.setdefault("MITAS_JENERIK_NONLATIN_NAMES", "1")
+    # SEGMENT GARDI (Dalga 2, 2026-07-29): --segment giris → v5 HİÇ ÇAĞRILMAZ,
+    # CV bugünkü gibi (birebir) koşar. Sebep: v5'in SON_ERISIM=0.82 kuralı "aday
+    # dizinin son %18'ine ulaşmalı" diyor — açılış penceresinde (270 kare, ilk
+    # 4 dk) anlamsız (ölçüldü: 270 karelik giriş penceresinde v5 kare 135/181
+    # döndürüyor). Bu bir RET değil, doğru motora yönlendirme — giriş havuzu
+    # bugünkü gibi dolmaya devam etmeli. `--segment cikis` (varsayılan) v5 birincil.
+    segment_v5_uygun = (segment != "giris")
+
+    # JENERİK-V5 birincil yol + TEMBEL CV (Dalga 2): v5 ÖNCE denenir; yalnız v5
+    # BAŞARISIZ (kredi_yok/hata) olursa YA DA segment=giris ise CV koşar. v5
+    # başarılıysa `result` HİÇ OLUŞMAZ — CV'nin maliyeti (ölçüldü: ~17.4sn/film,
+    # v5 ~5.2sn) tamamen atlanır (bugüne dek v5 açıkken bile HER filmde koşuyordu).
+    v5_start: int | None = None
+    v5_info: dict | None = None
+    v5_hata_bilgi: str | None = None
+    if segment_v5_uygun and _v5_enabled():
         try:
-            from core.pipelines.ocr.jenerik_oneocr_detector import detect_frame_dir_oneocr
-            oc = detect_frame_dir_oneocr(frames_dir, debug_root / "detector_oneocr", cfg)
-            if _accepted(oc.status):
-                result = oc
-                engine_used = "oneocr"
-        except Exception as exc:  # noqa: BLE001 — fallback hatası pipeline'ı bozmaz
-            _append_jsonl(debug_root / "errors.jsonl",
-                          {"ts": _now(), "stage": "oneocr_fallback", "error": f"{type(exc).__name__}: {exc}"})
+            v5_info = _v5_detect(frames_dir, images, debug_root, kuru=kuru)
+            v5_start = v5_info["final_indeks"]
+        except Exception as exc:  # noqa: BLE001 — v5 hatası pipeline'ı bozmaz, CV'ye düşülür (fail-safe)
+            v5_hata_bilgi = f"{type(exc).__name__}: {exc}"
+            if not kuru:
+                _append_jsonl(debug_root / "errors.jsonl",
+                              {"ts": _now(), "stage": "v5_onset", "error": v5_hata_bilgi})
+
+    # v5 kazanmadıysa (kredi_yok/hata) YA DA segment=giris (v5 hiç denenmedi) →
+    # eski CV dedektörünü ŞİMDİ çalıştır (öncesinde v5-öncelikli akışta EN BAŞTA
+    # koşuyordu — tembel-CV bunu yalnız gerekince koşar hale getiriyor).
+    result = None
+    review_required = False
+    metin_kapi_karari = False          # metin-kapı bu koşuda karar verdiyse True (VLM/trim/CV baypas)
+
+    if v5_start is not None:
+        # v5 onset otoritesi devralır; `result` hiç oluşmadı (tembel CV) — eski CV
+        # teşhisi (cv_start_pos/detector/...) bu koşuda YOK, `v5` alt-nesnesi var.
+        status = "found"
+        start_pos = int(v5_start)
+        engine_used = "v5_onset"
+    elif (_metin_kapi_enabled() and segment_v5_uygun and v5_hata_bilgi is None
+          and v5_info is not None):
+        # Dalga 3 (konsey 2026-07-29): v5 KREDİ_YOK dedi — HATA DEĞİL, v5 GERÇEKTEN
+        # ÇAĞRILDI (v5_info dolu) ve çıkış segmenti. Eski akışta bu durum CV'ye
+        # sessizce düşerdi; metin-kapı bunun yerine CV'yi DEVREYE SOKMAZ — credit_box
+        # det-only ile son %15 karede credit-benzeri kutu var mı diye ucuz bir tarama
+        # yapar. v5 hata verdiyse (v5_hata_bilgi) YA DA v5 hiç çağrılmadıysa
+        # (v5_info None — segment=giris ya da MITAS_JENERIK_V5 kapalı) BU DALA
+        # GİRİLMEZ → CV fallback bugünkü gibi korunur (hata/atlandı ≠ kredi_yok).
+        metin_kapi_karari = True
+        engine_used = "v5_kredi_yok"
+        start_pos = None
+        oran = 0.0
+        son_kareler: list[str] = []
+        try:
+            son_bas = int(len(images) * 0.85)
+            son_kareler = [str(f) for f in images[son_bas:]]
+            if son_kareler:
+                import credit_box as _cb
+                jbayrak, _say = _cb.kutu_serisi(son_kareler, stride=2)
+                import numpy as _np
+                oran = float(_np.mean(jbayrak)) if len(jbayrak) else 0.0
+        except Exception as exc:  # noqa: BLE001 — metin-kapı hatası pipeline'ı bozmaz, kredi_yok'a düş
+            oran = 0.0
+            if not kuru:
+                _append_jsonl(debug_root / "errors.jsonl",
+                              {"ts": _now(), "stage": "metin_kapi", "error": f"{type(exc).__name__}: {exc}"})
+        if oran >= METIN_KAPI_ESIK:
+            status = "review_kredi_yok"
+            review_required = True
+        else:
+            status = "kredi_yok"
+        if not kuru:
+            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "metin_kapi",
+                          "jbayrak_oran": round(oran, 3), "esik": METIN_KAPI_ESIK,
+                          "sonuc": status, "son_kare_sayisi": len(son_kareler)})
+    else:
+        # BUGÜNKÜ DAVRANIŞ: bayrak kapalı VEYA v5 hata VEYA v5 hiç çağrılmadı
+        # (segment=giris / MITAS_JENERIK_V5 kapalı) → CV devralır.
+        result = detect_frame_dir(frames_dir, detector_dir, cfg, debug_sheet)
+        # OneOCR fallback SÖKÜLDÜ (2026-07-30, Çağatay: "oneocr ne alaka, Linux'tayız").
+        # `oneocr` paketi (Microsoft Windows OCR) Linux'ta YOK: make_oneocr_engine() →
+        # ModuleNotFoundError. Fallback her v5-kredi_yok filminde ateşleyip except'e
+        # düşüyor, errors.jsonl'i kirletiyordu; v5 aktivasyonundan (2026-07-23) beri
+        # engine=oneocr TEK manifest üretmemiş — Linux'ta ölü kod, davranış-nötr söküm.
+        # (jenerik_oneocr_detector.py SİLİNMEDİ — giris_jenerik_havuzu.py:76 hâlâ
+        # oneocr_line_boxes import ediyor; o da Linux'ta çöküyor olabilir, AYRI iş.)
+        status = result.status
+        start_pos = result.start_pos
 
     copied: list[dict] = []
-    status = result.status
-    start_pos = result.start_pos
-    if v5_start is not None:
-        # v5 onset otoritesi devralır; eski CV sonucu manifest'te teşhis olarak kalır.
-        start_pos = int(v5_start)
-        status = "found"
-        engine_used = "v5_onset"
     # VLM-RESCUE: CV başarısız (not_found) ya da şüpheli (çok-erken start + dev havuz = footage-bloat)
     vlm_used = False
     _accepted_cv = _accepted(status)
@@ -364,22 +579,25 @@ def create_pool(
             return float(np.asarray(Image.open(f).convert("L")).mean())
         except Exception:  # noqa: BLE001
             return 0.0
-    _suspicious = (engine_used != "v5_onset"
+    _suspicious = (engine_used != "v5_onset" and not metin_kapi_karari
                    and start_pos is not None and len(images) > 0
                    and (len(images) - int(start_pos)) > 450
                    and _bright(images[int(start_pos)]) > 50.0)
-    if engine_used != "v5_onset" and _vlm_rescue_enabled() and (not _accepted_cv or _suspicious):
+    if (engine_used != "v5_onset" and not metin_kapi_karari
+            and _vlm_rescue_enabled() and (not _accepted_cv or _suspicious)):
         try:
             import credit_start_vlm as _cvlm
             vr = _cvlm.detect(frames_dir)
-            _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "vlm_rescue",
-                          "trigger": "not_found" if not _accepted_cv else "suspicious",
-                          "cv_start": start_pos, "vlm": {k: v for k, v in vr.items() if k != "labels"}})
+            if not kuru:
+                _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "vlm_rescue",
+                              "trigger": "not_found" if not _accepted_cv else "suspicious",
+                              "cv_start": start_pos, "vlm": {k: v for k, v in vr.items() if k != "labels"}})
             if vr.get("status") in ("found", "left_censored") and vr.get("start_frame") is not None:
                 start_pos = int(vr["start_frame"]); status = "found"; engine_used = "vlm_rescue"; vlm_used = True
         except Exception as exc:  # noqa: BLE001 — rescue hatası pipeline'ı bozmaz
-            _append_jsonl(debug_root / "errors.jsonl",
-                          {"ts": _now(), "stage": "vlm_rescue", "error": f"{type(exc).__name__}: {exc}"})
+            if not kuru:
+                _append_jsonl(debug_root / "errors.jsonl",
+                              {"ts": _now(), "stage": "vlm_rescue", "error": f"{type(exc).__name__}: {exc}"})
     # İKİ-YÖNLÜ ANCHOR DÜZELTME (2026-07, GPT-GT ile kalibre):
     #  1) İLERİ footage-trim  → anchor ÇOK ERKEN ise (footage-metnine yapışmış: ATTİLA 141/gerçek 539,
     #                            MARIE 126/gerçek 585) ilk SÜRDÜRÜLEN krediye kadar ilerlet.
@@ -390,8 +608,11 @@ def create_pool(
     footage_trimmed = 0
     back_extended = 0
     # v5 yolunda anchor-düzeltme yamaları ÇALIŞMAZ: v5 onset'i içerik/hareket-rafineli,
-    # üstüne footage-trim bindirmek "geç kalma" (cast kaybı) riski doğurur.
-    if engine_used != "v5_onset" and start_pos is not None and 0 <= int(start_pos) < len(images) and (_accepted(status) or vlm_used):
+    # üstüne footage-trim bindirmek "geç kalma" (cast kaybı) riski doğurur. metin-kapı
+    # yolunda da ÇALIŞMAZ (start_pos zaten None, ama niyet açık kalsın diye gard eklendi).
+    if (engine_used != "v5_onset" and not metin_kapi_karari
+            and start_pos is not None and 0 <= int(start_pos) < len(images)
+            and (_accepted(status) or vlm_used)):
         fwd = _trim_footage_head_v2(images[int(start_pos):], cfg)
         if fwd > 0:
             footage_trimmed = fwd
@@ -400,7 +621,7 @@ def create_pool(
         if _ext < int(start_pos):
             back_extended = int(start_pos) - _ext
             start_pos = _ext
-        if footage_trimmed or back_extended:
+        if (footage_trimmed or back_extended) and not kuru:
             _append_jsonl(debug_root / "events.jsonl", {"ts": _now(), "stage": "anchor_fix",
                           "cv_start": cv_start_before, "fwd_trim": footage_trimmed,
                           "back_extend": back_extended, "final_start": start_pos})
@@ -410,17 +631,42 @@ def create_pool(
     preserved_existing = False
     if will_fill:
         # Yeni kareler dolduracağız → bayat kareleri temizle, sonra doldur.
-        _safe_reset_pool(pool_dir)
+        # --kuru: shutil.copy2/_safe_reset_pool ATLANIR (üretim Database'ini
+        # kirletmesin) — `copied` yine de dolar ki pool_frames/start_file
+        # manifest'te gerçekçi kalsın (Adım 1).
+        if not kuru:
+            _safe_reset_pool(pool_dir)
         for source in images[int(start_pos):]:
             target = pool_dir / source.name
-            shutil.copy2(source, target)
+            if not kuru:
+                shutil.copy2(source, target)
             copied.append({"source": str(source), "target": str(target), "file": source.name})
     else:
         # Bu koşuda kredi-başlangıcı YOK. ÖNCEKİ başarılı havuzu YOK ETME — flaky/tekrar koşum
         # iyi havuzu silip master'ı kaybetmesin (2026-06-29). Havuz yoksa boş oluştur (dizin-var invariantı).
+        # (is_dir/glob salt-okur, --kuru'da da çalışır — yalnız mkdir yan-etkisi atlanır.)
         preserved_existing = bool(pool_dir.is_dir() and list(pool_dir.glob("*.png")))
-        pool_dir.mkdir(parents=True, exist_ok=True)
+        if not kuru:
+            pool_dir.mkdir(parents=True, exist_ok=True)
 
+    # Dalga 2, Adım5 manifest şeması: v5 kazandıysa CV hiç koşmadı → cv_start_pos/
+    # first_text_pos/first_text_file/confidence/detector ALANLARI YAZILMAZ (değer
+    # yok); credit_type/reason v5'in kendi teşhisinden (v5.tip/v5.notlar) gelir.
+    # CV devraldıysa (result != None) bugünkü gibi yazılır — sözleşme korunur
+    # (kurulum/25_r3_kalan.py:pencere_sec "scroll" in credit_type → 30sn testi).
+    # Dalga 3: metin-kapı yolunda (result None, v5_kazandi False) credit_type="none"
+    # (scroll/static değil — v5 zaten kredi_yok dedi), reason v5'in kredi_yok
+    # teşhisinin notlarından (v5_info["sonuc"].notlar) gelir.
+    v5_kazandi = (engine_used == "v5_onset")
+    if v5_kazandi and v5_info is not None:
+        _credit_type = {"scroll": "scroll_credit", "statik": "static_credit"}.get(v5_info["sonuc"].tip, "none")
+        _reason = v5_info["sonuc"].notlar
+    elif metin_kapi_karari:
+        _credit_type = "none"
+        _reason = (v5_info["sonuc"].notlar if v5_info is not None else None)
+    else:
+        _credit_type = (result.credit_type if result is not None else None)
+        _reason = (result.reason if result is not None else None)
     manifest = {
         "status": status,
         "engine": engine_used,
@@ -432,33 +678,39 @@ def create_pool(
         "source_frames_dir": str(frames_dir),
         "pool_dir": str(pool_dir),
         "start_pos": start_pos,
-        "start_file": (copied[0]["file"] if copied else result.start_file),
+        "start_file": (copied[0]["file"] if copied else (result.start_file if result is not None else None)),
         "vlm_rescued": vlm_used,
         "back_extended": back_extended,
-        "cv_start_pos": result.start_pos,
-        "first_text_pos": result.first_text_pos,
-        "first_text_file": result.first_text_file,
-        "confidence": result.confidence,
-        "credit_type": result.credit_type,
-        "reason": result.reason,
+        "credit_type": _credit_type,
+        "script": _v5_manifest_alt_nesne(v5_start, v5_info, v5_hata_bilgi, segment_v5_uygun).get("script", "en"),
+        "reason": _reason,
+        "review_required": review_required,
+        "v5": _v5_manifest_alt_nesne(v5_start, v5_info, v5_hata_bilgi, segment_v5_uygun),
         "copied_files": copied,
-        "detector": asdict(result),
         "duration_sec": round(time.perf_counter() - started, 3),
         "ts": _now(),
     }
+    if not v5_kazandi and result is not None:
+        # CV (paddle/oneocr/vlm_rescue) devraldı → eski teşhis alanları bugünkü gibi.
+        manifest["cv_start_pos"] = result.start_pos
+        manifest["first_text_pos"] = result.first_text_pos
+        manifest["first_text_file"] = result.first_text_file
+        manifest["confidence"] = result.confidence
+        manifest["detector"] = asdict(result)
 
-    frames_manifest = frames_dir.parent / "jenerik_detection.json"
-    _write_json(frames_manifest, manifest)
-    _write_json(debug_root / "pool" / "manifest.json", manifest)
-    _append_jsonl(debug_root / "events.jsonl", {
-        "ts": _now(),
-        "stage": "pool",
-        "status": status,
-        "input_frames": len(images),
-        "pool_frames": len(copied),
-        "start_file": result.start_file,
-        "first_text_file": result.first_text_file,
-    })
+    if not kuru:
+        frames_manifest = frames_dir.parent / "jenerik_detection.json"
+        _write_json(frames_manifest, manifest)
+        _write_json(debug_root / "pool" / "manifest.json", manifest)
+        _append_jsonl(debug_root / "events.jsonl", {
+            "ts": _now(),
+            "stage": "pool",
+            "status": status,
+            "input_frames": len(images),
+            "pool_frames": len(copied),
+            "start_file": (result.start_file if result is not None else None),
+            "first_text_file": (result.first_text_file if result is not None else None),
+        })
     return manifest
 
 
@@ -479,6 +731,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ocr-lang", default=DetectorConfig.ocr_lang)
     parser.add_argument("--sustain-window", type=int, default=DetectorConfig.sustain_window)
     parser.add_argument("--sustain-hits", type=int, default=DetectorConfig.sustain_hits)
+    parser.add_argument("--segment", choices=["cikis", "giris"], default="cikis",
+                        help="cikis (varsayılan): v5 birincil + tembel CV. "
+                             "giris: v5 HİÇ ÇAĞRILMAZ, CV bugünkü gibi koşar "
+                             "(v5'in SON_ERISIM kuralı açılış penceresinde anlamsız).")
+    parser.add_argument("--kuru", action="store_true",
+                        help="Dry-run: shutil.copy2/_safe_reset_pool atlanır, "
+                             "jenerik_detection.json / debug_root/pool/manifest.json / "
+                             "events.jsonl / errors.jsonl YAZILMAZ — manifest yalnız stdout'a basılır.")
     return parser
 
 
@@ -505,6 +765,8 @@ def main(argv: list[str] | None = None) -> int:
             debug_root=debug_root,
             cfg=cfg,
             debug_sheet=args.debug_sheet,
+            segment=args.segment,
+            kuru=args.kuru,
         )
         print(json.dumps(manifest, ensure_ascii=False))
         return 0
@@ -515,7 +777,8 @@ def main(argv: list[str] | None = None) -> int:
             "status": "error",
             "error": f"{type(exc).__name__}: {exc}",
         }
-        _append_jsonl(debug_root / "errors.jsonl", err)
+        if not args.kuru:
+            _append_jsonl(debug_root / "errors.jsonl", err)
         print(json.dumps(err, ensure_ascii=False))
         return 0
 

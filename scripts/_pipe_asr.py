@@ -10,6 +10,10 @@ from __future__ import annotations
 import sys, os, json, time, argparse, subprocess
 os.environ["USE_TF"] = "0"        # MMS-LID ŞART: transformers TF'yi import etmesin (TF↔numpy2 çökmesi).
 os.environ["USE_FLAX"] = "0"      # EN TEPEDE olmalı — faster_whisper/_channel_lang'den ÖNCE (geç set = TF zaten yüklü, MMS ölür).
+# CUDA-12 notu (2026-07-30): ctranslate2 4.7.x encode anında libcublas.so.12 ister
+# (model-load'da DEĞİL, ilk encode'da patlar — YAĞMACILAR kanıtı). Çözüm KOD DEĞİL
+# ortam: venvs/asr'a nvidia-cublas-cu12 + nvidia-cudnn-cu12 kurulu olmalı
+# (requirements/asr.txt); ct2 pip nvidia dizinlerini kendisi keşfediyor.
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -226,11 +230,26 @@ def _lean_transcribe(src: Path, out: Path, args, lid_src: Path | None = None) ->
         cmd += ["-acodec", "pcm_s16le", str(wav)]
         subprocess.run(cmd, check=True)
 
-    segs, info = model.transcribe(
-        str(wav), language=tr_language, beam_size=beam,
-        vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
-        condition_on_previous_text=False, word_timestamps=False,
-    )
+    try:
+        segs, info = model.transcribe(
+            str(wav), language=tr_language, beam_size=beam,
+            vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
+            condition_on_previous_text=False, word_timestamps=False,
+        )
+    except Exception as exc_oom:
+        if "out of memory" in str(exc_oom).lower() or "cuda" in str(exc_oom).lower():
+            sys.stderr.write(f"[ASR][UYARI] CUDA OOM alındı ({exc_oom}) → CPU int8 fallback deneniyor...\n")
+            try:
+                cpu_model = WhisperModel(str(mp if mp and mp.exists() else "large-v3"), device="cpu", compute_type="int8")
+                segs, info = cpu_model.transcribe(
+                    str(wav), language=tr_language, beam_size=1,
+                    vad_filter=(args.vad != "off"), vad_parameters=dict(min_silence_duration_ms=500),
+                    condition_on_previous_text=False, word_timestamps=False,
+                )
+            except Exception:
+                raise exc_oom
+        else:
+            raise exc_oom
     if not tr_language:                          # full-v3 oto-tespit ettiyse GERÇEK dili al (result/chlang için)
         language = getattr(info, "language", None) or language
     # --- canli log: transkripsiyon ilerlemesi (en uzun asama; UI'da "donuk" gorunmesin) ---

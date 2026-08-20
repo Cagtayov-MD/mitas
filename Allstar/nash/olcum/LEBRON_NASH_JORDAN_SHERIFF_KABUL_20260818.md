@@ -1,0 +1,93 @@
+# LeBron–Nash–Jordan Sheriff kabul raporu
+
+Pipeline: `sheriff/0.2.0@467a05d3dbae9d50` · 29 film · 58 bölüm
+
+Üretim terfi kapısı: **GEÇMEDİ** (terminal=True, failed run=3, failed task=5).
+
+## Sonuç özeti
+
+| Motor | Durumlar | Medyan süre | Tepe VRAM | Satır | Name-like | Proof |
+|---|---:|---:|---:|---:|---:|---:|
+| Lebron | `{"SUCCEEDED": 44, "FAILED": 5, "NO_CONTENT": 9}` | 85.399 sn | 8998.0 MiB | 3434 | 2690 | 0/3434 (0.0%) |
+| Nash | `{"SUCCEEDED": 58}` | 16.168 sn | 736.0 MiB | 5752 | 3840 | 5752/5752 (100.0%) |
+| Jordan | `{"SUCCEEDED": 49, "NO_CONTENT": 9}` | 96.038 sn | 17284.0 MiB | 7062 | 5464 | 0/7062 (0.0%) |
+
+## Bağımsızlık kapısı
+
+Nash terminal bölüm: **58/58**. Kobe FAILED/NO_CONTENT bölüm: **9**; bunların içinde Nash'in gerçekten denendiği bölüm: **9**.
+
+## Ayrı gerçek GPU/alfabe kapıları
+
+LeBron terfi paritesi: **29/29 piksel-birebir**, mode 29/29, manifest özeti 29/29.
+LeBron gerçek GPU probu: Paddle kalıntı **338.0 MiB**, GGUF tepe **8660.0 MiB**, en uzun bant **18.359 sn**, toplam **112.6 sn**.
+Nash `cag_output20_multiscript_kabul_v2`: 71 Kiril, 0 Arabic/Farsi, korunan Latin `[]`.
+Nash `cag_output23_multiscript_kabul_v3`: 0 Kiril, 294 Arabic/Farsi, korunan Latin `['CPR']`.
+
+## Film/bölüm tablosu
+
+| Film | Bölüm | Kobe | LeBron durum/satır/sn/VRAM | Nash durum/satır/sn/VRAM | Jordan durum/satır/sn/VRAM |
+|---|---|---|---|---|---|
+| cag_output01 | giris | SUCCEEDED | SUCCEEDED/13/79.274/8952.0 | SUCCEEDED/79/14.175/556.0 | SUCCEEDED/78/71.731/17284.0 |
+| cag_output01 | cikis | SUCCEEDED | SUCCEEDED/13/83.31/8954.0 | SUCCEEDED/79/14.384/556.0 | SUCCEEDED/77/72.759/17284.0 |
+| cag_output02 | giris | SUCCEEDED | FAILED/0/22.102/946.0 | SUCCEEDED/94/10.979/556.0 | SUCCEEDED/82/88.286/17284.0 |
+| cag_output02 | cikis | SUCCEEDED | FAILED/0/26.596/946.0 | SUCCEEDED/94/12.81/556.0 | SUCCEEDED/89/89.742/17284.0 |
+| cag_output03 | giris | SUCCEEDED | SUCCEEDED/28/79.483/8994.0 | SUCCEEDED/57/15.041/556.0 | SUCCEEDED/69/93.827/17284.0 |
+| cag_output03 | cikis | SUCCEEDED | SUCCEEDED/14/79.46/8952.0 | SUCCEEDED/57/12.797/556.0 | SUCCEEDED/57/90.252/17284.0 |
+| cag_output04 | giris | SUCCEEDED | SUCCEEDED/46/82.829/8994.0 | SUCCEEDED/98/13.051/556.0 | SUCCEEDED/95/108.512/17284.0 |
+| cag_output04 | cikis | SUCCEEDED | SUCCEEDED/34/88.019/8994.0 | SUCCEEDED/98/15.147/556.0 | SUCCEEDED/94/102.805/17284.0 |
+| cag_output05 | giris | SUCCEEDED | SUCCEEDED/90/97.942/8992.0 | SUCCEEDED/101/16.56/704.0 | SUCCEEDED/114/107.496/17284.0 |
+| cag_output05 | cikis | SUCCEEDED | SUCCEEDED/88/102.391/8992.0 | SUCCEEDED/101/14.566/704.0 | SUCCEEDED/114/110.504/17284.0 |
+| cag_output06 | giris | SUCCEEDED | SUCCEEDED/7/85.399/8954.0 | SUCCEEDED/142/16.082/556.0 | SUCCEEDED/150/142.518/17284.0 |
+| cag_output06 | cikis | SUCCEEDED | SUCCEEDED/41/103.871/8994.0 | SUCCEEDED/142/15.756/556.0 | SUCCEEDED/150/156.404/17284.0 |
+| cag_output07 | giris | SUCCEEDED | SUCCEEDED/19/78.997/8994.0 | SUCCEEDED/38/22.112/556.0 | SUCCEEDED/32/74.944/17284.0 |
+| cag_output07 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/38/16.254/556.0 | NO_CONTENT/0/None/None |
+| cag_output08 | giris | SUCCEEDED | SUCCEEDED/28/86.797/8996.0 | SUCCEEDED/33/18.121/556.0 | SUCCEEDED/30/113.193/17284.0 |
+| cag_output08 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/33/18.623/556.0 | NO_CONTENT/0/None/None |
+| cag_output09 | giris | SUCCEEDED | SUCCEEDED/113/107.251/8996.0 | SUCCEEDED/127/25.517/556.0 | SUCCEEDED/92/121.465/17284.0 |
+| cag_output09 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/127/25.052/556.0 | NO_CONTENT/0/None/None |
+| cag_output10 | giris | SUCCEEDED | SUCCEEDED/47/84.956/8994.0 | SUCCEEDED/74/19.899/598.0 | SUCCEEDED/77/111.609/17284.0 |
+| cag_output10 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/74/19.301/598.0 | NO_CONTENT/0/None/None |
+| cag_output11 | giris | SUCCEEDED | SUCCEEDED/1/71.496/8954.0 | SUCCEEDED/28/11.55/556.0 | SUCCEEDED/9/68.336/17284.0 |
+| cag_output11 | cikis | SUCCEEDED | SUCCEEDED/8/75.715/8996.0 | SUCCEEDED/28/11.333/556.0 | SUCCEEDED/6/43.811/17284.0 |
+| cag_output12 | giris | SUCCEEDED | SUCCEEDED/33/84.806/8994.0 | SUCCEEDED/64/18.432/598.0 | SUCCEEDED/59/180.007/17284.0 |
+| cag_output12 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/64/18.878/598.0 | NO_CONTENT/0/None/None |
+| cag_output13 | giris | SUCCEEDED | SUCCEEDED/34/91.239/8994.0 | SUCCEEDED/50/33.172/556.0 | SUCCEEDED/40/106.474/17284.0 |
+| cag_output13 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/50/33.096/556.0 | NO_CONTENT/0/None/None |
+| cag_output14 | giris | SUCCEEDED | SUCCEEDED/19/75.49/8994.0 | SUCCEEDED/18/8.579/622.0 | SUCCEEDED/15/31.089/16950.0 |
+| cag_output14 | cikis | SUCCEEDED | SUCCEEDED/23/80.494/8994.0 | SUCCEEDED/18/7.884/622.0 | SUCCEEDED/24/31.989/16950.0 |
+| cag_output15 | giris | SUCCEEDED | SUCCEEDED/9/79.623/8992.0 | SUCCEEDED/25/20.567/622.0 | SUCCEEDED/31/64.133/16950.0 |
+| cag_output15 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/25/25.025/622.0 | NO_CONTENT/0/None/None |
+| cag_output16 | giris | SUCCEEDED | SUCCEEDED/10/73.464/8998.0 | SUCCEEDED/33/18.538/622.0 | SUCCEEDED/25/64.778/16950.0 |
+| cag_output16 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/33/16.746/622.0 | NO_CONTENT/0/None/None |
+| cag_output17 | giris | SUCCEEDED | FAILED/0/22.501/834.0 | SUCCEEDED/90/13.426/622.0 | SUCCEEDED/38/56.409/16950.0 |
+| cag_output17 | cikis | SUCCEEDED | FAILED/0/27.334/834.0 | SUCCEEDED/90/14.118/622.0 | SUCCEEDED/46/65.473/16950.0 |
+| cag_output18 | giris | SUCCEEDED | SUCCEEDED/2/72.415/8952.0 | SUCCEEDED/47/15.378/622.0 | SUCCEEDED/53/85.638/16950.0 |
+| cag_output18 | cikis | SUCCEEDED | FAILED/0/33.906/834.0 | SUCCEEDED/47/15.476/622.0 | SUCCEEDED/51/90.019/16950.0 |
+| cag_output19 | giris | SUCCEEDED | SUCCEEDED/44/86.342/8996.0 | SUCCEEDED/74/20.187/556.0 | SUCCEEDED/81/79.537/17284.0 |
+| cag_output19 | cikis | NO_CONTENT | NO_CONTENT/0/None/None | SUCCEEDED/74/20.393/556.0 | NO_CONTENT/0/None/None |
+| cag_output20 | giris | SUCCEEDED | SUCCEEDED/59/96.245/8994.0 | SUCCEEDED/71/35.895/556.0 | SUCCEEDED/83/125.378/17284.0 |
+| cag_output20 | cikis | SUCCEEDED | SUCCEEDED/68/103.926/8996.0 | SUCCEEDED/71/35.555/556.0 | SUCCEEDED/88/139.895/17284.0 |
+| cag_output21 | giris | SUCCEEDED | SUCCEEDED/77/86.009/8996.0 | SUCCEEDED/137/12.781/666.0 | SUCCEEDED/261/118.102/17284.0 |
+| cag_output21 | cikis | SUCCEEDED | SUCCEEDED/77/85.769/8996.0 | SUCCEEDED/137/12.826/666.0 | SUCCEEDED/262/119.025/17284.0 |
+| cag_output22 | giris | SUCCEEDED | SUCCEEDED/62/78.424/8994.0 | SUCCEEDED/68/7.743/556.0 | SUCCEEDED/57/50.774/17284.0 |
+| cag_output22 | cikis | SUCCEEDED | SUCCEEDED/65/79.47/8994.0 | SUCCEEDED/68/8.062/556.0 | SUCCEEDED/57/51.119/17284.0 |
+| cag_output23 | giris | SUCCEEDED | SUCCEEDED/330/159.077/8994.0 | SUCCEEDED/295/57.216/680.0 | SUCCEEDED/570/281.234/16950.0 |
+| cag_output23 | cikis | SUCCEEDED | SUCCEEDED/300/176.668/8994.0 | SUCCEEDED/295/57.725/680.0 | SUCCEEDED/569/266.92/16950.0 |
+| cag_output24 | giris | SUCCEEDED | SUCCEEDED/36/85.749/8994.0 | SUCCEEDED/57/13.539/736.0 | SUCCEEDED/43/76.115/17284.0 |
+| cag_output24 | cikis | SUCCEEDED | SUCCEEDED/25/96.305/8994.0 | SUCCEEDED/57/13.089/736.0 | SUCCEEDED/45/77.683/17284.0 |
+| cag_output25 | giris | SUCCEEDED | SUCCEEDED/200/103.324/8994.0 | SUCCEEDED/250/18.048/622.0 | SUCCEEDED/307/151.089/16950.0 |
+| cag_output25 | cikis | SUCCEEDED | SUCCEEDED/214/127.015/8994.0 | SUCCEEDED/250/18.479/622.0 | SUCCEEDED/309/154.324/16950.0 |
+| cag_output26 | giris | SUCCEEDED | SUCCEEDED/270/144.343/8996.0 | SUCCEEDED/280/34.112/622.0 | SUCCEEDED/785/281.742/16950.0 |
+| cag_output26 | cikis | SUCCEEDED | SUCCEEDED/284/145.81/8994.0 | SUCCEEDED/280/34.311/622.0 | SUCCEEDED/791/285.022/16950.0 |
+| cag_output27 | giris | SUCCEEDED | SUCCEEDED/64/86.061/8996.0 | SUCCEEDED/82/12.154/556.0 | SUCCEEDED/106/96.038/17284.0 |
+| cag_output27 | cikis | SUCCEEDED | SUCCEEDED/65/89.957/8994.0 | SUCCEEDED/82/12.006/556.0 | SUCCEEDED/106/97.799/17284.0 |
+| cag_output28 | giris | SUCCEEDED | SUCCEEDED/203/137.36/8996.0 | SUCCEEDED/311/29.56/598.0 | SUCCEEDED/304/245.504/17284.0 |
+| cag_output28 | cikis | SUCCEEDED | SUCCEEDED/183/140.85/8996.0 | SUCCEEDED/311/26.434/556.0 | SUCCEEDED/309/253.644/17284.0 |
+| ks_klip01 | giris | SUCCEEDED | SUCCEEDED/44/76.469/8994.0 | SUCCEEDED/53/8.112/556.0 | SUCCEEDED/66/55.962/17284.0 |
+| ks_klip01 | cikis | SUCCEEDED | SUCCEEDED/44/77.974/8992.0 | SUCCEEDED/53/8.129/556.0 | SUCCEEDED/66/55.654/17284.0 |
+
+## Yöntem
+
+Satırlar NFKC+casefold uygulanıp noktalama kaldırılarak normalize edildi. Tek-kullanımlı en güçlü `SequenceMatcher ≥0.86` eşleşmeleri örtüşme sayıldı. JSON raporunda her motor çifti için bütün benzersiz, kazanılan ve kaybedilen satırlar bulunur; Markdown yalnız özeti gösterir.
+
+Name-like sayımı bir kalite hükmü değil, 2–6 sözcüklü ve rol sözlüğü içermeyen satırlar için karşılaştırmalı sezgiseldir.

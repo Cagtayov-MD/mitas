@@ -144,12 +144,17 @@ def stage1(film: Path) -> dict:
         shutil.copy2(det_json, cd / "frames" / "jenerik_detection_cikis.json")
     s1["cikis_pool"] = {"status": mc.get("status"), "start_pos": mc.get("start_pos"),
                         "pool_frames": mc.get("pool_frames"), "engine": mc.get("engine"),
-                        "credit_type": mc.get("credit_type"), "accepted": mc.get("accepted")}
+                        "credit_type": mc.get("credit_type"), "accepted": mc.get("accepted"),
+                        "review_required": mc.get("review_required")}
     # paddle havuz: giris (P-open, OneOCR'siz)
+    # --segment giris (Dalga 2, 2026-07-29): v5'in SON_ERISIM kuralı ("aday son
+    # %18'e ulaşmalı") açılış penceresinde anlamsız (ölçüldü: 270 karelik giriş
+    # penceresinde v5 kare 135/181 döndürüyor) — CV bu segmentte birincil kalır.
     pg = _run([PY_OCR, "scripts/_jenerik_pool.py",
                "--frames", str(cd / "frames" / "giris"),
                "--pool", str(cd / "frames" / "giris_jenerik"),
-               "--debug-root", str(cd / "jenerik_debug_giris")], timeout=1800)
+               "--debug-root", str(cd / "jenerik_debug_giris"),
+               "--segment", "giris"], timeout=1800)
     mg = _last_json_line(pg["stdout"]) or {"status": "error", "stderr": pg["stderr"][:300]}
     if det_json.exists():
         shutil.copy2(det_json, cd / "frames" / "jenerik_detection_giris.json")
@@ -161,6 +166,15 @@ def stage1(film: Path) -> dict:
     if cp == 0:
         if mc.get("status") in (None, "error"):
             s1.update(status="fail", root_cause="pool_error", cls="code")
+        elif mc.get("status") == "review_kredi_yok" or mc.get("review_required"):
+            # Dalga 3 (metin-kapı, bayrak MITAS_JENERIK_METIN_KAPI — default kapalı):
+            # v5 "kredi_yok" dedi ama credit_box det-only taraması son %15 karede
+            # credit-benzeri kutu oranını eşiğin (METIN_KAPI_ESIK) üstünde buldu.
+            # Bu FAIL değil, insan-kuyruğu — CV devretmeden reddedilen bir aday.
+            # overall="review" (aşağıda), "pass"/"fail" ikilisini bozmayan üçüncü
+            # bir durum. report_basic.py npass/nfail yalnız "pass"/"fail" string'ini
+            # sayıyor; "review" ikisine de eklenmez (yanlış sayılmaz, ayrı görünür).
+            s1.update(status="review", root_cause="review_kredi_yok", cls="film")
         else:
             s1.update(status="fail", root_cause="detection_no_credit", cls="film/code")
     else:
@@ -171,7 +185,9 @@ def stage1(film: Path) -> dict:
                      "pool_c": pc["secs"], "pool_g": pg["secs"]}
     st["stage1"] = s1
     st["reached_stage"] = 1
-    st["overall"] = "partial" if s1["status"] == "pass" else "fail"
+    st["overall"] = ("partial" if s1["status"] == "pass"
+                      else "review" if s1["status"] == "review"
+                      else "fail")
     save_state(film, st)
     return st
 

@@ -1,0 +1,402 @@
+{
+  "kosu_id": "20260730-153809-kademe",
+  "tip": "kademe",
+  "n_film": 4,
+  "zaman": "2026-07-30T15:43:39",
+  "sonuc": [
+    {
+      "kol": "B_8Bcikar_26Bfinal_26Btopla",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "Kendini mucit olarak tanıtan Waldo Tornicraft, George'un kaybettiği mikroteleskop icadını geri almaya çalışırken Beverly ile tanışır. George, planları dahilinde Liza'dan nişanlısı rolünü oynamasını ister. Ruslar George'un icadını çalıp götürünce George ve Liza sahte nişanlılık oyununa devam eder.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 32.1,
+      "ara_urun": "[Bölüm 1/6]\n- Waldo, Beverly'ye \"Sen kimsin?\" diye sorar.  \n- Beverly, Waldo'ya \"Seni tehlikeli bir adam takip ediyor.\" diye uyar.  \n- Beverly, Waldo'ya \"Ben de Beverly.\" diye kendisini tanıtır.  \n- Beverly, Waldo'ya \"Dur işaretine dikkat et.\" diye uyar.  \n- Beverly, Waldo'ya içki ısmarlar.\n\n[Bölüm 2/6]\n- Waldo, George'a iki yüz dolar istemiştir.  \n- George, Waldo'ya \"Alo\" der ve polisi çağırmadan onu vermesini önerir.  \n- Beverly, Waldo'ya \"Alo\" der ve onu \"gangster\" olarak adlandırır.  \n- Profesör Nesbit, bir parti verdiğini ve Suzy'ye davet ettiği bir adres verir.  \n- Beverly, \"Ben dayanamazdım\" diye konuşur ve \"feci bir şey\" olduğunu belirtir.\n\n[Bölüm 3/6]\n- Waldo Tornicraft, kendini tanıtarak \"Ben Waldo Tornicraft.\" diye konuşur.  \n- Profesör, öğleden sonra çaya gelmek istediğini söyler.  \n- Beverly, Profesör'ün kim olduğunu bilmediğini söyler.  \n- Beverly, \"Onun kim olduğunu bilmiyorum ama o profesör değil.\" diye konuşur.  \n- Waldo Tornicraft, 287 numaralı odada öğrencilerin beklediğini söyler.\n\n[Bölüm 4/6]\n- George, Liza'ya nişanlısı rolünü oynamasını istemiştir.  \n- Liza, George'un bir mucidim ve mikroteleskop yaptı dediğini anlatır.  \n- Liza, George'un şarabı daha çabuk ve kesin analiz edebileceğini söyler.  \n- Liza, George'un bu kadar ilginç biri olduğundan hiç söz etmemiştik dedi.  \n- George, Liza'ya nişanlısı rolünü oynamasını istemiştir.\n\n[Bölüm 5/6]\n- George, icadını kaybettiğini söylüyor.  \n- Beverly, Liza'dan icadı getirmesini istiyor.  \n- Beverly, George'a \"teşekkür ederim anne\" diyor.  \n- Valdo, \"ben bir mucidim\" diyerek kendini mucit olarak tanımlıyor.  \n- Tornicraft, \"mikro teleskopumu bana hemen geri verin\" diyor.\n\n[Bölüm 6/6]\n- Waldo, bir düş kırıklığından sonra Muhammed Fantleroy'u ziyaret eder.  \n- Waldo, kendini iyi hissettiğini söyler ve özür diler.  \n- Waldo, çok kötü bir sürücü olduğunu itiraf eder.  \n- Waldo, her yaptığının yanlış yolda olduğunu söyler.  \n- Valdo, hayatın olduğu gibi kabul edilmesi gerektiğini söyler.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- George'un icadı Ruslar tarafından çalındı.\n- George, Liza ile nişanlı rolü oynamaya devam ediyor.\n- Kimin öldüğü net değil.\n- Kimin kazandığı net değil.\n- Kimin nereye gittiği net değil.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [],
+          "spoiler_final": false,
+          "kelime": 37,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 1.0,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "George"
+          ],
+          "icerik_jaccard": 0.101
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.2,
+          "final_cumle": "Ruslar George'un icadını çalıp götürünce George ve Liza sahte nişanlılık oyununa devam eder.",
+          "kuyrukta_yok": [
+            "ruslar",
+            "george",
+            "calıp",
+            "goturunce",
+            "george",
+            "sahte"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "kol": "B_8Bcikar_26Bfinal_26Btopla",
+      "film": "DÖNÜŞÜ OLMAYAN NEHİR 1989-0624-1-0000-00-1",
+      "baslik": "DÖNÜŞÜ OLMAYAN NEHİR",
+      "ozet": "Mervin tarafından getirileceği vaat edilen dokuz yaşındaki Mark Collins, Harry ile tanışır ve bir adamı arkadan vurarak öldürür. Mark'ın Kay isimli kişiye karşı duyduğu nefret ve suçlamalar sürerken Harry, yaptığı hataların nedenini anlatmak için Kay ile yalnız konuşmaya çalışır. Finalde Harry, Kay ile görüşmek üzere anlaşma yaparken Mark ve Kolder bir barda kahve içmeye devam eder.",
+      "referans_sonnet": "ÇİFTÇİ MATTHEW, UZUN ZAMAN SONRA OĞLU MARK'I YANINA ALIP YENİ BİR HAYATA BAŞLAMAK İSTER. ANCAK MATTHEW'UN GEÇMİŞİNDEN HARRY BEST ADINDA BİR KUMARBAZ ORTAYA ÇIKAR. HARRY, MATTHEW'UN KARISI KAY'DEN BİR ALTIN HAKKI KAZANDIĞINI IDDIA EDEREK MATTHEW'UN ATINI VE TÜFEĞİNİ ÇALAR. MATTHEW, HARRY'NİN PEŞİNE DÜŞERKEN KAY, HARRY'NİN KENDİSİNİ ALDATMADIĞINI, MATTHEW'UN BİR ADAMI ARKADAN VURUP HAPSE GİRDİĞİNİ AÇIKLAR. MATTHEW, KANSAS CİTY'DE HARRY'Yİ BULUR VE KENDİNİ SAVUNURKEN ONU ÖLDÜRÜR. MATTHEW, MARK VE KAY ÇİFTLİKLERİNE GERİ DÖNER.",
+      "saniye": 33.6,
+      "ara_urun": "[Bölüm 1/6]\n- Mark, dokuz yaşındaki bir erkek çocuğu arıyor.  \n- Mervin, Mark'ı getireceğini söylemiş ve ona yüz dolar ödedi.  \n- Kaybolan bir çocuk var ve adı Mark Collins.  \n- Kaybolan çocuk dokuz yaşındaydı.  \n- Mark'ın babası Mervin'dir.\n\n[Bölüm 2/6]\n- Mark, Mark'a bir tüfek verir.  \n- Mark, bir ağaçtan atış yapar.  \n- Mark, bir dalı vurur.  \n- Harry, Mark ile tanışır.  \n- Harry, Mark'a \"Best'im\" der.\n\n[Bölüm 3/6]\n- Mark, Harry'yi yaraladı.  \n- Harry, kolda kalmak istemeyerek gideceğini söylüyor.  \n- Mark, Harry'ye gideceğini onaylamasını istiyor.  \n- Harry, kolda kalmak zorunda olduğunu söylüyor.  \n- Mark, Harry'ye gideceğini onaylamasını istiyor.\n\n[Bölüm 4/6]\n- Mark, birini arkadan vurdu.  \n- Harry, Mark'ın birini arkadan vurduğunu öğrendi.  \n- Harry, Mark'ın birini öldürdüğünü anladı.  \n- Mark, bir adamı arkadan vurarak öldürdü.  \n- Harry, Mark'ın birini öldürdüğünü kabul etti.\n\n[Bölüm 5/6]\n- Mark, Kay'a karşı nefret ettiğini söylüyor.  \n- Mark, Kay'ın ona kötü davrandığını söylüyor.  \n- Mark, Kay'ın bizi soyduğuna inanıyor.  \n- Mark, Kay'ın insanın yanlış şeyleri yapabileceğini söylediğini söylüyor.  \n- Mark, Kay'ın onu öldüreceğini soruyor.\n\n[Bölüm 6/6]\n- Harry, Kay'a niçin geri dönmeyi seçtiğini sorar.  \n- Kay, Harry'ye \"Buraya çok zor gelebildin\" diye cevap verir.  \n- Kay, Harry'ye \"Koldurla mı geldin?\" sorar.  \n- Harry, Kay'a \"Evet\" diye cevap verir.  \n- Kay, Harry'ye \"Nerede o?\" sorar.  \n- Harry, Kay'a \"Dükkanda kahve içiyor. Bekliyor.\" diye cevap verir.  \n- Kay, Harry'ye \"Bizi mi?\" sorar.  \n- Harry, Kay'a \"Bizi\" diye cevap verir.  \n- Harry, Kay'a \"Önce seninle yalnız konuşmamı kabul ettim.\" diye konuşur.  \n- Kay, Harry'ye \"Önce mi? Neden önce?\" sorar.  \n- Harry, Kay'a \"Şimdiye kadar bilmen gerekirdi.\" diye cevap verir.  \n- Harry, Kay'a \"Bir şey ister misin?\" sorar.  \n- Kay, Harry'ye \"Hayır.\" diye cev,ap verir.  \n- Harry, Kay'a \"İstemez Jack.\" diye konuşur.  \n- Harry, Kay'a \"Konuşulacak ne varmış?\" sorar.  \n- Harry, Kay'a \"Yaptıklarım için seni astırabilir.\" diye konuşur.  \n- Harry, Kay'a \"Seni öldürebilir ve kimse onu suçlamaz.\" diye konuşur.  \n- Harry, Kay'a \"Ben suçlarım.\" diye konuşur.  \n- Harry, Kay'a \"Ona ne için yaptığını söyledim.\" diye\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Harry, Kay ile yalnız konuşmak üzere bir anlaşma yapar.\n- Harry, yaptığı hataların nedenini ve umutsuzluğunu anlatmak için Kay'i dinlemeye ikna etmeye çalışır.\n- Mark ve Kolder, Black Nugget barında kahve içmektedir.\n- Filmin sonu net değil; Harry'nin Kay ile konuşup konuşmayacağı veya nereye gideceği belirsizdir.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 56,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.75,
+          "ozette_olmayan_ad": [
+            "City"
+          ],
+          "uydurma_ad_adayi": [
+            "Kolder"
+          ],
+          "icerik_jaccard": 0.04
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.27,
+          "final_cumle": "Finalde Harry, Kay ile görüşmek üzere anlaşma yaparken Mark ve Kolder bir barda kahve içmeye devam eder.",
+          "kuyrukta_yok": [
+            "finalde",
+            "gorusmek",
+            "uzere",
+            "anlasma",
+            "yaparken",
+            "barda"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "kol": "B_8Bcikar_26Bfinal_26Btopla",
+      "film": "KANDIRMACA 2002-9058-1-0000-00-1",
+      "baslik": "KANDIRMACA",
+      "ozet": "Uzay istasyonunda Shaw ile çalışan teknisyen Jack, uzaydan geldiği sanılan ancak aslında insanları öldüren gizemli bir sinyali incelemektedir. Sinyalin uzaydan gelmediğini ve birilerinin bu durumu yönettiğini fark eden Teğmen Vazquez, ekibi birbirine ateş etmeye zorlayarak kaosu başlatır. Jack, sinyalin bağlantısının kurulmasını engelleyerek tehlikeyi durdurur ve yanındaki kişiyle birlikte eski hayatlarına dönmek üzere ayrılır.",
+      "referans_sonnet": "TEKNİSYEN JACK, MİLYARDER EMMETT SHAW TARAFINDAN UZAYDAN GELEN GİZEMLİ SİNYALLERİ İNCELEMEK ÜZERE BİR GÖZLEMEVİNE ÇAĞRILIR. GÖZLEMEVİNDE TEĞMEN VAZQUEZ ADLI KADININ İNSANLARI KONTROL EDEBİLEN DOĞAÜSTÜ GÜÇLERİ OLDUĞU VE SİNYALİN ASLINDA UZAYDAN DEĞİL, TEHLİKELİ BİR KAYNAKTAN GELDİĞİ ORTAYA ÇIKAR. ALBAY'IN SİNYALİ DÜNYAYA YAYMA BASKISINA KARŞI JACK, SİNYALİN \"NAKLEDİLMEMESİ\" GEREKTİĞİNE DAİR UYARIYI FARK EDER. FİNALDE JACK, SİNYALİN BAĞLANTISINI KESEREK BU YIKICI GÜCÜ GELDİĞİ YERE GERİ GÖNDERİR VE FELAKETİ ÖNLER.",
+      "saniye": 34.8,
+      "ara_urun": "[Bölüm 1/6]\n- Jack, Shaw'ın uzay istasyonuna davetiye gönderdiğini açıkladı.  \n- David, Teğmen Vazquez'in bir deneyini izlediğini ve kendi kameramla kaydettiğini söyledi.  \n- Jack, Kerabor'un hayran olduğunu ve annesinin ölmüş olduğunu anlattı.  \n- Kara, \"Ben Kara Wolves\" dedi ve Shaw'ın gözlemeyi kullanarak doğru yola çıkacaklarını belirtti.  \n- Shaw, SETI projesine 1 milyon dolar bağış yaparak gündeme geldiğini söyledi.\n\n[Bölüm 2/6]\n- Kera, Jack'e \"Kera izin ver canım\" diye seslenir.  \n- Jack, \"Günaydın\" der ve \"Evet benim\" diye cevap verir.  \n- Kera, hava durumu hakkında bilgi verir ve \"İki saate kadar fırtına bekleyin\" uyarısında bulunur.  \n- Jack, \"Hava tekrar değişiyormuş. Her an fırtına çıkabilirmiş\" diye konuşur.  \n- Kera, \"Bakarsanız aşağıda bir düzlük var. Vakit varken inelim derim\" der.\n\n[Bölüm 3/6]\n- Jack, Şav'ın yanında çalıştığını söylüyor.  \n- Jack, birinci sınıf teknisyen olduğunu ve 12 yıl teknisyenlik yapmış olduğunu söylüyor.  \n- Jack, sinyali kontrol etmesini isteniyor.  \n- Jack, sinyali kaydedemiyor ve sadece duyabiliyor.  \n- Jack, disketi denedi ama boş çıktı.\n\n[Bölüm 4/6]\n- Jack, istasyondan gelen verileri inceledi.  \n- Cek, sinyalin uzaydan gelmediğini söyledi.  \n- Teğmen, diğerleri nerede olduğunu sordu.  \n- Teğmen, biri onları yönettiğini düşündü.  \n- Teğ, bir anda hepsi birbirine ateş etmeye başladı.\n\n[Bölüm 5/6]\n- Teğmen, hanımı bir odaya kapatmaya emir verir.  \n- Jack, Teğmen'in emirini reddeder ve \"Her şeyi Vasquez yaptı\" diye açıklar.  \n- Jack, \"O askerlerin başına gelen şeyin sinyalle bir ilgisi yoktu\" der.  \n- Jack, \"Sinyal bahane\" diyerek birleşik devletlerin gerçek amacını sinyale bağlamaz.  \n- Jack, \"Ben bir şekilde korundum ve ondan etkilenmedim\" der ve Tanrı'ya inandığını açıklar.\n\n[Bölüm 6/6]\n- Cek, Jack'e sinyalin uzaydan gelmediğini söylüyor.  \n- Cek, sinyalin insanları öldürüyor ve kontrol edilemeyeceğini belirtiyor.  \n- Teğmen, Cek'e kötü biri olduğunu düşündüğünü söylüyor.  \n- Cek, Teğmen'i durdurmasını istiyor.  \n- Cek, sinyali kaydetmesini ve sonra yollamasını istiyor.  \n- Jack, sinyali göndermek için bağlantı kurulduğunu söylüyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Sinyalin uzaydan gelmediği, aksya başka bir yerden geldiği ve insanları öldürdüğü ortaya çıktı.\n- Jack, sinyalin tehlikeli olduğunu belirterek bağlantının kurulmasını engelledi veya durdurdu.\n- Cek, sinyali yollamaya çalışırken Teğmen ile çatışma yaşandı.\n- Filmin sonunda sinyal tehlikesi sona erdi ve \"Hepsi bitti\" ifadesiyle durumun kontrol altına alındığı belirtildi.\n- Jack ve yanındaki kişi (net değil) birlikte eski hayatlarına dönmek üzere ayrıldılar.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 53,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.8,
+          "ozette_olmayan_ad": [
+            "Emmett"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.12
+        },
+        "b4_topraklama": {
+          "gecti": true,
+          "uydurma_ad": [],
+          "final_toprak": 0.69,
+          "final_cumle": "Jack, sinyalin bağlantısının kurulmasını engelleyerek tehlikeyi durdurur ve yanındaki kişiyle birlikte eski hayatlarına ",
+          "kuyrukta_yok": [
+            "durdurur",
+            "kisiyle",
+            "donmek",
+            "uzere"
+          ]
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "kol": "B_8Bcikar_26Bfinal_26Btopla",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Paris'te yaşayan radyo yazarı Camille, mesleğini kız kardeşi Odile'dan gizlemeye çalışırken bir yandan da yaşadığı depresyonla mücadele eder. Nicolas ve Simon ile yaşanan tartışmaların ardından, Marc Duverrier'nin sattığı apartman üzerindeki inşaat projesini gizlediği ortaya çıkar. Bu sırrın açığa çıkmasıyla sarsılan Camille, bir partide herkesin önünde ağlayarak durumunu belli eder ve oradan ayrılmaya karar verir.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 43.7,
+      "ara_urun": "[Bölüm 1/6]\n- Camille, Odile ve Nicolas karşılıklı konuşmalar yapar.  \n- Nicolas, Camille'ın Paris'te yaşadığını söyler.  \n- Nicolas, Camille'ın kız kardeşi Odile'ı tanıtır.  \n- Nicolas, Claude'ın evlendiğini ve mutlu olduğunu söyler.  \n- Nicolas, Claude'ın evlendiğini ve mutlu olduğunu söyler.  \n- Nicolas, Claude'ın evlendiğini ve mutlu olduğunu söyler.  \n- Nicolas, Claude'ın evlendiğini ve mutlu olduğunu söyler.  \n- Nicolas, Claude'ın evlendiğini ve mutlu olduğunu söyler.\n\n[Bölüm 2/6]\n- Nathalie, Marc Duverrier'la tanıştı.  \n- Marc Duverrier, Nathalie'yi tanıyor ve onunla sohbet ediyor.  \n- Marc Duverrier, biriyle bir araya gelmek için bekliyor.  \n- Nathalie, Marc Duverrier'la konuşurken birisiyle buluşmak için bekliyor.  \n- Marc Duverrier, biriyle buluşmak için bekliyor.  \n- Nathalie, Marc Duverrier'la konuşurken biriyle buluşmak için bekliyor.  \n- Marc Duverrier, biriyle buluşmak için bekliyor.\n\n[Bölüm 3/6]\n- Odile, Camille'nin ablası Odile Lalande'ı tanıdığını söylüyor.  \n- Camille, Nicolas'ın kardeşi Scholtitz'in numarasını verdiğini söylüyor.  \n- Camille, kendi mesleğini radio için yazı yazmak olarak tanımlıyor.  \n- Camille, kendi mesleğini immobilier (mülk işleri) ile karıştırmadığını söylüyor.  \n- Camille, kendi mesleğini gizlediğini ve bu yüzden Odile'ye mesleğini söylemediğini söylüyor.  \n- Camille, kendi mesleğini gizlemeyi sürdürüp Odile'ye söylemeyeceğini söylüyor.  \n- Camille, kendi mesleğini gizlemeyi sürdürüp Odile'ye söylemeyeceğini söylüyor.  \n- Camille, kendi mesleğini gizlemeyi sürdürüp Odile'ye söylemeyeceğini söylüyor.  \n- Camille, kendi mesleğini gizlemeyi sürdürüp Odile'ye söylemeyeceğini söylüyor.\n\n[Bölüm 4/6]\n- Simon, Nicolas'a yerine 18. caddeye giderken kapısında anahtar olmamış.  \n- Nicolas, Simon'un kapısında anahtar olmamasını eleştiriyor.  \n- Nicolas, Simon'un öğle arası uzun aralar geçirmesini eleştiriyor.  \n- Nicolas, Simon'un öğle arası bir saatlik arayı kullanarak şiir yazdığını ya da yavru yemek yemekten dolayı geç kaldığını düşünüyor.  \n- Nicolas, Simon'un işyerindeki bir kişiyle konuşarak işe geç kalmasını söylüyor.  \n- Nicolas, Simon'un işyerindeki kişiyle konuşarak işe geç kalmasını söylüyor.  \n- Nicolas, Simon'un işyerindeki kişiyle konuşarak işe geç kalmasını söylüyor.  \n- Nicolas, Simon'un işyerindeki kişiyle konuşarak işe geç kalmasını söylüyor.  \n- Nicolas, Simon'un işyerindeki kişiyle konuşarak işe geç kalmasını söylüyor.\n\n[Bölüm 5/6]\n- Camille telefonla konuşuyordu ve eşiyle çocuklarıyla bir araya gelmesini istemişti.  \n- Nicolas, Camille'nin eşiyle çocuklarının Paris'te olması durumunu eleştirmişti.  \n- Nicolas, Camille'nin sağlık durumunu eleştirmişti ve onunla konuşmaya devam etmiş.  \n- Nicolas, Camille'nin evine dönmeyi teklif etmiş ve onunla konuşmaya devam etmiş.  \n- Nicolas, Cam'tan bir şey istemiş ve onunla tartışmış.  \n- Nicolas, Camille'nin evine dönmeyi teklif etmiş ve onunla konuşmaya devam etmiş.  \n- Nicolas, Camille'nin evine dönmeyi teklif etmiş ve onunla konuşmaya devam etmiş.  \n- Nicolas, Camille'nin evine dönmeyi teklif etmiş ve onunla konuşmaya devam etmiş.  \n- Nicolas, Camille'nin evine dönmeyi teklif etmiş ve onunla konuşmaya devam etmiş.\n\n[Bölüm 6/6]\n- Camille, Nicolas ve Simon tartışır.  \n- Simon, Camille'nin bir şeyleri gizlediğini ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Nicolas, Camille'nin bir depresyon geçirdiğini söyler.  \n- Camille, kendi durumunu anlatır ve korku hissiyle başa çıkmaya çalışır.  \n- Nicolas, Camille'nin evlendiği kadınla ilgili bir şey olduğunu söyler.  \n- Simon, Nicolas'ın bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Nicolas, bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Simon, Nicolas'ın bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Nicolas, bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Simon, Nicolas'ın bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Nicolas, bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.  \n- Simon, Nicolas'ın bir kadınla ilgili bir şey olduğunu ve onunla ilgili bazı şeyleri bilmesini söyler.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Camille, bir partide herkesin önünde ağlayarak depresyon geçirdiğini belli eder.\n- Nicolas, bir kadını (müşteri olduğunu iddia ettiği) arabasında gördüğü gerekçesiyle suçlanır.\n- Marc Duverrier'nin sattığı apartmanla ilgili bir inşaat projesi olduğu ve bunu gizlediği ileri sürülür.\n- Camille, bir sırrın açığa çıkmasıyla (apartman/inşaat meselesi) sarsılarak oradan ayrılmaya karar verir.\n- Net değil.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 54,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.857,
+          "ozette_olmayan_ad": [
+            "Claude"
+          ],
+          "uydurma_ad_adayi": [
+            "Paris"
+          ],
+          "icerik_jaccard": 0.107
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.13,
+          "final_cumle": "Bu sırrın açığa çıkmasıyla sarsılan Camille, bir partide herkesin önünde ağlayarak durumunu belli eder ve oradan ayrılma",
+          "kuyrukta_yok": [
+            "sırrın",
+            "acıga",
+            "cıkmasıyla",
+            "sarsılan",
+            "herkesin",
+            "onunde"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "kol": "C_tam26B",
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "ozet": "Beverly ile Waldo arasındaki ilişki kente izinsiz gidiş nedeniyle biterken, mucit George yeni bir mikroteleskop icat eder. George, Ruslar tarafından çalınan bu icadını geri almak için Liza ile birlikte sahte bir nişanlılık rolü oynamaya başlar. Finalde George'un icadı Ruslar tarafından çalınmış olarak kalır.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 42.7,
+      "ara_urun": "[Bölüm 1/6]\n- Beverly, Waldo Tornicraft'a kente izinsiz gittiği için kızarak aralarındaki ilişkinin bittiğini söyler.\n- Beverly, Waldo'nun tehlikeli bir gangster tarafından takip edildiğini iddia eder.\n- George, Beverly'e 1975 Pino St. model bir içki ikram eder.\n- Beverly, Valdo'ya telefonla ulaşarak evindeyken yanlışlıkla aldığı bir şeyi geri getirmek karşılığında ödül istediğini söyler.\n\n[Bölüm 2/6]\n- Bir kişi, karşı taraftan birkaç yüz dolar toplamasını istiyor.\n- Kim olduğu net değil olan kişi, saat on birde Washington Square Park'ta buluşmak üzere üç yüz dolar ve bir eşya karşılığında randevu veriyor.\n- Suzy, Profesör Nesbit'i bir partiye davet ediyor ve adresini veriyor.\n- İki kişi, yurtta yaşanan feci ve dayanılması zor bir olay hakkında konuşuyor.\n\n[Bölüm 3/6]\n- Kim olduğu net olmayan kişi, Profesör'den partiye gelemediği için özür diler ve yarın çay içmek için davet eder.\n- Kim olduğu net olmayan kişi, koşu yaparken karşılaştığı kim olduğu net olmayan kişiyi içeri davet eder ancak o kişi reddeder.\n- Kim olduğu net olmayan kişi, Joe'ya Profesör'ün öğleden sonra çaya geleceğini ve New York toplantısı için ondan davetiye alabileceğini söyler.\n- Waldo Tornicraft (veya Kraft), kim olduğu net olmayan birine ismini söyler.\n- Kim olduğu net olmayan kişi, öğrencilere şarap yapımcılığı sanatı hakkında bilgi vermek üzere ayağa kalkar.\n\n[Bölüm 4/6]\n- Bir kişi saat üçte Gore sahasındaki müzenin önünden diğer kişiyi almayı teklif etti.\n- George, bir anne ve çocuğu ile tanıştı.\n- Refakat servisinden olan George, Bayan Lisa Şenbort'un orada olup olmadığını sordu.\n- George, kendisinin bir mucit olduğunu ve ışığı kıran bir mikroteleskop yaptığını anlattı.\n- Liza, George'un bu kadar ilginç biri olduğundan daha önce bahsetmediğini söyledi.\n\n[Bölüm 5/6]\n- George, şaraphaneye gelmesi ve icadını getirmesi için davet edildi ancak icadının Ruslar tarafından çalındığını belirtti.\n- Liza, George'a icadını getirmesini söyledi.\n- Kim olduğu net olmayan kişi, mikro teleskopunu geri almak için silah kullanarak bir gruba tehditte bulundu.\n- Kim olduğu net olmayan kişi, grubun parayı geri vermesi için polise haber vermekle tehdit etti.\n- Kim olduğu net olmayan kişi, birine bir dolar verdi.\n\n[Bölüm 6/6]\n- Kim olduğu net değil, birine çiçek getirmeyi ve bağışlanmayı düşündüğünü söylüyor.\n- Kim olduğu net değil, bir başkasına icadını getirmesini ve yeni bir Einstein olmasını söylüyor.\n- Kim olduğu net değil, kötü bir sürücü olduğunu söyleyerek özür diliyor.\n- Valdo, kim olduğu net olmayan kişiye hayatın nasıl kabul edilmesi gerektiği konusunda nasihat veriyor.\n- Kim olduğu net olmayan kişi, annesine her zaman konuşacak birinin olmasının güzel olduğunu söylüyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- George'un icadı Ruslar tarafından çalındı.\n- Kimin öldüğü net değil.\n- Kimin kazandığı net değil.\n- Kimin kavuştuğu net değil.\n- Liza ve George arasında bir nişanlılık rolü oynanıyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 43,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.667,
+          "ozette_olmayan_ad": [
+            "Tornicraft"
+          ],
+          "uydurma_ad_adayi": [
+            "George"
+          ],
+          "icerik_jaccard": 0.07
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.12,
+          "final_cumle": "Finalde George'un icadı Ruslar tarafından çalınmış olarak kalır.",
+          "kuyrukta_yok": [
+            "finalde",
+            "george",
+            "ruslar",
+            "tarafından",
+            "calınmıs",
+            "olarak"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "kol": "C_tam26B",
+      "film": "DÖNÜŞÜ OLMAYAN NEHİR 1989-0624-1-0000-00-1",
+      "baslik": "DÖNÜŞÜ OLMAYAN NEHİR",
+      "ozet": "Mark Collins, çocukluk yıllarından itibaren Matthew ve Kolder gibi isimlerin çevresinde şekillenen zorlu bir hayat sürer. Kolder, yaralanan Harry'yi geride bırakarak Kansas City yoluna düşerken, Harry geçmişteki hatalarının ağırlığıyla Kay ile yüzleşmeye çalışır. Finalde Harry, yaptığı hataların nedenini anlatmak için Kay'i dinlemeye ikna etmeye çalışırken Mark ve Kolder bar içerisinde kahve içmektedir.",
+      "referans_sonnet": "ÇİFTÇİ MATTHEW, UZUN ZAMAN SONRA OĞLU MARK'I YANINA ALIP YENİ BİR HAYATA BAŞLAMAK İSTER. ANCAK MATTHEW'UN GEÇMİŞİNDEN HARRY BEST ADINDA BİR KUMARBAZ ORTAYA ÇIKAR. HARRY, MATTHEW'UN KARISI KAY'DEN BİR ALTIN HAKKI KAZANDIĞINI IDDIA EDEREK MATTHEW'UN ATINI VE TÜFEĞİNİ ÇALAR. MATTHEW, HARRY'NİN PEŞİNE DÜŞERKEN KAY, HARRY'NİN KENDİSİNİ ALDATMADIĞINI, MATTHEW'UN BİR ADAMI ARKADAN VURUP HAPSE GİRDİĞİNİ AÇIKLAR. MATTHEW, KANSAS CİTY'DE HARRY'Yİ BULUR VE KENDİNİ SAVUNURKEN ONU ÖLDÜRÜR. MATTHEW, MARK VE KAY ÇİFTLİKLERİNE GERİ DÖNER.",
+      "saniye": 38.0,
+      "ara_urun": "[Bölüm 1/6]\n- Mervin isimli kişinin dokuz yaşındaki Mark Collins'i bir yere getireceği ancak adamın geldikten sonra dağlara çıktığı belirtiliyor.\n- Bir kadın, barda şarkı söyleyen K'ye veda etmek için yanına gidiyor.\n- Kim olduğu net olmayan bir kişi, oyun kağıtlarıyla hile yaparak bir altın hakkı kazanıyor.\n- Kim olduğu net olmayan bir kişi, kasabayı alt üst ettiğini ve at satın almanın imkansız olduğunu söylüyor.\n- Kim olduğu net olmayan bir kişi, Mark'a önüne çıkan her şeye basıp geçmemesi gerektiğini söyleyerek onu eve kahve içmeye çağırıyor.\n\n[Bölüm 2/6]\n- Mark, Matthew'u izler.\n- Matthew, bir ağaç dalını vurmak için tüfekle atış yapmaya çalışır.\n- Kim olduğu net değil, birine halat bulmasını söyler.\n- Harry ve kim olduğu net olmayan kişi (Met/Matthew olabilir) bir çiftlik hakkında konuşur.\n- Kim olduğu net olmayan kişi, Matthew'a altın aramak yerine çiftlik kurduğunu söyler.\n\n[Bölüm 3/6]\n- Kolder, tüfeği ve atı ödünç almak için birinden (kim olduğu net değil) para istiyor.\n- Mark, Kolder'ın talimatıyla çocuğu da yanına alarak gitmeyi kabul ediyor.\n- Harry yaralanıyor ve Kolder onu bırakıp Kansas City'ye gitmeye karar veriyor.\n- Kim olduğu net olmayan kişi, yaralı Harry'nin başında bekliyor.\n- Kim olduğu net olmayan bir kişi, nehirde balık avlıyor ve diğerlerine balık gösteriyor.\n\n[Bölüm 4/6]\n- Kim olduğu net değil olan kişi, bir adamı arkadan vurarak öldürdüğünü ve bu yüzden hapse girdiğini itiraf etti.\n- Kim olduğu net değil olan kişi, bir çocuğa battaniyeleri giymesi için talimat verdi.\n- Kim olduğu net değil olan kişi, çalı çırpı toplayıp ateş yakmaya çalıştı.\n- Kim olduğu net değil olan kişi, uyuyan birine karşı saldırıda bulunduğunu söyledi.\n\n[Bölüm 5/6]\n- Mark ve kim olduğu net olmayan kişi, Kay'in (Kane) nereye gittiği ve geçmişteki olaylar üzerine tartışıyor.\n- Kolder, birine et ikram ediyor ve bu kişinin eşyaları yüklemesini, tüfeği almasını söylüyor.\n- Kim olduğu net olmayan kişi, Kolder'a nehirde ölmemesi temennisiyle içecek veriyor.\n- Kim olduğu net olmayan kişi, Council City'ye gitme planı ve Colby ile olan durum hakkında konuşuyor.\n- Kim olduğu net olmayan bir grup, atları suyun yanına bırakmış durumda bekliyor.\n\n[Bölüm 6/6]\n- Harry, Kay ile bir araya gelir ve Kolder'ın dükkanda kahve içtiğini söyler.\n- Kim olduğu net değil, Black Nugget barında birinin Weston tarafından vurulduğunu belirtir.\n- Harry, Matt Calder'a (metinde Matt Calder olarak geçiyor) gerçeği anlatması ve ona çocuğuna zarar vermek istemediğini söylemesi gerektiğini söyler.\n- Mark, Harry'ye bir şey satın almaya çalışmamasını ve sadece gerçeği anlatmasını söyler.\n- Kim olduğu net değil, tüfeği birine verir.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Harry, Kay ile yalnız konuşmak üzere bir anlaşma yapar.\n- Harry, yaptığı hataların nedenini ve umutsuzluğunu anlatmak için Kay'i dinlemeye ikna etmeye çalışır.\n- Mark ve Kolder, Black Nugget barında kahve içmektedir.\n- Filmin sonu net değil; Harry'nin Kay ile konuşup konuşmayacağı veya nereye gideceği belirsizdir.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 52,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 1.0,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Kolder"
+          ],
+          "icerik_jaccard": 0.056
+        },
+        "b4_topraklama": {
+          "gecti": true,
+          "uydurma_ad": [],
+          "final_toprak": 0.62,
+          "final_cumle": "Finalde Harry, yaptığı hataların nedenini anlatmak için Kay'i dinlemeye ikna etmeye çalışırken Mark ve Kolder bar içeris",
+          "kuyrukta_yok": [
+            "finalde",
+            "hataların",
+            "etmeye",
+            "icerisinde",
+            "icmektedir"
+          ]
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "kol": "C_tam26B",
+      "film": "KANDIRMACA 2002-9058-1-0000-00-1",
+      "baslik": "KANDIRMACA",
+      "ozet": "Uzaydan gelen bir sinyalin izini süren Jack Jones, bu sinyalin aslında uzaydan gelmediğini ve insanları öldüren tehlikeli bir güç olduğunu keşfeder. Bir albayın gözlemevi ele geçirip verileri yok etmeye çalışması üzerine Jack, sinyalin bağlantısını keserek felaketi durdurur. Çatışmaların ardından Jack Jones ve yanındaki arkadaşı eski hayatlarına dönmek üzere ayrılırlar.",
+      "referans_sonnet": "TEKNİSYEN JACK, MİLYARDER EMMETT SHAW TARAFINDAN UZAYDAN GELEN GİZEMLİ SİNYALLERİ İNCELEMEK ÜZERE BİR GÖZLEMEVİNE ÇAĞRILIR. GÖZLEMEVİNDE TEĞMEN VAZQUEZ ADLI KADININ İNSANLARI KONTROL EDEBİLEN DOĞAÜSTÜ GÜÇLERİ OLDUĞU VE SİNYALİN ASLINDA UZAYDAN DEĞİL, TEHLİKELİ BİR KAYNAKTAN GELDİĞİ ORTAYA ÇIKAR. ALBAY'IN SİNYALİ DÜNYAYA YAYMA BASKISINA KARŞI JACK, SİNYALİN \"NAKLEDİLMEMESİ\" GEREKTİĞİNE DAİR UYARIYI FARK EDER. FİNALDE JACK, SİNYALİN BAĞLANTISINI KESEREK BU YIKICI GÜCÜ GELDİĞİ YERE GERİ GÖNDERİR VE FELAKETİ ÖNLER.",
+      "saniye": 40.9,
+      "ara_urun": "[Bölüm 1/6]\n- Bir kişi, David'e Teğmen Vazquez'in bir frekans aracılığıyla insanların hareketlerini kontrol edebildiği bir deney görüntüsü izletir.\n- Ray Fletcher, Jack Jones ve diğer kişilerin bulunduğu gruba kendini tanıtarak radyo programlarından bahseder.\n- Kara Wolves, uzay istasyonuna doğru yola çıkacaklarını ve Emmett Shaw'ın onları davet ettiğini duyurur.\n- Jack Jones, bir televizyon minibüsünün geldiği sırada Smithy ile karşılaşır.\n- Bir kişi, dün gece gözlemevinden \"Kod 1\" olarak adlandırılan ve uzaydan sinyal alınması anlamına gelen bir haber aldığını açıklar.\n\n[Bölüm 2/6]\n- Emmett, bilgisayar verilerinin ve disketlerin yok edildiğini fark etti.\n- Jack, bilgisayarın içindeki sinyal kanıtlarının yok edildiğini tespit etti.\n- Bir albay, gözlemevinin sahibi olduğunu belirterek buranın yönetimini ele aldığını söyledi ve kimsenin çıkışına izin vermeyeceğini ilan etti.\n- Bir kişi (kim olduğu net değil), albayın daha önce bir arkadaşının projelerini elinden aldığını iddia etti.\n- Bir asker/yetkili, ön kapıya iki asker yerleştirilmesi talimatını verdi.\n\n[Bölüm 3/6]\n- Jack Jones, bir teknisyen olarak görevlendirildi ve sinyali kontrol etmesi istendi.\n- Bir kişi (kim olduğu net değil), bir yapının planını ve nöbetçileri atlatmak için kullanılan 300 metre sonra dağın eteğine çıkan tüneli bir başkasına gösterdi.\n- Kim olduğu net olmayan bir kişi, malzeme odasındaki gizli kapıyı kullanarak kaçmayı ve kaydedilmiş sinyali kullanarak insanları ikna etmeyi planladı.\n- Bir kişi (kim olduğu net değil), tek kanıt olan disketi yanında tutacağını belirterek bir başkasıyla anlaştı.\n\n[Bölüm 4/6]\n- Jack, istasyondan gelen verileri incelediğini ve sinyalin uzaydan gelmediğini iddia eder.\n- Cech, sinyalin kaydedilmediğini belirterek Jack ile tartışır.\n- Kara, bir tünelde bir şey ararken birileri tarafından üstü aranmaya çalışılır.\n- Bir albay, sistemdeki sorun veya sinyal nedeniyle birini işten kovmakla tehdit eder.\n- Teğmen, bir askere tabancasını yere atması için emir verir.\n\n[Bölüm 5/6]\n- Teğmen, bir kadını (Bayan Smith) bir odaya kapatmakla görevlendirildi.\n- Jack, bir bulguya rastlarsa bunu bir bilgisayara yüklemek üzere söz verdi.\n- Vazquez'in, bir genci parmağını bile oynatmadan öldürdüğü iddia edildi.\n- Cenk, Jack ile birlikte bir hikaye yayınlayıp para kazanmayı teklif etti.\n- Jack, bir mesaj gönderdi.\n\n[Bölüm 6/6]\n- Bir kişi (kim olduğu net değil) dolabın içindeki \"nakletme\" yazısını ve sinyalle ilgili uyarıyı buldu.\n- Jack, sinyalin uzaydan gelmediğini ve insanları öldürdüğünü iddia etti.\n- Cek, bir adrese bağlantı kurarak sinyali yolladı.\n- Teğmen, Cek'e müdahale etmeye çalıştı ancak durduruldu.\n- Bağlantı kurulduktan sonra bir kişi (kim olduğu net değil) tehlikeli gücün geldiği yere geri gönderilmesi için dua etti.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Sinyalin uzaydan gelmediği, aksya başka bir yerden geldiği ve insanları öldürdüğü ortaya çıktı.\n- Jack, sinyalin tehlikeli olduğunu belirterek bağlantının kurulmasını engelledi veya durdurdu.\n- Cek, sinyali yollamaya çalışırken Teğmen ile çatışma yaşandı.\n- Filmin sonunda sinyal tehlikesi sona erdi ve \"Hepsi bitti\" ifadesiyle durumun kontrol altına alındığı belirtildi.\n- Jack ve yanındaki kişi (net değil) birlikte eski hayatlarına dönmek üzere ayrıldılar.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 49,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.2,
+          "ozette_olmayan_ad": [
+            "Emmett",
+            "Shaw",
+            "Teğmen",
+            "Vazquez"
+          ],
+          "uydurma_ad_adayi": [
+            "Jones"
+          ],
+          "icerik_jaccard": 0.099
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.33,
+          "final_cumle": "Çatışmaların ardından Jack Jones ve yanındaki arkadaşı eski hayatlarına dönmek üzere ayrılırlar.",
+          "kuyrukta_yok": [
+            "catısmaların",
+            "ardından",
+            "jones",
+            "arkadası",
+            "donmek",
+            "uzere"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "kol": "C_tam26B",
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "ozet": "Nicolas ile tanışan Camille, Marc Duverrier'nin sattığı apartmanın arkasındaki inşaat projesini gizlediği gerçeğiyle sarsılır. Bu süreçte Nicolas, bir kadını arabasında gördüğü gerekçesiyle suçlanırken Camille de yaşadığı depresyonu bir partide herkesin önünde ağlayarak açıklar. Sırların açığa çıkmasıyla birlikte Camille oradan ayrılmaya karar verir.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 52.1,
+      "ara_urun": "[Bölüm 1/6]\n- Camille ve Nicolas karşılaştı; Nicolas, Camille'in Odile Lalande'in kız kardeşi olduğunu öğrendi.\n- Nicolas, Camille'e Paris'te yaşadığını ve bir şirketi olduğunu söyledi.\n- Claude isimli kişi, birine kahve yapmaya gitti.\n- Bir kadın (kim olduğu net değil), bir arkadaşına bir iş/servis konusunda yardım ettiği için suçluluk duyduğunu belirtti.\n- Bir adam (kim olduğu net değil), bir doktor veya yetkiliye fiziksel şikayetlerini (çarpıntı vb.) anlattı; muayene edildi.\n- Marc Duverrier, Odile Lalande'i arayarak bir karar hakkında görüşmek üzere saat 16:00 için randevu aldı.\n- Odile Lalande, Camille'e bir daireyi tekrar görmek için 16:00'da heykelin yanına geleceğini bildirdi.\n- Bir rehber/anlatıcı, Paris'teki parklar ve 1867 Dünya Sergisi hakkında bilgi verdi.\n\n[Bölüm 2/6]\n- Bir rehber, Mont Chauve'nin isminin nedenini ve parkın tarihçesini bir gruba anlatıyor.\n- Bir kadın, bir araç tarafından çarpılma tehlikesi atlatıyor ve plaka numarasını not almayı unutuyor.\n- Rehber, tur sırasında sözünü kesen bir adamı uyararak turuna devam ediyor.\n- Yaşlı bir kadın, torunuyla buluşmak için parkta beklediğini ve torununun hastaneye gittiğini anlatıyor.\n- Nathalie isimli rehber, bir grup kişiye tarihi bilgiler veriyor.\n- Marc Duverrier, bir emlakçı ile bir daireyi gezmek üzere buluşuyor.\n- Emlakçı, bir dairenin kirasını 10.000 olarak belirtiyor ve daireyi gösteriyor.\n- Claude ve kim olduğu net olmayan bir kişi, birinin karakteri üzerine konuşuyor.\n\n[Bölüm 3/6]\n- Odile, bir tez konusu hakkında konuşurken şaka yapıyor.\n- Bir kişi (kim olduğu net değil), eşine uygun bir daire aradığını söylüyor.\n- Bir kişi (kim olduğu net değil), doğumhaneye çiçek ve çikolata gönderdiğini belirtiyor.\n- Kim olduğu belirsiz bir kişi, Karine Rigotti'nin eşine bir tazminat çeki göndereceğini söylüyor.\n- Bir kişi, Odile Lalande aracılığıyla birinin patronunun numarasını aldığını söylüyor.\n- Bir kişi (kim olduğu net değil), Camille ile tanışırken nezle olduğu için ağlıyormuş gibi göründüğünü ve bu yüzden Camille'in kendisinden etkilendiğini anlatıyor.\n- Bir kişi, Camille'i kibirli ve sert bulduğunu ifade ediyor.\n- Bir kişi, radyo için yazdığı tiyatro oyununun dinlendiğini söylüyor.\n- Bir kişi, bir tarihi ziyaret sırasında Brinvidier'in sunum şekline itiraz ediyor.\n\n[Bölüm 4/6]\n- Simon, bir patron tarafından öğle yemeği molalarını uzun tutmakla ve işe geç gelmekle suçlanıyor.\n- Bir kadın (kim olduğu net değil), bir tezin savunması sonrası aldığı övgüler üzerine babasıyla konuşuyor.\n- Bir doktor, bir hastaya halsizlik şikayeti üzerine vitamin ve magnezyum takviyesi yapmayı öneriyor.\n- Bir grup insan, bir restoranda peynir siparişi veriyor; ancak istenen keçi peyniri bulunamadığı için tartışma çıkıyor.\n- Camille, bir müze veya tarihi yer gezisi sırasında mide bulantısı yaşayarak gezinin durmasını istiyor.\n- Bir kadın (kim olduğu net değil), Camille'e tezi başarısı nedeniyle tebrik etmek için yaklaşıyor ve ona depresyonda olup olmadığını soruyor.\n- Bir kadın, Simon ile bir ajansta tanıştığını ve Simon'ın kendisi için çalıştığını belirtiyor.\n- Bir kadın, Simon'ın işe geç gelmesinin sebebinin bu kadınla sohbet etmesi olduğunu iddia ediyor.\n- Camille, Marc Duverrier ile olan ilişkisi hakkında olumsuz düşünceler içinde olduğunu ifade ediyor.\n\n[Bölüm 5/6]\n- Bir adam, eşinin ve çocuklarının yanına gelip gelmeyeceğinden emin olmadığını söylüyor.\n- Bir kişi, başka bir kişiye ilaç kullanımını (néparil) bırakmasını tavsiye ediyor.\n- Odile, bir kişinin tezini yayınlayacaklarını söyleyerek onu tebrik ediyor.\n- Marc ve Odile, bir akşam yemeğinde/toplantısında karşılaşıyorlar.\n- Bir kadın, bir erkeği (kim olduğu net değil) bir arabada başka bir kadınla gördüğünü söylüyor.\n- Bir kadın, Nicolas'ı sevgilisiyle birlikte gördüğünü söylüyor.\n- Nicolas ve bir kadın arasında iş, ev ve güven üzerine tartışma yaşanıyor.\n- Camille, bir grup insanın önünde ağlamaya başlıyor.\n- Bir kişi, Camille'in depresyonda olduğunu ve doktorun bunu söylediğini belirtiyor.\n\n[Bölüm 6/6]\n- Simon, bir inşaat projesi hakkında konuşurken birileriyle tartışıyor.\n- Camille, fiziksel belirtiler (baş dönmesi, kalp çarpıntısı) ve depresyon ihtimali üzerine biriyle dertleşiyor.\n- Nicolas'nın kardeşi, işleri geciktirdiği gerekçesiyle Nicolas'ya şikayet ediliyor.\n- Bir kişi, Nicolas'yı çarşamba günü sokakta sarışın bir kadınla gördüğünü iddia ediyor.\n- Claude, Marc Duverrier'nin bir hata yaptığını ve bir cesede gitmediğini söylüyor.\n- Bir grup insan, Duverrier'ye karşı bir inşaat projesi hakkında soru soruyor ve onu dürülamamakla suçluyor.\n- Simon, Odile'in kendisine yönelik yaptığı bir \"numara\" veya hareketle ilgili olarak eleştiriliyor.\n- Bir kişi, tuvaletlerin yerini bulamadığını söylüyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Camille, bir partide herkesin önünde ağlayarak depresyon geçirdiğini belli eder.\n- Nicolas, bir kadını (müşteri olduğunu iddia ettiği) arabasında gördüğü gerekçesiyle suçlanır.\n- Marc Duverrier'nin sattığı apartmanla ilgili bir inşaat projesi olduğu ve bunu gizlediği ileri sürülür.\n- Camille, bir sırrın açığa çıkmasıyla (apartman/inşaat meselesi) sarsılarak oradan ayrılmaya karar verir.\n- Net değil.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 42,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": 0.571,
+          "ozette_olmayan_ad": [
+            "Claude",
+            "Odile",
+            "Simon"
+          ],
+          "uydurma_ad_adayi": [],
+          "icerik_jaccard": 0.088
+        },
+        "b4_topraklama": {
+          "gecti": false,
+          "uydurma_ad": [],
+          "final_toprak": 0.11,
+          "final_cumle": "Sırların açığa çıkmasıyla birlikte Camille oradan ayrılmaya karar verir.",
+          "kuyrukta_yok": [
+            "sırların",
+            "acıga",
+            "cıkmasıyla",
+            "birlikte",
+            "oradan",
+            "ayrılmaya"
+          ]
+        },
+        "deterministik_gecti": false
+      }
+    }
+  ]
+}

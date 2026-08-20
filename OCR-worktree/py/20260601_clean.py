@@ -7,7 +7,7 @@ import sys, glob, re, difflib, importlib.util, argparse
 from pathlib import Path
 import numpy as np
 sys.stdout.reconfigure(encoding="utf-8")
-spec = importlib.util.spec_from_file_location("rw", r"E:\MITAS\OCR-worktree\py\20260531_2330_read_3way.py")
+spec = importlib.util.spec_from_file_location("rw", str(__import__("pathlib").Path(__import__("os").environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS") / "OCR-worktree" / "py" / "20260531_2330_read_3way.py"))
 rw = importlib.util.module_from_spec(spec); sys.modules["rw"] = rw; spec.loader.exec_module(rw)
 fold = rw.fold; read_oneocr = rw.read_oneocr; cr = rw.cr; fp = rw.fp
 import duckdb

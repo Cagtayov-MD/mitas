@@ -38,8 +38,17 @@ async def ask(question: str, context: str = "") -> str:
             data = response.json()
 
         try:
-            return data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
         except (KeyError, IndexError) as exc:
             raise RuntimeError(f"Beklenmeyen GPT-5.5 cevap formatı: {data}") from exc
+
+        # Thinking-modeli kemeri (minimax.py/nemotron.py ile ayni): content bos
+        # gelirse cevap reasoning_content'te kalmis olabilir.
+        content = message.get("content") or ""
+        if not content.strip():
+            content = message.get("reasoning_content") or ""
+        if not content.strip():
+            raise RuntimeError(f"GPT-5.5 boş cevap döndü: {data}")
+        return content
 
     return await with_retry(_call, provider_name="GPT-5.5")

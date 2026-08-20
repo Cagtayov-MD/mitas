@@ -8,16 +8,34 @@ Kaliteli/stabil ise PDF ses-bloğuna "altyazılıdır" eklenir.
 ocr venv:
   venvs/ocr/Scripts/python.exe scripts/_subtitle_detect.py "<video>"
 """
-import sys, json, subprocess, tempfile, os
+import sys, json, shutil, subprocess, tempfile, os
 from pathlib import Path
-# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan.
+# 2026-08-03: Windows kalıntısı E:\MITAS kaldırıldı.
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 sys.path.insert(0, str(ROOT))
 sys.stdout.reconfigure(encoding="utf-8")
 from core.pipelines.ocr.credit_experiment import PaddleOcrEngine
 
-FF = Path(os.environ.get("MITAS_FFMPEG") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
-FP = Path(os.environ.get("MITAS_FFPROBE") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
+def _bul_ff(env_adi: str, arac: str) -> Path:
+    """ffmpeg/ffprobe ikilisini çöz: env → sistem PATH → Windows paketli .exe.
+
+    2026-08-11: PATH adımı EKLENDİ (_channel_lang.py ile AYNI düzeltme; iki
+    dosya aynı Windows kalıntısını taşıyordu). Env yokken `.exe` Linux'ta
+    bulunamıyor → duration() 0.0 döner, kare çıkarılamaz → hiç alt-bant
+    örneği OCR'lanmaz → altyazı sessizce "HAYIR" çıkar (yanlış-negatif).
+    Windows davranışı korunuyor (.exe son çare)."""
+    v = (os.environ.get(env_adi) or "").strip()
+    if v:
+        return Path(v)
+    p = shutil.which(arac)
+    if p:
+        return Path(p)
+    return ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / f"{arac}.exe"
+
+
+FF = _bul_ff("MITAS_FFMPEG", "ffmpeg")
+FP = _bul_ff("MITAS_FFPROBE", "ffprobe")
 
 N = 60                # film gövdesinden örnek kare
 SUB_THRESH = 0.20     # alt-bant yazı oranı bu üstündeyse → altyazılı

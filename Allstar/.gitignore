@@ -1,0 +1,48 @@
+# Kule çalışma zamanları ve üretilen veri — git'te tutulmaz.
+# Desenler bu dosyanın bulunduğu dizine (Allstar/) GÖRELİDİR:
+# gerçek yol "kobe/venv/" → tek seviye joker. "*/*/venv/" YANLIŞTIR.
+*/venv/
+*/detector_venv/
+*/logs/
+*/scratch/
+*/out/
+/shaq/in/
+*/havuz/
+*/model/
+__pycache__/
+*.pyc
+
+# Araç durumu (hook defteri / oturum raporlari) — kod degil, kulenin cevabini
+# degistirmez. Her kulede ve Allstar kokunde olusuyor.
+.mimosa/
+
+# Olcum YATAGI kod+metin olarak tutulur, VERISI tutulmaz:
+# olcum/gt tek basina 657 MB (kare/ham cikti). Scriptler ve raporlar girer.
+*/olcum/gt/
+*/olcum/gt_kareler/
+
+# Kule ici calisma alanlari — kod degil, uretilen/indirilen veri.
+# DIKKAT: gitignore'da satir-ici "#" yorum DEGILDIR, desenin parcasi olur.
+# Yorum daima kendi satirinda durur.
+#   /iverson/test/ = ASR model scratch alani (43.113 dosya)
+#   /curry_out/    = curry deney kolunun ciktisi (128 dosya)
+/iverson/test/
+/curry_out/
+*/in/
+*/cache/
+*/runs/
+*/state/
+*/out_hakeem/
+
+# LeBron test klasorundeki ornek master PNG'ler — 19 dosya / 77,4 MB.
+# HICBIR test veya kod bunlara referans vermiyor (2026-08-19 tarandi) ve 181
+# test onlarsiz geciyor; uretilmis ikili veri olduklari icin */out/ ve
+# */olcum/gt/ ile ayni muameleyi goruyorlar. Diskte duruyorlar, silinmediler.
+*/tests/master png örnekleri/
+
+# Sheriff toplu/elle koşu artefaktları — kaynak kod değil, diskte korunur.
+# Kanonik Sheriff çalışma alanı zaten */runs/ ve */out/ ile kapalıdır;
+# 2026-08-20'deki doğrudan hazırlama koşusu ayrı `output/` adını kullandı.
+/sheriff/output/
+/_yedek_*/
+/zincir_*.json

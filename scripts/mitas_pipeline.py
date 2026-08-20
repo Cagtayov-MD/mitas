@@ -280,14 +280,16 @@ def surface_deliverables(clip_dir: Path, trt: str, title: str, pdf_info: dict, t
     v4_credits: V4 rapor 'v4' bloğu (cast_list/yonetmen_list/yapimci_list/keywords) → .txt'yi PDF ile hizalar."""
     base = file_base(trt, title)
     pdf_out = clip_dir / "pdf"
+    # is_file (exists DEĞİL): pdf_path=None → Path("")=Path('.') var olan DİZİN sayılır,
+    # copy2('.', hedef) Errno 21 patlatır + fallback araması atlanırdı (2026-07-30 kanıtlı).
     pdf_src = Path((pdf_info or {}).get("pdf_path") or "")
-    if not (pdf_src and pdf_src.exists()):
+    if not (pdf_src and pdf_src.is_file()):
         for cand in ("kunye_fixed.pdf", "kunye.pdf"):
             p = pdf_out / cand
-            if p.exists():
+            if p.is_file():
                 pdf_src = p
                 break
-    if pdf_src and pdf_src.exists():
+    if pdf_src and pdf_src.is_file():
         shutil.copy2(pdf_src, clip_dir / f"{base}.pdf")
     afis = pdf_out / "afis.jpg"
     if afis.exists():
@@ -1083,6 +1085,7 @@ def update_clip_module(clip_dir: Path, module: str, status: str, job_id: str):
 # asr_server'i komple import ETMEYIZ (FastAPI app + agir yan etki); buraya hafif
 # bir kopya konur. Prompt/parametreler core/api/asr_server.py ile SENKRON tutulur.
 OZET_PROMPT_PATH = PROJECT_ROOT / "core" / "api" / "prompts" / "ozet_film.txt"
+OZET_PROMPT_V2_PATH = PROJECT_ROOT / "core" / "api" / "prompts" / "ozet_film_v2.txt"  # testas-yalın (MITAS_OZET_V2)
 OZET_MAX_SOURCE_CHARS = 60000     # asr_server SUMMARY_MAX_SOURCE_CHARS
 OZET_MAX_TOKENS = 1500            # asr_server SUMMARY_MAX_TOKENS
 OZET_TIMEOUT_SECONDS = 90         # asr_server SUMMARY_TIMEOUT_SECONDS
@@ -1107,6 +1110,7 @@ def _load_sibling(_name):
 # Özet sağlayıcı istemcileri (yoksa None → o sağlayıcı atlanır, zincir sıradakine düşer).
 _gemini = _load_sibling("_gemini")
 _deepseek = _load_sibling("_deepseek")
+_ozet_kalite = _load_sibling("_ozet_kalite")   # testas kapalı-döngü: kalite kapısı + onarım (v2 yolu)
 
 
 # ASR zaman damgasi deseni: "[00:33:26] ". Ozete SIFIR katki, ama LLM tokenizer'inda ~2x sisirir
@@ -1399,12 +1403,83 @@ def _ozet_chain():
     gemini → sonnet → gemma-local (fallback). Herhangi biri None/kota → otomatik sıradakine düşer."""
     _on = ("1", "true", "on", "yes")
     chain = []
+    # DeepSeek = testas'ın BİRİNCİL özet motoru (Çağatay 2026-07-23: "testas hangi API'yi
+    # kullanıyorsa MITAS da onu kullansın"). Flag açıksa zincirin BAŞINA → birincil olur.
+    if os.environ.get("MITAS_OZET_DEEPSEEK", "0").strip().lower() in _on:
+        chain.append(("deepseek", _ozet_deepseek))
     if os.environ.get("MITAS_OZET_GEMINI", "0").strip().lower() in _on:
         chain.append(("gemini", _ozet_gemini))
     if os.environ.get("MITAS_OZET_CLOUD", "0").strip().lower() in _on:
         chain.append(("sonnet", _ozet_anthropic))
-    chain.extend(_OZET_SAGLAYICILAR)   # gemma-local DAİMA fallback (en sonda)
+    # GEMMA-ÖZET AYRILDI (Çağatay 2026-07-31 akşam): "verimli özet alamadık,
+    # bir sürü özet boş geldi — özeti gemmadan ayır." MITAS_OZET_GEMMA=0 iken
+    # gemma zincire HİÇ girmez; başka sağlayıcı da açık değilse özet dürüstçe
+    # atlanır (ozet_atlandi log'u + PDF'te placeholder). Bozuk/boş özet basmak
+    # yerine hiç basmamak — testas felsefesiyle aynı. Geri: MITAS_OZET_GEMMA=1.
+    if os.environ.get("MITAS_OZET_GEMMA", "1").strip().lower() in _on:
+        chain.extend(_OZET_SAGLAYICILAR)   # gemma-local fallback (en sonda)
     return tuple(chain)
+
+
+def _generate_ozet_v2(system_content: str, user_msg: str, chain, turlar: int) -> str | None:
+    """testas kapalı-döngü özet: her sağlayıcıda K-deneme öz-düzeltme + kalite kapısı + onarım.
+
+    Akış (sağlayıcı başına, MITAS_OZET_V2_ATTEMPTS=3 deneme):
+      üret → _ozet_kalite.repair_generated_summary → summary_errors
+        • kapı GEÇER + spoiler-final  → HEMEN dön (tercih edilen).
+        • kapı GEÇER ama finalsiz      → 'best' yedeğe al, sıradaki sağlayıcıyı dene.
+        • kapı GEÇMEZ                  → hata + kelime sayısını BİRİKİMLİ ekle, aynı sağlayıcıyı tekrar dene.
+    Hiçbir sağlayıcı spoiler-final vermezse 'best' (finalsiz ama geçerli) döner. Hiçbir sağlayıcı
+    çıktı veremezse (boş/kota/503) eski transient-retry (backoff) devreye girer; çıktı gelip
+    hiçbiri kapıdan geçmezse beklemeden None döner (bozuk özet yerine placeholder — testas felsefesi).
+    Çıktıya eski yolla AYNI _latin_only kemeri uygulanır.
+    """
+    qa = _ozet_kalite
+    try:
+        _att = max(1, int(os.environ.get("MITAS_OZET_V2_ATTEMPTS", "3") or "3"))
+    except Exception:  # noqa: BLE001
+        _att = 3
+    best = None
+    for _tur in range(turlar):
+        produced_any = False
+        for _ad, _fn in chain:
+            cur_user = user_msg
+            for _k in range(_att):
+                try:
+                    out = _fn(system_content, cur_user)
+                except Exception:  # noqa: BLE001 — sağlayıcı çökerse sıradakine düş
+                    out = None
+                if not (isinstance(out, str) and out.strip()):
+                    break   # bu sağlayıcı bir şey veremedi → sıradaki sağlayıcı
+                produced_any = True
+                cand = qa.repair_generated_summary(out.strip())
+                errs = qa.summary_errors(cand)
+                if not errs:
+                    if qa.has_spoiler_final(cand):
+                        return _latin_only(cand)          # tercih: geçerli + spoiler final
+                    if best is None:
+                        best = cand                        # geçerli ama finalsiz → yedek
+                    break   # bu sağlayıcı geçerli-finalsiz verdi; başka sağlayıcı dene
+                # geçersiz → geri bildirimi BİRİKTİREREK ekle (testas gibi; birikimsiz feedback
+                # 'final ekle↔kısalt' osilasyonuna yol açabilir — konsey bug-avı bulgusu 2026-07-23).
+                cur_user = (
+                    cur_user
+                    + "\n\nÖnceki çıktı uygun değildi: " + "; ".join(errs)
+                    + f". Kelime sayısı: {qa.summary_word_count(cand)}."
+                    + " 35-60 kelime, 3-4 cümle, tek paragraf, noktalı virgül yok, TAM cümleyle biten,"
+                    + " SADECE özeti yeniden yaz."
+                )
+        if best is not None:
+            return _latin_only(best)      # elimizdekinin en iyisi (finalsiz ama geçerli)
+        if produced_any:
+            break   # çıktı geldi ama kapıdan geçen yok → transient değil, beklemenin anlamı yok
+        if _tur < turlar - 1:             # hiçbir sağlayıcı çıktı vermedi → geçici hata olabilir
+            try:
+                _bo = float(os.environ.get("MITAS_OZET_RETRY_BACKOFF", "6") or "6")
+            except Exception:  # noqa: BLE001
+                _bo = 6.0
+            time.sleep(_bo * (_tur + 1))
+    return _latin_only(best) if best else None
 
 
 def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "") -> str | None:
@@ -1421,8 +1496,13 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     text = (transcript_text or "").strip()
     if not text:
         return None
+    # v2 (testas kapalı-döngü) yolu: MITAS_OZET_V2=1 VE _ozet_kalite modülü yüklüyse devrede.
+    _v2 = (
+        os.environ.get("MITAS_OZET_V2", "0").strip().lower() in ("1", "true", "on", "yes")
+        and _ozet_kalite is not None
+    )
     try:
-        system_content = OZET_PROMPT_PATH.read_text(encoding="utf-8")
+        system_content = (OZET_PROMPT_V2_PATH if _v2 else OZET_PROMPT_PATH).read_text(encoding="utf-8")
     except Exception:  # noqa: BLE001
         return None
     if not system_content.strip():
@@ -1438,6 +1518,8 @@ def _generate_ozet(transcript_text: str, *, title: str = "", duration: str = "")
     except Exception:  # noqa: BLE001
         _turlar = 3
     _chain = _ozet_chain()
+    if _v2:
+        return _generate_ozet_v2(system_content, user_msg, _chain, _turlar)
     for _tur in range(_turlar):
         for _ad, _fn in _chain:
             try:
@@ -1635,11 +1717,20 @@ def main(argv=None) -> int:
                     help="kaynak video (ZORUNLU — yalnız --from-hub modunda otomatik türetilir)")
     ap.add_argument("--profile", default=None, help="film_dizi (tip TRT 3.parselden oto) | haber|belgesel|muzik|stt (yoksa TRT'den)")
     ap.add_argument("--fps", type=float, default=1.5, help="kare cikarim fps (native cozunurluk)")
-    ap.add_argument("--ocr-head", type=float, default=180.0, help="acilis penceresi sn")
+    # GİRİŞ PENCERESİ 180 → 240 sn (Çağatay talimatı 2026-08-01, "girişi 4 dk'ya çıkar").
+    # Gerekçe ALİE 2010-9253: yapımcı kartı 03:16'da, yani 180 sn penceresinin 16 sn
+    # DIŞINDA kalıyordu; uzun/sahne-serpiştirmeli açılış jeneriklerinde kartlar 3 dk'yı
+    # aşıyor. Env ile ayarlanabilir: MITAS_OCR_HEAD (sn).
+    ap.add_argument("--ocr-head", type=float,
+                    default=float(os.environ.get("MITAS_OCR_HEAD", "240") or 240),
+                    help="acilis penceresi sn (varsayilan 240; env MITAS_OCR_HEAD)")
     ap.add_argument("--ocr-tail", type=float, default=480.0, help="kapanis penceresi sn")
     ap.add_argument("--asr-max-seconds", type=float, default=0.0, help="ASR'i ilk N sn ile sinirla (test)")
     ap.add_argument("--no-asr", action="store_true")
     ap.add_argument("--no-ocr", action="store_true")
+    ap.add_argument("--force-ocr", action="store_true",
+                    help="from-hub: kopyalanan hub OCR'ını yeniden kullanma, frame'den TAZE OCR koş "
+                         "(yalnız OCR/pipeline değişikliğini test ederken gerekir)")
     ap.add_argument("--no-copy-source", action="store_true", help="kaynak videoyu hub'a kopyalama (test)")
     ap.add_argument("--run-root", default=None,
                     help="İP-5 candidate modu: TÜM yazma-kökleri bu dizin altına (üretime sıfır dokunuş). "
@@ -1782,22 +1873,10 @@ def main(argv=None) -> int:
     # === FROM-HUB: frames junction + ocr-kopyası (video offline; kaynak-hub salt-okunur) ===
     if _from_hub:
         args.no_copy_source = True
-        for _fdir in ("giris", "cikis"):
-            _src_f = _from_hub / "frames" / _fdir
-            _dst_f = clip_dir / "frames" / _fdir
-            if _src_f.exists() and not _dst_f.exists():
-                if os.name == "nt":
-                    _rcj, _, _errj = run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
-                                         timeout=30)
-                    if _rcj:  # junction başarısızsa (yetki vb.) kopyaya düş — yavaş ama güvenli
-                        shutil.copytree(_src_f, _dst_f)
-                else:
-                    # Linux geçişi 2026-07-17: cmd/mklink yok (FileNotFoundError → tüm from-hub
-                    # koşusu çöküyordu). Junction'ın karşılığı symlink; başarısızsa kopyaya düş.
-                    try:
-                        os.symlink(_src_f, _dst_f, target_is_directory=True)
-                    except Exception:  # noqa: BLE001
-                        shutil.copytree(_src_f, _dst_f)
+        # frames giris/cikis → mutlak-hedefli symlink (mitas_roots.link_hub_frames).
+        # KÖK-SEBEP FIX (2026-07-30): eskiden inline `os.symlink(_src_f, ...)` göreli --from-hub'da
+        # göreli/DANGLING link üretiyordu → 0 kare → sahte-MOTOR_YOK. Helper from_hub'ı mutlağa çevirir.
+        _roots.link_hub_frames(_from_hub, clip_dir)
         _src_ocrs = sorted((d for d in (_from_hub / "ocr").glob("ocr-*")
                             if (d / "kunye.txt").exists() and not d.name.endswith("-fb")),
                            key=lambda d: d.stat().st_mtime)
@@ -2293,11 +2372,41 @@ def main(argv=None) -> int:
     # OCR komutu hazırla
     ocr_proc = None
     t_ocr = None
-    if not args.no_ocr:
+    # Q1 (from-hub reuse, Çağatay 2026-07-30): hub'ın GUVENILIR OCR'ı yukarıda kopyalandı; --force-ocr
+    # YOKSA taze OCR KOŞMA → from-hub candidate koşusu bir daha sahte-MOTOR_YOK/regresyon üretmez +
+    # ~10x hız. OCR/pipeline değişikliği test edilecekse --force-ocr ile taze koşulur. Karar tek-kaynaktan
+    # (_roots.should_reuse_hub_ocr: from-hub + not force + kullanılabilir kopya OCR var).
+    if _roots.should_reuse_hub_ocr(_from_hub, args.force_ocr, clip_dir):
+        _reused_kunye = Path(_roots.find_usable_ocr(str(clip_dir)))
+        ocr_out = _reused_kunye.parent
+        ocr_job = ocr_out.name
+        kunye_path = _reused_kunye
+        try:
+            _rs = json.loads((ocr_out / "ocr_summary.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001 — summary yok/bozuk → satır say
+            _rs = {}
+        ocr_bucket = _rs.get("bucket", "GUVENILIR")
+        ocr_lines = int(_rs.get("kunye_line_count") or sum(
+            1 for _l in kunye_path.read_text(encoding="utf-8", errors="replace").splitlines() if _l.strip()))
+        timings["ocr"] = 0.0
+        update_clip_module(clip_dir, "ocr", "done", ocr_job)
+        log_event("ocr_reused",
+                  summary=f"{video.name}: from-hub OCR yeniden kullanıldı ({ocr_lines} satır, "
+                          f"bucket={ocr_bucket}) — taze OCR atlandı (--force-ocr ile koşulur).",
+                  module="ocr", media_id=media_id, filename=video.name, job_id=ocr_job,
+                  detail={"clip_id": clip_id, "bucket": ocr_bucket, "lines": ocr_lines, "reused": True})
+    elif not args.no_ocr:
         frame_dirs = [str(giris_frames)]
         if cikis_frames.exists() and any(cikis_frames.glob("*.png")):
             frame_dirs.append(str(cikis_frames))
-        ocr_cmd = [str(PY_OCR), str(HERE / "_pipe_ocr.py"), "--frames", *frame_dirs,
+        # HİBRİT OKUMA (Çağatay 2026-07-31 akşam): Paddle okuma kalitesi güvenilmez
+        # ('CO SUBBING' ×5 bozulma vakası) → ana yol Messi(frame)+İbra(master)+birleşim,
+        # okuyucu deepseek. _pipe_hibrit_okuma.py, _pipe_ocr ile AYNI CLI/çıktı/JSON
+        # sözleşmesini taşır; içinde Paddle FAIL-SAFE'i var (çökerse yüksek sesle düşer).
+        # Kill-switch: MITAS_OKUMA_MOTORU=paddle → eski yol birebir.
+        _okuma_motoru = os.environ.get("MITAS_OKUMA_MOTORU", "hibrit").strip().lower()
+        _okuma_betik = "_pipe_ocr.py" if _okuma_motoru == "paddle" else "_pipe_hibrit_okuma.py"
+        ocr_cmd = [str(PY_OCR), str(HERE / _okuma_betik), "--frames", *frame_dirs,
                    "--out", str(ocr_out), "--profile", profile]
         dbg.emit("ocr", "stage_started",
                  subject={"field": "ocr_job", "after": ocr_job, "reason": "OCR subprocess started"},
@@ -2712,7 +2821,9 @@ def main(argv=None) -> int:
         t_vc = time.perf_counter()
         try:
             vc_cmd = [str(PY_PDF), str(HERE / "_pipe_credit_text.py"),
-                      "--ocr", str(kunye_path), "--title", title or "", "--profile", profile]
+                      "--ocr", str(kunye_path), "--title", title or "",
+                      "--original", str(original or ""),
+                      "--profile", profile]
             rc_vc, out_vc, err_vc = run(vc_cmd, timeout=VC_TIMEOUT)
             video_credits = last_json(out_vc)
             # İP-2 (2026-07-11): 4. yutma-noktası kapandı — alt-süreç JSON basamadan öldüyse bu da
@@ -2760,6 +2871,140 @@ def main(argv=None) -> int:
 
     # ===== BLOK VL-FALLBACK — QC1 kapılı, çift-kontrollü (2026-06-14) =====
     # Akış: OneOCR → 35b Ayıklayıcı → QC1 → RED ise gemma4 VL → QC1 tekrar → hâlâ RED → _qc1_failed işareti
+    # ── YÖNETMEN KURTARMA (etiket-tabanlı, deterministik) — VL'DEN ÖNCE ─────────
+    # ÖLÇÜM (2026-08-01): yönetmen etiketi olan 145 filmin 35'inde (%24) etiket
+    # künyede VAR ama alan BOŞ. Kanıt KUTSAL HAZİNE 1998-0325: g_0244.png'de
+    # "Directed by / JOHN CONNICK" ekranda, okuma doğru, hakem onaylı (kutu_n=2),
+    # kunye.txt:252-253'e yazılmış — gemma 18 oyuncuyu buldu ama 264 satırın
+    # 252.'sindeki bu alanı atladı; VL yedeği de bulamadı. Prompt SUÇSUZ (kural 4
+    # tam bu kalıbı tarif ediyor) → model hatırlama hatası, uzun-kuyruk sınıfı.
+    # DURUŞ: LLM'i değiştirme (aynı metinden 18 oyuncuyu doğru çıkardı); bulanık
+    # işi LLM'e, ETİKETLİ kesin alanı KURAL'a bırak. Yalnız BOŞ alanı doldurur,
+    # dolu alanı ASLA ezmez → sıfır regresyon. Kill-switch: MITAS_YON_KURTAR=0.
+    # ── ROL-EŞLEME DENETİMİ: modelin DOLDURDUĞU yönetmeni bağlama karşı sına ──
+    # ÖLÇÜLEN SORUN (2026-08-01): model, etiketin SAHİBİ OLMAYAN komşu ismi
+    # yönetmen yazıyor. Üç vaka:
+    #   ÇİNGENE 1998-0435   : '2ème assistant réalisateur' altındaki isim
+    #   KARA GÜNLER 1998-0312: 'NACH EINER GESCHICHTE VON' (hikâye yazarı) altındaki
+    #                          isim — DOĞRU yönetmen (NIKOLAUS LEYTNER) 3 satır YUKARIDA
+    #   YAZ TATİLİ 1963-0035: koreograf alınmış; üstünde etiket YOK → bu kural
+    #                          onu YAKALAYAMAZ (dürüst sınır, kayıtlı)
+    # ÇAĞATAY KISITI: "Bu işi modelden ALMAM, en fazla modeli değiştiririz."
+    # Bu yüzden burada ÇIKARIM YOK — model ana yol, bu katman yalnız HAKEM.
+    # (Ayrıca ölçüldü: gemma4:26b daha iyi nicelemeli ama DAHA KÖTÜ → model
+    #  değişimi çözüm değil; rol_model_ab.py kaydında.)
+    # SİLME DEĞİL İŞARETLEME: alan boşalır, _yonetmen_reddedildi olarak kaydedilir,
+    # olay basılır → insan görür, ayrıca aşağıdaki kurtarıcı yeniden deneyebilir.
+    # Kill-switch: MITAS_YON_DENETIM=0
+    if (video_credits and video_credits.get("yonetmen")
+            and os.environ.get("MITAS_YON_DENETIM", "1").strip().lower() not in ("0", "false", "off")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import yonetmen_kurtar as _yk_d
+            _ku_d = ocr_out / "kunye.txt"
+            if _ku_d.is_file():
+                _sat_d = _ku_d.read_text(encoding="utf-8", errors="ignore").splitlines()
+                _kalan, _red = [], []
+                for _yn in (video_credits.get("yonetmen") or []):
+                    _kusur = _yk_d.dogrula(str(_yn), _sat_d)
+                    (_red if _kusur else _kalan).append((_yn, _kusur))
+                if _red:
+                    video_credits["yonetmen"] = [y for y, _ in _kalan]
+                    video_credits["_yonetmen_reddedildi"] = [
+                        {"isim": y, **(k or {})} for y, k in _red]
+                    for _y, _k in _red:
+                        log_event("credit_yonetmen_rol_reddi", level="warn",
+                                  summary=f"{video.name}: modelin verdiği yönetmen '{_y}' REDDEDİLDİ — "
+                                          f"künyede üstünde/aynı satırında yönetmen-DIŞI rol etiketi var "
+                                          f"({_k.get('etiket')!r}, satır {_k.get('satir')}).",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "reddedilen": _y, **(_k or {})})
+        except Exception as _e:  # noqa: BLE001 — denetim ASLA hattı düşürmez
+            dbg.emit("yonetmen_denetim_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
+    if (video_credits and not video_credits.get("yonetmen")
+            and os.environ.get("MITAS_YON_KURTAR", "1").strip().lower() not in ("0", "false", "off")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import yonetmen_kurtar as _yk
+            _kunye_yolu = ocr_out / "kunye.txt"
+            _iz_yolu = ocr_out / "hibrit_iz.jsonl"
+            if _kunye_yolu.is_file():
+                _bulgu = _yk.kurtar(
+                    _kunye_yolu.read_text(encoding="utf-8", errors="ignore").splitlines(),
+                    iz_yolu=(str(_iz_yolu) if _iz_yolu.is_file() else None))
+                # KANIT KAPISI: otomatik doldurma YALNIZ adres teyitli olduğunda.
+                # Kuru koşu (125 film) yapısal süzgeç tek başına %75 isabet verdi —
+                # kritik alan için YETMEZ (HOTEL RWANDA: 'A FILM BY' + oyuncu adı
+                # tesadüfen komşu → Terry George yerine Fana Mokoena yazardı).
+                # Etiket ve isim AYNI KAREDE ise kart gerçekten yönetmen kartıdır.
+                # Teyitsiz aday SİLİNMEZ, aday olarak kaydedilir → KONTROL insanı görür.
+                _teyit = (_bulgu or {}).get("kare_teyidi")
+                _saglam = _teyit in ("etiketle_ayni_satir",) or (
+                    _teyit and _teyit.endswith(".png"))
+                if _bulgu and _saglam:
+                    # ÇOK-YÖNETMEN: kurtar() artık liste döndürüyor (konsey P0 bulgusu —
+                    # eş-yönetmen sessizce kayboluyordu). Geriye-uyum: yonetmenler yoksa tek.
+                    video_credits["yonetmen"] = _bulgu.get("yonetmenler") or [_bulgu["yonetmen"]]
+                    video_credits["_yonetmen_kurtarildi"] = _bulgu
+                    log_event("credit_yonetmen_kurtarildi",
+                              summary=f"{video.name}: yönetmen alanı BOŞTU, künye etiketinden "
+                                      f"kurtarıldı → {_bulgu['yonetmen']} "
+                                      f"(etiket={_bulgu['etiket']!r}, satır={_bulgu['satir']}, "
+                                      f"teyit={_teyit}).",
+                              module="ocr", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, **_bulgu})
+                elif _bulgu:
+                    video_credits["_yonetmen_adayi"] = _bulgu     # doldurmaz, işaretler
+                    log_event("credit_yonetmen_adayi_teyitsiz", level="warn",
+                              summary=f"{video.name}: yönetmen adayı bulundu ama ADRES TEYİDİ YOK "
+                                      f"({_bulgu['yonetmen']}, teyit={_teyit}) — alan BOŞ bırakıldı, "
+                                      f"insan teyidine gidiyor.",
+                              module="ocr", media_id=media_id, filename=video.name,
+                              detail={"clip_id": clip_id, **_bulgu})
+        except Exception as _e:          # noqa: BLE001 — kurtarma ASLA hattı düşürmez
+            dbg.emit("yonetmen_kurtar_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
+    # ── HAKEM VL: son çare, videoyu İKİNCİ BİR GÖZE okut (Çağatay'ın emniyet kemeri) ──
+    # "Bu hatalarda VL modele video olarak verip 'kardeş bir de sen bak' demek.
+    #  Kaza olsa da içinden canlı çıkmamızı sağlayan şey."
+    # SIRA (en pahalı en sonda): model → rol denetimi → etiket kurtarma → HAKEM.
+    # Buraya gelinmişse: model bir şey vermedi VEYA verdiği reddedildi VE künye
+    # etiketinden de kurtarılamadı. Yani hat kör; hakem bağımsız sensör olarak girer.
+    # NEDEN VİDEO: kare verirsek ikinci bir kare-okuyucu olur, bağımsız sensör olmaz
+    #   (Çağatay itirazı). Kayan jeneriğin bölünen satırı videoda SÜREKLİ.
+    # NEDEN VARSAYILAN KAPALI: ~20 GB VRAM ister, kartta başka hiçbir şeyle birlikte
+    #   duramaz (Ollama boşaltılır, iş bitince iner). Toplu koşuda GPU'yu kilitler →
+    #   MITAS_HAKEM_VL=1 ile bilinçli açılır. Ölçüm: gerekecek film oranı ~%2.5.
+    # ADRES ZORUNLU: hakem "kaçıncı saniyede" döner (saniye×1.5=kare). Adressiz VL,
+    #   KB'nin yerine geçen ikinci bir "bana inan" otoritesi olurdu.
+    # ÖZ-DENETİM: hakemin cevabı da modelin cevabıyla AYNI süzgeçten geçer
+    #   (_hakem_dogrula) — ilk sınavlarında 4 kez uydurdu, hepsi yakalandı.
+    if (video_credits and not video_credits.get("yonetmen")
+            and os.environ.get("MITAS_HAKEM_VL", "0").strip().lower() in ("1", "true", "on", "yes")):
+        try:
+            sys.path.insert(0, str(HERE))
+            import hakem_vl as _hvl
+            _hk = _hvl.hakemlik(clip_dir, alan="yonetmen", pencere="giris")
+            if _hk.get("durum") == "bulundu":
+                video_credits["yonetmen"] = [_hk["deger"]]
+                video_credits["_yonetmen_hakem_vl"] = _hk
+                log_event("credit_yonetmen_hakem_vl",
+                          summary=f"{video.name}: HAKEM VL yönetmeni buldu → {_hk['deger']} "
+                                  f"(etiket={_hk.get('etiket')!r}, "
+                                  f"saniye={_hk.get('mutlak_saniye')}, kare≈{_hk.get('kare_indeksi')}, "
+                                  f"reddedilen_blok={_hk.get('reddedilen_n')}).",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, **_hk})
+            else:
+                log_event("credit_yonetmen_hakem_vl_bulamadi", level="warn",
+                          summary=f"{video.name}: HAKEM VL de bulamadı ({_hk.get('durum')}) — "
+                                  f"alan BOŞ, insan teyidine gidiyor.",
+                          module="ocr", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, **_hk})
+        except Exception as _e:  # noqa: BLE001 — hakem ASLA hattı düşürmez
+            dbg.emit("hakem_vl_hata", {"hata": f"{type(_e).__name__}: {_e}"})
+
     # QC1 kriteri: yönetmen BOŞSA veya cast < 3  →  RED.
     # gemma4 VL (tek model): kare oku → yönetmen doldur + cast<3 ise cast'i de doldur (--fill-cast).
     # Kill-switch: MITAS_NO_VL_FALLBACK=1. Her hata → video_credits AYNEN (FAIL-SAFE).
@@ -2878,6 +3123,19 @@ def main(argv=None) -> int:
                                "yonetmen_var": bool(video_credits.get("yonetmen")),
                                "cast_count": len(video_credits.get("cast") or [])},
                      source={"module": "scripts/mitas_pipeline.py"})
+            # ÖLÇÜM KANCASI: temiz geçiş de olay bassın. Yoksa QC1 başarı oranının
+            # PAYDASI log'da olmuyor — 'credit_qc1_passed' yalnız RED→VL→kurtarıldı
+            # yolunu kapsıyor, ilk denemede geçen film sıfır olay üretiyordu
+            # (ampirik: 33 filmden 17'si görünmez). dbg.emit per-film trace'e gider,
+            # system_events.jsonl'e DEĞİL → kohort ölçümü yapılamıyordu.
+            log_event("credit_qc1_passed_first_try",
+                      summary=f"{video.name}: QC1-PASS (ilk deneme, VL koşmadı) — "
+                              f"yön={video_credits.get('yonetmen')} cast={len(video_credits.get('cast') or [])}.",
+                      module="ocr", media_id=media_id, filename=video.name,
+                      detail={"clip_id": clip_id,
+                              "yonetmen": video_credits.get("yonetmen"),
+                              "cast_count": len(video_credits.get("cast") or []),
+                              "vl_fallback": False})
     elif USE_VIDEO_CREDITS and _vl_off and not args.no_ocr and video_credits and profile in ("film", "dizi"):
         dbg.emit("qc1", "qc_decision", status="skipped",
                  subject={"field": "credit_quality",
@@ -2886,6 +3144,18 @@ def main(argv=None) -> int:
                           "reason": "VL fallback disabled by MITAS_NO_VL_FALLBACK"},
                  evidence={"vl_fallback": False, "disabled": True},
                  source={"module": "scripts/mitas_pipeline.py"})
+        # ÖLÇÜM KANCASI: bu dalda QC1 HİÇ değerlendirilmiyor — _qc1_failed set
+        # edilmiyor, yani routing'e (satır ~3367) QC1 sinyali gitmiyor. Kohortu
+        # 'geçti' sananın önüne geçmek için ayrı kind: paydaya girer, sayıya girmez.
+        log_event("credit_qc1_skipped", level="warn",
+                  summary=f"{video.name}: QC1 değerlendirilmedi — MITAS_NO_VL_FALLBACK ile "
+                          f"kapatıldı; yön={'VAR' if video_credits.get('yonetmen') else 'BOŞ'}, "
+                          f"cast={len(video_credits.get('cast') or [])}.",
+                  module="ocr", media_id=media_id, filename=video.name,
+                  detail={"clip_id": clip_id,
+                          "yonetmen": video_credits.get("yonetmen"),
+                          "cast_count": len(video_credits.get("cast") or []),
+                          "reason": "MITAS_NO_VL_FALLBACK"})
 
     # ===== BLOK YÖNETMEN-DOĞRULAMA (credit_validate; flag MITAS_CREDIT_VALIDATE, fail-safe) =====
     # 35B çıktısını mitas.duckdb (IMDb+Wikidata) + XML ile DOĞRULA → CELISKI/OKUNAMADI = KONTROL sinyali.
@@ -2898,6 +3168,13 @@ def main(argv=None) -> int:
                       "--video-credits", json.dumps(video_credits, ensure_ascii=False),
                       "--video", str(video), "--title", title or "", "--ocr", str(kunye_path),
                       "--profile", profile]
+            # ORİJİNAL-AD İKİNCİ ANAHTAR (2026-07-31, Çağatay): bu çağrı --original HİÇ GEÇMİYORDU →
+            # credit_validate.py DB-arama SADECE Türkçe başlıkla çalışıyordu (yabancı filmde DB'de
+            # yalnız İngilizce ad varsa 0 aday → yönetmen doğrulama hep "kaynak veri yok" kalıyordu).
+            # XML <TITLE> zaten satır ~1806'da (original=) hesaplanmış; afiş aramasında kullanılıyor —
+            # burada da AYNI değeri iletmek additive (original boşsa davranış birebir aynı).
+            if original:
+                cv_cmd += ["--original", original]
             _rc_cv, _out_cv, _err_cv = run(cv_cmd, timeout=180)
             cv_result = last_json(_out_cv)
             dbg.emit("credit_validate", "external_lookup",
@@ -2945,6 +3222,17 @@ def main(argv=None) -> int:
                 if _credit_validate_strong_director(cv_result):
                     if video_credits.get("_qc1_failed"):
                         video_credits["_qc1_failed_overridden_by_credit_validate"] = True
+                        # ÖLÇÜM KANCASI: "QC1 RED → sonradan kurtarıldı" vakası
+                        # olay düzeyinde görünmüyordu; yalnız credit_validate_backfill
+                        # basılıyordu ve o QC1'den bağımsız da tetiklenebiliyor.
+                        # Kohort sayımında bu filmler 'failed' kalıyordu → sahte kötümser.
+                        log_event("credit_qc1_recovered_by_validate",
+                                  summary=f"{video.name}: QC1-RED, credit_validate güçlü yönetmen "
+                                          f"buldu → bayrak KALDIRILDI ({_new_dir}).",
+                                  module="ocr", media_id=media_id, filename=video.name,
+                                  detail={"clip_id": clip_id, "yonetmen": _new_dir,
+                                          "sources": _cvd_fix.get("sources_confirm"),
+                                          "confidence": _cvd_fix.get("confidence")})
                     video_credits["_qc1_failed"] = False
                     video_credits["_credit_validate_strong_director"] = True
                 dbg.emit("credit_validate", "candidate_changed",
@@ -2971,7 +3259,9 @@ def main(argv=None) -> int:
         # ozet: ASR transcript'inden Sonnet ile gercek olay-orgusu ozeti.
         # transcript_plain.txt = _pipe_asr.py'nin yazdigi tam temiz metin (asr_out/).
         # Key yok / transcript yok / istek coker → eski placeholder davranisi korunur.
-        ozet = "(Özet ayrı bir adımda üretilecektir.)"
+        # ASR anahtari KAPALI (no_asr) → ozet BOS: _make_pdf ozet-bos paneli hic cizmez,
+        # PDF placeholder'siz temiz cikar (Cagatay 2026-07-30: test klipleri ASR'siz).
+        ozet = "" if args.no_asr else "(Özet ayrı bir adımda üretilecektir.)"
         if asr_info.get("language") == "ku":
             # Kürtçe-ailesi: whisper ÇEVİREMEZ (ASR atlandı) → özeti İNTERNETTEN çek (bizim prompt). Çağatay direktifi.
             # NOT: başlık eşleşmesi belirsizse yanlış film gelebilir — kadro-tabanlı kimlik ileride bağlanacak.
@@ -3336,7 +3626,23 @@ def main(argv=None) -> int:
                 if _has_identity_contradiction(
                         _cc4, qc2_resolved=bool(_qc2_on and _qc2_resolved),
                         strong_director=bool(_cv_strong_director)):
-                    reasons.append("kimlik çelişkisi (KB cross-check)")
+                    # ETİKET DÜRÜSTLÜĞÜ (Çağatay 2026-08-01: "bu kadar fark olmaması
+                    # gerekiyor"). ÖLÇÜLDÜ — haklıydı, o kadar fark YOK:
+                    #   gecenin 17 "kimlik çelişkisi" filminin 14'ü KAYNAK_YOK,
+                    #   2'si OKUNAN_YOK, YALNIZ 1'i ÇELİŞKİ.
+                    #   Tüm DB: KB otoriter yönetmeni olan 164 filmin 109'unda (%66)
+                    #   AYNI ismi okuduk, 46'sında okuyamadık, 9'unda farklı isim —
+                    #   biri de yalnız aksan (AGUST~Ágúst, aynı kişi) → gerçek çelişki %5.
+                    # Kaynak YOKLUĞU çelişki DEĞİLDİR; "çelişki" etiketi veri-kalitesi
+                    # felaketi görüntüsü yaratıp taksonomiyi yanıltıyordu.
+                    # ROTA DEĞİŞMEZ (film yine KONTROL'e gider — kimlik kurulamadı
+                    # qc_block'u zaten ayrıca basılıyor); yalnız SEBEP metni dürüstleşir.
+                    _cc_verdict = str((_cc4 or {}).get("verdict") or "")
+                    if _cc_verdict in ("KAYNAK_YOK", "OKUNAN_YOK"):
+                        reasons.append(
+                            f"kimlik doğrulanamadı (kıyas kaynağı yok — {_cc_verdict})")
+                    else:
+                        reasons.append("kimlik çelişkisi (KB cross-check)")
                 # KIRMIZI ÇİZGİ (2026-06-07): yönetmen OCR'dan okunamadıysa KB-fill YOK → künye Kontrol'e
                 # (zorla doldurma yok; insan teyidi). v4 raporu yönetmeni boşsa işaretle.
                 _v4_yon = (((_v4j or {}).get("v4") or {}).get("yonetmen") or [])
@@ -3422,7 +3728,44 @@ def main(argv=None) -> int:
         if qwen_qc.get("turkce_karakter_bozuk_var"):
             reasons.append("qwen: Türkçe karakter bozuk")
         if qwen_qc.get("latin_disi_alfabe_var"):                # başka alfabe (Kiril/Yunan/Arap/CJK) PDF'e sızmamalı
-            reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
+            # AFİŞ BİZİM METNİMİZ DEĞİL (ölçüm 2026-08-01): bu görsel kapı PDF
+            # ÖNİZLEMESİNE bakıyor ve AFİŞ SANAT ESERİNDEKİ yabancı alfabeyi de
+            # sayıyor. Modelin kendi notları ele veriyor — 8 filmin hepsinde
+            # "Afiş üzerinde Kiril/Arapça..." yazıyor. Bunların 7'sinde künye
+            # METNİ tertemiz (%0.00 Latin-dışı); üstelik bazı iddialar UYDURMA
+            # (KUTSAL HAZİNE'nin afişi İTALYANCA, Kiril yok — gözle doğrulandı).
+            # Sovyet filminin afişinin Kiril olması NORMAL; kural bizim YAZDIĞIMIZ
+            # metin hakkında.
+            # ÇÜRÜTME KAPISI (adres-teyidi ilkesi): model iddiası, hesaplanabilir
+            # yer-doğrusuna karşı sınanır. Künye metni Latin-dışı eşiğinin ALTINDAysa
+            # iddia ÇÜRÜTÜLDÜ → bloklamaz, uyarı olarak kalır (kayıt kaybolmaz).
+            # Metin gerçekten Latin-dışıysa (İKİ SÜVARİ %98.8) blok AYNEN sürer.
+            # Geri dönüş: MITAS_QWEN_NONLATIN_CURUT=0
+            _nl_oran = None
+            try:
+                if os.environ.get("MITAS_QWEN_NONLATIN_CURUT", "1").strip().lower() not in ("0", "false", "off"):
+                    _ku = ocr_out / "kunye.txt"
+                    if _ku.is_file():
+                        _t = _ku.read_text(encoding="utf-8", errors="ignore")
+                        _harf = [c for c in _t if c.isalpha()]
+                        if _harf:
+                            _nl_oran = sum(
+                                1 for c in _harf
+                                if "LATIN" not in unicodedata.name(c, "")) / len(_harf)
+            except Exception:  # noqa: BLE001 — çürütme yapılamazsa ESKİ davranış (blokla)
+                _nl_oran = None
+            if _nl_oran is not None and _nl_oran < 0.02:
+                qwen_uyari.append(
+                    f"qwen 'Latin-dışı alfabe' dedi ama künye metni temiz (%{_nl_oran * 100:.2f}) — "
+                    f"iddia AFİŞ sanat eserinden; bloklamadı. not: {str(qwen_qc.get('notlar'))[:70]}")
+                log_event("qwen_nonlatin_curutuldu",
+                          summary=f"{video.name}: görsel QC 'Latin-dışı alfabe' dedi, künye metni "
+                                  f"%{_nl_oran * 100:.2f} → iddia çürütüldü (afiş kaynaklı).",
+                          module="qc", media_id=media_id, filename=video.name,
+                          detail={"clip_id": clip_id, "kunye_nonlatin_oran": round(_nl_oran, 4),
+                                  "qwen_notlar": qwen_qc.get("notlar")})
+            else:
+                reasons.append("qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol)")
 
     # yönetmen doğrulama (credit_validate, flag-gated): kaynak-çelişkisi/okunamadı → KONTROL sinyali
     if cv_result:
@@ -3662,13 +4005,18 @@ def main(argv=None) -> int:
         base_name = (f"{trt} {_safe_title}").strip() + f"_{special_genre}" + (_kontrol_lbl if karar == "Kontrol" else "")
     else:
         base_name = (f"{trt} {_safe_title}").strip() + ("_onaylı" if karar == "Hazır" else _kontrol_lbl)
+    # is_file (exists DEĞİL): pdf_path=None → Path('.') dizini "var" sayılıp md teslimini
+    # İPTAL ediyor ve sahte .pdf yolu raporluyordu (Errno 21, 2026-07-30 kanıtlı).
     pdf_src = Path(pdf_info.get("pdf_path") or "")
     md_src = Path(pdf_info.get("md_path") or "")
-    src_file = pdf_src if (pdf_src and pdf_src.exists()) else (md_src if (md_src and md_src.exists()) else None)
-    ext = ".pdf" if (pdf_src and pdf_src.exists()) else (".md" if (md_src and md_src.exists()) else "")
+    src_file = pdf_src if (pdf_src and pdf_src.is_file()) else (md_src if (md_src and md_src.is_file()) else None)
+    ext = ".pdf" if (pdf_src and pdf_src.is_file()) else (".md" if (md_src and md_src.is_file()) else "")
     dest = (dest_root / f"{base_name}{ext}") if not _ext_tf else None
     if src_file and dest is not None:
-        shutil.copy2(src_file, dest)
+        try:
+            shutil.copy2(src_file, dest)
+        except Exception as e:
+            print(f"WARN: shutil.copy2 failed: {e}")
     dbg.emit("routing", "qc_decision",
              status="ok" if karar == "Hazır" else "warn",
              subject={"field": "karar", "after": karar,
@@ -3757,6 +4105,19 @@ def main(argv=None) -> int:
                                if isinstance(video_credits, dict) else None),
         "vl_yon_cast_dropped": (video_credits.get("vl_yon_cast_dropped")
                                 if isinstance(video_credits, dict) else None),
+        # ÖLÇÜM (2026-07-31): QC1 sonucu YAPISAL alan olarak _DURUM'da. Önceden yalnız
+        # serbest metin olarak 'neden'/'qwen_uyari' içinde sızıyordu → toplu analiz
+        # dizgi-eşleşmesine mahkûmdu. _qc1_failed bellekte doğup süreç bitince
+        # kayboluyordu (karara etki ediyor: satır ~3392). Additive, karar etkisiz.
+        "qc1": ({"failed": bool(video_credits.get("_qc1_failed")),
+                 "yonetmen_var": bool(video_credits.get("yonetmen")),
+                 "cast_n": len(video_credits.get("cast") or []),
+                 "vl_kostu": bool(video_credits.get("vl")),
+                 "validate_override": bool(
+                     video_credits.get("_qc1_failed_overridden_by_credit_validate")),
+                 "validate_strong_director": bool(
+                     video_credits.get("_credit_validate_strong_director"))}
+                if isinstance(video_credits, dict) else None),
         # İP-2 (2026-07-11): extraction sözleşmesi _DURUM'da görünür — "teknik-kaza mı, meşru-boş mu"
         # sorusunun kalıcı veri-tabanı (TECH_RETRY worklist'i ve İP-4 reason-code'ları buradan beslenir).
         "extraction_status": (video_credits.get("extraction_status")
@@ -3878,8 +4239,12 @@ def main(argv=None) -> int:
             and not args.no_ocr):
         _vv_t = time.perf_counter()
         try:
+            # Pencere/fps İLETİLİR (_jenerik_dense ile aynı desen): kareler HANGİ
+            # saniyeden HANGİ fps ile çıkarıldıysa video kesimi de ondan hesaplanmalı.
+            # İletilmezse script dur-600 varsayardı → üretim tail'i 480 iken 120 sn kayma.
             _vv_cmd = [str(PY_OCR), str(HERE / "_pipe_video_vl.py"),
-                       "--clip", str(clip_dir), "--video", str(video)]
+                       "--clip", str(clip_dir), "--video", str(video),
+                       "--win-start", f"{float(_cik_start):.3f}", "--src-fps", str(args.fps)]
             _rcvv, _outvv, _errvv = run(
                 _vv_cmd,
                 timeout=int(os.environ.get("MITAS_VIDEO_VL_TIMEOUT", "1800") or 1800),
@@ -3990,7 +4355,13 @@ def main(argv=None) -> int:
                     [str(PY_OCR), str(_mp_runner), "--once", str(clip_dir), "--base", _mp_base],
                     capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=int(os.environ.get("MITAS_MASTER_PNG_TIMEOUT", "300") or 300))
-                _mp_ok = bool(list(clip_dir.glob("* giris.png")) or list(clip_dir.glob("* cikis.png")))
+                # SAĞLIK KONTROLÜ GERÇEK DOSYAYA BAĞLANDI (Çağatay 2026-08-01:
+                # "sadece runaware olanlar üretilsin, diğer iki master çöp").
+                # Eski hâli KANONİK master'lara (<ad> giris/cikis.png) bakıyordu —
+                # oysa okuma hattı YALNIZ *_reading_master_runaware.png dosyalarını
+                # okuyor (_pipe_hibrit_okuma.kol_master). Kanonik üretim kapatılınca
+                # bu kontrol her filmde sahte "master_png_empty" alarmı verirdi.
+                _mp_ok = bool(list(clip_dir.glob("*reading_master_runaware.png")))
                 log_event("master_png_completed" if _mp_ok else "master_png_empty",
                           level="info" if _mp_ok else "warn",
                           summary=f"{video.name}: master-PNG {'üretildi' if _mp_ok else 'üretilemedi'} "
@@ -4015,6 +4386,128 @@ def main(argv=None) -> int:
                           summary=f"{video.name}: master-PNG atlandı ({type(_mpe).__name__}).",
                           module="master-png", media_id=media_id, filename=video.name,
                           error=str(_mpe)[:200], detail={"clip_id": clip_id})
+
+    # ===== TRACK-KUNYE GÖLGE (2026-07-30): MESSİ + İBRA-OKUMA + RONALDO — 3 çıktı =====
+    # Spec: docs/superpowers/specs/2026-07-30-track-kunye-uretim-entegrasyon-design.md
+    # ÜRETİME DOKUNMAZ: karar/PDF/teslim verildi; çıktılar clip_dir/track_kunye/ + kökte
+    # "<ad> kunye3.txt". MASTER-PNG bloğundan SONRA koşmak ZORUNDA (runaware'i salt-okur).
+    # FAIL-SAFE: hata/timeout ASLA pipeline'ı/kararı bozmaz. Kill: MITAS_TRACK_KUNYE=0.
+    if (os.environ.get("MITAS_TRACK_KUNYE", "1").strip().lower() not in ("0", "false", "off", "no")
+            and not args.no_ocr):
+        _tk_t = time.perf_counter()
+        _tk_ad = video.name if video is not None else clip_dir.name
+        try:
+            if cikis_frames.is_dir() and any(cikis_frames.glob("*.png")):
+                _tk_cmd = [str(PY_OCR), str(HERE / "_pipe_track_kunye.py"),
+                           "--clip", str(clip_dir), "--frames", str(cikis_frames),
+                           "--base", file_base(trt, title)]
+                _rctk, _outtk, _errtk = run(
+                    _tk_cmd,
+                    timeout=int(os.environ.get("MITAS_TRACK_KUNYE_TIMEOUT", "1200") or 1200))
+                _jtk = last_json(_outtk) or {}
+                timings["track_kunye"] = round(time.perf_counter() - _tk_t, 2)
+                _tk_status = str(_jtk.get("status") or ("done" if _rctk == 0 else "failed"))
+                _tk_band = _jtk.get("band")
+                log_event("track_kunye_completed" if _tk_status == "done" else
+                          ("track_kunye_skipped" if _tk_status == "skipped"
+                           else "track_kunye_failed"),
+                          level="info" if _tk_status == "done" else "warn",
+                          summary=f"{_tk_ad}: track-kunye {_tk_status} "
+                                  f"(band={_tk_band}, {timings['track_kunye']} sn).",
+                          module="track-kunye", media_id=media_id, filename=_tk_ad,
+                          duration_seconds=timings["track_kunye"],
+                          detail={"clip_id": clip_id, "ozet": _jtk,
+                                  # betik SÖZLEŞME gereği hep rc=0 döner — stderr'i
+                                  # rc'ye bakmadan logla (konsey bug-avı KIM-3)
+                                  "stderr": (_errtk or "")[-300:] or None})
+                if _tk_status == "done" and _tk_band in ("red", None):
+                    log_event("ronaldo_band_red" if _tk_band == "red" else "ronaldo_band_null",
+                              level="warn",
+                              summary=f"{_tk_ad}: Ronaldo güven bandı {_tk_band or 'yok'} — göz-QC önerilir.",
+                              module="track-kunye", media_id=media_id, filename=_tk_ad,
+                              detail={"clip_id": clip_id, "common_blind": _jtk.get("common_blind")})
+                if _tk_status == "done" and _jtk.get("common_blind"):
+                    log_event("ronaldo_common_blind", level="warn",
+                              summary=f"{_tk_ad}: ortak-körlük bayrağı — kapsama düşük, içerik-tamlık garantisi YOK.",
+                              module="track-kunye", media_id=media_id, filename=_tk_ad,
+                              detail={"clip_id": clip_id, "coverage_ratio": _jtk.get("coverage_ratio")})
+                summary_obj["track_kunye"] = {"status": _tk_status, "band": _tk_band,
+                                              "dir": str(clip_dir / "track_kunye")}
+                write_json(clip_dir / "_DURUM.json", summary_obj)
+            else:
+                log_event("track_kunye_skipped", level="info",
+                          summary=f"{_tk_ad}: track-kunye atlandı — frames/cikis yok/boş.",
+                          module="track-kunye", media_id=media_id, filename=_tk_ad,
+                          detail={"clip_id": clip_id})
+        except Exception as _tke:  # noqa: BLE001 — gölge blok ASLA pipeline'ı bozmaz
+            log_event("track_kunye_failed", level="warn",
+                      summary=f"{_tk_ad}: track-kunye atlandı ({type(_tke).__name__}).",
+                      module="track-kunye", media_id=media_id, filename=_tk_ad,
+                      error=str(_tke)[:300], detail={"clip_id": clip_id})
+
+    # ===== TRACK-KUNYE GÖLGE — GİRİŞ SEGMENTİ (2026-08-12) =====
+    # Spec: docs/superpowers/specs/2026-08-12-nash-giris-aktivasyon-design.md §3.2
+    # Yukarıdaki ÇIKIŞ bloğundan TAMAMEN BAĞIMSIZ ikinci kol: kendi try/except'i,
+    # kendi zaman anahtarı, kendi olay adları, kendi çıktı dizini (track_kunye_giris/).
+    # NASH havuzunu HAM frames/giris'ten kurar → giris_jenerik altyazı-filtresinden
+    # geçmez; ROI arızasına bağımsız ikinci okuma yolu (spec §1).
+    # ÜRETİME DOKUNMAZ (gölge sözleşmesi): karar/PDF/teslim DEĞİŞMEZ (spec §5.2).
+    # FAIL-SAFE: bu kolun hatası/timeout'u çıkış kolunu ve kararı ASLA etkilemez (§5.3).
+    # Kill-switch: MITAS_TRACK_KUNYE_GIRIS=0 (MITAS_TRACK_KUNYE=0 ikisini birden kapatır).
+    if (os.environ.get("MITAS_TRACK_KUNYE", "1").strip().lower() not in ("0", "false", "off", "no")
+            and os.environ.get("MITAS_TRACK_KUNYE_GIRIS", "1").strip().lower()
+                not in ("0", "false", "off", "no")
+            and not args.no_ocr):
+        _tkg_t = time.perf_counter()
+        _tkg_ad = video.name if video is not None else clip_dir.name
+        try:
+            if giris_frames.is_dir() and any(giris_frames.glob("*.png")):
+                _tkg_cmd = [str(PY_OCR), str(HERE / "_pipe_track_kunye.py"),
+                            "--clip", str(clip_dir), "--frames", str(giris_frames),
+                            "--base", file_base(trt, title), "--segment", "giris"]
+                _rctkg, _outtkg, _errtkg = run(
+                    _tkg_cmd,
+                    timeout=int(os.environ.get("MITAS_TRACK_KUNYE_TIMEOUT", "1200") or 1200))
+                _jtkg = last_json(_outtkg) or {}
+                timings["track_kunye_giris"] = round(time.perf_counter() - _tkg_t, 2)
+                _tkg_status = str(_jtkg.get("status") or ("done" if _rctkg == 0 else "failed"))
+                _tkg_band = _jtkg.get("band")
+                log_event("track_kunye_giris_completed" if _tkg_status == "done" else
+                          ("track_kunye_giris_skipped" if _tkg_status == "skipped"
+                           else "track_kunye_giris_failed"),
+                          level="info" if _tkg_status == "done" else "warn",
+                          summary=f"{_tkg_ad}: track-kunye GİRİŞ {_tkg_status} "
+                                  f"(band={_tkg_band}, {timings['track_kunye_giris']} sn).",
+                          module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                          duration_seconds=timings["track_kunye_giris"],
+                          detail={"clip_id": clip_id, "ozet": _jtkg,
+                                  # betik SÖZLEŞME gereği hep rc=0 döner — stderr'i
+                                  # rc'ye bakmadan logla (konsey bug-avı KIM-3)
+                                  "stderr": (_errtkg or "")[-300:] or None})
+                if _tkg_status == "done" and _tkg_band in ("red", None):
+                    log_event("ronaldo_giris_band_red" if _tkg_band == "red"
+                              else "ronaldo_giris_band_null", level="warn",
+                              summary=f"{_tkg_ad}: Ronaldo GİRİŞ güven bandı {_tkg_band or 'yok'} — göz-QC önerilir.",
+                              module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                              detail={"clip_id": clip_id, "common_blind": _jtkg.get("common_blind")})
+                if _tkg_status == "done" and _jtkg.get("common_blind"):
+                    log_event("ronaldo_giris_common_blind", level="warn",
+                              summary=f"{_tkg_ad}: GİRİŞ ortak-körlük bayrağı — kapsama düşük, içerik-tamlık garantisi YOK.",
+                              module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                              detail={"clip_id": clip_id, "coverage_ratio": _jtkg.get("coverage_ratio")})
+                summary_obj["track_kunye_giris"] = {"status": _tkg_status, "band": _tkg_band,
+                                                    "dir": str(clip_dir / "track_kunye_giris")}
+                write_json(clip_dir / "_DURUM.json", summary_obj)
+            else:
+                log_event("track_kunye_giris_skipped", level="info",
+                          summary=f"{_tkg_ad}: track-kunye GİRİŞ atlandı — frames/giris yok/boş.",
+                          module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                          detail={"clip_id": clip_id})
+        except Exception as _tkge:  # noqa: BLE001 — GİRİŞ kolu ASLA pipeline'ı/kararı/çıkış kolunu bozmaz
+            log_event("track_kunye_giris_failed", level="warn",
+                      summary=f"{_tkg_ad}: track-kunye GİRİŞ atlandı ({type(_tkge).__name__}).",
+                      module="track-kunye", media_id=media_id, filename=_tkg_ad,
+                      error=str(_tkge)[:300], detail={"clip_id": clip_id})
 
     # ===== LEGACY GÖLGE VL — paralel debug kapalıysa eski davranışı koru =====
     # ÜRETİME DOKUNMAZ: karar/PDF zaten verildi. FAIL-SAFE: hata/timeout ASLA kararı bozmaz.

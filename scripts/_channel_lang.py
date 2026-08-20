@@ -8,7 +8,7 @@ elenir (doğal müzik-gate). Kanal seçimi: TR konuşma > diğer konuşma > (net
 kanalı — DOWNMIX'e DÜŞME. Kürtçe-ailesi "ku" → whisper çeviremez (üst katman işaretler, çevirmez).
   venvs/asr/Scripts/python.exe scripts/_channel_lang.py "<video>"
 """
-import sys, os, json, subprocess
+import sys, os, json, shutil, subprocess
 os.environ["USE_TF"] = "0"          # transformers TF'yi import etmesin (TF↔numpy2 çökmesi) — hard-set (setdefault değil)
 os.environ["USE_FLAX"] = "0"
 from pathlib import Path
@@ -16,9 +16,27 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")  # pytest/redirect altında reconfigure olmayabilir
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
-FF = Path(os.environ.get("MITAS_FFMPEG") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffmpeg.exe"))
-FP = Path(os.environ.get("MITAS_FFPROBE") or (ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / "ffprobe.exe"))
+ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+def _bul_ff(env_adi: str, arac: str) -> Path:
+    """ffmpeg/ffprobe ikilisini çöz: env → sistem PATH → Windows paketli .exe.
+
+    2026-08-11: PATH adımı EKLENDİ. Eskiden env yoksa doğrudan `.exe` yoluna
+    düşülüyordu; Linux'ta o dosya olmadığı için ffprobe/ffmpeg SESSİZCE
+    başarısız oluyor, audio_streams() fallback'e düşüp extract() hiç ses
+    üretemiyordu → her kanal samples=0 → "ses yok → dil belirlenemedi" →
+    PDF'te ANA DİL boş. Üretim kanıtı: 1035 chlang.json'un 777'si (%75) tam
+    olarak bu sebeple dilsiz. Windows davranışı korunuyor (.exe son çare)."""
+    v = (os.environ.get(env_adi) or "").strip()
+    if v:
+        return Path(v)
+    p = shutil.which(arac)
+    if p:
+        return Path(p)
+    return ROOT / "tools" / "ffmpeg-shared" / "ffmpeg-8.1.1-full_build-shared" / "bin" / f"{arac}.exe"
+
+
+FF = _bul_ff("MITAS_FFMPEG", "ffmpeg")
+FP = _bul_ff("MITAS_FFPROBE", "ffprobe")
 # İP-5 (2026-07-11): candidate modunda MITAS_OUTPUTS_DIR run-root'a işaret eder (pilot kanıtının
 # yakaladığı 44-dosyalık sızıntı). NOT (İP-7'ye): bu scratch GLOBAL — iki PARALEL koşu aynı wav
 # adlarında yarışır; job-scoped dizine taşınması ayrı iş (davranış-değişikliği, burada yapılmadı).
@@ -119,17 +137,46 @@ def _get_mms():
         fe = AutoFeatureExtractor.from_pretrained(MMS_MODEL)
         m = Wav2Vec2ForSequenceClassification.from_pretrained(MMS_MODEL)
         dev = "cuda" if torch.cuda.is_available() else "cpu"
-        m = m.to(dev).eval()
+        try:
+            m = m.to(dev).eval()
+        except Exception as gpu_exc:  # noqa: BLE001 — CUDA OOM / NVML / sürücü
+            # CPU'YA DÜŞ (2026-08-11): pipeline'da ASR/OCR GPU'yu doldurunca burada
+            # CUDA OOM alınıyordu ("free: 80MB / total: 25GB") ve MMS-LID HİÇ
+            # yüklenemiyordu → her kanal samples=0 → "ses yok" → PDF'te ANA DİL boş.
+            # 1035 chlang kaydının 777'si (%75) dilsiz; ölçülen sebep buydu.
+            # MMS-LID küçük ve yalnız 20sn'lik klipleri sınıflar → CPU tamamen yeterli
+            # (yavaş ama DOĞRU). Projede ASR için aynı OOM→CPU deseni zaten mevcut.
+            if dev != "cpu":
+                print(f"[uyarı] MMS-LID GPU'ya alınamadı ({type(gpu_exc).__name__}) "
+                      f"→ CPU'ya düşülüyor", file=sys.stderr, flush=True)
+                try:
+                    torch.cuda.empty_cache()
+                except Exception:  # noqa: BLE001
+                    pass
+                dev = "cpu"
+                m = m.to(dev).eval()
+            else:
+                raise
         _MMS = (fe, m, dev, torch)
-        print("[info] MMS-LID yüklendi (dil tespiti)", file=sys.stderr, flush=True)
+        print(f"[info] MMS-LID yüklendi (dil tespiti) — cihaz={dev}", file=sys.stderr, flush=True)
     except Exception as exc:  # noqa: BLE001
         print(f"[uyarı] MMS-LID yüklenemedi: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
         _MMS = None
     return _MMS
 
 
+# LID motor sağlığı (2026-08-11). Motor yüklenemez ya da her örnekte patlarsa
+# _classify (None, 0.0) döner → tüm kanallar samples=0 → select_summary "ses yok
+# → dil belirlenemedi" der. Bu ALTYAPI ARIZASINI, gerçekten sessiz bir filmden
+# AYIRT EDİLEMEZ hale getiriyordu: PDF'te ANA DİL boş kalıyor ve kimse sebebini
+# bilmiyor. Sayaçlar main()'de "içerik gerçeği mi, arıza mı" ayrımı için okunur.
+_LID_OK = 0        # başarılı sınıflandırma
+_LID_HATA = 0      # sınıflandırma sırasında istisna
+
+
 def _classify(wav):
     """wav → (2-harf dil, güven). MMS-LID yoksa (None, 0)."""
+    global _LID_OK, _LID_HATA
     mms = _get_mms()
     if mms is None:
         return None, 0.0
@@ -144,8 +191,13 @@ def _classify(wav):
         probs = torch.softmax(logits, dim=-1)
         p, i = torch.max(probs, dim=-1)
         code3 = m.config.id2label[int(i.item())]
+        _LID_OK += 1
         return _map_lang(code3), float(p.item())
-    except Exception:  # noqa: BLE001
+    except Exception as _exc:  # noqa: BLE001
+        _LID_HATA += 1
+        if _LID_HATA == 1:      # ilk hatayı bir kez bildir (log seli olmasın)
+            print(f"[uyarı] MMS-LID sınıflandırma hatası: {type(_exc).__name__}: {_exc}",
+                  file=sys.stderr, flush=True)
         return None, 0.0
 
 
@@ -210,6 +262,15 @@ def main():
         for c in range(nch):
             units.append(detect(video, s, c))
     summary, reason = select_summary(units)
+    # ARIZA mı, GERÇEKTEN SESSİZ mi? (2026-08-11) Motor hiç yüklenemediyse ya da
+    # tek bir başarılı sınıflandırma bile yapamadıysa, "ses yok" bir İÇERİK
+    # GERÇEĞİ değil ALTYAPI ARIZASIDIR. Ayırmadan bırakmak, PDF'te sessizce boş
+    # ANA DİL üretiyordu (1035 kayıtta 777 dilsiz — bir kısmı tam bu yüzden).
+    lid_arizali = (_get_mms() is None) or (_LID_OK == 0 and _LID_HATA > 0)
+    if lid_arizali and summary.get("language") is None:
+        reason = ("LID motoru çalışmadı (MMS-LID yüklenemedi/sınıflandırma patladı) "
+                  "→ dil BELİRLENEMEDİ; bu 'ses yok' DEMEK DEĞİLDİR")
+        print(f"[HATA] {reason} — ok={_LID_OK} hata={_LID_HATA}", file=sys.stderr, flush=True)
     speech = [u for u in units if u["role"] == "konuşma"]
     others = [{"stream": u["stream"], "channel": u["channel"], "language": u["language"]}
               for u in speech if (u["stream"], u["channel"]) != (summary["stream"], summary["channel"])]
@@ -219,6 +280,9 @@ def main():
         "summary_stream": summary["stream"], "summary_channel": summary["channel"],
         "summary_language": summary["language"], "select_reason": reason,
         "lid_engine": "mms-lid-1024",
+        # Aşağı akış (PDF/QC) "dil yok"u içerik sanmasın diye AÇIK arıza bayrağı.
+        "lid_arizali": bool(lid_arizali),
+        "lid_ok": _LID_OK, "lid_hata": _LID_HATA,
         "sesler_ic_ice": any(u.get("mixed") for u in speech),
         "ic_ice_diller": sorted({d for u in speech if u.get("mixed")
                                  for d in (u["language"], u.get("secondary")) if d}),

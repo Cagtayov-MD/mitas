@@ -10,6 +10,26 @@ from __future__ import annotations
 
 import re
 import unicodedata
+import contextvars
+
+# ── Korumalı bootstrap (§4.0) — bu dosya iki AYRI path üzerinden yükleniyor
+# (bazen _jenerik_pool.py'nin eklediği PROJECT_ROOT üzerinden, bazen olc_pool.py'nin
+# yalnız harness/kunye_kiyas'ı ekleyen path'i üzerinden) — ikisinde de çalışır.
+import os
+import sys
+from pathlib import Path
+_KOK = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
+if str(_KOK) not in sys.path:
+    sys.path.insert(0, str(_KOK))
+from core.lexicon.rol_tablosu import betik_bul, rol_esles   # noqa: E402
+
+_AKTIF_DIL_VAR = contextvars.ContextVar("aktif_dil", default="en")
+
+def set_aktif_dil(dil: str):
+    _AKTIF_DIL_VAR.set(dil)
+
+def get_aktif_dil() -> str:
+    return _AKTIF_DIL_VAR.get()
 
 _OCR = None
 
@@ -39,7 +59,10 @@ _ROL = re.compile(
     r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
-    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető|"
+    r"regi|regissör|regissør|regissor|instruktør|instruktion|manus|manuskript|"
+    r"filmfoto|fotograf|klipp|klippning|klipning|redigering|ljud|medverkande|"
+    r"medvirkende|musikk|produsent|scenografi|kostym|skådespelare|skuespillere)\b",
     re.I)
 
 # ÇEKİRDEK-ROL beyaz listesi (T6, plan Görev6/Adım1) — SON_ERISIM gevşetmesi/
@@ -48,6 +71,22 @@ _ROL = re.compile(
 # (GLM tur-2 uyarısı: film-ortası şirket logosu/kredi-dışı insert yanlış tetikler).
 # Macarca eklendi (T6 2.tur, alt-adım1a — konsey kırmızı-takım): DOĞUM_GÜNÜN gibi
 # Macar yapımlarında kredi kartları yalnız Macarca rol adları taşıyor.
+#
+# İSKANDİNAV (sv/no/da) EKLENDİ (2026-08-12, KULÜBEDEKİ_YAŞLI_ADAM teşhisi —
+# Çağatay kapsam kararı: tek dil değil dil ailesi). Arıza: SVERIGES TELEVISION
+# belgeselinde kutu sinyali jeneriği DOĞRU buldu (kare 649-719, son_ok=True) ama
+# kare başına yalnız 1-3 isim düşüyordu (seyrek kart düzeni) → kredi_skoru_coklu'nun
+# varsayılan yogun_esik=4'ü geçilemedi, kb=0.00. Tam bu durum için var olan
+# seyrek-kredi yolu (eşiği 4→2 indirir) ≥2 ÇEKİRDEK-ROL istiyor; 'Filmfoto' /
+# 'Redigering' / 'En film av' hiçbiri 7 dilin (EN/TR/IT/FR/DE/ES/HU) regex'ine
+# uymadığı için hiç tetiklenmedi. ÖLÇÜLDÜ: yalnız bu kelimeler eklenince
+# kredi_yok → start=649, kb=1.00, guven=1.00.
+#
+# SEÇİM DİSİPLİNİ (yukarıdaki 'vágó' içtihadıyla aynı): kısa/çarpışma riskli
+# kelimeler BİLEREK ALINMADI — çıplak 'foto' (4 harf, kredi-dışı bağlamda da
+# geçer), 'lyd' (3 harf), 'roller' (İngilizce 'roller' ile çarpışır). Alınanların
+# hepsi ya ≥5 harf ya da İskandinav'a özgü glif taşıyor (ö/ø/å). KULÜBEDEKİ
+# bunlarsız da geçiyor (filmfoto + ljud + redigering = 3 farklı rol).
 #
 # PREFIX-GÜVENLİ DÜZELTME (mini-tur 3, alt-adım1): _ROL'deki aynı \b(...)\b
 # kapanış-sınırı bozukluğu burada da var — 'photograph'/'cinematograph'/
@@ -65,7 +104,10 @@ _ROL_CEKIRDEK = re.compile(
     r"réalisat\w*|scénario|musique|montage|image|décors|interprét\w*|"
     r"regie|drehbuch|kamera|schnitt|musik|darsteller|"
     r"dirección|guión|música|montaje|reparto|"
-    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető)\b",
+    r"rendezte|rendező|operatőr|zene|fényképezte|vágó|szereplők|gyártásvezető|"
+    r"regi|regissör|regissør|regissor|instruktør|instruktion|manus|manuskript|"
+    r"filmfoto|fotograf|klipp|klippning|klipning|redigering|ljud|medverkande|"
+    r"medvirkende|musikk|produsent|scenografi|kostym|skådespelare|skuespillere)\b",
     re.I)
 
 
@@ -87,19 +129,57 @@ _ROL_MACAR_ONEK = re.compile(
     r"\b(rendez|operat|fenykepez|szerepl|gyartasvezet)", re.I)
 
 
+# FAZ-2 kanonik yönetmen-imleri (§6.2 disiplini, betik-farkında rol tanıma tasarımı
+# §4.2/§6.2): rol_tablosu'nun bir betikte tanıdığı YÖNETMEN eş-anlamlıların hangisi
+# eşleşirse eşleşsin, roller kümesine HER ZAMAN aynı tek dize eklenir — aksi halde
+# '감독' ve '연출' (ikisi de "yönetmen") aynı filmde AYRI iki rol sayılıp
+# len(core_roller)>=2 eşiğini gerçek bir 2. rol OLMADAN yanlış açardı (kredi_yok
+# kırmızı-çizgisi — _PRODUC_GENIS'teki 'produc ailesi TEK kanonik rol' ilkesiyle
+# birebir aynı disiplin). ARAP/KIRIL için mevcut regex'in ZATEN kullandığı literal
+# ile aynı imza kullanılır ki tablo-eşleşmesi var-olan eşleşmeyle ÇAKIŞMASIN
+# (iki farklı dize = sahte +1).
+_TABLO_KANONIK_YONETMEN = {
+    "ARAP": "کارگردان",
+    "KIRIL": "режисс",
+    "IBRANI": "במאי",
+    "YUNAN": "σκηνοθετ",
+    "HANGUL": "감독",
+    "CJK": "导演",
+}
+
+
 def cekirdek_rol_bul(kare_satirlari: list[list[str]]) -> list[str]:
-    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca diyakritik-toleranslı
-    önek eşleşmesinin BİRLEŞİMİ (T6 2.tur, alt-adım1a). credit_onset.py'deki
-    iki `cc._ROL_CEKIRDEK.findall` çağrısının yerini alır — davranış EN/TR/
-    İT/FR/DE/ES/HU tam-kelime eşleşmesinde AYNI, yalnız Macarca'da OCR aksan
-    kaybına dayanıklılık EKLENİR."""
+    """_ROL_CEKIRDEK (tam eşleşme, çok-dilli) + Macarca + betik-farkında rol tablosu
+    (İbrani/Yunan/Hangul/CJK + Arapça/Kiril'in genişletilmiş eş-anlamlıları).
+
+    FAZ-2 İLKESİ (betik-farkında rol tanıma tasarımı §3.1): hangi dalın çalışacağı
+    `get_aktif_dil()`'in FAZ-1 LLM TAHMİNİNE değil, HER SATIRIN kendi unicodedata
+    betiğine (`betik_bul`, %100 kesin) bakar. DOVLATOV (Kiril metin, tahmin='en')
+    ve ARŞIN MAL ALAN (Kiril metin, tahmin='ar' — Arapça dalı Kiril'de hiç
+    eşleşmiyordu) arızalarının kökü buydu. `get_aktif_dil()` BU FONKSİYONDA
+    KULLANILMAZ (OCR model seçimi — Faz-1 — ayrı, dokunulmadı)."""
     roller: set[str] = set()
     for sl in kare_satirlari:
         for s in sl:
-            for m in _ROL_CEKIRDEK.findall(s):
-                roller.add(m.lower())
-            for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
-                roller.add(m.lower())
+            b = betik_bul(s)
+            if b == "LATIN":
+                for m in _ROL_CEKIRDEK.findall(s):
+                    roller.add(m.lower())
+                for m in _ROL_MACAR_ONEK.findall(_diakritik_kaldir_basit(s)):
+                    roller.add(m.lower())
+            elif b == "ARAP":
+                for m in _ROL_ARAP.findall(_arapca_normalize(s)):
+                    roller.add(m.lower())
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN["ARAP"])
+            elif b == "KIRIL":
+                for m in _ROL_KIRIL.findall(s):
+                    roller.add(m.lower())
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN["KIRIL"])
+            elif b in _TABLO_KANONIK_YONETMEN:   # IBRANI, YUNAN, HANGUL, CJK
+                if rol_esles(s, "YONETMEN", haric_uygula=False):
+                    roller.add(_TABLO_KANONIK_YONETMEN[b])
     return sorted(roller)
 
 
@@ -124,30 +204,39 @@ _PRODUC_GENIS = re.compile(r"\b(produc\w*|yapım\w*)\b", re.I)
 
 def cekirdek_rol_bul_genis(kare_satirlari: list[list[str]]) -> list[str]:
     """SADECE tespit_v5'in seyrek-yol GENİŞLETME KARARINDA kullanılır (mini-tur3
-    alt-adım1). Diğer riskli kapılar (_gecis_icerik_onayi/_scroll_kurtarma/
-    SON_ERISIM_GEVSEK) STRICT cekirdek_rol_bul()'u kullanmaya devam eder — bu
-    fonksiyon ONLARI etkilemez (kırmızı-çizgi güvencesi buradan gelir)."""
+    alt-adım1). `_gecis_icerik_onayi` ve `_scroll_kurtarma` kapıları BİLEREK
+    ham `_ROL_CEKIRDEK` kullanır (Macarca diyakritik toleransı HARİÇ) — bu
+    kapılar sahte-pozitif üreticisi olduğu için `_ROL_MACAR_ONEK`'in kapanış-
+    `\\b`-taşımayan öneklerinin `operation`/`render` gibi kelimelere çarpma
+    riski oralarda kabul edilmiyor; bu fonksiyon ONLARI etkilemez (kırmızı-
+    çizgi güvencesi buradan gelir)."""
     roller = set(cekirdek_rol_bul(kare_satirlari))
     if any(_PRODUC_GENIS.search(s) for sl in kare_satirlari for s in sl):
         roller.add("producer")
     return sorted(roller)
 
 
+_OCR_CACHE = {}
+
 def _ocr():
-    global _OCR
-    if _OCR is None:
+    global _OCR_CACHE
+    target_lang = get_aktif_dil()
+    if target_lang not in _OCR_CACHE:
         from paddleocr import PaddleOCR
-        _OCR = PaddleOCR(use_textline_orientation=False, lang="en")
-    return _OCR
+        _OCR_CACHE[target_lang] = PaddleOCR(use_textline_orientation=False, lang=target_lang)
+    return _OCR_CACHE[target_lang]
 
 
 def satirlar(frame_path: str) -> list[str]:
-    r = _ocr().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang=get_aktif_dil())
 
 
 # ── İKİNCİ-ŞANS KİRİL REC (T6 2.tur, alt-adım1b) ─────────────────────────
@@ -168,12 +257,15 @@ def _ocr_ru():
 
 
 def satirlar_ru(frame_path: str) -> list[str]:
-    r = _ocr_ru().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr_ru().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang="ru")
 
 
 # Rusça+Kazakça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Kiril yolunda
@@ -289,6 +381,27 @@ def kredi_skoru_kiril(kare_satirlari: list[list[str]], yogun_esik: int = 2) -> t
 _OCR_AR = None
 
 
+def _qwen_vision_ocr(frame_path: str, lang: str = "ar") -> list[str]:
+    """Fallback OCR using local Qwen Vision model when PaddleOCR engine is unavailable."""
+    import base64, json, urllib.request
+    try:
+        with open(frame_path, 'rb') as f:
+            img_b64 = base64.b64encode(f.read()).decode('utf-8')
+        prompt = "Transcribe all credit text lines in this image. Return line by line, nothing else."
+        payload = {
+            'model': 'qwen2.5vl:7b',
+            'messages': [{'role': 'user', 'content': prompt, 'images': [img_b64]}],
+            'stream': False
+        }
+        req = urllib.request.Request('http://localhost:11434/api/chat', data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+        resp = urllib.request.urlopen(req, timeout=10)
+        content = json.loads(resp.read())['message']['content'].strip()
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        return lines
+    except Exception:
+        return []
+
+
 def _ocr_ar():
     global _OCR_AR
     if _OCR_AR is None:
@@ -298,12 +411,15 @@ def _ocr_ar():
 
 
 def satirlar_ar(frame_path: str) -> list[str]:
-    r = _ocr_ar().predict(frame_path)
-    if not r or not r[0]:
-        return []
-    rr = r[0]
-    txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
-    return [t.strip() for t in txt if t and t.strip()]
+    try:
+        r = _ocr_ar().predict(frame_path)
+        if not r or not r[0]:
+            return []
+        rr = r[0]
+        txt = rr.get("rec_texts", []) if isinstance(rr, dict) else []
+        return [t.strip() for t in txt if t and t.strip()]
+    except Exception:
+        return _qwen_vision_ocr(frame_path, lang="ar")
 
 
 # Farsça/Arapça rol sözlüğü — kasıtlı olarak SADECE ikinci-şans Arapça yolunda
@@ -394,13 +510,12 @@ def _tum_kucuk_cok_kelime(s: str) -> bool:
 
 
 def _isim_gibi(satir: str, baglam: list[str] | None = None) -> bool:
-    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü.
-
-    `baglam` (T6): AYNI KAREDEKİ tüm satırlar. Küçük-harf çok-kelimeli bir satır
-    (İtalyanca/Fransızca kredi isimleri — 'sergio martinelli') tek başına
-    reddedilir (ara-yazı gardı); ama AYNI KAREDE rol-keyword'lü başka bir satır
-    varsa (örn. 'ispettore di produzione') bu satır da isim sayılır — atlas
-    kanıtı: ÖLDÜRME_ZAMANI'nda OCR kusursuz ama tüm satırlar küçük-harf."""
+    """Bir satır kredi-satırı mı (isim/rol) yoksa cümle/gürültü mü."""
+    lang = get_aktif_dil()
+    if lang == "ar":
+        return _isim_gibi_arap(satir)
+    elif lang == "ru":
+        return _isim_gibi_kiril(satir)
     s = satir.strip().strip('"“”\'')
     if len(s) < 2:
         return False
@@ -476,9 +591,9 @@ def kredi_karti_mi(satir_listesi: list[str]) -> bool:
     değil YAPISAL düzen; _isim_gibi'nin ≥2-kelime şartı bu düzeni kaçırıyordu."""
     if not satir_listesi:
         return False
-    isim = sum(1 for s in satir_listesi if _isim_gibi(s))
+    isim = sum(1 for s in satir_listesi if _isim_gibi(s, satir_listesi))
     isim += sum(1 for s in satir_listesi
-                if not _isim_gibi(s) and _tek_isim_sutunu(s))
+                if not _isim_gibi(s, satir_listesi) and _tek_isim_sutunu(s))
     rol = any(_ROL.search(s) for s in satir_listesi)
     noktali = sum(1 for s in satir_listesi
                   if s.strip().endswith((".", "!", "?", "...")) and len(s.split()) >= 4)

@@ -1,0 +1,79 @@
+{
+ "kapsam": 110,
+ "dogru": 103,
+ "genel": 93.6,
+ "uretim": {
+  "dogru": 105,
+  "pct": 95.5,
+  "erken_tol": 120,
+  "gec_tol": 20
+ },
+ "kredi_var": {
+  "n": 81,
+  "dogru": 74
+ },
+ "kredi_yok": {
+  "n": 29,
+  "dogru": 29
+ },
+ "eksik": 5,
+ "sure_sn": 132,
+ "hatalar": [
+  {
+   "film": "2004-9131-1-0000-00-1_YALNIZ_SAVAŞÇI",
+   "gt": 1097,
+   "tahmin": 907,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=1 seçilen=[909-1199] kb=1.00 joint=1.80 scroll_oran=0.01 ardisik=1 guven=1.00 budama=0 genislet=1",
+   "sapma": -190
+  },
+  {
+   "film": "1993-0435-1-0000-00-1_SEN_TOM_SAWYER_DEĞİLSİN",
+   "gt": 805,
+   "tahmin": 937,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=1 seçilen=[809-1135] kb=1.00 joint=1.73 scroll_oran=0.77 ardisik=34 guven=1.00 scroll_icerik_capasi=+64",
+   "sapma": 132
+  },
+  {
+   "film": "2014-9078-1-0000-90-1_KAHRAMAN_UZAYLILAR",
+   "gt": 365,
+   "tahmin": 455,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=2 seçilen=[345-1179] kb=1.00 joint=1.79 scroll_oran=0.74 ardisik=306 guven=1.00 scroll_icerik_capasi=+55",
+   "sapma": 90
+  },
+  {
+   "film": "2025-1112-1-0000-56-1_İNİŞLİ_ÇIKIŞLI_BİR_ÖYK",
+   "gt": 862,
+   "tahmin": 951,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=5 seçilen=[945-1201] kb=1.00 joint=1.80 scroll_oran=0.25 ardisik=3 guven=1.00 budama=3 genislet=0",
+   "sapma": 89
+  },
+  {
+   "film": "2018-0017-1-0000-90-1_KAPAN",
+   "gt": 851,
+   "tahmin": 935,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=1 seçilen=[861-1201] kb=1.00 joint=1.80 scroll_oran=0.34 ardisik=8 guven=1.00 scroll_icerik_capasi=+37",
+   "sapma": 84
+  },
+  {
+   "film": "1996-0325-1-0000-00-1_KIZIL_HAYAT",
+   "gt": 964,
+   "tahmin": 901,
+   "yontem": "kutu+scroll+içerik",
+   "notlar": "aday=3 seçilen=[901-1183] kb=1.00 joint=1.80 scroll_oran=0.10 ardisik=2 guven=1.00 budama=0 genislet=0",
+   "sapma": -63
+  },
+  {
+   "film": "1979-0208-1-0000-00-1_TESS",
+   "gt": 1074,
+   "tahmin": 1037,
+   "yontem": "kutu+içerik",
+   "notlar": "aday=1 seçilen=[1037-1199] kb=1.00 joint=1.50 scroll_oran=0.00 ardisik=0 guven=1.00 budama=0 genislet=0",
+   "sapma": -37
+  }
+ ]
+}

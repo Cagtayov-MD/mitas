@@ -22,11 +22,18 @@ import time
 import debug_trace as dbg
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mitas_roots as _roots  # noqa: E402 — tek-kaynak OCR seçici (find_usable_ocr)
 
 
 def _find_ocr(clip):
     if not clip:
         return None
+    # Tek-kaynak seçici (mitas_roots.find_usable_ocr): BOŞ/MOTOR_YOK/-fb dizini iyi okumayı
+    # GÖLGELEYEMEZ (KÖK-SEBEP 2026-07-30; from-hub candidate MOTOR_YOK, eski GUVENILIR'i gölgeleyip
+    # sahte 'Kontrol' veriyordu). Kullanılabilir yoksa eski davranış korunur: en-yeni mtime.
+    usable = _roots.find_usable_ocr(clip)
+    if usable:
+        return usable
     g = sorted(glob.glob(os.path.join(clip, "ocr", "*", "kunye.txt")), key=lambda p: os.path.getmtime(p))
     return g[-1] if g else None
 
@@ -70,6 +77,7 @@ def main():
     ap.add_argument("--ocr", default=None, help="OneOCR+GLM kunye.txt yolu (birincil)")
     ap.add_argument("--clip", default=None, help="klip dizini (ocr/*/kunye.txt aranır)")
     ap.add_argument("--title", default="")
+    ap.add_argument("--original", default="", help="XML sidecar'dan orijinal başlık (yabancı film)")
     ap.add_argument("--profile", default="film")
     a = ap.parse_args()
 
@@ -102,7 +110,8 @@ def main():
             raw_context = list(raw_context or []) + _dl
             ocr_source = (ocr_source or "") + "+dilim"
         res = ctr.read_credits_auto(
-            lines, a.title, dizi=(a.profile == "dizi"), raw_context_lines=raw_context
+            lines, a.title, dizi=(a.profile == "dizi"), raw_context_lines=raw_context,
+            original=a.original or "",
         ) or {}
         out = {"yonetmen": res.get("yonetmen", []), "yapimci": res.get("yapimci", []),
                "cast": res.get("cast", []), "guven": res.get("guven", "OKUNAMADI"),

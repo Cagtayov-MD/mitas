@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+K="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ ! -x "$K/venv/bin/python" ]; then
+  echo "Shaq/HAKEEM venv bulunamadi; once $K/venv_kur.sh calistir." >&2
+  exit 127
+fi
+exec "$K/venv/bin/python" "$K/karsilastir.py" "$@"
+

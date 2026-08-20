@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mitas.local/schemas/okuma-v2.schema.json",
+  "title": "MITAS ortak okuma paketi v2",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "packet_id", "created_at", "film", "section", "identity", "producer", "lineage", "status", "assets", "lines", "rejected_lines", "unread_regions", "diagnostics", "resource_usage"],
+  "properties": {
+    "schema_version": {"const": "mitas.okuma/v2"},
+    "packet_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "minLength": 1},
+    "film": {"type": "object", "required": ["film_id"], "properties": {"film_id": {"type": "string", "minLength": 1}}},
+    "section": {"enum": ["giris", "cikis"]},
+    "identity": {
+      "type": "object", "required": ["run_id", "task_id", "attempt_id"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "producer": {"type": "object", "required": ["id"], "properties": {"id": {"type": "string", "pattern": "^[^/\\\\]+$"}}},
+    "lineage": {
+      "type": "object", "required": ["parent_tasks", "inputs"],
+      "properties": {
+        "parent_tasks": {"type": "array", "items": {"type": "string"}},
+        "inputs": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "status": {
+      "type": "object", "required": ["execution", "content", "proof"],
+      "properties": {
+        "execution": {"enum": ["SUCCEEDED", "FAILED", "NO_CONTENT"]},
+        "content": {"enum": ["READ", "NO_TEXT", "PARTIAL", "UNKNOWN"]},
+        "proof": {"enum": ["COMPLETE", "PARTIAL", "NONE"]}
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["asset_id", "path", "sha256", "mime_type"],
+        "properties": {
+          "asset_id": {"type": "string", "pattern": "^[^/\\\\]+$", "not": {"enum": [".", ".."]}},
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "mime_type": {"type": "string", "minLength": 1},
+          "bytes": {"type": ["integer", "null"], "minimum": 0},
+          "width": {"type": ["integer", "null"], "minimum": 1},
+          "height": {"type": ["integer", "null"], "minimum": 1},
+          "frame_sequence": {"type": ["integer", "null"], "minimum": 1},
+          "source_time_s": {"type": ["number", "null"], "minimum": 0}
+        }
+      }
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["line_id", "order", "raw_text", "normalized_text", "evidence"],
+        "properties": {
+          "line_id": {"type": "string", "minLength": 1},
+          "order": {"type": "integer", "minimum": 0},
+          "raw_text": {"type": "string", "minLength": 1},
+          "normalized_text": {"type": "string", "minLength": 1},
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object", "required": ["asset_id", "bbox", "coordinate_space"],
+              "properties": {
+                "asset_id": {"type": "string", "minLength": 1},
+                "bbox": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "integer", "minimum": 0}},
+                "coordinate_space": {"const": "pixel_xyxy"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "rejected_lines": {"type": "array"},
+    "unread_regions": {"type": "array"},
+    "diagnostics": {"type": "object"},
+    "resource_usage": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {"properties": {"proof": {"const": "COMPLETE"}}}
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "properties": {
+              "execution": {"const": "SUCCEEDED"},
+              "content": {"const": "READ"}
+            }
+          },
+          "lines": {
+            "minItems": 1,
+            "items": {"properties": {"evidence": {"minItems": 1}}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"properties": {"execution": {"const": "NO_CONTENT"}}}
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "properties": {
+              "content": {"const": "NO_TEXT"},
+              "proof": {"const": "NONE"}
+            }
+          },
+          "lines": {"maxItems": 0}
+        }
+      }
+    }
+  ]
+}

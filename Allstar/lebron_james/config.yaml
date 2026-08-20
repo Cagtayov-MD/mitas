@@ -1,0 +1,25 @@
+# Lebron — kareler → master PNG → metin. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+derleyici:
+  # Bu eşikler harness/master_dup/lebron_james.py'den BİREBİR taşındı.
+  # DEĞİŞTİRME: üretim davranışı bunlarla ölçüldü (2026-08-04 kararı).
+  h_maks: 45000          # bunun üstü → ARIZA(BOY_ASIMI). saglik.py ile aynı tavan
+  cokme_min_kare: 20     # çöküş dedektörü: bundan az karede hüküm verilmez
+
+okuyucu:
+  # Geometri _pipe_hibrit_okuma.py:59'dan gelir ("pilot_hat.oku_master ile aynı
+  # geometri") — uydurma DEĞİL, üretimde ölçülmüş değer. DEĞİŞTİRME.
+  bant_h: 1100
+  bindirme: 120
+  min_bant_h: 40         # bundan kısa son bant atılır
+
+  # Ölçülmüş hızlı GGUF, LeBron'un başlatıp kapattığı özel Ollama sürecinde
+  # yaşar. Makinenin ortak 11434 servisine hiçbir çağrı yapılmaz.
+  ollama_runtime: model/ollama-runtime
+  ollama_store: model/ollama
+  istem: "Free OCR."
+  max_new_tokens: 2048
+  num_ctx: 8192
+  warmup_seconds: 90
+  request_seconds: 30

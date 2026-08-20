@@ -1,0 +1,66 @@
+# Jordan — Sheriff'te kare havuzu, bağımsız kullanımda video girer;
+# her iki yolda ölçülmüş aynı multi-image frame OCR reçetesini uygular.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+model:
+  # ANA OKUYUCU (Çağatay kararı 2026-08-19): Qwen3-VL-8B.
+  # 13-klip dizi GT yarışının kazananı: 470/519 birebir (%91). 2. 27B %80, MiniCPM %35.
+  backend: transformers
+  yol: model/qwen3-vl-8b
+  dtype: bfloat16         # bfloat16 ağırlıklar — ölçülen kurulumla birebir
+  dusunme: false
+
+# Varsayılan 27B kolu. `--backend llama_mtmd` ile çağrıda da açıkça
+# sabitlenebilir. Yollar tek yerde tutulur ve model taşındığında yalnız burası değişir.
+llama_mtmd:
+  binary: /home/cagatay/Programlar/mitas/CagatayBox/llama.cpp/build/bin/llama-mtmd-cli
+  model: /home/cagatay/Programlar/mitas/CagatayBox/models/Qwen3.6-27B-GGUF/Qwen3.6-27B-Q4_K_M.gguf
+  mmproj: /home/cagatay/Programlar/mitas/CagatayBox/models/Qwen3.6-27B-GGUF/mmproj-F16.gguf
+  timeout_s: 600
+  max_new_tokens: 1024
+  gpu_layers: 99
+  grup_kare: 24
+  oom_retry: 1
+  retry_cooldown_s: 2.0
+  image_min_tokens: null
+  image_max_tokens: null
+
+grup:
+  kare_sayisi: 8
+  bindirme_kare: 1
+
+derleyici:
+  kesin_tekrar_penceresi: 12
+
+video:
+  fps: 2
+  genislik: 720
+  suzgec: "scale={genislik}:-2:flags=lanczos,unsharp=5:5:1.0"
+  bicim: jpg
+  jpeg_kalite: 2
+
+gorsel:
+  min_pixels: 200704
+  max_pixels: 3211264      # 720px reçetede atıl (720x405 = 291.600 px, iki sınırın da içinde)
+
+uretim:
+  do_sample: false
+  max_new_tokens: 512
+
+istem:
+  okuma: |
+    Transcribe ONLY literally visible credit text from pixels verbatim from top to bottom. Pay extreme attention to Turkish dotted i (i, İ) versus dotless ı (ı, I). Output one credit per line. Never split a name or title across multiple lines.
+  # Geçiş 2 — SADECE metin girer, görüntü GİRMEZ. Yeni metin üretmesi yasak.
+  ciftleme: |
+    Below are lines of text transcribed from film credits.
+    Pair each role/job label with the name(s) that belong to it on screen.
+    Rules:
+    - Use ONLY the exact strings given below. Never invent, translate or fix.
+    - Copy role and name character-for-character as they appear.
+    - One pair per line, formatted exactly as: ROLE<TAB>NAME
+    - If a line has no matching role or name, skip it.
+    - No commentary, no explanation.
+
+# KSK yarışında olmayan, görüntü görmeyen eski türev geçiş varsayılan
+# olarak kapalıdır. Ham okuma kaybolmaz; istenirse CLI --ciftle ile açılır.
+ciftleme_atla: true

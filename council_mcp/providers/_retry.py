@@ -41,6 +41,10 @@ async def with_retry(func: Callable[[], Awaitable[T]], provider_name: str) -> T:
                 await asyncio.sleep(BASE_DELAY_SECONDS * (2**attempt))
                 continue
 
+    # httpx.TimeoutException'ın str()'i BOŞtur: düz {last_error} yazınca hata
+    # metni "...alınamadı: " diye biter ve tek teşhis bilgisi silinir (MiniMax
+    # 2026-07'de tam bu yüzden "boş dönüyor" sanıldı). Boşsa tip adına düş.
+    detay = str(last_error) or type(last_error).__name__
     raise RuntimeError(
-        f"{provider_name}'dan {MAX_RETRIES + 1} denemede cevap alınamadı: {last_error}"
+        f"{provider_name}'dan {MAX_RETRIES + 1} denemede cevap alınamadı: {detay}"
     )

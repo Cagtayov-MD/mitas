@@ -49,6 +49,8 @@ def main():
     ap.add_argument("--video-credits", required=True, help="35B JSON {yonetmen,cast,...}")
     ap.add_argument("--video", default="")
     ap.add_argument("--title", default="")
+    ap.add_argument("--original", default="",
+                     help="XML <TITLE> orijinal ad (opsiyonel; DB-arama ikinci anahtarı — bkz credit_validate.validate)")
     ap.add_argument("--ocr", default="", help="ham kunye.txt (kare-içi konsensüs)")
     ap.add_argument("--profile", default="film")
     a = ap.parse_args()
@@ -66,14 +68,15 @@ def main():
             if os.path.exists(_raw):
                 ocr_raw = open(_raw, encoding="utf-8", errors="ignore").read()
         import credit_validate as cvmod
-        out = cvmod.validate(ext, xml_roles=xr, title=title, ocr_text=ocr_text, ocr_raw=ocr_raw)
+        out = cvmod.validate(ext, xml_roles=xr, title=title, ocr_text=ocr_text, ocr_raw=ocr_raw,
+                              original=(a.original or None))
         dbg.emit("credit_validate", "qc_decision",
                  status="ok" if (out.get("yonetmen") or {}).get("status") != "HATA" else "warn",
                  duration_ms=(time.perf_counter() - started) * 1000,
                  subject={"field": "yonetmen", "before": ext.get("yonetmen"),
                           "after": out.get("yonetmen"),
                           "reason": "director validation against XML/IMDb/Wiki"},
-                 evidence={"xml_roles": xr, "title": title,
+                 evidence={"xml_roles": xr, "title": title, "original": a.original or None,
                            "kaynaklar": out.get("kaynaklar"),
                            "qc1": out.get("qc1"),
                            "ocr_text_chars": len(ocr_text),

@@ -20,3 +20,16 @@ onnxruntime==1.23.2
 
 # QC/KB integration tests may run under the ASR venv.
 duckdb==1.5.4
+
+# PDF render katmanı (MITAS_PDF_PYTHON bu venv'i gösterir — linux/mitas.env:10).
+# _pipe_pdf.py render bloğu İKİSİNİ de ister: reportlab (kunye.pdf) + fitz
+# (kunye_onizleme.png → qwen FINAL-QC girdisi). fitz eksikti → tüm Linux
+# koşuları "PDF render yok (md teslim)" ile Kontrol'e düşüyordu (2026-07-30).
+reportlab==5.0.0
+PyMuPDF==1.28.0
+
+# ctranslate2 4.7.x encode-anında libcublas.so.12/libcudnn.so.9 dlopen eder
+# (model-load'da DEĞİL — ilk encode'da patlar; 2026-07-30 YAĞMACILAR kanıtı).
+# ct2 pip nvidia dizinlerini kendisi keşfeder — LD_LIBRARY_PATH/preload GEREKMEZ.
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.24.0.43

@@ -18,7 +18,7 @@ def qwen_dir(folder):
     for line in open(log, encoding="utf-8", errors="replace"):
         if "credit_text_completed" in line:
             try: return (json.loads(line).get("detail", {}) or {}).get("yonetmen") or []
-            except: pass
+            except Exception: pass
     return []
 
 def xml_data(folder):
@@ -29,7 +29,7 @@ def xml_data(folder):
     if not (xp and os.path.exists(xp)): return {}, ""
     out = {"yonetmen": [], "oyuncu": []}; title = ""
     try: root = ET.parse(xp).getroot()
-    except: return {}, ""
+    except Exception: return {}, ""
     for prop in root.iter("PROPERTY"):
         if prop.attrib.get("NAME") == "JT:V_ROLE:V_ROL":
             b = prop.find("BEAN")

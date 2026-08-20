@@ -1,0 +1,5 @@
+# iz_pesinde CİKİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/iz_peşinde_son_01m12s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/iz_pesinde_cikis/
+# Motor referansı: cikis_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.

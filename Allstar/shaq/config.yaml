@@ -1,0 +1,16 @@
+# Shaq karar eşikleri — kaynak kule adları burada ve kodda yer almaz.
+schema_version: mitas.shaq.config/v1
+hizalama:
+  max_edit: 3
+  # Fuzzy yalnız hizalama/sınıflandırma içindir; otomatik düzeltme yetkisi yoktur.
+kontrol:
+  context_min_pad_px: 20
+  model: null # Bilerek bağlı değil; KontrolSaglayici dosya sözleşmesi kullanır.
+kimlik:
+  local_provider: null # İsteğe bağlı kesin film-ID → kredi listesi adaptörü.
+hakeem:
+  # Degismez guven kapilari: farkli producer.id yetmez; model_digest ve
+  # independence_group da farkli olmalidir. Ayar degil, sozlesme kuralidir.
+  conflict_model: observation_graph_v1
+  require_four_packets_for_film: true
+  min_novel_independent_control_answers: 2

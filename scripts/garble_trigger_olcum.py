@@ -11,17 +11,21 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 import unicodedata
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-sys.path.insert(0, r"E:\MITAS\scripts")
+# Linux gecisi (2026-08-01): sabit E:\MITAS yolu bu araci Linux'ta KOR ediyordu —
+# 0 film gorup "%0 -> GEC" basiyordu, yani karar-kapisi SAHTE YESIL veriyordu.
+_KOK = os.environ.get("MITAS_PROJECT_ROOT") or str(Path(__file__).resolve().parent.parent)
+sys.path.insert(0, os.path.join(_KOK, "scripts"))
 try:
     from credit_text_read import _looks_garble
 except Exception:  # noqa: BLE001
     def _looks_garble(_n):
         return None
 
-DB = r"E:\MITAS\Database"
+DB = os.path.join(_KOK, "Database")
 DIR_ET = re.compile(r"DIRECTED BY|MISE EN SCENE|REALISATION|A FILM BY|UN FILM DE|\bREGIA\b|\bREGIE\b"
                     r"|YÖNETMEN|YÖNETEN|REJISÖR", re.I)
 

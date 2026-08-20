@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-_PR = os.environ.get("MITAS_PROJECT_ROOT", r"E:\MITAS")
+_PR = os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas"
 sys.path.insert(0, str(Path(_PR) / "OCR-worktree"))
 _spec = importlib.util.spec_from_file_location("dcmaster", str(Path(_PR) / "OCR-worktree" / "db_compose_master.py"))
 dc = importlib.util.module_from_spec(_spec); sys.modules["dcmaster"] = dc; _spec.loader.exec_module(dc)
@@ -106,6 +106,64 @@ def _compose_reading_seg(frames, args):
         "kept_blocks": manifest.get("kept_blocks"),
     }
     return master, info | {"manifest": manifest}
+
+
+# --- lebron_james entegrasyonu (2026-08-04, Çağatay kararı) ----------------- #
+# ÇIKIŞ okuma-master'ının BİRİNCİL kompozitörü artık harness/master_dup/lebron_james.
+LEBRON_KOK = Path(_PR) / "harness" / "master_dup"
+LEBRON_COKME_MIN_KARE = 20
+_LEBRON_MOD = None
+
+
+def _lebron_acik() -> bool:
+    return os.environ.get("MITAS_MASTER_LEBRON", "1").strip().lower() not in ("0", "false", "off", "no")
+
+
+def _lebron_modul():
+    global _LEBRON_MOD
+    if _LEBRON_MOD is None:
+        if str(LEBRON_KOK) not in sys.path:
+            sys.path.insert(0, str(LEBRON_KOK))
+        import lebron_james as lebron_motor
+        _LEBRON_MOD = lebron_motor
+    return _LEBRON_MOD
+
+
+def _lebron_cokmus(manifest: dict, kare_sayisi: int, kare_h: int) -> bool:
+    if manifest.get("segment") != 1 or kare_sayisi < LEBRON_COKME_MIN_KARE:
+        return False
+    boy = (manifest.get("size") or [None, None])[1]
+    return bool(boy) and kare_h > 0 and boy <= 2 * kare_h
+
+
+def _compose_reading_seg_lebron(frames):
+    """Birincil kompozitör: LeBron James (AI Trim). Kapalı/başarısız/çökmüş → (None, sebep)"""
+    if not _lebron_acik():
+        return None, {"lebron": "kapali"}
+    try:
+        lb = _lebron_modul()
+        ims = [im for im in (dc.rd_cached(f) for f in frames) if im is not None]
+        if len(ims) < 2:
+            return None, {"lebron": "kare_yok", "yuklenen": len(ims)}
+        master, manifest = lb.compose_lebron("uretim", ims=ims)
+        if master is None:
+            return None, {"lebron": "cikti_yok", "durum": manifest.get("durum")}
+        if _lebron_cokmus(manifest, len(ims), ims[0].shape[0]):
+            return None, {"lebron": "cokme", "segment": manifest.get("segment"),
+                          "size": manifest.get("size"), "kare": len(ims)}
+        info = {
+            "frames": len(ims),
+            "mode": "lebron_james",
+            "status": manifest.get("durum"),
+            "size": manifest.get("size"),
+            "kept_blocks": manifest.get("segment"),
+            "olcum_yolu": manifest.get("olcum_yolu"),
+        }
+        return master, info | {"manifest": manifest}
+    except Exception as exc:
+        print(f"[lebron] HATA: {type(exc).__name__}: {exc}",
+              file=sys.stderr, flush=True)
+        return None, {"lebron": "hata", "hata": f"{type(exc).__name__}: {exc}"}
 
 
 def _semantic_giris_groups(film: Path, frames: list[str], *, min_frames: int = 2):
@@ -301,7 +359,9 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     if cs is not None:
         gsrc = film / "frames" / "giris_jenerik"
         ginfo = {"source": "giris_cropstack", "status": "no_frames"}
-        if gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
+        if not KANONIK:
+            ginfo = {"source": "giris_cropstack", "status": "kanonik_kapali"}
+        elif gsrc.is_dir() and glob.glob(str(gsrc / "*.png")):
             try:
                 r = cs.build(gsrc, giris_out)
                 ginfo = {"source": "giris_cropstack", "status": r.get("status"),
@@ -316,7 +376,7 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
         frames, src = _seg_source(film, "giris")
         canon, info = _compose_seg(frames, args)
         info["source"] = src
-        if canon is not None:
+        if canon is not None and KANONIK:
             dc.wr(giris_out, canon); info["path"] = str(giris_out); produced = True
         res["giris"] = info
 
@@ -324,7 +384,7 @@ def gen_master(film: Path, base_override: str | None = None) -> dict:
     frames, src = _seg_source(film, "cikis")
     canon, info = _compose_seg(frames, args)
     info["source"] = src
-    if canon is not None:
+    if canon is not None and KANONIK:
         cout = film / f"{base} cikis.png"
         dc.wr(cout, canon)
         info["path"] = str(cout)
@@ -379,34 +439,66 @@ def gen_reading_master(
         # gruba yutup tek medoid karta indirebiliyor. Girişin tamamında yalnız
         # güçlü iç metin-yerleşimi sıçramalarında bölmeye izin ver.
         args.reading_early_split_frames = len(frames)
-    key = "giris_reading_master_runaware" if seg == "giris" else "reading_master_runaware"
-    stem = key
-    out = film / f"{stem}.png"
-    man_out = film / f"{stem}_manifest.json"
+    # Eski (legacy) anahtarlar - Pipeline 15 dosya bunlari okuyor
+    legacy_key = "giris_reading_master_runaware" if seg == "giris" else "reading_master_runaware"
+    legacy_stem = legacy_key
+    legacy_out = film / f"{legacy_stem}.png"
+    legacy_man_out = film / f"{legacy_stem}_manifest.json"
+    
+    # Yeni LeBron isimleri
+    lebron_stem = f"{film.name}-giris-lebron" if seg == "giris" else f"{film.name}-cikis-lebron"
+    out = film / f"{lebron_stem}.png"
+    man_out = film / f"{lebron_stem}_manifest.json"
+
     if seg == "giris":
         master, info = _compose_giris_reading_seg(film, frames, args)
     else:
-        master, info = _compose_reading_seg(frames, args)
+        # ÇIKIŞ: LEBRON JAMES motoru (Çağatay 2026-08-04)
+        master, info = _compose_reading_seg_lebron(frames)
+        if master is None:
+            info = {"status": "lebron_uretemedi", "mode": "lebron_james",
+                    "frames": len(frames), "sebep": info}
+            
     manifest = info.pop("manifest", None)
     info["source"] = src
     info["segment"] = seg
     info["base"] = base
+    
+    def _create_symlink(target, link_name):
+        if link_name.exists() or link_name.is_symlink():
+            try:
+                link_name.unlink()
+            except Exception:
+                pass
+        try:
+            os.symlink(target.name, str(link_name))
+        except Exception as e:
+            print(f"Symlink olusturulamadi: {e}", file=sys.stderr)
+            
     if master is not None:
         dc.wr(out, master)
         info["path"] = str(out)
+        # 15 farkli okuma scriptinin kirilmamasi icin symlink koprusu kur
+        _create_symlink(out, legacy_out)
+    elif seg == "cikis" and info.get("status") == "lebron_uretemedi":
+        pass   # üretilemeyen turda ESKİ çıkış master'ı korunur
     elif out.exists():
         try:
             out.unlink()
+            if legacy_out.exists() or legacy_out.is_symlink(): legacy_out.unlink()
         except Exception:
             pass
+            
     if write_manifest:
         payload = manifest if isinstance(manifest, dict) else info
         try:
-            man_out.write_text(json.dumps(payload | {"source": src, "base": base}, ensure_ascii=False, indent=1),
-                               encoding="utf-8")
+            man_out.write_text(json.dumps(payload | {"source": src, "base": base}, ensure_ascii=False, indent=1), encoding="utf-8")
+            _create_symlink(man_out, legacy_man_out)
         except Exception:
             pass
-    return {"film": film.name, "base": base, key: info}
+            
+    # Geriye donuk uyumluluk icin pipeline json raporuna hem eski anahtari hem yeni anahtari ekle
+    return {"film": film.name, "base": base, legacy_key: info, lebron_stem: info}
 
 
 def _has_frames(film: Path) -> bool:
@@ -419,9 +511,18 @@ def _ready(film: Path) -> bool:
     return _has_frames(film) and ((film / "ocr").exists() or (film / "pdf").exists())
 
 
+# KANONİK MASTER ÜRETİMİ KAPALI (Çağatay talimatı 2026-08-01):
+# "runaware doğru olan; diğer iki master çöp, sil, bir daha üretilmesinler."
+# Okuma hattı YALNIZ *_reading_master_runaware.png okuyor (_pipe_hibrit_okuma.kol_master).
+# Kanonik '<ad> giris.png' (crop-stack) ve '<ad> cikis.png' (slit-scan) hiçbir tüketiciye
+# gitmiyordu; disk + karışıklık üretiyorlardı. Geri açmak: MITAS_KANONIK_MASTER=1
+KANONIK = os.environ.get("MITAS_KANONIK_MASTER", "0").strip().lower() in ("1", "true", "on", "yes")
+
+
 def _done(film: Path) -> bool:
-    # kökte herhangi bir '<base> giris.png' / '<base> cikis.png' üretilmiş mi
-    return bool(glob.glob(str(film / "* giris.png")) or glob.glob(str(film / "* cikis.png")))
+    # OKUNAN master üretilmiş mi (kanonik değil — runaware). Kanonik üretim
+    # kapatıldığı için eski kontrol her filmde "üretilmedi" derdi.
+    return bool(glob.glob(str(film / "*reading_master_runaware.png")))
 
 
 def monitor():

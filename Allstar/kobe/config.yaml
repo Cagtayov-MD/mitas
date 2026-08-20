@@ -1,0 +1,33 @@
+# Kobe — jenerik başlangıç tespiti. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+kare_cikarim:
+  kuyruk_sn: 600       # kapanış penceresi — havuz_kur.sh TAIL_S
+  fps: 2               # havuz_kur.sh FPS. DEĞİŞTİRME: %94.5 bu fps ile ölçüldü
+  kalite: 3            # ffmpeg -q:v
+
+motor:
+  fps: 25.0            # tespit_v5 imzası — yalnız iç hesap, kare fps'i DEĞİL
+  stride: 2
+  ocr_stride: 2
+
+paddle:
+  omp_num_threads: 4   # paralel işçilerde çekirdek taşmasını önle
+
+uretim:
+  geri_pay_sn: 10      # artefakt onset'ten bu kadar ÖNCE başlar (kare ve klip)
+  klip_sessiz: true    # klipte ses akışı yok (-an)
+  # Klip daima filmin SONUNA kadar sürer — jenerik sona kadar akar.
+  # -c:v copy kullanılır: yeniden kodlamaz, ama -ss girdi tarafında olduğu için
+  # en yakın keyframe'e GERİ yaslanır. Kayma daima erken yönde, zararsız.
+
+giris:
+  pencere_sn: 240      # MITAS_OCR_HEAD değeri — kare_cikarim penceresi VE
+                       # (a) SINIR'ın düşük-güvende düştüğü sabit pencere genişliği
+  guven_esik: 0.60     # detect_from_frames confidence >= bu -> tespit sinirina
+                       # güven; altındaysa sabit pencereye düşülür (bkz. src/giris/sinir.py)
+  # BİTİŞ ŞELALESİ (2026-08-17, 36-film GT kalibrasyonu — bitis_kalibrasyonu.md):
+  # ters-motor adayı → sağdan-sola kuralı → sinir. false: sinir'in ham bitişi.
+  bitis_selale: true
+  bitis_kural_w: 30    # kural pencere genişliği (kare) — kalibre, değiştirme
+  bitis_kural_k: 12    # pencerede gereken içerik karesi — kalibre, değiştirme

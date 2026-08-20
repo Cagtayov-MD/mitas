@@ -1,0 +1,506 @@
+================================================================================
+KONTROL FİLM ANALİZİ — 235 FİLM
+================================================================================
+
+  LATIN_DISI                     57 film   (Latin-dışı alfabe kapısı (gerçek veya yalancı pozi)
+  ROL_ESLESME                    52 film   (OCR+kunye var (165/156 satır) ama rol eşleme başar)
+  CAST_CAP_GURULTU               26 film   (OCR 255 satır, sliding-window bigram şişirmesi)
+  DIGER                          20 film   (OCR bucket=GOZDEN_GECIR | özet yok/kısa (5k — gerç)
+  KB_CELISKI                     19 film   (KB cross-check çelişkisi)
+  PDF_RENDER                     15 film   (Veri hazır ama PDF render başarısız)
+  YONETMEN_BULUNAMADI            14 film   (Yönetmen satırı OCR'da yok)
+  OCR_COP                        12 film   (OCR 731 satır üretti ama bucket=HATA (çöp/halüsina)
+  KUNYE_YETERSIZ                 10 film   (OCR var (11) ama kunye yetersiz (5))
+  KIMLIK_ZAYIF                    3 film   (Kimlik doğrulama başarısız)
+  CAST_CAP_NORMAL                 2 film   (Cast cap düştü (normal))
+  OCR_COK_AZ                      2 film   (OCR sadece 5 satır üretti)
+  YONETMEN_DIGER                  2 film   (Yönetmen ile ilgili diğer sorun)
+  LLM_COKTU                       1 film   (Ollama altyapı hatası (tek seferlik))
+
+================================================================================
+DETAYLI LİSTE
+================================================================================
+
+── CAST_CAP_GURULTU (26 film) ──
+    1. AMANSIZ TAKİP 1985-0223-1-0000-00-1                       ocr=  255 kn= 183
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+    2. AYAK TAKIMI 1991-0415-1-0000-00-1                         ocr=  288 kn= 209
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 1832 oyuncu dustu (Itions Criptions, Criptions I
+    3. BÜYÜK FİNAL 2006-9112-1-0000-90-1                         ocr=  508 kn= 397
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+    4. BİR YAZ MACERASI 1989-0570-1-0000-00-1                    ocr=  197 kn= 197
+       ↳ kimlik çelişkisi (KB cross-check) | qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapas
+    5. CENNETE GELDİK Mİ 1992-0468-1-0000-00-1                   ocr=  181 kn=  85
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+    6. CİNAYET YERİ 2003-9059-1-0000-00-1                        ocr=  185 kn= 130
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 454 oyuncu dustu (Minds Eye, With Libra, Partici
+    7. DELİLİĞİN SINIRINDA 1995-0326-1-0000-00-1                 ocr=  359 kn= 286
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+    8. DİPTEKİLER 2005-9162-1-0000-00-1                          ocr=  818 kn= 705
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 2696 oyuncu dustu (Low Fuel, Fuel Low, Fuel Wiu)
+    9. GERONIMO 1962-0022-1-0000-00-1                            ocr=  159 kn= 108
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 386 oyuncu dustu (Metro Goldwyn, Goldwyn Mayer, 
+   10. GERÇEK KUZEY 2006-9110-1-0000-00-1                        ocr=  464 kn= 431
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 1858 oyuncu dustu (Bbcfilms Bbcfilms, Bbcfilms B
+   11. HALIFAX - İKİ SUÇLU 2002-9115-1-0000-00-1                 ocr=  329 kn= 258
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 621 oyuncu dustu (Beyond Simpson, Simpson Mesuri
+   12. HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1                  ocr=  544 kn= 355
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 3041 oyuncu dustu (One Presentent, Presentent Ar
+   13. HAYATIN TUZU 2009-9007-1-000-00-1                         ocr=  273 kn= 188
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder | qc_block: CAST
+   14. JARRAPELLEJOSILAR 1991-0454-1-0000-00-1                   ocr=  166 kn= 132
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 604 oyuncu dustu (Producciones Cinematograficas,
+   15. JOE SHARP 1992-0483-1-0000-00-1                           ocr=  271 kn= 176
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 1168 oyuncu dustu (Eura Euramc, Euramc Euramco, 
+   16. JONSSON ÇETESİ 1981-0287-1-0000-00-1                      ocr=  224 kn= 100
+       ↳ yönetmen doğrulama: kaynak-çelişkisi (aday: JONAS CORNELL) | qc_block: CAST_CAP_DUSEN: cap
+   17. KANDIRMACA 2002-9058-1-0000-00-1                          ocr=  346 kn= 249
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok | qc_block: kimlik kurulamadı (c
+   18. KARAR KİMİN 1981-0266-1-0000-00-1                         ocr=  265 kn= 188
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder | qc_block: CAST
+   19. KESS 1969-0094-1-0000-00-1                                ocr=  136 kn=  83
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+   20. KIRIK KALPLER LOKANTASI 1991-0442-1-0000-00-1             ocr=  516 kn= 407
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder | qc_block: CAST
+   21. KÖŞENİN KRALI 2004-9132-1-0000-00-1                       ocr=  399 kn= 293
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+   22. OMAGGIO A CARUSO 1997-0411-1-0000-00-1                    ocr=  759 kn=  73
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder | qc_block: Lati
+   23. ONDAN UZAKTA 2006-9175-1-0000-00-1                        ocr=  617 kn= 467
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok | yönetmen doğrulama: kaynak-çel
+   24. ÇÖL ASLANI 1987-1235-1-0000-00-1                          ocr=  266 kn= 189
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 1367 oyuncu dustu (Moustapha Akkad, Quinn Anthon
+   25. İKİNCİ ŞANS 1992-0465-1-0000-00-1                         ocr=  229 kn= 126
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi) | özet yok/kısa (5k — gerçek özet üretilm
+   26. İSYAN 2004-9094-1-0000-00-1                               ocr=  330 kn= 250
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+
+── CAST_CAP_NORMAL (2 film) ──
+   27. HASİP İLE NASİP 2010-9265-1-0000-88-1                     ocr=   92 kn=  43
+       ↳ qc_block: CAST_CAP_DUSEN: cap-ustu okunan 103 oyuncu dustu (Nasip Hasip, Nasip Zeki, Alasy
+   28. NAMUS DÜŞMANI 2010-9262-1-0000-88-1                       ocr=   68 kn=  32
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+
+── DIGER (20 film) ──
+   29. ADI CARMEN 1983-0256-1-0000-00-1                          ocr=  155 kn=  77
+       ↳ OCR bucket=GOZDEN_GECIR | özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/pl
+   30. AISYLU 2017-1030-1-0000-50-1                              ocr= 2846 kn= 403
+   31. AK ALTIN 1957-0067-1-0000-00-1                            ocr=   29 kn=  18
+   32. ANNEM ANNEM 2008-9064-1-0000-00-1                         ocr=  137 kn=  72
+   33. ARCEDIA 1993-0401-1-0000-00-1                             ocr=  248 kn= 125
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder
+   34. AĞAÇ 1986-0334-1-0000-00-1                                ocr=   68 kn=  41
+   35. AŞK EVLİLİĞİ 1996-0353-1-0000-00-1                        ocr=  258 kn= 157
+   36. BAŞARI EN İYİ İNTİKAMDIR 1984-0282-1-0000-00-1            ocr= 1959 kn= 278
+   37. BEYAZ AVUÇLAR 2008-9069-1-0000-00-1                       ocr=  595 kn= 425
+       ↳ temiz-okunan oyuncu PDF finaline taşınamadı: SILAS RADIES
+   38. BUZ ÜSTÜNDE 1992-0332-1-0000-00-1                         ocr=  404 kn= 344
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder
+   39. BÜYÜK YARIŞ 2002-9111-1-0000-00-1                         ocr= 2304 kn= 359
+   40. DERSU UZALA 1975-2246-1-0000-72-0                         ocr=  123 kn=  69
+   41. DOĞUM GÜNÜ 1968-0020-1-0000-00-1                          ocr=   94 kn=  41
+       ↳ özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholder
+   42. EDISON'UN MACERALARI 1991-0483-1-0000-00-1                ocr= 1412 kn=  78
+       ↳ OCR halüsinasyon — yemek tarifi + matematik formülü okudu, gerçek künye yok | Jenerik kare
+   43. GUDRUN 1992-0268-1-0000-00-1                              ocr=  214 kn=  16
+   44. KÖPEKBALIĞI KÖRFEZİNİN YUNUSLARI 2011-9186-1-0000-90-1    ocr=   82 kn=  60
+   45. SIRADIŞI PİYANİST 2002-9035-1-0000-00-1                   ocr= 1216 kn= 511
+   46. TUTSAKLAR 2019-1111-1-0000-72-0                           ocr= 1451 kn= 531
+   47. İKİ SEVGİLİM VAR 1996-0330-1-0000-00-1                    ocr=  182 kn= 126
+   48. İŞTE BIRD 1988-0425-1-0000-00-1                           ocr=  350 kn= 216
+
+── KB_CELISKI (19 film) ──
+   49. BORÇ 2003-9208-1-0000-00-1                                ocr=  133 kn=  79
+       ↳ kimlik çelişkisi (KB cross-check) | yönetmen doğrulama: kaynak-çelişkisi (aday: İBRAHİM HA
+   50. CYRANO VE D'ARTAGNAN 1964-0013-1-0000-00-1                ocr=   66 kn=  43
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok
+   51. DENİZLER ALTINDA 20.000 FERSAH 2003-9049-1-0000-00-1      ocr=  202 kn= 153
+       ↳ kimlik çelişkisi (KB cross-check) | qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 
+   52. HALIFAX-CANİ RUH 2001-9167-1-0000-00-1                    ocr=  276 kn= 223
+       ↳ kimlik çelişkisi (KB cross-check) | yönetmen doğrulama: kaynak-çelişkisi (aday: LYNN HEGAR
+   53. HAMLET 2005-9163-1-0000-00-1                              ocr= 3636 kn= 823
+       ↳ yönetmen doğrulama: kaynak-çelişkisi (aday: Michael Almereyda)
+   54. HANK WILLIAMS 1992-0500-1-0000-00-1                       ocr=  314 kn= 163
+       ↳ kimlik çelişkisi (KB cross-check)
+   55. HARRY FRIG'İN GİZLİ SAVAŞI 1968-0079-1-0000-00-1          ocr=  463 kn=  70
+       ↳ kimlik çelişkisi (KB cross-check)
+   56. HARİKA KÖPEK 5 2003-9136-1-0000-00-1                      ocr=  588 kn= 344
+       ↳ kimlik çelişkisi (KB cross-check) | XML-PDF cast kesişimi 0 (yanlış-film şüphesi) | yönetm
+   57. HAYAL PEŞİNDE 2001-9201-1-0000-00-1                       ocr=  702 kn= 229
+       ↳ kimlik çelişkisi (KB cross-check) | XML-PDF cast kesişimi 0 (yanlış-film şüphesi) | qc_blo
+   58. JERICO APARTMANI 2003-9195-1-0000-00-1                    ocr=  392 kn= 322
+       ↳ kimlik çelişkisi (KB cross-check) | yönetmen doğrulama: kaynak-çelişkisi (aday: ALBERTO SC
+   59. JERICO APARTMANI 2003-9198-1-0000-00-1                    ocr=  393 kn= 322
+       ↳ kimlik çelişkisi (KB cross-check) | yönetmen doğrulama: kaynak-çelişkisi (aday: ALBERTO SC
+   60. KAÇACAK YER YOK 2003-9025-1-0000-00-1                     ocr= 1102 kn= 281
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok
+   61. KOPAR ZİNCİRLERİNİ GÜLSARI 1969-0091-1-0000-00-1          ocr=   68 kn=  32
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok | qc_block: kimlik kurulamadı (c
+   62. KOVBOY 1958-0044-1-0000-90-1                              ocr=  321 kn= 108
+       ↳ yönetmen doğrulama: kaynak-çelişkisi (aday: FRANK HARRIS)
+   63. TITUS 1999-0283-1-0000-00-1                               ocr= 2361 kn= 441
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok
+   64. ÇİZMELİ KEDİ 2004-9208-1-0000-00-1                        ocr=  280 kn= 114
+       ↳ kimlik çelişkisi (KB cross-check)
+   65. ÜÇ KÜÇÜK DOMUZ 2004-9207-1-0000-00-1                      ocr=  269 kn=  75
+       ↳ kimlik çelişkisi (KB cross-check)
+   66. İNTİKAM 2001-9194-1-0000-00-1                             ocr=  247 kn= 133
+       ↳ kimlik çelişkisi (KB cross-check) | qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 
+   67. ŞAMAN 1996-0268-1-0000-40-1                               ocr=  248 kn= 130
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok | qc_block: kimlik kurulamadı (c
+
+── KIMLIK_ZAYIF (3 film) ──
+   68. DOĞRU KILAVUZ 2004-9143-1-0000-00-1                       ocr=  326 kn= 248
+       ↳ v4 final çalışmadı (rc=3221225725) — yönetmen/özet/kimlik doğrulanamadı
+   69. TOMRİS 2019-1096-1-0000-90-1                              ocr= 4734 kn=1434
+       ↳ qc_block: kimlik kurulamadı (cast-örtüşme<2, web çapası kilitlenemedi)
+   70. ZORLU YARGIÇ 1972-0320-1-0000-00-1                        ocr=  812 kn= 159
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | qwen: yön+yapımcı yok | qc_block: 
+
+── KUNYE_YETERSIZ (10 film) ──
+   71. ANGELA'NIN KÜLLERİ 1999-0426-1-0000-00-1                  ocr=   11 kn=   5
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   72. GÖLGELER PRENSİ 1991-0441-1-0000-00-1                     ocr=   28 kn=   0
+       ↳ OCR bucket=BOS | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) 
+   73. HELIMADOHE 1992-0049-1-0000-00-1                          ocr=   23 kn=   7
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   74. KORKUNÇ GECE 1995-0444-1-0000-00-1                        ocr=   20 kn=   0
+       ↳ OCR bucket=BOS | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) 
+   75. MUTLU PASKALYA 1984-0274-1-0000-00-1                      ocr=   28 kn=   4
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+   76. SİHİRLİ MAVİ 1990-0268-1-0000-00-1                        ocr=   11 kn=   8
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   77. YAŞAMIN DIŞINDA 1991-0406-1-0000-00-1                     ocr=   49 kn=   9
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   78. YER SARSILIYOR 1948-0036-1-0000-00-1                      ocr=   54 kn=   7
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   79. YOLUN SONUNDAKİ KIZ 1976-0188-1-0000-00-1                 ocr=   34 kn=   5
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   80. İLK KAN-2 1985-0244-1-0000-00-1                           ocr=   28 kn=   6
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+
+── LATIN_DISI (57 film) ──
+   81. AJAMİ 2009-9153-1-0000-00-1                               ocr=  329 kn= 264
+       ↳ OCR bucket=GOZDEN_GECIR | qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol) |
+   82. ANNA KARENINA 1988-0520-1-0000-00-1                       ocr=   83 kn=  74
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | qwen: yön+yapımcı yok | qc_block: 
+   83. ARTAN İSTEKLER 1980-0142-1-0000-00-1                      ocr=  138 kn=  34
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+   84. ATIŞ 1997-0365-1-0000-00-1                                ocr=  111 kn=   3
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   85. AYNA 1975-1016-1-0000-00-1                                ocr=   25 kn=   1
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+   86. AYNA 1997-2176-1-0000-56-0                                ocr=  254 kn=  57
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   87. AYNADAKİ DÜŞMAN 2010-9199-0-0001-88-1                     ocr=  258 kn= 156
+       ↳ yönetmen doğrulama: kaynak-çelişkisi (aday: CEM AKYOLDAŞ) | qc_block: Latin-dışı kaynak (e
+   88. BAŞKASININ KARISI 1995-0282-1-0000-00-1                   ocr=  350 kn=  81
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+   89. BERLİN ALEKSANDER MEYDANI 1987-1125-1-0000-00-1           ocr=  174 kn=  31
+       ↳ kimlik çelişkisi (KB cross-check) | yönetmen VL-dolumu (fuzzy teyidi — insan onayı bekler)
+   90. BEYAZ MAYMUNUN AYAK İZLERİ 1997-0367-1-0000-00-1          ocr=  106 kn=  10
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   91. BUFFALO '66 1998-0447-1-0000-00-1                         ocr=  752 kn= 174
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+   92. BÜYÜK SAVAŞTA KÜÇÜK ADAM 1995-0404-1-0000-00-1            ocr=  349 kn=  79
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+   93. BİR BÜROKRATIN ÖLÜMÜ 1994-0000-1-0000-00-1                ocr=   34 kn=   4
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+   94. BİR KATİLLE EVLENDİM 1993-0467-1-0000-00-1                ocr=   45 kn=   2
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+   95. BİR MİLYONERİN HATIRALARI EYÜP 1987-0249-1-0000-00-1      ocr=  202 kn=   5
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+   96. CAZCI 1983-0200-1-0000-00-1                               ocr=  270 kn=  83
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+   97. DENİZ KIYISINDA KOŞAN ALA KÖPEK 1991-0436-1-0000-00-1     ocr=  215 kn= 121
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+   98. DERSU UZALA 1975-2246-1-0000-72-1                         ocr=  707 kn= 339
+       ↳ versiyon cast-teyitsiz (web title+year kilidi — insan onayı) | qc_block: Latin-dışı kaynak
+   99. DERTLER BENİM OLSUN 2010-9252-1-0000-88-1                 ocr=  164 kn= 101
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  100. DEVE GÖZÜ 2024-1004-1-0000-70-0                           ocr=  113 kn=  55
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | qwen: yön+yapımcı yok | qc_block: 
+  101. DÜŞMANLA FLÖRT 1996-0324-1-0000-00-1 2                    ocr=  442 kn=  60
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | versiyon cast-t
+  102. ELVEDA GÜLSARI 2025-1025-1-0000-22-1                      ocr= 1791 kn= 208
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | isim-QC: Latin-dışı/yabancı-aksan 
+  103. ELVEDA OĞLUM 2022-1195-1-0000-77-0                        ocr= 7792 kn=1187
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  104. ESİRLER KAMPI 1968-0031-1-0000-00-1                       ocr=   24 kn=   4
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  105. FRANK CAPRA 1981-0279-1-0000-00-1 2                       ocr=  338 kn=  69
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi) | qc_block: Latin-dışı kaynak (erken-tran
+  106. GÖKDAĞ 2025-1032-1-0000-80-0                              ocr=  181 kn= 102
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  107. IVAN'IN ÇOCUKLUĞU 1962-1124-1-0000-72-0                   ocr=   44 kn=  21
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | versiyon cast-t
+  108. KAHRAMAN 2022-1193-1-0000-56-0                            ocr=   59 kn=  31
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  109. KANDAHAR 2011-9224-1-0000-88-1                            ocr=  134 kn= 105
+       ↳ kimlik çelişkisi (KB cross-check) | qc_block: yönetmen-çapası zayıf-teyit (tek-aday/yıl±1 
+  110. KAYGIYA MERHABA 1996-0161-1-0000-00-1                     ocr=  178 kn=  28
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  111. KAYIP DENİZ KORSANLARI 2008-9060-1-0000-00-1              ocr= 3154 kn=1113
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | yönetmen okunamadı (KB-fill yok — 
+  112. KOLEKSİYON 1978-0220-1-0000-00-1                          ocr=   59 kn=   9
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  113. KOMİSER 1994-0345-1-0000-00-1                             ocr=  230 kn= 126
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | özet yok/kısa (
+  114. KOUDAYU 2004-9206-1-0000-00-1                             ocr=  251 kn= 228
+       ↳ OCR bucket=ZOR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) 
+  115. KOŞUCU 2025-1047-1-0000-56-0                              ocr=  157 kn=  84
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  116. KUTSAL SİLAH 2008-9089-1-0000-00-1                        ocr=  763 kn= 669
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+  117. KUĞU GÖLÜ 1986-0189-1-0000-00-1                           ocr=   27 kn=  22
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  118. KUĞUNUN ŞARKISI 1986-0264-1-0000-00-1                     ocr=  120 kn=  73
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  119. KÜÇÜK ADAMLAR 1998-0521-1-0000-00-1                       ocr=   83 kn=  26
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  120. KÜÇÜK ÇOBAN 2009-9148-1-0000-00-1                         ocr=  195 kn=  26
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+  121. MELEKLERİ GÖRMEK İSTEDİM 1992-0455-1-0000-00-1            ocr=  180 kn= 107
+       ↳ qwen: Latin-dışı alfabe (deterministik kemer atladı → Kontrol) | qc_block: Latin-dışı kayn
+  122. MEVLANA AŞKIN DANSI 2008-9046-1-0000-88-1                 ocr=  433 kn= 275
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  123. MIZIKA 2025-1048-1-0000-56-1                              ocr=   56 kn=  38
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  124. NAZİK BİR GECE 2017-2152-1-0000-77-0                      ocr=  236 kn= 177
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  125. OYUN 2000-0500-1-0000-00-1                                ocr=  278 kn=  72
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  126. SU BİRİKİNTİLERİNİN ÜZERİNDEN YENİDEN ATLIYORUM 1971-00   ocr=   13 kn=   5
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  127. SÜNGER AVCILARI 1979-0243-1-0000-00-1 2                   ocr=  328 kn= 100
+       ↳ qc_block: Latin-dışı kaynak (erken-translit) → romanizasyon insan teyidi gerek
+  128. TANRILARIN ÇİN MACERASI 1997-0420-1-0000-00-1             ocr= 2163 kn= 213
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | qwen: yön+yapımcı yok | qc_block: 
+  129. YAKIN ÇEKİM 1990-0490-1-0000-90-1                         ocr=  217 kn=  32
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  130. ÇIKIŞ 2019-1105-1-0000-76-1                               ocr=  854 kn= 316
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | versiyon cast-t
+  131. ÇİZGİ FİLM 1980-0209-1-0000-00-1                          ocr=  162 kn=  31
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  132. İBN-İ SİNA 1957-1103-1-0000-80-0                          ocr=   84 kn=  33
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  133. İKİ SÜVARİ 1989-0549-1-0000-00-1                          ocr= 1058 kn= 122
+       ↳ kimlik çelişkisi (KB cross-check) | qwen: yön+yapımcı yok | qwen: Latin-dışı alfabe (deter
+  134. İNİŞLİ ÇIKIŞLI BİR ÖYKÜ 2025-1112-1-0000-56-0             ocr= 2653 kn= 825
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  135. İŞARET DİREĞİ 1996-0310-1-0000-00-1                       ocr=  211 kn= 104
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  136. ŞEHİR AVCISI 1993-0371-1-0000-00-1                        ocr= 1051 kn=  63
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  137. ŞEREEFİM ÜZERİNE 1988-0461-1-0000-00-1                    ocr=  240 kn=  60
+       ↳ kimlik çelişkisi (KB cross-check) | qc_block: Latin-dışı kaynak (erken-translit) → romaniz
+
+── LLM_COKTU (1 film) ──
+  138. KRAL LEAR 2018-9036-1-0000-00-1                           ocr=   25 kn=   4
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+
+── OCR_COK_AZ (2 film) ──
+  139. ALAMO 2004-9213-1-0000-00-1                               ocr=    5 kn=   5
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  140. GÖLGE DANSI 1988-0417-1-0000-00-1                         ocr=    2 kn=   1
+       ↳ OCR bucket=BOS | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) 
+
+── OCR_COP (12 film) ──
+  141. 13. SAVAŞÇI 1999-0394-1-0000-90-1                         ocr=  731 kn= 581
+       ↳ OCR bucket=MOTOR_YOK | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yete
+  142. BAHAR VE ŞARAP 1970-0061-1-0000-00-1                      ocr=  212 kn= 142
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  143. BLACKJACK 1998-0401-1-0000-00-1                           ocr=  368 kn= 290
+       ↳ OCR bucket=HATA | özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholde
+  144. EL GUSTO 2011-9209-1-0000-90-1                            ocr=  457 kn= 280
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  145. ELMA 1998-0464-1-0000-90-1                                ocr=  283 kn= 158
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  146. GÜLLERİN SAVAŞI 2004-9139-1-0000-00-1                     ocr=  449 kn= 376
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  147. HANNA'NIN ALTINLARI 2010-9150-1-0000-00-1                 ocr=  409 kn= 346
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  148. KUSURSUZ BİR GÜN CENAZE TÖRENİ 2009-9137-1-0000-00-1      ocr=  137 kn= 108
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  149. KİNG'İN SERVETİ 1994-0338-1-0000-00-1                     ocr=  456 kn= 251
+       ↳ OCR bucket=HATA | özet yok/kısa (5k — gerçek özet üretilmemiş) | qwen: özet yok/placeholde
+  150. LA BOHEME 1988-0420-1-0000-00-1                           ocr=  329 kn= 228
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  151. LALELER 1988-0430-1-0000-00-1                             ocr=  308 kn= 227
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+  152. MUTLU GÜNLER 1967-0037-1-0000-00-1                        ocr=  232 kn= 105
+       ↳ LLM katmanı çalışmadı (ollama model deposu boş/erişilemez — film yeniden koşulmalı) | OCR 
+
+── PDF_RENDER (15 film) ──
+  153. BENİ UNUTMA 2002-9259-1-0000-00-1                         ocr=  833 kn= 693
+       ↳ PDF render yok (md teslim) | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OC
+  154. DONDURMAM GAYMAK 2011-9248-1-0000-88-1                    ocr=  833 kn= 567
+       ↳ PDF render yok (md teslim)
+  155. DÜŞMANLA FLÖRT 1996-0324-1-0000-00-1                      ocr=  474 kn=  80
+       ↳ PDF render yok (md teslim) | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OC
+  156. FRANK CAPRA 1981-0279-1-0000-00-1                         ocr=  345 kn=  69
+       ↳ PDF render yok (md teslim)
+  157. HAMSUN 1996-0326-1-0000-00-1                              ocr=  548 kn= 257
+       ↳ PDF render yok (md teslim)
+  158. KAHRAMAN ŞERİF 1952-0049-1-0000-00-1                      ocr=  342 kn= 128
+       ↳ PDF render yok (md teslim)
+  159. PAKET KAHVE 2014-2132-1-0000-73-1                         ocr=  259 kn= 126
+       ↳ PDF render yok (md teslim) | yönetmen doğrulama: kaynak-çelişkisi (aday: ERCAN ÇEVİK, PATR
+  160. POLİS AKADEMİSİ 4 1984-0239-0-0004-00-1                   ocr=  517 kn= 117
+       ↳ PDF render yok (md teslim)
+  161. SÜNGER AVCILARI 1979-0243-1-0000-00-1                     ocr=  328 kn= 100
+       ↳ PDF render yok (md teslim)
+  162. YAĞMACILAR 1970-0021-1-0000-90-1                          ocr=  156 kn=  42
+       ↳ PDF render yok (md teslim)
+  163. ÇAKAL 1968-0043-1-0000-00-1                               ocr=  168 kn=  66
+       ↳ PDF render yok (md teslim)
+  164. ÇILGIN AY 1987-0306-1-0000-00-1                           ocr=  430 kn= 250
+       ↳ PDF render yok (md teslim)
+  165. ÖNEMSİZ BİRİ 2025-1133-1-0000-90-1                        ocr=  910 kn= 624
+       ↳ PDF render yok (md teslim)
+  166. ÖZEL DEDEKTİF 1972-0122-1-0000-00-1                       ocr=  233 kn=  36
+       ↳ PDF render yok (md teslim) | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OC
+  167. ŞEHİRDE BİR YERLİ 2000-0489-1-0000-00-1                   ocr=  437 kn= 227
+       ↳ PDF render yok (md teslim)
+
+── ROL_ESLESME (52 film) ──
+  168. 21. YÜZYIL EŞİĞİNDE TÜRK AİLESİ 1900-0138-0-0009-00-1     ocr=  165 kn= 156
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  169. ALTINA HÜCUM 1925-0008-1-0000-00-1                        ocr=  103 kn=  48
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  170. ATEŞİN IŞIĞI 1997-0385-1-0000-00-1                        ocr=  248 kn= 158
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  171. AĞIZ TADI 2001-9238-1-0000-00-1                           ocr=  311 kn= 148
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  172. AŞK DOSYASI 1996-0364-1-0000-00-1                         ocr=  145 kn=  45
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  173. AŞK ŞARKIM 2010-1158-1-0000-50-1                          ocr=  442 kn= 326
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  174. BANA TRINITY DERLER 1968-0082-1-0000-00-1                 ocr=  125 kn=  48
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  175. BELL BOY 1960-0039-1-0000-00-1                            ocr=   90 kn=  11
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  176. BENİ UNUTMA 2002-9259-1-0000-00-1 2                       ocr=  860 kn= 704
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  177. BEYAZ KAPLAN 1987-1946-1-0000-00-1                        ocr=  104 kn=  23
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  178. BUL VE YOK ET 1988-0423-1-0000-40-1                       ocr=  200 kn= 161
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  179. BUZDAN GELEN SESLER 2000-0454-1-0000-00-1                 ocr=   24 kn=  18
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  180. BÜYÜK KAHUNA 2000-0415-1-0000-00-1                        ocr= 1365 kn= 169
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  181. BİR BEBEK EVİ 1973-0211-1-0000-00-1                       ocr=   84 kn=  55
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | versiyon cast-t
+  182. CHOPIN HAYATIMI KURTARDI 2012-1025-1-0000-50-1            ocr=   60 kn=  40
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  183. DURUMU ANLAMAK 2000-0505-1-0000-00-1                      ocr=   92 kn=  22
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  184. DİNAZOR 1999-0445-1-0000-00-1                             ocr= 1101 kn= 138
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  185. DİŞİ ŞEYTAN 1964-0002-1-000-00-1                          ocr=   47 kn=  21
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)
+  186. GAGA VE BEYİN 2015-9078-1-0000-90-1                       ocr=  114 kn=  46
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  187. GÖREVİMİZ TEHLİKE 4 HAYALET PROTOKOL 2011-9183-1-0000-9   ocr= 4410 kn=1360
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  188. HARRY'NİN UYANIŞI 2000-0517-1-0000-00-1                   ocr=  255 kn= 164
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz)
+  189. HERŞEY ÇOK GÜZEL OLACAK 1998-0162-1-0000-90-1             ocr=  205 kn= 145
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  190. KARA KALKAN 1954-0034-1-0000-00-1                         ocr=  208 kn= 114
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  191. KARANLIK BİR İMPARATORLUKTAN YANKILAR 1990-0289-1-0000-   ocr=  606 kn=  67
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  192. KATİLLER HER ZAMAN SARI PABUÇ GİYER 1995-0448-1-0000-00   ocr=   69 kn=  11
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  193. KIZIL HAYAT 1996-0325-1-0000-00-1                         ocr=  292 kn= 229
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  194. KUMARBAZ KADIN 1949-0044-1-0000-00-1                      ocr=   21 kn=  17
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  195. KÜÇÜK SİMBA DÜNYA KUPASINDA 1995-0363-1-0000-00-1         ocr=  181 kn=  21
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  196. LENI REIFENSTAHL'IN KORKUNÇ MUHTEŞEM YAŞAMI 1993-0437-1   ocr=  113 kn=  64
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  197. LIBERA SEVGİLİM 1975-0185-1-0000-00-1                     ocr=  100 kn=  68
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  198. MANASLU 2001-9318-1-0000-00-1                             ocr=  249 kn= 150
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  199. MEKKE'YE YOLCULUK 2017-1012-1-0000-90-1                   ocr= 1909 kn=1552
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  200. METİN 1980-0149-1-0000-00-1                               ocr=   99 kn=  44
+       ↳ OCR bucket=GOZDEN_GECIR | QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR y
+  201. MOSKOVA BUZ BALESİ 1990-0321-1-0000-00-1                  ocr=  152 kn=  32
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  202. MİRAS 2010-9280-1-0000-88-1                               ocr=  239 kn= 159
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  203. NANCY'Yİ SEVMEK 1994-0383-1-0000-00-1                     ocr=  140 kn=  86
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  204. NORWOORD 1970-0046-1-0000-00-1                            ocr=   66 kn=  14
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  205. OKYANUSUN DEVLERİ 2025-1405-1-0000-90-1                   ocr=  416 kn= 130
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  206. POCAHONTAS AMERİKAN YERLİLERİNİN PRENSESİ 1997-0291-1-0   ocr=   20 kn=  14
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  207. ROBINSON 1925-0066-1-0000-00-1                            ocr=   39 kn=  32
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  208. RUHLAR ADASI 1988-1104-1-0000-00-1                        ocr=  136 kn=  36
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  209. SABUN KÖPÜĞÜ HIRSIZLARI 1989-0568-1-0000-00-1             ocr=  234 kn=  76
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  210. SAN FRANSİSKO HAVAALANI 1990-0292-1-0000-00-1             ocr=  125 kn=  60
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  211. TOPLANTI-2 1988-0300-1-0000-40-1                          ocr=  197 kn=  90
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+  212. TURNUSOL'UN SİLAHI 1991-0373-1-0000-00-1                  ocr=   52 kn=  21
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  213. ÇALIŞAN HAYATLAR 2011-9170-1-0000-00-1                    ocr=  483 kn= 387
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  214. ÇİNGENE GÜVELERİ 1969-0032-1-0000-00-1                    ocr=   45 kn=  14
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | qwen: yön+yapım
+  215. ÖZEL DEDEKTİF 1972-0122-1-0000-00-1 2                     ocr=  233 kn=  36
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  216. İHTİRAS CİNAYETİ 2003-9048-1-0000-00-1                    ocr=  137 kn=  90
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | versiyon cast-t
+  217. İHTİRAS KURBANLARI 1974-0202-1-0000-00-1                  ocr=   90 kn=  37
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | yönetmen okunam
+  218. İSTANBUL SİNEMA GÜNLERİ 1986-0134-1-0000-00-1             ocr=  760 kn= 105
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik doğrulan
+  219. ŞANSLI FİRAR 2001-9376-1-0000-00-1                        ocr=  533 kn= 339
+       ↳ QC1 başarısız (OCR+VL ikisi de RED — düşük künye kalitesi, OCR yetersiz) | kimlik çelişkis
+
+── YONETMEN_BULUNAMADI (14 film) ──
+  220. ANNEM 2015-1082-1-0000-50-0                               ocr= 2734 kn= 383
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  221. DEFİNE ADASININ SIRRI 1990-0524-1-0000-00-1               ocr= 1232 kn= 183
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  222. FISILTILAR 1999-0321-1-0000-00-1                          ocr=  606 kn= 575
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  223. FRANSIZ KIZARMASI 2008-2126-1-0000-70-1                   ocr= 1216 kn= 379
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | yönetmen okunamadı (KB-fill yok — 
+  224. GLORIA KUŞATMASI 1992-0299-1-0000-00-1                    ocr=  395 kn= 323
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi) | özet yok/kısa (5k — gerçek özet üretilm
+  225. HER ZAMAN BİRLİKTE 1994-0244-1-0000-00-1                  ocr= 2326 kn= 283
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  226. HERKÜL 2004-9198-1-0000-00-1                              ocr=  126 kn=  63
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  227. HOTEL RWANDA 2004-9160-1-0000-90-1                        ocr=  731 kn= 546
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  228. MODERN TAKIM 1999-0527-1-0000-00-1                        ocr= 3560 kn=1388
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  229. RICKY İLE BLACKY 1975-0199-1-0000-00-1                    ocr=  264 kn= 108
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  230. RUMBA 1987-0360-1-0000-00-1                               ocr= 1414 kn= 604
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  231. YALANCI BAHAR 2018-1078-1-0000-90-1                       ocr=  547 kn= 161
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+  232. İYİ ŞANSLAR DANIEL 2001-9334-1-0000-00-1                  ocr=  332 kn=  73
+       ↳ kimlik doğrulanamadı (kıyas kaynağı yok — KAYNAK_YOK) | yönetmen okunamadı (KB-fill yok — 
+  233. ŞEHİRDE BİR YERLİ 2000-0489-1-0000-00-1 2                 ocr=  438 kn= 219
+       ↳ yönetmen okunamadı (KB-fill yok — kırmızı çizgi)
+
+── YONETMEN_DIGER (2 film) ──
+  234. PARİS'TE GECE YARISI 2011-1051-1-0000-50-0                ocr= 1351 kn= 578
+       ↳ yönetmen VL-dolumu (kb-anchor teyidi — insan onayı bekler)
+  235. YAĞMACILAR 1970-0021-1-0000-90-1 2                        ocr=  156 kn=  42
+       ↳ yönetmen VL-dolumu (fuzzy teyidi — insan onayı bekler)

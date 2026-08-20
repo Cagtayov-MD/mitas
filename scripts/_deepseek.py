@@ -58,6 +58,83 @@ _PERMANENT_HTTP = {401, 402, 403}
 # Yanit/gerekce metninde kredi-tukenmesi sinyalleri (kuckuk harf eslesme).
 _CREDIT_SIGNALS = ("insufficient", "balance", "quota")
 
+# NVIDIA Build yedek ucu (2026-07-23): DeepSeek ozet zincirinin BIRINCIL motoru
+# yapildi; resmi uc kota/kesinti yasarsa ozet dogrudan gemma-yerel'e dusuyordu
+# (bake-off: yerel modeller guvenilir Turkce ozet veremiyor). NVIDIA ayni model
+# ailesini ucretsiz uctan sunuyor -> ikinci erisim yolu.
+# Model secimi (2026-08-11 benchmark): onceki varsayilan deepseek-v4-pro NVIDIA
+# katalogunda 2026-08-07'de EOL oldu (HTTP 410 Gone) -> yedek uc SESSIZCE olmustu ve
+# ozet zincirinin TAMAMI dusuyordu (deepseek 402 / gemini 429 / anthropic 400 / gemma
+# kapali). Yerine 6 aday NVIDIA modeli 2 gercek film transkriptiyle (gercek ozet
+# prompt'u) kiyaslandi: deepseek-v4-flash-0731 tek model olarak her iki filmde de
+# dogru olay orgusu + spoiler-final verdi ve ORUMCEGIN MASKESI'ndeki asil-suclu
+# twist'ini yakalayan TEK model oldu (nemotron-super kesik/garbled, gpt-oss-120b
+# timeout, llama-3.3-70b Ingilizce sizinti, nemotron-ultra/mistral-large 404).
+# Anahtar yoksa fallback sessizce devre disi - davranis eskisiyle AYNI kalir.
+_NVIDIA_DEFAULT_BASE = "https://integrate.api.nvidia.com/v1"
+_NVIDIA_DEFAULT_MODEL = "deepseek-ai/deepseek-v4-flash-0731"
+
+
+def _nvidia_key() -> str | None:
+    return os.environ.get("MITAS_NVIDIA") or os.environ.get("NVIDIA_API_KEY")
+
+
+def _post_chat(url: str, key: str, payload: dict, timeout: int,
+               retries: int, api_label: str) -> dict | None:
+    """Tek uca chat/completions POST + retry. Basarisizsa None (cagiran fallback yapar)."""
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=body, method="POST",
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
+    )
+
+    last_exc: Exception | None = None
+    for attempt in range(max(1, retries)):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                resp = json.loads(r.read())
+            _status_mark(api_label, True)   # basarili yanit -> ok
+            return resp
+        except urllib.error.HTTPError as exc:
+            reason = str(getattr(exc, "reason", "") or "")
+            # Gerekce + govde metninde kredi/kota sinyali var mi? (429 da kota olabilir)
+            body_txt = ""
+            try:
+                body_txt = exc.read().decode("utf-8", "replace")
+            except Exception:  # noqa: BLE001
+                body_txt = ""
+            credit_hit = any(sig in (reason + " " + body_txt).lower() for sig in _CREDIT_SIGNALS)
+            detail = f"HTTP {exc.code} {reason}".strip()
+            # KALICI hata (401/402/403 ya da kredi-sinyali): retry YOK, durumu error isaretle, hemen None.
+            # 402 = kredi bitti -> burada yakalanir (eski liste 429/5xx idi, 402 yanlislikla "kalici-sessiz"di).
+            if exc.code in _PERMANENT_HTTP or credit_hit:
+                _log_warn(f"[{api_label}] {detail} — kalici hata (retry yok), durum: error")
+                _status_mark(api_label, False, detail)
+                return None
+            # MODEL YOK/EOL (404/410): 2026-08-11 dersi — deepseek-v4-pro saglayici tarafinda
+            # EOL olunca yedek uc SESSIZCE oldu ve kimse aylarca fark etmedi (ozet %78 bos).
+            # Bu sinifi AYRI ve YUKSEK SESLE bildir + durum kaydina yaz ki bir sonraki EOL
+            # ilk gunde gorulsun. Model adi mesajda: duzeltme = MITAS_DEEPSEEK_NVIDIA_MODEL.
+            if exc.code in (404, 410):
+                _log_warn(f"[{api_label}] {detail} — MODEL YOK/EOL: "
+                          f"'{payload.get('model')}' artik sunulmuyor. Katalogdan gecerli bir "
+                          f"model secip MITAS_DEEPSEEK_NVIDIA_MODEL ile guncelleyin.")
+                _status_mark(api_label, False, f"MODEL_EOL {payload.get('model')} {detail}")
+                return None
+            # 429 / 5xx gecici -> retry; diger 4xx (400...) -> kalici ama kredi-disi, mark YOK.
+            if exc.code not in (429, 500, 502, 503, 504):
+                _log_warn(f"[{api_label}] {detail} — retry yok (kalici hata)")
+                return None
+            last_exc = exc
+        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+            last_exc = exc
+        if attempt < retries - 1:
+            time.sleep(2 ** attempt)   # 1s, 2s
+
+    _log_warn(f"[{api_label}] tum denemeler tukendi ({retries}x): "
+              f"{type(last_exc).__name__}: {last_exc}")
+    return None
+
 
 def deepseek_chat(
     prompt: str | None = None,
@@ -74,13 +151,16 @@ def deepseek_chat(
 
     prompt verilirse tek-tur user mesajina cevrilir; messages dogrudan iletilir.
     Donus: OpenAI-uyumlu ham JSON (choices[0].message.content ...) veya None.
+
+    Siralama: birincil uc (api.deepseek.com, MITAS_DEEPSEEK) -> basarisizsa
+    NVIDIA Build yedek ucu (NVIDIA_API_KEY/MITAS_NVIDIA varsa). Ikisi de yoksa
+    ya da ikisi de duserse None.
     """
     key = os.environ.get("MITAS_DEEPSEEK") or os.environ.get("DEEPSEEK_API_KEY")
-    if not key:
+    nv_key = _nvidia_key()
+    if not key and not nv_key:
         return None
 
-    base = os.environ.get("MITAS_DEEPSEEK_BASE", "https://api.deepseek.com").rstrip("/")
-    url = base + "/chat/completions"
     _timeout = timeout if timeout is not None else int(
         os.environ.get("MITAS_DEEPSEEK_TIMEOUT", "120")
     )
@@ -99,47 +179,22 @@ def deepseek_chat(
         payload["response_format"] = fmt
     payload.update(extra)
 
-    body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url, data=body, method="POST",
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
-    )
-
-    last_exc: Exception | None = None
-    for attempt in range(max(1, retries)):
-        try:
-            with urllib.request.urlopen(req, timeout=_timeout) as r:
-                resp = json.loads(r.read())
-            _status_mark("deepseek", True)   # basarili yanit -> ok
+    if key:
+        base = os.environ.get("MITAS_DEEPSEEK_BASE", "https://api.deepseek.com").rstrip("/")
+        resp = _post_chat(base + "/chat/completions", key, payload,
+                          _timeout, retries, "deepseek")
+        if resp is not None:
             return resp
-        except urllib.error.HTTPError as exc:
-            reason = str(getattr(exc, "reason", "") or "")
-            # Gerekce + govde metninde kredi/kota sinyali var mi? (429 da kota olabilir)
-            body_txt = ""
-            try:
-                body_txt = exc.read().decode("utf-8", "replace")
-            except Exception:  # noqa: BLE001
-                body_txt = ""
-            credit_hit = any(sig in (reason + " " + body_txt).lower() for sig in _CREDIT_SIGNALS)
-            detail = f"HTTP {exc.code} {reason}".strip()
-            # KALICI hata (401/402/403 ya da kredi-sinyali): retry YOK, durumu error isaretle, hemen None.
-            # 402 = kredi bitti -> burada yakalanir (eski liste 429/5xx idi, 402 yanlislikla "kalici-sessiz"di).
-            if exc.code in _PERMANENT_HTTP or credit_hit:
-                _log_warn(f"[_deepseek] {detail} — kalici hata (retry yok), durum: error")
-                _status_mark("deepseek", False, detail)
-                return None
-            # 429 / 5xx gecici -> retry; diger 4xx (400/404...) -> kalici ama kredi-disi, mark YOK.
-            if exc.code not in (429, 500, 502, 503, 504):
-                _log_warn(f"[_deepseek] {detail} — retry yok (kalici hata)")
-                return None
-            last_exc = exc
-        except (urllib.error.URLError, OSError, TimeoutError) as exc:
-            last_exc = exc
-        if attempt < retries - 1:
-            time.sleep(2 ** attempt)   # 1s, 2s
 
-    _log_warn(f"[_deepseek] tum denemeler tukendi ({retries}x): "
-              f"{type(last_exc).__name__}: {last_exc}")
+    if nv_key:
+        if key:
+            _log_warn("[_deepseek] birincil uc basarisiz — NVIDIA yedek uca geciliyor")
+        nv_base = os.environ.get("MITAS_DEEPSEEK_NVIDIA_BASE", _NVIDIA_DEFAULT_BASE).rstrip("/")
+        nv_payload = dict(payload)
+        nv_payload["model"] = os.environ.get("MITAS_DEEPSEEK_NVIDIA_MODEL", _NVIDIA_DEFAULT_MODEL)
+        return _post_chat(nv_base + "/chat/completions", nv_key, nv_payload,
+                          _timeout, retries, "deepseek_nvidia")
+
     return None
 
 

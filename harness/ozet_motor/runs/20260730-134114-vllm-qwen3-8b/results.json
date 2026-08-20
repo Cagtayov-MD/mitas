@@ -1,0 +1,561 @@
+{
+  "kosu_id": "20260730-134114-vllm-qwen3-8b",
+  "uc": "vllm",
+  "model": "qwen3-8b",
+  "sekiller": [
+    "tek_atis",
+    "cikar_ozetle"
+  ],
+  "num_ctx": null,
+  "n_parca": 6,
+  "not": "SEKIL ekseni: ayni model, tam baglam. Konsey duzeltmeleri uygulandi.",
+  "zaman": "2026-07-30T13:45:32",
+  "sonuc": [
+    {
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "sekil": "tek_atis",
+      "transcript_kelime": 1472,
+      "ozet": "Waldo Tornicraft, bir şarap mucitinin icadını çaldığı için gangsterlerle kavga eder. Polise teslim olmamak için sahte bir suçlu olarak kendini feda eder. Sonunda gerçek suçlunun kendisi olduğunu fark eder ve polise teslim olur.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 3.0,
+      "cagri": 1,
+      "girdi_token": 4982,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 33,
+          "cumle": 3
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Polise",
+            "Tornicraft",
+            "Waldo"
+          ],
+          "icerik_jaccard": 0.078
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "film": "CENNETE GELDİK Mİ 1992-0468-1-0000-00-1",
+      "baslik": "CENNETE GELDİK Mİ",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 1472,
+      "ozet": "Waldo, Beverly ile buluşmak için para isteyip Washington Square Park'ta buluşmalarını önerir. Beverly, Waldo'ya mesaj getirmiş olmasından dolayı teşekkür eder. Waldo, Tornicraft adında bir profesörün 287 numaralı odaya gelmesini söyler ama ismini yanlış söyler. Liza, George'un nişanlısı olacağını oynayacağını söyler ve onun mikroteleskop icadı olduğunu düşünür. George, icadını kaybetmiş ve annesine satmak istediğini söyler. Valdo, George'dan icadını geri almak için tehdit eder ama bir dolar verip onu bağışlar. Valdo, hayatın değerini anlar ve içsel mutluluğa ulaşır.",
+      "referans_sonnet": "MUCİT WALDO TORNİCRAFT, BEVERLY ADLI KADININ KENDİSİNDEN PARA SIZDIRMAK İÇİN ÇALDIĞI EŞYASINI GERİ VERME VAADİYLE ONU BİR ŞANTAJA SÜRÜKLEMESİYLE ZOR DURUMA DÜŞER. LİZA İLE TANIŞIP ONUN NİŞANLISI ROLÜNÜ ÜSTLENEN WALDO, ŞARAP ÜRETİCİSİ OLAN LİZA'NIN AİLESİNE KENDİNİ BAŞARILI BİR MUCİT OLARAK TANITIR. ANCAK ÇALINAN MİKROTELESKOPUNUN PEŞİNDEKİ GANGSTERLER, WALDO'YU SİLAHLA TEHDİT EDEREK İCADINI GERİ VERMESİ İÇİN BASKI KURAR. FİNALDE HER ŞEYİNİ KAYBEDEN WALDO, İÇSEL HUZURU BULMAYA ÇALIŞIRKEN HAYALLERİNİN PEŞİNDEN GİTME KARARI ALIR.",
+      "saniye": 24.3,
+      "cagri": 8,
+      "girdi_token": 9403,
+      "ara_urun": "[Bölüm 1/6]\n- Waldo, Beverly'ye \"Merhaba sevgilim\" der ve onu \"pis adam\" olarak adlandırır.  \n- Beverly, Waldo'ya \"Sen kimsin?\" sorar.  \n- Beverly, Waldo'ya \"Senin hayatını kurtardım\" der.  \n- Beverly, Waldo'ya \"Teşekkür ederim\" der.  \n- Beverly, Waldo'ya \"Bir mesaj geldi Bay Thorne\" der ve telefon numarasını verir.\n\n[Bölüm 2/6]\n- Waldo, iki yüz dolar istiyor.  \n- Waldo, saat on birde Washington Square Park'ta buluşmalarını öneriyor.  \n- Waldo, üç yüz dolar isteyen kişiye karşı koyuyor.  \n- Profesör Nesbit, bir parti verdiğini söylüyor.  \n- Profesör Nesbit, Suzy'ye partiye gelmesini öneriyor.\n\n[Bölüm 3/6]\n- Waldo Tornicraft, 287 numaralı odada öğrencilerin beklediğini söylüyor.  \n- Waldo Tornicraft, kendini tanıtırken \"Kraft\" diye yanlışlıkla söyler.  \n- Bir kişi, Waldo Tornicraft'ın profesör olduğunu söyler ve öğleden sonra çaya geleceğini belirtir.  \n- Bir kişi, New York toplantısı için profesörden davetiye alabileceğini söyler.  \n- Bir kişi, \"Kraft\" adlı kişiyi tanımıyor ve onun profesör olmadığını belirtir.\n\n[Bölüm 4/6]\n- George, Liza'ya nişanlısı rolünü oynayacağını söylüyor.  \n- Liza, George'un bir mucit olduğunu ve mikroteleskop yaptığına dair konuşuyor.  \n- Liza, George'un şarap analizinde kullanacağı teknolojiye ilgi gösteriyor.  \n- Liza, George'un nişanlısı olma konusunda ona soru sorduğu için üzgün görünüyor.  \n- George, Liza'ya nişanlısı rolünü oynamasını isteyen birisi olduğunu söylüyor.\n\n[Bölüm 5/6]\n- George, icadını kaybettiğini söylüyor.  \n- Beverly, Liza'dan icadını getirmesini istiyor.  \n- George, annesine icadını satmak istediğini söylüyor.  \n- Tornicraft, mikro teleskopunu geri vermesini istiyor.  \n- Valdo, polis çağıracağını söyleyerek kavgaya girmeye hazırlanıyor.\n\n[Bölüm 6/6]\n- Waldo, bir düş kırıklığından sonra Muhammed Fantleroy olarak tanınan bir kişiye ulaşmaya çalışır.  \n- Waldo, kendini kötü hissettiğini ve çok kötü bir sürücü olduğunu söyler.  \n- Waldo, kendini iyi hissettiğini ve bir dakika yardım etmesini ister.  \n- Valdo, hayatın olduğu gibi kabul edilmesi gerektiğini ve mutlulukun içinden gelmesi gerektiğini söyler.  \n- Valdo, ruhsal güç gerektiğini ve insanın yalnız kendisiyle meşgul olunca hayranlık görmek istediğini belirtir.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Valdo, George'dan icadını geri almak için tehdit eder.  \n- George, Valdo'ya bir dolar verir ve onu bağışlar.  \n- Valdo, hayatın değerini anlar ve mutluluk için kendi içine bakmaya karar verir.  \n- Filmin sonunda, Valdo'nun ruhsal güç kazanması ve içsel mutluluğa ulaşması açığa çıkar.  \n- Filmin sonunda, Valdo'nun hayatı hakkında bir ders verilir ve film sona erer.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 76"
+          ],
+          "spoiler_final": false,
+          "kelime": 76,
+          "cumle": 7
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Beverly",
+            "George",
+            "Liza",
+            "Park",
+            "Square",
+            "Tornicraft",
+            "Valdo",
+            "Waldo",
+            "Washington"
+          ],
+          "icerik_jaccard": 0.055
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "sekil": "tek_atis",
+      "transcript_kelime": 3315,
+      "ozet": "İsmi Nafas olan bir kadın, Afganistan'da sığınma kamplarında yaşayan ailelerle ilgilenirken, kendi ailesinin de Afganistan'a dönmek istediğini öğrenir. Afganistan'a dönmek için gizli yollar ararken, bir doktorla tanışır ve onun yardımıyla yolculuğuna devam eder. Doktor, Afganistan'da savaşın etkilerini ve insanlara olan acısını anlatır. Nafas, ailesiyle birlikte Afganistan'a dönmeyi planlar, ancak yolculuk sırasında birçok engelle karşılaşır. Sonunda Afganistan'a döner ve ailesiyle birlikte yaşamaya karar verir.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 6.7,
+      "cagri": 1,
+      "girdi_token": 9057,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 63,
+          "cumle": 5
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Afganistan",
+            "Doktor",
+            "Nafas",
+            "İsmi"
+          ],
+          "icerik_jaccard": 0.059
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "film": "KANDAHAR 2011-9224-1-0000-88-1",
+      "baslik": "KANDAHAR",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 3315,
+      "ozet": "Kandahar'da yaşayan bir kadın, Afghanya'da yaşamakta zorlanan biriyle iletişime geçer ve onun yaşadığı zorlukları anlatır. Bir kızın babası, oğlunun okula gitmediğini söylüyor ve 200 dolar karşılığında qandar'a gideceklerini belirtir. چيه, babasının ölmüş olduğunu düşünür ve bir doktorla tanışır. Doktor, چيه'ye 50 dolar verir ve kendi başına yolculuk yapmaya karar vermesini ister. Doktor, iki hastayı kurtarmak için birlikte yolculuk yapmaya karar verir. Yolculuk sırasında sağlık sorunları ve ekonomik zorluklarla karşılaşırlar. Sonunda Ami, kavuştu.",
+      "referans_sonnet": "KANADA'DA YAŞAYAN AFGAN ASILLI GAZETECİ MAGDA, İNTİHAR EDECEĞİNİ BİLDİREN KIZ KARDEŞİNİN MEKTUBUNU ALINCA ONU KURTARMAK İÇİN KANDAHAR YOLUNA DÜŞER. SINIR GEÇİŞLERİNDEKİ ZORLUKLAR VE TEHLİKELİ YOLLAR NEDENİYLE GECİKEN MAGDA, BİR DOKTORUN YARDIMIYLA KANDAHAR'A GİDEN BİR ŞOFÖRÜ BULUR. YOLCULUK SIRASINDA KARŞILAŞTIĞI TRAJEDİLER VE SAVAŞIN YIKIMINA TANIK OLMASI MAGDA'YI SARSAR. FİNALDE MAGDA, KIZ KARDEŞİNE ULAŞMAYI BAŞARIR ANCAK KENDİSİNİN DE AFGANİSTAN'DAKİ KADIN HAPİSHANELERİNDE TUTSAK EDİLDİĞİNİ FARK EDER.",
+      "saniye": 28.6,
+      "cagri": 8,
+      "girdi_token": 14523,
+      "ara_urun": "[Bölüm 1/6]\n- Kadın, Afghanya'dan kaçmak isteyen biriyle iletişime geçti.  \n- Kadın, mesajı alarak Afghanya'da yaşadığı zorlukları anlattı.  \n- Kadın, sınır geçişinin zorluğunu ve kimlik belgesi almanın zorluğunu anlattı.  \n- Kadın, Afghanya'da eğitim veren bir okulun son gününü geçirdiğini söyledi.  \n- Kadın, Afghanya'da kadınların hâlâ kıyafetlerini kendi tercihlerine göre seçemeyeceklerini belirtti.\n\n[Bölüm 2/6]\n- 200 dolar alındı ve qandar'a gideceklerdi  \n- Kızın babası, oğlunu okula götürmedi çünkü o okula gitmiyor  \n- Kızın babası, oğlunun okula gitmediğini ve kendisinin okula gitmediğini söylüyor  \n- Kızın babası, oğlunun okula gitmediğini ve kendisinin okula gitmediğini söylüyor  \n- Kızın babası, oğlunun okula gitmediğini ve kendisinin okula gitmediğini söylüyor\n\n[Bölüm 3/6]\n- چيه, bir oyunu almak için koştu ama oyun patladı ve ayakları yaralandı  \n- چيه, babasının onu bir göçmen grubuna vereceği söylendi  \n- چيه, babasının ölmüş olduğu söylendi  \n- چيه, bir doktorla tanıştı ve doktorun kendisine 50 dolar verdiğini söyledi  \n- Doktor, چيه'yi yine 50 dolar daha verip, yollarını kendi başına sürmeye karar vermesini istedi\n\n[Bölüm 4/6]\n- Doktor, iki hastayı (birisi Buhştoni, diğeri Täjäkstani) yere uzanmış, ciddi şekilde hastalıktan dolayı öleceklerini söylüyor.  \n- Doktor, hastaların yardım etmesi gerektiğini anlıyor ve \"Benim zamanım var, ihtiyaç sahiplerini yardım etmem gerekiyor\" diyor.  \n- Doktor, hastaların adlarını öğreniyor: biri \"Nefas\", diğeri \"Kak\".  \n- Doktor, \"Nefas\" adlı hastanın babasının adını sorduğunda \"Kak\" diyor.  \n- Doktor, hastaları kurtarmak için bir araya gelip, birlikte yolculuk yapmaya karar veriyor.\n\n[Bölüm 5/6]\n- 7 kişiye yardım eden 30 kişilik bir ekip var  \n- Gıda eksikliği, ateş, parazit ve susuzluk gibi sağlık sorunları var  \n- Bir kişi, yardım edenlerin durumunu anlatmak için dilini bilen biriyle konuşuyor  \n- Afghani bir kadın, ailesiyle birlikte yardım için burada bulunuyor  \n- Kadın, ailesiyle ilgili bir sorun yüzünden yardım ekiplerine destek olamayacağını söylüyor\n\n[Bölüm 6/6]\n- 45 yaşındaki bir kişi, bir patlama sonucu kaybetmiş olduğu bacağından dolayı bir yerde yaralı olarak bulunuyor.  \n- Yaralı kişi, bir erkeğe ihtiyaç duyuyor ve bu erkeğin boyu yaklaşık 70 santim olması gerekiyor.  \n- Yaralı kişi, bir başka yaralı kişiyle birlikte bulunuyor ve bu kişi çıkarılmamış.  \n- Bir kişi, başka birine 100 dolar istiyor, ancak bu tutar zor oluyor ve 150 dolar isteniyor.  \n- Bir kişi, başka birine 220 dolar istiyor ve bu tutar onaylanıyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Ami, sonunda kavuştu.  \n- Ami, kavuştu.  \n- Ami, kavuştu.  \n- Ami, kavuştu.  \n- Ami, kavuştu.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 71"
+          ],
+          "spoiler_final": true,
+          "kelime": 71,
+          "cumle": 7
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "هيچ",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Afghanya",
+            "Ami",
+            "Doktor",
+            "Kandahar",
+            "Yolculuk"
+          ],
+          "icerik_jaccard": 0.043
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "sekil": "tek_atis",
+      "transcript_kelime": 4146,
+      "ozet": "Leticia, tecavüzle mücadele ederken polis memuru Valentin ile bağ kurar. Tecavüzcü yakalanamazsa onu öldürmek zorunda kalır. Tecavüzün ardından hastalığına yakalanır ve testlerle belirlenir. Valentin, tecavüzcüyü yakalamak için onunla birlikte çalışır. Leticia, tecavüzcüyü öldürmekle kendi hayatını da tehlikeye atar. Sonunda tecavüzcü yakalanır ve Leticia, kendi kaderini kendi eliyle değiştirmek zorunda kalır.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 6.9,
+      "cagri": 1,
+      "girdi_token": 11911,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": true,
+          "hatalar": [],
+          "spoiler_final": true,
+          "kelime": 50,
+          "cumle": 6
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Leticia",
+            "Tecavüzcü",
+            "Tecavüzün",
+            "Valentin"
+          ],
+          "icerik_jaccard": 0.094
+        },
+        "deterministik_gecti": true
+      }
+    },
+    {
+      "film": "KORKUNÇ GECE 1995-0444-1-0000-00-1",
+      "baslik": "KORKUNÇ GECE",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 4146,
+      "ozet": "Letizia Laroş, bir gece yemeğine gitmek isteyen kişiden kaçınırken bir silahın varlığını ve birinin onu ateş edebileceğini söylüyor. Test sonucu pozitif çıkınca Paul, AIDS'e yakalanmadığını ama ırzıma geçtiğini söylüyor ve Roma'da bir iş imkanı sunuyor. Leticia, tecavüz iddiasında bulunurken bir kabus olduğunu savunur ve sperm analiziyle diğer kurbanlarla aynı sonuç ortaya çıkar. Müfettiş Valeski onun raporunu inceleyip suçluyu yakalamaya karar verir. Leticia, tecavüzle ilgili dava açar ve psikolojik destek almak için psikiyatriste gider. Film, dava sürecine başlamasının ardından kapanır.",
+      "referans_sonnet": "TECAVÜZ MAĞDURU LETIZIA LAROŞ, YAŞADIĞI TRAVMA VE AIDS KAPMA KORKUSUYLA MÜCADELE EDERKEN, OLAYI UNUTMAK İSTER. ANCAK MÜFETTİŞ VALESKİ, ONU SERİ TECAVÜZCÜYÜ YAKALAMAK İÇİN YEM OLARAK KULLANMAYA İKNA EDER. İLK YAKALANAN ŞÜPHELİNİN YANLIŞ ADAM OLDUĞU ORTAYA ÇIKINCA LETIZIA, GERÇEK SUÇLUYU BULMAK İÇİN YEM OLMAYA DEVAM EDER. SONUNDA, BİR ADAMI VURARAK ÖLDÜRÜR ANCAK POLİS TARAFINDAN SORGULANIR.",
+      "saniye": 27.3,
+      "cagri": 8,
+      "girdi_token": 18813,
+      "ara_urun": "[Bölüm 1/6]\n- Letizia Laroş, babasına araba almadığını sordu.  \n- Letizia Laroş, bir kadının adresini aldı.  \n- Letizia Laroş, bir gece yemeğe gitmek isteyen kişiden kaçındı.  \n- Letizia Laroş, bir dostuyla konuşarak bir şeyleri anlattı.  \n- Letizia Laroş, bir silahın varlığını ve birinin onu ateş edebileceğini söyledi.\n\n[Bölüm 2/6]\n- Leticia, test sonucunu aldı ve pozitif çıktı.  \n- Leticia, Letizia'ya test sonucunu anlattı ve sevindiklerini söyledi.  \n- Paul, Leticia'ya AIDS'e yakalanmadığını ama ırzıma geçtiğini söyledi.  \n- Paul, Leticia'ya yardım etmek istediğini ve ona Roma'da bir iş imkanı sunacağını söyledi.  \n- Valeski, Leticia'ya yardım etmek istediğini ve onun yakasından düşeceğini söyledi.\n\n[Bölüm 3/6]\n- Leticia, La Rocha ve diğer üç kıza tecavüz edemediğini belirtir.  \n- Laboratuvardan gelen bir kişi, Letizia'ya \"kim olduğunu\" sormaya çalışır.  \n- Polis, Leticia'yla ilgili sorular sorar.  \n- Leticia, bir polis memuruyla görüşmek ister.  \n- Bir kişi, Leticia'ya dokunmamayı söyler ve \"seni öldüreceğim\" diye tehdit eder.\n\n[Bölüm 4/6]\n- Leticia, Paul ile metroda karşılaştı.  \n- Paul, Leticia'ya tecavüz ettiğini iddia etti.  \n- Leticia, tecavüzün olmadığını ve sadece bir kabus olduğunu söyledi.  \n- Müfettiş Balevski, Leticia'ya soru sordu ve delil istemişti.  \n- Leticia, tecavüzcünün sperm analizi yapıldığını ve diğer kurbanlarla aynı olduğunu öğrendi.\n\n[Bölüm 5/6]\n- Leticia, bir cinsel saldırıya uğradığını söylüyor.  \n- Leticia, saldırıda yüzü kar maskeli bir adamla karşılaştığını ve arabanın üstüne itildiğini anlatıyor.  \n- Leticia, saldırıda kendisine dokunulmadığını ve konuşmadığını belirtiyor.  \n- Müfettiş Valeski, Leticia'nın raporunu incelemektedir.  \n- Laroş, Leticia'nın ifadesine devam etmesini istemekte ve birlikte çalışacaklarını söylüyor.\n\n[Bölüm 6/6]\n- Leticia'ya özel bir şey soruyor.  \n- Leticia, bir fıkra anlatmaya çalışır.  \n- Leticia, fıkra anlatırken biri onu durdurur.  \n- Leticia, fıkra anlatmaya devam eder.  \n- Leticia, fıkra anlatırken biri onu tekrar durdurur.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Leticia, tecavüzle ilgili raporunu hazırlar ve dava açar.  \n- Esmo, tecavüze uğramış kızın babasıdır ve olayla ilgili bilgi verir.  \n- Valeski, müfettiş olarak Leticia'ya destek olur ve birlikte suçluyu yakalamaya karar verir.  \n- Leticia, tecavüzün ardından kendini kaybetmiş ve psikolojik olarak destek almak için psikiyatriste gitmek zorunda kalır.  \n- Film, Leticia'nın dava sürecine başlamasının ardından kapanır.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 79"
+          ],
+          "spoiler_final": true,
+          "kelime": 79,
+          "cumle": 6
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Laroş",
+            "Leticia",
+            "Letizia",
+            "Müfettiş",
+            "Paul",
+            "Roma",
+            "Test",
+            "Valeski"
+          ],
+          "icerik_jaccard": 0.083
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "sekil": "tek_atis",
+      "transcript_kelime": 4969,
+      "ozet": "Ayı Yogi, baharın gelmesiyle uyandığında parkta kayıp bir ayı olarak tanınır. Park korucu bey ile anlaşarak ayılar için yiyecek verme yasaklarını kaldırır ve parkta kalır. Ancak Yogi, aslında bir sahte sabotajcı olarak kendini feda eder. Cindy'ye aşık olduğu ortaya çıkar ama onu yanlışlıkla başka bir şehre gönderir. Yogi, Cindy'yi bulmak için parktan kaçar ve bir balonla uçarak yolculuğa başlar. Park korucu bey, Yogi'yi geri getirmek için bir anlaşmaya girer. Yogi, parkta kalmasına karşın, Cindy'ye ulaşmak için sürekli çaba gösterir. Sonunda Yogi, Cindy'ye ulaşmak için parktan ayrılarak bir yolculuğa başlar.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 8.8,
+      "cagri": 1,
+      "girdi_token": 13533,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 89"
+          ],
+          "spoiler_final": true,
+          "kelime": 89,
+          "cumle": 8
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": [
+            "cindy ye ulasmak icin"
+          ]
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Ayı",
+            "Cindy",
+            "Park",
+            "Yogi"
+          ],
+          "icerik_jaccard": 0.128
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "AYI YOGİ 1964-0032-1-0000-00-1",
+      "baslik": "AYI YOGİ",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 4969,
+      "ozet": "Yogi, baharın gelmesiyle uyanmak istiyor ve kendini bir ayı olarak tanıtmaya çalışıyor. Cindy, onunla piknik alanlarına girmeye izin verilmediğini söylüyor ve onu inanamıyor. Yogi, Cindy'yi bulmak için parktan dışarı çıkmak istiyor. Kamyonla otostop yapmaya karar verirken bir ayıya rastlar ve Cindy'ye veda eder. Ayılar saklanmak için bir mağaraya gider ama fırtınada korku içinde yardım çağrısı yapar. Korucular polis ve itfaiye ekiplerini çağırır ve ayıları Celisdon Parkı'na geri gönderir. Yogi ve Bobo kavuşurken Şerif kaybolur ve ayıların gizli bir anlaşması ortaya çıkar. Korucu Simit Celis Don'un başkorucusu olur.",
+      "referans_sonnet": "JELLYSTONE PARK'IN ZEKİ AYISI YOGİ, PİKNİK SEPETİ ÇALMA ALIŞKANLIĞI YÜZÜNDEN KORUCU SMİTH'İN HEDEFİ OLUR. SMİTH, YOGİ'Yİ SAN DİEGO HAYVANAT BAHÇESİ'NE GÖNDERMEYE KARAR VERİNCE, YOGİ BAŞKA BİR AYIYI KENDİ YERİNE GÖNDEREREK PARKTA KALIR. ANCAK YOGİ'YE AŞIK OLAN CİNDY AYI, YANLIŞLIKLA SAN LUİS HAYVANAT BAHÇESİ'NE GÖNDERİLİR VE YOLDA KAYBOLUR. YOGİ, CİNDY'Yİ BULMAK İÇİN BOBO İLE PARKTAN KAÇAR VE ÇEŞİTLİ MACERALARIN ARDINDAN CİNDY'Yİ BİR SİRKTE TEL CAMBAZI OLARAK ÇALIŞMAYA ZORLANIRKEN BULUR. YOGİ, CİNDY VE BOBO SİRKTEN KAÇIP ŞEHRE GELİRLER VE BÜYÜK BİR KARGAŞAYA NEDEN OLURLAR. CANLI YAYINDA YOGİ'Yİ GÖREN KORUCU SMİTH, ONLARI GERİ GETİRMEK İÇİN HELİKOPTERLE GELİR. YOGİ, SMİTH'İ AYILARA YİYECEK YASAĞINI KALDIRMAYA İKNA EDER VE ÜÇ AYI JELLYSTONE PARK'A GERİ DÖNER.",
+      "saniye": 25.4,
+      "cagri": 8,
+      "girdi_token": 21029,
+      "ara_urun": "[Bölüm 1/6]\n- Yogi, baharın geldiğini söylüyor ve uyanmasını istiyor.  \n- Bobo, Yogi'ye \"Benim yatağımda ne işim var bakayım\" diyor.  \n- Cindy, \"Merhaba Yogi\" der ve \"Ooo kafamda ne var?\" diye soruyor.  \n- Şerif, \"Yogi neler çeviriyor?\" diye soruyor ve \"Şu sahte müfettişi kendisi tabii\" der.  \n- Bobo, \"Korucu bey beni gizli silahımı kullanmaya zorluyor\" diyor.\n\n[Bölüm 2/6]\n- Yogi, Charlie'ye bir ayı olarak gönderilmek isteniyor.  \n- Charlie, Yogi'yi \"Yogi\" adında bir ayı olarak tanımlıyor.  \n- Cindy, piknik alanlarına girmeye izin verilmediğini söylüyor.  \n- Cindy, bir pastayı geri getirmeyi isteniyor.  \n- Cindy, Yogi'ye inanamıyor ve neden bunu yaptığını soruyor.\n\n[Bölüm 3/6]\n- San Diego'da başka aile ihtiyaç yoktu.  \n- Cindy'yi San Luis'e yolluyor.  \n- San Luis'e gitmek istemiyor.  \n- Yogi St. Louis'de değil.  \n- Yogi Cindy'yi bulmak için parktan dışarı çıkmak istiyor.\n\n[Bölüm 4/6]\n- Yogi, bir kamyonla otostop yapmak istiyor.  \n- Yogi, bir at bulmaları gerektiğini söylüyor.  \n- Yogi, bir ayıya rastladıklarını söylüyor.  \n- Yogi, Cindy'ye veda etmek istiyor.  \n- Yogi, Cindy'ye yardım edeceğini söylüyor.\n\n[Bölüm 5/6]\n- Yogi, Celiston Parkı'na ayıyı geri götürmek için gidiyor.  \n- Bobo, Yogi'ye \"sen de bir yıldız oldun\" diyor.  \n- Şerif, 34 numaralı arabayı arıyor ve Bayan Rutabaga'nın evinde 3 ayı gördüğünü söylüyor.  \n- Yogi, bir açık büfeye gidiyor ve yemek yiyor.  \n- Yogi, bir çiftçi amcaya yaklaşarak yemek alıyor ve onu geçiyor.\n\n[Bölüm 6/6]\n- Yogi, ayıların saklanabileceği bir mağara olduğunu söylüyor.  \n- Bobo, fırtınada her yine girilir diyor.  \n- Ayılar görünür olunca Yogi ve Bobo korkuyor ve yardım çağrısı yapıyor.  \n- Korucular, ayıları yakalamak için polis ve itfaiye ekiplerini çağırıyor.  \n- Korucu Simit, ayıları Celisdon Parkı'na geri götürmek için helikopter çağırıyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Yogi ve Bobo kavuştu  \n- Ayılar Celiston Parkı'na geri gönderildi  \n- Şerif kayboldu  \n- Ayıların gizli bir anlaşması açığa çıktı  \n- Korucu Simit Celis Don'un başkorucusu oldu",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 87"
+          ],
+          "spoiler_final": true,
+          "kelime": 87,
+          "cumle": 8
+        },
+        "b2_dil": {
+          "gecti": true,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Ayılar",
+            "Bobo",
+            "Celis",
+            "Celisdon",
+            "Cindy",
+            "Don",
+            "Kamyonla",
+            "Korucu",
+            "Korucular",
+            "Parkı",
+            "Simit",
+            "Yogi",
+            "Şerif"
+          ],
+          "icerik_jaccard": 0.072
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "sekil": "tek_atis",
+      "transcript_kelime": 6578,
+      "ozet": "Iris'in kızı Jül, annesinin bir gece boyu onu yalnız bırakmaması için evden kaçar. Anne, Jül'ün babasının kim olduğunu bilmediğini söyler. Iris, Jül'ün babasının kim olduğunu öğrenmek için eski arkadaşlarını çağırır. Arkadaşlar, Jül'ün babasının aslında onun değil başka birinin olduğunu fark ederler. Jül, babasız olarak büyüyüp annesine bağlı kalır. Iris, Jül'ün babasının kim olduğunu öğrenmek için onu tekrar bulmaya çalışır. Sonunda Jül, babasının kim olduğunu öğrenir ve annesine bağlı kalmasına karar verir.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 9.6,
+      "cagri": 1,
+      "girdi_token": 17478,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 71"
+          ],
+          "spoiler_final": true,
+          "kelime": 71,
+          "cumle": 7
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": [
+            "babasının kim oldugunu ogrenmek",
+            "iris jul un babasının",
+            "jul un babasının kim",
+            "kim oldugunu ogrenmek icin",
+            "un babasının kim oldugunu"
+          ]
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Anne",
+            "Arkadaşlar",
+            "Iris",
+            "Jül"
+          ],
+          "icerik_jaccard": 0.043
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "IRIS'IN SIRRI 1996-0350-1-0000-00-1",
+      "baslik": "IRIS'IN SIRRI",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 6578,
+      "ozet": "Jül, on yıl önce Piero ile evlenmeliydi ve bir çocuk doğurmuştu. Iris, Jül'ün evine gelip onu öpmek istedi ama Jül kıyafetinde bir şey yoktu. Jül, babasının kim olduğunu bilmesi gerektiğini söylendiğinde bu bilgiyi öğrenmek için hepinin bir araya gelmesi gerekiyordu. Jül, babasının kim olduğunu bilmediğini söylüyordu. Olivia, Mayne ile yatakta geçirdiği bir gece hakkında konuşuyordu. Jules, Olivia'nın babası olmadığını belirtti. Olivia, kendi kısır olduğunu ve in vitro denemelerinin başarısız olduğunu öğrendi. Jules, Olivia'nın oğlu olmadığını kabul etti. Piero, Jules'in Olivia'nın oğlu olmadığını söylendi. Jules, babasının adının Pablo olduğunu öğrendi ve Olivia'ya anlattı. Jules, Olivia ve Sesil'in evi satın alacaklarını söylendi. Olivia, Jules ile birlikte yaşamaya karar verdi. Jül, annesinin yolculuğuna gitmesine izin verdi. Fil, kendi kararını vererek Afrika'ya dönecek. Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "referans_sonnet": "IRİS, ÖLÜMCÜL BİR HASTALIĞI OLDUĞUNU ÖĞRENİNCE ON YAŞINDAKİ OĞLU JULES'A BAKACAK BİRİNİ BULMAK İÇİN YILLARDIR GÖRÜŞMEDİĞİ ESKİ ARKADAŞLARINI EVİNE DAVET EDER. JULES'UN BABASININ MEKSİKALI PABLO OLDUĞUNU AÇIKLAYAN IRİS, ARKADAŞLARINDAN OĞLUNA SAHİP ÇIKMALARINI İSTER. PİERO, IRİS'E OLAN AŞKINI İTİRAF EDİP JULES'U KENDİ OĞLU GİBİ KABUL EDECEĞİNİ SÖYLER. OLIVIA VE CECİL DE EVİ SATIN ALIP JULES'A BAKMAYI TEKLİF EDER. FİNALDE IRİS, PİERO İLE EVLENİR VE JULES'A BİRLİKTE BAKMAYA KARAR VERİRLER.",
+      "saniye": 28.7,
+      "cagri": 8,
+      "girdi_token": 25756,
+      "ara_urun": "[Bölüm 1/6]\n- Jül, Piero ile on yıl önce evlenmeliydi dedi.  \n- Jül, bir çocuk doğurmuş ve o da on yaşında olacak.  \n- Iris, Jül'ün evine gelip onu öpmek istedi.  \n- Jül, kıyafetinde bir şey yoktur diye söylendi.  \n- Jül, Iris'e gideceğini söylendi.\n\n[Bölüm 2/6]\n- Jules, Jül'ün babasının kim olduğunu bilmesi gerektiğini söylüyor.  \n- Mayne, Jül'ün babası olmamalarının zor olduğunu belirtiyor.  \n- Piyero, Jül'ün babasının kim olduğunu bilmesi için hepinin bir araya gelmesi gerektiğini söylüyor.  \n- Iris, Jül'ün on yaşına gelmesi nedeniyle hepinin çağrıldığını açıklıyor.  \n- Jül, babasının kim olduğunu bilmediğini söylüyor.\n\n[Bölüm 3/6]\n- Olivia, Mayne ile birlikte yatakta geçirdiği bir gece hakkında konuşuyor.  \n- Jules, Olivia ile birlikte yatakta geçirdiği bir gece hakkında konuşuyor.  \n- Piero, Olivia ile birlikte yatakta geçirdiği bir gece hakkında konuşuyor.  \n- Jül, Olivia'nın babası olmadığını belirtiyor.  \n- Mayne, Olivia ile yatakta geçirdiği bir gece hakkında konuşuyor.\n\n[Bölüm 4/6]\n- Olivia, kendi kısır olduğunu öğrenir.  \n- Olivia, in vitro denemeleri berbattır.  \n- Olivia, Jules'in oğlu olmadığını öğrenir.  \n- Jules, Olivia'nın oğlu olmadığını kabul eder.  \n- Piero, Jules'in Olivia'nın oğlu olmadığını söyler.\n\n[Bölüm 5/6]\n- Piero, bir iş teklifi alır ve Olivia'ya kabul etmesini ister.  \n- Olivia, teklifi kabul eder ve işe başlamayı kararlaştırır.  \n- Jules, babasının kim olduğunu öğrenir ve bu bilgiyi Olivia'ya anlatır.  \n- Jules, Olivia'nın ona bakması için birini bulması gerektiğini söyler.  \n- Piero, Olivia'ya \"kendine başka bir hayat kurabilirsin\" diye uyarıda bulunur.\n\n[Bölüm 6/6]\n- Olivia bana iş teklif etti.  \n- Jules, Piyero ile yaşamak istiyor.  \n- Jules, Jül'ün babasının adının Pablo olduğunu söylüyor.  \n- Jules, hamile kaldığını ona söylemediğini belirtiyor.  \n- Jules, Olivia ve Sesil'in evi satın alacaklarını söylüyor.  \n- Piero, annemle evlenecek diyor.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Olivia, Jules ile birlikte yaşamaya karar verdi.  \n- Jül, annesinin yolculuğuna gitmesine izin verdi.  \n- Fil, kendi kararını vererek Afrika'ya dönecek.  \n- Jules'in babasının adı Pablo olduğu açığa çıktı.  \n- Piyero, Piero ile birlikte yaşamayı istiyor.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 125"
+          ],
+          "spoiler_final": false,
+          "kelime": 125,
+          "cumle": 15
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": [
+            "jul babasının kim oldugunu",
+            "olivia nın oglu olmadıgını"
+          ]
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Afrika",
+            "Fil",
+            "Iris",
+            "Jules",
+            "Jül",
+            "Mayne",
+            "Olivia",
+            "Pablo",
+            "Piero",
+            "Piyero",
+            "Sesil"
+          ],
+          "icerik_jaccard": 0.109
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "sekil": "tek_atis",
+      "transcript_kelime": 12964,
+      "ozet": "Odile Lalande, 30 yaşında bir kadın, Paris'te bir apartman arayışında bulunurken eski dostu Nicolas ile tanışır. Nicolas, kardeşi Claude'ın işiyle ilgilenen bir adamdır. Odile, Nicolas'la geçmişi yeniden gözden geçirmeye çalışırken, Nicolas'ın aslında kardeşi Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım etmesi gerektiğini fark eder. Nicolas, Claude'ın işini yapmak için kendisine yardım et",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 45.1,
+      "cagri": 1,
+      "girdi_token": 19880,
+      "ara_urun": "",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet 65 kelime sınırını aşıyor: 744",
+            "Özet tamamlanmış noktalama ile bitmiyor"
+          ],
+          "spoiler_final": false,
+          "kelime": 744,
+          "cumle": 67
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [],
+          "think_sizintisi": false,
+          "tekrar_4gram": [
+            "claude ın isini yapmak",
+            "eder nicolas claude ın",
+            "etmesi gerektigini fark eder",
+            "fark eder nicolas claude",
+            "gerektigini fark eder nicolas"
+          ]
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Claude",
+            "Lalande",
+            "Nicolas",
+            "Odile",
+            "Paris"
+          ],
+          "icerik_jaccard": 0.062
+        },
+        "deterministik_gecti": false
+      }
+    },
+    {
+      "film": "HAYAT BİR ŞARKIDIR 1997-0421-1-0000-00-1",
+      "baslik": "HAYAT BİR ŞARKIDIR",
+      "sekil": "cikar_ozetle",
+      "transcript_kelime": 12964,
+      "ozet": "Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu ortaya çıkar. Camille depresyon ve anksiyete nedeniyle hastaneye kaldırılırken, Odile ona destek olmaya karar verir. Nicolas ise eşiyle olan gizli ilişkisini saklamakta ve bu durum iş hayatında sorun yaratmaktadır. Film, karakterlerin içsel çatışmaları ve gizli ilişkileriyle sona erer; net bir sonuç verilmez.",
+      "referans_sonnet": "EMLAKÇI MARC DUVERRİER, CAMİLLE ADLI KADININ KARDEŞİ ODİLE İLE BİR DAİRE ZİYARETİ İÇİN BULUŞUR. BU SÜREÇTE NICOLAS VE CLAUDE ARASINDAKİ GERİLİMLER, GİZLENEN GERÇEKLER VE SIMON'UN MANİPÜLASYONLARIYLA SIRLAR AÇIĞA ÇIKAR. SIMON, DAİRESİNİN ÖNÜNDEKİ İNŞAAT PROJESİNİ SAKLAYARAK İNSANLARI KANDIRIRKEN, CAMİLLE'İN YAŞADIĞI DEPRESYON VE AİLEVİ KRİZLER HERKESİ SARSAR. FİNALDE, SIMON'UN YALANLARI İFŞA OLUR VE TÜM KARAKTERLERİN HAYATI BÜYÜK BİR KARMAŞAYLA DEĞİŞİR.",
+      "saniye": 44.3,
+      "cagri": 8,
+      "girdi_token": 33590,
+      "ara_urun": "[Bölüm 1/6]\n- Camille, Odile, Nicolas ve Lalande adlı kişiler bir araya gelir.  \n- Nicolas, Paris'te yaşıyor ve Camille ile tekrar buluşuyor.  \n- Camille, Nicolas'la tekrar konuşuyor ve onunla birlikte Paris'e dönmüş olduğunu söylüyor.  \n- Nicolas, kendi kardeşi Simon'un işe alım sürecinde olduğunu ve onun için bir hizmet istendiğini anlatıyor.  \n- Nicolas, Simon'un işe alım sürecinde yardım etmek zorunda kaldığını ve bu yüzden suçlu hissettiğini söylüyor.  \n- Odile, Nicolas'la tekrar konuşuyor ve onunla birlikte bir apartman arayacağını söylüyor.  \n- Marc Duverrier, Odile Lalande'le telefonla konuşuyor ve onunla bir buluşma yapmak istediğini söylüyor.  \n- Odile, Marc ile 16.00'te buluşmak istediğini söylüyor.\n\n[Bölüm 2/6]\n- Nathalie, Paris'a iletilen bir mesajı okurken, birisiyle telefon konuşması yapar.  \n- Marc Duverrier, birisiyle telefon konuşması yaparken, kendisiyle konuşan kişiye \"mon patron\" olduğunu söyler.  \n- Nathalie, bir kişiyle konuşurken, \"Rigotti\" adlı birinin odasını istemeyi söyler.  \n- Nathalie, bir kişiyle konuşurken, \"228, merci\" diye cevap verir.  \n- Nathalie, bir kişiyle konuşurken, \"Vous voulez pas m'accompagner, je vais vous présenter mon petit-fils\" der.  \n- Simon, bir kişiyle konuşurken, \"Je prépare une thèse d'histoire\" diye açıklar.  \n- Nathalie, bir kişiyle konuşurken, \"La place rouge était vide, devant moi marchait Nathalie\" der.\n\n[Bölüm 3/6]\n- Odile, Camille’i \"surdouée\" olarak adlandırır.  \n- Odile, Camille’nin tezisini \"hiçbir şey\" üzerine olduğunu söyler.  \n- Odile, Camille’nin tezisini \"1000’li yılların Paladru Gölü’ndeki kahramanları\" olarak yanlış anlar.  \n- Camille, Odile’ye tezisinin \"1000’li yılların Paladru Gölü’ndeki kahramanları\" olduğunu söyler.  \n- Odile, Camille’ye tezisini yanlış anladığını söyler.  \n- Nicolas’ın kardeşi, \"nul\" (yani kötü) olduğunu söyler.  \n- Nicolas’ın kardeşi, Camille’den bir şey istememektedir.  \n- Camille, Nicolas’ın kardeşiyle ilgili bir şey istememektedir.  \n- Camille, Nicolas’ın kardeşiyle ilgili bir şey istememektedir.  \n- Camille, Nicolas’ın kardeşiyle ilgili bir şey istememektedir.\n\n[Bölüm 4/6]\n- Camille, Marc Duverrier ile birlikte bir apartman imzalama toplantısına gidiyor.  \n- Camille, Marc Duverrier ile hiçbir şey ortak olmadığını söylüyor.  \n- Camille, Marc Duverrier'in zayıf zekâlı ve iyi niyetli olmadığını söylüyor.  \n- Camille, Marc Duverrier ile ilgili kendi kendine konuşuyor.  \n- Camille, bir yemek salonunda birlikte yemek yiyor.  \n- Camille, bir yemek salonunda birlikte yemek yiyor.  \n- Camille, bir yemek salonunda birlikte yemek yiyor.  \n- Camille, bir yemek salonunda birlikte yemek yiyor.  \n- Camille, bir yemek salonunda birlikte yemek yiyor.\n\n[Bölüm 5/6]\n- Camille telefonla konuşuyordu ve evine dönmeyi düşünüyordu.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.  \n- Nicolas, Camille'nin evine gelip onunla tartıştı.\n\n[Bölüm 6/6]\n- Camille, Nicolas ve Simon tartışır.  \n- Simon, Camille'nin bir projeye sahip olduğunu ve onunla ilgili konuşmalarını eleştirir.  \n- Nicolas, Camille'nin bir depresyon geçirdiğini söyler.  \n- Camille, kendi hislerini anlatır ve Nicolas'la aynı şeyi hissettiğini belirtir.  \n- Nicolas, Camille'nin evlendiği bir kadınla ilgili bir ilişki olduğunu iddia eder.  \n- Simon, Nicolas'la ilgili bir kadınla buluştuğunu söyler.  \n- Nicolas, işi seyahat etmekle ilgili anlatır.  \n- Claude, Marc Duverrier'la ilgili bir şey olduğunu söyler.  \n- Claude, kendi hatalarını itiraf eder ve bir şeyi saklamadığını belirtir.  \n- Simon, Claude'ya karşı eleştirilerde bulunur ve onunla ilgili bir şey olduğunu söyler.  \n- Nicolas, Odile'le ilgili bir şey olduğunu söyler.  \n- Simon, Nicolas'la ilgili bir şey olduğunu söyler.\n\n[FİLMİN BİTİŞİ — son bölümden ayrıca çıkarıldı, ÖNCELİKLİDİR: yukarıdaki bölüm notlarıyla çelişirse BU doğrudur]\n- Camille, Nicolas ve Simon arasında gizli bir ilişki olduğu açığa çıkmıştır.  \n- Camille, depresyon ve anksiyete nedeniyle hastaneye kaldırılmıştır.  \n- Odile, Camille'nin hastalığını öğrenerek ona destek olmaya karar vermiştir.  \n- Nicolas, kendi eşiyle olan ilişkisini gizlemektedir ve bu da onun iş hayatında sorunlara neden olmaktadır.  \n- Film, karakterlerin içsel çatışmaları ve ilişkileriyle sona ermektedir; net bir sonuç belirtilmemiştir.",
+      "notlar": {
+        "b1_bicim": {
+          "gecti": false,
+          "hatalar": [
+            "Özet noktalı virgül içeriyor"
+          ],
+          "spoiler_final": true,
+          "kelime": 51,
+          "cumle": 4
+        },
+        "b2_dil": {
+          "gecti": false,
+          "latin_disi": "",
+          "ingilizce": [
+            "film"
+          ],
+          "think_sizintisi": false,
+          "tekrar_4gram": []
+        },
+        "b3_olgu": {
+          "ad_isabet": null,
+          "ozette_olmayan_ad": [],
+          "uydurma_ad_adayi": [
+            "Camille",
+            "Nicolas",
+            "Odile",
+            "Simon"
+          ],
+          "icerik_jaccard": 0.09
+        },
+        "deterministik_gecti": false
+      }
+    }
+  ]
+}

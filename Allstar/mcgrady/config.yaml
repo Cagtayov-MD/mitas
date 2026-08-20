@@ -1,0 +1,15 @@
+# McGrady — künye kimlik/doğrulama kulesi (QC2) yapılandırması.
+# Zemin yolları kuleyi ilan eder (config doluysa env'i EZER; boşsa env/dokunulmaz).
+
+motor:
+  web: true          # ÇAPA-2 TMDB çapası (profile=film için; dizi'de zaten atlanır)
+  afis: true         # kilitli filmde afiş çekme + poster_ok kapısı
+  fuzzy_dbqc: false  # gömülü-pencere kanonikleştirme önerisi (pipeline MITAS_FUZZY_DBQC kalıbı)
+
+zemin:
+  # Salt-okunur KB veritabanları (MAP.md zemin kuralı: model ağırlığı gibi merkezi
+  # güncellenen kaynak — kopya YOK, güncellenen DB kuleye böyle ulaşır).
+  wikidata_duckdb: /opt/mitas/cache/duckdb/mitas.duckdb
+  imdb_duckdb: /opt/mitas/cache/duckdb/imdb.duckdb
+  # Kule-özel web önbelleği (merkezi cache'e dosya-bağımlılık yok).
+  web_cache_dir: ""   # boş = kule-içi varsayılan cache/web

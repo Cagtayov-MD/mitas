@@ -1,0 +1,171 @@
+[
+  {
+    "index": 1,
+    "film": "13. SAVAŞÇI 1999-0394-1-0000-90-1",
+    "input_frames": 270,
+    "total_kept": 120,
+    "representatives": 41,
+    "saved_png_count": 41,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/13. SAVAŞÇI 1999-0394-1-0000-90-1/frames/giris_jenerik",
+    "duration_sec": 32.05,
+    "sample_files": [
+      "g_0005.png",
+      "g_0014.png",
+      "g_0020.png",
+      "g_0034.png",
+      "g_0040.png"
+    ]
+  },
+  {
+    "index": 2,
+    "film": "20. YÜZYILIM BENİM 1989-0064-1-0000-00-1",
+    "input_frames": 360,
+    "total_kept": 68,
+    "representatives": 19,
+    "saved_png_count": 19,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/20. YÜZYILIM BENİM 1989-0064-1-0000-00-1/frames/giris_jenerik",
+    "duration_sec": 19.09,
+    "sample_files": [
+      "g_0009.png",
+      "g_0033.png",
+      "g_0035.png",
+      "g_0041.png",
+      "g_0042.png"
+    ]
+  },
+  {
+    "index": 3,
+    "film": "21. YÜZYIL EŞİĞİNDE TÜRK AİLESİ 1900-0138-0-0009-00-1",
+    "input_frames": 270,
+    "total_kept": 72,
+    "representatives": 39,
+    "saved_png_count": 39,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/21. YÜZYIL EŞİĞİNDE TÜRK AİLESİ 1900-0138-0-0009-00-1/frames/giris_jenerik",
+    "duration_sec": 11.49,
+    "sample_files": [
+      "g_0010.png",
+      "g_0011.png",
+      "g_0016.png",
+      "g_0017.png",
+      "g_0018.png"
+    ]
+  },
+  {
+    "index": 4,
+    "film": "ABRAHAM'IN ALTINI 1990-0514-1-0000-00-1",
+    "input_frames": 337,
+    "total_kept": 130,
+    "representatives": 19,
+    "saved_png_count": 19,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/ABRAHAM'IN ALTINI 1990-0514-1-0000-00-1/frames/giris_jenerik",
+    "duration_sec": 30.32,
+    "sample_files": [
+      "g_0014.png",
+      "g_0022.png",
+      "g_0028.png",
+      "g_0034.png",
+      "g_0040.png"
+    ]
+  },
+  {
+    "index": 5,
+    "film": "ADALET 1986-0237-1-0000-00-1",
+    "input_frames": 360,
+    "total_kept": 80,
+    "representatives": 24,
+    "saved_png_count": 24,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/ADALET 1986-0237-1-0000-00-1/frames/giris_jenerik",
+    "duration_sec": 36.14,
+    "sample_files": [
+      "g_0005.png",
+      "g_0009.png",
+      "g_0012.png",
+      "g_0024.png",
+      "g_0027.png"
+    ]
+  },
+  {
+    "index": 6,
+    "film": "ADI CARMEN 1983-0256-1-0000-00-1",
+    "input_frames": 270,
+    "total_kept": 83,
+    "representatives": 17,
+    "saved_png_count": 17,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/ADI CARMEN 1983-0256-1-0000-00-1/frames/giris_jenerik",
+    "duration_sec": 19.85,
+    "sample_files": [
+      "g_0016.png",
+      "g_0020.png",
+      "g_0032.png",
+      "g_0060.png",
+      "g_0066.png"
+    ]
+  },
+  {
+    "index": 7,
+    "film": "ADI YUNUS 2015-0134-1-0000-85-1",
+    "input_frames": 270,
+    "total_kept": 63,
+    "representatives": 11,
+    "saved_png_count": 11,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/ADI YUNUS 2015-0134-1-0000-85-1/frames/giris_jenerik",
+    "duration_sec": 11.9,
+    "sample_files": [
+      "g_0043.png",
+      "g_0051.png",
+      "g_0204.png",
+      "g_0208.png",
+      "g_0209.png"
+    ]
+  },
+  {
+    "index": 8,
+    "film": "AEON FLUX 2005-9135-1-0000-90-1",
+    "input_frames": 270,
+    "total_kept": 20,
+    "representatives": 6,
+    "saved_png_count": 6,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/AEON FLUX 2005-9135-1-0000-90-1/frames/giris_jenerik",
+    "duration_sec": 24.34,
+    "sample_files": [
+      "g_0010.png",
+      "g_0015.png",
+      "g_0046.png",
+      "g_0088.png",
+      "g_0090.png"
+    ]
+  },
+  {
+    "index": 9,
+    "film": "AISYLU 2017-1030-1-0000-50-1",
+    "input_frames": 360,
+    "total_kept": 20,
+    "representatives": 11,
+    "saved_png_count": 11,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/AISYLU 2017-1030-1-0000-50-1/frames/giris_jenerik",
+    "duration_sec": 17.78,
+    "sample_files": [
+      "g_0008.png",
+      "g_0013.png",
+      "g_0014.png",
+      "g_0016.png",
+      "g_0018.png"
+    ]
+  },
+  {
+    "index": 10,
+    "film": "AJAMİ 2009-9153-1-0000-00-1",
+    "input_frames": 270,
+    "total_kept": 38,
+    "representatives": 4,
+    "saved_png_count": 4,
+    "pool_path": "/home/cagatay/Programlar/mitas/Database/AJAMİ 2009-9153-1-0000-00-1/frames/giris_jenerik",
+    "duration_sec": 18.61,
+    "sample_files": [
+      "g_0043.png",
+      "g_0122.png",
+      "g_0136.png",
+      "g_0195.png"
+    ]
+  }
+]

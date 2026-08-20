@@ -1,0 +1,89 @@
+Kobe kulesi tasima oncesi geri-donus noktasi
+tarih: 2026-08-12 23:27:12
+SHA: bc60f88276d57a999cd1252a0b2c4ecca68d84c0
+dal: jenerik-tek-motor
+
+GERI DONUS (agac kirli - reset --hard YASAK, yabanci WIP siler):
+  git checkout bc60f88276d57a999cd1252a0b2c4ecca68d84c0 -- harness/kunye_kiyas tests/test_kobe_router_ve_gorunurluk.py \
+      scripts/_jenerik_pool.py docs/FIGO.md
+  rm -rf Allstar
+
+TASIMA DISI (dokunma) - bu is baslamadan once kirliydi:
+   M OCR-worktree/db_compose_master.py
+   M OCR-worktree/master_png_monitor.py
+   M core/pipelines/ocr/jenerik_detector.py
+   M core/pipelines/ocr/jenerik_frame_pool_detector.py
+   M harness/kunye_kiyas/veri/olcum_son.json
+   D mutfak/00_BURADAN_BASLA.md
+   D mutfak/01_PROJE_VIZYON.md
+   D mutfak/02_CALISMA_DISIPLINI.md
+   D mutfak/03_GUNCEL_DURUM.md
+   D mutfak/04_YOL_HARITASI.md
+   D mutfak/05_AKTIF_GOREV.md
+   D mutfak/06_KARARLAR_GUNLUGU.md
+   D mutfak/07_REFERANS_HARITASI.md
+   D mutfak/08_TEST_KLIPLER.md
+   D mutfak/09_UST_DENETIM_KATMANI.md
+   D mutfak/10_UI_NOTLARI.md
+   D mutfak/11_WORKTREE_KOORDINASYON.md
+   D mutfak/12_CANLI_MUTFAK_PROTOKOLU.md
+   D mutfak/13_UI_LOG_SAYFASI_BRIEF.md
+   D mutfak/14_MUZIK_TANIMA_PLANI.md
+   D mutfak/15_KJ_OKUMA_PLANI.md
+   D mutfak/MITAS_Icerik_Profilleri.docx
+   D mutfak/MITAS_Icerik_Profilleri.pdf
+   D mutfak/MITAS_Jenerik_Birlestirme_Yontemleri.pdf
+   D mutfak/MITAS_Jenerik_Okuma_Stratejisi.docx
+   D mutfak/MITAS_Model_Envanteri.docx
+   D mutfak/MITAS_Model_Envanteri.pdf
+   D mutfak/OCR-OPUS.md
+   D mutfak/OCR_10_FILM_GERCEK_TEST_ARA_RAPOR_2026-05-22.md
+   D mutfak/OCR_BEYAZ_BALINA_PILOT_RAPORU_2026-05-21.md
+   D mutfak/OCR_CANVAS_GORSEL_QC_DUZELTME_2026-05-22.md
+   D mutfak/OCR_CLAUDE_TOOLS_INCELEME_VE_BIRLESTIRME_KARARI_2026-05-22.md
+   D mutfak/OCR_CODEX_K2_EK_DUZELTMELER_2026-05-23.md
+   D mutfak/OCR_CODEX_K2_REGRESYON_TALIMATI_2026-05-23.md
+   D mutfak/OCR_DESCROLL_CANVAS_VE_TEK_JENERIK_RAPORU_18_KLIP_2026-05-22.md
+   D mutfak/OCR_DIS_KAYNAK_CAGATAY_TOOLS_INCELEME_2026-05-22.md
+   D mutfak/OCR_EKSIKLER_V2_UYGULAMA_RAPORU_2026-05-22.md
+   D mutfak/OCR_FILMTEST_18_AUTO_ROI_V2B_ONEOCR_RAPORU_2026-05-22.md
+   D mutfak/OCR_FILMTEST_18_AUTO_ROI_V2C_UNICODEFIX_ONEOCR_RAPORU_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_METIN_ANALIZI_18_KLIP_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_OVERNIGHT_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_PHASE1_ALLMODELS_FPS1_RAW_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_PHASE2_FASTMODELS_FPS6_RAW_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_PHASE3_PADDLE_FPS6_RAW_2026-05-22.md
+   D mutfak/OCR_FILMTEST_LAST3MIN_SMOKE_2026-05-22.md
+   D mutfak/OCR_GUNCEL_TAKIP_VE_ADAY_SECICI_PLANI_2026-05-22.md
+   D mutfak/OCR_K2_CANLI_6125_30S_2026-05-22.md
+   D mutfak/OCR_K2_OPUS_KARSILASTIRMA_REGRESYON_NOTU_2026-05-22.md
+   D mutfak/OCR_K2_TEXT_LAYER_DESCROLL_V2_2026-05-22.md
+   D mutfak/OCR_KALITE_POLISI_UYGULAMA_RAPORU_2026-05-23.md
+   D mutfak/OCR_KALITE_POLISI_VE_FRAME_STRIDE_PLANI_2026-05-23.md
+   D mutfak/OCR_MODEL_KURULUM_SAGLIK_2026-05-22.md
+   D mutfak/OCR_PADDLE_GPU_KONTROL_2026-05-22.md
+   D mutfak/OCR_PROJE_CALISMA_GUNLUGU_VE_TEST_RAPORU_2026-05-22.md
+   D mutfak/OCR_PROJE_SON_DURUM_DOSYA_LISTESI_2026-05-22.md
+   D mutfak/OCR_ROUTER_ILK_EKLEME_VE_FAYDA_TESTI_2026-05-22.md
+   D mutfak/OCR_ROW_RECONSTRUCT_VE_CREDIT_DETECTOR_FAYDA_TESTI_2026-05-22.md
+   D mutfak/OCR_SECOND_PASS_ROI_GERCEK_TEST_RAPORU_2026-05-22.md
+   D mutfak/OCR_SON_HAVA_BUKUCU_MODEL_METIN_CIKTILARI_2026-05-22.md
+   D mutfak/OCR_TEXT_MASK_TRACK_SECOND_PASS_RAPORU_2026-05-22.md
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/OZET.md
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/YOL_HARITASI.md
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/kod/credit_detector_tools.py
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/kod/full_pipeline_test.py
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/kod/scroll_reconstructor.py
+   D mutfak/OTURUM_20260522_SCROLL_OCR_BIRLESIM/test_sonuclari/TEST_RAPORU.md
+   D mutfak/README.md
+   D mutfak/_jenerik_yontemleri.html
+   D mutfak/_make_all_docx.py
+   D mutfak/_make_docx.py
+   D mutfak/_model_envanteri.html
+   D mutfak/_profil_beklentileri.html
+   D mutfak/ocr-opus-final.md
+   M scripts/giris_jenerik_havuzu.py
+   M scripts/giris_master_cropstack.py
+   M scripts/toplu_kosu.sh
+   M tests/test_master_png_monitor_reading_segments.py
+   M tests/test_reading_master_runaware.py

@@ -1,0 +1,137 @@
+<think>
+</think>
+executive producer
+Glen A. Larson
+CO-STARRING
+EDMUND GILBERT
+AS CHARLES ACTON
+SHAWN SOUTHWICK
+AS LONNIE
+The user wants the text from the image transcribed exactly.
+1.  **Identify the lines:**
+*   "CO-STARRING"
+*   "EDMUND GILBERT"
+*   "AS CHARLES ACTON"
+*   "SHAWN SOUTHWICK"
+*   "AS LONNIE"
+*   "BRIAN CUTLER"
+*   "AS BAR MANAGER"
+*   "BARRET OLIVER"
+*   "AS BUDDY"
+*   "ROBERT PHILLIPS"
+*   "AS SYMES"
+2.  **Transcribe:**
+BRIAN CUTLER
+AS BAR MANAGER
+BARRET OLIVER
+AS BUDDY
+ROBERT PHILLIPS
+AS SYMES
+WITH
+ALMA L. BELTRAN
+LUCE
+ED HOOKS
+GUARD
+TYLER MURRAY
+SALLY
+VICTORIA HARNED
+DORIS
+The user wants the text from the images transcribed exactly.
+1.  **Analyze the images:** The images show scrolling credits. I need to read the text from top to bottom, combining the information to get the full list without duplicates caused by the scrolling effect.
+*   "AS BYMES"
+*   "WITH"
+*   "ALMA L. BELTRAN" "LUCE"
+*   "ED HOOKS" "GUARD"
+*   "TYLER MURRAY" "SALLY"
+*   "VICTORIA HARNED" "DORIS"
+*   "THEME"
+*   "GLEN A. LARSON"
+*   "AND"
+*   "STU PHILLIPS"
+AS BYMES
+THEME
+GLEN A. LARSON
+AND
+STU PHILLIPS
+1.  **Analyze the image:** I see a list of credits on a pink background.
+2.  **Transcribe line by line:**
+*   "MUSIC BY"
+*   "SET DECORATIONS"
+*   "RICHARD FRIEDMAN"
+Wait, looking closer at the bottom, "SET DECORATIONS" and "RICHARD FRIEDMAN" are visible in the last crop but not fully in the first. I need to transcribe what is visible in the main image provided. The main image shows:
+ALMA L. BELTRAN LUCE
+ED HOOKS GUARD
+TYLER MURRAY SALLY
+VICTORIA HARNED DORIS
+MUSIC BY
+SET DECORATIONS
+RICHARD FRIEDMAN
+Let's re-read carefully.
+Line 1: WITH
+Line 2: ALMA L. BELTRAN LUCE
+Line 3: ED HOOKS GUARD
+Line 4: TYLER MURRAY SALLY
+Line 5: VICTORIA HARNED DORIS
+Line 6: THEME
+Line 7: GLEN A. LARSON
+Line 8: AND
+Line 9: STU PHILLIPS
+Line 10: MUSIC BY
+Line 11: STU PHILLIPS
+Line 12: SET DECORATIONS
+Line 13: RICHARD FRIEDMAN
+Wait, looking at the very bottom of the last crop, "SET DECORATIONS" and "RICHARD FRIEDMAN" are clearly visible. I will include them.
+Final
+1.  **Analyze the images:** The images show scrolling credits. I need to read them from top to bottom, combining the information to get the full list without duplicates caused by the scrolling effect.
+*   THEME
+*   GLEN A. LARSON
+*   AND
+*   STU PHILLIPS
+*   MUSIC BY
+*   SET DECORATIONS
+*   RICHARD FRIEDMAN
+*   HAL GAUSMAN
+*   JOHN R. MCDONALD
+*   SOUND
+*   ALAN BERNARD
+*   CASTING BY
+*   MARK MALIS
+*   RON STEPHENSON
+*   UNIT PRODUCTION MANAGERS
+*   FRANK CRAWFORD
+HAL GAUSMAN
+JOHN R. MCDONALD
+SOUND
+ALAN BERNARD
+CASTING BY
+MARK MALIS
+RON STEPHENSON
+UNIT PRODUCTION MANAGERS
+FRANK CRAWFORD
+JAMES A. WESTMAN
+1ST ASSISTANT DIRECTOR
+RON MARTINEZ
+2ND ASSISTANT DIRECTORS
+DON EDWARD WILKERSON
+HERB ADELMAN
+The user wants the credits transcribed from the images. I will go through the images and extract the text line by line, ensuring I capture the names and titles exactly as they appear.
+1.  **Image 1:**
+*   "ALAN BERNARD"
+*   "MARK MALIS"
+*   "CASTING BY"
+*   "RON STEPHENSON"
+*   "UNIT PRODUCTION MANAGERS"
+*   "FRANK CRAWFORD"
+*   "JAMES A. WESTMAN"
+*   "1ST ASSISTANT DIRECTOR"
+*   "RON MARTINEZ"
+*   "2ND ASSISTANT DIRECTORS"
+*   "DON EDWARD WILKERSON"
+*   "HERB ADELMAN"
+*   "SOUND EFFECTS EDITOR"
+2.  **Image 2:**
+*   "WALT JENEVEIN"
+3.  **Image 3:**
+*   "MUSIC EDITOR"
+*   "JERRY COHEN"
+*   "COSTUME DESIGNER"

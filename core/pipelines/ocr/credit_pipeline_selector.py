@@ -65,7 +65,6 @@ def select_credit_pipeline(profile: Mapping[str, Any]) -> PipelineRecommendation
     if text_motion == "vertical_scroll":
         temporal = "row_reconstruct"
         steps.extend(["scroll_compensation", "center_strip_composite", "row_detection"])
-        fallback.append("text_layer_descroll")
         why.append("vertical text motion detected")
     elif text_motion == "horizontal_crawl":
         temporal = "horizontal_stitching"

@@ -1,0 +1,34 @@
+# gunes CİKİS jeneriği GT (Çağatay, elle 2026-08-19)
+# Kaynak video: /home/cagatay/Belgeler/okunmalık jenerikler/güneş_son_27s.mp4
+# Kareler (2 fps): /tmp/jenerik_frames/gunes_cikis/
+# Motor referansı: cikis_referans_8b.txt — YALNIZ YOL GÖSTERİR.
+# Ekranda GERÇEKTEN görünmeyen satır GT'ye girmez; motor satırı kopyalanmaz.
+
+kurgu
+MÜZeyyen TOZ
+HASAN BAYRAKTAR
+negatif kurgu
+RABİA ERAT
+MÜZEEYYEN TOZ
+RABIA ERAT
+film kopya
+SÜLEYMAN KOYUNCU
+esleme
+METİN MİROĞLU
+celaL köse
+seslendirme
+ATTiLA ERGUN
+SEMİH YALÇIN
+HADi ÇANKAYA
+seslendirme yönetmeni
+SACİDE KESKİN
+film banyo
+BEKİR AÇIKGÖZ
+MEHMET ELMALI
+FAZIL ÇELİK
+film kopya
+MEHMET ÖZTAN
+HAYRETTİN İLGEN
+YAPIM
+İSTANBUL.tv
+

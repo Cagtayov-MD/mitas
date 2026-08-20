@@ -208,10 +208,16 @@ def _compute_otorite_audit(raw_groundtruth, final_cast, final_yap, otoriter_cast
                     and _valid_person_name(cand)
                     and _looks_garble(cand) is None):
                 raw_cap_dropped.append(cand)
-        # Tekrar → distinct
+        # Tekrar → distinct (2026-08-02 fix: eski one-liner dedup hiç çalışmıyordu —
+        # _seen_rcd.add() None döner, _seen_rcd - {_fold(n)} az önce ekleneni çıkarır)
         _seen_rcd = set()
-        raw_cap_dropped = [n for n in raw_cap_dropped
-                           if not (_seen_rcd.add(_fold(n)) or _fold(n) in _seen_rcd - {_fold(n)})]
+        _unique_rcd = []
+        for n in raw_cap_dropped:
+            _f = _fold(n)
+            if _f not in _seen_rcd:
+                _seen_rcd.add(_f)
+                _unique_rcd.append(n)
+        raw_cap_dropped = _unique_rcd
     return {
         "raw_groundtruth_used": used,
         "ocr_dropped": ocr_dropped,

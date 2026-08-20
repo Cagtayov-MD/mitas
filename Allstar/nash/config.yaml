@@ -1,0 +1,112 @@
+# Nash — ham kare havuzundan jenerik metni. Eşikler ve bayraklar.
+# Çağıran Girdi.config ile tek tek ezebilir.
+
+secim:
+  desen: "*.png"
+  strateji: text_run
+  # Worker tum karelerde detection + recognition yapar. Secim katmani yalniz
+  # kutularla temsilci belirler; okunan satirlar ayni analizden tekrar model
+  # cagirmadan kullanilir. Worker film sonunda kapanir ve VRAM'i birakir.
+  detector:
+    device: "gpu:0"
+    model: PP-OCRv6_medium_det
+    model_dir: model/paddle/PP-OCRv6_medium_det
+    # PP-OCRv6 genel tanıyıcı Turkce karelerde UČUR/MÜZiK uretti. Paddle'in
+    # resmi Turkce destekli Latin modeli ayni olcumde ÜMİT/MÜZİK/UĞUR okudu;
+    # ayrica 74 MB yerine ~14 MB. Detection en dogru v6-medium'da kalir.
+    rec_model: latin_PP-OCRv5_mobile_rec
+    rec_model_dir: model/paddle/latin_PP-OCRv5_mobile_rec
+    rec_batch: 8
+    det_thresh: 0.20
+    box_thresh: 0.45
+    unclip_ratio: 1.40
+    timeout_seconds: 600
+    mkldnn: true
+  altyazi_y: 0.80
+  logo_kalici_oran: 0.80
+  blok_bosluk: 2
+  ornek_adim: 4
+  # 24 hareketli arka plani kart degisimi saydi (gercek cag_output14: 42/65).
+  # 64, her-4-kare sigortasi korunurken belirgin gecisleri ekliyor.
+  dhash_degisim: 64
+
+  # Sayfa tavanı ve sigortalar BÖLÜME ÖZELDİR. İkisinin de arkasında kayıtlı
+  # bir üretim kazası var — tek rejime indirmek birini kaybetmek olurdu.
+  cikis:
+    tavan: 100            # _pipe_track_kunye + _pipe_hibrit_okuma varsayılanı
+    son_kare_zorla: true  # düzgün-adım son indeksi hiç seçmeyebiliyor ve
+                          # © / "SON" kartı TAM orada. Yapısal çapa kaybı.
+                          # (konsey bug-avı GLM-3, _pipe_track_kunye.py:95)
+    ham_kuyruk: 0
+
+  giris:
+    tavan: 60             # text-run ana havuz giris tavani
+    son_kare_zorla: false # gerek yok — ham_kuyruk zaten daha güçlüsünü yapıyor
+    # 2026-08-19 Çiçek Taksi deneyi (Çağatay onayı): dizi açılış jeneriğinde
+    # oyuncu adları tek satır alt bantta akar — altyazı kuralı kareyi tamamen
+    # atıyordu (k33: EROL GÜNAYDIN bulundu, altyazi_elendi=1, METIN_YOK).
+    # 2.0 = kural giriş bölmesinde hiç tetiklenmez (y-merkez ≤ 1.0).
+    # Sınır (kobe) doğruysa giriş penceresinde diyalog altyazısı yoktur.
+    altyazi_y: 2.0
+    ham_kuyruk: 12        # ALİE, 2026-07-31 gece: TRT geleneğinde YÖNETMEN kartı
+                          # giriş jeneriğinin SON kartıdır (senaryo→yönetmen).
+                          # ALİE'de giriş master'ı 'senaryo'da kesildi, yönetmen
+                          # 1632 satırın HİÇBİRİNE girmedi → QC1 RED. Ham girişin
+                          # son kareleri örnekleme aralığına düşmese bile okunur.
+
+okuma:
+  # Faz 2 — model kule içinde. Faz 1'de bu blok kullanılmaz.
+  model_yol: model/deepseek-ocr
+  mod: hybrid             # Paddle orkestrasyonu; DeepSeek asagida kapali
+  # 2026-08-19 (Çiçek Taksi deneyi, Çağatay onayı): dizi/film açılış jeneriğinde
+  # kredi satırları tek satır alt bantta akar — okuma katmanının altyazı elemesi
+  # doğru okunan satırları öldürüyordu (k33 "EROL GÜNAYDIN" skor 0.97 elendi).
+  # Giriş bölmesinde kural kapalı; çıkışta film davranışı korunur.
+  altyazi_y:
+    giris: 2.0
+    cikis: 0.80
+  istem: "Free OCR."      # ileride agir fallback yeniden acilirsa kullanilir
+  max_new_tokens: 1024    # 512/1024/2048 kapisinda varsayilan en kucuk aday
+  max_generation_seconds: 30
+  temperature: 0.0
+  dedup_esigi: 0.92       # sayfalar arası fold-dedup (difflib SequenceMatcher)
+  paddle_kabul_esigi: 0.70
+  paddle_uzlasma_penceresi: 12
+  paddle_uzlasma_esigi: 0.82
+  # Kayan jenerikte ayni karede >=8 temiz satir varken yalniz tek kare gorulen
+  # varyant, genellikle ekran kenarindaki parcali/blur OCR'dir. Tek kartlari
+  # etkilemez; onlar bu yogunluga ulasmaz.
+  paddle_yogun_kare_min_satir: 8
+  paddle_fallback_komsu: 4
+  # Kare duzeyi dusuk skor tek basina 14 GB model acamaz. Paddle filmde en az
+  # 8 temiz satir cikardiysa film kalite kapisini gecer ve DeepSeek yuklenmez.
+  paddle_film_kabul_min_satir: 8
+  # 2026-08-18: Toplu Paddle kalite testi tamamlanana ve master-PNG okuyucuyla
+  # ortak agir model stratejisi yeniden kararlastirilana kadar kapali. Kod ve
+  # hedefli kapilar korunur; true yapilmadan 14 GB DeepSeek yuklenmez.
+  deepseek_fallback_enabled: false
+  paddle_script_fallback:
+    enabled: true
+    trigger_below_lines: 8
+    trigger_below_median: 0.80
+    min_script_ratio: 0.35
+    latin_preserve_min_score: 0.90
+    latin_preserve_min_support: 2
+    latin_overlap_iou: 0.30
+    latin_corroboration_similarity: 0.82
+    routes:
+      - script: arabic
+        rec_model: arabic_PP-OCRv5_mobile_rec
+        rec_model_dir: model/paddle/arabic_PP-OCRv5_mobile_rec
+      - script: eslav
+        rec_model: eslav_PP-OCRv5_mobile_rec
+        rec_model_dir: model/paddle/eslav_PP-OCRv5_mobile_rec
+  deepseek_fallback_esigi: 0.88
+  deepseek_fallback_tavan:
+    giris: 6
+    cikis: 8
+
+  # Ucuz çöküş dedektörü (rodeo sınıfı boş/garble döküm) — _pipe_track_kunye'den
+  saglik:
+    min_uzunluk: 200      # birleşik döküm bundan kısaysa "cok_kisa"
+    min_alnum_oran: 0.30  # alfanümerik oranı bunun altındaysa "garble_yuksek"

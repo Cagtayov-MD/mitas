@@ -1,0 +1,36 @@
+## Rules
+- Use ONLY the text visible in these frames. Do not use prior knowledge
+  about the film, cast, crew, or production.
+- Do not guess, infer, autocomplete, or correct names or words.
+- If a character is unclear, replace only that character with "?".
+  Keep all clearly readable characters unchanged.
+- If a word or name is cut off at the frame edge, transcribe the visible
+  part followed by "…".
+- Transcribe text only. Do not describe logos, graphics, or visual elements.
+
+## Discrimination & Categorization Rule
+- Categorize extracted text into two distinct sections:
+  1. [CREDITS]: Film title, cast, crew, production roles, company logos.
+  2. [SUBTITLES]: Burnt-in dialogue subtitles visible at the bottom of the frame (spoken dialogue, sentences, dashes '-').
+
+## Script & Direction
+- Preserve the original script exactly. Do not transliterate or romanize.
+- For RTL scripts (Arabic, Hebrew, Persian, Urdu), preserve script and
+  reading direction.
+- Preserve diacritics and vowel marks as they appear. If unclear, omit
+  rather than guess.
+- For mixed scripts, transcribe each segment in its original script,
+  preserving visual order.
+
+## Formatting
+- Preserve original text order and line breaks under [CREDITS] or [SUBTITLES].
+- If the same text appears across multiple frames, transcribe it only once
+  at its first occurrence.
+- Collapse runs of leader dots to a single "…".
+- Preserve role/title + name groupings as they appear.
+- Do not add commentary or extra headers outside of [CREDITS] and [SUBTITLES].
+
+## Stop
+- Transcribe ALL visible text, including small font and edge text.
+- After all visible text is transcribed, end your response.
+- Do not generate additional credits from memory.

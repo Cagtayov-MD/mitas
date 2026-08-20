@@ -55,8 +55,13 @@ def _ollama_generate(base, model, prompt, image_b64, timeout=180):
         base.rstrip("/") + "/api/generate",
         data=json.dumps({"model": model, "prompt": prompt, "images": [image_b64],
                          "stream": False, "think": False,
+                         # num_predict ŞART (2026-07-18): düşünen Qwen'ler (qwen3-vl/qwen36) think:false
+                         # olsa da yeterli num_predict yoksa içeriği düşünmede tüketip BOŞ dönüyor (dilimlerin
+                         # 7-8'i boş çıktı — bench-bulgusu); ayrıca OCR-modelleri (glm-ocr) sınır yoksa
+                         # kaçak-tekrara girip on-binlerce satır üretiyor (num_predict onu da FRENLER).
                          "options": {"temperature": 0,
-                                     "num_ctx": int(os.environ.get("MITAS_DILIM_VL_NUM_CTX", "16384") or 16384)}}).encode("utf-8"),
+                                     "num_ctx": int(os.environ.get("MITAS_DILIM_VL_NUM_CTX", "16384") or 16384),
+                                     "num_predict": int(os.environ.get("MITAS_DILIM_VL_NUM_PREDICT", "4096") or 4096)}}).encode("utf-8"),
         headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return (json.loads(r.read()).get("response") or "").strip()
@@ -69,6 +74,10 @@ def _openai_generate(base, model, prompt, image_b64, timeout=180):
             "messages": [{"role": "user", "content": [
                 {"type": "text", "text": prompt},
                 {"type": "image_url", "image_url": {"url": "data:image/png;base64," + image_b64}}]}]}
+    # bench: düşünen-modellerde think on/off (örn. '{"enable_thinking": false}'); boşsa gönderilmez
+    _ctk = os.environ.get("MITAS_DILIM_VL_CTK")
+    if _ctk:
+        body["chat_template_kwargs"] = json.loads(_ctk)
     req = urllib.request.Request(
         base.rstrip("/") + "/v1/chat/completions",
         data=json.dumps(body).encode("utf-8"),

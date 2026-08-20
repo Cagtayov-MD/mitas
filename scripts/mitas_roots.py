@@ -24,8 +24,9 @@ import os
 import stat
 from pathlib import Path
 
-# Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+# Linux geçişi 2026-07-16: env varsa onu kullan; fallback Linux kök dizini.
+# 2026-08-03: Windows kalıntısı E:\MITAS kaldırıldı — sistem tamamen Linux'ta.
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 CANDIDATE_ROOT = PROJECT_ROOT / "candidate_runs"
 
 
@@ -58,9 +59,9 @@ def _is_reparse_point(path: Path) -> bool:
 def validate_candidate_run_root(run_root: str | Path) -> Path:
     r"""Candidate kokunu production'dan fiziksel ve mantiksal olarak ayir.
 
-    Yalniz ``E:\MITAS\candidate_runs\<run-id>`` altina izin verilir. Kokun kendisi,
+    Yalniz ``/opt/mitas/candidate_runs/<run-id>`` altina izin verilir. Kokun kendisi,
     goreli yollar ve candidate altindaki junction/symlink'ler reddedilir; boylece
-    ``--run-root E:\MITAS`` veya production'a acilan bir junction izolasyonu delemez.
+    ``--run-root /opt/mitas`` veya production'a acilan bir junction izolasyonu delemez.
     """
     raw = Path(run_root).expanduser()
     if not raw.is_absolute():
@@ -149,3 +150,77 @@ def export_child_env(roots: dict) -> None:
     os.environ["MITAS_MANIFEST_DIR"] = str(roots["MANIFEST_DIR"])
     os.environ["MITAS_AFIS_CACHE_DIR"] = str(roots["AFIS_CACHE_DIR"])
     os.environ["MITAS_RUN_ROOT"] = str(roots["RUN_ROOT"])   # alt-süreç zinciri aynı kökü görür
+
+
+def link_hub_frames(from_hub, clip_dir) -> None:
+    r"""FROM-HUB: kaynak hub'ın giris/cikis frame dizinlerini candidate ``clip_dir``ine bağla.
+
+    KÖK-SEBEP FIX (2026-07-30): symlink HEDEFİ MUTLAK olmalı. Eskiden ``_src_f`` göreli
+    ``--from-hub`` argümanıyla göreli kalıyor, ``os.symlink`` göreli hedef yazıyor ve link kendi
+    dizinine göre çözülünce DANGLING oluyordu → glob 0 kare → ``_pipe_ocr`` fallback → sahte
+    MOTOR_YOK (fitz_dogrulama/YAĞMACILAR kanıtı; readlink -e = YOK). ``from_hub``ı mutlağa
+    çevirmek link hedefini mutlak yapar → dangling kökten biter. Windows junction (mklink /J)
+    zaten mutlak yol alır; davranış korunur. copytree fallback her iki yolda da güvenli."""
+    import shutil
+    import subprocess
+
+    src_root = Path(from_hub).resolve()          # MUTLAK: göreli --from-hub'da dangling'i önler
+    dst_root = Path(clip_dir)
+    for _fdir in ("giris", "cikis"):
+        _src_f = src_root / "frames" / _fdir
+        _dst_f = dst_root / "frames" / _fdir
+        if _src_f.exists() and not _dst_f.exists():
+            _dst_f.parent.mkdir(parents=True, exist_ok=True)
+            if os.name == "nt":
+                _r = subprocess.run(["cmd", "/c", "mklink", "/J", str(_dst_f), str(_src_f)],
+                                    capture_output=True, text=True, timeout=30)
+                if _r.returncode:                # junction başarısız (yetki vb.) → kopyaya düş
+                    shutil.copytree(_src_f, _dst_f)
+            else:
+                try:
+                    os.symlink(_src_f, _dst_f, target_is_directory=True)
+                except Exception:  # noqa: BLE001 — symlink yasak/yok → kopya (yavaş ama güvenli)
+                    shutil.copytree(_src_f, _dst_f)
+
+
+def find_usable_ocr(clip_dir):
+    """clip_dir/ocr/*/kunye.txt icinden en-yeni KULLANILABILIR yol; yoksa None.
+
+    Kullanilabilir = -fb kardesi DEGIL + bos DEGIL + bucket MOTOR_YOK DEGIL. Tek-kaynak seciciler:
+    _pipe_credit_text._find_ocr (karar okuyucusu) VE from-hub reuse-kapisi bunu kullanir.
+    KÖK-SEBEP (2026-07-30): BOŞ/MOTOR_YOK bir (from-hub candidate) re-OCR'i, iyi eski/kopya okumayi
+    en-yeni-mtime kuraliyla GOLGELIYORDU → sahte 'Kontrol'. frames_rerun.py:87-88 zaten bu kalkani
+    uyguluyordu; uretim karar-okuyucusu uygulamiyordu."""
+    import glob as _glob
+    import json as _json
+    if not clip_dir:
+        return None
+    g = sorted(_glob.glob(os.path.join(str(clip_dir), "ocr", "*", "kunye.txt")),
+               key=lambda p: os.path.getmtime(p))
+    for p in reversed(g):                       # en-yeniden eskiye: ilk kullanilabilir
+        d = os.path.dirname(p)
+        if os.path.basename(d).endswith("-fb"):
+            continue                            # -fb (fallback) kardesi otoriter degil
+        try:
+            if not any(ln.strip() for ln in open(p, encoding="utf-8", errors="replace")):
+                continue                        # bos/yalniz-bosluk kunye
+        except OSError:
+            continue
+        try:
+            if _json.load(open(os.path.join(d, "ocr_summary.json"),
+                               encoding="utf-8")).get("bucket") == "MOTOR_YOK":
+                continue                        # motor kurulamadi (sahte-kirmizi)
+        except Exception:  # noqa: BLE001 — summary yok/bozuk → boyut-temelli kabule birak
+            pass
+        return p
+    return None
+
+
+def should_reuse_hub_ocr(from_hub, force_ocr, clip_dir) -> bool:
+    """from-hub'da taze OCR yerine kopyalanan hub OCR'i yeniden kullan? (Q1, Cagatay 2026-07-30).
+
+    Evet ANCAK: from-hub modu + --force-ocr YOK + kullanilabilir kopya OCR var. Boylece hub'in
+    GUVENILIR OCR'i varken from-hub candidate koşusu bir daha sahte-MOTOR_YOK/regresyon uretmez
+    ve ~10x hizlanir; OCR degisikligi test edilecekse --force-ocr ile taze koşulur
+    (frames_rerun.py:86 akilli-varsayilani)."""
+    return bool(from_hub) and not force_ocr and find_usable_ocr(clip_dir) is not None

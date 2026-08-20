@@ -1,3 +1,0 @@
-ASR KALICI DEVRE-DIŞI — Çağatay talimatı 2026-07-11.
-Sebep: test/kalite-ölçüm koşuları; ASR frame-okumadan bağımsız, boşa zaman+token harcamasın.
-Yeniden açmak için: bu dosyayı SİL (veya MITAS_DISABLE_ASR=0). "Aksi emir gelene kadar" geçerli.

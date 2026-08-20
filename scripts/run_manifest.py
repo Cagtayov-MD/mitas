@@ -34,7 +34,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Linux geçişi 2026-07-16: env varsa onu kullan (Windows'ta env yoksa eski davranış birebir).
-PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS")
+PROJECT_ROOT = Path(os.environ.get("MITAS_PROJECT_ROOT") or "/opt/mitas")
 # İP-5 (2026-07-11): candidate modunda (MITAS_RUN_ROOT) bu yüzeyler de run-root altına gider —
 # env-köprüsü mitas_roots.export_child_env kurar; env boşsa üretim yolları BYTE-AYNI.
 _OUTPUTS_DIR = Path(os.environ.get("MITAS_OUTPUTS_DIR", str(PROJECT_ROOT / "outputs")))

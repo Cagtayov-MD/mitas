@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-"""MITAS kunye belgesi - SABIT tasarim (altin 'Dosya', logosuz).
-Hem Film hem Dizi uretir. Temsili veri."""
+"""MİTAS künye belgesi — A4 genişliğinde, içeriğe göre uzayan ortak şablon.
+
+Hem film hem dizi üretir; eski ``crew`` sözleşmesini ve yeni ``guest_cast`` /
+``full_credits`` alanlarını kabul eder.
+"""
 import math
 import os
+import re
+import unicodedata
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
@@ -13,10 +18,21 @@ from reportlab.lib.colors import HexColor
 # Linux geçişi 2026-07-16: kök+font env'den (Windows'ta env yoksa eski davranış birebir).
 OUT = os.path.join(os.environ.get("MITAS_PROJECT_ROOT") or r"E:\MITAS", "OCR-worktree", "pdf-mitas") \
     if os.environ.get("MITAS_PROJECT_ROOT") else r"E:\MITAS\OCR-worktree\pdf-mitas"
-F = os.environ.get("MITAS_MSFONT_DIR") or r"C:\Windows\Fonts"
+F = os.environ.get("MITAS_MSFONT_DIR") or ("/usr/share/fonts/truetype/msttcorefonts" if os.name != "nt" else r"C:\Windows\Fonts")
 
-pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
-pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
+if os.path.exists(os.path.join(F, "Arial.ttf")):
+    pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "Arial.ttf")))
+elif os.path.exists(os.path.join(F, "arial.ttf")):
+    pdfmetrics.registerFont(TTFont("AR", os.path.join(F, "arial.ttf")))
+else:
+    pdfmetrics.registerFont(TTFont("AR", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"))
+
+if os.path.exists(os.path.join(F, "arialbd.ttf")):
+    pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "arialbd.ttf")))
+elif os.path.exists(os.path.join(F, "Arial_Bold.ttf")):
+    pdfmetrics.registerFont(TTFont("ARB", os.path.join(F, "Arial_Bold.ttf")))
+else:
+    pdfmetrics.registerFont(TTFont("ARB", "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"))
 
 
 def tryfont(name, path, fb):
@@ -53,6 +69,19 @@ XR = PAGE_W - 44
 CW = XR - X0
 FOOT_H = 32
 
+# PDF sayfa kenarı üst sınırı (points). PDF spec/Acrobat 200 inch = 14400pt üstünü
+# güvenilir işlemez; aşan sayfa görüntüleyicide kırpılır. Künye sayfası artık içerik
+# kadar uzayabildiği için sınır hem künye hem master-kanıt sayfasında uygulanır.
+_PDF_MAX_PT = 14400.0
+
+_TRT_ID_RE = re.compile(r"(\d{4})-(\d{3,4})-(\d)-(\d{3,4})-(\d{2})-(\d)")
+_DIRECTOR_ROLES = {"yonetmen", "director", "directed by"}
+_PRODUCER_ROLES = {"yapimci", "producer", "produced by"}
+_GUEST_ROLES = {
+    "konuk oyuncu", "konuk oyuncular", "konuklar",
+    "guest cast", "guest starring", "guest stars", "special guest",
+}
+
 
 def hair(c, y, x0, x1, color=HAIR, w=0.6):
     c.setStrokeColor(color)
@@ -82,24 +111,269 @@ def fit(text, font, size, maxw, lo=20):
     return size
 
 
+def _role_key(value):
+    """Rol karşılaştırması için Türkçe/aksan-duyarsız, tam-eşleşme anahtarı."""
+    s = str(value or "").translate(str.maketrans({"ı": "i", "İ": "I"}))
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", s.casefold()).split())
+
+
+def _names(value):
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, (list, tuple)):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _credit_pairs(value):
+    """Serbest liste/tuple girdisini [(rol, [değer...])] sözleşmesine indirger."""
+    out = []
+    for item in value or []:
+        if isinstance(item, dict):
+            role = item.get("role", item.get("rol", ""))
+            names = item.get("names", item.get("isimler", item.get("name", item.get("isim", []))))
+        elif isinstance(item, (list, tuple)) and len(item) == 2:
+            role, names = item
+        else:
+            continue
+        role, names = str(role or "").strip(), _names(names)
+        if role and names:
+            out.append((role, names))
+    return out
+
+
+def _partition_credits(d):
+    """Eski crew sözleşmesini yeni ana/konuk/tam-jenerik yüzeylerine ayırır.
+
+    guest_cast/full_credits anahtarının VARLIĞI otoriterdir: boş liste de bilinçli
+    boşluk sayılır. Anahtar yoksa eski crew içinden geriye uyumlu türetme yapılır.
+    """
+    directors, producers, legacy_guests, legacy_full = [], [], [], []
+    for role, names in _credit_pairs(d.get("crew") or []):
+        key = _role_key(role)
+        if key in _DIRECTOR_ROLES:
+            directors.extend(names)
+        elif key in _PRODUCER_ROLES:
+            producers.extend(names)
+        elif key in _GUEST_ROLES:
+            legacy_guests.extend(names)
+        else:
+            legacy_full.append((role, names))
+
+    main = []
+    if directors:
+        main.append(("Yönetmen", directors))
+    if producers:
+        main.append(("Yapımcı", producers))
+    guests = _names(d.get("guest_cast")) if "guest_cast" in d else legacy_guests
+    full = _credit_pairs(d.get("full_credits")) if "full_credits" in d else legacy_full
+    return main, guests, full
+
+
+def _title_context(d):
+    """TRT kimliğinden profil/bölüm çıkar; kimlik yoksa eski d alanlarına düş."""
+    trt = next((str(value) for label, value in (d.get("specs") or [])
+                if "KİMLİK" in str(label).upper() or "KIMLIK" in str(label).upper()), "")
+    match = _TRT_ID_RE.search(trt)
+    profile = str(d.get("profile") or "FİLM")
+    is_series = _role_key(profile) == "dizi"
+    episode = None
+    if match and match.group(3) in ("0", "1"):
+        is_series = match.group(3) == "0"
+        profile = "DİZİ" if is_series else "FİLM"
+        number = int(match.group(4))
+        episode = f"{number}. Bölüm" if is_series and number > 0 else None
+    elif is_series:
+        raw = str(d.get("bolum") or "").strip()
+        number = re.search(r"\d+", raw)
+        if number and int(number.group()) > 0:
+            episode = f"{int(number.group())}. Bölüm"
+        elif raw:
+            episode = raw
+    return {
+        "profile": profile,
+        "subtitle": None if is_series else d.get("subtitle"),
+        "bolum": episode if is_series else None,
+    }
+
+
+def _wrap_lines(text, font, size, maxw):
+    """Boşluksuz çok uzun sözcüklerde de yatay taşma bırakmadan satır sar."""
+    wrapped = simpleSplit(str(text), font, size, maxw) or [str(text)]
+    lines = []
+    for line in wrapped:
+        if pdfmetrics.stringWidth(line, font, size) <= maxw:
+            lines.append(line)
+            continue
+        part = ""
+        for char in line:
+            candidate = part + char
+            if part and pdfmetrics.stringWidth(candidate, font, size) > maxw:
+                lines.append(part)
+                part = char
+            else:
+                part = candidate
+        if part:
+            lines.append(part)
+    return lines
+
+
+def _name_columns(names, font=SANS, size=10, leading=15.0, gap=3.0):
+    """İsimleri iki kolona böler; her adı kendi kolon genişliğinde sarar."""
+    names = [str(name) for name in names or []]
+    half = math.ceil(len(names) / 2)
+    col_w = (CW - 14) / 2.0
+    columns = []
+    for group in (names[:half], names[half:]):
+        items = []
+        for name in group:
+            lines = _wrap_lines(name, font, size, col_w)
+            items.append(lines)
+        columns.append(items)
+
+    def column_height(items):
+        if not items:
+            return 0.0
+        return sum(len(lines) * leading + gap for lines in items) - gap
+
+    return {"columns": columns, "height": max(column_height(c) for c in columns),
+            "font": font, "size": size, "leading": leading, "gap": gap,
+            "col_w": col_w}
+
+
+def _credit_rows(pairs, *, colon=False):
+    """Rol/değer çiftlerini sarılmış, yüksekliği ölçülmüş satır gruplarına çevirir."""
+    role_w, name_w = 112.0, CW - 130.0
+    rows, total = [], 0.0
+    for role, names in pairs:
+        role_text = role + (" :" if colon else "")
+        role_lines = _wrap_lines(role_text, SANS, 9, role_w)
+        name_lines = []
+        for name in names:
+            name_lines.extend(_wrap_lines(name, SANS_SB, 9.5, name_w))
+        line_count = max(len(role_lines), len(name_lines), 1)
+        height = line_count * 14.0 + 4.0
+        rows.append({"role": role_lines, "names": name_lines, "height": height})
+        total += height
+    return {"rows": rows, "height": total}
+
+
+def _prepare_layout(d):
+    context = _title_context(d)
+    title = str(d.get("title") or "—")
+    title_size = 35
+    while title_size > 22 and pdfmetrics.stringWidth(title, SERIF_B, title_size) > CW:
+        title_size -= 1
+    title_lines = ([title] if pdfmetrics.stringWidth(title, SERIF_B, title_size) <= CW
+                   else (simpleSplit(title, SERIF_B, title_size, CW) or [title]))
+    title_drop = ((title_size - 10) if len(title_lines) == 1
+                  else len(title_lines) * (title_size - 3) + 7)
+
+    main_crew, guests, full_credits = _partition_credits(d)
+    keywords = simpleSplit(str(d.get("keywords") or "—"), SANS, 9.5, CW) or ["—"]
+    cast = _name_columns(_names(d.get("cast")) or ["—"])
+    guest_cols = _name_columns(guests)
+    main_rows = _credit_rows(main_crew)
+    full_rows = _credit_rows(full_credits, colon=True)
+
+    notes = [str(x).strip() for x in (d.get("film_notu") or []) if str(x).strip()]
+    note_lines = []
+    for note in notes[:4]:
+        note_lines += simpleSplit("•  " + note, SANS, 8.8, CW - 36)
+    note_h = (34 + len(note_lines) * 13.0) if note_lines else 0.0
+
+    summary_text = str(d.get("ozet") or "").strip()
+    summary_lines = simpleSplit(summary_text, SANS, 10.5, CW - 34) if summary_text else []
+    summary_h = (42 + len(summary_lines) * 16.0) if summary_lines else 0.0
+
+    # PAGE_H-92'de başlayan sağ akışın sayfa tepesinden toplam inişi.
+    used = 92 + 34 + title_drop
+    used += 18 if context["subtitle"] else 0
+    used += 18 if context["bolum"] else 0
+    used += 40
+    used += 34 + len(keywords) * 15
+    used += 34 + cast["height"]
+    if main_rows["rows"]:
+        used += 34 + main_rows["height"]
+    if guest_cols["height"]:
+        used += 34 + guest_cols["height"]
+    if note_h:
+        used += 14 + note_h
+    if summary_h:
+        used += 16 + summary_h
+    if full_rows["rows"]:
+        used += 34 + full_rows["height"]
+    page_h = max(PAGE_H, used + FOOT_H + 10)
+    if page_h > _PDF_MAX_PT:
+        raise ValueError(
+            f"künye sayfası PDF güvenli yükseklik sınırını aşıyor: "
+            f"{page_h:.1f}pt > {_PDF_MAX_PT:.0f}pt; veri kırpılmadı")
+    return {
+        "context": context, "title": title, "title_size": title_size,
+        "title_lines": title_lines, "keywords": keywords, "cast": cast,
+        "main_rows": main_rows, "guests": guest_cols, "full_rows": full_rows,
+        "note_lines": note_lines, "note_h": note_h,
+        "summary_lines": summary_lines, "summary_h": summary_h,
+        "page_h": page_h,
+    }
+
+
+def _draw_name_columns(c, x, y, layout):
+    xs = (x, x + layout["col_w"] + 14)
+    bottoms = []
+    for col, items in enumerate(layout["columns"]):
+        yy = y
+        for lines in items:
+            for line in lines:
+                c.setFont(layout["font"], layout["size"])
+                c.setFillColor(INK)
+                c.drawString(xs[col], yy, line)
+                yy -= layout["leading"]
+            yy -= layout["gap"]
+        bottoms.append(yy + (layout["gap"] if items else 0))
+    return min(bottoms) if bottoms else y
+
+
+def _draw_credit_rows(c, y, layout):
+    for row in layout["rows"]:
+        role_y = name_y = y
+        for line in row["role"]:
+            c.setFont(SANS, 9)
+            c.setFillColor(MUTE)
+            c.drawString(X0, role_y, line)
+            role_y -= 14
+        for line in row["names"]:
+            c.setFont(SANS_SB, 9.5)
+            c.setFillColor(INK)
+            c.drawString(X0 + 130, name_y, line)
+            name_y -= 14
+        y -= row["height"]
+    return y
+
+
 def build(path, d):
-    c = canvas.Canvas(path, pagesize=A4)
+    layout = _prepare_layout(d)
+    page_h = layout["page_h"]
+    context = layout["context"]
+    c = canvas.Canvas(path, pagesize=(PAGE_W, page_h))
 
     c.setFillColor(RAIL)
-    c.rect(0, 0, RW, PAGE_H, fill=1, stroke=0)
+    c.rect(0, 0, RW, page_h, fill=1, stroke=0)
     c.rect(0, 0, PAGE_W, FOOT_H, fill=1, stroke=0)
 
     # Amblem (yazi)
     c.setFillColor(CREAM)
     c.setFont(SERIF_B, 18)
-    c.drawString(RM, PAGE_H - 48, "MİTAS")
+    c.drawString(RM, page_h - 48, "MİTAS")
     c.setFillColor(ACCENT)
-    c.rect(RM, PAGE_H - 60, 34, 2.4, fill=1, stroke=0)
-    tracked(c, RM, PAGE_H - 76, "İÇERİK KÜNYE BELGESİ", SANS_SB, 6.6, CREAM_M, 1.5)
+    c.rect(RM, page_h - 60, 34, 2.4, fill=1, stroke=0)
+    tracked(c, RM, page_h - 76, "İÇERİK KÜNYE BELGESİ", SANS_SB, 6.6, CREAM_M, 1.5)
 
     # Sol panel: afiş varsa afiş (çerçeve afişin oranına göre), yoksa anahtar-kare placeholder
     pw = RW - 2 * RM
-    ptop = PAGE_H - 96
+    ptop = page_h - 96
     poster = d.get("poster")
     if poster and os.path.exists(poster):
         img = ImageReader(poster)
@@ -119,13 +393,17 @@ def build(path, d):
     else:
         panel_bottom = ptop          # frame (anahtar-kare placeholder) KALDIRILDI → yerine ses/altyazı
 
-    # SES & ALTYAZI (sol ray — frame'in yerine; kanal-dil + altyazı tespiti)
-    if d.get("ses_kanallari") or d.get("altyazi"):
+    # SES & ALTYAZI (sol ray — frame'in yerine; kanal-dil + altyazı + jenerik dili tespiti)
+    if d.get("ses_kanallari") or d.get("altyazi") or d.get("jenerik_dili"):
         sb = panel_bottom - 22
         tracked(c, RM, sb, "SES & ALTYAZI", SANS_SB, 6.8, ACCENT, 1.4)
         sb -= 19
-        # SES KANAL LİSTESİ (1./2./3./4. KANAL) PDF'E YAZILMIYOR (Çağatay 2026-06-20): yalnız
-        # ANA DİL + ALTYAZI gösterilir; kanal-numarası dökümü kaldırıldı.
+        if d.get("jenerik_dili"):
+            tracked(c, RM, sb, "JENERİK DİLİ", SANS_SB, 6.2, CREAM_M, 1.1)
+            c.setFillColor(CREAM)
+            c.setFont(SANS_SB, 9.5)
+            c.drawString(RM + 60, sb - 1, str(d.get("jenerik_dili", "—")))
+            sb -= 16
         tracked(c, RM, sb, "ANA DİL", SANS_SB, 6.2, CREAM_M, 1.1)
         c.setFillColor(CREAM)
         c.setFont(SANS_SB, 9.5)
@@ -169,43 +447,42 @@ def build(path, d):
     # ---- Sag icerik ----
     c.setFillColor(MUTE)
     c.setFont(SANS, 8.5)
-    c.drawRightString(XR, PAGE_H - 46, "ÜRETİM:  " + d["date"])
+    c.drawRightString(XR, page_h - 46, "ÜRETİM:  " + d["date"])
     # cozunurluk: Uretim'in hemen altinda, SILIK
     _res = next((v for l, v in d["specs"] if ("ÖZÜNÜR" in l.upper() or "OZUNUR" in l.upper()) and v and v != "—"), None)
     if _res:
         c.setFillColor(CREAM_M)
         c.setFont(SANS, 7.3)
-        c.drawRightString(XR, PAGE_H - 57, _res)
+        c.drawRightString(XR, page_h - 57, _res)
 
-    ty = PAGE_H - 92
-    chip_w = pdfmetrics.stringWidth(d["profile"], SANS_SB, 8) + 1.5 * (len(d["profile"]) - 1) + 20
+    ty = page_h - 92
+    profile = context["profile"]
+    chip_w = pdfmetrics.stringWidth(profile, SANS_SB, 8) + 1.5 * (len(profile) - 1) + 20
     c.setStrokeColor(ACCENT)
     c.setLineWidth(0.9)
     c.roundRect(X0, ty, chip_w, 17, 8.5, stroke=1, fill=0)
-    tracked(c, X0 + 10, ty + 5, d["profile"], SANS_SB, 8, ACCENT, 1.5)
+    tracked(c, X0 + 10, ty + 5, profile, SANS_SB, 8, ACCENT, 1.5)
     ty -= 34
 
-    title = d["title"]
-    ts = 35
-    while ts > 22 and pdfmetrics.stringWidth(title, SERIF_B, ts) > CW:
-        ts -= 1
+    title = layout["title"]
+    ts = layout["title_size"]
     c.setFillColor(INK)
     c.setFont(SERIF_B, ts)
-    if pdfmetrics.stringWidth(title, SERIF_B, ts) <= CW:
-        c.drawString(X0, ty, title)
+    if len(layout["title_lines"]) == 1:
+        c.drawString(X0, ty, layout["title_lines"][0])
         ty -= (ts - 10)
-    else:  # hâlâ sığmıyorsa 2+ satıra sar (sağ kenardan taşmayı önler)
-        for _ln in simpleSplit(title, SERIF_B, ts, CW):
+    else:
+        for _ln in layout["title_lines"]:
             c.drawString(X0, ty, _ln)
             ty -= (ts - 3)
         ty -= 7
-    if d.get("subtitle"):
+    if context["subtitle"]:
         c.setFillColor(MUTE)
         c.setFont(SERIF_I, 13.5)
-        c.drawString(X0, ty, d["subtitle"])
+        c.drawString(X0, ty, str(context["subtitle"]))
         ty -= 18
-    if d.get("bolum"):                              # elif->if: dizi bolumu subtitle olsa da bassin
-        tracked(c, X0, ty, d["bolum"], SANS_SB, 10.5, MUTE, 1.6)
+    if context["bolum"]:
+        tracked(c, X0, ty, context["bolum"], SANS_SB, 10.5, MUTE, 1.6)
         ty -= 18
     ty -= 8
     c.setFillColor(ACCENT)
@@ -220,47 +497,32 @@ def build(path, d):
         ty -= 22
 
     section("ANAHTAR SÖZCÜKLER")
-    for ln in simpleSplit(d["keywords"], SANS, 9.5, CW):
+    for ln in layout["keywords"]:
         c.setFont(SANS, 9.5)
         c.setFillColor(BODY)
         c.drawString(X0, ty, ln)
         ty -= 15
 
     section("OYUNCULAR")
-    cast = d["cast"]
-    half = math.ceil(len(cast) / 2)
-    y0 = ty
-    for i, name in enumerate(cast):
-        col, row = (0, i) if i < half else (1, i - half)
-        c.setFont(SANS, 10)
-        c.setFillColor(INK)
-        c.drawString(X0 + (0 if col == 0 else 168), y0 - row * 18, name)
-    ty = y0 - half * 18
+    ty = _draw_name_columns(c, X0, ty, layout["cast"])
 
-    section("YAPIM EKİBİ")
-    for role, name in d["crew"]:
-        names = name if isinstance(name, (list, tuple)) else [name]
-        c.setFont(SANS, 9)
-        c.setFillColor(MUTE)
-        c.drawString(X0, ty, role)  # rol etiketi yalnız ilk satırda
-        for nm in names:
-            c.setFont(SANS_SB, 10)
-            c.setFillColor(INK)
-            c.drawString(X0 + 130, ty, nm)
-            ty -= 17
+    if layout["main_rows"]["rows"]:
+        section("YAPIM EKİBİ")
+        ty = _draw_credit_rows(c, ty, layout["main_rows"])
+
+    if layout["guests"]["height"]:
+        section("KONUK OYUNCULAR")
+        ty = _draw_name_columns(c, X0, ty, layout["guests"])
 
     # FİLM NOTU kutusu (2026-07-04, Çağatay): sağ içeriğin altında, ÖZET'ten hemen önce.
     # Deterministik standart notlar (animasyon-seslendirme / sessiz-özet-yok / jenerik-yok / XML-uyarı).
-    # d["film_notu"] boşsa HİÇ çizilmez (mevcut düzen birebir korunur). ÖZET'in kendi sığdırma
-    # döngüsü kalan alana göre küçüldüğünden taşma güvenliği otomatik.
-    _notlar = [str(x).strip() for x in (d.get("film_notu") or []) if str(x).strip()]
-    if _notlar:
+    # d["film_notu"] boşsa HİÇ çizilmez (mevcut düzen birebir korunur). Kutu ve özet
+    # önceden ölçülen uzun sayfa içinde kendi doğal punto/leading değerleriyle çizilir.
+    if layout["note_lines"]:
         ty -= 14
         nt_size, nt_lh = 8.8, 13.0
-        nt_lines = []
-        for _n in _notlar[:4]:                        # en fazla 4 not (taşma güvenliği)
-            nt_lines += simpleSplit("•  " + _n, SANS, nt_size, CW - 36)
-        nt_h = 34 + len(nt_lines) * nt_lh
+        nt_lines = layout["note_lines"]
+        nt_h = layout["note_h"]
         c.setFillColor(TINT)
         c.roundRect(X0, ty - nt_h, CW, nt_h, 7, fill=1, stroke=0)
         c.setStrokeColor(ACCENT)
@@ -275,32 +537,155 @@ def build(path, d):
             _nyy -= nt_lh
         ty -= nt_h
 
-    ty -= 16
-    oz_size, oz_lh = 10.5, 16.0
-    while True:  # özeti sayfaya sığdır (alta taşmayı önler)
-        lines = simpleSplit(d["ozet"], SANS, oz_size, CW - 34)
-        panel_h = 42 + len(lines) * oz_lh
-        if ty - panel_h >= FOOT_H + 10 or oz_size <= 7.5:
-            break
-        oz_size -= 0.5
-        oz_lh -= 0.5
-    ptopz = ty
-    pbz = ptopz - panel_h
-    c.setFillColor(TINT)
-    c.roundRect(X0, pbz, CW, panel_h, 7, fill=1, stroke=0)
-    tracked(c, X0 + 18, ptopz - 22, "ÖZET", SANS_SB, 8, ACCENT, 2)
-    c.setFillColor(ACCENT)
-    c.rect(X0 + 18, pbz + 16, 2.4, len(lines) * oz_lh - 4, fill=1, stroke=0)
-    yy = ptopz - 40
-    for ln in lines:
-        c.setFont(SANS, oz_size)
-        c.setFillColor(BODY)
-        c.drawString(X0 + 30, yy, ln)
-        yy -= oz_lh
+    if layout["summary_lines"]:
+        ty -= 16
+        oz_size, oz_lh = 10.5, 16.0
+        lines = layout["summary_lines"]
+        panel_h = layout["summary_h"]
+        ptopz = ty
+        pbz = ptopz - panel_h
+        c.setFillColor(TINT)
+        c.roundRect(X0, pbz, CW, panel_h, 7, fill=1, stroke=0)
+        tracked(c, X0 + 18, ptopz - 22, "ÖZET", SANS_SB, 8, ACCENT, 2)
+        c.setFillColor(ACCENT)
+        c.rect(X0 + 18, pbz + 16, 2.4, len(lines) * oz_lh - 4, fill=1, stroke=0)
+        yy = ptopz - 40
+        for ln in lines:
+            c.setFont(SANS, oz_size)
+            c.setFillColor(BODY)
+            c.drawString(X0 + 30, yy, ln)
+            yy -= oz_lh
+        ty = pbz
+
+    if layout["full_rows"]["rows"]:
+        section("TAM JENERİK")
+        ty = _draw_credit_rows(c, ty, layout["full_rows"])
+
+    if ty < FOOT_H + 9:
+        raise RuntimeError(f"künye yerleşimi alt sınıra taştı: y={ty:.1f}")
+
+    # Jenerik Master Okuma Kanıtı Sayfaları (Giriş & Çıkış)
+    clip_dir = d.get("clip_dir") or d.get("clip") or (os.path.dirname(d.get("poster")) if d.get("poster") else None)
+    if clip_dir:
+        try:
+            _ekle_kanit_sayfalari(c, clip_dir)
+        except Exception as _exc:
+            print(f"[pdf-kanit] HATA: {_exc}")
 
     c.showPage()
     c.save()
     print("yazildi:", path)
+
+
+# NOT (2026-08-11): _slice_im_parts + _combine_side_by_side BURADAN SİLİNDİ.
+# Master PNG'yi 4 parçaya bölüp sabit target_h=2000'e SIKIŞTIRAN eski yaklaşımdı;
+# uzun jeneriği A4'e zorladığı için PDF'te KESİK görüntüye yol açıyordu (kanıt:
+# 05-06 Ağustos'ta üretilen kunye.pdf'lerde kanıt sayfaları A4 + gömülü görseller
+# tam 2000px). 08 Ağustos'ta yerini aşağıdaki dinamik-yükseklik yaklaşımı aldı;
+# iki fonksiyon da o tarihten beri HİÇBİR yerden çağrılmıyordu (repo geneli
+# doğrulandı). Ölü bırakmak yerine siliniyor ki kesen yol yanlışlıkla dirilmesin.
+
+
+def _ekle_kanit_sayfalari(c, clip_dir):
+    """
+    Giriş ve Çıkış master PNG'lerini yan yana (sol/sağ) tek sayfada koyar.
+    Sayfa yüksekliği görüntülerin uzunluğuna göre dinamik ayarlanır.
+    Çözünürlük düşürülmez - PDF'de zoom yapıp okuyabilirler.
+    """
+    import glob
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas
+    
+    cd = str(clip_dir)
+    giris_candidates = [os.path.join(cd, "giris_reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*giris-lebron.png"))
+    giris_png = next((p for p in giris_candidates if os.path.isfile(p)), None)
+
+    cikis_candidates = [os.path.join(cd, "reading_master_runaware.png")] + glob.glob(os.path.join(cd, "*cikis-lebron.png"))
+    cikis_png = next((p for p in cikis_candidates if os.path.isfile(p)), None)
+    
+    if not giris_png and not cikis_png:
+        return
+    
+    margin = 36.0
+    page_w, page_h = A4
+    usable_w = page_w - (2 * margin)
+    gap = 20  # iki görüntü arası boşluk
+    
+    # Her iki görüntü de varsa yan yana, tek varsa tam genişlik
+    has_giris = giris_png and os.path.isfile(giris_png)
+    has_cikis = cikis_png and os.path.isfile(cikis_png)
+    
+    if has_giris and has_cikis:
+        img_w_each = (usable_w - gap) / 2.0
+    else:
+        img_w_each = usable_w
+    
+    # Görüntü boyutlarını oku ve ölçek hesapla (sadece genişliğe göre, yüksekliğe GÖRE DEĞİL)
+    target_h = 0
+    img_infos = []
+    
+    for label, png_path in [("GİRİŞ", giris_png), ("ÇIKIŞ", cikis_png)]:
+        if png_path and os.path.isfile(png_path):
+            img = ImageReader(png_path)
+            iw, ih = img.getSize()
+            scale = img_w_each / iw
+            draw_h = ih * scale
+            img_infos.append((label, png_path, iw, ih, draw_h, scale))
+            target_h = max(target_h, draw_h)
+    
+    # Başlık alanı + kenar boşlukları
+    title_h = 60
+    krom_h = title_h + 2 * margin + 40          # görüntü dışı sabit yükseklik
+    total_h = target_h + krom_h
+
+    # EMNİYET KEMERİ: sayfa PDF üst sınırını aşarsa görüntüleyici KIRPAR (istenen
+    # davranış "kesme yok"). Kırpmak yerine her iki görüntüyü de AYNI oranda
+    # küçült — en/boy oranı ve sol=giriş/sağ=çıkış düzeni korunur, içerik tam kalır.
+    if total_h > _PDF_MAX_PT:
+        kucult = (_PDF_MAX_PT - krom_h) / target_h
+        img_infos = [(lb, p, iw, ih, dh * kucult, sc * kucult)
+                     for (lb, p, iw, ih, dh, sc) in img_infos]
+        img_w_each *= kucult
+        gap *= kucult
+        target_h *= kucult
+        total_h = _PDF_MAX_PT
+        print(f"[pdf-kanit] sayfa {_PDF_MAX_PT:.0f}pt sinirini asiyordu — "
+              f"tum gorseller x{kucult:.3f} kucultuldu (kirpma YOK)")
+    
+    # Yeni sayfa oluştur - çok uzun sayfa (ReportLab destekliyor)
+    c.showPage()
+    c.setPageSize((page_w, total_h))
+    
+    # Başlık çiz
+    c.setFont(SANS_SB, 11)
+    c.setFillColor(RAIL)
+    
+    if has_giris and has_cikis:
+        # İki başlık yan yana
+        left_x = margin
+        right_x = margin + img_w_each + gap
+        c.drawString(left_x, total_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        c.drawString(right_x, total_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, left_x, left_x + img_w_each, color=ACCENT, w=1.5)
+        hair(c, total_h - margin - 16, right_x, right_x + img_w_each, color=ACCENT, w=1.5)
+    elif has_giris:
+        c.drawString(margin, total_h - margin - 10, "GİRİŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, margin, margin + img_w_each, color=ACCENT, w=1.5)
+    else:
+        c.drawString(margin, total_h - margin - 10, "ÇIKIŞ JENERİĞİ OKUMA KANITI (MASTER SLIT)")
+        hair(c, total_h - margin - 16, margin, margin + img_w_each, color=ACCENT, w=1.5)
+    
+    # Görüntüleri çiz - orijinal çözünürlükte, sadece genişlik ölçekli
+    y_base = total_h - margin - title_h
+    for i, (label, png_path, iw, ih, draw_h, scale) in enumerate(img_infos):
+        if has_giris and has_cikis:
+            x = margin if i == 0 else margin + img_w_each + gap
+        else:
+            x = margin
+        
+        # Doğrudan PNG dosyasını çiz (geçici dosya yok, resize yok)
+        c.drawImage(png_path, x, y_base - draw_h, width=img_w_each, height=draw_h)
+
 
 
 FILM = dict(

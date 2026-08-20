@@ -20,6 +20,7 @@ from ._retry import check_response, with_retry
 
 API_KEY_ENV = "GLM_API_KEY"
 BASE_URL_ENV = "GLM_BASE_URL"
+MODEL_ENV = "GLM_MODEL"  # .env'den model override - kod degismeden
 DEFAULT_BASE_URL = "https://open.bigmodel.cn/api/paas/v4"
 MODEL = "glm-5.2"
 TIMEOUT_SECONDS = 180.0  # 2026-07-10: qwen.py'deki 2026-07-09 fix'inin aynısı - 60sn uzun konsey sorularinda yetmiyor (reasoning uzun), 3-deneme hep bos-mesajli ReadTimeout'tu
@@ -32,12 +33,13 @@ def is_configured() -> bool:
 async def ask(question: str, context: str = "") -> str:
     api_key = os.getenv(API_KEY_ENV)
     base_url = os.getenv(BASE_URL_ENV, DEFAULT_BASE_URL)
+    model = os.getenv(MODEL_ENV, MODEL)
     prompt = f"{context}\n\n{question}" if context else question
 
     async def _call() -> str:
         headers = {"Authorization": f"Bearer {api_key}"}
         payload = {
-            "model": MODEL,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -49,8 +51,17 @@ async def ask(question: str, context: str = "") -> str:
             data = response.json()
 
         try:
-            return data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
         except (KeyError, IndexError) as exc:
             raise RuntimeError(f"Beklenmeyen GLM-5.2 cevap formatı: {data}") from exc
+
+        # Thinking-modeli kemeri (minimax.py/nemotron.py ile ayni): content bos
+        # gelirse cevap reasoning_content'te kalmis olabilir.
+        content = message.get("content") or ""
+        if not content.strip():
+            content = message.get("reasoning_content") or ""
+        if not content.strip():
+            raise RuntimeError(f"GLM-5.2 boş cevap döndü: {data}")
+        return content
 
     return await with_retry(_call, provider_name="GLM-5.2")

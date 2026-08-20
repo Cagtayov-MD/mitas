@@ -44,6 +44,9 @@ MODEL = os.environ.get("MITAS_VIDEO_VL_MODEL", "qwen3-vl-8b")
 PENCERE = float(os.environ.get("MITAS_VIDEO_VL_PENCERE", "60"))
 BINDIRME = float(os.environ.get("MITAS_VIDEO_VL_BINDIRME", "5"))
 PAY = float(os.environ.get("MITAS_VIDEO_VL_PAY", "5"))
+# Çıktı tavanı (2026-07-24 sweep bulgusu: 2500 yoğun jenerikte MEŞRU metni kırpıyor;
+# bağlam payı müsait 12.5k+3.5k≤16384). Varsayılan DEĞİŞMEDİ — R2 koşuları 3500 verir.
+MAXTOK = int(os.environ.get("MITAS_VIDEO_VL_MAX_TOKENS", "2500") or "2500")
 
 SORU = ("Bu bir film kapanış jeneriği (end credits) videosu. Her kareyi AYRI AYRI oku: "
         "'--- Kare N ---' başlığı altında o karede görünen metni AYNEN satır satır yaz. "
@@ -57,8 +60,15 @@ def _sure(video: Path) -> float:
     return float(out.strip())
 
 
-def _baslangic_saniyesi(clip_dir: Path, video: Path) -> float | None:
-    """jenerik_detection.json start_pos → kaynak-video saniyesi (yoksa None)."""
+def _baslangic_saniyesi(clip_dir: Path, video: Path,
+                        win_start: float | None = None,
+                        fps: float | None = None) -> float | None:
+    """jenerik_detection.json start_pos → kaynak-video saniyesi (yoksa None).
+
+    `win_start`/`fps` pipeline'dan gelir (bkz. _jenerik_dense deseni): kareler HANGİ
+    saniyeden HANGİ fps ile çıkarıldıysa kesim de ondan hesaplanmalı. Verilmezse eski
+    varsayım (dur - CIKIS_TAIL_S @ FPS) korunur — elle CLI çağrısı için geriye uyum.
+    """
     j = clip_dir / "frames" / "jenerik_detection.json"
     if not j.is_file():
         return None
@@ -69,9 +79,8 @@ def _baslangic_saniyesi(clip_dir: Path, video: Path) -> float | None:
     sp = m.get("start_pos")
     if sp is None:
         return None
-    dur = _sure(video)
-    cstart = max(0.0, dur - CIKIS_TAIL_S)
-    return cstart + float(int(sp)) / FPS
+    cstart = float(win_start) if win_start is not None else max(0.0, _sure(video) - CIKIS_TAIL_S)
+    return cstart + float(int(sp)) / float(fps or FPS)
 
 
 def _parcala(video: Path, bas: float, outdir: Path) -> list[Path]:
@@ -131,7 +140,7 @@ def _dejenerasyon_filtresi(metin: str) -> str:
 
 
 def _oku(mp4: Path) -> dict:
-    payload = {"model": MODEL, "temperature": 0, "max_tokens": 2500,
+    payload = {"model": MODEL, "temperature": 0, "max_tokens": MAXTOK,
                "repetition_penalty": 1.05,   # tekrar-döngüsü freni (McGaughy sınıfı)
                "messages": [{"role": "user", "content": [
                    {"type": "video_url", "video_url": {"url": f"file://{mp4}"}},
@@ -153,6 +162,11 @@ def main() -> int:
     ap.add_argument("--video", required=True, help="kaynak video")
     ap.add_argument("--start-sec", type=float, default=None,
                     help="jenerik başlangıcı (verilirse detection.json atlanır — test için)")
+    ap.add_argument("--win-start", type=float, default=None,
+                    help="havuz karelerinin çıkarıldığı pencere başlangıcı (sn, mutlak). "
+                         "Verilmezse dur-CIKIS_TAIL_S varsayılır.")
+    ap.add_argument("--src-fps", type=float, default=None,
+                    help="havuz kare çıkarım fps'i (default 1.5)")
     ap.add_argument("--out", default=None, help="çıkış dizini (default: <clip>/video_vl)")
     a = ap.parse_args()
 
@@ -167,7 +181,7 @@ def main() -> int:
         if clip_dir is None:
             print("UYARI[video_vl]: --clip ya da --start-sec gerekli")
             return 2
-        bas = _baslangic_saniyesi(clip_dir, video)
+        bas = _baslangic_saniyesi(clip_dir, video, win_start=a.win_start, fps=a.src_fps)
         if bas is None:
             print("UYARI[video_vl]: jenerik_detection.json/start_pos yok — atlanıyor (fail-safe)")
             return 3

@@ -1,0 +1,254 @@
+# Kobe giriş bloğu — tasarım
+
+> **2026-08-20 sözleşme düzeltmesi:** Kobe yalnız giriş jeneriğinin sınırını
+> belirler. `--uret kare`, `baslangic_kare..bitis_kare` aralığındaki bütün
+> kareleri boşluksuz verir. Aşağıdaki havuz sınıflandırması artefakt seçimi
+> için kullanılmaz; yalnız bitiş şelalesine içerik kanıtı sağlar. Bu karar,
+> statik dizi kartlarında OCR dedup'ın zaman serisini kırdığı gerçek Çiçek
+> Taksi ve Suç Dosyası vakalarıyla alınmıştır.
+
+> Opus tasarımı, Sonnet uygular. 2026-08-13.
+> Amaç: giriş jeneriğinin **bir tavrı olsun** — bugün boş kalıyor.
+> Kalite/geliştirme ayrı faz; şimdi sistem ayağa kalkıyor.
+
+## İlke
+
+**Yaklaşım taşınır, kod taşınmaz.** `scripts/giris_jenerik_havuzu.py`'nin
+*stratejisi* buraya gelir; dosyanın kendisi eski yerinde kalır (33 KB,
+üretimde çalışıyor, dokunulmaz).
+
+Kobe'nin zaten kendi aletleri var — `src/kutu.py` (Paddle det: "kutu var mı")
+ve `src/icerik.py` ("bu satır kredi metni mi"). Giriş bloğu **bunları**
+kullanır, yeni kopya almaz.
+
+**`src/motor.py`'ye TEK SATIR dokunulmaz.** Çıkışın %94.5'i korunur.
+
+---
+
+## Giriş ile çıkış arasındaki temel fark
+
+| | Çıkış | Giriş |
+|---|---|---|
+| Aranan | **başlangıç** (bitiş = filmin sonu) | **başlangıç + bitiş** |
+| Krediler | blok halinde sona kadar akar | footage arasına **serpilir** |
+| Ayraç | `SON_ERISIM=0.82` — sona ulaşmalı | ters çalışır, **kullanılamaz** |
+| Pencere | son 600 sn | **ilk 240 sn** (`MITAS_OCR_HEAD`) |
+
+Bu yüzden giriş kararı iki kanıt kullanır: **(a) sınır** ve gerektiğinde
+**(b) bitiş şelalesinin içerik kanıtı**. Üretilen kare artefaktıysa kararın
+kapalı zaman aralığıdır; ayrı bir seçici havuz değildir.
+
+---
+
+## (a) SINIR — mevcut motor ÇAĞRILIR
+
+`core/pipelines/ocr/jenerik_detector.py` (921 satır, 9 üretim tüketicisi)
+kopyalanmaz, **çağrılır**. Repo kökü `sys.path`'e eklenir.
+
+**Gerçek imza** (`jenerik_detector.py:778`, doğrulandı):
+
+```python
+sys.path.insert(0, os.environ.get("MITAS_PROJECT_ROOT", "/opt/mitas"))
+from core.pipelines.ocr.jenerik_detector import detect_from_frames
+
+bolge = detect_from_frames(dizin, fps=2.0, window_start_sec=0.0, prefer="first")
+```
+
+**Dönen sözlük** (`_region_dict`, satır 547-561) — kare numaraları HAZIR
+geliyor, dönüşüm gerekmez:
+
+```python
+{"found": True, "type": ..., "quad_type": ...,
+ "start_sec": 12.5,  "end_sec": 96.0,
+ "start_frame": 25,  "end_frame": 191,     # ← doğrudan kullanılır
+ "confidence": 0.71, "low_conf": False,
+ "bg_motion": ..., "text_motion": ..., "scroll_dy_px": ..., "strategy": ...}
+```
+
+Bulunamazsa: `{"found": False, "confidence": 0.0, "low_conf": True,
+"start_frame": None, "end_frame": None, "reason": "no_frames"}`.
+
+> `prefer="first"` verildiğinde motor **kendiliğinden** `_apply_ocr_refine_end`
+> çağırıyor (satır 791) — *"GİRİŞ: jeneriğin bittiği (film başladığı) anı da
+> bul"*. Yani bitiş sınırı zaten bu çağrının içinde. Ekstra iş gerekmiyor.
+
+Güven kapısı — üretimin kuralı birebir (`mitas_pipeline.py:1985-1990`):
+
+```
+güven ≥ GUVEN_ESIK  →  bas = start_sec, bit = end_sec
+güven <  GUVEN_ESIK →  bas = 0.0,       bit = PENCERE_SN   (sabit geri düşüş)
+```
+
+`GUVEN_ESIK` `config.yaml`'a yazılır. Düşük güvende **sessizce tahmin
+edilmez** — sabit pencereye düşüldüğü `kanit`'e yazılır
+(`sinir_kaynagi: "tespit" | "sabit"`).
+
+Sınır motoru hiçbir koşuyu kabul etmezse ana akıştaki bitş şelalesi
+bağımsız yoğun OCR-içerik kanıtına bakar. Kalibre W30/K12 kuralı
+ateşlenirse statik kart `KREDI_YOK`a dönüşmez; kaynak
+`sinir_kaynagi: "bitis-kaniti"` olarak ayrıca işaretlenir. Genel blob
+kalkanı bu kurtarma için gevşetilmez.
+
+Motor patlarsa → `ARIZA(sinif="GIRIS_SINIR")`. Sessizce sabit pencereye
+düşmek YASAK — arıza arızadır.
+
+---
+
+## (b) BİTİŞ KANITI — yaklaşım `giris_jenerik_havuzu.py`'den, aletler Kobe'den
+
+Sınırın içindeki her kare için:
+
+| Adım | Nasıl | Kural |
+|---|---|---|
+| 1. Kutu var mı | `kutu.kutu_analiz(yol)` | kutu yoksa → **footage**, alınmaz |
+| 2. Metni oku | `icerik` üzerinden OCR satırları | — |
+| 3. Altyazı ele — **konumsal** | satır bbox y-merkezi ≥ `ALT_BANT` (kare yüksekliğinin oranı) | alt bantta → altyazı say |
+| 4. Altyazı ele — **metinsel** | `icerik`'in kredi-metni testi | kredi değilse → say ma |
+| 5. Karar | **satır-bazında OR**: kareye ≥1 meşru kredi satırı yeterse **AL** | recall önceliği |
+| 6. Dedup | aynı metin imzasını taşıyan kareler → **teke indir** | imza = kredi satırları sıralı-birleştirilmiş |
+
+Bu sınıflandırma `bitis.py` için içerik sinyalidir. **Kare artefaktını
+filtrelemez.** OCR/okuma hatası karar kanıtında recall olarak tutulabilir,
+ancak Kobe'nin LeBron/Nash'e verdiği sınır aralığından kare eksiltemez.
+
+Bu, `giris_jenerik_havuzu.py` docstring'indeki tasarım kararının aynısı
+(3 bağımsız Sonnet önerisi + Opus hakem, 2026-06-29).
+
+---
+
+## Sözleşme değişikliği
+
+Giriş **iki sınır** taşır. `Cikti`'ya iki alan eklenir — **yalnız giriş
+doldurur**, çıkış `None` bırakır:
+
+```python
+bitis_kare: int | None = None
+bitis_sn:   float | None = None
+```
+
+`sozluk()` içinde `BULUNDU` bloğuna eklenir. Çıkışta `None` kalır ve JSON'a
+yazılır (tüketici "giriş mi çıkış mı" ayrımını `bolum` alanından yapar).
+
+Üç durum aynen geçerlidir:
+
+| durum | Girişte anlamı |
+|---|---|
+| `BULUNDU` | Giriş jeneriği bulundu — `baslangic_*` + `bitis_*` dolu |
+| `KREDI_YOK` | Film jeneriksiz başlıyor (doğrudan sahneye giriyor) |
+| `ARIZA` | Okunamadı. `GIRIS_SINIR` / `MOTOR` / `KARE_CIKARIM` |
+
+---
+
+## Kare çıkarımı
+
+`main.py:kare_cikar()` bugün **yalnız kapanış** penceresi çıkarıyor
+(`ss = sure - 600`). Bölüme duyarlı hale gelir:
+
+```
+cikis:  ss = max(0, sure - 600),  length = 600
+giris:  ss = 0,                   length = 240     ← MITAS_OCR_HEAD değeri
+```
+
+**240'tır, 600 DEĞİL.** 600 kapanış simetrisinden uydurulmuştu, yanlıştı.
+
+---
+
+## Artefakt — girişte bitiş farklı
+
+| | Çıkış | Giriş |
+|---|---|---|
+| `--uret klip` | `onset−10` → **filmin sonu** | `baslangic−10` → **`bitis_sn`** |
+| `--uret kare` | onset−10'dan **kaynağın sonuna** | `baslangic_kare..bitis_kare` **ardışık aralığı** |
+
+Girişte kare artefaktı ardışık aralıktır. Bu, `uretilen` künyesine yazılır:
+
+```json
+"uretilen": {"tip": "kare", "yol": "kareler", "adet": 228,
+             "secim": "ardisik_aralik", "ilk_kare": 1, "son_kare": 228}
+```
+
+Çıkışta `"secim": "aralik"` olur. Tüketici farkı buradan görür.
+
+---
+
+## CLI — her boyut ÇOK-SEÇİMLİ ve dinamik
+
+Çağatay (2026-08-13): *"hepsi seçilebilir, hepsi dinamik."*
+
+```bash
+# titanic'in HEM giriş HEM çıkış jeneriğini, mp4 olarak
+kobe tek --video titanic.mp4 --film-id TITANIC --bolum giris,cikis --uret klip
+
+# yalnız girişini, kare olarak
+kobe tek --kareler /yol/frames --film-id TITANIC --bolum giris --uret kare
+
+# toplu: her iki bölüm, her iki artefakt
+kobe start --input /yol/videolar --bolum giris,cikis --uret kare,klip
+```
+
+**Kural:** `--bolum` ve `--uret` virgülle ayrılmış liste alır. Varsayılanlar
+değişmez (`--bolum cikis`, `--uret yok`) — mevcut 61 test ve üretim çağrıları
+kırılmaz.
+
+**Bölümler bağımsız koşar.** Her bölüm kendi `out/<film>/<bolum>/kobe.json` +
+`_TAMAM` dosyasını yazar. Biri `ARIZA` verse diğeri etkilenmez — tüketici
+ikisine ayrı ayrı bakar. `tek()` bölüm başına bir `Cikti` üretir; CLI hepsini
+sırayla basar.
+
+**Çıkış kodu:** bölümlerden **herhangi biri** `ARIZA` ise `2`, değilse `0`.
+
+**Aynı bölümde iki artefakt** istenirse (`--uret kare,klip`) ikisi de aynı
+bölüm klasörüne yazılır; `uretilen` alanı **liste** olur:
+
+```json
+"uretilen": [{"tip": "kare", ...}, {"tip": "klip", ...}]
+```
+
+Tek artefaktta da liste kalır (tek elemanlı) — tüketici tek biçim görsün.
+`KREDI_YOK`/`ARIZA`'da `None` (boş liste değil) — sözleşme değişmezi korunur.
+
+## Yerleşim
+
+```
+src/
+├─ motor.py        ← ÇIKIŞ, DONMUŞ, dokunulmaz
+├─ kutu.py         ← ORTAK alet (Paddle det)
+├─ icerik.py       ← ORTAK alet (kredi metni)
+└─ giris/
+   ├─ TASARIM.md   ← bu dosya
+   ├─ sinir.py     ← (a) mevcut motoru çağırır
+   ├─ bitis.py     ← (b) sağdan-sola bitiş şelalesi
+   └─ havuz.py     ← yalnız bitiş için içerik kanıtı; artefakt seçmez
+```
+
+`main.py` yönlendirici olur — hangi bloğu çağıracağını bilir, işin nasıl
+yapıldığını bilmez:
+
+```python
+if girdi.bolum == "cikis":
+    import motor;  r = motor.tespit_v5(...)
+else:
+    from giris import sinir
+    b = sinir.bul(dizin, config)
+    r = kare_havuzu_yaz(dizin, b.baslangic_kare, b.bitis_kare)
+```
+
+---
+
+## Kayıtlı borçlar (gizlenmiyor)
+
+1. **Giriş için GT ve ölçüm yatağı YOK.** "Kobe %94.5" yalnız **çıkış** için
+   geçerlidir. Giriş hakkında hiçbir sayı yoktur. Yatak tarifi:
+   `EKSIKLER.md` G5/G6.
+2. **Kule sınırı bilerek esnetildi** — `jenerik_detector` kule dışından
+   çağrılıyor. Kopya alınmadı çünkü 921 satır + 2 iç bağımlılık + 9 üretim
+   tüketicisi var (dördüncü kopya borcu olurdu).
+3. `giris_jenerik_havuzu.py` yaklaşımı yalnız bitiş kanıtında kullanılır;
+   LeBron/Nash kare artefaktının seçicisi değildir.
+
+## Değişmez
+
+Her adımda: `motor.py`'ye dokunulmaz ve
+`cd olcum && ../venv/bin/python olc_pool.py --paralel 8` →
+**kapsam 110, genel %94.5, üretim %97.3, kredi-yok 29/29.**
+Sapma varsa iş geri alınır.

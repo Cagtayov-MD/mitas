@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Lebron kulesi girisi — kendi calisma zamanini kendi bulur. Cagiran python bilmez.
+L="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Okuyucu artık venv içindeki Torch'u yüklemez. GGUF, LeBron'un özel Ollama
+# sürecindedir; Paddle'ın CUDA 12 zincirine CUDA 13 shim'i karıştırılmaz.
+
+exec "$L/venv/bin/python" "$L/main.py" "$@"

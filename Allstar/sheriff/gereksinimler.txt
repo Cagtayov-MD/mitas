@@ -1,0 +1,5 @@
+PyYAML==6.0.3
+jsonschema==4.26.0
+psutil==7.1.0
+nvidia-ml-py==13.590.44
+pytest==9.0.2
