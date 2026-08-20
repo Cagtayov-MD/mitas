@@ -39,6 +39,9 @@ Tarih: 2026-08-20
 - Kobe'nin girişte ürettiği boşluksuz `ardisik_aralik` sözleşmesinin LeBron
   materialization dizinine byte-aynı taşınması; kare+manifest birleşik hash'i
   ve ardışık sequence kapısıyla koşu öncesi/sonrası doğrulanması.
+- Kobe'nin girişte statik kartı sezgisel olarak reddettiği durumda yoğun
+  Paddle kredi-içerik kanıtıyla yanlış `KREDI_YOK` kararını kurtarması;
+  Çiçek Taksi b1 `1..225`, b3 `1..229` gerçek koşularıyla doğrulandı.
 
 ## Bilinçli açık işler / devreye alma kapıları
 

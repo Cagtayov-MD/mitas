@@ -18,7 +18,12 @@ birbirini teyit etti — ort|Δ| 58 vs 60, ezber yok):
      geriye doğru ilk KALIN içerik bloğu — "60 karelik pencerede ≥K gerçek
      kredi-içerik karesi" (W=30, K=12). Tek tük izciler (diyalogdaki
      isimler, şarkı sözü) K eşiğini geçemediği için bloğun sağ ucunda durur.
-  3. SİNİR'İN KENDİ BİTİŞİ: hiçbiri sonuç vermezse dokunulmaz.
+  3. YOĞUN İÇERİK KURTARMASI: sınır motoru hiçbir koşuyu kabul
+     etmemişse ama sağdan-sola kuralı kalın bir kredi-içerik bloğu
+     bulmuşsa, ``KREDI_YOK`` denmez. Başlangıç 1, bitiş bu bloğun sağ
+     ucu olur. Blob/tabela kalkanı gevşetilmez; bağımsız OCR-içerik
+     kanıtı ilk sezgisel reddi geçersiz kılar.
+  4. SINIR'İN KENDİ BİTİŞİ: hiçbiri sonuç vermezse dokunulmaz.
 
 Başlangıç bu dosyanın işi DEĞİL — o politika sabittir (daima 1, Çağatay
 2026-08-17: "geriye dönük kabul, hatta hep 1'den başla").
@@ -66,10 +71,31 @@ def duzelt(b: dict, dizin: str | Path, config: dict | None = None,
     `ters_aday`: main.py'de hesaplanan ters-motor bitişi (kare no) — None
     ise motor ateşlenmemiştir, kurala düşülür. `config.giris.bitis_selale
     = false` tüm düzeltmeyi kapatır (sinir'in ham kararı kalır)."""
-    if not b.get("bulundu"):
-        return b
     g = (config or {}).get("giris", {})
     if not g.get("bitis_selale", True):
+        return b
+
+    # Sınır motorunun sezgisel blob kalkanı gerçek bir statik açılış
+    # kartını reddedebilir. Bu durumda genel blob eşiğini düşürmek
+    # tabela/altyazı yanlış-pozitiflerini de açar. Onun yerine zaten bitiş
+    # için kalibre edilmiş bağımsız OCR-içerik kanıtına bak: 30 karelik
+    # pencerede en az 12 gerçek kredi karesi varsa "kredi yok" deneme.
+    if not b.get("bulundu"):
+        ks = [_kare_no(y) for y in havuz.icerik_kareleri(dizin)]
+        w = int(g.get("bitis_kural_w", KURAL_W))
+        k = int(g.get("bitis_kural_k", KURAL_K))
+        r = sagdan_sola(ks, w, k)
+        if r is None:
+            return b
+        b.update({"bulundu": True,
+                  "baslangic_kare": 1, "baslangic_sn": 0.0,
+                  "bitis_kare": int(r), "bitis_sn": round(int(r) / 2.0, 2)})
+        kanit = b.setdefault("kanit", {})
+        kanit.update({"sinir_kaynagi": "bitis-kaniti",
+                      "bitis_kaynagi": "kural",
+                      "bitis_sinir_ham": None,
+                      "bitis_icerik_kare_sayisi": len(ks),
+                      "bitis_kural_w": w, "bitis_kural_k": k})
         return b
 
     ham = b.get("bitis_kare")

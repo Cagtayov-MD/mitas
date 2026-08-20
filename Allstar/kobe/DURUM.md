@@ -1,5 +1,13 @@
 # Kobe kulesi — canlı durum
 
+> **2026-08-20 — GİRİŞTE YANLIŞ `KREDI_YOK` KURTARMASI.** Sezgisel
+> sınır motoru statik kartı az blob nedeniyle reddetse bile bitş şelalesi
+> 30 karede en az 12 gerçek kredi-içerik karesi bulursa girişi `BULUNDU`
+> yapar. Genel blob eşiği düşürülmedi; tabela/altyazı kalkanı korundu.
+> Gerçek koşu: Çiçek Taksi b1 `1..225`, b3 `1..229`; ikisi de artık
+> yeniden koşuda seri-ortak elle düzeltmeye muhtaç değil. Kobe `105 passed`,
+> Sheriff odak entegrasyonu `26 passed`.
+
 > **2026-08-20 — GİRİŞ KARE SÖZLEŞMESİ DÜZELTİLDİ.** Kobe girişte artık
 > OCR/dedup ile kare seçmez; bulduğu `baslangic_kare..bitis_kare` aralığını
 > boşluksuz kopyalar ve `mod=ardisik_aralik` manifestosu yazar. LeBron bu

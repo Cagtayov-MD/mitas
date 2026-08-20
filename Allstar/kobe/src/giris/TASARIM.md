@@ -83,6 +83,12 @@ güven <  GUVEN_ESIK →  bas = 0.0,       bit = PENCERE_SN   (sabit geri düş�
 edilmez** — sabit pencereye düşüldüğü `kanit`'e yazılır
 (`sinir_kaynagi: "tespit" | "sabit"`).
 
+Sınır motoru hiçbir koşuyu kabul etmezse ana akıştaki bitş şelalesi
+bağımsız yoğun OCR-içerik kanıtına bakar. Kalibre W30/K12 kuralı
+ateşlenirse statik kart `KREDI_YOK`a dönüşmez; kaynak
+`sinir_kaynagi: "bitis-kaniti"` olarak ayrıca işaretlenir. Genel blob
+kalkanı bu kurtarma için gevşetilmez.
+
 Motor patlarsa → `ARIZA(sinif="GIRIS_SINIR")`. Sessizce sabit pencereye
 düşmek YASAK — arıza arızadır.
 

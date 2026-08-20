@@ -9,9 +9,11 @@ sadeleştirilmiş — uzun-scroll istisnası burada YOK, bkz. TASARIM.md):
     güven ≥ GUVEN_ESIK  →  bas = tespit start_sec,  bit = tespit end_sec
     güven <  GUVEN_ESIK →  bas = 0.0,                bit = PENCERE_SN (sabit)
 
-Motor "found=False" derse (hiçbir aday koşu yok) → KREDI_YOK'a çevrilir
-(main.py). Motor patlarsa istisna YUKARI bırakılır — main.py bunu
-ARIZA(GIRIS_SINIR) yapar. Sessizce sabit pencereye düşmek YASAK.
+Motor "found=False" derse bu katman ``bulundu=False`` döndürür. Ana akışın
+bitiş şelalesi yoğun OCR-içerik kanıtıyla son bir kurtarma dener; o da
+bulamazsa KREDI_YOK'a çevrilir (main.py). Motor patlarsa istisna YUKARI
+bırakılır — main.py bunu ARIZA(GIRIS_SINIR) yapar. Sessizce sabit pencereye
+düşmek YASAK.
 """
 from __future__ import annotations
 

@@ -332,7 +332,9 @@ def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
     """GİRİŞ bölümü karar + artefakt(lar). Hata → _ArizaSinyali (tek() yakalar).
 
     (a) SINIR (`giris.sinir.bul`) çağrılır — motor patlarsa ARIZA(GIRIS_SINIR),
-    sessizce sabit pencereye düşmek YASAK. Bulunamazsa (found=False) KREDI_YOK.
+    sessizce sabit pencereye düşmek YASAK. Sınır bulunamazsa bitiş
+    şelalesindeki yoğun OCR-içerik kanıtı bir kez daha bakar; o da kanıt
+    bulamazsa KREDI_YOK.
     Bulunduysa `--uret kare`, sınır içindeki boşluksuz aralığı kopyalar;
     artefakt yolunda OCR/dedup sınıflandırması çalışmaz.
     """

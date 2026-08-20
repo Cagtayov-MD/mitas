@@ -73,6 +73,38 @@ def test_selale_kredi_yokta_dokunulmaz(monkeypatch):
     assert b["bitis_kare"] is None
 
 
+def test_selale_kredi_yokta_yogun_icerik_kanitiyla_kurtarir(monkeypatch):
+    """Statik açılış blob kalkanına takılsa da yoğun OCR kanıtı kaybolmaz."""
+    monkeypatch.setattr(
+        bitis.havuz, "icerik_kareleri",
+        lambda d: [f"/x/g_{i:05d}.png" for i in range(100, 116)],
+    )
+    b = _b(bulundu=False, bit=None)
+    b["guven"] = 0.0
+    b["kanit"] = {"tespit_ham": {"found": False}}
+
+    sonuc = bitis.duzelt(b, "/yok", ters_aday=None)
+
+    assert sonuc["bulundu"] is True
+    assert sonuc["baslangic_kare"] == 1 and sonuc["baslangic_sn"] == 0.0
+    assert sonuc["bitis_kare"] == 115 and sonuc["bitis_sn"] == 57.5
+    assert sonuc["guven"] == 0.0  # uydurma güven üretilmez
+    assert sonuc["kanit"]["sinir_kaynagi"] == "bitis-kaniti"
+    assert sonuc["kanit"]["bitis_kaynagi"] == "kural"
+    assert sonuc["kanit"]["bitis_icerik_kare_sayisi"] == 16
+
+
+def test_selale_kredi_yokta_ince_izciler_kurtaramaz(monkeypatch):
+    """Dağınık diyalog ismi/tabela, kalın kredi bloğu sayılmaz."""
+    monkeypatch.setattr(
+        bitis.havuz, "icerik_kareleri",
+        lambda d: ["/x/g_00010.png", "/x/g_00080.png", "/x/g_00160.png"],
+    )
+    sonuc = bitis.duzelt(_b(bulundu=False, bit=None), "/yok", ters_aday=None)
+    assert sonuc["bulundu"] is False
+    assert sonuc["bitis_kare"] is None
+
+
 def test_selale_kapatilabilir(monkeypatch):
     monkeypatch.setattr(bitis.havuz, "icerik_kareleri", lambda d: ["x"])
     b = bitis.duzelt(_b(bit=41), "/yok",

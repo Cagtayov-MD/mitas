@@ -144,7 +144,7 @@ def main() -> int:
              "bitis_sapma_kare": _istatistik("bit_sapma"),
              "kaynak_dagilimi": {k: sum(1 for r in kayitlar
                                         if r.get("kaynak") == k and r["bulundu"])
-                                 for k in ("tespit", "sabit")},
+                                 for k in ("tespit", "sabit", "bitis-kaniti")},
              "not": "başlangıç: geriye dönük sapma KABUL (Çağatay 2026-08-17) — "
                     "yalnız 'gec_baslangic' hata sayılır. bitiş: kırmızı çizgi "
                     "YOK — dağılım görülünce konur",

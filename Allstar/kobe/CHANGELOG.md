@@ -1,5 +1,21 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-20 — girişte yanlış `KREDI_YOK` yoğun içerik kanıtıyla kurtarıldı
+
+- Genel `STATIC_NBLOB_MIN=3` kalkanı gevşetilmedi; altyazı/tabela
+  yanlış-pozitif koruması aynen kaldı.
+- İlk sezgisel sınır motoru hiçbir koşuyu kabul etmese bile mevcut
+  sağdan-sola bitşi kuralı 30 karede en az 12 gerçek kredi-içerik karesi
+  bulursa sonuç `KREDI_YOK` değil `BULUNDU` olur.
+- Kanıt açık: `sinir_kaynagi=bitis-kaniti`, `bitis_kaynagi=kural`,
+  içerik kare sayısı ve W/K eşikleri JSON'a yazılır; uydurma güven
+  üretilmez.
+- Gerçek kanıt: Çiçek Taksi b1 `KREDI_YOK → 1..225`, b3
+  `KREDI_YOK → 1..229`. B1'de 223. kareden itibaren saf yol görüntüsü;
+  jenerik yazısı kesilmiyor.
+- Kapılar: Kobe `105 passed`; Sheriff sözleşme/DAG/materialize entegrasyonu
+  `26 passed`.
+
 ## 2026-08-20 — girişte kare eleme kaldırıldı, ardışık aralık sözleşmesi
 
 - `--bolum giris --uret kare` artık OCR sınıflandırması/dedup havuzu değil,
