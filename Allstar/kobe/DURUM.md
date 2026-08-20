@@ -1,5 +1,15 @@
 # Kobe kulesi — canlı durum
 
+> **2026-08-20 — GİRİŞ KARE SÖZLEŞMESİ DÜZELTİLDİ.** Kobe girişte artık
+> OCR/dedup ile kare seçmez; bulduğu `baslangic_kare..bitis_kare` aralığını
+> boşluksuz kopyalar ve `mod=ardisik_aralik` manifestosu yazar. LeBron bu
+> sözleşmede statik oyuncu kartlarını kesen akıllı bıçağı kapatır. Gerçek kabul:
+> Çiçek Taksi b2 `1..228 = 228/228`, Erol/Gül/Ümit/Tuna tam kart; LeBron
+> `OKUNDU`, 40 segment, 44 satır. Suç Dosyası b6 `1..170 = 170/170`; eski
+> LeBron `ARIZA` sonucu yeni akışta `OKUNDU`. Sheriff manifestoyu byte-aynı
+> taşır ve frame+manifest birleşik hash'iyle korur. Aşağıdaki “(b) HAVUZ seçer”
+> kayıtları tarihsel kararlardır; aktif artefakt sözleşmesini artık tarif etmez.
+
 > **Yeni hat notu (2026-08-17):** Kobe artık `Allstar/sheriff` tarafından
 > attempt-scoped `--out` ile çağrılabilir. Aktif giriş motoru ve rol sözlüğü
 > Kobe içindedir; `core/`/`scripts/` çalışma zamanı import'u yoktur. Aşağıdaki

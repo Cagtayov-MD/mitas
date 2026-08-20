@@ -67,6 +67,31 @@ def test_kare_havuzu_sifirin_altina_inmez(tmp_path, monkeypatch):
     assert c.uretilen[0]["ilk_kare"] == 1
 
 
+def test_giris_kareleri_sinir_icinde_ARDISIK_yazilir(tmp_path):
+    """Kobe girişte sınıflandırıp aradan kare silemez; yalnız sınırı uygular."""
+    d = _kare_dizini(tmp_path / "kaynak", adet=10)
+    kok = tmp_path / "out"
+    hedef = kok / "F1" / "giris" / "kareler"
+    hedef.mkdir(parents=True)
+    (hedef / "c_00009.png").write_bytes(b"bayat")
+    girdi = Girdi(film_id="F1", kareler=str(d), bolum="giris")
+
+    u = main._artefakt_uret_giris(
+        "kare", girdi, d, kok,
+        {"baslangic_kare": 3, "bitis_kare": 6,
+         "baslangic_sn": 1.5, "bitis_sn": 3.0})
+
+    assert [p.name for p in sorted(hedef.glob("*.png"))] == [
+        "c_00003.png", "c_00004.png", "c_00005.png", "c_00006.png"]
+    assert u == {"tip": "kare", "yol": "kareler", "adet": 4,
+                 "secim": "ardisik_aralik", "ilk_kare": 3, "son_kare": 6,
+                 "sinif_manifesto": "_sinif.json"}
+    m = json.loads((hedef / "_sinif.json").read_text(encoding="utf-8"))
+    assert m["mod"] == "ardisik_aralik"
+    assert m["ilk_kare"] == 3 and m["son_kare"] == 6
+    assert m["kareler"] == {}
+
+
 # ── sessiz klip ─────────────────────────────────────────────────────────
 def test_klip_10sn_geriden_kesilir_ve_sessiz(tmp_path, monkeypatch):
     cagrilar = []

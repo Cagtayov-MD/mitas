@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Kobe — film sonu jeneriğinin başladığı kareyi bulur. Başka hiçbir şey yapmaz.
+"""Kobe — kapanış başlangıcını ve giriş başlangıç/bitiş sınırını bulur.
+
+Giriş kare artefaktında sınır içindeki zaman serisini aynen korur; OCR/dedup
+ile aradan kare silmez. Master üretmek ve okumak başka kulelerin işidir.
 
 Kule girişi. Motor (src/motor.py) burayı bilmez; çeviri tek yönlüdür.
 Çalıştırma: Allstar/kobe/kobe start --input /yol/videolar
@@ -102,33 +105,31 @@ def kare_cikar(video: str, hedef: Path, bolum: str = "cikis") -> tuple[Path, int
     return hedef, ss
 
 
-def kare_havuzu_yaz(kaynak: Path, hedef: Path, ilk_kare: int) -> int:
-    """Kaynak dizindeki `ilk_kare`'den sonuna kadar olan kareleri hedefe KOPYALA.
+def kare_havuzu_yaz(kaynak: Path, hedef: Path, ilk_kare: int,
+                    son_kare: int | None = None) -> int:
+    """Kaynak dizindeki kapalı ``ilk_kare..son_kare`` aralığını KOPYALA.
 
     Kopyalar, taşımaz: kaynak dışarıdan verilmiş olabilir ve Kobe kendi
     yaratmadığına dokunmaz (tek-yazar ilkesi). Dosya adları korunur —
     `motor._kare_no()` addaki sayıyı mutlak kare numarası olarak okur.
+
+    ``son_kare=None`` çıkıştaki eski davranıştır: kaynağın sonuna kadar gider.
+    Hedef Kobe'nin yönettiği türetilmiş artefakttır; yeniden koşuda önceki
+    koşudan kalan görüntüler temizlenir. Aksi halde daha kısa yeni bir giriş
+    aralığının arkasında bayat kareler kalıp seri yeniden bozulur.
     """
     import motor
     hedef.mkdir(parents=True, exist_ok=True)
+    for desen in ("*.png", "*.jpg", "*.jpeg"):
+        for eski in hedef.glob(desen):
+            eski.unlink()
+    (hedef / "_sinif.json").unlink(missing_ok=True)
     n = 0
     for p in motor.kareler(str(kaynak)):
-        if motor._kare_no(p) >= ilk_kare:
+        kare_no = motor._kare_no(p)
+        if kare_no >= ilk_kare and (son_kare is None or kare_no <= son_kare):
             shutil.copy2(p, hedef / Path(p).name)
             n += 1
-    return n
-
-
-def kare_havuzu_yaz_secili(kaynak_yollari: list[str], hedef: Path) -> int:
-    """GİRİŞ kare havuzu: `giris.havuz.sec()`'in seçtiği (ARDIŞIK OLMAYAN) tek
-    tek yolları hedefe KOPYALA. `kare_havuzu_yaz`'ın aksine bir ARALIK değil,
-    önceden seçilmiş bir liste alır."""
-    hedef.mkdir(parents=True, exist_ok=True)
-    n = 0
-    for yol in kaynak_yollari:
-        p = Path(yol)
-        shutil.copy2(p, hedef / p.name)
-        n += 1
     return n
 
 
@@ -215,23 +216,31 @@ def _artefakt_uret_giris(uret: str, girdi: Girdi, dizin: Path, kok: Path,
     """GİRİŞ artefaktı üret → `uretilen` künyesinin bir elemanı.
 
     `sinir_sonuc`: sinir.bul()'un BULUNDU çıktısı (baslangic_*/bitis_* dolu).
-    kare: (b) HAVUZ'un seçtiği kareler — ARDIŞIK ARALIK DEĞİL. klip:
+    kare: Kobe'nin bulduğu kapalı zaman aralığındaki TÜM kareler. Kobe'nin
+    görevi sınır bulmaktır; OCR/dedup ile aradan kare silmez. klip:
     baslangic_sn-GERI_PAY_SN → bitis_sn (çıkıştaki gibi filmin sonuna GİTMEZ).
     """
     hedef_kok = Path(kok) / girdi.film_id / girdi.bolum
     if uret == "kare":
-        from giris import havuz
-        h = havuz.sec(str(dizin), sinir_sonuc, girdi.config)
-        adet = kare_havuzu_yaz_secili(h["kareler"], hedef_kok / "kareler")
-        # Sınıf manifestosu: tüketici (LeBron) hangi karenin alt-bant
-        # kurtarması olduğunu bilsin. Havuzdan atmak yerine etiketliyoruz.
-        sinif_yolu = hedef_kok / "kareler" / "_sinif.json"
+        ilk = max(1, int(sinir_sonuc.get("baslangic_kare") or 1))
+        ham_son = sinir_sonuc.get("bitis_kare")
+        son = int(ham_son) if ham_son is not None else None
+        kare_hedefi = hedef_kok / "kareler"
+        adet = kare_havuzu_yaz(Path(dizin), kare_hedefi, ilk, son)
+        # LeBron giriş serisinin gerçekten ardışık olduğunu ve statik oyuncu
+        # kartlarının "kayma başlamadı" diye akıllı bıçakla kesilmemesi
+        # gerektiğini bu sözleşmeden öğrenir. ``kareler`` bilerek boştur:
+        # giriş artefaktında kare-bazlı eleme/sınıflandırma artık yoktur.
+        sinif_yolu = kare_hedefi / "_sinif.json"
         sinif_yolu.write_text(
-            json.dumps(h.get("siniflar") or {}, ensure_ascii=False, indent=1),
+            json.dumps({"surum": 1, "mod": "ardisik_aralik",
+                        "kaynak": str(Path(dizin).resolve()),
+                        "ilk_kare": ilk, "son_kare": son,
+                        "kare_fps": float(KARE_FPS), "kareler": {}},
+                       ensure_ascii=False, indent=1),
             encoding="utf-8")
-        return {"tip": "kare", "yol": "kareler", "adet": adet, "secim": "havuz",
-                "taranan": h["taranan"], "elenen_footage": h["elenen_footage"],
-                "dedup_temsilci": h["dedup_temsilci"],
+        return {"tip": "kare", "yol": "kareler", "adet": adet,
+                "secim": "ardisik_aralik", "ilk_kare": ilk, "son_kare": son,
                 "sinif_manifesto": sinif_yolu.name}
     bas_sn = max(0.0, sinir_sonuc["baslangic_sn"] - GERI_PAY_SN)
     bit_sn = sinir_sonuc["bitis_sn"]
@@ -324,7 +333,8 @@ def _giris_sonucu(girdi: Girdi, dizin: Path, pencere_ss: float,
 
     (a) SINIR (`giris.sinir.bul`) çağrılır — motor patlarsa ARIZA(GIRIS_SINIR),
     sessizce sabit pencereye düşmek YASAK. Bulunamazsa (found=False) KREDI_YOK.
-    Bulunduysa (b) HAVUZ yalnız `--uret kare` istenince çalışır (pahalı OCR).
+    Bulunduysa `--uret kare`, sınır içindeki boşluksuz aralığı kopyalar;
+    artefakt yolunda OCR/dedup sınıflandırması çalışmaz.
     """
     try:
         b = giris_karar(dizin, girdi.config)

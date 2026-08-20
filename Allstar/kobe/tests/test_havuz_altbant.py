@@ -89,3 +89,43 @@ def test_kutusuz_kare_hala_footage(monkeypatch):
     al, _, neden = havuz._kare_karari("x.png")
     assert al is False
     assert neden == "footage"
+
+
+# ── temsil sayısı (2026-08-20, Çağatay'ın bulgusu) ──────────────────────
+# Dedup aynı metni okuyan kareleri TEK temsilciye indiriyor. Aşağı akıştaki
+# LeBron ise tek kareli segmentten EK KANIT istiyor ("anlık yazı olmasın").
+# İki kural ters çalışıyor: kart ne kadar TEMİZ okunursa dedup onu o kadar
+# kesin tek kareye indiriyor, kapı da ona o kadar sert davranıyor.
+# EROL GÜNAYDIN beş karede de aynı okundu → tek temsilci → LeBron eledi.
+# Çözüm: dedup'ın YOK ETTİĞİ bilgiyi taşı — temsilci kaç kareyi temsil ediyor.
+
+def test_temsil_kare_sayilir(monkeypatch, tmp_path):
+    """Aynı metni okuyan 3 kare → 1 temsilci, ama temsil_kare=3."""
+    for n in (1, 2, 3):
+        (tmp_path / f"g_{n:04d}.png").write_bytes(b"x")
+    _kur(monkeypatch, n=2, alt_only=False, satirlar=["EROL GÜNAYDIN"], kredi=1)
+    r = havuz.sec(tmp_path, None)
+    assert len(r["kareler"]) == 1                     # dedup calisti
+    kayit = r["siniflar"]["g_0001.png"]
+    assert kayit["sinif"] == "icerik"
+    assert kayit["temsil_kare"] == 3                  # ama kac kare oldugu KAYITLI
+    # KARDES ADRESLERI: tuketici gerekirse kaynaktan cekebilsin
+    assert kayit["temsil"] == ["g_0001.png", "g_0002.png", "g_0003.png"]
+    assert kayit["metin"] == "EROL GÜNAYDIN"
+    assert r["kaynak"].endswith(str(tmp_path).split("/")[-1])
+
+
+def test_tek_karelik_yazi_temsil_1(monkeypatch, tmp_path):
+    """Gercekten anlik yazi: tek kare → temsil_kare=1, kapi sinavina girer."""
+    (tmp_path / "g_0001.png").write_bytes(b"x")
+    _kur(monkeypatch, n=2, alt_only=False, satirlar=["ANLIK"], kredi=1)
+    r = havuz.sec(tmp_path, None)
+    assert r["siniflar"]["g_0001.png"]["temsil_kare"] == 1
+
+
+def test_imzasiz_kare_temsil_1(monkeypatch, tmp_path):
+    """Satiri olmayan (recall) kare dedup'a girmez; temsil_kare 1 kalir."""
+    (tmp_path / "g_0001.png").write_bytes(b"x")
+    _kur(monkeypatch, n=1, alt_only=False, satirlar=[], kredi=0)
+    r = havuz.sec(tmp_path, None)
+    assert r["siniflar"]["g_0001.png"]["temsil_kare"] == 1

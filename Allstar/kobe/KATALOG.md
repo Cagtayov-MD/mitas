@@ -461,21 +461,24 @@ aktif Kobe artık dış `core/` modülünü çağırmaz.
 
 ### Çözüm — çıkışa dokunmadan, ayrı blok
 
-`src/giris/` doğdu. İki adım, ikisi de Kobe'nin içinde:
+`src/giris/` doğdu. Sınır kararı Kobe'nin içindedir; 2026-08-20'de artefakt
+sözleşmesi düzeltildi:
 
 | | İş | Nasıl |
 |---|---|---|
 | **(a)** | **Sınır** — jenerik nerede başlar, nerede **biter** | `sinir.py` → `detect_from_frames(prefer="first")` ÇAĞRILIR |
-| **(b)** | **Havuz** — hangi kareler kredi taşıyor | `havuz.py` → `giris_jenerik_havuzu.py`'nin *stratejisi*, Kobe'nin aletleriyle |
+| **(b)** | **Bitiş kanıtı** — sağdan-sola şelaleye gerçek içerik sinyali | `bitis.py` + `havuz.icerik_kareleri`; yalnız sınır kararı için |
 
 **Yaklaşım taşındı, kod taşınmadı.** Ne `jenerik_detector.py` ne de
 `giris_jenerik_havuzu.py` kopyalandı — ikisi de yerinde duruyor, üretimde
 çalışıyor. Kule sınırı burada bilerek ve kayıtlı olarak esnetildi
 (§5 "Kule dışında kalan bağ").
 
-**Bölünme:** sınır **klip** için, havuz **kare** için. Gerçek koşu bunu
-doğruladı — SİLAHLAR_KONUŞUYOR'da sınır 0-17.5 sn çıktı ama kredi kareleri
-kare 476'ya kadar yayılıydı. Havuz sınırla kısıtlanmaz, tüm pencereyi tarar.
+**Artefakt ilkesi:** Kobe yalnız jeneriğin yerini belirler. `--uret kare`,
+`baslangic_kare..bitis_kare` aralığındaki bütün kareleri doğal sırayla verir;
+OCR sınıflandırması ve dedup artefakttan kare silemez. Bu düzeltme statik dizi
+açılışlarında LeBron'un aralardaki kartları kaybetmesini ve crossfade anlarını
+yanlış birleştirmesini önler.
 
 ### Çıktı yapısı — bölüm başına ayrı klasör
 
@@ -489,7 +492,8 @@ out/<film_id>/
 └─ giris/                 ← giriş jeneriği (src/giris/)
    ├─ kobe.json           ← baslangic_* VE bitis_* dolu
    ├─ _TAMAM
-   ├─ kareler/   veya     ← secim="havuz" (ayıklanmış, ardışık DEĞİL)
+   ├─ kareler/   veya     ← secim="ardisik_aralik" (başlangıç..bitiş, boşluksuz)
+   │  └─ _sinif.json      ← mod="ardisik_aralik"
    └─ klip/klip.mp4       ← baslangic−10 → bitis_sn
 ```
 

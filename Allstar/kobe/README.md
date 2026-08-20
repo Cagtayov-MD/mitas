@@ -58,7 +58,8 @@ out/<film_id>/
 └─ giris/                 ← giriş jeneriği (src/giris/ — ayrı blok, çalışır)
    ├─ kobe.json           # baslangic_* VE bitis_* dolu
    ├─ _TAMAM
-   ├─ kareler/            # --uret kare  → havuzun seçtiği kareler (ardışık DEĞİL)
+   ├─ kareler/            # --uret kare  → baslangic..bitis, boşluksuz zaman serisi
+   │  └─ _sinif.json      # mod=ardisik_aralik; LeBron giriş sözleşmesi
    └─ klip/klip.mp4       # --uret klip  → baslangic−10 sn → bitis_sn
 ```
 
@@ -68,7 +69,7 @@ etkilenmez. Çıkış motoru (`tespit_v5`) girişte **kullanılamaz**: temel ayr
 (`SON_ERISIM=0.82`: *"aday pencerenin son %18'ine ulaşmalı, yoksa kredi
 değildir"*) girişte **ters** çalışır, çünkü giriş jeneriğinden sonra film her
 zaman devam eder. Girişin kendi bloğu vardır (`src/giris/`: (a) sınır +
-(b) havuz) ve iki bloğun karar mantığı asla birleşmez — `tests/test_izolasyon.py`
+(b) bitiş kanıtı) ve iki bloğun karar mantığı asla birleşmez — `tests/test_izolasyon.py`
 koda kilitler. **Girişin doğruluğu henüz ölçülmedi** ("%94.5" yalnız çıkış
 içindir). Ayrıntı: `KATALOG.md` §7, eksik envanteri: `EKSIKLER.md` G5-G9.
 
@@ -77,7 +78,7 @@ içindir). Ayrıntı: `KATALOG.md` §7, eksik envanteri: `EKSIKLER.md` G5-G9.
 | **Başlangıç** | İkisi de onset'ten **10 sn ÖNCE** başlar (`config.yaml: geri_pay_sn`). Aynı jeneriğin iki temsili farklı yerden başlarsa kıyas bozulur |
 | **Bitiş** | Filmin sonu — jenerik sona kadar akar |
 | **Klip** | Ses akışı **yok** (`-an`). `-c:v copy` — yeniden kodlamaz; `-ss` girdi tarafında olduğu için en yakın keyframe'e **geri** yaslanır (kayma daima erken yönde, 10 sn payın içinde) |
-| **Kare havuzu** | Kaynak dizinden **kopyalanır**, taşınmaz — Kobe kendi yaratmadığına dokunmaz. Dosya adları korunur (`_kare_no` mutlak numarayı addan okur) |
+| **Kare havuzu** | Kaynak dizinden **kopyalanır**, taşınmaz. Girişte `baslangic_kare..bitis_kare` kapalı aralığının tamamıdır; OCR/dedup aradan kare silemez. Dosya adları korunur (`_kare_no` mutlak numarayı addan okur) |
 | **`--uret klip` + `--kareler`** | `ARIZA(GIRDI_HATASI)` — kare dizininden klip kesilemez, sessizce atlanmaz |
 | **`KREDI_YOK` / `ARIZA`** | Artefakt üretilmez; kesecek bir şey yoktur. Sözleşme bunu zorlar |
 
@@ -112,7 +113,7 @@ okunmasını, `_TAMAM` "yazılıyor mu bitti mi" belirsizliğini kapatır.
 | Ne | Yol |
 |---|---|
 | **Karar motoru — ÇIKIŞ** (`tespit_v5`) | `src/cikis/motor.py` |
-| **Karar bloğu — GİRİŞ** (sınır + havuz) | `src/giris/sinir.py`, `src/giris/havuz.py` |
+| **Karar bloğu — GİRİŞ** (sınır + bitiş kanıtı) | `src/giris/sinir.py`, `src/giris/bitis.py`, `src/giris/havuz.py` |
 | Kutu sinyali (Paddle det, dilden bağımsız) | `src/ortak/kutu.py` |
 | İçerik analizi (isim/rol, çok-dil) | `src/ortak/icerik.py` |
 | Sözleşme (`Girdi`/`Cikti`/`ariza`) | `sozlesme.py` |

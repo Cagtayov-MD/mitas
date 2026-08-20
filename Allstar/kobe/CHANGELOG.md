@@ -1,5 +1,18 @@
 # Kobe — değişiklik günlüğü
 
+## 2026-08-20 — girişte kare eleme kaldırıldı, ardışık aralık sözleşmesi
+
+- `--bolum giris --uret kare` artık OCR sınıflandırması/dedup havuzu değil,
+  `baslangic_kare..bitis_kare` kapalı aralığının tamamını kopyalar.
+- `_sinif.json` içinde `mod=ardisik_aralik`, kaynak ve ilk/son kare taşınır.
+- Yeniden koşuda eski görüntüler temizlenir; daha kısa yeni sınırın arkasında
+  bayat kare kalamaz.
+- LeBron ardışık giriş manifestosunda akıllı bıçağı kapatır; Sheriff manifestoyu
+  materialized frame girdisine taşır ve birleşik hash ile doğrular.
+- Gerçek kanıt: Çiçek Taksi b2 228/228 kare, tam Erol/Gül/Ümit/Tuna kartları,
+  `OKUNDU`; Suç Dosyası b6 170/170 kare, eski `ARIZA`dan `OKUNDU`ya geçti.
+- Kapılar: Kobe `103 passed`, LeBron `199 passed`, Sheriff `73 passed`.
+
 ## 2026-08-17 (9) — GİRİŞ BİTİŞİ REVİZE: şelale (ters-motor → kural → sinir)
 
 36-film GT teşhisi: sinirün bitişi 20 filmde çok erken kesiyordu (aralıklı

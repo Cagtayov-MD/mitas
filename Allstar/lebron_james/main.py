@@ -276,6 +276,8 @@ def tek(girdi: Girdi, kok: Path | None = None) -> Cikti:
              "sinif_sayimi": manifest.get("sinif_sayimi"),
              "scroll_dy_medyan": manifest.get("scroll_dy_medyan"),
              "olcum_yolu": manifest.get("olcum_yolu"),
+             "girdi_modu": manifest.get("girdi_modu"),
+             "bicak": manifest.get("bicak"),
              "collapse_recovery": manifest.get("collapse_recovery")}
 
     if kanvas is None:

@@ -30,38 +30,83 @@ def nat_sort_key(yol: str | Path):
 ALT_BANT_SINIFI = "recall_altbant"
 
 
-def _alt_bant_adlari(d: Path) -> set[str]:
-    """Kobe'nin `_sinif.json` manifestosundan alt-bant kurtarmalarını oku.
+KARDES_TAVANI = 3      # kart başına yüklenecek EN FAZLA kare
 
-    NEDEN AYIKLIYORUZ: LeBron bir KAYMA birleştiricisidir. Alt-bant
-    kurtarmaları aynı DURAN kartın neredeyse aynı kopyalarıdır; havuza
-    girdiklerinde kayma ölçümünü sulandırırlar. Ölçüldü (2026-08-20,
-    Çiçek Taksi b2 girişi): havuz 93→127 kareye çıkınca master
-    6087 px / 21 segment yerine 449 px / 1 segment'e ÇÖKTÜ.
 
-    Bu kareler ATILMIYOR — Kobe'nin havuzunda duruyorlar ve Nash ile
-    Jordan onları okuyor (ikisi de kareyi TEK TEK okur, kaymaya ihtiyaç
-    duymaz). Yalnız LeBron'un birleştirmesinden çıkarılıyorlar.
-    Manifesto yoksa hiçbir şey ayıklanmaz — eski davranış aynen sürer.
-    """
+def _manifest_ham(d: Path) -> dict:
+    """``_sinif.json`` dosyasını sözlük olarak oku; hata LeBron'u durdurmaz."""
     m = d / "_sinif.json"
     if not m.is_file():
-        return set()
+        return {}
     try:
         import json
         veri = json.loads(m.read_text(encoding="utf-8"))
     except Exception:                                     # noqa: BLE001
-        return set()
-    if not isinstance(veri, dict):
-        return set()
-    return {ad for ad, sinif in veri.items() if sinif == ALT_BANT_SINIFI}
+        return {}
+    return veri if isinstance(veri, dict) else {}
+
+
+def _manifest(d: Path) -> tuple[dict[str, dict], Path | None]:
+    """Kobe'nin `_sinif.json`'ını normalleştirerek oku → (kayıtlar, kaynak).
+
+    Üç biçim desteklenir (geriye uyum):
+      * düz     `{ad: "sinif"}`
+      * sözlük  `{ad: {"sinif":…, "temsil_kare": N}}`
+      * sarmalı `{"kaynak": …, "kareler": {ad: {…, "temsil": [...]}}}`
+    Manifesto yoksa/bozuksa boş döner — kule DURMAZ, ek bilgiden yararlanamaz.
+    """
+    veri = _manifest_ham(d)
+    if not veri:
+        return {}, None
+    kaynak = None
+    if "kareler" in veri and isinstance(veri.get("kareler"), dict):
+        ham_kaynak = veri.get("kaynak")
+        kaynak = Path(ham_kaynak) if ham_kaynak else None
+        veri = veri["kareler"]
+    cikti: dict[str, dict] = {}
+    for ad, k in veri.items():
+        if isinstance(k, dict):
+            cikti[ad] = {"sinif": k.get("sinif"),
+                         "temsil_kare": int(k.get("temsil_kare") or 1),
+                         "temsil": list(k.get("temsil") or [ad])}
+        else:
+            cikti[ad] = {"sinif": k, "temsil_kare": 1, "temsil": [ad]}
+    return cikti, kaynak
+
+
+def ardisik_aralik_mi(dizin: str | Path) -> bool:
+    """Kobe'nin girişte hiç kare silmeden sınır aralığını verdiğini bildirir."""
+    return _manifest_ham(Path(dizin)).get("mod") == "ardisik_aralik"
+
+
+def temsil_sayilari(dizin: str | Path) -> dict[str, int]:
+    """Dosya adı → o karenin TEMSİL ETTİĞİ kare sayısı."""
+    return {ad: k["temsil_kare"] for ad, k in _manifest(Path(dizin))[0].items()}
+
+
+def genisletildi_mi(dizin: str | Path) -> bool:
+    """Kardeş kareler yüklendi mi? Derleyici bıçağı buna göre susar."""
+    kayit, kaynak = _manifest(Path(dizin))
+    return bool(kaynak and kaynak.is_dir()
+                and any(len(k["temsil"]) > 1 for k in kayit.values()))
 
 
 def kareler(dizin: str | Path) -> list[Path]:
     """Dizindeki kare dosyaları — DOĞAL sırada. Okumaz, yalnız listeler.
 
-    Kobe manifestosu varsa alt-bant kurtarmaları ELENİR (bkz.
-    `_alt_bant_adlari` gerekçesi).
+    Yeni Kobe giriş sözleşmesinde dizin zaten ardışık sınır aralığıdır ve
+    hiçbir genişletme yapılmaz. Aşağıdaki KARDEŞ GENİŞLETME yalnız eski,
+    seyrek manifestoları okuyabilmek içindir: Kobe dedup'ı aynı kartın 8
+    karesini 1 temsilciye indiriyor. Derleyici ise ardışıklığa dayanır —
+    tek kareden sayfa açamaz. Manifesto kardeşlerin ADRESİNİ taşıyorsa
+    onları KAYNAKTAN yükleriz; kare çoğaltılmaz, geri getirilir.
+
+    ÖLÇÜLDÜ (Çiçek Taksi b2 girişi): genişletme + bıçak kapalı ile master
+    3.921 px / 0 isim yerine 15.596 px / **16 isim**. Kadronun tamamı.
+
+    Kart başına `KARDES_TAVANI` kareyle sınırlıdır — hepsini almak havuzu
+    gereksiz şişirir, ölçümde 3 ile 8 arasında fark çıkmadı.
+    Manifesto yoksa/kaynak erişilemezse eski davranış aynen sürer.
     """
     d = Path(dizin)
     if not d.is_dir():
@@ -69,10 +114,20 @@ def kareler(dizin: str | Path) -> list[Path]:
     bulunan: list[Path] = []
     for desen in DESEN:
         bulunan.extend(d.glob(desen))
-    alt_bant = _alt_bant_adlari(d)
-    if alt_bant:
-        bulunan = [p for p in bulunan if p.name not in alt_bant]
-    return sorted(bulunan, key=nat_sort_key)
+    kayit, kaynak = _manifest(d)
+    if not (kayit and kaynak and kaynak.is_dir()):
+        return sorted(bulunan, key=nat_sort_key)
+
+    secili: dict[str, Path] = {}
+    for p in bulunan:
+        secili.setdefault(p.name, p)
+        for kardes in (kayit.get(p.name, {}).get("temsil") or [])[:KARDES_TAVANI]:
+            if kardes in secili:
+                continue
+            aday = kaynak / kardes
+            if aday.is_file():
+                secili[kardes] = aday
+    return sorted(secili.values(), key=nat_sort_key)
 
 
 def kare_oku(yol: str | Path):

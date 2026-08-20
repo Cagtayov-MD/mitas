@@ -738,10 +738,22 @@ def derle(
     oz = {**OZELLIKLER, **(ozellikler or {})}
 
     kaynaklar = None
+    # Kobe manifestosu: hangi kare kaç kareyi temsil ediyor. Tek-kare
+    # kapısı bunu kullanır (bkz. _gecerli_segment). Manifesto yoksa boş
+    # kalır ve kapı eski davranışını aynen sürdürür.
+    temsil_haritasi: dict[str, int] = {}
+    _kardes_genisletme = False
+    _ardisik_aralik = False
     if ims is None:
         if not kare_dizini or not os.path.isdir(kare_dizini):
             return None, {"slug": slug, "durum": "kare_yok", "kare": 0,
                           "sebep": "Klasor bulunamadi"}
+        from yukleyici import temsil_sayilari as _temsil
+        from yukleyici import genisletildi_mi as _genis
+        from yukleyici import ardisik_aralik_mi as _ardisik
+        temsil_haritasi = _temsil(kare_dizini)
+        _kardes_genisletme = _genis(kare_dizini)
+        _ardisik_aralik = _ardisik(kare_dizini)
         from yukleyici import kare_oku as _kare_oku, kareler as _kareler
         ims, kaynaklar = [], []
         for yol in _kareler(kare_dizini):
@@ -837,6 +849,29 @@ def derle(
                 bitis = min(len(ciftler) - 1, idx_trim + tolerans)
                 break
 
+    # BIÇAK, ARDIŞIK GİRİŞ ARALIĞINDA SUSAR (Çağatay 2026-08-20).
+    # Bıçak "jenerik, kaymanın başladığı yerde başlar" varsayar ve öncesini
+    # çöp footage sayıp keser. Film jeneriğinde doğru; DİZİ açılışında
+    # felaket: oyuncu kartları DURUR (dy≈0), bıçak onları geçip ekip
+    # bölümündeki kaymadan başlatır — KADRONUN TAMAMI kesilir.
+    # Kobe giriş manifestosu ``mod=ardisik_aralik`` dediğinde sınırı zaten
+    # Kobe bulmuştur; LeBron'un ikinci kez hareketten sınır araması hem
+    # gereksiz hem statik kartlar için yıkıcıdır. Eski kardeş-genişletme
+    # manifestoları da geriye uyum için aynı güvenli yolu kullanır.
+    # Ölçüldü (Çiçek Taksi b2 girişi, ardışık kareler):
+    #     bıçak açık   → 119 kare / 13 segment /  3.921 px /  0 isim
+    #     bıçak kapalı → 250 kare / 53 segment / 15.596 px / 16 isim
+    bicak_pasif = _ardisik_aralik or _kardes_genisletme
+    if bicak_pasif:
+        baslangic, bitis = 0, len(ciftler) - 1
+    bicak_bilgisi = {
+        "aktif": not bicak_pasif,
+        "neden": ("kobe_ardisik_aralik" if _ardisik_aralik else
+                  "eski_kardes_genisletme" if _kardes_genisletme else
+                  "varsayilan"),
+        "baslangic_cifti": int(baslangic),
+        "bitis_cifti": int(bitis),
+    }
     ciftler = ciftler[baslangic:bitis]
     ims = ims[baslangic:bitis + 1]
     griler = griler[baslangic:bitis + 1]
@@ -990,7 +1025,21 @@ def derle(
             return False
         if len(si) > 1:
             return True
-        # tek-kare segment: hangi ölçüm yolundaysak o yolun metin kanıtı
+        # TEK KARE — AMA DEDUP TEMSİLCİSİ Mİ? (Çağatay'ın bulgusu 2026-08-20)
+        # Bu kapının asıl sorduğu şey "yazı ekranda SÜRDÜ mü?"; kare sayısı
+        # bunun VEKİLİYDİ. Kobe dedup'ı aynı metni okuyan kareleri tek
+        # temsilciye indirince vekil bozuldu: 5 kare süren kart da, 1 karede
+        # parlayan da "1 kare" görünür oldu. Ölçülen kayıp — EROL GÜNAYDIN
+        # beş karede de AYNI okundu, tek temsilciye indi, burada elendi.
+        # Kartın kusuru doğru okunmasıydı.
+        # Çare kareyi çoğaltmak DEĞİL (havuzu şişirir, derleyiciyi çökertir:
+        # 128 kare → 1 segment / 449 px, ölçüldü); Kobe'nin zaten bildiği
+        # gerçek sayıyı sormak. Eşik yeni değil — kapının kendi >1 eşiği.
+        if temsil_haritasi:
+            yol = kaynak_haritasi.get(id(si[0]))
+            if yol and temsil_haritasi.get(os.path.basename(yol), 1) > 1:
+                return True
+        # gerçekten tek kare: hangi ölçüm yolundaysak o yolun metin kanıtı
         g = cv2.cvtColor(si[0], cv2.COLOR_BGR2GRAY)
         if olcum_yolu == "sobel":
             return metin_profili(g, sobel_metin_maskesi(g).astype(np.float32))
@@ -1083,6 +1132,8 @@ def derle(
         "olcum_yolu": olcum_yolu,
         "maske_kapsama": round(kapsama, 3),
         "sobel_kurtarma": sobel_kurtarma,
+        "girdi_modu": "ardisik_aralik" if _ardisik_aralik else "standart",
+        "bicak": bicak_bilgisi,
         "collapse_recovery": cokme_kurtarma,
         "ozellikler": oz,
         "sure_s": round(time.time() - t0, 2)

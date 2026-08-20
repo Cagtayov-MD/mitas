@@ -1,5 +1,12 @@
 # Kobe giriş bloğu — tasarım
 
+> **2026-08-20 sözleşme düzeltmesi:** Kobe yalnız giriş jeneriğinin sınırını
+> belirler. `--uret kare`, `baslangic_kare..bitis_kare` aralığındaki bütün
+> kareleri boşluksuz verir. Aşağıdaki havuz sınıflandırması artefakt seçimi
+> için kullanılmaz; yalnız bitiş şelalesine içerik kanıtı sağlar. Bu karar,
+> statik dizi kartlarında OCR dedup'ın zaman serisini kırdığı gerçek Çiçek
+> Taksi ve Suç Dosyası vakalarıyla alınmıştır.
+
 > Opus tasarımı, Sonnet uygular. 2026-08-13.
 > Amaç: giriş jeneriğinin **bir tavrı olsun** — bugün boş kalıyor.
 > Kalite/geliştirme ayrı faz; şimdi sistem ayağa kalkıyor.
@@ -27,8 +34,9 @@ kullanır, yeni kopya almaz.
 | Ayraç | `SON_ERISIM=0.82` — sona ulaşmalı | ters çalışır, **kullanılamaz** |
 | Pencere | son 600 sn | **ilk 240 sn** (`MITAS_OCR_HEAD`) |
 
-Bu yüzden giriş iki adımdır: önce **(a) sınır**, sonra sınırın içinde
-**(b) havuz**.
+Bu yüzden giriş kararı iki kanıt kullanır: **(a) sınır** ve gerektiğinde
+**(b) bitiş şelalesinin içerik kanıtı**. Üretilen kare artefaktıysa kararın
+kapalı zaman aralığıdır; ayrı bir seçici havuz değildir.
 
 ---
 
@@ -80,7 +88,7 @@ düşmek YASAK — arıza arızadır.
 
 ---
 
-## (b) HAVUZ — yaklaşım `giris_jenerik_havuzu.py`'den, aletler Kobe'den
+## (b) BİTİŞ KANITI — yaklaşım `giris_jenerik_havuzu.py`'den, aletler Kobe'den
 
 Sınırın içindeki her kare için:
 
@@ -93,9 +101,9 @@ Sınırın içindeki her kare için:
 | 5. Karar | **satır-bazında OR**: kareye ≥1 meşru kredi satırı yeterse **AL** | recall önceliği |
 | 6. Dedup | aynı metin imzasını taşıyan kareler → **teke indir** | imza = kredi satırları sıralı-birleştirilmiş |
 
-**Recall kuralı (asıl kaynaktan alınır):** OCR/okuma hatası olan kare
-**koşulsuz havuza alınır** — *"okunamadı > yanlış oku"*. Footage (0 satır)
-alınmaz.
+Bu sınıflandırma `bitis.py` için içerik sinyalidir. **Kare artefaktını
+filtrelemez.** OCR/okuma hatası karar kanıtında recall olarak tutulabilir,
+ancak Kobe'nin LeBron/Nash'e verdiği sınır aralığından kare eksiltemez.
 
 Bu, `giris_jenerik_havuzu.py` docstring'indeki tasarım kararının aynısı
 (3 bağımsız Sonnet önerisi + Opus hakem, 2026-06-29).
@@ -144,15 +152,13 @@ giris:  ss = 0,                   length = 240     ← MITAS_OCR_HEAD değeri
 | | Çıkış | Giriş |
 |---|---|---|
 | `--uret klip` | `onset−10` → **filmin sonu** | `baslangic−10` → **`bitis_sn`** |
-| `--uret kare` | onset−10'dan **kaynağın sonuna** | (b)'nin seçtiği **havuz kareleri** |
+| `--uret kare` | onset−10'dan **kaynağın sonuna** | `baslangic_kare..bitis_kare` **ardışık aralığı** |
 
-Girişte kare havuzu ardışık bir aralık DEĞİL — (b)'nin ayıkladığı seçili
-karelerdir. Bu, `uretilen` künyesine yazılır:
+Girişte kare artefaktı ardışık aralıktır. Bu, `uretilen` künyesine yazılır:
 
 ```json
-"uretilen": {"tip": "kare", "yol": "kareler", "adet": 34,
-             "secim": "havuz", "taranan": 480, "elenen_footage": 402,
-             "dedup_temsilci": 34}
+"uretilen": {"tip": "kare", "yol": "kareler", "adet": 228,
+             "secim": "ardisik_aralik", "ilk_kare": 1, "son_kare": 228}
 ```
 
 Çıkışta `"secim": "aralik"` olur. Tüketici farkı buradan görür.
@@ -205,7 +211,8 @@ src/
 └─ giris/
    ├─ TASARIM.md   ← bu dosya
    ├─ sinir.py     ← (a) mevcut motoru çağırır
-   └─ havuz.py     ← (b) kutu.py + icerik.py ile filtreler
+   ├─ bitis.py     ← (b) sağdan-sola bitiş şelalesi
+   └─ havuz.py     ← yalnız bitiş için içerik kanıtı; artefakt seçmez
 ```
 
 `main.py` yönlendirici olur — hangi bloğu çağıracağını bilir, işin nasıl
@@ -215,9 +222,9 @@ yapıldığını bilmez:
 if girdi.bolum == "cikis":
     import motor;  r = motor.tespit_v5(...)
 else:
-    from giris import sinir, havuz
+    from giris import sinir
     b = sinir.bul(dizin, config)
-    r = havuz.sec(dizin, b, config)   # --uret kare istenmişse
+    r = kare_havuzu_yaz(dizin, b.baslangic_kare, b.bitis_kare)
 ```
 
 ---
@@ -230,8 +237,8 @@ else:
 2. **Kule sınırı bilerek esnetildi** — `jenerik_detector` kule dışından
    çağrılıyor. Kopya alınmadı çünkü 921 satır + 2 iç bağımlılık + 9 üretim
    tüketicisi var (dördüncü kopya borcu olurdu).
-3. `giris_jenerik_havuzu.py`'nin **yaklaşımı** alındı, kodu değil. İkisi
-   zamanla ayrışabilir; ayrışırsa hangisinin doğru olduğu **ölçülmemiştir**.
+3. `giris_jenerik_havuzu.py` yaklaşımı yalnız bitiş kanıtında kullanılır;
+   LeBron/Nash kare artefaktının seçicisi değildir.
 
 ## Değişmez
 
