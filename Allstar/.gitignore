@@ -39,3 +39,10 @@ __pycache__/
 # test onlarsiz geciyor; uretilmis ikili veri olduklari icin */out/ ve
 # */olcum/gt/ ile ayni muameleyi goruyorlar. Diskte duruyorlar, silinmediler.
 */tests/master png örnekleri/
+
+# Sheriff toplu/elle koşu artefaktları — kaynak kod değil, diskte korunur.
+# Kanonik Sheriff çalışma alanı zaten */runs/ ve */out/ ile kapalıdır;
+# 2026-08-20'deki doğrudan hazırlama koşusu ayrı `output/` adını kullandı.
+/sheriff/output/
+/_yedek_*/
+/zincir_*.json
