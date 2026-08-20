@@ -13,6 +13,7 @@ Bu dosya dış sözleşmeyi BİLMEZ.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import subprocess
 import tempfile
@@ -56,6 +57,46 @@ def _kare_boyutu(yol: Path) -> tuple[int, int]:
         raise VideoHatasi(f"kare okunamadi ({yol.name}): {e}") from e
 
 
+def _gorsel_ayarlari(cfg: dict) -> tuple[str, str]:
+    v = cfg.get("video", {})
+    suzgec = v.get("suzgec", "scale={genislik}:-2:flags=lanczos").format(
+        genislik=int(v.get("genislik", 720)))
+    if not re.fullmatch(r"[A-Za-z0-9=:,._\-\(\)'%* ]{1,400}", suzgec):
+        raise VideoHatasi(
+            f"video.suzgec izin verilmeyen karakter iceriyor: {suzgec[:80]!r}")
+    bicim = str(v.get("bicim", "jpg")).lower().lstrip(".")
+    if bicim not in {"jpg", "jpeg", "png"}:
+        raise VideoHatasi(f"desteklenmeyen kare bicimi: {bicim}")
+    return suzgec, bicim
+
+
+def _gruplandir(kareler: list[dict], cfg: dict) -> list[dict]:
+    g = cfg.get("grup", {})
+    grup_boyu = int(g.get("kare_sayisi", 8))
+    bindirme = int(g.get("bindirme_kare", 0))
+    if grup_boyu <= 0:
+        raise VideoHatasi("grup.kare_sayisi sifirdan buyuk olmali")
+    if bindirme < 0 or bindirme >= grup_boyu:
+        raise VideoHatasi("grup.bindirme_kare 0 <= bindirme < kare_sayisi olmali")
+
+    gruplar, adim = [], grup_boyu - bindirme
+    for bas in range(0, len(kareler), adim):
+        grup_kareleri = kareler[bas:bas + grup_boyu]
+        if not grup_kareleri:
+            break
+        gruplar.append({
+            "no": len(gruplar),
+            "bas_sn": grup_kareleri[0]["kaynak_sn"],
+            "bit_sn": grup_kareleri[-1]["kaynak_sn"],
+            "ilk_kare": grup_kareleri[0]["sira"],
+            "son_kare": grup_kareleri[-1]["sira"],
+            "kareler": grup_kareleri,
+        })
+        if bas + grup_boyu >= len(kareler):
+            break
+    return gruplar
+
+
 def parcala(video: str, hedef: Path, cfg: dict) -> list[dict]:
     """Videoyu bir kez karelere ayır ve sabit boylu multi-image grupları kur.
 
@@ -63,28 +104,14 @@ def parcala(video: str, hedef: Path, cfg: dict) -> list[dict]:
     parçaları değil, zamanı ve hash'i belli kare gruplarıdır.
     """
     v = cfg.get("video", {})
-    g = cfg.get("grup", {})
+    _gruplandir([], cfg)  # grup reçetesini pahalı ffmpeg çağrısından önce doğrula
     fps = float(v.get("fps", 2))
-    grup_boyu = int(g.get("kare_sayisi", 8))
-    bindirme = int(g.get("bindirme_kare", 0))
     if fps <= 0:
         raise VideoHatasi("video.fps sifirdan buyuk olmali")
-    if grup_boyu <= 0:
-        raise VideoHatasi("grup.kare_sayisi sifirdan buyuk olmali")
-    if bindirme < 0 or bindirme >= grup_boyu:
-        raise VideoHatasi("grup.bindirme_kare 0 <= bindirme < kare_sayisi olmali")
-
-    suzgec = v.get("suzgec", "scale={genislik}:-2:flags=lanczos").format(
-        genislik=int(v.get("genislik", 720)))
+    suzgec, bicim = _gorsel_ayarlari(cfg)
     # Komut LISTE formunda kurulur (shell yok); yine de config/CLI kaynakli
     # suzgec dizgisi ffmpeg'e girmeden once karakter yuzeyinden gecer —
     # bilinen filtre sozdizimi disindaki her deger acikca reddedilir.
-    if not re.fullmatch(r"[A-Za-z0-9=:,._\-\(\)'%* ]{1,400}", suzgec):
-        raise VideoHatasi(f"video.suzgec izin verilmeyen karakter iceriyor: {suzgec[:80]!r}")
-    bicim = str(v.get("bicim", "jpg")).lower().lstrip(".")
-    if bicim not in {"jpg", "jpeg", "png"}:
-        raise VideoHatasi(f"desteklenmeyen kare bicimi: {bicim}")
-
     hedef.mkdir(parents=True, exist_ok=True)
     kare_dizini = Path(tempfile.mkdtemp(prefix="kareler-", dir=hedef))
     desen = kare_dizini / f"frame_%06d.{bicim}"
@@ -117,22 +144,89 @@ def parcala(video: str, hedef: Path, cfg: dict) -> list[dict]:
             "yukseklik": yukseklik,
         })
 
-    gruplar, adim = [], grup_boyu - bindirme
-    for bas in range(0, len(kareler), adim):
-        grup_kareleri = kareler[bas:bas + grup_boyu]
-        if not grup_kareleri:
-            break
-        gruplar.append({
-            "no": len(gruplar),
-            "bas_sn": grup_kareleri[0]["kaynak_sn"],
-            "bit_sn": grup_kareleri[-1]["kaynak_sn"],
-            "ilk_kare": grup_kareleri[0]["sira"],
-            "son_kare": grup_kareleri[-1]["sira"],
-            "kareler": grup_kareleri,
+    return _gruplandir(kareler, cfg)
+
+
+def kare_havuzu(dizin: str, hedef: Path, cfg: dict, *, bolum: str | None = None) -> list[dict]:
+    """Sheriff frame-v1 havuzunu doğrula, kule reçetesiyle hazırla ve grupla.
+
+    Sheriff PNG'leri kaynak kanıttır. Model girdileri yine Jordan config'indeki
+    ölçek/unsharp/biçim/kalite reçetesiyle tek seferde üretilir; modele video
+    nesnesi değil ayrı image yolları gider.
+    """
+    _gruplandir([], cfg)  # grup reçetesini girdi/preprocess işinden önce doğrula
+    kaynak = Path(dizin)
+    manifest = kaynak / "frames.jsonl"
+    try:
+        satirlar = [json.loads(line) for line in manifest.read_text(
+            encoding="utf-8").splitlines() if line.strip()]
+    except (OSError, json.JSONDecodeError) as e:
+        raise VideoHatasi(f"frame manifest okunamadi: {manifest}: {e}") from e
+    if not satirlar:
+        raise VideoHatasi("frame manifest bos")
+
+    kaynaklar: list[Path] = []
+    onceki_sira = 0
+    for row in satirlar:
+        if not isinstance(row, dict):
+            raise VideoHatasi("frame manifest satiri nesne degil")
+        ad, sira = row.get("filename"), row.get("sequence")
+        if (not isinstance(ad, str) or not re.fullmatch(r"frame_[0-9]{6}\.png", ad)
+                or not isinstance(sira, int) or isinstance(sira, bool)
+                or sira <= onceki_sira or ad != f"frame_{sira:06d}.png"):
+            raise VideoHatasi(f"frame manifest sira/dosya gecersiz: {ad!r}")
+        if row.get("schema_version") != "mitas.frame/v1":
+            raise VideoHatasi(f"frame schema gecersiz: {ad}")
+        if bolum is not None and row.get("section") != bolum:
+            raise VideoHatasi(f"frame bolumu uyusmuyor: {ad}")
+        yol = kaynak / ad
+        if not yol.is_file() or _sha256(yol) != row.get("sha256"):
+            raise VideoHatasi(f"frame yok veya hash uyusmuyor: {yol}")
+        kaynaklar.append(yol)
+        onceki_sira = sira
+
+    hedef.mkdir(parents=True, exist_ok=True)
+    baglar = Path(tempfile.mkdtemp(prefix="kaynak-kareler-", dir=hedef))
+    kare_dizini = Path(tempfile.mkdtemp(prefix="kareler-", dir=hedef))
+    for i, yol in enumerate(kaynaklar, 1):
+        (baglar / f"frame_{i:06d}.png").symlink_to(yol.resolve())
+
+    fps = float(cfg.get("video", {}).get("fps", 2))
+    if fps <= 0:
+        raise VideoHatasi("video.fps sifirdan buyuk olmali")
+    suzgec, bicim = _gorsel_ayarlari(cfg)
+    desen = kare_dizini / f"frame_%06d.{bicim}"
+    komut = ["ffmpeg", "-y", "-v", "error", "-framerate", f"{fps:g}",
+             "-i", str(baglar / "frame_%06d.png"), "-vf", suzgec,
+             "-fps_mode", "passthrough"]
+    if bicim in {"jpg", "jpeg"}:
+        komut += ["-q:v", str(int(cfg.get("video", {}).get("jpeg_kalite", 2)))]
+    komut.append(str(desen))
+    try:
+        r = subprocess.run(komut, capture_output=True, text=True, timeout=1800)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise VideoHatasi(f"frame hazirlama baslatilamadi: {e}") from e
+    if r.returncode != 0:
+        raise VideoHatasi(f"frame hazirlama rc={r.returncode}: {r.stderr.strip()[:300]}")
+
+    hazir = sorted(kare_dizini.glob(f"*.{bicim}"))
+    if len(hazir) != len(satirlar):
+        raise VideoHatasi(
+            f"hazirlanan frame sayisi uyusmuyor: {len(hazir)}/{len(satirlar)}")
+    kareler = []
+    for row, yol in zip(satirlar, hazir):
+        genislik, yukseklik = _kare_boyutu(yol)
+        yerel_sn = row.get("section_time_s", row.get("source_time_s"))
+        if not isinstance(yerel_sn, (int, float)) or isinstance(yerel_sn, bool):
+            raise VideoHatasi(f"frame timecode gecersiz: {row.get('filename')}")
+        kareler.append({
+            "sira": row["sequence"], "kaynak_sn": round(float(yerel_sn), 3),
+            "kaynak_video_sn": row.get("source_time_s"),
+            "yol": str(yol), "dosya": yol.name, "sha256": _sha256(yol),
+            "kaynak_dosya": row["filename"], "kaynak_sha256": row["sha256"],
+            "genislik": genislik, "yukseklik": yukseklik,
         })
-        if bas + grup_boyu >= len(kareler):
-            break
-    return gruplar
+    return _gruplandir(kareler, cfg)
 
 
 def _imza(satir: str) -> str:
@@ -195,8 +289,10 @@ def _bloklara_ayir(metin: str) -> list[list[str]]:
 
 def _kare_kaniti(kare: dict) -> dict:
     """Silinecek scratch yolunu dışa sızdırmadan yeniden üretim künyesi."""
-    return {k: kare[k] for k in (
-        "sira", "kaynak_sn", "dosya", "sha256", "genislik", "yukseklik")}
+    zorunlu = ("sira", "kaynak_sn", "dosya", "sha256", "genislik", "yukseklik")
+    istege_bagli = ("kaynak_video_sn", "kaynak_dosya", "kaynak_sha256")
+    return ({k: kare[k] for k in zorunlu}
+            | {k: kare[k] for k in istege_bagli if k in kare})
 
 
 def oku(motor, gruplar: list[dict], cfg: dict) -> tuple[list[dict], dict]:

@@ -10,7 +10,7 @@ sys.path.insert(0, str(KULE))
 sys.path.insert(0, str(KULE / "src"))
 
 from model import CiktiBozuk, _dusunme_ayikla       # noqa: E402
-from okuyucu import _bloklara_ayir, oku, parcala    # noqa: E402
+from okuyucu import _bloklara_ayir, kare_havuzu, oku, parcala    # noqa: E402
 
 
 class SahteMotor:
@@ -215,6 +215,53 @@ def test_parcala_17_kareyi_8_8_1_gruplar(tmp_path, monkeypatch):
     assert [(g["bas_sn"], g["bit_sn"]) for g in gruplar] == [
         (0.0, 3.5), (4.0, 7.5), (8.0, 8.0)]
     assert len(gruplar[0]["kareler"][0]["sha256"]) == 64
+
+
+def test_sheriff_kare_havuzu_jordan_recetesiyle_multi_image_gruplanir(
+        tmp_path, monkeypatch):
+    import hashlib
+    import json
+    import okuyucu
+    from PIL import Image
+
+    kaynak = tmp_path / "pool"
+    kaynak.mkdir()
+    rows = []
+    for sira in (11, 12, 14):
+        yol = kaynak / f"frame_{sira:06d}.png"
+        Image.new("RGB", (1280, 720), color=(sira, 0, 0)).save(yol)
+        rows.append({
+            "schema_version": "mitas.frame/v1", "section": "cikis",
+            "sequence": sira, "filename": yol.name,
+            "source_time_s": sira / 2, "section_time_s": (sira - 11) / 2,
+            "sha256": hashlib.sha256(yol.read_bytes()).hexdigest(),
+        })
+    (kaynak / "frames.jsonl").write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+
+    captured = {}
+    def sahte_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        desen = Path(cmd[-1])
+        for i in range(1, 4):
+            yol = Path(str(desen).replace("%06d", f"{i:06d}"))
+            Image.new("RGB", (720, 405), color=(i, 0, 0)).save(yol)
+        class R:
+            returncode = 0
+            stderr = ""
+        return R()
+
+    monkeypatch.setattr(okuyucu.subprocess, "run", sahte_run)
+    cfg = {"grup": {"kare_sayisi": 2, "bindirme_kare": 1},
+           "video": {"fps": 2, "genislik": 720,
+                     "suzgec": "scale={genislik}:-2:flags=lanczos,unsharp=5:5:1.0",
+                     "bicim": "jpg", "jpeg_kalite": 2}}
+    gruplar = kare_havuzu(str(kaynak), tmp_path / "scratch", cfg, bolum="cikis")
+
+    assert [len(grup["kareler"]) for grup in gruplar] == [2, 2]
+    assert [grup["ilk_kare"] for grup in gruplar] == [11, 12]
+    assert gruplar[0]["kareler"][0]["kaynak_dosya"] == "frame_000011.png"
+    assert "scale=720:-2:flags=lanczos,unsharp=5:5:1.0" in captured["cmd"]
 
 
 def test_gecersiz_bindirme_reddedilir(tmp_path):

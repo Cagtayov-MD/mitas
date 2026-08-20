@@ -151,7 +151,7 @@ towers:
     timeout_seconds: 7200
   reader_video:
     producer_id: jordan
-    revision: jordan-tower-owned-config-v1
+    revision: jordan-frame-pool-tower-owned-config-v2
     executable: ../jordan/jordan
     version_paths:
       - ../jordan/main.py
@@ -160,9 +160,9 @@ towers:
       - ../jordan/gereksinimler.txt
       - ../jordan/venv_kur.sh
       - ../jordan/src
-    # Model, backend ve OCR recetesi Jordan'in kendi config.yaml'ina aittir.
-    # Sheriff yalniz gorev kimligini ve girdiyi iletir.
-    command: [tek, --video, "{input}", --film-id, "{film_id}", --bolum, "{section}"]
+    # Sheriff doğrulanmış Kobe frame havuzunu iletir. Model, backend, grup,
+    # preprocessing ve prompt reçetesi Jordan'in kendi config.yaml'ina aittir.
+    command: [tek, --kareler, "{input}", --film-id, "{film_id}", --bolum, "{section}"]
     isolated_output: false
     result: ../jordan/out/{film_id}/{section}/jordan.json
     marker: ../jordan/out/{film_id}/{section}/_TAMAM

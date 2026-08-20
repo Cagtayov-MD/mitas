@@ -4,10 +4,10 @@
 
 ## 1. Neden var?
 
-Jordan, Kobe'nin belirlediği jenerik klibini frame tabanlı bir VLM okuyucuyla
-okur. LeBron/Magic master-PNG, Nash kendi kare havuzu yoludur; Jordan ise
-klibi kendi içinde standart karelere ayırıp multi-image olarak okuyan bağımsız
-kanaldır.
+Jordan, Kobe'nin belirlediği jenerik aralığını frame tabanlı bir VLM okuyucuyla
+okur. Sheriff'te kesintisiz/doğrulanmış frame-v1 havuzu, bağımsız kullanımda
+video alır; iki yolu da kendi standart görsel reçetesine hazırlayıp multi-image
+olarak okuyan bağımsız kanaldır.
 
 Kule router değildir. Jenerik sınırı bulmaz, isim düzeltmez, harici isim
 veritabanı sorgulamaz ve Shaq uzlaştırma kararını vermez.
@@ -19,15 +19,15 @@ Girdi:
 ```python
 Girdi(
     film_id="film_001",
-    video="/mutlak/yol/jenerik.mp4",
+    kareler="/mutlak/yol/jordan_frames",  # Sheriff varsayılanı
     bolum="giris" | "cikis",
     config={},
 )
 ```
 
-Dış sözleşmede video kalması, modelin video modunda çalıştığı anlamına
-gelmez. Video yalnız ffmpeg kare üretiminin kaynağıdır. `src/model.py`
-native-video girdi kabul etmez.
+Dış sözleşmede geriye uyumlu `video=` seçeneğinin kalması, modelin video
+modunda çalıştığı anlamına gelmez. `video` ve `kareler` birbirini dışlar;
+`src/model.py` native-video girdi kabul etmez.
 
 Çıktı:
 
@@ -44,16 +44,16 @@ sonra `_TAMAM` oluşturulur. `ARIZA` içerik yokluğu gibi sunulamaz.
 ## 3. İç akış
 
 ```text
-Kobe/Sheriff jenerik klibi
+Kobe/Sheriff jenerik video veya frame-v1 havuzu
   │
   ├─ ffmpeg tek geçiş
-  │    fps=2, scale=720:-2:flags=lanczos, JPEG q=2
+  │    fps=2, scale=720:-2:flags=lanczos + unsharp, JPEG q=2
   │
   ├─ kare manifesti
   │    sıra + kaynak_sn + SHA-256 + genişlik/yükseklik
   │
   ├─ sabit gruplama
-  │    varsayılan 8 resim, bindirme 0, son grup kısa olabilir
+  │    varsayılan 8 resim, bindirme 1, son grup kısa olabilir
   │
   ├─ Qwen-VL multi-image çağrısı
   │    image + image + ... + prompt
@@ -65,10 +65,10 @@ Kobe/Sheriff jenerik klibi
        yalnız case/whitespace-normalize kesin tekrar elenir
 ```
 
-Model isteminde `[CREDITS]` ve `[SUBTITLES]` ayrımı vardır. Protokol
-başlıkları ve altyazıya ayrılan satırlar kredi görünümüne girmez; neyin
-neden ayrıldığı `derleyicide_elenen` listesinde, cevabın tamamı ise
-`ham_metin` alanında kalır. Modelin bölümleme hatası böylece gizlenmez.
+Derleyici modelin verebildiği `[CREDITS]` ve `[SUBTITLES]` protokol başlıklarını
+tanır. Başlıklar ve altyazıya ayrılan satırlar kredi görünümüne girmez; neyin
+neden ayrıldığı `derleyicide_elenen` listesinde, cevabın tamamı ise `ham_metin`
+alanında kalır. Modelin bölümleme hatası böylece gizlenmez.
 
 ## 4. Model reçetesi
 
@@ -76,18 +76,18 @@ Varsayılan:
 
 | Alan | Değer |
 |---|---|
-| Model | `model/qwen2.5-vl-7b` |
-| Ağırlık/hesap | FP16 |
+| Model | `model/qwen3-vl-8b` |
+| Ağırlık/hesap | BF16 |
 | Besleme | ayrı image listesi; native video yok |
-| Kare | 2 fps, 720 px, düz Lanczos, JPEG q=2 |
-| Grup | 8 kare, bindirme 0 |
-| Piksel bütçesi | `256·28²` – `1280·28²` |
-| Üretim | greedy, max 1024, repetition 1.05, no-repeat-ngram 3 |
+| Kare | 2 fps, 720 px, Lanczos + unsharp, JPEG q=2 |
+| Grup | 8 kare, bindirme 1 |
+| Piksel bütçesi | `256·28²` – `4096·28²` |
+| Üretim | greedy, max 512 |
 
-Bu seçim KSK/28-klip ölçümünden gelir. 2.5-VL kolu 28/28 dolu
-sonuç ve mevcut elle doğrulanmış alt kümede 0,9301 skor verdi.
+Bu seçim 13-klip dizi GT yarışından gelir: Qwen3-VL-8B 470/519 (%91) ile
+27B (%80) ve MiniCPM (%35) kollarının önünde tamamlandı.
 
-`model/qwen3-vl-8b` aynı motorla `--grup-kare 12` kullanılarak denenebilir.
+Qwen2.5-VL-7B ölçülmüş eski üretim kolu olarak korunur fakat varsayılan değildir.
 27B aynı kareleri kullansa da `llama-mtmd-cli` çalışma zamanı gerektirdiği
 için Jordan'ın transformers motoruna zorla yerleştirilmez; ayrı adaptör/model
 kolu olmalıdır.

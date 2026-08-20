@@ -58,20 +58,23 @@ def test_jordan_ariza_varsa_sinif_ve_mesaj_ister():
         TowerAdapter._validate_jordan({"durum": "ARIZA", "kanit": {}})
 
 
-def test_video_okuyucu_producer_kimligi_registryden_gelir(tmp_path):
-    video = tmp_path / "clip.mp4"
-    video.write_bytes(b"clip")
+def test_jordan_frame_okuyucu_producer_ve_prompt_kimligi_registryden_gelir(tmp_path):
+    frames = tmp_path / "frames"
+    frames.mkdir()
+    (frames / "frames.jsonl").write_text("{}\n", encoding="utf-8")
     task = {"film_id": "film", "section": "giris", "run_id": "run",
             "task_id": "task"}
     legacy = {"durum": "METIN_YOK", "bloklar": [], "ciftler": [],
-              "kanit": {}, "motor_surumu": "bird/v1"}
+              "kanit": {"istem_sha256": "a" * 64}, "motor_surumu": "bird/v1"}
     process = ProcessResult(0, False, False, 0.1, 1.0, 1.0, None,
                             "/tmp/stdout", "/tmp/stderr", ["bird"], 1, 1, None)
     path, document = TowerAdapter._wrap_jordan(
-        task, "attempt", video, legacy, tmp_path / "run", process, [],
+        task, "attempt", frames, legacy, tmp_path / "run", process, [],
         producer_id="bird", independence_group="video_reader_role")
     assert path.name == "bird.okuma.json"
     assert document["producer"]["id"] == "bird"
+    assert document["producer"]["prompt_digest"] == "a" * 64
+    assert document["lineage"]["inputs"][0]["kind"] == "verified_frame_pool"
 
 
 def test_kule_owned_cikti_yerinde_kalir_ve_attempt_snapshotina_alinir(tmp_path):

@@ -52,6 +52,7 @@ class Materializer:
             selected = self._selected_frames(document, boundary)
             frame_dir = temp / "frames"
             frame_dir.mkdir(parents=True)
+            frame_contract = self._copy_frame_contract(selected, frame_dir, section)
             raw_rows = self._frame_rows(run_dir, section)
             copied_rows = []
             for path in sorted(selected.glob("*.png")):
@@ -78,9 +79,42 @@ class Materializer:
             frames_manifest = frame_dir / "frames.jsonl"
             frames_pool_sha256 = verify_frame_pool(
                 frame_dir, expected_section=section,
+                require_contiguous_sequence=frame_contract["frames_contiguous"])
+            lebron_input_sha256 = sha256_json({
+                "frames_pool_sha256": frames_pool_sha256,
+                "frames_contract_sha256": frame_contract["frames_contract_sha256"],
+            })
+            clip_start, clip_end = self._clip_interval(document, run_dir, section)
+            jordan_frame_dir = temp / "jordan_frames"
+            jordan_frame_dir.mkdir(parents=True)
+            jordan_rows = []
+            raw_frame_dir = run_dir / "media" / "frames" / section
+            for source_row in sorted(raw_rows.values(), key=lambda row: row["sequence"]):
+                source_time = float(source_row["source_time_s"])
+                if source_time < clip_start or source_time >= clip_end:
+                    continue
+                source_path = raw_frame_dir / str(source_row["filename"])
+                target = jordan_frame_dir / source_path.name
+                method = hardlink_or_copy(source_path, target)
+                if sha256_file(target) != source_row.get("sha256"):
+                    raise MaterializeError(
+                        f"Jordan kaynak karesi hash uyusmazligi: {source_path.name}")
+                row = dict(source_row)
+                row.update({"transfer": method, "origin_path": str(source_path.resolve())})
+                jordan_rows.append(row)
+            if not jordan_rows:
+                raise MaterializeError(
+                    f"Jordan araliginda frame yok: {clip_start}..{clip_end}")
+            jordan_manifest = jordan_frame_dir / "frames.jsonl"
+            with jordan_manifest.open("w", encoding="utf-8") as handle:
+                for row in jordan_rows:
+                    handle.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            jordan_pool_sha256 = verify_frame_pool(
+                jordan_frame_dir, expected_section=section,
                 require_contiguous_sequence=False)
             clip = temp / "credits.mp4"
-            clip_start, clip_end = self._clip_interval(document, run_dir, section)
             self._clip(source, clip, clip_start, clip_end, heartbeat=heartbeat,
                        should_cancel=should_cancel, on_process_start=on_process_start,
                        metrics_sink=resource_usage)
@@ -92,7 +126,14 @@ class Materializer:
                 "frames_dir": "frames", "frames_manifest": "frames/frames.jsonl",
                 "frames_manifest_sha256": sha256_file(frames_manifest),
                 "frames_pool_sha256": frames_pool_sha256,
-                "frame_count": len(copied_rows), "clip": "credits.mp4",
+                **frame_contract,
+                "lebron_input_sha256": lebron_input_sha256,
+                "frame_count": len(copied_rows),
+                "jordan_frames_dir": "jordan_frames",
+                "jordan_frames_manifest": "jordan_frames/frames.jsonl",
+                "jordan_frames_manifest_sha256": sha256_file(jordan_manifest),
+                "jordan_frames_pool_sha256": jordan_pool_sha256,
+                "jordan_frame_count": len(jordan_rows), "clip": "credits.mp4",
                 "clip_sha256": sha256_file(clip), "clip_start_s": clip_start,
                 "clip_end_s": clip_end, "boundary": document,
                 "resource_usage": resource_usage,
@@ -128,6 +169,37 @@ class Materializer:
             row = json.loads(line)
             rows[row["filename"]] = row
         return rows
+
+    @staticmethod
+    def _copy_frame_contract(selected: Path, frame_dir: Path,
+                             section: str) -> dict[str, Any]:
+        """Kobe'nin kare-serisi sözleşmesini LeBron girdisine byte-aynı taşı.
+
+        Girişte bu dosya zorunludur: ``mod=ardisik_aralik`` LeBron'a hem
+        karelerin boşluksuz olduğunu hem statik kartlarda akıllı bıçağın
+        susması gerektiğini söyler. Sadece PNG'leri kopyalamak bu bilgiyi
+        sessizce kaybedip doğrudan zincir ile Sheriff sonucunu ayrıştırırdı.
+        """
+        source = selected / "_sinif.json"
+        if not source.is_file():
+            if section == "giris":
+                raise MaterializeError(f"Kobe giris kare sozlesmesi yok: {source}")
+            return {"frames_contract": None, "frames_contract_sha256": None,
+                    "frames_contiguous": False}
+        try:
+            data = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise MaterializeError(f"Kobe kare sozlesmesi okunamadi: {source}: {exc}") from exc
+        if not isinstance(data, dict):
+            raise MaterializeError(f"Kobe kare sozlesmesi sozluk degil: {source}")
+        target = frame_dir / "_sinif.json"
+        hardlink_or_copy(source, target)
+        source_hash = sha256_file(source)
+        if sha256_file(target) != source_hash:
+            raise MaterializeError(f"Kobe kare sozlesmesi aktarimda degisti: {source}")
+        return {"frames_contract": "frames/_sinif.json",
+                "frames_contract_sha256": source_hash,
+                "frames_contiguous": data.get("mod") == "ardisik_aralik"}
 
     @staticmethod
     def _clip_interval(document: dict[str, Any], run_dir: Path,
@@ -209,9 +281,39 @@ class Materializer:
         try:
             pool_sha256 = verify_frame_pool(
                 frame_dir, expected_section=section,
-                require_contiguous_sequence=False)
+                require_contiguous_sequence=bool(manifest.get("frames_contiguous")))
         except Exception as exc:
             raise MaterializeError(str(exc)) from exc
         if (manifest.get("frames_manifest_sha256") != sha256_file(frame_manifest)
                 or manifest.get("frames_pool_sha256") != pool_sha256):
             raise MaterializeError("mevcut frame manifest/pool hash uyusmazligi")
+        contract_rel = manifest.get("frames_contract")
+        contract_hash = manifest.get("frames_contract_sha256")
+        if section == "giris" and (not contract_rel or not contract_hash):
+            raise MaterializeError("mevcut giris frame sozlesmesi eksik")
+        if contract_rel:
+            contract = root / str(contract_rel)
+            if not contract.is_file() or sha256_file(contract) != contract_hash:
+                raise MaterializeError("mevcut frame sozlesmesi hash uyusmazligi")
+        expected_input_hash = sha256_json({
+            "frames_pool_sha256": pool_sha256,
+            "frames_contract_sha256": contract_hash,
+        })
+        if manifest.get("lebron_input_sha256") != expected_input_hash:
+            raise MaterializeError("mevcut LeBron girdi hash'i uyusmuyor")
+        jordan_manifest = root / str(manifest.get("jordan_frames_manifest", ""))
+        if not jordan_manifest.is_file():
+            raise MaterializeError("mevcut Jordan frame manifest eksik")
+        jordan_rows = [json.loads(line) for line in jordan_manifest.read_text(
+            encoding="utf-8").splitlines() if line.strip()]
+        if len(jordan_rows) != int(manifest.get("jordan_frame_count", -1)):
+            raise MaterializeError("mevcut Jordan frame sayisi uyusmazligi")
+        try:
+            jordan_pool_sha256 = verify_frame_pool(
+                jordan_manifest.parent, expected_section=section,
+                require_contiguous_sequence=False)
+        except Exception as exc:
+            raise MaterializeError(str(exc)) from exc
+        if (manifest.get("jordan_frames_manifest_sha256") != sha256_file(jordan_manifest)
+                or manifest.get("jordan_frames_pool_sha256") != jordan_pool_sha256):
+            raise MaterializeError("mevcut Jordan frame manifest/pool hash uyusmazligi")

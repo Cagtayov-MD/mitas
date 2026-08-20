@@ -17,10 +17,19 @@ def test_girdi_video_gecerli():
     assert g.video == "/yol/klip.mp4" and g.bolum == "cikis"
 
 
-def test_girdi_video_zorunlu():
-    """Jordan'in TEK girdisi video. Kare dizini, PNG havuzu kabul etmez."""
+def test_girdi_kare_havuzu_gecerli():
+    g = Girdi(film_id="F1", kareler="/yol/frames")
+    assert g.kareler == "/yol/frames" and not g.video
+
+
+def test_girdi_kaynagi_zorunlu():
     with pytest.raises(GirdiHatasi):
-        Girdi(film_id="F1", video="")
+        Girdi(film_id="F1")
+
+
+def test_video_ve_kareler_ayni_anda_reddedilir():
+    with pytest.raises(GirdiHatasi):
+        Girdi(film_id="F1", video="/yol/klip.mp4", kareler="/yol/frames")
 
 
 def test_girdi_bos_film_id_hata():

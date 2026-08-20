@@ -6,7 +6,10 @@
 
 - Native-video model beslemesi devre dışı; `Motor.sor()` yalnız ayrı resim
   listesi veya metin-only çağrı kabul eder.
-- Varsayılan üretim modeli Qwen3-VL-8B FP16 `transformers`.
+- Sheriff üretim yolu MP4 vermez; sınırlar içindeki kesintisiz `frames.jsonl`
+  havuzunu `--kareler` ile verir. Jordan kaynak PNG'leri kendi güncel görsel
+  reçetesiyle hazırlayıp modele ayrı image listeleri halinde yollar.
+- Varsayılan üretim modeli Qwen3-VL-8B BF16 `transformers`.
 - Qwen2.5-VL-7B ve Qwen3.6-27B (`llama_mtmd`) silinmedi; ikisi de yalnız açık
   CLI seçimiyle çalışan deney kolu.
 - Kare reçetesi: 2 fps, 720 px, Lanczos + unsharp, JPEG q=2.
@@ -67,3 +70,10 @@ sürümleri farklıdır; birebir tensor/runtime eşlemesi ayrı bir dondurma iş
 
 Eski `w8a8` ve `bf16` ağırlıkları silinmedi; fakat varsayılan değiller ve
 native-video stratejisi geri açık değildir.
+
+## 2026-08-20 Sheriff girdi politikası
+
+Aksi yönde açık karar verilene kadar Sheriff'in Jordan komutu `--kareler`dir.
+Tarihsel `reader_video` rol adı korunmuştur fakat bu rolün gerçek girdisi
+`materialized/<bolum>/jordan_frames/` havuzudur; `credits.mp4` Jordan'a verilmez.
+Model/backend/grup/preprocessing/prompt seçimi yalnız Jordan `config.yaml`ından gelir.

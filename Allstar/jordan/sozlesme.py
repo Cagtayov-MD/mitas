@@ -3,8 +3,9 @@
 Kulenin DIŞ yüzü burada tanımlıdır. Motor (src/) bu dosyayı bilmez; çeviri
 main.py'de yapılır. Böylece motorun iç tipleri dışarı sızmaz.
 
-Jordan'ın tek girdisi VİDEO'dur (mp4). Kare dizini, PNG havuzu almaz —
-"nereden okunacağı" sorusu Kobe'nin işidir, Jordan verilen klibi okur.
+Jordan ya jenerik videosunu ya da Sheriff'in doğruladığı kare havuzunu alır.
+İki girdi aynı anda verilmez. Üretim orkestrasyonunda kalıcı varsayılan kare
+havuzudur; video yolu yalnız bağımsız/geriye uyumlu kullanım için korunur.
 """
 from __future__ import annotations
 
@@ -24,9 +25,10 @@ class GirdiHatasi(ValueError):
 
 @dataclass(frozen=True)
 class Girdi:
-    """film_id + video. Video, jeneriğin KENDİSİ olan bir kliptir."""
+    """film_id + tam olarak bir kaynak: video veya manifestli kare havuzu."""
     film_id: str
     video: str = ""
+    kareler: str = ""
     bolum: str = "cikis"
     config: dict = field(default_factory=dict)
 
@@ -35,10 +37,9 @@ class Girdi:
             raise GirdiHatasi("film_id bos olamaz")
         if self.bolum not in BOLUMLER:
             raise GirdiHatasi(f"bolum {self.bolum!r} gecersiz — {BOLUMLER}")
-        if not self.video:
+        if bool(self.video) == bool(self.kareler):
             raise GirdiHatasi(
-                "video zorunlu — Jordan'in girdisi mp4'tur. Kare dizini/PNG "
-                "havuzu okumaz; jeneriğin nerede olduğu Kobe'nin isidir.")
+                "video veya kareler girdilerinden tam olarak biri zorunlu")
 
 
 @dataclass

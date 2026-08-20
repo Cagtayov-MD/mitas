@@ -1,6 +1,6 @@
 # Sheriff durum kaydı
 
-Tarih: 2026-08-17
+Tarih: 2026-08-20
 
 ## Tamamlanan
 
@@ -14,6 +14,9 @@ Tarih: 2026-08-17
 - LeBron RLE source-row provenance ve additive grounding proof.
 - Nash selected-frame additive grounding proof.
 - Jordan için dürüst `proof=NONE` v2 zarfı.
+- Jordan'a MP4 yerine sınırlar içindeki kesintisiz, hash-doğrulanmış 2 fps
+  frame havuzunun verilmesi; kule config/prompt reçetesinin Sheriff tarafından
+  ezilmemesi ve prompt digest'inin handoff'a taşınması.
 - Self-contained, hash doğrulamalı, atomik üç-kanal Shaq handoff.
 - Birim/regresyon testleri ve eski pipeline import denylist'i.
 - Aktif Kobe giriş motoru ve rol sözlüğünün Allstar içine alınması; aktif kodda
@@ -33,6 +36,9 @@ Tarih: 2026-08-17
   uygulanması; GPU-hazır iş önceliği ve hafif handoff kaynak profili.
 - LeBron layout satırlarında taşınabilir `source_asset_id` bağı ve ilk handoff
   yayınının `_TAMAM` öncesi uçtan uca tekrar doğrulanması.
+- Kobe'nin girişte ürettiği boşluksuz `ardisik_aralik` sözleşmesinin LeBron
+  materialization dizinine byte-aynı taşınması; kare+manifest birleşik hash'i
+  ve ardışık sequence kapısıyla koşu öncesi/sonrası doğrulanması.
 
 ## Bilinçli açık işler / devreye alma kapıları
 

@@ -24,6 +24,10 @@ if role == "boundary":
     selected.mkdir(exist_ok=True)
     for p in sorted(Path(source).glob("*.png"))[:2]:
         shutil.copy2(p, selected / p.name)
+    if section == "giris":
+        (selected / "_sinif.json").write_text(json.dumps({
+            "surum": 1, "mod": "ardisik_aralik", "ilk_kare": 1,
+            "son_kare": 2, "kareler": {}}), encoding="utf-8")
     value = {"schema_version": "mitas.boundary/v1",
              "identity": {"run_id": os.environ["MITAS_SHERIFF_RUN_ID"],
                           "task_id": os.environ["MITAS_SHERIFF_TASK_ID"],
@@ -31,7 +35,9 @@ if role == "boundary":
              "film_id": film, "bolum": section, "durum": "BULUNDU",
              "baslangic_kare": 1, "bitis_kare": 2,
              "baslangic_sn": 0.0, "bitis_sn": 0.5,
-             "uretilen": [{"tip": "kare", "yol": "kareler"}], "kanit": {}}
+             "uretilen": [{"tip": "kare", "yol": "kareler",
+                            "secim": ("ardisik_aralik" if section == "giris"
+                                      else "aralik")}], "kanit": {}}
     name = "boundary.json"
 elif role in {"reader_master", "reader_frame"}:
     value = {"schema_version": "mitas.okuma/v2", "packet_id": "pkt-" + role,

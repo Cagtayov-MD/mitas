@@ -31,6 +31,9 @@ def sahte_boru(monkeypatch):
     monkeypatch.setattr(main, "motor_kur", lambda cfg: object())
     monkeypatch.setattr("okuyucu.parcala",
                         lambda v, h, c: [{"no": 0, "bas_sn": 0.0, "yol": "p.mp4"}])
+    monkeypatch.setattr("okuyucu.kare_havuzu",
+                        lambda d, h, c, bolum=None: [
+                            {"no": 0, "bas_sn": 0.0, "yol": "frame.jpg"}])
     monkeypatch.setattr("okuyucu.oku", lambda m, p, c: (BLOKLAR, {"blok_sayisi": 1}))
     monkeypatch.setattr("ciftleyici.ciftle",
                         lambda m, b, c: ([{"rol": "YONETMEN",
@@ -63,6 +66,14 @@ def test_ciftleme_acikca_istenirse_calisir(klip, tmp_path):
     assert c.ciftler[0]["isim"] == "ALI OZGENTURK"
 
 
+def test_kare_havuzu_girdisi_frame_pool_olarak_kaydedilir(tmp_path):
+    havuz = tmp_path / "frames"
+    havuz.mkdir()
+    c = main.tek(Girdi(film_id="F3", kareler=str(havuz)), kok=tmp_path / "out")
+    assert c.durum == "OKUNDU"
+    assert c.kanit["girdi_modu"] == "frame_pool"
+
+
 def test_metin_yok_ariza_degildir(klip, tmp_path, monkeypatch):
     monkeypatch.setattr("okuyucu.oku", lambda m, p, c: ([], {"blok_sayisi": 0}))
     c = _kos(klip, tmp_path)
@@ -85,6 +96,12 @@ def test_bolum_ayri_yazilir(klip, tmp_path):
 # ── arıza sınıflandırması ───────────────────────────────────────────────
 def test_video_yoksa_girdi_hatasi(tmp_path):
     c = main.tek(Girdi(film_id="F1", video=str(tmp_path / "yok.mp4")),
+                 kok=tmp_path / "out")
+    assert c.durum == "ARIZA" and c.sinif == "GIRDI_HATASI"
+
+
+def test_kare_havuzu_yoksa_girdi_hatasi(tmp_path):
+    c = main.tek(Girdi(film_id="F1", kareler=str(tmp_path / "yok")),
                  kok=tmp_path / "out")
     assert c.durum == "ARIZA" and c.sinif == "GIRDI_HATASI"
 

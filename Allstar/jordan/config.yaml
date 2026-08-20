@@ -1,4 +1,5 @@
-# Jordan — mp4 girer; içeride ölçülmüş multi-image frame OCR yapar.
+# Jordan — Sheriff'te kare havuzu, bağımsız kullanımda video girer;
+# her iki yolda ölçülmüş aynı multi-image frame OCR reçetesini uygular.
 # Çağıran Girdi.config ile tek tek ezebilir.
 
 model:

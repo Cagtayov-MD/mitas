@@ -546,6 +546,13 @@ class TowerAdapter:
             inputs.append({"path": str(input_path.resolve()), "sha256": source["sha256"],
                            "kind": "silent_credit_clip"})
             assets.append(source)
+        elif input_path.is_dir() and (input_path / "frames.jsonl").is_file():
+            manifest = asset_record(
+                input_path / "frames.jsonl", asset_id="jordan-input-frame-manifest")
+            inputs.append({"path": str(input_path.resolve()),
+                           "sha256": manifest["sha256"],
+                           "kind": "verified_frame_pool"})
+            assets.append(manifest)
         lines = []
         for block_index, block in enumerate(legacy.get("bloklar") or []):
             for text in block.get("satirlar") or []:
@@ -556,7 +563,8 @@ class TowerAdapter:
             producer={"id": producer_id, "tower_version": legacy.get("motor_surumu"),
                       "strategy": "multi-image-frame-ocr",
                       "model": legacy.get("kanit", {}).get("model"),
-                      "prompt_digest": None, "runtime": "tower-cli",
+                      "prompt_digest": legacy.get("kanit", {}).get("istem_sha256"),
+                      "runtime": "tower-cli",
                       "independence_group": independence_group},
             inputs=inputs, execution_status=execution, content_status=content,
             proof_status="NONE", assets=assets, lines=lines,

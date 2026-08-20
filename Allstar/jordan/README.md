@@ -1,12 +1,13 @@
 # Jordan — multi-image jenerik okuma kulesi
 
-Jordan'ın dış girdisi jeneriğin kendisi olan bir video klibidir. Kule klibi
-2 fps/720 px JPEG karelere dönüştürür ve modele yalnız ayrı resim listeleri
-verir. Native-video model yolu yoktur.
+Jordan'ın dış girdisi jeneriğin videosu veya `frames.jsonl` taşıyan doğrulanmış
+kare havuzudur. Sheriff üretim yolu kalıcı olarak kare havuzunu kullanır. Kule
+kaynak kareleri 720 px JPEG reçetesiyle hazırlar ve modele yalnız ayrı resim
+listeleri verir. Native-video model yolu yoktur.
 
-Varsayılan üretim kolu Qwen2.5-VL-7B FP16 transformers'dır. Ölçülmüş reçete:
-2 fps, 720 px düz Lanczos, 8 ayrı kare/çağrı, bindirme 0, greedy üretim ve
-1024 token tavanı. Qwen3.6-27B GGUF yalnız açıkça `--backend llama_mtmd`
+Varsayılan üretim kolu Qwen3-VL-8B BF16 transformers'dır. Ölçülmüş reçete:
+2 fps, 720 px Lanczos + unsharp, 8 ayrı kare/çağrı, bindirme 1, greedy üretim
+ve 512 token tavanı. Qwen3.6-27B GGUF yalnız açıkça `--backend llama_mtmd`
 verilen deney kolu olarak korunur; Sheriff model/backend seçmez.
 
 ## Sınır
@@ -21,6 +22,12 @@ henüz üretmez; Sheriff paketinde `proof_status=NONE` kalır.
 # Tek klip
 Allstar/jordan/jordan tek \
   --video /yol/jenerik.mp4 \
+  --film-id film_001 \
+  --bolum cikis
+
+# Sheriff/üretim yolu: doğrulanmış frame-v1 havuzu
+Allstar/jordan/jordan tek \
+  --kareler /yol/materialized/cikis/jordan_frames \
   --film-id film_001 \
   --bolum cikis
 
@@ -56,10 +63,10 @@ out/<film_id>/<bolum>/
 ## Akış
 
 ```text
-video klip
-  → ffmpeg: fps=2, scale=720:-2:lanczos, JPEG q=2
+video klip veya Sheriff frame-v1 havuzu
+  → ffmpeg: 2 fps kaynak, scale=720:-2:lanczos + unsharp, JPEG q=2
   → 8'li ayrı image grupları (son grup kısa olabilir)
-  → Qwen2.5-VL-7B FP16 ham credits/subtitles cevapları
+  → Qwen3-VL-8B BF16 ham kredi metni cevapları
   → protokol başlığı/altyazı ayrımı
   → yalnız kesin yakın-dönem tekrarların düşürüldüğü kredi görünümü
   → jordan.json + jordan.txt + _TAMAM

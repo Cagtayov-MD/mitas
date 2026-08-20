@@ -47,7 +47,7 @@ def test_jordan_model_recetesini_kuleye_birakir():
 
     assert tower["producer_id"] == "jordan"
     assert command == [
-        "tek", "--video", "{input}", "--film-id", "{film_id}",
+        "tek", "--kareler", "{input}", "--film-id", "{film_id}",
         "--bolum", "{section}",
     ]
     assert not ({"--backend", "--model", "--dtype", "--grup-kare",

@@ -344,6 +344,8 @@ class Engine:
                 self._register_paths(task_id, [
                     run_dir / "materialized" / task["section"] / "material.manifest.json",
                     run_dir / "materialized" / task["section"] / "frames/frames.jsonl",
+                    run_dir / "materialized" / task["section"] / "frames/_sinif.json",
+                    run_dir / "materialized" / task["section"] / "jordan_frames/frames.jsonl",
                     run_dir / "materialized" / task["section"] / "credits.mp4"])
             elif task["kind"] == "handoff":
                 readers = self.store.dependency_tasks(task_id)
@@ -464,7 +466,7 @@ class Engine:
         if role == dag["boundary_frame_reader_role"]:
             return run_dir / "materialized" / section / "frames"
         if role == dag["boundary_video_reader_role"]:
-            return run_dir / "materialized" / section / "credits.mp4"
+            return run_dir / "materialized" / section / "jordan_frames"
         raise RuntimeError(f"rol icin girdi rotasi yok: {role}")
 
     def _verified_tower_input_hash(self, task: dict[str, Any], input_path: Path,
@@ -473,30 +475,37 @@ class Engine:
             raise MediaError(f"kule tek upstream gorev bekliyor: {len(parent_tasks)}")
         parent = parent_tasks[0]
         parent_result = parent.get("result") or {}
-        video_role = self.config.raw["dag"]["boundary_video_reader_role"]
-        if task["logical_role"] == video_role:
-            if not input_path.is_file():
-                raise MediaError(f"Jordan klibi yok: {input_path}")
-            input_hash = sha256_file(input_path)
-            material_manifest = json.loads((
-                input_path.parent / "material.manifest.json").read_text(
-                    encoding="utf-8"))
-            if (not isinstance(material_manifest, dict)
-                    or input_hash != material_manifest.get("clip_sha256")
-                    or input_hash != parent_result.get("clip_sha256")):
-                raise MediaError(
-                    "Jordan klibi upstream/material manifest hash'iyle uyusmuyor")
-            return input_hash
+        require_contiguous = (parent["kind"] == "media_prep" or
+                              bool(parent_result.get("frames_contiguous")))
         input_hash = verify_frame_pool(
             input_path, expected_section=task["section"],
-            require_contiguous_sequence=(parent["kind"] == "media_prep"))
-        if parent["kind"] == "media_prep":
+            require_contiguous_sequence=require_contiguous)
+        if (parent["kind"] == "materialize"
+                and task["logical_role"] == self.config.raw["dag"]["boundary_video_reader_role"]):
+            expected_hash = parent_result.get("jordan_frames_pool_sha256")
+        elif parent["kind"] == "media_prep":
             expected_hash = ((parent_result.get("sections") or {}).get(
                 task["section"]) or {}).get("pool_sha256")
-        else:
+        elif parent["kind"] == "materialize":
             expected_hash = parent_result.get("frames_pool_sha256")
+        else:
+            expected_hash = None
         if input_hash != expected_hash:
             raise MediaError("frame havuzu upstream gorev hash'iyle uyusmuyor")
+        if (parent["kind"] == "materialize"
+                and task["logical_role"] == self.config.raw["dag"]["boundary_frame_reader_role"]
+                and parent_result.get("frames_contract_sha256")):
+            contract = input_path / "_sinif.json"
+            if (not contract.is_file()
+                    or sha256_file(contract) != parent_result["frames_contract_sha256"]):
+                raise MediaError("Kobe kare sozlesmesi upstream hash'iyle uyusmuyor")
+            compound_hash = sha256_json({
+                "frames_pool_sha256": input_hash,
+                "frames_contract_sha256": sha256_file(contract),
+            })
+            if compound_hash != parent_result.get("lebron_input_sha256"):
+                raise MediaError("LeBron girdi hash'i upstream gorevle uyusmuyor")
+            return compound_hash
         return input_hash
 
     def _record_admission_denial(self, task: dict[str, Any], reason: str,

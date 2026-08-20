@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Jordan — mp4 girer, yazı çıkar. Başka hiçbir şey yapmaz.
+"""Jordan — video veya manifestli kare havuzu girer, yazı çıkar.
 
 Kule girişi. Motor (src/) burayı bilmez; çeviri tek yönlüdür.
 Çalıştırma: Allstar/jordan/jordan start --input /yol/klipler
@@ -98,12 +98,12 @@ def motor_kur(cfg: dict):
 
 
 def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
-    """Bir klip → bir Cikti. İstisna sızdırmaz.
+    """Bir video/kare havuzu → bir Cikti. İstisna sızdırmaz.
 
     `motor` verilirse yeniden kullanılır (toplu koşuda model bir kez yüklenir).
     """
     from model import BellekHatasi, CiktiBozuk, ModelHatasi
-    from okuyucu import VideoHatasi, oku, parcala
+    from okuyucu import VideoHatasi, kare_havuzu, oku, parcala
     from ciftleyici import ciftle
 
     kok = Path(kok) if kok else OUT
@@ -119,12 +119,22 @@ def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
         return c
 
     try:
-        if not Path(girdi.video).exists():
-            return _ariza("GIRDI_HATASI", f"video yok: {girdi.video}")
+        kaynak = Path(girdi.kareler or girdi.video)
+        if not kaynak.exists():
+            return _ariza("GIRDI_HATASI", f"girdi yok: {kaynak}")
         try:
-            gruplar = parcala(girdi.video, benim_scratch, cfg)
+            if girdi.kareler:
+                if not kaynak.is_dir():
+                    return _ariza("GIRDI_HATASI", f"kare havuzu dizin degil: {kaynak}")
+                gruplar = kare_havuzu(
+                    girdi.kareler, benim_scratch, cfg, bolum=girdi.bolum)
+            else:
+                if not kaynak.is_file():
+                    return _ariza("GIRDI_HATASI", f"video dosya degil: {kaynak}")
+                gruplar = parcala(girdi.video, benim_scratch, cfg)
         except VideoHatasi as e:
-            return _ariza("VIDEO_OKUNAMADI", e)
+            sinif = "KARE_HAVUZU_OKUNAMADI" if girdi.kareler else "VIDEO_OKUNAMADI"
+            return _ariza(sinif, e)
 
         try:
             if motor is None:
@@ -149,6 +159,7 @@ def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
                     or cfg.get("istem", {}).get("okuma", ""))
         kanit |= {"model": str(getattr(motor, "yol", cfg.get("model", {}).get("yol", ""))),
                   "model_backend": str(cfg.get("model", {}).get("backend", "transformers")),
+                  "girdi_modu": "frame_pool" if girdi.kareler else "video",
                   "grup_kare": cfg.get("grup", {}).get("kare_sayisi"),
                   "bindirme_kare": cfg.get("grup", {}).get("bindirme_kare"),
                   "video_fps": cfg.get("video", {}).get("fps"),
@@ -167,7 +178,7 @@ def tek(girdi: Girdi, kok: Path | None = None, motor=None) -> Cikti:
         c.yaz(kok)
         return c
     finally:
-        # YALNIZ Jordan'ın açtığı dizin silinir; girdi videosuna dokunulmaz.
+        # YALNIZ Jordan'ın açtığı dizin silinir; dış girdiye dokunulmaz.
         shutil.rmtree(benim_scratch, ignore_errors=True)
 
 
@@ -204,7 +215,7 @@ def toplu(girdi_dizini: Path, kok: Path | None = None,
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="jordan",
-                                 description="mp4'ten jenerik okuma")
+                                 description="video veya kare havuzundan jenerik okuma")
     alt = ap.add_subparsers(dest="komut", required=True)
     BOLUM_YRD = "cikis = kapanis jenerigi (STANDART) | giris = giris jenerigi"
 
@@ -216,7 +227,9 @@ def main(argv=None) -> int:
     a.add_argument("--out", help="cikti kok dizinini ezer (varsayilan: out/)")
 
     b = alt.add_parser("tek", help="tek klip")
-    b.add_argument("--video", required=True)
+    kaynak = b.add_mutually_exclusive_group(required=True)
+    kaynak.add_argument("--video", help="bağımsız/geriye uyumlu video girdisi")
+    kaynak.add_argument("--kareler", help="frames.jsonl içeren doğrulanmış kare havuzu")
     b.add_argument("--film-id", required=True)
     b.add_argument("--bolum", choices=BOLUMLER, default="cikis", help=BOLUM_YRD)
     b.add_argument("--model", help="config.yaml'daki model yolunu ezer")
@@ -273,7 +286,8 @@ def main(argv=None) -> int:
         toplu(Path(n.input), kok=kok, bolum=n.bolum, config=ezme)
         return 0
     try:
-        g = Girdi(film_id=n.film_id, video=n.video, bolum=n.bolum, config=ezme)
+        g = Girdi(film_id=n.film_id, video=n.video or "", kareler=n.kareler or "",
+                  bolum=n.bolum, config=ezme)
     except GirdiHatasi as e:
         c = ariza(n.film_id or "?", "GIRDI_HATASI", str(e), bolum=n.bolum)
         c.yaz(OUT)

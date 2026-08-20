@@ -1,5 +1,14 @@
 # Jordan — değişiklik günlüğü
 
+## 2026-08-20 — Sheriff doğrudan kare havuzu
+
+- Sheriff `credits.mp4` yerine sınırlar içindeki kesintisiz, hash-doğrulanmış
+  frame-v1 havuzunu `--kareler` ile Jordan'a bağladı.
+- Jordan kaynak PNG'leri kendi güncel 720 px/Lanczos+unsharp/JPEG reçetesiyle
+  hazırlayıp mevcut multi-image grup ve prompt config'ini aynen kullanır.
+- Video girdisi bağımsız/geriye uyumlu kullanım için korunur; Sheriff varsayılanı
+  aksi açıkça kararlaştırılana kadar frame havuzudur.
+
 ## 2026-08-19 — üretim varsayılanı Qwen3-VL-8B'ye sabitlendi
 
 - 13-klip dizi GT yarışı: Qwen3-VL-8B 470/519 (%91) ile kazandı; Qwen3.6-27B
