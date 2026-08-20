@@ -17,6 +17,7 @@ def _birim_testinde_legacy_secim(monkeypatch):
     cfg = main._config()
     cfg["secim"]["strateji"] = "legacy"
     cfg["okuma"]["mod"] = "free_ocr"
+    cfg["okuma"]["paddle_ensemble"]["enabled"] = False
     monkeypatch.setattr(main, "_config", lambda: cfg)
 
 

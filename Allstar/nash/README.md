@@ -1,10 +1,12 @@
 # Nash — ham kare havuzundan jenerik okuma kulesi
 
-> **Ana kare havuzu girer, kanıtlı yazı çıkar.** Paddle tüm kareleri GPU'da
-> tarar ve okur. Türkçe/Latin model zayıf kalırsa yalnız o filmde önce
-> Arapça/Farsça, kabul kapısını geçmezse ESlav/Kiril Paddle tanıyıcı çalışır.
-> Kobe sınırı veya sonucu kullanılmaz; zincir, Nash'i her mevcut bölüm ana kare
-> dizininde Kobe havuzu olmasa da bir kez çalıştırır.
+> **Ana kare havuzu girer, kanıtlı ve zaman sıralı yazı çıkar.** Paddle v6
+> detector + Latin v5 bütün kareleri tarar; metne özel izleyici aynı kredi
+> satırını kareler boyunca birleştirir. Her izden üç ayrı kırpım v6 medium
+> recognizer ile yeniden okunur, Türkçe Tesseract yalnız uyuşmazlık hakemidir.
+> Türkçe/Latin model zayıf kalırsa yalnız o filmde Arabic veya ESlav Paddle
+> tanıyıcı çalışır. Kobe sınırı veya sonucu kullanılmaz; zincir Nash'i her
+> mevcut bölüm ana kare dizininde Kobe havuzu olmasa da bir kez çalıştırır.
 
 **DURUM: çok-alfabeli Paddle okuyucu çalışıyor.** DeepSeek fallback kodu
 korunuyor fakat üretim config'inde kapalıdır; Nash şu anda ağır modeli hiç
@@ -13,13 +15,38 @@ yüklemez. Ayrıntı: `DURUM.md`.
 ## Sorumluluk sınırı
 
 **Yapar:** verilen ana havuzun tamamında metin kutularını ve metni tarar;
-altyazı/logo gürültüsünü, geçiş birleşiklerini ve zamansal tekrarları eler;
-kanıt bbox'larıyla kendi `out/`una yazar.
+aynı satırı kareler boyunca izler; kayan jeneriği ekran-ortası geçiş zamanına
+göre sıralar; girişte yalnız güçlü kanıt varsa kredi dizisinden çok sonra kalan
+sahne yazılarını ayırır; kanıt bbox'larıyla kendi `out/`una yazar.
 
-**Yapmaz:** jeneriğin nerede başladığını aramaz (Kobe'nin işi) · master PNG
-üretmez (İbrahimovic) · isim düzeltmez · rol eşlemez (Ronaldo/Phil Jackson) ·
-Database'e yazmaz · PDF üretmez · hangi filmin hangi yoldan okunacağına karar
-vermez (router değildir).
+**Yapmaz:** ana havuzun başlangıcını yeniden aramaz (Sheriff/Kobe sınırı) ·
+master PNG üretmez (İbrahimovic) · dış bilgiden isim düzeltmez · rol eşlemez
+(Ronaldo/Phil Jackson) · Database'e yazmaz · PDF üretmez · hangi filmin hangi
+yoldan okunacağına karar vermez (router değildir).
+
+## Ana okuyucu değişmezleri — 2026-08-20
+
+- Bir satır bir karede yalnız bir metin izine bağlanır; aynı karedeki iki kutu
+  tek kimlik altında birleşemez. İz eşlemesi metin, öngörülen hareket, geometri
+  ve kırpım dHash kanıtını birlikte kullanır.
+- Kayan jenerik ilk görülen kareye göre değil, izin ekran ortasını geçtiği
+  zamana göre sıralanır. Havuz ilk karede dolu başlasa da sıra korunur; statik
+  kartlar ayrı rejimde kalır.
+- Latin v5 ana okumadır. v6 medium yalnız aynı izden zaman içinde dağılmış üç
+  kırpım üzerinde ikinci görüş verir. Modeller uyuşmazsa birincil metin
+  korunur; Tesseract tek başına karakter veya isim uyduramaz.
+- Tek isim veya rol bütün çıktı boyunca asla silinmez. Ancak en az üç ardışık
+  satırlık aynı blok tekrarlandıysa düşük kaliteli blok kaldırılır. Tek-satır
+  yakın tekrar kapısı yalnız zayıf kanıt + yakın kare + en az 0,96 benzerlikte
+  çalışır.
+- Girişte başlangıç asla kırpılmaz. Bitiş, en az sekiz güçlü izin oluşturduğu
+  baskın kredi dizisi ve ondan uzakta kalan kuyruk birlikte kanıtlanırsa
+  daraltılır; şüphede bütün havuz korunur.
+- Sahne yazısı elemesi kelime listesine dayanmaz. Yalnız zayıf zamansal destek,
+  yerel kredi kolonundan kopuk geometri ve gerçek kare parlaklığı birlikte
+  varsa uygulanır. Yoğun koyu scroll'da bu eleme devreden çıkar.
+- DeepSeek üretimde kapalıdır. Okuyucu metni kaynakta gördüğü biçimde taşır;
+  oyuncu bilgisine bakarak `MUTU`yu `MUTLU` yapmaz.
 
 ## Çalıştırma
 
@@ -136,8 +163,10 @@ venv/bin/python -m pytest tests -q      # yapısal koruma testi dışında skip 
 |---|---|
 | Havuz çekirdeği (SAF — algoritma değişmez) | `src/havuz.py` |
 | Ana havuz full OCR worker'ı | `src/metin_worker.py` (ayrı Paddle venv'i) |
+| Metne özel bire-bir izleme, giriş penceresi ve scroll sırası | `src/metin_izleri.py` |
+| İz kırpımlarının v6/Tesseract ikinci okuması | `src/kirpim_worker.py`, `src/metin_uzlastirici.py` |
 | Metin bloğu/temsilci seçimi | `src/metin_secici.py`, `src/secim.py` |
-| Paddle temporal uzlaşma + alfabe/fallback birleştirme | `src/hibrit.py` |
+| İz kabulü + alfabe/fallback + tekrar blok birleştirme | `src/hibrit.py` |
 | Kareler → satırlar (dedup + gevezelik süzgeci) | `src/okuyucu.py` |
 | DeepSeek adaptörü ve sert üretim sınırları | `src/model.py` |
 | `mitas.okuma/v2` bbox kanıtı | `src/proof.py` |
@@ -145,6 +174,7 @@ venv/bin/python -m pytest tests -q      # yapısal koruma testi dışında skip 
 | CLI + koşu akışı | `main.py`, `nash` |
 | Eşikler, sigortalar, istem | `config.yaml` |
 | Taşıma kapısı | `olcum/kapi1.py`, `olcum/referans_uret.py` |
+| Sıralı/fuzzy jenerik kabul ölçümü | `olcum/jenerik_kabul.py` |
 | Çalışma zamanı | `venv/`, `venv_kur.sh`, `gereksinimler.txt` |
 
 `src/` sözleşmeyi **bilmez** — çeviri yalnız `main.py`'de.
@@ -157,11 +187,31 @@ havuz çıktısının sürümden bağımsız olduğu **ölçülmedi**. Kobe ders
 bütün olarak dondurulur, "hangi paket önemli" tahmin edilmez.
 
 Paddle ayrı `detector_venv/` içindedir: **Paddle 3.3.1, PaddleOCR 3.7.0,
-PaddleX 3.7.2, CUDA 12.6**. Detection `PP-OCRv6_medium_det`; Türkçe/Latin
-tanıma `latin_PP-OCRv5_mobile_rec`; koşullu ikinci tanımalar sırasıyla
+PaddleX 3.7.2, CUDA 12.6**. Detection `PP-OCRv6_medium_det`; birincil
+Türkçe/Latin tanıma `latin_PP-OCRv5_mobile_rec`; seçilmiş iz kırpımlarında
+ikinci tanıma `PP-OCRv6_medium_rec`; koşullu script tanımaları sırasıyla
 `arabic_PP-OCRv5_mobile_rec` ve `eslav_PP-OCRv5_mobile_rec` kullanır.
-Orientation/unwarp/HPI kapalı, FP32 ve `gpu:0` sabittir. Dört model de Nash'in
-yerel model dizininden açılır; ağdan model indirilmez.
+Orientation/unwarp/HPI kapalı, FP32 ve `gpu:0` sabittir. Modeller Nash'in yerel
+model dizininden açılır; ağdan model indirilmez.
+
+## Tam jenerik kabul kümesi — 2026-08-20
+
+`/home/cagatay/Masaüstü/DOĞRU BAŞLANGIÇ`, yalnız başlangıç örnekleri değil,
+**16 filmin 4.966 karelik tam jenerik dizisidir.** Son tam koşu 16/16 `OKUNDU`
+verdi; ardından korumacı luma/layout ayarı KONTES, TUHAF ve SUÇ DOSYASI üzerinde
+yeniden doğrulandı.
+
+- KONTES ALICE: hızlı scroll artık tek-kare sanılmıyor; iki ayrı `JOE NASSER`
+  izi 4 ve 8 karelik bağımsız destekle korunuyor.
+- Marnalı: statik kartın scroll'da yeniden gelmesinden oluşan beş satırlık
+  tekrar blok kaldırılıyor; daha yüksek kaliteli ilk blok kalıyor.
+- SUÇ DOSYASI: `POLİS`, plaka ve sahne içi yazılar, zayıf destek + yerel
+  geometri + parlaklık kanıtıyla ayrılıyor; metin sözlüğü kullanılmıyor.
+- Çiçek Taksi 1: 43 satır; `EROL GÜNAYDIN`, `GÜL GÖLGE`, `ÜMİT YESİN`,
+  `CENGİZ KÜÇÜKAYVAZ`, `FUNDA GÜRDAĞ`, `EŞREF KOLÇAK` ve `ışık şefi`
+  kaynak sırasıyla korunuyor.
+- Arapça/Farsça benzer iki gerçek satırı yanlış silmemek için tek-satır yakın
+  tekrar eşiği 0,96'dır; amaç eksiksizliktir, agresif estetik temizlik değil.
 
 Script yönlendirmesi birincil satır sayısı 8'in altında veya Latin medyan
 güveni 0,80'in altındaysa tetiklenir. Hedef alfabe oranı en az %35 olmalıdır.

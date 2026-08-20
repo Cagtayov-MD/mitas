@@ -21,6 +21,98 @@ def test_paddle_guvenilir_satiri_bbox_ile_kabul_eder_fallback_acmaz():
     assert kanit["paddle_skor_medyan"] == 0.97
 
 
+def test_scroll_satirlari_ilk_kare_dolu_olsa_da_akis_sirasinda_cikar():
+    yollar = [Path(f"{i}.png") for i in range(1, 7)]
+    analizler = {}
+    for no, yol in enumerate(yollar):
+        once_y = .10 - no * .08
+        sonra_y = .70 - no * .08
+        satirlar = []
+        kutular = []
+        for text, y in (("ONCEKI SATIR", once_y), ("SONRAKI SATIR", sonra_y)):
+            box = [.2, y, .8, y + .06]
+            if box[1] < 0 or box[3] > 1:
+                continue
+            kutular.append(box)
+            satirlar.append({"text": text, "score": .98, "box": box})
+        analizler[yol.name] = {"boxes": kutular, "lines": satirlar}
+    satirlar, _, _, _ = hibrit.paddle_oku(
+        yollar, analizler,
+        {"bolum": "cikis", "paddle_iz_max_bosluk": 2,
+         "paddle_uzlasma_penceresi": 2})
+    assert [x["text"] for x in satirlar] == [
+        "ONCEKI SATIR", "SONRAKI SATIR"]
+
+
+def test_cikistaki_statik_kart_gec_algilanan_rolu_y_sirasina_alir():
+    satirlar = [
+        {"sayfa_sira": 10, "satir_sira": 7000, "text": "AD",
+         "_akis_zamani": 10.0, "_akis_hareketli": False,
+         "_akis_x": .5, "_akis_y": .7},
+        {"sayfa_sira": 11, "satir_sira": 3000, "text": "ROL",
+         "_akis_zamani": 11.0, "_akis_hareketli": False,
+         "_akis_x": .5, "_akis_y": .3},
+    ]
+    sonuc = hibrit._zamansal_sirala(satirlar, kart_toleransi=2)
+    assert [x["text"] for x in sonuc] == ["ROL", "AD"]
+
+
+def test_tek_ad_tekrari_silinmez_ama_ardisik_kart_tekrari_silinir():
+    def row(text, sayfa, score=.98):
+        return {"kaynak": f"{sayfa}.png", "sayfa_sira": sayfa,
+                "satir_sira": 0, "text": text, "score": score,
+                "support": 4, "motor": "paddle"}
+    satirlar = [
+        row("YÖNETMEN", 1, .99),
+        row("DOĞAN ÜMİT KARACA", 2, .99),
+        row("YAPIMCI", 3, .99),
+        row("MEHMET CANPOLAT", 4, .99),
+        row("SADİ CANPOLAT", 5, .98),
+        row("Yönetmen", 6, .98),
+        row("DOĞAN OMİT KARACA", 7, .97),
+        row("Yapimei", 8, .92),
+        row("MEHMET CANPOLAT", 9, .99),
+        row("SADI CANPOLAT", 10, .99),
+        row("YÖNETMEN", 20, .99),
+    ]
+    sonuc, tani = hibrit.tekrar_bloklarini_ayikla(satirlar)
+    assert [x["text"] for x in sonuc[:5]] == [
+        "YÖNETMEN", "DOĞAN ÜMİT KARACA", "YAPIMCI",
+        "MEHMET CANPOLAT", "SADİ CANPOLAT"]
+    assert sonuc[-1]["text"] == "YÖNETMEN"
+    assert tani["removed_n"] == 5
+    assert tani["blocks"][0]["kept"] == "earlier"
+
+
+def test_tekrar_blokta_belirgin_daha_iyi_olan_sonraki_kalir():
+    def row(text, sayfa, score):
+        return {"kaynak": f"{sayfa}.png", "sayfa_sira": sayfa,
+                "satir_sira": 0, "text": text, "score": score}
+    satirlar = [
+        row("YONETMEN", 1, .75), row("ALI VELI", 2, .76),
+        row("YAPIMCI", 3, .77),
+        row("YÖNETMEN", 10, .99), row("ALİ VELİ", 11, .99),
+        row("YAPIMCI", 12, .99),
+    ]
+    sonuc, tani = hibrit.tekrar_bloklarini_ayikla(satirlar)
+    assert [x["sayfa_sira"] for x in sonuc] == [10, 11, 12]
+    assert tani["blocks"][0]["kept"] == "later"
+
+
+def test_guclu_izin_yanindaki_tek_kare_ayni_baslik_tekrari_silinir():
+    satirlar = [
+        {"kaynak": "c_0050.png", "sayfa_sira": 1, "satir_sira": 0,
+         "text": "DOSYASI", "score": .92, "support": 1},
+        {"kaynak": "c_0052.png", "sayfa_sira": 2, "satir_sira": 0,
+         "text": "DOSYASI", "score": .98, "support": 5},
+        {"kaynak": "c_0090.png", "sayfa_sira": 3, "satir_sira": 0,
+         "text": "DOSYASI", "score": .99, "support": 5},
+    ]
+    sonuc, tani = hibrit.tekrar_bloklarini_ayikla(satirlar)
+    assert [x["kaynak"] for x in sonuc] == ["c_0052.png", "c_0090.png"]
+    assert tani["near_removed_n"] == 1
+
+
 def test_dusuk_guvenli_paddle_satiri_korunur_ve_deepseek_fallback_acilir():
     yollar = [Path("a.png")]
     satirlar, kanit, fallback, _ = hibrit.paddle_oku(
@@ -272,6 +364,25 @@ def test_temporal_uzlasma_crossfade_bilesigini_atip_temiz_satiri_korur():
     assert "MUZIK" in [x["text"] for x in satirlar]
     assert "GORUNIMUZIK" not in [x["text"] for x in satirlar]
     assert kanit["elenme_sebepleri"]["gecis_bilesik"] == 1
+
+
+def test_kararli_kartin_tek_karelik_eksik_parcasi_elenir():
+    yollar = [Path(f"{i:03d}.png") for i in range(3)]
+    analizler = {
+        "000.png": _analiz(text="TAK"),
+        "001.png": _analiz(text="TAKSI"),
+        "002.png": _analiz(text="TAKSI"),
+    }
+    satirlar, kanit, _, _ = hibrit.paddle_oku(yollar, analizler, {})
+    assert [x["text"] for x in satirlar] == ["TAKSI"]
+    assert kanit["elenme_sebepleri"]["gecis_parcasi"] == 1
+
+
+def test_iki_harfli_ama_cok_kareli_gercek_kredi_korunur():
+    yollar = [Path("000.png"), Path("001.png"), Path("002.png")]
+    analizler = {p.name: _analiz(text="VE") for p in yollar}
+    satirlar, _, _, _ = hibrit.paddle_oku(yollar, analizler, {})
+    assert [x["text"] for x in satirlar] == ["VE"]
 
 
 def test_uzaktaki_benzer_satir_tek_karelik_krediyi_elemez():

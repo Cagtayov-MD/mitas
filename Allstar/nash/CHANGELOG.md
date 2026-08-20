@@ -1,5 +1,26 @@
 # Nash kulesi — değişiklik günlüğü
 
+## 2026-08-20 — Metin izli ana jenerik okuyucusu
+
+- Genel kutu tracker'ı yerine jeneriğe özel, kare başına bire-bir metin izi
+  eklendi. Metin benzerliği, öngörülen hareket, bbox ve kırpım dHash birlikte
+  kullanılıyor; hızlı scroll satırları artık aradaki karelerde parçalanmıyor.
+- Scroll satır sırası, ilk görülme anı yerine doğrusal hareketten hesaplanan
+  ekran-ortası geçiş zamanına bağlandı. Statik kartlar ayrı zaman grubunda.
+- Her izden keskin ve zamansal olarak dağılmış üç kırpım seçiliyor;
+  `PP-OCRv6_medium_rec` ikinci okuyucu, Türkçe Tesseract yalnız uyuşmazlık
+  hakemi. Çatışmada kaynak metni koruyan sıkı kabul kapıları eklendi.
+- Giriş kredi penceresi, küçük sahne yazısı ve layout aykırı süzgeçleri yalnız
+  birleşik zamansal/geometrik/parlaklık kanıtıyla çalışıyor. Başlangıç hiçbir
+  zaman kırpılmıyor; yoğun koyu scroll koruma altında.
+- Global isim dedup yapılmıyor. Yalnız en az üç satırlık ardışık tekrar blok ve
+  yakın karedeki zayıf, en az 0,96 benzer OCR varyantı temizleniyor.
+- Sıralı fuzzy kabul aracı `olcum/jenerik_kabul.py` eklendi. 16 tam jenerik /
+  4.966 kare 16/16 `OKUNDU`; KONTES ALICE, Çiçek Taksi 1, Marnalı ve SUÇ
+  DOSYASI hedefli gerçek-kare regresyonları ayrıca doğrulandı.
+- DeepSeek üretimde kapalı; Nash'in ana Latin okuyucusu v5 detector sonucu +
+  v6 çok-kırpım uzlaşmasıdır.
+
 ## 2026-08-20 — QC sözleşme ve zincir güvenliği
 
 - Nash zincirde Kobe havuzu/sonucundan bağımsız, ana kare diziniyle bölüm

@@ -289,6 +289,37 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
                 fallback_yollari=s.yollar)
             proof_context["grounding"] = paddle_grounding
 
+            # Ikinci tanıyıcı tam kareleri yeniden taramaz; her kabul edilen
+            # metin izinin yalnız temsilci kırpımını okur. Başarısızlık ana
+            # Paddle gerçeğini silmez, fakat kanıtta görünür kalır.
+            ensemble_cfg = o_cfg.get("paddle_ensemble") or {}
+            if bool(ensemble_cfg.get("enabled", False)) and paddle_satirlari:
+                try:
+                    import metin_uzlastirici
+                    (paddle_satirlari, grounding_degisim,
+                     ensemble_kanit) = metin_uzlastirici.ikinci_tani(
+                        paddle_satirlari, Path(girdi.kareler), ensemble_cfg,
+                        ayar.get("detector") or {})
+                    proof_context["grounding"] = (
+                        metin_uzlastirici.grounding_guncelle(
+                            proof_context["grounding"], grounding_degisim))
+                    paddle_kanit["paddle_ensemble"] = ensemble_kanit
+                except Exception as exc:
+                    paddle_kanit["paddle_ensemble"] = {
+                        "enabled": True, "fallback_to_primary": True,
+                        "error": f"{type(exc).__name__}: {exc}"[:500],
+                    }
+            else:
+                paddle_kanit["paddle_ensemble"] = {
+                    "enabled": bool(ensemble_cfg.get("enabled", False)),
+                    "request_n": 0, "changed_n": 0, "conflict_n": 0,
+                }
+            # Kirpim adaylari yalniz ikinci tanima katmaninin ic verisidir.
+            # Worker arizalansa veya katman kapali olsa da uretim sozlesmesine
+            # sizmaz; birincil Paddle satiri temiz bicimde korunur.
+            for satir in paddle_satirlari:
+                satir.pop("_ensemble_crops", None)
+
             # Latin tanıyıcı düşük güvenliyse Arabic, yalnız o kabul edilmezse
             # ESlav denenir. Script kabulü bütün Latin sonucu körlemesine
             # silmez; ayrı bbox'taki güçlü/tekrarlı çift-dilli satırı korur.
@@ -485,6 +516,11 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
         o_kanit = {**paddle_kanit, **birlesim_kanit}
         for anahtar, deger in deepseek_kanit.items():
             o_kanit[f"deepseek_{anahtar}"] = deger
+        satirlar, tekrar_kanit = hibrit_mod.tekrar_bloklarini_ayikla(
+            satirlar, o_cfg.get("paddle_tekrar_blok") or {})
+        o_kanit["paddle_tekrar_blok"] = tekrar_kanit
+        proof_context["grounding"] = hibrit_mod.grounding_satirlara_daralt(
+            proof_context["grounding"], satirlar)
     else:
         satirlar, o_kanit = deepseek_satirlari, deepseek_kanit
 

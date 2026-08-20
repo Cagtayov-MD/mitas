@@ -1,5 +1,16 @@
 # Nash kulesi — canlı durum
 
+> **2026-08-20 ana okuyucu sabitlemesi:** Nash artık jenerik satırlarını metin,
+> hareket, bbox ve kırpım dHash ile bire-bir izler; scroll sırasını izin ekran
+> ortasını geçiş zamanından kurar. Her izden üç zamansal kırpım Latin v5 + v6
+> medium ile uzlaştırılır; Türkçe Tesseract yalnız hakemdir, DeepSeek kapalıdır.
+> Giriş başlangıcı kırpılmaz; uzak sahne kuyruğu ancak baskın kredi dizisiyle
+> kanıtlanırsa ayrılır. Tek isim global silinmez; yalnız en az üç satırlık
+> tekrar blok veya 0,96 benzerlikli zayıf/yakın OCR varyantı temizlenir.
+> `/home/cagatay/Masaüstü/DOĞRU BAŞLANGIÇ` içindeki 16 tam jenerik / 4.966 kare
+> 16/16 `OKUNDU` geçti. KONTES hızlı scroll, Çiçek Taksi 1, Marnalı tekrar blok
+> ve SUÇ DOSYASI sahne yazısı ayrıca gerçek karelerle doğrulandı.
+
 > **2026-08-20 QC düzeltmeleri:** Nash zincirde Kobe havuzundan bağımsızdır ve
 > her mevcut ana kare bölümünde bir kez çalışır. Film kimliği tek yol bileşeni
 > olarak zorlanır; eski `_TAMAM` işareti koşu başında kaldırılır. Kapalı

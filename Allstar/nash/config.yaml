@@ -71,8 +71,58 @@ okuma:
   temperature: 0.0
   dedup_esigi: 0.92       # sayfalar arası fold-dedup (difflib SequenceMatcher)
   paddle_kabul_esigi: 0.70
+  # Metne ozel bire-bir izleme. Genel MOT kutu kimligi burada yeterli degil:
+  # kayan jenerikte onlarca satir ayni hiz/geometriyi paylasir. Metin,
+  # tahmin edilen hareket ve kirpim imzasi birlikte kullanilir.
+  paddle_iz_max_bosluk: 12
+  paddle_iz_metin_esigi: 0.66
+  paddle_iz_kisa_metin_esigi: 0.80
+  paddle_iz_gram_anahtar: 4
   paddle_uzlasma_penceresi: 12
   paddle_uzlasma_esigi: 0.82
+  # Scroll satiri ilk goruldugu kareye gore siralanamaz: havuzun ilk karesi
+  # zaten dolu olabilir. Her izin dikey hareketine dogru uydurulur ve ekran
+  # ortasini gecis zamani sira anahtari olur. Zayif hareket statik kart kalir.
+  paddle_akis_min_egim: 0.004
+  paddle_akis_min_yol: 0.08
+  paddle_akis_min_uyum: 0.55
+  paddle_akis_referans_y: 0.50
+  paddle_akis_ekstrapolasyon_orani: 1.5
+  paddle_akis_satir_toleransi: 0.65
+  paddle_statik_kart_toleransi: 2
+  # Giriste baslangici kirpmaz. En az 8 cok-kareli izin olusturdugu baskin
+  # kredi dizisinden cok sonra kalan sahne/tabela yazilarini ayirir; kanit
+  # yetersizse tam havuzu korur. Cikista bu kural uygulanmaz.
+  paddle_kredi_penceresi_enabled: true
+  paddle_kredi_kuvvet_min_destek: 2
+  paddle_kredi_pencere_min_iz: 8
+  paddle_kredi_grup_bosluk: 24
+  paddle_kredi_son_bosluk: 36
+  paddle_kredi_son_kuyruk: 4
+  paddle_kredi_baskin_oran: 1.8
+  # Filmin kendi baskin font olcegi/y-bantlari ogrenilir. Yalniz hem kucuk
+  # hem bu bantlara yabanci izler sahne tabelasi sayilir; sablon yoksa eleme
+  # yoktur. Sabit mutlak piksel esigi kullanilmaz.
+  paddle_kucuk_sahne_yazisi_enabled: true
+  paddle_sahne_yazisi_min_capa: 8
+  paddle_sahne_yazisi_h_oran: 0.72
+  paddle_sahne_yazisi_max_genislik: 0.24
+  paddle_sahne_yazisi_y_tolerans: 0.07
+  paddle_sahne_yazisi_x_tolerans: 0.22
+  paddle_sahne_yazisi_y_min_capa: 3
+  # Ayni zaman cevresindeki guclu kredi kolonundan x ekseninde kopuk,
+  # yalniz 1-2 karelik tabela/plaka izlerini ayirir. Metin sozlugu kullanmaz.
+  paddle_layout_aykiri_enabled: true
+  paddle_layout_zayif_destek_tavan: 2
+  paddle_layout_kare_komsu: 8
+  paddle_layout_x_tolerans: 0.24
+  paddle_layout_h_min_oran: 0.50
+  paddle_layout_h_max_oran: 1.60
+  paddle_layout_min_capa: 2
+  paddle_layout_scroll_min_iz: 8
+  paddle_layout_scroll_oran: 0.60
+  paddle_layout_min_luma: 40.0
+  paddle_layout_scroll_max_luma: 50.0
   # Kayan jenerikte ayni karede >=8 temiz satir varken yalniz tek kare gorulen
   # varyant, genellikle ekran kenarindaki parcali/blur OCR'dir. Tek kartlari
   # etkilemez; onlar bu yogunluga ulasmaz.
@@ -81,6 +131,47 @@ okuma:
   # Kare duzeyi dusuk skor tek basina 14 GB model acamaz. Paddle filmde en az
   # 8 temiz satir cikardiysa film kalite kapisini gecer ve DeepSeek yuklenmez.
   paddle_film_kabul_min_satir: 8
+  # Tam kareyi ikinci kez taramaz. Metin izinin secilmis en iyi kutusunu v6
+  # medium ile yeniden okur; Turkce Tesseract yalniz CPU hakemidir. v6 temel
+  # harf/kelime iskeleti, Latin v5 ve Tesseract diyakritikleri uzlastirilir.
+  # Modeller catismissa birincil metin korunur ve kanita conflict yazilir.
+  paddle_ensemble:
+    enabled: true
+    device: "gpu:0"
+    model: PP-OCRv6_medium_rec
+    model_dir: model/paddle/PP-OCRv6_medium_rec
+    batch: 16
+    padding: 2
+    # Bir izin tek temsilci karesine mahkum olma. Keskin ve zaman icinde
+    # daginik uc kirpimin v6 sonuclari kendi aralarinda da uzlastirilir.
+    crops_per_track: 3
+    # Ikinci okuyucu karakter/kelime iskeletinde en az bu kadar uyusmuyorsa
+    # duzeltme yapmaz. Dusuk esik uzun satirin basini/sonunu silebiliyordu.
+    min_similarity: 0.78
+    # Yalniz farkli karelerin tamami ayni v6 metninde oybirligi yaparsa,
+    # tek-kare esigi 0.74'e iner. Genel esik gevsemez.
+    multi_consensus_vote_ratio: 1.0
+    multi_consensus_similarity: 0.74
+    single_conflict_score: 0.90
+    timeout_seconds: 300
+    tesseract_enabled: true
+    tesseract_lang: tur
+    tesseract_psm: 7
+    tesseract_tavan: 120
+  # Tek bir tekrar eden isim/rol ASLA global silinmez. Ancak en az uc
+  # ardışık satir ayni sirayla yeniden gorunurse (statik kart -> scroll gibi)
+  # dusuk kaliteli blok tekillestirilir.
+  paddle_tekrar_blok:
+    enabled: true
+    min_lines: 3
+    similarity: 0.82
+    prefer_later_quality_margin: 0.04
+    near_duplicate_enabled: true
+    near_duplicate_frame_gap: 4
+    # Arapca/Farsca gibi benzer kalipli gercek iki kredi satirini yutmamak
+    # icin bu kapı neredeyse birebir OCR varyanti ister.
+    near_duplicate_similarity: 0.96
+    near_duplicate_weak_support_max: 1
   # 2026-08-18: Toplu Paddle kalite testi tamamlanana ve master-PNG okuyucuyla
   # ortak agir model stratejisi yeniden kararlastirilana kadar kapali. Kod ve
   # hedefli kapilar korunur; true yapilmadan 14 GB DeepSeek yuklenmez.

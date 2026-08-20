@@ -29,6 +29,24 @@ def kirpim_keskinlestir(kirpim):
     return cv2.addWeighted(buyuk, 2.0, bulanik, -1.0, 0)
 
 
+def kirpim_olculeri(kirpim):
+    """Izleme/temsilci secimi icin ucuz, modele bagimsiz kirpim olculeri."""
+    import cv2
+    if kirpim is None or not getattr(kirpim, "size", 0):
+        return {"crop_dhash": None, "sharpness": 0.0, "contrast": 0.0}
+    gri = (cv2.cvtColor(kirpim, cv2.COLOR_BGR2GRAY)
+           if len(kirpim.shape) == 3 else kirpim)
+    kucuk = cv2.resize(gri, (17, 8), interpolation=cv2.INTER_AREA)
+    bits = (kucuk[:, 1:] > kucuk[:, :-1]).reshape(-1)
+    dhash = 0
+    for bit in bits:
+        dhash = (dhash << 1) | int(bit)
+    keskinlik = float(cv2.Laplacian(gri, cv2.CV_64F).var())
+    return {"crop_dhash": dhash,
+            "sharpness": round(keskinlik, 3),
+            "contrast": round(float(gri.std()), 3)}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
@@ -125,14 +143,19 @@ def main(argv=None) -> int:
                 x1, y1, x2, y2 = (float(x) for x in kutu)
                 if not (0 <= x1 < x2 <= genislik and 0 <= y1 < y2 <= yukseklik):
                     continue
+                ix1, iy1 = max(0, int(x1)), max(0, int(y1))
+                ix2, iy2 = min(genislik, int(x2 + 0.999)), min(
+                    yukseklik, int(y2 + 0.999))
+                olculer = kirpim_olculeri(im[iy1:iy2, ix1:ix2])
                 satirlar.append({
                     "text": str(metin), "score": float(skor),
                     "box": [x1 / genislik, y1 / yukseklik,
-                            x2 / genislik, y2 / yukseklik],
+                            x2 / genislik, y2 / yukseklik], **olculer,
                 })
             kareler[p.name] = {"boxes": kutular, "lines": satirlar,
                                "width": genislik, "height": yukseklik,
-                               "dhash": dhash}
+                               "dhash": dhash,
+                               "luma_mean": round(float(gri.mean()), 3)}
         except Exception as exc:  # tek bozuk kare tum havuzu iptal etmez
             kareler[p.name] = {"boxes": [],
                                "error_stage": "predict",

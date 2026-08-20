@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import difflib
 import math
+import re
 import statistics
 import time
 import unicodedata
 from collections import defaultdict
 from pathlib import Path
 
+import metin_izleri
 import okuyucu
 
 
@@ -100,10 +102,16 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
             if skor < kabul_esigi:
                 continue
             kabul.append((metin, skor, kutu))
-            adaylar.append({"kaynak": p.name, "kare_sira": kare_sira,
-                            "satir_sira": len(kabul) - 1, "text": metin,
-                            "fold": okuyucu.fold(metin), "score": skor,
-                            "box": kutu})
+            aday = {"kaynak": p.name, "kare_sira": kare_sira,
+                    "satir_sira": len(kabul) - 1, "text": metin,
+                    "fold": okuyucu.fold(metin), "score": skor,
+                    "box": kutu}
+            for anahtar in ("crop_dhash", "sharpness", "contrast"):
+                if oge.get(anahtar) is not None:
+                    aday[anahtar] = oge[anahtar]
+            if analiz.get("luma_mean") is not None:
+                aday["frame_luma"] = float(analiz["luma_mean"])
+            adaylar.append(aday)
         if p.name not in fallback_izin:
             continue
         if analiz.get("error"):
@@ -125,58 +133,58 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
                                       "boxes": okunabilir_kutular, "dusuk": dusuk})
 
     t_ayiklama = time.monotonic()
-    kumeler: list[dict] = []
-    aktif_kumeler: list[dict] = []
-    for aday in adaylar:
-        # Eski uygulama pencereden cikmis binlerce kumeyi de her satirda tekrar
-        # tarardi; uzun kayan jenerikte O(n²) olup cag_output26'da 114 saniye
-        # harcadi. Yalniz aktif zaman penceresini ve son 8 yazim varyantini
-        # eslestirmek ayni karari sinirli maliyetle verir.
-        aktif_kumeler = [
-            k for k in aktif_kumeler
-            if aday["kare_sira"] - k["son_sira"] <= uzlasma_penceresi
-        ]
-        uygun = [k for k in aktif_kumeler
-                 if _kume_varyanti(aday, k, uzlasma_esigi)]
-        if uygun:
-            kume = max(uygun, key=lambda k: max(
-                difflib.SequenceMatcher(None, aday["fold"], fold).ratio()
-                for fold in k["esleme_foldlari"]))
-            kume["ogeler"].append(aday)
-            kume["son_sira"] = aday["kare_sira"]
-            kume["esleme_foldlari"] = (
-                kume["esleme_foldlari"] + [aday["fold"]])[-8:]
-            kume["esleme_ozetleri"] = [
-                _metin_ozeti(x) for x in kume["esleme_foldlari"]
-            ]
-            kume["esleme_kutulari"] = (
-                kume["esleme_kutulari"] + [aday["box"]])[-8:]
-            kume["esleme_siralari"] = (
-                kume["esleme_siralari"] + [aday["kare_sira"]])[-8:]
-        else:
-            yeni_kume = {"ilk_sira": aday["kare_sira"],
-                         "son_sira": aday["kare_sira"], "ogeler": [aday],
-                         "esleme_foldlari": [aday["fold"]],
-                         "esleme_ozetleri": [_metin_ozeti(aday["fold"])],
-                         "esleme_kutulari": [aday["box"]],
-                         "esleme_siralari": [aday["kare_sira"]]}
-            kumeler.append(yeni_kume)
-            aktif_kumeler.append(yeni_kume)
+    # Genel nesne takibi yerine metne ozel bire-bir izleme: bosluk/diyakritik
+    # sapmasi, kutu hareketi ve kirpim imzasi ayni kararda bulusur. Ayni karede
+    # iki benzer adin tek kumeye dusmesi yasaktir.
+    kumeler, iz_tani = metin_izleri.izleri_kur(adaylar, ayar)
 
     t_kumeleme = time.monotonic()
     temsilciler = [_kume_temsilcisi(kume["ogeler"]) for kume in kumeler]
+    izinli_izler, pencere_tani = metin_izleri.kredi_penceresi(
+        kumeler, len(yollar), str(ayar.get("bolum", "cikis")), ayar)
+    sahne_yazisi_izleri = metin_izleri.kucuk_sahne_yazisi_izleri(
+        kumeler, izinli_izler, ayar)
+    layout_tani = []
+    layout_aykiri_izler = metin_izleri.zayif_layout_disinda_izler(
+        kumeler, izinli_izler, ayar, tani=layout_tani)
+    gecerli_izler = (izinli_izler - sahne_yazisi_izleri
+                     - layout_aykiri_izler)
     kare_aday_sayisi: dict[int, int] = defaultdict(int)
     for aday in adaylar:
         kare_aday_sayisi[int(aday["kare_sira"])] += 1
     kararli_kumeler = [
         (kume, temsilci) for kume, temsilci in zip(kumeler, temsilciler)
-        if len(kume["ogeler"]) >= 2
+        if len(kume["ogeler"]) >= 2 and int(kume["iz_id"]) in gecerli_izler
     ]
     satirlar = []
     for kume, secilen in zip(kumeler, temsilciler):
+        iz_id = int(kume["iz_id"])
+        if iz_id not in izinli_izler:
+            elenen.append({"kaynak": secilen["kaynak"],
+                           "text": secilen["text"],
+                           "sebep": "kredi_penceresi_disi",
+                           "score": round(secilen["score"], 6),
+                           "iz_id": iz_id})
+            continue
+        if iz_id in sahne_yazisi_izleri:
+            elenen.append({"kaynak": secilen["kaynak"],
+                           "text": secilen["text"],
+                           "sebep": "kucuk_sahne_yazisi",
+                           "score": round(secilen["score"], 6),
+                           "iz_id": iz_id})
+            continue
+        if iz_id in layout_aykiri_izler:
+            elenen.append({"kaynak": secilen["kaynak"],
+                           "text": secilen["text"],
+                           "sebep": "zayif_layout_disinda",
+                           "score": round(secilen["score"], 6),
+                           "iz_id": iz_id})
+            continue
         alnum_n = sum(c.isalnum() for c in secilen["text"])
-        if alnum_n <= 2 or (alnum_n <= 4 and len(kume["ogeler"]) < 2
-                            and secilen["score"] < 0.90):
+        if ((alnum_n <= 1)
+                or (alnum_n <= 2 and len(kume["ogeler"]) < 3)
+                or (alnum_n <= 4 and len(kume["ogeler"]) < 2
+                    and secilen["score"] < 0.90)):
             elenen.append({"kaynak": secilen["kaynak"], "text": secilen["text"],
                            "sebep": "kararsiz_kisa",
                            "score": round(secilen["score"], 6)})
@@ -202,20 +210,47 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
                            "sebep": "gecis_bilesik",
                            "score": round(secilen["score"], 6)})
             continue
+        if (len(kume["ogeler"]) == 1
+                and _gecis_parcasi(secilen, kararli_kumeler)):
+            elenen.append({"kaynak": secilen["kaynak"], "text": secilen["text"],
+                           "sebep": "gecis_parcasi",
+                           "score": round(secilen["score"], 6)})
+            continue
+        medyan_y = statistics.median(
+            (oge["box"][1] + oge["box"][3]) / 2 for oge in kume["ogeler"])
+        akis = metin_izleri.iz_sira_bilgisi(kume, ayar)
         satirlar.append({"kaynak": secilen["kaynak"],
-                         "sayfa_sira": secilen["kare_sira"],
-                         "satir_sira": secilen["satir_sira"],
+                         "sayfa_sira": int(kume["ilk_sira"]),
+                         "satir_sira": round(medyan_y * 10000),
                          "text": secilen["text"], "motor": "paddle",
                          "score": round(secilen["score"], 6),
                          "support": len(kume["ogeler"]),
-                         "box": list(secilen["box"])})
+                         "iz_id": iz_id,
+                         "box": list(secilen["box"]),
+                         "_akis_zamani": float(akis["zaman"]),
+                         "_akis_hareketli": bool(akis["hareketli"]),
+                         "_akis_egim": float(akis["egim"]),
+                         "_akis_uyum": float(akis["uyum"]),
+                         "_akis_x": float(akis["x"]),
+                         "_akis_y": float(akis["y"]),
+                         "_ensemble_crops": _ensemble_kirpimlari(
+                             kume["ogeler"], secilen,
+                             max(1, int((ayar.get("paddle_ensemble") or {})
+                                        .get("crops_per_track", 3))))})
         grounding[secilen["kaynak"]].append({
             "label": secilen["text"],
             "boxes_999": [[round(v * 999, 3) for v in secilen["box"]]],
             "score": round(secilen["score"], 6), "engine": "paddle",
             "support": len(kume["ogeler"]),
         })
-    satirlar.sort(key=lambda x: (x["sayfa_sira"], x["satir_sira"]))
+    # Hareketli izler artik ayri akis anahtariyla siralanir. Bu nedenle hem
+    # giris hem cikistaki statik kartlarda 1-2 kare gec algilanan rol/ad ayni
+    # kutu grubuna alinabilir; scroll bu toleransi kullanmaz.
+    kart_toleransi = max(0, int(ayar.get(
+        "paddle_statik_kart_toleransi", 2)))
+    satirlar = _zamansal_sirala(
+        satirlar, kart_toleransi=kart_toleransi,
+        akis_toleransi=float(ayar.get("paddle_akis_satir_toleransi", 0.65)))
     t_satir_secimi = time.monotonic()
     temporal_cozulmus = [
         x for x in fallback_adaylari
@@ -261,6 +296,18 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
         "paddle_uzlasma_kume_n": len(kumeler),
         "paddle_uzlasma_penceresi": uzlasma_penceresi,
         "paddle_uzlasma_esigi": uzlasma_esigi,
+        "paddle_metin_izleri": iz_tani,
+        "paddle_kredi_penceresi": pencere_tani,
+        "paddle_kucuk_sahne_yazisi_iz_n": len(sahne_yazisi_izleri),
+        "paddle_zayif_layout_disinda_iz_n": len(layout_aykiri_izler),
+        "paddle_zayif_layout_disinda_izler": [
+            {"iz_id": int(kume["iz_id"]), "text": temsilci["text"],
+             "kaynak": temsilci["kaynak"],
+             "support": len(kume["ogeler"])}
+            for kume, temsilci in zip(kumeler, temsilciler)
+            if int(kume["iz_id"]) in layout_aykiri_izler
+        ],
+        "paddle_zayif_layout_tanisi": layout_tani,
         "paddle_yogun_kare_min_satir": yogun_kare_min_satir,
         "paddle_kume_destekleri": [
             {"text": temsilci["text"], "kaynak": temsilci["kaynak"],
@@ -334,15 +381,17 @@ def birlestir(paddle_satirlari: list[dict], deepseek_satirlari: list[dict],
         eklenen += 1
 
     sira = {p.name: i for i, p in enumerate(tum_yollar, start=1)}
-    sonuc.sort(key=lambda x: (sira.get(str(x.get("kaynak")), 10**9),
+    sonuc.sort(key=lambda x: (int(x.get("sayfa_sira", sira.get(
+                                  str(x.get("kaynak")), 10**9))),
                               int(x.get("satir_sira", 0)),
                               0 if x.get("motor") != "deepseek_fallback" else 1))
-    sayac: dict[str, int] = {}
+    sayac: dict[int, int] = {}
     for row in sonuc:
         kaynak = str(row.get("kaynak", ""))
-        row["sayfa_sira"] = sira.get(kaynak, int(row.get("sayfa_sira", 0)))
-        row["satir_sira"] = sayac.get(kaynak, 0)
-        sayac[kaynak] = row["satir_sira"] + 1
+        sayfa = int(row.get("sayfa_sira", sira.get(kaynak, 0)))
+        row["sayfa_sira"] = sayfa
+        row["satir_sira"] = sayac.get(sayfa, 0)
+        sayac[sayfa] = row["satir_sira"] + 1
         row.setdefault("motor", "paddle")
     red_sebepleri: dict[str, int] = {}
     for oge in deepseek_elenen:
@@ -352,6 +401,170 @@ def birlestir(paddle_satirlari: list[dict], deepseek_satirlari: list[dict],
                    "deepseek_birlesim_elendi_n": len(deepseek_elenen),
                    "deepseek_birlesim_elenme_sebepleri": red_sebepleri,
                    "deepseek_birlesim_elenen": deepseek_elenen[:50]}
+
+
+def tekrar_bloklarini_ayikla(satirlar: list[dict], ayar: dict | None = None
+                             ) -> tuple[list[dict], dict]:
+    """Yalniz 3+ ardışık satir halinde yinelenen jenerik blogunu tekillestir.
+
+    Tek bir ad veya rol filmin farkli yerlerinde gercekten tekrar edebilir;
+    global metin dedup bu nedenle yasaktir. Statik kartin hemen ardindan ayni
+    kartin scroll'da yeniden verilmesi gibi bir durum ise ardışık dizi
+    kanitidir. Ortalama OCR kalitesi belirgin daha iyi degilse ilk sunum kalir.
+    """
+    cfg = ayar or {}
+    if not bool(cfg.get("enabled", True)):
+        return [dict(x) for x in satirlar], {
+            "enabled": False,
+            "removed_n": 0, "blocks": [],
+        }
+    min_satir = max(3, int(cfg.get("min_lines", 3)))
+    esik = float(cfg.get("similarity", 0.82))
+    kalite_farki = float(cfg.get("prefer_later_quality_margin", 0.04))
+    sonuc = [dict(x) for x in satirlar]
+    bloklar = []
+    while True:
+        anahtarlar = [_tekrar_anahtari(x.get("text", "")) for x in sonuc]
+        konumlar: dict[str, list[int]] = defaultdict(list)
+        for no, anahtar in enumerate(anahtarlar):
+            if len(anahtar) >= 3:
+                konumlar[anahtar].append(no)
+        adaylar = []
+        for ayni in konumlar.values():
+            for a_no in range(len(ayni)):
+                for b_no in range(a_no + 1, len(ayni)):
+                    ilk, ikinci = ayni[a_no], ayni[b_no]
+                    if ikinci - ilk < min_satir:
+                        continue
+                    uzunluk = 0
+                    oranlar = []
+                    while (ilk + uzunluk < ikinci
+                           and ikinci + uzunluk < len(sonuc)):
+                        oran = _tekrar_benzerligi(
+                            sonuc[ilk + uzunluk].get("text", ""),
+                            sonuc[ikinci + uzunluk].get("text", ""))
+                        if oran < esik:
+                            break
+                        oranlar.append(oran)
+                        uzunluk += 1
+                    if uzunluk >= min_satir:
+                        adaylar.append((uzunluk, statistics.mean(oranlar),
+                                       ilk, ikinci))
+        if not adaylar:
+            break
+        uzunluk, oran, ilk, ikinci = max(
+            adaylar, key=lambda x: (x[0], x[1], -x[2], -x[3]))
+        ilk_blok = sonuc[ilk:ilk + uzunluk]
+        ikinci_blok = sonuc[ikinci:ikinci + uzunluk]
+        ilk_kalite = statistics.mean(_satir_kalitesi(x) for x in ilk_blok)
+        ikinci_kalite = statistics.mean(
+            _satir_kalitesi(x) for x in ikinci_blok)
+        ikinciyi_tut = ikinci_kalite >= ilk_kalite + kalite_farki
+        dusen_bas = ilk if ikinciyi_tut else ikinci
+        dusen = sonuc[dusen_bas:dusen_bas + uzunluk]
+        tutulan = ikinci_blok if ikinciyi_tut else ilk_blok
+        bloklar.append({
+            "length": uzunluk, "similarity": round(oran, 6),
+            "kept": "later" if ikinciyi_tut else "earlier",
+            "kept_quality": round(
+                ikinci_kalite if ikinciyi_tut else ilk_kalite, 6),
+            "removed_quality": round(
+                ilk_kalite if ikinciyi_tut else ikinci_kalite, 6),
+            "kept_texts": [x.get("text", "") for x in tutulan],
+            "removed_texts": [x.get("text", "") for x in dusen],
+            "removed_sources": [x.get("kaynak", "") for x in dusen],
+        })
+        del sonuc[dusen_bas:dusen_bas + uzunluk]
+    sonuc, yakinlar = _zayif_yakin_tekrarlari_ayikla(sonuc, cfg)
+    return sonuc, {
+        "enabled": True,
+        "removed_n": sum(x["length"] for x in bloklar) + len(yakinlar),
+        "block_removed_n": sum(x["length"] for x in bloklar),
+        "near_removed_n": len(yakinlar),
+        "blocks": bloklar, "min_lines": min_satir,
+        "near_duplicates": yakinlar,
+        "similarity": esik,
+        "prefer_later_quality_margin": kalite_farki,
+    }
+
+
+def grounding_satirlara_daralt(grounding: dict, satirlar: list[dict]) -> dict:
+    """Nihai satiri olmayan bbox kanitini kabul paketinden cikar."""
+    izin = {(str(x.get("kaynak", "")),
+             _tekrar_anahtari(x.get("text", ""))) for x in satirlar}
+    sonuc = {}
+    for kaynak, ogeler in (grounding or {}).items():
+        secilen = [
+            dict(x) for x in (ogeler or [])
+            if (str(kaynak), _tekrar_anahtari(x.get("label", ""))) in izin
+        ]
+        if secilen:
+            sonuc[str(kaynak)] = secilen
+    return sonuc
+
+
+def _tekrar_anahtari(metin: str) -> str:
+    return metin_izleri.kompakt(okuyucu.fold(str(metin)))
+
+
+def _tekrar_benzerligi(a: str, b: str) -> float:
+    aa, bb = _tekrar_anahtari(a), _tekrar_anahtari(b)
+    if not aa or not bb:
+        return 0.0
+    return difflib.SequenceMatcher(None, aa, bb).ratio()
+
+
+def _satir_kalitesi(satir: dict) -> float:
+    metin = str(satir.get("text", ""))
+    alnum = sum(c.isalnum() for c in metin)
+    return (float(satir.get("score", 0.0) or 0.0)
+            + 0.001 * min(40, alnum))
+
+
+def _zayif_yakin_tekrarlari_ayikla(satirlar: list[dict], cfg: dict
+                                    ) -> tuple[list[dict], list[dict]]:
+    """Guclu izin yanindaki tek-kare ayni metin varyantini kaldir."""
+    if not bool(cfg.get("near_duplicate_enabled", True)):
+        return satirlar, []
+    kare_bosluk = max(1, int(cfg.get("near_duplicate_frame_gap", 4)))
+    esik = float(cfg.get("near_duplicate_similarity", 0.96))
+    zayif_tavan = max(1, int(cfg.get("near_duplicate_weak_support_max", 1)))
+    sil = set()
+    kanit = []
+    for i, a in enumerate(satirlar):
+        if i in sil:
+            continue
+        for j in range(i + 1, len(satirlar)):
+            b = satirlar[j]
+            ai, bi = _kaynak_kare_no(a.get("kaynak")), _kaynak_kare_no(
+                b.get("kaynak"))
+            if ai is None or bi is None or abs(ai - bi) > kare_bosluk:
+                continue
+            if _tekrar_benzerligi(a.get("text", ""), b.get("text", "")) < esik:
+                continue
+            ad, bd = int(a.get("support", 0) or 0), int(
+                b.get("support", 0) or 0)
+            if min(ad, bd) > zayif_tavan or max(ad, bd) <= zayif_tavan:
+                continue
+            dusen = i if ad < bd else j
+            kalan = j if dusen == i else i
+            sil.add(dusen)
+            kanit.append({
+                "kept": satirlar[kalan].get("text", ""),
+                "kept_source": satirlar[kalan].get("kaynak", ""),
+                "removed": satirlar[dusen].get("text", ""),
+                "removed_source": satirlar[dusen].get("kaynak", ""),
+                "similarity": round(_tekrar_benzerligi(
+                    a.get("text", ""), b.get("text", "")), 6),
+            })
+            if dusen == i:
+                break
+    return [x for no, x in enumerate(satirlar) if no not in sil], kanit
+
+
+def _kaynak_kare_no(kaynak) -> int | None:
+    sayilar = re.findall(r"\d+", str(kaynak or ""))
+    return int(sayilar[-1]) if sayilar else None
 
 
 def script_satirlarini_sec(satirlar: list[dict], grounding: dict,
@@ -621,6 +834,46 @@ def _kume_temsilcisi(ogeler: list[dict]) -> dict:
         + 0.002 * min(80, sum(c.isalnum() for c in x["text"]))))
 
 
+def _ensemble_kirpimlari(ogeler: list[dict], temsilci: dict,
+                         tavan: int) -> list[dict]:
+    """Ayni izden keskin ve zamansal olarak daginik birkac kirpim sec."""
+    if tavan <= 1:
+        secilenler = [temsilci]
+    else:
+        adaylar = sorted(ogeler, key=lambda x: (
+            float(x.get("score", 0.0))
+            + 0.002 * min(100.0, float(x.get("contrast", 0.0)))
+            + 0.0001 * min(1000.0, float(x.get("sharpness", 0.0))),
+            sum(c.isalnum() for c in str(x.get("text", "")))),
+            reverse=True)
+        secilenler = [temsilci]
+        kullanilan = {str(temsilci.get("kaynak", ""))}
+        # Once birbirinden uzak zaman noktalarini al; ayni bulanik anin uc
+        # komsu karesi ikinci okuyucuda gercek bagimsiz kanit degildir.
+        kareler = [int(x["kare_sira"]) for x in ogeler]
+        min_aralik = max(1, (max(kareler) - min(kareler)) // max(2, tavan))
+        for aday in adaylar:
+            if len(secilenler) >= tavan:
+                break
+            if str(aday.get("kaynak", "")) in kullanilan:
+                continue
+            if any(abs(int(aday["kare_sira"]) - int(x["kare_sira"]))
+                   < min_aralik for x in secilenler):
+                continue
+            secilenler.append(aday)
+            kullanilan.add(str(aday.get("kaynak", "")))
+        for aday in adaylar:
+            if len(secilenler) >= tavan:
+                break
+            if str(aday.get("kaynak", "")) in kullanilan:
+                continue
+            secilenler.append(aday)
+            kullanilan.add(str(aday.get("kaynak", "")))
+    return [{"kaynak": str(x["kaynak"]), "box": list(x["box"]),
+             "text": str(x["text"]), "score": float(x.get("score", 0.0))}
+            for x in secilenler]
+
+
 def _gecis_bilesigi(aday: dict, kararli_kumeler: list[tuple[dict, dict]]) -> bool:
     """Tek karelik satir, kararli bir satirin cross-fade birlesigi mi?"""
     f = aday["fold"]
@@ -637,6 +890,26 @@ def _gecis_bilesigi(aday: dict, kararli_kumeler: list[tuple[dict, dict]]) -> boo
         blok = max(x.size for x in difflib.SequenceMatcher(None, f, t)
                    .get_matching_blocks())
         if oran >= 0.55 and blok >= 4:
+            return True
+    return False
+
+
+def _gecis_parcasi(aday: dict,
+                   kararli_kumeler: list[tuple[dict, dict]]) -> bool:
+    """Tek karelik eksik bas/son, komsu kararli izin parcasi mi?"""
+    f = aday["fold"].replace(" ", "")
+    if len(f) < 3:
+        return False
+    sira = int(aday["kare_sira"])
+    for kume, temiz in kararli_kumeler:
+        if sira < int(kume["ilk_sira"]) - 2 or sira > int(kume["son_sira"]) + 2:
+            continue
+        t = temiz["fold"].replace(" ", "")
+        if min(len(f), len(t)) < 3:
+            continue
+        if not (f in t or t in f):
+            continue
+        if _kutu_benzer(aday["box"], temiz["box"]):
             return True
     return False
 
@@ -708,6 +981,51 @@ def _sebep_say(elenen: list[dict]) -> dict[str, int]:
     for oge in elenen:
         sebep = str(oge.get("sebep", "bilinmiyor"))
         sonuc[sebep] = sonuc.get(sebep, 0) + 1
+    return sonuc
+
+
+def _zamansal_sirala(satirlar: list[dict], kart_toleransi: int = 2,
+                     akis_toleransi: float = 0.65
+                     ) -> list[dict]:
+    """Statik karti kutu y'siyle, scroll'u ortak cizgiyi gecisle sirala."""
+    gruplar: list[list[dict]] = []
+    sirali = sorted(satirlar, key=lambda x: (
+        float(x.get("_akis_zamani", x["sayfa_sira"])),
+        float(x.get("_akis_x", 0.5))))
+    for satir in sirali:
+        zaman = float(satir.get("_akis_zamani", satir["sayfa_sira"]))
+        hareketli = bool(satir.get("_akis_hareketli", False))
+        if not gruplar:
+            gruplar.append([satir])
+            continue
+        onceki = gruplar[-1]
+        onceki_zaman = statistics.mean(
+            float(x.get("_akis_zamani", x["sayfa_sira"])) for x in onceki)
+        onceki_hareketli = any(
+            bool(x.get("_akis_hareketli", False)) for x in onceki)
+        tolerans = (akis_toleransi if hareketli and onceki_hareketli
+                    else float(kart_toleransi))
+        if hareketli != onceki_hareketli or zaman - onceki_zaman > tolerans:
+            gruplar.append([satir])
+        else:
+            gruplar[-1].append(satir)
+    sonuc = []
+    for grup_no, grup in enumerate(gruplar, start=1):
+        hareketli = any(bool(x.get("_akis_hareketli", False)) for x in grup)
+        if hareketli:
+            grup = sorted(grup, key=lambda x: (
+                float(x.get("_akis_x", 0.5)),
+                float(x.get("_akis_y", 0.5))))
+        else:
+            grup = sorted(grup, key=lambda x: (
+                int(x["satir_sira"]), float(x.get("_akis_x", 0.5))))
+        for no, satir in enumerate(grup):
+            satir["sayfa_sira"] = grup_no
+            satir["satir_sira"] = no
+            for anahtar in tuple(satir):
+                if anahtar.startswith("_akis_"):
+                    satir.pop(anahtar, None)
+            sonuc.append(satir)
     return sonuc
 
 
