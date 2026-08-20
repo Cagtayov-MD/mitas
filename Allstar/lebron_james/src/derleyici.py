@@ -770,7 +770,18 @@ def derle(
     pairs = [(im, source) for im, source in zip(ims, kaynaklar)
              if im.shape[:2] == (h, w)]
     ims = [pair[0] for pair in pairs]
+    kaynaklar = [pair[1] for pair in pairs]
     kaynak_haritasi = {id(im): source for im, source in pairs}
+
+    # Girişte ardışık ham zaman serisini kayan-kapanış motoruna vermek farklı
+    # statik kartları aynı zeminde birleştirip kaybettiriyor (Parmak Damgası
+    # b2: 300 kare -> 3 segment). Girişe özel yol yalnız Paddle'ın pikselde
+    # doğruladığı yazılı TAM kareleri seçer; kaynak havuza dokunmaz.
+    if _ardisik_aralik:
+        from giris_planlayici import master_uret as _giris_master_uret
+        analizler = [paddle_satir_kaniti(im) for im in ims]
+        return _giris_master_uret(slug, ims, kaynaklar, analizler, H_MAKS)
+
     griler = [cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) for im in ims]
 
     isik = flashlight if flashlight is not None else _varsayilan_el_feneri(oz["sobel"])

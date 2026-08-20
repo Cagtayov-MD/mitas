@@ -278,7 +278,9 @@ def tek(girdi: Girdi, kok: Path | None = None) -> Cikti:
              "olcum_yolu": manifest.get("olcum_yolu"),
              "girdi_modu": manifest.get("girdi_modu"),
              "bicak": manifest.get("bicak"),
-             "collapse_recovery": manifest.get("collapse_recovery")}
+             "collapse_recovery": manifest.get("collapse_recovery"),
+             "text_only": manifest.get("text_only"),
+             "giris_plan": manifest.get("giris_plan")}
 
     if kanvas is None:
         # Derleyicinin tek kelimesi ("kare_yok") ÜÇ ayrı gerçeği örtüyor.
@@ -292,6 +294,10 @@ def tek(girdi: Girdi, kok: Path | None = None) -> Cikti:
             # içerik gerçeği değildir (OkumaCoktu ile aynı ders).
             return _ariza("MOTOR", manifest.get("sebep")
                           or "cokme kurtarma parcasi uretilemedi", kanit)
+        if d == "giris_analiz_ariza":
+            return _ariza("GIRIS_YAZI_ANALIZ",
+                          manifest.get("sebep") or "giris yazisi analiz edilemedi",
+                          kanit)
         if bulunan == 0:
             return _ariza("GIRDI_HATASI", f"dizinde kare yok: {dizin}", kanit)
         ims_acilan = len(derleyici.kareleri_yukle(dizin)[0])

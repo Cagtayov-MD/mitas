@@ -50,10 +50,36 @@ out/<film_id>/
 └─ cikis/  (aynısı)
 ```
 
-**`--bolum` bir KARAR DEĞİL, raf etiketidir.** Derleyici `giris` ve `cikis`'te
-birebir aynıdır; etiket yalnız çıktının hangi rafa yazılacağını ve satır
-izindeki kaynağı belirler. (Kobe'deki bölüm ayrımıyla karıştırma: orada iki
-bölümün karar mantığı ayrıydı ve ayrı kalmak zorundaydı.)
+**`--bolum` bir karar değil, raf etiketidir.** Derleyici yolu bölüm adından
+değil kare havuzunun sözleşmesinden seçilir. Kobe/Sheriff giriş havuzu
+`_sinif.json` içinde `mod=ardisik_aralik` taşır; bu sözleşme LeBron'un aşağıdaki
+kilitli giriş motoruna girmesini zorunlu kılar. Diğer havuzlar mevcut kayan
+kapanış kompozitöründe kalır.
+
+## Kilitli giriş-master kuralı
+
+> **ÜRETİM KURALI — AYAR DEĞİLDİR:** `mod=ardisik_aralik` havuzu daima
+> `giris-text-only/v1` ile işlenir. Bu yol config/CLI seçeneğiyle kapatılamaz,
+> gevşetilemez ve eski kayan-kapanış motoruna düşürülemez.
+
+Giriş jeneriğinde ardışık kareleri kaydırarak dikmek, statik oyuncu kartlarını
+aynı zemin sanıp yarım kare ve kayıp kredi üretiyordu. Kalıcı davranış şudur:
+
+- Paddle'ın pikselde yazı kutusu gördüğü kareler incelenir; yazısız sahne,
+  görüntü arası ve altyazı mastera alınmaz.
+- Aynı karta ait tekrar/fade kareleri gruplanır; her gerçek karttan en sağlam
+  **tam kare** bir kez seçilir.
+- Seçilen tam kareler kaynak zaman sırasıyla dikey dizilir; kırpılıp birbirine
+  kaynatılmaz. Kobe havuzundaki kaynak kareler silinmez veya seyreltilmez.
+- Paddle hiçbir kareyi analiz edemezse sessizce `METIN_YOK` denmez;
+  `ARIZA(GIRIS_YAZI_ANALIZ)` üretilir.
+- Manifest bu hükmü `mode=lebron_giris_text_only`, `text_only=true` ve
+  `giris_plan.surum=giris-text-only/v1` alanlarıyla denetlenebilir kılar.
+
+Bu motorun eşikleri ayar düğmesi değildir. Değişiklik ancak sürüm artırılarak,
+`tests/test_giris_planlayici.py` regresyonları ve gerçek temiz toplu kabul
+yeniden geçirilerek yapılabilir. Giriş-master kalitesi görülmeden eşik
+"optimizasyonu" yapılmaz.
 
 **Faz 1'de yalnız kare klasörü.** mp4 verilirse açık `ARIZA(GIRDI_HATASI)` —
 mp4'ten kare çıkarımı fps'i ölçüm-kritik bir parametre yapar, o ayrı bir iş.
