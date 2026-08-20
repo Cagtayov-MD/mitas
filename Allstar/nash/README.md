@@ -155,6 +155,13 @@ venv/bin/python olcum/kapi1.py
 
 ```bash
 venv/bin/python -m pytest tests -q      # yapısal koruma testi dışında skip yok
+
+# 20 hazır video/MXF'yi listeler; GPU işi başlatmaz
+venv/bin/python olcum/okunmalik_toplu.py --list
+
+# 2 fps kare çıkarımı + Nash; kesilirse tamamlanan kareleri yeniden kullanır
+venv/bin/python olcum/okunmalik_toplu.py
+# özet: /tmp/nash-okunmalik-jenerikler/rapor.json
 ```
 
 ## Yerleşim

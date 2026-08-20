@@ -20,6 +20,9 @@
   DOSYASI hedefli gerçek-kare regresyonları ayrıca doğrulandı.
 - DeepSeek üretimde kapalı; Nash'in ana Latin okuyucusu v5 detector sonucu +
   v6 çok-kırpım uzlaşmasıdır.
+- `olcum/okunmalik_toplu.py`, `Belgeler/okunmalık jenerikler` altındaki video
+  ve MXF örneklerini 2 fps karelere ayırıp giriş/çıkış olarak Nash'e veren,
+  kesinti sonrası devam edebilen ve tek `rapor.json` üreten kabul koşucusudur.
 
 ## 2026-08-20 — QC sözleşme ve zincir güvenliği
 
