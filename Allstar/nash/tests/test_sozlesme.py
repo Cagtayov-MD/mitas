@@ -28,6 +28,16 @@ def test_girdi_gecerli():
     assert g.bolum == "giris"
 
 
+@pytest.mark.parametrize("film_id", ["../escape", "..", "a/b", "a\\b", "x\x00y"])
+def test_film_id_yol_gecisine_izin_vermez(film_id):
+    with pytest.raises(GirdiHatasi, match="tek bir dizin"):
+        Girdi(film_id=film_id, kareler="/yol")
+
+
+def test_unicode_film_id_gecerlidir():
+    assert Girdi(film_id="GÜNEŞ", kareler="/yol").film_id == "GÜNEŞ"
+
+
 # ── Cikti değişmezleri ───────────────────────────────────────────────────────
 
 def test_okundu_satirsiz_olamaz():
@@ -94,6 +104,14 @@ def test_yaz_uc_dosya_ve_tamam_en_son(tmp_path):
 def test_yaz_gecici_dosya_birakmaz(tmp_path):
     _ornek().yaz(tmp_path)
     assert not list((tmp_path / "F1" / "cikis").glob("*.tmp"))
+
+
+def test_cikti_yaz_yol_gecisine_izin_vermez(tmp_path):
+    c = Cikti(film_id="F1", durum="METIN_YOK")
+    c.film_id = "../escape"
+    with pytest.raises(GirdiHatasi):
+        c.yaz(tmp_path)
+    assert not (tmp_path.parent / "escape").exists()
 
 
 def test_okundu_disinda_nash_txt_YAZILMAZ(tmp_path):

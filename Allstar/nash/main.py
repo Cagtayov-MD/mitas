@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from pathlib import Path
 
 os.environ.setdefault("OMP_NUM_THREADS", "4")
@@ -23,7 +24,8 @@ OUT = KULE / "out"
 sys.path.insert(0, str(KULE))
 sys.path.insert(0, str(SRC))
 
-from sozlesme import BOLUMLER, Cikti, Girdi, GirdiHatasi, ariza  # noqa: E402
+from sozlesme import (BOLUMLER, Cikti, Girdi, GirdiHatasi, ariza,
+                      tamam_isaretini_kaldir)  # noqa: E402
 
 # secim.hata etiketi → (durum, ariza_sinifi). Tek harita, dağıtık if yok.
 # 'havuz_bos' ICERIK GERCEGI'dir (kareler okundu, hepsi iceriksiz) —
@@ -90,6 +92,10 @@ def _config() -> dict:
 
 
 def _deep_merge(taban: dict | None, ezme: dict | None) -> dict:
+    if taban is not None and not isinstance(taban, Mapping):
+        raise ConfigHatasi("config bolumu sozluk olmali")
+    if ezme is not None and not isinstance(ezme, Mapping):
+        raise ConfigHatasi("config override sozluk olmali")
     sonuc = dict(taban or {})
     for anahtar, deger in (ezme or {}).items():
         if isinstance(deger, dict) and isinstance(sonuc.get(anahtar), dict):
@@ -99,11 +105,28 @@ def _deep_merge(taban: dict | None, ezme: dict | None) -> dict:
     return sonuc
 
 
+def _mapping(deger, ad: str) -> dict:
+    if deger is None:
+        return {}
+    if not isinstance(deger, Mapping):
+        raise ConfigHatasi(f"{ad} sozluk olmali")
+    return dict(deger)
+
+
+def _config_dogrula(cfg) -> dict:
+    cfg = _mapping(cfg, "config")
+    _mapping(cfg.get("secim"), "secim")
+    _mapping(cfg.get("okuma"), "okuma")
+    return cfg
+
+
 def _secim_ayari(cfg: dict, girdi: Girdi) -> tuple[dict, str]:
-    s_cfg = _deep_merge(cfg.get("secim"), girdi.config.get("secim"))
+    s_cfg = _deep_merge(_mapping(cfg.get("secim"), "secim"),
+                        _mapping(girdi.config.get("secim"), "Girdi.config.secim"))
     ortak = {k: v for k, v in s_cfg.items()
              if k not in {*BOLUMLER, "desen"}}
-    return _deep_merge(ortak, s_cfg.get(girdi.bolum)), s_cfg.get("desen", "*.png")
+    bolum_ayari = _mapping(s_cfg.get(girdi.bolum), f"secim.{girdi.bolum}")
+    return _deep_merge(ortak, bolum_ayari), s_cfg.get("desen", "*.png")
 
 
 def _okuma_karari(ayar: dict) -> tuple[dict, dict]:
@@ -173,6 +196,10 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
                      "grounding": {}, "grounding_failures": [],
                      "mode": "grounded"}
 
+    # Eski başarılı işaret yeni seçim/detector/model çalışmasından önce yoktur.
+    # Böylece eşzamanlı tüketici eski ürünü yeni koşunun sonucu sanamaz.
+    tamam_isaretini_kaldir(kok, girdi.film_id, girdi.bolum)
+
     def _bitir(c: Cikti) -> Cikti:
         c.sure_sn = round(time.time() - t0, 1)
         c.motor_surumu = _surum()
@@ -203,7 +230,11 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
         except ConfigHatasi as exc:
             return _ariza("YAPILANDIRMA", str(exc))
 
-    ayar, desen = _secim_ayari(cfg, girdi)
+    try:
+        cfg = _config_dogrula(cfg)
+        ayar, desen = _secim_ayari(cfg, girdi)
+    except ConfigHatasi as exc:
+        return _ariza("YAPILANDIRMA", str(exc))
 
     try:
         s = secim_mod.sec(Path(girdi.kareler), ayar, desen, detector=detector)
@@ -224,7 +255,12 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
 
     # ── okuma ────────────────────────────────────────────────────────────────
     import okuyucu as ok_mod
-    o_cfg = _deep_merge(cfg.get("okuma"), girdi.config.get("okuma"))
+    try:
+        o_cfg = _deep_merge(_mapping(cfg.get("okuma"), "okuma"),
+                            _mapping(girdi.config.get("okuma"),
+                                     "Girdi.config.okuma"))
+    except ConfigHatasi as exc:
+        return _ariza("YAPILANDIRMA", str(exc), s.kanit)
     o_cfg, okuma_karari = _okuma_karari(o_cfg)
     okuma_modu = str(o_cfg.get("mod", "grounded")).strip().lower()
     proof_context["mode"] = okuma_modu
@@ -493,6 +529,12 @@ def tek(girdi: Girdi, kok: Path | None = None, sor=None,
         if tum_model_cagrilari_hata:
             return _ariza("MODEL", "tum secili karelerin okuma cagrisi basarisiz",
                           kanit)
+        if (okuma_modu == "hybrid"
+                and int(kanit.get(
+                    "deepseek_fallback_config_kapatti_dusuk_guven_n", 0))):
+            return _ariza("CIKTI_BOZUK",
+                          "dusuk guvenli OCR adayi DeepSeek fallback kapaliyken cozulemedi",
+                          kanit)
         return _bitir(Cikti(film_id=girdi.film_id, bolum=girdi.bolum,
                             durum="METIN_YOK", kanit=kanit))
 
@@ -527,6 +569,7 @@ def toplu(girdi_dizini: Path, kok: Path | None = None,
 
     try:
         cfg = _config()
+        cfg = _config_dogrula(cfg)
     except ConfigHatasi as exc:
         sonuc = []
         for p in bekleyen:
@@ -542,7 +585,18 @@ def toplu(girdi_dizini: Path, kok: Path | None = None,
     detector_sonuclari: dict[str, object] = {}
     for p in bekleyen:
         g = Girdi(film_id=p.name, kareler=str(p), bolum=bolum)
-        secim_ayari, desen = _secim_ayari(cfg, g)
+        try:
+            secim_ayari, desen = _secim_ayari(cfg, g)
+        except ConfigHatasi as exc:
+            c = ariza(p.name, "YAPILANDIRMA", str(exc), bolum=bolum)
+            c.yaz(kok)
+            sonuc = [c]
+            # Kalan filmler de tek tek görünür ARIZA almalıdır.
+            for kalan in bekleyen[bekleyen.index(p) + 1:]:
+                cc = ariza(kalan.name, "YAPILANDIRMA", str(exc), bolum=bolum)
+                cc.yaz(kok)
+                sonuc.append(cc)
+            return sonuc
         if str(secim_ayari.get("strateji", "legacy")).lower() != "text_run":
             continue
         try:
@@ -617,13 +671,12 @@ def main(argv=None) -> int:
         except Exception as exc:  # girdi koku dahi okunamiyorsa gorunur CLI hatasi
             print(f"ARIZA: {type(exc).__name__}: {exc}", file=sys.stderr)
             return 2
-        return 2 if sonuclar and all(c.durum == "ARIZA" for c in sonuclar) else 0
+        return 2 if any(c.durum == "ARIZA" for c in sonuclar) else 0
     try:
         g = Girdi(film_id=n.film_id, kareler=n.kareler, bolum=n.bolum)
     except GirdiHatasi as e:
-        c = ariza(n.film_id, "GIRDI_HATASI", str(e), bolum=n.bolum)
-        c.yaz(kok or OUT)
-        print(json.dumps(c.sozluk(), ensure_ascii=False))
+        print(json.dumps({"durum": "ARIZA", "sinif": "GIRDI_HATASI",
+                          "mesaj": str(e)}, ensure_ascii=False), file=sys.stderr)
         return 2
     c = tek(g, kok=kok)
     print(json.dumps(c.sozluk(), ensure_ascii=False))

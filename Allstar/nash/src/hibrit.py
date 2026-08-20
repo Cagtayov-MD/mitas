@@ -111,18 +111,18 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
                                       "kare_sira": kare_sira,
                                       "sebep": "paddle_hata", "boxes": kutular,
                                       "dusuk": dusuk})
-        elif (okunabilir_kutular and not kabul and not yalniz_altyazi
-              and not (ham_dolu_n and not ham_gecerli_n)):
-            fallback_adaylari.append({"oncelik": 1, "skor": 0.0, "yol": p,
-                                      "kare_sira": kare_sira,
-                                      "sebep": "kutu_var_metin_yok",
-                                      "boxes": okunabilir_kutular, "dusuk": dusuk})
         elif dusuk:
             fallback_adaylari.append({"oncelik": 2,
                                       "skor": min(x["score"] for x in dusuk),
                                       "yol": p, "kare_sira": kare_sira,
                                       "sebep": "dusuk_guven", "boxes": kutular,
                                       "dusuk": dusuk})
+        elif (okunabilir_kutular and not kabul and not yalniz_altyazi
+              and not (ham_dolu_n and not ham_gecerli_n)):
+            fallback_adaylari.append({"oncelik": 1, "skor": 0.0, "yol": p,
+                                      "kare_sira": kare_sira,
+                                      "sebep": "kutu_var_metin_yok",
+                                      "boxes": okunabilir_kutular, "dusuk": dusuk})
 
     t_ayiklama = time.monotonic()
     kumeler: list[dict] = []
@@ -287,6 +287,8 @@ def paddle_oku(yollar: list[Path], analizler: dict, ayar: dict,
         "deepseek_fallback_config_kapatti": {
             x["yol"].name: x["sebep"] for x in config_kapatilan
         },
+        "deepseek_fallback_config_kapatti_dusuk_guven_n": sum(
+            x["sebep"] == "dusuk_guven" for x in config_kapatilan),
         "deepseek_fallback_aday_n": len(fallback_adaylari),
         "deepseek_fallback_n": len(fallback),
         "deepseek_fallback_tavan": fallback_tavan,

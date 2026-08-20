@@ -1,5 +1,13 @@
 # Nash kulesi — canlı durum
 
+> **2026-08-20 QC düzeltmeleri:** Nash zincirde Kobe havuzundan bağımsızdır ve
+> her mevcut ana kare bölümünde bir kez çalışır. Film kimliği tek yol bileşeni
+> olarak zorlanır; eski `_TAMAM` işareti koşu başında kaldırılır. Kapalı
+> DeepSeek fallback altında çözümsüz, makul düşük-güven OCR artık sessiz
+> `METIN_YOK` değil `ARIZA(CIKTI_BOZUK)` olur; tek-karakter/gürültü içeriği
+> `METIN_YOK` kalır. Otsu onarımı ölçülmüştür; yoğun/seyrek havuz kalitesi
+> karşılaştırması hâlâ açıktır.
+
 > **2026-08-19 güncel not — Çiçek Taksi GT dersi (dizi girişi):** Dizi
 > açılış jeneriğinde kredi satırları tek satır alt bantta, görüntü üstünde
 > akar. İki ayrı altyazı-ayıklama kuralı (seçim katmanı `metin_secici.py`

@@ -1,5 +1,17 @@
 # Nash kulesi — değişiklik günlüğü
 
+## 2026-08-20 — QC sözleşme ve zincir güvenliği
+
+- Nash zincirde Kobe havuzu/sonucundan bağımsız, ana kare diziniyle bölüm
+  başına bir kez çalışır; Kobe havuzu yoksa yalnız LeBron/Jordan atlanır.
+- `film_id` yol geçişine kapatıldı; `Cikti.yaz` da aynı doğrulamayı uygular.
+  Eski `_TAMAM` işareti `tek` başında kaldırılır, final atomik marker-last
+  yazımı korunur.
+- Düşük-güvenli makul Paddle OCR, kapalı DeepSeek fallback altında artık
+  `ARIZA(CIKTI_BOZUK)` verir; yalnız gürültü/noise `METIN_YOK` olarak kalır.
+- Bozuk `secim`/`okuma`/girdi override türleri `YAPILANDIRMA` ARIZA'sına
+  çevrilir; toplu komut herhangi bir ARIZA varsa sıfır-dışı biter.
+
 ## 2026-08-19 — Dizi girişi altyazı-elemesi bölme-özel + kırpım-keskinleştirme iskeleti
 
 - `altyazi_y` seçim katmanında (`metin_secici`) bölme-özel override ve okuma

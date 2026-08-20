@@ -29,6 +29,22 @@ class GirdiHatasi(ValueError):
     """Girdi sözleşmesi ihlali — çağıranın hatası, kulenin değil."""
 
 
+def film_id_dogrula(film_id: object) -> str:
+    """Film kimliği çıktı kökü altında tek ve güvenli bir bileşen olmalıdır."""
+    if not isinstance(film_id, str) or not film_id:
+        raise GirdiHatasi("film_id bos olmayan bir metin olmali")
+    if (film_id in {".", ".."} or "/" in film_id or "\\" in film_id
+            or "\x00" in film_id):
+        raise GirdiHatasi("film_id tek bir dizin bileseni olmali")
+    return film_id
+
+
+def tamam_isaretini_kaldir(kok: str | Path, film_id: object, bolum: str) -> None:
+    """Yeni koşu başlarken eski tamam işaretini güvenle geçersiz kıl."""
+    film_id_dogrula(film_id)
+    (Path(kok) / str(film_id) / bolum / "_TAMAM").unlink(missing_ok=True)
+
+
 @dataclass(frozen=True)
 class Girdi:
     """film_id + kareler (HAM kare dizini). Nash'in tek girdisi budur."""
@@ -38,14 +54,15 @@ class Girdi:
     config: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not self.film_id:
-            raise GirdiHatasi("film_id bos olamaz")
+        film_id_dogrula(self.film_id)
         if self.bolum not in BOLUMLER:
             raise GirdiHatasi(f"bolum {self.bolum!r} gecersiz — {BOLUMLER}")
         if not self.kareler:
             raise GirdiHatasi(
                 "kareler (ham kare dizini) zorunlu — Nash video almaz, "
                 "kare havuzu okur")
+        if not isinstance(self.config, dict):
+            raise GirdiHatasi("config sozluk olmali")
 
 
 @dataclass
@@ -66,6 +83,7 @@ class Cikti:
     mesaj: str | None = None
 
     def __post_init__(self) -> None:
+        film_id_dogrula(self.film_id)
         if self.bolum not in BOLUMLER:
             raise ValueError(f"bolum {self.bolum!r} gecersiz — {BOLUMLER}")
         if self.durum not in DURUMLAR:
@@ -116,6 +134,8 @@ class Cikti:
         METIN_YOK ayrimini yutar — kulenin kapatmak icin var oldugu korluk.
         Dosya YOKSA tuketici nash.json'a bakmak ZORUNDA kalir.
         """
+        # Doğrudan Cikti.yaz çağrısı da kök dışına çıkamaz.
+        film_id_dogrula(self.film_id)
         d = Path(kok) / self.film_id / self.bolum
         d.mkdir(parents=True, exist_ok=True)
         # Yeniden kosu basladi: eski tamam isareti ve bu kosuda uretilmeyecek

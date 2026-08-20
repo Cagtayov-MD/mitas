@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""ALLSTAR ZİNCİRİ — Kobe → LeBron → Nash → Jordan, 26 film × 2 bölüm.
+"""ALLSTAR ZİNCİRİ — Kobe → Nash → LeBron → Jordan, 26 film × 2 bölüm.
 
 Girdi:  Allstar/sheriff/output/<film_id>/<bolum>/  (hazır kareler)
         /home/cagatay/Belgeler/pdfler/*.mp4        (Jordan klibi için kaynak)
 
 Akış (bölüm başına, SIRAYLA):
-  1. KOBE    kareleri sınıflar → kendi havuzunu ve (video varsa) klibi yazar
-  2. LEBRON  Kobe havuzundan master PNG kurar ve okur
-  3. NASH    Kobe havuzunu kare kare okur
+  1. KOBE    sınırı bulur → sınır içindeki ardışık kareleri ve klibi yazar
+  2. NASH    ana kare dizinini Kobe'den bağımsız okur
+  3. LEBRON  Kobe'nin ardışık zaman serisinden master PNG kurar ve okur
   4. JORDAN  Kobe'nin kestiği klibi okur
 
 Tasarım kararları:
@@ -35,7 +35,7 @@ VIDEO_KOK = Path("/home/cagatay/Belgeler/pdfler")
 BOLUMLER = ("giris", "cikis")
 
 # (ad, kule dizini, çıktı kökü) — çıktı kökü _TAMAM aramak için
-KULELER = ("kobe", "lebron_james", "nash", "jordan")
+KULELER = ("kobe", "nash", "lebron_james", "jordan")
 
 
 def log(mesaj: str, dosya) -> None:
@@ -206,12 +206,25 @@ def bolum_isle(film_id: str, bolum: str, logf, atla_tamam: bool) -> dict:
                              "--film-id", film_id, "--uret", "kare",
                              "--bolum", bolum], 1800, logf)
 
+    # ---- 2. NASH -----------------------------------------------------
+    # Nash Kobe'nin fallback'i degil, ana kare dizininin bagimsiz okuyucusudur.
+    # Bu cagrinin Kobe havuzu/sonucuyla hicbir baglantisi olmamali.
+    if atla_tamam and tamam_mi("nash", film_id, bolum):
+        sonuc["nash"] = {"ok": True, "durum": "ATLANDI"}
+    else:
+        sonuc["nash"] = kos("nash",
+                            ["tek", "--kareler", str(kare_dizin),
+                             "--film-id", film_id, "--bolum", bolum],
+                            1800, logf)
+
     havuz = KOK / "kobe" / "out" / film_id / bolum / "kareler"
     if not havuz.is_dir() or not any(havuz.glob("*.png")):
-        log(f"  {bolum}: kobe havuzu bos — lebron/nash atlandi", logf)
+        nash_durum = sonuc.get("nash", {}).get("durum", "sonuclandi")
+        log(f"  {bolum}: kobe havuzu bos — lebron/jordan atlandi; "
+            f"nash bagimsiz ele alindi ({nash_durum})", logf)
         return sonuc
 
-    # ---- 2. LEBRON ---------------------------------------------------
+    # ---- 3. LEBRON ---------------------------------------------------
     if atla_tamam and tamam_mi("lebron_james", film_id, bolum):
         sonuc["lebron"] = {"ok": True, "durum": "ATLANDI"}
     else:
@@ -219,15 +232,6 @@ def bolum_isle(film_id: str, bolum: str, logf, atla_tamam: bool) -> dict:
                               ["tek", "--kareler", str(havuz),
                                "--film-id", film_id, "--bolum", bolum],
                               1800, logf)
-
-    # ---- 3. NASH -----------------------------------------------------
-    if atla_tamam and tamam_mi("nash", film_id, bolum):
-        sonuc["nash"] = {"ok": True, "durum": "ATLANDI"}
-    else:
-        sonuc["nash"] = kos("nash",
-                            ["tek", "--kareler", str(havuz),
-                             "--film-id", film_id, "--bolum", bolum],
-                            1800, logf)
 
     # ---- 4. JORDAN ---------------------------------------------------
     # Jordan yalniz --video alir. TAM bolumu vermek 40+ dk surer (olculdu
@@ -248,7 +252,7 @@ def bolum_isle(film_id: str, bolum: str, logf, atla_tamam: bool) -> dict:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Allstar zinciri: kobe->lebron->nash->jordan")
+    ap = argparse.ArgumentParser(description="Allstar zinciri: kobe->nash->lebron->jordan")
     ap.add_argument("--film", help="yalniz bu film-id (deneme icin)")
     ap.add_argument("--bolum", choices=BOLUMLER, help="yalniz bu bolum")
     ap.add_argument("--bastan", action="store_true",

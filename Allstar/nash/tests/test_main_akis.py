@@ -102,6 +102,73 @@ def test_model_bos_dondu_metin_yok(tmp_path):
     assert c.durum == "METIN_YOK"
 
 
+def test_eski_tamam_detector_cagrilmadan_once_kaldirilir(tmp_path):
+    d = _iyi(tmp_path)
+    out = tmp_path / "out"
+    marker = out / "F1" / "cikis" / "_TAMAM"
+    marker.parent.mkdir(parents=True)
+    marker.write_text("", encoding="utf-8")
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "text_run"
+    cfg["okuma"]["mod"] = "hybrid"
+
+    def detector(yollar, _ayar):
+        assert not marker.exists()
+        return ({p.name: {"boxes": [], "lines": []} for p in yollar}, {})
+
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), out, cfg=cfg,
+                 detector=detector)
+    assert c.durum == "METIN_YOK"
+
+
+def test_hybrid_kapali_fallbackte_dusuk_guven_ariza_cikti_bozuk(tmp_path):
+    d = _iyi(tmp_path)
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "text_run"
+    cfg["okuma"]["mod"] = "hybrid"
+    cfg["okuma"]["deepseek_fallback_enabled"] = False
+
+    def detector(yollar, _ayar):
+        return ({p.name: {"boxes": [[.2, .2, .8, .5]], "lines": [{
+            "text": "YONETMEN AHMET", "score": .50,
+            "box": [.2, .2, .8, .5]}]} for p in yollar}, {})
+
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out",
+                 cfg=cfg, detector=detector)
+    assert c.durum == "ARIZA" and c.sinif == "CIKTI_BOZUK"
+
+
+def test_hybrid_yalniz_tek_karakter_gurultusu_metin_yok(tmp_path):
+    d = _iyi(tmp_path)
+    cfg = main._config()
+    cfg["secim"]["strateji"] = "text_run"
+    cfg["okuma"]["mod"] = "hybrid"
+    cfg["okuma"]["deepseek_fallback_enabled"] = False
+
+    def detector(yollar, _ayar):
+        return ({p.name: {"boxes": [[.2, .2, .8, .5]], "lines": [{
+            "text": "X", "score": .50, "box": [.2, .2, .8, .5]}]}
+                 for p in yollar}, {})
+
+    c = main.tek(Girdi(film_id="F1", kareler=str(d)), tmp_path / "out",
+                 cfg=cfg, detector=detector)
+    assert c.durum == "METIN_YOK"
+
+
+def test_gecersiz_config_yapilandirma_arizasi_yazar(tmp_path):
+    c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path))),
+                 tmp_path / "out", cfg={"secim": "not-a-map"})
+    assert c.durum == "ARIZA" and c.sinif == "YAPILANDIRMA"
+    assert _cikti_json(tmp_path / "out")["sinif"] == "YAPILANDIRMA"
+
+
+def test_gecersiz_girdi_override_yapilandirma_arizasi_yazar(tmp_path):
+    c = main.tek(Girdi(film_id="F1", kareler=str(_iyi(tmp_path)),
+                       config={"okuma": "not-a-map"}), tmp_path / "out",
+                 cfg=main._config())
+    assert c.durum == "ARIZA" and c.sinif == "YAPILANDIRMA"
+
+
 def test_tum_model_cagrilari_patlayinca_metin_yok_degil_ariza(tmp_path):
     def patla(_p):
         raise TimeoutError("cevap yok")
@@ -306,6 +373,40 @@ def test_toplu_okuyucu_kurulamazsa_her_filme_ariza_yazar(tmp_path, monkeypatch):
     sonuc = main.toplu(girdi, tmp_path / "out")
     assert len(sonuc) == 1
     assert sonuc[0].durum == "ARIZA" and sonuc[0].sinif == "MODEL"
+
+
+def test_toplu_gecersiz_configte_her_filme_yapilandirma_yazar(tmp_path, monkeypatch):
+    girdi = tmp_path / "girdi"
+    girdi.mkdir()
+    _iyi(girdi, "A")
+    _iyi(girdi, "B")
+    monkeypatch.setattr(main, "_config", lambda: {"secim": "not-a-map"})
+    sonuc = main.toplu(girdi, tmp_path / "out")
+    assert [c.sinif for c in sonuc] == ["YAPILANDIRMA", "YAPILANDIRMA"]
+    assert all((tmp_path / "out" / ad / "cikis" / "_TAMAM").exists()
+               for ad in ("A", "B"))
+
+
+def test_start_herhangi_bir_arizada_sifir_disiyla_biter(monkeypatch):
+    monkeypatch.setattr(main, "toplu", lambda *_args, **_kwargs: [
+        main.Cikti(film_id="A", durum="METIN_YOK"),
+        main.ariza("B", "MODEL", "model yok"),
+    ])
+    assert main.main(["start", "--input", "/girdi"]) == 2
+
+
+def test_start_ariza_yoksa_sifirla_biter(monkeypatch):
+    monkeypatch.setattr(main, "toplu", lambda *_args, **_kwargs: [
+        main.Cikti(film_id="A", durum="METIN_YOK"),
+    ])
+    assert main.main(["start", "--input", "/girdi"]) == 0
+
+
+def test_cli_gecersiz_film_id_disariya_yazmaz(tmp_path):
+    out = tmp_path / "out"
+    assert main.main(["tek", "--kareler", str(tmp_path), "--film-id", "../escape",
+                      "--out", str(out)]) == 2
+    assert not (tmp_path / "escape").exists()
 
 
 def test_model_yuklerken_oom_BELLEK_olur_MODEL_degil(tmp_path, monkeypatch):

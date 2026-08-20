@@ -3,7 +3,8 @@
 > **Ana kare havuzu girer, kanıtlı yazı çıkar.** Paddle tüm kareleri GPU'da
 > tarar ve okur. Türkçe/Latin model zayıf kalırsa yalnız o filmde önce
 > Arapça/Farsça, kabul kapısını geçmezse ESlav/Kiril Paddle tanıyıcı çalışır.
-> Kobe sınırı veya sonucu kullanılmaz.
+> Kobe sınırı veya sonucu kullanılmaz; zincir, Nash'i her mevcut bölüm ana kare
+> dizininde Kobe havuzu olmasa da bir kez çalıştırır.
 
 **DURUM: çok-alfabeli Paddle okuyucu çalışıyor.** DeepSeek fallback kodu
 korunuyor fakat üretim config'inde kapalıdır; Nash şu anda ağır modeli hiç
@@ -120,12 +121,13 @@ venv/bin/python olcum/kapi1.py
 > ≥3 eleman şartıyla **kısıtlıydı**, yenisi şartsız arayıp ≥3'ü **sonradan**
 > reddediyor. MOBY DICK'te eşik 28→13, sayfa **15→165 (11×)**. Bu fark
 > taşımanın değil o commit'in eseridir; `kapi1.py` onu ayrı satırda raporlar.
-> **Bu değişiklik hiç ölçülmedi** — açık borç, `DURUM.md`.
+> Otsu onarımı 29/29 yüzeyde eski kararlarla ölçüldü; buna karşılık yoğun ve
+> seyrek havuzların aşağı akış okuma kalitesi hâlâ ayrı bir açık ölçümdür.
 
 ## Testler
 
 ```bash
-venv/bin/python -m pytest tests -q      # 152 test; 1 GPU testi uygun kart yoksa atlanır
+venv/bin/python -m pytest tests -q      # yapısal koruma testi dışında skip yok
 ```
 
 ## Yerleşim
