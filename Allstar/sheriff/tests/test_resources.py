@@ -63,6 +63,40 @@ def test_dis_cpu_yuku_canli_kapida_reddedilir(tmp_path, monkeypatch):
     assert "CPU" in admission.reason
 
 
+def test_media_profili_dorduncu_ise_izin_verir_besinciyi_bekletir(tmp_path,
+                                                                  monkeypatch):
+    _, store, rm = manager(tmp_path, monkeypatch)
+
+    def reservations(count):
+        return [{"profile": "cpu_media", "vram_mb": 0, "ram_mb": 4096,
+                 "cpu_threads": 8, "exclusive_gpu": 0, "family": "ffmpeg"}
+                for _ in range(count)]
+
+    monkeypatch.setattr(store, "active_reservations", lambda: reservations(3))
+    assert rm.admit("cpu_media").allowed
+    monkeypatch.setattr(store, "active_reservations", lambda: reservations(4))
+    admission = rm.admit("cpu_media")
+    assert not admission.allowed
+    assert "eszamanlilik tavani" in admission.reason
+
+
+def test_kobe_profili_dorduncu_ise_izin_verir_besinciyi_bekletir(tmp_path,
+                                                                 monkeypatch):
+    _, store, rm = manager(tmp_path, monkeypatch)
+
+    def reservations(count):
+        return [{"profile": "boundary_default", "vram_mb": 5120,
+                 "ram_mb": 8192, "cpu_threads": 4, "exclusive_gpu": 0,
+                 "family": "kobe"} for _ in range(count)]
+
+    monkeypatch.setattr(store, "active_reservations", lambda: reservations(3))
+    assert rm.admit("boundary_default").allowed
+    monkeypatch.setattr(store, "active_reservations", lambda: reservations(4))
+    admission = rm.admit("boundary_default")
+    assert not admission.allowed
+    assert "eszamanlilik tavani" in admission.reason
+
+
 def test_gpu_modeli_de_dis_cpu_yukunu_yok_saymaz(tmp_path, monkeypatch):
     _, _, rm = manager(tmp_path, monkeypatch)
     snapshot = rm.snapshot()

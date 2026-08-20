@@ -147,6 +147,12 @@ def _validate(config: SheriffConfig) -> None:
     if (int(resources.get("total_vram_mb", 0)) <= int(resources.get("safety_vram_mb", 0))
             or not 0 < float(resources.get("max_cpu_percent", 0)) <= 100):
         raise ConfigError("resources toplam/emniyet ayarlari gecersiz")
+    for profile_name, profile in (resources.get("profiles") or {}).items():
+        max_jobs = profile.get("max_jobs")
+        if (max_jobs is not None
+                and (not isinstance(max_jobs, int) or isinstance(max_jobs, bool)
+                     or max_jobs < 1)):
+            raise ConfigError(f"resource profili {profile_name}: max_jobs pozitif tamsayi olmali")
     dag = config.raw["dag"]
     dag_keys = ("boundary_role", "independent_reader_role",
                 "boundary_frame_reader_role", "boundary_video_reader_role")

@@ -6,11 +6,13 @@ hem 'giris' hem 'cikis' bölümlerinde Kobe kulesini koşturur:
   kobe tek --kareler <output_koku>/<film_id>/<bolum> --film-id <film_id> --uret kare --bolum <bolum>
 
 Kullanım:
-  /home/cagatay/Programlar/mitas/Allstar/kobe/venv/bin/python run_kobe_all.py
+  /home/cagatay/Programlar/mitas/Allstar/kobe/venv/bin/python run_kobe_all.py --isci 4
 """
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
+import json
 import subprocess
 import sys
 import time
@@ -20,13 +22,57 @@ KULE_KOK = Path(__file__).resolve().parent
 SHERIFF_OUTPUT = Path("/home/cagatay/Programlar/mitas/Allstar/sheriff/output")
 KOBE_EXEC = KULE_KOK / "kobe"
 KOBE_OUT = KULE_KOK / "out"
+ISCI_TAVANI = 4
 
-def main():
+
+def _isci_sayisi(value: str) -> int:
+    try:
+        count = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("isci sayisi tamsayi olmali") from exc
+    if not 1 <= count <= ISCI_TAVANI:
+        raise argparse.ArgumentTypeError(f"isci sayisi 1-{ISCI_TAVANI} arasinda olmali")
+    return count
+
+
+def _calistir(job: tuple[str, str, Path]) -> dict:
+    film_id, bolum, kare_dir = job
+    cmd = [
+        str(KOBE_EXEC), "tek",
+        "--kareler", str(kare_dir),
+        "--film-id", film_id,
+        "--uret", "kare",
+        "--bolum", bolum,
+    ]
+    t0 = time.time()
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    result = {"film_id": film_id, "bolum": bolum, "returncode": res.returncode,
+              "gecen_sn": round(time.time() - t0, 1),
+              "stdout": res.stdout, "stderr": res.stderr}
+    if res.returncode == 0:
+        json_file = KOBE_OUT / film_id / bolum / "kobe.json"
+        result["durum"] = "OK"
+        if json_file.exists():
+            try:
+                data = json.loads(json_file.read_text(encoding="utf-8"))
+                result["durum"] = (
+                    f"{data.get('durum')} (başlangıç={data.get('baslangic_kare')}, "
+                    f"güven={data.get('guven')})")
+            except (OSError, json.JSONDecodeError):
+                pass
+    else:
+        result["durum"] = "ARIZA"
+    return result
+
+
+def main(argv=None):
     ap = argparse.ArgumentParser(description="Kobe kulesi toplu çalıştırıcı")
     ap.add_argument("--sheriff-output", type=Path, default=SHERIFF_OUTPUT, help="Sheriff output kök dizini")
     ap.add_argument("--atla-var", action="store_true", default=True, help="_TAMAM varsa atla")
     ap.add_argument("--force", action="store_true", help="Var olanları yeniden çalıştır")
-    args = ap.parse_args()
+    ap.add_argument("--isci", type=_isci_sayisi, default=ISCI_TAVANI,
+                    help=f"Paralel Kobe işi (1-{ISCI_TAVANI}, varsayılan: {ISCI_TAVANI})")
+    args = ap.parse_args(argv)
 
     atla_var = args.atla_var and not args.force
     sheriff_output = args.sheriff_output
@@ -41,58 +87,45 @@ def main():
     print(f"[KOBE BATCH] Toplam {len(film_dizinleri)} film işlenecek.")
     print(f"  Kaynak: {sheriff_output}")
     print(f"  Çıktı : {KOBE_OUT}")
-    print(f"  Atla  : {'Evet' if atla_var else 'Hayır'}\n")
+    print(f"  Atla  : {'Evet' if atla_var else 'Hayır'}")
+    print(f"  İşçi  : {args.isci}/{ISCI_TAVANI}\n")
 
     toplam_basarili = 0
     toplam_atlanan = 0
     toplam_ariza = 0
     t0_toplam = time.time()
 
-    for i, film_dir in enumerate(film_dizinleri, 1):
+    jobs: list[tuple[str, str, Path]] = []
+    for film_dir in film_dizinleri:
         film_id = film_dir.name
-        print(f"[{i}/{len(film_dizinleri)}] Film: {film_id}")
-
         for bolum in ("giris", "cikis"):
             kare_dir = film_dir / bolum
             if not kare_dir.is_dir():
-                print(f"  - {bolum}: kare dizini yok, atlandı.")
+                print(f"  - {film_id}/{bolum}: kare dizini yok, atlandı.")
                 continue
 
             tamam_file = KOBE_OUT / film_id / bolum / "_TAMAM"
             if atla_var and tamam_file.exists():
-                print(f"  — {bolum}: _TAMAM var, atlandı.")
+                print(f"  — {film_id}/{bolum}: _TAMAM var, atlandı.")
                 toplam_atlanan += 1
                 continue
+            jobs.append((film_id, bolum, kare_dir))
 
-            cmd = [
-                str(KOBE_EXEC), "tek",
-                "--kareler", str(kare_dir),
-                "--film-id", film_id,
-                "--uret", "kare",
-                "--bolum", bolum
-            ]
-
-            t0 = time.time()
-            res = subprocess.run(cmd, capture_output=True, text=True)
-            gecen = round(time.time() - t0, 1)
-
-            if res.returncode == 0:
+    with cf.ThreadPoolExecutor(max_workers=args.isci,
+                               thread_name_prefix="kobe-batch") as executor:
+        futures = {executor.submit(_calistir, job): job for job in jobs}
+        for done, future in enumerate(cf.as_completed(futures), 1):
+            result = future.result()
+            film_id, bolum = result["film_id"], result["bolum"]
+            if result["returncode"] == 0:
                 toplam_basarili += 1
-                # kobe.json oku
-                json_file = KOBE_OUT / film_id / bolum / "kobe.json"
-                durum_str = "OK"
-                if json_file.exists():
-                    import json
-                    try:
-                        data = json.loads(json_file.read_text(encoding="utf-8"))
-                        durum_str = f"{data.get('durum')} (başlangıç={data.get('baslangic_kare')}, güven={data.get('guven')})"
-                    except Exception:
-                        pass
-                print(f"  ✓ {bolum}: {durum_str} ({gecen}s)")
+                print(f"[{done}/{len(jobs)}] ✓ {film_id}/{bolum}: "
+                      f"{result['durum']} ({result['gecen_sn']}s)", flush=True)
             else:
                 toplam_ariza += 1
-                err_msg = res.stderr.strip() or res.stdout.strip()
-                print(f"  ✗ {bolum}: ARIZA ({gecen}s) -> {err_msg[:150]}")
+                err_msg = result["stderr"].strip() or result["stdout"].strip()
+                print(f"[{done}/{len(jobs)}] ✗ {film_id}/{bolum}: ARIZA "
+                      f"({result['gecen_sn']}s) -> {err_msg[:150]}", flush=True)
 
     gecen_toplam = round(time.time() - t0_toplam, 1)
     print("\n" + "="*50)

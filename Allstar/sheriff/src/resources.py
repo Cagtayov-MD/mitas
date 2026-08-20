@@ -49,6 +49,13 @@ class ResourceManager:
         reserved_vram = sum(int(r["vram_mb"]) for r in gpu_reservations)
         reserved_ram = sum(int(r["ram_mb"]) for r in reservations)
         reserved_cpu = sum(int(r["cpu_threads"]) for r in reservations)
+        max_jobs = profile.get("max_jobs")
+        if max_jobs is not None:
+            active_profile_jobs = sum(
+                1 for reservation in reservations
+                if reservation.get("profile") == profile_name)
+            if active_profile_jobs >= int(max_jobs):
+                return Admission(False, f"{profile_name} eszamanlilik tavani", live)
         if live["disk_free_gb"] < float(cfg["safety_disk_gb"]):
             return Admission(False, "disk safety payi", live)
         requested_ram = int(profile.get("ram_mb", 0))
