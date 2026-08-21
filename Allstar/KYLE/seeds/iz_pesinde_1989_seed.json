@@ -1,5 +1,21 @@
 {
   "roles": {
+    "OYUNCULAR": {
+      "expected_count": 10,
+      "mode": "roster",
+      "members": [
+        {"person_id": "oyuncu:0001", "canonical_name": "MEHMET ASLANTUĞ", "active": true},
+        {"person_id": "oyuncu:0002", "canonical_name": "OSMAN YAĞMURDERELİ", "active": true},
+        {"person_id": "oyuncu:0003", "canonical_name": "GÜLEN KARAMAN", "active": true},
+        {"person_id": "oyuncu:0004", "canonical_name": "EROL TAŞ", "active": true},
+        {"person_id": "oyuncu:0005", "canonical_name": "HİKMET KÜRKLÜ", "active": true},
+        {"person_id": "oyuncu:0006", "canonical_name": "CAN YAKARLAR", "active": true},
+        {"person_id": "oyuncu:0007", "canonical_name": "NEJAT EREL", "active": true},
+        {"person_id": "oyuncu:0008", "canonical_name": "ZAFER BAŞARAN", "active": true},
+        {"person_id": "oyuncu:0009", "canonical_name": "ALİ KOCAMAN", "active": true},
+        {"person_id": "oyuncu:0010", "canonical_name": "ÖZKAN TUNA", "active": true}
+      ]
+    },
     "YONETMEN": {
       "expected_count": 1,
       "mode": "stable",
