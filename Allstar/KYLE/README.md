@@ -22,8 +22,11 @@ KYLE başka kuleleri değiştirmez, onların klasörlerine yazmaz ve onların mo
 6. Rol adları closed-world canonicalize edilir; ham gözlemler kanıtta korunur.
 7. Yeni isim metni gerçek bir source observation'dan seçilir; KYLE isim string'i sentezlemez.
 8. Dizi adı ilk satırlarda profile başlığına fuzzy eşleşirse metadata sayılır; oyuncu yapılmaz.
-9. `_TAMAM` en son yazılır.
-10. `ARIZA`, `DEGISIKLIK_YOK` değildir.
+9. Tek kişilik sabit rolde mevcut kişi bir kaynakta, farklı aday başka kaynaklarda görülüyorsa çoğunluk oyu ile değişiklik verilmez; `KAYNAK_CELISKISI` olarak review'a düşer.
+10. Tek kişilik sabit rolde kişi sayısı artışı ancak mevcut kişi ile yeni aday en az iki bağımsız kaynakta **birlikte** görülüyorsa `COUNT_INCREASE` olur.
+11. Tek kişilik sabit rolde eski kişi hiç görünmezken birden fazla 2+ kaynak destekli yeni aday oluşursa otomatik seçim yapılmaz; `BIRDEN_FAZLA_DEGISIM_ADAYI` olarak review'a düşer.
+12. `_TAMAM` en son yazılır.
+13. `ARIZA`, `DEGISIKLIK_YOK` değildir.
 
 ## Akış
 
@@ -36,6 +39,7 @@ LeBron ─┘
           -> bilinen kişi / dizi profile fuzzy match
           -> kalan bilinmeyenleri rol içinde cross-source cluster
           -> 2+ bağımsız kaynak kapısı
+          -> tek-rol kaynak çelişkisi / halüsinasyon kapısı
           -> NEW_MEMBER / COUNT_INCREASE / ROLE_HOLDER_CHANGED / GUEST / EPISODE
           -> tek oyuncu görünümü + rol bazlı değişiklik blokları
           -> JSON + PDF + kanıt + memory_patch
@@ -111,13 +115,13 @@ Profile'da kayıtlı olup bu bölümde gözlenmeyen kişi tabloya zorla eklenmez
 
 ## Değişiklik tipleri
 
-- `COUNT_INCREASE`: sabit birimde, örn. Işık Şefi beklenen 1 iken bu bölümde doğrulanan 2.
-- `ROLE_HOLDER_CHANGED`: beklenen tek rol sahibi görünmedi, 2+ kaynak başka kişiyi destekliyor.
+- `COUNT_INCREASE`: sabit birimde, örn. Işık Şefi beklenen 1 iken bu bölümde doğrulanan 2. Tek kişilik sabit rolde iki kişi en az iki kaynakta birlikte görülmelidir.
+- `ROLE_HOLDER_CHANGED`: beklenen tek rol sahibi hiçbir kaynakta görünmedi, tek yeni aday 2+ kaynakta destekleniyor.
 - `NEW_MEMBER`: ana oyuncu veya roster birimine yeni kişi.
 - `NEW_GUEST`: yeni konuk oyuncu.
 - `NEW_EPISODE_MEMBER`: yeni bölüm oyuncusu.
 
-Ana oyuncular `COUNT_INCREASE` diye kişi başına alarm üretmez; `NEW_MEMBER` olur ve tek oyuncu tablosunda `YENİ` etiketiyle görünür. Sabit crew rollerinde kişi sayısı değişikliği kırmızı alarm olmaya devam eder.
+Ana oyuncular `COUNT_INCREASE` diye kişi başına alarm üretmez; `NEW_MEMBER` olur ve tek oyuncu tablosunda `YENİ` etiketiyle görünür. Sabit crew rollerindeki bölünmüş kaynak oyları değişiklik olarak değil review adayı olarak tutulur.
 
 ## Çıktı
 
@@ -154,4 +158,4 @@ Tek bozuk bölüm dizi hafızasını otomatik zehirleyemez.
 Allstar/KYLE/venv/bin/python -m pytest -q Allstar/KYLE/tests
 ```
 
-Test paketi; bilinen kişi fuzzy eşleştirmesi, sabit rol kişi sayısı artışı, rol sahibi değişimi, konuk oyuncu, tek-kaynak kapısı, explicit memory patch, dizi başlığının metadata olarak elenmesi ve oyuncuların `MEVCUT/YENİ` tek görünümünü kapsar.
+Test paketi; bilinen kişi fuzzy eşleştirmesi, sabit rol kişi sayısı artışı, rol sahibi değişimi, konuk oyuncu, tek-kaynak kapısı, explicit memory patch, dizi başlığının metadata olarak elenmesi, oyuncuların `MEVCUT/YENİ` tek görünümü ve tek kişilik sabit rolde split-vote halüsinasyonunun değişiklik yerine review'a düşmesini kapsar.
