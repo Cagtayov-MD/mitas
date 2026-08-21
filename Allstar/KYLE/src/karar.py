@@ -45,9 +45,14 @@ class Decision:
 def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[AnnotatedObservation],
            clusters: list[UnknownCluster], min_sources: int) -> tuple[list[Decision], list[dict]]:
     known_observed: dict[str, set[str]] = {}
+    known_sources: dict[str, set[str]] = {}
     for role_name, role_mem in memory.roles.items():
         known_observed[role_name] = {
             item.known_person_id for item in annotated
+            if item.known_person_id and item.known_role == role_name
+        }
+        known_sources[role_name] = {
+            item.observation.source for item in annotated
             if item.known_person_id and item.known_role == role_name
         }
 
@@ -78,10 +83,11 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
         prev_active = [p for p in role_mem.members if p.active]
         prev_names = [p.canonical_name for p in prev_active]
         observed_known_count = len(known_observed.get(role_name, set()))
+        role_known_sources = known_sources.get(role_name, set())
         observed_count = observed_known_count + len(accepted)
         expected = role_mem.expected_count
 
-        for _, raw, obs_id, meta in accepted:
+        for cluster, raw, obs_id, meta in accepted:
             dtype = "NEW_MEMBER"
             reason = "Bu birimde profile eslesmeyen yeni kisi en az iki bagimsiz kaynakta desteklendi."
 
@@ -97,9 +103,35 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
             elif role_spec.mode == "episode":
                 dtype = "NEW_EPISODE_MEMBER"
                 reason = "Yeni bolum oyuncusu en az iki bagimsiz kaynakta desteklendi."
-            elif expected == 1 and observed_known_count == 0 and len(accepted) == 1:
-                dtype = "ROLE_HOLDER_CHANGED"
-                reason = "Beklenen tek rol sahibi bu bolumde gorulmedi; yeni kisi en az iki bagimsiz kaynakta desteklendi."
+            elif expected == 1:
+                # Tek kişilik sabit rolde iki ayrı durum vardır:
+                # 1) Eski kişi hiç görülmüyor + yeni kişi 2+ kaynakta: gerçek değişim adayı.
+                # 2) Eski kişi bazı kaynaklarda, yeni kişi başka kaynaklarda: bu çoğunluk
+                #    oylamasıyla çözülemez; OCR/VLM halüsinasyonu veya rol hizalama hatası olabilir.
+                if observed_known_count == 0 and len(accepted) == 1:
+                    dtype = "ROLE_HOLDER_CHANGED"
+                    reason = "Beklenen tek rol sahibi bu bolumde gorulmedi; yeni kisi en az iki bagimsiz kaynakta desteklendi."
+                elif observed_known_count > 0:
+                    cooccur_sources = sorted(role_known_sources.intersection(cluster.sources))
+                    if len(cooccur_sources) < min_sources:
+                        review.append({
+                            "role": role_name,
+                            "candidate": raw,
+                            "reason": "KAYNAK_CELISKISI",
+                            "known_names": prev_names,
+                            "known_sources": sorted(role_known_sources),
+                            "candidate_sources": sorted(cluster.sources),
+                            "cooccur_sources": cooccur_sources,
+                            **meta,
+                        })
+                        continue
+                    dtype = "COUNT_INCREASE"
+                    reason = (
+                        f"Beklenen kisi sayisi 1; mevcut rol sahibi ve yeni kisi en az {min_sources} "
+                        "aynı bagimsiz kaynakta birlikte goruldu."
+                    )
+                else:
+                    dtype = "NEW_MEMBER"
             elif expected is not None and observed_count > expected:
                 dtype = "COUNT_INCREASE"
                 reason = f"Beklenen kisi sayisi {expected}, bu bolumde dogrulanan kisi sayisi {observed_count}. Yeni kisi desteklendi."
