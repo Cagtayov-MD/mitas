@@ -1,0 +1,1389 @@
+{
+ "faz": 4,
+ "gruplar": [
+  {
+   "no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "kare_sayisi": 8,
+   "ham_metin": "diger rollerde\nFatih Kahraman\nTürker Şenyigit\nBirsel Ayygün\nNeriman Uğur",
+   "ham_sha256": "69bfb3f8618ced4292c28b82c47d7ae2e5defc6df43a6991b6c92e1be9bb196c"
+  },
+  {
+   "no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "kare_sayisi": 8,
+   "ham_metin": "Nesrin Bakış\nNalan Türkoglu\nBenam Artun\nİlmi Genel\nBirol Turhan",
+   "ham_sha256": "a274779067553c898d52b605a2799298ff4247189d728263263eb987dd734f7e"
+  },
+  {
+   "no": 2,
+   "kare_araligi": [
+    19,
+    26
+   ],
+   "ilk_sn": 9.0,
+   "son_sn": 12.5,
+   "kare_sayisi": 8,
+   "ham_metin": "Nesrin Bakış\nNalan Türkoğlu\nBenam Artun\nİlmi Genel\nBiol Turhan",
+   "ham_sha256": "719bd34b10bd5a35902bd0dc3e0f6d09059d0bf64b6d149895b259699b5f3b6f"
+  },
+  {
+   "no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "kare_sayisi": 8,
+   "ham_metin": "Bölümün\n1. Bölümün sonu\naskeri damısmalar\nDz. 2. Ön. Yb. MESUT GÜNSEV\nDz. 2. Ön. Yb. MUSTAFA COŞAR",
+   "ham_sha256": "4eb3fccfa58341519c9fb5c26b11a94e45e37b2d00b0bf46eb774080e5b5a144"
+  },
+  {
+   "no": 4,
+   "kare_araligi": [
+    33,
+    40
+   ],
+   "ilk_sn": 16.0,
+   "son_sn": 19.5,
+   "kare_sayisi": 8,
+   "ham_metin": "askeri danışmanlar\nDz. P. Ön. Yzb. MESUT GÜNSEY\nDz. P. Ön. Yzb. MUSTAFA COŞAR",
+   "ham_sha256": "3995f1e743d4252d8c2bd3df124ea4989b3d3c7ac606888aaee261e479879d93"
+  },
+  {
+   "no": 5,
+   "kare_araligi": [
+    40,
+    47
+   ],
+   "ilk_sn": 19.5,
+   "son_sn": 23.0,
+   "kare_sayisi": 8,
+   "ham_metin": "müzik danışmanı\nMURAT TUNCAY",
+   "ham_sha256": "0c4f7212babad100f97250fe1a815b59451f076d85f90deaa9958202ad0a2c50"
+  },
+  {
+   "no": 6,
+   "kare_araligi": [
+    47,
+    54
+   ],
+   "ilk_sn": 23.0,
+   "son_sn": 26.5,
+   "kare_sayisi": 8,
+   "ham_metin": "müzik danışmanı\nMURAT TUNCAY",
+   "ham_sha256": "0c4f7212babad100f97250fe1a815b59451f076d85f90deaa9958202ad0a2c50"
+  },
+  {
+   "no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "kare_sayisi": 8,
+   "ham_metin": "kılavuz ses\nARİF ÖNGÜNŞEN\nHİKMET HEZER\nışık\nTAMER SALMAN",
+   "ham_sha256": "69cdcccc546ca3101634bc177a85976eee2afcbc78f51ac07096611f10f3bd0d"
+  },
+  {
+   "no": 8,
+   "kare_araligi": [
+    61,
+    68
+   ],
+   "ilk_sn": 30.0,
+   "son_sn": 33.5,
+   "kare_sayisi": 8,
+   "ham_metin": "kılavuz ses\nARİF ÖNGÜNŞEN\nHÜKMET HEZER\nışık\nTAMER SALMAN",
+   "ham_sha256": "ff1d82205ff225609a2834bfff7c947a6cdebb06cb8cdc1d1831d4f6cdf94bfd"
+  },
+  {
+   "no": 9,
+   "kare_araligi": [
+    68,
+    75
+   ],
+   "ilk_sn": 33.5,
+   "son_sn": 37.0,
+   "kare_sayisi": 8,
+   "ham_metin": "produksiyon amiri\nRAGIP TARANÇ\nyönetim yardımcısı\nYÜCEL ÖZGÜR",
+   "ham_sha256": "40c4070342005e5434a5e27d26baacb570cd76e8fe294ff4d10708bc66bd92ee"
+  },
+  {
+   "no": 10,
+   "kare_araligi": [
+    75,
+    82
+   ],
+   "ilk_sn": 37.0,
+   "son_sn": 40.5,
+   "kare_sayisi": 8,
+   "ham_metin": "produksiyon amiri\nRAGIP TARANÇ\nyönetim yardımcısı\nYÜCEL ÖZGÜR",
+   "ham_sha256": "40c4070342005e5434a5e27d26baacb570cd76e8fe294ff4d10708bc66bd92ee"
+  },
+  {
+   "no": 11,
+   "kare_araligi": [
+    82,
+    89
+   ],
+   "ilk_sn": 40.5,
+   "son_sn": 44.0,
+   "kare_sayisi": 8,
+   "ham_metin": "devamlılık yazmanları\nNURGÜN ÖZGÜL\nHÜLYA SEVİN",
+   "ham_sha256": "fa4113b925897282152a8ba52b53b522df336faedbdbaea29efcb5f53f9741a0"
+  },
+  {
+   "no": 12,
+   "kare_araligi": [
+    89,
+    96
+   ],
+   "ilk_sn": 44.0,
+   "son_sn": 47.5,
+   "kare_sayisi": 8,
+   "ham_metin": "devamlılık yazmanları\nNURGÜN ÖZGÜL\nHÜLYA SEVİN",
+   "ham_sha256": "fa4113b925897282152a8ba52b53b522df336faedbdbaea29efcb5f53f9741a0"
+  },
+  {
+   "no": 13,
+   "kare_araligi": [
+    96,
+    103
+   ],
+   "ilk_sn": 47.5,
+   "son_sn": 51.0,
+   "kare_sayisi": 8,
+   "ham_metin": "makyaj\nMEHMET BÜYÜKAĞAOĞLU\nkostüm-aksesuar\nADNAN ÖNCÜN",
+   "ham_sha256": "4fba37dc9b5bc429bbacabc61231cc3ac8d4bda5fcd04f8b8977486db1648272"
+  },
+  {
+   "no": 14,
+   "kare_araligi": [
+    103,
+    110
+   ],
+   "ilk_sn": 51.0,
+   "son_sn": 54.5,
+   "kare_sayisi": 8,
+   "ham_metin": "makyaj\nMEHMET BÜYÜKAĞAOĞLU\nkostüm-aksesuar\nADNAN ÖNGÜN\nnegatif kesim\nRABİA ERAT",
+   "ham_sha256": "88bc25a1b5d05f4a2779b1ae460cece9d7f76f0589ae0d9e83754f02e5635d4d"
+  },
+  {
+   "no": 15,
+   "kare_araligi": [
+    110,
+    117
+   ],
+   "ilk_sn": 54.5,
+   "son_sn": 58.0,
+   "kare_sayisi": 8,
+   "ham_metin": "negatif kesim\nRABİA ERAT",
+   "ham_sha256": "e1463e55bafa5981b497dc1088ff85554edd04b72d745538e473dd67f83af1a1"
+  },
+  {
+   "no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "kare_sayisi": 8,
+   "ham_metin": "set görevlileri\nCEM ÖZER\nHÜLMI MAKAY\nBÜLENT VARDAR\nHARUN GÜREK\nVECDET KİMYONOK",
+   "ham_sha256": "3da3f87bbf0784d3beb5bcfe00aa1d7f49269a8df185f91fbf7e31b8da308e8f"
+  },
+  {
+   "no": 17,
+   "kare_araligi": [
+    124,
+    131
+   ],
+   "ilk_sn": 61.5,
+   "son_sn": 65.0,
+   "kare_sayisi": 8,
+   "ham_metin": "seslendirme yönetmeni\nZEYNEP ATAKAN",
+   "ham_sha256": "7802fd8da329134752c1d7bf50e3f6ba25745dc136fbf77436b3cc5201f22b6d"
+  },
+  {
+   "no": 18,
+   "kare_araligi": [
+    131,
+    138
+   ],
+   "ilk_sn": 65.0,
+   "son_sn": 68.5,
+   "kare_sayisi": 8,
+   "ham_metin": "seslendirme yönetmeni\nZEYNEP ATAKAN",
+   "ham_sha256": "7802fd8da329134752c1d7bf50e3f6ba25745dc136fbf77436b3cc5201f22b6d"
+  },
+  {
+   "no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "kare_sayisi": 8,
+   "ham_metin": "ses kayıtl\nHASAN ERSOY\nYAVUZ S ASLAN\nMUHARREM KILIÇ\nHALUK ÇETİN\nHAMZA GÖKTAŞ\nmüzik kayıt-mix\nARİF ÖNGÜNŞEN",
+   "ham_sha256": "0bcbe7bd5c8943fd064fefb1141d3599cd4f6d1bfe1cd78108aab561fc1ae1da"
+  },
+  {
+   "no": 20,
+   "kare_araligi": [
+    145,
+    152
+   ],
+   "ilk_sn": 72.0,
+   "son_sn": 75.5,
+   "kare_sayisi": 8,
+   "ham_metin": "ses kayıt\nHASAN ERSOY\nYAVUZ S ASLAN\nMUHARREM KILIÇ\nHALUK ÇETİN\nHAMZA GÖKTAŞ\nmüzik kayıt-mix\nARİF ÖNGÜNŞEN",
+   "ham_sha256": "103c9f700cde38e68212149867c9469d78e53b93d013ff753300aa65558b4bdd"
+  },
+  {
+   "no": 21,
+   "kare_araligi": [
+    152,
+    159
+   ],
+   "ilk_sn": 75.5,
+   "son_sn": 79.0,
+   "kare_sayisi": 8,
+   "ham_metin": "None",
+   "ham_sha256": "dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91"
+  },
+  {
+   "no": 22,
+   "kare_araligi": [
+    159,
+    166
+   ],
+   "ilk_sn": 79.0,
+   "son_sn": 82.5,
+   "kare_sayisi": 8,
+   "ham_metin": "düzeltime\nSÜLEYMAN KOYUNCU\nHAYRETTİN İLGEN",
+   "ham_sha256": "68ae69de677df44f301127c648b8795626e06663b0bd48c80743e4b579b78938"
+  },
+  {
+   "no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "kare_sayisi": 8,
+   "ham_metin": "film banyo\nMEHMET ÖZTAN\nHÜSAMETTİN ÖZDEN\nOSMAN BAYRAM\nRASIM SARAÇ\nfilm kopya\nCAVİT BAY\nNECATİ NOYAN",
+   "ham_sha256": "2fde1225eae50ae6477869f2cc227f3f072c629b8523c6c7f0bff705ab96b2f7"
+  },
+  {
+   "no": 24,
+   "kare_araligi": [
+    173,
+    180
+   ],
+   "ilk_sn": 86.0,
+   "son_sn": 89.5,
+   "kare_sayisi": 8,
+   "ham_metin": "None",
+   "ham_sha256": "dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91"
+  },
+  {
+   "no": 25,
+   "kare_araligi": [
+    180,
+    183
+   ],
+   "ilk_sn": 89.5,
+   "son_sn": 91.0,
+   "kare_sayisi": 4,
+   "ham_metin": "None",
+   "ham_sha256": "dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91"
+  }
+ ],
+ "satirlar": [
+  {
+   "metin": "diger rollerde",
+   "grup_no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Fatih Kahraman",
+   "grup_no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Türker Şenyigit",
+   "grup_no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Birsel Ayygün",
+   "grup_no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Neriman Uğur",
+   "grup_no": 0,
+   "kare_araligi": [
+    5,
+    12
+   ],
+   "ilk_sn": 2.0,
+   "son_sn": 5.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Nesrin Bakış",
+   "grup_no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Nalan Türkoglu",
+   "grup_no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Benam Artun",
+   "grup_no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "İlmi Genel",
+   "grup_no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Birol Turhan",
+   "grup_no": 1,
+   "kare_araligi": [
+    12,
+    19
+   ],
+   "ilk_sn": 5.5,
+   "son_sn": 9.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Nalan Türkoğlu",
+   "grup_no": 2,
+   "kare_araligi": [
+    19,
+    26
+   ],
+   "ilk_sn": 9.0,
+   "son_sn": 12.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Biol Turhan",
+   "grup_no": 2,
+   "kare_araligi": [
+    19,
+    26
+   ],
+   "ilk_sn": 9.0,
+   "son_sn": 12.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Bölümün",
+   "grup_no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "1. Bölümün sonu",
+   "grup_no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "askeri damısmalar",
+   "grup_no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Dz. 2. Ön. Yb. MESUT GÜNSEV",
+   "grup_no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Dz. 2. Ön. Yb. MUSTAFA COŞAR",
+   "grup_no": 3,
+   "kare_araligi": [
+    26,
+    33
+   ],
+   "ilk_sn": 12.5,
+   "son_sn": 16.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "askeri danışmanlar",
+   "grup_no": 4,
+   "kare_araligi": [
+    33,
+    40
+   ],
+   "ilk_sn": 16.0,
+   "son_sn": 19.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Dz. P. Ön. Yzb. MESUT GÜNSEY",
+   "grup_no": 4,
+   "kare_araligi": [
+    33,
+    40
+   ],
+   "ilk_sn": 16.0,
+   "son_sn": 19.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "Dz. P. Ön. Yzb. MUSTAFA COŞAR",
+   "grup_no": 4,
+   "kare_araligi": [
+    33,
+    40
+   ],
+   "ilk_sn": 16.0,
+   "son_sn": 19.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "müzik danışmanı",
+   "grup_no": 5,
+   "kare_araligi": [
+    40,
+    47
+   ],
+   "ilk_sn": 19.5,
+   "son_sn": 23.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "MURAT TUNCAY",
+   "grup_no": 5,
+   "kare_araligi": [
+    40,
+    47
+   ],
+   "ilk_sn": 19.5,
+   "son_sn": 23.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "kılavuz ses",
+   "grup_no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ARİF ÖNGÜNŞEN",
+   "grup_no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HİKMET HEZER",
+   "grup_no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ışık",
+   "grup_no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "TAMER SALMAN",
+   "grup_no": 7,
+   "kare_araligi": [
+    54,
+    61
+   ],
+   "ilk_sn": 26.5,
+   "son_sn": 30.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HÜKMET HEZER",
+   "grup_no": 8,
+   "kare_araligi": [
+    61,
+    68
+   ],
+   "ilk_sn": 30.0,
+   "son_sn": 33.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "produksiyon amiri",
+   "grup_no": 9,
+   "kare_araligi": [
+    68,
+    75
+   ],
+   "ilk_sn": 33.5,
+   "son_sn": 37.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "RAGIP TARANÇ",
+   "grup_no": 9,
+   "kare_araligi": [
+    68,
+    75
+   ],
+   "ilk_sn": 33.5,
+   "son_sn": 37.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "yönetim yardımcısı",
+   "grup_no": 9,
+   "kare_araligi": [
+    68,
+    75
+   ],
+   "ilk_sn": 33.5,
+   "son_sn": 37.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "YÜCEL ÖZGÜR",
+   "grup_no": 9,
+   "kare_araligi": [
+    68,
+    75
+   ],
+   "ilk_sn": 33.5,
+   "son_sn": 37.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "devamlılık yazmanları",
+   "grup_no": 11,
+   "kare_araligi": [
+    82,
+    89
+   ],
+   "ilk_sn": 40.5,
+   "son_sn": 44.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "NURGÜN ÖZGÜL",
+   "grup_no": 11,
+   "kare_araligi": [
+    82,
+    89
+   ],
+   "ilk_sn": 40.5,
+   "son_sn": 44.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HÜLYA SEVİN",
+   "grup_no": 11,
+   "kare_araligi": [
+    82,
+    89
+   ],
+   "ilk_sn": 40.5,
+   "son_sn": 44.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "makyaj",
+   "grup_no": 13,
+   "kare_araligi": [
+    96,
+    103
+   ],
+   "ilk_sn": 47.5,
+   "son_sn": 51.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "MEHMET BÜYÜKAĞAOĞLU",
+   "grup_no": 13,
+   "kare_araligi": [
+    96,
+    103
+   ],
+   "ilk_sn": 47.5,
+   "son_sn": 51.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "kostüm-aksesuar",
+   "grup_no": 13,
+   "kare_araligi": [
+    96,
+    103
+   ],
+   "ilk_sn": 47.5,
+   "son_sn": 51.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ADNAN ÖNCÜN",
+   "grup_no": 13,
+   "kare_araligi": [
+    96,
+    103
+   ],
+   "ilk_sn": 47.5,
+   "son_sn": 51.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ADNAN ÖNGÜN",
+   "grup_no": 14,
+   "kare_araligi": [
+    103,
+    110
+   ],
+   "ilk_sn": 51.0,
+   "son_sn": 54.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "negatif kesim",
+   "grup_no": 14,
+   "kare_araligi": [
+    103,
+    110
+   ],
+   "ilk_sn": 51.0,
+   "son_sn": 54.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "RABİA ERAT",
+   "grup_no": 14,
+   "kare_araligi": [
+    103,
+    110
+   ],
+   "ilk_sn": 51.0,
+   "son_sn": 54.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "set görevlileri",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "CEM ÖZER",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HÜLMI MAKAY",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "BÜLENT VARDAR",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HARUN GÜREK",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "VECDET KİMYONOK",
+   "grup_no": 16,
+   "kare_araligi": [
+    117,
+    124
+   ],
+   "ilk_sn": 58.0,
+   "son_sn": 61.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "seslendirme yönetmeni",
+   "grup_no": 17,
+   "kare_araligi": [
+    124,
+    131
+   ],
+   "ilk_sn": 61.5,
+   "son_sn": 65.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ZEYNEP ATAKAN",
+   "grup_no": 17,
+   "kare_araligi": [
+    124,
+    131
+   ],
+   "ilk_sn": 61.5,
+   "son_sn": 65.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ses kayıtl",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HASAN ERSOY",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "YAVUZ S ASLAN",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "MUHARREM KILIÇ",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HALUK ÇETİN",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HAMZA GÖKTAŞ",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "müzik kayıt-mix",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ARİF ÖNGÜNŞEN",
+   "grup_no": 19,
+   "kare_araligi": [
+    138,
+    145
+   ],
+   "ilk_sn": 68.5,
+   "son_sn": 72.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "ses kayıt",
+   "grup_no": 20,
+   "kare_araligi": [
+    145,
+    152
+   ],
+   "ilk_sn": 72.0,
+   "son_sn": 75.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "düzeltime",
+   "grup_no": 22,
+   "kare_araligi": [
+    159,
+    166
+   ],
+   "ilk_sn": 79.0,
+   "son_sn": 82.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "SÜLEYMAN KOYUNCU",
+   "grup_no": 22,
+   "kare_araligi": [
+    159,
+    166
+   ],
+   "ilk_sn": 79.0,
+   "son_sn": 82.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HAYRETTİN İLGEN",
+   "grup_no": 22,
+   "kare_araligi": [
+    159,
+    166
+   ],
+   "ilk_sn": 79.0,
+   "son_sn": 82.5,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "film banyo",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "MEHMET ÖZTAN",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "HÜSAMETTİN ÖZDEN",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "OSMAN BAYRAM",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "RASIM SARAÇ",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "film kopya",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "CAVİT BAY",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  },
+  {
+   "metin": "NECATİ NOYAN",
+   "grup_no": 23,
+   "kare_araligi": [
+    166,
+    173
+   ],
+   "ilk_sn": 82.5,
+   "son_sn": 86.0,
+   "dejenerasyon": false
+  }
+ ],
+ "elenen": [
+  {
+   "satir_no": 1,
+   "metin": "Nesrin Bakış",
+   "grup_no": 2,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 1,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 3,
+   "metin": "Benam Artun",
+   "grup_no": 2,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 1,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 4,
+   "metin": "İlmi Genel",
+   "grup_no": 2,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 1,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "müzik danışmanı",
+   "grup_no": 6,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 5,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "MURAT TUNCAY",
+   "grup_no": 6,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 5,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "kılavuz ses",
+   "grup_no": 8,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 7,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "ARİF ÖNGÜNŞEN",
+   "grup_no": 8,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 7,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 4,
+   "metin": "ışık",
+   "grup_no": 8,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 7,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 5,
+   "metin": "TAMER SALMAN",
+   "grup_no": 8,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 7,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "produksiyon amiri",
+   "grup_no": 10,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 9,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "RAGIP TARANÇ",
+   "grup_no": 10,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 9,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 3,
+   "metin": "yönetim yardımcısı",
+   "grup_no": 10,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 9,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 4,
+   "metin": "YÜCEL ÖZGÜR",
+   "grup_no": 10,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 9,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "devamlılık yazmanları",
+   "grup_no": 12,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 11,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "NURGÜN ÖZGÜL",
+   "grup_no": 12,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 11,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 3,
+   "metin": "HÜLYA SEVİN",
+   "grup_no": 12,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 11,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "makyaj",
+   "grup_no": 14,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 13,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "MEHMET BÜYÜKAĞAOĞLU",
+   "grup_no": 14,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 13,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 3,
+   "metin": "kostüm-aksesuar",
+   "grup_no": 14,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 13,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "negatif kesim",
+   "grup_no": 15,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 14,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "RABİA ERAT",
+   "grup_no": 15,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 14,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "seslendirme yönetmeni",
+   "grup_no": 18,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 17,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "ZEYNEP ATAKAN",
+   "grup_no": 18,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 17,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 2,
+   "metin": "HASAN ERSOY",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 3,
+   "metin": "YAVUZ S ASLAN",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 4,
+   "metin": "MUHARREM KILIÇ",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 5,
+   "metin": "HALUK ÇETİN",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 6,
+   "metin": "HAMZA GÖKTAŞ",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 7,
+   "metin": "müzik kayıt-mix",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 8,
+   "metin": "ARİF ÖNGÜNŞEN",
+   "grup_no": 20,
+   "sebep": "kesin_tekrar",
+   "ilk_grup": 19,
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "None",
+   "grup_no": 21,
+   "sebep": "bos_bildirim",
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "None",
+   "grup_no": 24,
+   "sebep": "bos_bildirim",
+   "bolge": "credits"
+  },
+  {
+   "satir_no": 1,
+   "metin": "None",
+   "grup_no": 25,
+   "sebep": "bos_bildirim",
+   "bolge": "credits"
+  }
+ ],
+ "kanit": {
+  "kanal": "vlm",
+  "faz": 4,
+  "model_yolu": "/opt/mitas/Allstar/vince_carter/model/qwen3-vl-8b",
+  "model_indeks_sha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+  "istem_sha256": "38708a9b15e1ec391356a34893f2fffdbe6e6f70affbd852aa5e08f50d7b4c83",
+  "recete": {
+   "kare_sayisi": 8,
+   "bindirme_kare": 1,
+   "kesin_tekrar_penceresi": 12,
+   "dtype": "bfloat16",
+   "gorsel": {
+    "min_pixels": 200704,
+    "max_pixels": 3211264
+   },
+   "uretim": {
+    "do_sample": false,
+    "max_new_tokens": 512
+   },
+   "dejenerasyon_benzerlik": 0.75,
+   "dejenerasyon_zincir": 4
+  },
+  "grup_sayisi": 26,
+  "satir_sayisi": 70,
+  "elenen_sayisi": 33,
+  "elenen_sebep": {
+   "kesin_tekrar": 30,
+   "bos_bildirim": 3
+  },
+  "dejenerasyon_satir": 0,
+  "sure_sn": 60.71,
+  "vram_tepe": {
+   "ayrilan_gb": 18.61,
+   "rezerve_gb": 18.67
+  },
+  "retry_sayisi": 0
+ }
+}

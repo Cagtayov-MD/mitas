@@ -1,0 +1,100 @@
+{
+  "olusturma_tarihi": "2026-08-20",
+  "klip_havuzu": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/",
+  "not": "kaynak_cozunurluk ve sure_sn ffprobe ile dolduruldu (2026-08-20). Klip eslesmeyen GT'lerde klip=null, sebep 'not' alaninda. 'kaynak_dizin' = gt_dizi altindaki ORIJINAL klasor adi; motor referans dosyalari (referans_{8b,27b,7b,mini}) orada, YERINDE okunur.",
+  "yuzeyler": [
+    {
+      "film": "cennetin_cocuklari",
+      "bolum": "cikis",
+      "gt": "olcum/gt/cennetin_cocuklari/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/cennetin_çocukları_son_1m37s.mp4",
+      "kaynak_cozunurluk": "854x480",
+      "sure_sn": 97.0,
+      "dogrulanmis": true,
+      "kaynak_dizin": "cennetin_cocuklari"
+    },
+    {
+      "film": "cicek_taksi",
+      "bolum": "cikis",
+      "gt": "olcum/gt/cicek_taksi/cikis.txt",
+      "klip": null,
+      "kaynak_cozunurluk": null,
+      "sure_sn": null,
+      "dogrulanmis": true,
+      "not": "klip havuzunda 'cicek_taksi'/'çiçek taksi' adini tasiyan dosya yok (2026-08-20 taramasi, 20 dosyalik havuz tamamen kontrol edildi)",
+      "kaynak_dizin": "cicek_taksi_2001_9011_0_001_00_1"
+    },
+    {
+      "film": "cicek_taksi",
+      "bolum": "giris",
+      "gt": "olcum/gt/cicek_taksi/giris.txt",
+      "klip": null,
+      "kaynak_cozunurluk": null,
+      "sure_sn": null,
+      "dogrulanmis": true,
+      "not": "klip havuzunda 'cicek_taksi'/'çiçek taksi' adini tasiyan dosya yok (2026-08-20 taramasi) — docs/PLAN.md'deki 'giris klibi havuzda yok' notu dogrulandi, ayrica cikis klibi de yok",
+      "kaynak_dizin": "cicek_taksi_2001_9011_0_001_00_1"
+    },
+    {
+      "film": "dost_eller",
+      "bolum": "cikis",
+      "gt": "olcum/gt/dost_eller/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/dost_eller_40m50s_bitiş.mp4",
+      "kaynak_cozunurluk": "900x720",
+      "sure_sn": 91.32,
+      "dogrulanmis": true,
+      "kaynak_dizin": "dost_eller"
+    },
+    {
+      "film": "gunes",
+      "bolum": "cikis",
+      "gt": "olcum/gt/gunes/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/güneş_son_27s.mp4",
+      "kaynak_cozunurluk": "384x288",
+      "sure_sn": 26.979,
+      "dogrulanmis": true,
+      "kaynak_dizin": "gunes"
+    },
+    {
+      "film": "marnali",
+      "bolum": "cikis",
+      "gt": "olcum/gt/marnali/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/marnalı_son_02m11s.mp4",
+      "kaynak_cozunurluk": "854x480",
+      "sure_sn": 131.0,
+      "dogrulanmis": true,
+      "kaynak_dizin": "marnali"
+    },
+    {
+      "film": "pastane",
+      "bolum": "cikis",
+      "gt": "olcum/gt/pastane/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/pastane_son_01m30s.mp4",
+      "kaynak_cozunurluk": "600x480",
+      "sure_sn": 90.001,
+      "dogrulanmis": true,
+      "kaynak_dizin": "pastane"
+    },
+    {
+      "film": "suc_dosyasi",
+      "bolum": "cikis",
+      "gt": "olcum/gt/suc_dosyasi/cikis.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/suç_dosyası_29m35s_bitiş.mp4",
+      "kaynak_cozunurluk": "900x720",
+      "sure_sn": 74.0,
+      "dogrulanmis": true,
+      "kaynak_dizin": "suc_dosyasi"
+    },
+    {
+      "film": "iz_pesinde",
+      "bolum": "cikis",
+      "gt": "olcum/gt/iz_pesinde/cikis_BELIRSIZ.txt",
+      "klip": "/home/cagatay/Programlar/mitas/Allstar/vince_carter/okunmalık jenerikler/iz_peşinde_son_01m12s.mp4",
+      "kaynak_cozunurluk": "384x288",
+      "sure_sn": 71.979,
+      "dogrulanmis": false,
+      "not": "GT dogrulanmamis (olcum/gt/KAYNAK.md 'Dogrulanmamis' bolumune bak) — Cagatay onayi bekliyor. Klip var, olcum yapilabilir ama sayi birincil taban cizgisi ortalamasina KATILMAMALI.",
+      "kaynak_dizin": "iz_pesinde"
+    }
+  ]
+}

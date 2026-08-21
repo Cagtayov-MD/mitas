@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Vince Carter kulesi girisi — kendi venv'ini kendi bulur. Cagiran python bilmez.
+V="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$V/venv/bin/python" "$V/main.py" "$@"

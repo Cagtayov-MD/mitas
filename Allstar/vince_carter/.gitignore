@@ -1,0 +1,14 @@
+
+# Local runtime / models / test media
+venv/
+venv_ocr/
+model/
+okunmalık jenerikler/
+__pycache__/
+*.pyc
+
+# Generated measurement frames
+olcum/veri/**/kareler/*.jpg
+
+# Generated measurement frames
+olcum/veri/**/kareler/*.jpg

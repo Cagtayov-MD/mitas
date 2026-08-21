@@ -1,0 +1,97 @@
+{
+ "film_id": "dost_eller",
+ "kaynak": "/home/cagatay/Belgeler/okunmalık jenerikler/dost_eller_40m50s_bitiş.mp4",
+ "kare_sayisi": 183,
+ "fps": 2.0,
+ "fps_varsayimi": false,
+ "kayma_hizi": {
+  "mod": "sayfa",
+  "px_sn": 0.0
+ },
+ "hazirlik_sn": 0.87,
+ "model_yukleme_sn": 6.8,
+ "fazlar": {
+  "0": {
+   "kanal": "vlm",
+   "faz": 0,
+   "model_yolu": "/opt/mitas/Allstar/vince_carter/model/qwen3-vl-8b",
+   "model_indeks_sha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+   "istem_sha256": "38708a9b15e1ec391356a34893f2fffdbe6e6f70affbd852aa5e08f50d7b4c83",
+   "recete": {
+    "kare_sayisi": 8,
+    "bindirme_kare": 1,
+    "kesin_tekrar_penceresi": 12,
+    "dtype": "bfloat16",
+    "gorsel": {
+     "min_pixels": 200704,
+     "max_pixels": 3211264
+    },
+    "uretim": {
+     "do_sample": false,
+     "max_new_tokens": 512
+    },
+    "dejenerasyon_benzerlik": 0.75,
+    "dejenerasyon_zincir": 4
+   },
+   "grup_sayisi": 26,
+   "satir_sayisi": 73,
+   "elenen_sayisi": 31,
+   "elenen_sebep": {
+    "kesin_tekrar": 28,
+    "bos_bildirim": 3
+   },
+   "dejenerasyon_satir": 0,
+   "sure_sn": 60.63,
+   "vram_tepe": {
+    "ayrilan_gb": 18.61,
+    "rezerve_gb": 18.67
+   },
+   "retry_sayisi": 0
+  },
+  "4": {
+   "kanal": "vlm",
+   "faz": 4,
+   "model_yolu": "/opt/mitas/Allstar/vince_carter/model/qwen3-vl-8b",
+   "model_indeks_sha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+   "istem_sha256": "38708a9b15e1ec391356a34893f2fffdbe6e6f70affbd852aa5e08f50d7b4c83",
+   "recete": {
+    "kare_sayisi": 8,
+    "bindirme_kare": 1,
+    "kesin_tekrar_penceresi": 12,
+    "dtype": "bfloat16",
+    "gorsel": {
+     "min_pixels": 200704,
+     "max_pixels": 3211264
+    },
+    "uretim": {
+     "do_sample": false,
+     "max_new_tokens": 512
+    },
+    "dejenerasyon_benzerlik": 0.75,
+    "dejenerasyon_zincir": 4
+   },
+   "grup_sayisi": 26,
+   "satir_sayisi": 70,
+   "elenen_sayisi": 33,
+   "elenen_sebep": {
+    "kesin_tekrar": 30,
+    "bos_bildirim": 3
+   },
+   "dejenerasyon_satir": 0,
+   "sure_sn": 60.71,
+   "vram_tepe": {
+    "ayrilan_gb": 18.61,
+    "rezerve_gb": 18.67
+   },
+   "retry_sayisi": 0
+  }
+ },
+ "karsilastirma": {
+  "faz0_faz4": {
+   "ortak_satir": 55,
+   "yalniz_ilk_fazda": 18,
+   "yalniz_ikinci_fazda": 15,
+   "difflib_orani": 0.7273
+  }
+ }
+}

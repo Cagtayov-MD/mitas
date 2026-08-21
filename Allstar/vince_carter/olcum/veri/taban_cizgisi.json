@@ -1,0 +1,969 @@
+{
+ "olcum_tarihi": "2026-08-21",
+ "esik": 0.9,
+ "gt_dizi": "/opt/mitas/Allstar/gt_dizi",
+ "motorlar": [
+  "8b",
+  "27b",
+  "7b",
+  "mini"
+ ],
+ "olcumler": [
+  {
+   "film": "cennetin_cocuklari",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cennetin_cocuklari/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 233,
+    "yakin": 0,
+    "kayip": 16,
+    "fazla": 34,
+    "gt_toplam": 249,
+    "cikti_toplam": 267,
+    "kesinlik": 0.8727,
+    "duyarlilik": 0.9357,
+    "f1": 0.9031
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 4,
+    "FAZLA_UYDURMA_ADAYI": 30,
+    "KAYIP_ESIK_ALTI": 7,
+    "KAYIP_HIC_YOK": 9
+   }
+  },
+  {
+   "film": "cennetin_cocuklari",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cennetin_cocuklari/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 160,
+    "yakin": 20,
+    "kayip": 69,
+    "fazla": 111,
+    "gt_toplam": 249,
+    "cikti_toplam": 291,
+    "kesinlik": 0.6186,
+    "duyarlilik": 0.7229,
+    "f1": 0.6667
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 39,
+    "FAZLA_UYDURMA_ADAYI": 72,
+    "KAYIP_ESIK_ALTI": 41,
+    "KAYIP_HIC_YOK": 28,
+    "YAKIN_DIAKRITIK": 12,
+    "YAKIN_YAZIM": 8
+   }
+  },
+  {
+   "film": "cennetin_cocuklari",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cennetin_cocuklari/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 138,
+    "yakin": 19,
+    "kayip": 92,
+    "fazla": 55,
+    "gt_toplam": 249,
+    "cikti_toplam": 212,
+    "kesinlik": 0.7406,
+    "duyarlilik": 0.6305,
+    "f1": 0.6811
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 22,
+    "FAZLA_UYDURMA_ADAYI": 33,
+    "KAYIP_ESIK_ALTI": 28,
+    "KAYIP_HIC_YOK": 64,
+    "YAKIN_BOSLUK": 1,
+    "YAKIN_DIAKRITIK": 11,
+    "YAKIN_YAZIM": 7
+   }
+  },
+  {
+   "film": "cennetin_cocuklari",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cennetin_cocuklari/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 60,
+    "yakin": 59,
+    "kayip": 130,
+    "fazla": 72,
+    "gt_toplam": 249,
+    "cikti_toplam": 191,
+    "kesinlik": 0.623,
+    "duyarlilik": 0.4779,
+    "f1": 0.5409
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 31,
+    "FAZLA_TEKRAR": 3,
+    "FAZLA_UYDURMA_ADAYI": 38,
+    "KAYIP_ESIK_ALTI": 49,
+    "KAYIP_HIC_YOK": 81,
+    "YAKIN_DIAKRITIK": 52,
+    "YAKIN_YAZIM": 7
+   }
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_8b.txt",
+   "metrikler": {
+    "birebir": 35,
+    "yakin": 8,
+    "kayip": 0,
+    "fazla": 8,
+    "gt_toplam": 43,
+    "cikti_toplam": 51,
+    "kesinlik": 0.8431,
+    "duyarlilik": 1.0,
+    "f1": 0.9149
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 6,
+    "FAZLA_TEKRAR": 1,
+    "FAZLA_UYDURMA_ADAYI": 1,
+    "YAKIN_DIAKRITIK": 6,
+    "YAKIN_DIAKRITIK_BOSLUK": 1,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_27b.txt",
+   "metrikler": {
+    "birebir": 38,
+    "yakin": 4,
+    "kayip": 1,
+    "fazla": 12,
+    "gt_toplam": 43,
+    "cikti_toplam": 54,
+    "kesinlik": 0.7778,
+    "duyarlilik": 0.9767,
+    "f1": 0.866
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 6,
+    "FAZLA_TEKRAR": 2,
+    "FAZLA_UYDURMA_ADAYI": 4,
+    "KAYIP_ESIK_ALTI": 1,
+    "YAKIN_DIAKRITIK": 2,
+    "YAKIN_YAZIM": 2
+   }
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_mini.txt",
+   "metrikler": {
+    "birebir": 16,
+    "yakin": 22,
+    "kayip": 5,
+    "fazla": 20,
+    "gt_toplam": 43,
+    "cikti_toplam": 58,
+    "kesinlik": 0.6552,
+    "duyarlilik": 0.8837,
+    "f1": 0.7525
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 12,
+    "FAZLA_UYDURMA_ADAYI": 8,
+    "KAYIP_ESIK_ALTI": 4,
+    "KAYIP_HIC_YOK": 1,
+    "YAKIN_DIAKRITIK": 19,
+    "YAKIN_YAZIM": 3
+   }
+  },
+  {
+   "film": "dost_eller",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/dost_eller/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 56,
+    "yakin": 2,
+    "kayip": 4,
+    "fazla": 16,
+    "gt_toplam": 62,
+    "cikti_toplam": 74,
+    "kesinlik": 0.7838,
+    "duyarlilik": 0.9355,
+    "f1": 0.8529
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_MOTOR_NOTU": 2,
+    "FAZLA_UYDURMA_ADAYI": 7,
+    "KAYIP_ESIK_ALTI": 2,
+    "KAYIP_HIC_YOK": 2,
+    "YAKIN_DIAKRITIK": 2
+   }
+  },
+  {
+   "film": "dost_eller",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/dost_eller/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 50,
+    "yakin": 6,
+    "kayip": 6,
+    "fazla": 18,
+    "gt_toplam": 62,
+    "cikti_toplam": 74,
+    "kesinlik": 0.7568,
+    "duyarlilik": 0.9032,
+    "f1": 0.8235
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_MOTOR_NOTU": 2,
+    "FAZLA_UYDURMA_ADAYI": 9,
+    "KAYIP_ESIK_ALTI": 4,
+    "KAYIP_HIC_YOK": 2,
+    "YAKIN_DIAKRITIK": 2,
+    "YAKIN_YAZIM": 4
+   }
+  },
+  {
+   "film": "dost_eller",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/dost_eller/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 40,
+    "yakin": 19,
+    "kayip": 3,
+    "fazla": 15,
+    "gt_toplam": 62,
+    "cikti_toplam": 74,
+    "kesinlik": 0.7973,
+    "duyarlilik": 0.9516,
+    "f1": 0.8676
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 5,
+    "FAZLA_UYDURMA_ADAYI": 10,
+    "KAYIP_ESIK_ALTI": 2,
+    "KAYIP_HIC_YOK": 1,
+    "YAKIN_DIAKRITIK": 14,
+    "YAKIN_YAZIM": 5
+   }
+  },
+  {
+   "film": "dost_eller",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/dost_eller/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 21,
+    "yakin": 28,
+    "kayip": 13,
+    "fazla": 34,
+    "gt_toplam": 62,
+    "cikti_toplam": 83,
+    "kesinlik": 0.5904,
+    "duyarlilik": 0.7903,
+    "f1": 0.6759
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 11,
+    "FAZLA_UYDURMA_ADAYI": 23,
+    "KAYIP_ESIK_ALTI": 9,
+    "KAYIP_HIC_YOK": 4,
+    "YAKIN_DIAKRITIK": 20,
+    "YAKIN_YAZIM": 8
+   }
+  },
+  {
+   "film": "gunes",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/gunes/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 23,
+    "yakin": 3,
+    "kayip": 1,
+    "fazla": 9,
+    "gt_toplam": 27,
+    "cikti_toplam": 35,
+    "kesinlik": 0.7429,
+    "duyarlilik": 0.963,
+    "f1": 0.8387
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_UYDURMA_ADAYI": 1,
+    "KAYIP_HIC_YOK": 1,
+    "YAKIN_DIAKRITIK": 3
+   }
+  },
+  {
+   "film": "gunes",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/gunes/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 19,
+    "yakin": 3,
+    "kayip": 5,
+    "fazla": 14,
+    "gt_toplam": 27,
+    "cikti_toplam": 36,
+    "kesinlik": 0.6111,
+    "duyarlilik": 0.8148,
+    "f1": 0.6984
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_TEKRAR": 1,
+    "FAZLA_UYDURMA_ADAYI": 5,
+    "KAYIP_ESIK_ALTI": 3,
+    "KAYIP_HIC_YOK": 2,
+    "YAKIN_BOSLUK": 1,
+    "YAKIN_DIAKRITIK": 2
+   }
+  },
+  {
+   "film": "gunes",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/gunes/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 16,
+    "yakin": 4,
+    "kayip": 7,
+    "fazla": 12,
+    "gt_toplam": 27,
+    "cikti_toplam": 32,
+    "kesinlik": 0.625,
+    "duyarlilik": 0.7407,
+    "f1": 0.678
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_UYDURMA_ADAYI": 5,
+    "KAYIP_ESIK_ALTI": 3,
+    "KAYIP_HIC_YOK": 4,
+    "YAKIN_DIAKRITIK": 3,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "gunes",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/gunes/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 12,
+    "yakin": 11,
+    "kayip": 4,
+    "fazla": 15,
+    "gt_toplam": 27,
+    "cikti_toplam": 38,
+    "kesinlik": 0.6053,
+    "duyarlilik": 0.8519,
+    "f1": 0.7077
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 4,
+    "FAZLA_UYDURMA_ADAYI": 11,
+    "KAYIP_ESIK_ALTI": 1,
+    "KAYIP_HIC_YOK": 3,
+    "YAKIN_DIAKRITIK": 10,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "marnali",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/marnali/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 123,
+    "yakin": 3,
+    "kayip": 2,
+    "fazla": 350,
+    "gt_toplam": 128,
+    "cikti_toplam": 476,
+    "kesinlik": 0.2647,
+    "duyarlilik": 0.9844,
+    "f1": 0.4172
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 21,
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_TEKRAR": 13,
+    "FAZLA_UYDURMA_ADAYI": 315,
+    "KAYIP_ESIK_ALTI": 1,
+    "KAYIP_HIC_YOK": 1,
+    "YAKIN_DIAKRITIK": 2,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "marnali",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/marnali/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 46,
+    "yakin": 13,
+    "kayip": 69,
+    "fazla": 566,
+    "gt_toplam": 128,
+    "cikti_toplam": 625,
+    "kesinlik": 0.0944,
+    "duyarlilik": 0.4609,
+    "f1": 0.1567
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 39,
+    "FAZLA_TEKRAR": 10,
+    "FAZLA_UYDURMA_ADAYI": 517,
+    "KAYIP_ESIK_ALTI": 56,
+    "KAYIP_HIC_YOK": 13,
+    "YAKIN_DIAKRITIK": 9,
+    "YAKIN_YAZIM": 4
+   }
+  },
+  {
+   "film": "marnali",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/marnali/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 58,
+    "yakin": 23,
+    "kayip": 47,
+    "fazla": 355,
+    "gt_toplam": 128,
+    "cikti_toplam": 436,
+    "kesinlik": 0.1858,
+    "duyarlilik": 0.6328,
+    "f1": 0.2872
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 57,
+    "FAZLA_TEKRAR": 11,
+    "FAZLA_UYDURMA_ADAYI": 287,
+    "KAYIP_ESIK_ALTI": 36,
+    "KAYIP_HIC_YOK": 11,
+    "YAKIN_DIAKRITIK": 16,
+    "YAKIN_YAZIM": 7
+   }
+  },
+  {
+   "film": "marnali",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/marnali/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 19,
+    "yakin": 30,
+    "kayip": 79,
+    "fazla": 596,
+    "gt_toplam": 128,
+    "cikti_toplam": 645,
+    "kesinlik": 0.076,
+    "duyarlilik": 0.3828,
+    "f1": 0.1268
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 60,
+    "FAZLA_TEKRAR": 18,
+    "FAZLA_UYDURMA_ADAYI": 518,
+    "KAYIP_ESIK_ALTI": 70,
+    "KAYIP_HIC_YOK": 9,
+    "YAKIN_DIAKRITIK": 21,
+    "YAKIN_YAZIM": 9
+   }
+  },
+  {
+   "film": "pastane",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/pastane/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 37,
+    "yakin": 8,
+    "kayip": 14,
+    "fazla": 105,
+    "gt_toplam": 59,
+    "cikti_toplam": 150,
+    "kesinlik": 0.3,
+    "duyarlilik": 0.7627,
+    "f1": 0.4306
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 20,
+    "FAZLA_MOTOR_NOTU": 2,
+    "FAZLA_TEKRAR": 1,
+    "FAZLA_UYDURMA_ADAYI": 82,
+    "KAYIP_ESIK_ALTI": 13,
+    "KAYIP_HIC_YOK": 1,
+    "YAKIN_BOSLUK": 1,
+    "YAKIN_DIAKRITIK": 4,
+    "YAKIN_YAZIM": 3
+   }
+  },
+  {
+   "film": "pastane",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/pastane/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 23,
+    "yakin": 13,
+    "kayip": 23,
+    "fazla": 155,
+    "gt_toplam": 59,
+    "cikti_toplam": 191,
+    "kesinlik": 0.1885,
+    "duyarlilik": 0.6102,
+    "f1": 0.288
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 17,
+    "FAZLA_TEKRAR": 1,
+    "FAZLA_UYDURMA_ADAYI": 137,
+    "KAYIP_ESIK_ALTI": 11,
+    "KAYIP_HIC_YOK": 12,
+    "YAKIN_BOSLUK": 5,
+    "YAKIN_DIAKRITIK": 3,
+    "YAKIN_YAZIM": 5
+   }
+  },
+  {
+   "film": "pastane",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/pastane/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 19,
+    "yakin": 12,
+    "kayip": 28,
+    "fazla": 79,
+    "gt_toplam": 59,
+    "cikti_toplam": 110,
+    "kesinlik": 0.2818,
+    "duyarlilik": 0.5254,
+    "f1": 0.3669
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 19,
+    "FAZLA_TEKRAR": 6,
+    "FAZLA_UYDURMA_ADAYI": 54,
+    "KAYIP_ESIK_ALTI": 17,
+    "KAYIP_HIC_YOK": 11,
+    "YAKIN_BOSLUK": 1,
+    "YAKIN_DIAKRITIK": 10,
+    "YAKIN_DIAKRITIK_BOSLUK": 1
+   }
+  },
+  {
+   "film": "pastane",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/pastane/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 14,
+    "yakin": 18,
+    "kayip": 27,
+    "fazla": 105,
+    "gt_toplam": 59,
+    "cikti_toplam": 137,
+    "kesinlik": 0.2336,
+    "duyarlilik": 0.5424,
+    "f1": 0.3265
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 18,
+    "FAZLA_TEKRAR": 3,
+    "FAZLA_UYDURMA_ADAYI": 84,
+    "KAYIP_ESIK_ALTI": 19,
+    "KAYIP_HIC_YOK": 8,
+    "YAKIN_BOSLUK": 2,
+    "YAKIN_DIAKRITIK": 11,
+    "YAKIN_DIAKRITIK_BOSLUK": 2,
+    "YAKIN_YAZIM": 3
+   }
+  },
+  {
+   "film": "suc_dosyasi",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/suc_dosyasi/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 79,
+    "yakin": 2,
+    "kayip": 0,
+    "fazla": 5,
+    "gt_toplam": 81,
+    "cikti_toplam": 86,
+    "kesinlik": 0.9419,
+    "duyarlilik": 1.0,
+    "f1": 0.9701
+   },
+   "sebep_sayaclari": {
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_UYDURMA_ADAYI": 4,
+    "YAKIN_DIAKRITIK": 2
+   }
+  },
+  {
+   "film": "suc_dosyasi",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/suc_dosyasi/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 75,
+    "yakin": 4,
+    "kayip": 2,
+    "fazla": 16,
+    "gt_toplam": 81,
+    "cikti_toplam": 95,
+    "kesinlik": 0.8316,
+    "duyarlilik": 0.9753,
+    "f1": 0.8977
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 9,
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_UYDURMA_ADAYI": 6,
+    "KAYIP_ESIK_ALTI": 2,
+    "YAKIN_DIAKRITIK": 2,
+    "YAKIN_YAZIM": 2
+   }
+  },
+  {
+   "film": "suc_dosyasi",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/suc_dosyasi/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 62,
+    "yakin": 4,
+    "kayip": 15,
+    "fazla": 18,
+    "gt_toplam": 81,
+    "cikti_toplam": 84,
+    "kesinlik": 0.7857,
+    "duyarlilik": 0.8148,
+    "f1": 0.8
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_UYDURMA_ADAYI": 11,
+    "KAYIP_ESIK_ALTI": 4,
+    "KAYIP_HIC_YOK": 11,
+    "YAKIN_DIAKRITIK": 3,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "suc_dosyasi",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/suc_dosyasi/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 43,
+    "yakin": 24,
+    "kayip": 14,
+    "fazla": 30,
+    "gt_toplam": 81,
+    "cikti_toplam": 97,
+    "kesinlik": 0.6907,
+    "duyarlilik": 0.8272,
+    "f1": 0.7528
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 14,
+    "FAZLA_TEKRAR": 1,
+    "FAZLA_UYDURMA_ADAYI": 15,
+    "KAYIP_ESIK_ALTI": 7,
+    "KAYIP_HIC_YOK": 7,
+    "YAKIN_DIAKRITIK": 20,
+    "YAKIN_YAZIM": 4
+   }
+  },
+  {
+   "film": "iz_pesinde",
+   "bolum": "cikis",
+   "motor": "8b",
+   "dogrulanmis_gt": false,
+   "referans": "/opt/mitas/Allstar/gt_dizi/iz_pesinde/cikis_referans_8b.txt",
+   "metrikler": {
+    "birebir": 84,
+    "yakin": 1,
+    "kayip": 1,
+    "fazla": 3,
+    "gt_toplam": 86,
+    "cikti_toplam": 88,
+    "kesinlik": 0.9659,
+    "duyarlilik": 0.9884,
+    "f1": 0.977
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 2,
+    "FAZLA_UYDURMA_ADAYI": 1,
+    "KAYIP_ESIK_ALTI": 1,
+    "YAKIN_DIAKRITIK": 1
+   }
+  },
+  {
+   "film": "iz_pesinde",
+   "bolum": "cikis",
+   "motor": "27b",
+   "dogrulanmis_gt": false,
+   "referans": "/opt/mitas/Allstar/gt_dizi/iz_pesinde/cikis_referans_27b.txt",
+   "metrikler": {
+    "birebir": 72,
+    "yakin": 5,
+    "kayip": 9,
+    "fazla": 24,
+    "gt_toplam": 86,
+    "cikti_toplam": 101,
+    "kesinlik": 0.7624,
+    "duyarlilik": 0.8953,
+    "f1": 0.8235
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 7,
+    "FAZLA_MOTOR_NOTU": 1,
+    "FAZLA_UYDURMA_ADAYI": 16,
+    "KAYIP_ESIK_ALTI": 7,
+    "KAYIP_HIC_YOK": 2,
+    "YAKIN_DIAKRITIK": 5
+   }
+  },
+  {
+   "film": "iz_pesinde",
+   "bolum": "cikis",
+   "motor": "7b",
+   "dogrulanmis_gt": false,
+   "referans": "/opt/mitas/Allstar/gt_dizi/iz_pesinde/cikis_referans_7b.txt",
+   "metrikler": {
+    "birebir": 57,
+    "yakin": 11,
+    "kayip": 18,
+    "fazla": 15,
+    "gt_toplam": 86,
+    "cikti_toplam": 83,
+    "kesinlik": 0.8193,
+    "duyarlilik": 0.7907,
+    "f1": 0.8047
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 5,
+    "FAZLA_UYDURMA_ADAYI": 10,
+    "KAYIP_ESIK_ALTI": 3,
+    "KAYIP_HIC_YOK": 15,
+    "YAKIN_DIAKRITIK": 11
+   }
+  },
+  {
+   "film": "iz_pesinde",
+   "bolum": "cikis",
+   "motor": "mini",
+   "dogrulanmis_gt": false,
+   "referans": "/opt/mitas/Allstar/gt_dizi/iz_pesinde/cikis_referans_mini.txt",
+   "metrikler": {
+    "birebir": 27,
+    "yakin": 23,
+    "kayip": 36,
+    "fazla": 22,
+    "gt_toplam": 86,
+    "cikti_toplam": 72,
+    "kesinlik": 0.6944,
+    "duyarlilik": 0.5814,
+    "f1": 0.6329
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 5,
+    "FAZLA_UYDURMA_ADAYI": 17,
+    "KAYIP_ESIK_ALTI": 11,
+    "KAYIP_HIC_YOK": 25,
+    "YAKIN_DIAKRITIK": 21,
+    "YAKIN_DIAKRITIK_BOSLUK": 1,
+    "YAKIN_YAZIM": 1
+   }
+  }
+ ],
+ "ek_olcumler": [
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "JORDANKULE8b",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_JORDANKULE8b.txt",
+   "metrikler": {
+    "birebir": 32,
+    "yakin": 11,
+    "kayip": 0,
+    "fazla": 7,
+    "gt_toplam": 43,
+    "cikti_toplam": 50,
+    "kesinlik": 0.86,
+    "duyarlilik": 1.0,
+    "f1": 0.9247
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 5,
+    "FAZLA_UYDURMA_ADAYI": 2,
+    "YAKIN_DIAKRITIK": 9,
+    "YAKIN_DIAKRITIK_BOSLUK": 1,
+    "YAKIN_YAZIM": 1
+   }
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "YARISKODUJORDANKARE",
+   "dogrulanmis_gt": true,
+   "referans": "/opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_YARISKODUJORDANKARE.txt",
+   "metrikler": {
+    "birebir": 32,
+    "yakin": 11,
+    "kayip": 0,
+    "fazla": 1,
+    "gt_toplam": 43,
+    "cikti_toplam": 44,
+    "kesinlik": 0.9773,
+    "duyarlilik": 1.0,
+    "f1": 0.9885
+   },
+   "sebep_sayaclari": {
+    "FAZLA_GT_DISI_ESLESME": 1,
+    "YAKIN_DIAKRITIK": 9,
+    "YAKIN_DIAKRITIK_BOSLUK": 1,
+    "YAKIN_YAZIM": 1
+   }
+  }
+ ],
+ "eksik": [
+  {
+   "film": "cicek_taksi",
+   "bolum": "cikis",
+   "motor": "8b",
+   "sebep": "referans dosyasi yok: /opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/cikis_referans_8b.txt"
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "cikis",
+   "motor": "27b",
+   "sebep": "referans dosyasi yok: /opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/cikis_referans_27b.txt"
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "cikis",
+   "motor": "7b",
+   "sebep": "referans dosyasi yok: /opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/cikis_referans_7b.txt"
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "cikis",
+   "motor": "mini",
+   "sebep": "referans dosyasi yok: /opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/cikis_referans_mini.txt"
+  },
+  {
+   "film": "cicek_taksi",
+   "bolum": "giris",
+   "motor": "7b",
+   "sebep": "referans dosyasi yok: /opt/mitas/Allstar/gt_dizi/cicek_taksi_2001_9011_0_001_00_1/giris_referans_7b.txt"
+  }
+ ],
+ "motor_ozeti": {
+  "8b": {
+   "yuzey_sayisi": 7,
+   "birebir": 586,
+   "yakin": 26,
+   "kayip": 37,
+   "fazla": 527,
+   "gt_toplam": 649,
+   "cikti_toplam": 1139,
+   "f1_ortalama": 0.7611,
+   "havuz_kesinlik": 0.5373,
+   "havuz_duyarlilik": 0.943,
+   "havuz_f1": 0.6846
+  },
+  "27b": {
+   "yuzey_sayisi": 7,
+   "birebir": 411,
+   "yakin": 63,
+   "kayip": 175,
+   "fazla": 892,
+   "gt_toplam": 649,
+   "cikti_toplam": 1366,
+   "f1_ortalama": 0.6281,
+   "havuz_kesinlik": 0.347,
+   "havuz_duyarlilik": 0.7304,
+   "havuz_f1": 0.4705
+  },
+  "7b": {
+   "yuzey_sayisi": 6,
+   "birebir": 333,
+   "yakin": 81,
+   "kayip": 192,
+   "fazla": 534,
+   "gt_toplam": 606,
+   "cikti_toplam": 948,
+   "f1_ortalama": 0.6135,
+   "havuz_kesinlik": 0.4367,
+   "havuz_duyarlilik": 0.6832,
+   "havuz_f1": 0.5328
+  },
+  "mini": {
+   "yuzey_sayisi": 7,
+   "birebir": 185,
+   "yakin": 192,
+   "kayip": 272,
+   "fazla": 872,
+   "gt_toplam": 649,
+   "cikti_toplam": 1249,
+   "f1_ortalama": 0.5547,
+   "havuz_kesinlik": 0.3018,
+   "havuz_duyarlilik": 0.5809,
+   "havuz_f1": 0.3972
+  }
+ }
+}

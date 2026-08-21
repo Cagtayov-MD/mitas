@@ -1,0 +1,1474 @@
+{
+  "kaynak": "video",
+  "kaynak_yol": "/home/cagatay/Belgeler/okunmalık jenerikler/dost_eller_40m50s_bitiş.mp4",
+  "kare_dizini": "olcum/veri/dost_eller/kareler",
+  "fps": 2.0,
+  "fps_varsayimi": false,
+  "kare_sayisi": 183,
+  "kareler": [
+    {
+      "sira": 1,
+      "dosya": "k_00001.jpg",
+      "kaynak_sn": 0.0,
+      "sha256": "4a01eca428741a977481dc500e538a45f661780ab3e1b3978df808e16c86b471",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 2,
+      "dosya": "k_00002.jpg",
+      "kaynak_sn": 0.5,
+      "sha256": "91d18d4e8d33d9f1e05af7ca5b5c42bd15a7246031e1466b196767bf293bb385",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 3,
+      "dosya": "k_00003.jpg",
+      "kaynak_sn": 1.0,
+      "sha256": "fa45753cfc2855c3a4a1f21fbe79f7f67aa89fb5e3e7019c5eed9a8228de5abd",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 4,
+      "dosya": "k_00004.jpg",
+      "kaynak_sn": 1.5,
+      "sha256": "8caf9099bd1133eb57cd47abd238524e0501f30833be60da77babe34ded69e35",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 5,
+      "dosya": "k_00005.jpg",
+      "kaynak_sn": 2.0,
+      "sha256": "52d7c6e9be98dbcee4fa84e400b7da32ce51a17a2694c3755dd90fe67abc51c5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 6,
+      "dosya": "k_00006.jpg",
+      "kaynak_sn": 2.5,
+      "sha256": "02b649d745448562b24ce667a0feb4049408008e61be63c759e0b034af299409",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 7,
+      "dosya": "k_00007.jpg",
+      "kaynak_sn": 3.0,
+      "sha256": "c26d3d356a7c8b3aded201f1043dca782d16a7661ac75758cfe19055ff280e13",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 8,
+      "dosya": "k_00008.jpg",
+      "kaynak_sn": 3.5,
+      "sha256": "22f258d6b9fcdfe2697fd776e5f764a017f4aec106f9189166f634383b47f840",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 9,
+      "dosya": "k_00009.jpg",
+      "kaynak_sn": 4.0,
+      "sha256": "1f06e700ba68b9398ed9adcd04383959ad2a9906ecc80bf390ab4a54e039517e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 10,
+      "dosya": "k_00010.jpg",
+      "kaynak_sn": 4.5,
+      "sha256": "7ed7f0a8fbc2ad1f20e262fce027f812fd8f678614caf44a7da5f2597ece6558",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 11,
+      "dosya": "k_00011.jpg",
+      "kaynak_sn": 5.0,
+      "sha256": "40fe54be240c9e6888e36ff6abefb223eec3e976f02e2ae09e5e9199ac4df323",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 12,
+      "dosya": "k_00012.jpg",
+      "kaynak_sn": 5.5,
+      "sha256": "cf670aa455c820147e91083b1c2b9ba86cfc1a9318e86d8b127a716afa95d25b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 13,
+      "dosya": "k_00013.jpg",
+      "kaynak_sn": 6.0,
+      "sha256": "b6b06dd49191a2196b02c1127ff51f7ca1e9a256c949d864a1aada4ac5910b6d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 14,
+      "dosya": "k_00014.jpg",
+      "kaynak_sn": 6.5,
+      "sha256": "89bdd7f877a6aa7fef22245776756eb01147a66ae6786781cd6889c7f79ecdd1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 15,
+      "dosya": "k_00015.jpg",
+      "kaynak_sn": 7.0,
+      "sha256": "2d77024d9aeefa097463c491b6434291798a8e7886b77ce4aa618f671315fc0c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 16,
+      "dosya": "k_00016.jpg",
+      "kaynak_sn": 7.5,
+      "sha256": "edc788d1b1219c1e62a445d34c2f241a7898f9dc5071beb034a928fd156e027c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 17,
+      "dosya": "k_00017.jpg",
+      "kaynak_sn": 8.0,
+      "sha256": "460d719b0b752d48e225923f0e45b5728c75740eea534f6ac21df38c74e2db33",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 18,
+      "dosya": "k_00018.jpg",
+      "kaynak_sn": 8.5,
+      "sha256": "dc29db36b131a13120a53c00db8daa5a2b27e1f07a094e9aa270df04b94cee81",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 19,
+      "dosya": "k_00019.jpg",
+      "kaynak_sn": 9.0,
+      "sha256": "475c04eda3e3e295d7c287d89bff67b3e1d2c6b498668bc2f4ae11b9df6f9273",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 20,
+      "dosya": "k_00020.jpg",
+      "kaynak_sn": 9.5,
+      "sha256": "7748efbcec99ccf3d47106170d930586da861f657d5a85ff96112fc533ca2827",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 21,
+      "dosya": "k_00021.jpg",
+      "kaynak_sn": 10.0,
+      "sha256": "c4e5734082087bd5d707759c355c261d25488bd7d5b8c49146e0db53bd7b5d75",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 22,
+      "dosya": "k_00022.jpg",
+      "kaynak_sn": 10.5,
+      "sha256": "0745a5c708c5d246cbc9966ec33c903ecaf5feefb301bb25c90dc51aebef7645",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 23,
+      "dosya": "k_00023.jpg",
+      "kaynak_sn": 11.0,
+      "sha256": "80d4f2c7e81f7ed10055feec2df82c183be99ddd24952731e8729dbd30bf03a0",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 24,
+      "dosya": "k_00024.jpg",
+      "kaynak_sn": 11.5,
+      "sha256": "19d8e2d58812034d54c53d00dc2803f3892e2116b09211b418c26ff4925e46b5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 25,
+      "dosya": "k_00025.jpg",
+      "kaynak_sn": 12.0,
+      "sha256": "580b7866810ad981b3ebfb07676dd5f92b8befee1ec255be28ab99c54812b256",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 26,
+      "dosya": "k_00026.jpg",
+      "kaynak_sn": 12.5,
+      "sha256": "8b69f2a0d800f1eff33119dd8f6032500052fb76b3b722db4fe30065da326425",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 27,
+      "dosya": "k_00027.jpg",
+      "kaynak_sn": 13.0,
+      "sha256": "0a5d7dc7ffc0f3c85ce025431f73175a6c50cec7a98c96b9d4adb5ef1aa794df",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 28,
+      "dosya": "k_00028.jpg",
+      "kaynak_sn": 13.5,
+      "sha256": "0f71c0ba05446782a83dbd83e3bf5da57ee325660c3ea87a62a63c8ca1eb0d3b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 29,
+      "dosya": "k_00029.jpg",
+      "kaynak_sn": 14.0,
+      "sha256": "fe15e4fefbe197d23313032f234d08d34fd7e9adba4d0b3810d016d4a9637438",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 30,
+      "dosya": "k_00030.jpg",
+      "kaynak_sn": 14.5,
+      "sha256": "dec4ce3268ff56375fff0feffbebc756f02c02ed0b65c65ce1f0aa4d2f3bc7b0",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 31,
+      "dosya": "k_00031.jpg",
+      "kaynak_sn": 15.0,
+      "sha256": "7c3815f6950373df8f2bf5c6dcf18529107ca305943bd71dd8fed181fe4cfc2f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 32,
+      "dosya": "k_00032.jpg",
+      "kaynak_sn": 15.5,
+      "sha256": "d371de99bd0368f9444e01c23401558c32b28c4283bb7bf57333dc6ce7f2c5e8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 33,
+      "dosya": "k_00033.jpg",
+      "kaynak_sn": 16.0,
+      "sha256": "bac1b5f67d324a409369114abb5ec995c84a173c57f1fc623c0927ea0bb9e449",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 34,
+      "dosya": "k_00034.jpg",
+      "kaynak_sn": 16.5,
+      "sha256": "82d6d83d2e687db8bd543f7af790f5cdf599af87d3a081dd0173839a96a991b9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 35,
+      "dosya": "k_00035.jpg",
+      "kaynak_sn": 17.0,
+      "sha256": "00e7d8bf81318255c16f5d7ffb9cffb8c38ecf399bc220e5364804d3ef3ce91b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 36,
+      "dosya": "k_00036.jpg",
+      "kaynak_sn": 17.5,
+      "sha256": "fbfd32c56f231a65561807c3022c5d61209aca35deea278dc368976e5dbc9cce",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 37,
+      "dosya": "k_00037.jpg",
+      "kaynak_sn": 18.0,
+      "sha256": "988bf4be1babab302079ae665d76bb96712cf69d0cdc1271a223f9a2bee6a411",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 38,
+      "dosya": "k_00038.jpg",
+      "kaynak_sn": 18.5,
+      "sha256": "54dfbde2981d7444b5bc12b788f6666fe65ed51ea33c44f57fc3132ced9ffbd1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 39,
+      "dosya": "k_00039.jpg",
+      "kaynak_sn": 19.0,
+      "sha256": "b73ddd40283aa225353e7cdad7a82dea0278bab66fb21bfccd78049d0b5169b3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 40,
+      "dosya": "k_00040.jpg",
+      "kaynak_sn": 19.5,
+      "sha256": "5fa284c4c6dbb79bf005b4fdf700f5fff276652cd1c21909ffb86ca440d256c5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 41,
+      "dosya": "k_00041.jpg",
+      "kaynak_sn": 20.0,
+      "sha256": "dcd91cdf11087fab1878c95f65d7a6ac4991016b2f54eeaec975c1d45901b039",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 42,
+      "dosya": "k_00042.jpg",
+      "kaynak_sn": 20.5,
+      "sha256": "9b4d9eb91532193a3092ad17c766f3633bbbf3005b2f7ae9dd312de3b9f0e05c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 43,
+      "dosya": "k_00043.jpg",
+      "kaynak_sn": 21.0,
+      "sha256": "50169ceb19ef1aa1d66f8938811b6e5bc921ea8b4dc8d21ec2e721ac756d085c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 44,
+      "dosya": "k_00044.jpg",
+      "kaynak_sn": 21.5,
+      "sha256": "f37c2475f957230d420e23c58649f07eb80d4061846067ec45f1e8af07707e4e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 45,
+      "dosya": "k_00045.jpg",
+      "kaynak_sn": 22.0,
+      "sha256": "281b50884c1a057ee999933aa326a08c5e0dc2951bec36085ebc5ec98e5fc681",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 46,
+      "dosya": "k_00046.jpg",
+      "kaynak_sn": 22.5,
+      "sha256": "1e22b03551f2d1e852512888dac6ca8f5e61bffb9c3de7faba9859238a675955",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 47,
+      "dosya": "k_00047.jpg",
+      "kaynak_sn": 23.0,
+      "sha256": "abe7ea2b4166bed8450c7fff830e115d182bbb49954c93724e65c4d013dfee99",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 48,
+      "dosya": "k_00048.jpg",
+      "kaynak_sn": 23.5,
+      "sha256": "b197b66b86d2b1418a56df3ab0333112833d6983e282b6841ede957fd976b181",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 49,
+      "dosya": "k_00049.jpg",
+      "kaynak_sn": 24.0,
+      "sha256": "e96208050356fa4473db992e9c7b487c4928e14510927e8544fe794a74b38b4f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 50,
+      "dosya": "k_00050.jpg",
+      "kaynak_sn": 24.5,
+      "sha256": "3c6333dbc8b1019508c75b30c9fe55799361d2b0a1b6ac56d82fb0ba2b3a6902",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 51,
+      "dosya": "k_00051.jpg",
+      "kaynak_sn": 25.0,
+      "sha256": "d2dd0556ec0425c779f3f999d48164b6ccf197ec1564876963af006b4e05bbce",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 52,
+      "dosya": "k_00052.jpg",
+      "kaynak_sn": 25.5,
+      "sha256": "0a15c7e4e5f6c720f48f3254ed0c5d08c1b079c8918a91c4334b9487b3d665da",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 53,
+      "dosya": "k_00053.jpg",
+      "kaynak_sn": 26.0,
+      "sha256": "a2484e7fa4e8d15fb1ac9ba0f44e8e7e57ab07fb3d50e9612334bfe14e291639",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 54,
+      "dosya": "k_00054.jpg",
+      "kaynak_sn": 26.5,
+      "sha256": "5b6f2defd806ba271ccca377f41835c133503f2ca4f957be54a5ab54d1b796b5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 55,
+      "dosya": "k_00055.jpg",
+      "kaynak_sn": 27.0,
+      "sha256": "e3792b9282faf292e14dbc537182cda655c808670bfe1a24cfcfb677864f0259",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 56,
+      "dosya": "k_00056.jpg",
+      "kaynak_sn": 27.5,
+      "sha256": "36abcc6bec30b2c7caad38af9e3e24d44422b93318fcc93519a89a87c4e4f2d9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 57,
+      "dosya": "k_00057.jpg",
+      "kaynak_sn": 28.0,
+      "sha256": "1b2d4e0f616534a7e09be0eca2e26dc953038afb1436f06c3b03b8ee87ca5c17",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 58,
+      "dosya": "k_00058.jpg",
+      "kaynak_sn": 28.5,
+      "sha256": "a96d0f73df0ffa5acd80cb000a60b360ddea15814a2e3624a8a756605cbd9ee3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 59,
+      "dosya": "k_00059.jpg",
+      "kaynak_sn": 29.0,
+      "sha256": "cbc6cd2ce7a2ed96c59125f8c23a74a90b05d8478490dfb55ae90cd254aec264",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 60,
+      "dosya": "k_00060.jpg",
+      "kaynak_sn": 29.5,
+      "sha256": "fad96904d68c94f26f294fc633ac09f185e7d945b4490041812e5ff574694715",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 61,
+      "dosya": "k_00061.jpg",
+      "kaynak_sn": 30.0,
+      "sha256": "8d71bd73ddb5e5db26e374f860f1ceea41d06dae404dfaf22eb89a416b19ec8b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 62,
+      "dosya": "k_00062.jpg",
+      "kaynak_sn": 30.5,
+      "sha256": "0f3043bf73f563a48c4ce0ca0d572a9e3edbe663891e8be4eecac73981f58dc8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 63,
+      "dosya": "k_00063.jpg",
+      "kaynak_sn": 31.0,
+      "sha256": "beb0edf099896089d07dabf4910ae001d02ea934e9a7584db44526ac2146a37f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 64,
+      "dosya": "k_00064.jpg",
+      "kaynak_sn": 31.5,
+      "sha256": "c5947a081a35b230698c2ce7c179e837b7d2e0a8f721afe07636dc46fad803b3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 65,
+      "dosya": "k_00065.jpg",
+      "kaynak_sn": 32.0,
+      "sha256": "425c000ba66c779b7683b633b0cec27b595d50f998ea7e973638488f428cbee1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 66,
+      "dosya": "k_00066.jpg",
+      "kaynak_sn": 32.5,
+      "sha256": "90725f8f3296f3223592f9b01a02b9bd7c86602613fb5dfa3ac849f33293dcb8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 67,
+      "dosya": "k_00067.jpg",
+      "kaynak_sn": 33.0,
+      "sha256": "b0ffd0b94251a5dd6f47a0a95a99aaf0620e5cc9f9995db149e4ab20e5d93d14",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 68,
+      "dosya": "k_00068.jpg",
+      "kaynak_sn": 33.5,
+      "sha256": "0985c058412c678363b386fb149bd04a1a774e3aa497a49b0543e5d06fa60280",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 69,
+      "dosya": "k_00069.jpg",
+      "kaynak_sn": 34.0,
+      "sha256": "6b0311c91276692a01e26c164a63ee54b794308abdac4a1caf9f4e5fe1dd06bb",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 70,
+      "dosya": "k_00070.jpg",
+      "kaynak_sn": 34.5,
+      "sha256": "efb486269662407cd2dcef415d88838ab2c619fb085ed877edfe138797088c92",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 71,
+      "dosya": "k_00071.jpg",
+      "kaynak_sn": 35.0,
+      "sha256": "e379139bc3e85323dfe8acf3b20a3b7eedbb918212394d3e3edbddc613982c0b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 72,
+      "dosya": "k_00072.jpg",
+      "kaynak_sn": 35.5,
+      "sha256": "603fa54648516a4de06a64cb4cdd8512a9934f0e3f274a3d4de80a2ecfeaddb9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 73,
+      "dosya": "k_00073.jpg",
+      "kaynak_sn": 36.0,
+      "sha256": "7e134330bb1222a920acb60f79f4c7b306696416ca0296a042124c65476357f3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 74,
+      "dosya": "k_00074.jpg",
+      "kaynak_sn": 36.5,
+      "sha256": "4a56594517bd37aa555ef165a503aebe47f4c7c0984a223b35920c3d0865d2d8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 75,
+      "dosya": "k_00075.jpg",
+      "kaynak_sn": 37.0,
+      "sha256": "1d23f538508f9130788dc05b18948c7353ec77be00576412db31f415197fad2a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 76,
+      "dosya": "k_00076.jpg",
+      "kaynak_sn": 37.5,
+      "sha256": "8ee99232cebb8a271b5c28d105eab8e6f5294fa7851d594a62914033161bffee",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 77,
+      "dosya": "k_00077.jpg",
+      "kaynak_sn": 38.0,
+      "sha256": "d47e13a4dcf444ddc837bf3bf2b62320263a90cb9eaf6a19c2eb37d8b3b46b33",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 78,
+      "dosya": "k_00078.jpg",
+      "kaynak_sn": 38.5,
+      "sha256": "9dd6eb3bfcd1d1dd7ed4fb0231731630892dec6c61dc19d7ea26888feaff4097",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 79,
+      "dosya": "k_00079.jpg",
+      "kaynak_sn": 39.0,
+      "sha256": "9d08dea656d4961f67705e4c7389bf02e7f22d03cfe9d238e8c3eb967af38739",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 80,
+      "dosya": "k_00080.jpg",
+      "kaynak_sn": 39.5,
+      "sha256": "10a8f572ddd9652182fd143c74c2da86228ed2efc2d8109b079f8de136a4ffae",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 81,
+      "dosya": "k_00081.jpg",
+      "kaynak_sn": 40.0,
+      "sha256": "27bde773c9f01e2d164fe7361635098e1f144efe3d10b8541ba77550d2ea5aa8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 82,
+      "dosya": "k_00082.jpg",
+      "kaynak_sn": 40.5,
+      "sha256": "885a3a1c2ac97bbfcc53dd58d1aaf1e293131cbe58fb98259a9de4c53679a013",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 83,
+      "dosya": "k_00083.jpg",
+      "kaynak_sn": 41.0,
+      "sha256": "43be77c943fbe73ffd3a38fa9e3760a656b6d9fdf8f8634c193dfb47d7fe320b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 84,
+      "dosya": "k_00084.jpg",
+      "kaynak_sn": 41.5,
+      "sha256": "f430ea6f92691535670ecca56fe292acbbf8273ffd3726df05362cccc5f9a6db",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 85,
+      "dosya": "k_00085.jpg",
+      "kaynak_sn": 42.0,
+      "sha256": "b0664a7bc9f7ddcfe1a942675a05bf231a2cae54144b1f4c16679ea08ad84148",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 86,
+      "dosya": "k_00086.jpg",
+      "kaynak_sn": 42.5,
+      "sha256": "9c85b0587e95553562ef21435ccd49db206cdd01877733036ef5206d046cc96f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 87,
+      "dosya": "k_00087.jpg",
+      "kaynak_sn": 43.0,
+      "sha256": "fc5c14b06b2f1529a9c4553df45729268ac9fda3a8744c6da689ea587e302f5f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 88,
+      "dosya": "k_00088.jpg",
+      "kaynak_sn": 43.5,
+      "sha256": "d813e686a4ed0b9f9ba0b2cd0242ad9268067b1e9d6df9114b81645d4794baa6",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 89,
+      "dosya": "k_00089.jpg",
+      "kaynak_sn": 44.0,
+      "sha256": "d1a38b745dcf9cf6b6fa6173bb18cc7ab193e5e60f4f0490002a91cd6cc09880",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 90,
+      "dosya": "k_00090.jpg",
+      "kaynak_sn": 44.5,
+      "sha256": "55da07261ed98c99de781e3bd91b35b28ec9595058e575bcaf93b654626f3b24",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 91,
+      "dosya": "k_00091.jpg",
+      "kaynak_sn": 45.0,
+      "sha256": "6de43512c2c30550e144fe48b539b14b8abdda745ecd4fc4c33a2e5d86d1d1f9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 92,
+      "dosya": "k_00092.jpg",
+      "kaynak_sn": 45.5,
+      "sha256": "bfc5275a37f27cf48c8f7adae884a5d2582798f17b0b1459652fe8ca4d543660",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 93,
+      "dosya": "k_00093.jpg",
+      "kaynak_sn": 46.0,
+      "sha256": "485040419f2bba41331872ba1385a48ce34a6d7f175ceb78dbc1ff503c4c06af",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 94,
+      "dosya": "k_00094.jpg",
+      "kaynak_sn": 46.5,
+      "sha256": "16789fdbc22d29130536ece54f24a54726de336b688ea8137f94bfd6e185e8aa",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 95,
+      "dosya": "k_00095.jpg",
+      "kaynak_sn": 47.0,
+      "sha256": "5b0c5da4c1162a38f5c7d4fd3be22c874342b8f52e6977a861e2181017b116d3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 96,
+      "dosya": "k_00096.jpg",
+      "kaynak_sn": 47.5,
+      "sha256": "ef725704d5b87dbd107b4cfd753998778f9f553619a974e18632901b89383ccb",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 97,
+      "dosya": "k_00097.jpg",
+      "kaynak_sn": 48.0,
+      "sha256": "8b0653c2d062d131aa932b4c94976a13cb809f93bd6ed6f7389a25b7163a46a7",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 98,
+      "dosya": "k_00098.jpg",
+      "kaynak_sn": 48.5,
+      "sha256": "f65566856221dce0da63bf4a4427375cb93ae2f1e5708c463ad4ce618f179bd1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 99,
+      "dosya": "k_00099.jpg",
+      "kaynak_sn": 49.0,
+      "sha256": "4d39d0185580ecc7a4bcc8bab7a4d077a740eb2c025328d9a8cc02ca21c4b41e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 100,
+      "dosya": "k_00100.jpg",
+      "kaynak_sn": 49.5,
+      "sha256": "f844509eee41c684a9722f8b5f8ffb7a02e0b68c14d9ed28a203687313a68cc7",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 101,
+      "dosya": "k_00101.jpg",
+      "kaynak_sn": 50.0,
+      "sha256": "94c04a9a41887ee77efdc9f862607f2ce818e555c6c4e9c3b27759d049791b28",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 102,
+      "dosya": "k_00102.jpg",
+      "kaynak_sn": 50.5,
+      "sha256": "52420102d849796226b5c5bf4b667222ce8b681e5eba9208e68a9ae395b4aaf3",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 103,
+      "dosya": "k_00103.jpg",
+      "kaynak_sn": 51.0,
+      "sha256": "74a17948d4e0f988c8f1c37b8b16c405810e29ede84b9bee73affa61f499256f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 104,
+      "dosya": "k_00104.jpg",
+      "kaynak_sn": 51.5,
+      "sha256": "7167961dfade254fd6cd0bb0603f6d21c629631aea344dc7ea14f28228d8030d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 105,
+      "dosya": "k_00105.jpg",
+      "kaynak_sn": 52.0,
+      "sha256": "e6e9d42269690e9ae8784250d857940ae6b96fa427dd48c09bcd3ff2938f99ae",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 106,
+      "dosya": "k_00106.jpg",
+      "kaynak_sn": 52.5,
+      "sha256": "a9f02f9f40f1c236c0608ec375f9ae04901a8ee909604c0d93e573a43f96f877",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 107,
+      "dosya": "k_00107.jpg",
+      "kaynak_sn": 53.0,
+      "sha256": "76ac1c258a2ffaa8bd3d90b1d2bdd067075c16e868fd8166ca14566146e9b111",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 108,
+      "dosya": "k_00108.jpg",
+      "kaynak_sn": 53.5,
+      "sha256": "766898f81f36046de51912a4a431284b15599f2787bca4ae4943e881b1c7386a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 109,
+      "dosya": "k_00109.jpg",
+      "kaynak_sn": 54.0,
+      "sha256": "5247ac729fcce88ad2e1bd22916725189bf713481fddc4e8f445ab978c535fe7",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 110,
+      "dosya": "k_00110.jpg",
+      "kaynak_sn": 54.5,
+      "sha256": "25fa16d3eaed999922065a9d063ffe1fbb883477345bfbe71923a392932df89b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 111,
+      "dosya": "k_00111.jpg",
+      "kaynak_sn": 55.0,
+      "sha256": "c8cc8bf02dd6c65e5134d7f49e49ed6da197503b51f6206ae541e7bc64fb9000",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 112,
+      "dosya": "k_00112.jpg",
+      "kaynak_sn": 55.5,
+      "sha256": "f40c91c7b4eeb563bc7b32e793acbe00f8cb148d79e2e1273cc4b307ccdfdf99",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 113,
+      "dosya": "k_00113.jpg",
+      "kaynak_sn": 56.0,
+      "sha256": "a78b363f71ef5ad44a00bb7f98a2f478cf1cfcf25cd9835d1d4c7b1e0aa93435",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 114,
+      "dosya": "k_00114.jpg",
+      "kaynak_sn": 56.5,
+      "sha256": "1b127d1e73e47ceb88e4ff02b9eca21b106b33c7cfbcfcbc1e94b89a600b8cc8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 115,
+      "dosya": "k_00115.jpg",
+      "kaynak_sn": 57.0,
+      "sha256": "cd2f446ae579931cea82756910ed98a47f017dee960a844f2e64b21037cab20b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 116,
+      "dosya": "k_00116.jpg",
+      "kaynak_sn": 57.5,
+      "sha256": "c5372cc9911b2448d9bc8a85b168391a8ece34542f6fd6fa5c957ffafbddc53e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 117,
+      "dosya": "k_00117.jpg",
+      "kaynak_sn": 58.0,
+      "sha256": "13a77d55e3d036a9095eba18d7370ee11bbf3520fa083e8d4dbaf2af3075116e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 118,
+      "dosya": "k_00118.jpg",
+      "kaynak_sn": 58.5,
+      "sha256": "86eebf25410a888e0bf68ca3c20638679103716bedd25e02f2373392a3b7ffd8",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 119,
+      "dosya": "k_00119.jpg",
+      "kaynak_sn": 59.0,
+      "sha256": "a8039fda7ec2b9b8288781ef36b21e80b5167bce68b37957eece1f7ed09e6e8f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 120,
+      "dosya": "k_00120.jpg",
+      "kaynak_sn": 59.5,
+      "sha256": "cd1454a9dc6b6080d67d0a01fd6725b4fe5aa23db4eb935151c32fa22b73e058",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 121,
+      "dosya": "k_00121.jpg",
+      "kaynak_sn": 60.0,
+      "sha256": "b34bdacceb059673fa2bc8ed87669f3629009555fcca569b1ae6c885effd6982",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 122,
+      "dosya": "k_00122.jpg",
+      "kaynak_sn": 60.5,
+      "sha256": "0aa746c555b262f423d22c304f46fe460f18dc6493c99e010a10fee664f96d4f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 123,
+      "dosya": "k_00123.jpg",
+      "kaynak_sn": 61.0,
+      "sha256": "0d2c3c59b189e4fef7c838fa26e32842f3e61cfe99336780c7b8a2596ddd36c1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 124,
+      "dosya": "k_00124.jpg",
+      "kaynak_sn": 61.5,
+      "sha256": "8b47564c51a6aaa4e5cc3aeceac9399394397e761e2ad2d5eaace338cd3c11ae",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 125,
+      "dosya": "k_00125.jpg",
+      "kaynak_sn": 62.0,
+      "sha256": "457b94ec13fa30f3417d1e2160ed8899869a50c09f6a9d251cd9a90afd37d6b9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 126,
+      "dosya": "k_00126.jpg",
+      "kaynak_sn": 62.5,
+      "sha256": "9f17528309a775835b3060e57a15340dfb4c70b88bb2a55e64b7516e4cf1462a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 127,
+      "dosya": "k_00127.jpg",
+      "kaynak_sn": 63.0,
+      "sha256": "62810f0755c8197e8bb805710b927656886082e995dbcf63b8fda1e93251f6da",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 128,
+      "dosya": "k_00128.jpg",
+      "kaynak_sn": 63.5,
+      "sha256": "9cc4ed0c9f9002675212c432e3a5fa55b0bacfa97cc7017404ead15a94665495",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 129,
+      "dosya": "k_00129.jpg",
+      "kaynak_sn": 64.0,
+      "sha256": "62090795b1823ad37b3e90e960efad02e81b2fdc97e2867b66ff4c7b41aba13d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 130,
+      "dosya": "k_00130.jpg",
+      "kaynak_sn": 64.5,
+      "sha256": "be6b1e73af4106866a394ee710b613af6551cb69b3a76ff9e08db409856f3722",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 131,
+      "dosya": "k_00131.jpg",
+      "kaynak_sn": 65.0,
+      "sha256": "18dd35dc508cf8d4b30ca70a02f5faf71f6a8dee57b75e715cb42683764155d5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 132,
+      "dosya": "k_00132.jpg",
+      "kaynak_sn": 65.5,
+      "sha256": "d210a44625573c59793484e55ba181ee13cafe6a48bffdce1d903e50f4ad89c6",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 133,
+      "dosya": "k_00133.jpg",
+      "kaynak_sn": 66.0,
+      "sha256": "db7c30d9b9dccf978506b0efaef2718c2e6f368684fdcfbbf4af3eb8683a01b7",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 134,
+      "dosya": "k_00134.jpg",
+      "kaynak_sn": 66.5,
+      "sha256": "d6bcab68847d14cbfef703e41625c59abe06c1ea3ded1c33e5b59b98ac209ff5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 135,
+      "dosya": "k_00135.jpg",
+      "kaynak_sn": 67.0,
+      "sha256": "31761c59dac9bdfd3e9ba7f998cd7a691905d08837e9985d9b6c9eb6ca3ec8c1",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 136,
+      "dosya": "k_00136.jpg",
+      "kaynak_sn": 67.5,
+      "sha256": "dcb90b14466a4dd58ec871ccd8bbadf9f14122f3d84a839694fbaac12cff9aa0",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 137,
+      "dosya": "k_00137.jpg",
+      "kaynak_sn": 68.0,
+      "sha256": "f92e0cd5a4d4852cb8c9ba9196ff14d7aeae92eeaf0fbf7af88fd8083e361f2c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 138,
+      "dosya": "k_00138.jpg",
+      "kaynak_sn": 68.5,
+      "sha256": "e6d29a800696d214963c8513727750cd7cedf628c4d533e39ffc8231ca8df77b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 139,
+      "dosya": "k_00139.jpg",
+      "kaynak_sn": 69.0,
+      "sha256": "332bc184a9512da0cfd6c13f928545cb315e614f7f09a39e4b75e3424e30f68d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 140,
+      "dosya": "k_00140.jpg",
+      "kaynak_sn": 69.5,
+      "sha256": "545a626702521e00d4498419bce2ec30533d3a2feb42c6c583bf1b831c906378",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 141,
+      "dosya": "k_00141.jpg",
+      "kaynak_sn": 70.0,
+      "sha256": "8f2282b9d4e570c4a76d37abb3a7c29e7bc38cd638953aa70cd45ff48157e859",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 142,
+      "dosya": "k_00142.jpg",
+      "kaynak_sn": 70.5,
+      "sha256": "4da2a843d34c43e2d44cd6a153a9df4d7b2e675fe33952796730c2370c32c1f7",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 143,
+      "dosya": "k_00143.jpg",
+      "kaynak_sn": 71.0,
+      "sha256": "2170085ddefa4e52b09a9d91adbb36478f3bc6c7778dd95293ec3c3467fd311f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 144,
+      "dosya": "k_00144.jpg",
+      "kaynak_sn": 71.5,
+      "sha256": "a582a6c4728b6817bb2551308795cbe0b1767911281bbab6eeed6f4be35a993b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 145,
+      "dosya": "k_00145.jpg",
+      "kaynak_sn": 72.0,
+      "sha256": "1780668152057d10f3460324867c0dd1a6613eb3774e03aa5bd2a5735681b963",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 146,
+      "dosya": "k_00146.jpg",
+      "kaynak_sn": 72.5,
+      "sha256": "44cb9610cac49336de42358b2b1ac6e4b833350fd26b9cccc7c9ffcd3f9c4e4c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 147,
+      "dosya": "k_00147.jpg",
+      "kaynak_sn": 73.0,
+      "sha256": "ecfdaade17b32ac7cbfae3da5bd97e8e270df9c220b04ebf5b214e52798cc9f5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 148,
+      "dosya": "k_00148.jpg",
+      "kaynak_sn": 73.5,
+      "sha256": "ce6c739db1353e9e148ab6ffccca065154f3210e23a1a3c47404817793c4340d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 149,
+      "dosya": "k_00149.jpg",
+      "kaynak_sn": 74.0,
+      "sha256": "d19e9acb65ccebe2079c5d33cf04a0c2dd09c63bccc65a5ac276e024aa3f1ec0",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 150,
+      "dosya": "k_00150.jpg",
+      "kaynak_sn": 74.5,
+      "sha256": "db02488989285d14ec925df370b709f93eeb17f20bff1be7c4644d31d03d9d4e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 151,
+      "dosya": "k_00151.jpg",
+      "kaynak_sn": 75.0,
+      "sha256": "e677d4ed575483dfd55b7b699a5c4ad91efa4ae883f466b25b9f935afe934276",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 152,
+      "dosya": "k_00152.jpg",
+      "kaynak_sn": 75.5,
+      "sha256": "f8d7105c4f9c019bf1526d621aed9a1aad6dc69ab5d94e76849a800fbf853119",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 153,
+      "dosya": "k_00153.jpg",
+      "kaynak_sn": 76.0,
+      "sha256": "49dc72947783a486b5151174ec8b74b7cabea2dab36e7dd5a782e8c616eda15e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 154,
+      "dosya": "k_00154.jpg",
+      "kaynak_sn": 76.5,
+      "sha256": "1c0138fa7ac059ee9ecf37c44bb2380ef29919dedead6d60d90502f37401437a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 155,
+      "dosya": "k_00155.jpg",
+      "kaynak_sn": 77.0,
+      "sha256": "8520b9776acc2a22ba2da93b1e9751cb7448a1fa060e3c68742dc107f33decbe",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 156,
+      "dosya": "k_00156.jpg",
+      "kaynak_sn": 77.5,
+      "sha256": "e56ac01655ade131f32fb609c70ab694c455bade0c6872e1e1bfefcb47beac9a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 157,
+      "dosya": "k_00157.jpg",
+      "kaynak_sn": 78.0,
+      "sha256": "c862678f660ea13b20219f5594c1e794707b0859292f1c2898b1604ff36559b9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 158,
+      "dosya": "k_00158.jpg",
+      "kaynak_sn": 78.5,
+      "sha256": "d585ec83b91703ae443e406b5deefa985e72b497578a9ba8dfe16b726987ff36",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 159,
+      "dosya": "k_00159.jpg",
+      "kaynak_sn": 79.0,
+      "sha256": "642452f2c20590604803bad87633bd4925824f98cb8e61862682fbe7e4990339",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 160,
+      "dosya": "k_00160.jpg",
+      "kaynak_sn": 79.5,
+      "sha256": "ad8d97af2e18888698070a66e1bdf9d2c6965c7ff79a4e995c5eae88a66b190d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 161,
+      "dosya": "k_00161.jpg",
+      "kaynak_sn": 80.0,
+      "sha256": "4cf660eafa53cb39bb5e1f0b22dd7940fc076b716356f535f6ce8ad4978b2c4c",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 162,
+      "dosya": "k_00162.jpg",
+      "kaynak_sn": 80.5,
+      "sha256": "3a0c37cfe1a7d2078264ff941070b33997c8dda8b3a0943012629d2e4240dda9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 163,
+      "dosya": "k_00163.jpg",
+      "kaynak_sn": 81.0,
+      "sha256": "24fcfe2d9c6b2410f58a62f2f9b893851fd7978ca43d0b51d4757e7909a4703b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 164,
+      "dosya": "k_00164.jpg",
+      "kaynak_sn": 81.5,
+      "sha256": "8511efa12eed2c9c5d60142f453f5d74d6121c349a9ed4a298177bd64389569d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 165,
+      "dosya": "k_00165.jpg",
+      "kaynak_sn": 82.0,
+      "sha256": "cea5358386e51e5838c51f06245cbb4b71796dafd344113c0fbc8529853307ca",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 166,
+      "dosya": "k_00166.jpg",
+      "kaynak_sn": 82.5,
+      "sha256": "ec85c414e99a08c7d45a594ab2f3c286d69ad14495fe71c469186c9258d974be",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 167,
+      "dosya": "k_00167.jpg",
+      "kaynak_sn": 83.0,
+      "sha256": "65e54d38036db4cd9c7a1a82a1bc7fa304f5b73d5cd1d6341e9f090fbc099940",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 168,
+      "dosya": "k_00168.jpg",
+      "kaynak_sn": 83.5,
+      "sha256": "fdbbdeb0f7888b3243e89c8d23cd0f789a11ff4bc432b00a2888f7ef2f70f722",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 169,
+      "dosya": "k_00169.jpg",
+      "kaynak_sn": 84.0,
+      "sha256": "cd4a431f61a0307f27075c010da4ccd82fbe6e2f25a145981415cb20a0bfc84d",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 170,
+      "dosya": "k_00170.jpg",
+      "kaynak_sn": 84.5,
+      "sha256": "215a8e95febb118846f5c1fb6e3ad1a151d6bdc0d350dcbfb005dc8cb4e1817e",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 171,
+      "dosya": "k_00171.jpg",
+      "kaynak_sn": 85.0,
+      "sha256": "e013674e3790ce0b51c9ed388cc0555be23e329ac1c68cdbc09426522eb7cd0a",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 172,
+      "dosya": "k_00172.jpg",
+      "kaynak_sn": 85.5,
+      "sha256": "5037888631f39eeb69e112d0f7cf456daefb631bc890dc36efbbd16c18efd80b",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 173,
+      "dosya": "k_00173.jpg",
+      "kaynak_sn": 86.0,
+      "sha256": "789cc46c5b7a6c35018cd542f6f0afef6efd8149f7c38f67591a11317e9ce520",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 174,
+      "dosya": "k_00174.jpg",
+      "kaynak_sn": 86.5,
+      "sha256": "f478b4fb21a357ee9842ace79d27d8e695de44f1b420b21251647465120f1f02",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 175,
+      "dosya": "k_00175.jpg",
+      "kaynak_sn": 87.0,
+      "sha256": "254096852b036dc21334f90121f61be7fc7da1b3498dbed968ddf5689994aeba",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 176,
+      "dosya": "k_00176.jpg",
+      "kaynak_sn": 87.5,
+      "sha256": "eddb33b46e546dc394abffd6862597a03cac7bd04d0c0efbf9d9f4e54e2a640f",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 177,
+      "dosya": "k_00177.jpg",
+      "kaynak_sn": 88.0,
+      "sha256": "545e5ff720bd7672891fcba774a3fff07b364a2038965f3a496d622cd07fb7ac",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 178,
+      "dosya": "k_00178.jpg",
+      "kaynak_sn": 88.5,
+      "sha256": "7e6e46a006cd28805327a5a60cd4385e963c582b9f814e07c1408a0b0e44d1e9",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 179,
+      "dosya": "k_00179.jpg",
+      "kaynak_sn": 89.0,
+      "sha256": "f0350a086d12d71dbddff31759259f879b432140e5938c2e97073ed2c5f26022",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 180,
+      "dosya": "k_00180.jpg",
+      "kaynak_sn": 89.5,
+      "sha256": "ed8217f93c7c4f7a286875ab1367940c6d6651a6a3a2630e2573fda098e477ac",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 181,
+      "dosya": "k_00181.jpg",
+      "kaynak_sn": 90.0,
+      "sha256": "8f5dd49cbc3e91e90bf1b9e4f7d5b5233d46402aee49943a4084b66752d2dedd",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 182,
+      "dosya": "k_00182.jpg",
+      "kaynak_sn": 90.5,
+      "sha256": "e62de5a9abdfbd0734d7c0ce95675075655bdb109350cbddd22cf93ea8fac4d5",
+      "genislik": 720,
+      "yukseklik": 576
+    },
+    {
+      "sira": 183,
+      "dosya": "k_00183.jpg",
+      "kaynak_sn": 91.0,
+      "sha256": "37de19bc967a60aadbd71859664f235a50cdc83df813a4a609e330be5e98e40b",
+      "genislik": 720,
+      "yukseklik": 576
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+# VINCE CARTER — kare hazırlığı + model/OCR/eşik yapılandırması (FAZ 1)
+# Kaynak: docs/PLAN.md §2 katman [1]-[4], §6 çalışma zamanı.
+# Anahtar adları SABİT — main.py (başka ajan) bu adlara göre yazılıyor,
+# değiştirilirse orada sessizce kırılır.
+
+# Kare üretimi — video/kare-dizini girdisinden TEK görsel reçete (PLAN §2 [1],
+# §7 kesin çizgi 2: frame beslemesi KANUN, native video modele asla girmez).
+# fps/genislik/suzgec/bicim/jpeg_kalite: Allstar/jordan/config.yaml `video.*`
+# ile birebir aynı — Qwen3-VL 13-klip GT yarışında ölçülmüş ffmpeg reçetesi,
+# burada yeniden ölçülmedi, doğrudan devralındı (aynı görsel girdi = aynı
+# ölçülmüş performans varsayımı).
+kare:
+  fps: 2
+  genislik: 720
+  suzgec: "scale={genislik}:-2:flags=lanczos,unsharp=5:5:1.0"
+  bicim: jpg
+  jpeg_kalite: 2
+
+# Gruplama — Jordan'ın multi-image grup reçetesiyle aynı taban (kare_sayisi=8,
+# bindirme_kare=1). faz_kaydirma YENİ: ikinci VLM koşusunun grup başlangıcını
+# kaç kare kaydıracağını belirler (2. bağımsız VLM yerine — aynı ağırlık, 0 ek
+# VRAM). Kaynak: docs/KONSEY_2026-08-20.md karar 2 (Nemotron/GLM/MiniMax turu,
+# hakem Claude).
+grup:
+  kare_sayisi: 8
+  bindirme_kare: 1
+  faz_kaydirma: 4          # ikinci koşunun kare kayması (konsey kararı 2)
+
+# Model — PLAN §2 [2] kanal_vlm: Qwen3-VL-8B, Çağatay'ın 13-klip GT yarışı
+# kararı (8B %91 birebir; en yakın rakip 27B %80, MiniCPM %35 — PLAN §0/§2).
+# yol KULE İÇİ kopya (jordan/nash/selami deseniyle aynı — her kule kendi model
+# kopyasını taşır, başka kulenin klasörü değişirse bizim cevabımız SESSİZCE
+# değişmesin diye). Kule köküne göreli; main.py mutlak yola çevirir.
+# NOT (düzeltme 2026-08-20): ~/.cache/huggingface altındaki girdi boş stub'tı
+# (12 KB) — gerçek 17 GB ağırlık artık burada, model/qwen3-vl-8b altında.
+model:
+  yol: "model/qwen3-vl-8b"
+  dtype: bfloat16
+  aygit: "cuda:0"
+
+# Üretim ayarları — do_sample=false PLAN §7 kesin çizgi 3 (üretim tekrar-
+# üretilebilir olmalı; docs/KONSEY_2026-08-20.md reddedilen 5: T=0.3 ikinci
+# koşu, do_sample açıkken aynı klip her koşuda farklı okunuyordu — ölçülmüş).
+# max_new_tokens Jordan'ın ölçülmüş değeriyle aynı.
+uretim:
+  do_sample: false
+  max_new_tokens: 512
+
+# OCR — PLAN §2 [2] kanal_ocr: bağımsız TANIK kanalı (dünya bilgisi yok →
+# ünlü-isim uydurması imkânsız; bbox verir → Y bandı/kart geometrisi).
+# TANIYICI SEÇİMİ ÖLÇÜMLE (Allstar/nash/config.yaml + docs/OLCUM_OCR_RECALL.md):
+# genel PP-OCRv6_medium_rec Türkçe karelerde `UČUR`/`MÜZiK` üretiyor; Paddle'ın
+# resmi Türkçe-destekli Latin modeli aynı ölçümde `ÜMİT`/`MÜZİK`/`UĞUR` okuyor —
+# üstelik 74 MB yerine 8 MB (diskte doğrulandı). TESPİT (det) en doğru olduğu
+# v6-medium'da kalır; yalnız TANIMA (rec) Latin modeline geçer.
+# Ağırlıklar kule içine kopyalandı (model/paddle/, ~141 MB): küçük oldukları
+# için self-containment ucuza satın alındı — Qwen'in 17 GB'ıyla aynı gerekçe,
+# ters yönde ("zemin bırak" kararı bu yüzden değişti). Yollar kule köküne göreli.
+# det_thresh/box_thresh/unclip_ratio: Nash'in ÖLÇÜLMÜŞ değerleri, tahmin değil.
+ocr:
+  det_model: PP-OCRv6_medium_det
+  det_model_dir: "model/paddle/PP-OCRv6_medium_det"     # kule içi kopya
+  rec_model: latin_PP-OCRv5_mobile_rec
+  rec_model_dir: "model/paddle/latin_PP-OCRv5_mobile_rec"
+  rec_batch: 8
+  det_thresh: 0.20        # Nash'in ölçülmüş değerleri
+  box_thresh: 0.45
+  unclip_ratio: 1.40
+  # min_guven: ETİKET eşiği — DIŞLAMA eşiği DEĞİL. Konsey kararı 5 ("zayıf kutu
+  # birleşimden dışlansın") docs/OLCUM_OCR_RECALL.md ile DÜZELTİLDİ: pastane'de
+  # iki sütunlu 5 GERÇEK satır (`Hacer—SERPİL TEZCAN` gibi) tam bu kural yüzünden
+  # kanıtsız kalıyordu. Artık hem güçlü-birleşim (yalnız ≥0.80) hem tüm-birleşim
+  # adayı üretilir; zayıf olan `zayif_birlesim: true` diye işaretlenir.
+  # GLM'in korkusu (zayıf birleşim sahte string üretir) etiketle karşılanır,
+  # adayı yok ederek değil — Nash'in "yok etme, düşür" dersi kanıt katmanında.
+  min_guven: 0.80
+
+# Eşikler — Kobe izolasyon kanunu (PLAN §1): giriş/çıkış AYRI sözlükte tutulur.
+esik:
+  giris: {E1: 0.70, E2: 0.50}
+  cikis: {E1: 0.70, E2: 0.50}
+
+# Diakritik Hakemi — docs/BIRLESTIRICI.md Adım 6 (ocr_kazanir / kapali / vlm_kazanir)
+diakritik_hakem: "ocr_kazanir"
+
