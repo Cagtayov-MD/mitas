@@ -16,6 +16,7 @@ class AnnotatedObservation:
     observation: Observation
     role: str | None = None
     is_role_heading: bool = False
+    is_metadata: bool = False
     known_person_id: str | None = None
     known_name: str | None = None
     known_role: str | None = None
