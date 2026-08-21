@@ -84,7 +84,14 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
         for _, raw, obs_id, meta in accepted:
             dtype = "NEW_MEMBER"
             reason = "Bu birimde profile eslesmeyen yeni kisi en az iki bagimsiz kaynakta desteklendi."
-            if role_spec.mode == "guest":
+
+            # Oyuncu listesi doğal olarak büyüyüp küçülebilir. Her yeni oyuncuyu
+            # COUNT_INCREASE diye ayrı alarm yapmak yerine NEW_MEMBER olarak tut;
+            # PDF tek OYUNCULAR tablosunda MEVCUT/YENI gösterecek.
+            if role_spec.mode == "roster":
+                dtype = "NEW_MEMBER"
+                reason = "Dogrulanmis oyuncu listesinde olmayan yeni kisi en az iki bagimsiz kaynakta desteklendi."
+            elif role_spec.mode == "guest":
                 dtype = "NEW_GUEST"
                 reason = "Yeni konuk oyuncu en az iki bagimsiz kaynakta desteklendi."
             elif role_spec.mode == "episode":
