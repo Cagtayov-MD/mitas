@@ -87,6 +87,20 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
         observed_count = observed_known_count + len(accepted)
         expected = role_mem.expected_count
 
+        # Tek kişilik sabit rolde birden fazla 2+ kaynak destekli yeni aday varsa
+        # seçim yapma. Bu durum rol hizalama/OCR/VLM halüsinasyonu olabilir.
+        if (role_spec.mode not in {"roster", "guest", "episode"}
+                and expected == 1 and observed_known_count == 0 and len(accepted) > 1):
+            for _, raw, _, meta in accepted:
+                review.append({
+                    "role": role_name,
+                    "candidate": raw,
+                    "reason": "BIRDEN_FAZLA_DEGISIM_ADAYI",
+                    "known_names": prev_names,
+                    **meta,
+                })
+            continue
+
         for cluster, raw, obs_id, meta in accepted:
             dtype = "NEW_MEMBER"
             reason = "Bu birimde profile eslesmeyen yeni kisi en az iki bagimsiz kaynakta desteklendi."
@@ -105,7 +119,7 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
                 reason = "Yeni bolum oyuncusu en az iki bagimsiz kaynakta desteklendi."
             elif expected == 1:
                 # Tek kişilik sabit rolde iki ayrı durum vardır:
-                # 1) Eski kişi hiç görülmüyor + yeni kişi 2+ kaynakta: gerçek değişim adayı.
+                # 1) Eski kişi hiç görülmüyor + tek yeni kişi 2+ kaynakta: gerçek değişim adayı.
                 # 2) Eski kişi bazı kaynaklarda, yeni kişi başka kaynaklarda: bu çoğunluk
                 #    oylamasıyla çözülemez; OCR/VLM halüsinasyonu veya rol hizalama hatası olabilir.
                 if observed_known_count == 0 and len(accepted) == 1:
@@ -128,7 +142,7 @@ def decide(memory: SeriesMemory, roles: dict[str, RoleSpec], annotated: list[Ann
                     dtype = "COUNT_INCREASE"
                     reason = (
                         f"Beklenen kisi sayisi 1; mevcut rol sahibi ve yeni kisi en az {min_sources} "
-                        "aynı bagimsiz kaynakta birlikte goruldu."
+                        "ayni bagimsiz kaynakta birlikte goruldu."
                     )
                 else:
                     dtype = "NEW_MEMBER"
