@@ -1,0 +1,100 @@
+version: 1
+
+matching:
+  known_threshold: 0.84
+  known_margin: 0.05
+  unknown_cluster_threshold: 0.86
+  role_threshold: 0.78
+  min_independent_sources: 2
+  min_name_chars: 4
+
+report:
+  pdf: true
+  include_no_change_pdf: true
+
+roles:
+  OYUNCULAR:
+    label: "OYUNCULAR"
+    mode: roster
+    severity: KIRMIZI
+    aliases: ["OYUNCULAR", "OYUNCU", "CAST", "OYUNCU KADROSU"]
+  KONUK OYUNCULAR:
+    label: "KONUK OYUNCULAR"
+    mode: guest
+    severity: MAVI
+    aliases: ["KONUK OYUNCULAR", "KONUK OYUNCU", "GUEST CAST", "GUEST STARS"]
+  BOLUM OYUNCULARI:
+    label: "BÖLÜM OYUNCULARI"
+    mode: episode
+    severity: MAVI
+    aliases: ["BOLUM OYUNCULARI", "BÖLÜM OYUNCULARI", "BOLUM OYUNCUSU", "BÖLÜM OYUNCUSU"]
+  YONETMEN:
+    label: "YÖNETMEN"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["YONETMEN", "YÖNETMEN", "YONETEN", "YÖNETEN", "DIRECTOR", "DIRECTED BY", "REJI", "REJİ"]
+  ISIK SEFI:
+    label: "IŞIK ŞEFİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["ISIK SEFI", "IŞIK ŞEFİ", "ISIK ŞEFI", "IŞIK SEFI", "ILK SEF", "İLK ŞEF"]
+  KURGU:
+    label: "KURGU"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KURGU", "KURĞU", "KORG", "EDITOR", "EDITING"]
+  KAMERA:
+    label: "KAMERA"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KAMERA", "KEMERA", "CAMERA"]
+  SENARYO:
+    label: "SENARYO"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SENARYO", "SENAR", "SCREENPLAY", "WRITTEN BY"]
+  MUZIK:
+    label: "MÜZİK"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["MUZIK", "MÜZİK", "MUSIC"]
+  SES:
+    label: "SES"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SES", "SES VE MIKSAJ", "SES VE MIZAJ", "SOUND", "SOUND MIX"]
+  GORUNTU YONETMENI:
+    label: "GÖRÜNTÜ YÖNETMENİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["GORUNTU YONETMENI", "GÖRÜNTÜ YÖNETMENİ", "DIRECTOR OF PHOTOGRAPHY", "DOP"]
+  SANAT YONETMENI:
+    label: "SANAT YÖNETMENİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SANAT YONETMENI", "SANAT YÖNETMENİ", "ART DIRECTOR"]
+  YAPIMCI:
+    label: "YAPIMCI"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["YAPIMCI", "PRODUCER"]
+  UYGULAYICI YAPIMCI:
+    label: "UYGULAYICI YAPIMCI"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["UYGULAYICI YAPIMCI", "EXECUTIVE PRODUCER"]
+  KOSTUM:
+    label: "KOSTÜM"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KOSTUM", "KOSTÜM", "COSTUME"]
+  MAKYAJ:
+    label: "MAKYAJ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["MAKYAJ", "MAKEUP", "MAKE UP"]
+  CASTING:
+    label: "CASTING"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["CASTING", "CAST DIRECTOR", "CASTING DIRECTOR"]
