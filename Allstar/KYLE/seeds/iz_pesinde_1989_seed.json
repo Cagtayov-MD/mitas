@@ -1,0 +1,210 @@
+{
+  "roles": {
+    "YONETMEN": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "yonetmen:0001", "canonical_name": "HÜSEYİN KARAKAŞ", "active": true}
+      ]
+    },
+    "YAPIM": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "yapim:0001", "canonical_name": "PERTEV ATASAY", "active": true}
+      ]
+    },
+    "SENARYO": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "senaryo:0001", "canonical_name": "AVNİ ÖZGÜREL", "active": true}
+      ]
+    },
+    "KAMERA": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "kamera:0001", "canonical_name": "COLIN MOUNIER", "active": true}
+      ]
+    },
+    "MUZIK": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "muzik:0001", "canonical_name": "ALİ KOCATEPE", "active": true}
+      ]
+    },
+    "KURGU": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "kurgu:0001", "canonical_name": "İSMAİL KALKAN", "active": true}
+      ]
+    },
+    "ISIK SEFI": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "isik-sefi:0001", "canonical_name": "NEZİR YÜCEL", "active": true}
+      ]
+    },
+    "YONETMEN YARDIMCISI": {
+      "expected_count": 3,
+      "mode": "stable",
+      "members": [
+        {"person_id": "yonetmen-yardimcisi:0001", "canonical_name": "ZEYNEP TOR", "active": true},
+        {"person_id": "yonetmen-yardimcisi:0002", "canonical_name": "AYŞEGÜL ŞANLI", "active": true},
+        {"person_id": "yonetmen-yardimcisi:0003", "canonical_name": "DİLEK YARAŞ", "active": true}
+      ]
+    },
+    "PRODUKSIYON": {
+      "expected_count": 2,
+      "mode": "stable",
+      "members": [
+        {"person_id": "produksiyon:0001", "canonical_name": "ZİYA İLGAZ", "active": true},
+        {"person_id": "produksiyon:0002", "canonical_name": "BÜLENT AYCAN", "active": true}
+      ]
+    },
+    "KAMERA YARDIMCISI": {
+      "expected_count": 2,
+      "mode": "stable",
+      "members": [
+        {"person_id": "kamera-yardimcisi:0001", "canonical_name": "KEMAL ŞANLI", "active": true},
+        {"person_id": "kamera-yardimcisi:0002", "canonical_name": "METİN BALEKOĞLU", "active": true}
+      ]
+    },
+    "ISIK EKIBI": {
+      "expected_count": 3,
+      "mode": "stable",
+      "members": [
+        {"person_id": "isik-ekibi:0001", "canonical_name": "FERZAN YÜCEL", "active": true},
+        {"person_id": "isik-ekibi:0002", "canonical_name": "ERCAN AVCİ", "active": true},
+        {"person_id": "isik-ekibi:0003", "canonical_name": "BAYCAN TEMEL", "active": true}
+      ]
+    },
+    "SES EKIBI": {
+      "expected_count": 3,
+      "mode": "stable",
+      "members": [
+        {"person_id": "ses-ekibi:0001", "canonical_name": "EKREM ÇINAROĞLU", "active": true},
+        {"person_id": "ses-ekibi:0002", "canonical_name": "AHMET MERSİNLI", "active": true},
+        {"person_id": "ses-ekibi:0003", "canonical_name": "EMİN UYSAL", "active": true}
+      ]
+    },
+    "MAKYAJ": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "makyaj:0001", "canonical_name": "NEVİN BARUT", "active": true}
+      ]
+    },
+    "ULASIM SORUMLUSU": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "ulasim:0001", "canonical_name": "NACİ KALENDER", "active": true}
+      ]
+    },
+    "SESLENDIRME YONETMENI": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "seslendirme-yonetmeni:0001", "canonical_name": "KAHRAMAN ACEHAN", "active": true}
+      ]
+    },
+    "EFEKT": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "efekt:0001", "canonical_name": "SUDİ YILMAZ", "active": true}
+      ]
+    },
+    "SES KAYIT": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "ses-kayit:0001", "canonical_name": "GÖKHAN ŞIRACI", "active": true}
+      ]
+    },
+    "MIKS": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "miks:0001", "canonical_name": "ERKAN AKTAŞ", "active": true}
+      ]
+    },
+    "EGLOMO": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "eglomo:0001", "canonical_name": "MUSTAFA KALKAN", "active": true}
+      ]
+    },
+    "SES KAYIT ISLEMLERI": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "ses-kayit-islemleri:0001", "canonical_name": "FONO FILM", "active": true}
+      ]
+    },
+    "JENERIK": {
+      "expected_count": 2,
+      "mode": "stable",
+      "members": [
+        {"person_id": "jenerik:0001", "canonical_name": "GRAFART", "active": true},
+        {"person_id": "jenerik:0002", "canonical_name": "İLHAN DEMİREL", "active": true}
+      ]
+    },
+    "JENERIK CEKIM": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "jenerik-cekim:0001", "canonical_name": "ÖZKAN SEVİNÇ", "active": true}
+      ]
+    },
+    "NEGATIF KURGU": {
+      "expected_count": 3,
+      "mode": "stable",
+      "members": [
+        {"person_id": "negatif-kurgu:0001", "canonical_name": "BÜLENT ÖZAYAN", "active": true},
+        {"person_id": "negatif-kurgu:0002", "canonical_name": "TAMER EŞKAZAN", "active": true},
+        {"person_id": "negatif-kurgu:0003", "canonical_name": "OKTAY HALİLOĞLU", "active": true}
+      ]
+    },
+    "RENK UZMANI": {
+      "expected_count": 2,
+      "mode": "stable",
+      "members": [
+        {"person_id": "renk-uzmani:0001", "canonical_name": "TÜRKER VATAN", "active": true},
+        {"person_id": "renk-uzmani:0002", "canonical_name": "ŞAKİR YÖRÜK", "active": true}
+      ]
+    },
+    "BASKI": {
+      "expected_count": 3,
+      "mode": "stable",
+      "members": [
+        {"person_id": "baski:0001", "canonical_name": "VELİ BURÇ", "active": true},
+        {"person_id": "baski:0002", "canonical_name": "ÖZKAN SEVİNÇ", "active": true},
+        {"person_id": "baski:0003", "canonical_name": "UĞUR ORBAY", "active": true}
+      ]
+    },
+    "YIKAMA": {
+      "expected_count": 4,
+      "mode": "stable",
+      "members": [
+        {"person_id": "yikama:0001", "canonical_name": "EKREM ŞEN", "active": true},
+        {"person_id": "yikama:0002", "canonical_name": "ARİF ŞENGÜL", "active": true},
+        {"person_id": "yikama:0003", "canonical_name": "ABDULLAH BARAN", "active": true},
+        {"person_id": "yikama:0004", "canonical_name": "ASLAN ÖZCAN", "active": true}
+      ]
+    },
+    "LABORATUVAR ISLEMLERI": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "laboratuvar:0001", "canonical_name": "ŞAFAK FILM", "active": true}
+      ]
+    }
+  }
+}
