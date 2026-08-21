@@ -7,6 +7,9 @@ matching:
   role_threshold: 0.78
   min_independent_sources: 2
   min_name_chars: 4
+  # Dizi adinin oyuncu sanilmasini engeller. Yalniz ilk satirlarda uygulanir.
+  series_title_threshold: 0.78
+  series_title_max_sequence: 6
 
 report:
   pdf: true
