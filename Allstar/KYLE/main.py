@@ -18,7 +18,7 @@ from src.hafiza import ProfileError, create_profile, load_profile
 from src.hizalama import annotate_sources
 from src.karar import decide
 from src.memory_patch import apply_patch, build_patch
-from src.rapor import build_public_changes, write_json_atomic, write_pdf
+from src.rapor import build_actor_roster, build_public_changes, write_json_atomic, write_pdf
 from src.roller import load_roles
 
 
@@ -49,7 +49,8 @@ def run_one(args: argparse.Namespace) -> int:
 
         roles = load_roles(cfg)
         annotated = annotate_sources(source_obs, memory, roles, cfg)
-        unknown = [x for x in annotated if not x.is_role_heading and not x.known_person_id]
+        unknown = [x for x in annotated
+                   if not x.is_metadata and not x.is_role_heading and not x.known_person_id]
         clusters = cluster_unknown(
             unknown,
             threshold=float(cfg["matching"]["unknown_cluster_threshold"]),
@@ -83,6 +84,15 @@ def run_one(args: argparse.Namespace) -> int:
                 }
                 for x in annotated if x.is_role_heading
             ],
+            "ignored_metadata": [
+                {
+                    "observation_id": x.observation.observation_id,
+                    "source": x.observation.source,
+                    "raw_text": x.observation.raw_text,
+                    "reason": x.review_reason,
+                }
+                for x in annotated if x.is_metadata
+            ],
             "unresolved": review,
         }
         status = "DEGISIKLIK_VAR" if decision_dicts else "DEGISIKLIK_YOK"
@@ -91,7 +101,9 @@ def run_one(args: argparse.Namespace) -> int:
         result_path = result.write(out_root)
         out_dir = result_path.parent
 
-        public = build_public_changes(args.series_id, args.episode_id, memory.title, decision_dicts)
+        actors = build_actor_roster(annotated, decision_dicts)
+        public = build_public_changes(
+            args.series_id, args.episode_id, memory.title, decision_dicts, actors=actors)
         write_json_atomic(out_dir / "degisiklikler.json", public)
         write_json_atomic(out_dir / "kanit.json", evidence)
         patch = build_patch(memory, args.episode_id, decision_dicts)
