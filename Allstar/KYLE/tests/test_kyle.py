@@ -198,3 +198,22 @@ def test_prose_metadata_breaks_last_role_context(tmp_path: Path):
     assert "laboratuvarlarında yapılmıştır." in ignored
     assert "Bu filmin çekiminde" in ignored
     assert "No credit text is visible in the provided images." in ignored
+
+
+def test_stable_single_holder_split_vote_is_review_not_change(tmp_path: Path):
+    profile = setup_iz_pesinde_profile(tmp_path)
+    _, result, _ = run_episode(
+        tmp_path, profile,
+        "Kurgu\nNEVZAT DİŞİAÇIK\n",
+        "Kurgu\nÍSMAİL KALKAN\n",
+        "Kurgu\nNEVZAT DİŞİAÇIK\n",
+        series_id="iz-pesinde",
+    )
+    assert result["durum"] == "DEGISIKLIK_YOK"
+    assert not any(x["role"] == "KURGU" for x in result["changes"])
+    conflict = next(x for x in result["review_candidates"]
+                    if x.get("role") == "KURGU" and x.get("candidate") == "NEVZAT DİŞİAÇIK")
+    assert conflict["reason"] == "KAYNAK_CELISKISI"
+    assert conflict["known_names"] == ["İSMAİL KALKAN"]
+    assert conflict["known_sources"] == ["nash"]
+    assert conflict["candidate_sources"] == ["jordan", "lebron"]
