@@ -8,11 +8,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def setup_profile(tmp_path: Path) -> Path:
+def setup_profile(tmp_path: Path, title: str = "Test Dizi") -> Path:
     seed = ROOT / "tests" / "fixtures" / "seed.json"
     profile = tmp_path / "profile.json"
     cmd = [sys.executable, str(ROOT / "main.py"), "profil-olustur",
-           "--series-id", "dizi1", "--title", "Test Dizi",
+           "--series-id", "dizi1", "--title", title,
            "--seed", str(seed), "--profile", str(profile)]
     subprocess.run(cmd, check=True, capture_output=True, text=True)
     return profile
@@ -121,3 +121,38 @@ def test_memory_patch_requires_explicit_apply(tmp_path: Path):
                    check=True, capture_output=True, text=True)
     after = json.loads(profile.read_text(encoding="utf-8"))
     assert after["roles"]["KONUK OYUNCULAR"]["members"][0]["canonical_name"] in {"SELİM KAYA", "SELIM KAYA"}
+
+
+def test_series_title_is_metadata_not_actor(tmp_path: Path):
+    profile = setup_profile(tmp_path, title="İZ PEŞİNDE")
+    _, result, outdir = run_episode(
+        tmp_path, profile,
+        "12 PEŞİNDE\nİZ PEŞİNDE\nKENAN IŞIK\nAYŞE DEMİR\n",
+        "IZ PESINDE\nKENEN ISIK\nAYSE DEMIR\n",
+    )
+    assert result["durum"] == "DEGISIKLIK_YOK"
+    assert all(x.get("new_name") not in {"İZ PEŞİNDE", "IZ PESINDE", "12 PEŞİNDE"}
+               for x in result["changes"])
+    evidence = json.loads((outdir / "kanit.json").read_text(encoding="utf-8"))
+    ignored = {x["raw_text"] for x in evidence["ignored_metadata"]}
+    assert "İZ PEŞİNDE" in ignored
+    assert "IZ PESINDE" in ignored
+
+
+def test_actor_roster_is_single_view_with_existing_and_new(tmp_path: Path):
+    profile = setup_profile(tmp_path)
+    _, result, outdir = run_episode(
+        tmp_path, profile,
+        "KENAN IŞIK\nSELİM KAYA\n",
+        "KENEN ISIK\nSELIM KAYA\n",
+        "KENAN IŞK\nSELİM KAYA\n",
+    )
+    assert result["durum"] == "DEGISIKLIK_VAR"
+    assert len(result["changes"]) == 1
+    assert result["changes"][0]["type"] == "NEW_MEMBER"
+
+    public = json.loads((outdir / "degisiklikler.json").read_text(encoding="utf-8"))
+    actors = {(x["name"], x["status"]) for x in public["actors"]}
+    assert ("KENAN IŞIK", "MEVCUT") in actors
+    assert any(name in {"SELİM KAYA", "SELIM KAYA"} and status == "YENİ"
+               for name, status in actors)
