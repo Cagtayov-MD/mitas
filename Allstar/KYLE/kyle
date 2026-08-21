@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+K="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -x "$K/venv/bin/python" ]]; then
+  PY="$K/venv/bin/python"
+else
+  PY="${PYTHON:-python3}"
+fi
+exec "$PY" "$K/main.py" "$@"
