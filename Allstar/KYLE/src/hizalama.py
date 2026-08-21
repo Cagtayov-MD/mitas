@@ -6,17 +6,24 @@ import re
 from .eslesme import match_known
 from .hafiza import SeriesMemory
 from .modeller import AnnotatedObservation, Observation
-from .normalizasyon import normal, similarity
+from .normalizasyon import loose, normal, similarity
 from .roller import RoleSpec, detect_role
 
 
 def _is_stop_metadata(text: str, cfg: dict) -> bool:
-    n = normal(text)
+    # Metadata/proza kaliplarinda Turkce I/İ ve aksan farklari anlamsizdir.
+    # loose(), "visible" -> VISI... ve "VISIBLE" gibi yazimlari ayni
+    # karsilastirma uzayina indirger; normal() ise bilincli olarak Turkce
+    # karakterleri korudugu icin Ingilizce i/I satirlarinda false-negative
+    # uretebilir.
+    compact = loose(text)
     for phrase in (cfg.get("metadata") or {}).get("stop_phrases") or []:
-        p = normal(str(phrase))
-        if p and p in n:
+        p = loose(str(phrase))
+        if p and p in compact:
             return True
+
     # "MART 1989" gibi tarih kartlari kredi sahibi degildir.
+    n = normal(text)
     if re.fullmatch(r"[A-ZÇĞİÖŞÜ]{3,12}\s+(?:19|20)\d{2}", n):
         return True
     return False
