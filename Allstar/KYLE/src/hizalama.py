@@ -1,12 +1,25 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import re
 
 from .eslesme import match_known
 from .hafiza import SeriesMemory
 from .modeller import AnnotatedObservation, Observation
-from .normalizasyon import similarity
+from .normalizasyon import normal, similarity
 from .roller import RoleSpec, detect_role
+
+
+def _is_stop_metadata(text: str, cfg: dict) -> bool:
+    n = normal(text)
+    for phrase in (cfg.get("metadata") or {}).get("stop_phrases") or []:
+        p = normal(str(phrase))
+        if p and p in n:
+            return True
+    # "MART 1989" gibi tarih kartlari kredi sahibi degildir.
+    if re.fullmatch(r"[A-ZÇĞİÖŞÜ]{3,12}\s+(?:19|20)\d{2}", n):
+        return True
+    return False
 
 
 def annotate_sources(source_observations: dict[str, list[Observation]], memory: SeriesMemory,
@@ -35,6 +48,15 @@ def annotate_sources(source_observations: dict[str, list[Observation]], memory: 
                     similarity(obs.raw_text, memory.title) >= title_threshold):
                 local.append(AnnotatedObservation(
                     obs, role=None, is_metadata=True, review_reason="DIZI_BASLIGI"))
+                continue
+
+            # Açıklama/teşekkür/tarih gibi kredi dışı satırlar son görülen rolün
+            # devamı değildir. Burada bağlamı kesmek kritik; aksi halde örn.
+            # "İÇİŞLERİ BAKANLIĞI'na" son teknik birimin yeni üyesi sanılabilir.
+            if _is_stop_metadata(obs.raw_text, cfg):
+                current_role = None
+                local.append(AnnotatedObservation(
+                    obs, role=None, is_metadata=True, review_reason="KREDI_DISI_METIN"))
                 continue
 
             role, _ = detect_role(obs.raw_text, roles, role_threshold)
