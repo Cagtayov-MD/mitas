@@ -7,9 +7,24 @@ matching:
   role_threshold: 0.78
   min_independent_sources: 2
   min_name_chars: 4
-  # Dizi adinin oyuncu sanilmasini engeller. Yalniz ilk satirlarda uygulanir.
   series_title_threshold: 0.78
   series_title_max_sequence: 6
+
+metadata:
+  stop_phrases:
+    - "STÜDYOSUNDA GERÇEKLEŞTİRİLMİŞTİR"
+    - "STUDYOSUNDA GERCEKLESTIRILMISTIR"
+    - "LABORATUVARLARINDA YAPILMIŞTIR"
+    - "LABORATUVARLARINDA YAPILMISTIR"
+    - "BU FİLMİN ÇEKİMİNDE"
+    - "BU FILMIN CEKIMINDE"
+    - "HER TÜRLÜ YARDIMI YAPAN"
+    - "HER TURLU YARDIMI YAPAN"
+    - "TEŞEKKÜR EDERİZ"
+    - "TESEKKUR EDERIZ"
+    - "BU FİLM TRT TARAFINDAN"
+    - "BU FILM TRT TARAFINDAN"
+    - "NO CREDIT TEXT IS VISIBLE"
 
 report:
   pdf: true
@@ -36,46 +51,16 @@ roles:
     mode: stable
     severity: KIRMIZI
     aliases: ["YONETMEN", "YÖNETMEN", "YONETEN", "YÖNETEN", "DIRECTOR", "DIRECTED BY", "REJI", "REJİ"]
-  ISIK SEFI:
-    label: "IŞIK ŞEFİ"
+  YONETMEN YARDIMCISI:
+    label: "YÖNETMEN YRD."
     mode: stable
     severity: KIRMIZI
-    aliases: ["ISIK SEFI", "IŞIK ŞEFİ", "ISIK ŞEFI", "IŞIK SEFI", "ILK SEF", "İLK ŞEF"]
-  KURGU:
-    label: "KURGU"
+    aliases: ["YONETMEN YRD", "YÖNETMEN YRD.", "YONETMEN YARDIMCISI", "YÖNETMEN YARDIMCISI", "ASSISTANT DIRECTOR"]
+  YAPIM:
+    label: "YAPIM"
     mode: stable
     severity: KIRMIZI
-    aliases: ["KURGU", "KURĞU", "KORG", "EDITOR", "EDITING"]
-  KAMERA:
-    label: "KAMERA"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["KAMERA", "KEMERA", "CAMERA"]
-  SENARYO:
-    label: "SENARYO"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["SENARYO", "SENAR", "SCREENPLAY", "WRITTEN BY"]
-  MUZIK:
-    label: "MÜZİK"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["MUZIK", "MÜZİK", "MUSIC"]
-  SES:
-    label: "SES"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["SES", "SES VE MIKSAJ", "SES VE MIZAJ", "SOUND", "SOUND MIX"]
-  GORUNTU YONETMENI:
-    label: "GÖRÜNTÜ YÖNETMENİ"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["GORUNTU YONETMENI", "GÖRÜNTÜ YÖNETMENİ", "DIRECTOR OF PHOTOGRAPHY", "DOP"]
-  SANAT YONETMENI:
-    label: "SANAT YÖNETMENİ"
-    mode: stable
-    severity: KIRMIZI
-    aliases: ["SANAT YONETMENI", "SANAT YÖNETMENİ", "ART DIRECTOR"]
+    aliases: ["YAPIM", "PRODUCTION"]
   YAPIMCI:
     label: "YAPIMCI"
     mode: stable
@@ -86,16 +71,146 @@ roles:
     mode: stable
     severity: KIRMIZI
     aliases: ["UYGULAYICI YAPIMCI", "EXECUTIVE PRODUCER"]
-  KOSTUM:
-    label: "KOSTÜM"
+  SENARYO:
+    label: "SENARYO"
     mode: stable
     severity: KIRMIZI
-    aliases: ["KOSTUM", "KOSTÜM", "COSTUME"]
+    aliases: ["SENARYO", "SENAR", "SCREENPLAY", "WRITTEN BY"]
+  KAMERA:
+    label: "KAMERA"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KAMERA", "KEMERA", "CAMERA"]
+  KAMERA YARDIMCISI:
+    label: "KAMERA YRD."
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KAMERA YRD", "KAMERA YRD.", "KAMERA YARDIMCISI", "CAMERA ASSISTANT"]
+  GORUNTU YONETMENI:
+    label: "GÖRÜNTÜ YÖNETMENİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["GORUNTU YONETMENI", "GÖRÜNTÜ YÖNETMENİ", "DIRECTOR OF PHOTOGRAPHY", "DOP"]
+  MUZIK:
+    label: "MÜZİK"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["MUZIK", "MÜZİK", "MUSIC"]
+  KURGU:
+    label: "KURGU"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KURGU", "KURĞU", "KORG", "EDITOR", "EDITING"]
+  NEGATIF KURGU:
+    label: "NEGATİF KURGU"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["NEGATIF KURGU", "NEGATİF KURGU"]
+  ISIK SEFI:
+    label: "IŞIK ŞEFİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["ISIK SEFI", "IŞIK ŞEFİ", "ISIK ŞEFI", "IŞIK SEFI", "ILK SEF", "İLK ŞEF", "INK SEFI"]
+  ISIK EKIBI:
+    label: "IŞIK EKİBİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["ISIK EKIBI", "IŞIK EKİBİ", "LIGHTING CREW"]
+  SES:
+    label: "SES"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SES", "SES VE MIKSAJ", "SES VE MIZAJ", "SOUND", "SOUND MIX"]
+  SES EKIBI:
+    label: "SES EKİBİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SES EKIBI", "SES EKİBİ", "SOUND CREW"]
+  SESLENDIRME YONETMENI:
+    label: "SESLENDİRME YÖNETMENİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SESLENDIRME YONETMENI", "SESLENDİRME YÖNETMENİ", "DUBBING DIRECTOR"]
+  SES KAYIT:
+    label: "SES KAYIT"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SES KAYIT", "SES KAYDI", "SOUND RECORDING"]
+  SES KAYIT ISLEMLERI:
+    label: "SES KAYIT İŞLEMLERİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SES KAYIT ISLEMLERI", "SES KAYIT İŞLEMLERİ"]
+  MIKS:
+    label: "MİKS"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["MIKS", "MİKS", "MIX", "MIXING"]
+  EFEKT:
+    label: "EFEKT"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["EFEKT", "EFFECT", "SOUND EFFECTS"]
+  PRODUKSIYON:
+    label: "PRODÜKSİYON"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["PRODUKSIYON", "PRODÜKSİYON"]
   MAKYAJ:
     label: "MAKYAJ"
     mode: stable
     severity: KIRMIZI
     aliases: ["MAKYAJ", "MAKEUP", "MAKE UP"]
+  KOSTUM:
+    label: "KOSTÜM"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["KOSTUM", "KOSTÜM", "COSTUME"]
+  ULASIM SORUMLUSU:
+    label: "ULAŞIM SORUMLUSU"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["ULASIM SORUMLUSU", "ULAŞIM SORUMLUSU", "TRANSPORTATION"]
+  EGLOMO:
+    label: "EGLOMO"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["EGLOMO"]
+  JENERIK:
+    label: "JENERİK"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["JENERIK", "JENERİK", "TITLES"]
+  JENERIK CEKIM:
+    label: "JENERİK ÇEKİM"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["JENERIK CEKIM", "JENERİK ÇEKİM"]
+  RENK UZMANI:
+    label: "RENK UZMANI"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["RENK UZMANI", "COLORIST", "COLOURIST"]
+  BASKI:
+    label: "BASKI"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["BASKI", "PRINT"]
+  YIKAMA:
+    label: "YIKAMA"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["YIKAMA", "PROCESSING"]
+  LABORATUVAR ISLEMLERI:
+    label: "LABORATUVAR İŞLEMLERİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["LABORATUVAR ISLEMLERI", "LABORATUVAR İŞLEMLERİ", "LABORATORY"]
+  SANAT YONETMENI:
+    label: "SANAT YÖNETMENİ"
+    mode: stable
+    severity: KIRMIZI
+    aliases: ["SANAT YONETMENI", "SANAT YÖNETMENİ", "ART DIRECTOR"]
   CASTING:
     label: "CASTING"
     mode: stable
