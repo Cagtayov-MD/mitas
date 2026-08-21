@@ -1,0 +1,31 @@
+{
+  "roles": {
+    "OYUNCULAR": {
+      "expected_count": 2,
+      "mode": "roster",
+      "members": [
+        {"person_id": "p1", "canonical_name": "KENAN IŞIK", "active": true},
+        {"person_id": "p2", "canonical_name": "AYŞE DEMİR", "active": true}
+      ]
+    },
+    "YONETMEN": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "d1", "canonical_name": "CENGİZ KURT", "active": true}
+      ]
+    },
+    "ISIK SEFI": {
+      "expected_count": 1,
+      "mode": "stable",
+      "members": [
+        {"person_id": "l1", "canonical_name": "AHMET YILMAZ", "active": true}
+      ]
+    },
+    "KONUK OYUNCULAR": {
+      "expected_count": 0,
+      "mode": "guest",
+      "members": []
+    }
+  }
+}
